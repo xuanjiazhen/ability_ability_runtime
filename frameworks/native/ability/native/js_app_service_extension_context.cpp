@@ -110,6 +110,7 @@ private:
     napi_value OnTerminateSelf(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+        HandleEscape handleEscape(env);
         TAG_LOGI(AAFwkTag::APP_SERVICE_EXT, "TerminateSelf");
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, innerErrCode]() {
@@ -123,6 +124,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else {
@@ -134,7 +136,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsAppServiceExtensionContext::TerminateSelf",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool CheckConnectionParam(napi_env env, napi_value value,
@@ -183,6 +185,7 @@ private:
 
     napi_value OnConnectAbility(napi_env env, NapiCallbackInfo& info)
     {
+        HandleEscape handleEscape(env);
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "called");
         // Check params count
@@ -207,6 +210,7 @@ private:
         auto execute = GetConnectAbilityExecFunc(want, connection, connectId, innerErrorCode);
         NapiAsyncTask::CompleteCallback complete = [connection, connectId, innerErrorCode](napi_env env,
             NapiAsyncTask& task, int32_t status) {
+            HandleScope handleScope(env);
             if (*innerErrorCode == 0) {
                 TAG_LOGI(AAFwkTag::APP_SERVICE_EXT, "Connect ability success");
                 task.ResolveWithNoError(env, CreateJsUndefined(env));
@@ -223,7 +227,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSAppServiceExtensionConnection::OnConnectAbility",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return CreateJsValue(env, connectId);
+        return handleEscape.Escape(CreateJsValue(env, connectId));
     }
 
     void FindConnection(int64_t connectId, AAFwk::Want& want, sptr<JSAppServiceExtensionConnection>& connection,
@@ -249,6 +253,7 @@ private:
     napi_value OnDisconnectAbility(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+        HandleEscape handleEscape(env);
         TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "called");
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "invalid argc");
@@ -283,6 +288,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else {
@@ -293,7 +299,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JSAppServiceExtensionConnection::OnDisconnectAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool CheckStartAbilityInputParam(napi_env env, NapiCallbackInfo& info,
@@ -317,6 +323,7 @@ private:
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+        HandleEscape handleEscape(env);
         TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "StartAbility");
 
         size_t unwrapArgc = 0;
@@ -346,6 +353,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            HandleScope handleScope(env);
             if (*innerErrCode == ERR_OK) {
                 task.ResolveWithNoError(env, CreateJsUndefined(env));
             } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -359,7 +367,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSAppServiceExtensionContext::OnStartAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 };
 } // namespace
@@ -367,6 +375,7 @@ private:
 napi_value CreateJsAppServiceExtensionContext(napi_env env, std::shared_ptr<AppServiceExtensionContext> context)
 {
     TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "called");
+    HandleEscape handleEscape(env);
     std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo = nullptr;
     if (context) {
         abilityInfo = context->GetAbilityInfo();
@@ -387,7 +396,7 @@ napi_value CreateJsAppServiceExtensionContext(napi_env env, std::shared_ptr<AppS
     BindNativeFunction(env, object, "startAbility", moduleName, JsAppServiceExtensionContext::StartAbility);
     BindNativeFunction(
         env, object, "terminateSelf", moduleName, JsAppServiceExtensionContext::TerminateSelf);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 }  // namespace AbilityRuntime

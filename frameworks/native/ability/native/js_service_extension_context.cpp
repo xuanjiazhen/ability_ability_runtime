@@ -247,6 +247,7 @@ private:
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info, bool isStartRecent = false)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+        HandleEscape handleEscape(env);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "StartAbility");
 
         size_t unwrapArgc = 0;
@@ -282,7 +283,7 @@ private:
             NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnStartAbility", env,
                 CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
         }
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool CheckUrl(std::string &urlValue)
@@ -353,6 +354,7 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "OnOpenLink");
+        HandleEscape handleEscape(env);
 
         std::string linkValue("");
         AAFwk::OpenLinkOptions openLinkOptions;
@@ -377,12 +379,14 @@ private:
             system_clock::now().time_since_epoch()).count());
         want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
 
-        return OnOpenLinkInner(env, want, startTime, linkValue, openLinkOptions.GetHideFailureTipDialog());
+        return handleEscape.Escape(OnOpenLinkInner(env, want, startTime, linkValue,
+            openLinkOptions.GetHideFailureTipDialog()));
     }
 
     napi_value OnOpenLinkInner(napi_env env, const AAFwk::Want& want,
         const std::string &startTime, const std::string &url, bool hideFailureTipDialog)
     {
+        HandleEscape handleEscape(env);
         auto innerErrorCode = std::make_shared<int>(ERR_OK);
         napi_value result = nullptr;
         AddFreeInstallObserver(env, want, nullptr, &result, true);
@@ -429,7 +433,7 @@ private:
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnOpenLink", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
         
-        return result;
+        return handleEscape.Escape(result);
     }
 
     std::pair<OnAtomicRequestSuccess, OnAtomicRequestFailure> CreateAtomicServiceCallBack(napi_env env,
@@ -438,6 +442,7 @@ private:
         const std::shared_ptr<NativeReference>& onRequestFailRef)
     {
         OnAtomicRequestSuccess onRequestSucc = [env, atomicServiceRef, onRequestSuccRef](const std::string &appId) {
+            HandleScope handleScope(env);
             napi_value argv[ARGC_ONE] = { CreateJsValue(env, appId) };
             napi_value completionHandlerForAtomicService = atomicServiceRef->GetNapiValue();
             napi_value onRequestSuccFunc = onRequestSuccRef->GetNapiValue();
@@ -458,6 +463,7 @@ private:
         };
         OnAtomicRequestFailure onRequestFail = [env, atomicServiceRef, onRequestFailRef](
             const std::string &appId, int32_t failureCode, const std::string &message) {
+            HandleScope handleScope(env);
             napi_value argv[ARGC_THREE] = { CreateJsValue(env, appId), CreateJsValue(env, failureCode),
                 CreateJsValue(env, message) };
             napi_value completionHandlerForAtomicService = atomicServiceRef->GetNapiValue();
@@ -519,6 +525,7 @@ private:
     napi_value OnOpenAtomicService(napi_env env, NapiCallbackInfo &info)
     {
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "OpenAtomicService");
+        HandleEscape handleEscape(env);
         if (info.argc == ARGC_ZERO) {
             ThrowTooFewParametersError(env);
             return CreateJsUndefined(env);
@@ -550,12 +557,13 @@ private:
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count());
         want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
-        return OpenAtomicServiceInner(env, want, startOptions, startTime);
+        return handleEscape.Escape(OpenAtomicServiceInner(env, want, startOptions, startTime));
     }
 
     napi_value OpenAtomicServiceInner(napi_env env, const AAFwk::Want &want, const AAFwk::StartOptions &options,
         std::string startTime)
     {
+        HandleEscape handleEscape(env);
         auto innerErrorCode = std::make_shared<int>(ERR_OK);
         napi_value result = nullptr;
         AddFreeInstallObserver(env, want, nullptr, &result);
@@ -595,7 +603,7 @@ private:
         };
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnOpenAtomicService", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnStartRecentAbility(napi_env env, NapiCallbackInfo& info, bool isStartRecent = false)
@@ -607,7 +615,7 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "StartAbilityAsCaller");
-
+        HandleEscape handleEscape(env);
         size_t unwrapArgc = 0;
         AAFwk::Want want;
         AAFwk::StartOptions startOptions;
@@ -628,6 +636,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -641,7 +650,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnStartAbilityAsCaller",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool CheckStartAbilityInputParam(napi_env env, NapiCallbackInfo& info,
@@ -670,6 +679,7 @@ private:
     napi_value OnStartAbilityByCall(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "StartAbilityByCall");
+        HandleEscape handleEscape(env);
         AAFwk::Want want;
         int32_t accountId = DEFAULT_INVAL_VALUE;
         if (!CheckStartAbilityByCallInputParam(env, info, want, accountId)) {
@@ -687,7 +697,7 @@ private:
             CreateAsyncTaskWithLastParam(env, nullptr, GetCallExecute(calls, want, context_, accountId),
                 GetCallComplete(calls), &result));
       
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool CheckStartAbilityByCallInputParam(
@@ -729,6 +739,7 @@ private:
         auto callComplete = [weak = context_, calldata = calls] (
             napi_env env, NapiAsyncTask& task, int32_t) {
             HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "ServiceCxt::callComplete");
+            HandleScope handleScope(env);
             if (calldata->err != 0) {
                 TAG_LOGE(AAFwkTag::SERVICE_EXT, "callComplete err: %{public}d", calldata->err);
                 ClearFailedCallConnection(weak, calldata->callerCallBack);
@@ -821,7 +832,7 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "StartAbilityWithAccount");
-
+        HandleEscape handleEscape(env);
         size_t unwrapArgc = 0;
         AAFwk::Want want;
         int32_t accountId = 0;
@@ -855,7 +866,7 @@ private:
             NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnStartAbilityWithAccount", env,
                 CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
         }
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool CheckStartAbilityWithAccountInputParam(
@@ -885,6 +896,7 @@ private:
     napi_value OnStartUIAbilities(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "call OnStartUIAbilities");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "Too few parameters.");
             ThrowTooFewParametersError(env);
@@ -927,7 +939,7 @@ private:
     
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnStartUIAbilities", env,
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
-        return callback.result;
+        return handleEscape.Escape(callback.result);
     }
     
     bool UnwrapWantList(napi_env env, NapiCallbackInfo &info, std::vector<AAFwk::Want> &wantList)
@@ -989,6 +1001,7 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "TerminateAbility");
+        HandleEscape handleEscape(env);
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, innerErrCode]() {
             auto context = weak.lock();
@@ -1001,6 +1014,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -1014,13 +1028,14 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnTerminateAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnConnectAbility(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+        HandleEscape handleEscape(env);
         // Check params count
         if (info.argc < ARGC_TWO) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
@@ -1059,13 +1074,14 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionConnection::OnConnectAbility",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return CreateJsValue(env, connectId);
+        return handleEscape.Escape(CreateJsValue(env, connectId));
     }
 
     napi_value OnConnectAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "ConnectAbilityWithAccount");
+        HandleEscape handleEscape(env);
         // Unwrap want, accountId and connection
         AAFwk::Want want;
         int32_t accountId = 0;
@@ -1088,6 +1104,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [connection, connectId, innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
                     task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode, "Context is released"));
                     RemoveConnection(connectId);
@@ -1103,7 +1120,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionConnection::OnConnectAbilityWithAccount",
             env, CreateAsyncTaskWithLastParam(env, nullptr, nullptr, std::move(complete), &result));
-        return CreateJsValue(env, connectId);
+        return handleEscape.Escape(CreateJsValue(env, connectId));
     }
 
     bool CheckConnectionParam(napi_env env, napi_value value,
@@ -1136,6 +1153,7 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -1150,7 +1168,6 @@ private:
         sptr<JSServiceExtensionConnection> connection = nullptr;
         int32_t accountId = -1;
         FindConnection(want, connection, connectId, accountId);
-        // begin disconnect
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, connection, accountId, innerErrCode]() {
             auto context = weak.lock();
@@ -1169,6 +1186,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -1183,7 +1201,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JSServiceExtensionConnection::OnDisconnectAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     void FindConnection(AAFwk::Want& want, sptr<JSServiceExtensionConnection>& connection, int64_t& connectId,
@@ -1211,6 +1229,7 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -1233,6 +1252,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -1246,12 +1266,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnStartExtensionAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnStartUIServiceExtension(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
+        HandleEscape handleEscape(env);
         if (info.argc <ARGC_TWO) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -1276,6 +1297,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.ResolveWithNoError(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -1289,13 +1311,14 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartUIServiceExtension",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnStartExtensionAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
+        HandleEscape handleEscape(env);
         AAFwk::Want want;
         int32_t accountId = -1;
         size_t unwrapArgc = 0;
@@ -1314,6 +1337,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -1327,13 +1351,14 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnStartExtensionAbilityWithAccount",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnStopExtensionAbility(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -1356,6 +1381,7 @@ private:
         };
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -1369,13 +1395,14 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JSServiceExtensionContext::OnStopExtensionAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnStopExtensionAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
+        HandleEscape handleEscape(env);
         AAFwk::Want want;
         int32_t accountId = -1;
         size_t unwrapArgc = 0;
@@ -1395,6 +1422,7 @@ private:
 
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -1408,13 +1436,13 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JSServiceExtensionContext::OnStopExtensionAbilityWithAccount",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     napi_value OnRequestModalUIExtension(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
-
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_ONE) {
             ThrowTooFewParametersError(env);
             return CreateJsUndefined(env);
@@ -1438,6 +1466,7 @@ private:
             *innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->RequestModalUIExtension(want);
         };
         NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+            HandleScope handleScope(env);
             if (*innerErrCode == ERR_OK) {
                 task.Resolve(env, CreateJsUndefined(env));
             } else {
@@ -1450,7 +1479,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnRequestModalUIExtension",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     bool ParsePreStartMissionArgs(const napi_env &env, const NapiCallbackInfo &info, std::string& bundleName,
@@ -1485,6 +1514,7 @@ private:
     napi_value OnPreStartMission(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_FOUR) {
             ThrowTooFewParametersError(env);
             return CreateJsUndefined(env);
@@ -1514,6 +1544,7 @@ private:
 
         NapiAsyncTask::CompleteCallback complete =
             [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+                HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.ResolveWithNoError(env, CreateJsUndefined(env));
                 } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
@@ -1526,7 +1557,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnPreStartMission",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 
     NapiAsyncTask::ExecuteCallback GetStartAbilityExecFunc(const AAFwk::Want &want,
@@ -1561,6 +1592,7 @@ private:
     NapiAsyncTask::CompleteCallback GetSimpleCompleteFunc(std::shared_ptr<int> retCode)
     {
         return [retCode](napi_env env, NapiAsyncTask& task, int32_t) {
+            HandleScope handleScope(env);
             if (!retCode) {
                 TAG_LOGE(AAFwkTag::SERVICE_EXT, "StartAbility failed");
                 task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
@@ -1598,6 +1630,7 @@ private:
 napi_value CreateJsServiceExtensionContext(napi_env env, std::shared_ptr<ServiceExtensionContext> context)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+    HandleEscape handleEscape(env);
     std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo = nullptr;
     if (context) {
         abilityInfo = context->GetAbilityInfo();
@@ -1625,8 +1658,7 @@ napi_value CreateJsServiceExtensionContext(napi_env env, std::shared_ptr<Service
     BindNativeFunction(env, object, "startAbilityWithAccount",
         moduleName, JsServiceExtensionContext::StartAbilityWithAccount);
     BindNativeFunction(env, object, "startUIAbilities", moduleName, JsServiceExtensionContext::StartUIAbilities);
-    BindNativeFunction(env, object, "startAbilityByCall",
-        moduleName, JsServiceExtensionContext::StartAbilityByCall);
+    BindNativeFunction(env, object, "startAbilityByCall", moduleName, JsServiceExtensionContext::StartAbilityByCall);
     BindNativeFunction(
         env, object, "connectAbilityWithAccount", moduleName, JsServiceExtensionContext::ConnectAbilityWithAccount);
     BindNativeFunction(env, object,
@@ -1649,7 +1681,7 @@ napi_value CreateJsServiceExtensionContext(napi_env env, std::shared_ptr<Service
         JsServiceExtensionContext::PreStartMission);
     BindNativeFunction(env, object, "openAtomicService", moduleName,
         JsServiceExtensionContext::OpenAtomicService);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 JSServiceExtensionConnection::JSServiceExtensionConnection(napi_env env) : env_(env) {}
@@ -1844,6 +1876,7 @@ void JSServiceExtensionConnection::RemoveConnectionObject()
 void JSServiceExtensionConnection::CallJsFailed(int32_t errorCode)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+    HandleScope handleScope(env_);
     if (jsConnectionObject_ == nullptr) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null jsConnectionObject_");
         return;
