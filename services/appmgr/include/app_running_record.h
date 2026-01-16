@@ -519,6 +519,8 @@ public:
      */
     void SetAppDeathRecipient(const sptr<AppDeathRecipient> &appDeathRecipient);
 
+    sptr<AppDeathRecipient> GetAppDeatchRecipient() const;
+
     /**
      * @brief Obtains application priority info.
      *
@@ -881,6 +883,20 @@ public:
     bool IsPreloading() const;
 
     bool IsPreloaded() const;
+
+    void SetMakeImageState(MakeImageState state);
+
+    MakeImageState GetMakeImageState() const;
+
+    void SetIsCreateFromImage(bool flag);
+
+    bool GetIsCreateFromImage() const;
+
+    void SetImageProcessType(ImageProcessType type);
+
+    ImageProcessType GetImageProcessType() const;
+
+    void SetNeedUpdate(bool needUpdate);
 
     void SetPreloadMode(PreloadMode mode);
 
@@ -1309,6 +1325,10 @@ private:
     PreloadMode preloadMode_ = PreloadMode::PRELOAD_NONE;
     PreloadPhase preloadPhase_ = PreloadPhase::UNSPECIFIED;
     SupportProcessCacheState procCacheSupportState_ = SupportProcessCacheState::UNSPECIFIED;
+    MakeImageState makeImageState_ = MakeImageState::NONE;
+    bool isCreateFromImage_ = false;
+    ImageProcessType imageProcessType_ = ImageProcessType::UNSPECIFIED;
+    bool needUpdate_ = false;
     int64_t startTimeMillis_ = 0;   // The time of app start(CLOCK_MONOTONIC)
     int64_t restartTimeMillis_ = 0; // The time of last trying app restart
 

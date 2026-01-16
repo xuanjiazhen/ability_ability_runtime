@@ -126,6 +126,8 @@ public:
      */
     virtual void OnTerminate();
 
+    virtual void OnUpdate();
+
     /**
      * @brief add the ability stage when a hap first load
      *
@@ -302,6 +304,10 @@ private:
         const AppExecFwk::HapModuleInfo &hapModuleInfo,
         const std::function<void()> &callback);
 
+    void AddAbility(std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage,
+        const sptr<IRemoteObject> &token,
+        const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord);
+
 #ifdef SUPPORT_SCREEN
     void RegisterGetAllUIAbilitiesCallback(
         const std::shared_ptr<AbilityRuntime::ApplicationContext> &context,
@@ -318,6 +324,7 @@ private:
     std::map<int32_t, std::string> extensionTypeMap_;
     std::string entryLoadPath_ = "";
     bool deduplicate_ = false;
+    bool isAbilityCreate_ = false;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
