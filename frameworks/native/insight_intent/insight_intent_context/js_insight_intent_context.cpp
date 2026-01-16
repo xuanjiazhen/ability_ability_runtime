@@ -55,8 +55,8 @@ napi_value JsInsightIntentContext::SetReturnModeForUiExtensionAbility(napi_env e
 
 napi_value JsInsightIntentContext::OnStartAbility(napi_env env, NapiCallbackInfo& info)
 {
-    TAG_LOGD(AAFwkTag::INTENT, "called");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    HandleEscape handleEscape(env);
 
     // unwrap want
     AAFwk::Want want;
@@ -101,6 +101,7 @@ napi_value JsInsightIntentContext::OnStartAbility(napi_env env, NapiCallbackInfo
     };
     // create complete task
     NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        HandleScope handleScope(env);
         if (*innerErrCode == ERR_OK) {
             task.Resolve(env, CreateJsUndefined(env));
         } else {
@@ -112,14 +113,14 @@ napi_value JsInsightIntentContext::OnStartAbility(napi_env env, NapiCallbackInfo
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsInsightIntentContext::OnStartAbility", env,
         CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-    TAG_LOGD(AAFwkTag::INTENT, "end");
-    return result;
+    return handleEscape.Escape(result);
 }
 
 napi_value JsInsightIntentContext::OnSetReturnModeForUiAbilityForeground(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGE(AAFwkTag::INTENT, "called");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    HandleScope handleScope(env);
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
         ThrowTooFewParametersError(env);
@@ -152,6 +153,7 @@ napi_value JsInsightIntentContext::OnSetReturnModeForUiExtensionAbility(napi_env
 {
     TAG_LOGE(AAFwkTag::INTENT, "called");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    HandleScope handleScope(env);
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
         ThrowTooFewParametersError(env);
@@ -184,6 +186,7 @@ napi_value JsInsightIntentContext::OnSetReturnModeForUiExtensionAbility(napi_env
 napi_value CreateJsInsightIntentContext(napi_env env, const std::shared_ptr<InsightIntentContext>& context)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
+    HandleEscape handleEscape(env);
     napi_value contextObj;
     napi_create_object(env, &contextObj);
 
@@ -198,7 +201,7 @@ napi_value CreateJsInsightIntentContext(napi_env env, const std::shared_ptr<Insi
     BindNativeFunction(env, contextObj, "setReturnModeForUIExtensionAbility", CONTEXT_MODULE_NAME,
         JsInsightIntentContext::SetReturnModeForUiExtensionAbility);
     TAG_LOGD(AAFwkTag::INTENT, "end");
-    return contextObj;
+    return handleEscape.Escape(contextObj);
 }
 
 bool CheckStartAbilityParam(napi_env env, NapiCallbackInfo& info, AAFwk::Want& want)
