@@ -814,7 +814,7 @@ bool MainThread::IsBgWorkingThread(const AbilityInfo &info)
 }
 
 void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemoteObject> &token,
-    const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId)
+    const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId, const std::shared_ptr<AppUpdateInfo> updateInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::APPKIT, "%{public}s called, ability %{public}s, type is %{public}d.",
@@ -835,13 +835,13 @@ void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemo
     FreezeUtil::GetInstance().AddLifecycleEvent(token, entry);
 
     wptr<MainThread> weak = this;
-    auto task = [weak, abilityRecord]() {
+    auto task = [weak, abilityRecord, updateInfo]() {
         auto appThread = weak.promote();
         if (appThread == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
-        appThread->HandleLaunchAbility(abilityRecord);
+        appThread->HandleLaunchAbility(abilityRecord, updateInfo);
         OHOS::AppExecFwk::EventHandler::SetVsyncLazyMode(true);
     };
     if (!mainHandler_->PostTask(task, "MainThread:LaunchAbility")) {
@@ -2025,6 +2025,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             TAG_LOGE(AAFwkTag::APPKIT, "null appMgr");
             return;
         }
+        appMgr_->PreloadModuleFinished(applicationImpl_->GetRecordId());
+        TAG_LOGI(AAFwkTag::APPKIT, "preload module finished");
     }
 }
 
@@ -2578,7 +2580,8 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
  * @param abilityRecord The abilityRecord which belongs to the ability launched.
  *
  */
-void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &abilityRecord)
+void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &abilityRecord,
+    std::shared_ptr<AppUpdateInfo> updateInfo)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     CHECK_POINTER_LOG(abilityRecord, "parameter(abilityRecord) is null");
@@ -2592,6 +2595,15 @@ void MainThread::HandleLaunchAbility(const std::shared_ptr<AbilityLocalRecord> &
     HITRACE_METER_NAME(HITRACE_TAG_APP, traceName);
     CHECK_POINTER_LOG(applicationImpl_, "applicationImpl_ is null");
     CHECK_POINTER_LOG(abilityRecordMgr_, "abilityRecordMgr_ is null");
+
+    if (updateInfo != nullptr && !applicationImpl_->IsUpdated()) {
+        applicationImpl_->SetRecordId(updateInfo->appRecordId);
+        AbilityRuntime::ApplicationContext::GetInstance()->SetAppRunningUniqueId(updateInfo->appRunningUniqueId);
+        applicationImpl_->MarkUpdated();
+        if (application_ != nullptr) {
+            application_->OnUpdate();
+        }
+    }
 
     if (!CheckAndUpdateRuntime(abilityRecord)) {
         TAG_LOGE(AAFwkTag::APPKIT, "UpdateRuntime failed");

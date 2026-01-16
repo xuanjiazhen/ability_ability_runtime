@@ -19,6 +19,8 @@
 #include "app_foreground_state_observer_stub.h"
 #include "app_mgr_proxy.h"
 #include "hilog_tag_wrapper.h"
+#include "image_error_handler_stub.h"
+#include "image_process_state_observer_stub.h"
 #include "mock_ability_foreground_state_observer_stub.h"
 #include "mock_app_mgr_service.h"
 #include "quick_fix_callback_stub.h"
@@ -41,6 +43,26 @@ public:
 
     void OnAppStateChanged(const AppStateData &appStateData) override
     {}
+};
+
+class MockImageErrorHandlerStub : public ImageErrorHandlerStub {
+public:
+    MockImageErrorHandlerStub() = default;
+    virtual ~MockImageErrorHandlerStub() = default;
+
+    void OnError(int32_t errCode) override
+    {}
+};
+
+class ImageProcessStateObserverMock : public ImageProcessStateObserverStub {
+public:
+    ImageProcessStateObserverMock() = default;
+    virtual ~ImageProcessStateObserverMock() = default;
+
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        return 0;
+    }
 };
 
 class RenderStateObserverMock : public RenderStateObserverStub {
@@ -1347,6 +1369,225 @@ HWTEST_F(AppMgrProxyTest, SetProcessPrepareExit_001, TestSize.Level2)
     EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _)).Times(1);
     auto pid = 100;
     appMgrProxy_->SetProcessPrepareExit(pid);
+}
+
+/**
+ * @tc.name: MakeImage_001
+ * @tc.desc: make image.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, MakeImage_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::string bundleName = "com.acts.makeimagetest";
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    appMgrProxy_->MakeImage(bundleName, userId, preloadMode, appIndex, nullptr);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::MAKE_IMAGE));
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: MakeImage_ShouldWriteErrorHandlerWhenErrorHandlerIsNotNullptr
+ * @tc.desc: make image.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, MakeImage_ShouldWriteErrorHandlerWhenErrorHandlerIsNotNullptr, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::string bundleName = "com.acts.makeimagetest";
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    sptr<MockImageErrorHandlerStub> errHandler = new (std::nothrow) MockImageErrorHandlerStub();
+    appMgrProxy_->MakeImage(bundleName, userId, preloadMode, appIndex, errHandler);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::MAKE_IMAGE));
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: DestroyImage_001
+ * @tc.desc: destroy image.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, DestroyImage_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::string bundleName = "com.acts.makeimagetest";
+    int32_t userId = 100;
+    int32_t appIndex = 0;
+
+    appMgrProxy_->DestroyImage(bundleName, userId, appIndex, nullptr);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::DESTROY_IMAGE));
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: DestroyImage_ShouldWriteErrorHandlerWhenErrorHandlerIsNotNullptr
+ * @tc.desc: destroy image.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, DestroyImage_ShouldWriteErrorHandlerWhenErrorHandlerIsNotNullptr, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::string bundleName = "com.acts.makeimagetest";
+    int32_t userId = 100;
+    int32_t appIndex = 0;
+    sptr<MockImageErrorHandlerStub> errHandler = new (std::nothrow) MockImageErrorHandlerStub();
+    appMgrProxy_->DestroyImage(bundleName, userId, appIndex, errHandler);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::DESTROY_IMAGE));
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: RemakeImage_001
+ * @tc.desc: remake image.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, RemakeImage_001, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::string bundleName = "com.acts.makeimagetest";
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    appMgrProxy_->RemakeImage(bundleName, userId, preloadMode, appIndex, nullptr);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::REMAKE_IMAGE));
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: RemakeImage_ShouldWriteErrorHandlerWhenErrorHandlerIsNotNullptr
+ * @tc.desc: remake image.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AppMgrProxyTest, RemakeImage_ShouldWriteErrorHandlerWhenErrorHandlerIsNotNullptr, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+
+    std::string bundleName = "com.acts.makeimagetest";
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    sptr<MockImageErrorHandlerStub> errHandler = new (std::nothrow) MockImageErrorHandlerStub();
+    appMgrProxy_->RemakeImage(bundleName, userId, preloadMode, appIndex, errHandler);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::REMAKE_IMAGE));
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: RegisterImageProcessStateObserver_0100
+ * @tc.desc: Verify that the RegisterImageProcessStateObserver parameter of the function is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, RegisterImageProcessStateObserver_0100, TestSize.Level2)
+{
+    sptr<IImageProcessStateObserver> observer = nullptr;
+    auto result = appMgrProxy_->RegisterImageProcessStateObserver(observer);
+    EXPECT_EQ(result, OHOS::ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RegisterImageProcessStateObserver_0200
+ * @tc.desc: Verify that the RegisterImageProcessStateObserver function is called normally.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, RegisterImageProcessStateObserver_0200, TestSize.Level2)
+{
+    sptr<IImageProcessStateObserver> observer = new ImageProcessStateObserverMock();
+    EXPECT_NE(observer, nullptr);
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+    appMgrProxy_->RegisterImageProcessStateObserver(observer);
+    EXPECT_EQ(mockAppMgrService_->code_,
+        static_cast<uint32_t>(AppMgrInterfaceCode::REGISTER_IMAGE_PROCESS_STATE_OBSERVER));
+}
+
+/**
+ * @tc.name: RegisterImageProcessStateObserver_0300
+ * @tc.desc: Verify that the RegisterImageProcessStateObserver function call SendRequest fail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, RegisterImageProcessStateObserver_0300, TestSize.Level2)
+{
+    sptr<IImageProcessStateObserver> observer = new ImageProcessStateObserverMock();
+    EXPECT_NE(observer, nullptr);
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(-1));
+    EXPECT_EQ(appMgrProxy_->RegisterImageProcessStateObserver(observer), -1);
+}
+
+/**
+ * @tc.name: UnregisterImageProcessStateObserver_0100
+ * @tc.desc: Verify that the UnregisterImageProcessStateObserver parameter of the function is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, UnregisterImageProcessStateObserver_0100, TestSize.Level2)
+{
+    sptr<IImageProcessStateObserver> observer = nullptr;
+    auto result = appMgrProxy_->UnregisterImageProcessStateObserver(observer);
+    EXPECT_EQ(result, OHOS::ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: UnregisterImageProcessStateObserver_0200
+ * @tc.desc: Verify that the UnregisterImageProcessStateObserver function is called normally.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, UnregisterImageProcessStateObserver_0200, TestSize.Level2)
+{
+    sptr<IImageProcessStateObserver> observer = new ImageProcessStateObserverMock();
+    EXPECT_NE(observer, nullptr);
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+    appMgrProxy_->UnregisterImageProcessStateObserver(observer);
+    EXPECT_EQ(mockAppMgrService_->code_,
+        static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_IMAGE_PROCESS_STATE_OBSERVER));
 }
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -176,5 +176,51 @@ HWTEST_F(AppSchedulerHostTest, HandleDetachAppDebug_002, TestSize.Level1)
     auto result = mockAppScheduler_->OnRemoteRequest(UNKNOWN_CODE, data, reply, option);
     EXPECT_EQ(result, IPC_STUB_UNKNOW_TRANS_ERR);
 }
+
+/**
+ * @tc.name: HandleScheduleLaunchAbility_ShouldReturnNoErrWhenNoUpdateInfo
+ * @tc.desc: Verify that HandleScheduleLaunchAbility interface calls normally.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerHostTest, HandleScheduleLaunchAbility_ShouldReturnNoErrWhenNoUpdateInfo, TestSize.Level1)
+{
+    EXPECT_NE(mockAppScheduler_, nullptr);
+    EXPECT_CALL(*mockAppScheduler_, ScheduleLaunchAbility(_, _, _, _, _)).Times(1);
+    MessageParcel data;
+    MessageParcel reply;
+    AbilityInfo abilityInfo;
+    data.WriteParcelable(&abilityInfo);
+    data.WriteBool(false);
+    auto want std::make_shared<AAFwk::Want>();
+    data.WriteParcelable(want.get());
+    int32_t abilityRecordId = 0;
+    data.WriteInt32(abilityRecordId);
+    data.WriteBool(false);
+    EXPECT_EQ(mockAppScheduler_->HandleScheduleLaunchAbility(data, reply), NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleScheduleLaunchAbility_ShouldReturnNoErrWhenHaveUpdateInfo
+ * @tc.desc: Verify that HandleScheduleLaunchAbility interface calls normally.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerHostTest, HandleScheduleLaunchAbility_ShouldReturnNoErrWhenHaveUpdateInfo, TestSize.Level1)
+{
+    EXPECT_NE(mockAppScheduler_, nullptr);
+    EXPECT_CALL(*mockAppScheduler_, ScheduleLaunchAbility(_, _, _, _, _)).Times(1);
+    MessageParcel data;
+    MessageParcel reply;
+    AbilityInfo abilityInfo;
+    data.WriteParcelable(&abilityInfo);
+    data.WriteBool(false);
+    auto want std::make_shared<AAFwk::Want>();
+    data.WriteParcelable(want.get());
+    int32_t abilityRecordId = 0;
+    data.WriteInt32(abilityRecordId);
+    auto updateInfo = std::make_shared<AppUpdateInfo>();
+    data.WriteBool(true);
+    data.WriteParcelable(updateInfo.get());
+    EXPECT_EQ(mockAppScheduler_->HandleScheduleLaunchAbility(data, reply), NO_ERROR);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

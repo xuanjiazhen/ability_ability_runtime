@@ -51,6 +51,15 @@ struct StartupTaskData : public Parcelable {
     static StartupTaskData *Unmarshalling(Parcel &parcel);
 };
 
+struct AppUpdateInfo : public Parcelable {
+    int32_t appRecordId = -1;
+    std::string appRunningUniqueId;
+
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static AppUpdateInfo *Unmarshalling(Parcel &parcel);
+};
+
 class AppLaunchData : public Parcelable {
 public:
     /**
