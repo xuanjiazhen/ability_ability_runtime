@@ -122,6 +122,28 @@ enum class PreloadPhase {
     WINDOW_STAGE_CREATED = 3
 };
 
+enum class MakeImageState {
+    NONE = 0,
+    MAKE_PRELOAD_START = 1,
+    MAKE_PRELOAD_FINISH = 2,
+    MAKE_IMAGE_START,
+    MAKE_IMAGE_FINISH,
+    DESTROY_START,
+    DESTROY_FINISH
+};
+
+enum class ImageProcessState {
+    UNSPECIFIED = -1,
+    IMAGE_PROCESS_CREATE = 0,
+    IMAGE_PROCESS_TERMINATED = 1
+};
+
+enum class ImageProcessType {
+    UNSPECIFIED = 0,
+    TEMPLATE = 1,
+    WORK = 2
+};
+
 enum class AppStartReason {
     NONE = 0,
     PRE_MAKE = 1,
