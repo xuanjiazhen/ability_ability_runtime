@@ -53,7 +53,7 @@ static uint64_t BuildStartFlags(const AAFwk::Want &want, const ApplicationInfo &
     }
 #endif // WITH_DLP
 
-    if (applicationInfo.debug && applicationInfo.appProvisionType == AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+    if (applicationInfo.debug) {
         startFlags = startFlags | (START_FLAG_BASE << StartFlags::DEBUGGABLE);
     }
     if (applicationInfo.asanEnabled) {

@@ -4260,7 +4260,6 @@ HWTEST_F(AppMgrServiceInnerTest, BuildStartFlags_003, TestSize.Level2)
     AAFwk::Want want;
     AbilityInfo abilityInfo;
     abilityInfo.applicationInfo.debug = true;
-    abilityInfo.applicationInfo.appProvisionType = AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG;
     uint64_t result = AppspawnUtil::BuildStartFlags(want, abilityInfo);
     uint64_t flag = 0x0;
     uint64_t baseFlag = 1;
