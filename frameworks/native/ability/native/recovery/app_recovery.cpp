@@ -216,6 +216,9 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
             this->freezeCallback();
             TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
         }
+#ifdef SUPPORT_SCREEN
+        panda::JSNApi::DisallowCrossThreadExecution(vm);
+#endif
         if (!ret) {
             return false;
         }
