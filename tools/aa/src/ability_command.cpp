@@ -1022,7 +1022,7 @@ ErrCode AbilityManagerShellCommand::RunAsSendMemoryLevelCommand()
     std::string pidParse = "";
     std::string memoryLevelParse = "";
     ParsePidMemoryLevel(pidParse, memoryLevelParse);
-    if(pidParse.empty() || memoryLevelParse.empty()) {
+    if (pidParse.empty() || memoryLevelParse.empty()) {
         resultReceiver_.append(HELP_MSG_SEND_MEMORY_LEVEL + "\n");
         return OHOS::ERR_INVALID_VALUE;
     }
