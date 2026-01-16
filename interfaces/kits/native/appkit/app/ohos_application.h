@@ -126,6 +126,8 @@ public:
      */
     virtual void OnTerminate();
 
+    virtual void OnUpdate();
+
     /**
      * @brief add the ability stage when a hap first load
      *
@@ -301,6 +303,10 @@ private:
         std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage,
         const AppExecFwk::HapModuleInfo &hapModuleInfo,
         const std::function<void()> &callback);
+
+    void AddAbility(std::shared_ptr<AbilityRuntime::AbilityStage> abilityStage,
+        const sptr<IRemoteObject> &token,
+        const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord);
 
 #ifdef SUPPORT_SCREEN
     void RegisterGetAllUIAbilitiesCallback(
