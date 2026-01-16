@@ -46,6 +46,10 @@ public:
 
     void OnDestroy() const override;
 
+    void OnUpdate() override;
+
+    void OnPreAbilityCreate() override;
+
     std::string OnAcceptWant(const AAFwk::Want &want,
         AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync) override;
 
