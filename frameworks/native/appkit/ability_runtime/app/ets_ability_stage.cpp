@@ -200,6 +200,24 @@ void ETSAbilityStage::OnDestroy() const
     CallObjectMethod(false, "onDestroy", ":");
 }
 
+void ETSAbilityStage::OnUpdate()
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnUpdate called");
+    AbilityStage::OnUpdate();
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnUpdate begin");
+    CallObjectMethod(false, "onUpdate", ":");
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnUpdate end");
+}
+
+void ETSAbilityStage::OnPreAbilityCreate()
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "OnPreAbilityCreate called");
+    AbilityStage::OnPreAbilityCreate();
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnPreAbilityCreate begin");
+    CallObjectMethod(false, "onPreAbilityCreate", ":");
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "ETSAbilityStage::OnPreAbilityCreate end");
+}
+
 std::string ETSAbilityStage::OnAcceptWant(const AAFwk::Want &want,
     AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo, bool &isAsync)
 {

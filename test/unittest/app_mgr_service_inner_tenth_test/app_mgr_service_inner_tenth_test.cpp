@@ -461,7 +461,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, OnRemoteDied_003, TestSize.Level1)
 
 /**
  * @tc.name: HandleTimeOut_001
- * @tc.desc: Test HandleTimeOut function
+ * @tc.desc: Test HandleTimeOutInner function
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrServiceInnerTenthTest, HandleTimeOut_001, TestSize.Level2)
@@ -478,14 +478,14 @@ HWTEST_F(AppMgrServiceInnerTenthTest, HandleTimeOut_001, TestSize.Level2)
     AAFwk::EventWrap innerEvent(AppExecFwk::AMSEventHandler::TERMINATE_APPLICATION_TIMEOUT_MSG);
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     EXPECT_FALSE(AAFwk::MyStatus::GetInstance().setStateCalled_);
-    appMgrServiceInner->HandleTimeOut(innerEvent);
+    appMgrServiceInner->HandleTimeOutInner(innerEvent);
     EXPECT_TRUE(AAFwk::MyStatus::GetInstance().setStateCalled_);
     TAG_LOGI(AAFwkTag::TEST, "HandleTimeOut_001 end");
 }
 
 /**
  * @tc.name: HandleTimeOut_002
- * @tc.desc: Test HandleTimeOut function
+ * @tc.desc: Test HandleTimeOutInner function
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrServiceInnerTenthTest, HandleTimeOut_002, TestSize.Level2)
@@ -502,14 +502,14 @@ HWTEST_F(AppMgrServiceInnerTenthTest, HandleTimeOut_002, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().resetNewProcessRequestCall_, 0);
     AAFwk::EventWrap innerEvent(AMSEventHandler::START_SPECIFIED_PROCESS_TIMEOUT_MSG);
-    appMgrServiceInner->HandleTimeOut(innerEvent);
+    appMgrServiceInner->HandleTimeOutInner(innerEvent);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().resetNewProcessRequestCall_, 1);
     TAG_LOGI(AAFwkTag::TEST, "HandleTimeOut_002 end");
 }
 
 /**
  * @tc.name: HandleTimeOut_003
- * @tc.desc: Test HandleTimeOut function
+ * @tc.desc: Test HandleTimeOutInner function
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrServiceInnerTenthTest, HandleTimeOut_003, TestSize.Level2)
@@ -526,14 +526,14 @@ HWTEST_F(AppMgrServiceInnerTenthTest, HandleTimeOut_003, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     AAFwk::EventWrap innerEvent(AMSEventHandler::START_PROCESS_SPECIFIED_ABILITY_TIMEOUT_MSG);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().resetSpecifiedRequestCall_, 0);
-    appMgrServiceInner->HandleTimeOut(innerEvent);
+    appMgrServiceInner->HandleTimeOutInner(innerEvent);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().resetSpecifiedRequestCall_, 1);
     TAG_LOGI(AAFwkTag::TEST, "HandleTimeOut_003 end");
 }
 
 /**
  * @tc.name: HandleTimeOut_004
- * @tc.desc: Test HandleTimeOut function
+ * @tc.desc: Test HandleTimeOutInner function
  * @tc.type: FUNC
  */
 HWTEST_F(AppMgrServiceInnerTenthTest, HandleTimeOut_004, TestSize.Level2)
@@ -550,7 +550,7 @@ HWTEST_F(AppMgrServiceInnerTenthTest, HandleTimeOut_004, TestSize.Level2)
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
     AAFwk::EventWrap innerEvent(AMSEventHandler::START_SPECIFIED_ABILITY_TIMEOUT_MSG);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().resetSpecifiedRequestCall_, 0);
-    appMgrServiceInner->HandleTimeOut(innerEvent);
+    appMgrServiceInner->HandleTimeOutInner(innerEvent);
     EXPECT_EQ(AAFwk::MyStatus::GetInstance().resetSpecifiedRequestCall_, 1);
     TAG_LOGI(AAFwkTag::TEST, "HandleTimeOut_004 end");
 }

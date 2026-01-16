@@ -45,6 +45,11 @@ public:
         virtual void OnRemoteDied(const wptr<IRemoteObject> &object) {}
     };
 
+    class RefreshRecipient : public virtual RefBase {
+    public:
+        virtual void OnRemoteRefreshed(const wptr<IRemoteObject> &object) {};
+    };
+
     virtual std::u16string GetInterfaceDescriptor()
     {
         return u"";

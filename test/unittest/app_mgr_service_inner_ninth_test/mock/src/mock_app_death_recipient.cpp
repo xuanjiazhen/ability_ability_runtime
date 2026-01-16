@@ -39,7 +39,8 @@ void AppDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 
     auto onRemoteDiedFunc = [appMgrServiceInner = appMgrServiceInner_, remote,
         isRenderProcess = isRenderProcess_,
-        isChildProcess = isChildProcess_]() {
+        isChildProcess = isChildProcess_,
+        isImageProcess = isImageProcess_]() {
         auto serviceInner = appMgrServiceInner.lock();
         if (!serviceInner) {
             TAG_LOGE(AAFwkTag::APPMGR, "null serviceInner");
@@ -70,6 +71,11 @@ void AppDeathRecipient::SetIsRenderProcess(bool isRenderProcess)
 void AppDeathRecipient::SetIsChildProcess(bool isChildProcess)
 {
     isChildProcess_ = isChildProcess;
+}
+
+void AppDeathRecipient::SetIsImageProcess(bool isImageProcess)
+{
+    isImageProcess_ = isImageProcess;
 }
 
 AppStateCallbackDeathRecipient::AppStateCallbackDeathRecipient(std::weak_ptr<AppMgrServiceInner> appMgrServiceInner)

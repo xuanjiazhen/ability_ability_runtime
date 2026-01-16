@@ -69,7 +69,8 @@ public:
      * @param ability The ability info.
      * @return
      */
-    void LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability);
+    void LaunchAbility(const std::shared_ptr<AbilityRunningRecord> &ability,
+        std::shared_ptr<AppUpdateInfo> updateInfo = nullptr);
 
     /**
      * ScheduleTerminate, call ScheduleTerminateApplication() through proxy project,

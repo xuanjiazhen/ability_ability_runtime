@@ -1599,6 +1599,82 @@ HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_RegisterGetAllUIAbi
     EXPECT_EQ(uiAbility.size(), 0);
     GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_RegisterGetAllUIAbilitiesCallback_0100 end.";
 }
+
+/*
+* @tc.number: OnUpdate_0100
+* @tc.name: OnUpdate
+* @tc.desc: Verify function OnUpdate
+*/
+HWTEST_F(OHOSApplicationTest, OnUpdate_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "OnUpdate_0100 start.";
+    auto ohosApplication = std::make_shared<OHOSApplication>();
+    ASSERT_NE(ohosApplication, nullptr);
+    ohosApplication->OnUpdate();
+    std::shared_ptr<AbilityRuntime::ApplicationContext> abilityRuntimeContext =
+        std::make_shared<AbilityRuntime::ApplicationContext>();
+    ASSERT_NE(abilityRuntimeContext, nullptr);
+    ohosApplication->SetApplicationContext(abilityRuntimeContext);
+    auto abilityStage = std::make_shared<AbilityRuntime::MockAbilityStage>();
+    ASSERT_NE(abilityStage, nullptr);
+    EXPECT_CALL(*abilityStage, OnUpdate()).Times(1);
+    ohosApplication->abilityStages_["test"] = abilityStage;
+    ohosApplication->OnUpdate();
+    GTEST_LOG_(INFO) << "OnUpdate_0100 end.";
+}
+
+/*
+* @tc.number: AddAbility_ShouldDonothingWhenInputIsInvalid
+* @tc.name: AddAbility
+* @tc.desc: Verify function AddAbility_ShouldDonothingWhenInputIsInvalid
+*/
+HWTEST_F(OHOSApplicationTest, AddAbility_ShouldDonothingWhenInputIsInvalid, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AddAbility_ShouldDonothingWhenInputIsInvalid start.";
+    auto ohosApplication = std::make_shared<OHOSApplication>();
+    ASSERT_NE(ohosApplication, nullptr);
+    auto abilityStage = std::make_shared<AbilityRuntime::AbilityStage>();
+    ASSERT_NE(abilityStage, nullptr);
+    ohosApplication->AddAbility(nullptr, nullptr, nullptr);
+    ohosApplication->AddAbility(abilityStage, nullptr, nullptr);
+    sptr<Notification::MockIRemoteObject> token = new (std::nothrow) Notification::MockIRemoteObject();
+    ohosApplication->AddAbility(abilityStage, token, nullptr);
+    EXPECT_FALSE(abilityStage->ContainsAbility());
+    GTEST_LOG_(INFO) << "AddAbility_ShouldDonothingWhenInputIsInvalid end.";
+}
+
+/*
+* @tc.number: AddAbility_ShouldAddAbilityToAbilityStageWhenInputIsValid
+* @tc.name: AddAbility
+* @tc.desc: Verify function AddAbility
+*/
+HWTEST_F(OHOSApplicationTest, AddAbility_ShouldAddAbilityToAbilityStageWhenInputIsValid, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AddAbility_ShouldAddAbilityToAbilityStageWhenInputIsValid start.";
+    auto ohosApplication = std::make_shared<OHOSApplication>();
+    ASSERT_NE(ohosApplication, nullptr);
+    auto abilityStage = std::make_shared<AbilityRuntime::AbilityStage>();
+    ASSERT_NE(abilityStage, nullptr);
+    sptr<Notification::MockIRemoteObject> token = new (std::nothrow) Notification::MockIRemoteObject();
+    auto abilityRecord = std::make_shared<AbilityLocalRecord>(nullptr, token, nullptr, 0);
+    ohosApplication->AddAbility(abilityStage, token, abilityRecord);
+    EXPECT_TRUE(abilityStage->ContainsAbility());
+
+    abilityStage->RemoveAbility(token);
+    EXPECT_FALSE(abilityStage->ContainsAbility());
+    std::shared_ptr<AbilityRuntime::ApplicationContext> abilityRuntimeContext =
+        std::make_shared<AbilityRuntime::ApplicationContext>();
+    ASSERT_NE(abilityRuntimeContext, nullptr);
+    ohosApplication->SetApplicationContext(abilityRuntimeContext);
+    ohosApplication->AddAbility(abilityStage, token, abilityRecord);
+    EXPECT_TRUE(abilityStage->ContainsAbility());
+
+    abilityStage->RemoveAbility(token);
+    EXPECT_FALSE(abilityStage->ContainsAbility());
+    ohosApplication->AddAbility(abilityStage, token, abilityRecord);
+    EXPECT_TRUE(abilityStage->ContainsAbility());
+    GTEST_LOG_(INFO) << "AddAbility_ShouldAddAbilityToAbilityStageWhenInputIsValid end.";
+}
 #endif
 }  // namespace AppExecFwk
 }  // namespace OHOS

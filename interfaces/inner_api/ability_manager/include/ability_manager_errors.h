@@ -1096,6 +1096,11 @@ enum {
     ERR_SELF_REDIRECTION_DISALLOWED = 2099202,
 
     /**
+     * Result (2099203) for pid has been reused.
+     */
+    ERR_PID_HAS_BEEN_REUSED = 2099203,
+
+    /**
      * Result (2099210-2099410) Error code for agent runtime.
      */
     // Result (2099210) for agent manager proxy is nullptr.
