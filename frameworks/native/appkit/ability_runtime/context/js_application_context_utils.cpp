@@ -1017,10 +1017,7 @@ napi_value JsApplicationContextUtils::OnGetAllWindowStages(napi_env env, NapiCal
         }
         uint32_t index = 0;
         for (const auto &item : *uiAbility) {
-            if (item == nullptr) {
-                continue;
-            }
-            napi_value windowStage = item->GetWindowStage();
+            napi_value windowStage = item ? item->GetWindowStage() : nullptr;
             if (windowStage == nullptr) {
                 continue;
             }
@@ -1526,8 +1523,7 @@ napi_value JsApplicationContextUtils::OnOff(napi_env env, NapiCallbackInfo& info
     std::string type;
     if (!ConvertFromJsValue(env, info.argv[0], type)) {
         TAG_LOGE(AAFwkTag::APPKIT, "convert type failed");
-        ThrowInvalidParamError(env,
-            "Parse param type failed, type must be string.");
+        ThrowInvalidParamError(env, "Parse param type failed, type must be string.");
         return CreateJsUndefined(env);
     }
 

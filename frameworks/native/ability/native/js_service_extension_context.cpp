@@ -1185,8 +1185,7 @@ private:
             TAG_LOGD(AAFwkTag::SERVICE_EXT, "context->DisconnectAbility");
             *innerErrCode = context->DisconnectAbility(want, connection, accountId);
         };
-        NapiAsyncTask::CompleteCallback complete =
-            [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
                 HandleScope handleScope(env);
                 if (*innerErrCode == ERR_OK) {
                     task.Resolve(env, CreateJsUndefined(env));
@@ -1675,14 +1674,11 @@ napi_value CreateJsServiceExtensionContext(napi_env env, std::shared_ptr<Service
         JsServiceExtensionContext::StopServiceExtensionAbility);
     BindNativeFunction(env, object, "stopServiceExtensionAbilityWithAccount", moduleName,
         JsServiceExtensionContext::StopServiceExtensionAbilityWithAccount);
-    BindNativeFunction(env, object, "startRecentAbility", moduleName,
-        JsServiceExtensionContext::StartRecentAbility);
+    BindNativeFunction(env, object, "startRecentAbility", moduleName, JsServiceExtensionContext::StartRecentAbility);
     BindNativeFunction(env, object, "requestModalUIExtension", moduleName,
         JsServiceExtensionContext::RequestModalUIExtension);
-    BindNativeFunction(env, object, "preStartMission", moduleName,
-        JsServiceExtensionContext::PreStartMission);
-    BindNativeFunction(env, object, "openAtomicService", moduleName,
-        JsServiceExtensionContext::OpenAtomicService);
+    BindNativeFunction(env, object, "preStartMission", moduleName, JsServiceExtensionContext::PreStartMission);
+    BindNativeFunction(env, object, "openAtomicService", moduleName, JsServiceExtensionContext::OpenAtomicService);
     return handleEscape.Escape(object);
 }
 

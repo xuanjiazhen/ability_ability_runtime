@@ -246,8 +246,7 @@ void JsUIExtension::BindContext(napi_env env, napi_value obj, std::shared_ptr<AA
         [](napi_env, void* data, void*) {
             TAG_LOGD(AAFwkTag::UI_EXT, "Finalizer for weak_ptr ui extension context is called");
             delete static_cast<std::weak_ptr<UIExtensionContext>*>(data);
-        },
-        nullptr, nullptr);
+        }, nullptr, nullptr);
     if (status != napi_ok && workContext != nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "napi_wrap Failed: %{public}d", status);
         delete workContext;
