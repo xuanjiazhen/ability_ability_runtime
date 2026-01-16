@@ -21,6 +21,7 @@
 
 #include "ability_lifecycle_callback.h"
 #include "application_state_change_callback.h"
+#include "application_update_callback.h"
 #include "context.h"
 #include "context_impl.h"
 #include "environment_callback.h"
@@ -49,6 +50,8 @@ public:
     void UnregisterEnvironmentCallback(const std::shared_ptr<EnvironmentCallback> &environmentCallback);
     void RegisterApplicationStateChangeCallback(
         const std::weak_ptr<ApplicationStateChangeCallback> &applicationStateChangeCallback);
+    void RegisterApplicationUpdateCallback(
+        const std::weak_ptr<ApplicationUpdateCallback> &applicationUpdateCallback);
     void DispatchOnAbilityCreate(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnAbilityCreate(std::shared_ptr<InteropObject> ability);
     void DispatchOnWindowStageCreate(const AbilityLifecycleCallbackArgs &ability,
@@ -81,6 +84,8 @@ public:
     void DispatchMemoryLevel(const int level);
     void NotifyApplicationForeground();
     void NotifyApplicationBackground();
+    void NotifyApplicationUpdate();
+    void NotifyApplicationPreAbilityCreate();
     void DispatchOnWillNewWant(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnNewWant(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnAbilityWillCreate(const AbilityLifecycleCallbackArgs &ability);
@@ -218,10 +223,12 @@ private:
     static std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> interopCallbacks_;
     static std::vector<std::shared_ptr<EnvironmentCallback>> envCallbacks_;
     static std::vector<std::weak_ptr<ApplicationStateChangeCallback>> applicationStateCallback_;
+    static std::vector<std::weak_ptr<ApplicationUpdateCallback>> applicationUpdateCallback_;
     std::recursive_mutex callbackLock_;
     std::mutex interopCallbackLock_;
     std::recursive_mutex envCallbacksLock_;
     std::recursive_mutex applicationStateCallbackLock_;
+    std::recursive_mutex applicationUpdateCallbackLock_;
     bool applicationInfoUpdateFlag_ = false;
     AppConfigUpdateCallback appConfigChangeCallback_ = nullptr;
     AppConfigUpdateCallback appFontCallback_ = nullptr;

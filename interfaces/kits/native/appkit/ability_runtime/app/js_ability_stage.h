@@ -62,6 +62,10 @@ public:
 
     void OnConfigurationUpdated(const AppExecFwk::Configuration& configuration) override;
 
+    void OnUpdate() override;
+    
+    void OnPreAbilityCreate() override;
+
     void OnMemoryLevel(int32_t level) override;
 
     int32_t RunAutoStartupTask(const std::function<void()> &callback, std::shared_ptr<AAFwk::Want> want,

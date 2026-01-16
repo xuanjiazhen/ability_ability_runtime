@@ -33,6 +33,7 @@ std::vector<std::shared_ptr<AbilityLifecycleCallback>> ApplicationContext::callb
 std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> ApplicationContext::interopCallbacks_;
 std::vector<std::shared_ptr<EnvironmentCallback>> ApplicationContext::envCallbacks_;
 std::vector<std::weak_ptr<ApplicationStateChangeCallback>> ApplicationContext::applicationStateCallback_;
+std::vector<std::weak_ptr<ApplicationUpdateCallback>> ApplicationContext::applicationUpdateCallback_;
 
 std::shared_ptr<ApplicationContext> ApplicationContext::GetInstance()
 {
@@ -139,6 +140,14 @@ void ApplicationContext::RegisterApplicationStateChangeCallback(
 {
     std::lock_guard<std::recursive_mutex> lock(applicationStateCallbackLock_);
     applicationStateCallback_.push_back(applicationStateChangeCallback);
+}
+
+void ApplicationContext::RegisterApplicationUpdateCallback(
+    const std::weak_ptr<ApplicationUpdateCallback> &applicationUpdateCallback)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "register update callback");
+    std::lock_guard<std::recursive_mutex> lock(applicationUpdateCallbackLock_);
+    applicationUpdateCallback_.push_back(applicationUpdateCallback);
 }
 
 void ApplicationContext::DispatchOnAbilityCreate(const AbilityLifecycleCallbackArgs &ability)
@@ -553,6 +562,28 @@ void ApplicationContext::NotifyApplicationBackground()
         auto callbackSptr = callback.lock();
         if (callbackSptr != nullptr) {
             callbackSptr->NotifyApplicationBackground();
+        }
+    }
+}
+
+void ApplicationContext::NotifyApplicationUpdate()
+{
+    std::lock_guard<std::recursive_mutex> lock(applicationUpdateCallbackLock_);
+    for (auto callback : applicationUpdateCallback_) {
+        auto callbackSptr = callback.lock();
+        if (callbackSptr != nullptr) {
+            callbackSptr->NotifyApplicationUpdate();
+        }
+    }
+}
+
+void ApplicationContext::NotifyApplicationPreAbilityCreate()
+{
+    std::lock_guard<std::recursive_mutex> lock(applicationUpdateCallbackLock_);
+    for (auto callback : applicationUpdateCallback_) {
+        auto callbackSptr = callback.lock();
+        if (callbackSptr != nullptr) {
+            callbackSptr->NotifyApplicationPreAbilityCreate();
         }
     }
 }

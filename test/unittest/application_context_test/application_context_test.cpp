@@ -21,6 +21,7 @@
 #include "js_ability_lifecycle_callback.h"
 #include "mock_ability_token.h"
 #include "mock_application_state_change_callback.h"
+#include "mock_application_update_callback.h"
 #include "mock_context_impl.h"
 #include "mock_interop_ability_lifecycle_callback.h"
 #include "running_process_info.h"
@@ -2079,6 +2080,56 @@ HWTEST_F(ApplicationContextTest, GetConfigUpdateReason_0200, TestSize.Level1)
     ret = context_->GetConfigUpdateReason();
     EXPECT_EQ(ret, ConfigUpdateReason::CONFIG_UPDATE_REASON_IN_WHITE_LIST);
     GTEST_LOG_(INFO) << "GetConfigUpdateReason_0200 end";
+}
+
+/**
+ * @tc.number: RegisterApplicationUpdateCallback_0100
+ * @tc.name: RegisterApplicationUpdateCallback
+ * @tc.desc: pass in nullptr parameters, and the callback saved in the ApplicationContext is also nullptr
+ */
+HWTEST_F(ApplicationContextTest, RegisterApplicationUpdateCallback_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RegisterApplicationUpdateCallback_0100 start";
+    std::shared_ptr<MockApplicationUpdateCallback> applicationUpdateCallback = nullptr;
+    context_->RegisterApplicationUpdateCallback(applicationUpdateCallback);
+    EXPECT_EQ(1, context_->applicationUpdateCallback_.size());
+    GTEST_LOG_(INFO) << "RegisterApplicationUpdateCallback_0100 end";
+}
+
+/**
+ * @tc.number: NotifyApplicationUpdate_0100
+ * @tc.name: NotifyApplicationUpdate
+ * @tc.desc: pass 1 register a valid callback, NotifyApplicationUpdate is called
+ *                2 the callback saved in the ApplicationContext is valid
+ */
+HWTEST_F(ApplicationContextTest, NotifyApplicationUpdate_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "NotifyApplicationUpdate_0100 start";
+
+    auto applicationUpdateCallback = std::make_shared<MockApplicationUpdateCallback>();
+    context_->RegisterApplicationUpdateCallback(applicationUpdateCallback);
+    EXPECT_CALL(*applicationUpdateCallback, NotifyApplicationUpdate()).Times(1);
+    context_->NotifyApplicationUpdate();
+    EXPECT_NE(context_, nullptr);
+    GTEST_LOG_(INFO) << "NotifyApplicationUpdate_0100 end";
+}
+
+/**
+ * @tc.number: NotifyApplicationPreAbilityCreate_0100
+ * @tc.name: NotifyApplicationPreAbilityCreate
+ * @tc.desc: pass 1 register a valid callback, NotifyApplicationPreAbilityCreate is called
+ *                2 the callback saved in the ApplicationContext is valid
+ */
+HWTEST_F(ApplicationContextTest, NotifyApplicationPreAbilityCreate_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "NotifyApplicationPreAbilityCreate_0100 start";
+
+    auto applicationUpdateCallback = std::make_shared<MockApplicationUpdateCallback>();
+    context_->RegisterApplicationUpdateCallback(applicationUpdateCallback);
+    EXPECT_CALL(*applicationUpdateCallback, NotifyApplicationPreAbilityCreate()).Times(1);
+    context_->NotifyApplicationPreAbilityCreate();
+    EXPECT_NE(context_, nullptr);
+    GTEST_LOG_(INFO) << "NotifyApplicationPreAbilityCreate_0100 end";
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

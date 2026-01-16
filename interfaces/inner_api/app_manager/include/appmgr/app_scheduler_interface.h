@@ -154,7 +154,8 @@ public:
      * @param token The ability token.
      */
     virtual void ScheduleLaunchAbility(const AbilityInfo &, const sptr<IRemoteObject> &,
-        const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId) = 0;
+        const std::shared_ptr<AAFwk::Want> &want, int32_t abilityRecordId,
+        std::shared_ptr<AppUpdateInfo> updateInfo = nullptr) = 0;
 
     /**
      * ScheduleCleanAbility, call ScheduleCleanAbility() through proxy project,
