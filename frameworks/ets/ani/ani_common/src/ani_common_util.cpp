@@ -219,7 +219,7 @@ bool GetFieldIntByName(ani_env *env, ani_object object, const char *name, int32_
     }
     ani_int aniInt = 0;
     if ((status = env->Object_CallMethodByName_Int(
-        reinterpret_cast<ani_object>(field), "intValue", nullptr, &aniInt)) != ANI_OK) {
+        reinterpret_cast<ani_object>(field), "toInt", nullptr, &aniInt)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -274,7 +274,7 @@ bool GetFieldLongByName(ani_env *env, ani_object object, const char *name, int64
     }
     ani_long aniLong = 0;
     if ((status = env->Object_CallMethodByName_Long(
-        reinterpret_cast<ani_object>(field), "longValue", nullptr, &aniLong)) != ANI_OK) {
+        reinterpret_cast<ani_object>(field), "toLong", nullptr, &aniLong)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -1130,7 +1130,7 @@ bool GetLongPropertyObject(ani_env *env, ani_object param, const char *name, ani
         return false;
     }
     if ((status = env->Object_CallMethodByName_Long(
-        reinterpret_cast<ani_object>(obj), "longValue", nullptr, &value)) != ANI_OK) {
+        reinterpret_cast<ani_object>(obj), "toLong", nullptr, &value)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -1151,7 +1151,7 @@ bool GetIntPropertyObject(ani_env *env, ani_object param, const char *name, ani_
         return false;
     }
     if ((status = env->Object_CallMethodByName_Int(
-        reinterpret_cast<ani_object>(obj), "intValue", nullptr, &value)) != ANI_OK) {
+        reinterpret_cast<ani_object>(obj), "toInt", nullptr, &value)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
