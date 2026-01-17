@@ -619,6 +619,22 @@ HWTEST_F(UriUtilsTest, GrantShellUriPermission_001, TestSize.Level1)
 
 /*
  * Feature: UriUtils
+ * Function: GrantShellUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriUtils GrantShellUriPermission
+ */
+HWTEST_F(UriUtilsTest, GrantShellUriPermission_002, TestSize.Level1)
+{
+    std::vector<std::string> strUriVec = {"http://data/storage/el2/distributedfiles/test.txt"};
+    uint32_t flag = 0;
+    std::string targetPkg;
+    int32_t appIndex = 101;
+    bool res = UriUtils::GetInstance().GrantShellUriPermission(strUriVec, flag, targetPkg, appIndex);
+    EXPECT_EQ(res, true);
+}
+
+/*
+ * Feature: UriUtils
  * Function: CheckUriPermission
  * SubFunction: NA
  * FunctionPoints: UriUtils CheckUriPermission

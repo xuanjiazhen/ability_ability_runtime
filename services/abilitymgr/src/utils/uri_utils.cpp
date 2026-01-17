@@ -312,7 +312,7 @@ bool UriUtils::GrantShellUriPermission(const std::vector<std::string> &strUriVec
     for (auto&& str : strUriVec) {
         Uri uri(str);
         auto&& scheme = uri.GetScheme();
-        if (scheme != "content") {
+        if (scheme != "content" && scheme == "file") {
             return false;
         }
         uriVec.emplace_back(uri);
