@@ -28,6 +28,8 @@ ohos_shared_library("agentmgr") {
   ]
   sources = [
     "src/agent_bundle_event_callback.cpp",
+    "src/agent_card_db_mgr.cpp",
+    "src/agent_card_mgr.cpp",
     "src/agent_event_handler.cpp",
     "src/agent_manager_service.cpp",
   ]
@@ -51,6 +53,7 @@ ohos_shared_library("agentmgr") {
     "hilog:libhilog",
     "ipc:ipc_core",
     "json:nlohmann_json_static",
+    "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
