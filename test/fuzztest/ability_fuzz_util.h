@@ -44,6 +44,7 @@ constexpr size_t CODE_TWO = 2;
 constexpr size_t CODE_THREE = 3;
 constexpr size_t CODE_FOUR = 4;
 constexpr size_t CODE_FIVE = 5;
+constexpr size_t CODE_SEVEN = 7;
 constexpr size_t CODE_TEN = 10;
 constexpr size_t CODE_FOURTEEN = 14;
 constexpr size_t CODE_TWENTYFIVE = 25;
