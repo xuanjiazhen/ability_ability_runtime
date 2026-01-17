@@ -41,6 +41,8 @@ bool IsOnlyForModal(const AppExecFwk::ExtensionAbilityType type);
 bool IsEnterpriseAdmin(const AppExecFwk::ExtensionAbilityType type);
 
 bool IsWindowExtension(const AppExecFwk::ExtensionAbilityType type);
+
+bool IsProcessUdkeyExtension(const AppExecFwk::ExtensionAbilityType type);
 } // namespace UIExtensionWrapper
 } // namespace AAFwk
 } // namespace OHOS

@@ -60,6 +60,11 @@ bool IsWindowExtension(const AppExecFwk::ExtensionAbilityType type)
 {
     return OHOS::AAFwk::UIExtensionUtils::IsWindowExtension(type);
 }
+
+bool IsProcessUdkeyExtension(const AppExecFwk::ExtensionAbilityType type)
+{
+    return OHOS::AAFwk::UIExtensionUtils::IsProcessUdkeyExtension(type);
+}
 } // namespace UIExtensionWrapper
 } // namespace AAFwk
 } // namespace OHOS
