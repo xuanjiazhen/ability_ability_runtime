@@ -31,6 +31,7 @@ std::unique_ptr<NapiAsyncTask> CreateAsyncTaskWithLastParam(napi_env env, napi_v
     napi_typeof(env, lastParam, &type);
     if (lastParam == nullptr || type != napi_function) {
         napi_deferred nativeDeferred = nullptr;
+        HandleScope handleScope(env);
         napi_create_promise(env, &nativeDeferred, result);
         return std::make_unique<NapiAsyncTask>(nativeDeferred, std::move(execute), std::move(complete));
     } else {
@@ -54,6 +55,7 @@ napi_value CreateJsError(napi_env env, int32_t errCode, const std::string& messa
 void BindNativeFunction(napi_env env, napi_value object, const char* name,
     const char* moduleName, napi_callback func)
 {
+    HandleScope handleScope(env);
     std::string fullName(moduleName);
     fullName += ".";
     fullName += name;
@@ -486,6 +488,7 @@ std::unique_ptr<NapiAsyncTask> CreateEmptyAsyncTask(napi_env env, napi_value las
     napi_typeof(env, lastParam, &type);
     if (lastParam == nullptr || type != napi_function) {
         napi_deferred nativeDeferred = nullptr;
+        HandleScope handleScope(env);
         napi_create_promise(env, &nativeDeferred, result);
         return std::make_unique<NapiAsyncTask>(nativeDeferred, std::unique_ptr<NapiAsyncTask::ExecuteCallback>(),
             std::unique_ptr<NapiAsyncTask::CompleteCallback>());
