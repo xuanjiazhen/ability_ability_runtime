@@ -424,7 +424,7 @@ int32_t AppExitReasonDataManager::AddAbilityRecoverInfo(uint32_t accessTokenId,
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
         if (!CheckKvStore()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStore");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "null kvStore.");
             return ERR_NO_INIT;
         }
     }
