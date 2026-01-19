@@ -360,9 +360,12 @@ bool CJEnvironment::LoadRuntimeApis()
     lazyApis_ = new CJRuntimeAPI();
 #ifdef __WINDOWS__
 #define RTLIB_NAME "libcangjie-runtime.dll"
+#elif defined(__APPLE__)
+#define RTLIB_NAME "libcangjie-runtime.dylib"
 #else
 #define RTLIB_NAME "libcangjie-runtime.so"
 #endif
+
 #ifdef __OHOS__
     auto dso = LoadRuntimeLib(RTLIB_NAME);
 #else
