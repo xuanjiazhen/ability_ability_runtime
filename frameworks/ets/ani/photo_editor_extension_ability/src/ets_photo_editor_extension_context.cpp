@@ -132,6 +132,10 @@ ani_object CreateEtsPhotoEditorExtensionContext(
         return nullptr;
     }
     auto photoEditorContextPtr = new std::weak_ptr<PhotoEditorExtensionContext> (workContext->GetAbilityContext());
+    if (photoEditorContextPtr == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Failed to create photoEditorContextPtr");
+        return nullptr;
+    }
 
     if ((status = env->Object_New(cls, method, &contextObj, (ani_long)workContext.release())) != ANI_OK||
         contextObj == nullptr) {
