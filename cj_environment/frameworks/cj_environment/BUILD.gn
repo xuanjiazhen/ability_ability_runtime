@@ -72,6 +72,8 @@ ohos_shared_library("cj_environment") {
     sources += [ "src/dynamic_loader_linux.cpp" ]
   } else if (current_os == "mingw") {
     sources += [ "src/dynamic_loader_win.cpp" ]
+  } else if (current_os == "mac") {
+    sources += [ "src/dynamic_loader_linux.cpp" ]
   } else {
     assert("unsupport platform: ${current_os}")
   }
