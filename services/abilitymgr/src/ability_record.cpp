@@ -377,6 +377,7 @@ void AbilityRecord::ForegroundAbility(uint32_t sceneFlag, bool hasLastWant)
     SetAbilityStateInner(AbilityState::FOREGROUNDING);
 #endif // SUPPORT_SCREEN
     lifeCycleStateInfo_.sceneFlag = sceneFlag;
+    lifeCycleStateInfo_.specifiedFlag = GetSpecifiedFlag();
     Want want;
     if (hasLastWant) {
         if (HasLastWant()) {

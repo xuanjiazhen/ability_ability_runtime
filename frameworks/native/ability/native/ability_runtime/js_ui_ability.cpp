@@ -484,7 +484,7 @@ void JsUIAbility::CreateJSContext(napi_env env, napi_value &contextObj, int32_t 
     }
 }
 
-void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
+void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo, std::string &specifiedFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
@@ -510,8 +510,8 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
 
     napi_set_named_property(env, obj, "launchWant", jsWant);
     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
-    if (sessionInfo != nullptr && abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
-        napi_set_named_property(env, obj, "specifiedId", CreateJsValue(env, sessionInfo->specifiedFlag));
+    if (abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
+        napi_set_named_property(env, obj, "specifiedId", CreateJsValue(env, specifiedFlag));
     }
     auto launchParam = GetLaunchParam();
     if (InsightIntentExecuteParam::IsInsightIntentExecute(want)) {

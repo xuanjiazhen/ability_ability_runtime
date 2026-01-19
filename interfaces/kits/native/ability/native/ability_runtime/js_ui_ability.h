@@ -81,7 +81,7 @@ public:
      * @param want Indicates the {@link Want} structure containing startup information about the ability
      * @param sessionInfo Indicates the sessionInfo
      */
-    void OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo = nullptr) override;
+    void OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo = nullptr, std::string &specifiedFlag = "") override;
 
     /**
      * @brief Called when this ability enters the <b>STATE_STOP</b> state.

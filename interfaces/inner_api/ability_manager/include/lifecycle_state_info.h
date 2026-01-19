@@ -68,6 +68,7 @@ struct LifeCycleStateInfo : public Parcelable {
     LaunchParam launchParam;
     CallerInfo caller;
     std::string pageConfig;
+    std::string specifiedFlag;
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
