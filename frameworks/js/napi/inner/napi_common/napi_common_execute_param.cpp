@@ -24,7 +24,6 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 bool UnwrapExecuteParam(napi_env env, napi_value param, InsightIntentExecuteParam &executeParam)
 {
-    HandleScope handleScope(env);
     if (!IsTypeForNapiValue(env, param, napi_object)) {
         TAG_LOGE(AAFwkTag::JSNAPI, "invalid params");
         return false;

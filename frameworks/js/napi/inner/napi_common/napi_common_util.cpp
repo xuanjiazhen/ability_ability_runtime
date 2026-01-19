@@ -306,7 +306,6 @@ napi_value WrapArrayInt32ToJS(napi_env env, const std::vector<int> &value)
 
 bool UnwrapArrayInt32FromJS(napi_env env, napi_value param, std::vector<int> &value)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     uint32_t arraySize = 0;
     napi_value jsValue = nullptr;
     int natValue = 0;
@@ -355,7 +354,6 @@ napi_value WrapArrayLongToJS(napi_env env, const std::vector<long> &value)
 
 bool UnwrapArrayLongFromJS(napi_env env, napi_value param, std::vector<long> &value)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     uint32_t arraySize = 0;
     napi_value jsValue = nullptr;
     long natValue = 0;
@@ -404,7 +402,6 @@ napi_value WrapArrayInt64ToJS(napi_env env, const std::vector<int64_t> &value)
 
 bool UnwrapArrayInt64FromJS(napi_env env, napi_value param, std::vector<int64_t> &value)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     uint32_t arraySize = 0;
     napi_value jsValue = nullptr;
     int64_t natValue = 0;
@@ -453,7 +450,6 @@ napi_value WrapArrayDoubleToJS(napi_env env, const std::vector<double> &value)
 
 bool UnwrapArrayDoubleFromJS(napi_env env, napi_value param, std::vector<double> &value)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     uint32_t arraySize = 0;
     napi_value jsValue = nullptr;
     double natValue = 0;
@@ -502,7 +498,6 @@ napi_value WrapArrayBoolToJS(napi_env env, const std::vector<bool> &value)
 
 bool UnwrapArrayBoolFromJS(napi_env env, napi_value param, std::vector<bool> &value)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     uint32_t arraySize = 0;
     napi_value jsValue = nullptr;
     bool natValue = 0;
@@ -549,7 +544,6 @@ napi_value WrapArrayStringToJS(napi_env env, const std::vector<std::string> &val
 
 bool UnwrapArrayStringFromJS(napi_env env, napi_value param, std::vector<std::string> &value)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     uint32_t arraySize = 0;
     napi_value jsValue = nullptr;
     std::string natValue("");
@@ -702,7 +696,6 @@ bool IsExistsByPropertyName(napi_env env, napi_value jsObject, const char *prope
 napi_value GetPropertyValueByPropertyName(
     napi_env env, napi_value jsObject, const char *propertyName, napi_valuetype expectType)
 {
-    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value value = nullptr;
     if (IsExistsByPropertyName(env, jsObject, propertyName) == false) {
         return nullptr;
@@ -716,7 +709,7 @@ napi_value GetPropertyValueByPropertyName(
         return nullptr;
     }
 
-    return handleEscape.Escape(value);
+    return value;
 }
 
 bool SetPropertyValueByPropertyName(napi_env env, napi_value jsObject, const char *propertyName, napi_value value)
@@ -1249,7 +1242,6 @@ void CompletePromiseVoidCallbackWork(napi_env env, napi_status status, void *dat
 
 std::vector<uint8_t> ConvertU8Vector(napi_env env, napi_value jsValue)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     bool isTypedArray = false;
     if (napi_is_typedarray(env, jsValue, &isTypedArray) != napi_ok || !isTypedArray) {
         return {};
@@ -1277,7 +1269,6 @@ std::vector<uint8_t> ConvertU8Vector(napi_env env, napi_value jsValue)
 
 std::vector<std::string> ConvertStringVector(napi_env env, napi_value jsValue)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     bool isTypedArray = false;
     napi_status status = napi_is_typedarray(env, jsValue, &isTypedArray);
     if (status != napi_ok || !isTypedArray) {
@@ -1359,7 +1350,6 @@ bool UnwrapLocaleByPropertyName(napi_env env, napi_value jsObject, const char *p
 
 bool UnwrapLocaleFromJS(napi_env env, napi_value jsValue, std::string &value)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     napi_value func = nullptr;
     napi_status status = napi_get_named_property(env, jsValue, "toString", &func);
     if (status != napi_ok || func == nullptr) {

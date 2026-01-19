@@ -23,7 +23,6 @@ namespace AppExecFwk {
 bool UnwrapChildProcessArgs(napi_env env, napi_value jsValue, AppExecFwk::ChildProcessArgs &args,
     std::string &errorMsg)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     if (!IsTypeForNapiValue(env, jsValue, napi_object)) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "parameter error");
         errorMsg =  "Parameter error. The type of args must be ProcessArgs.";
@@ -54,7 +53,6 @@ bool UnwrapChildProcessArgs(napi_env env, napi_value jsValue, AppExecFwk::ChildP
 
 bool UnwrapChildProcessFds(napi_env env, napi_value param, std::map<std::string, int32_t> &map, std::string &errorMsg)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     napi_value jsKeyList = nullptr;
     uint32_t keyCount = 0;
     NAPI_CALL_BASE(env, napi_get_property_names(env, param, &jsKeyList), false);

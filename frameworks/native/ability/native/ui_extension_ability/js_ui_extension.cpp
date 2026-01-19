@@ -409,7 +409,6 @@ bool JsUIExtension::CallPromise(napi_value result, AppExecFwk::AbilityTransactio
         TAG_LOGE(AAFwkTag::UI_EXT, "convert value failed");
         return false;
     }
-    HandleScope handleScope(jsRuntime_);
     napi_value then = nullptr;
     napi_get_named_property(env, result, "then", &then);
     if (then == nullptr) {
@@ -422,6 +421,7 @@ bool JsUIExtension::CallPromise(napi_value result, AppExecFwk::AbilityTransactio
         TAG_LOGE(AAFwkTag::UI_EXT, "not callable property then");
         return false;
     }
+    HandleScope handleScope(jsRuntime_);
     napi_value promiseCallback = nullptr;
     napi_create_function(env, "promiseCallback", strlen("promiseCallback"), PromiseCallback,
         callbackInfo, &promiseCallback);

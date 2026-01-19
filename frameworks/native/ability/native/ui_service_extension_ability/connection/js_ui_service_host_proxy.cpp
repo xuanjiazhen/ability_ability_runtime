@@ -94,7 +94,6 @@ napi_value JsUIServiceHostProxy::SendData(napi_env env, napi_callback_info info)
 
 napi_value JsUIServiceHostProxy::OnSendData(napi_env env, NapiCallbackInfo& info)
 {
-    HandleScope handleScope(env);
     if (!CheckCallerIsSystemApp()) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "CheckCallerIsSystemApp failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);

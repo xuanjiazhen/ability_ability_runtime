@@ -110,7 +110,6 @@ private:
     napi_value OnTerminateSelf(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-        HandleEscape handleEscape(env);
         TAG_LOGI(AAFwkTag::APP_SERVICE_EXT, "TerminateSelf");
         auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
         NapiAsyncTask::ExecuteCallback execute = [weak = context_, innerErrCode]() {
@@ -136,7 +135,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JsAppServiceExtensionContext::TerminateSelf",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return handleEscape.Escape(result);
+        return result;
     }
 
     bool CheckConnectionParam(napi_env env, napi_value value,
@@ -185,7 +184,6 @@ private:
 
     napi_value OnConnectAbility(napi_env env, NapiCallbackInfo& info)
     {
-        HandleEscape handleEscape(env);
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "called");
         // Check params count
@@ -227,7 +225,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSAppServiceExtensionConnection::OnConnectAbility",
             env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
-        return handleEscape.Escape(CreateJsValue(env, connectId));
+        return CreateJsValue(env, connectId);
     }
 
     void FindConnection(int64_t connectId, AAFwk::Want& want, sptr<JSAppServiceExtensionConnection>& connection,
@@ -253,7 +251,6 @@ private:
     napi_value OnDisconnectAbility(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-        HandleEscape handleEscape(env);
         TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "called");
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "invalid argc");
@@ -299,7 +296,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JSAppServiceExtensionConnection::OnDisconnectAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return handleEscape.Escape(result);
+        return result;
     }
 
     bool CheckStartAbilityInputParam(napi_env env, NapiCallbackInfo& info,
@@ -323,7 +320,6 @@ private:
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info)
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-        HandleEscape handleEscape(env);
         TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "StartAbility");
 
         size_t unwrapArgc = 0;
@@ -367,7 +363,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::ScheduleHighQos("JSAppServiceExtensionContext::OnStartAbility",
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
-        return handleEscape.Escape(result);
+        return result;
     }
 };
 } // namespace

@@ -85,7 +85,6 @@ napi_value PromiseCallback(napi_env env, napi_callback_info info)
 napi_value OnConnectPromiseCallback(napi_env env, napi_callback_info info)
 {
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "enter");
-    HandleScope handleScope(env);
     void *data = nullptr;
     size_t argc = ARGC_MAX_COUNT;
     napi_value argv[ARGC_MAX_COUNT] = {nullptr};

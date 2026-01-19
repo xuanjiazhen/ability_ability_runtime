@@ -32,7 +32,6 @@ void JsAbilityLifecycleCallback::CallJsMethodInnerCommon(const std::string &meth
     const std::shared_ptr<NativeReference> &ability, const std::shared_ptr<NativeReference> &windowStage,
     const std::map<int32_t, std::shared_ptr<NativeReference>> callbacks)
 {
-    HandleScope scope(env_);
     auto nativeAbilityObj = CreateJsNull(env_);
     if (ability != nullptr) {
         nativeAbilityObj = ability->GetNapiValue();

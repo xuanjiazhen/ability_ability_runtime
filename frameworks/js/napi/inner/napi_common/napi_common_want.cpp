@@ -884,7 +884,6 @@ bool UnwrapWantParams(napi_env env, napi_value param, AAFwk::WantParams &wantPar
 bool UnwrapWantParams(napi_env env, napi_value param, AAFwk::WantParams &wantParams,
     const std::string &proNameNotFilter)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     if (!IsTypeForNapiValue(env, param, napi_object)) {
         return false;
     }
@@ -966,7 +965,6 @@ void HandleNapiObject(napi_env env, napi_value param, napi_value jsProValue, std
 bool IsSpecialObject(napi_env env, napi_value param, std::string &strProName, std::string type,
     napi_valuetype jsValueProType)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     napi_value jsWantParamProValue = nullptr;
     NAPI_CALL_BASE(env, napi_get_named_property(env, param, strProName.c_str(), &jsWantParamProValue), false);
 
@@ -1007,7 +1005,6 @@ bool IsSpecialObject(napi_env env, napi_value param, std::string &strProName, st
 
 bool HandleFdObject(napi_env env, napi_value param, std::string &strProName, AAFwk::WantParams &wantParams)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     napi_value jsWantParamProValue = nullptr;
     NAPI_CALL_BASE(env, napi_get_named_property(env, param, strProName.c_str(), &jsWantParamProValue), false);
     napi_value jsProValue = nullptr;
@@ -1027,7 +1024,6 @@ bool HandleFdObject(napi_env env, napi_value param, std::string &strProName, AAF
 
 bool HandleRemoteObject(napi_env env, napi_value param, std::string &strProName, AAFwk::WantParams &wantParams)
 {
-    AbilityRuntime::HandleScope handleScope(env);
     napi_value jsWantParamProValue = nullptr;
     NAPI_CALL_BASE(env, napi_get_named_property(env, param, strProName.c_str(), &jsWantParamProValue), false);
     napi_value jsProValue = nullptr;
@@ -1284,7 +1280,6 @@ napi_value WrapAbilityResult(napi_env env, const int &resultCode, const AAFwk::W
 
 bool UnWrapAbilityResult(napi_env env, napi_value param, int &resultCode, AAFwk::Want &want)
 {
-    HandleEscape handleEscape(env);
     if (!IsTypeForNapiValue(env, param, napi_object)) {
         return false;
     }

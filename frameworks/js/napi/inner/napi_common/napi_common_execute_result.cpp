@@ -27,7 +27,6 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 bool UnwrapResultOfExecuteResult(napi_env env, napi_value param, InsightIntentExecuteResult &executeResult)
 {
-    HandleScope handleScope(env);
     napi_value result = nullptr;
     napi_get_named_property(env, param, "result", &result);
     if (result != nullptr) {

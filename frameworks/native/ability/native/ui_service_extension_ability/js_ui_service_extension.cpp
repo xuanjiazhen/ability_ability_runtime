@@ -535,7 +535,7 @@ sptr<IRemoteObject> JsUIServiceExtension::GetHostProxyFromWant(const AAFwk::Want
 napi_value JsUIServiceExtension::CallObjectMethod(const char* name, napi_value const* argv, size_t argc)
 {
     TAG_LOGD(AAFwkTag::UISERVC_EXT, "name:%{public}s", name);
-    HandleEscape handleEscape(jsRuntime_);
+
     if (!jsObj_) {
         TAG_LOGW(AAFwkTag::UISERVC_EXT, "Not found ServiceExtension.js");
         return nullptr;
@@ -565,7 +565,7 @@ napi_value JsUIServiceExtension::CallObjectMethod(const char* name, napi_value c
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "HandleUncaughtException");
         reinterpret_cast<NativeEngine*>(env)->HandleUncaughtException();
     }
-    return handleEscape.Escape(result);
+    return result;
 }
 
 void JsUIServiceExtension::GetSrcPath(std::string &srcPath)
