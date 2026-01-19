@@ -192,7 +192,7 @@ void CJUIAbility::CallAppCtxWindowFunc(CjAppCtxFuncType type, int64_t id, sptr<R
     }
 }
 
-void CJUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
+void CJUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo, const std::string &specifiedFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability is %{public}s", GetAbilityName().c_str());
