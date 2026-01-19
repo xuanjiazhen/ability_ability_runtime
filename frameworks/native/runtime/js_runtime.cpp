@@ -595,7 +595,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModuleByEngine(
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null env");
         return nullptr;
     }
-
+    HandleScope handleScope(env);
     napi_value globalObj = nullptr;
     napi_get_global(env, &globalObj);
     napi_value propertyValue = nullptr;
@@ -769,14 +769,12 @@ bool JsRuntime::Initialize(const Options& options)
             isModular = !panda::JSNApi::IsBundle(vm);
             std::vector<panda::HmsMap> systemKitsMap = GetSystemKitsMap(apiTargetVersion_);
             panda::JSNApi::SetHmsModuleList(vm, systemKitsMap);
-            std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
-            std::map<std::string, std::string> pkgAliasMap;
+            std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
             pkgContextInfoJsonStringMap_ = options.pkgContextInfoJsonStringMap;
             packageNameList_ = options.packageNameList;
             JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(
-                options.pkgContextInfoJsonStringMap, pkgContextInfoMap, pkgAliasMap);
-            panda::JSNApi::SetpkgContextInfoList(vm, pkgContextInfoMap);
-            panda::JSNApi::SetPkgAliasList(vm, pkgAliasMap);
+                options.pkgContextInfoJsonStringMap, pkgInfoMap);
+            panda::JSNApi::SetPkgContextInfoList(vm, pkgInfoMap);
             panda::JSNApi::SetPkgNameList(vm, options.packageNameList);
             panda::JSNApi::ModuleDeserialize(vm, options.versionCode);
         }
@@ -1023,6 +1021,7 @@ napi_value JsRuntime::LoadJsBundle(const std::string& path, const std::string& h
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     auto env = GetNapiEnv();
     CHECK_POINTER_AND_RETURN(env, nullptr);
+    HandleEscape handleEscape(env);
     napi_value globalObj = nullptr;
     napi_get_global(env, &globalObj);
     napi_value exports = nullptr;
@@ -1048,7 +1047,7 @@ napi_value JsRuntime::LoadJsBundle(const std::string& path, const std::string& h
         return nullptr;
     }
 
-    return exportObj;
+    return handleEscape.Escape(exportObj);
 }
 
 napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& hapPath, const std::string& srcEntrance)
@@ -1827,12 +1826,10 @@ void JsRuntime::SetPkgContextInfoJson(std::string moduleName, std::string hapPat
         packageNameList_[moduleName] = packageName;
         auto vm = GetEcmaVm();
         CHECK_POINTER_AND_RETURN(vm,);
-        std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
-        std::map<std::string, std::string> pkgAliasMap;
+        std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
         JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(
-            pkgContextInfoJsonStringMap_, pkgContextInfoMap, pkgAliasMap);
-        panda::JSNApi::SetpkgContextInfoList(vm, pkgContextInfoMap);
-        panda::JSNApi::SetPkgAliasList(vm, pkgAliasMap);
+            pkgContextInfoJsonStringMap_, pkgInfoMap);
+        panda::JSNApi::SetPkgContextInfoList(vm, pkgInfoMap);
         panda::JSNApi::SetPkgNameList(vm, packageNameList_);
     }
 }
@@ -1846,11 +1843,9 @@ void JsRuntime::UpdatePkgContextInfoJson(const std::string& moduleName, const st
     packageNameList[moduleName] = packageName;
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm,);
-    std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
-    std::map<std::string, std::string> pkgAliasMap;
-    JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(pkgContextInfoJsonStringMap, pkgContextInfoMap, pkgAliasMap);
-    panda::JSNApi::UpdatePkgContextInfoList(vm, pkgContextInfoMap);
-    panda::JSNApi::UpdatePkgAliasList(vm, pkgAliasMap);
+    std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
+    JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(pkgContextInfoJsonStringMap, pkgInfoMap);
+    panda::JSNApi::UpdatePkgContextInfoList(vm, pkgInfoMap);
     panda::JSNApi::UpdatePkgNameList(vm, packageNameList);
 }
 

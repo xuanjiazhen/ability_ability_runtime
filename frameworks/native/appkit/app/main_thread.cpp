@@ -49,6 +49,7 @@
 #include "context_deal.h"
 #include "context_impl.h"
 #include "display_util.h"
+#include "dump_arkweb_helper.h"
 #include "dump_ffrt_helper.h"
 #include "dump_ipc_helper.h"
 #include "dump_process_helper.h"
@@ -190,6 +191,7 @@ const int32_t CJERROR_TYPE = 9;
 const std::string CANGJIE_TYPE = "CJNATIVE";
 
 constexpr uint32_t CHECK_MAIN_THREAD_IS_ALIVE = 1;
+constexpr int32_t LAUNCH_TASK_QOS = 5;
 
 const std::string OVERLAY_STATE_CHANGED = "usual.event.OVERLAY_STATE_CHANGED";
 const std::string JSON_KEY_APP_FONT_SIZE_SCALE = "fontSizeScale";
@@ -1515,6 +1517,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication begin");
+    ffrt::submit([]() {}, ffrt::task_attr().qos(LAUNCH_TASK_QOS));
     if (!CheckForHandleLaunchApplication(appLaunchData)) {
         TAG_LOGE(AAFwkTag::APPKIT, "CheckForHandleLaunchApplication failed");
         return;
@@ -3868,13 +3871,27 @@ int32_t MainThread::ChangeAppGcState(int32_t state, uint64_t tid)
     if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::CJ) {
         return NO_ERROR;
     }
-    auto& nativeEngine = (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNativeEngine();
+
+    NativeEngine* nativeEngine = nullptr;
+
+    if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
+        auto& etsRuntime = static_cast<AbilityRuntime::ETSRuntime&>(*runtime);
+        auto& jsRuntime = static_cast<AbilityRuntime::JsRuntime&>(*etsRuntime.GetJsRuntime());
+        nativeEngine = &jsRuntime.GetNativeEngine();
+    } else {
+        nativeEngine = &(static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNativeEngine();
+    }
+
+    if (nativeEngine == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null nativeEngine");
+        return ERR_INVALID_VALUE;
+    }
     if (tid > 0) {
         TAG_LOGD(AAFwkTag::APPKIT, "tid is %{private}" PRIu64, tid);
-        nativeEngine.NotifyForceExpandState(tid, state);
+        nativeEngine->NotifyForceExpandState(tid, state);
         return NO_ERROR;
     }
-    nativeEngine.NotifyForceExpandState(state);
+    nativeEngine->NotifyForceExpandState(state);
     return NO_ERROR;
 }
 
@@ -4038,6 +4055,12 @@ int32_t MainThread::ScheduleDumpFfrt(std::string& result)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "pid:%{public}d", getprocpid());
     return DumpFfrtHelper::DumpFfrt(result);
+}
+
+int32_t MainThread::ScheduleDumpArkWeb(const std::string &customArgs, std::string &result)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleDumpArkWeb");
+    return DumpArkWebHelper::DumpArkWeb(customArgs, result);
 }
 
 /**

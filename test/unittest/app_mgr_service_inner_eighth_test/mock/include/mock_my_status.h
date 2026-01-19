@@ -79,6 +79,7 @@ public:
     int dumpIpcStop_ = ERR_OK;
     int dumpIpcStat_ = ERR_OK;
     int dumpFfrt_ = ERR_OK;
+    int32_t dumpArkWeb_ = ERR_OK;
     int32_t getAllAppRunningRecordCount_ = 0;
     pid_t handleUserRequestCleanPid_ = 0;
     pid_t handleUserRequestCleanUid_ = 0;
@@ -140,6 +141,8 @@ public:
     std::shared_ptr<AppExecFwk::SpecifiedRequest> specifiedProcessRequest_ = nullptr;
     std::shared_ptr<AppExecFwk::SpecifiedRequest> specifiedAbilityRequest_ = nullptr;
     std::string specifiedProcessFlag_;
+    bool queryExtensionAbilityInfos_ = false;
+    bool getBundleInfo_ = false;
 private:
     MyStatus() = default;
 };

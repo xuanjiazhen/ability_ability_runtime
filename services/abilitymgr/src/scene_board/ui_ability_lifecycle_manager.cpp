@@ -79,6 +79,7 @@ constexpr int32_t DEFAULT_REQUEST_CODE = -1;
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
 constexpr int32_t BY_CALL_TIMEOUT = 10 * 1000 * 1000; // 10s
+constexpr int32_t SCENE_FLAG_BYCALL = 4;
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
@@ -1561,6 +1562,8 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
         TAG_LOGD(AAFwkTag::ABILITYMGR, "target ability has been resolved: %{public}d", ret);
         if (abilityRequest.want.GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false)) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "target ability needs to be switched to foreground.");
+            ReportGrantUriPermissionEvent(abilityRequest, "BackgroundToForegroundByCall");
+
             auto sessionInfo = CreateSessionInfo(abilityRequest, requestId);
             if ((persistentId != 0) && abilityRequest.want.GetBoolParam(IS_CALLING_FROM_DMS, false)) {
                 HandleForegroundCollaborate(abilityRequest, uiAbilityRecord);
@@ -1578,7 +1581,9 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
                 return NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
             }
             uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
-            uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId);
+            ForegroundOptions options;
+            options.sceneFlag = SCENE_FLAG_BYCALL;
+            uiAbilityRecord->ProcessForegroundAbility(sessionInfo->callingTokenId, options);
             return NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
         } else {
             if ((persistentId != 0) && abilityRequest.want.GetBoolParam(IS_CALLING_FROM_DMS, false)) {
@@ -1597,6 +1602,7 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
     sessionInfo->uiAbilityId = uiAbilityRecord->GetAbilityRecordId();
     sessionInfo->isAtomicService = (abilityInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE);
     if (abilityRequest.want.GetBoolParam(Want::PARAM_RESV_CALL_TO_FOREGROUND, false)) {
+        ReportGrantUriPermissionEvent(abilityRequest, "ByCallToForeground");
         sessionInfo->state = CallToState::FOREGROUND;
     } else {
         sessionInfo->state = CallToState::BACKGROUND;
@@ -1606,6 +1612,17 @@ int UIAbilityLifecycleManager::CallAbilityLocked(const AbilityRequest &abilityRe
     tmpAbilityMap_.emplace(sessionInfo->requestId, uiAbilityRecord);
     PostCallTimeoutTask(sessionInfo->requestId);
     return NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
+}
+
+void UIAbilityLifecycleManager::ReportGrantUriPermissionEvent(const AbilityRequest &abilityRequest,
+    const std::string &callScenario)
+{
+    std::shared_ptr<AbilityRecord> callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
+    std::string callerBundleName = callerAbility ?
+        callerAbility->GetAbilityInfo().bundleName : std::to_string(IPCSkeleton::GetCallingUid());
+    std::string currentName = abilityRequest.abilityInfo.bundleName;
+    EventInfo eventInfo = { .bundleName = currentName, .callerBundleName = callerBundleName, .uri = callScenario };
+    EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);
 }
 
 void UIAbilityLifecycleManager::PostCallTimeoutTask(int32_t requestId)
@@ -3686,7 +3703,7 @@ void UIAbilityLifecycleManager::SetProcessPrepareExit(int32_t pid, size_t remain
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "remianningTokens %{public}zu, abilitysToTerminate %{public}zu",
         remainingTokensSize, abilitysToTerminateSize);
-    if (remainingTokensSize == abilitysToTerminateSize && clear) {
+    if (remainingTokensSize != 0 && remainingTokensSize == abilitysToTerminateSize && clear) {
         auto appMgr = AppMgrUtil::GetAppMgr();
         CHECK_POINTER(appMgr);
         IN_PROCESS_CALL_WITHOUT_RET(appMgr->SetProcessPrepareExit(pid));
