@@ -751,10 +751,19 @@ void JsAutoFillExtension::RegisterTransferComponentDataListener(const sptr<Rosen
         TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "null handler");
         return;
     }
-    uiWindow->RegisterTransferComponentDataListener([this, handler](
+    uiWindow->RegisterTransferComponentDataListener([weak = weak_from_this(), handler](
         const AAFwk::WantParams &wantParams) {
-            handler->PostTask([this, wantParams]() {
-                JsAutoFillExtension::UpdateRequest(wantParams);
+            handler->PostTask([weak, wantParams]() {
+                auto self = weak.lock();
+                if (self == nullptr) {
+                    TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "self is null");
+                    return;
+                }
+                if (auto autoFill = std::static_pointer_cast<JsAutoFillExtension>(self)) {
+                    autoFill->UpdateRequest(wantParams);
+                } else {
+                    TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "convert fail");
+                }
                 }, "JsAutoFillExtension:UpdateRequest");
     });
 }
