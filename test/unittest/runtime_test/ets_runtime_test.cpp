@@ -296,6 +296,25 @@ HWTEST_F(EtsRuntimeTest, PostFork_100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: PostFork_200
+ * @tc.desc: EtsRuntime test for PostFork.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, PostFork_200, TestSize.Level1)
+{
+    std::unique_ptr<Runtime> jsRuntime = nullptr;
+    ASSERT_NE(jsRuntime, nullptr);
+
+    Runtime::Options etsOptions;
+    etsOptions.lang = Runtime::Language::ETS;
+    etsOptions.preload = false;
+    etsOptions.isStageModel = true;
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    auto result = etsRuntime->PostFork(etsOptions, jsRuntime);
+    EXPECT_EQ(result, true);
+}
+
+/**
  * @tc.name: PreloadSystemClass_100
  * @tc.desc: EtsRuntime test for PreloadSystemClass.
  * @tc.type: FUNC
