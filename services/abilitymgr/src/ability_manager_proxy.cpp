@@ -6907,6 +6907,10 @@ int32_t AbilityManagerProxy::GetAllInsightIntentInfo(
         return error;
     }
     int32_t infoSize = reply.ReadInt32();
+    if (infoSize < 0 || infoSize >=std::numeric_limits<int32_t>::max()) {
+        return false;
+    }
+
     infos.clear();
     for (int32_t i = 0; i < infoSize; i++) {
         std::unique_ptr<InsightIntentInfoForQuery> info(reply.ReadParcelable<InsightIntentInfoForQuery>());
@@ -6955,6 +6959,10 @@ int32_t AbilityManagerProxy::GetInsightIntentInfoByBundleName(
         return error;
     }
     int32_t infoSize = reply.ReadInt32();
+    if (infoSize < 0 || infoSize >=std::numeric_limits<int32_t>::max()) {
+        return false;
+    }
+
     infos.clear();
     for (int32_t i = 0; i < infoSize; i++) {
         std::unique_ptr<InsightIntentInfoForQuery> info(reply.ReadParcelable<InsightIntentInfoForQuery>());
