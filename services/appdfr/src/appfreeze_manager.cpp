@@ -62,6 +62,8 @@ static constexpr int DUMP_STACK_FAILED = -1;
 static constexpr int DUMP_KERNEL_STACK_SUCCESS = 1;
 static constexpr int MIN_APP_UID = 20000;
 static constexpr int MAX_REPORT_STACK_SIZE = 300 * 1024; // 300KB
+static constexpr uint32_t BUF_SIZE_64 = 64;
+static constexpr uint32_t BUF_SIZE_256 = 256;
 const std::string LOG_FILE_PATH = "data/log/eventlog";
 static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
 static bool g_overseaVersion = OHOS::system::GetParameter("const.global.region", "CN") != "CN";
@@ -349,13 +351,8 @@ AppFaultDataBySA AppfreezeManager::GenerateFaultDataBySA(const ParamInfo& info, 
 {
     AppFaultDataBySA faultDataSA;
     if (info.eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
-        std::ifstream statmStream("/proc/" + std::to_string(info.pid) + "/statm");
-        if (statmStream) {
-            std::string procStatm;
-            std::getline(statmStream, procStatm);
-            statmStream.close();
-            faultDataSA.procStatm = procStatm;
-        }
+        std::string statmPath = "/proc/" + std::to_string(info.pid) + "/statm";
+        faultDataSA.procStatm = GetLineByPath(statmPath);
     }
     faultDataSA.errorObject.name = info.eventName;
     faultDataSA.errorObject.message = info.msg;
@@ -555,12 +552,13 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     return 0;
 }
 
-std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> AppfreezeManager::BinderParser(std::ifstream& fin,
+std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> AppfreezeManager::BinderParser(FILE* fp,
     std::string& stack, std::set<int>& asyncPids) const
 {
     std::map<uint32_t, uint32_t> asyncBinderMap;
     std::vector<std::pair<uint32_t, uint64_t>> freeAsyncSpacePairs;
-    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> binderInfos = BinderLineParser(fin, stack,
+    TAG_LOGI(AAFwkTag::APPDFR, "start");
+    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> binderInfos = BinderLineParser(fp, stack,
         asyncBinderMap, freeAsyncSpacePairs);
 
     if (!g_overseaVersion) {
@@ -585,16 +583,17 @@ std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> AppfreezeManager::Bin
     return binderInfos;
 }
 
-std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> AppfreezeManager::BinderLineParser(std::ifstream& fin,
+std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> AppfreezeManager::BinderLineParser(FILE* fp,
     std::string& stack, std::map<uint32_t, uint32_t>& asyncBinderMap,
     std::vector<std::pair<uint32_t, uint64_t>>& freeAsyncSpacePairs) const
 {
     std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> binderInfos;
     std::string line;
     bool isBinderMatchup = false;
-    TAG_LOGI(AAFwkTag::APPDFR, "start");
     stack += "BinderCatcher --\n\n";
-    while (getline(fin, line)) {
+    char buffer[BUF_SIZE_256] = {'\0'};
+    while (fgets(buffer, sizeof(buffer) - 1, fp) != nullptr) {
+        line = buffer;
         stack += line + "\n";
         isBinderMatchup = (!isBinderMatchup && line.find("free_async_space") != line.npos) ? true : isBinderMatchup;
         std::vector<std::string> strList = GetFileToList(line);
@@ -664,23 +663,24 @@ std::set<int> AppfreezeManager::GetBinderPeerPids(std::string& stack, AppfreezeM
     std::set<int>& asyncPids, AppfreezeManager::TerminalBinder& terminalBinder) const
 {
     std::set<int> pids;
-    std::ifstream fin;
     std::string path = LOGGER_DEBUG_PROC_PATH;
-    char resolvePath[PATH_MAX] = {0};
-    if (realpath(path.c_str(), resolvePath) == nullptr) {
-        TAG_LOGE(AAFwkTag::APPDFR, "invalid realpath");
+    char realPath[PATH_MAX] = {0};
+    if (realpath(path.c_str(), realPath) == nullptr) {
+        TAG_LOGW(AAFwkTag::APPDFR, "real path failed, file:%{public}s, errno:%{public}d", path.c_str(), errno);
         return pids;
     }
-    fin.open(resolvePath);
-    if (!fin.is_open()) {
-        TAG_LOGE(AAFwkTag::APPDFR, "open failed, %{public}s", resolvePath);
-        stack += "open file failed :" + path + "\r\n";
+    FILE* fp = fopen(realPath, "r");
+    if (fp == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "open file failed, file:%{public}s, errno:%{public}d", realPath, errno);
         return pids;
     }
 
     stack += "\n\nPeerBinderCatcher -- pid==" + std::to_string(params.pid) + "\n\n";
-    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> binderInfos = BinderParser(fin, stack, asyncPids);
-    fin.close();
+    std::map<int, std::list<AppfreezeManager::PeerBinderInfo>> binderInfos = BinderParser(fp, stack, asyncPids);
+    if (fp) {
+        fclose(fp);
+        fp = nullptr;
+    }
 
     if (binderInfos.size() == 0 || binderInfos.find(params.pid) == binderInfos.end()) {
         return pids;
@@ -1033,31 +1033,16 @@ void AppfreezeManager::PerfStart(std::string eventName)
         TAG_LOGE(AAFwkTag::APPDFR, "perf time is less than 60s");
         return;
     }
-    std::string bigCpuCurFreq = this->GetFirstLine(TWELVE_BIG_CPU_CUR_FREQ);
-    std::string bigCpuMaxFreq = this->GetFirstLine(TWELVE_BIG_CPU_MAX_FREQ);
-    std::string midCpuCurFreq = this->GetFirstLine(TWELVE_MID_CPU_CUR_FREQ);
-    std::string midCpuMaxFreq = this->GetFirstLine(TWELVE_MID_CPU_MAX_FREQ);
+    std::string bigCpuCurFreq = AppfreezeManager::GetInstance()->GetLineByPath(TWELVE_BIG_CPU_CUR_FREQ);
+    std::string bigCpuMaxFreq = AppfreezeManager::GetInstance()->GetLineByPath(TWELVE_BIG_CPU_MAX_FREQ);
+    std::string midCpuCurFreq = AppfreezeManager::GetInstance()->GetLineByPath(TWELVE_MID_CPU_CUR_FREQ);
+    std::string midCpuMaxFreq = AppfreezeManager::GetInstance()->GetLineByPath(TWELVE_MID_CPU_MAX_FREQ);
     if (bigCpuCurFreq == bigCpuMaxFreq || midCpuCurFreq == midCpuMaxFreq) {
         perfTime = curTime;
         TAG_LOGI(AAFwkTag::APPDFR, "perf start");
         AAFwk::ResSchedUtil::GetInstance().ReportSubHealtyPerfInfoToRSS();
         TAG_LOGI(AAFwkTag::APPDFR, "perf end");
     }
-}
-std::string AppfreezeManager::GetFirstLine(const std::string &path)
-{
-    std::string realPath = AppfreezeUtil::FreezePathToRealPath(path);
-    if (realPath.empty()) {
-        return "";
-    }
-    std::ifstream inFile(realPath.c_str());
-    if (!inFile) {
-        return "";
-    }
-    std::string firstLine;
-    getline(inFile, firstLine);
-    inFile.close();
-    return firstLine;
 }
 
 bool AppfreezeManager::CheckInBackGround(const FaultData &faultData)
@@ -1169,6 +1154,33 @@ bool AppfreezeManager::IsSkipDetect(int32_t pid, int32_t uid, const std::string&
         return true;
     }
     return false;
+}
+
+std::string AppfreezeManager::GetLineByPath(const std::string& path)
+{
+    std::string realPath = AppfreezeUtil::FreezePathToRealPath(path);
+    if (realPath.empty()) {
+        TAG_LOGW(AAFwkTag::APPDFR, "real path failed, file:%{public}s, errno:%{public}d", path.c_str(), errno);
+        realPath = path;
+    }
+    FILE* fp = fopen(realPath.c_str(), "r");
+    if (fp == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "open file failed, file:%{public}s, errno:%{public}d", realPath.c_str(), errno);
+        return "";
+    }
+    char buffer[BUF_SIZE_64] = {'\0'};
+    std::string line;
+    if (fgets(buffer, sizeof(buffer) - 1, fp) == nullptr) {
+        TAG_LOGE(AAFwkTag::APPDFR, "get line failed, file:%{public}s, errno:%{public}d", realPath.c_str(), errno);
+    } else {
+        line = buffer;
+        TAG_LOGI(AAFwkTag::APPDFR, "get line success, line:%{public}s", line.c_str());
+    }
+    if (fp) {
+        fclose(fp);
+        fp = nullptr;
+    }
+    return line;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
