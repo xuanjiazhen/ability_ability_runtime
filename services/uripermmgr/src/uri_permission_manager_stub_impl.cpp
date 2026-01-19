@@ -148,6 +148,7 @@ bool UriPermissionManagerStubImpl::VerifySubDirUriPermission(const std::string &
         return false;
     }
 
+    std::lock_guard<std::mutex> guard(mutex_);
     for (auto search = uriMap_.rbegin(); search != uriMap_.rend(); ++search) {
         if (!IsDistributedSubDirUri(uriStr, search->first)) {
             continue;
