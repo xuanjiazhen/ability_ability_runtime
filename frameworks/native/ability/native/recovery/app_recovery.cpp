@@ -203,22 +203,9 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
             TAG_LOGE(AAFwkTag::RECOVERY, "block main thread failed");
             return false;
         }
-#ifdef SUPPORT_SCREEN
-        OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
-        AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
-        panda::ecmascript::EcmaVM* vm = runtime.GetEcmaVm();
-        if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
+        if(!ExecuteFreezeCallBackWithVMSafety(abilityPtr)){
             return false;
         }
-#endif
-        if (this->freezeCallback) {
-            this->freezeCallback();
-            TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
-        }
-#ifdef SUPPORT_SCREEN
-        panda::JSNApi::DisallowCrossThreadExecution(vm);
-#endif
         if (!ret) {
             return false;
         }
@@ -239,8 +226,29 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
         TAG_LOGE(AAFwkTag::RECOVERY, "schedule save app state failed");
         return false;
     }
-
+    
     return true;
+}
+
+bool AppRecovery::ExecuteFreezeCallBackWithVMSafety(uintptr_t abilityPtr)
+{
+#ifdef SUPPORT_SCREEN
+        OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
+        AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
+        panda::ecmascript::EcmaVM* vm = runtime.GetEcmaVm();
+        if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
+            return false;
+        }
+#endif
+        if (this->freezeCallback) {
+            this->freezeCallback();
+            TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
+        }
+#ifdef SUPPORT_SCREEN
+        panda::JSNApi::DisallowCrossThreadExecution(vm);
+#endif
+        return true;
 }
 
 void AppRecovery::SetRestartWant(std::shared_ptr<AAFwk::Want> want)
