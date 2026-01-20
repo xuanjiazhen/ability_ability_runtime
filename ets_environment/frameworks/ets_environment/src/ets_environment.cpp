@@ -639,11 +639,22 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
         return false;
     }
     ark::ets::ETSAni::Postfork(env, options);
-    
+
     appInnerHspPathList_ = appInnerHspPathList;
     commonHspBundleInfos_ = commonHspBundleInfos;
 
     ARKVM_RegisterExternalScheduler(PostTaskWrapper);
+
+    auto exceptionHandler = [](const char *summary, const char *name, const char *message, const char *stack) {
+        auto &exceptionInfo = ETSEnvironment::GetUncaughtExceptionInfo();
+        ETSErrorObject obj{name, message, stack};
+        if (!exceptionInfo.uncaughtTask) {
+            TAG_LOGE(AAFwkTag::APPKIT, "No exception info");
+            return;
+        }
+        exceptionInfo.uncaughtTask(summary, obj);
+    };
+    ARKVM_RegisterErrorHandler(exceptionHandler);
 
     return true;
 }
@@ -729,6 +740,11 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
         }
     };
     return &funcs;
+}
+
+/* static */
+ETSUncaughtExceptionInfo &ETSEnvironment::GetUncaughtExceptionInfo() {
+    return GetInstance()->uncaughtExceptionInfo_;
 }
 
 void ETSEnvironment::NotifyDebugMode(uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm)
