@@ -463,5 +463,29 @@ HWTEST_F(AgentManagerClientTest, OnLoadSystemAbilityFail_001, TestSize.Level1)
     EXPECT_EQ(client.agentMgr_, nullptr);
     EXPECT_TRUE(client.loadSaFinished_);
 }
+
+/**
+* @tc.name  : OnRemoteDied_ShouldCallProxy_WhenProxyIsNotNull
+* @tc.number: OnRemoteDied_001
+* @tc.desc  : Test that the OnRemoteDied function calls the proxy callback when proxy_ is not nullptr.
+*/
+HWTEST_F(AgentManagerClientTest, OnRemoteDied_001, TestSize.Level1)
+{
+    // Mock the proxy callback
+    bool proxyCalled = false;
+    auto proxy = [&proxyCalled](const wptr<IRemoteObject> &) {
+        proxyCalled = true;
+    };
+    
+    // Arrange
+    auto deathRecipient = sptr<AgentManagerClient::AgentManagerServiceDeathRecipient>::MakeSptr(proxy);
+    wptr<IRemoteObject> remoteObject = nullptr;
+
+    // Act
+    deathRecipient->OnRemoteDied(remoteObject);
+
+    // Assert
+    EXPECT_TRUE(proxyCalled);
+}
 } // namespace AgentRuntime
 } // namespace OHOS
