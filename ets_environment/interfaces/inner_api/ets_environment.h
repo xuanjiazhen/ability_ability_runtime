@@ -52,6 +52,7 @@ public:
     static void InitETSSDKNS(const std::string &path);
     static void InitETSSysNS(const std::string &path);
     static ETSEnvFuncs *RegisterFuncs();
+    static ETSUncaughtExceptionInfo &GetUncaughtExceptionInfo();
 
     bool Initialize(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isDebug);
     void RegisterUncaughtExceptionHandler(const ETSUncaughtExceptionInfo &handle);

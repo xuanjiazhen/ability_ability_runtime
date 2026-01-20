@@ -639,7 +639,7 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
         return false;
     }
     ark::ets::ETSAni::Postfork(env, options);
-    
+
     appInnerHspPathList_ = appInnerHspPathList;
     commonHspBundleInfos_ = commonHspBundleInfos;
 
@@ -664,6 +664,16 @@ bool ETSEnvironment::PreloadSystemClass(const char *className)
     return true;
 }
 
+static void ExceptionHandlerWrapper(const char *summary, const char *name, const char *message, const char *stack) {
+    auto &exceptionInfo = ETSEnvironment::GetUncaughtExceptionInfo();
+    ETSErrorObject obj{name, message, stack};
+    if (!exceptionInfo.uncaughtTask) {
+        TAG_LOGE(AAFwkTag::APPKIT, "No exception info");
+        return;
+    }
+    exceptionInfo.uncaughtTask(summary, obj);
+};
+
 ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
 {
     static ETSEnvFuncs funcs {
@@ -678,6 +688,7 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
         },
         .RegisterUncaughtExceptionHandler = [](const ETSUncaughtExceptionInfo &exceptionInfo) {
             ETSEnvironment::GetInstance()->RegisterUncaughtExceptionHandler(exceptionInfo);
+            ARKVM_RegisterErrorHandler(ExceptionHandlerWrapper);
         },
         .GetAniEnv = []() {
             return ETSEnvironment::GetInstance()->GetAniEnv();
@@ -729,6 +740,11 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
         }
     };
     return &funcs;
+}
+
+/* static */
+ETSUncaughtExceptionInfo &ETSEnvironment::GetUncaughtExceptionInfo() {
+    return GetInstance()->uncaughtExceptionInfo_;
 }
 
 void ETSEnvironment::NotifyDebugMode(uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm)
