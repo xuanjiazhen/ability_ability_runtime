@@ -4226,8 +4226,14 @@ void MainThread::SetJsIdleCallback(const std::weak_ptr<OHOSApplication> &wpAppli
             TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return;
         }
-        auto &nativeEngine = (static_cast<AbilityRuntime::JsRuntime &>(*runtime)).GetNativeEngine();
-        nativeEngine.NotifyIdleTime(idleTime);
+        if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
+            auto &etsRuntime = static_cast<AbilityRuntime::ETSRuntime &>(*runtime);
+            auto &nativeEngine = (static_cast<AbilityRuntime::JsRuntime &>(*etsRuntime.GetJsRuntime())).GetNativeEngine();
+            nativeEngine.NotifyIdleTime(idleTime);
+        }else {
+            auto &nativeEngine = (static_cast<AbilityRuntime::JsRuntime &>(*runtime)).GetNativeEngine();
+            nativeEngine.NotifyIdleTime(idleTime);
+        }
     };
     idleTime_ = std::make_shared<IdleTime>(mainHandler_, callback);
     idleTime_->Start();

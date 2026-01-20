@@ -176,6 +176,10 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
         aotFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + options.moduleName + ".an";
     }
 
+    if (!isMove || jsRuntime == nullptr) {
+        g_etsEnvFuncs->FinishPreload(napiEnv);
+    }
+
     g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), aotFilePath, options.appInnerHspPathList,
         options.commonHspBundleInfos, options.eventRunner);
     return true;
