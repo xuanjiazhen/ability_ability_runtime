@@ -16,7 +16,7 @@
 
 namespace OHOS {
 namespace AAFwk {
-namespace    {    //UIExtensionWrapper
+namespace UIExtensionWrapper {
 
 bool IsUIExtension(const AppExecFwk::ExtensionAbilityType type)
 {
@@ -64,6 +64,11 @@ bool IsWindowExtension(const AppExecFwk::ExtensionAbilityType type)
 bool IsProcessUdkeyExtension(const AppExecFwk::ExtensionAbilityType type)
 {
     return OHOS::AAFwk::UIExtensionUtils::IsProcessUdkeyExtension(type);
+}
+
+std::unordered_set<AppExecFwk::ExtensionAbilityType> GetUiExtensionSet()
+{
+    return OHOS::AAFwk::UIExtensionUtils::GetUiExtensionSet();
 }
 } // namespace UIExtensionWrapper
 } // namespace AAFwk

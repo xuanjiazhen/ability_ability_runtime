@@ -43,6 +43,8 @@ bool IsEnterpriseAdmin(const AppExecFwk::ExtensionAbilityType type);
 bool IsWindowExtension(const AppExecFwk::ExtensionAbilityType type);
 
 bool IsProcessUdkeyExtension(const AppExecFwk::ExtensionAbilityType type);
+
+std::unordered_set<AppExecFwk::ExtensionAbilityType> GetUiExtensionSet();
 } // namespace UIExtensionWrapper
 } // namespace AAFwk
 } // namespace OHOS
