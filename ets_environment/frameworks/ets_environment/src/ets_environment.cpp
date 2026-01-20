@@ -639,7 +639,7 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
         return false;
     }
     ark::ets::ETSAni::Postfork(env, options);
-    
+
     appInnerHspPathList_ = appInnerHspPathList;
     commonHspBundleInfos_ = commonHspBundleInfos;
 
@@ -678,6 +678,12 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
         },
         .RegisterUncaughtExceptionHandler = [](const ETSUncaughtExceptionInfo &exceptionInfo) {
             ETSEnvironment::GetInstance()->RegisterUncaughtExceptionHandler(exceptionInfo);
+            std::function handler =
+                [exceptionInfo] (const char *summary, const char *name, const char *message, const char *stack) {
+                    EtsEnv:ETSErrorObject obj{name, message, stack};
+                    exceptionInfo.uncaughtTask(summary, obj);
+                }
+            ARKVM_RegisterErrorHandler(&handler);
         },
         .GetAniEnv = []() {
             return ETSEnvironment::GetInstance()->GetAniEnv();
