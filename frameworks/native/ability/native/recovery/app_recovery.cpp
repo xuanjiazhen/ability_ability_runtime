@@ -203,7 +203,7 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
             TAG_LOGE(AAFwkTag::RECOVERY, "block main thread failed");
             return false;
         }
-        if(!ExecuteFreezeCallbackWithVMSafety(abilityPtr)){
+        if (!ExecuteFreezeCallbackWithVMSafety(abilityPtr)) {
             return false;
         }
         if (!ret) {
