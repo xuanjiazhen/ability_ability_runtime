@@ -1785,6 +1785,22 @@ ErrCode AbilityManagerClient::RecordProcessExitReason(int32_t pid, int32_t uid, 
     return abms->RecordProcessExitReason(pid, uid, exitReason);
 }
 
+ErrCode AbilityManagerClient::KillAppWithReason(
+    int32_t pid, int32_t uid, const ExitReasonCompability &exitReason)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->KillAppWithReason(pid, uid, exitReason);
+}
+
+ErrCode AbilityManagerClient::RecordAppWithReason(
+    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RecordAppWithReason(pid, uid, exitReason);
+}
+
 void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSession)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");

@@ -1483,6 +1483,24 @@ public:
     ErrCode RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason);
 
     /**
+     * kill app  reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of kill app.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode KillAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason);
+
+    /**
+     * Record app exit reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason);
+
+    /**
      * Set rootSceneSession by SCB.
      *
      * @param rootSceneSession Indicates root scene session of SCB.

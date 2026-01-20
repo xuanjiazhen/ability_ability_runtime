@@ -571,6 +571,23 @@ int32_t AppScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, 
     return ERR_OK;
 }
 
+int32_t AppScheduler::NotifyAppMgrRecordExitReasonCompability(
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg)
+{
+    if (pid < 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "pid<0");
+        return ERR_INVALID_VALUE;
+    }
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    auto ret = static_cast<int32_t>(IN_PROCESS_CALL(appMgrClient_->NotifyAppMgrRecordExitReasonCompability(
+        pid, killId, killMsg, innerMsg)));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed");
+        return ret;
+    }
+    return ERR_OK;
+}
+
 int32_t AppScheduler::GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid)
 {
     CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);

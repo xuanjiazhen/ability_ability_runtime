@@ -558,6 +558,15 @@ int32_t AmsMgrScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reaso
     return amsMgrServiceInner_->NotifyAppMgrRecordExitReason(pid, reason, exitMsg);
 }
 
+int32_t AmsMgrScheduler::NotifyAppMgrRecordExitReasonCompability(
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return amsMgrServiceInner_->NotifyAppMgrRecordExitReasonCompability(pid, killId, killMsg, innerMsg);
+}
+
 void AmsMgrScheduler::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
 {
     if (!IsReady()) {

@@ -2459,6 +2459,36 @@ std::string AppRunningRecord::GetExitMsg() const
     return exitMsg_;
 }
 
+void AppRunningRecord::SetKillId(int32_t killId)
+{
+    killId_ = killId;
+}
+
+int32_t AppRunningRecord::GetKillId() const
+{
+    return killId_;
+}
+
+void AppRunningRecord::SetKillMsg(const std::string &killMsg)
+{
+    killMsg_ = killMsg;
+}
+
+std::string AppRunningRecord::GetKillMsg() const
+{
+    return killMsg_;
+}
+
+void AppRunningRecord::SetInnerMsg(const std::string &innerMsg)
+{
+    innerMsg_ = innerMsg;
+}
+
+std::string AppRunningRecord::GetInnerMsg() const
+{
+    return innerMsg_;
+}
+
 int AppRunningRecord::DumpIpcStart(std::string& result)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");

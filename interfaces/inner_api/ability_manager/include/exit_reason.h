@@ -38,6 +38,25 @@ struct ExitReason : public Parcelable {
     virtual bool Marshalling(Parcel &parcel) const override;
     static ExitReason *Unmarshalling(Parcel &parcel);
 };
+
+struct ExitReasonCompability : public Parcelable {
+    ExitReasonCompability() = default;
+    ExitReasonCompability(const Reason reason, const std::string &exitMsg);
+    ExitReasonCompability(const Reason &reason, int32_t subReason, const std::string &exitMsg);
+
+    Reason reason = Reason::REASON_UNKNOWN;
+    std::string exitMsg = "";
+    int32_t subReason = -1;
+    std::string amsSubMsg = "";
+
+    int killId = -1;
+    std::string killMsg = "";
+    std::string innerMsg = "";
+
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static ExitReasonCompability *Unmarshalling(Parcel &parcel);
+};
 }  // namespace AAFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_EXIT_REASON_H
