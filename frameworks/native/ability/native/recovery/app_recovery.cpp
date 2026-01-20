@@ -203,7 +203,7 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
             TAG_LOGE(AAFwkTag::RECOVERY, "block main thread failed");
             return false;
         }
-        if(!ExecuteFreezeCallBackWithVMSafety(abilityPtr)){
+        if(!ExecuteFreezeCallbackWithVMSafety(abilityPtr)){
             return false;
         }
         if (!ret) {
@@ -230,7 +230,7 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
     return true;
 }
 
-bool AppRecovery::ExecuteFreezeCallBackWithVMSafety(uintptr_t abilityPtr)
+bool AppRecovery::ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::AbilityRuntime::UIAbility>& abilityPtr)
 {
 #ifdef SUPPORT_SCREEN
         OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
