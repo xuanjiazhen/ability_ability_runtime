@@ -137,6 +137,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &dat
             return HandleGetApplicationInfoByProcessID(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_APP_MGR_RECORD_EXIT_REASON):
             return HandleNotifyAppMgrRecordExitReason(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY):
+            return HandleNotifyAppMgrRecordExitReasonCompability(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::UPDATE_APPLICATION_INFO_INSTALLED):
             return HandleUpdateApplicationInfoInstalled(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::ENABLE_START_PROCESS_FLAG_BY_USER_ID):
@@ -617,6 +619,21 @@ int32_t AmsMgrStub::HandleNotifyAppMgrRecordExitReason(MessageParcel &data, Mess
     int32_t reason = data.ReadInt32();
     std::string exitMsg = Str16ToStr8(data.ReadString16());
     int32_t result = NotifyAppMgrRecordExitReason(pid, reason, exitMsg);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
+        return IPC_PROXY_ERR;
+    }
+    return NO_ERROR;
+}
+
+int32_t AmsMgrStub::HandleNotifyAppMgrRecordExitReasonCompability(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    int32_t pid = data.ReadInt32();
+    int32_t killId = data.ReadInt32();
+    std::string killMsg = Str16ToStr8(data.ReadString16());
+    std::string innerMsg = Str16ToStr8(data.ReadString16());
+    int32_t result = NotifyAppMgrRecordExitReasonCompability(pid, killId, killMsg, innerMsg);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write result failed.");
         return IPC_PROXY_ERR;

@@ -71,5 +71,59 @@ bool ExitReason::Marshalling(Parcel &parcel) const
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, shouldSkipKillInStartup);
     return true;
 }
+
+ExitReasonCompability::ExitReasonCompability(const Reason reason, const std::string &exitMsg)
+{
+    this->reason = reason;
+    this->exitMsg = exitMsg;
+}
+
+ExitReasonCompability::ExitReasonCompability(const Reason &reason, int32_t subReason, const std::string &exitMsg)
+{
+    this->reason = reason;
+    this->subReason = subReason;
+    this->exitMsg = exitMsg;
+}
+
+bool ExitReasonCompability::ReadFromParcel(Parcel &parcel)
+{
+    int32_t reasonData;
+    READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, reasonData);
+    reason = static_cast<Reason>(reasonData);
+    exitMsg = Str16ToStr8(parcel.ReadString16());
+    READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, subReason);
+    amsSubMsg = Str16ToStr8(parcel.ReadString16());
+    READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, killId);
+    killMsg = Str16ToStr8(parcel.ReadString16());
+    innerMsg = Str16ToStr8(parcel.ReadString16());
+    return true;
+}
+
+ExitReasonCompability *ExitReasonCompability::Unmarshalling(Parcel &parcel)
+{
+    ExitReasonCompability *data = new (std::nothrow) ExitReasonCompability();
+    if (!data) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null data");
+        return nullptr;
+    }
+    if (!data->ReadFromParcel(parcel)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read failed");
+        delete data;
+        data = nullptr;
+    }
+    return data;
+}
+
+bool ExitReasonCompability::Marshalling(Parcel &parcel) const
+{
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(reason));
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(String16, parcel, Str8ToStr16(exitMsg));
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, subReason);
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(String16, parcel, Str8ToStr16(amsSubMsg));
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, killId);
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(String16, parcel, Str8ToStr16(killMsg));
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(String16, parcel, Str8ToStr16(innerMsg));
+    return true;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -5049,35 +5049,46 @@ static bool GetAbilityNames(
 
 void AppMgrServiceInner::CacheExitInfo(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 1");
     if (appRecord == nullptr) {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 1-1");
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
         return;
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 2");
     if (appRecord->GetReasonExist()) {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 2-1");
         TAG_LOGI(AAFwkTag::APPMGR, "exit info exist");
         return;
     }
     RunningProcessInfo exitInfo;
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 3");
     if (appRunningManager_) {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 3-1");
         appRunningManager_->AssignRunningProcessInfoByAppRecord(appRecord, exitInfo);
     }
     std::vector<std::string> abilityNames;
     std::vector<std::string> uiExtensionNames;
     std::string bundleName = "";
     auto applicationInfo = appRecord->GetApplicationInfo();
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 4");
     if (applicationInfo == nullptr) {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 4-1");
         TAG_LOGE(AAFwkTag::APPMGR, "applicationInfo null");
         return;
     }
     uint32_t accessTokenId = applicationInfo->accessTokenId;
     auto abilityRecordList = appRecord->GetAbilities();
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 5");
     if (!GetAbilityNames(abilityRecordList, abilityNames, uiExtensionNames, bundleName)) {
         return;
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 6");
     {
         std::lock_guard lock(appStateCallbacksLock_);
         for (const auto &item : appStateCallbacks_) {
             if (item.callback != nullptr) {
+                TAG_LOGI(AAFwkTag::APPMGR, "ttt CacheExitInfo 7");
                 item.callback->OnCacheExitInfo(accessTokenId, exitInfo, bundleName, abilityNames, uiExtensionNames);
             }
         }
@@ -5086,27 +5097,35 @@ void AppMgrServiceInner::CacheExitInfo(const std::shared_ptr<AppRunningRecord> &
 
 void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool isRenderProcess, bool isChildProcess)
 {
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 1");
     TAG_LOGD(AAFwkTag::APPMGR, "On remote died.");
     if (isRenderProcess) {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 2");
         OnRenderRemoteDied(remote);
         return;
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 3");
 #ifdef SUPPORT_CHILD_PROCESS
     if (isChildProcess) {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 4");
         OnChildProcessRemoteDied(remote);
         return;
     }
 #endif // SUPPORT_CHILD_PROCESS
-
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 5");
     std::shared_ptr<AppRunningRecord> appRecord = nullptr;
     {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 5-1");
         std::lock_guard lock(exceptionLock_);
         appRecord = appRunningManager_->OnRemoteDied(remote, shared_from_this());
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 6");
     if (appRecord == nullptr) {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 6-1");
         TAG_LOGI(AAFwkTag::APPMGR, "null appRecord");
         return;
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 7");
     AppExecFwk::AppfreezeManager::GetInstance()->ReportAppFreezeSysEvents(appRecord->GetPid(),
         appRecord->GetBundleName());
     AppExecFwk::AppfreezeManager::GetInstance()->RemoveDeathProcess(appRecord->GetBundleName());
@@ -5114,27 +5133,35 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
     for (const auto &token : appRecord->GetAbilities()) {
         abilityTokens.emplace_back(token.first);
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 7-1");
     CacheExitInfo(appRecord);
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 7-2");
     {
         std::lock_guard lock(appStateCallbacksLock_);
         for (const auto &item : appStateCallbacks_) {
             if (item.callback != nullptr) {
+                TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 7-3");
                 item.callback->OnAppRemoteDied(abilityTokens);
             }
         }
     }
     ClearData(appRecord);
-
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 7-4");
     if (appRecord->IsStartSpecifiedAbility() && startSpecifiedAbilityResponse_) {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 7-5");
         startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(appRecord->GetSpecifiedRequestId(),
             appRecord->GetUserId());
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 8");
     appRecord->ResetSpecifiedRequest();
     if (appRecord->IsNewProcessRequest() && startSpecifiedAbilityResponse_) {
+        TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 8-1");
         startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(appRecord->GetNewProcessRequestId(),
             appRecord->GetUserId());
     }
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 9");
     appRecord->ResetNewProcessRequest();
+    TAG_LOGI(AAFwkTag::APPMGR, "ttt OnRemoteDied. 10");
 }
 
 void AppMgrServiceInner::ClearAppRunningData(const std::shared_ptr<AppRunningRecord> &appRecord)
@@ -6659,6 +6686,27 @@ int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReason(int32_t pid, int32_t re
     appRecord->SetExitReason(reason);
     appRecord->SetExitMsg(exitMsg);
     appRecord->SetReasonExist(true);
+    return ERR_OK;
+}
+
+int32_t AppMgrServiceInner::NotifyAppMgrRecordExitReasonCompability(
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "NotifyAppMgrRecordExitReasonCompability pid:%{public}d, killId:%{public}d,"
+        "reason:%{public}s, exitMsg:%{public}s.", pid, killId, killMsg.c_str(), innerMsg.c_str());
+    auto callerUid = IPCSkeleton::GetCallingUid();
+    if (callerUid != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not foundation call");
+        return ERR_PERMISSION_DENIED;
+    }
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (!appRecord) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no appRecord for pid:%{public}d", pid);
+        return ERR_NAME_NOT_FOUND;
+    }
+    appRecord->SetKillId(killId);
+    appRecord->SetKillMsg(killMsg);
+    appRecord->SetInnerMsg(innerMsg);
     return ERR_OK;
 }
 
