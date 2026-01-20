@@ -4226,6 +4226,10 @@ void MainThread::SetJsIdleCallback(const std::weak_ptr<OHOSApplication> &wpAppli
             TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
             return;
         }
+        if (runtime->GetLanguage() != AbilityRuntime::Runtime::Language::JS){
+            TAG_LOGD(AAFwkTag::APPKIT, "error runtime");
+            return;
+        }
         auto &nativeEngine = (static_cast<AbilityRuntime::JsRuntime &>(*runtime)).GetNativeEngine();
         nativeEngine.NotifyIdleTime(idleTime);
     };
