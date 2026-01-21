@@ -223,6 +223,9 @@ public:
      */
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg) override;
 
+    virtual int32_t NotifyAppMgrRecordExitReasonCompability(
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg) override;
+
     /**
      * Ability attach timeout. If start ability encounter failure, attach timeout to terminate.
      *
