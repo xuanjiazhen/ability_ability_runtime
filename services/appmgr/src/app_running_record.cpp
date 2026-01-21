@@ -32,6 +32,7 @@
 #include "app_mgr_service_dump_error_code.h"
 #include "cache_process_manager.h"
 #include "hisysevent.h"
+#include "in_process_call_wrapper.h"
 #ifdef SUPPORT_SCREEN
 #include "window_visibility_info.h"
 #endif //SUPPORT_SCREEN
@@ -2748,18 +2749,20 @@ void AppRunningRecord::SetNeedLimitPrio(bool isNeedLimitPrio)
 void AppRunningRecord::UnSetPolicy()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "UnSetPolicy call");
-    auto appInfo = GetApplicationInfo();
-    if (appInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "appInfo  null");
-        return;
-    }
+#ifdef SUPPORT_UPMS
     if (IsUnSetPermission()) {
         TAG_LOGI(AAFwkTag::APPMGR, "app is unset permission");
         return;
     }
     SetIsUnSetPermission(true);
-#ifdef SUPPORT_UPMS
-    AAFwk::UriPermissionManagerClient::GetInstance().ClearPermissionTokenByMap(appInfo->accessTokenId);
+    auto appInfo = GetApplicationInfo();
+    if (appInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appInfo  null");
+        return;
+    }
+    IN_PROCESS_CALL_WITHOUT_RET(
+        AAFwk::UriPermissionManagerClient::GetInstance().ClearPermissionTokenByMap(appInfo->accessTokenId)
+    );
 #endif // SUPPORT_UPMS
 }
 
