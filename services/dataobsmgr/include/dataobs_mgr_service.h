@@ -112,7 +112,7 @@ private:
     std::pair<Status, std::string> GetUriPermission(Uri &uri, bool isRead, ObserverInfo &info);
     std::vector<std::string> GetGroupInfosFromCache(const std::string &bundleName,
         int32_t userId, const std::string &schemeType);
-    std::string GetCallingName(uint32_t callingTokenid);
+    std::pair<bool, std::string> GetCallingName(uint32_t callingTokenid);
     int32_t VerifyDataShareExtension(Uri &uri, ObserverInfo &info);
     int32_t VerifyDataSharePermission(Uri &uri, bool isRead, ObserverInfo &info);
     bool CheckSchemePermission(Uri &uri, const uint32_t tokenId, int32_t userId, const std::string &method);

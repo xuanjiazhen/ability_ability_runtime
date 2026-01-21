@@ -333,7 +333,7 @@ Status DataObsMgrService::VerifyDataSharePermissionInner(Uri &uri, bool isRead, 
     return SUCCESS;
 }
 
-std::string DataObsMgrService::GetCallingName(uint32_t callingTokenid)
+std::pair<bool, std::string> DataObsMgrService::GetCallingName(uint32_t callingTokenid)
 {
     std::string callingName;
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callingTokenid);
@@ -350,10 +350,11 @@ std::string DataObsMgrService::GetCallingName(uint32_t callingTokenid)
         if (result == Security::AccessToken::RET_SUCCESS) {
             callingName = std::move(tokenInfo.processName);
         }
+        return {true, callingName};
     } else {
         LOG_ERROR("tokenType is invalid, tokenType:%{public}d", tokenType);
     }
-    return callingName;
+    return {false, callingName};
 }
 
 bool DataObsMgrService::CheckSchemePermission(Uri &uri, const uint32_t tokenId,
@@ -361,7 +362,7 @@ bool DataObsMgrService::CheckSchemePermission(Uri &uri, const uint32_t tokenId,
 {
     auto scheme = uri.GetScheme();
     if (scheme == RELATIONAL_STORE) {
-        VerifyUriPermission(uri, tokenId, userId, RELATIONAL_STORE, method);
+        return VerifyUriPermission(uri, tokenId, userId, RELATIONAL_STORE, method);
     } else if (scheme == SHARE_PREFERENCES) {
         VerifyUriPermission(uri, tokenId, userId, SHARE_PREFERENCES, method);
     }
@@ -382,12 +383,14 @@ std::vector<std::string> DataObsMgrService::GetGroupInfosFromCache(const std::st
     }
 
     std::vector<DataGroupInfo> infos;
+    std::string identity = IPCSkeleton::ResetCallingIdentity();
     auto bmsHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
     if (bmsHelper == nullptr) {
         LOG_ERROR("bmsHelper is nullptr");
         return {};
     }
     bool res = bmsHelper->QueryDataGroupInfos(bundleName, userId, infos);
+    IPCSkeleton::SetCallingIdentity(identity);
     if (!res) {
         LOG_WARN("query group infos failed for bundle:%{public}s, user:%{public}d", bundleName.c_str(), userId);
         return {};
@@ -413,14 +416,17 @@ std::vector<std::string> DataObsMgrService::GetGroupInfosFromCache(const std::st
 bool DataObsMgrService::VerifyUriPermission(Uri &uri, const uint32_t tokenId,
     int32_t userId, const std::string &schemeType, const std::string &method)
 {
+    auto[ret, callingName] = GetCallingName(tokenId);
+    if (ret) {
+        return true;
+    }
     std::string authority = uri.GetAuthority();
-    std::string callingName = GetCallingName(tokenId);
     std::string errMsg = schemeType + method;
     auto invalidUri = (schemeType == RELATIONAL_STORE) ? DATAOBS_RDB_INVALID_URI : DATAOBS_PREFERENCE_INVALID_URI;
     if (callingName.empty()) {
         errMsg += "callingNmae is empty";
         DataShare::DataSharePermission::ReportExtensionFault(invalidUri, tokenId, callingName, errMsg);
-        return true;
+        return false;
     }
     if (authority == callingName) {
         return true;
@@ -434,7 +440,7 @@ bool DataObsMgrService::VerifyUriPermission(Uri &uri, const uint32_t tokenId,
     LOG_ERROR("%{public}s OBS permission check is failed", errMsg.c_str());
     errMsg += " group id check failed or infos empty:" + std::string(groupIds.empty() ? "empty" : "notEmpty");
     DataShare::DataSharePermission::ReportExtensionFault(invalidUri, tokenId, callingName, errMsg);
-    return true;
+    return false;
 }
 
 int32_t DataObsMgrService::ConstructRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
