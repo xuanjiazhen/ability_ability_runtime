@@ -196,6 +196,9 @@ export default class UIAbilityContext extends Context {
   private native nativeStartAbilityWithAccountSync(want: Want, accountId: int, options: StartOptions,
     callback: AsyncCallbackWrapper<void>): void;
 
+  private native nativeStartAbilityByCallWithAccountSync(want: Want, accountId: int,
+    callback: AsyncCallbackWrapper<Caller>): void;
+
   private native nativeRestoreWindowStage(localStorage: LocalStorage): void;
 
   private native nativeStartAbilityAsCaller(want: Want, callback: AsyncCallbackWrapper<void>, options?: StartOptions): void;
@@ -303,6 +306,23 @@ export default class UIAbilityContext extends Context {
     return taskpool.execute((): Caller => {
       return this.nativeStartAbilityByCallSync(want);
     }) as Promise<Caller>;
+  }
+
+  startAbilityByCallWithAccount(want: Want, accountId: int): Promise<Caller> {
+    let p =
+      new Promise<Caller>((resolve: (data: Caller) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<Caller>((err: BusinessError | null, data: Caller | undefined) => {
+          if (err == null || err.code == 0) {
+            resolve(data as Caller);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+          this.nativeStartAbilityByCallWithAccountSync(want, accountId, myCall);
+        });
+      });
+    return p;
   }
 
   terminateSelf(callback: AsyncCallback<void>): void {
