@@ -203,9 +203,18 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
             TAG_LOGE(AAFwkTag::RECOVERY, "block main thread failed");
             return false;
         }
-        if (!ExecuteFreezeCallbackWithVMSafety(abilityPtr)) {
+        panda::ecmascript::EcmaVM* vm = runtime.GetEcmaVMPtr(abilityPtr);
+#ifdef SUPPORT_SCREEN
+        if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
             return false;
         }
+#endif
+        if (this->freezeCallback) {
+            this->freezeCallback();
+            TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
+        }
+        panda::JSNApi::DisallowCrossThreadExecution(vm);
         if (!ret) {
             return false;
         }
@@ -230,25 +239,11 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
     return true;
 }
 
-bool AppRecovery::ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::AbilityRuntime::UIAbility>& abilityPtr)
+panda::ecmascript::EcmaVM* AppRecovery::GetEcmaVMPtr(const std::shared_ptr<OHOS::AbilityRuntime::UIAbility>& abilityPtr)
 {
-#ifdef SUPPORT_SCREEN
         OHOS::AbilityRuntime::JsUIAbility& jsAbility = static_cast<AbilityRuntime::JsUIAbility&>(*abilityPtr);
         AbilityRuntime::JsRuntime& runtime = const_cast<AbilityRuntime::JsRuntime&>(jsAbility.GetJsRuntime());
-        panda::ecmascript::EcmaVM* vm = runtime.GetEcmaVm();
-        if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
-            return false;
-        }
-#endif
-        if (this->freezeCallback) {
-            this->freezeCallback();
-            TAG_LOGW(AAFwkTag::RECOVERY, "Freeze callback execution completed");
-        }
-#ifdef SUPPORT_SCREEN
-        panda::JSNApi::DisallowCrossThreadExecution(vm);
-#endif
-        return true;
+        return runtime.GetEcmaVm();
 }
 
 void AppRecovery::SetRestartWant(std::shared_ptr<AAFwk::Want> want)
