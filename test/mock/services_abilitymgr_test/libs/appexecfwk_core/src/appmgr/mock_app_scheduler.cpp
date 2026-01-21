@@ -227,6 +227,12 @@ int32_t AppScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, 
     return 0;
 }
 
+int32_t AppScheduler::NotifyAppMgrRecordExitReasonCompability(
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg)
+{
+    return 0;
+}
+
 int AppScheduler::GetAbilityRecordsByProcessID(const int pid, std::vector<sptr<IRemoteObject>>& tokens)
 {
     return 0;

@@ -996,6 +996,9 @@ public:
      */
     int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
 
+    int32_t NotifyAppMgrRecordExitReasonCompability(
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg);
+
     /**
      * Notify application status.
      *

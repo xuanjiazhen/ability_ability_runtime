@@ -1253,6 +1253,37 @@ public:
     virtual int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason) override;
 
     /**
+     * Force app exit and record exit reason.
+     * @param pid Process id .
+     * @param uid uid of bundle.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillAppWithReason(
+        const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason) override;
+
+    /**
+     * Force bundle exit and record exit reason.
+     * @param bundleName bundle name of kill app.
+     * @param appIndex the app index of app clone.
+     * @param uid uid of bundle.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillBundleWithReason(
+        const std::string &bundleName, int32_t uid, int32_t appIndex, const ExitReasonCompability &exitReason) override;
+
+    /**
+     * Record app exit reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RecordAppWithReason(
+        const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason) override;
+ 
+    /**
      * Set rootSceneSession by SCB.
      *
      * @param rootSceneSession Indicates root scene session of SCB.

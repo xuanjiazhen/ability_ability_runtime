@@ -969,6 +969,42 @@ int32_t AmsMgrProxy::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, c
     return reply.ReadInt32();
 }
 
+int32_t AmsMgrProxy::NotifyAppMgrRecordExitReasonCompability(
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "token write error");
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write pid failed");
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteInt32(killId)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write killId failed");
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteString16(Str8ToStr16(killMsg))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write killMsg failed");
+        return IPC_PROXY_ERR;
+    }
+    if (!data.WriteString16(Str8ToStr16(innerMsg))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write innerMsg failed");
+        return IPC_PROXY_ERR;
+    }
+    int32_t ret = SendTransactCmd(
+        static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "send request fail");
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 void AmsMgrProxy::SetEnableStartProcessFlagByUserId(int32_t userId, bool enableStartProcess)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");

@@ -41,6 +41,11 @@ public:
     int32_t RecordUIAbilityExitReason(const pid_t pid, const std::string &abilityName, const ExitReason &exitReason);
     int32_t RecordProcessExitReasonForTimeout(const AppExecFwk::AbilityInfo &abilityInfo, const ExitReason &exitReason,
         const std::vector<std::string> &abilityList, const AppExecFwk::RunningProcessInfo &processInfo);
+    int32_t AddAppExitReason(const std::string &bundleName, int32_t pid, int32_t uid, int32_t appIndex,
+        const ExitReasonCompability &exitReason);
+    int32_t AddBundleExitReason(const std::string &bundleName, int32_t uid, int32_t appIndex,
+        const ExitReasonCompability &exitReason);
+    int32_t RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason);
 
 private:
     int32_t RecordProcessExitReason(const int32_t pid, const std::string bundleName, const int32_t uid,
@@ -53,6 +58,9 @@ private:
     int32_t GetActiveAbilityListWithPid(int32_t uid, std::vector<std::string> &abilityList, int32_t pid);
     void GetRunningProcessInfo(int32_t pid, int32_t userId, const std::string &bundleName,
         AppExecFwk::RunningProcessInfo &processInfo);
+    int32_t AddProcessExitReason(const int32_t pid, const std::string bundleName, const int32_t uid,
+        const uint32_t accessTokenId, const ExitReasonCompability &exitReason,
+        const AppExecFwk::RunningProcessInfo &processInfo, bool fromKillWithReason);
 
     std::shared_ptr<SubManagersHelper> subManagersHelper_;
 };
