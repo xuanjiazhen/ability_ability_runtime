@@ -235,7 +235,6 @@ bool AppRecovery::ScheduleSaveAppState(StateReason reason, uintptr_t ability)
         TAG_LOGE(AAFwkTag::RECOVERY, "schedule save app state failed");
         return false;
     }
-    
     return true;
 }
 
