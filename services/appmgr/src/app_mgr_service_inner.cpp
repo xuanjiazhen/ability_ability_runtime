@@ -3259,6 +3259,10 @@ void AppMgrServiceInner::GetChildrenProcesses(const std::shared_ptr<AppRunningRe
 
 int32_t AppMgrServiceInner::KillProcessByPid(const pid_t pid, const std::string& reason, bool isKillPrecedeStart)
 {
+    if (AAFwk::AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::APPMGR, "forbid start: KillProcessByPid");
+        return AAFwk::INNER_ERR;
+    }
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!ProcessUtil::ProcessExist(pid)) {
         TAG_LOGI(AAFwkTag::APPMGR, "null killProcessByPid, pid: %{public}d", pid);
@@ -7737,7 +7741,7 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
         return ERR_OK;
     }
 
-    if (appRunningManager_ && eventName.find("THREAD_BLOCK_") != std::string::npos) {
+    if (appRunningManager_ && AppExecFwk::AppfreezeManager::GetInstance()->CheckNeedRecordAppRunningUnquieId(eventName)) {
         std::string appRunningUniqueId;
         int32_t ret = appRunningManager_->GetAppRunningUniqueIdByPid(pid, appRunningUniqueId);
         TAG_LOGI(AAFwkTag::APPDFR, "ret=%{public}d, appRunningUniqueId=%{public}s", ret, appRunningUniqueId.c_str());
@@ -7755,12 +7759,9 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     }
 
 #ifdef APP_NO_RESPONSE_DIALOG
-    // A dialog box is displayed when the PC appfreeze
-    bool isDialogExist = appRunningManager_ ?
-        appRunningManager_->CheckAppRunningRecordIsExist(APP_NO_RESPONSE_BUNDLENAME, APP_NO_RESPONSE_ABILITY) : false;
     auto killFaultApp = std::bind(&AppMgrServiceInner::KillFaultApp, this, pid, bundleName, faultData, false);
     ModalSystemAppFreezeUIExtension::GetInstance().ProcessAppFreeze(appRecord->GetFocusFlag(), faultData,
-        std::to_string(pid), bundleName, killFaultApp, isDialogExist);
+        std::to_string(pid), bundleName, killFaultApp);
 #else
     KillFaultApp(pid, bundleName, faultData);
 #endif
@@ -7813,12 +7814,9 @@ void AppMgrServiceInner::TimeoutNotifyApp(int32_t pid, int32_t uid,
     bool isNeedExit = (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK) ||
         (faultData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT);
 #ifdef APP_NO_RESPONSE_DIALOG
-    bool isDialogExist = appRunningManager_ ?
-        appRunningManager_->CheckAppRunningRecordIsExist(APP_NO_RESPONSE_BUNDLENAME, APP_NO_RESPONSE_ABILITY) :
-        false;
     auto killFaultApp = std::bind(&AppMgrServiceInner::KillFaultApp, this, pid, bundleName, faultData, isNeedExit);
     ModalSystemAppFreezeUIExtension::GetInstance().ProcessAppFreeze(true, faultData, std::to_string(pid),
-        bundleName, killFaultApp, isDialogExist);
+        bundleName, killFaultApp);
 #else
     KillFaultApp(pid, bundleName, faultData, isNeedExit);
 #endif
@@ -9536,6 +9534,19 @@ int AppMgrServiceInner::DumpFfrt(const std::vector<int32_t>& pids, std::string& 
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return appRunningManager_->DumpFfrt(pids, result);
+}
+
+int32_t AppMgrServiceInner::DumpArkWeb(const std::vector<int32_t> &pids, const std::string &customArgs,
+    std::string &result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DumpArkWeb called");
+    if (!appRunningManager_) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return appRunningManager_->DumpArkWeb(pids, customArgs, result);
 }
 
 void AppMgrServiceInner::NotifyAppRunningStatusEvent(

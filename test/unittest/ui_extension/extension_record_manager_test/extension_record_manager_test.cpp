@@ -471,6 +471,32 @@ HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: UpdateProcessName_0200
+ * @tc.desc: UpdateProcessName
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_0200, TestSize.Level1)
+{
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "testBundleName";
+    abilityRequest.abilityInfo.name = "testInfoName";
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+
+    extRecord->processMode_ = PROCESS_MODE_PLUGIN;
+    extRecord->hostBundleName_ = "testHostBundleName";
+    const char *embeddedUI = "embeddedUI";
+    std::string hostBundleName = "testHostBundleName";
+    std::string process = hostBundleName + SEPARATOR + abilityRequest.abilityInfo.bundleName
+        + SEPARATOR + embeddedUI + SEPARATOR + std::to_string(abilityRequest.abilityInfo.appIndex);
+    int32_t result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
+    EXPECT_EQ(abilityRecord->GetProcessName(), process);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.name: IsPreloadExtensionRecord_0100
  * @tc.desc: IsPreloadExtensionRecord
  * @tc.type: FUNC
@@ -1334,7 +1360,7 @@ HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_0800, TestSize.Level1)
     abilityRecord->SetProcessName("processName");
     extRecordMgr->AddExtensionRecord(1, extRecord);
     result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(result, ERR_OK);
 
     extRecord->processMode_ = PROCESS_MODE_HOST_SPECIFIED;
     abilityRecord->SetAppIndex(2);
@@ -1351,6 +1377,15 @@ HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_0800, TestSize.Level1)
     extRecordMgr->AddExtensionRecord(1, extRecord);
     result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
     EXPECT_NE(result, ERR_OK);
+
+    extRecord->processMode_ = PROCESS_MODE_HOST_SPECIFIED;
+    extRecord->abilityRecord_->SetAppIndex(1);
+    abilityRecord->SetAppIndex(1);
+    abilityRequest.want.SetParam(PROCESS_MODE_HOST_SPECIFIED_KEY, std::string("processName:1"));
+    abilityRecord->SetProcessName("processName:1");
+    extRecordMgr->AddExtensionRecord(1, extRecord);
+    result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**

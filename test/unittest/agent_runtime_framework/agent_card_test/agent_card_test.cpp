@@ -15,14 +15,20 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+
+#include "ability_manager_errors.h"
 #include "agent_card.h"
+#include "securec.h"
 
 using namespace OHOS;
 using namespace testing;
 using namespace testing::ext;
+using namespace OHOS::AAFwk;
 
 namespace OHOS {
 namespace AgentRuntime {
+constexpr uint32_t MAX_AGENT_CARD_COUNT = 200000;
+
 class AgentCardTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -620,6 +626,10 @@ HWTEST_F(AgentCardTest, AgentCardReadFromParcel_003, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_001, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -656,6 +666,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_001, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_002, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -692,6 +706,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_002, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_003, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test";
     agentCard.url = "test1";
@@ -728,6 +746,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_003, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_004, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test";
@@ -764,6 +786,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_004, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_005, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -800,6 +826,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_005, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_006, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -836,6 +866,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_006, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_007, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -872,6 +906,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_007, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_008, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -908,6 +946,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_008, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_009, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -944,6 +986,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_009, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_010, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -979,6 +1025,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_010, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_011, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -1014,6 +1064,10 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_011, TestSize.Level1)
 HWTEST_F(AgentCardTest, AgentCardMarshalling_012, TestSize.Level1)
 {
     AgentCard agentCard;
+    agentCard.bundleName = "bundleName";
+    agentCard.moduleName = "moduleName";
+    agentCard.abilityName = "abilityName";
+    agentCard.appIndex = 1;
     agentCard.name = "test1";
     agentCard.description = "test1";
     agentCard.url = "test1";
@@ -1107,23 +1161,757 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_001, TestSize.Level1)
     std::vector<std::string> defaultInputModes;
     std::vector<std::string> defaultOutputModes;
     Skill skill;
-    nlohmann::json jsonArray = { skill };
+    nlohmann::json jsonArray = { skill.ToJson() };
     nlohmann::json jsonObject = nlohmann::json {
+        { "bundleName", "test" },
+        { "moduleName", "test" },
+        { "abilityName", "test" },
+        { "appIndex", 1 },
         { "name", "test" },
         { "description", "test" },
         { "url", "test" },
-        { "provider", provider },
+        { "provider", provider.ToJson() },
         { "version", "test" },
         { "documentationUrl", "test" },
-        { "capabilities", capabilities },
-        { "authentication", authentication },
+        { "capabilities", capabilities.ToJson() },
+        { "authentication", authentication.ToJson() },
         { "defaultInputModes", defaultInputModes },
         { "defaultOutputModes", defaultOutputModes },
         { "skills", jsonArray },
     };
     AgentCard agentCard = AgentCard::FromJson(jsonObject);
 
+    EXPECT_TRUE(agentCard.bundleName == "test");
+    EXPECT_TRUE(agentCard.moduleName == "test");
+    EXPECT_TRUE(agentCard.abilityName == "test");
+    EXPECT_TRUE(agentCard.appIndex == 1);
     EXPECT_TRUE(agentCard.name == "test");
+}
+
+/**
+ * @tc.name: ProviderToJson_001
+ * @tc.desc: ProviderToJson_001
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, ProviderToJson_001, TestSize.Level1)
+{
+    Provider provider;
+    provider.organization = "test";
+    nlohmann::json jsonObject = provider.ToJson();
+
+    EXPECT_TRUE(jsonObject["organization"] == "test");
+}
+
+/**
+ * @tc.name: ProviderFromJson_001
+ * @tc.desc: ProviderFromJson_001
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, ProviderFromJson_001, TestSize.Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "organization", "test" },
+        { "url", "test" },
+    };
+    Provider provider = Provider::FromJson(jsonObject);
+    EXPECT_TRUE(jsonObject["organization"] == provider.organization);
+
+    nlohmann::json jsonObject1 = nlohmann::json {
+        { "organization", "test" },
+    };
+    Provider provider1 = Provider::FromJson(jsonObject1);
+    EXPECT_TRUE(jsonObject1["organization"] == provider1.organization);
+
+    nlohmann::json jsonObject2 = nlohmann::json {
+        { "url", "test" },
+    };
+    Provider provider2 = Provider::FromJson(jsonObject2);
+    EXPECT_TRUE(provider2.url == "test");
+}
+
+/**
+ * @tc.name: CapabilitiesToJson_001
+ * @tc.desc: CapabilitiesToJson_001
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, CapabilitiesToJson_001, TestSize.Level1)
+{
+    Capabilities capabilities;
+    capabilities.streaming = true;
+    nlohmann::json jsonObject = capabilities.ToJson();
+
+    EXPECT_TRUE(jsonObject["streaming"]);
+}
+
+/**
+ * @tc.name: CapabilitiesFromJson_001
+ * @tc.desc: CapabilitiesFromJson_001
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, CapabilitiesFromJson_001, TestSize.Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "streaming", true },
+        { "pushNotifications", true },
+        { "stateTransitionHistory", true },
+    };
+    Capabilities capabilities = Capabilities::FromJson(jsonObject);
+    EXPECT_TRUE(jsonObject["streaming"]);
+
+    jsonObject = nlohmann::json {};
+    capabilities = Capabilities::FromJson(jsonObject);
+    EXPECT_TRUE(jsonObject.contains("streaming") == false);
+}
+
+/**
+ * @tc.name: AuthenticationToJson_001
+ * @tc.desc: AuthenticationToJson_001
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, AuthenticationToJson_001, TestSize.Level1)
+{
+    Authentication authentication;
+    std::vector<std::string> schemes;
+    authentication.schemes = schemes;
+    nlohmann::json jsonObject = authentication.ToJson();
+
+    EXPECT_TRUE(jsonObject["schemes"].size() == 0);
+}
+
+/**
+ * @tc.name: AuthenticationFromJson_001
+ * @tc.desc: AuthenticationFromJson_001
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, AuthenticationFromJson_001, TestSize.Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "schemes", nlohmann::json::array({ "test", "test" }) },
+        { "credentials", "test" },
+    };
+    Authentication authentication = Authentication::FromJson(jsonObject);
+    EXPECT_TRUE(authentication.credentials == "test");
+
+    jsonObject = nlohmann::json {};
+    authentication = Authentication::FromJson(jsonObject);
+    EXPECT_TRUE(authentication.schemes.size() == 0);
+}
+
+/**
+ * @tc.name: SkillToJson_001
+ * @tc.desc: SkillToJson_001
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, SkillToJson_001, TestSize.Level1)
+{
+    Skill skill;
+    skill.id = "test";
+    nlohmann::json jsonObject = skill.ToJson();
+
+    EXPECT_TRUE(jsonObject["id"] == "test");
+}
+
+/**
+ * @tc.name: SkillFromJson_001
+ * @tc.desc: SkillFromJson_001
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, SkillFromJson_001, TestSize.Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "id", "test" },
+        { "name", "test" },
+        { "description", "test" },
+        { "tags", nlohmann::json::array({ "test", "test" }) },
+        { "examples", nlohmann::json::array({ "test", "test" }) },
+        { "inputModes", nlohmann::json::array({ "test", "test" }) },
+        { "outputModes", nlohmann::json::array({ "test", "test" }) },
+    };
+    Skill skill = Skill::FromJson(jsonObject);
+    EXPECT_TRUE(skill.id == "test");
+
+    jsonObject = nlohmann::json {};
+    skill = Skill::FromJson(jsonObject);
+    EXPECT_TRUE(skill.id.empty());
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnTrue_WhenAllParcelWriteOperationsSucceed
+* @tc.number: AgentCard_Marshalling_001
+* @tc.desc  : Test that Marshalling returns true when all parcel write operations succeed.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_001, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+    agentCard->provider = std::make_shared<Provider>();
+    agentCard->version = "1.0.0";
+    agentCard->documentationUrl = "http://docs.example.com";
+    agentCard->capabilities = std::make_shared<Capabilities>();
+    agentCard->authentication = std::make_shared<Authentication>();
+    agentCard->defaultInputModes = {"input1", "input2"};
+    agentCard->defaultOutputModes = {"output1", "output2"};
+    agentCard->skills = {std::make_shared<Skill>()};
+
+    EXPECT_TRUE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteBundleNameFails
+* @tc.number: AgentCard_Marshalling_002
+* @tc.desc  : Test that Marshalling returns false when writing bundleName fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_002, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "test";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteModuleNameFails
+* @tc.number: AgentCard_Marshalling_003
+* @tc.desc  : Test that Marshalling returns false when writing moduleName fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_003, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "test";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteAbilityNameFails
+* @tc.number: AgentCard_Marshalling_004
+* @tc.desc  : Test that Marshalling returns false when writing abilityName fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_004, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "test";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteAppIndexFails
+* @tc.number: AgentCard_Marshalling_005
+* @tc.desc  : Test that Marshalling returns false when writing appIndex fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_005, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 0;
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteNameFails
+* @tc.number: AgentCard_Marshalling_006
+* @tc.desc  : Test that Marshalling returns false when writing name fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_006, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "test";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteDescriptionFails
+* @tc.number: AgentCard_Marshalling_007
+* @tc.desc  : Test that Marshalling returns false when writing description fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_007, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "test";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteUrlFails
+* @tc.number: AgentCard_Marshalling_008
+* @tc.desc  : Test that Marshalling returns false when writing url fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_008, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "test";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteProviderFails
+* @tc.number: AgentCard_Marshalling_009
+* @tc.desc  : Test that Marshalling returns false when writing provider fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_009, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteVersionFails
+* @tc.number: AgentCard_Marshalling_010
+* @tc.desc  : Test that Marshalling returns false when writing version fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_010, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+    agentCard->provider = std::make_shared<Provider>();
+    agentCard->version = "test";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteDocumentationUrlFails
+* @tc.number: AgentCard_Marshalling_011
+* @tc.desc  : Test that Marshalling returns false when writing documentationUrl fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_011, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+    agentCard->provider = std::make_shared<Provider>();
+    agentCard->version = "1.0.0";
+    agentCard->documentationUrl = "test";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteCapabilitiesFails
+* @tc.number: AgentCard_Marshalling_012
+* @tc.desc  : Test that Marshalling returns false when writing capabilities fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_012, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+    agentCard->provider = std::make_shared<Provider>();
+    agentCard->version = "1.0.0";
+    agentCard->documentationUrl = "http://docs.example.com";
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteAuthenticationFails
+* @tc.number: AgentCard_Marshalling_013
+* @tc.desc  : Test that Marshalling returns false when writing authentication fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_013, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+    agentCard->provider = std::make_shared<Provider>();
+    agentCard->version = "1.0.0";
+    agentCard->documentationUrl = "http://docs.example.com";
+    agentCard->capabilities = std::make_shared<Capabilities>();
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteDefaultInputModesFails
+* @tc.number: AgentCard_Marshalling_014
+* @tc.desc  : Test that Marshalling returns false when writing defaultInputModes fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_014, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+    agentCard->provider = std::make_shared<Provider>();
+    agentCard->version = "1.0.0";
+    agentCard->documentationUrl = "http://docs.example.com";
+    agentCard->capabilities = std::make_shared<Capabilities>();
+    agentCard->authentication = std::make_shared<Authentication>();
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteDefaultOutputModesFails
+* @tc.number: AgentCard_Marshalling_015
+* @tc.desc  : Test that Marshalling returns false when writing defaultOutputModes fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_015, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+    agentCard->provider = std::make_shared<Provider>();
+    agentCard->version = "1.0.0";
+    agentCard->documentationUrl = "http://docs.example.com";
+    agentCard->capabilities = std::make_shared<Capabilities>();
+    agentCard->authentication = std::make_shared<Authentication>();
+    agentCard->defaultInputModes = {"input1", "input2"};
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteSkillSizeFails
+* @tc.number: AgentCard_Marshalling_016
+* @tc.desc  : Test that Marshalling returns false when writing skill size fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_016, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+    agentCard->provider = std::make_shared<Provider>();
+    agentCard->version = "1.0.0";
+    agentCard->documentationUrl = "http://docs.example.com";
+    agentCard->capabilities = std::make_shared<Capabilities>();
+    agentCard->authentication = std::make_shared<Authentication>();
+    agentCard->defaultInputModes = {"input1", "input2"};
+    agentCard->defaultOutputModes = {"output1", "output2"};
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : Marshalling_ShouldReturnFalse_WhenWriteSkillFails
+* @tc.number: AgentCard_Marshalling_017
+* @tc.desc  : Test that Marshalling returns false when writing skill fails.
+*/
+HWTEST_F(AgentCardTest, AgentCard_Marshalling_017, TestSize.Level1)
+{
+    Parcel parcelMock;
+    auto agentCard = std::make_shared<AgentCard>();
+    agentCard->bundleName = "com.example.bundle";
+    agentCard->moduleName = "ExampleModule";
+    agentCard->abilityName = "ExampleAbility";
+    agentCard->appIndex = 1;
+    agentCard->name = "ExampleName";
+    agentCard->description = "ExampleDescription";
+    agentCard->url = "http://example.com";
+    agentCard->provider = std::make_shared<Provider>();
+    agentCard->version = "1.0.0";
+    agentCard->documentationUrl = "http://docs.example.com";
+    agentCard->capabilities = std::make_shared<Capabilities>();
+    agentCard->authentication = std::make_shared<Authentication>();
+    agentCard->defaultInputModes = {"input1", "input2"};
+    agentCard->defaultOutputModes = {"output1", "output2"};
+    agentCard->skills = { nullptr };
+
+    EXPECT_FALSE(agentCard->Marshalling(parcelMock));
+}
+
+/**
+* @tc.name  : RawDataCpy_ShouldReturnError_WhenReadDataIsNull
+* @tc.number: RawDataCpy_001
+* @tc.desc  : Test that RawDataCpy returns ERR_INVALID_AGENT_CARD_DATA when readdata is nullptr
+*/
+HWTEST_F(AgentCardTest, RawDataCpy_001, TestSize.Level1)
+{
+    AgentCardsRawData* agentCardData = new AgentCardsRawData();
+    const void* readdata = nullptr;
+    int32_t result = agentCardData->RawDataCpy(readdata);
+    EXPECT_EQ(result, ERR_INVALID_AGENT_CARD_DATA);
+    delete agentCardData;
+}
+
+/**
+* @tc.name  : RawDataCpy_ShouldReturnError_WhenSizeIsZero
+* @tc.number: RawDataCpy_002
+* @tc.desc  : Test that RawDataCpy returns ERR_INVALID_AGENT_CARD_DATA when size is zero
+*/
+HWTEST_F(AgentCardTest, RawDataCpy_002, TestSize.Level1)
+{
+    AgentCardsRawData* agentCardData = new AgentCardsRawData();
+    agentCardData->size = 0;
+    const void* readdata = malloc(10);
+    int32_t result = agentCardData->RawDataCpy(readdata);
+    EXPECT_EQ(result, ERR_INVALID_AGENT_CARD_DATA);
+    free(const_cast<void*>(readdata));
+    delete agentCardData;
+}
+
+/**
+* @tc.name  : RawDataCpy_ShouldCopyDataSuccessfully_WhenInputsAreValid
+* @tc.number: RawDataCpy_005
+* @tc.desc  : Test that RawDataCpy successfully copies data when inputs are valid
+*/
+HWTEST_F(AgentCardTest, RawDataCpy_005, TestSize.Level1)
+{
+    AgentCardsRawData* agentCardData = new AgentCardsRawData();
+    const void* readdata = malloc(10);
+    agentCardData->size = 10;
+    memset(const_cast<void*>(readdata), 0xAA, 10);
+
+    int32_t result = agentCardData->RawDataCpy(readdata);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(agentCardData->data, nullptr);
+    EXPECT_EQ(agentCardData->isMalloc, true);
+
+    free(const_cast<void*>(readdata));
+    delete agentCardData;
+}
+
+/**
+* @tc.name  : RawDataCpy_ShouldFreeOldData_WhenDataIsNotNull
+* @tc.number: RawDataCpy_006
+* @tc.desc  : Test that RawDataCpy frees the old data when data is not nullptr
+*/
+HWTEST_F(AgentCardTest, RawDataCpy_006, TestSize.Level1)
+{
+    AgentCardsRawData* agentCardData = new AgentCardsRawData();
+    // Initialize old data
+    agentCardData->data = malloc(10);
+    agentCardData->size = 10;
+
+    const void* readdata = malloc(10);
+    memset(const_cast<void*>(readdata), 0xAA, 10);
+
+    int32_t result = agentCardData->RawDataCpy(readdata);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_NE(agentCardData->data, nullptr);
+    EXPECT_EQ(agentCardData->isMalloc, true);
+
+    // Verify the old data is freed
+    EXPECT_NE(agentCardData->data, const_cast<void*>(readdata));
+
+    free(const_cast<void*>(readdata));
+    delete agentCardData;
+}
+
+/**
+* @tc.name  : ToAgentCardVec_ShouldReturnError_WhenCountIsZero
+* @tc.number: ToAgentCardVec_001
+* @tc.desc  : Test that ToAgentCardVec returns ERR_AGENT_CARD_LIST_OUT_OF_RANGE when count is zero.
+*/
+HWTEST_F(AgentCardTest, ToAgentCardVec_001, TestSize.Level1)
+{
+    AgentCardsRawData rawData;
+    rawData.data = new uint8_t[4]{0, 0, 0, 0}; // count = 0
+    rawData.isMalloc = true;
+    rawData.size = 4;
+
+    std::vector<AgentCard> cards;
+    int32_t result = AgentCardsRawData::ToAgentCardVec(rawData, cards);
+
+    EXPECT_EQ(result, ERR_AGENT_CARD_LIST_OUT_OF_RANGE);
+}
+
+/**
+* @tc.name  : ToAgentCardVec_ShouldReturnError_WhenCountExceedsMaxLimit
+* @tc.number: ToAgentCardVec_002
+* @tc.desc  : Test that ToAgentCardVec returns ERR_AGENT_CARD_LIST_OUT_OF_RANGE when count exceeds MAX_AGENT_CARD_COUNT.
+*/
+HWTEST_F(AgentCardTest, ToAgentCardVec_002, TestSize.Level1)
+{
+    AgentCardsRawData rawData;
+    uint32_t count = MAX_AGENT_CARD_COUNT + 1;
+    rawData.data = new uint8_t[4]{static_cast<uint8_t>(count), static_cast<uint8_t>(count >> 8),
+                                  static_cast<uint8_t>(count >> 16), static_cast<uint8_t>(count >> 24)};
+    rawData.isMalloc = true;
+    rawData.size = 4;
+
+    std::vector<AgentCard> cards;
+    int32_t result = AgentCardsRawData::ToAgentCardVec(rawData, cards);
+
+    EXPECT_EQ(result, ERR_AGENT_CARD_LIST_OUT_OF_RANGE);
+}
+
+/**
+* @tc.name  : ToAgentCardVec_ShouldReturnError_WhenCardSizeIsInvalid
+* @tc.number: ToAgentCardVec_003
+* @tc.desc  : Test that ToAgentCardVec returns ERR_INVALID_AGENT_CARD_DATA when cardSize is invalid.
+*/
+HWTEST_F(AgentCardTest, ToAgentCardVec_003, TestSize.Level1)
+{
+    AgentCardsRawData rawData;
+    uint32_t count = 1;
+    uint32_t cardSize = 100; // Invalid card size
+    rawData.data = new uint8_t[8]{static_cast<uint8_t>(count), static_cast<uint8_t>(count >> 8),
+                                  static_cast<uint8_t>(count >> 16), static_cast<uint8_t>(count >> 24),
+                                  static_cast<uint8_t>(cardSize), static_cast<uint8_t>(cardSize >> 8),
+                                  static_cast<uint8_t>(cardSize >> 16), static_cast<uint8_t>(cardSize >> 24)};
+    rawData.isMalloc = true;
+    rawData.size = 8;
+
+    std::vector<AgentCard> cards;
+    int32_t result = AgentCardsRawData::ToAgentCardVec(rawData, cards);
+
+    EXPECT_EQ(result, ERR_INVALID_AGENT_CARD_DATA);
+}
+
+/**
+* @tc.name  : ToAgentCardVec_ShouldReturnSuccess_WhenDataIsValid
+* @tc.number: ToAgentCardVec_004
+* @tc.desc  : Test that ToAgentCardVec returns ERR_OK when the input data is valid.
+*/
+HWTEST_F(AgentCardTest, ToAgentCardVec_004, TestSize.Level1)
+{
+    AgentCard agentCard;
+    agentCard.bundleName = "com.example.bundle";
+    agentCard.moduleName = "ExampleModule";
+    agentCard.abilityName = "ExampleAbility";
+    agentCard.appIndex = 1;
+    agentCard.name = "ExampleName";
+    agentCard.description = "ExampleDescription";
+    agentCard.url = "http://example.com";
+    agentCard.provider = std::make_shared<Provider>();
+    agentCard.version = "1.0.0";
+    agentCard.documentationUrl = "http://docs.example.com";
+    agentCard.capabilities = std::make_shared<Capabilities>();
+    agentCard.authentication = std::make_shared<Authentication>();
+    agentCard.defaultInputModes = {"input1", "input2"};
+    agentCard.defaultOutputModes = {"output1", "output2"};
+    agentCard.skills = {std::make_shared<Skill>()};
+
+    AgentCardsRawData rawData;
+    std::vector<AgentCard> vec = { agentCard };
+    AgentCardsRawData::FromAgentCardVec(vec, rawData);
+    EXPECT_NE(rawData.data, nullptr);
+    EXPECT_TRUE(rawData.size > 0);
+
+    std::vector<AgentCard> cards;
+    int32_t result = AgentCardsRawData::ToAgentCardVec(rawData, cards);
+
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+* @tc.name  : FromAgentCardVec
+* @tc.number: FromAgentCardVec_001
+* @tc.desc  : FromAgentCardVec_001
+*/
+HWTEST_F(AgentCardTest, FromAgentCardVec_001, TestSize.Level1)
+{
+    AgentCard agentCard;
+    agentCard.bundleName = "com.example.bundle";
+    agentCard.moduleName = "ExampleModule";
+    agentCard.abilityName = "ExampleAbility";
+    agentCard.appIndex = 1;
+    agentCard.name = "ExampleName";
+    agentCard.description = "ExampleDescription";
+    agentCard.url = "http://example.com";
+    agentCard.provider = std::make_shared<Provider>();
+    agentCard.version = "1.0.0";
+    agentCard.documentationUrl = "http://docs.example.com";
+    agentCard.capabilities = std::make_shared<Capabilities>();
+    agentCard.authentication = std::make_shared<Authentication>();
+    agentCard.defaultInputModes = {"input1", "input2"};
+    agentCard.defaultOutputModes = {"output1", "output2"};
+    agentCard.skills = {std::make_shared<Skill>()};
+
+    AgentCardsRawData rawData;
+    std::vector<AgentCard> vec = { agentCard };
+    AgentCardsRawData::FromAgentCardVec(vec, rawData);
+    EXPECT_NE(rawData.data, nullptr);
+    EXPECT_TRUE(rawData.size > 0);
 }
 } // namespace AgentRuntime
 } // namespace OHOS

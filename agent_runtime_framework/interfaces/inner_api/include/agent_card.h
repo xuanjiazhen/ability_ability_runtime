@@ -28,11 +28,12 @@ namespace AgentRuntime {
 struct Provider : public Parcelable {
     std::string organization;
     std::string url;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Provider, organization, url);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static Provider *Unmarshalling(Parcel &parcel);
+    nlohmann::json ToJson();
+    static Provider FromJson(const nlohmann::json &jsonObject);
 };
 
 struct Capabilities : public Parcelable {
@@ -42,22 +43,24 @@ struct Capabilities : public Parcelable {
     bool pushNotifications;
     // optional param
     bool stateTransitionHistory;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Capabilities, streaming, pushNotifications, stateTransitionHistory);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static Capabilities *Unmarshalling(Parcel &parcel);
+    nlohmann::json ToJson();
+    static Capabilities FromJson(const nlohmann::json &jsonObject);
 };
 
 struct Authentication : public Parcelable {
     std::vector<std::string> schemes;
     // optional param
     std::string credentials;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Authentication, schemes, credentials);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static Authentication *Unmarshalling(Parcel &parcel);
+    nlohmann::json ToJson();
+    static Authentication FromJson(const nlohmann::json &jsonObject);
 };
 
 struct Skill : public Parcelable {
@@ -71,14 +74,19 @@ struct Skill : public Parcelable {
     std::vector<std::string> inputModes;
     // optional param
     std::vector<std::string> outputModes;
-    NLOHMANN_DEFINE_TYPE_INTRUSIVE(Skill, id, name, description, tags, examples, inputModes, outputModes);
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static Skill *Unmarshalling(Parcel &parcel);
+    nlohmann::json ToJson();
+    static Skill FromJson(const nlohmann::json &jsonObject);
 };
 
 struct AgentCard : public Parcelable {
+    std::string bundleName;
+    std::string moduleName;
+    std::string abilityName;
+    int32_t appIndex;
     std::string name;
     std::string description;
     std::string url;
@@ -98,6 +106,19 @@ struct AgentCard : public Parcelable {
     nlohmann::json ToJson() const;
     static AgentCard FromJson(nlohmann::json jsonObject);
     static AgentCard *Unmarshalling(Parcel &parcel);
+};
+
+class AgentCardsRawData {
+public:
+    std::string ownedData;
+    uint32_t size = 0;
+    const void* data = nullptr;
+    bool isMalloc = false;
+
+    static void FromAgentCardVec(const std::vector<AgentCard> &cards, AgentCardsRawData &rawData);
+    static int32_t ToAgentCardVec(const AgentCardsRawData &rawData, std::vector<AgentCard> &cards);
+    int32_t RawDataCpy(const void *readdata);
+    ~AgentCardsRawData();
 };
 } // AgentRuntime
 } // OHOS

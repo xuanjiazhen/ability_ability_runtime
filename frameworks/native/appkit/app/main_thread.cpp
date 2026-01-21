@@ -49,6 +49,7 @@
 #include "context_deal.h"
 #include "context_impl.h"
 #include "display_util.h"
+#include "dump_arkweb_helper.h"
 #include "dump_ffrt_helper.h"
 #include "dump_ipc_helper.h"
 #include "dump_process_helper.h"
@@ -3870,13 +3871,27 @@ int32_t MainThread::ChangeAppGcState(int32_t state, uint64_t tid)
     if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::CJ) {
         return NO_ERROR;
     }
-    auto& nativeEngine = (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNativeEngine();
+
+    NativeEngine* nativeEngine = nullptr;
+
+    if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
+        auto& etsRuntime = static_cast<AbilityRuntime::ETSRuntime&>(*runtime);
+        auto& jsRuntime = static_cast<AbilityRuntime::JsRuntime&>(*etsRuntime.GetJsRuntime());
+        nativeEngine = &jsRuntime.GetNativeEngine();
+    } else {
+        nativeEngine = &(static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNativeEngine();
+    }
+
+    if (nativeEngine == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null nativeEngine");
+        return ERR_INVALID_VALUE;
+    }
     if (tid > 0) {
         TAG_LOGD(AAFwkTag::APPKIT, "tid is %{private}" PRIu64, tid);
-        nativeEngine.NotifyForceExpandState(tid, state);
+        nativeEngine->NotifyForceExpandState(tid, state);
         return NO_ERROR;
     }
-    nativeEngine.NotifyForceExpandState(state);
+    nativeEngine->NotifyForceExpandState(state);
     return NO_ERROR;
 }
 
@@ -4040,6 +4055,12 @@ int32_t MainThread::ScheduleDumpFfrt(std::string& result)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "pid:%{public}d", getprocpid());
     return DumpFfrtHelper::DumpFfrt(result);
+}
+
+int32_t MainThread::ScheduleDumpArkWeb(const std::string &customArgs, std::string &result)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "ScheduleDumpArkWeb");
+    return DumpArkWebHelper::DumpArkWeb(customArgs, result);
 }
 
 /**

@@ -69,7 +69,8 @@ inline std::unordered_set<AppExecFwk::ExtensionAbilityType> GetUiExtensionSet()
         AppExecFwk::ExtensionAbilityType::FORM_EDIT,
         AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE,
         AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED,
-        AppExecFwk::ExtensionAbilityType::LIVE_FORM
+        AppExecFwk::ExtensionAbilityType::LIVE_FORM,
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_CASHIER
     };
 }
 
@@ -109,7 +110,8 @@ inline bool IsSystemUIExtension(const AppExecFwk::ExtensionAbilityType type)
         AppExecFwk::ExtensionAbilityType::SYS_VISUAL,
         AppExecFwk::ExtensionAbilityType::RECENT_PHOTO,
         AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE,
-        AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED
+        AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED,
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_CASHIER
     };
     return systemUiExtensionSet.find(type) != systemUiExtensionSet.end();
 }
@@ -140,7 +142,8 @@ inline bool IsPublicForEmbedded(const AppExecFwk::ExtensionAbilityType type)
         AppExecFwk::ExtensionAbilityType::SYSPICKER_MEDIACONTROL,
         AppExecFwk::ExtensionAbilityType::SYS_VISUAL,
         AppExecFwk::ExtensionAbilityType::AUTO_FILL_SMART,
-        AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD
+        AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD,
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_CASHIER
     };
     return publicForEmbeddedSet.find(type) != publicForEmbeddedSet.end();
 }
@@ -153,15 +156,6 @@ inline bool IsPublicForConstrainedEmbedded(const AppExecFwk::ExtensionAbilityTyp
         AppExecFwk::ExtensionAbilityType::RECENT_PHOTO
     };
     return publicForConstrainedEmbeddedSet.find(type) != publicForConstrainedEmbeddedSet.end();
-}
-
-inline bool IsOnlyForModal(const AppExecFwk::ExtensionAbilityType type)
-{
-    const std::unordered_set<AppExecFwk::ExtensionAbilityType> onlyForMoadalSet = {
-        AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE,
-        AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED
-    };
-    return onlyForMoadalSet.find(type) != onlyForMoadalSet.end();
 }
 
 inline bool IsEnterpriseAdmin(const AppExecFwk::ExtensionAbilityType type)
