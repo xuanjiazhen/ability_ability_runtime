@@ -1008,6 +1008,58 @@ ani_object EtsAbilityContext::StartAbilityByCall(ani_env *env, ani_object aniObj
     return caller;
 }
 
+ani_object EtsAbilityContext::StartAbilityByCallWithAccount(
+    ani_env *env, ani_object aniObj, ani_object wantObj, ani_int aniAccount)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "StartAbilityByCall");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+    }
+    auto context = etsContext ? etsContext->context_.lock() : nullptr;
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "GetAbilityContext is nullptr");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return nullptr;
+    }
+
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse want failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return nullptr;
+    }
+    auto callData = std::make_shared<StartAbilityByCallData>();
+    auto callerCallBack = std::make_shared<CallerCallBack>();
+    CallUtil::GenerateCallerCallBack(callData, callerCallBack);
+    auto ret = context->StartAbilityByCall(want, callerCallBack, static_cast<int32_t>(aniAccount));
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "startAbility failed");
+        EtsErrorUtil::ThrowErrorByNativeErr(env, ret);
+        return nullptr;
+    }
+    CallUtil::WaitForCalleeObj(callData);
+
+    if (callData->remoteCallee == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        return nullptr;
+    }
+
+    std::weak_ptr<AbilityContext> abilityContext(context);
+    auto releaseCallFunc = [abilityContext] (std::shared_ptr<CallerCallBack> callback) -> ErrCode {
+        auto contextForRelease = abilityContext.lock();
+        if (contextForRelease == nullptr) {
+            return -1;
+        }
+        return contextForRelease->ReleaseCall(callback);
+    };
+    auto caller = EtsCallerComplex::CreateEtsCaller(env, releaseCallFunc, callData->remoteCallee, callerCallBack);
+    if (caller == nullptr) {
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+    }
+    return caller;
+}
+
 void EtsAbilityContext::RestartAppWithWindow(ani_env *env, ani_object aniObj, ani_object wantObj)
 {
     TAG_LOGI(AAFwkTag::UIABILITY, "RestartAppWithWindow");
@@ -2972,6 +3024,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeStartAbilityByCallSync",
                 "C{@ohos.app.ability.Want.Want}:C{@ohos.app.ability.UIAbility.Caller}",
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByCall) },
+            ani_native_function { "nativeStartAbilityByCallWithAccountSync",
+                "C{@ohos.app.ability.Want.Want}iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByCallWithAccount) },
             ani_native_function { "nativeReportDrawnCompletedSync", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<ani_int *>(EtsAbilityContext::ReportDrawnCompleted) },
             ani_native_function { "nativeStartServiceExtensionAbility",
