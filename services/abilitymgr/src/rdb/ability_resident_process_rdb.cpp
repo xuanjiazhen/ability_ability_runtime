@@ -65,7 +65,7 @@ int32_t AmsResidentProcessRdbCallBack::OnCreate(NativeRdb::RdbStore &rdbStore)
     int64_t insertNum = 0;
     int32_t ret = rdbStore.BatchInsert(insertNum, rdbConfig_.tableName, valuesBuckets);
     if (ret != NativeRdb::E_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "batch insert error[%{public}d]", ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "batch insert error [%{public}d]", ret);
         return ret;
     }
     return NativeRdb::E_OK;
