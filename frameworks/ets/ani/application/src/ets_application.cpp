@@ -536,7 +536,23 @@ void EtsApplication::ExitMasterProcessRole(ani_env *env, ani_object callback)
         AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
     }
 }
-
+ void EtsApplication::ExitMasterProcessRoleNew(ani_env *env, ani_object callback)
+{
+ 	TAG_LOGD(AAFwkTag::APPKIT, "ExitMasterProcessRoleNew Call");
+ 	int32_t errCode = ERR_OK;
+    auto appMgrClient = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (appMgrClient == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Null appMgrClient");
+        errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+    } else {
+        errCode = appMgrClient->ExitMasterProcessRole();
+    }
+    if (errCode == ERR_OK) {
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), nullptr);
+    } else {
+        AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
+    }
+}
 void EtsApplication::CreatePluginModuleContextForHostBundleCheck(ani_env *env, ani_object contextObj,
     ani_string pluginBundleName, ani_string pluginModuleName, ani_string hostBundleName, ani_object callback)
 {
@@ -719,6 +735,11 @@ void ApplicationInit(ani_env *env)
             "nativeExitMasterProcessRole",
             "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::ExitMasterProcessRole)
+        },
+        ani_native_function {
+            "nativeExitMasterProcessRoleNew",
+            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            reinterpret_cast<void *>(EtsApplication::ExitMasterProcessRoleNew)
         },
         ani_native_function {
             "nativeCreatePluginModuleContextForHostBundle",

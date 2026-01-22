@@ -15,6 +15,7 @@
 
 import Context from 'application.Context';
 import { BusinessError, AsyncCallback } from '@ohos.base';
+
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 import ApplicationContext from 'application.ApplicationContext';
 
@@ -46,6 +47,7 @@ export default namespace application {
     callback:AsyncCallbackWrapper<void>): void;
 
   export native function nativeExitMasterProcessRole(callback: AsyncCallbackWrapper<void>): void;
+  export native function nativeExitMasterProcessRoleNew(callback: AsyncCallbackWrapper<void>): void;
 
   export native function nativeCreatePluginModuleContextForHostBundle(context: Context, pluginBundleName: string,
     pluginModuleName: string, hostBundleName: string, callback: AsyncCallbackWrapper<Context>): void;
@@ -190,6 +192,22 @@ export default namespace application {
         });
         taskpool.execute((): void => {
             application.nativeExitMasterProcessRole(myCall);
+        });
+      });
+    return p;
+  }
+export function nativeExitMasterProcessRoleNew(): Promise<void> {
+    let p: Promise<void> =
+      new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+        let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null)=> {
+          if (err == null || err.code == 0) {
+            resolve(undefined);
+          } else {
+            reject(err);
+          }
+        });
+        taskpool.execute((): void => {
+            application.nativeExitMasterProcessRoleNew(myCall);
         });
       });
     return p;
