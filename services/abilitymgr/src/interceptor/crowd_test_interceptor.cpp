@@ -17,14 +17,25 @@
 
 #include "ability_util.h"
 #include "start_ability_utils.h"
+#include "dialog_session_manager.h"
+// #include "ability_request.h"
 
 namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr const char* ACTION_MARKET_CROWDTEST = "ohos.want.action.marketCrowdTest";
+constexpr const char* MARKET_BUNDLE_NAME = "com.huawei.hmsapp.appgallery";
+const std::string UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionType";
+const std::string UIEXTENSION_SYS_COMMON_UI = "sys/commonUI";
 }
 ErrCode CrowdTestInterceptor::DoProcess(AbilityInterceptorParam param)
 {
+    std::string bundleName = param.want.GetElement().GetBundleName();
+    std::string abilityName = param.want.GetElement().GetAbilityName();
+    int32_t userId = param.userId;
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "hanksh DoProcess bundleName: %{public}s, abilityName: %{public}s, userId: %{public}d", bundleName.c_str(),
+        abilityName.c_str(), userId);
     if (StartAbilityUtils::skipCrowTest) {
         StartAbilityUtils::skipCrowTest = false;
         return ERR_OK;
@@ -33,8 +44,40 @@ ErrCode CrowdTestInterceptor::DoProcess(AbilityInterceptorParam param)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "expired");
 #ifdef SUPPORT_GRAPHICS
         if (param.isWithUI) {
-            int ret = IN_PROCESS_CALL(AbilityUtil::StartAppgallery(param.want.GetBundle(), param.requestCode,
-                param.userId, ACTION_MARKET_CROWDTEST));
+            if (param.callerToken == nullptr) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR,
+                    "bundleName: %{public}s, abilityName: %{public}s, callerToken is nullptr", bundleName.c_str(),
+                    abilityName.c_str());
+            }
+            if (param.abilityInfo == nullptr) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR,
+                    "bundleName: %{public}s, abilityName: %{public}s, abilityInfo is nullptr", bundleName.c_str(),
+                    abilityName.c_str());
+            }
+            AppExecFwk::AbilityRequest abilityRequest;
+
+            // std::string appGalleryBundleName;
+            // auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+            // if (bundleMgrHelper == nullptr || 
+            //     !bundleMgrHelper->QueryAppGalleryBundleName(appGalleryBundleName)) {
+            //     TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to query AppGallery bundle name");
+            //     appGalleryBundleName = MARKET_BUNDLE_NAME;
+            // }
+            // AAFwk::Want replaceWant;
+            // replaceWant.SetParam(UIEXTENSION_TYPE_KEY, UIEXTENSION_SYS_COMMON_UI);
+            // replaceWant.SetElementName(appGalleryBundleName, "UIExtAbility");
+            // int32_t ret = DialogSessionManager::GetInstance().HandleExpiredCrowdTestApp(abilityRequest, param.userId, replaceWant);
+            // if (ret != ERR_OK) {
+            //     TAG_LOGE(AAFwkTag::ABILITYMGR, "start appGallery failed:%{public}d", ret);
+            //     return ret;
+            // }
+
+            AAFwk::Want replaceWant;
+            replaceWant.SetParam("ability.want.params.uiExtensionType", std::string("sys/commonUI"));
+            replaceWant.SetElementName("com.example.hankshuiextension", "UIExtAbility");
+
+            int32_t ret = (DialogSessionManager::GetInstance().HandleExpiredCrowdTestApp(
+                abilityRequest, param.userId, replaceWant);
             if (ret != ERR_OK) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "start appGallery failed:%{public}d", ret);
                 return ret;
@@ -48,6 +91,7 @@ ErrCode CrowdTestInterceptor::DoProcess(AbilityInterceptorParam param)
 
 bool CrowdTestInterceptor::CheckCrowdtest(const Want &want, int32_t userId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh CheckCrowdtest start");
     // get crowdtest status and time
     AppExecFwk::ApplicationInfo appInfo;
     if (!StartAbilityUtils::GetApplicationInfo(want.GetBundle(), userId, appInfo)) {
@@ -58,11 +102,14 @@ bool CrowdTestInterceptor::CheckCrowdtest(const Want &want, int32_t userId)
     auto appCrowdtestDeadline = appInfo.crowdtestDeadline;
     int64_t now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::
         system_clock::now().time_since_epoch()).count();
-    if (appCrowdtestDeadline > 0 && appCrowdtestDeadline < now) {
+    std::string testName = want.GetBundle();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh DoProcess bundleName: %{public}s",testName.c_str());
+    if ((appCrowdtestDeadline > 0 && appCrowdtestDeadline < now) || testName == "com.example.testnamehantwo") {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "expired time: %{public}s",
             std::to_string(appCrowdtestDeadline).c_str());
         return true;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh CheckCrowdtest end");
     return false;
 }
 } // namespace AAFwk

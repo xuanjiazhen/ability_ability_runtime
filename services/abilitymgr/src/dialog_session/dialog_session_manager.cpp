@@ -154,6 +154,7 @@ std::shared_ptr<StartupSessionInfo> DialogSessionManager::GetStartupSessionInfo(
 
 void DialogSessionManager::ClearDialogContext(const std::string &dialogSessionId)
 {
+    TAG_LOGI(AAFwkTag::DIALOG, "hanksh ClearDialogContext");
     std::lock_guard<ffrt::mutex> guard(dialogSessionRecordLock_);
     dialogSessionInfoMap_.erase(dialogSessionId);
     dialogCallerInfoMap_.erase(dialogSessionId);
@@ -163,6 +164,7 @@ void DialogSessionManager::ClearDialogContext(const std::string &dialogSessionId
 
 void DialogSessionManager::ClearAllDialogContexts()
 {
+    TAG_LOGI(AAFwkTag::DIALOG, "hanksh ClearAllDialogContexts");
     std::lock_guard<ffrt::mutex> guard(dialogSessionRecordLock_);
     dialogSessionInfoMap_.clear();
     dialogCallerInfoMap_.clear();
@@ -270,13 +272,15 @@ void DialogSessionManager::NotifyAbilityRequestFailure(const std::string &dialog
 
 int DialogSessionManager::SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh SendDialogResult dialogSessionId: %{pubilc}s, isAllowed: %{pubilc}d",
+        dialogSessionId.c_str(), isAllowed);
     if (NotifyQueryERMSFinished(dialogSessionId, isAllowed)) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "query ERMS finished");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh query ERMS finished");
         ClearDialogContext(dialogSessionId);
         return ERR_OK;
     }
     if (!isAllowed) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "user refuse to jump");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh user refuse to jump");
         NotifyAbilityRequestFailure(dialogSessionId, want);
         ClearDialogContext(dialogSessionId);
         return ERR_OK;
@@ -287,7 +291,7 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
     }
     std::shared_ptr<DialogCallerInfo> dialogCallerInfo = GetDialogCallerInfo(dialogSessionId);
     if (dialogCallerInfo == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "dialogCallerInfo null");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh dialogCallerInfo null");
         ClearDialogContext(dialogSessionId);
         return ERR_INVALID_VALUE;
     }
@@ -315,6 +319,7 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
         dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
         dialogCallerInfo->callerAccessTokenId);
     if (ret == ERR_OK) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh ret == ERR_OK");
         ClearDialogContext(dialogSessionId);
         abilityMgr->RemoveSelectorIdentity(dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
     }
@@ -373,6 +378,22 @@ int DialogSessionManager::CreateJumpModalDialog(AbilityRequest &abilityRequest, 
     parameters.SetParam("deviceType", AAFwk::String::Box(OHOS::system::GetDeviceType()));
     parameters.SetParam("userId", AAFwk::Integer::Box(userId));
 
+    std::vector<DialogAppInfo> dialogAppInfos;
+    std::string dialogSessionId = GenerateDialogSessionRecordCommon(abilityRequest, userId, parameters,
+        dialogAppInfos, SelectorType::WITHOUT_SELECTOR);
+    if (dialogSessionId == "") {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "generation failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    return CreateModalDialogCommon(replaceWant, abilityRequest.callerToken, dialogSessionId);
+}
+
+
+int DialogSessionManager::HandleExpiredCrowdTestApp(
+    AbilityRequest& abilityRequest, int32_t userId, const Want& replaceWant)
+{
+    AAFwk::WantParams parameters;
     std::vector<DialogAppInfo> dialogAppInfos;
     std::string dialogSessionId = GenerateDialogSessionRecordCommon(abilityRequest, userId, parameters,
         dialogAppInfos, SelectorType::WITHOUT_SELECTOR);
@@ -454,7 +475,7 @@ int DialogSessionManager::CreateModalDialogCommon(const Want &replaceWant, sptr<
     (const_cast<Want &>(replaceWant)).SetParam(DIALOG_SESSION_ID, dialogSessionId);
     auto connection = std::make_shared<OHOS::Rosen::ModalSystemUiExtension>();
     if (callerToken == nullptr) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "create modal ui extension for system");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh create modal ui extension for system");
         (const_cast<Want &>(replaceWant)).SetParam(UIEXTENSION_MODAL_TYPE, 1);
         (const_cast<Want &>(replaceWant)).SetParam(SUPPORT_CLOSE_ON_BLUR, true);
         return IN_PROCESS_CALL(connection->CreateModalUIExtension(replaceWant)) ? ERR_OK : INNER_ERR;

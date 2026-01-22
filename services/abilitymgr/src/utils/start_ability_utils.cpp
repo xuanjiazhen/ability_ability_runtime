@@ -130,6 +130,11 @@ int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userI
 StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId, int32_t appIndex,
     const sptr<IRemoteObject> &callerToken, bool isExtension)
 {
+    std::string bundleName = want.GetElement().GetBundleName();
+    std::string abilityName = want.GetElement().GetAbilityName();
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "hanksh StartAbilityInfoWrap bundleName: %{public}s, abilityName: %{public}s, isExtension %{public}d",
+        bundleName.c_str(), abilityName.c_str(), isExtension);
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "startAbilityInfo created");
     }
@@ -270,6 +275,9 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
         return request;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityInfo customProcess: %{public}s", request->customProcess.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "hanksh request.appInfo.name: %{public}s,request->abilityInfo.bundleName: %{public}s",
+        request->abilityInfo.name.c_str(), request->abilityInfo.bundleName.c_str());
     if (request->abilityInfo.name.empty() || request->abilityInfo.bundleName.empty()) {
         // try to find extension
         std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;

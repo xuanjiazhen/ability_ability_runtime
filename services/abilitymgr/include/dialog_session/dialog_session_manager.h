@@ -106,6 +106,16 @@ public:
      */
     int CreateJumpModalDialog(AbilityRequest &abilityRequest, int32_t userId, const Want &replaceWant);
 
+
+    /**
+     * @brief Creates a modal dialog for expired crowd test app.
+     * @param abilityRequest The AbilityRequest object containing target ability information.
+     * @param userId The user ID under which the ability operation is performed.
+     * @param replaceWant The Want object specifying replacement parameters for the modal dialog.
+     * @return int ERR_OK on success, or specific error codes for failure cases.
+     */
+    int HandleExpiredCrowdTestApp(AbilityRequest &abilityRequest, int32_t userId, const Want &replaceWant);
+
     /**
      * @brief Creates a modal dialog for implicit ability selection with selector functionality.
      * @param abilityRequest The AbilityRequest object containing target ability information.

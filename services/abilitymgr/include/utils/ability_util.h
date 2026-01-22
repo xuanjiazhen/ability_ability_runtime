@@ -370,6 +370,7 @@ static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 mi
 [[maybe_unused]] static int StartAppgallery(const std::string &bundleName, const int requestCode, const int32_t userId,
     const std::string &action)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh StartAppgallery");
     std::string appGalleryBundleName;
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr || !bundleMgrHelper->QueryAppGalleryBundleName(appGalleryBundleName)) {
@@ -377,8 +378,8 @@ static constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 mi
         appGalleryBundleName = MARKET_BUNDLE_NAME;
     }
 
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "appGalleryBundleName:%{public}s", appGalleryBundleName.c_str());
-
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh appGalleryBundleName:%{public}s", appGalleryBundleName.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh bundleName:%{public}s", bundleName.c_str());
     Want want;
     want.SetElementName(appGalleryBundleName, "");
     want.SetAction(action);

@@ -79,6 +79,7 @@ bool ImplicitStartProcessor::IsExtensionInWhiteList(AppExecFwk::ExtensionAbility
 
 bool ImplicitStartProcessor::IsImplicitStartAction(const Want &want)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "hanksh IsImplicitStartAction start");
     auto element = want.GetElement();
     if (!element.GetAbilityName().empty()) {
         return false;
