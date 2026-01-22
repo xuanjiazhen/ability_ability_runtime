@@ -189,6 +189,18 @@ void ETSEnvironment::RegisterUncaughtExceptionHandler(const ETSUncaughtException
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "RegisterUncaughtExceptionHandler called");
     uncaughtExceptionInfo_ = handle;
+    auto callback = [this, handle] (std::string errorName, std::string errorMsg, std::string errorStack) {
+        std::string summary = "Error name:" + errorName + "\n";
+        summary += "Error message:" + errorMsg + "\n";
+        if (errorStack.find(BACKTRACE) != std::string::npos) {
+            summary += "Stacktrace:\n" + GetBuildId(errorStack);
+        } else {
+            summary += "Stacktrace:\n" + errorStack;
+        }
+        ETSErrorObject errorObj{errorName, errorMsg, errorStack};
+        handle.uncaughtTask(summary, errorObj);
+    };
+    ARKVM_RegisterETSUncaughtExceptionHandler(callback);
 }
 
 bool ETSEnvironment::LoadSymbolCreateVM(void *handle, ETSRuntimeAPI &apis)
