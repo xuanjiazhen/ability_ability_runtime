@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -178,6 +178,18 @@ void ETSEnvironment::RegisterUncaughtExceptionHandler(const ETSUncaughtException
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "RegisterUncaughtExceptionHandler called");
     uncaughtExceptionInfo_ = handle;
+    auto callback = [this, handle] (std::string errorName, std::string errorMsg, std::string errorStack) {
+        std::string summary = "Error name:" + errorName + "\n";
+        summary += "Error message:" + errorMsg + "\n";
+        if (errorStack.find(BACKTRACE) != std::string::npos) {
+            summary += "Stacktrace:\n" + GetBuildId(errorStack);
+        } else {
+            summary += "Stacktrace:\n" + errorStack;
+        }
+        ETSErrorObject errorObj{errorName, errorMsg, errorStack};
+        handle.uncaughtTask(summary, errorObj);
+    };
+    ARKVM_RegisterETSUncaughtExceptionHandler(callback);
 }
 
 bool ETSEnvironment::LoadSymbolCreateVM(void *handle, ETSRuntimeAPI &apis)
