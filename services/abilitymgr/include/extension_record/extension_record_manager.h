@@ -141,8 +141,8 @@ public:
                                           const int32_t hostPid,
                                           int32_t &recordNum);
 
-    void HandlePreloadUIExtensionLoadedById(int32_t extensionRecordId);
-    void HandlePreloadUIExtensionDestroyedById(int32_t extensionRecordId);
+    void HandlePreloadUIExtensionLoadedById(std::shared_ptr<ExtensionRecord> &extensionRecord);
+    void HandlePreloadUIExtensionDestroyedById(std::shared_ptr<ExtensionRecord> &extensionRecord);
     void HandlePreloadUIExtensionSuccess(int32_t extensionRecordId, bool isPreloadedSuccess);
     int32_t ClearPreloadedUIExtensionAbility(int32_t extensionRecordId);
     int32_t ClearAllPreloadUIExtensionRecordForHost();
