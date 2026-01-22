@@ -16,6 +16,7 @@
 #include "agent_manager_service.h"
 
 #include "agent_bundle_event_callback.h"
+#include "agent_card_mgr.h"
 #include "agent_config.h"
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
@@ -106,12 +107,12 @@ void AgentManagerService::RegisterBundleEventCallback()
 
 int32_t AgentManagerService::GetAllAgentCards(AgentCardsRawData &cards)
 {
-    return ERR_OK;
+    return AgentCardMgr::GetInstance().GetAllAgentCards(cards);
 }
 
 int32_t AgentManagerService::GetAgentCardsByBundleName(const std::string &bundleName, std::vector<AgentCard> &cards)
 {
-    return ERR_OK;
+    return AgentCardMgr::GetInstance().GetAllAgentCards(bundleName, cards);
 }
 
 int32_t AgentManagerService::GetAgentCardByUrl(const std::string &bundleName, const std::string &url, AgentCard &card)
