@@ -1272,6 +1272,36 @@ bool AppRunningRecord::IsUnSetPermission()
     return isUnSetPermission_;
 }
 
+void AppRunningRecord::SetKillId(int32_t killId)
+{
+    killId_ = killId;
+}
+
+int32_t AppRunningRecord::GetKillId() const
+{
+    return killId_;
+}
+
+void AppRunningRecord::SetKillMsg(const std::string &killMsg)
+{
+    killMsg_ = killMsg;
+}
+
+std::string AppRunningRecord::GetKillMsg() const
+{
+    return killMsg_;
+}
+
+void AppRunningRecord::SetInnerMsg(const std::string &innerMsg)
+{
+    innerMsg_ = innerMsg;
+}
+
+std::string AppRunningRecord::GetInnerMsg() const
+{
+    return innerMsg_;
+}
+
 bool AppRunningRecord::GetNeedLimitPrio()
 {
     return isNeedLimitPrio_;
