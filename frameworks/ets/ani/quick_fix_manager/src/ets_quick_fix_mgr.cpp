@@ -48,7 +48,7 @@ ani_object WrapHapModuleQuickFixInfo(ani_env *env, const AppExecFwk::HqfInfo &hq
     
     status = env->FindClass(HAP_MODULE_QUICK_FIX_INFO_IMPL_CLASS_NAME, &cls);
     if (status != ANI_OK || cls == nullptr) {
-        TAG_LOGE(AAFwkTag::QUICKFIX, "Find HapModuleQuickFixInfoImpl Class failed");
+        TAG_LOGE(AAFwkTag::QUICKFIX, "Find HapModuleQuickFixInfoImpl Class failed1");
         return nullptr;
     }
 
