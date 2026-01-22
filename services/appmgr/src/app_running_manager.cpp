@@ -1157,7 +1157,6 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
 
     auto appRunningMap = GetAppRunningRecordMap();
     TAG_LOGD(AAFwkTag::APPMGR, "current app size %{public}zu", appRunningMap.size());
-    int32_t result = ERR_OK;
 
     {
         std::lock_guard guard(appInfosLock_);
@@ -1187,7 +1186,11 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
             if (appRecord->NeedUpdateConfigurationBackground() ||
                 appRecord->GetState() != ApplicationState::APP_STATE_BACKGROUND) {
                 updateConfigurationDelayedMap_[appRecord->GetRecordId()] = false;
-                result = appRecord->UpdateConfiguration(config);
+                auto result = appRecord->UpdateConfiguration(config);
+                if (result != ERR_OK) {
+                    TAG_LOGE(AAFwkTag::APPMGR,
+                        "UpdateConfig failed app:%{public}s %{public}d", appRecord->GetName().c_str(), result);
+                }
             } else {
                 auto delayConfig = appRecord->GetDelayConfiguration();
                 std::vector<std::string> diffVe;
@@ -1197,7 +1200,7 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
             }
         }
     }
-    return result;
+    return ERR_OK;
 }
 
 bool AppRunningManager::UpdateConfiguration(std::shared_ptr<AppRunningRecord>& appRecord,
