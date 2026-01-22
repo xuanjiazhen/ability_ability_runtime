@@ -27,7 +27,8 @@ namespace AgentRuntime {
 using namespace OHOS::AppExecFwk;
 using json = nlohmann::json;
 namespace {
-const std::string AGENT_CONFIG = "ohos.extension.agent";
+constexpr const char* AGENT_CONFIG = "ohos.extension.agent";
+constexpr int32_t BASE_USER_RANGE = 200000;
 } // namespace
 AgentCardMgr &AgentCardMgr::GetInstance()
 {
@@ -88,6 +89,32 @@ int32_t AgentCardMgr::HandleBundleRemove(const std::string &bundleName, int32_t 
         return -1;
     }
     return AgentCardDbMgr::GetInstance().DeleteData(bundleName, userId);
+}
+
+int32_t AgentCardMgr::GetAllAgentCards(AgentCardsRawData &cards)
+{
+    std::vector<AgentCard> &cards;
+    int32_t resultCode = AgentCardDbMgr::GetInstance().QueryAllData(cards);
+    AgentCardsRawData::FromAgentCardVec(cards, cards);
+    return resultCode;
+}
+
+int32_t AgentCardMgr::GetAgentCardsByBundleName(const std::string &bundleName, std::vector<AgentCard> &cards)
+{
+    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    return AgentCardDbMgr::GetInstance().QueryData(bundleName, userId, cards);
+}
+
+int32_t AgentCardMgr::GetAgentCardByAgentId(const std::string &bundleName, const std::string &agentId, AgentCard &card)
+{
+    std::vector<AgentCard> &cards;
+    int32_t resultCode = GetAgentCardsByBundleName(bundleName, cards);
+    for (const AgentCard &agentCard : cards) {
+        if (agentCard.agentId == agentId) {
+            card == agentCard;
+        }
+    }
+    return resultCode;
 }
 } // namespace AgentRuntime
 } // namespace OHOS
