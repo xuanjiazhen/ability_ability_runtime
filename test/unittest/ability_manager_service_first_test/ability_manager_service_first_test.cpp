@@ -59,6 +59,7 @@ namespace {
 const int32_t USER_ID_U100 = 100;
 const int32_t APP_MEMORY_SIZE = 512;
 const std::string COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules";
+constexpr char* PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED = "const.product.enterprisefeature.setting.enabled";
 }  // namespace
 class AbilityManagerServiceFirstTest : public testing::Test {
 public:
@@ -2330,10 +2331,12 @@ HWTEST_F(AbilityManagerServiceFirstTest, RecordAppExitSignalReason_0100, TestSiz
  */
 HWTEST_F(AbilityManagerServiceFirstTest, NotifyStartKeepAliveProcess_0100, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0100 start");
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
     abilityMs->NotifyStartKeepAliveProcess(bundleInfos);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0100 end");
 }
 
 /**
@@ -2343,11 +2346,73 @@ HWTEST_F(AbilityManagerServiceFirstTest, NotifyStartKeepAliveProcess_0100, TestS
  */
 HWTEST_F(AbilityManagerServiceFirstTest, NotifyStartKeepAliveProcess_0200, TestSize.Level1)
 {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0200 start");
     std::vector<AppExecFwk::BundleInfo> bundleInfos;
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
     int32_t diedPid = 1;
     abilityMs->NotifyStartKeepAliveProcess(bundleInfos, diedPid);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0200 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_NotifyStartKeepAliveProcess_0300
+ * @tc.desc: not support enterprise feature setting enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, NotifyStartKeepAliveProcess_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0300 start");
+    std::vector<AppExecFwk::BundleInfo> bundleInfos;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    bool beforeValue = system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false);
+    EXPECT_EQ(system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false), false);
+    int32_t diedPid = 1;
+    abilityMs->NotifyStartKeepAliveProcess(bundleInfos, diedPid);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, beforeValue);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0300 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_NotifyStartKeepAliveProcess_0400
+ * @tc.desc: diedPid not INVALID_PID.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, NotifyStartKeepAliveProcess_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0400 start");
+    std::vector<AppExecFwk::BundleInfo> bundleInfos;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    bool beforeValue = system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, true);
+    EXPECT_EQ(system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false), true);
+    int32_t diedPid = 1;
+    abilityMs->NotifyStartKeepAliveProcess(bundleInfos, diedPid);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, beforeValue);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0400 end");
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_NotifyStartKeepAliveProcess_0500
+ * @tc.desc: diedPid is INVALID_PID.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, NotifyStartKeepAliveProcess_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0500 start");
+    std::vector<AppExecFwk::BundleInfo> bundleInfos;
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    bool beforeValue = system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, true);
+    EXPECT_EQ(system::GetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, false), true);
+    int32_t diedPid = -1;
+    abilityMs->NotifyStartKeepAliveProcess(bundleInfos, diedPid);
+    system::SetBoolParameter(PRODUCT_ENTERPRISE_FEATURE_SETTING_ENABLED, beforeValue);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest NotifyStartKeepAliveProcess_0500 end");
 }
 
 /**
