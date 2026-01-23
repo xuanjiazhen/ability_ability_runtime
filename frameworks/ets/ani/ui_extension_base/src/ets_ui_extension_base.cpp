@@ -102,8 +102,6 @@ EtsUIExtensionBase::~EtsUIExtensionBase()
         return;
     }
     ani_status status = ANI_ERROR;
-    {
-    std::lock_guard<std::mutex> lock(g_mtxSeesionRecord);
     for (auto &item : contentSessions_) {
         if ((status = env->GlobalReference_Delete(item.second)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UI_EXT, "GlobalReference_Delete status: %{public}d", status);
@@ -111,7 +109,6 @@ EtsUIExtensionBase::~EtsUIExtensionBase()
         }
     }
     contentSessions_.clear();
-    }
     if (shellContextRef_ && shellContextRef_->aniRef) {
         env->GlobalReference_Delete(shellContextRef_->aniRef);
     }
@@ -162,7 +159,6 @@ std::shared_ptr<ExtensionCommon> EtsUIExtensionBase::Init(const std::shared_ptr<
 #ifdef SUPPORT_GRAPHICS
     RegisterDisplayInfoChangedListener();
 #endif
-    std::lock_guard<std::mutex> lock(lock_);
     return EtsExtensionCommon::Create(etsRuntime_,
         static_cast<AppExecFwk::ETSNativeReference&>(*etsObj_), shellContextRef_);
 }
@@ -380,7 +376,6 @@ void EtsUIExtensionBase::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *ca
 
 void EtsUIExtensionBase::OnStopCallBack()
 {
-    std::lock_guard<std::mutex> lock(contextMutex_);
     if (context_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null context");
         return;
@@ -447,10 +442,6 @@ void EtsUIExtensionBase::ForegroundWindowInitInsightIntentExecutorInfo(const AAF
         executorInfo.windowMode = abilityInfo->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     }
     executorInfo.token = context_->GetToken();
-    {
-        std::lock_guard<std::mutex> lock(g_mtxSeesionRecord);
-        executorInfo.etsPageLoader = reinterpret_cast<void *>(contentSessions_[sessionInfo->uiExtensionComponentId]);
-    }
     executorInfo.etsPageLoader = reinterpret_cast<void *>(contentSessions_[sessionInfo->uiExtensionComponentId]);
     executorInfo.executeParam = std::make_shared<InsightIntentExecuteParam>();
     InsightIntentExecuteParam::GenerateFromWant(want, *executorInfo.executeParam);
@@ -690,10 +681,6 @@ bool EtsUIExtensionBase::CallEtsOnSessionCreate(const AAFwk::Want &want, const s
     if ((status = env->GlobalReference_Create(sessionObj, &sessionObjRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return false;
-    }
-    {
-        std::lock_guard<std::mutex> lock(g_mtxSeesionRecord);
-        contentSessions_.emplace(uiExtensionComponentId, sessionObjRef);
     }
     contentSessions_.emplace(uiExtensionComponentId, sessionObjRef);
     CallObjectMethod(false, "onSessionCreate", nullptr, wantObj, sessionObj);
