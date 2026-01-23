@@ -379,6 +379,7 @@ void EtsUIExtensionBase::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *ca
 
 void EtsUIExtensionBase::OnStopCallBack()
 {
+    std::lock_guard<std::mutex> lock(contextMutex_);
     if (context_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null context");
         return;

@@ -210,6 +210,7 @@ protected:
     std::shared_ptr<EtsUIExtensionContentSession> etsUiExtContentSession_;
 private:
     sptr<Rosen::WindowOption> CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo);
+    mutable std::mutex contextMutex_;
 
 #ifdef SUPPORT_GRAPHICS
 private:
