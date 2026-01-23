@@ -160,6 +160,7 @@ void ETSAppForegroundStateObserver::RemoveEtsObserverObject(const ani_object &ob
         return;
     }
     wptr<ETSAppForegroundStateObserver> weakPtr = this;
+    std::lock_guard<std::mutex> lock(etsObserverObjectSetLock_);
     auto it = find_if(etsObserverObjects_.begin(),
         etsObserverObjects_.end(),
         [weakPtr, &observerObj](ani_ref item) {
