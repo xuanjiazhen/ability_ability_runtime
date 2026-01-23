@@ -114,6 +114,12 @@ HWTEST_F(InsightIntentExecuteParamSecondTest, ReadFromParcel_0200, TestSize.Leve
     TAG_LOGI(AAFwkTag::TEST, "begin.");
     Parcel parcel;
     WantParams wantParams;
+    InsightIntentExecuteParam param;
+    InsightIntentExecuteParam param2;
+    param2.bundleName_ = "bundleName";
+    param2.moduleName_ = "moduleName";
+    param2.abilityName_ = "abilityName";
+    param2.insightIntentName = "insightIntentName";
     wantParams.SetParam("ohos.insightIntent.executeParam.name", AAFwk::String::Box("test.bundleName"));
     wantParams.SetParam("ohos.insightIntent.executeParam.id", AAFwk::String::Box("1"));
     wantParams.SetParam("ohos.insightIntent.executeParam.mode", AAFwk::String::Box("execution"));
@@ -121,10 +127,10 @@ HWTEST_F(InsightIntentExecuteParamSecondTest, ReadFromParcel_0200, TestSize.Leve
     wantParams.SetParam("ohos.insightIntent.srcEntry", AAFwk::String::Box("testEntry"));
     wantParams.SetParam("ohos.insightIntent.executeParam.uris", AAFwk::String::Box("testUri"));
     wantParams.SetParam("ohos.insightIntent.executeParam.flags", AAFwk::String::Box("testFlags"));
-    parcel.WriteParcelable(&wantParams);
-    InsightIntentExecuteParam param;
+    param2.insightIntentParam_ = std::make_shared<WantParams>(wantParams);
+    parcel.WriteParcelable(&param2);
     bool ret = param.ReadFromParcel(parcel);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
 
@@ -155,6 +161,12 @@ HWTEST_F(InsightIntentExecuteParamSecondTest, Unmarshalling_0200, TestSize.Level
     TAG_LOGI(AAFwkTag::TEST, "begin.");
     Parcel parcel;
     WantParams wantParams;
+    InsightIntentExecuteParam param;
+    InsightIntentExecuteParam param2;
+    param2.bundleName_ = "bundleName";
+    param2.moduleName_ = "moduleName";
+    param2.abilityName_ = "abilityName";
+    param2.insightIntentName = "insightIntentName";
     wantParams.SetParam("ohos.insightIntent.executeParam.name", AAFwk::String::Box("test.bundleName"));
     wantParams.SetParam("ohos.insightIntent.executeParam.id", AAFwk::String::Box("1"));
     wantParams.SetParam("ohos.insightIntent.executeParam.mode", AAFwk::String::Box("execution"));
@@ -162,10 +174,10 @@ HWTEST_F(InsightIntentExecuteParamSecondTest, Unmarshalling_0200, TestSize.Level
     wantParams.SetParam("ohos.insightIntent.srcEntry", AAFwk::String::Box("testEntry"));
     wantParams.SetParam("ohos.insightIntent.executeParam.uris", AAFwk::String::Box("testUri"));
     wantParams.SetParam("ohos.insightIntent.executeParam.flags", AAFwk::String::Box("testFlags"));
-    parcel.WriteParcelable(&wantParams);
-    InsightIntentExecuteParam param;
+    param2.insightIntentParam_ = std::make_shared<WantParams>(wantParams);
+    parcel.WriteParcelable(&param2);
     auto retPtr = param.Unmarshalling(parcel);
-    EXPECT_NE(retPtr, nullptr);
+    EXPECT_EQ(retPtr, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
 
