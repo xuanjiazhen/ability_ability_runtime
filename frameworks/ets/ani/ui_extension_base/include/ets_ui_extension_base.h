@@ -16,7 +16,6 @@
 #ifndef OHOS_ABILITY_RUNTIME_ETS_UI_EXTENSION_BASE_H
 #define OHOS_ABILITY_RUNTIME_ETS_UI_EXTENSION_BASE_H
 
-
 #include "ability_handler.h"
 #include "ability_local_record.h"
 #include "ability_result_listener.h"
@@ -209,7 +208,6 @@ protected:
     sptr<IRemoteObject> token_ = nullptr;
     std::shared_ptr<AbilityHandler> handler_ = nullptr;
     std::shared_ptr<EtsUIExtensionContentSession> etsUiExtContentSession_;
-
 private:
     sptr<Rosen::WindowOption> CreateWindowOption(const sptr<AAFwk::SessionInfo> &sessionInfo);
 
