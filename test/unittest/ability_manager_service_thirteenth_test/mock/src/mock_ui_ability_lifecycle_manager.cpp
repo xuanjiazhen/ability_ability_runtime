@@ -437,7 +437,7 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
     return ERR_OK;
 }
 
-int UIAbilityLifecycleManager::StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
+int UIAbilityLifecycleManager::StartAbilityBySpecified(const SpecifiedRequest &specifiedRequest,
     UIAbilityRecordPtr callerAbility)
 {
     return ERR_OK;
