@@ -87,7 +87,6 @@ void ETSAbilityForegroundStateObserver::CallEtsFunction(ani_env* env, ani_object
 void ETSAbilityForegroundStateObserver::HandleOnAbilityStateChanged(const AbilityStateData &abilityStateData)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "HandleOnAbilityStateChanged called");
-    std::lock_guard<std::mutex> lock(mutexlock_);
     if (etsVm_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "etsVm_ nullptr");
         return;

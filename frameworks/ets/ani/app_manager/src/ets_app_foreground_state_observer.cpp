@@ -172,7 +172,6 @@ void ETSAppForegroundStateObserver::RemoveEtsObserverObject(const ani_object &ob
             return appForegroundStateObserver->IsStrictEquals(item, observerObj);
         });
     if (it != etsObserverObjects_.end()) {
-        std::lock_guard<std::mutex> lock(etsObserverObjectSetLock_);
         AppManagerEts::ReleaseObjectReference(etsVm_, *it);
         etsObserverObjects_.erase(it);
     }
