@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2600,6 +2600,65 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_002, TestSiz
     abilityRequest.callerToken = abilityRecord->GetToken();
     EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillAppWithReason
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, KillAppWithReason_0100, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    int32_t pid = 1;
+    int32_t uid = 1;
+    ExitReasonCompability exitReason;
+    auto res = abilityMs->KillAppWithReason(pid, uid, exitReason);
+    EXPECT_EQ(res, ERR_PERMISSION_DENIED);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillAppWithReason
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, KillAppWithReason_0200, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    int32_t pid = 1;
+    int32_t uid = 1;
+    ExitReasonCompability exitReason;
+    MyFlag::flag_ = 1;
+    auto res = abilityMs->KillAppWithReason(pid, uid, exitReason);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+    exitReason.killId = 1;
+    res = abilityMs->KillAppWithReason(pid, uid, exitReason);
+    EXPECT_EQ(res, ERR_OK);
+    MyFlag::flag_ = 0;
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillAppWithReason
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, RecordAppWithReason_0100, TestSize.Level1)
+{
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityMs, nullptr);
+    int32_t pid = 1234;
+    int32_t uid = 1000;
+    ExitReasonCompability exitReason;
+    auto res = abilityMs->RecordAppWithReason(pid, uid, exitReason);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+    exitReason.killId = 1;
+    res = abilityMs->RecordAppWithReason(pid, uid, exitReason);
+    EXPECT_EQ(res, ERR_OK);
 }
 
 /*
