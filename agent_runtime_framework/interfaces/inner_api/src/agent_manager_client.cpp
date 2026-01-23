@@ -64,7 +64,8 @@ int32_t AgentManagerClient::GetAgentCardsByBundleName(const std::string &bundleN
     return agentMgr->GetAgentCardsByBundleName(bundleName, cards);
 }
 
-int32_t AgentManagerClient::GetAgentCardByAgentId(const std::string &bundleName, const std::string &agentId, AgentCard &card)
+int32_t AgentManagerClient::GetAgentCardByAgentId(const std::string &bundleName, const std::string &agentId,
+    AgentCard &card)
 {
     auto agentMgr = GetAgentMgrProxy();
     if (agentMgr == nullptr) {
