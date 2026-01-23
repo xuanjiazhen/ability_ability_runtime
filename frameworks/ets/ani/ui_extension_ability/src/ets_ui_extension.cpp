@@ -119,6 +119,7 @@ EtsUIExtension::~EtsUIExtension()
         TAG_LOGE(AAFwkTag::UI_EXT, "null env");
         return;
     }
+    std::lock_guard<std::mutex> lock(shellContextRefMutex_);
     if (shellContextRef_ && shellContextRef_->aniRef) {
         env->GlobalReference_Delete(shellContextRef_->aniRef);
     }
@@ -153,14 +154,16 @@ void EtsUIExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
     }
     std::string moduleName(Extension::abilityInfo_->moduleName);
     moduleName.append("::").append(abilityInfo_->name);
+    {
+        std::lock_guard<mutex> lock(etsObjMutex_);
+        etsObj_ = etsRuntime_.LoadModule(
+            moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE,
+            false, abilityInfo_->srcEntrance);
 
-    etsObj_ = etsRuntime_.LoadModule(
-        moduleName, srcPath, abilityInfo_->hapPath, abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE,
-        false, abilityInfo_->srcEntrance);
-
-    if (etsObj_ == nullptr) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "etsObj_ null");
-        return;
+        if (etsObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "etsObj_ null");
+            return;
+        }
     }
     if (!BindNativeMethods()) {
         TAG_LOGE(AAFwkTag::UI_EXT, "BindNativeMethods failed");
@@ -191,8 +194,13 @@ bool EtsUIExtension::BindNativeMethods()
         TAG_LOGE(AAFwkTag::UI_EXT, "Class_BindNativeMethods status: %{public}d", status);
         return false;
     }
-    SetExtensionCommon(
-        EtsExtensionCommon::Create(etsRuntime_, static_cast<ETSNativeReference &>(*etsObj_), shellContextRef_));
+    {
+        std::lock_guard<mutex> lock(etsObjMutex_);
+        std::lock_guard<std::mutex> lock(shellContextRefMutex_);
+        SetExtensionCommon(
+            EtsExtensionCommon::Create(etsRuntime_, static_cast<ETSNativeReference &>(*etsObj_), shellContextRef_));
+    }
+
     return true;
 }
 
@@ -224,22 +232,22 @@ void EtsUIExtension::BindContext(ani_env *env, std::shared_ptr<AAFwk::Want> want
     }
 
     ani_field contextField = nullptr;
-    auto status = env->Class_FindField(etsObj_->aniCls, "context", &contextField);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        return;
+    {
+        std::lock_guard<mutex> lock(etsObjMutex_);
+        auto status = env->Class_FindField(etsObj_->aniCls, "context", &contextField);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+            return;
+        }
+        ani_ref contextRef = nullptr;
+        if ((status = env->GlobalReference_Create(contextObj, &contextRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+            return;
+        }
+        if ((status = env->Object_SetField_Ref(etsObj_->aniObj, contextField, contextRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        }
     }
-
-    ani_ref contextRef = nullptr;
-    if ((status = env->GlobalReference_Create(contextObj, &contextRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-        return;
-    }
-
-    if ((status = env->Object_SetField_Ref(etsObj_->aniObj, contextField, contextRef)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-    }
-
     std::lock_guard<std::mutex> lock(shellContextRefMutex_);
     shellContextRef_ = std::make_shared<AppExecFwk::ETSNativeReference>();
     shellContextRef_->aniObj = contextObj;
@@ -264,6 +272,7 @@ void EtsUIExtension::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> s
         return;
     }
     if (context != nullptr) {
+        std::lock_guard<std::mutex> lock(shellContextRefMutex_);
         EtsExtensionContext::ConfigurationUpdated(env, shellContextRef_, context->GetConfiguration());
     }
     const char *signature =
@@ -362,6 +371,7 @@ void EtsUIExtension::OnStopCallBack()
     UIExtension::OnStopCallBack();
     auto applicationContext = Context::GetApplicationContext();
     if (applicationContext != nullptr) {
+        std::lock_guard<mutex> lock(etsObjMutex_);
         EtsAbilityLifecycleCallbackArgs ability(etsObj_);
         applicationContext->DispatchOnAbilityDestroy(ability);
     }
@@ -715,6 +725,7 @@ bool EtsUIExtension::CallObjectMethod(bool withResult, const char *name, const c
     auto env = etsRuntime_.GetAniEnv();
     ani_status status = ANI_OK;
     ani_method method = nullptr;
+    std::lock_guard<mutex> lock(etsObjMutex_);
     if ((status = env->Class_FindMethod(etsObj_->aniCls, name, signature, &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
         return false;
@@ -799,6 +810,7 @@ void EtsUIExtension::ConfigurationUpdated()
         }
     }
     auto realConfigPtr = std::make_shared<Configuration>(realConfig);
+    std::lock_guard<std::mutex> lock(shellContextRefMutex_);
     EtsExtensionContext::ConfigurationUpdated(env, shellContextRef_, realConfigPtr);
     ani_object aniConfiguration = AppExecFwk::WrapConfiguration(env, realConfig);
     CallObjectMethod(false, "onConfigurationUpdate", nullptr, aniConfiguration);
