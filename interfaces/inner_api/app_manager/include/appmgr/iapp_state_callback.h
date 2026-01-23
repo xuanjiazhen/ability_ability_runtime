@@ -33,7 +33,7 @@ namespace AppExecFwk {
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-    constexpr int32_t INVALID_DIED_PID = -1;
+constexpr int32_t INVALID_DIED_PID = -1;
 }
 class IAppStateCallback : public IRemoteBroker {
 public:
