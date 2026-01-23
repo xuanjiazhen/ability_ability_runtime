@@ -56,6 +56,18 @@ HWTEST_F(AbilityResidentProcessRdbTest, Init_001, TestSize.Level1) {
 
 /*
  * Feature: AbilityResidentProcessRdb
+ * Function: Init
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb Init
+ */
+
+HWTEST_F(AbilityResidentProcessRdbTest, Init_001, TestSize.Level1) {
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().Init(), Rdb_OK);
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().Init(), Rdb_OK);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
  * Function: VerifyConfigurationPermissions
  * SubFunction: NA
  * FunctionPoints: AbilityResidentProcessRdb VerifyConfigurationPermissions
@@ -63,6 +75,11 @@ HWTEST_F(AbilityResidentProcessRdbTest, Init_001, TestSize.Level1) {
 HWTEST_F(AbilityResidentProcessRdbTest, VerifyConfigurationPermissions_001, TestSize.Level1) {
     EXPECT_EQ(AmsResidentProcessRdb::GetInstance().VerifyConfigurationPermissions(
         "test.com", "test.com"), Rdb_OK);
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().VerifyConfigurationPermissions(
+        "", "test.com"), Rdb_OK);
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().VerifyConfigurationPermissions(
+        "", ""), Rdb_OK);
+}
 }
 
 /*
@@ -76,6 +93,88 @@ HWTEST_F(AbilityResidentProcessRdbTest, GetResidentProcessEnable_001, TestSize.L
     EXPECT_NE(AmsResidentProcessRdb::GetInstance().GetResidentProcessEnable(
         "test.com", enable), Rdb_OK);
     EXPECT_EQ(enable, false);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: OnCreate
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb OnCreate
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, OnCreate_001, TestSize.Level1) {
+    NativeRdb::RdbStore rdbStore;
+    EXPECT_NE(AmsResidentProcessRdb::GetInstance().OnCreate(rdbStore),NativeRdb::E_OK);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: OnUpgrade
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb OnUpgrade
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, OnUpgrade_001, TestSize.Level1) {
+    NativeRdb::RdbStore rdbStore;
+    int currentVersion;
+    int targetVersion;
+    EXPECT_NE(AmsResidentProcessRdb::GetInstance().OnUpgrade(rdbStore,currentVersion,targetVersion),NativeRdb::E_OK);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: OnDowngrade
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb OnDowngrade
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, OnDowngrade_001, TestSize.Level1) {
+    NativeRdb::RdbStore rdbStore; 
+    int currentVersion; 
+    int targetVersion;
+    EXPECT_NE(AmsResidentProcessRdb::GetInstance().OnDowngrade(rdbStore,currentVersion,targetVersion),NativeRdb::E_OK);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: OnOpen
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb OnOpen
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, OnOpen_001, TestSize.Level1) {
+    NativeRdb::RdbStore rdbStore;
+    EXPECT_NE(AmsResidentProcessRdb::GetInstance().OnOpen(rdbStore),NativeRdb::E_OK);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: onCorruption
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb onCorruption
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, onCorruption_001, TestSize.Level1) {
+    std::string databaseFile;
+    EXPECT_NE(AmsResidentProcessRdb::GetInstance().onCorruption(databaseFile),NativeRdb::E_OK);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: UpdateResidentProcessEnable
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb UpdateResidentProcessEnable
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, UpdateResidentProcessEnable_001, TestSize.Level1) {
+    std::string bundleName;
+    bool enable;
+    EXPECT_NE(AmsResidentProcessRdb::GetInstance().UpdateResidentProcessEnable(bundleName,enable),NativeRdb::E_ERROR);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: RemoveData
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb RemoveData
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, RemoveData_001, TestSize.Level1) {
+    std::string bundleName;
+    EXPECT_NE(AmsResidentProcessRdb::GetInstance().RemoveData(bundleName),NativeRdb::E_ERROR);
 }
 } // namespace AAFwk
 } // namespace OHOS
