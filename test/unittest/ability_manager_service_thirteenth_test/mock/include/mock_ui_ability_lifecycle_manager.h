@@ -461,7 +461,7 @@ private:
     int MoveAbilityToFront(const SpecifiedRequest &specifiedRequest,
         const UIAbilityRecordPtr abilityRecord, UIAbilityRecordPtr callerAbility);
     int SendSessionInfoToSCB(UIAbilityRecordPtr &callerAbility, sptr<SessionInfo> &sessionInfo);
-    int StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
+    int StartAbilityBySpecified(const SpecifiedRequest &specifiedRequest,
         UIAbilityRecordPtr callerAbility);
 
     void SetLastExitReason(UIAbilityRecordPtr abilityRecord) const;
