@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,52 @@ namespace {
 
 AppExitReasonHelper::AppExitReasonHelper(std::shared_ptr<SubManagersHelper> subManagersHelper)
     : subManagersHelper_(subManagersHelper) {}
+
+int32_t AppExitReasonHelper::RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason)
+{
+    std::string bundleName;
+    int32_t appIndex = 0;
+    auto ret = IN_PROCESS_CALL(AbilityUtil::GetBundleManagerHelper()->GetNameAndIndexForUid(uid, bundleName, appIndex));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetNameAndIndexForUid failed, ret: %{public}d", ret);
+        return ret;
+    }
+    
+    AppExecFwk::RunningProcessInfo processInfo;
+    int32_t userId = -1;
+    int32_t getOsAccountRet = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+        GetOsAccountLocalIdFromUid(uid, userId);
+    if (getOsAccountRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get GetOsAccountLocalIdFromUid failed. ret: %{public}d", getOsAccountRet);
+        return ERR_INVALID_VALUE;
+    }
+    GetRunningProcessInfo(pid, userId, bundleName, processInfo);
+    ExitReason tmpReason(exitReason.reason, exitReason.subReason, exitReason.exitMsg);
+    int32_t resultCode = RecordProcessExtensionExitReason(pid, bundleName, tmpReason, processInfo, false);
+    if (resultCode != ERR_OK) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "not record extension reason: %{public}d", resultCode);
+    }
+    std::vector<std::string> abilityList;
+    int32_t getActiveAbilityListRet = GetActiveAbilityListWithPid(uid, abilityList, pid);
+    if (getActiveAbilityListRet != ERR_OK) {
+        return getActiveAbilityListRet;
+    }
+    if (abilityList.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityLists empty");
+        return ERR_GET_ACTIVE_ABILITY_LIST_EMPTY;
+    }
+    ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
+        pid, exitReason.killId, exitReason.killMsg, exitReason.innerMsg);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "notify failed: %{public}d", ret);
+        return ret;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d", userId, bundleName.c_str(), appIndex);
+    uint32_t accessTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appIndex);
+    return DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->SetAppExitReason(bundleName,
+        accessTokenId, abilityList, tmpReason, processInfo, false);
+}
 
 int32_t AppExitReasonHelper::RecordAppExitReason(const ExitReason &exitReason)
 {
@@ -257,6 +303,60 @@ int32_t AppExitReasonHelper::RecordProcessExtensionExitReason(
         processInfo, withKillMsg);
 }
 
+int32_t AppExitReasonHelper::AddAppExitReason(const std::string &bundleName, int32_t pid, int32_t uid, int32_t appIndex,
+    const ExitReasonCompability &exitReason)
+{
+    int32_t userId;
+    int32_t getOsAccountRet = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+        GetOsAccountLocalIdFromUid(uid, userId);
+    if (getOsAccountRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get GetOsAccountLocalIdFromUid failed. ret: %{public}d", getOsAccountRet);
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d", userId, bundleName.c_str(), appIndex);
+    uint32_t accessTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appIndex);
+    AppExecFwk::RunningProcessInfo processInfo;
+    GetRunningProcessInfo(pid, userId, bundleName, processInfo);
+    RecordExitReasonParams params;
+    params.pid = pid;
+    params.uid = uid;
+    params.bundleName = bundleName;
+    params.accessTokenId = accessTokenId;
+    params.exitReason = exitReason;
+    params.processInfo = processInfo;
+    return AddProcessExitReason(params);
+}
+
+int32_t AppExitReasonHelper::AddBundleExitReason(
+    const std::string &bundleName, int32_t uid, int32_t appIndex, const ExitReasonCompability &exitReason)
+{
+    int32_t userId;
+    int32_t getOsAccountRet = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+        GetOsAccountLocalIdFromUid(uid, userId);
+    if (getOsAccountRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get GetOsAccountLocalIdFromUid failed. ret: %{public}d", getOsAccountRet);
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "userId: %{public}d, bundleName: %{public}s, appIndex: %{public}d", userId, bundleName.c_str(), appIndex);
+    uint32_t accessTokenId = Security::AccessToken::AccessTokenKit::GetHapTokenID(userId, bundleName, appIndex);
+    if (accessTokenId == 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetHapTokenID failed");
+        return ERR_INVALID_VALUE;
+    }
+    AppExecFwk::RunningProcessInfo processInfo;
+    GetRunningProcessInfo(NO_PID, userId, bundleName, processInfo);
+    RecordExitReasonParams params;
+    params.pid = processInfo.pid_;
+    params.uid = uid;
+    params.bundleName = bundleName;
+    params.accessTokenId = accessTokenId;
+    params.exitReason = exitReason;
+    params.processInfo = processInfo;
+    return AddProcessExitReason(params);
+}
+
 void AppExitReasonHelper::GetActiveAbilityList(int32_t uid, std::vector<std::string> &abilityLists,
     const int32_t pid)
 {
@@ -391,6 +491,33 @@ void AppExitReasonHelper::GetRunningProcessInfo(int32_t pid, int32_t userId, con
     if (infoList.size() == 1) {
         processInfo = infoList.front();
     }
+}
+
+int32_t AppExitReasonHelper::AddProcessExitReason(const RecordExitReasonParams &params)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::vector<std::string> abilityLists;
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        GetActiveAbilityListFromUIAbilityManager(params.uid, abilityLists, params.pid);
+    } else {
+        GetActiveAbilityList(params.uid, abilityLists, params.pid);
+    }
+
+    if (abilityLists.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "active abilityLists empty");
+        return ERR_GET_ACTIVE_ABILITY_LIST_EMPTY;
+    }
+    ExitReasonCompability exitReason = params.exitReason;
+    auto ret = DelayedSingleton<AppScheduler>::GetInstance()->NotifyAppMgrRecordExitReasonCompability(
+        params.pid, exitReason.killId, exitReason.killMsg, exitReason.innerMsg);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "notify failed:%{public}d", ret);
+        return ret;
+    }
+    ExitReason tmpReason(exitReason.reason, exitReason.subReason, exitReason.exitMsg);
+    return DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->SetAppExitReason(
+        params.bundleName, params.accessTokenId, abilityLists, 
+        tmpReason, params.processInfo, params.fromKillWithReason);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
