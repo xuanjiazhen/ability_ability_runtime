@@ -124,7 +124,6 @@ void EtsApplicationStateChangeCallback::Register(ani_object aniCallback)
 bool EtsApplicationStateChangeCallback::UnRegister(ani_object aniCallback)
 {
     ani_status status = ANI_ERROR;
-    std::lock_guard lock(mutex_);
     bool isAttachThread = false;
     ani_env *env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
     if (env == nullptr) {
@@ -133,34 +132,40 @@ bool EtsApplicationStateChangeCallback::UnRegister(ani_object aniCallback)
     }
     if (aniCallback == nullptr) {
         TAG_LOGI(AAFwkTag::APPKIT, "null aniCallback");
+        {
+            std::lock_guard lock(mutex_);
+            for (auto &callback : callbacks_) {
+                if (!callback) {
+                    TAG_LOGE(AAFwkTag::APPKIT, "Invalid aniCallback");
+                    continue;
+                }
+                if ((status = env->GlobalReference_Delete(callback)) != ANI_OK) {
+                    TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Delete status: %{public}d", status);
+                }
+            }
+            callbacks_.clear();
+        }
+        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+        return true;
+    }
+    {
+        std::lock_guard lock(mutex_);
         for (auto &callback : callbacks_) {
             if (!callback) {
                 TAG_LOGE(AAFwkTag::APPKIT, "Invalid aniCallback");
                 continue;
             }
-            if ((status = env->GlobalReference_Delete(callback)) != ANI_OK) {
-                TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Delete status: %{public}d", status);
-            }
-        }
-        callbacks_.clear();
-        AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
-        return true;
-    }
-    for (auto &callback : callbacks_) {
-        if (!callback) {
-            TAG_LOGE(AAFwkTag::APPKIT, "Invalid aniCallback");
-            continue;
-        }
-        ani_boolean isEqual = false;
-        env->Reference_StrictEquals(aniCallback, callback, &isEqual);
-        if (isEqual) {
-            if ((status = env->GlobalReference_Delete(callback)) != ANI_OK) {
-                TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Delete status: %{public}d", status);
+            ani_boolean isEqual = false;
+            env->Reference_StrictEquals(aniCallback, callback, &isEqual);
+            if (isEqual) {
+                if ((status = env->GlobalReference_Delete(callback)) != ANI_OK) {
+                    TAG_LOGE(AAFwkTag::APPKIT, "GlobalReference_Delete status: %{public}d", status);
+                    AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
+                    return false;
+                }
                 AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
-                return false;
+                return callbacks_.erase(callback) == 1;
             }
-            AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
-            return callbacks_.erase(callback) == 1;
         }
     }
     AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);

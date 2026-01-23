@@ -155,7 +155,10 @@ std::shared_ptr<ExtensionCommon> EtsUIExtensionBase::Init(const std::shared_ptr<
         return nullptr;
     }
     BindContext();
-    handler_ = handler;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        handler_ = handler;
+    }
 #ifdef SUPPORT_GRAPHICS
     RegisterDisplayInfoChangedListener();
 #endif
@@ -1137,8 +1140,11 @@ void EtsUIExtensionBase::OnDisplayInfoChange(
                 EtsUiExtension->ConfigurationUpdated();
             }
         };
-        if (handler_ != nullptr) {
-            handler_->PostTask(task, "EtsUIExtensionBase:OnChange");
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (handler_ != nullptr) {
+                handler_->PostTask(task, "EtsUIExtensionBase:OnChange");
+            }
         }
     }
 }
