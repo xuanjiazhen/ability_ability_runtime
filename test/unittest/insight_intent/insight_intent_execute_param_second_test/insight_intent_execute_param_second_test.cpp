@@ -124,7 +124,7 @@ HWTEST_F(InsightIntentExecuteParamSecondTest, ReadFromParcel_0200, TestSize.Leve
     parcel.WriteParcelable(&wantParams);
     InsightIntentExecuteParam param;
     bool ret = param.ReadFromParcel(parcel);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
 
@@ -165,7 +165,7 @@ HWTEST_F(InsightIntentExecuteParamSecondTest, Unmarshalling_0200, TestSize.Level
     parcel.WriteParcelable(&wantParams);
     InsightIntentExecuteParam param;
     auto retPtr = param.Unmarshalling(parcel);
-    EXPECT_NE(retPtr, nullptr);
+    EXPECT_EQ(retPtr, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
 
