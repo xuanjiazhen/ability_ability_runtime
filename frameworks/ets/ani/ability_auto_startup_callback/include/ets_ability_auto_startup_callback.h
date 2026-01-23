@@ -56,6 +56,7 @@ private:
     std::vector<ani_ref> callbacks_;
     std::mutex mutexlock_;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_ = nullptr;
+    std::mutex mainHandlerLock_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

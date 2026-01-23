@@ -37,19 +37,22 @@ ani_status EtsAbilityAutoStartupCallback::AniSendEvent(const std::function<void(
         TAG_LOGD(AAFwkTag::AUTO_STARTUP, "null task");
         return ani_status::ANI_INVALID_ARGS;
     }
-    if (!mainHandler_) {
-        std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::GetMainEventRunner();
-        if (!runner) {
-            TAG_LOGD(AAFwkTag::AUTO_STARTUP, "null EventRunner");
+    {
+        std::lock_guard<std::mutex> lock(mainHandlerLock_);
+        if (!mainHandler_) {
+            std::shared_ptr<OHOS::AppExecFwk::EventRunner> runner = OHOS::AppExecFwk::EventRunner::GetMainEventRunner();
+            if (!runner) {
+                TAG_LOGD(AAFwkTag::AUTO_STARTUP, "null EventRunner");
+                return ani_status::ANI_NOT_FOUND;
+            }
+            mainHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+        }
+        if (mainHandler_ == nullptr) {
+            TAG_LOGD(AAFwkTag::AUTO_STARTUP, "null mainHandler");
             return ani_status::ANI_NOT_FOUND;
         }
-        mainHandler_ = std::make_shared<OHOS::AppExecFwk::EventHandler>(runner);
+        mainHandler_->PostTask(std::move(task));
     }
-    if (mainHandler_ == nullptr) {
-        TAG_LOGD(AAFwkTag::AUTO_STARTUP, "null mainHandler");
-        return ani_status::ANI_NOT_FOUND;
-    }
-    mainHandler_->PostTask(std::move(task));
     return ani_status::ANI_OK;
 }
 
