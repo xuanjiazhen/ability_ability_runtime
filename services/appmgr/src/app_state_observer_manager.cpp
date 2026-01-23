@@ -36,7 +36,8 @@ constexpr int OBSERVER_UID_COUNT_LOG = 3;
 constexpr int OBSERVER_AMOUNT_COUNT_LOG = 70;
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
 } // namespace
-AppStateObserverManager::AppStateObserverManager()
+A
+ppStateObserverManager::AppStateObserverManager()
 {
     TAG_LOGD(AAFwkTag::APPMGR, "AppStateObserverManager instance is created");
 }
@@ -49,7 +50,8 @@ AppStateObserverManager::~AppStateObserverManager()
 void AppStateObserverManager::Init()
 {
     if (!handler_) {
-        handler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("app_state_task_queue");
+        handler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler("app_state_task_queue",
+            AAFwk::TaskQoS::USER_INTERACTIVE);
     }
 }
 
