@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -420,6 +420,10 @@ public:
     MOCK_METHOD(AppExecFwk::ElementName, GetElementNameByToken,
         (sptr<IRemoteObject> token, bool isNeedLocalDeviceId), (override));
     MOCK_METHOD(int32_t, RecordProcessExitReason, (int32_t pid, int32_t uid, const ExitReason &exitReason), ());
+    MOCK_METHOD(int32_t, KillAppWithReason, (int32_t pid, int32_t uid, const ExitReasonCompability &exitReason), ());
+    MOCK_METHOD(int32_t, KillBundleWithReason,
+        (const std::string &bundleName, int32_t uid, int32_t appIndex, const ExitReasonCompability &exitReason), ());
+    MOCK_METHOD(int32_t, RecordAppWithReason, (int32_t pid, int32_t uid, const ExitReasonCompability &exitReason), ());
 #ifdef SUPPORT_SCREEN
     MOCK_METHOD(int, SetMissionIcon, (const sptr<IRemoteObject> &token,
         const std::shared_ptr<OHOS::Media::PixelMap> &icon), (override));
