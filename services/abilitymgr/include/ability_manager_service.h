@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1642,6 +1642,37 @@ public:
      */
     virtual int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason) override;
 
+    /**
+     * Force app exit and record exit reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillAppWithReason(
+        const int32_t pid, const int32_t uid, const ExitReasonCompability &ExitReason) override;
+
+    /**
+     * Force bundle exit and record exit reason.
+     * @param bundleName Bundle name of kill app.
+     * @param appIndex The app index of app clone.
+     * @param userId User ID.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillBundleWithReason(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const ExitReasonCompability &exitReason) override;
+
+    /**
+     * Record app exit reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RecordAppWithReason(
+        const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason) override;
+
     int32_t GetConfiguration(AppExecFwk::Configuration& config);
 
     int32_t GetConfiguration(AppExecFwk::Configuration& config, int32_t userId);
@@ -3123,6 +3154,7 @@ private:
         const Want &want, uint32_t targetTokenId, AppExecFwk::ExtensionAbilityType extensionType);
 
     bool IsAllowAttachOrDetachAppDebug(AppExecFwk::ApplicationInfo &appInfo);
+    bool IsExitReasonValid(const ExitReasonCompability &reason);
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
 #endif
