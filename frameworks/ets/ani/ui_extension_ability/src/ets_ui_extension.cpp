@@ -239,6 +239,8 @@ void EtsUIExtension::BindContext(ani_env *env, std::shared_ptr<AAFwk::Want> want
     if ((status = env->Object_SetField_Ref(etsObj_->aniObj, contextField, contextRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
     }
+
+    std::lock_guard<std::mutex> lock(shellContextRefMutex_);
     shellContextRef_ = std::make_shared<AppExecFwk::ETSNativeReference>();
     shellContextRef_->aniObj = contextObj;
     shellContextRef_->aniRef = contextRef;
@@ -332,17 +334,21 @@ void EtsUIExtension::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callba
     ani_status status = ANI_ERROR;
     ani_field field = nullptr;
     auto env = etsRuntime_.GetAniEnv();
-    if (env == nullptr || etsObj_ == nullptr) {
-        isAsyncCallback = false;
-        OnStop();
-        return;
+    {
+        std::lock_guard<mutex> lock(etsObjMutex_);
+        if (env == nullptr || etsObj_ == nullptr) {
+            isAsyncCallback = false;
+            OnStop();
+            return;
+        }
+        if ((status = env->Class_FindField(etsObj_->aniCls, "destroyCallbackPoint", &field)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        }
+        if ((status = env->Object_SetField_Long(etsObj_->aniObj, field, destroyCallbackPoint)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
+        }
     }
-    if ((status = env->Class_FindField(etsObj_->aniCls, "destroyCallbackPoint", &field)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-    }
-    if ((status = env->Object_SetField_Long(etsObj_->aniObj, field, destroyCallbackPoint)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "status: %{public}d", status);
-    }
+
 
     isAsyncCallback = CallObjectMethod(true, "callOnDestroy", ":z");
     if (!isAsyncCallback) {

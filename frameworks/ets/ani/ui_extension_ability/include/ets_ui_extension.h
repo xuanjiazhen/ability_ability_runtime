@@ -168,7 +168,9 @@ private:
 
     ETSRuntime &etsRuntime_;
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsObj_ = nullptr;
+    std::mutex etsObjMutex_;
     std::shared_ptr<AppExecFwk::ETSNativeReference> shellContextRef_ = nullptr;
+    std::mutex shellContextRefMutex_;
     std::mutex uiWindowMutex_;
     std::map<uint64_t, ContentSessionType> contentSessions_;
     int32_t screenMode_ = AAFwk::IDLE_SCREEN_MODE;

@@ -162,6 +162,7 @@ std::shared_ptr<ExtensionCommon> EtsUIExtensionBase::Init(const std::shared_ptr<
 #ifdef SUPPORT_GRAPHICS
     RegisterDisplayInfoChangedListener();
 #endif
+    std::lock_guard<std::mutex> lock(lock_);
     return EtsExtensionCommon::Create(etsRuntime_,
         static_cast<AppExecFwk::ETSNativeReference&>(*etsObj_), shellContextRef_);
 }

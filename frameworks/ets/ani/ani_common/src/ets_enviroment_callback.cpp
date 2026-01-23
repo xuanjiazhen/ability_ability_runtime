@@ -172,7 +172,11 @@ void EtsEnviromentCallback::OnConfigurationUpdated(const AppExecFwk::Configurati
         }
     }
     bool isAttachThread = false;
-    ani_env *env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
+    {
+        std::lock_guard lock(mutex_);
+        ani_env *env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
+    }
+    
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "GetEnv failed");
         return;
