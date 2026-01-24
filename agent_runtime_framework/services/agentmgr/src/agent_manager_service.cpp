@@ -15,12 +15,14 @@
 
 #include "agent_manager_service.h"
 
+#include "ability_manager_client.h"
 #include "agent_bundle_event_callback.h"
 #include "agent_card_mgr.h"
 #include "agent_config.h"
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
+#include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
@@ -119,6 +121,32 @@ int32_t AgentManagerService::GetAgentCardByAgentId(const std::string &bundleName
     AgentCard &card)
 {
     return AgentCardMgr::GetInstance().GetAgentCardByAgentId(bundleName, agentId, card);
+}
+
+int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &want,
+    const sptr<IRemoteObject> &connection)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "ConnectAgentExtensionAbility called");
+
+    // TODO validate permission
+
+    // Validate connection object
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Invalid connection object");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Use IN_PROCESS_CALL to reset calling identity and connect via AbilityManagerClient
+    // Using AGENT extension type since agent extensions don't have a specific type yet
+    auto ret = IN_PROCESS_CALL(AAFwk::AbilityManagerClient::GetInstance()->ConnectAbilityCommon(
+        want, connection, nullptr, AppExecFwk::ExtensionAbilityType::AGENT));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ConnectAbilityCommon failed: %{public}d", ret);
+        return ret;
+    }
+
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "ConnectAgentExtensionAbility succeeded");
+    return ERR_OK;
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS
