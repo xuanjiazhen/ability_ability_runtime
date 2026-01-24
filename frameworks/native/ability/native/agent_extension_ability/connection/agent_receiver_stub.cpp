@@ -13,63 +13,58 @@
  * limitations under the License.
  */
 
-#include "agent_extension_host_stub.h"
+#include "agent_receiver_stub.h"
 
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AgentRuntime {
 
-AgentExtensionHostStub::AgentExtensionHostStub()
+AgentReceiverStub::AgentReceiverStub()
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "called");
-    requestFuncMap_[ON_SEND_DATA] = &AgentExtensionHostStub::OnSendData;
-    requestFuncMap_[ON_AUTHORIZE] = &AgentExtensionHostStub::OnAuthorize;
 }
 
-AgentExtensionHostStub::~AgentExtensionHostStub()
+AgentReceiverStub::~AgentReceiverStub()
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "called");
-    requestFuncMap_.clear();
 }
 
-int AgentExtensionHostStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+int AgentReceiverStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnRemoteRequest, code: %{public}u", code);
 
-    std::u16string descriptor = AgentExtensionHostStub::GetDescriptor();
+    std::u16string descriptor = AgentReceiverStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Descriptor mismatch");
         return ERR_INVALID_STATE;
     }
 
-    auto itFunc = requestFuncMap_.find(code);
-    if (itFunc != requestFuncMap_.end()) {
-        auto requestFunc = itFunc->second;
-        if (requestFunc != nullptr) {
-            return (this->*requestFunc)(data, reply);
-        }
+    switch (code) {
+        case IAgentReceiver::SEND_DATA:
+            return SendData(data, reply);
+        case IAgentReceiver::AUTHORIZE:
+            return Authorize(data, reply);
+        default:
+            TAG_LOGW(AAFwkTag::SER_ROUTER, "Unknown code: %{public}u", code);
+            return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     }
-
-    TAG_LOGW(AAFwkTag::SER_ROUTER, "Unknown code: %{public}u", code);
-    return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-int32_t AgentExtensionHostStub::OnSendData(MessageParcel &data, MessageParcel &reply)
+int32_t AgentReceiverStub::SendData(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "OnSendData called");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "SendData called");
 
+    sptr<IRemoteObject> hostProxy = data.ReadRemoteObject();
     std::string dataStr;
     if (!data.ReadString(dataStr)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to read string from parcel");
         return ERR_INVALID_VALUE;
     }
 
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "OnSendData, data length: %{public}zu", dataStr.length());
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "SendData, data length: %{public}zu", dataStr.length());
 
-    int32_t result = OnSendData(dataStr);
+    int32_t result = SendData(hostProxy, dataStr);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to write result to reply parcel");
         return IPC_STUB_ERR;
@@ -78,19 +73,20 @@ int32_t AgentExtensionHostStub::OnSendData(MessageParcel &data, MessageParcel &r
     return NO_ERROR;
 }
 
-int32_t AgentExtensionHostStub::OnAuthorize(MessageParcel &data, MessageParcel &reply)
+int32_t AgentReceiverStub::Authorize(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "OnAuthorize called");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "Authorize called");
 
+    sptr<IRemoteObject> hostProxy = data.ReadRemoteObject();
     std::string authStr;
     if (!data.ReadString(authStr)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to read string from parcel");
         return ERR_INVALID_VALUE;
     }
 
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "OnAuthorize, auth length: %{public}zu", authStr.length());
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "Authorize, auth length: %{public}zu", authStr.length());
 
-    int32_t result = OnAuthorize(authStr);
+    int32_t result = Authorize(hostProxy, authStr);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to write result to reply parcel");
         return IPC_STUB_ERR;
@@ -98,6 +94,5 @@ int32_t AgentExtensionHostStub::OnAuthorize(MessageParcel &data, MessageParcel &
 
     return NO_ERROR;
 }
-
-} // namespace AAFwk
+} // namespace AgentRuntime
 } // namespace OHOS

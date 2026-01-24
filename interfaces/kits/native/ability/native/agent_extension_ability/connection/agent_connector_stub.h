@@ -13,29 +13,28 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_STUB_H
-#define OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_STUB_H
-
-#include <map>
+#ifndef OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_H
+#define OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_H
 
 #include <iremote_object.h>
 #include <iremote_stub.h>
 #include "ipc_types.h"
 #include "message_parcel.h"
-#include "agent_extension_host_interface.h"
+#include "iagent_connector.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AgentRuntime {
 
 /**
- * @class AgentExtensionHostStub
- * Base stub class for agent extension host IPC.
- * Handles incoming IPC calls from agent extension to host application.
+ * @class AgentConnectorStub
+ * Base stub class for agent connector IPC.
+ * Corresponds to the server end of IAgentConnector.
+ * Handles incoming IPC calls from host application to agent extension.
  */
-class AgentExtensionHostStub : public IRemoteStub<IAgentExtensionHost> {
+class AgentConnectorStub : public IRemoteStub<IAgentConnector> {
 public:
-    AgentExtensionHostStub();
-    virtual ~AgentExtensionHostStub();
+    AgentConnectorStub();
+    virtual ~AgentConnectorStub();
 
     /**
      * Handle incoming remote request.
@@ -50,29 +49,25 @@ public:
         MessageOption &option) override;
 
     /**
-     * Handle SendData request from agent extension.
+     * Handle SendData request from host application.
      *
-     * @param data The request data parcel containing the string.
+     * @param data The request data parcel containing the receiver proxy and data string.
      * @param reply The reply parcel.
      * @return Returns ERR_OK on success, error code otherwise.
      */
-    int32_t OnSendData(MessageParcel &data, MessageParcel &reply);
+    int32_t SendData(MessageParcel &data, MessageParcel &reply);
 
     /**
-     * Handle Authorize request from agent extension.
+     * Handle Authorize request from host application.
      *
-     * @param data The request data parcel containing the authorization string.
+     * @param data The request data parcel containing the receiver proxy and authorization string.
      * @param reply The reply parcel.
      * @return Returns ERR_OK on success, error code otherwise.
      */
-    int32_t OnAuthorize(MessageParcel &data, MessageParcel &reply);
-
-protected:
-    using RequestFuncType = int32_t (AgentExtensionHostStub::*)(MessageParcel& data, MessageParcel& reply);
-    std::map<uint32_t, RequestFuncType> requestFuncMap_;
+    int32_t Authorize(MessageParcel &data, MessageParcel &reply);
 };
 
-} // namespace AAFwk
+} // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_STUB_H
+#endif // OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_H

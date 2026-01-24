@@ -13,39 +13,39 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_EXTENSION_INTERFACE_H
-#define OHOS_AGENT_RUNTIME_AGENT_EXTENSION_INTERFACE_H
+#ifndef OHOS_AGENT_RUNTIME_IAGENT_RECEIVER_H
+#define OHOS_AGENT_RUNTIME_IAGENT_RECEIVER_H
 
 #include <iremote_broker.h>
-#include <iremote_object.h>
 #include <string>
 
 namespace OHOS {
-namespace AAFwk {
+namespace AgentRuntime {
 
 /**
- * @interface IAgentExtension
- * Interface for calls FROM host application TO agent extension.
- * Used when the host sends data or authentication to the agent extension.
+ * @interface IAgentReceiver
+ * Interface for callbacks FROM agent extension to host application.
+ * The host application implements this interface to receive callbacks from the agent.
+ * Corresponds to the JS AgentReceiver object.
  */
-class IAgentExtension : public IRemoteBroker {
+class IAgentReceiver : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.aafwk.IAgentExtension");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.agentruntime.IAgentReceiver");
 
     /**
-     * Send data from host to agent extension.
+     * Send data from agent extension to host application.
      *
-     * @param hostProxy The proxy object for agent extension to call back.
-     * @param data The string data to send to agent extension.
+     * @param hostProxy The proxy object for host application to call back.
+     * @param data The string data to send to host application.
      * @return Returns 0 on success, error code otherwise.
      */
     virtual int32_t SendData(const sptr<IRemoteObject> &hostProxy, const std::string &data) = 0;
 
     /**
-     * Send authorization from host to agent extension.
+     * Send authorization from agent extension to host application.
      *
-     * @param hostProxy The proxy object for agent extension to call back.
-     * @param data The authorization data to send to agent extension.
+     * @param hostProxy The proxy object for host application to call back.
+     * @param data The authorization data to send to host application.
      * @return Returns 0 on success, error code otherwise.
      */
     virtual int32_t Authorize(const sptr<IRemoteObject> &hostProxy, const std::string &data) = 0;
@@ -63,7 +63,7 @@ public:
     };
 };
 
-} // namespace AAFwk
+} // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_EXTENSION_INTERFACE_H
+#endif // OHOS_AGENT_RUNTIME_IAGENT_RECEIVER_H
