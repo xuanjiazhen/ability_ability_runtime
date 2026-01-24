@@ -53,6 +53,8 @@ public:
 
     int32_t GetAgentCardByUrl(const std::string &bundleName, const std::string &url, AgentCard &card) override;
 
+    int32_t ConnectAgentExtensionAbility(const AAFwk::Want &want, const sptr<IRemoteObject> &connection) override;
+
 private:
     AgentManagerService();
     void Init();
