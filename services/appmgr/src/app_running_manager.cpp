@@ -43,7 +43,7 @@
 #include "res_sched_util.h"
 #include "task_handler_wrap.h"
 #include "time_util.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #include "app_native_spawn_manager.h"
 
 namespace OHOS {
@@ -885,7 +885,7 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
         appRecord->StateChangedNotifyObserver(abilityRecord, static_cast<int32_t>(
             AbilityState::ABILITY_STATE_TERMINATED), true, false);
         //UIExtension notifies Extension & Ability state changes
-        if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())) {
+        if (AAFwk::UIExtensionWrapper::IsUIExtension(appRecord->GetExtensionType())) {
             appRecord->StateChangedNotifyObserver(abilityRecord,
                 static_cast<int32_t>(ExtensionState::EXTENSION_STATE_TERMINATED), false, false);
         }
@@ -1157,7 +1157,6 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
 
     auto appRunningMap = GetAppRunningRecordMap();
     TAG_LOGD(AAFwkTag::APPMGR, "current app size %{public}zu", appRunningMap.size());
-    int32_t result = ERR_OK;
 
     {
         std::lock_guard guard(appInfosLock_);
@@ -1184,6 +1183,7 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
         if (appRecord) {
             TAG_LOGD(AAFwkTag::APPMGR, "Notification app [%{public}s]", appRecord->GetName().c_str());
             std::lock_guard guard(updateConfigurationDelayedLock_);
+            int32_t result = ERR_OK;
             if (appRecord->NeedUpdateConfigurationBackground() ||
                 appRecord->GetState() != ApplicationState::APP_STATE_BACKGROUND) {
                 updateConfigurationDelayedMap_[appRecord->GetRecordId()] = false;
@@ -1195,9 +1195,13 @@ int32_t AppRunningManager::UpdateConfiguration(const Configuration& config, cons
                 delayConfig->Merge(diffVe, config);
                 updateConfigurationDelayedMap_[appRecord->GetRecordId()] = true;
             }
+            if (result != ERR_OK) {
+                TAG_LOGE(AAFwkTag::APPMGR,
+                    "UpdateConfig failed app:%{public}s %{public}d", appRecord->GetName().c_str(), result);
+            }
         }
     }
-    return result;
+    return ERR_OK;
 }
 
 bool AppRunningManager::UpdateConfiguration(std::shared_ptr<AppRunningRecord>& appRecord,
@@ -1600,8 +1604,8 @@ int32_t AppRunningManager::NotifyUnLoadRepairPatch(const std::string &bundleName
 bool AppRunningManager::IsApplicationFirstForeground(const AppRunningRecord &foregroundingRecord)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    if (AAFwk::UIExtensionUtils::IsUIExtension(foregroundingRecord.GetExtensionType())
-        || AAFwk::UIExtensionUtils::IsWindowExtension(foregroundingRecord.GetExtensionType())) {
+    if (AAFwk::UIExtensionWrapper::IsUIExtension(foregroundingRecord.GetExtensionType())
+        || AAFwk::UIExtensionWrapper::IsWindowExtension(foregroundingRecord.GetExtensionType())) {
         return false;
     }
 
@@ -1609,8 +1613,8 @@ bool AppRunningManager::IsApplicationFirstForeground(const AppRunningRecord &for
     for (const auto &item : appRunningRecordMap_) {
         const auto &appRecord = item.second;
         if (appRecord == nullptr || appRecord->GetUid() != foregroundingRecord.GetUid()
-            || AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
-            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())
+            || AAFwk::UIExtensionWrapper::IsUIExtension(appRecord->GetExtensionType())
+            || AAFwk::UIExtensionWrapper::IsWindowExtension(appRecord->GetExtensionType())
             || appRecord->GetAppIndex() != foregroundingRecord.GetAppIndex()) {
             continue;
         }
@@ -1634,8 +1638,8 @@ bool AppRunningManager::IsApplicationBackground(const AppRunningRecord &backgrou
             return false;
         }
         if (appRecord->GetUid() != backgroundingRecord.GetUid()
-            || AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
-            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())
+            || AAFwk::UIExtensionWrapper::IsUIExtension(appRecord->GetExtensionType())
+            || AAFwk::UIExtensionWrapper::IsWindowExtension(appRecord->GetExtensionType())
             || appRecord->GetAppIndex() != backgroundingRecord.GetAppIndex()) {
             continue;
         }
@@ -1668,8 +1672,8 @@ bool AppRunningManager::NeedNotifyAppStateChangeWhenProcessDied(std::shared_ptr<
         if (appRecord == currentAppRecord) {
             continue;
         }
-        if (AAFwk::UIExtensionUtils::IsUIExtension(appRecord->GetExtensionType())
-            || AAFwk::UIExtensionUtils::IsWindowExtension(appRecord->GetExtensionType())) {
+        if (AAFwk::UIExtensionWrapper::IsUIExtension(appRecord->GetExtensionType())
+            || AAFwk::UIExtensionWrapper::IsWindowExtension(appRecord->GetExtensionType())) {
             continue;
         }
         auto state = appRecord->GetState();

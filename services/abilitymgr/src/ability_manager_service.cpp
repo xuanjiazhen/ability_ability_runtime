@@ -102,7 +102,7 @@
 #include "support_system_ability_permission.h"
 #include "time_util.h"
 #include "tokenid_kit.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
 #include "unlock_screen_manager.h"
 #ifdef SUPPORT_UPMS
@@ -263,8 +263,6 @@ constexpr int32_t UPDATE_CONFIG_FLAG_APPEND = 2;
 constexpr int32_t START_AUTO_START_APP_DELAY_TIME = 200;
 constexpr int32_t START_AUTO_START_APP_RETRY_MAX_TIMES = 5;
 constexpr int32_t RETRY_COUNT = 20;
-constexpr const char* LIFE_CYCLE_STATE_FOREGROUND_DONE = "foreground done";
-constexpr const char* LIFE_CYCLE_STATE_BACKGROUND_DONE = "background done";
 
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
     "share", "action", "navigation", "mail", "finance", "flight", "express", "photoEditor"
@@ -287,17 +285,6 @@ bool IsEmbeddableStart(int32_t screenMode)
 {
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
-}
-
-void SendUIAbilityEvent(EventInfo &eventInfo, const int32_t state)
-{
-    if (state == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND)) {
-        eventInfo.lifeCycleState = LIFE_CYCLE_STATE_FOREGROUND_DONE;
-        SendAbilityEvent(EventName::ABILITY_ONFOREGROUND, HiSysEventType::BEHAVIOR, eventInfo);
-    } else if (state == static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_BACKGROUND)) {
-        eventInfo.lifeCycleState = LIFE_CYCLE_STATE_BACKGROUND_DONE;
-        SendAbilityEvent(EventName::ABILITY_ONBACKGROUND, HiSysEventType::BEHAVIOR, eventInfo);
-    }
 }
 } // namespace
 
@@ -4203,18 +4190,18 @@ int AbilityManagerService::CheckUIExtensionUsage(AppExecFwk::UIExtensionUsage ui
     AppExecFwk::ExtensionAbilityType extensionType)
 {
     if (uiExtensionUsage == UIExtensionUsage::EMBEDDED &&
-        !AAFwk::UIExtensionUtils::IsPublicForEmbedded(extensionType)) {
+        !AAFwk::UIExtensionWrapper::IsPublicForEmbedded(extensionType)) {
         CHECK_CALLER_IS_SYSTEM_APP;
     }
 
     if (uiExtensionUsage == UIExtensionUsage::CONSTRAINED_EMBEDDED &&
-        !AAFwk::UIExtensionUtils::IsPublicForConstrainedEmbedded(extensionType)) {
+        !AAFwk::UIExtensionWrapper::IsPublicForConstrainedEmbedded(extensionType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "secureConstrainedEmbedded extension type error:%u.", extensionType);
         return ERR_INVALID_VALUE;
     }
 
     if (uiExtensionUsage == UIExtensionUsage::PRE_VIEW_EMBEDDED &&
-        !AAFwk::UIExtensionUtils::IsSystemUIExtension(extensionType)) {
+        !AAFwk::UIExtensionWrapper::IsSystemUIExtension(extensionType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target not system app");
         return ERR_INVALID_VALUE;
     }
@@ -4739,8 +4726,7 @@ int AbilityManagerService::BackToCallerAbilityWithResult(const sptr<IRemoteObjec
 int AbilityManagerService::CloseAbility(const sptr<IRemoteObject> &token, int resultCode, const Want *resultWant)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
-    auto abilityRecord = Token::GetAbilityRecordByToken(token);
-    EventInfo eventInfo = BuildEventInfoByAbilityRecord(abilityRecord);
+    EventInfo eventInfo;
     SendAbilityEvent(EventName::CLOSE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     return TerminateAbilityWithFlag(token, resultCode, resultWant, false);
 }
@@ -4829,7 +4815,7 @@ int AbilityManagerService::TerminateUIExtensionAbility(const sptr<SessionInfo> &
         return result;
     }
 
-    if (!UIExtensionUtils::IsUIExtension(targetRecord->GetAbilityInfo().extensionAbilityType)) {
+    if (!UIExtensionWrapper::IsUIExtension(targetRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "cannot terminate except ui extension ability");
         eventInfo.errReason = "cannot terminate except ui extension ability";
         SendExtensionReport(eventInfo, EXTENSION_TYPE_NOT_UI_EXTENSION);
@@ -4862,7 +4848,7 @@ int AbilityManagerService::CloseUIExtensionAbilityBySCB(const sptr<IRemoteObject
 
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
-    if (!UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+    if (!UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target ability %{public}s/%{public}s not an uiextensionability",
             abilityRecord->GetElementName().GetBundleName().c_str(),
             abilityRecord->GetElementName().GetAbilityName().c_str());
@@ -4934,7 +4920,9 @@ int AbilityManagerService::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionI
         return ERR_WOULD_BLOCK;
     }
 
-    EventInfo eventInfo = BuildEventInfoByAbilityRecord(abilityRecord);
+    EventInfo eventInfo;
+    eventInfo.bundleName = abilityRecord->GetAbilityInfo().bundleName;
+    eventInfo.abilityName = abilityRecord->GetAbilityInfo().name;
     SendAbilityEvent(EventName::CLOSE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     if (isUserRequestedExit) {
         CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
@@ -5150,7 +5138,7 @@ int AbilityManagerService::MinimizeUIExtensionAbility(const sptr<SessionInfo> &e
         return result;
     }
 
-    if (!UIExtensionUtils::IsUIExtension(targetRecord->GetAbilityInfo().extensionAbilityType)) {
+    if (!UIExtensionWrapper::IsUIExtension(targetRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "cannot minimize except ui extension ability");
         eventInfo.errReason = "cannot minimize except ui extension ability";
         SendExtensionReport(eventInfo, EXTENSION_TYPE_NOT_UI_EXTENSION);
@@ -5499,36 +5487,6 @@ EventInfo AbilityManagerService::BuildEventInfo(const Want &want, int32_t userId
     eventInfo.bundleName = want.GetElement().GetBundleName();
     eventInfo.moduleName = want.GetElement().GetModuleName();
     eventInfo.abilityName = want.GetElement().GetAbilityName();
-    std::vector<AbilityRunningInfo> abilityRunningInfos;
-    auto result = GetAbilityRunningInfos(abilityRunningInfos);
-    if (result != ERR_OK) {
-        return eventInfo;
-    }
-    for (const auto& info : abilityRunningInfos) {
-        if (info.ability.GetBundleName() == eventInfo.bundleName &&
-            info.ability.GetModuleName() == eventInfo.moduleName &&
-            info.ability.GetAbilityName() == eventInfo.abilityName) {
-            eventInfo.appIndex = info.appCloneIndex;
-        }
-    }
-    return eventInfo;
-}
-
-EventInfo AbilityManagerService::BuildEventInfoByAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord)
-{
-    EventInfo eventInfo;
-    if (abilityRecord == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "null abilityRecord");
-        return eventInfo;
-    }
-    auto want = abilityRecord->GetWant();
-    eventInfo.userId = abilityRecord->GetUid() / BASE_USER_RANGE;
-    eventInfo.bundleName = want.GetElement().GetBundleName();
-    eventInfo.moduleName = want.GetElement().GetModuleName();
-    eventInfo.abilityName = want.GetElement().GetAbilityName();
-    eventInfo.callerBundleName = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
-    eventInfo.bundleType = static_cast<int32_t>(abilityRecord->GetApplicationInfo().bundleType);
-    eventInfo.appIndex = abilityRecord->GetAppIndex();
     return eventInfo;
 }
 
@@ -5622,7 +5580,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "start generate ability request, isQueryExtensionOnly: %{public}d, type: %{public}d",
         isQueryExtensionOnly, static_cast<int32_t>(extensionType));
     if (isQueryExtensionOnly ||
-        AAFwk::UIExtensionUtils::IsUIExtension(extensionType)) {
+        AAFwk::UIExtensionWrapper::IsUIExtension(extensionType)) {
         result = GenerateExtensionAbilityRequest(want, abilityRequest, callerToken, userId);
     } else {
         result = GenerateAbilityRequest(want, DEFAULT_INVAL_VALUE, abilityRequest, callerToken, userId);
@@ -5672,8 +5630,8 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
     uint32_t specifyTokenId = static_cast<uint32_t>(specifiedFullTokenId);
     AppExecFwk::ExtensionAbilityType targetExtensionType = abilityInfo.extensionAbilityType;
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "extension type %{public}d.", targetExtensionType);
-    if (AAFwk::UIExtensionUtils::IsUIExtension(extensionType)) {
-        if (!AAFwk::UIExtensionUtils::IsUIExtension(targetExtensionType)
+    if (AAFwk::UIExtensionWrapper::IsUIExtension(extensionType)) {
+        if (!AAFwk::UIExtensionWrapper::IsUIExtension(targetExtensionType)
             && targetExtensionType != AppExecFwk::ExtensionAbilityType::WINDOW) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "UI extension, target ability not UI extension");
             return ERR_WRONG_INTERFACE_CALL;
@@ -5744,7 +5702,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
 
     SetAbilityRequestSessionInfo(abilityRequest, targetExtensionType);
     int ret = ERR_OK;
-    if(AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)) {
+    if(AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo.extensionAbilityType)) {
         abilityRequest.uiExtensionAbilityConnectInfo = connectInfo;
         auto uiExtensionManager = GetUIExtensionAbilityManagerByUserId(validUserId);
         ret = uiExtensionManager->ConnectAbilityLocked(abilityRequest, connect, callerToken, sessionInfo);
@@ -7781,8 +7739,8 @@ int AbilityManagerService::ScheduleCommandAbilityWindowDone(
         return CHECK_PERMISSION_FAILED;
     }
 
-    if (!UIExtensionUtils::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)
-        && !UIExtensionUtils::IsWindowExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+    if (!UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)
+        && !UIExtensionWrapper::IsWindowExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "target ability not ui or window extension");
         return ERR_INVALID_VALUE;
     }
@@ -7827,10 +7785,6 @@ void AbilityManagerService::OnAbilityRequestDone(const sptr<IRemoteObject> &toke
         }
         default: {
             int32_t ownerUserId = abilityRecord->GetOwnerMissionUserId();
-            if (type == AppExecFwk::AbilityType::PAGE) {
-                auto eventInfo = BuildEventInfoByAbilityRecord(abilityRecord);
-                SendUIAbilityEvent(eventInfo, state);
-            }
             if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
                 auto uiAbilityManager = GetUIAbilityManagerByUserId(ownerUserId);
                 CHECK_POINTER(uiAbilityManager);
@@ -8709,7 +8663,7 @@ std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerB
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
     std::shared_ptr<AbilityConnectManager> connectManager = nullptr;
-    if(UIExtensionUtils::IsUIExtension(type)){
+    if(UIExtensionWrapper::IsUIExtension(type)){
         connectManager = GetUIExtensionAbilityManagerByUserId(userId);
     }else{
         connectManager = GetCommonExtensionManagerByUserId(userId);
@@ -8722,7 +8676,7 @@ std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerB
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);
     std::shared_ptr<AbilityConnectManager> connectManager = nullptr;
-    if(UIExtensionUtils::IsUIExtension(type)){
+    if(UIExtensionWrapper::IsUIExtension(type)){
         connectManager = GetUIExtensionAbilityManagerByToken(token);
     }else{
         connectManager = GetCommonExtensionManagerByToken(token);
@@ -11897,7 +11851,7 @@ int AbilityManagerService::CheckCallOtherExtensionPermission(const AbilityReques
         return CheckCallAutoFillExtensionPermission(abilityRequest);
     }
 #endif // SUPPORT_AUTO_FILL
-    if (AAFwk::UIExtensionUtils::IsUIExtension(extensionType)) {
+    if (AAFwk::UIExtensionWrapper::IsUIExtension(extensionType)) {
         return CheckUIExtensionPermission(abilityRequest, validUserId);
     }
     if (extensionType == AppExecFwk::ExtensionAbilityType::VPN) {
@@ -11946,7 +11900,7 @@ int AbilityManagerService::CheckUIExtensionPermission(const AbilityRequest &abil
     } 
 
     auto extensionType = abilityRequest.abilityInfo.extensionAbilityType;
-    if (AAFwk::UIExtensionUtils::IsSystemUIExtension(extensionType)) {
+    if (AAFwk::UIExtensionWrapper::IsSystemUIExtension(extensionType)) {
         auto callerRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
         if (callerRecord == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid caller");
@@ -11962,7 +11916,7 @@ int AbilityManagerService::CheckUIExtensionPermission(const AbilityRequest &abil
     }
 
     uint32_t specifyTokenId = static_cast<uint32_t>(abilityRequest.specifiedFullTokenId);
-    if (AAFwk::UIExtensionUtils::IsSystemCallerNeeded(extensionType)) {
+    if (AAFwk::UIExtensionWrapper::IsSystemCallerNeeded(extensionType)) {
         auto callerRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
         if (callerRecord == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid caller");
@@ -12015,7 +11969,7 @@ bool AbilityManagerService::CheckUIExtensionCallerIsForeground(const AbilityRequ
 
     auto callerAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
     if (callerAbility != nullptr) {
-        if (UIExtensionUtils::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
+        if (UIExtensionWrapper::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
             auto tokenId = callerAbility->GetApplicationInfo().accessTokenId;
             bool isFocused = false;
             if (CheckUIExtensionIsFocused(tokenId, isFocused) == ERR_OK && isFocused) {
@@ -12073,7 +12027,7 @@ bool AbilityManagerService::CheckUIExtensionCallerIsUIAbility(const AbilityReque
         return true;
     }
 
-    if (UIExtensionUtils::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
+    if (UIExtensionWrapper::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
         callerAbility = GetUIExtensionRootCaller(abilityRequest.callerToken, abilityRequest.userId);
         if (callerAbility != nullptr && callerAbility->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE) {
             return true;
@@ -12124,7 +12078,7 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
         return true;
     }
 
-    if (UIExtensionUtils::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
+    if (UIExtensionWrapper::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGD(AAFwkTag::UI_EXT, "caller is nested uiextability");
         if (validUserId == U0_USER_ID || validUserId == U1_USER_ID) {
             validUserId =
@@ -15486,8 +15440,10 @@ void AbilityManagerService::ReportCleanSession(const sptr<SessionInfo> &sessionI
     (void)DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->
         DeleteAbilityRecoverInfo(abilityInfo.applicationInfo.accessTokenId, abilityInfo.moduleName, abilityName);
 
-    EventInfo eventInfo = BuildEventInfoByAbilityRecord(abilityRecord);
+    EventInfo eventInfo;
     eventInfo.errCode = errCode;
+    eventInfo.bundleName = abilityRecord->GetAbilityInfo().bundleName;
+    eventInfo.abilityName = abilityRecord->GetAbilityInfo().name;
     SendAbilityEvent(EventName::CLOSE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
     if (eventInfo.errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to terminate ability: %{public}d", eventInfo.errCode);
@@ -15542,7 +15498,7 @@ void AbilityManagerService::SetAbilityRequestSessionInfo(AbilityRequest &ability
     if (callerAbilityRecord->GetAbilityInfo().type == AbilityType::PAGE) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility Caller");
         abilityRequest.want.SetParam(WANT_PARAMS_HOST_WINDOW_ID_KEY, callerSessionInfo->persistentId);
-    } else if (AAFwk::UIExtensionUtils::IsUIExtension(callerAbilityRecord->GetAbilityInfo().extensionAbilityType)) {
+    } else if (AAFwk::UIExtensionWrapper::IsUIExtension(callerAbilityRecord->GetAbilityInfo().extensionAbilityType)) {
         int32_t mainWindowId = -1;
         auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().
             GetSceneSessionManagerLiteProxy();
@@ -15820,7 +15776,7 @@ int AbilityManagerService::StartSelfUIAbilityWithPidResult(const Want &want, Sta
 
 bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
 {
-    if (AAFwk::UIExtensionUtils::IsEnterpriseAdmin(extensionType) || JudgeMultiUserConcurrency(userId)) {
+    if (AAFwk::UIExtensionWrapper::IsEnterpriseAdmin(extensionType) || JudgeMultiUserConcurrency(userId)) {
         return true;
     }
     if (AppUtils::GetInstance().IsConnectSupportCrossUser() && (extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE
@@ -16472,7 +16428,7 @@ int32_t AbilityManagerService::ProcessUdmfKey(
     const Want &want, uint32_t targetTokenId, AppExecFwk::ExtensionAbilityType extensionType)
 {
     std::string key = want.GetStringParam(UD_KEY);
-    if (UIExtensionUtils::IsProcessUdkeyExtension(extensionType) && !key.empty()){
+    if (UIExtensionWrapper::IsProcessUdkeyExtension(extensionType) && !key.empty()){
         return AbilityRuntime::UdmfUtils::ProcessUdmfKey(key, targetTokenId);
     }
     return ERR_OK;
