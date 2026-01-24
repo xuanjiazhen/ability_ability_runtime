@@ -54,6 +54,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_innerkits_path}/session_handler/include",
     "${ability_runtime_innerkits_path}/wantagent/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/agent_extension_ability/connection",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
