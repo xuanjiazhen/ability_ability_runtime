@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "agent_extension_connection_constants.h"
 #include "connection_state_manager.h"
 #include "freeze_util.h"
 #include "ui_service_extension_connection_constants.h"
@@ -320,11 +321,18 @@ void ConnectionRecord::ScheduleConnectAbilityDone()
     if (connectWant_.HasParameter(UISERVICEHOSTPROXY_KEY)) {
         hostproxy = connectWant_.GetRemoteObject(UISERVICEHOSTPROXY_KEY);
     }
+    sptr<IRemoteObject> connectorProxy = nullptr;
+    if (connectWant_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
+        connectorProxy = connectWant_.GetRemoteObject(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
+    }
     auto element = connectWant_.GetElement();
     Want::ClearWant(&connectWant_);
     connectWant_.SetElement(element);
     if (hostproxy != nullptr) {
         connectWant_.SetParam(UISERVICEHOSTPROXY_KEY, hostproxy);
+    }
+    if (connectorProxy != nullptr) {
+        connectWant_.SetParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY, connectorProxy);
     }
 
     CancelConnectTimeoutTask();

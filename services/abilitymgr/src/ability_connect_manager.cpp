@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,18 +17,22 @@
 
 #include <regex>
 
-#include "ability_manager_service.h"
 #include "ability_manager_constants.h"
+#include "ability_manager_service.h"
 #include "ability_permission_util.h"
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
-#include "appfreeze_manager.h"
+#include "agent_extension_connection_constants.h"
 #include "app_exit_reason_data_manager.h"
+#include "appfreeze_manager.h"
 #include "assert_fault_callback_death_mgr.h"
+#include "cache_extension_utils.h"
+#include "datetime_ex.h"
 #include "extension_ability_info.h"
 #include "foreground_app_connection_manager.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
+#include "init_reboot.h"
 #include "int_wrapper.h"
 #include "multi_instance_utils.h"
 #include "param.h"
@@ -36,14 +40,11 @@
 #include "res_sched_util.h"
 #include "session/host/include/zidl/session_interface.h"
 #include "startup_util.h"
+#include "string_wrapper.h"
 #include "timeout_state_utils.h"
+#include "ui_extension_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
 #include "uri_utils.h"
-#include "ui_extension_wrapper.h"
-#include "cache_extension_utils.h"
-#include "datetime_ex.h"
-#include "init_reboot.h"
-#include "string_wrapper.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
@@ -378,7 +379,8 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
     CHECK_POINTER_AND_RETURN(connectRecord, ERR_INVALID_VALUE);
     connectRecord->AttachCallerInfo();
     connectRecord->SetConnectState(ConnectionState::CONNECTING);
-    if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+    if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::UI_SERVICE ||
+        targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
         connectRecord->SetConnectWant(abilityRequest.want);
     }
     targetService->AddConnectRecordToList(connectRecord);
@@ -464,12 +466,12 @@ void AbilityConnectManager::HandleActiveAbility(std::shared_ptr<BaseExtensionRec
         return;
     }
     AppExecFwk::ExtensionAbilityType extType = targetService->GetAbilityInfo().extensionAbilityType;
-    bool isAbilityUIServiceExt = (extType == AppExecFwk::ExtensionAbilityType::UI_SERVICE);
-    if (isAbilityUIServiceExt) {
+    if (extType == AppExecFwk::ExtensionAbilityType::UI_SERVICE ||
+        extType == AppExecFwk::ExtensionAbilityType::AGENT) {
         if (connectRecord != nullptr) {
             Want want = connectRecord->GetConnectWant();
             int connectRecordId = connectRecord->GetRecordId();
-            ConnectUIServiceExtAbility(targetService, connectRecordId, want);
+            ConnectBidirectionalServiceExtAbility(targetService, connectRecordId, want);
         }
         targetService->RemoveSignatureInfo();
         return;
@@ -495,10 +497,7 @@ std::shared_ptr<ConnectionRecord> AbilityConnectManager::GetAbilityConnectedReco
         if (targetService == nullptr || connectRecord == nullptr) {
             return false;
         }
-        if (targetService != connectRecord->GetAbilityRecord()) {
-            return false;
-        }
-        return true;
+        return targetService == connectRecord->GetAbilityRecord();
     };
     auto connectRecord = std::find_if(connectRecordList.begin(), connectRecordList.end(), isMatch);
     if (connectRecord != connectRecordList.end()) {
@@ -679,7 +678,9 @@ void AbilityConnectManager::DisconnectRecordForce(ConnectListType &list,
     list.emplace_back(connectRecord);
     bool isUIService = (abilityRecord->GetAbilityInfo().extensionAbilityType ==
         AppExecFwk::ExtensionAbilityType::UI_SERVICE);
-    if (abilityRecord->IsConnectListEmpty() && !isUIService) {
+    bool isAgent = (abilityRecord->GetAbilit/* yInfo().extensionAbilityType ==
+        AppExecFwk::ExtensionAbilityType::AG */ENT); // TODO
+    if (abilityRecord->IsConnectListEmpty() && !isUIService && !isAgent) {
         if (abilityRecord->IsNeverStarted()) {
             TAG_LOGW(AAFwkTag::EXT, "force terminate ability record state: %{public}d",
                 abilityRecord->GetAbilityState());
@@ -965,6 +966,9 @@ int AbilityConnectManager::CleanupConnectionAndTerminateIfNeeded(std::shared_ptr
         if (abilityRecord->GetAbilityInfo().extensionAbilityType ==
             AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "don't terminate uiservice");
+        } else if (abilityRecord->GetAbilityInfo().extensionAbilityType ==
+            AppExecFwk::ExtensionAbilityType::AGENT) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "don't terminate agent"); // TODO
         } else {
             TAG_LOGI(AAFwkTag::EXT, "terminate or cache");
             TerminateOrCacheAbility(abilityRecord);
@@ -1740,7 +1744,8 @@ void AbilityConnectManager::ConnectAbility(const std::shared_ptr<BaseExtensionRe
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER(abilityRecord);
     AppExecFwk::ExtensionAbilityType extType = abilityRecord->GetAbilityInfo().extensionAbilityType;
-    if (extType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
+    if (extType == AppExecFwk::ExtensionAbilityType::UI_SERVICE ||
+        extType == AppExecFwk::ExtensionAbilityType::AGENT) {
         ResumeConnectAbility(abilityRecord);
     } else {
         PostTimeOutTask(abilityRecord, AbilityManagerService::CONNECT_TIMEOUT_MSG);
@@ -1752,7 +1757,7 @@ void AbilityConnectManager::ConnectAbility(const std::shared_ptr<BaseExtensionRe
     }
 }
 
-void AbilityConnectManager::ConnectUIServiceExtAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+void AbilityConnectManager::ConnectBidirectionalServiceExtAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
     int connectRecordId, const Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -3170,6 +3175,8 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
     std::string serviceKey = element.GetURI();
     if (FRS_BUNDLE_NAME == abilityRequest.abilityInfo.bundleName) {
         serviceKey = element.GetURI() + std::to_string(abilityRequest.want.GetIntParam(FRS_APP_INDEX, 0));
+    } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        serviceKey = element.GetURI() + abilityRequest.want.GetStringParam(AGENTID_KEY);
     }
     {
         std::lock_guard lock(serviceMapMutex_);
