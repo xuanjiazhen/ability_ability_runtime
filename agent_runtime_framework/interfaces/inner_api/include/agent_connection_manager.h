@@ -213,7 +213,7 @@ private:
      * @param connectReceiverOther The second connect receiver (as ElementName).
      * @return Returns true if equal, false otherwise.
      */
-    bool IsConnectReceiverEqual(AAFwk::Operation &connectReceiver,
+    bool IsConnectReceiverEqual(const AAFwk::Operation &connectReceiver,
         const AppExecFwk::ElementName &connectReceiverOther);
 
     /**
@@ -263,7 +263,7 @@ private:
         const sptr<AbilityConnectCallback> &connectCallback);
 
 private:
-    std::recursive_mutex connectionsLock_;
+    std::mutex connectionsLock_;
     std::map<AgentConnectionInfo, std::vector<sptr<AbilityConnectCallback>>> abilityConnections_;
 };
 

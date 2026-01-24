@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_STUB_H
-#define OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_STUB_H
+#ifndef OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_H
+#define OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_H
 
 #include <map>
 
@@ -22,20 +22,21 @@
 #include <iremote_stub.h>
 #include "ipc_types.h"
 #include "message_parcel.h"
-#include "agent_extension_host_interface.h"
+#include "iagent_receiver.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AgentRuntime {
 
 /**
- * @class AgentExtensionHostStub
- * Base stub class for agent extension host IPC.
+ * @class AgentConnectorStub
+ * Base stub class for agent connector IPC.
+ * Corresponds to the server end of IAgentReceiver.
  * Handles incoming IPC calls from agent extension to host application.
  */
-class AgentExtensionHostStub : public IRemoteStub<IAgentExtensionHost> {
+class AgentConnectorStub : public IRemoteStub<IAgentReceiver> {
 public:
-    AgentExtensionHostStub();
-    virtual ~AgentExtensionHostStub();
+    AgentConnectorStub();
+    virtual ~AgentConnectorStub();
 
     /**
      * Handle incoming remote request.
@@ -68,11 +69,11 @@ public:
     int32_t OnAuthorize(MessageParcel &data, MessageParcel &reply);
 
 protected:
-    using RequestFuncType = int32_t (AgentExtensionHostStub::*)(MessageParcel& data, MessageParcel& reply);
+    using RequestFuncType = int32_t (AgentConnectorStub::*)(MessageParcel& data, MessageParcel& reply);
     std::map<uint32_t, RequestFuncType> requestFuncMap_;
 };
 
-} // namespace AAFwk
+} // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_STUB_H
+#endif // OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_H

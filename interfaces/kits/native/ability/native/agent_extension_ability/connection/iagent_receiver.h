@@ -13,23 +13,24 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_INTERFACE_H
-#define OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_INTERFACE_H
+#ifndef OHOS_AGENT_RUNTIME_IAGENT_RECEIVER_H
+#define OHOS_AGENT_RUNTIME_IAGENT_RECEIVER_H
 
 #include <iremote_broker.h>
 #include <string>
 
 namespace OHOS {
-namespace AAFwk {
+namespace AgentRuntime {
 
 /**
- * @interface IAgentExtensionHost
+ * @interface IAgentReceiver
  * Interface for callbacks FROM agent extension to host application.
- * Used when the agent extension sends data or authentication back to the host.
+ * The host application implements this interface to receive callbacks from the agent.
+ * Corresponds to the JS AgentReceiver object.
  */
-class IAgentExtensionHost : public IRemoteBroker {
+class IAgentReceiver : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.aafwk.IAgentExtensionHost");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.agentruntime.IAgentReceiver");
 
     /**
      * Called when agent extension sends data to host.
@@ -60,7 +61,7 @@ public:
     };
 };
 
-} // namespace AAFwk
+} // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_INTERFACE_H
+#endif // OHOS_AGENT_RUNTIME_IAGENT_RECEIVER_H
