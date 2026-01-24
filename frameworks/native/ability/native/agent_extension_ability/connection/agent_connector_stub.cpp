@@ -13,32 +13,32 @@
  * limitations under the License.
  */
 
-#include "agent_extension_host_stub.h"
+#include "agent_connector_stub.h"
 
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AgentRuntime {
 
-AgentExtensionHostStub::AgentExtensionHostStub()
+AgentConnectorStub::AgentConnectorStub()
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "called");
-    requestFuncMap_[ON_SEND_DATA] = &AgentExtensionHostStub::OnSendData;
-    requestFuncMap_[ON_AUTHORIZE] = &AgentExtensionHostStub::OnAuthorize;
+    requestFuncMap_[ON_SEND_DATA] = &AgentConnectorStub::OnSendData;
+    requestFuncMap_[ON_AUTHORIZE] = &AgentConnectorStub::OnAuthorize;
 }
 
-AgentExtensionHostStub::~AgentExtensionHostStub()
+AgentConnectorStub::~AgentConnectorStub()
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "called");
     requestFuncMap_.clear();
 }
 
-int AgentExtensionHostStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
+int AgentConnectorStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnRemoteRequest, code: %{public}u", code);
 
-    std::u16string descriptor = AgentExtensionHostStub::GetDescriptor();
+    std::u16string descriptor = AgentConnectorStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Descriptor mismatch");
@@ -57,7 +57,7 @@ int AgentExtensionHostStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
     return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
 }
 
-int32_t AgentExtensionHostStub::OnSendData(MessageParcel &data, MessageParcel &reply)
+int32_t AgentConnectorStub::OnSendData(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnSendData called");
 
@@ -78,7 +78,7 @@ int32_t AgentExtensionHostStub::OnSendData(MessageParcel &data, MessageParcel &r
     return NO_ERROR;
 }
 
-int32_t AgentExtensionHostStub::OnAuthorize(MessageParcel &data, MessageParcel &reply)
+int32_t AgentConnectorStub::OnAuthorize(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnAuthorize called");
 
@@ -99,5 +99,5 @@ int32_t AgentExtensionHostStub::OnAuthorize(MessageParcel &data, MessageParcel &
     return NO_ERROR;
 }
 
-} // namespace AAFwk
+} // namespace AgentRuntime
 } // namespace OHOS

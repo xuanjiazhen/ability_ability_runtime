@@ -15,10 +15,10 @@
 
 #include <mutex>
 
-#include "agent_extension_servicehost_stub_impl.h"
+#include "agent_connector_stub_impl.h"
 #include "hilog_tag_wrapper.h"
 #include "js_agent_extension_connection.h"
-#include "js_agent_proxy.h"
+#include "js_agent_receiver_proxy.h"
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -127,7 +127,7 @@ JSAgentExtensionConnection::JSAgentExtensionConnection(napi_env env) : JSAbility
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "JSAgentExtensionConnection constructor");
     wptr<JSAgentExtensionConnection> weakthis = this;
-    serviceHostStub_ = sptr<AgentExtensionServiceHostStubImpl>::MakeSptr(weakthis);
+    serviceHostStub_ = sptr<AgentConnectorStubImpl>::MakeSptr(weakthis);
 }
 
 JSAgentExtensionConnection::~JSAgentExtensionConnection()
@@ -143,13 +143,13 @@ void JSAgentExtensionConnection::HandleOnAbilityConnectDone(
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "HandleOnAbilityConnectDone, resultCode: %{public}d", resultCode);
     if (napiAsyncTask_ != nullptr) {
-        TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentProxy");
-        sptr<AgentExtensionServiceHostStubImpl> hostStub = GetServiceHostStub();
+        TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentReceiverProxy");
+        sptr<AgentConnectorStubImpl> hostStub = GetServiceHostStub();
         sptr<IRemoteObject> hostProxy = nullptr;
         if (hostStub != nullptr) {
             hostProxy = hostStub->AsObject();
         }
-        napi_value proxy = AgentRuntime::JsAgentProxy::CreateJsAgentProxy(env_, remoteObject,
+        napi_value proxy = AgentRuntime::JsAgentReceiverProxy::CreateJsAgentReceiverProxy(env_, remoteObject,
             connectionId_, hostProxy);
         SetProxyObject(proxy);
         napiAsyncTask_->ResolveWithNoError(env_, proxy);

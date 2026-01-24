@@ -13,12 +13,12 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_JS_AGENT_PROXY_H
-#define OHOS_AGENT_RUNTIME_JS_AGENT_PROXY_H
+#ifndef OHOS_AGENT_RUNTIME_JS_AGENT_RECEIVER_PROXY_H
+#define OHOS_AGENT_RUNTIME_JS_AGENT_RECEIVER_PROXY_H
 
 #include <memory>
 
-#include "agent_extension_proxy.h"
+#include "agent_receiver_proxy.h"
 #include "js_runtime_utils.h"
 
 namespace OHOS {
@@ -26,31 +26,32 @@ namespace AgentRuntime {
 using namespace AbilityRuntime;
 
 /**
- * @class JsAgentProxy
- * JavaScript proxy class for Agent Extension.
- * Wraps the native proxy and provides N-API methods for JS to call.
+ * @class JsAgentReceiverProxy
+ * JavaScript proxy class for Agent Receiver.
+ * Binds to JS class AgentReceiverProxy, used on host side
+ * to send calls from host to agent extension (receiver).
  */
-class JsAgentProxy {
+class JsAgentReceiverProxy {
 public:
     /**
-     * Create a JavaScript proxy object for agent extension.
+     * Create a JavaScript receiver proxy object.
      *
      * @param env The N-API environment.
      * @param impl The remote object implementation.
      * @param connectionId The connection ID.
-     * @param hostProxy The host proxy object for callbacks.
+     * @param connectorProxy The connector proxy object for callbacks.
      * @return Returns the N-API value of the created proxy object.
      */
-    static napi_value CreateJsAgentProxy(napi_env env,
+    static napi_value CreateJsAgentReceiverProxy(napi_env env,
         const sptr<IRemoteObject> &impl,
         int64_t connectionId,
-        const sptr<IRemoteObject> &hostProxy);
+        const sptr<IRemoteObject> &connectorProxy);
 
     /**
-     * Finalizer for the proxy object.
+     * Finalizer for the receiver proxy object.
      *
      * @param env The N-API environment.
-     * @param data The pointer to the JsAgentProxy instance.
+     * @param data The pointer to the JsAgentReceiverProxy instance.
      * @param hint The hint data.
      */
     static void Finalizer(napi_env env, void *data, void *hint);
@@ -59,14 +60,14 @@ public:
      * Constructor.
      *
      * @param impl The remote object implementation.
-     * @param hostProxy The host proxy object.
+     * @param connectorProxy The connector proxy object.
      */
-    JsAgentProxy(const sptr<IRemoteObject> &impl, const sptr<IRemoteObject> &hostProxy);
+    JsAgentReceiverProxy(const sptr<IRemoteObject> &impl, const sptr<IRemoteObject> &connectorProxy);
 
     /**
      * Destructor.
      */
-    virtual ~JsAgentProxy();
+    virtual ~JsAgentReceiverProxy();
 
     /**
      * Set the connection ID.
@@ -123,7 +124,7 @@ protected:
     /**
      * The native proxy for IPC communication with agent extension.
      */
-    sptr<OHOS::AAFwk::IAgentExtension> proxy_ = nullptr;
+    sptr<OHOS::AgentRuntime::IAgentConnector> proxy_ = nullptr;
 
     /**
      * The connection ID for this proxy.
@@ -131,12 +132,12 @@ protected:
     int64_t connectionId_ = 0;
 
     /**
-     * The host proxy object for agent extension to call back.
+     * The connector proxy object for agent extension to call back.
      */
-    sptr<IRemoteObject> hostProxy_ = nullptr;
+    sptr<IRemoteObject> connectorProxy_ = nullptr;
 };
 
 } // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_JS_AGENT_PROXY_H
+#endif // OHOS_AGENT_RUNTIME_JS_AGENT_RECEIVER_PROXY_H
