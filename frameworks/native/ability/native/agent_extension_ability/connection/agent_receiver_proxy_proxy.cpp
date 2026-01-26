@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "agent_proxy_proxy.h"
+#include "agent_receiver_proxy_proxy.h"
 
 #include "ability_business_error.h"
 #include "hilog_tag_wrapper.h"
@@ -22,23 +22,23 @@
 namespace OHOS {
 namespace AgentRuntime {
 
-AgentProxyProxy::AgentProxyProxy(const sptr<IRemoteObject> &impl)
-    : IRemoteProxy<IAgentHostProxy>(impl)
+AgentReceiverProxyProxy::AgentReceiverProxyProxy(const sptr<IRemoteObject> &impl)
+    : IRemoteProxy<IAgentConnectorProxy>(impl)
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "called");
 }
 
-AgentProxyProxy::~AgentProxyProxy()
+AgentReceiverProxyProxy::~AgentReceiverProxyProxy()
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "called");
 }
 
-int32_t AgentProxyProxy::SendData(const sptr<IRemoteObject> &agentProxy, const std::string &data)
+int32_t AgentReceiverProxyProxy::SendData(const sptr<IRemoteObject> &receiverProxy, const std::string &data)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "SendData called, data length: %{public}zu", data.length());
 
-    if (agentProxy == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentProxy");
+    if (receiverProxy == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null receiverProxy");
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
 
@@ -46,13 +46,13 @@ int32_t AgentProxyProxy::SendData(const sptr<IRemoteObject> &agentProxy, const s
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
 
-    if (!parcelData.WriteInterfaceToken(AgentProxyProxy::GetDescriptor())) {
+    if (!parcelData.WriteInterfaceToken(AgentReceiverProxyProxy::GetDescriptor())) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "write interface token failed");
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
 
-    if (!parcelData.WriteRemoteObject(agentProxy)) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "write agentProxy failed");
+    if (!parcelData.WriteRemoteObject(receiverProxy)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write receiverProxy failed");
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
 
@@ -67,7 +67,7 @@ int32_t AgentProxyProxy::SendData(const sptr<IRemoteObject> &agentProxy, const s
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
 
-    auto error = remoteObject->SendRequest(static_cast<uint32_t>(IAgentHostProxy::SEND_DATA),
+    auto error = remoteObject->SendRequest(static_cast<uint32_t>(IAgentConnectorProxy::SEND_DATA),
         parcelData, reply, option);
     if (error != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "SendRequest error %{public}d", error);
@@ -78,12 +78,12 @@ int32_t AgentProxyProxy::SendData(const sptr<IRemoteObject> &agentProxy, const s
     return ERR_OK;
 }
 
-int32_t AgentProxyProxy::Authorize(const sptr<IRemoteObject> &agentProxy, const std::string &data)
+int32_t AgentReceiverProxyProxy::Authorize(const sptr<IRemoteObject> &receiverProxy, const std::string &data)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Authorize called, auth length: %{public}zu", data.length());
 
-    if (agentProxy == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentProxy");
+    if (receiverProxy == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null receiverProxy");
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
 
@@ -91,13 +91,13 @@ int32_t AgentProxyProxy::Authorize(const sptr<IRemoteObject> &agentProxy, const 
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
 
-    if (!parcelData.WriteInterfaceToken(AgentProxyProxy::GetDescriptor())) {
+    if (!parcelData.WriteInterfaceToken(AgentReceiverProxyProxy::GetDescriptor())) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "write interface token failed");
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
 
-    if (!parcelData.WriteRemoteObject(agentProxy)) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "write agentProxy failed");
+    if (!parcelData.WriteRemoteObject(receiverProxy)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write receiverProxy failed");
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
 
@@ -112,7 +112,7 @@ int32_t AgentProxyProxy::Authorize(const sptr<IRemoteObject> &agentProxy, const 
         return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
     }
 
-    auto error = remoteObject->SendRequest(static_cast<uint32_t>(IAgentHostProxy::AUTHORIZE),
+    auto error = remoteObject->SendRequest(static_cast<uint32_t>(IAgentConnectorProxy::AUTHORIZE),
         parcelData, reply, option);
     if (error != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "SendRequest error %{public}d", error);

@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_IAGENT_PROXY_H
-#define OHOS_AGENT_RUNTIME_IAGENT_PROXY_H
+#ifndef OHOS_AGENT_RUNTIME_IAGENT_RECEIVER_PROXY_H
+#define OHOS_AGENT_RUNTIME_IAGENT_RECEIVER_PROXY_H
 
 #include <iremote_broker.h>
 #include <string>
@@ -23,13 +23,14 @@ namespace OHOS {
 namespace AgentRuntime {
 
 /**
- * @interface IAgentProxy
+ * @interface IAgentReceiverProxy
  * Interface for callbacks FROM agent extension to host application.
- * Corresponds to the JS AgentProxy object.
+ * Corresponds to the JS AgentReceiverProxy object.
+ * The agent extension (receiver) uses this to send data back to the host.
  */
-class IAgentProxy : public IRemoteBroker {
+class IAgentReceiverProxy : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.agentruntime.IAgentProxy");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.agentruntime.IAgentReceiverProxy");
 
     /**
      * Called when agent extension sends data to host.
@@ -63,4 +64,4 @@ public:
 } // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_IAGENT_PROXY_H
+#endif // OHOS_AGENT_RUNTIME_IAGENT_RECEIVER_PROXY_H

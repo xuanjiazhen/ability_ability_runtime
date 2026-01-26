@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_HOST_PROXY_STUB_IMPL_H
-#define OHOS_AGENT_RUNTIME_AGENT_HOST_PROXY_STUB_IMPL_H
+#ifndef OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_IMPL_H
+#define OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_IMPL_H
 
 #include <string>
-#include "agent_host_proxy_stub.h"
+#include "agent_connector_stub.h"
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -26,19 +26,19 @@ namespace AgentRuntime {
 class JSAgentExtensionConnection;
 
 /**
- * @class AgentHostProxyStubImpl
- * Implementation of AgentHostProxyStub that forwards IPC calls to JSAgentExtensionConnection.
+ * @class AgentConnectorStubImpl
+ * Implementation of AgentConnectorStub that forwards IPC calls to JSAgentExtensionConnection.
  * Maintains a weak pointer to the connection to avoid circular references.
  */
-class AgentHostProxyStubImpl : public AgentHostProxyStub {
+class AgentConnectorStubImpl : public AgentConnectorStub {
 public:
     /**
      * Constructor.
      *
      * @param conn Weak pointer to the JSAgentExtensionConnection.
      */
-    explicit AgentHostProxyStubImpl(wptr<JSAgentExtensionConnection> conn);
-    ~AgentHostProxyStubImpl() = default;
+    explicit AgentConnectorStubImpl(wptr<JSAgentExtensionConnection> conn);
+    ~AgentConnectorStubImpl() = default;
 
     /**
      * Handle SendData request from agent extension.
@@ -69,4 +69,4 @@ protected:
 } // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_HOST_PROXY_STUB_IMPL_H
+#endif // OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_IMPL_H

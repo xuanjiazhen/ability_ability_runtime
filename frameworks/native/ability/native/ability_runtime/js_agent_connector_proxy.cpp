@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_agent_host_proxy.h"
+#include "js_agent_connector_proxy.h"
 
 #include "ability_business_error.h"
 #include "hilog_tag_wrapper.h"
@@ -27,9 +27,9 @@ using namespace AbilityRuntime;
 static constexpr int32_t INDEX_ZERO = 0;
 static constexpr int32_t ARGC_ONE = 1;
 
-napi_value JsAgentHostProxy::CreateJsAgentHostProxy(napi_env env, const sptr<IRemoteObject> &hostProxy)
+napi_value JsAgentConnectorProxy::CreateJsAgentConnectorProxy(napi_env env, const sptr<IRemoteObject> &connectorProxy)
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "CreateJsAgentHostProxy called");
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "CreateJsAgentConnectorProxy called");
     HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
@@ -38,54 +38,54 @@ napi_value JsAgentHostProxy::CreateJsAgentHostProxy(napi_env env, const sptr<IRe
         return CreateJsUndefined(env);
     }
 
-    std::unique_ptr<JsAgentHostProxy> proxy = std::make_unique<JsAgentHostProxy>(hostProxy);
+    std::unique_ptr<JsAgentConnectorProxy> proxy = std::make_unique<JsAgentConnectorProxy>(connectorProxy);
     napi_wrap(env, object, proxy.release(), Finalizer, nullptr, nullptr);
 
-    const char *moduleName = "JsAgentHostProxy";
-    BindNativeFunction(env, object, "sendData", moduleName, JsAgentHostProxy::SendData);
-    BindNativeFunction(env, object, "authorize", moduleName, JsAgentHostProxy::Authorize);
+    const char *moduleName = "JsAgentConnectorProxy";
+    BindNativeFunction(env, object, "sendData", moduleName, JsAgentConnectorProxy::SendData);
+    BindNativeFunction(env, object, "authorize", moduleName, JsAgentConnectorProxy::Authorize);
     return handleEscape.Escape(object);
 }
 
-void JsAgentHostProxy::Finalizer(napi_env env, void *data, void *hint)
+void JsAgentConnectorProxy::Finalizer(napi_env env, void *data, void *hint)
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "Finalizer called");
-    std::unique_ptr<JsAgentHostProxy>(static_cast<JsAgentHostProxy*>(data));
+    std::unique_ptr<JsAgentConnectorProxy>(static_cast<JsAgentConnectorProxy*>(data));
 }
 
-JsAgentHostProxy::JsAgentHostProxy(const sptr<IRemoteObject> &hostProxy)
-    : hostProxy_(hostProxy)
+JsAgentConnectorProxy::JsAgentConnectorProxy(const sptr<IRemoteObject> &connectorProxy)
+    : connectorProxy_(connectorProxy)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Constructor called");
-    if (hostProxy_ == nullptr) {
-        TAG_LOGW(AAFwkTag::SER_ROUTER, "hostProxy_ is null");
+    if (connectorProxy_ == nullptr) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "connectorProxy_ is null");
     }
 }
 
-JsAgentHostProxy::~JsAgentHostProxy()
+JsAgentConnectorProxy::~JsAgentConnectorProxy()
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Destructor called");
-    hostProxy_ = nullptr;
+    connectorProxy_ = nullptr;
 }
 
-napi_value JsAgentHostProxy::SendData(napi_env env, napi_callback_info info)
+napi_value JsAgentConnectorProxy::SendData(napi_env env, napi_callback_info info)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "SendData called from JS");
-    GET_NAPI_INFO_AND_CALL(env, info, JsAgentHostProxy, OnSendData);
+    GET_NAPI_INFO_AND_CALL(env, info, JsAgentConnectorProxy, OnSendData);
 }
 
-napi_value JsAgentHostProxy::Authorize(napi_env env, napi_callback_info info)
+napi_value JsAgentConnectorProxy::Authorize(napi_env env, napi_callback_info info)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Authorize called from JS");
-    GET_NAPI_INFO_AND_CALL(env, info, JsAgentHostProxy, OnAuthorize);
+    GET_NAPI_INFO_AND_CALL(env, info, JsAgentConnectorProxy, OnAuthorize);
 }
 
-napi_value JsAgentHostProxy::OnSendData(napi_env env, NapiCallbackInfo &info)
+napi_value JsAgentConnectorProxy::OnSendData(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnSendData implementation");
 
-    if (hostProxy_ == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null hostProxy_");
+    if (connectorProxy_ == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null connectorProxy_");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
@@ -104,14 +104,14 @@ napi_value JsAgentHostProxy::OnSendData(napi_env env, NapiCallbackInfo &info)
         return CreateJsUndefined(env);
     }
 
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "Sending data to host, length: %{public}zu", data.length());
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "Sending data to connector, length: %{public}zu", data.length());
 
-    // Create IPC message to send to host
+    // Create IPC message to send to connector
     MessageParcel parcelData;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
 
-    if (!parcelData.WriteInterfaceToken(IAgentProxy::GetDescriptor())) {
+    if (!parcelData.WriteInterfaceToken(IAgentReceiverProxy::GetDescriptor())) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "write interface token failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
@@ -123,7 +123,7 @@ napi_value JsAgentHostProxy::OnSendData(napi_env env, NapiCallbackInfo &info)
         return CreateJsUndefined(env);
     }
 
-    auto error = hostProxy_->SendRequest(static_cast<uint32_t>(IAgentProxy::ON_SEND_DATA),
+    auto error = connectorProxy_->SendRequest(static_cast<uint32_t>(IAgentReceiverProxy::ON_SEND_DATA),
         parcelData, reply, option);
     if (error != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "SendRequest error %{public}d", error);
@@ -135,12 +135,12 @@ napi_value JsAgentHostProxy::OnSendData(napi_env env, NapiCallbackInfo &info)
     return CreateJsUndefined(env);
 }
 
-napi_value JsAgentHostProxy::OnAuthorize(napi_env env, NapiCallbackInfo &info)
+napi_value JsAgentConnectorProxy::OnAuthorize(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnAuthorize implementation");
 
-    if (hostProxy_ == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null hostProxy_");
+    if (connectorProxy_ == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null connectorProxy_");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
@@ -159,14 +159,14 @@ napi_value JsAgentHostProxy::OnAuthorize(napi_env env, NapiCallbackInfo &info)
         return CreateJsUndefined(env);
     }
 
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "Sending auth to host, length: %{public}zu", authData.length());
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "Sending auth to connector, length: %{public}zu", authData.length());
 
-    // Create IPC message to send to host
+    // Create IPC message to send to connector
     MessageParcel parcelData;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_ASYNC);
 
-    if (!parcelData.WriteInterfaceToken(IAgentProxy::GetDescriptor())) {
+    if (!parcelData.WriteInterfaceToken(IAgentReceiverProxy::GetDescriptor())) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "write interface token failed");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
@@ -178,7 +178,7 @@ napi_value JsAgentHostProxy::OnAuthorize(napi_env env, NapiCallbackInfo &info)
         return CreateJsUndefined(env);
     }
 
-    auto error = hostProxy_->SendRequest(static_cast<uint32_t>(IAgentProxy::ON_AUTHORIZE),
+    auto error = connectorProxy_->SendRequest(static_cast<uint32_t>(IAgentReceiverProxy::ON_AUTHORIZE),
         parcelData, reply, option);
     if (error != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "SendRequest error %{public}d", error);

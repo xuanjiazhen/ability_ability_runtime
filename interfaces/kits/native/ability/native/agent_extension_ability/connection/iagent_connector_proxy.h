@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_IAGENT_HOST_PROXY_H
-#define OHOS_AGENT_RUNTIME_IAGENT_HOST_PROXY_H
+#ifndef OHOS_AGENT_RUNTIME_IAGENT_CONNECTOR_PROXY_H
+#define OHOS_AGENT_RUNTIME_IAGENT_CONNECTOR_PROXY_H
 
 #include <iremote_broker.h>
 #include <iremote_object.h>
@@ -24,31 +24,32 @@ namespace OHOS {
 namespace AgentRuntime {
 
 /**
- * @interface IAgentHostProxy
+ * @interface IAgentConnectorProxy
  * Interface for calls FROM host application TO agent extension.
- * Corresponds to the JS AgenHostProxy object.
+ * Corresponds to the JS AgentConnectorProxy object.
+ * The host (connector) uses this to send data to the agent extension.
  */
-class IAgentHostProxy : public IRemoteBroker {
+class IAgentConnectorProxy : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.agentruntime.IAgentHostProxy");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.agentruntime.IAgentConnectorProxy");
 
     /**
      * Send data from host to agent extension.
      *
-     * @param agentProxy The proxy object for agent extension to call back.
+     * @param receiverProxy The proxy object for agent extension to call back.
      * @param data The string data to send to agent extension.
      * @return Returns 0 on success, error code otherwise.
      */
-    virtual int32_t SendData(const sptr<IRemoteObject> &agentProxy, const std::string &data) = 0;
+    virtual int32_t SendData(const sptr<IRemoteObject> &receiverProxy, const std::string &data) = 0;
 
     /**
      * Send authorization from host to agent extension.
      *
-     * @param agentProxy The proxy object for agent extension to call back.
+     * @param receiverProxy The proxy object for agent extension to call back.
      * @param data The authorization data to send to agent extension.
      * @return Returns 0 on success, error code otherwise.
      */
-    virtual int32_t Authorize(const sptr<IRemoteObject> &agentProxy, const std::string &data) = 0;
+    virtual int32_t Authorize(const sptr<IRemoteObject> &receiverProxy, const std::string &data) = 0;
 
     enum {
         /**
@@ -66,4 +67,4 @@ public:
 } // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_IAGENT_HOST_PROXY_H
+#endif // OHOS_AGENT_RUNTIME_IAGENT_CONNECTOR_PROXY_H

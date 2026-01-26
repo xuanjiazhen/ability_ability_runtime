@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "js_agent_proxy.h"
+#include "js_agent_receiver_proxy.h"
 
 #include "ability_business_error.h"
 #include "hilog_tag_wrapper.h"
@@ -26,12 +26,12 @@ using namespace AbilityRuntime;
 static constexpr int32_t INDEX_ZERO = 0;
 static constexpr int32_t ARGC_ONE = 1;
 
-napi_value JsAgentProxy::CreateJsAgentProxy(napi_env env,
+napi_value JsAgentReceiverProxy::CreateJsAgentReceiverProxy(napi_env env,
     const sptr<IRemoteObject> &impl,
     int64_t connectionId,
-    const sptr<IRemoteObject> &hostProxy)
+    const sptr<IRemoteObject> &connectorProxy)
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "CreateJsAgentProxy called, connectionId: %{public}lld", connectionId);
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "CreateJsAgentReceiverProxy called, connectionId: %{public}lld", connectionId);
     HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
@@ -40,57 +40,57 @@ napi_value JsAgentProxy::CreateJsAgentProxy(napi_env env,
         return CreateJsUndefined(env);
     }
 
-    std::unique_ptr<JsAgentProxy> proxy = std::make_unique<JsAgentProxy>(impl, hostProxy);
+    std::unique_ptr<JsAgentReceiverProxy> proxy = std::make_unique<JsAgentReceiverProxy>(impl, connectorProxy);
     proxy->SetConnectionId(connectionId);
     napi_wrap(env, object, proxy.release(), Finalizer, nullptr, nullptr);
 
-    const char *moduleName = "JsAgentProxy";
-    BindNativeFunction(env, object, "sendData", moduleName, JsAgentProxy::SendData);
-    BindNativeFunction(env, object, "authorize", moduleName, JsAgentProxy::Authorize);
+    const char *moduleName = "JsAgentReceiverProxy";
+    BindNativeFunction(env, object, "sendData", moduleName, JsAgentReceiverProxy::SendData);
+    BindNativeFunction(env, object, "authorize", moduleName, JsAgentReceiverProxy::Authorize);
     return handleEscape.Escape(object);
 }
 
-void JsAgentProxy::Finalizer(napi_env env, void *data, void *hint)
+void JsAgentReceiverProxy::Finalizer(napi_env env, void *data, void *hint)
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "Finalizer called");
-    std::unique_ptr<JsAgentProxy>(static_cast<JsAgentProxy*>(data));
+    std::unique_ptr<JsAgentReceiverProxy>(static_cast<JsAgentReceiverProxy*>(data));
 }
 
-JsAgentProxy::JsAgentProxy(const sptr<IRemoteObject> &impl, const sptr<IRemoteObject> &hostProxy)
+JsAgentReceiverProxy::JsAgentReceiverProxy(const sptr<IRemoteObject> &impl, const sptr<IRemoteObject> &connectorProxy)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Constructor called");
-    proxy_ = iface_cast<OHOS::AgentRuntime::IAgentHostProxy>(impl);
-    hostProxy_ = hostProxy;
+    proxy_ = iface_cast<OHOS::AgentRuntime::IAgentConnectorProxy>(impl);
+    connectorProxy_ = connectorProxy;
     if (proxy_ == nullptr) {
         TAG_LOGW(AAFwkTag::SER_ROUTER, "proxy_ is null");
     }
 }
 
-JsAgentProxy::~JsAgentProxy()
+JsAgentReceiverProxy::~JsAgentReceiverProxy()
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Destructor called");
     proxy_ = nullptr;
-    hostProxy_ = nullptr;
+    connectorProxy_ = nullptr;
 }
 
-napi_value JsAgentProxy::SendData(napi_env env, napi_callback_info info)
+napi_value JsAgentReceiverProxy::SendData(napi_env env, napi_callback_info info)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "SendData called from JS");
-    GET_NAPI_INFO_AND_CALL(env, info, JsAgentProxy, OnSendData);
+    GET_NAPI_INFO_AND_CALL(env, info, JsAgentReceiverProxy, OnSendData);
 }
 
-napi_value JsAgentProxy::Authorize(napi_env env, napi_callback_info info)
+napi_value JsAgentReceiverProxy::Authorize(napi_env env, napi_callback_info info)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Authorize called from JS");
-    GET_NAPI_INFO_AND_CALL(env, info, JsAgentProxy, OnAuthorize);
+    GET_NAPI_INFO_AND_CALL(env, info, JsAgentReceiverProxy, OnAuthorize);
 }
 
-napi_value JsAgentProxy::OnSendData(napi_env env, NapiCallbackInfo &info)
+napi_value JsAgentReceiverProxy::OnSendData(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnSendData implementation");
 
-    if (proxy_ == nullptr || hostProxy_ == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null proxy_ or hostProxy_");
+    if (proxy_ == nullptr || connectorProxy_ == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null proxy_ or connectorProxy_");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
@@ -111,7 +111,7 @@ napi_value JsAgentProxy::OnSendData(napi_env env, NapiCallbackInfo &info)
 
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Sending data, length: %{public}zu", data.length());
 
-    int32_t ret = proxy_->SendData(hostProxy_, data);
+    int32_t ret = proxy_->SendData(connectorProxy_, data);
     if (ret != static_cast<int32_t>(AbilityErrorCode::ERROR_OK)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "proxy_->SendData failed: %{public}d", ret);
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
@@ -120,12 +120,12 @@ napi_value JsAgentProxy::OnSendData(napi_env env, NapiCallbackInfo &info)
     return CreateJsUndefined(env);
 }
 
-napi_value JsAgentProxy::OnAuthorize(napi_env env, NapiCallbackInfo &info)
+napi_value JsAgentReceiverProxy::OnAuthorize(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "OnAuthorize implementation");
 
-    if (proxy_ == nullptr || hostProxy_ == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null proxy_ or hostProxy_");
+    if (proxy_ == nullptr || connectorProxy_ == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null proxy_ or connectorProxy_");
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
         return CreateJsUndefined(env);
     }
@@ -146,7 +146,7 @@ napi_value JsAgentProxy::OnAuthorize(napi_env env, NapiCallbackInfo &info)
 
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Sending auth, length: %{public}zu", authData.length());
 
-    int32_t ret = proxy_->Authorize(hostProxy_, authData);
+    int32_t ret = proxy_->Authorize(connectorProxy_, authData);
     if (ret != static_cast<int32_t>(AbilityErrorCode::ERROR_OK)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "proxy_->Authorize failed: %{public}d", ret);
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
