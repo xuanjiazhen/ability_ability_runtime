@@ -13,31 +13,31 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_RECEIVER_PROXY_PROXY_H
-#define OHOS_AGENT_RUNTIME_AGENT_RECEIVER_PROXY_PROXY_H
+#ifndef OHOS_AGENT_RUNTIME_AGENT_RECEIVER_PROXY_H
+#define OHOS_AGENT_RUNTIME_AGENT_RECEIVER_PROXY_H
 
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "iremote_proxy.h"
-#include "iagent_connector_proxy.h"
+#include "iagent_connector.h"
 
 namespace OHOS {
 namespace AgentRuntime {
 
 /**
- * @class AgentReceiverProxyProxy
+ * @class AgentReceiverProxy
  * Proxy class for making IPC calls to agent extension from host application.
- * Corresponds to the client end of IAgentConnectorProxy.
+ * Corresponds to the client end of IAgentConnector.
  */
-class AgentReceiverProxyProxy : public IRemoteProxy<IAgentConnectorProxy> {
+class AgentReceiverProxy : public IRemoteProxy<IAgentConnector> {
 public:
     /**
      * Constructor.
      *
      * @param impl The remote object implementation.
      */
-    explicit AgentReceiverProxyProxy(const sptr<IRemoteObject> &impl);
-    virtual ~AgentReceiverProxyProxy();
+    explicit AgentReceiverProxy(const sptr<IRemoteObject> &impl);
+    virtual ~AgentReceiverProxy();
 
     /**
      * Send data to agent extension.
@@ -58,10 +58,10 @@ public:
     virtual int32_t Authorize(const sptr<IRemoteObject> &receiverProxy, const std::string &data) override;
 
 private:
-    static inline BrokerDelegator<AgentReceiverProxyProxy> delegator_;
+    static inline BrokerDelegator<AgentReceiverProxy> delegator_;
 };
 
 } // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_RECEIVER_PROXY_PROXY_H
+#endif // OHOS_AGENT_RUNTIME_AGENT_RECEIVER_PROXY_H
