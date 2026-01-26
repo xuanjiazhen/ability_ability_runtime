@@ -442,7 +442,7 @@ public:
             *innerErrorCode = AbilityManagerClient::GetInstance()->GetInsightIntentInfoByIntentName(
                 filter.intentFlags_, filter.bundleName_, filter.moduleName_,
                 filter.intentName_, *intentInfo, filter.userId_);
-            if (intentInfo != nullptr && (!intentInfo->intentType.empty() || intentInfo->isConfig)) {
+            if (!intentInfo->intentType.empty() || intentInfo->isConfig) {
                 infos->push_back(*intentInfo);
             }
         } else if (filter.moduleName_.empty() && filter.intentName_.empty()) {

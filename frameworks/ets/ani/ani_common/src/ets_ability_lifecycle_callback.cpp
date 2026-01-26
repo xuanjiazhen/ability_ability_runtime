@@ -190,12 +190,6 @@ int32_t EtsAbilityLifecycleCallback::Register(ani_object callback)
         TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv");
         return ERROR_CODE_NULL_CALLBACK;
     }
-    int32_t callbackId = serialNumber_;
-    if (serialNumber_ < INT32_MAX) {
-        serialNumber_++;
-    } else {
-        serialNumber_ = 0;
-    }
     ani_ref ref = nullptr;
     ani_status status = ANI_ERROR;
     if ((status = aniEnv->GlobalReference_Create(callback, &ref)) != ANI_OK || ref == nullptr) {
@@ -203,6 +197,12 @@ int32_t EtsAbilityLifecycleCallback::Register(ani_object callback)
         return ERROR_CODE_NULL_REF;
     }
     std::lock_guard<std::mutex> lock(mutex_);
+    int32_t callbackId = serialNumber_;
+    if (serialNumber_ < INT32_MAX) {
+        serialNumber_++;
+    } else {
+        serialNumber_ = 0;
+    }
     callbacks_.emplace(callbackId, ref);
     return callbackId;
 }
