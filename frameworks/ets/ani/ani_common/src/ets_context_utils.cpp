@@ -220,6 +220,7 @@ void BindResourceManager(ani_env *aniEnv, ani_class contextClass, ani_object con
 {
     if (aniEnv == nullptr || context ==  nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or null context");
+        return;
     }
     ani_field resourceManagerField;
     if (ANI_OK != aniEnv->Class_FindField(contextClass, "resourceManager", &resourceManagerField)) {
@@ -240,6 +241,7 @@ void BindParentProperty(ani_env *aniEnv, ani_class contextClass, ani_object cont
 {
     if (aniEnv == nullptr || context ==  nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or null context");
+        return;
     }
     BindApplicationInfo(aniEnv, contextClass, contextObj, context);
     BindResourceManager(aniEnv, contextClass, contextObj, context);
