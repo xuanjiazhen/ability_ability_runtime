@@ -450,6 +450,7 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
     }
 #endif // SUPPORT_UPMS
     if (!isReady_) {
+        isPrelaunch_ = false;
         TAG_LOGD(AAFwkTag::ABILITYMGR, "To load ability.");
         lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
         LoadAbility(options.isShellCall, options.isStartupHide, options.callingPid,
@@ -457,7 +458,7 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         return;
     }
 
-    if (GetRequestCode() != DEFAULT_REQUEST_CODE &&
+    if (options.requestCode != DEFAULT_REQUEST_CODE &&
         ForegroundAppConnectionManager::IsForegroundAppConnection(GetAbilityInfo(), GetCallerRecord())) {
         ReportAbilityConnectionRelations();
     }
@@ -481,7 +482,12 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
     lifeCycleStateInfo_.sceneFlagBak = options.sceneFlag;
     ResSchedUtil::GetInstance().ReportEventToRSS(GetUid(), GetAbilityInfo().bundleName,
         "THAW_BY_FOREGROUND_ABILITY", GetPid(), GetCallerRecord() ? GetCallerRecord()->GetPid() : -1);
-    SendAppStartupTypeEvent(AppExecFwk::AppStartType::HOT);
+    if (isPrelaunch_) {
+        SendAppStartupTypeEvent(AppExecFwk::AppStartType::WARM, AppExecFwk::AppStartReason::PRE_LAUNCH);
+        isPrelaunch_ = false;
+    } else {
+        SendAppStartupTypeEvent(AppExecFwk::AppStartType::HOT);
+    }
     SetAbilityStateInner(AbilityState::FOREGROUNDING);
     DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token_);
 }
@@ -1190,8 +1196,9 @@ void AbilityRecord::Terminate(const Closure &task)
     SetAbilityStateInner(AbilityState::TERMINATING);
 #endif // SUPPORT_SCREEN
     lifecycleDeal_->Terminate(GetWant(), lifeCycleStateInfo_, GetSessionInfo());
-    if (GetCallerInfo() != nullptr && (GetRequestCode() != DEFAULT_REQUEST_CODE ||
-        UIExtensionWrapper::IsUIExtension(GetAbilityInfo().extensionAbilityType))) {
+
+    ReportAbilityConnectionForResultTerminate();
+    if (GetCallerInfo() != nullptr && UIExtensionWrapper::IsUIExtension(GetAbilityInfo().extensionAbilityType)) {
         DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(
             GetCallerInfo()->callerPid, GetPid(), GetAbilityRecordId());
     }
@@ -3129,7 +3136,8 @@ void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams)
     want_.SetParam(UIEXTENSION_HOST_BUNDLENAME, wantParams.GetStringParam(UIEXTENSION_HOST_BUNDLENAME));
 }
 
-void AbilityRecord::SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType)
+void AbilityRecord::SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType,
+    const AppExecFwk::AppStartReason startReason)
 {
     AAFwk::EventInfo eventInfo;
     auto abilityInfo = GetAbilityInfo();
@@ -3140,6 +3148,7 @@ void AbilityRecord::SendAppStartupTypeEvent(const AppExecFwk::AppStartType start
     eventInfo.versionCode = applicationInfo.versionCode;
     eventInfo.pid = static_cast<int32_t>(GetPid());
     eventInfo.startType = static_cast<int32_t>(startType);
+    eventInfo.startReason = static_cast<int32_t>(startReason);
     AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_STARTUP_TYPE, HiSysEventType::BEHAVIOR, eventInfo);
 }
 
@@ -3201,6 +3210,43 @@ bool AbilityRecord::ReportAbilityConnectionRelations()
     DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityAddPidConnection(info,
         GetAbilityRecordId());
     return true;
+}
+
+void AbilityRecord::ReportAbilityConnectionForResultTerminate()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call IsForResultTerminate");
+    std::vector<int32_t> notifyCallerPids;
+    int32_t curPid = GetPid();
+    int32_t curRecordId = GetAbilityRecordId();
+    {
+        std::lock_guard guard(callerListLock_);
+        for (auto caller : callerList_) {
+            if (caller == nullptr) {
+                continue;
+            }
+            auto requestCodeSet = caller->GetRequestCodeSet();
+            bool isForResultTerminate = false;
+            for (auto requestCode : requestCodeSet) {
+                if (requestCode != DEFAULT_REQUEST_CODE) {
+                    isForResultTerminate = true;
+                    break;
+                }
+            }
+            if (isForResultTerminate) {
+                auto callerInfo = caller->GetCallerInfo();
+                if (callerInfo == nullptr) {
+                    TAG_LOGE(AAFwkTag::ABILITYMGR, "callerInfo is null");
+                    continue;
+                }
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "found forResult callerPid %{public}d", callerInfo->callerPid);
+                notifyCallerPids.emplace_back(callerInfo->callerPid);
+            }
+        }
+    }
+    for (auto pid : notifyCallerPids) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(pid,
+            curPid, curRecordId);
+    }
 }
 
 void AbilityRecord::SetPromotePriority(bool promotePriority)
