@@ -35,7 +35,12 @@ enum class ProcessStartFailedReason {
     GET_SPAWN_CLIENT_FAILED = 3,
     GENERATE_RENDER_UID_FAILED = 4,
     CHECK_CHILD_FDS_FAILED = 5,
+    ATTACH_TIMEOUT = 6,
 };
+
+// Sub-reason codes for ATTACH_TIMEOUT
+constexpr int32_t ATTACH_TIMEOUT_SUB_REASON_TIMEOUT = 0;           // Attach timeout
+constexpr int32_t ATTACH_TIMEOUT_SUB_REASON_ATTACH_AFTER_TIMEOUT = 1; // Attached after timeout
 
 class AppMgrEventSubscriber : public EventFwk::CommonEventSubscriber {
 public:
