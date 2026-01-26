@@ -1362,6 +1362,11 @@ enum NativeFreeInstallError {
      */
     ERR_INVALID_PID = 29360226,
 
+    /*
+     * Result (29360227) Attach timeout.
+     */
+    ERR_APPEXECFWK_ATTACH_TIMEOUT = 29360227,
+
     /**
      * Undefine error code.
      */
