@@ -23,15 +23,16 @@ namespace AgentRuntime {
 AgentUIExtensionModuleLoader::AgentUIExtensionModuleLoader() = default;
 AgentUIExtensionModuleLoader::~AgentUIExtensionModuleLoader() = default;
 
-Extension *AgentUIExtensionModuleLoader::Create(const std::unique_ptr<Runtime> &runtime) const
+AbilityRuntime::Extension *AgentUIExtensionModuleLoader::Create(
+    const std::unique_ptr<AbilityRuntime::Runtime> &runtime) const
 {
-    TAG_LOGD(AAFwkTag::ACTION_EXT, "called");
-    return AgentUIExtension::Create(runtime);
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "called");
+return AgentUIExtension::Create(runtime);
 }
 
 std::map<std::string, std::string> AgentUIExtensionModuleLoader::GetParams()
 {
-    TAG_LOGD(AAFwkTag::ACTION_EXT, "called");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "called");
     std::map<std::string, std::string> params;
     // type means extension type in ExtensionAbilityType of extension_ability_info.h, need to confirm the actual type value for agent ui extension
     params.insert(std::pair<std::string, std::string>("type", "37"));

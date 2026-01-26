@@ -13,28 +13,27 @@
  * limitations under the License.
  */
 
-#include "js_agent_ui_extension.h"
+#include "agent_ui_extension.h"
 
 #include "hilog_tag_wrapper.h"
-#include "hitrace_meter.h"
-#include "js_ui_extension_base.h"
+#include "js_agent_ui_extension.h"
+#include "runtime.h"
+#include "ui_extension_context.h"
 
 namespace OHOS {
 namespace AgentRuntime {
-JsAgentUIExtension *JsAgentUIExtension::Create(const std::unique_ptr<Runtime> &runtime)
+AgentUIExtension *AgentUIExtension::Create(const std::unique_ptr<AbilityRuntime::Runtime> &runtime)
 {
-    return new JsAgentUIExtension(runtime);
-}
-
-JsAgentUIExtension::JsAgentUIExtension(const std::unique_ptr<Runtime> &runtime)
-{
-    std::shared_ptr<UIExtensionBaseImpl> uiExtensionBaseImpl = std::make_shared<JsUIExtensionBase>(runtime);
-    SetUIExtensionBaseImpl(uiExtensionBaseImpl);
-}
-
-JsAgentUIExtension::~JsAgentUIExtension()
-{
-    TAG_LOGD(AAFwkTag::ACTION_EXT, "destructor");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "called");
+    if (!runtime) {
+        return new AgentUIExtension();
+    }
+    switch (runtime->GetLanguage()) {
+        case AbilityRuntime::Runtime::Language::JS:
+            return JsAgentUIExtension::Create(runtime);
+        default:
+            return new AgentUIExtension();
+    }
 }
 } // namespace AgentRuntime
 } // namespace OHOS

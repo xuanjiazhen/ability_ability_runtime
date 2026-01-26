@@ -29,27 +29,27 @@ gen_js_obj("agent_ui_extension_ability_js") {
 
 gen_js_obj("agent_ui_extension_ability_abc") {
   input = get_label_info(":gen_agent_ui_extension_ability_abc",
-                         "target_out_dir") + "/agent_ui_extension_ability.abc"
+                          "target_out_dir") + "/agent_ui_extension_ability.abc"
   output = target_out_dir + "/agent_ui_extension_ability_abc.o"
   dep = ":gen_agent_ui_extension_ability_abc"
 }
 
 ohos_shared_library("agentuiextensionability") {
   sanitize = {
-    integer_overflow = true
-    ubsan = true
-    boundary_sanitize = true
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
+      integer_overflow = true
+      ubsan = true
+      boundary_sanitize = true
+      cfi = true
+      cfi_cross_dso = true
+      cfi_vcall_icall_only = true
+      debug = false
   }
   branch_protector_ret = "pac_ret"
-  sources = [ "agent_ui_extension_ability_module.cpp" ]
+  sources = [ "agent_ui_extension_module.cpp" ]
 
   deps = [
-    ":agent_ui_extension_ability_abc",
-    ":agent_ui_extension_ability_js",
+      ":agent_ui_extension_ability_abc",
+      ":agent_ui_extension_ability_js",
   ]
 
   external_deps = [ "napi:ace_napi" ]
