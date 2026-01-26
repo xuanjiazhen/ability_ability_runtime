@@ -912,7 +912,7 @@ ani_long EtsServiceExtensionContext::OnConnectServiceExtensionAbility(ani_env *e
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null context");
         RemoveConnection(connectId);
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-        return connectId;
+        return FAILED_CODE;
     }
     auto innerErrCode = context->ConnectAbility(want, connection);
     int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
@@ -952,7 +952,7 @@ ani_long EtsServiceExtensionContext::OnConnectServiceExtensionAbilityWithAccount
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "null context");
         RemoveConnection(connectId);
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-        return connectId;
+        return FAILED_CODE;
     }
     auto innerErrCode = context->ConnectAbilityWithAccount(want, accountId, connection);
     int32_t errcode = static_cast<int32_t>(GetJsErrorCodeByNativeError(innerErrCode));
