@@ -15,7 +15,7 @@
 
 #include "js_agent_manager.h"
 
-#include "agent_extension_servicehost_stub_impl.h"
+#include "agent_connector_stub_impl.h"
 #include "hilog_tag_wrapper.h"
 #include "js_agent_extension_connection.h"
 #include "js_agent_manager_utils.h"
