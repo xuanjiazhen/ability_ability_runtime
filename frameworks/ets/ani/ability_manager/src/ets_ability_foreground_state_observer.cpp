@@ -103,11 +103,13 @@ void ETSAbilityForegroundStateObserver::HandleOnAbilityStateChanged(const Abilit
         AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
-    std::lock_guard<std::mutex> lock(mutexlock_);
-    for (auto &item : etsObserverObjects_) {
-        if (item != nullptr) {
-            CallEtsFunction(env, reinterpret_cast<ani_object>(item),
-                "onAbilityStateChanged", SIGNATURE_ABILITY_STATE_DATA, abilityStateDataObj);
+    {
+        std::lock_guard<std::mutex> lock(mutexlock_);
+        for (auto &item : etsObserverObjects_) {
+            if (item != nullptr) {
+                CallEtsFunction(env, reinterpret_cast<ani_object>(item),
+                    "onAbilityStateChanged", SIGNATURE_ABILITY_STATE_DATA, abilityStateDataObj);
+            }
         }
     }
     AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
