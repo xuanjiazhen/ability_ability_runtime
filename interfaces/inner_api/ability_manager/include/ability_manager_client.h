@@ -983,10 +983,12 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
-     * @param isSilent, whether show window when start fail.
+     * @param isSilent, whether show window when start fail by interceptorExecuter.
+     * @param isSilentAfterCheck, whether show window when start fail by afterCheckExecuter.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect, bool isSilent = false);
+    ErrCode StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect, bool isSilent = false,
+        bool isSilentAfterCheck = false);
 
     /**
      * Start Ability, connect session with common ability.
@@ -995,13 +997,15 @@ public:
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
      * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
-     * @param isSilent, whether show window when start fail.
+     * @param isSilent, whether show window when start fail by interceptorExecuter.
      * @param promotePriority, whether to promote priority for sa.
+     * @param isSilentAfterCheck, whether show window when start fail by afterCheckExecuter.
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false,
-        bool promotePriority = false);
+        bool promotePriority = false, bool isSilentAfterCheck = false);
+
 
     /**
      * Start Ability, connect session with common ability.
@@ -1011,13 +1015,14 @@ public:
      * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
      * @param errMsg Out parameter, indicates the failed reason.
-     * @param isSilent, whether show window when start fail.
+     * @param isSilent, whether show window when start fail by interceptorExecuter.
      * @param promotePriority, whether to promote priority for sa.
+     * @param isSilentAfterCheck, whether show window when start fail by afterCheckExecuter.
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t StartAbilityByCallWithErrMsg(const Want &want, sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent = false,
-        bool promotePriority = false);
+        bool promotePriority = false, bool isSilentAfterCheck = false);
 
     /**
      * Start Ability for prelaunch
