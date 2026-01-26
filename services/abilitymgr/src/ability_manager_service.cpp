@@ -9439,6 +9439,7 @@ int AbilityManagerService::StartAbilityByCallWithErrMsg(const Want &want, const 
     result = CheckStartByCallPermission(abilityRequest);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "checkStartByCallPermission fail, result:%{public}d", result);
+        errMsg = "CheckStartByCallPermission failed";
         return result;
     }
 
@@ -12218,9 +12219,10 @@ int AbilityManagerService::CheckCallAbilityPermission(const AbilityRequest &abil
 int AbilityManagerService::CheckStartByCallPermission(const AbilityRequest &abilityRequest)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
-    // check whether the target ability is page type and not specified mode.
+    // check whether the target ability is page type, not specified mode, not plugin.
     if (abilityRequest.abilityInfo.type != AppExecFwk::AbilityType::PAGE ||
-        abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
+        abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED ||
+        AbilityRuntime::StartupUtil::IsStartPlugin(abilityRequest.want)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "called ability not common ability");
         return RESOLVE_CALL_ABILITY_TYPE_ERR;
     }
