@@ -59,7 +59,7 @@ void JsAgentProxy::Finalizer(napi_env env, void *data, void *hint)
 JsAgentProxy::JsAgentProxy(const sptr<IRemoteObject> &impl, const sptr<IRemoteObject> &hostProxy)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Constructor called");
-    proxy_ = iface_cast<OHOS::AAFwk::IAgentExtension>(impl);
+    proxy_ = iface_cast<OHOS::AgentRuntime::IAgentHostProxy>(impl);
     hostProxy_ = hostProxy;
     if (proxy_ == nullptr) {
         TAG_LOGW(AAFwkTag::SER_ROUTER, "proxy_ is null");

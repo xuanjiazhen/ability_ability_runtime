@@ -62,7 +62,7 @@ void FindAgentExtensionConnection(napi_env env, AAFwk::Want &want, napi_value ca
     sptr<JSAgentExtensionConnection> &connection);
 }
 
-class AgentExtensionServiceHostStubImpl;
+class AgentHostProxyStubImpl;
 
 /**
  * @class JSAgentExtensionConnection
@@ -112,7 +112,7 @@ public:
      *
      * @return Returns the service host stub.
      */
-    sptr<AgentExtensionServiceHostStubImpl> GetServiceHostStub() { return serviceHostStub_; }
+    sptr<AgentHostProxyStubImpl> GetServiceHostStub() { return serviceHostStub_; }
 
     /**
      * Set the proxy object returned to JavaScript.
@@ -213,7 +213,7 @@ private:
     /**
      * The service host stub for handling incoming IPC from agent extension.
      */
-    sptr<AgentExtensionServiceHostStubImpl> serviceHostStub_;
+    sptr<AgentHostProxyStubImpl> serviceHostStub_;
 
     /**
      * The async task for the connection promise.

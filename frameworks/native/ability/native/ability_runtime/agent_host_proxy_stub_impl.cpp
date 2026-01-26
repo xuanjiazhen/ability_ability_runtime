@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "agent_extension_servicehost_stub_impl.h"
+#include "agent_host_proxy_stub_impl.h"
 
 #include "ability_business_error.h"
 #include "js_agent_extension_connection.h"
@@ -21,12 +21,13 @@
 
 namespace OHOS {
 namespace AgentRuntime {
-AgentExtensionServiceHostStubImpl::AgentExtensionServiceHostStubImpl(wptr<JSAgentExtensionConnection> conn)
+
+AgentHostProxyStubImpl::AgentHostProxyStubImpl(wptr<JSAgentExtensionConnection> conn)
     : conn_(conn)
 {
 }
 
-int32_t AgentExtensionServiceHostStubImpl::SendData(const std::string &data)
+int32_t AgentHostProxyStubImpl::OnSendData(const std::string &data)
 {
     sptr<JSAgentExtensionConnection> conn = conn_.promote();
     if (conn != nullptr) {
@@ -36,7 +37,7 @@ int32_t AgentExtensionServiceHostStubImpl::SendData(const std::string &data)
     return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
 }
 
-int32_t AgentExtensionServiceHostStubImpl::Authorize(const std::string &data)
+int32_t AgentHostProxyStubImpl::OnAuthorize(const std::string &data)
 {
     sptr<JSAgentExtensionConnection> conn = conn_.promote();
     if (conn != nullptr) {
@@ -45,5 +46,6 @@ int32_t AgentExtensionServiceHostStubImpl::Authorize(const std::string &data)
 
     return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
 }
+
 } // namespace AgentRuntime
 } // namespace OHOS

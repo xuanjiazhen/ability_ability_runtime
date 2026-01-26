@@ -18,7 +18,7 @@
 
 #include <memory>
 
-#include "agent_extension_proxy.h"
+#include "agent_proxy_proxy.h"
 #include "js_runtime_utils.h"
 
 namespace OHOS {
@@ -123,7 +123,7 @@ protected:
     /**
      * The native proxy for IPC communication with agent extension.
      */
-    sptr<OHOS::AAFwk::IAgentExtension> proxy_ = nullptr;
+    sptr<OHOS::AgentRuntime::IAgentHostProxy> proxy_ = nullptr;
 
     /**
      * The connection ID for this proxy.

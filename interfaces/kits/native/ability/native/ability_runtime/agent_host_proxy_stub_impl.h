@@ -13,32 +13,32 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_EXTENSION_SERVICEHOST_STUB_IMPL_H
-#define OHOS_AGENT_RUNTIME_AGENT_EXTENSION_SERVICEHOST_STUB_IMPL_H
+#ifndef OHOS_AGENT_RUNTIME_AGENT_HOST_PROXY_STUB_IMPL_H
+#define OHOS_AGENT_RUNTIME_AGENT_HOST_PROXY_STUB_IMPL_H
 
 #include <string>
-#include "agent_extension_host_stub.h"
+#include "agent_host_proxy_stub.h"
 
 namespace OHOS {
-namespace AbilityRuntime {
+namespace AgentRuntime {
 
 // Forward declaration
 class JSAgentExtensionConnection;
 
 /**
- * @class AgentExtensionServiceHostStubImpl
- * Implementation of AgentExtensionHostStub that forwards IPC calls to JSAgentExtensionConnection.
+ * @class AgentHostProxyStubImpl
+ * Implementation of AgentHostProxyStub that forwards IPC calls to JSAgentExtensionConnection.
  * Maintains a weak pointer to the connection to avoid circular references.
  */
-class AgentExtensionServiceHostStubImpl : public AgentExtensionHostStub {
+class AgentHostProxyStubImpl : public AgentHostProxyStub {
 public:
     /**
      * Constructor.
      *
      * @param conn Weak pointer to the JSAgentExtensionConnection.
      */
-    explicit AgentExtensionServiceHostStubImpl(wptr<JSAgentExtensionConnection> conn);
-    ~AgentExtensionServiceHostStubImpl() = default;
+    explicit AgentHostProxyStubImpl(wptr<JSAgentExtensionConnection> conn);
+    ~AgentHostProxyStubImpl() = default;
 
     /**
      * Handle SendData request from agent extension.
@@ -47,7 +47,7 @@ public:
      * @param data The string data received from agent extension.
      * @return Returns 0 on success, error code otherwise.
      */
-    int32_t SendData(const std::string &data) override;
+    int32_t OnSendData(const std::string &data) override;
 
     /**
      * Handle Authorize request from agent extension.
@@ -56,7 +56,7 @@ public:
      * @param data The authorization string received from agent extension.
      * @return Returns 0 on success, error code otherwise.
      */
-    int32_t Authorize(const std::string &data) override;
+    int32_t OnAuthorize(const std::string &data) override;
 
 protected:
     /**
@@ -69,4 +69,4 @@ protected:
 } // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_EXTENSION_SERVICEHOST_STUB_IMPL_H
+#endif // OHOS_AGENT_RUNTIME_AGENT_HOST_PROXY_STUB_IMPL_H

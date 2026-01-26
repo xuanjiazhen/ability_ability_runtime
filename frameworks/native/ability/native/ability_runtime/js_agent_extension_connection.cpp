@@ -15,7 +15,7 @@
 
 #include <mutex>
 
-#include "agent_extension_servicehost_stub_impl.h"
+#include "agent_host_proxy_stub_impl.h"
 #include "hilog_tag_wrapper.h"
 #include "js_agent_extension_connection.h"
 #include "js_agent_proxy.h"
@@ -127,7 +127,7 @@ JSAgentExtensionConnection::JSAgentExtensionConnection(napi_env env) : JSAbility
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "JSAgentExtensionConnection constructor");
     wptr<JSAgentExtensionConnection> weakthis = this;
-    serviceHostStub_ = sptr<AgentExtensionServiceHostStubImpl>::MakeSptr(weakthis);
+    serviceHostStub_ = sptr<AgentHostProxyStubImpl>::MakeSptr(weakthis);
 }
 
 JSAgentExtensionConnection::~JSAgentExtensionConnection()
@@ -144,7 +144,7 @@ void JSAgentExtensionConnection::HandleOnAbilityConnectDone(
     TAG_LOGI(AAFwkTag::SER_ROUTER, "HandleOnAbilityConnectDone, resultCode: %{public}d", resultCode);
     if (napiAsyncTask_ != nullptr) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentProxy");
-        sptr<AgentExtensionServiceHostStubImpl> hostStub = GetServiceHostStub();
+        sptr<AgentHostProxyStubImpl> hostStub = GetServiceHostStub();
         sptr<IRemoteObject> hostProxy = nullptr;
         if (hostStub != nullptr) {
             hostProxy = hostStub->AsObject();

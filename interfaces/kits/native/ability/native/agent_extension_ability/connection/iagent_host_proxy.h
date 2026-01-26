@@ -13,42 +13,42 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_EXTENSION_INTERFACE_H
-#define OHOS_AGENT_RUNTIME_AGENT_EXTENSION_INTERFACE_H
+#ifndef OHOS_AGENT_RUNTIME_IAGENT_HOST_PROXY_H
+#define OHOS_AGENT_RUNTIME_IAGENT_HOST_PROXY_H
 
 #include <iremote_broker.h>
 #include <iremote_object.h>
 #include <string>
 
 namespace OHOS {
-namespace AAFwk {
+namespace AgentRuntime {
 
 /**
- * @interface IAgentExtension
+ * @interface IAgentHostProxy
  * Interface for calls FROM host application TO agent extension.
- * Used when the host sends data or authentication to the agent extension.
+ * Corresponds to the JS AgenHostProxy object.
  */
-class IAgentExtension : public IRemoteBroker {
+class IAgentHostProxy : public IRemoteBroker {
 public:
-    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.aafwk.IAgentExtension");
+    DECLARE_INTERFACE_DESCRIPTOR(u"ohos.agentruntime.IAgentHostProxy");
 
     /**
      * Send data from host to agent extension.
      *
-     * @param hostProxy The proxy object for agent extension to call back.
+     * @param agentProxy The proxy object for agent extension to call back.
      * @param data The string data to send to agent extension.
      * @return Returns 0 on success, error code otherwise.
      */
-    virtual int32_t SendData(const sptr<IRemoteObject> &hostProxy, const std::string &data) = 0;
+    virtual int32_t SendData(const sptr<IRemoteObject> &agentProxy, const std::string &data) = 0;
 
     /**
      * Send authorization from host to agent extension.
      *
-     * @param hostProxy The proxy object for agent extension to call back.
+     * @param agentProxy The proxy object for agent extension to call back.
      * @param data The authorization data to send to agent extension.
      * @return Returns 0 on success, error code otherwise.
      */
-    virtual int32_t Authorize(const sptr<IRemoteObject> &hostProxy, const std::string &data) = 0;
+    virtual int32_t Authorize(const sptr<IRemoteObject> &agentProxy, const std::string &data) = 0;
 
     enum {
         /**
@@ -63,7 +63,7 @@ public:
     };
 };
 
-} // namespace AAFwk
+} // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_EXTENSION_INTERFACE_H
+#endif // OHOS_AGENT_RUNTIME_IAGENT_HOST_PROXY_H

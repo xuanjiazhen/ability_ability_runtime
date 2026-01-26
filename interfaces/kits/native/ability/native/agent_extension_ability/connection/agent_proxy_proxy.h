@@ -13,55 +13,55 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_EXTENSION_PROXY_H
-#define OHOS_AGENT_RUNTIME_AGENT_EXTENSION_PROXY_H
+#ifndef OHOS_AGENT_RUNTIME_AGENT_PROXY_PROXY_H
+#define OHOS_AGENT_RUNTIME_AGENT_PROXY_PROXY_H
 
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "iremote_proxy.h"
-#include "agent_extension_interface.h"
+#include "iagent_host_proxy.h"
 
 namespace OHOS {
-namespace AAFwk {
+namespace AgentRuntime {
 
 /**
- * @class AgentExtensionProxy
+ * @class AgentProxyProxy
  * Proxy class for making IPC calls to agent extension from host application.
- * Wraps the remote object and provides methods to send data and authorization.
+ * Corresponds to the client end of IAgentHostProxy.
  */
-class AgentExtensionProxy : public IRemoteProxy<IAgentExtension> {
+class AgentProxyProxy : public IRemoteProxy<IAgentHostProxy> {
 public:
     /**
      * Constructor.
      *
      * @param impl The remote object implementation.
      */
-    explicit AgentExtensionProxy(const sptr<IRemoteObject> &impl);
-    virtual ~AgentExtensionProxy();
+    explicit AgentProxyProxy(const sptr<IRemoteObject> &impl);
+    virtual ~AgentProxyProxy();
 
     /**
      * Send data to agent extension.
      *
-     * @param hostProxy The proxy object for agent extension to call back.
+     * @param agentProxy The proxy object for agent extension to call back.
      * @param data The string data to send.
      * @return Returns 0 on success, error code otherwise.
      */
-    virtual int32_t SendData(const sptr<IRemoteObject> &hostProxy, const std::string &data) override;
+    virtual int32_t SendData(const sptr<IRemoteObject> &agentProxy, const std::string &data) override;
 
     /**
      * Send authorization to agent extension.
      *
-     * @param hostProxy The proxy object for agent extension to call back.
+     * @param agentProxy The proxy object for agent extension to call back.
      * @param data The authorization string to send.
      * @return Returns 0 on success, error code otherwise.
      */
-    virtual int32_t Authorize(const sptr<IRemoteObject> &hostProxy, const std::string &data) override;
+    virtual int32_t Authorize(const sptr<IRemoteObject> &agentProxy, const std::string &data) override;
 
 private:
-    static inline BrokerDelegator<AgentExtensionProxy> delegator_;
+    static inline BrokerDelegator<AgentProxyProxy> delegator_;
 };
 
-} // namespace AAFwk
+} // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_EXTENSION_PROXY_H
+#endif // OHOS_AGENT_RUNTIME_AGENT_PROXY_PROXY_H

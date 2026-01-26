@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_STUB_H
-#define OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_STUB_H
+#ifndef OHOS_AGENT_RUNTIME_AGENT_HOST_PROXY_STUB_H
+#define OHOS_AGENT_RUNTIME_AGENT_HOST_PROXY_STUB_H
 
 #include <map>
 
@@ -28,14 +28,15 @@ namespace OHOS {
 namespace AgentRuntime {
 
 /**
- * @class AgentExtensionHostStub
- * Base stub class for agent extension host IPC.
+ * @class AgentHostProxyStub
+ * Base stub class for agent host proxy IPC.
+ * Corresponds to the server end of IAgentProxy.
  * Handles incoming IPC calls from agent extension to host application.
  */
-class AgentExtensionHostStub : public IRemoteStub<IAgentProxy> {
+class AgentHostProxyStub : public IRemoteStub<IAgentProxy> {
 public:
-    AgentExtensionHostStub();
-    virtual ~AgentExtensionHostStub();
+    AgentHostProxyStub();
+    virtual ~AgentHostProxyStub();
 
     /**
      * Handle incoming remote request.
@@ -68,11 +69,11 @@ public:
     int32_t OnAuthorize(MessageParcel &data, MessageParcel &reply);
 
 protected:
-    using RequestFuncType = int32_t (AgentExtensionHostStub::*)(MessageParcel& data, MessageParcel& reply);
+    using RequestFuncType = int32_t (AgentHostProxyStub::*)(MessageParcel& data, MessageParcel& reply);
     std::map<uint32_t, RequestFuncType> requestFuncMap_;
 };
 
 } // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_EXTENSION_HOST_STUB_H
+#endif // OHOS_AGENT_RUNTIME_AGENT_HOST_PROXY_STUB_H
