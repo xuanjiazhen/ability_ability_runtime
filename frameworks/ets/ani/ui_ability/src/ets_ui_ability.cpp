@@ -677,6 +677,10 @@ void EtsUIAbility::OnSceneCreated()
         return;
     }
     etsWindowStageObj_ = std::make_shared<AppExecFwk::ETSNativeReference>();
+    if (etsWindowStageObj_ = nullptr) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "create etsWindowStageObj_ failed");
+        return;
+    }
     etsWindowStageObj_->aniObj = etsAppWindowStage;
     ani_ref entryObjectRef = nullptr;
     env->GlobalReference_Create(etsAppWindowStage, &entryObjectRef);
