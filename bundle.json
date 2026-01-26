@@ -1,839 +1,901 @@
-{
-  "name": "@ohos/ability_runtime",
-  "description": "Ability管理服务统一调度和管理应用中各Ability和应用管理服务, 用于管理应用运行关系、调度应用进程生命周期及状态",
-  "version": "3.1",
-  "license": "Apache License 2.0",
-  "publishAs": "code-segment",
-  "segment": {
-      "destPath": "foundation/ability/ability_runtime"
-  },
-  "dirs": {},
-  "scripts": {},
-  "component": {
-      "name": "ability_runtime",
-      "subsystem": "ability",
-      "syscap": [
-        "SystemCapability.Ability.AbilityRuntime.Core",
-        "SystemCapability.Ability.AbilityRuntime.FAModel",
-        "SystemCapability.Ability.AbilityRuntime.AbilityCore",
-        "SystemCapability.Ability.AbilityRuntime.Mission",
-        "SystemCapability.Ability.AbilityRuntime.QuickFix",
-        "SystemCapability.Ability.AbilityTools.AbilityAssistant",
-        "SystemCapability.Ability.AppStartup",
-        "SystemCapability.Ability.AppExtension.PhotoEditorExtension",
-        "SystemCapability.Ability.AppExtension.VerticalPanel"
-      ],
-      "features": [
-        "ability_runtime_auto_fill_ability",
-        "ability_runtime_graphics",
-        "ability_runtime_power",
-        "ability_runtime_app_no_response_dialog",
-        "ability_runtime_app_no_response_dialog_wearable",
-        "ability_runtime_app_no_response_bundlename",
-        "ability_runtime_start_window_options_with_pixelmap",
-        "ability_runtime_check_internet_permission",
-        "ability_runtime_no_screen",
-        "ability_runtime_forbid_start_enabled"
-      ],
-      "adapted_system_type": [
-          "standard"
-      ],
-      "rom": "",
-      "ram": "",
-      "hisysevent_config":[
-        "//foundation/ability/ability_runtime/hisysevent.yaml"
-      ],
-      "deps": {
-        "components": [
-            "ability_base",
-            "accessibility",
-            "access_token",
-            "ace_engine",
-            "app_domain_verify",
-            "app_file_service",
-            "appspawn",
-            "background_task_mgr",
-            "bounds_checking_function",
-            "bundle_framework",
-            "common_event_service",
-            "config_policy",
-            "c_utils",
-            "cJSON",
-            "data_share",
-            "dlp_permission_service",
-            "dsoftbus",
-            "eventhandler",
-            "ets_frontend",
-            "ets_runtime",
-            "ets_utils",
-            "faultloggerd",
-            "ffrt",
-            "form_fwk",
-            "graphic_2d",
-            "hiappevent",
-            "hichecker",
-            "hicollie",
-            "hilog",
-            "hisysevent",
-            "hitrace",
-            "hiview",
-            "i18n",
-            "icu",
-            "idl_tool",
-            "image_framework",
-            "init",
-            "input",
-            "ipc",
-            "json",
-            "kv_store",
-            "libuv",
-            "libxml2",
-            "media_library",
-            "memmgr",
-            "memory_utils",
-            "napi",
-            "netmanager_base",
-            "node",
-            "os_account",
-            "power_manager",
-            "preferences",
-            "previewer",
-            "qos_manager",
-            "relational_store",
-            "resource_management",
-            "resource_schedule_service",
-            "runtime_core",
-            "safwk",
-            "samgr",
-            "sandbox_manager",
-            "screenlock_mgr",
-            "selinux_adapter",
-            "storage_service",
-            "toolchain",
-            "udmf",
-            "webview",
-            "window_manager",
-            "zlib",
-            "hiperf"
-  ],
-          "third_party": [
-            "libjpeg-turbo"
-          ]
-      },
-      "build": {
-        "sub_component": [
-          "//foundation/ability/ability_runtime/agent_runtime_framework/interfaces/inner_api:agent_fwk",
-          "//foundation/ability/ability_runtime/agent_runtime_framework/services/agentmgr:agentmgr",
-          "//foundation/ability/ability_runtime/services:ams_target",
-          "//foundation/ability/ability_runtime/services/sa_profile:ams_sa_profile",
-          "//foundation/ability/ability_runtime/services/quickfixmgr:quick_fix.cfg",
-          "//foundation/ability/ability_runtime/tools:tools_target",
-          "//foundation/ability/ability_runtime/interfaces/inner_api:innerkits_target",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:ability_thread",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:app_service_extension_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:auto_fill_extension_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:extension_module",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:insight_intent_executor_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:photo_editor_extension_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:service_extension_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_ability_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_service_extension_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/appkit:ability_stage_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/appkit:test_runner_ani",
-          "//foundation/ability/ability_runtime/frameworks/native/child_process:child_process",
-          "//foundation/ability/ability_runtime/frameworks/native/insight_intent:insight_intent_innerkits",
-          "//foundation/ability/ability_runtime/frameworks/c/ability_runtime:ability_runtime",
-          "//foundation/ability/ability_runtime/frameworks/cj:cj_ability_packages",
-          "//foundation/ability/ability_runtime/frameworks/ets/ani:ani_packages",
-          "//foundation/ability/ability_runtime/frameworks/js/napi:napi_packages",
-          "//foundation/ability/ability_runtime/frameworks/ets/ets:ets_packages",
-          "//foundation/ability/ability_runtime/cj_environment/frameworks/cj_environment:cj_environment",
-          "//foundation/ability/ability_runtime/ets_environment/frameworks/ets_environment:ets_environment",
-          "//foundation/ability/ability_runtime/js_environment/frameworks/js_environment:js_environment",
-          "//foundation/ability/ability_runtime/services/abilitymgr/etc:appfwk_etc",
-          "//foundation/ability/ability_runtime/services/dialog_ui/ams_system_dialog:dialog_hap",
-          "//foundation/ability/ability_runtime/service_router_framework:srms_target",
-          "//foundation/ability/ability_runtime/service_router_framework:jsapi_target"
-        ],
-        "inner_api": [
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/deps_wrapper/include",
-              "header_files": [
-                "os_account_manager_wrapper.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/deps_wrapper:ability_deps_wrapper"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/error_utils/include",
-              "header_files": [
-                "ability_runtime_error_util.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/error_utils:ability_runtime_error_util"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/wantagent/include/",
-              "header_files": [
-                "pending_want.h",
-                "trigger_info.h",
-                "want_agent_constant.h",
-                "want_agent_helper.h",
-                "want_agent_info.h",
-                "want_agent.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/wantagent:wantagent_innerkits"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/want_agent/include",
-              "header_files": [
-                "cj_want_agent_ffi.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/want_agent:cj_want_agent_ffi"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/ui_extension_base",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_ui_extension"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/photo_editor_extension_ability",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native/:cj_photo_editor_extension"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/form_runtime",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_form_extension"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/form_runtime",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ets_form_extension"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/dialog_request_info/include",
-              "header_files": [
-                "ets_request_info.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/dialog_request_info:dialog_request_info_ani_kit"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/context",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/context:cj_context_ffi"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/ability_runtime",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability:cj_ability_context_native"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_extensionkit_native"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_abilitykit_native_ffi"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/insight_intent_executor",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:cj_insight_intent_executor"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/insight_intent/insight_intent_context",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/insight_intent/insight_intent_context:cj_insightintentcontext"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-              "header_files": [
-                "ability_manager_client.h",
-                "launch_param.h",
-                "start_params_by_SCB.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/ability_runtime",
-              "header_files": [
-                "ability_context.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability:ability_context_native"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/js_environment/interfaces/inner_api",
-              "header_files": [
-                "js_environment.h",
-                "js_environment_impl.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/js_environment/frameworks/js_environment:js_environment"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/ets_environment/interfaces/inner_api",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/ets_environment/frameworks/ets_environment:ets_environment"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/cj_environment/interfaces/inner_api",
-              "header_files": [
-                "cj_environment.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/cj_environment/frameworks/cj_environment:cj_environment"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/runtime/include/",
-              "header_files": [
-                "js_runtime.h",
-                "runtime.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/runtime:runtime"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/napi_base_context/include",
-              "header_files": [
-                "napi_base_context.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/napi_base_context:napi_base_context"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ani_base_context/include",
-              "header_files": [
-                "ani_base_context.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ani_base_context:ani_base_context"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_common",
-              "header_files": [
-                "napi_common_configuration.h",
-                "napi_common_start_options.h",
-                "napi_common_util.h",
-                "napi_common_want.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_common:napi_common"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common/include",
-              "header_files": [
-                "ani_common_ability_state_data.h",
-                "ani_common_child_process_param.h",
-                "ani_common_start_options.h",
-                "ani_common_want.h",
-                "ets_native_reference.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_common:ani_common"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_observer/include",
-              "header_files": [
-                "ets_start_abilities_observer.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_observer:ani_observer"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_ability_common",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_ability_common:napi_ability_common"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_wantagent_common",
-              "header_files": [
-                "ani_common_want_agent.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/ani_wantagent_common:ani_wantagent_common"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_wantagent_common",
-              "header_files": [
-                "napi_common_want_agent.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/js/napi/inner/napi_wantagent_common:napi_wantagent_common"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include",
-              "header_files": [
-                "appmgr/app_mgr_client.h",
-                "appmgr/page_state_data.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager:app_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/connectionobs_manager/include",
-              "header_files": [
-                "connection_observer_client.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/connectionobs_manager:connection_obs_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/foreground_app_obs_manager/include",
-              "header_files": [
-                "foreground_app_connection_client.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/foreground_app_obs_manager:foreground_app_obs_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
-              "header_files": [
-                "service_extension.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:service_extension"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
-              "header_files": [
-                "extension.h",
-                "extension_base.h",
-                "extension_module_loader.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:extensionkit_native"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:abilitykit_utils"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:abilitykit_native"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:data_ability_helper"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/appkit/app/",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:appkit_native"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/dialog_request_info/include",
-              "header_files": [
-                "request_info.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/js/napi/dialog_request_info:dialog_request_info"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-              "header_files": [
-                "ability_connect_callback_stub.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_connect_callback_stub"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/appkit/ability_runtime/context",
-              "header_files": [
-                "application_context.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:app_context"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/c/ability/ability_runtime/child_process",
-              "header_files": [
-                "native_child_process.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/child_process:child_process"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/c/ability_runtime",
-              "header_files": [
-                "ability_runtime_common.h",
-                "application_context.h",
-                "context_constant.h",
-                "start_options.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/c/ability_runtime:ability_runtime"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/uri_permission/include/",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/uri_permission:uri_permission_mgr"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/quick_fix/include/",
-              "header_files": [
-                "quick_fix_manager_client.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/quick_fix:quickfix_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/dataobs_manager/",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/dataobs_manager:dataobs_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/agent_runtime_framework/interfaces/inner_api/include/",
-              "header_files": [
-                "agent_manager_client.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/agent_runtime_framework/interfaces/inner_api:agent_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/service_router_framework/interfaces/inner_api/include",
-              "header_files": [
-                "service_info.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/service_router_framework/interfaces/inner_api:srms_fwk"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/simulator",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/simulator/ability_simulator:ability_simulator"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/tools/aa/include",
-              "header_files": [
-                "shell_command.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/tools/aa:tools_aa_source_set"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-              "header_files": [
-                "ability_start_setting.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_start_setting"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-              "header_files": [
-                "process_options.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:process_options"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-              "header_files": [
-                "mission_info.h",
-                "mission_snapshot.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:mission_info"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/ui_extension_base",
-              "header_files": [
-                "ui_extension_context.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ui_extension_ability/include",
-              "header_files": ["ets_ui_extension_context.h"]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension_ani"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/ui_extension_base/include/",
-              "header_files": ["ets_ui_extension_base.h"]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_extension_ani"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/auto_fill_extension_ability",
-              "header_files": [
-                "auto_fill_extension_context.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:auto_fill_extension"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/extension_manager/include",
-              "header_files": [
-                "extension_manager_client.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/extension_manager:extension_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/mission_manager/include",
-              "header_files": [
-                "mission_manager_client.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/mission_manager:mission_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/session_handler/include",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/session_handler:session_handler"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/auto_fill_manager/include",
-              "header_files": [
-                "auto_fill_error.h",
-                "auto_fill_manager.h",
-                "fill_request_callback_interface.h",
-                "save_request_callback_interface.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/auto_fill_manager:auto_fill_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-              "header_files": [
-                "start_options.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:ability_start_options"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/dialog_request_callback",
-              "header_files": [
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:dialog_request_callback"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager/include",
-              "header_files": [
-                "start_window_option.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/ability_manager:start_window_option"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/application_context/include",
-              "header_files": [
-                "cj_ability_lifecycle_callback.h",
-                "cj_application_context.h",
-                "cj_utils_ffi.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi:cj_ability_ffi"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager/include",
-              "header_files": [
-                "appmgr/app_state_data.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/app_manager:app_state_data"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/connect_server_manager/include",
-              "header_files": [
-                "connect_server_manager.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/connect_server_manager:connect_server_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/inner_api/page_config_manager/include",
-              "header_files": [
-                "page_config_manager.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/interfaces/inner_api/page_config_manager:page_config_manager"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/app_manager",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/app_manager:cj_app_manager_ffi"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/errormanager",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/errormanager:cj_errormanager_ffi"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/recovery",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/app/recovery:cj_app_recovery_ffi"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/cj/ffi/ark_interop_helper",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/cj/ffi/ark_interop_helper:ark_interop_helper_ffi"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/native/ability/native",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:uiabilitykit_native"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/native/appkit",
-              "header_files": []
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:appkit_delegator"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/ability/native/ability_business_error",
-              "header_files": [
-                "ability_business_error.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:ability_business_error"
-          },
-          {
-            "header": {
-              "header_base": "//foundation/ability/ability_runtime/frameworks/ets/ani/featureAbility/include",
-              "header_files": [
-                "ani_data_ability_helper.h"
-              ]
-            },
-            "name": "//foundation/ability/ability_runtime/frameworks/ets/ani/featureAbility:featureability_ani"
-          }
-        ],
-        "test": [
-          "//foundation/ability/ability_runtime/test/moduletest:moduletest",
-          "//foundation/ability/ability_runtime/test/fuzztest:fuzztest",
-          "//foundation/ability/ability_runtime/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/test/sample:sample",
-          "//foundation/ability/ability_runtime/tools/test:moduletest",
-          "//foundation/ability/ability_runtime/tools/test:systemtest",
-          "//foundation/ability/ability_runtime/tools/test:unittest",
-          "//foundation/ability/ability_runtime/cj_environment/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/ets_environment/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/js_environment/test/unittest:unittest",
-          "//foundation/ability/ability_runtime/service_router_framework:test_target"
-        ]
-      }
-  }
-}
+From 9a100722d663bc4abd93c23dffacb5154c540d34 Mon Sep 17 00:00:00 2001
+From: sWX1475960 <sWX1475960@notesmail.huawei.com/>
+Date: Mon, 26 Jan 2026 11:47:47 +0800
+Subject: [PATCH] TicketNo:${ticketNo} Description:${title} Team: Feature or
+ Bugfix: Binary Source: PrivateCode(Yes/No):
+
+Change-Id: I10491c61f2d26ecc1d77dbe5bddbe6364eeb6806
+---
+ .../storage_daemon/crypto/test/anco_test/BUILD.gn   | 13 ++++++++++++-
+ services/storage_manager/ipc/test/BUILD.gn          |  6 +++++-
+ test/fuzztest/storagedaemon_fuzzer/BUILD.gn         |  1 +
+ .../storagedaemoncreatesharefile_fuzzer/BUILD.gn    |  1 +
+ .../storagedaemondeletesharefile_fuzzer/BUILD.gn    |  1 +
+ .../storagedaemonprovider_fuzzer.cpp                | 11 -----------
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonprovidercheck_fuzzer/BUILD.gn      |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  0
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonproviderformat_fuzzer/BUILD.gn     |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonprovidermount_fuzzer/BUILD.gn      |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonproviderpartition_fuzzer/BUILD.gn  |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonprovidersetvoldesc_fuzzer/BUILD.gn |  1 +
+ .../storagedaemonprovidershutdown_fuzzer/BUILD.gn   |  1 +
+ .../storagedaemonproviderstartuser_fuzzer/BUILD.gn  |  1 +
+ .../storagedaemonproviderstopuser_fuzzer/BUILD.gn   |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonproviderumount_fuzzer/BUILD.gn     |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ test/fuzztest/storagedaemonproxy_fuzzer/BUILD.gn    |  1 +
+ .../storagedaemonproxyactiveuserkey_fuzzer/BUILD.gn |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonproxyformat_fuzzer/BUILD.gn        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonproxymount_fuzzer/BUILD.gn         |  1 +
+ .../storagedaemonproxymountdfsdocs_fuzzer/BUILD.gn  |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonproxypartition_fuzzer/BUILD.gn     |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonproxysetrecoverkey_fuzzer/BUILD.gn |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../storagedaemonproxyshutdown_fuzzer/BUILD.gn      |  1 +
+ .../storagedaemonproxystartuser_fuzzer/BUILD.gn     |  1 +
+ .../storagedaemonproxytrytofix_fuzzer/BUILD.gn      |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ .../BUILD.gn                                        |  1 +
+ test/fuzztest/storagedaemonstub_fuzzer/BUILD.gn     |  1 +
+ 63 files changed, 76 insertions(+), 13 deletions(-)
+ delete mode 100644 test/fuzztest/storagedaemonproviderdeleteuserkeys_fuzzer/BUILD.gn
+
+diff --git a/services/storage_daemon/crypto/test/anco_test/BUILD.gn b/services/storage_daemon/crypto/test/anco_test/BUILD.gn
+index e7fbbb2a5..04c7da745 100644
+--- a/services/storage_daemon/crypto/test/anco_test/BUILD.gn
++++ b/services/storage_daemon/crypto/test/anco_test/BUILD.gn
+@@ -30,11 +30,15 @@ ohos_unittest("AncoKeyManagerTest") {
+     "${storage_interface_path}/innerkits/storage_manager/native",
+   ]
+ 
+-  sources = [ "anco_key_manager_test.cpp" ]
++  sources = [
++    "anco_key_manager_test.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
++  ]
+ 
+   deps = [
+     "${storage_daemon_path}/crypto:libsdcrypto",
+     "${storage_daemon_path}/libfscrypt:libfscryptutils",
++    "${storage_interface_path}/innerkits/storage_manager/native:storage_manager_sa_proxy"
+   ]
+ 
+   external_deps = [
+@@ -43,6 +47,13 @@ ohos_unittest("AncoKeyManagerTest") {
+     "googletest:gtest_main",
+     "hilog:libhilog",
+     "huks:libhukssdk",
++    "ability_runtime:abilitykit_native",
++    "ability_runtime:dataobs_manager",
++    "bundle_framework:appexecfwk_base",
++    "config_policy:configpolicy_util",
++    "data_share:datashare_consumer",
++    "eventhandler:libeventhandler",
++    "init:libbegetutil",
+   ]
+ }
+ 
+diff --git a/services/storage_manager/ipc/test/BUILD.gn b/services/storage_manager/ipc/test/BUILD.gn
+index f17ae730f..5b53e5fa4 100644
+--- a/services/storage_manager/ipc/test/BUILD.gn
++++ b/services/storage_manager/ipc/test/BUILD.gn
+@@ -124,6 +124,7 @@ ohos_unittest("storage_manager_provider_permission_test") {
+     "${storage_service_path}/services/common/src/storage_service_constant.cpp",
+     "${storage_manager_path}/ipc/src/storage_manager_provider.cpp",
+     "${storage_manager_path}/storage_daemon_communication/src/storage_daemon_communication.cpp",
++    "${storage_manager_path}/storage/src/storage_quota_controller.cpp",
+     "storage_manager_provider_permission_test.cpp",
+   ]
+ 
+@@ -211,10 +212,12 @@ ohos_unittest("storage_manager_provider_premission_access_test") {
+   sources = [
+     "${storage_daemon_path}/utils/storage_radar.cpp",
+     "${storage_daemon_path}/utils/memory_reclaim_manager.cpp",
++    "${storage_daemon_path}/utils/disk_utils.cpp",
+     "${storage_manager_path}/account_subscriber/account_subscriber.cpp",
+     "${storage_manager_path}/common_event/storage_common_event_subscriber.cpp",
+     "${storage_manager_path}/dfx_report/storage_dfx_reporter.cpp",
+     "${storage_manager_path}/ipc/src/storage_manager_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_service_path}/services/common/src/storage_service_constant.cpp",
+     "${storage_manager_path}/storage/src/bundle_manager_connector.cpp",
+     "${storage_manager_path}/storage/src/storage_monitor_service.cpp",
+@@ -222,6 +225,7 @@ ohos_unittest("storage_manager_provider_premission_access_test") {
+     "${storage_manager_path}/storage/src/storage_total_status_service.cpp",
+     "${storage_manager_path}/storage/src/volume_storage_status_service.cpp",
+     "${storage_manager_path}/storage_daemon_communication/src/storage_daemon_communication.cpp",
++    "${storage_manager_path}/storage/src/storage_quota_controller.cpp",
+     "storage_manager_provider_premission_access_test.cpp",
+   ]
+ 
+@@ -267,7 +271,6 @@ ohos_unittest("storage_manager_provider_premission_access_test") {
+   if (storage_service_storage_statistics_manager) {
+     defines += [ "STORAGE_STATISTICS_MANAGER" ]
+     sources += [
+-      "${storage_manager_path}/storage/src/storage_quota_controller.cpp",
+       "${storage_manager_path}/utils/src/file_cache_adapter.cpp",
+     ]
+   }
+@@ -332,6 +335,7 @@ ohos_unittest("storage_manager_provider_communication_test") {
+     "${storage_manager_path}/dfx_report/storage_dfx_reporter.cpp",
+     "${storage_manager_path}/ipc/src/storage_manager_provider.cpp",
+     "${storage_manager_path}/storage_daemon_communication/src/storage_daemon_communication.cpp",
++    "${storage_manager_path}/storage/src/storage_quota_controller.cpp",
+     "${storage_manager_path}/innerkits_impl/src/statistic_info.cpp",
+     "${storage_manager_path}/mock/storage_daemon_proxy_mock.cpp",
+     "${storage_service_path}/services/common/src/storage_service_constant.cpp",
+diff --git a/test/fuzztest/storagedaemon_fuzzer/BUILD.gn b/test/fuzztest/storagedaemon_fuzzer/BUILD.gn
+index 87a2ab06e..c0557cebb 100644
+--- a/test/fuzztest/storagedaemon_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemon_fuzzer/BUILD.gn
+@@ -41,6 +41,7 @@ ohos_fuzztest("StorageDaemonFuzzTest") {
+     "${storage_daemon_path}/crypto/src/anco_manager/anco_key_manager.cpp",
+     "${storage_daemon_path}/crypto/src/key_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemoncreatesharefile_fuzzer/BUILD.gn b/test/fuzztest/storagedaemoncreatesharefile_fuzzer/BUILD.gn
+index c39ea1c0b..22386e7cf 100644
+--- a/test/fuzztest/storagedaemoncreatesharefile_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemoncreatesharefile_fuzzer/BUILD.gn
+@@ -40,6 +40,7 @@ ohos_fuzztest("StorageDaemonCreateShareFileFuzzTest") {
+     "${storage_daemon_path}/crypto/src/anco_manager/anco_key_manager.cpp",
+     "${storage_daemon_path}/crypto/src/key_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemondeletesharefile_fuzzer/BUILD.gn b/test/fuzztest/storagedaemondeletesharefile_fuzzer/BUILD.gn
+index 56fc316c7..a512bafbc 100644
+--- a/test/fuzztest/storagedaemondeletesharefile_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemondeletesharefile_fuzzer/BUILD.gn
+@@ -40,6 +40,7 @@ ohos_fuzztest("StorageDaemonDeleteShareFileFuzzTest") {
+     "${storage_daemon_path}/crypto/src/anco_manager/anco_key_manager.cpp",
+     "${storage_daemon_path}/crypto/src/key_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovider_fuzzer/storagedaemonprovider_fuzzer.cpp b/test/fuzztest/storagedaemonprovider_fuzzer/storagedaemonprovider_fuzzer.cpp
+index 01908f0b1..f1d374764 100644
+--- a/test/fuzztest/storagedaemonprovider_fuzzer/storagedaemonprovider_fuzzer.cpp
++++ b/test/fuzztest/storagedaemonprovider_fuzzer/storagedaemonprovider_fuzzer.cpp
+@@ -445,11 +445,6 @@ static void HandleGlobalKeyOps(FuzzedDataProvider& provider,
+             providerObj->GenerateUserKeys(userId, flags);
+             break;
+         }
+-        case FUNC_DELETE_USER_KEYS: {
+-            uint32_t userId = provider.ConsumeIntegral<uint32_t>();
+-            providerObj->DeleteUserKeys(userId);
+-            break;
+-        }
+         default: break;
+     }
+ }
+@@ -666,12 +661,6 @@ static void HandleQuotaMemoryOps(FuzzedDataProvider& provider,
+             providerObj->QueryOccupiedSpaceForSa(storageStatus, bundleNameAndUid);
+             break;
+         }
+-        case FUNC_UPDATE_MEMORY_PARA: {
+-            int32_t memorySize = provider.ConsumeIntegral<int32_t>();
+-            int32_t oldSize;
+-            providerObj->UpdateMemoryPara(memorySize, oldSize);
+-            break;
+-        }
+         default: break;
+     }
+ }
+diff --git a/test/fuzztest/storagedaemonprovideractiveuserkey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovideractiveuserkey_fuzzer/BUILD.gn
+index 0dc68a012..b8467cb23 100644
+--- a/test/fuzztest/storagedaemonprovideractiveuserkey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovideractiveuserkey_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_activeuserkey_fuzzer") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidercheck_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidercheck_fuzzer/BUILD.gn
+index 098836efe..aac2efa7f 100644
+--- a/test/fuzztest/storagedaemonprovidercheck_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidercheck_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_check_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidercreaterecoverkey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidercreaterecoverkey_fuzzer/BUILD.gn
+index bc3878fa1..880906284 100644
+--- a/test/fuzztest/storagedaemonprovidercreaterecoverkey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidercreaterecoverkey_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storage_daemon_createrecoverkey_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproviderdeleteuserkeys_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderdeleteuserkeys_fuzzer/BUILD.gn
+deleted file mode 100644
+index e69de29bb..000000000
+diff --git a/test/fuzztest/storagedaemonproviderdestroyuserdirs_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderdestroyuserdirs_fuzzer/BUILD.gn
+index cfafafe0b..a0cb394c0 100644
+--- a/test/fuzztest/storagedaemonproviderdestroyuserdirs_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderdestroyuserdirs_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_destroyuserdirs_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidererasealluserencryptedkeys_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidererasealluserencryptedkeys_fuzzer/BUILD.gn
+index ee42cd30a..28166634f 100644
+--- a/test/fuzztest/storagedaemonprovidererasealluserencryptedkeys_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidererasealluserencryptedkeys_fuzzer/BUILD.gn
+@@ -115,6 +115,7 @@ ohos_fuzztest("StorageDaemonProviderEraseAllUserEncryptedKeysFuzzTest") {
+   ]
+   sources = [
+     "${storage_service_path}/test/fuzztest/storagedaemonprovidererasealluserencryptedkeys_fuzzer/storagedaemonprovidererasealluserencryptedkeys_fuzzer.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+   ]
+ 
+diff --git a/test/fuzztest/storagedaemonproviderformat_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderformat_fuzzer/BUILD.gn
+index e46519dd5..07c7c1338 100644
+--- a/test/fuzztest/storagedaemonproviderformat_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderformat_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_format_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidergetancosizedata_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidergetancosizedata_fuzzer/BUILD.gn
+index 6e6092d8d..7bf8f21f3 100644
+--- a/test/fuzztest/storagedaemonprovidergetancosizedata_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidergetancosizedata_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_getancosizedata_fuzzer") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidergetdirlistspace_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidergetdirlistspace_fuzzer/BUILD.gn
+index 8807847bc..28897a5e0 100644
+--- a/test/fuzztest/storagedaemonprovidergetdirlistspace_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidergetdirlistspace_fuzzer/BUILD.gn
+@@ -115,6 +115,7 @@ ohos_fuzztest("StorageDaemonProviderGetDirListSpaceFuzzTest") {
+     "-fno-omit-frame-pointer",
+   ]
+   sources = [
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_service_path}/test/fuzztest/storagedaemonprovidergetdirlistspace_fuzzer/storagedaemonprovidergetdirlistspace_fuzzer.cpp",
+   ]
+ 
+diff --git a/test/fuzztest/storagedaemonproviderlockuserscreen_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderlockuserscreen_fuzzer/BUILD.gn
+index f8027f4ef..cc5667d9a 100644
+--- a/test/fuzztest/storagedaemonproviderlockuserscreen_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderlockuserscreen_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storage_daemon_lockuserscreen_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidermount_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidermount_fuzzer/BUILD.gn
+index 3959737c9..76cd051c5 100644
+--- a/test/fuzztest/storagedaemonprovidermount_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidermount_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_mount_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidermountmediafuse_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidermountmediafuse_fuzzer/BUILD.gn
+index bf2b2d7ce..f38cc593e 100644
+--- a/test/fuzztest/storagedaemonprovidermountmediafuse_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidermountmediafuse_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storage_daemon_mountmediafuse_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovideronremoterequest_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovideronremoterequest_fuzzer/BUILD.gn
+index 8bae85c8a..439919314 100644
+--- a/test/fuzztest/storagedaemonprovideronremoterequest_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovideronremoterequest_fuzzer/BUILD.gn
+@@ -33,6 +33,7 @@ ohos_fuzztest("StorageDaemonProviderOnRemoteRequestFuzzTest") {
+   sources = [
+     "${storage_daemon_path}/user/src/system_mount_manager.cpp",
+     "${storage_daemon_path}/user/src/user_path_resolver.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_service_path}/test/fuzztest/storagedaemonprovideronremoterequest_fuzzer/storagedaemonprovideronremoterequest_fuzzer.cpp",
+     "${storage_daemon_path}/utils/storage_xcollie.cpp",
+   ]
+diff --git a/test/fuzztest/storagedaemonproviderpartition_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderpartition_fuzzer/BUILD.gn
+index d9619f27a..43bb65a45 100644
+--- a/test/fuzztest/storagedaemonproviderpartition_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderpartition_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_partition_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproviderprepareuserdirs_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderprepareuserdirs_fuzzer/BUILD.gn
+index 20d1fa6be..984942fec 100644
+--- a/test/fuzztest/storagedaemonproviderprepareuserdirs_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderprepareuserdirs_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_PrepareUserDirs_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproviderqueryusbisinuse_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderqueryusbisinuse_fuzzer/BUILD.gn
+index 18676eb3d..9e1db4ffb 100644
+--- a/test/fuzztest/storagedaemonproviderqueryusbisinuse_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderqueryusbisinuse_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_queryusbisinuse_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidersetbundlequota_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidersetbundlequota_fuzzer/BUILD.gn
+index 0b55a55bb..c1318afdd 100644
+--- a/test/fuzztest/storagedaemonprovidersetbundlequota_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidersetbundlequota_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_setbundlequota_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidersetrecoverkey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidersetrecoverkey_fuzzer/BUILD.gn
+index 0903aa036..7f6212c91 100644
+--- a/test/fuzztest/storagedaemonprovidersetrecoverkey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidersetrecoverkey_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storage_daemon_setrecoverkey_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidersetstopscanflag_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidersetstopscanflag_fuzzer/BUILD.gn
+index 4c28712d8..38909a559 100644
+--- a/test/fuzztest/storagedaemonprovidersetstopscanflag_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidersetstopscanflag_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_setstopscanflag_fuzzer") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidersetvoldesc_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidersetvoldesc_fuzzer/BUILD.gn
+index f62a9807d..2c30222df 100644
+--- a/test/fuzztest/storagedaemonprovidersetvoldesc_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidersetvoldesc_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_setvoldesc_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonprovidershutdown_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonprovidershutdown_fuzzer/BUILD.gn
+index b4379a043..6e8db20cb 100644
+--- a/test/fuzztest/storagedaemonprovidershutdown_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonprovidershutdown_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storage_daemon_shutdown_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproviderstartuser_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderstartuser_fuzzer/BUILD.gn
+index f5c9918b9..a414ad0fd 100644
+--- a/test/fuzztest/storagedaemonproviderstartuser_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderstartuser_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_startuser_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproviderstopuser_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderstopuser_fuzzer/BUILD.gn
+index b7caae138..1efd627fc 100644
+--- a/test/fuzztest/storagedaemonproviderstopuser_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderstopuser_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_stopuser_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproviderstubactiveuserkey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderstubactiveuserkey_fuzzer/BUILD.gn
+index 518af4e36..c28940e49 100644
+--- a/test/fuzztest/storagedaemonproviderstubactiveuserkey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderstubactiveuserkey_fuzzer/BUILD.gn
+@@ -32,6 +32,7 @@ ohos_fuzztest("StorageDaemonProviderStubActiveUserKeyFuzzTest") {
+ 
+   sources = [
+     "${storage_service_path}/test/fuzztest/storagedaemonproviderstubactiveuserkey_fuzzer/storagedaemonproviderstubactiveuserkey_fuzzer.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/utils/storage_xcollie.cpp",
+   ]
+ 
+diff --git a/test/fuzztest/storagedaemonproviderstubupdateuserauth_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderstubupdateuserauth_fuzzer/BUILD.gn
+index 6c8107194..00c81cedd 100644
+--- a/test/fuzztest/storagedaemonproviderstubupdateuserauth_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderstubupdateuserauth_fuzzer/BUILD.gn
+@@ -32,6 +32,7 @@ ohos_fuzztest("StorageDaemonProviderStubUpdateUserAuthFuzzTest") {
+ 
+   sources = [
+     "${storage_service_path}/test/fuzztest/storagedaemonproviderstubupdateuserauth_fuzzer/storagedaemonproviderstubupdateuserauth_fuzzer.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/utils/storage_xcollie.cpp",
+   ]
+ 
+diff --git a/test/fuzztest/storagedaemonproviderumount_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderumount_fuzzer/BUILD.gn
+index 75f94cce1..cbb7b7e90 100644
+--- a/test/fuzztest/storagedaemonproviderumount_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderumount_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_umount_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproviderumountmediafuse_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderumountmediafuse_fuzzer/BUILD.gn
+index 63549563b..25c260c2c 100644
+--- a/test/fuzztest/storagedaemonproviderumountmediafuse_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderumountmediafuse_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storage_daemon_umountmediafuse_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproviderunlockuserkeyscreen_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderunlockuserkeyscreen_fuzzer/BUILD.gn
+index a8076c534..5ff6b8a5c 100644
+--- a/test/fuzztest/storagedaemonproviderunlockuserkeyscreen_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderunlockuserkeyscreen_fuzzer/BUILD.gn
+@@ -32,6 +32,7 @@ ohos_fuzztest("StorageDaemonProviderUnlockUserKeyScreenFuzzTest") {
+ 
+   sources = [
+     "${storage_service_path}/test/fuzztest/storagedaemonproviderunlockuserkeyscreen_fuzzer/storagedaemonproviderunlockuserkeyscreen_fuzzer.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/utils/storage_xcollie.cpp",
+   ]
+ 
+diff --git a/test/fuzztest/storagedaemonproviderupdateuserauth_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderupdateuserauth_fuzzer/BUILD.gn
+index 7fe7fb8f4..6f2cb4396 100644
+--- a/test/fuzztest/storagedaemonproviderupdateuserauth_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderupdateuserauth_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storagedaemonprovider_updateuserauth_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproviderupdateuserauthwithrecoverykey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproviderupdateuserauthwithrecoverykey_fuzzer/BUILD.gn
+index 309df511c..4385edec4 100644
+--- a/test/fuzztest/storagedaemonproviderupdateuserauthwithrecoverykey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproviderupdateuserauthwithrecoverykey_fuzzer/BUILD.gn
+@@ -32,6 +32,7 @@ ohos_fuzztest("StorageDaemonProviderUpdateUserAuthWithRecoverykeyFuzzTest") {
+ 
+   sources = [
+     "${storage_service_path}/test/fuzztest/storagedaemonproviderupdateuserauthwithrecoverykey_fuzzer/storagedaemonproviderupdateuserauthwithrecoverykey_fuzzer.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/utils/storage_xcollie.cpp",
+   ]
+ 
+diff --git a/test/fuzztest/storagedaemonproxy_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxy_fuzzer/BUILD.gn
+index f1324e16a..ceb21846c 100644
+--- a/test/fuzztest/storagedaemonproxy_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxy_fuzzer/BUILD.gn
+@@ -33,6 +33,7 @@ ohos_fuzztest("StorageDaemonProxyFuzzTest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyactiveuserkey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyactiveuserkey_fuzzer/BUILD.gn
+index 031969b49..149c5cab9 100644
+--- a/test/fuzztest/storagedaemonproxyactiveuserkey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyactiveuserkey_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyActiveUserKeyFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxycompleteadduser_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxycompleteadduser_fuzzer/BUILD.gn
+index 40ca526c7..ce09f845f 100644
+--- a/test/fuzztest/storagedaemonproxycompleteadduser_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxycompleteadduser_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyCompleteAddUserFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxycreaterecoverkey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxycreaterecoverkey_fuzzer/BUILD.gn
+index cb71a9d35..6ed185a57 100644
+--- a/test/fuzztest/storagedaemonproxycreaterecoverkey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxycreaterecoverkey_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyCreateRecoverKeyFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxycreatesharefile_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxycreatesharefile_fuzzer/BUILD.gn
+index e682ab94c..eede2edbf 100644
+--- a/test/fuzztest/storagedaemonproxycreatesharefile_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxycreatesharefile_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyCreateShareFileFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyformat_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyformat_fuzzer/BUILD.gn
+index b7c8f498e..a02f12f9c 100644
+--- a/test/fuzztest/storagedaemonproxyformat_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyformat_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyFormatFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxygenerateappkey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxygenerateappkey_fuzzer/BUILD.gn
+index b2799ec43..3ecf495e0 100644
+--- a/test/fuzztest/storagedaemonproxygenerateappkey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxygenerateappkey_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyGenerateAppkeyFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxygetfileencryptstatus_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxygetfileencryptstatus_fuzzer/BUILD.gn
+index c66b755de..7ecc6b7e6 100644
+--- a/test/fuzztest/storagedaemonproxygetfileencryptstatus_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxygetfileencryptstatus_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyGetFileEncryptStatusFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyinactiveuserpublicdirkey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyinactiveuserpublicdirkey_fuzzer/BUILD.gn
+index 6d4b0ca24..3b8d0404e 100755
+--- a/test/fuzztest/storagedaemonproxyinactiveuserpublicdirkey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyinactiveuserpublicdirkey_fuzzer/BUILD.gn
+@@ -33,6 +33,7 @@ ohos_fuzztest("StorageDaemonProxyInactiveUserPublicDirKeyFuzzTest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyisfileoccupied_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyisfileoccupied_fuzzer/BUILD.gn
+index dcf7be783..445bc24b9 100755
+--- a/test/fuzztest/storagedaemonproxyisfileoccupied_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyisfileoccupied_fuzzer/BUILD.gn
+@@ -33,6 +33,7 @@ ohos_fuzztest("StorageDaemonProxyIsFileOccupiedFuzzTest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxymount_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxymount_fuzzer/BUILD.gn
+index 1664ab77c..79121aa3a 100644
+--- a/test/fuzztest/storagedaemonproxymount_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxymount_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyMountFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxymountdfsdocs_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxymountdfsdocs_fuzzer/BUILD.gn
+index de1f4aaf4..64b29ce59 100644
+--- a/test/fuzztest/storagedaemonproxymountdfsdocs_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxymountdfsdocs_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyMountDfsDocsFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxymountdissharefile_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxymountdissharefile_fuzzer/BUILD.gn
+index 5259494b2..9834a3361 100755
+--- a/test/fuzztest/storagedaemonproxymountdissharefile_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxymountdissharefile_fuzzer/BUILD.gn
+@@ -33,6 +33,7 @@ ohos_fuzztest("StorageDaemonProxyMountDisShareFileFuzzTest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxypartition_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxypartition_fuzzer/BUILD.gn
+index 5e7165ffc..15395d362 100644
+--- a/test/fuzztest/storagedaemonproxypartition_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxypartition_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyPartitionFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyprepareuserdirs_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyprepareuserdirs_fuzzer/BUILD.gn
+index 27d66f1b0..d40e09f99 100644
+--- a/test/fuzztest/storagedaemonproxyprepareuserdirs_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyprepareuserdirs_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyPrepareUserDirsFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyqueryoccupiedspaceforsa_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyqueryoccupiedspaceforsa_fuzzer/BUILD.gn
+index 5cdc38190..42b884a36 100755
+--- a/test/fuzztest/storagedaemonproxyqueryoccupiedspaceforsa_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyqueryoccupiedspaceforsa_fuzzer/BUILD.gn
+@@ -33,6 +33,7 @@ ohos_fuzztest("StorageDaemonProxyQueryOccupiedSpaceForSaFuzzTest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxysetbundlequota_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxysetbundlequota_fuzzer/BUILD.gn
+index 1bc5312a5..8e6037de1 100644
+--- a/test/fuzztest/storagedaemonproxysetbundlequota_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxysetbundlequota_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxySetBundleQuotaFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxysetrecoverkey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxysetrecoverkey_fuzzer/BUILD.gn
+index 4a6146d08..c850ae894 100644
+--- a/test/fuzztest/storagedaemonproxysetrecoverkey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxysetrecoverkey_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxySetRecoverKeyFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxysetvolumedescription_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxysetvolumedescription_fuzzer/BUILD.gn
+index fd243ee03..2d0960c55 100644
+--- a/test/fuzztest/storagedaemonproxysetvolumedescription_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxysetvolumedescription_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxySetVolumeDescriptionFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyshutdown_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyshutdown_fuzzer/BUILD.gn
+index fe452233d..beb460414 100644
+--- a/test/fuzztest/storagedaemonproxyshutdown_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyshutdown_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyShutdownFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxystartuser_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxystartuser_fuzzer/BUILD.gn
+index f0741b871..b5d6748ac 100644
+--- a/test/fuzztest/storagedaemonproxystartuser_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxystartuser_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyStartUserFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxytrytofix_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxytrytofix_fuzzer/BUILD.gn
+index 8546b19a1..ec8ed0252 100755
+--- a/test/fuzztest/storagedaemonproxytrytofix_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxytrytofix_fuzzer/BUILD.gn
+@@ -33,6 +33,7 @@ ohos_fuzztest("StorageDaemonProxyTryToFixFuzzTest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyunlockuserscreen_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyunlockuserscreen_fuzzer/BUILD.gn
+index 89273693e..40c640d27 100644
+--- a/test/fuzztest/storagedaemonproxyunlockuserscreen_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyunlockuserscreen_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyUnlockUserScreenFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyupdatekeycontext_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyupdatekeycontext_fuzzer/BUILD.gn
+index 0e6753e14..d280b815e 100644
+--- a/test/fuzztest/storagedaemonproxyupdatekeycontext_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyupdatekeycontext_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyUpdateKeyContextFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyupdateuseauthwithrecoverykey_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyupdateuseauthwithrecoverykey_fuzzer/BUILD.gn
+index 16c4f784f..00e66ffe5 100644
+--- a/test/fuzztest/storagedaemonproxyupdateuseauthwithrecoverykey_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyupdateuseauthwithrecoverykey_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyUpdateUseAuthWithRecoveryKeyFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonproxyupdateuserauth_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonproxyupdateuserauth_fuzzer/BUILD.gn
+index 55b4c7019..e4b3afad8 100644
+--- a/test/fuzztest/storagedaemonproxyupdateuserauth_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonproxyupdateuserauth_fuzzer/BUILD.gn
+@@ -34,6 +34,7 @@ ohos_fuzztest("StorageDaemonProxyUpdateUserAuthFuzzTest") {
+     "${storage_daemon_path}/anco/src/anco_mount_manager.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+diff --git a/test/fuzztest/storagedaemonstub_fuzzer/BUILD.gn b/test/fuzztest/storagedaemonstub_fuzzer/BUILD.gn
+index 2d146a005..16218cbe9 100644
+--- a/test/fuzztest/storagedaemonstub_fuzzer/BUILD.gn
++++ b/test/fuzztest/storagedaemonstub_fuzzer/BUILD.gn
+@@ -29,6 +29,7 @@ ohos_static_library("storage_daemon_stub_fuzztest") {
+   sources = [
+     "${storage_daemon_path}/ipc/src/storage_daemon.cpp",
+     "${storage_daemon_path}/ipc/src/storage_daemon_provider.cpp",
++    "${storage_daemon_path}/ipc/src/storage_manager_client.cpp",
+     "${storage_daemon_path}/quota/quota_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager.cpp",
+     "${storage_daemon_path}/user/src/mount_manager_ext.cpp",
+-- 
+2.45.2.huawei.10
+
