@@ -1753,6 +1753,7 @@ ohos_shared_library("agent_extension_connection") {
   sources = [
     "${ability_runtime_native_path}/ability/native/ability_runtime/agent_host_proxy_stub_impl.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_agent_extension_connection.cpp",
+    "${ability_runtime_native_path}/ability/native/ability_runtime/js_agent_host_proxy.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_agent_proxy.cpp",
     "${ability_runtime_native_path}/agent_extension_ability/connection/agent_host_proxy_stub.cpp",
     "${ability_runtime_native_path}/agent_extension_ability/connection/agent_proxy_proxy.cpp",
