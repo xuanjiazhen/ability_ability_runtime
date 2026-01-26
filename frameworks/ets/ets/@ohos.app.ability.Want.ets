@@ -708,7 +708,7 @@ export class RecordSerializeTool {
   }
 
   public static parse(text: string): Record<string, valueType> {
-    let jsonValue = JSONParser.parse(text);
+    let jsonValue = JSON.parseJsonElement(text);
     let res = RecordSerializeTool.jsonValue2Object(jsonValue);
     if (!(res instanceof Record)) {
       throw new TypeError('RecordSerializeTool parse only used for Record');
@@ -716,37 +716,35 @@ export class RecordSerializeTool {
     return res as Record<string, valueType>;
   }
 
-  private static jsonValue2Object(value: JSONValue): string | number | boolean | null |
+  private static jsonValue2Object(value: jsonx.JsonElement): string | number | boolean | null |
     Array<valueType> | Record<string, valueType> {
-    if (value instanceof JSONString) {
-      return value.value;
-    } else if (value instanceof JSONNumber) {
-      return new Double(value.value);
-    } else if (value instanceof JSONTrue) {
+    let vType = value.jsonType;
+    if (vType === jsonx.JsonType.JsonString) {
+      return value.asString();
+    } else if (vType === jsonx.JsonType.JsonNumber) {
+      return value.asDouble();
+    } else if (vType === jsonx.JsonType.JsonTrue) {
       return new Boolean(true);
-    } else if (value instanceof JSONFalse) {
+    } else if (vType === jsonx.JsonType.JsonFalse) {
       return new Boolean(false);
-    } else if (value instanceof JSONNull) {
+    } else if (vType === jsonx.JsonType.JsonNull) {
       return null;
-    } else if (value instanceof JSONArray) {
-      let obj = value as JSONArray;
-      let values = obj.values;
+    } else if (vType === jsonx.JsonType.JsonArray) {
+      let values: Array<jsonx.JsonElement> = value.asArray();
       let result: Array<valueType> = new Array<valueType>();
       for (let i: int = 0; i < values.length; i++) {
         result.push(RecordSerializeTool.jsonValue2Object(values[i]));
       }
       return result;
-    } else if (value instanceof JSONObject) {
-      let obj = value as JSONObject;
-      let keys: Array<JSONString> = obj.keys_;
-      let values: Array<JSONValue> = obj.values;
+    } else if (vType === jsonx.JsonType.JsonObject) {
+      let iterVal: IterableIterator<[string, jsonx.JsonElement]> = value.$_iterator();
       let result: Record<string, valueType> = new Record<string, valueType>();
-      for (let i: int = 0; i < keys.length; i++) {
-        result[keys[i].value] = RecordSerializeTool.jsonValue2Object(values[i]);
+      for (let t of iterVal) {
+        result[t[0]] = RecordSerializeTool.jsonValue2Object(t[1]);
       }
       return result;
     } else {
-      throw new TypeError('unknown JSONValue');
+      throw new TypeError('unknown JSONElement type');
     }
   }
 }
@@ -922,16 +920,22 @@ class NativeWantParams {
   }
 }
 
-export default class Want {
-  bundleName?: string;
-  abilityName?: string;
-  deviceId?: string;
-  uri?: string;
-  type?: string;
-  flags?: int;
-  action?: string;
-  parameters?: Record<string, RecordData>;
-  entities?: Array<string>;
-  moduleName?: string;
-  readonly fds?: Record<string, int>;
+class Position {
+    row: int = 1
+    col: int = 1
+    index: int = -1
+
+    makeCopy(): Position {
+        let c = new Position()
+        c.row = this.row
+        c.col = this.col
+        c.index = this.index
+        return c
+    }
+
+    restoreFromCopy(c: Position) {
+        this.row = c.row
+        this.col = c.col
+        this.index = c.index
+    }
 }
