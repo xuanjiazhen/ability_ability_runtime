@@ -49,18 +49,23 @@ void ExtensionConfigMgr::LoadExtensionBlockList(const std::string &extensionName
     }
     nlohmann::json extensionConfig;
     inFile >> extensionConfig;
-    inFile.close();
-    if (extensionConfig.is_discarded() ||
-        !extensionConfig.contains(ExtensionConfigItem::ITEM_NAME_BLOCKLIST)) {
-        TAG_LOGE(AAFwkTag::EXT, "Config parse error or missing blocklist");
+    if (extensionConfig.is_discarded()) {
+        TAG_LOGE(AAFwkTag::EXT, "Extension config JSON parse error");
+        inFile.close();
         return;
     }
+    if (!extensionConfig.contains(ExtensionConfigItem::ITEM_NAME_BLOCKLIST)) {
+        TAG_LOGW(AAFwkTag::EXT, "Extension config file has no blocklist node");
+        inFile.close();
+        return;
+    }
+    inFile.close();
+    auto blocklistConfig = extensionConfig.at(ExtensionConfigItem::ITEM_NAME_BLOCKLIST);
     std::unordered_set<std::string> blocklist;
     bool found = false;
-    auto blackList = extensionConfig.at(ExtensionConfigItem::ITEM_NAME_BLOCKLIST);
-    for (const auto& item : blackList.items()) {
-        if (item.key() == extensionName && blackList[item.key()].is_array()) {
-            for (const auto& value : blackList[item.key()]) {
+    for (const auto& item : blocklistConfig.items()) {
+        if (item.key() == extensionName && blocklistConfig[item.key()].is_array()) {
+            for (const auto& value : blocklistConfig[item.key()]) {
                 if (value.is_string()) {
                     blocklist.emplace(value.get<std::string>());
                 }
@@ -70,6 +75,7 @@ void ExtensionConfigMgr::LoadExtensionBlockList(const std::string &extensionName
         }
     }
     if (!found) {
+        TAG_LOGW(AAFwkTag::EXT, "Extension name: %{public}s not found in config", extensionName.c_str());
         return;
     }
     std::lock_guard<std::mutex> lock(extensionBlockListMutex_);
