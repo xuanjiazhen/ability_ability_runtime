@@ -213,6 +213,10 @@ std::string HybridJsModuleReader::GetOtherHspPath(const std::string& bundleName,
     std::string tmpPath = inputPath.substr(inputPath.find_first_of("/") + 1);
     const std::string sharedBundleName = tmpPath.substr(0, tmpPath.find_first_of("/"));
     for (const auto &info : baseSharedBundleInfos) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "info.bundleName = %{public}s", info.bundleName.c_str());
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "sharedBundleName = %{public}s", sharedBundleName.c_str());
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "info.moduleName = %{public}s", info.moduleName.c_str());
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "moduleName = %{public}s", moduleName.c_str());
         if ((info.bundleName == sharedBundleName) && (info.moduleName == moduleName)) {
             presetAppHapPath = info.hapPath;
             needFindPluginHsp_ = false;
@@ -227,6 +231,8 @@ std::string HybridJsModuleReader::GetOtherHspPath(const std::string& bundleName,
         return presetAppHapPath;
     }
     for (const auto &info : bundleInfo.hapModuleInfos) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "info.bundleName = %{public}s", info.bundleName.c_str());
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "sharedBundleName = %{public}s", sharedBundleName.c_str());
         if (info.moduleName == moduleName) {
             presetAppHapPath = info.hapPath;
             needFindPluginHsp_ = false;
