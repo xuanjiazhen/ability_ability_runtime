@@ -112,14 +112,16 @@ bool EtsEnviromentCallback::UnRegister(int32_t callbackId)
 void EtsEnviromentCallback::OnMemoryLevel(const int level)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "OnMemoryLevel Call");
-    if (enviromentAniCallbacks_.empty()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null enviromentAniCallbacks_");
-        return;
+    {
+        std::lock_guard lock(mutex_);
+        if (enviromentAniCallbacks_.empty()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null enviromentAniCallbacks_");
+            return;
+        }
     }
     bool isAttachThread = false;
     ani_env *env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "GetEnv failed");
         return;
     }
     ani_class cls {};
@@ -139,7 +141,6 @@ void EtsEnviromentCallback::OnMemoryLevel(const int level)
     OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env,
         APPLICATION_MEMORYLEVEL_ENUM, (AppExecFwk::MemoryLevel)level, memoryLevel);
     if (memoryLevel == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "create memoryLevel failed");
         AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
         return;
     }
@@ -148,7 +149,6 @@ void EtsEnviromentCallback::OnMemoryLevel(const int level)
         for (auto &callback : enviromentAniCallbacks_) {
             ani_status status = ANI_ERROR;
             if (!callback.second) {
-                TAG_LOGE(AAFwkTag::APPKIT, "callback object is null");
                 AppExecFwk::DetachAniEnv(etsVm_, isAttachThread);
                 return;
             }
@@ -164,14 +164,17 @@ void EtsEnviromentCallback::OnMemoryLevel(const int level)
 void EtsEnviromentCallback::OnConfigurationUpdated(const AppExecFwk::Configuration &config)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "OnConfigurationUpdated Call");
-    if (enviromentAniCallbacks_.empty()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null enviromentAniCallbacks_");
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (enviromentAniCallbacks_.empty()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null enviromentAniCallbacks_");
+            return;
+        }
     }
     bool isAttachThread = false;
     ani_env *env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
+    
     if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "GetEnv failed");
         return;
     }
     ani_class cls {};
