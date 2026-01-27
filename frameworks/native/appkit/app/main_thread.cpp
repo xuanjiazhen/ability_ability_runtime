@@ -1645,6 +1645,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     if (DFX_SetAppRunningUniqueId != nullptr) {
         DFX_SetAppRunningUniqueId(appRunningId.c_str(), appRunningId.length());
     }
+
     application_->SetApplicationContext(applicationContext);
 
 #ifdef SUPPORT_SCREEN
