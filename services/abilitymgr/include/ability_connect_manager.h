@@ -415,6 +415,11 @@ protected:
     void HandlePostConnectTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         int connectRecordId, int64_t recordId);
 
+    void ReportConnectEventToRss(LoadingStage stage,
+        std::shared_ptr<BaseExtensionRecord> abilityRecord,
+        std::shared_ptr<ConnectionRecord> connectRecord,
+        int64_t timeDuration = 0);
+
     void PrintTimeOutLog(const std::shared_ptr<BaseExtensionRecord> &ability, uint32_t msgId, bool isHalf = false);
 
     void CompleteBackground(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
