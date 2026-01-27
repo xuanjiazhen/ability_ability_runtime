@@ -1078,7 +1078,6 @@ ani_object EtsApplicationContextUtils::SetApplicationContext(ani_env *aniEnv,
 {
     TAG_LOGD(AAFwkTag::APPKIT, "SetApplicationContext Call");
     if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv");
         return nullptr;
     }
     if (applicationContext == nullptr) {
@@ -1111,6 +1110,8 @@ ani_object EtsApplicationContextUtils::SetApplicationContext(ani_env *aniEnv,
     auto workContext = new (std::nothrow) std::weak_ptr<ApplicationContext>(etsContext->applicationContext_);
     if (workContext == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null workContext");
+        delete etsContext;
+        etsContext = nullptr;
         return nullptr;
     }
     ani_long nativeContextLong = reinterpret_cast<ani_long>(workContext);
@@ -1118,6 +1119,8 @@ ani_object EtsApplicationContextUtils::SetApplicationContext(ani_env *aniEnv,
         TAG_LOGE(AAFwkTag::APPKIT, "SetNativeContextLong failed");
         delete workContext;
         workContext = nullptr;
+        delete etsContext;
+        etsContext = nullptr;
         return nullptr;
     }
     return contextObj;
