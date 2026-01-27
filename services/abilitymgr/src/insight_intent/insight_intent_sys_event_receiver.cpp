@@ -91,33 +91,42 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
 {
     std::lock_guard<std::mutex> lock(userIdMutex_);
     if (userId == -1) {
+        std::cout << "LoadInsightIntentInfos branch 1" << std::endl;
         userId = AppExecFwk::OsAccountManagerWrapper::GetCurrentActiveAccountId();
         if (userId == 0) {
+            std::cout << "LoadInsightIntentInfos branch 2" << std::endl;
             TAG_LOGI(AAFwkTag::INTENT, "use MAIN_USER_ID(%{public}d) instead of current userId: (%{public}d)",
                      MAIN_USER_ID, userId);
             userId = MAIN_USER_ID;
         }
+        std::cout << "LoadInsightIntentInfos branch 3" << std::endl;
     }
 
     TAG_LOGI(AAFwkTag::INTENT, "init insight intent cache start, userId: %{public}d", userId);
     if (DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
         InitInsightIntentCache(userId) == ERR_OK) {
+        std::cout << "LoadInsightIntentInfos branch 4" << std::endl;
         TAG_LOGI(AAFwkTag::INTENT, "Load intent from db success");
         return;
     }
+    std::cout << "LoadInsightIntentInfos branch 5" << std::endl;
 
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
+        std::cout << "LoadInsightIntentInfos branch 6" << std::endl;
         TAG_LOGE(AAFwkTag::INTENT, "null bundleMgrHelper");
         return;
     }
+    std::cout << "LoadInsightIntentInfos branch 7" << std::endl;
 
     std::vector<AppExecFwk::BundleInfo> bundleInfos {};
     if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfos(AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfos,
         userId))) {
+        std::cout << "LoadInsightIntentInfos branch 8" << std::endl;
         TAG_LOGE(AAFwkTag::INTENT, "get bundle info failed");
         return;
     }
+    std::cout << "LoadInsightIntentInfos branch 9" << std::endl;
 
     TAG_LOGI(AAFwkTag::INTENT, "bundleInfos size: %{public}zu", bundleInfos.size());
     bool hasIntent = false;
@@ -140,10 +149,12 @@ void InsightIntentSysEventReceiver::DeleteInsightIntentInfoByUserId(int32_t user
     int32_t ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentByUserId(
         userId);
     if (ret != ERR_OK) {
+        std::cout << "DeleteInsightIntentInfoByUserId branch 1" << std::endl;
         TAG_LOGE(AAFwkTag::INTENT, "delete insight intent by userId failed, userId: %{public}d, ret: %{public}d",
             userId, ret);
         return;
     }
+    std::cout << "DeleteInsightIntentInfoByUserId branch 2" << std::endl;
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
 }
 
@@ -157,14 +168,18 @@ void InsightIntentSysEventReceiver::HandleUserSwitched(const EventFwk::CommonEve
 {
     int32_t userId = data.GetCode();
     if (userId < 0) {
+        std::cout << "HandleUserSwitched branch 1" << std::endl;
         TAG_LOGE(AAFwkTag::INTENT, "invalid switched userId: %{public}d", userId);
     }
+    std::cout << "HandleUserSwitched branch 2" << std::endl;
 
     std::lock_guard<std::mutex> lock(userIdMutex_);
     if (userId == lastUserId_) {
+        std::cout << "HandleUserSwitched branch 3" << std::endl;
         TAG_LOGE(AAFwkTag::INTENT, "same userId: %{public}d", lastUserId_);
         return;
     }
+    std::cout << "HandleUserSwitched branch 4" << std::endl;
 
     TAG_LOGI(AAFwkTag::INTENT, "userId: %{public}d switch to  current userId: %{public}d", lastUserId_, userId);
     lastUserId_ = userId;
@@ -177,14 +192,18 @@ void InsightIntentSysEventReceiver::HandleUserRemove(const EventFwk::CommonEvent
 {
     int32_t userId = data.GetCode();
     if (userId < 0) {
+        std::cout << "HandleUserRemove branch 1" << std::endl;
         TAG_LOGE(AAFwkTag::INTENT, "invalid switched userId: %{public}d", userId);
     }
+    std::cout << "HandleUserRemove branch 2" << std::endl;
 
     std::lock_guard<std::mutex> lock(userIdMutex_);
     if (userId == lastUserId_) {
+        std::cout << "HandleUserRemove branch 3" << std::endl;
         TAG_LOGW(AAFwkTag::INTENT, "not allow remove current userId: %{public}d", userId);
         return;
     }
+    std::cout << "HandleUserRemove branch 4" << std::endl;
 
     auto task = [self = shared_from_this(), userId]() { self->DeleteInsightIntentInfoByUserId(userId); };
     ffrt::submit(task);

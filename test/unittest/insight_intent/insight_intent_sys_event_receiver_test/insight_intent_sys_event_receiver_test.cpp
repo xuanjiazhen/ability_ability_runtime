@@ -89,5 +89,63 @@ HWTEST_F(InsightIntentSysEventReceiverTest, OnReceiveEvent_0001, TestSize.Level1
     sysEventReceiver->OnReceiveEvent(data);
     EXPECT_NE(sysEventReceiver->lastUserId_, 0);
 }
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_LoadInsightIntentInfos_0001
+ * @tc.desc: Test the state of LoadInsightIntentInfos
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, LoadInsightIntentInfos_0001, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
+    sysEventReceiver->LoadInsightIntentInfos(100);
+    sysEventReceiver->LoadInsightIntentInfos(-1);
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_DeleteInsightIntentInfoByUserId_0001
+ * @tc.desc: Test the state of DeleteInsightIntentInfoByUserId
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, DeleteInsightIntentInfoByUserId_0001, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
+    sysEventReceiver->DeleteInsightIntentInfoByUserId(100);
+    sysEventReceiver->DeleteInsightIntentInfoByUserId(-1);
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_HandleUserSwitched_0001
+ * @tc.desc: Test the state of HandleUserSwitched
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, HandleUserSwitched_0001, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
+
+    EventFwk::CommonEventData data;
+    data.code_ = -1;
+    sysEventReceiver->HandleUserSwitched(data);
+    sysEventReceiver->HandleUserSwitched(data);
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_HandleUserRemove_0001
+ * @tc.desc: Test the state of HandleUserRemove
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, HandleUserRemove_0001, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
+
+    EventFwk::CommonEventData data;
+    data.code_ = -1;
+    sysEventReceiver->HandleUserRemove(data);
+    sysEventReceiver->HandleUserRemove(data);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
