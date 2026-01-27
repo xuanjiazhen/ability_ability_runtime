@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ability_runtime/dump_proc_helper"
+module_output_path = "ability_runtime/ability_runtime/dump_proc_helper"
 
 ###############################################################################
 
