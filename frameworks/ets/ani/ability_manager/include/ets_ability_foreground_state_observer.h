@@ -43,7 +43,11 @@ public:
     void SetValid(bool valid);
     void CallEtsFunction(ani_env* env, ani_object etsObserverObject,
         const char *methodName, const char *signature, ...);
-    inline size_t GetEtsObserverMapSize() { return etsObserverObjects_.size(); }
+    inline size_t GetEtsObserverMapSize()
+    {
+        std::lock_guard<std::mutex> lock(mutexlock_);
+        return etsObserverObjects_.size();
+    }
 private:
     void ReleaseObjectReference(ani_ref etsObjRef);
     bool IsStrictEquals(ani_ref observerRef, const ani_object &etsObserverObject);
