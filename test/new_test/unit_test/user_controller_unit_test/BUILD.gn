@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ability_runtime/user_controller"
+module_output_path = "ability_runtime/ability_runtime/user_controller"
 
 copy("user_controller_copy") {
     sources = [
