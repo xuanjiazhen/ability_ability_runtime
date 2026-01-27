@@ -31,7 +31,8 @@ OBSVerifyPermissionUtils& OBSVerifyPermissionUtils::GetInstance()
     return instance_;
 }
 
-bool OBSVerifyPermissionUtils::VerifyPermission(uint32_t listenerTokenId, int32_t userId, const Uri &uri, uint32_t tokenId)
+bool OBSVerifyPermissionUtils::VerifyPermission(uint32_t listenerTokenId, int32_t userId,
+    const Uri &uri, uint32_t tokenId)
 {
     auto [isSA, listenerCallingName] = GetCallingName(listenerTokenId);
     if (isSA) {
