@@ -16,9 +16,9 @@
 #include "js_agent_manager.h"
 
 #include "agent_connection_manager.h"
-#include "agent_connector_stub_impl.h"
 #include "agent_extension_connection_constants.h"
 #include "hilog_tag_wrapper.h"
+#include "js_agent_connector_stub_impl.h"
 #include "js_agent_extension_connection.h"
 #include "js_agent_manager_utils.h"
 #include "js_error_utils.h"
@@ -320,7 +320,7 @@ sptr<JSAgentExtensionConnection> JsAgentManager::CreateAgentConnection(napi_env 
     }
 
     // Set host proxy and agentId in want
-    sptr<AgentConnectorStubImpl> stub = connection->GetServiceHostStub();
+    sptr<JsAgentConnectorStubImpl> stub = connection->GetServiceHostStub();
     want.SetParam(AGENTEXTENSIONHOSTPROXY_KEY, stub->AsObject());
     want.SetParam(AGENTID_KEY, agentId);
 

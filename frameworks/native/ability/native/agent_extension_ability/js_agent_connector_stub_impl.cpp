@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "agent_connector_stub_impl.h"
+#include "js_agent_connector_stub_impl.h"
 
 #include "ability_business_error.h"
 #include "js_agent_extension_connection.h"
@@ -22,12 +22,12 @@
 namespace OHOS {
 namespace AgentRuntime {
 
-AgentConnectorStubImpl::AgentConnectorStubImpl(wptr<JSAgentExtensionConnection> conn)
+JsAgentConnectorStubImpl::JsAgentConnectorStubImpl(wptr<JSAgentExtensionConnection> conn)
     : conn_(conn)
 {
 }
 
-int32_t AgentConnectorStubImpl::SendData(const std::string &data)
+int32_t JsAgentConnectorStubImpl::SendData(const std::string &data)
 {
     sptr<JSAgentExtensionConnection> conn = conn_.promote();
     if (conn != nullptr) {
@@ -37,7 +37,7 @@ int32_t AgentConnectorStubImpl::SendData(const std::string &data)
     return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
 }
 
-int32_t AgentConnectorStubImpl::Authorize(const std::string &data)
+int32_t JsAgentConnectorStubImpl::Authorize(const std::string &data)
 {
     sptr<JSAgentExtensionConnection> conn = conn_.promote();
     if (conn != nullptr) {

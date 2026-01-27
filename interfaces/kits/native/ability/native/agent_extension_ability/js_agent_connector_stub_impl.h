@@ -13,10 +13,11 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_IMPL_H
-#define OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_IMPL_H
+#ifndef OHOS_AGENT_RUNTIME_JS_AGENT_CONNECTOR_STUB_IMPL_H
+#define OHOS_AGENT_RUNTIME_JS_AGENT_CONNECTOR_STUB_IMPL_H
 
 #include <string>
+
 #include "agent_connector_stub.h"
 
 namespace OHOS {
@@ -26,19 +27,19 @@ namespace AgentRuntime {
 class JSAgentExtensionConnection;
 
 /**
- * @class AgentConnectorStubImpl
+ * @class JsAgentConnectorStubImpl
  * Implementation of AgentConnectorStub that forwards IPC calls to JSAgentExtensionConnection.
  * Maintains a weak pointer to the connection to avoid circular references.
  */
-class AgentConnectorStubImpl : public AgentConnectorStub {
+class JsAgentConnectorStubImpl : public AgentConnectorStub {
 public:
     /**
      * Constructor.
      *
      * @param conn Weak pointer to the JSAgentExtensionConnection.
      */
-    explicit AgentConnectorStubImpl(wptr<JSAgentExtensionConnection> conn);
-    ~AgentConnectorStubImpl() = default;
+    explicit JsAgentConnectorStubImpl(wptr<JSAgentExtensionConnection> conn);
+    ~JsAgentConnectorStubImpl() = default;
 
     /**
      * Handle SendData request from host application.
@@ -69,4 +70,4 @@ protected:
 } // namespace AgentRuntime
 } // namespace OHOS
 
-#endif // OHOS_AGENT_RUNTIME_AGENT_CONNECTOR_STUB_IMPL_H
+#endif // OHOS_AGENT_RUNTIME_JS_AGENT_CONNECTOR_STUB_IMPL_H

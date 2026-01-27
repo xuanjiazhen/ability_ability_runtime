@@ -13,11 +13,12 @@
  * limitations under the License.
  */
 
+#include "js_agent_extension_connection.h"
+
 #include <mutex>
 
-#include "agent_connector_stub_impl.h"
 #include "hilog_tag_wrapper.h"
-#include "js_agent_extension_connection.h"
+#include "js_agent_connector_stub_impl.h"
 #include "js_agent_receiver_proxy.h"
 
 namespace OHOS {
@@ -127,7 +128,7 @@ JSAgentExtensionConnection::JSAgentExtensionConnection(napi_env env) : JSAbility
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "JSAgentExtensionConnection constructor");
     wptr<JSAgentExtensionConnection> weakthis = this;
-    serviceHostStub_ = sptr<AgentConnectorStubImpl>::MakeSptr(weakthis);
+    serviceHostStub_ = sptr<JsAgentConnectorStubImpl>::MakeSptr(weakthis);
 }
 
 JSAgentExtensionConnection::~JSAgentExtensionConnection()
@@ -144,7 +145,7 @@ void JSAgentExtensionConnection::HandleOnAbilityConnectDone(
     TAG_LOGI(AAFwkTag::SER_ROUTER, "HandleOnAbilityConnectDone, resultCode: %{public}d", resultCode);
     if (napiAsyncTask_ != nullptr) {
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentReceiverProxy");
-        sptr<AgentConnectorStubImpl> hostStub = GetServiceHostStub();
+        sptr<JsAgentConnectorStubImpl> hostStub = GetServiceHostStub();
         sptr<IRemoteObject> hostProxy = nullptr;
         if (hostStub != nullptr) {
             hostProxy = hostStub->AsObject();

@@ -100,6 +100,5 @@ int32_t AgentConnectorProxy::Authorize(const std::string &data)
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Authorize succeeded");
     return ERR_OK;
 }
-
 } // namespace AgentRuntime
 } // namespace OHOS
