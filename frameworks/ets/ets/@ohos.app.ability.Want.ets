@@ -174,12 +174,12 @@ class RecordWriter {
           let num: number = Number(value);
           if (Number.isInteger(num)) {
             if (num >= int32Min && num <= int32Max) {
-              localWantParams?.setParam(key, num as int);
+              localWantParams?.setParam(key, num.toInt());
             } else {
-              localWantParams?.setParam(key, num as double);
+              localWantParams?.setParam(key, num.toDouble());
             }
           } else {
-            localWantParams?.setParam(key, num as double);
+            localWantParams?.setParam(key, num.toDouble());
           }
           return true;
         }
@@ -265,9 +265,9 @@ class RecordWriter {
       if (key === VALUE_PROPERTY) {
         let value: double = obj;
         if (Number.isInteger(value) && value >= int32Min && value <= int32Max) {
-          wantParams?.setParam(key, value as int);
+          wantParams?.setParam(key, value.toInt());
         } else {
-          wantParams?.setParam(key, value as double);
+          wantParams?.setParam(key, value.toDouble());
         }
       } else {
         wantParams?.setParam(key, obj);
@@ -308,7 +308,7 @@ class RecordWriter {
           complexArray.doubleList.push(Number(num));
         });
         complexArray.intList = [];
-        complexArray.doubleList.push((element as number));
+        complexArray.doubleList.push((element.toDouble()));
       } else {
         complexArray.intList.push((element as int));
       }
@@ -347,7 +347,7 @@ class RecordWriter {
             complexArray.intList = [];
             complexArray.doubleList.push(enumNum as double);
           } else {
-            complexArray.intList.push(enumNum as int);
+            complexArray.intList.push(enumNum.toInt());
           }
         } else {
           hilog.debug(DOMAIN_ID, TAG, `array value type Class double`);
