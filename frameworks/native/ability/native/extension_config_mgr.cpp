@@ -44,7 +44,7 @@ void ExtensionConfigMgr::LoadExtensionBlockList(const std::string &extensionName
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::ifstream inFile(EXTENSION_BLOCKLIST_FILE_PATH);
     if (!inFile.is_open()) {
-        TAG_LOGW(AAFwkTag::EXT, "Config file not found: %{public}s", EXTENSION_BLOCKLIST_FILE_PATH);
+        TAG_LOGE(AAFwkTag::EXT, "Failed to open config file: %{public}s", EXTENSION_BLOCKLIST_FILE_PATH);
         return;
     }
     nlohmann::json extensionConfig;
@@ -56,21 +56,14 @@ void ExtensionConfigMgr::LoadExtensionBlockList(const std::string &extensionName
         return;
     }
     std::unordered_set<std::string> blocklist;
-    bool found = false;
-    auto blackList = extensionConfig.at(ExtensionConfigItem::ITEM_NAME_BLOCKLIST);
-    for (const auto& item : blackList.items()) {
-        if (item.key() == extensionName && blackList[item.key()].is_array()) {
-            for (const auto& value : blackList[item.key()]) {
-                if (value.is_string()) {
-                    blocklist.emplace(value.get<std::string>());
-                }
-            }
-            found = true;
-            break;
-        }
-    }
-    if (!found) {
+    auto blocklistConfig = extensionConfig.at(ExtensionConfigItem::ITEM_NAME_BLOCKLIST);
+    if (!blocklistConfig.contains(extensionName) || !blocklistConfig[extensionName].is_array()) {
         return;
+    }
+    for (const auto& value : blocklistConfig[extensionName]) {
+        if (value.is_string()) {
+            blocklist.emplace(value.get<std::string>());
+        }
     }
     std::lock_guard<std::mutex> lock(extensionBlockListMutex_);
     auto [iter, success] = extensionBlocklist_.emplace(type, std::move(blocklist));
