@@ -2196,6 +2196,7 @@ int32_t EtsUIAbility::CallSaveState(ani_value args[], WantParams &wantParams, Ap
     AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
     return numberResult;
 }
+
 } // namespace AbilityRuntime
 } // namespace OHOS
 
