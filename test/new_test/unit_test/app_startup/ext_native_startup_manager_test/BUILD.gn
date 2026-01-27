@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-module_output_path = "ability_runtime/app_startup"
+module_output_path = "ability_runtime/ability_runtime/app_startup"
 
 copy("ext_native_startup_manager_copy") {
   sources = [ "${ability_runtime_path}/interfaces/kits/native/appkit/app_startup/ext_native_startup_manager.h" ]
