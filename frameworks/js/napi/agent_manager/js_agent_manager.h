@@ -89,6 +89,15 @@ public:
      */
     static napi_value ConnectAgentExtensionAbility(napi_env env, napi_callback_info info);
 
+    /**
+     * @brief Native method for disconnecting from an agent extension.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value DisconnectAgentExtensionAbility(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for getting all agent cards.
@@ -129,6 +138,16 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnConnectAgentExtensionAbility(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for disconnecting from an agent extension.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnDisconnectAgentExtensionAbility(napi_env env, size_t argc, napi_value *argv);
 
     /**
      * @brief Validate connection parameters.

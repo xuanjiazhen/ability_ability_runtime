@@ -37,18 +37,15 @@ void RemoveAgentExtensionConnection(int64_t connectId);
  * @param want The want information for the connection.
  * @return Returns the connection ID.
  */
-int64_t InsertAgentExtensionConnection(sptr<JSAgentExtensionConnection> connection,
-    const AAFwk::Want &want);
+int64_t InsertAgentExtensionConnection(sptr<JSAgentExtensionConnection> connection, const AAFwk::Want &want);
 
 /**
  * Find agent extension connection by ID.
  *
  * @param connectId The connection ID to find.
- * @param want Output parameter for the want information.
  * @param connection Output parameter for the found connection.
  */
-void FindAgentExtensionConnection(const int64_t &connectId, AAFwk::Want &want,
-    sptr<JSAgentExtensionConnection> &connection);
+void FindAgentExtensionConnection(const int64_t &connectId, sptr<JSAgentExtensionConnection> &connection);
 
 /**
  * Find agent extension connection by want and callback.

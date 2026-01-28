@@ -45,7 +45,7 @@ struct AgentConnectionInfo {
     AAFwk::Operation connectReceiver;
 
     // The connection object
-    sptr<AbilityRuntime::AbilityConnection> abilityConnection;
+    sptr<AgentConnection> agentConnection;
 
     // Agent extension proxy for bidirectional communication
     // (from Want parameter AGENTEXTENSIONHOSTPROXY_KEY)
@@ -59,10 +59,10 @@ struct AgentConnectionInfo {
      *
      * @param agentId The agent identifier.
      * @param connectReceiver The connection receiver operation.
-     * @param abilityConnection The ability connection object.
+     * @param agentConnection The agent connection object.
      */
     AgentConnectionInfo(const std::string &agentId, const AAFwk::Operation &connectReceiver,
-        const sptr<AbilityRuntime::AbilityConnection> &abilityConnection);
+        const sptr<AgentConnection> &agentConnection);
 
     /**
      * @brief Set the agent extension proxy pointer.
@@ -126,6 +126,44 @@ struct AgentConnectionInfo {
 };
 
 /**
+ * @class AgentConnection
+ * @brief Connection class for AgentExtensionAbility.
+ *
+ * Inherits from AbilityConnection and uses AgentConnectionManager
+ * for connection lifecycle management instead of ConnectionManager.
+ */
+class AgentConnection : public AbilityRuntime::AbilityConnection {
+public:
+    /**
+     * @brief Constructor.
+     */
+    AgentConnection() = default;
+
+    /**
+     * @brief Destructor.
+     */
+    ~AgentConnection() override = default;
+
+    /**
+     * @brief Called when ability connection is done.
+     *
+     * @param element Service ability's ElementName.
+     * @param remoteObject The session proxy of service ability.
+     * @param resultCode ERR_OK on success, others on failure.
+     */
+    void OnAbilityConnectDone(
+        const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode) override;
+
+    /**
+     * @brief Called when ability disconnection is done.
+     *
+     * @param element Service ability's ElementName.
+     * @param resultCode ERR_OK on success, others on failure.
+     */
+    void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) override;
+};
+
+/**
  * @class AgentConnectionManager
  * @brief Manages connections to AgentExtensionAbility instances.
  *
@@ -172,7 +210,7 @@ public:
      * @param connection The connection to disconnect.
      * @return Returns ERR_OK on success, error code otherwise.
      */
-    ErrCode DisconnectAgentExtensionAbility(const sptr<AbilityRuntime::AbilityConnection> &connection);
+    ErrCode DisconnectAgentExtensionAbility(const sptr<AbilityRuntime::AbilityConnectCallback> &connection);
 
     /**
      * @brief Remove a connection when the agent extension dies.
@@ -180,15 +218,7 @@ public:
      * @param connection The connection to remove.
      * @return Returns true if removed, false otherwise.
      */
-    bool RemoveConnection(const sptr<AbilityRuntime::AbilityConnection> &connection);
-
-    /**
-     * @brief Report connection leak event for debugging.
-     *
-     * @param pid The process ID.
-     * @param tid The thread ID.
-     */
-    void ReportConnectionLeakEvent(const int pid, const int tid);
+    bool RemoveConnection(const sptr<AgentConnection> &connection);
 
     /**
      * @brief Disconnect a nonexistent service (cleanup).
@@ -198,7 +228,7 @@ public:
      * @return Returns true if disconnected, false otherwise.
      */
     bool DisconnectNonexistentService(const AppExecFwk::ElementName &element,
-        const sptr<AbilityRuntime::AbilityConnection> connection);
+        const sptr<AgentConnection> connection);
 
 private:
     /**
@@ -264,7 +294,7 @@ private:
 
 private:
     std::mutex connectionsLock_;
-    std::map<AgentConnectionInfo, std::vector<sptr<AbilityRuntime::AbilityConnectCallback>>> abilityConnections_;
+    std::map<AgentConnectionInfo, std::vector<sptr<AbilityRuntime::AbilityConnectCallback>>> agentConnections_;
 };
 
 } // namespace AgentRuntime

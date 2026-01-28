@@ -15,10 +15,13 @@
 
 #include "agent_connection_manager.h"
 
+#include <unistd.h>
+
 #include "ability_connection.h"
 #include "ability_manager_errors.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_manager_client.h"
+#include "connection_manager.h"
 #include "hilog_tag_wrapper.h"
 
 using namespace OHOS::AbilityRuntime;
@@ -27,12 +30,82 @@ namespace OHOS {
 namespace AgentRuntime {
 namespace {
 constexpr int64_t CONNECTING_TIMEOUT = 30000;
-}
+constexpr int32_t DIED = -1;
+} // namespace
 
 AgentConnectionInfo::AgentConnectionInfo(const std::string &agentId,
-    const AAFwk::Operation &connectReceiver, const sptr<AbilityConnection> &abilityConnection)
-    : agentId(agentId), connectReceiver(connectReceiver), abilityConnection(abilityConnection)
+    const AAFwk::Operation &connectReceiver, const sptr<AgentConnection> &agentConnection)
+    : agentId(agentId), connectReceiver(connectReceiver), agentConnection(agentConnection)
 {}
+
+void AgentConnection::OnAbilityConnectDone(
+    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
+{
+    TAG_LOGI(AAFwkTag::SER_ROUTER,
+        "OnAbilityConnectDone, bundleName:%{public}s, abilityName:%{public}s, resultCode:%{public}d",
+        element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
+    std::vector<sptr<AbilityConnectCallback>> callbacks
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (abilityConnectCallbackList_.empty()) {
+            TAG_LOGW(AAFwkTag::SER_ROUTER, "empty callbackList");
+            return;
+        }
+    
+        SetRemoteObject(remoteObject);
+        SetResultCode(resultCode);
+        SetConnectionState(CONNECTION_STATE_CONNECTED);
+    
+        callbacks = GetCallbackList();
+    }
+    sptr<AgentConnection> connection(this);
+    if (AgentConnectionManager::GetInstance().DisconnectNonexistentService(element, connection)) {
+        TAG_LOGW(AAFwkTag::SER_ROUTER, "No need onConnect callback");
+        return;
+    }
+
+    auto item = callbacks.begin();
+    while (item != callbacks.end()) {
+        (*item)->OnAbilityConnectDone(element, remoteObject, resultCode);
+        item++;
+    }
+}
+
+void AgentConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
+{
+    TAG_LOGI(AAFwkTag::SER_ROUTER,
+        "OnAbilityDisconnectDone, bundleName:%{public}s, abilityName:%{public}s, resultCode:%{public}d",
+        element.GetBundleName().c_str(), element.GetAbilityName().c_str(), resultCode);
+    std::vector<sptr<AbilityConnectCallback>> callbacks
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        SetConnectionState(CONNECTION_STATE_DISCONNECTED);
+        if (abilityConnectCallbackList_.empty()) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "empty callbackList");
+            return;
+        }
+    
+        callbacks = GetCallbackList();
+    }
+
+    // if resultCode < 0 that means the service is dead
+    if (resultCode == DIED) {
+        sptr<AgentConnection> connection(this);
+        bool ret = AgentConnectionManager::GetInstance().RemoveConnection(connection);
+        if (ret) {
+            ConnectionManager::GetInstance().ReportConnectionLeakEvent(getpid(), gettid());
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "not disconnected");
+        }
+        resultCode = DIED + 1;
+    }
+
+    auto item = callbacks.begin();
+    while (item != callbacks.end()) {
+        (*item)->OnAbilityDisconnectDone(element, resultCode);
+        item++;
+    }
+    SetRemoteObject(nullptr);
+}
 
 AgentConnectionManager &AgentConnectionManager::GetInstance()
 {
@@ -46,109 +119,118 @@ ErrCode AgentConnectionManager::ConnectAgentExtensionAbility(const AAFwk::Want &
     return ConnectAbilityInner(want, connectCallback);
 }
 
-// ErrCode AgentConnectionManager::DisconnectAgentExtensionAbility(const sptr<AbilityConnection> &connection)
-// {
-//     if (connection == nullptr) {
-//         TAG_LOGE(AAFwkTag::SER_ROUTER, "null connection");
-//         return ERR_INVALID_VALUE;
-//     }
+ErrCode AgentConnectionManager::DisconnectAgentExtensionAbility(const sptr<AbilityConnectCallback> &connectCallback)
+{
+    if (connectCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null connectCallback");
+        return ERR_INVALID_VALUE;
+    }
 
-//     TAG_LOGD(AAFwkTag::SER_ROUTER, "connection: %{public}p", connection.GetRefPtr());
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "DisconnectAgentExtensionAbility called");
+    std::lock_guard<std::mutex> lock(connectionsLock_);
 
-//     std::lock_guard<std::mutex> lock(connectionsLock_);
-//     auto item = abilityConnections_.begin();
+    bool found = false;
+    auto item = agentConnections_.begin();
+    if (!agentConnections_.empty()) {
+        TAG_LOGD(AAFwkTag::SER_ROUTER, "Connection size:%{public}zu", agentConnections_.size());
+    }
 
-//     while (item != abilityConnections_.end()) {
-//         if (item->first.abilityConnection != connection) {
-//             item++;
-//             continue;
-//         }
+    while (item != agentConnections_.end()) {
+        auto callbackIter = std::find(item->second.begin(), item->second.end(), connectCallback);
+        if (callbackIter == item->second.end()) {
+            item++;
+            continue;
+        }
 
-//         TAG_LOGD(AAFwkTag::SER_ROUTER, "found connection, callback size: %{public}zu", item->second.size());
-//         sptr<AbilityConnection> abilityConnection = item->first.abilityConnection;
-//         std::vector<sptr<AbilityConnectCallback>> callbacks = item->second;
-//         // Save connectReceiver info before erasing
-//         const AAFwk::Operation connectReceiver = item->first.connectReceiver;
-//         item = abilityConnections_.erase(item);
+        found = true;
+        TAG_LOGD(AAFwkTag::SER_ROUTER, "callback size: %{public}zu", item->second.size());
 
-//         // Notify all callbacks and disconnect
-//         for (auto &callback : callbacks) {
-//             AppExecFwk::ElementName element;
-//             element.SetBundleName(connectReceiver.GetBundleName());
-//             element.SetModuleName(connectReceiver.GetModuleName());
-//             element.SetAbilityName(connectReceiver.GetAbilityName());
-//             callback->OnAbilityDisconnectDone(element, ERR_OK);
-//             abilityConnection->RemoveConnectCallback(callback);
-//         }
+        // Remove the callback from the list
+        item->second.erase(callbackIter);
 
-//         TAG_LOGI(AAFwkTag::SER_ROUTER, "disconnectAbility");
-//         auto ret = AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(abilityConnection);
-//         if (ret != ERR_OK) {
-//             TAG_LOGE(AAFwkTag::SER_ROUTER, "disconnect err:%{public}d", ret);
-//             return ret;
-//         }
-//         return ERR_OK;
-//     }
+        sptr<AgentConnection> agentConnection = item->first.agentConnection;
+        const AAFwk::Operation &connectReceiver = item->first.connectReceiver;
 
-//     TAG_LOGE(AAFwkTag::SER_ROUTER, "connection not found");
-//     return AAFwk::CONNECTION_NOT_EXIST;
-// }
+        // Build element name for callback notification
+        AppExecFwk::ElementName element;
+        element.SetBundleName(connectReceiver.GetBundleName());
+        element.SetModuleName(connectReceiver.GetModuleName());
+        element.SetAbilityName(connectReceiver.GetAbilityName());
 
-// bool AgentConnectionManager::RemoveConnection(const sptr<AbilityConnection> &connection)
-// {
-//     std::lock_guard<std::mutex> lock(connectionsLock_);
-//     TAG_LOGD(AAFwkTag::SER_ROUTER, "abilityConnectionsSize: %{public}zu", abilityConnections_.size());
+        if (item->second.empty()) {
+            // No more callbacks, disconnect the ability connection
+            item = agentConnections_.erase(item);
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "no callback left, disconnectAbility");
 
-//     bool isDisconnect = false;
-//     auto iter = abilityConnections_.begin();
-//     while (iter != abilityConnections_.end()) {
-//         AgentConnectionInfo connectionInfo = iter->first;
-//         if (connectionInfo.abilityConnection == connection) {
-//             TAG_LOGD(AAFwkTag::SER_ROUTER, "Remove connection");
-//             iter = abilityConnections_.erase(iter);
-//             isDisconnect = true;
-//         } else {
-//             ++iter;
-//         }
-//     }
-//     return isDisconnect;
-// }
+            auto ret = AgentManagerClient::GetInstance()->DisconnectAgentExtensionAbility(agentConnection);
+            if (ret != ERR_OK) {
+                TAG_LOGE(AAFwkTag::SER_ROUTER, "disconnect err:%{public}d", ret);
+                return ret;
+            }
+        } else {
+            // Other callbacks still exist, just notify this one
+            connectCallback->OnAbilityDisconnectDone(element, ERR_OK);
+            agentConnection->RemoveConnectCallback(connectCallback);
+            TAG_LOGD(AAFwkTag::SER_ROUTER, "callbacks not empty, no need disconnectAbility");
+            item++;
+        }
+    }
 
-// void AgentConnectionManager::ReportConnectionLeakEvent(const int pid, const int tid)
-// {
-//     TAG_LOGD(AAFwkTag::SER_ROUTER, "pid:%{public}d, tid:%{public}d", pid, tid);
-//     // TODO: Implement HiChecker reporting if needed
-//     (void)pid;
-//     (void)tid;
-// }
+    if (!found) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "connection not found");
+        return AAFwk::CONNECTION_NOT_EXIST;
+    }
 
-// bool AgentConnectionManager::DisconnectNonexistentService(const AppExecFwk::ElementName &element,
-//     const sptr<AbilityConnection> &connection)
-// {
-//     bool exit = false;
-//     std::map<AgentConnectionInfo, std::vector<sptr<AbilityConnectCallback>>> abilityConnections;
-//     {
-//         std::lock_guard<std::mutex> lock(connectionsLock_);
-//         abilityConnections = abilityConnections_;
-//     }
-//     TAG_LOGD(AAFwkTag::SER_ROUTER, "abilityConnectionsSize: %{public}zu", abilityConnections.size());
+    return ERR_OK;
+}
 
-//     for (auto &&abilityConnection : abilityConnections) {
-//         AgentConnectionInfo connectionInfo = abilityConnection.first;
-//         if (connectionInfo.abilityConnection == connection &&
-//             connectionInfo.connectReceiver.GetBundleName() == element.GetBundleName()) {
-//             TAG_LOGD(AAFwkTag::SER_ROUTER, "find connection");
-//             exit = true;
-//             break;
-//         }
-//     }
-//     if (!exit) {
-//         TAG_LOGE(AAFwkTag::SER_ROUTER, "service need disconnect");
-//         AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(connection);
-//         return true;
-//     }
-//     return false;
-// }
+bool AgentConnectionManager::RemoveConnection(const sptr<AgentConnection> &connection)
+{
+    std::lock_guard<std::mutex> lock(connectionsLock_);
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "agentConnectionsSize: %{public}zu", agentConnections_.size());
+
+    bool isDisconnect = false;
+    auto iter = agentConnections_.begin();
+    while (iter != agentConnections_.end()) {
+        AgentConnectionInfo connectionInfo = iter->first;
+        if (connectionInfo.agentConnection == connection) {
+            TAG_LOGD(AAFwkTag::SER_ROUTER, "Remove connection");
+            iter = agentConnections_.erase(iter);
+            isDisconnect = true;
+        } else {
+            ++iter;
+        }
+    }
+    return isDisconnect;
+}
+
+bool AgentConnectionManager::DisconnectNonexistentService(const AppExecFwk::ElementName &element,
+    const sptr<AgentConnection> &connection)
+{
+    bool exit = false;
+    std::map<AgentConnectionInfo, std::vector<sptr<AbilityConnectCallback>>> agentConnections;
+    {
+        std::lock_guard<std::mutex> lock(connectionsLock_);
+        agentConnections = agentConnections_;
+    }
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "agentConnectionsSize: %{public}zu", agentConnections.size());
+
+    for (auto &&agentConnection : agentConnections) {
+        AgentConnectionInfo connectionInfo = agentConnection.first;
+        if (connectionInfo.agentConnection == connection &&
+            connectionInfo.connectReceiver.GetBundleName() == element.GetBundleName()) {
+            TAG_LOGD(AAFwkTag::SER_ROUTER, "find connection");
+            exit = true;
+            break;
+        }
+    }
+    if (!exit) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "service need disconnect");
+        AgentManagerClient::GetInstance()->DisconnectAgentExtensionAbility(connection);
+        return true;
+    }
+    return false;
+}
 
 bool AgentConnectionManager::IsConnectReceiverEqual(const AAFwk::Operation &connectReceiver,
     const AppExecFwk::ElementName &connectReceiverOther)
@@ -200,22 +282,21 @@ bool AgentConnectionManager::MatchConnection(const std::string &agentId, const A
 ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,
     const sptr<AbilityConnectCallback> &connectCallback)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "called");
-    sptr<AbilityConnection> abilityConnection = sptr<AbilityConnection>::MakeSptr();
-    if (abilityConnection == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null abilityConnection");
+    sptr<AgentConnection> agentConnection = sptr<AgentConnection>::MakeSptr();
+    if (agentConnection == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentConnection");
         return AAFwk::ERR_INVALID_CALLER;
     }
 
-    abilityConnection->AddConnectCallback(connectCallback);
-    abilityConnection->SetConnectionState(CONNECTION_STATE_CONNECTING);
+    agentConnection->AddConnectCallback(connectCallback);
+    agentConnection->SetConnectionState(CONNECTION_STATE_CONNECTING);
 
     // Extract agentId from Want
     std::string agentId = want.GetStringParam(AGENTID_KEY);
 
     // Create AgentConnectionInfo
     AAFwk::Operation connectReceiver = want.GetOperation();
-    AgentConnectionInfo connectionInfo(agentId, connectReceiver, abilityConnection);
+    AgentConnectionInfo connectionInfo(agentId, connectReceiver, agentConnection);
     connectionInfo.SetAgentExtProxyPtr(GetAgentExtProxyPtr(want));
     connectionInfo.RecordConnectingTime();
 
@@ -223,15 +304,15 @@ ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,
         std::lock_guard<std::mutex> lock(connectionsLock_);
         std::vector<sptr<AbilityConnectCallback>> callbacks;
         callbacks.push_back(connectCallback);
-        abilityConnections_[connectionInfo] = callbacks;
+        agentConnections_[connectionInfo] = callbacks;
     }
 
-    ErrCode ret = AgentManagerClient::GetInstance().ConnectAgentExtensionAbility(want, abilityConnection);
+    ErrCode ret = AgentManagerClient::GetInstance().ConnectAgentExtensionAbility(want, agentConnection);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "error:%{public}d", ret);
         // Remove the failed connection from map
         std::lock_guard<std::mutex> lock(connectionsLock_);
-        abilityConnections_.erase(connectionInfo);
+        agentConnections_.erase(connectionInfo);
     }
     return ret;
 }
@@ -241,7 +322,7 @@ bool AgentConnectionManager::IsConnectingTimeout(const AgentConnectionInfo &info
     if (info.connectingTime == 0) {
         return false;
     }
-    if (!info.abilityConnection || info.abilityConnection->GetConnectionState() != CONNECTION_STATE_CONNECTING) {
+    if (!info.agentConnection || info.agentConnection->GetConnectionState() != CONNECTION_STATE_CONNECTING) {
         return false;
     }
     auto now = std::chrono::steady_clock::now().time_since_epoch();
@@ -272,48 +353,48 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
         agentId.c_str(), want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetModuleName().c_str(), want.GetElement().GetAbilityName().c_str());
 
-    sptr<AbilityConnection> abilityConnection;
+    sptr<AgentConnection> agentConnection;
 
     {
         std::lock_guard<std::mutex> lock(connectionsLock_);
 
         // Search for existing connection
-        auto connectionIter = abilityConnections_.end();
-        for (auto iter = abilityConnections_.begin(); iter != abilityConnections_.end(); ++iter) {
+        auto connectionIter = agentConnections_.end();
+        for (auto iter = agentConnections_.begin(); iter != agentConnections_.end(); ++iter) {
             if (MatchConnection(agentId, want, *iter) && !IsConnectingTimeout(iter->first)) {
                 connectionIter = iter;
                 break;
             }
         }
 
-        if (connectionIter != abilityConnections_.end()) {
+        if (connectionIter != agentConnections_.end()) {
             // Found existing connection
             std::vector<sptr<AbilityConnectCallback>> &callbacks = connectionIter->second;
             callbacks.push_back(connectCallback);
-            abilityConnection = connectionIter->first.abilityConnection;
+            agentConnection = connectionIter->first.agentConnection;
 
-            if (!abilityConnection) {
-                TAG_LOGE(AAFwkTag::SER_ROUTER, "AbilityConnection not exist");
+            if (!agentConnection) {
+                TAG_LOGE(AAFwkTag::SER_ROUTER, "AgentConnection not exist");
                 return AAFwk::ERR_INVALID_CALLER;
             }
 
-            TAG_LOGI(AAFwkTag::SER_ROUTER, "abilityConnectionsSize: %{public}zu, ConnectionState: %{public}d",
-                abilityConnections_.size(), abilityConnection->GetConnectionState());
+            TAG_LOGI(AAFwkTag::SER_ROUTER, "agentConnectionsSize: %{public}zu, ConnectionState: %{public}d",
+                agentConnections_.size(), agentConnection->GetConnectionState());
 
-            abilityConnection->AddConnectCallback(connectCallback);
-            TAG_LOGD(AAFwkTag::SER_ROUTER, "abilityConnection exist, callbackSize:%{public}zu", callbacks.size());
+            agentConnection->AddConnectCallback(connectCallback);
+            TAG_LOGD(AAFwkTag::SER_ROUTER, "agentConnection exist, callbackSize:%{public}zu", callbacks.size());
 
-            if (abilityConnection->GetConnectionState() == CONNECTION_STATE_CONNECTED) {
+            if (agentConnection->GetConnectionState() == CONNECTION_STATE_CONNECTED) {
                 AppExecFwk::ElementName element = want.GetElement();
-                connectCallback->OnAbilityConnectDone(element, abilityConnection->GetRemoteObject(),
-                    abilityConnection->GetResultCode());
+                connectCallback->OnAbilityConnectDone(element, agentConnection->GetRemoteObject(),
+                    agentConnection->GetResultCode());
                 return ERR_OK;
             }
-            if (abilityConnection->GetConnectionState() == CONNECTION_STATE_CONNECTING) {
+            if (agentConnection->GetConnectionState() == CONNECTION_STATE_CONNECTING) {
                 return ERR_OK;
             }
-            TAG_LOGE(AAFwkTag::SER_ROUTER, "abilityConnection disconnected");
-            abilityConnections_.erase(connectionIter);
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "agentConnection disconnected");
+            agentConnections_.erase(connectionIter);
         }
     }
 

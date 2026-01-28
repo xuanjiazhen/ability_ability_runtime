@@ -42,6 +42,8 @@ public:
     int32_t ConnectAgentExtensionAbility(const AAFwk::Want &want,
         const sptr<AAFwk::IAbilityConnection> &connection);
 
+    int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection);
+
 private:
     sptr<IAgentManager> GetAgentMgrProxy();
     void ClearProxy();

@@ -80,7 +80,7 @@ int64_t InsertAgentExtensionConnection(sptr<JSAgentExtensionConnection> connecti
     return connectId;
 }
 
-void FindAgentExtensionConnection(const int64_t &connectId, AAFwk::Want &want,
+void FindAgentExtensionConnection(const int64_t &connectId,
     sptr<JSAgentExtensionConnection> &connection)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "FindAgentExtensionConnection by id: %{public}ld", connectId);
@@ -90,7 +90,6 @@ void FindAgentExtensionConnection(const int64_t &connectId, AAFwk::Want &want,
             return connectId == obj.first.id;
         });
     if (item != g_agentExtensionConnects.end()) {
-        want = item->first.want;
         connection = item->second;
         TAG_LOGD(AAFwkTag::SER_ROUTER, "Found connection");
     } else {

@@ -22,6 +22,7 @@
 #include "js_agent_connector_stub_impl.h"
 #include "js_agent_extension_connection.h"
 #include "js_agent_manager_utils.h"
+#include "js_agent_receiver_proxy.h"
 #include "js_error_utils.h"
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
@@ -374,6 +375,66 @@ napi_value JsAgentManager::ScheduleAgentConnection(napi_env env, const AAFwk::Wa
     return result;
 }
 
+napi_value JsAgentManager::DisconnectAgentExtensionAbility(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JsAgentManager, OnDisconnectAgentExtensionAbility);
+}
+
+napi_value JsAgentManager::OnDisconnectAgentExtensionAbility(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "OnDisconnectAgentExtensionAbility called");
+
+    if (argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Too few parameters");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    // Extract connectionId from AgentProxy (JsAgentReceiverProxy)
+    // Unwrap the native JsAgentReceiverProxy object
+    JsAgentReceiverProxy *proxy = nullptr;
+    napi_status status = napi_unwrap(env, info.argv[ARG_INDEX_0], reinterpret_cast<void**>(&proxy));
+    if (status != napi_ok || proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "napi_unwrap err or null proxy");
+        ThrowInvalidParamError(env, "Parameter verification failed");
+        return CreateJsUndefined(env);
+    }
+
+    int64_t connectionId = proxy->GetConnectionId();
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "connectionId: %{public}ld", connectionId);
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [connectionId, innerErrCode]() {
+        TAG_LOGD(AAFwkTag::SER_ROUTER, "Execute disconnect, connectionId: %{public}ld", connectionId);
+
+        sptr<JSAgentExtensionConnection> connection = nullptr;
+        AgentExtensionConnection::FindAgentExtensionConnection(connectionId, connection);
+
+        if (connection == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "Connection not found");
+            *innerErrCode = ERR_INVALID_VALUE;
+            return;
+        }
+
+        *innerErrCode = AgentConnectionManager::GetInstance().DisconnectAgentExtensionAbility(connection);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+        } else {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "Disconnect failed: %{public}d", *innerErrCode);
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+        }
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsAgentManager::OnDisconnectAgentExtensionAbility",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+
+    return result;
+}
+
 napi_value JsAgentManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "init agentManager");
@@ -391,6 +452,8 @@ napi_value JsAgentManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getAgentCardByAgentId", moduleName, JsAgentManager::GetAgentCardByAgentId);
     BindNativeFunction(env, exportObj, "connectAgentExtensionAbility", moduleName,
         JsAgentManager::ConnectAgentExtensionAbility);
+    BindNativeFunction(env, exportObj, "disconnectAgentExtensionAbility", moduleName,
+        JsAgentManager::DisconnectAgentExtensionAbility);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "end");
     return CreateJsUndefined(env);
 }

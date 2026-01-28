@@ -25,6 +25,8 @@
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "permission_constants.h"
+#include "permission_verification.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
@@ -128,7 +130,12 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "ConnectAgentExtensionAbility called");
 
-    // TODO validate permission
+    // Validate permission
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Permission verification failed");
+        return ERR_PERMISSION_DENIED;
+    }
 
     // Validate connection object
     if (connection == nullptr) {
@@ -146,6 +153,35 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
     }
 
     TAG_LOGI(AAFwkTag::SER_ROUTER, "ConnectAgentExtensionAbility succeeded");
+    return ERR_OK;
+}
+
+int32_t AgentManagerService::DisconnectAgentExtensionAbility(
+    const sptr<AbilityRuntime::AbilityConnectCallback> &connection)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "DisconnectAgentExtensionAbility called");
+
+    // Validate permission
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Permission verification failed");
+        return ERR_PERMISSION_DENIED;
+    }
+
+    // Validate connection object
+    if (connection == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Invalid connection object");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Use IN_PROCESS_CALL to reset calling identity and disconnect via AbilityManagerClient
+    auto ret = IN_PROCESS_CALL(AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(connection));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "DisconnectAbility failed: %{public}d", ret);
+        return ret;
+    }
+
+    TAG_LOGI(AAFwkTag::SER_ROUTER, "DisconnectAgentExtensionAbility succeeded");
     return ERR_OK;
 }
 }  // namespace AgentRuntime

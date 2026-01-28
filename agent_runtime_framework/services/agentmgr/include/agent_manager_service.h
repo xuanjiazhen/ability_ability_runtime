@@ -55,6 +55,8 @@ public:
 
     int32_t ConnectAgentExtensionAbility(const AAFwk::Want &want, const sptr<IRemoteObject> &connection) override;
 
+    int32_t DisconnectAgentExtensionAbility(const sptr<IRemoteObject> &connection) override;
+
 private:
     AgentManagerService();
     void Init();
