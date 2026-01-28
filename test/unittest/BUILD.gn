@@ -454,6 +454,7 @@ group("unittest") {
       "preload_uiext_state_observer_test:unittest",
       "prepare_terminate_callback_proxy_test:unittest",
       "query_erms_manager_test:unittest",
+      "query_erms_observer_proxy_test:unittest",
       "query_erms_observer_manager_test:unittest",
       "quick_fix:unittest",
       "rate_limiter_test:rate_limiter_test",
