@@ -56,6 +56,7 @@ public:
     MOCK_METHOD0(OnRemoteTerminated, void());
     MOCK_METHOD0(GetContentInfo, std::string());
     MOCK_METHOD1(OnSaveData, bool(WantParams &saveData));
+    MOCK_METHOD1(OnRestoreData, bool(WantParams &restoreData));
     MOCK_METHOD3(OnContinue, int32_t(AAFwk::WantParams &wantParams, bool &isAsyncOnContinue,
         const AppExecFwk::AbilityInfo &abilityInfo));
     MOCK_METHOD1(IsContinuePageStack, bool(WantParams &wantParams));

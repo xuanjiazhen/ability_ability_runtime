@@ -2044,6 +2044,7 @@ ohos_unittest("continuation_test") {
     "${ability_runtime_native_path}/appkit/app/application_cleaner.cpp",
     "${ability_runtime_native_path}/appkit/app/ohos_application.cpp",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit/src/mock_ability_connect_callback.cpp",
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_ability_manager_service.cpp",
     "continuation_test.cpp",
   ]
 
@@ -2061,6 +2062,7 @@ ohos_unittest("continuation_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/abilitymgr:abilityms",
   ]
 
   external_deps = [
