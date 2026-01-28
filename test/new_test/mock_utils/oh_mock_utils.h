@@ -187,6 +187,78 @@ decorator ret funcName(__VA_ARGS__)                                             
 }
 
 /**
+ * @brief Mock a static method (declaration only - use OH_MOCK_STATIC_METHOD_IMPL for implementation).
+ *        Use this macro inside class definition to declare a static method.
+ * @param ret Return type
+ * @param className Class name (for key generation, should match OH_EXPECT_RET call)
+ * @param funcName Function name
+ * @param ... Parameter types
+ */
+#define OH_MOCK_STATIC_METHOD(ret, className, funcName, ...)    \
+    static ret funcName(__VA_ARGS__);
+
+/**
+ * @brief Implement a mocked static method outside class definition.
+ *        Use this macro after the class definition to provide the implementation.
+ * @param ret Return type
+ * @param fullClassName Full class name (including namespaces, e.g., OHOS::AAFwk::FilePermissionManager)
+ * @param keyClassName Class name for key generation (should match OH_EXPECT_RET call, e.g., FilePermissionManager)
+ * @param funcName Function name
+ * @param ... Parameter names and types (with names)
+ */
+#define OH_MOCK_STATIC_METHOD_IMPL(ret, fullClassName, keyClassName, funcName, ...) \
+ret fullClassName::funcName(__VA_ARGS__)                              \
+{                                                                  \
+    std::string key = #keyClassName"_"#funcName"_"#__VA_ARGS__;    \
+    if (g_mockMap.find(key) == g_mockMap.end()) {                  \
+        std::vector<ResultWrap> expectRets;                        \
+        g_mockMap[key] = expectRets;                               \
+    }                                                              \
+    ret temp;                                                      \
+    ResultWrap tempRet(temp);                                      \
+    auto it = g_mockMap.find(key);                                 \
+    if (it != g_mockMap.end()) {                                   \
+        std::vector<ResultWrap> expectRets = it->second;           \
+        if (!expectRets.empty()) {                                 \
+            tempRet = expectRets[0];                               \
+            expectRets.erase(expectRets.begin());                  \
+        }                                                          \
+        g_mockMap[key] = expectRets;                               \
+    }                                                              \
+    return tempRet.Get<ret>();                                     \
+}
+
+/**
+ * @brief Mock a static method inline (defines method inside class).
+ *        This is simpler than OH_MOCK_STATIC_METHOD + OH_MOCK_STATIC_METHOD_IMPL.
+ * @param ret Return type
+ * @param keyClassName Class name for key generation (should match OH_EXPECT_RET call)
+ * @param funcName Function name
+ * @param ... Parameter types
+ */
+#define OH_MOCK_STATIC_METHOD_INLINE(ret, keyClassName, funcName, ...) \
+    static ret funcName(__VA_ARGS__)                                  \
+    {                                                                 \
+        std::string key = #keyClassName"_"#funcName"_"#__VA_ARGS__;  \
+        if (g_mockMap.find(key) == g_mockMap.end()) {                 \
+            std::vector<ResultWrap> expectRets;                       \
+            g_mockMap[key] = expectRets;                              \
+        }                                                             \
+        ret temp;                                                     \
+        ResultWrap tempRet(temp);                                     \
+        auto it = g_mockMap.find(key);                                \
+        if (it != g_mockMap.end()) {                                  \
+            std::vector<ResultWrap> expectRets = it->second;          \
+            if (!expectRets.empty()) {                                \
+                tempRet = expectRets[0];                              \
+                expectRets.erase(expectRets.begin());                 \
+            }                                                         \
+            g_mockMap[key] = expectRets;                              \
+        }                                                             \
+        return tempRet.Get<ret>();                                    \
+    }
+
+/**
  * @brief Mock a virtual or static member function.
  *        This macro function while create a definition of a function that expected to be mocked.
  * @param ret Indicate the type of return value.
@@ -283,9 +355,9 @@ do {                                                                            
     std::string key = #className"_"#funcName"_"#__VA_ARGS__;                       \
     std::vector<ResultWrap> v;                                                     \
     for (auto e : expectRetVec) {                                                  \
-        if (std::is_same<decltype(e), vector<bool>::reference>::value == true) {   \
+        if constexpr (std::is_same<decltype(e), std::vector<bool>::reference>::value) { \
             bool conE = bool(e);                                                   \
-            ResultWrap r(conE);                                                 \
+            ResultWrap r(conE);                                                    \
             v.emplace_back(r);                                                     \
         } else {                                                                   \
             ResultWrap r(e);                                                       \
@@ -307,28 +379,28 @@ do {                                                                            
     std::string key = #className"_"#funcName"_"#__VA_ARGS__;                               \
     std::vector<ResultWrap> v;                                                             \
     for (auto e : expectRetVec) {                                                          \
-        if (std::is_same<decltype(e), vector<bool>::reference>::value == true) {           \
+        if constexpr (std::is_same<decltype(e), vector<bool>::reference>::value) {         \
             bool conE = bool(e);                                                           \
             ResultWrap r(conE);                                                            \
-            v.emplace_back(r);                                                     \
-        } else {                                                                   \
-            ResultWrap r(e);                                                       \
-            v.emplace_back(r);                                                     \
-        }                                                                          \
+            v.emplace_back(r);                                                             \
+        } else {                                                                           \
+            ResultWrap r(e);                                                               \
+            v.emplace_back(r);                                                             \
+        }                                                                                  \
     }                                                                                      \
     g_mockMap[key] = v;                                                                    \
     std::vector<std::vector<ResultWrap>> vRefs;                                            \
     for (auto eOuters : expectOutputVec) {                                                 \
         std::vector<ResultWrap> vRef;                                                      \
         for (auto eOuter : eOuters) {                                                      \
-            if (std::is_same<decltype(eOuter), vector<bool>::reference>::value == true) {   \
-                bool conE = bool(eOuter);                                                   \
+            if constexpr (std::is_same<decltype(eOuter), vector<bool>::reference>::value) { \
+                bool conE = bool(eOuter);                                                  \
                 ResultWrap r(conE);                                                        \
-                vRef.emplace_back(r);                                                         \
+                vRef.emplace_back(r);                                                      \
             } else {                                                                       \
                 ResultWrap r(eOuter);                                                      \
-                vRef.emplace_back(r);                                                     \
-            }                                                                          \
+                vRef.emplace_back(r);                                                      \
+            }                                                                              \
         }                                                                                  \
         vRefs.emplace_back(vRef);                                                          \
     }                                                                                      \
