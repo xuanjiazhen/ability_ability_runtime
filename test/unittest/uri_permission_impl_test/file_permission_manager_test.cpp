@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <dlfcn.h>
 #include <gtest/gtest.h>
 #define private public
 #include "file_permission_manager.h"
@@ -23,6 +24,39 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace AAFwk {
+namespace {
+int32_t DummyGrantFunc(const std::string &path, uint32_t tokenId)
+{
+    (void)path;
+    (void)tokenId;
+    return 1;
+}
+
+int32_t DummyDenyFunc(const std::string &path, uint32_t tokenId)
+{
+    (void)path;
+    (void)tokenId;
+    return 2;
+}
+
+int32_t DummyOtherFunc(const std::string &path, uint32_t tokenId)
+{
+    (void)path;
+    (void)tokenId;
+    return 0;
+}
+
+void ResetDllWrapper()
+{
+    auto &wrapper = FilePermissionManager::GetDllWrapper();
+    if (wrapper.handle_ != nullptr) {
+        dlclose(wrapper.handle_);
+        wrapper.handle_ = nullptr;
+    }
+    wrapper.func_ = nullptr;
+}
+} // namespace
+
 class FilePermissionManagerTest : public testing::Test {
 public:
     static void SetUpTestCase();
@@ -216,6 +250,74 @@ HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_003, TestSize.Level1)
 }
 
 /*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: appdata path allowed
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_004, TestSize.Level1)
+{
+    ResetDllWrapper();
+    TokenIdPermission caller(0);
+    MyFlag::permissionSandboxAccessManager_ = true;
+    std::string appDataPath = "/storage/Users/currentUser/appdata/test_A.txt";
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, appDataPath);
+    EXPECT_TRUE(ret);
+}
+
+/*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: dll returns grant
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_005, TestSize.Level1)
+{
+    auto &wrapper = FilePermissionManager::GetDllWrapper();
+    wrapper.func_ = DummyGrantFunc;
+    TokenIdPermission caller(0);
+    std::string path = "/storage/Users/currentUser/Download/test_A.txt";
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, path);
+    EXPECT_TRUE(ret);
+    ResetDllWrapper();
+}
+
+/*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: dll returns deny
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_006, TestSize.Level1)
+{
+    auto &wrapper = FilePermissionManager::GetDllWrapper();
+    wrapper.func_ = DummyDenyFunc;
+    TokenIdPermission caller(0);
+    std::string path = "/storage/Users/currentUser/Download/test_A.txt";
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, path);
+    EXPECT_FALSE(ret);
+    ResetDllWrapper();
+}
+
+/*
+ * Feature: CheckDocsUriPermission
+ * Function: CheckDocsUriPermission
+ * SubFunction: NA
+ * FunctionPoints: dll returns other and fallback to FAM
+ */
+HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_007, TestSize.Level1)
+{
+    auto &wrapper = FilePermissionManager::GetDllWrapper();
+    wrapper.func_ = DummyOtherFunc;
+    TokenIdPermission caller(0);
+    MyFlag::permissionFileAccessManager_ = true;
+    std::string path = "/storage/Users/currentUser/Documents/test_A.txt";
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, path);
+    EXPECT_TRUE(ret);
+    ResetDllWrapper();
+}
+
+/*
  * Feature: InitDlSymbol
  * Function: InitDlSymbol
  * SubFunction: NA
@@ -259,6 +361,133 @@ HWTEST_F(FilePermissionManagerTest, InitDlSymbol_003, TestSize.Level1)
     bool ret = wrapper.InitDlSymbol(soName, funcName);
     ASSERT_FALSE(ret);
 }
+
+/*
+ * Feature: InitDlSymbol
+ * Function: InitDlSymbol
+ * SubFunction: NA
+ * FunctionPoints: InitDlSymbol when func exists
+ */
+HWTEST_F(FilePermissionManagerTest, InitDlSymbol_004, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    wrapper.func_ = DummyGrantFunc;
+    bool ret = wrapper.InitDlSymbol(nullptr, "testFunc");
+    EXPECT_TRUE(ret);
+    wrapper.func_ = nullptr;
+}
+
+/*
+ * Feature: InitDlSymbol
+ * Function: InitDlSymbol
+ * SubFunction: NA
+ * FunctionPoints: dlsym fail after preset handle
+ */
+HWTEST_F(FilePermissionManagerTest, InitDlSymbol_005, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    wrapper.handle_ = dlopen(nullptr, RTLD_NOW);
+    ASSERT_NE(wrapper.handle_, nullptr);
+    bool ret = wrapper.InitDlSymbol("ignored", "NonExistFunc");
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(wrapper.handle_, nullptr);
+    EXPECT_EQ(wrapper.func_, nullptr);
+}
+
+/*
+ * Feature: CheckUriPersistentPermission
+ * Function: CheckUriPersistentPermission
+ * SubFunction: NA
+ * FunctionPoints: file manager download bundle match
+ */
+HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_005, TestSize.Level1)
+{
+    ResetDllWrapper();
+    std::vector<Uri> uriVec;
+    uriVec.emplace_back(Uri("file://docs/storage/Users/currentUser/Download/com.example/test.txt"));
+    uint32_t callerTokenId = 1002;
+    uint32_t flag = 0;
+    std::vector<PolicyInfo> pathPolicies;
+    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, "com.example",
+        pathPolicies);
+    EXPECT_EQ(ret.size(), uriVec.size());
+    EXPECT_TRUE(ret[0]);
+}
+
+/*
+ * Feature: CheckUriPersistentPermission
+ * Function: CheckUriPersistentPermission
+ * SubFunction: NA
+ * FunctionPoints: download permission needed
+ */
+HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_006, TestSize.Level1)
+{
+    ResetDllWrapper();
+    std::vector<Uri> uriVec;
+    uriVec.emplace_back(Uri("file://docs/storage/Users/currentUser/Download/other/test.txt"));
+    uint32_t callerTokenId = 1002;
+    uint32_t flag = 0;
+    std::vector<PolicyInfo> pathPolicies;
+    MyFlag::permissionReadWriteDownload_ = false;
+    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, "com.example",
+        pathPolicies);
+    EXPECT_FALSE(ret[0]);
+
+    MyFlag::permissionReadWriteDownload_ = true;
+    ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, "com.example",
+        pathPolicies);
+    EXPECT_TRUE(ret[0]);
+}
+
+/*
+ * Feature: CheckUriPersistentPermission
+ * Function: CheckUriPersistentPermission
+ * SubFunction: NA
+ * FunctionPoints: desktop and documents permission
+ */
+HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_007, TestSize.Level1)
+{
+    ResetDllWrapper();
+    std::vector<Uri> uriVec;
+    uriVec.emplace_back(Uri("file://docs/storage/Users/currentUser/Desktop/test.txt"));
+    uriVec.emplace_back(Uri("file://docs/storage/Users/currentUser/Documents/test.txt"));
+    uint32_t callerTokenId = 1002;
+    uint32_t flag = 0;
+    std::vector<PolicyInfo> pathPolicies;
+    MyFlag::permissionReadWriteDesktop_ = true;
+    MyFlag::permissionReadWriteDocuments_ = true;
+    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, "",
+        pathPolicies);
+    EXPECT_EQ(ret.size(), uriVec.size());
+    EXPECT_TRUE(ret[0]);
+    EXPECT_TRUE(ret[1]);
+}
+
+#ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+/*
+ * Feature: CheckUriPersistentPermission
+ * Function: CheckUriPersistentPermission
+ * SubFunction: NA
+ * FunctionPoints: sandbox persist policy result applied
+ */
+HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_008, TestSize.Level1)
+{
+    ResetDllWrapper();
+    std::vector<Uri> uriVec;
+    uriVec.emplace_back(Uri("file://com.example/data/storage/el2/base/haps/entry/files/test_A.txt"));
+    uint32_t callerTokenId = 1002;
+    uint32_t flag = 0;
+    std::vector<PolicyInfo> pathPolicies;
+    SandboxManagerKit::Init();
+    SandboxManagerKit::checkPersistPolicyRet_ = 0;
+    SandboxManagerKit::checkPersistPolicyResult_ = { true };
+
+    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, "",
+        pathPolicies);
+    EXPECT_EQ(ret.size(), uriVec.size());
+    EXPECT_TRUE(ret[0]);
+}
+#endif
 
 /*
  * Feature: GetFunc
