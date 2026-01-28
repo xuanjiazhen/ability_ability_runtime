@@ -140,6 +140,7 @@ ohos_unittest("uripermmgr_unit_test") {
     "src/file_uri_distribution_utils_test.cpp",
     "src/batch_uri_test.cpp",
     "src/upms_udmf_utils_test.cpp",
+    "mock/src/ability_manager_client.cpp",
   ]
 
   deps = [

@@ -23,6 +23,8 @@
 #include "hilog_tag_wrapper.h"
 #include "oh_mock_utils.h"
 #include "ability_manager_errors.h"
+#include "mock_ability_manager_client.h"
+#include "ability_manager_client.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -38,9 +40,29 @@ public:
     void TearDown() override;
 
     std::shared_ptr<UriPermissionManagerStubImpl> stubImpl_ = nullptr;
+    static sptr<MockIAbilityManagerCollaborator> mockCollaborator_;
+    static std::shared_ptr<AbilityManagerClient> mockAbilityClient_;
 };
 
-void UriPermissionManagerStubImplTest::SetUpTestCase() {}
+void UriPermissionManagerStubImplTest::SetUpTestCase()
+{
+    // 创建并初始化 Mock Collaborator
+    mockCollaborator_ = new MockIAbilityManagerCollaborator();
+
+    // 设置默认行为：返回成功
+    mockCollaborator_->SetGrantUriPermissionCallback(
+        [](const std::vector<std::string>&, uint32_t, uint32_t, const std::string&) -> int32_t {
+            return ERR_OK;
+        });
+
+    mockCollaborator_->SetRevokeUriPermissionCallback(
+        [](uint32_t) -> int32_t {
+            return ERR_OK;
+        });
+
+    // 设置到 AbilityManagerClient
+    AbilityManagerClient::SetMockCollaborator(mockCollaborator_);
+}
 
 void UriPermissionManagerStubImplTest::TearDownTestCase() {}
 
@@ -1043,6 +1065,10 @@ HWTEST_F(UriPermissionManagerStubImplTest, GrantUriPermission_ContentUri_001, Te
 
     TAG_LOGI(AAFwkTag::URIPERMMGR, "GrantUriPermission_ContentUri_001 end");
 }
+
+// 静态成员变量定义
+sptr<MockIAbilityManagerCollaborator> UriPermissionManagerStubImplTest::mockCollaborator_ = nullptr;
+std::shared_ptr<AbilityManagerClient> UriPermissionManagerStubImplTest::mockAbilityClient_ = nullptr;
 
 } // namespace AAFwk
 } // namespace OHOS
