@@ -20,6 +20,7 @@
 #include "app_mgr_service_inner.h"
 #include "app_running_record.h"
 #include "remote_client_manager.h"
+#include "killing_process_manager.h"
 #undef private
 #include "app_scheduler.h"
 #include "app_utils.h"
@@ -842,7 +843,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_001, TestSize.Level1)
     appMgrServiceInner->Init();
     EXPECT_NE(appMgrServiceInner, nullptr);
     std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(nullptr, 0, "");
-    appMgrServiceInner->SendProcessKillEvent(appRecord, "OnRemoteDied");
+    KillingProcessManager::GetInstance().SendProcessKillEvent(appRecord, "OnRemoteDied");
     TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_001 end");
 }
 
@@ -860,7 +861,7 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_002, TestSize.Level1)
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     appMgrServiceInner->Init();
     EXPECT_NE(appMgrServiceInner, nullptr);
-    appMgrServiceInner->SendProcessKillEvent(nullptr, "OnRemoteDied");
+    KillingProcessManager::GetInstance().SendProcessKillEvent(nullptr, "OnRemoteDied");
     TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_002 end");
 }
 
@@ -1264,11 +1265,11 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypidInner_001, TestSize.Level1)
     pid_t pid = 0;
     std::string reason = "test";
     AAFwk::EventInfo eventInfo;
-    auto ret = appMgrServiceInner->KillSubProcessBypidInner(pid, reason, eventInfo);
+    auto ret = KillingProcessManager::GetInstance().KillSubProcessBypidInner(pid, reason, eventInfo);
     EXPECT_EQ(ret, AAFwk::ERR_KILL_PROCESS_NOT_EXIST);
 
     pid = 65536;
-    ret = appMgrServiceInner->KillSubProcessBypidInner(pid, reason, eventInfo);
+    ret = KillingProcessManager::GetInstance().KillSubProcessBypidInner(pid, reason, eventInfo);
     EXPECT_NE(ret, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "KillSubProcessBypidInner_001 end");
@@ -1299,7 +1300,7 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypidInner_002, TestSize.Level1)
         sleep(3);
         exit(0);
     }
-    auto ret = appMgrServiceInner->KillSubProcessBypidInner(pid, reason, eventInfo);
+    auto ret = KillingProcessManager::GetInstance().KillSubProcessBypidInner(pid, reason, eventInfo);
     EXPECT_EQ(ret, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "KillSubProcessBypidInner_002 end");
@@ -1321,8 +1322,8 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_001, TestSize.Level1)
     pid_t pid = 111;
     std::string reason = "test";
     auto ret = 0;
-    appMgrServiceInner->appRunningManager_ = nullptr;
-    ret = appMgrServiceInner->KillSubProcessBypid(pid, reason);
+    KillingProcessManager::GetInstance().appRunningManager_ = nullptr;
+    ret = KillingProcessManager::GetInstance().KillSubProcessBypid(pid, reason);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "KillSubProcessBypid_001 end");
 }
@@ -1349,7 +1350,7 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_002, TestSize.Level1)
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string processName = "testProcess";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
-    
+
     std::map<int32_t, std::shared_ptr<RenderRecord>> renderRecordMap;
     int32_t uid = 1;
     std::shared_ptr<RenderRecord> renderRecord = std::make_shared<RenderRecord>(
@@ -1360,8 +1361,8 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_002, TestSize.Level1)
 
     appRunningManager->appRunningRecordMap_.emplace(recordId, appRecord);
 
-    appMgrServiceInner->appRunningManager_ = appRunningManager;
-    ret = appMgrServiceInner->KillSubProcessBypid(pid, reason);
+    KillingProcessManager::GetInstance().appRunningManager_ = appRunningManager;
+    ret = KillingProcessManager::GetInstance().KillSubProcessBypid(pid, reason);
     EXPECT_EQ(ret, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "KillSubProcessBypid_002 end");
@@ -1389,7 +1390,7 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_003, TestSize.Level1)
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string processName = "testProcess";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
-    
+
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> childProcessRecordMap;
     std::string subProcessName = "subTestProcess";
     std::shared_ptr<ApplicationInfo> subAppInfo = std::make_shared<ApplicationInfo>();
@@ -1401,8 +1402,8 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_003, TestSize.Level1)
     appRecord->childProcessRecordMap_ = childProcessRecordMap;
 
     appRunningManager->appRunningRecordMap_.emplace(recordId, appRecord);
-    appMgrServiceInner->appRunningManager_ = appRunningManager;
-    ret = appMgrServiceInner->KillSubProcessBypid(pid, reason);
+    KillingProcessManager::GetInstance().appRunningManager_ = appRunningManager;
+    ret = KillingProcessManager::GetInstance().KillSubProcessBypid(pid, reason);
     EXPECT_EQ(ret, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "KillSubProcessBypid_003 end");
@@ -1430,7 +1431,7 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_004, TestSize.Level1)
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string processName = "testProcess";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
-    
+
     std::map<pid_t, std::weak_ptr<AppRunningRecord>> childAppRecordMap;
     std::shared_ptr<ApplicationInfo> subAppInfo = std::make_shared<ApplicationInfo>();
     std::string subProcessName = "subTestProcess";
@@ -1439,8 +1440,8 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_004, TestSize.Level1)
     appRecord->childAppRecordMap_ = childAppRecordMap;
 
     appRunningManager->appRunningRecordMap_.emplace(recordId, appRecord);
-    appMgrServiceInner->appRunningManager_ = appRunningManager;
-    ret = appMgrServiceInner->KillSubProcessBypid(pid, reason);
+    KillingProcessManager::GetInstance().appRunningManager_ = appRunningManager;
+    ret = KillingProcessManager::GetInstance().KillSubProcessBypid(pid, reason);
     EXPECT_EQ(ret, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "KillSubProcessBypid_004 end");
@@ -1468,7 +1469,7 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_005, TestSize.Level1)
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
     std::string processName = "testProcess";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
-    
+
     std::map<pid_t, std::weak_ptr<AppRunningRecord>> childAppRecordMap;
     std::shared_ptr<ApplicationInfo> subAppInfo = std::make_shared<ApplicationInfo>();
     std::string subProcessName = "subTestProcess";
@@ -1477,8 +1478,8 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_005, TestSize.Level1)
     appRecord->childAppRecordMap_ = childAppRecordMap;
 
     appRunningManager->appRunningRecordMap_.emplace(recordId, appRecord);
-    appMgrServiceInner->appRunningManager_ = appRunningManager;
-    ret = appMgrServiceInner->KillSubProcessBypid(pid, reason);
+    KillingProcessManager::GetInstance().appRunningManager_ = appRunningManager;
+    ret = KillingProcessManager::GetInstance().KillSubProcessBypid(pid, reason);
     EXPECT_EQ(ret, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "KillSubProcessBypid_005 end");
