@@ -66,7 +66,6 @@
 #include "irender_state_observer.h"
 #include "istart_specified_ability_response.h"
 #include "kia_interceptor_interface.h"
-#include "kill_process_config.h"
 #include "process_memory_state.h"
 #include "process_util.h"
 #include "record_query_result.h"
@@ -207,46 +206,6 @@ public:
     void RemoveDeadAppStateCallback(const wptr<IRemoteObject> &remote);
 
     /**
-     * KillProcessByAbilityToken, kill the process by ability token.
-     *
-     * @param token, the unique identification to the ability.
-     * @return
-     */
-    virtual void KillProcessByAbilityToken(const sptr<IRemoteObject> &token);
-
-    /**
-     * KillProcessesByUserId, kill the processes by userId.
-     * Send appSpawn uninstall debug hap message.
-     *
-     * @param userId, the user id.
-     * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
-     * @return
-     */
-    virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
-        sptr<AAFwk::IUserCallback> callback = nullptr);
-
-    /**
-     * KillProcessesByPids, only in process call is allowed,
-     * kill the processes by pid list given.
-     *
-     * @param pids, the pid list of processes are going to be killed.
-     * @param reason, the reason to kill the processes.
-     * @param subProcess, kill SubProcess or not.
-     * @return ERR_OK, return back success, others fail.
-     */
-    virtual int32_t KillProcessesByPids(const std::vector<int32_t> &pids,
-        const std::string &reason = "KillProcessesByPids", bool subProcess = false, bool isKillPrecedeStart = false);
-
-    /**
-     * KillProcessesInBatch, kill processes in batch;
-     * the killed bundle won't be started by the watcher.
-     *
-     * @param pids, the pid list of processes are going to be killed.
-     * @return ERR_OK, return back success, others fail.
-     */
-    virtual int32_t KillProcessesInBatch(const std::vector<int32_t> &pids);
-
-    /**
      * Set child and parent relationship
      * @param token child process
      * @param callerToken parent process
@@ -335,16 +294,6 @@ public:
         const std::string &moduleName, bool isPlugin);
 
     /**
-     * KillApplication, kill the application.
-     *
-     * @param  bundleName, bundle name in Application record.
-     *
-     * @return ERR_OK, return back success, others fail.
-     */
-    virtual int32_t KillApplication(const std::string &bundleName, bool clearPageStack = false, int32_t appIndex = 0,
-        const std::string &reason = "KillApplication");
-
-    /**
      * ForceKillApplication, force kill the application.
      *
      * @param  bundleName, bundle name in Application record.
@@ -354,41 +303,10 @@ public:
      */
     virtual int32_t ForceKillApplication(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
-
-    /**
-     * KillProcessesByAccessTokenId.
-     *
-     * @param  accessTokenId, accessTokenId.
-     * @return ERR_OK, return back success, others fail.
-     */
-    virtual int32_t KillProcessesByAccessTokenId(const uint32_t accessTokenId);
-
-    /**
-     * KillApplicationByUid, call KillApplicationByUid() through proxy object, kill the application.
-     *
-     * @param  bundleName, bundle name in Application record.
-     * @param  uid, uid.
-     * @param  reason, caller function name.
-     * @return ERR_OK, return back success, others fail.
-     */
-    virtual int32_t KillApplicationByUid(const std::string &bundleName, const int uid,
-        const std::string& reason = "KillApplicationByUid");
     
     virtual int32_t NotifyUninstallOrUpgradeApp(const std::string &bundleName, int32_t uid, bool isUpgrade);
     
     virtual void NotifyUninstallOrUpgradeAppEnd(int32_t uid);
-
-    /**
-     * KillApplicationSelf, this allows app to terminate itself.
-     *
-     * @param clearPageStack, the flag indicates if ClearPageStack lifecycle should be scheduled.
-     * @return ERR_OK for success call, others for failure.
-     */
-    virtual int32_t KillApplicationSelf(const bool clearPageStack = false,
-        const std::string& reason = "KillApplicationSelf");
-
-    int32_t KillAppSelfWithInstanceKey(const std::string &instanceKey, bool clearPageStack, const std::string& reason);
-    int32_t KillProcessByPidForExit(int32_t pid, const std::string &reason);
 
     /**
      * KillApplicationByUserId, kill the application by user ID.
@@ -973,8 +891,6 @@ public:
 
     virtual int GetRenderProcessTerminationStatus(pid_t renderPid, int &status);
 
-    int VerifyKillProcessPermission(const sptr<IRemoteObject> &token) const;
-
     int VerifyAccountPermission(const std::string &permissionName, const int userId) const;
 
     int VerifyRequestPermission() const;
@@ -995,36 +911,6 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
-
-    /**
-     * Notify application status.
-     *
-     * @param bundleName Indicates the name of the bundle.
-     * @param eventData Indicates the event defined by CommonEventSupport
-     *
-     * @return
-     */
-    void NotifyAppStatus(const std::string &bundleName, int32_t appIndex, const std::string &eventData);
-
-    /**
-     * Notify application status by event name.
-     *
-     * @param bundleName Indicates the name of the bundle.
-     * @param eventName Indicates the event defined by CommonEventSupport
-     * @param want Want contains information of the event wish to notify.
-     *
-     * @return Returns 0 if the event is normal, 1 if the event needs to be managed.
-     */
-    int32_t NotifyAppStatusByCommonEventName(const std::string &bundleName, const std::string &eventName,
-        const Want &want);
-
-    int32_t KillProcessByPid(const pid_t pid, const std::string& reason = "foundation",
-        bool isKillPrecedeStart = false);
-
-    int32_t KillSubProcessBypidInner(const pid_t pid, const std::string &reason,
-        AAFwk::EventInfo &eventInfo);
-
-    int32_t KillSubProcessBypid(const pid_t pid, const std::string &reason);
 
     /**
      * @brief Get the running state of application by bundle name.
@@ -1541,7 +1427,6 @@ public:
      * @param token the token of the abilityRecord that is attached to status bar.
      */
     void AttachedToStatusBar(const sptr<IRemoteObject> &token);
-    void KillApplicationByRecord(const std::shared_ptr<AppRunningRecord> &appRecord);
 
     int32_t NotifyProcessDependedOnWeb();
 
@@ -1615,13 +1500,6 @@ public:
 
     virtual int32_t QueryRunningSharedBundles(pid_t pid, std::map<std::string, uint32_t> &sharedBundles);
 
-    /**
-     * Verify whether the caller has the permission to kill processes of a bundleName.
-     */
-    int VerifyKillProcessPermission(const std::string &bundleName) const;
-
-    void SendProcessKillEvent(std::shared_ptr<AppRunningRecord> appRecord, const std::string &defaultReason);
-
     void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId);
 
     void SetProcessPrepareExit(int32_t pid);
@@ -1643,8 +1521,6 @@ public:
     void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName);
 
 private:
-    int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
-        const int appIndex = 0);
 
     std::string FaultTypeToString(FaultDataType type);
 
@@ -1745,55 +1621,6 @@ private:
                       sptr<IRemoteObject> token = nullptr, std::shared_ptr<AAFwk::Want> want = nullptr,
                       ExtensionAbilityType extensionAbilityType = ExtensionAbilityType::UNSPECIFIED);
 
-    /**
-     * KillApplicationByUserId, kill the application by user ID.
-     *
-     * @param bundleName, bundle name in Application record.
-     * @param appCloneIndex the app clone id.
-     * @param userId, user ID.
-     * @param  reason, caller function name.
-     *
-     * @return ERR_OK, return back success, others fail.
-     */
-    int32_t KillApplicationByUserIdLocked(const std::string &bundleName, int32_t appCloneIndex, int32_t userId,
-        const KillProcessConfig &config = {});
-
-    /**
-     * WaitForRemoteProcessExit, Wait for the process to exit normally.
-     *
-     * @param pids, process number collection to exit.
-     * @param startTime, execution process security exit start time.
-     *
-     * @return true, return back success，others fail.
-     */
-    bool WaitForRemoteProcessExit(std::list<pid_t> &pids, const int64_t startTime);
-
-    bool WaitForRemoteProcessExit(std::list<SimpleProcessInfo> &processInfos, const int64_t startTime);
-
-     /**
-     * WaitProcessesExitAndKill, Wait for the process to exit normally, and kill it if time out.
-     *
-     * @param pids, process number collection to exit.
-     * @param startTime, execution process security exit start time.
-     * @param reason caller function name
-     *
-     * @return ERR_OK, return back success, others fail.
-     */
-    int32_t WaitProcessesExitAndKill(std::list<pid_t> &pids, const int64_t startTime, const std::string& reason);
-
-    int32_t WaitProcessesExitAndKill(std::list<SimpleProcessInfo> &processInfos, const int64_t startTime,
-        const std::string& reason, int32_t userId, sptr<AAFwk::IUserCallback> callback);
-
-    bool DoAllProcessExitCallback(std::list<SimpleProcessInfo> &processInfos, int32_t userId,
-        sptr<AAFwk::IUserCallback> callback, int64_t startTime);
-
-    /**
-     * SystemTimeMillisecond, Get system time.
-     *
-     * @return the system time.
-     */
-    int64_t SystemTimeMillisecond();
-
     // Test add the bundle manager instance.
     void SetBundleManagerHelper(const std::shared_ptr<BundleMgrHelper> &bundleMgrHelper);
 
@@ -1856,16 +1683,12 @@ private:
 
     void AddWatchParameter();
 
-    bool VerifyAPL() const;
-
     /**
      * Register a focus listener to window manager
      */
     void RegisterFocusListener();
 
     static void PointerDeviceEventCallback(const char *key, const char *value, void *context);
-
-    int32_t VerifyKillProcessPermissionCommon() const;
 
     void ApplicationTerminatedSendProcessEvent(const std::shared_ptr<AppRunningRecord> &appRecord);
     void ClearAppRunningDataForKeepAlive(const std::shared_ptr<AppRunningRecord> &appRecord);
@@ -1900,14 +1723,6 @@ private:
     void OnChildProcessDied(std::shared_ptr<ChildProcessRecord> childProcessRecord);
 
     void OnChildProcessRemoteDied(const wptr<IRemoteObject> &remote);
-
-    /**
-     * kill all child processed of a main process
-     * @param appRecord indicates the main process
-     */
-    void KillChildProcess(const std::shared_ptr<AppRunningRecord> &appRecord);
-
-    void KillAttachedChildProcess(const std::shared_ptr<AppRunningRecord> &appRecord);
 
     void PresetMaxChildProcess(std::shared_ptr<AppRunningRecord> appRecord,
         int32_t &maxChildProcess);
@@ -1947,15 +1762,6 @@ private:
         const std::string& reason = "ClearUpApplicationDataByUserId");
 
     bool CheckGetRunningInfoPermission() const;
-
-    /**
-     * kill all processes of a bundleName
-     * @param bundleName bundleName of which to be killed
-     * @param clearPageStack should schedule clearPage lifecycle
-     * @param reason caller function name
-     */
-    int32_t KillApplicationByBundleName(const std::string &bundleName, int32_t appIndex, bool clearPageStack = false,
-        const std::string& reason = "KillApplicationByBundleName");
 
     bool SendProcessStartEvent(const std::shared_ptr<AppRunningRecord> &appRecord, bool isPreload,
         AppExecFwk::PreloadMode preloadMode);
@@ -2108,28 +1914,15 @@ private:
 
     std::vector<BackgroundAppInfo> GetBackgroundAppInfo(const std::vector<BackgroundAppInfo>& allowAppList);
 private:
-    /**
-     * Notify application status.
-     *
-     * @param bundleName Indicates the name of the bundle.
-     * @param bundleName Indicates the name of the bundle.
-     * @param eventData Indicates the event defined by CommonEventSupport
-     *
-     * @return
-     */
-    void NotifyAppStatusByCallerUid(const std::string &bundleName, const int32_t tokenId, const int32_t userId,
-        const int32_t callerUid, const int32_t targetUid, const std::string &eventData);
     void UpdateAllProviderConfig(const std::shared_ptr<AppRunningRecord> &appRecord);
     void SendHiSysEvent(int32_t innerEventId, std::shared_ptr<AppRunningRecord> appRecord);
     int FinishUserTestLocked(
         const std::string &msg, const int64_t &resultCode, const std::shared_ptr<AppRunningRecord> &appRecord);
-    void SendReStartProcessEvent(AAFwk::EventInfo &eventInfo, int32_t appUid);
     void SendAppLaunchEvent(const std::shared_ptr<AppRunningRecord> &appRecord);
     void InitAppWaitingDebugList();
     bool IsWaitingDebugAppInner(const std::string &bundleName);
     void HandleConfigurationChange(const Configuration &config, const int32_t userId = -1);
     void HandleConfigurationChange(const Configuration &config, const std::set<int32_t> &userIds);
-    bool CheckIsThreadInFoundation(pid_t pid);
     bool CheckAppFault(const std::shared_ptr<AppRunningRecord> &appRecord, const FaultData &faultData);
     int32_t KillFaultApp(int32_t pid, const std::string &bundleName, const FaultData &faultData,
         bool isNeedExit = false);
@@ -2142,7 +1935,6 @@ private:
     bool IsSceneBoardCall();
     void CheckCleanAbilityByUserRequest(const std::shared_ptr<AppRunningRecord> &appRecord,
         const std::shared_ptr<AbilityRunningRecord> &abilityRecord, const AbilityState state);
-    int32_t GetPidsByAccessTokenId(const uint32_t accessTokenId, std::vector<pid_t> &pids);
     bool IsIsolateExtensionSandBox(const std::shared_ptr<AbilityInfo> &abilityInfo,
         const HapModuleInfo &hapModuleInfo) const;
     int32_t DealWithUserConfiguration(const Configuration &config, const int32_t userId, int32_t &notifyUserId);
@@ -2164,10 +1956,6 @@ private:
     bool IsNeedRestartKeepAliveProcess(const std::string &bundleName, int32_t uid);
     int32_t GetAllRunningInstanceKeysByBundleNameInner(const std::string &bundleName,
         std::vector<std::string> &instanceKeys, int32_t userId);
-    int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
-        const std::string& killReason, std::shared_ptr<AppRunningRecord> appRecord, bool isKillPrecedeStart);
-    void SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo);
-    void AddToKillProcessMap(const std::string &processName);
     bool IsAllowedNWebPreload(const std::string &processName);
     void ParseInfoToAppfreeze(const FaultData &faultData, int32_t pid, int32_t uid, const std::string &bundleName,
         const std::string &processName, const bool isOccurException = false);
@@ -2177,7 +1965,6 @@ private:
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void GetKernelPermissions(uint32_t accessTokenId, JITPermissionsMap &permissionsMap);
-    void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(std::shared_ptr<ApplicationInfo> appInfo,
         const std::string &processName, const BundleInfo &bundleInfo);
     void AddUIExtensionBindItem(
@@ -2240,8 +2027,6 @@ private:
     std::string supportServiceExtMultiProcess_ {"false"};
     sptr<IAbilityDebugResponse> abilityDebugResponse_;
     std::shared_ptr<AppDebugManager> appDebugManager_;
-    ffrt::mutex killedProcessMapLock_;
-    mutable std::map<int64_t, std::string> killedProcessMap_;
 #ifdef SUPPORT_CHILD_PROCESS
     ffrt::mutex startChildProcessLock_;
 #endif //SUPPORT_CHILD_PROCESS

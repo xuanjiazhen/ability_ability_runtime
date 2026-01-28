@@ -35,6 +35,7 @@
 #include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
+#include "killing_process_manager.h"
 #include "perf_profile.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
@@ -1959,7 +1960,7 @@ int32_t AppMgrService::KillAppSelfWithInstanceKey(const std::string &instanceKey
         TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
         return ERR_INVALID_VALUE;
     }
-    return appMgrServiceInner_->KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
+    return KillingProcessManager::GetInstance().KillAppSelfWithInstanceKey(instanceKey, clearPageStack, reason);
 }
 
 int32_t AppMgrService::KillProcessByPidForExit(int32_t pid, const std::string &reason)
@@ -1974,7 +1975,7 @@ int32_t AppMgrService::KillProcessByPidForExit(int32_t pid, const std::string &r
         TAG_LOGE(AAFwkTag::APPMGR, "not foundation");
         return AAFwk::ERR_NO_ALLOW_OUTSIDE_CALL;
     }
-    return appMgrServiceInner_->KillProcessByPidForExit(pid, reason);
+    return KillingProcessManager::GetInstance().KillProcessByPidForExit(pid, reason);
 }
 
 int32_t AppMgrService::IsSpecifiedModuleLoaded(const AAFwk::Want &want, const AbilityInfo &abilityInfo, bool &result,
