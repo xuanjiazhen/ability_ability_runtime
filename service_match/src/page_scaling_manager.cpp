@@ -208,7 +208,7 @@ void PageScalingManager::HandleNavigateChangeInternal(const sptr<Rosen::Window>&
             config.page.patternType, fromPageNameLen);
         if (pageMatched) {
             TAG_LOGI(AAFwkTag::ABILITY, "Apply for %{public}s", config.page.pageName.c_str());
-            ApplyConfig(window, config, fromPageName, toPageName, config.page.pageName);
+            ApplyConfig(window, config, fromPageName, toPageName, config.page);
             anyMatched = true;
         }
     }
@@ -219,7 +219,7 @@ void PageScalingManager::HandleNavigateChangeInternal(const sptr<Rosen::Window>&
 }
 
 void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const PageScalingConfig &config,
-    const std::string& fromPage, const std::string& toPage, const std::string& targetPage)
+    const std::string& fromPage, const std::string& toPage, const Page& configPage)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "call");
     if (window == nullptr) {
@@ -239,11 +239,12 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
     auto orientation = display->GetDisplayInfo()->GetDisplayOrientation();
     TAG_LOGD(AAFwkTag::ABILITY, "foldDisplayMode %{public}d, orientation %{public}d",
             foldDisplayMode, orientation);
+    auto targetPage = configPage.pageName;
     ProcessDpiConfig(config.dpi, "dpi", foldDisplayMode, window, toPage, targetPage);
     ProcessHideStatusBarConfig(config.hideStatusBar, "hsb", window, toPage, targetPage);
     ProcessVideoShrinkConfig(config.videoShrink, "vsk", window, toPage, targetPage);
     ProcessVerticalDisplayConfig(config.verticalDisplay, "vd", orientation, foldDisplayMode, window,
-        fromPage, toPage, targetPage);
+        fromPage, toPage, configPage);
 }
 
 void PageScalingManager::ProcessDpiConfig(const std::vector<Config>& configs, const std::string& tag,
@@ -281,7 +282,7 @@ void PageScalingManager::ProcessDpiConfig(const std::vector<Config>& configs, co
 void PageScalingManager::ProcessVerticalDisplayConfig(const std::vector<Config>& configs,
     const std::string& tag, Rosen::DisplayOrientation orientation,
     Rosen::FoldDisplayMode foldDisplayMode, const sptr<Rosen::Window>& window,
-    const std::string& fromPage, const std::string& toPage, const std::string& targetPage)
+    const std::string& fromPage, const std::string& toPage, const Page& configPage)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "call");
     if (configs.empty()) {
@@ -302,8 +303,10 @@ void PageScalingManager::ProcessVerticalDisplayConfig(const std::vector<Config>&
         if (IsStayCondition(condition)) {
             hasStayCondition = true;
             // 特殊处理"stay"条件：检查from和to页面是否与targetPage匹配
-            bool isEnterTargetPage = (toPage == targetPage && fromPage != targetPage);  // 进入目标页面
-            bool isExitTargetPage = (fromPage == targetPage && toPage != targetPage);  // 离开目标页面
+            bool isEnterTargetPage = ComparePage(configPage.pageName, toPage, configPage.patternType, toPage.length()) && 
+                                    !ComparePage(configPage.pageName, fromPage, configPage.patternType, fromPage.length());  // 进入目标页面
+            bool isExitTargetPage = ComparePage(configPage.pageName, fromPage, configPage.patternType, fromPage.length()) && 
+                                   !ComparePage(configPage.pageName, toPage, configPage.patternType, toPage.length());  // 离开目标页面
             if (isEnterTargetPage) {
                 // 当进入目标页面时，设置兼容模式
                 int32_t valueInt = std::stoi(value);
