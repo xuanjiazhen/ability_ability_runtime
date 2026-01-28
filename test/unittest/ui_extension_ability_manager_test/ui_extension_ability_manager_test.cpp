@@ -435,6 +435,49 @@ HWTEST_F(UIExtensionAbilityManagerTest, DoForegroundUIExtension_001, TestSize.Le
 
 /*
  * Feature: UIExtensionAbilityManager
+ * Function: DoForegroundUIExtension
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, DoForegroundUIExtension_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DoForegroundUIExtension_004 start");
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.deviceId = "id";
+    abilityRequest.abilityInfo.bundleName = "bundle";
+    abilityRequest.abilityInfo.name = "name";
+    abilityRequest.abilityInfo.moduleName = "module";
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UI;
+    abilityRequest.sessionInfo = MockSessionInfo(0);
+
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    abilityRecord->isReady_ = false;
+    connectManager->DoForegroundUIExtension(abilityRecord, abilityRequest);
+
+    abilityRecord->isReady_ = true;
+    abilityRecord->currentState_ = AbilityState::INACTIVATING;
+    connectManager->DoForegroundUIExtension(abilityRecord, abilityRequest);
+
+    abilityRecord->currentState_ = AbilityState::FOREGROUNDING;
+    connectManager->DoForegroundUIExtension(abilityRecord, abilityRequest);
+
+    abilityRecord->currentState_ = AbilityState::BACKGROUNDING;
+    connectManager->DoForegroundUIExtension(abilityRecord, abilityRequest);
+
+    abilityRecord->currentState_ = AbilityState::FOREGROUND;
+    connectManager->DoForegroundUIExtension(abilityRecord, abilityRequest);
+
+    abilityRecord->currentState_ = AbilityState::BACKGROUND;
+    connectManager->DoForegroundUIExtension(abilityRecord, abilityRequest);
+
+    std::string expectName = "name";
+    EXPECT_EQ(expectName, abilityRequest.abilityInfo.name);
+    TAG_LOGI(AAFwkTag::TEST, "DoForegroundUIExtension_004 end");
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
  * Function: GetOrCreateExtensionRecord
  */
 HWTEST_F(UIExtensionAbilityManagerTest, GetOrCreateExtensionRecord_001, TestSize.Level1)
@@ -703,6 +746,24 @@ HWTEST_F(UIExtensionAbilityManagerTest, HandleUIExtWindowDiedTask_001, TestSize.
 
     connectManager->HandleUIExtWindowDiedTask(callbackA_->AsObject());
     EXPECT_TRUE(connectManager->uiExtRecipientMap_.empty());
+    EXPECT_TRUE(connectManager->uiExtensionMap_.empty());
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: HandleUIExtWindowDiedTask
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify UIExtensionAbilityManager HandleUIExtWindowDiedTask with uiExtensionMap_ empty
+ * @tc.require: AR000I8B26
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, HandleUIExtWindowDiedTask_004, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    ASSERT_NE(connectManager, nullptr);
+    connectManager->uiExtensionMap_.clear();
+    connectManager->HandleUIExtWindowDiedTask(callbackA_->AsObject());
     EXPECT_TRUE(connectManager->uiExtensionMap_.empty());
 }
 
@@ -1492,6 +1553,33 @@ HWTEST_F(UIExtensionAbilityManagerTest, UpdateUIExtensionBindInfo_003, TestSize.
 
 /*
  * Feature: UIExtensionAbilityManager
+ * Function: UpdateUIExtensionBindInfo
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify UpdateUIExtensionBindInfo with SCENEBOARD_BUNDLE_NAME
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, UpdateUIExtensionBindInfo_006, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    std::shared_ptr<BaseExtensionRecord> abilityRecord =
+    BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    abilityRecord->sessionInfo_ = sessionInfo;
+    abilityRecord->abilityInfo_.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    connectManager->UpdateUIExtensionBindInfo(abilityRecord, "testBundle", 1);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRecord->sessionInfo_->uiExtensionUsage = AAFwk::UIExtensionUsage::EMBEDDED;
+    connectManager->UpdateUIExtensionBindInfo(abilityRecord, "testBundle", 1);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
  * Function: GetActiveUIExtensionList
  * SubFunction: NA
  * FunctionPoints: NA
@@ -1734,6 +1822,29 @@ HWTEST_F(UIExtensionAbilityManagerTest, IsCallerValid_002, TestSize.Level1)
     
     bool result = connectManager->IsCallerValid(abilityRecord);
     EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: IsCallerValid
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify IsCallerValid with sessionInfo
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, IsCallerValid_005, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    std::shared_ptr<BaseExtensionRecord> abilityRecord =
+        BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    EXPECT_FALSE(connectManager->IsCallerValid(abilityRecord));
+
+    connectManager->AddUIExtWindowDeathRecipient(sessionInfo->sessionToken);
+    EXPECT_TRUE(connectManager->IsCallerValid(abilityRecord));
 }
 
 /*
@@ -2004,558 +2115,6 @@ HWTEST_F(UIExtensionAbilityManagerTest, OnAbilityRequestDone_003, TestSize.Level
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: BackgroundAbilityWindowLocked
- * SubFunction: DoBackgroundAbilityWindow
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify BackgroundAbilityWindowLocked with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, BackgroundAbilityWindowLocked_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "BackgroundAbilityWindowLocked_001 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    sptr<SessionInfo> sessionInfo = MockSessionInfo(1);
-    
-    connectManager->BackgroundAbilityWindowLocked(abilityRecord, sessionInfo);
-    TAG_LOGI(AAFwkTag::TEST, "BackgroundAbilityWindowLocked_001 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: BackgroundAbilityWindowLocked
- * SubFunction: DoBackgroundAbilityWindow
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify BackgroundAbilityWindowLocked with null sessionInfo
- */
-HWTEST_F(UIExtensionAbilityManagerTest, BackgroundAbilityWindowLocked_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "BackgroundAbilityWindowLocked_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = serviceRecord_;
-    sptr<SessionInfo> sessionInfo = nullptr;
-    
-    connectManager->BackgroundAbilityWindowLocked(abilityRecord, sessionInfo);
-    TAG_LOGI(AAFwkTag::TEST, "BackgroundAbilityWindowLocked_002 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: BackgroundAbilityWindowLocked
- * SubFunction: DoBackgroundAbilityWindow
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify BackgroundAbilityWindowLocked with FOREGROUND state
- */
-HWTEST_F(UIExtensionAbilityManagerTest, BackgroundAbilityWindowLocked_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "BackgroundAbilityWindowLocked_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
-    abilityRequest.abilityInfo.name = "TestUIExtension";
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-    abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
-
-    sptr<SessionInfo> sessionInfo = MockSessionInfo(1);
-    
-    connectManager->BackgroundAbilityWindowLocked(abilityRecord, sessionInfo);
-    TAG_LOGI(AAFwkTag::TEST, "BackgroundAbilityWindowLocked_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: BackgroundAbilityWindowLocked
- * SubFunction: DoBackgroundAbilityWindow
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify BackgroundAbilityWindowLocked with INITIAL state
- */
-HWTEST_F(UIExtensionAbilityManagerTest, BackgroundAbilityWindowLocked_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "BackgroundAbilityWindowLocked_004 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
-    abilityRequest.abilityInfo.name = "TestUIExtension";
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-    abilityRecord->SetAbilityState(AbilityState::INITIAL);
-
-    sptr<SessionInfo> sessionInfo = MockSessionInfo(1);
-    
-    connectManager->BackgroundAbilityWindowLocked(abilityRecord, sessionInfo);
-    TAG_LOGI(AAFwkTag::TEST, "BackgroundAbilityWindowLocked_004 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: CheckUIExtensionAbilitySessionExist
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify CheckUIExtensionAbilitySessionExist with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, CheckUIExtensionAbilitySessionExist_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CheckUIExtensionAbilitySessionExist_001 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    
-    bool result = connectManager->CheckUIExtensionAbilitySessionExist(abilityRecord);
-    EXPECT_FALSE(result);
-    TAG_LOGI(AAFwkTag::TEST, "CheckUIExtensionAbilitySessionExist_001 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: CheckUIExtensionAbilitySessionExist
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify CheckUIExtensionAbilitySessionExist with non-UIExtension type
- */
-HWTEST_F(UIExtensionAbilityManagerTest, CheckUIExtensionAbilitySessionExist_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "CheckUIExtensionAbilitySessionExist_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SERVICE;
-    abilityRequest.abilityInfo.bundleName = "com.test.service";
-    abilityRequest.abilityInfo.name = "TestService";
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-    
-    bool result = connectManager->CheckUIExtensionAbilitySessionExist(abilityRecord);
-    EXPECT_FALSE(result);
-    TAG_LOGI(AAFwkTag::TEST, "CheckUIExtensionAbilitySessionExist_002 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: IsUIExtensionAbility
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify IsUIExtensionAbility with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionAbility_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionAbility_001 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    
-    bool result = connectManager->IsUIExtensionAbility(abilityRecord);
-    EXPECT_FALSE(result);
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionAbility_001 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: IsUIExtensionAbility
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify IsUIExtensionAbility with UIExtension type
- */
-HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionAbility_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionAbility_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
-    abilityRequest.abilityInfo.name = "TestUIExtension";
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-    
-    bool result = connectManager->IsUIExtensionAbility(abilityRecord);
-    EXPECT_TRUE(result);
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionAbility_002 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: IsUIExtensionAbility
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify IsUIExtensionAbility with non-UIExtension type
- */
-HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionAbility_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionAbility_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SERVICE;
-    abilityRequest.abilityInfo.bundleName = "com.test.service";
-    abilityRequest.abilityInfo.name = "TestService";
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-    
-    bool result = connectManager->IsUIExtensionAbility(abilityRecord);
-    EXPECT_FALSE(result);
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionAbility_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: IsCallerValid
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify IsCallerValid with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, IsCallerValid_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "IsCallerValid_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    
-    bool result = connectManager->IsCallerValid(abilityRecord);
-    EXPECT_FALSE(result);
-    TAG_LOGI(AAFwkTag::TEST, "IsCallerValid_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: IsCallerValid
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify IsCallerValid with null sessionInfo
- */
-HWTEST_F(UIExtensionAbilityManagerTest, IsCallerValid_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "IsCallerValid_004 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
-    abilityRequest.abilityInfo.name = "TestUIExtension";
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-    
-    bool result = connectManager->IsCallerValid(abilityRecord);
-    EXPECT_FALSE(result);
-    TAG_LOGI(AAFwkTag::TEST, "IsCallerValid_004 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: HandleUIExtensionDied
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify HandleUIExtensionDied with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, HandleUIExtensionDied_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    
-    connectManager->HandleUIExtensionDied(abilityRecord);
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtensionDied_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: HandleUIExtWindowDiedTask
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify HandleUIExtWindowDiedTask with null remote
- */
-HWTEST_F(UIExtensionAbilityManagerTest, HandleUIExtWindowDiedTask_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtWindowDiedTask_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    sptr<IRemoteObject> remote = nullptr;
-    
-    connectManager->HandleUIExtWindowDiedTask(remote);
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtWindowDiedTask_002 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: HandleUIExtWindowDiedTask
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify HandleUIExtWindowDiedTask with remote not found in uiExtensionMap_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, HandleUIExtWindowDiedTask_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtWindowDiedTask_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    sptr<IRemoteObject> remote = new AbilityScheduler();
-    
-    connectManager->HandleUIExtWindowDiedTask(remote);
-    TAG_LOGI(AAFwkTag::TEST, "HandleUIExtWindowDiedTask_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: UpdateUIExtensionInfo
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UpdateUIExtensionInfo with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, UpdateUIExtensionInfo_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "UpdateUIExtensionInfo_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    int32_t hostPid = 1234;
-    
-    connectManager->UpdateUIExtensionInfo(abilityRecord, hostPid);
-    TAG_LOGI(AAFwkTag::TEST, "UpdateUIExtensionInfo_002 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: UpdateUIExtensionBindInfo
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UpdateUIExtensionBindInfo with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, UpdateUIExtensionBindInfo_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "UpdateUIExtensionBindInfo_004 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    std::string callerBundleName = "com.test.caller";
-    int32_t notifyProcessBind = 1;
-    
-    connectManager->UpdateUIExtensionBindInfo(abilityRecord, callerBundleName, notifyProcessBind);
-    TAG_LOGI(AAFwkTag::TEST, "UpdateUIExtensionBindInfo_004 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: UpdateUIExtensionBindInfo
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UpdateUIExtensionBindInfo with SCENEBOARD_BUNDLE_NAME
- */
-HWTEST_F(UIExtensionAbilityManagerTest, UpdateUIExtensionBindInfo_005, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "UpdateUIExtensionBindInfo_005 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
-    abilityRequest.abilityInfo.name = "TestUIExtension";
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-    
-    std::string callerBundleName = AbilityConfig::SCENEBOARD_BUNDLE_NAME;
-    int32_t notifyProcessBind = 1;
-    
-    connectManager->UpdateUIExtensionBindInfo(abilityRecord, callerBundleName, notifyProcessBind);
-    TAG_LOGI(AAFwkTag::TEST, "UpdateUIExtensionBindInfo_005 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: RemoveUIExtensionBySessionInfoToken
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify RemoveUIExtensionBySessionInfoToken with null token
- */
-HWTEST_F(UIExtensionAbilityManagerTest, RemoveUIExtensionBySessionInfoToken_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "RemoveUIExtensionBySessionInfoToken_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    sptr<IRemoteObject> token = nullptr;
-    
-    int res = connectManager->RemoveUIExtensionBySessionInfoToken(token);
-    EXPECT_EQ(res, 0);
-    TAG_LOGI(AAFwkTag::TEST, "RemoveUIExtensionBySessionInfoToken_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: RemoveUIExtensionBySessionInfoToken
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify RemoveUIExtensionBySessionInfoToken with token not in map
- */
-HWTEST_F(UIExtensionAbilityManagerTest, RemoveUIExtensionBySessionInfoToken_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "RemoveUIExtensionBySessionInfoToken_004 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    sptr<IRemoteObject> token = new AbilityScheduler();
-    
-    int res = connectManager->RemoveUIExtensionBySessionInfoToken(token);
-    EXPECT_EQ(res, 0);
-    TAG_LOGI(AAFwkTag::TEST, "RemoveUIExtensionBySessionInfoToken_004 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: AddPreloadUIExtensionRecord
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AddPreloadUIExtensionRecord with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, AddPreloadUIExtensionRecord_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AddPreloadUIExtensionRecord_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    
-    int res = connectManager->AddPreloadUIExtensionRecord(abilityRecord);
-    EXPECT_EQ(res, ERR_INVALID_VALUE);
-    TAG_LOGI(AAFwkTag::TEST, "AddPreloadUIExtensionRecord_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: AddPreloadUIExtensionRecord
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AddPreloadUIExtensionRecord with null uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, AddPreloadUIExtensionRecord_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AddPreloadUIExtensionRecord_004 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
-    abilityRequest.abilityInfo.name = "TestUIExtension";
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-    
-    int res = connectManager->AddPreloadUIExtensionRecord(abilityRecord);
-    EXPECT_EQ(res, ERR_INVALID_VALUE);
-    TAG_LOGI(AAFwkTag::TEST, "AddPreloadUIExtensionRecord_004 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: GetUIExtensionCallerTokenList
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify GetUIExtensionCallerTokenList with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionCallerTokenList_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionCallerTokenList_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    std::list<sptr<IRemoteObject>> callerList;
-    
-    connectManager->GetUIExtensionCallerTokenList(abilityRecord, callerList);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionCallerTokenList_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: HandlePreloadUIExtensionSuccess
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify HandlePreloadUIExtensionSuccess with null uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, HandlePreloadUIExtensionSuccess_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "HandlePreloadUIExtensionSuccess_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    int32_t extensionRecordId = 1234;
-    bool isPreloadedSuccess = true;
-    
-    connectManager->HandlePreloadUIExtensionSuccess(extensionRecordId, isPreloadedSuccess);
-    TAG_LOGI(AAFwkTag::TEST, "HandlePreloadUIExtensionSuccess_002 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: SetLastExitReason
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify SetLastExitReason with null targetService
- */
-HWTEST_F(UIExtensionAbilityManagerTest, SetLastExitReason_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "SetLastExitReason_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.bundleName = "com.test.bundle";
-    abilityRequest.abilityInfo.name = "TestAbility";
-    std::shared_ptr<BaseExtensionRecord> targetService = nullptr;
-    
-    connectManager->SetLastExitReason(abilityRequest, targetService);
-    TAG_LOGI(AAFwkTag::TEST, "SetLastExitReason_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
  * Function: ClearPreloadUIExtensionRecord
  * SubFunction: NA
  * FunctionPoints: NA
@@ -2645,207 +2204,6 @@ HWTEST_F(UIExtensionAbilityManagerTest, DoForegroundUIExtension_003, TestSize.Le
     
     connectManager->DoForegroundUIExtension(abilityRecord, abilityRequest);
     TAG_LOGI(AAFwkTag::TEST, "DoForegroundUIExtension_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: UnloadUIExtensionAbility
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnloadUIExtensionAbility with null abilityRecord
- */
-HWTEST_F(UIExtensionAbilityManagerTest, UnloadUIExtensionAbility_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "UnloadUIExtensionAbility_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = nullptr;
-    pid_t hostPid = 1234;
-    
-    int res = connectManager->UnloadUIExtensionAbility(abilityRecord, hostPid);
-    EXPECT_EQ(res, ERR_INVALID_VALUE);
-    TAG_LOGI(AAFwkTag::TEST, "UnloadUIExtensionAbility_002 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: UnloadUIExtensionAbility
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnloadUIExtensionAbility with null uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, UnloadUIExtensionAbility_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "UnloadUIExtensionAbility_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
-    abilityRequest.abilityInfo.name = "TestUIExtension";
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-    pid_t hostPid = 1234;
-    
-    int res = connectManager->UnloadUIExtensionAbility(abilityRecord, hostPid);
-    EXPECT_EQ(res, ERR_NULL_OBJECT);
-    TAG_LOGI(AAFwkTag::TEST, "UnloadUIExtensionAbility_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: GetOrCreateExtensionRecord
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify GetOrCreateExtensionRecord with null uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, GetOrCreateExtensionRecord_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetOrCreateExtensionRecord_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    AbilityRequest abilityRequest;
-    abilityRequest.appInfo.bundleName = "com.example.unittest";
-    abilityRequest.abilityInfo.name = "MainAbility";
-    abilityRequest.abilityInfo.type = AbilityType::PAGE;
-    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    std::string hostBundName = "bundleName";
-    bool isCreate = false;
-    bool isLoadedAbility = false;
-    
-    int32_t result = connectManager->GetOrCreateExtensionRecord(
-        abilityRequest, isCreate, hostBundName, abilityRecord, isLoadedAbility);
-    EXPECT_EQ(result, ERR_NULL_OBJECT);
-    TAG_LOGI(AAFwkTag::TEST, "GetOrCreateExtensionRecord_002 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: QueryPreLoadUIExtensionRecordInner
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify QueryPreLoadUIExtensionRecordInner with null uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, QueryPreLoadUIExtensionRecordInner_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecordInner_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    AppExecFwk::ElementName element("device", "bundle", "ability", "module");
-    std::string moduleName = "module";
-    int32_t hostPid = 1234;
-    int32_t recordNum = 0;
-    
-    int32_t result = connectManager->QueryPreLoadUIExtensionRecordInner(element, moduleName, hostPid, recordNum);
-    EXPECT_EQ(result, ERR_NULL_OBJECT);
-    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecordInner_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: PreloadUIExtensionAbilityInner
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify PreloadUIExtensionAbilityInner with non-UIExtension type
- */
-HWTEST_F(UIExtensionAbilityManagerTest, PreloadUIExtensionAbilityInner_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityInner_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SERVICE;
-    abilityRequest.abilityInfo.bundleName = "com.test.service";
-    abilityRequest.abilityInfo.name = "TestService";
-    std::string hostBundleName = "com.test.caller";
-    int32_t hostPid = 1234;
-    
-    int res = connectManager->PreloadUIExtensionAbilityInner(abilityRequest, hostBundleName, hostPid);
-    EXPECT_EQ(res, ERR_WRONG_INTERFACE_CALL);
-    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityInner_002 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: PreloadUIExtensionAbilityInner
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify PreloadUIExtensionAbilityInner with null uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, PreloadUIExtensionAbilityInner_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityInner_003 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
-    abilityRequest.abilityInfo.name = "TestUIExtension";
-    std::string hostBundleName = "com.test.caller";
-    int32_t hostPid = 1234;
-    
-    int res = connectManager->PreloadUIExtensionAbilityInner(abilityRequest, hostBundleName, hostPid);
-    EXPECT_EQ(res, ERR_NULL_OBJECT);
-    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityInner_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: UnPreloadUIExtensionAbilityInner
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnPreloadUIExtensionAbilityInner with invalid extensionAbilityId
- */
-HWTEST_F(UIExtensionAbilityManagerTest, UnPreloadUIExtensionAbilityInner_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "UnPreloadUIExtensionAbilityInner_001 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    int32_t extensionAbilityId = AbilityRuntime::INVALID_EXTENSION_RECORD_ID;
-    
-    int res = connectManager->UnPreloadUIExtensionAbilityInner(extensionAbilityId);
-    EXPECT_EQ(res, ERR_CODE_INVALID_ID);
-    TAG_LOGI(AAFwkTag::TEST, "UnPreloadUIExtensionAbilityInner_001 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: UnPreloadUIExtensionAbilityInner
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify UnPreloadUIExtensionAbilityInner with null uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, UnPreloadUIExtensionAbilityInner_002, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "UnPreloadUIExtensionAbilityInner_002 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    int32_t extensionAbilityId = 1234;
-    
-    int res = connectManager->UnPreloadUIExtensionAbilityInner(extensionAbilityId);
-    EXPECT_EQ(res, ERR_NULL_OBJECT);
-    TAG_LOGI(AAFwkTag::TEST, "UnPreloadUIExtensionAbilityInner_002 end");
 }
 
 /*
@@ -2981,199 +2339,570 @@ HWTEST_F(UIExtensionAbilityManagerTest, GetActiveUIExtensionList_004, TestSize.L
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: IsUIExtensionFocused
+ * Function: DoBackgroundAbilityWindow
  * SubFunction: NA
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify IsUIExtensionFocused with null uiExtensionAbilityRecordMgr_
+ * CaseDescription: Verify DoBackgroundAbilityWindow when AbilityState is FOREGROUND
  */
-HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionFocused_007, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, DoBackgroundAbilityWindow_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionFocused_007 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
+    connectManager->DoBackgroundAbilityWindow(abilityRecord, MockSessionInfo(0));
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRecord->SetAbilityState(AbilityState::INITIAL);
+    connectManager->DoBackgroundAbilityWindow(abilityRecord, MockSessionInfo(0));
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+    connectManager->DoBackgroundAbilityWindow(abilityRecord, MockSessionInfo(0));
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRecord->SetAbilityState(AbilityState::BACKGROUNDING);
+    connectManager->DoBackgroundAbilityWindow(abilityRecord, MockSessionInfo(0));
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->DoBackgroundAbilityWindow(abilityRecord, MockSessionInfo(0));
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: OnRemoteDied
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify OnRemoteDied
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, OnRemoteDied_001, TestSize.Level1)
+{
+    auto function = [](const wptr<IRemoteObject> &remote){};
+    EXPECT_NE(function, nullptr);
+
+    auto recipient = std::make_shared<UIExtensionAbilityManager::PreloadUIExtensionHostClientDeathRecipient>(function);
+    recipient->OnRemoteDied(nullptr);
+    EXPECT_NE(recipient->diedHandler_, nullptr);
+
+    auto recipient1 = std::make_shared<UIExtensionAbilityManager::PreloadUIExtensionHostClientDeathRecipient>(nullptr);
+    recipient1->OnRemoteDied(nullptr);
+    EXPECT_EQ(recipient1->diedHandler_, nullptr);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: LoadTimeout
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify LoadTimeout
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, LoadTimeout_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    std::shared_ptr<BaseExtensionRecord> abilityRecord =
+        BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->AddUIExtWindowDeathRecipient(sessionInfo->sessionToken);
+
+    connectManager->LoadTimeout(abilityRecord);
+    connectManager->LoadTimeout(nullptr);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
     connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    uint32_t uiExtensionTokenId = 1234;
-    sptr<IRemoteObject> focusToken = new AbilityScheduler();
-    
-    bool result = connectManager->IsUIExtensionFocused(uiExtensionTokenId, focusToken);
-    EXPECT_FALSE(result);
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionFocused_007 end");
+    connectManager->LoadTimeout(abilityRecord);
+    connectManager->LoadTimeout(nullptr);
+    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 }
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: GetUIExtensionRootHostInfo
+ * Function: ForegroundTimeout
  * SubFunction: NA
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify GetUIExtensionRootHostInfo with null token
+ * CaseDescription: Verify ForegroundTimeout
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionRootHostInfo_003, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, ForegroundTimeout_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionRootHostInfo_003 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->AddUIExtWindowDeathRecipient(sessionInfo->sessionToken);
+    connectManager->ForegroundTimeout(abilityRecord);
+    connectManager->ForegroundTimeout(nullptr);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 
-    sptr<IRemoteObject> token = nullptr;
-    
-    auto result = connectManager->GetUIExtensionRootHostInfo(token);
-    EXPECT_EQ(result, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionRootHostInfo_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: GetUIExtensionRootHostInfo
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify GetUIExtensionRootHostInfo with null uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionRootHostInfo_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionRootHostInfo_004 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
     connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    sptr<IRemoteObject> token = new AbilityScheduler();
-    
-    auto result = connectManager->GetUIExtensionRootHostInfo(token);
-    EXPECT_EQ(result, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionRootHostInfo_004 end");
+    connectManager->ForegroundTimeout(abilityRecord);
+    connectManager->ForegroundTimeout(nullptr);
+    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 }
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: GetUIExtensionSessionInfo
+ * Function: BackgroundTimeout
  * SubFunction: NA
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify GetUIExtensionSessionInfo with null token
+ * CaseDescription: Verify BackgroundTimeout
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSessionInfo_003, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, BackgroundTimeout_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSessionInfo_003 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->AddUIExtWindowDeathRecipient(sessionInfo->sessionToken);
+    connectManager->BackgroundTimeout(abilityRecord);
+    connectManager->BackgroundTimeout(nullptr);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 
-    sptr<IRemoteObject> token = nullptr;
-    UIExtensionSessionInfo sessionInfo;
-    
-    int32_t res = connectManager->GetUIExtensionSessionInfo(token, sessionInfo);
-    EXPECT_EQ(res, ERR_NULL_OBJECT);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSessionInfo_003 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
- * Function: GetUIExtensionSessionInfo
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify GetUIExtensionSessionInfo with null uiExtensionAbilityRecordMgr_
- */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSessionInfo_004, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSessionInfo_004 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
     connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
-
-    sptr<IRemoteObject> token = new AbilityScheduler();
-    UIExtensionSessionInfo sessionInfo;
-    
-    int32_t res = connectManager->GetUIExtensionSessionInfo(token, sessionInfo);
-    EXPECT_EQ(res, ERR_NULL_OBJECT);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSessionInfo_004 end");
+    connectManager->BackgroundTimeout(abilityRecord);
+    connectManager->BackgroundTimeout(nullptr);
+    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 }
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: GetUIExtensionBySessionInfo
+ * Function: TerminateTimeout
  * SubFunction: NA
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify GetUIExtensionBySessionInfo with null sessionInfo
+ * CaseDescription: Verify TerminateTimeout
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionBySessionInfo_005, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, TerminateTimeout_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionBySessionInfo_005 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->AddUIExtWindowDeathRecipient(sessionInfo->sessionToken);
+    connectManager->TerminateTimeout(abilityRecord);
+    connectManager->TerminateTimeout(nullptr);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 
-    sptr<SessionInfo> sessionInfo = nullptr;
-    
-    auto result = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
-    EXPECT_EQ(result, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionBySessionInfo_005 end");
+    connectManager->uiExtensionAbilityRecordMgr_ = nullptr;
+    connectManager->TerminateTimeout(abilityRecord);
+    connectManager->TerminateTimeout(nullptr);
+    EXPECT_EQ(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 }
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: GetUIExtensionBySessionInfo
+ * Function: HandleStartTimeoutTaskInner
  * SubFunction: NA
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify GetUIExtensionBySessionInfo with null sessionToken
+ * CaseDescription: Verify HandleStartTimeoutTaskInner
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionBySessionInfo_006, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, HandleStartTimeoutTaskInner_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionBySessionInfo_006 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    sptr<SessionInfo> sessionInfo = new SessionInfo();
-    sessionInfo->sessionToken = nullptr;
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->AddUIExtWindowDeathRecipient(sessionInfo->sessionToken);
+    connectManager->HandleStartTimeoutTaskInner(abilityRecord);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
     
-    auto result = connectManager->GetUIExtensionBySessionInfo(sessionInfo);
-    EXPECT_EQ(result, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionBySessionInfo_006 end");
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    connectManager->HandleStartTimeoutTaskInner(abilityRecord2);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 }
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: GetUIExtensionSourceToken
+ * Function: HandleForegroundTimeoutTaskInner
  * SubFunction: NA
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify GetUIExtensionSourceToken with null token
+ * CaseDescription: Verify HandleForegroundTimeoutTaskInner
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_008, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, HandleForegroundTimeoutTaskInner_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_008 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->AddUIExtWindowDeathRecipient(sessionInfo->sessionToken);
+    connectManager->HandleForegroundTimeoutTaskInner(abilityRecord);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 
-    sptr<IRemoteObject> token = nullptr;
-    
-    auto result = connectManager->GetUIExtensionSourceToken(token);
-    EXPECT_EQ(result, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_008 end");
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    connectManager->HandleForegroundTimeoutTaskInner(abilityRecord2);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 }
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: GetUIExtensionSourceToken
+ * Function: HandleStopTimeoutTaskInner
  * SubFunction: NA
  * FunctionPoints: NA
  * EnvConditions: NA
- * CaseDescription: Verify GetUIExtensionSourceToken with token not found in uiExtensionMap_
+ * CaseDescription: Verify HandleStopTimeoutTaskInner
  */
-HWTEST_F(UIExtensionAbilityManagerTest, GetUIExtensionSourceToken_009, TestSize.Level1)
+HWTEST_F(UIExtensionAbilityManagerTest, HandleStopTimeoutTaskInner_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_009 start");
     std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->AddUIExtWindowDeathRecipient(sessionInfo->sessionToken);
+    connectManager->HandleStopTimeoutTaskInner(abilityRecord);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 
-    sptr<IRemoteObject> token = new AbilityScheduler();
-    
-    auto result = connectManager->GetUIExtensionSourceToken(token);
-    EXPECT_EQ(result, nullptr);
-    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionSourceToken_009 end");
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    connectManager->HandleStopTimeoutTaskInner(abilityRecord2);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
 }
 
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CleanActivatingTimeoutAbilityInner
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CleanActivatingTimeoutAbilityInner
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, CleanActivatingTimeoutAbilityInner_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->CleanActivatingTimeoutAbilityInner(abilityRecord);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+    
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    connectManager->CleanActivatingTimeoutAbilityInner(abilityRecord2);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: TerminateDone
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify TerminateDone
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, TerminateDone_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    
+    abilityRecord->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->TerminateDone(abilityRecord);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRecord->SetAbilityState(AbilityState::TERMINATING);
+    connectManager->TerminateDone(abilityRecord);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    abilityRecord2->SetAbilityState(AbilityState::INACTIVE);
+    connectManager->TerminateDone(abilityRecord2);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRecord2->SetAbilityState(AbilityState::TERMINATING);
+    connectManager->TerminateDone(abilityRecord2);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: HandleExtensionAbilityRemove
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify HandleExtensionAbilityRemove
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, HandleExtensionAbilityRemove_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    EXPECT_EQ(connectManager->HandleExtensionAbilityRemove(abilityRecord), false);
+
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    EXPECT_EQ(connectManager->HandleExtensionAbilityRemove(abilityRecord2), false);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: HandleAbilityDiedTaskInner
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify HandleAbilityDiedTaskInner
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, HandleAbilityDiedTaskInner_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->HandleAbilityDiedTaskInner(abilityRecord);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    connectManager->HandleAbilityDiedTaskInner(abilityRecord2);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: PostLoadTimeoutTask
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PostLoadTimeoutTask
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, PostLoadTimeoutTask_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    connectManager->PostLoadTimeoutTask(abilityRecord, 0);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    connectManager->PostLoadTimeoutTask(abilityRecord2, 0);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: DispatchForeground
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify DispatchForeground
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, DispatchForeground_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    EXPECT_EQ(connectManager->DispatchForeground(abilityRecord, nullptr), ERR_INVALID_VALUE);
+
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    EXPECT_EQ(connectManager->DispatchForeground(abilityRecord2, nullptr), ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: DispatchBackground
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify DispatchBackground
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, DispatchBackground_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    EXPECT_EQ(connectManager->DispatchBackground(abilityRecord, nullptr), ERR_INVALID_VALUE);
+
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    EXPECT_EQ(connectManager->DispatchBackground(abilityRecord2, nullptr), ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CheckAbilityStateForDisconnect
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CheckAbilityStateForDisconnect
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, CheckAbilityStateForDisconnect_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+        
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    EXPECT_EQ(connectManager->CheckAbilityStateForDisconnect(abilityRecord), ERR_OK);
+
+    abilityRecord->SetAbilityState(AbilityState::BACKGROUND);
+    EXPECT_EQ(connectManager->CheckAbilityStateForDisconnect(abilityRecord), ERR_OK);
+
+    abilityRecord->SetAbilityState(AbilityState::BACKGROUNDING);
+    EXPECT_EQ(connectManager->CheckAbilityStateForDisconnect(abilityRecord), ERR_OK);
+
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
+    EXPECT_EQ(connectManager->CheckAbilityStateForDisconnect(abilityRecord), ERR_OK);
+
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+    EXPECT_EQ(connectManager->CheckAbilityStateForDisconnect(abilityRecord), ERR_OK);
+
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    EXPECT_EQ(connectManager->CheckAbilityStateForDisconnect(abilityRecord2), INVALID_CONNECTION_STATE);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CleanupConnectionAndTerminateIfNeeded
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CleanupConnectionAndTerminateIfNeeded
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, CleanupConnectionAndTerminateIfNeeded_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    EXPECT_EQ(connectManager->CleanupConnectionAndTerminateIfNeeded(abilityRecord), ERR_OK);
+
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    auto abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    EXPECT_EQ(connectManager->CleanupConnectionAndTerminateIfNeeded(abilityRecord2), ERR_OK);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: ConnectAbilityLockedInner
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify ConnectAbilityLockedInner
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, ConnectAbilityLockedInner_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    abilityRecord->sessionInfo_ = sessionInfo;
+    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
+    auto connection = std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
+
+    EXPECT_EQ(connectManager->ConnectAbilityLockedInner(false, abilityRecord, abilityRequest, connection), ERR_OK);
+    EXPECT_EQ(connectManager->ConnectAbilityLockedInner(true, abilityRecord, abilityRequest, connection), ERR_OK);
+    abilityRecord->SetAbilityState(AbilityState::ACTIVE);
+    EXPECT_EQ(connectManager->ConnectAbilityLockedInner(true, abilityRecord, abilityRequest, connection), ERR_OK);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: HandleCommandDestroy
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify HandleCommandDestroy
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, HandleCommandDestroy_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    abilityRecord->sessionInfo_ = sessionInfo;
+
+    connectManager->HandleCommandDestroy(nullptr);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    connectManager->HandleCommandDestroy(sessionInfo);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+
+    sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
+    connectManager->HandleCommandDestroy(sessionInfo);
+    EXPECT_NE(connectManager->uiExtensionAbilityRecordMgr_, nullptr);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
