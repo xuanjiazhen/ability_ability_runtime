@@ -1143,6 +1143,34 @@ ohos_unittest("ets_native_lib_util_test") {
   ]
 }
 
+ohos_unittest("interop_object_instance_test") {
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "../../cfi_blocklist.txt"
+  }
+
+  include_dirs = [
+    "${ability_runtime_native_path}/appkit/ability_runtime/context",
+    "${ability_runtime_path}/interfaces/inner_api/runtime/include",
+  ]
+
+  module_out_path = module_output_path
+
+  sources = [ "interop_object_instance_test.cpp" ]
+
+  configs = [ ":module_context_config" ]
+
+  deps = []
+
+  external_deps = [
+    "ability_runtime:runtime",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
 ohos_unittest("application_cleaner_test") {
   sanitize = {
     cfi = true
@@ -1323,6 +1351,7 @@ group("unittest") {
     ":idle_time_test",
     ":native_lib_util_test",
     ":ets_native_lib_util_test",
+    ":interop_object_instance_test",
     ":overlay_event_subscriber_test",
     ":startup_manager_mock_test",
     ":startup_manager_test",
