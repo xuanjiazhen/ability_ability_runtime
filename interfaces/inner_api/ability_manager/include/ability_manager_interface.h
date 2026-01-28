@@ -2524,6 +2524,17 @@ public:
     {
         return 0;
     }
+
+    /**
+     * @brief Get list of applications launched before the first unlock.
+     * @param userLockedBundleList List of applications launched before the first unlock.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode GetUserLockedBundleList(std::set<std::string> &userLockedBundleList)
+    {
+        return ERR_OK;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS
