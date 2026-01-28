@@ -26,6 +26,7 @@
 #include "app_mgr_constants.h"
 #include "app_utils.h"
 #include "hilog_tag_wrapper.h"
+#include "killing_process_manager.h"
 #include "perf_profile.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
@@ -54,6 +55,11 @@ constexpr const char* TASK_BLOCK_PROCESS_CACHE_BY_PIDS = "BlockProcessCacheByPid
 constexpr const char* POWER_OFF_ABILITY = "PoweroffAbility";
 constexpr int32_t SCENE_BOARD_ATTACH_TIMEOUT_TASK_TIME = 1000;
 constexpr int32_t LOAD_TASK_TIMEOUT = 60000; // ms
+#define CHECK_CALLER_IS_SYSTEM_APP                                                             \
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) { \
+        TAG_LOGE(AAFwkTag::APPMGR, "can't use SA");    \
+        return AAFwk::ERR_NOT_SYSTEM_APP;                                                      \
+    }
 };  // namespace
 
 AmsMgrScheduler::AmsMgrScheduler(
@@ -224,13 +230,13 @@ void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token
         return;
     }
 
-    if (amsMgrServiceInner_->VerifyKillProcessPermission(token) != ERR_OK) {
+    if (KillingProcessManager::GetInstance().VerifyKillProcessPermission(token) != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
         return;
     }
 
-    std::function<void()> killProcessByAbilityTokenFunc = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
-        amsMgrServiceInner->KillProcessByAbilityToken(token);
+    std::function<void()> killProcessByAbilityTokenFunc = [token]() {
+        KillingProcessManager::GetInstance().KillProcessByAbilityToken(token);
     };
     amsHandler_->SubmitTask(killProcessByAbilityTokenFunc, TASK_KILL_PROCESS_BY_ABILITY_TOKEN);
 }
@@ -256,9 +262,8 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSp
         return;
     }
 
-    std::function<void()> killProcessesByUserIdFunc = [amsMgrServiceInner = amsMgrServiceInner_, userId,
-                                                          isNeedSendAppSpawnMsg, callback]() {
-        amsMgrServiceInner->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
+    std::function<void()> killProcessesByUserIdFunc = [userId, isNeedSendAppSpawnMsg, callback]() {
+        KillingProcessManager::GetInstance().KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
     };
     amsHandler_->SubmitTask(killProcessesByUserIdFunc, TASK_KILL_PROCESSES_BY_USERID);
 }
@@ -277,7 +282,7 @@ int32_t AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, c
         return ERR_PERMISSION_DENIED;
     }
 
-    return amsMgrServiceInner_->KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart);
+    return KillingProcessManager::GetInstance().KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart);
 }
 
 void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
@@ -317,7 +322,8 @@ int32_t AmsMgrScheduler::KillProcessesInBatch(const std::vector<int32_t> &pids)
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-    return amsMgrServiceInner_->KillProcessesInBatch(pids);
+    CHECK_CALLER_IS_SYSTEM_APP;
+    return KillingProcessManager::GetInstance().KillProcessesInBatch(pids);
 }
 
 void AmsMgrScheduler::AbilityAttachTimeOut(const sptr<IRemoteObject> &token)
@@ -374,7 +380,8 @@ int32_t AmsMgrScheduler::KillApplication(const std::string &bundleName, bool cle
         return ERR_INVALID_OPERATION;
     }
 
-    return amsMgrServiceInner_->KillApplication(bundleName, clearPageStack, appIndex, reason);
+    return KillingProcessManager::GetInstance().KillApplicationByBundleName(bundleName,
+        appIndex, clearPageStack, reason);
 }
 
 int32_t AmsMgrScheduler::ForceKillApplication(const std::string &bundleName,
@@ -395,8 +402,9 @@ int32_t AmsMgrScheduler::KillProcessesByAccessTokenId(const uint32_t accessToken
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
+    CHECK_CALLER_IS_SYSTEM_APP;
 
-    return amsMgrServiceInner_->KillProcessesByAccessTokenId(accessTokenId);
+    return KillingProcessManager::GetInstance().KillProcessesByAccessTokenId(accessTokenId);
 }
 
 int32_t AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, const int uid,
@@ -406,7 +414,7 @@ int32_t AmsMgrScheduler::KillApplicationByUid(const std::string &bundleName, con
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-    return amsMgrServiceInner_->KillApplicationByUid(bundleName, uid, reason);
+    return KillingProcessManager::GetInstance().KillApplicationByUid(bundleName, uid, reason);
 }
 
 int32_t AmsMgrScheduler::NotifyUninstallOrUpgradeApp(const std::string &bundleName, int32_t uid, bool isUpgrade)
@@ -448,7 +456,7 @@ int32_t AmsMgrScheduler::KillApplicationSelf(const bool clearPageStack, const st
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
-    return amsMgrServiceInner_->KillApplicationSelf(clearPageStack, reason);
+    return KillingProcessManager::GetInstance().KillApplicationSelf(clearPageStack, reason);
 }
 
 bool AmsMgrScheduler::IsReady() const
@@ -898,7 +906,8 @@ int32_t AmsMgrScheduler::VerifyKillProcessPermission(const std::string &bundleNa
         TAG_LOGE(AAFwkTag::APPMGR, "not ready");
         return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
-    return static_cast<int32_t>(amsMgrServiceInner_->VerifyKillProcessPermission(bundleName));
+    return static_cast<int32_t>(
+        KillingProcessManager::GetInstance().VerifyKillProcessPermission(bundleName));
 }
 } // namespace AppExecFwk
 }  // namespace OHOS
