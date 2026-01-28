@@ -1,0 +1,210 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+module_output_path = "ability_runtime/uripermmgr"
+
+# Copy source files from uripermmgr service
+upms_sources_files = [
+  "src/batch_uri.cpp",
+  "src/file_permission_manager.cpp",
+  "src/file_uri_distribution_utils.cpp",
+  "src/tokenid_permission.cpp",
+  "src/uri_permission_manager_service.cpp",
+  "src/uri_permission_manager_stub_impl.cpp",
+]
+
+# Conditionally compiled source files
+upms_condition_sources_files = []
+
+if (ability_runtime_media_library_enable) {
+  upms_condition_sources_files += [ "src/media_permission_manager.cpp" ]
+}
+
+if (ability_runtime_udmf_enable) {
+  upms_condition_sources_files += [ "src/upms_udmf_utils.cpp" ]
+}
+
+# Copy all source files
+copy("uripermmgr_copy_base") {
+  sources = []
+  foreach(source, upms_sources_files) {
+    sources += [ "${ability_runtime_services_path}/uripermmgr/${source}" ]
+  }
+
+  outputs = [ "${target_gen_dir}/uripermmgr/{{source_file_part}}" ]
+}
+
+copy("uripermmgr_copy_condition") {
+  sources = []
+  foreach(source, upms_condition_sources_files) {
+    sources += [ "${ability_runtime_services_path}/uripermmgr/${source}" ]
+  }
+
+  outputs = [ "${target_gen_dir}/uripermmgr/{{source_file_part}}" ]
+}
+
+# Copy header files
+upms_header_files = [
+  "include/batch_uri.h",
+  "include/file_permission_manager.h",
+  "include/file_uri_distribution_utils.h",
+  "include/tokenid_permission.h",
+  "include/uri_permission_manager_service.h",
+  "include/uri_permission_manager_stub_impl.h",
+]
+
+if (ability_runtime_media_library_enable) {
+  upms_header_files += [ "include/media_permission_manager.h" ]
+}
+
+if (ability_runtime_udmf_enable) {
+  upms_header_files += [ "include/upms_udmf_utils.h" ]
+}
+
+copy("uripermmgr_copy_headers") {
+  sources = []
+  foreach(header, upms_header_files) {
+    sources += [ "${ability_runtime_services_path}/uripermmgr/${header}" ]
+  }
+
+  outputs = [ "${target_gen_dir}/uripermmgr/{{source_file_part}}" ]
+}
+
+ohos_unittest("uripermmgr_unit_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "${target_gen_dir}/uripermmgr",
+    "${ability_runtime_services_path}/uripermmgr/include",
+    "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_innerkits_path}/ability_manager/include",
+    "${ability_runtime_innerkits_path}/uri_permission/include",
+    "${ability_runtime_utils_path}/global/include",
+    "${ability_runtime_utils_path}/global/constant",
+    "../../mock_utils",
+    "../../mock/security/accesstoken",
+    "../../mock/security/sandbox_manager",
+    "../../mock/ipc_skeleton",
+    "../../mock/ability_manager_errors",
+    "../../mock/hilog_tag_wrapper",
+    "../../mock/uri",
+    "../../mock/want",
+    "../../mock/parameters",
+    "../../mock/if_system_ability_manager",
+    "../../mock/iservice_registry",
+    "../../mock/iremote_object",
+    "../../mock/system_ability",
+    "../../mock/iremote_broker",
+    "../../mock/message_parcel",
+    "../../mock/message_option",
+    "../../mock/upms/uri_permission_mgr/include",
+    "mock/include",
+  ]
+
+  sources = [
+    "${target_gen_dir}/uripermmgr/batch_uri.cpp",
+    "${target_gen_dir}/uripermmgr/file_permission_manager.cpp",
+    "${target_gen_dir}/uripermmgr/file_uri_distribution_utils.cpp",
+    "${target_gen_dir}/uripermmgr/tokenid_permission.cpp",
+    "${target_gen_dir}/uripermmgr/uri_permission_manager_service.cpp",
+    "${target_gen_dir}/uripermmgr/uri_permission_manager_stub_impl.cpp",
+  ]
+
+  if (ability_runtime_media_library_enable) {
+    sources += [ "${target_gen_dir}/uripermmgr/media_permission_manager.cpp" ]
+  }
+
+  if (ability_runtime_udmf_enable) {
+    sources += [ "${target_gen_dir}/uripermmgr/upms_udmf_utils.cpp" ]
+  }
+
+  sources += [
+    "src/uri_permission_manager_service_test.cpp",
+    "src/uri_permission_manager_stub_impl_test.cpp",
+    "src/tokenid_permission_test.cpp",
+    "src/media_permission_manager_test.cpp",
+    "src/file_permission_manager_test.cpp",
+    "src/file_uri_distribution_utils_test.cpp",
+    "src/batch_uri_test.cpp",
+    "src/upms_udmf_utils_test.cpp",
+  ]
+
+  deps = [
+    ":uripermmgr_copy_base",
+    ":uripermmgr_copy_condition",
+    ":uripermmgr_copy_headers",
+  ]
+
+  external_deps = [
+    "ability_base:configuration",
+    "ability_base:want",
+    "ability_base:zuri",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "app_file_service:fileuri_native",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "common_event_service:cesfwk_core",
+    "common_event_service:cesfwk_innerkits",
+    "data_share:datashare_consumer",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "graphic_2d:color_manager",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "relational_store:native_dataability",
+    "relational_store:native_rdb",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+    "storage_service:storage_manager_sa_proxy",
+  ]
+
+  defines = []
+
+  if (ability_runtime_feature_sandboxmanager) {
+    external_deps += [ "sandbox_manager:libsandbox_manager_sdk" ]
+    defines += [ "ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER" ]
+  }
+
+  if (ability_runtime_media_library_enable) {
+    external_deps += [ "media_library:media_permission_helper" ]
+    defines += [ "ABILITY_RUNTIME_MEDIA_LIBRARY_ENABLE" ]
+  }
+
+  if (ability_runtime_udmf_enable) {
+    external_deps += [ "udmf:udmf_client" ]
+    defines += [ "ABILITY_RUNTIME_UDMF_ENABLE" ]
+  }
+
+  if (ability_runtime_graphics) {
+    external_deps += [ "i18n:intl_util" ]
+  }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":uripermmgr_unit_test" ]
+}
