@@ -165,7 +165,6 @@ ohos_shared_library("appkit_native") {
   }
   deps = [
     ":appkit_delegator",
-    "${ability_runtime_abilitymgr_path}/:abilityms",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
@@ -482,7 +481,6 @@ ohos_shared_library("app_context") {
     "${ability_runtime_native_path}/appkit/ability_runtime/context/interop_object_instance.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/context/js_ability_lifecycle_callback.cpp",
     "${ability_runtime_native_path}/appkit/app/overlay_event_subscriber.cpp",
-    "${ability_runtime_native_path}/appkit/app/sys_mgr_client.cpp",
   ]
   cflags = []
   if (target_cpu == "arm") {
