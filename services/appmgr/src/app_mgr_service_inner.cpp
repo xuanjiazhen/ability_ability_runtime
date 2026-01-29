@@ -1703,7 +1703,7 @@ void AppMgrServiceInner::AttachApplication(const pid_t pid, const sptr<IAppSched
     }
     eventInfo.pid = appRecord->GetPid();
     eventInfo.processName = appRecord->GetProcessName();
-    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_ATTACH, HiSysEventType::BEHAVIOR, eventInfo);
+    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_ATTACH, HISYSEVENT_BEHAVIOR, eventInfo);
 }
 
 void AppMgrServiceInner::LaunchApplicationExt(const std::shared_ptr<AppRunningRecord> &appRecord)
@@ -2042,7 +2042,7 @@ void AppMgrServiceInner::ApplicationTerminated(const int32_t recordId)
     ClearAppRunningDataForKeepAlive(appRecord);
     eventInfo.pid = appRecord->GetPid();
     eventInfo.processName = appRecord->GetProcessName();
-    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HiSysEventType::BEHAVIOR, eventInfo);
+    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
 
     ApplicationTerminatedSendProcessEvent(appRecord);
     taskHandler_->CancelTask("DELAY_KILL_PROCESS_" + std::to_string(recordId));
@@ -4292,7 +4292,7 @@ void AppMgrServiceInner::SendAppStartupTypeEvent(const std::shared_ptr<AppRunnin
     }
     eventInfo.startType = static_cast<int32_t>(startType);
     eventInfo.startReason = static_cast<int32_t>(reason);
-    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_STARTUP_TYPE, HiSysEventType::BEHAVIOR, eventInfo);
+    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_STARTUP_TYPE, HISYSEVENT_BEHAVIOR, eventInfo);
 }
 
 static bool GetAbilityNames(

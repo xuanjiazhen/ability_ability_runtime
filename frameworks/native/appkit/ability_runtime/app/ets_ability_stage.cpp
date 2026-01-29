@@ -430,6 +430,7 @@ bool ETSAbilityStage::CallObjectMethod(bool withResult, const char *name, const 
     if ((status = env->Object_CallMethod_Void_V(etsAbilityStageObj_->aniObj, method, args)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         etsRuntime_.HandleUncaughtError();
+        va_end(args);
         return false;
     }
     va_end(args);
@@ -465,6 +466,7 @@ ani_object ETSAbilityStage::CallObjectMethod(const char *name, const char *signa
     if ((status = env->Object_CallMethod_Ref_V(obj, method, &res, args)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status : %{public}d", status);
         etsRuntime_.HandleUncaughtError();
+        va_end(args);
         return nullptr;
     }
     va_end(args);
@@ -862,7 +864,7 @@ int32_t ETSAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &ca
         eventInfo.moduleName = moduleName;
         eventInfo.userId = startupManager->GetUid() / AppExecFwk::Constants::BASE_USER_RANGE;
         AAFwk::EventReport::SendAppStartupErrorEvent(
-            AAFwk::EventName::APP_STARTUP_ERROR, HiSysEventType::FAULT, eventInfo);
+            AAFwk::EventName::APP_STARTUP_ERROR, HISYSEVENT_FAULT, eventInfo);
     };
     startupTaskManager->SetTimeoutCallback(timeoutCallback);
     result = startupTaskManager->Run(runAutoStartupCallback);
