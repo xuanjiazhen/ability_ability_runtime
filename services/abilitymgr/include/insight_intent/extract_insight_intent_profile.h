@@ -33,8 +33,8 @@ const std::string INSIGHT_INTENTS_DECORATOR_TYPE_FORM = "@InsightIntentForm";
 
 struct InsightIntentParam {
     std::string paramName;
-    bool isRequired = false;
     std::string paramSchema;
+    bool isRequired = false;
 
     InsightIntentParam() = default;
 };
@@ -99,12 +99,14 @@ enum class InfoType: uint8_t {
 };
 
 struct ExtractInsightIntentGenericInfo {
+    // String types (typically 24-32 bytes on 64-bit systems)
     std::string bundleName;
     std::string moduleName;
     std::string intentName;
     std::string displayName;
     std::string decoratorType;
-
+    
+    // Variant type (typically 24-48 bytes on 64-bit systems)
     std::variant<
         InsightIntentLinkInfo,
         InsightIntentPageInfo,
@@ -113,8 +115,12 @@ struct ExtractInsightIntentGenericInfo {
         InsightIntentFormInfo,
         std::monostate
     > data;
-
+    
+    // Enum type (1 byte)
     InfoType currentType = InfoType::None;
+    
+    // Padding for byte alignment (7 bytes)
+    char padding[7];
 
     ExtractInsightIntentGenericInfo() : data(std::monostate{}) {}
 
@@ -162,6 +168,14 @@ struct InsightIntentEntityInfo {
 
 // 全量信息
 struct ExtractInsightIntentInfo {
+    // Large object (vector type, typically 24+ bytes on 64-bit systems)
+    std::vector<InsightIntentEntityInfo> entities {};
+    std::vector<std::string> keywords;
+    
+    // Object (typically 120-160 bytes on 64-bit systems)
+    ExtractInsightIntentGenericInfo genericInfo;
+    
+    // String types (typically 24-32 bytes on 64-bit systems)
     std::string decoratorFile;
     std::string decoratorClass;
     std::string displayDescription;
@@ -172,9 +186,6 @@ struct ExtractInsightIntentInfo {
     std::string llmDescription;
     std::string result;
     std::string example;
-    std::vector<std::string> keywords;
-    std::vector<InsightIntentEntityInfo> entities {};
-    ExtractInsightIntentGenericInfo genericInfo;
 
     ExtractInsightIntentInfo() = default;
 };
@@ -186,6 +197,12 @@ struct LinkIntentParamProfileMapping {
 };
 
 struct ExtractInsightIntentProfileInfo {
+    std::vector<InsightIntentEntityInfo> entities {};
+    std::vector<std::string> executeMode {};
+    std::vector<std::string> functionParams;
+    std::vector<std::string> keywords;
+    std::vector<LinkIntentParamProfileMapping> paramMapping {};
+    
     std::string decoratorFile;
     std::string decoratorClass;
     std::string decoratorType;
@@ -199,22 +216,17 @@ struct ExtractInsightIntentProfileInfo {
     std::string schema;
     std::string icon;
     std::string llmDescription;
-    std::vector<std::string> keywords;
     std::string parameters;
     std::string result;
     std::string example;
     std::string uri;
-    std::vector<LinkIntentParamProfileMapping> paramMapping {};
     std::string uiAbility;
     std::string pagePath;
     std::string navigationId;
     std::string navDestinationName;
     std::string abilityName;
-    std::vector<std::string> executeMode {};
     std::string functionName;
-    std::vector<std::string> functionParams;
     std::string formName;
-    std::vector<InsightIntentEntityInfo> entities {};
 };
 
 struct ExtractInsightIntentProfileInfoVec {
