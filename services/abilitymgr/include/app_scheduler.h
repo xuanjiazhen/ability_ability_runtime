@@ -68,19 +68,19 @@ enum class AppState {
 };
 
 struct AppData {
-    std::string appName;
     int32_t uid;
+    std::string appName;
 };
 
 struct AppInfo {
-    std::vector<AppData> appData;
-    std::string processName;
-    AppState state;
-    pid_t pid = 0;
-    int32_t appIndex = 0;
     std::string instanceKey = "";
     std::string bundleName = "";
+    std::string processName;
+    std::vector<AppData> appData;
+    pid_t pid = 0;
     int32_t userId = -1;
+    int32_t appIndex = 0;
+    AppState state;
 };
 /**
  * @class AppStateCallback

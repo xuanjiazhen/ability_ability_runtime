@@ -23,9 +23,9 @@
 namespace OHOS {
 namespace AAFwk {
 struct FUDAppInfo {
-    uint32_t tokenId = 0;
     std::string bundleName;
     std::string alterBundleName;
+    uint32_t tokenId = 0;
     int32_t userId = 0;
 };
 class FUDUtils {
