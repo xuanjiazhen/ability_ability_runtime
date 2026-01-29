@@ -188,6 +188,8 @@ abilityms_files = [
   "src/kiosk_status.cpp",
   "src/kiosk_manager.cpp",
   "src/utils/udmf_utils.cpp",
+
+  "${ability_runtime_native_path}/appkit/app/sys_mgr_client.cpp",
 ]
 
 if (ability_runtime_graphics) {
