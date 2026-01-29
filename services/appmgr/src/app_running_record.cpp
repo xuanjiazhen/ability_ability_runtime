@@ -2038,8 +2038,8 @@ bool AppRunningRecord::IsAbilitiesBackground()
     }
     return true;
 }
-#ifdef SUPPORT_SCREEN
 
+#ifdef SUPPORT_SCREEN
 void AppRunningRecord::ChangeWindowVisibility(const sptr<OHOS::Rosen::WindowVisibilityInfo> &info)
 {
     if (info == nullptr) {
