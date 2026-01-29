@@ -33,13 +33,14 @@ class AbilityRecord;
  */
 struct CallerAbilityInfo {
 public:
+    std::string callerNativeName;
+    std::string callerBundleName;
+    std::string callerAbilityName;
+    
     int32_t callerTokenId = 0;
     int32_t callerUid = 0;
     int32_t callerPid = 0;
     int32_t callerAppCloneIndex = 0;
-    std::string callerNativeName;
-    std::string callerBundleName;
-    std::string callerAbilityName;
 };
 
 /**
@@ -87,9 +88,9 @@ public:
         int32_t callerUid, uint32_t accessToken, bool schedulerdied);
 
 private:
+    Want resultWant_;
     std::string srcAbilityId_;
     sptr<IRemoteObject> callerToken_;
-    Want resultWant_;
     int32_t resultCode_ = -1;
 };
 
@@ -145,11 +146,11 @@ public:
     }
 
 private:
-    int32_t requestCode_ = -1;  // requestCode of for-result start mode
+    std::set<int32_t> requestCodeSet_;
     std::weak_ptr<AbilityRecord> caller_;
     std::shared_ptr<SystemAbilityCallerRecord> saCaller_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> callerInfo_ = nullptr;
-    std::set<int32_t> requestCodeSet_;
+    int32_t requestCode_ = -1;  // requestCode of for-result start mode
 };
 }  // namespace AAFwk
 }  // namespace OHOS

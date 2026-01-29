@@ -94,23 +94,23 @@ struct LaunchDebugInfo {
 public:
     void Update(const Want &want);
 
+    std::string perfCmd;
     bool isDebugAppSet = false;
     bool isNativeDebugSet = false;
     bool isPerfCmdSet = false;
     bool debugApp = false;
     bool nativeDebug = false;
-    std::string perfCmd;
 };
 
 struct ForegroundOptions {
-    uint32_t sceneFlag = 0;
-    bool isShellCall = false;
-    bool isStartupHide = false;
-    std::string targetGrantBundleName;
-    pid_t callingPid = -1;
     uint64_t loadAbilityCallbackId = 0;
+    std::string targetGrantBundleName;
+    uint32_t sceneFlag = 0;
+    pid_t callingPid = -1;
     pid_t selfPid = -1;
     int32_t requestCode = -1;
+    bool isShellCall = false;
+    bool isStartupHide = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
