@@ -19,6 +19,8 @@
 #include "parcel.h"
 #include "refbase.h"
 #include "oh_mock_utils.h"
+#include "message_parcel.h"
+#include "message_option.h"
 
 namespace OHOS {
 class IRemoteBroker;
@@ -52,6 +54,11 @@ public:
 
     OH_MOCK_METHOD_WITH_DECORATOR(virtual, bool, IRemoteObject, IsProxyObject);
     OH_MOCK_METHOD_WITH_DECORATOR(virtual, bool, IRemoteObject, AddDeathRecipient, const sptr<DeathRecipient> &);
+
+    virtual int SendRequest(uint32_t, MessageParcel &, MessageParcel &, MessageOption &)
+    {
+        return 0;
+    }
 
     virtual bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient)
     {

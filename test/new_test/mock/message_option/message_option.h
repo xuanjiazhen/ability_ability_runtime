@@ -19,6 +19,13 @@
 #include <memory>
 
 namespace OHOS {
-class MessageOption {};
+class MessageOption {
+public:
+	enum Flags {
+		TF_ASYNC = 1,
+	};
+	MessageOption() = default;
+	explicit MessageOption(int) {}
+};
 } // namespace OHOS
 #endif // MOCK_OHOS_IPC_MESSAGE_OPTION_H

@@ -18,8 +18,17 @@
 
 #include "iremote_broker.h"
 #include "iremote_object.h"
+#include "message_option.h"
+#include "message_parcel.h"
 
 namespace OHOS {
+template <typename T>
+class BrokerDelegator {
+public:
+    BrokerDelegator() = default;
+    ~BrokerDelegator() = default;
+};
+
 template <typename INTERFACE> class IRemoteProxy : public INTERFACE {
 public:
     explicit IRemoteProxy(const sptr<IRemoteObject> &impl) : remote_(impl) {}
