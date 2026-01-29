@@ -25,7 +25,7 @@ using namespace AbilityRuntime;
 static constexpr int32_t INDEX_ZERO = 0;
 static constexpr int32_t ARGC_ONE = 1;
 
-napi_value JsAgentConnectorProxy::CreateJsAgentConnectorProxy(napi_env env, const sptr<IRemoteObject> &connectorProxy)
+napi_ref JsAgentConnectorProxy::CreateJsAgentConnectorProxy(napi_env env, const sptr<IRemoteObject> &connectorProxy)
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "CreateJsAgentConnectorProxy called");
     HandleEscape handleEscape(env);
@@ -33,16 +33,21 @@ napi_value JsAgentConnectorProxy::CreateJsAgentConnectorProxy(napi_env env, cons
     napi_create_object(env, &object);
     if (object == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to create object");
-        return CreateJsUndefined(env);
+        return nullptr;
     }
 
     std::unique_ptr<JsAgentConnectorProxy> proxy = std::make_unique<JsAgentConnectorProxy>(connectorProxy);
-    napi_wrap(env, object, proxy.release(), Finalizer, nullptr, nullptr);
+    napi_ref nref = nullptr;
+    napi_status status = napi_wrap(env, object, proxy.release(), Finalizer, nullptr, &nref);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "napi_wrap failed %{public}d", status);
+        return nullptr;
+    }
 
     const char *moduleName = "JsAgentConnectorProxy";
     BindNativeFunction(env, object, "sendData", moduleName, JsAgentConnectorProxy::SendData);
     BindNativeFunction(env, object, "authorize", moduleName, JsAgentConnectorProxy::Authorize);
-    return handleEscape.Escape(object);
+    return nref;
 }
 
 void JsAgentConnectorProxy::Finalizer(napi_env env, void *data, void *hint)
