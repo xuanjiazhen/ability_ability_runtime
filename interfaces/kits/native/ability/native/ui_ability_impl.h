@@ -225,7 +225,8 @@ protected:
 #endif
 
 protected:
-    void Start(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo = nullptr);
+    void Start(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo = nullptr,
+        const std::string &specifiedFlag = "");
     void Stop();
     void Stop(bool &isAsyncCallback);
     void StopCallback();
