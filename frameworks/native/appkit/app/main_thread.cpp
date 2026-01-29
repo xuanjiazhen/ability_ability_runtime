@@ -3659,7 +3659,7 @@ bool MainThread::GetHqfFileAndHapPath(const std::string &bundleName,
         TAG_LOGE(AAFwkTag::APPKIT, "Get bundle info of %{public}s failed", bundleName.c_str());
         return false;
     }
-    
+
     for (auto hapInfo : bundleInfo.hapModuleInfos) {
         if (hapInfo.hqfInfo.hqfFilePath.empty()) {
             continue;

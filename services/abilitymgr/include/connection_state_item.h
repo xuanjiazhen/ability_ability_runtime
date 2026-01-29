@@ -33,11 +33,11 @@ namespace AAFwk {
  * DataAbilityCaller,This class is used to record data ability caller info.
  */
 struct DataAbilityCaller {
-    bool isNotHap = false;
     int32_t callerPid = 0;
     int32_t callerUid = 0;
     std::string callerName;
     sptr<IRemoteObject> callerToken = nullptr;
+    bool isNotHap = false;
 };
 
 /**
@@ -153,11 +153,11 @@ private:
     void GenerateConnectionData(const std::shared_ptr<ConnectedDataAbility> &connectedDataAbility,
         AbilityRuntime::ConnectionData &data);
 
-    int32_t callerUid_ = 0;
-    int32_t callerPid_ = 0;
     std::string callerName_;
     std::map<sptr<IRemoteObject>, std::shared_ptr<ConnectedExtension>> connectionMap_; // key:targetExtension token
     std::map<sptr<IRemoteObject>, std::shared_ptr<ConnectedDataAbility>> dataAbilityMap_; // key:targetDatability token
+    int32_t callerUid_ = 0;
+    int32_t callerPid_ = 0;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

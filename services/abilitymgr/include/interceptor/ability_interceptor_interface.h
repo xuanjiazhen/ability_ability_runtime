@@ -33,15 +33,15 @@ struct AbilityInterceptorParam {
         bool isStartAsCaller = false, int32_t appIndex = 0) : want(want),
         requestCode(requestCode), userId(userId), isWithUI(isWithUI), callerToken(callerToken),
         abilityInfo(abilityInfo), isStartAsCaller(isStartAsCaller), appIndex(appIndex){};
+    std::function<bool(void)> shouldBlockAllAppStartFunc_;
     const Want &want;
-    int32_t requestCode;
-    int32_t userId;
-    bool isWithUI = false;
     sptr<IRemoteObject> callerToken = nullptr;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo;  // target abilityInfo get in afterCheckExecuter_
-    bool isStartAsCaller = false;
+    int32_t requestCode;
+    int32_t userId;
     int32_t appIndex = 0;
-    std::function<bool(void)> shouldBlockAllAppStartFunc_;
+    bool isWithUI = false;
+    bool isStartAsCaller = false;
     bool isTargetPlugin = false; //Is it pulling up a plugin
 };
 

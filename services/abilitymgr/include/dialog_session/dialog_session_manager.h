@@ -38,14 +38,14 @@ enum class SelectorType {
 };
 
 struct DialogCallerInfo {
+    Want targetWant;
+    sptr<IRemoteObject> callerToken;
     int32_t userId = -1;
     int requestCode = -1;
-    sptr<IRemoteObject> callerToken;
-    Want targetWant;
+    uint32_t callerAccessTokenId = 0;
     SelectorType type = SelectorType::WITHOUT_SELECTOR;
     // for app gallery selector
     bool needGrantUriPermission = false;
-    uint32_t callerAccessTokenId = 0;
 };
 
 struct StartupSessionInfo {
@@ -53,9 +53,9 @@ struct StartupSessionInfo {
 };
 
 struct QueryERMSInfo {
-    int32_t recordId;
     std::string appId;
     std::string startTime;
+    int32_t recordId;
     bool isEmbeddedAllowed;
 };
 
