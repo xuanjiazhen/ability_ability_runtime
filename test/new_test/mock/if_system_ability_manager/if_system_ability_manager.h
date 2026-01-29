@@ -23,6 +23,7 @@ namespace OHOS {
 class ISystemAbilityManager : public IRemoteBroker {
 public:
     OH_MOCK_METHOD_RET_SPTR(sptr<IRemoteObject>, ISystemAbilityManager, GetSystemAbility, int32_t)
+    OH_MOCK_METHOD_RET_SPTR(sptr<IRemoteObject>, ISystemAbilityManager, CheckSystemAbility, int32_t)
 };
 } // namespace OHOS
 #endif

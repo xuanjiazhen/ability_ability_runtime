@@ -22,9 +22,11 @@ namespace OHOS {
 class MessageOption {
 public:
 	enum Flags {
+        TF_SYNC = 0,
 		TF_ASYNC = 1,
 	};
 	MessageOption() = default;
+    MessageOption(Flags) {}
 	explicit MessageOption(int) {}
 };
 } // namespace OHOS

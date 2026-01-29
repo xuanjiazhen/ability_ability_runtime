@@ -20,6 +20,7 @@
 #include "message_option.h"
 
 namespace OHOS {
+constexpr int32_t ERR_NONE = 0;
 constexpr int32_t NO_ERROR = 0;
 } // namespace OHOS
 #endif // MOCK_OHOS_QUERY_ERMS_IPC_TYPES_H

@@ -27,7 +27,7 @@
 
 namespace OHOS {
 namespace AAFwk {
-class Want final : public RefBase {
+class Want final : public Parcelable {
 public:
     static constexpr unsigned int FLAG_ABILITY_CONTINUATION = 0x00000008;
     static constexpr unsigned int FLAG_INSTALL_ON_DEMAND = 0x00000800;
@@ -126,6 +126,7 @@ public:
 
     Want &SetParam(const std::string &key, const std::string &value)
     {
+        stringParams_[key] = value;
         return *this;
     }
 
@@ -141,12 +142,16 @@ public:
 
     std::string GetStringParam(const std::string &key) const
     {
-        return "";
+        auto it = stringParams_.find(key);
+        if (it == stringParams_.end()) {
+            return "";
+        }
+        return it->second;
     }
 
     bool HasParameter(const std::string &key) const
     {
-        return false;
+        return stringParams_.find(key) != stringParams_.end();
     }
 
     void RemoveParam(const std::string &key) {}
@@ -167,6 +172,16 @@ public:
     Want &SetModuleName(const std::string &moduleName)
     {
         return *this;
+    }
+
+    bool Marshalling(Parcel &parcel) const override
+    {
+        return true;
+    }
+
+    static Want *Unmarshalling(Parcel &parcel)
+    {
+        return new Want();
     }
 
 public:
@@ -193,6 +208,9 @@ public:
     inline static const std::string CREATE_APP_INSTANCE_KEY = "";
 
     WantParams parameters_;
+
+private:
+    std::map<std::string, std::string> stringParams_ {};
 };
 }  // namespace AAFwk
 }  // namespace OHOS

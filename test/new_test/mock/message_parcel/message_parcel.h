@@ -17,9 +17,11 @@
 #define MOCK_OHOS_IPC_MESSAGE_PARCEL_H
 
 #include <cstdint>
+#include <new>
 #include <string>
 
 #include "parcel.h"
+#include "refbase.h"
 
 namespace OHOS {
 inline bool &MockWriteInterfaceTokenState()
@@ -46,6 +48,12 @@ inline bool &MockWriteInt32State()
 	return value;
 }
 
+inline bool &MockWriteParcelableState()
+{
+	static bool value = true;
+	return value;
+}
+
 inline uint8_t &MockWriteStringMax()
 {
 	static uint8_t value = 0;
@@ -64,6 +72,12 @@ inline uint8_t &MockWriteInt32Max()
 	return value;
 }
 
+inline uint8_t &MockWriteParcelableMax()
+{
+	static uint8_t value = 0;
+	return value;
+}
+
 inline uint8_t &MockWriteStringCount()
 {
 	static uint8_t value = 0;
@@ -77,6 +91,12 @@ inline uint8_t &MockWriteBoolCount()
 }
 
 inline uint8_t &MockWriteInt32Count()
+{
+	static uint8_t value = 0;
+	return value;
+}
+
+inline uint8_t &MockWriteParcelableCount()
 {
 	static uint8_t value = 0;
 	return value;
@@ -106,6 +126,31 @@ inline uint32_t &WriteInt32Calls()
 	return value;
 }
 
+inline uint32_t &WriteParcelableCalls()
+{
+	static uint32_t value = 0;
+	return value;
+}
+
+inline int32_t &MockReadInt32Value()
+{
+	static int32_t value = 0;
+	return value;
+}
+
+inline bool &MockReadParcelableState()
+{
+	static bool value = true;
+	return value;
+}
+
+template <typename T>
+inline sptr<T> &MockReadParcelableValue()
+{
+	static sptr<T> value;
+	return value;
+}
+
 inline void MockWriteInterfaceToken(bool state)
 {
 	MockWriteInterfaceTokenState() = state;
@@ -129,22 +174,50 @@ inline void MockWriteInt32(bool state, uint8_t count)
 	MockWriteInt32Max() = count;
 }
 
+inline void MockWriteParcelable(bool state, uint8_t count)
+{
+	MockWriteParcelableState() = state;
+	MockWriteParcelableMax() = count;
+}
+
+inline void MockReadInt32(int32_t value)
+{
+	MockReadInt32Value() = value;
+}
+
+inline void MockReadParcelable(bool state)
+{
+	MockReadParcelableState() = state;
+}
+
+template <typename T>
+inline void SetReadParcelableValue(const sptr<T> &value)
+{
+	MockReadParcelableValue<T>() = value;
+}
+
 inline void ResetMessageParcelState()
 {
 	MockWriteInterfaceTokenState() = true;
 	MockWriteStringState() = true;
 	MockWriteBoolState() = true;
 	MockWriteInt32State() = true;
+	MockWriteParcelableState() = true;
 	MockWriteStringMax() = 0;
 	MockWriteBoolMax() = 0;
 	MockWriteInt32Max() = 0;
+	MockWriteParcelableMax() = 0;
 	MockWriteStringCount() = 0;
 	MockWriteBoolCount() = 0;
 	MockWriteInt32Count() = 0;
+	MockWriteParcelableCount() = 0;
 	WriteInterfaceTokenCalls() = 0;
 	WriteStringCalls() = 0;
 	WriteBoolCalls() = 0;
 	WriteInt32Calls() = 0;
+	WriteParcelableCalls() = 0;
+	MockReadInt32Value() = 0;
+	MockReadParcelableState() = true;
 }
 
 inline uint32_t GetWriteInterfaceTokenCalls()
@@ -165,6 +238,11 @@ inline uint32_t GetWriteBoolCalls()
 inline uint32_t GetWriteInt32Calls()
 {
 	return WriteInt32Calls();
+}
+
+inline uint32_t GetWriteParcelableCalls()
+{
+	return WriteParcelableCalls();
 }
 
 class MessageParcel : public Parcel {
@@ -204,6 +282,48 @@ public:
 		}
 		return MockWriteInt32State();
 	}
+
+	template <typename T>
+	bool WriteParcelable(const T *)
+	{
+		WriteParcelableCalls()++;
+		if (MockWriteParcelableCount() < MockWriteParcelableMax()) {
+			MockWriteParcelableCount()++;
+			return !MockWriteParcelableState();
+		}
+		return MockWriteParcelableState();
+	}
+
+	int32_t ReadInt32()
+	{
+		return MockReadInt32Value();
+	}
+
+	template <typename T>
+	sptr<T> ReadParcelable()
+	{
+		if (!MockReadParcelableState()) {
+			return nullptr;
+		}
+		auto preset = MockReadParcelableValue<T>();
+		if (preset != nullptr) {
+			return preset;
+		}
+		return sptr<T>(new (std::nothrow) T());
+	}
+
+	void SetMaxCapacity(int32_t cap)
+	{
+		maxCapacity_ = cap;
+	}
+
+	int32_t GetMaxCapacity() const
+	{
+		return maxCapacity_;
+	}
+
+private:
+	int32_t maxCapacity_ = 0;
 };
 } // namespace OHOS
 #endif // MOCK_OHOS_IPC_MESSAGE_PARCEL_H

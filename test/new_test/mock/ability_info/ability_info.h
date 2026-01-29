@@ -21,9 +21,15 @@
 #include "application_info.h"
 #include "extension_ability_info.h"
 #include "skill.h"
+#include "refbase.h"
 
 namespace OHOS {
 namespace AppExecFwk {
+
+enum class AbilityType {
+    UNKNOWN = 0,
+};
+
 enum class DisplayOrientation {
     UNSPECIFIED = 0,
     LANDSCAPE,
@@ -46,7 +52,7 @@ enum class LaunchMode {
     SPECIFIED,
 };
 
-struct AbilityInfo {
+struct AbilityInfo : public RefBase {
     std::string name;
     std::string label;
     std::string description;

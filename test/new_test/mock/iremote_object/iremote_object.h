@@ -80,7 +80,7 @@ public:
         return false;
     }
 
-    virtual sptr<IRemoteBroker> AsInterface()
+    virtual IRemoteBroker *AsInterface()
     {
         return nullptr;
     }
