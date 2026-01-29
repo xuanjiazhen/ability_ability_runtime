@@ -83,15 +83,15 @@ public:
 
 private:
     static int64_t callRecordId;
-    CallState state_;                               // call state
-    int32_t callerUid_;                             // caller uid
-    int recordId_;                                  // record id
-    int64_t startTime_ = 0;                         // records first time of ability start
-    sptr<IRemoteObject> callRemoteObject_ = nullptr;
-    sptr<IRemoteObject::DeathRecipient> callDeathRecipient_ = nullptr;
-    std::weak_ptr<AbilityRecord> service_;             // target:service need to be called
-    sptr<IAbilityConnection> connCallback_ = nullptr;  // service connect callback
-    sptr<IRemoteObject> callerToken_ = nullptr;     // caller token
+    int64_t startTime_;                         // records first time of ability start
+    std::weak_ptr<AbilityRecord> service_;      // target:service need to be called
+    sptr<IRemoteObject> callRemoteObject_;
+    sptr<IRemoteObject::DeathRecipient> callDeathRecipient_;
+    sptr<IAbilityConnection> connCallback_;     // service connect callback
+    sptr<IRemoteObject> callerToken_;          // caller token
+    int32_t callerUid_;                        // caller uid
+    int recordId_;                             // record id
+    CallState state_;                          // call state
 
     DISALLOW_COPY_AND_MOVE(CallRecord);
 };
