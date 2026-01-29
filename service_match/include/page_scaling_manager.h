@@ -52,9 +52,6 @@ public:
     void HandleNavigateChangeInternal(const sptr<Rosen::Window>& window, const std::string& fromPageName,
     int32_t fromPageNameLen, const std::string& toPageName, int32_t toPageNameLen,
     const std::vector<PageScalingConfig>& configs);
-    void ApplyConfig(const sptr<Rosen::Window>& window, const PageScalingConfig& config,
-    const std::string& fromPage, const std::string& toPage, const std::string& targetPage);
-    void RestoreConfig(const sptr<Rosen::Window>& window);
     bool ConditionCheck(const std::string& condition, Rosen::DisplayOrientation orientation,
         Rosen::FoldDisplayMode foldMode);
     bool ComparePage(const std::string &whitelistPageName, const std::string &targetPageName,
@@ -105,7 +102,7 @@ void ProcessVideoShrinkConfig(const std::vector<Config>& configs,
         Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode);
     bool CheckSingleCondition(const std::string& condition,
     Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldMode);
-bool HasStayCondition(const std::string& condition);
+bool IsStayCondition(const std::string& condition);
 std::vector<PageScalingConfig> configs_;
     sptr<Rosen::IUIContentCreateListener> uiContentListener_ = nullptr;
 };

@@ -200,28 +200,6 @@ void PageScalingManager::HandleNavigateChangeInternal(const sptr<Rosen::Window>&
     int32_t toPageNameLen, const std::vector<PageScalingConfig> &configs)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "call");
-    bool anyMatched = false;
-    for (const auto& config : configs) {
-        auto pageMatched = ComparePage(config.page.pageName, toPageName,
-            config.page.patternType, toPageNameLen) ||
-            ComparePage(config.page.pageName, fromPageName,
-            config.page.patternType, fromPageNameLen);
-        if (pageMatched) {
-            TAG_LOGI(AAFwkTag::ABILITY, "Apply for %{public}s", config.page.pageName.c_str());
-            ApplyConfig(window, config, fromPageName, toPageName, config.page);
-            anyMatched = true;
-        }
-    }
-    if (!anyMatched) {
-        TAG_LOGI(AAFwkTag::ABILITY, "Restore for %{public}s", toPageName.c_str());
-        RestoreConfig(window);
-    }
-}
-
-void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const PageScalingConfig &config,
-    const std::string& fromPage, const std::string& toPage, const Page& configPage)
-{
-    TAG_LOGD(AAFwkTag::ABILITY, "call");
     if (window == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "window null");
         return;
@@ -239,24 +217,26 @@ void PageScalingManager::ApplyConfig(const sptr<Rosen::Window>& window, const Pa
     auto orientation = display->GetDisplayInfo()->GetDisplayOrientation();
     TAG_LOGD(AAFwkTag::ABILITY, "foldDisplayMode %{public}d, orientation %{public}d",
             foldDisplayMode, orientation);
-    auto targetPage = configPage.pageName;
-    ProcessDpiConfig(config.dpi, "dpi", foldDisplayMode, window, toPage, targetPage);
-    ProcessHideStatusBarConfig(config.hideStatusBar, "hsb", window, toPage, targetPage);
-    ProcessVideoShrinkConfig(config.videoShrink, "vsk", window, toPage, targetPage);
-    ProcessVerticalDisplayConfig(config.verticalDisplay, "vd", orientation, foldDisplayMode, window,
-        fromPage, toPage, configPage);
+    for (const auto& config : configs) {
+        ProcessDpiConfig(config.dpi, "dpi", foldDisplayMode, window, toPage, toPageNameLen, configPage);
+        ProcessHideStatusBarConfig(config.hideStatusBar, "hsb", window, toPage, toPageNameLen, configPage);
+        ProcessVideoShrinkConfig(config.videoShrink, "vsk", window, toPage, toPageNameLen, configPage);
+        ProcessVerticalDisplayConfig(config.verticalDisplay, "vd", orientation, foldDisplayMode, window,
+            fromPage, fromPageNameLen, toPage, toPageNameLen, configPage);
+    }
 }
+
 
 void PageScalingManager::ProcessDpiConfig(const std::vector<Config>& configs, const std::string& tag,
     Rosen::FoldDisplayMode foldDisplayMode, const sptr<Rosen::Window>& window,
-    const std::string& toPage, const std::string& targetPage)
+    const std::string& toPage, int32_t toPageNameLen, const Page& configPage)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "call");
     if (configs.empty()) {
         TAG_LOGD(AAFwkTag::ABILITY, "empty");
         return;
     }
-    if (toPage != targetPage) {
+    if (!ComparePage(configPage.pageName, toPage, configPage.patternType, toPageNameLen)) {
         TAG_LOGD(AAFwkTag::ABILITY, "toPage not targetPage");
         RestoreDPI(window);
         return;
@@ -279,76 +259,89 @@ void PageScalingManager::ProcessDpiConfig(const std::vector<Config>& configs, co
     RestoreDPI(window);
 }
 
-void PageScalingManager::ProcessVerticalDisplayConfig(const std::vector<Config>& configs,
-    const std::string& tag, Rosen::DisplayOrientation orientation,
-    Rosen::FoldDisplayMode foldDisplayMode, const sptr<Rosen::Window>& window,
-    const std::string& fromPage, const std::string& toPage, const Page& configPage)
+void PageScalingManager::ProcessVerticalDisplayConfig(
+    const std::vector<Config>& configs, const std::string& tag,
+    Rosen::DisplayOrientation orientation, Rosen::FoldDisplayMode foldDisplayMode,
+    const sptr<Rosen::Window>& window, const std::string& fromPage,
+    int32_t fromPageNameLen, const std::string& toPage, int32_t toPageNameLen,
+    const Page& configPage)
 {
-    TAG_LOGD(AAFwkTag::ABILITY, "call");
     if (configs.empty()) {
-        TAG_LOGD(AAFwkTag::ABILITY, "empty");
         return;
     }
+    
     bool hasStayCondition = false;
+    
     for (const auto& configItem : configs) {
         const std::string condition = configItem.condition;
         const std::string& value = configItem.value;
         
-        // 检查条件是否匹配
-        bool isConditionMatch = ConditionCheck(condition, orientation, foldDisplayMode);
-        if (!isConditionMatch) {
-            continue; // 如果条件不匹配，跳过此配置项
-        }
-        // 检查是否包含"stay"条件
+        // 1. 先识别是否为 Stay 配置（无论设备状态如何）
         if (IsStayCondition(condition)) {
             hasStayCondition = true;
-            // 特殊处理"stay"条件：检查from和to页面是否与targetPage匹配
-            bool isEnterTargetPage = ComparePage(configPage.pageName, toPage, configPage.patternType, toPage.length()) && 
-                                    !ComparePage(configPage.pageName, fromPage, configPage.patternType, fromPage.length());  // 进入目标页面
-            bool isExitTargetPage = ComparePage(configPage.pageName, fromPage, configPage.patternType, fromPage.length()) && 
-                                   !ComparePage(configPage.pageName, toPage, configPage.patternType, toPage.length());  // 离开目标页面
+            
+            // 2. 再检查设备状态
+            bool isDeviceMatch = ConditionCheck(condition, orientation, foldDisplayMode);
+            
+            bool isEnterTargetPage = ComparePage(configPage.pageName, toPage, 
+                configPage.patternType, toPageNameLen) && 
+                !ComparePage(configPage.pageName, fromPage, 
+                configPage.patternType, fromPageNameLen);
+                
+            bool isExitTargetPage = ComparePage(configPage.pageName, fromPage, 
+                configPage.patternType, fromPageNameLen) && 
+                !ComparePage(configPage.pageName, toPage, 
+                configPage.patternType, toPageNameLen);
+            
+            // 3. Stay 逻辑：退出时无需检查设备状态，进入时需检查
             if (isEnterTargetPage) {
-                // 当进入目标页面时，设置兼容模式
-                int32_t valueInt = std::stoi(value);
-                TAG_LOGI(AAFwkTag::ABILITY, "Setting compatible mode for stay condition: enter target page %{public}s",
-                    targetPage.c_str());
-                window->UpdateCompatibleStyleMode(static_cast<Rosen::CompatibleStyleMode>(valueInt));
-                return; // 执行完后返回，不再继续处理其他配置
+                if (isDeviceMatch) {
+                    int32_t valueInt = std::stoi(value);
+                    window->UpdateCompatibleStyleMode(
+                        static_cast<Rosen::CompatibleStyleMode>(valueInt));
+                    return;
+                }
+                // 进入但设备不匹配：不设置，继续检查其他配置
             } else if (isExitTargetPage) {
-                // 当离开目标页面时，恢复垂直显示状态
-                TAG_LOGI(AAFwkTag::ABILITY, "Restoring vertical display for stay condition: exit target page %{public}s",
-                    targetPage.c_str());
+                // 离开页面：无论当前设备状态如何，都恢复
                 RestoreVerticalDisplay(window);
-                return; // 执行完后返回，不再继续处理其他配置
+                return;
             }
-            // 如果既不是进入也不是离开目标页面，则跳过此配置项
-            continue;
+            // 不是进入也不是离开（页面内跳转）：不操作，继续检查其他配置
+            
         } else {
-            // 不包含"stay"条件，按原有逻辑处理
+            // 4. 非 Stay 逻辑保持原有行为（仅在设备匹配时处理）
+            if (!ConditionCheck(condition, orientation, foldDisplayMode)) {
+                continue;
+            }
+            
+            if (!ComparePage(configPage.pageName, toPage, 
+                configPage.patternType, toPageNameLen)) {
+                RestoreVerticalDisplay(window);
+                return;
+            }
+            
             int32_t valueInt = std::stoi(value);
-            TAG_LOGI(AAFwkTag::ABILITY, "set vd %{public}d for %{public}s",
-                valueInt, condition.c_str());
-            window->UpdateCompatibleStyleMode(static_cast<Rosen::CompatibleStyleMode>(valueInt));
+            window->UpdateCompatibleStyleMode(
+                static_cast<Rosen::CompatibleStyleMode>(valueInt));
             return;
         }
     }
-
-    // 如果没有找到匹配的非stay配置项且没有stay条件，则恢复默认设置
+    
     if (!hasStayCondition) {
         RestoreVerticalDisplay(window);
     }
 }
-
 void PageScalingManager::ProcessHideStatusBarConfig(const std::vector<Config>& configs,
     const std::string& tag, const sptr<Rosen::Window>& window,
-    const std::string& toPage, const std::string& targetPage)
+    const std::string& toPage, int32_t toPageNameLen, const std::string& targetPage)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "call");
     if (configs.empty()) {
         TAG_LOGD(AAFwkTag::ABILITY, "empty");
         return;
     }
-    if (toPage != targetPage) {
+    if (!ComparePage(configPage.pageName, toPage, configPage.patternType, toPageNameLen)) {
         TAG_LOGD(AAFwkTag::ABILITY, "toPage not targetPage");
         RestoreHideStatusBar(window);
         return;
@@ -373,14 +366,14 @@ void PageScalingManager::ProcessHideStatusBarConfig(const std::vector<Config>& c
 
 void PageScalingManager::ProcessVideoShrinkConfig(const std::vector<Config>& configs,
     const std::string& tag, const sptr<Rosen::Window>& window,
-    const std::string& toPage, const std::string& targetPage)
+    const std::string& toPage, int32_t toPageNameLen, const std::string& targetPage)
 {
     TAG_LOGD(AAFwkTag::ABILITY, "call");
     if (configs.empty()) {
         TAG_LOGD(AAFwkTag::ABILITY, "empty");
         return;
     }
-    if (toPage != targetPage) {
+    if (!ComparePage(toPage, targetPage, configPage.patternType, toPageNameLen)) {
         TAG_LOGD(AAFwkTag::ABILITY, "toPage not targetPage");
         RestoreVideoShrink(window);
         return;
@@ -403,19 +396,6 @@ void PageScalingManager::ProcessVideoShrinkConfig(const std::vector<Config>& con
             return;
         }
     }
-    RestoreVideoShrink(window);
-}
-
-void PageScalingManager::RestoreConfig(const sptr<Rosen::Window>& window)
-{
-    TAG_LOGD(AAFwkTag::ABILITY, "call");
-    if (window == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "window null");
-        return;
-    }
-    RestoreDPI(window);
-    RestoreHideStatusBar(window);
-    RestoreVerticalDisplay(window);
     RestoreVideoShrink(window);
 }
 
@@ -582,7 +562,7 @@ std::vector<std::string> PageScalingManager::ParseCondition(const std::string& c
 }
 
 
-bool PageScalingManager::HasStayCondition(const std::string& condition)
+bool PageScalingManager::IsStayCondition(const std::string& condition)
 {
     if (condition.empty()) {
         return false;
