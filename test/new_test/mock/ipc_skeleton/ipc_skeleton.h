@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,17 +17,16 @@
 #define OHOS_ABILITY_RUNTIME_IPC_SKELETON_H
 
 #include "refbase.h"
+#include "oh_mock_utils.h"
 
 namespace OHOS {
-class IPCSkeleton {
-public:
-    IPCSkeleton() = default;
-    ~IPCSkeleton() = default;
+namespace IPCSkeleton {
 
-    static int32_t GetCallingUid()
-    {
-        return 0;
-    }
-};
+OH_MOCK_GLOBAL_METHOD(uint32_t, GetCallingTokenID);
+OH_MOCK_GLOBAL_METHOD(int32_t, GetCallingUid);
+OH_MOCK_GLOBAL_METHOD(std::string, ResetCallingIdentity);
+OH_MOCK_GLOBAL_VOID_METHOD(SetCallingIdentity, const std::string&);
+
+}  // namespace IPCSkeleton
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_IPC_SKELETON_H
