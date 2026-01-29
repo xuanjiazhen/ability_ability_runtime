@@ -32,7 +32,6 @@
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
-#include "os_account_manager.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 #include "common_utils.h"
@@ -418,7 +417,7 @@ bool DataObsMgrService::VerifyUriPermission(Uri &uri, const uint32_t tokenId,
     std::string errMsg = schemeType + method;
     auto invalidUri = (schemeType == RELATIONAL_STORE) ? DATAOBS_RDB_INVALID_URI : DATAOBS_PREFERENCE_INVALID_URI;
     if (callingName.empty()) {
-        errMsg += "callingNmae is empty";
+        errMsg += "callingName is empty";
         DataShare::DataSharePermission::ReportExtensionFault(invalidUri, tokenId, callingName, errMsg);
         return true;
     }

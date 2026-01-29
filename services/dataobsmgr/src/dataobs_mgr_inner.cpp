@@ -148,7 +148,7 @@ int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::str
         logFlag = true;
     }
     if (logFlag) {
-        TAG_LOGI(AAFwkTag::DBOBSMGR, "notify uri:%{public}s obsList:%{public}s",
+        TAG_LOGI(AAFwkTag::DBOBSMGR, "uri:%{public}s obsList:%{public}s",
             CommonUtils::Anonymous(uri.ToString()).c_str(), obsStr.c_str());
     }
 
