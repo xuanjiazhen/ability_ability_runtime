@@ -30,11 +30,10 @@ ohos_unittest("batch_uri_unit_test") {
   include_dirs = [
     "${target_gen_dir}/services/uripermmgr/src",
     "${ability_runtime_path}/services/uripermmgr/include",
-    "${ability_runtime_path}/services/uripermmgr/include/file_uri_distribution_utils",
     "${ability_runtime_path}/services/common/include",
     "../../../mock_utils",
     # Mock dependencies
-    "../../../mock/file_permission_manager",
+    "../../../mock/upms/uri_permission_manager/file_permission_manager",
     "../../../mock/permission_verification",
   ]
 

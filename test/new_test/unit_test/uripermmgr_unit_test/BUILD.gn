@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 
-group("uripermmgr_unit_test") {
+group("unittest") {
   testonly = true
   deps = [
     "tokenid_permission_test:unittest",
