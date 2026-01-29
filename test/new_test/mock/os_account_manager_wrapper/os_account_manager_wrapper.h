@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,22 +16,18 @@
 #ifndef MOCK_OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 #define MOCK_OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 
+#include <vector>
 #include "errors.h"
 #include "singleton.h"
 #include "oh_mock_utils.h"
 
 namespace OHOS {
-namespace AppExecFwk {
-class OsAccountManagerWrapper : public DelayedSingleton<OsAccountManagerWrapper> {
-public:
-    ErrCode GetOsAccountLocalIdFromUid(const int32_t uid, int32_t &id)
-    {
-        return 0;
-    }
+namespace AccountSandbox {
+namespace OsAccountManagerWrapper {
 
-    OH_MOCK_METHOD_WITH_OUTPUT_1(ErrCode, isOsAccountExists, OsAccountManagerWrapper,
-        IsOsAccountExists, const int, bool& isOsAccountExists);
-};
-} // namespace AppExecFwk
-} // namespace OHOS
+OH_MOCK_GLOBAL_METHOD_WITH_DECORATOR(static, int32_t, QueryActiveOsAccountIds, std::vector<int32_t>&);
+
+}  // namespace OsAccountManagerWrapper
+}  // namespace AccountSandbox
+}  // namespace OHOS
 #endif

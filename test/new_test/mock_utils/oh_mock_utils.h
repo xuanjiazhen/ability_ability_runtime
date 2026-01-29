@@ -187,6 +187,35 @@ decorator ret funcName(__VA_ARGS__)                                             
 }
 
 /**
+ * @brief Mock function body - use this macro inside a function definition to generate mock logic.
+ *        This is useful for functions with default parameters where you need to manually declare the function.
+ * @param ret Return type
+ * @param className Class name for key generation
+ * @param funcName Function name
+ * @param paramTypesStr Parameter types as a string literal (e.g., "Uri&, uint32_t, const std::string&")
+ */
+#define OH_MOCK_FUNCTION_BODY(ret, className, funcName, paramTypesStr) \
+    do { \
+        std::string key = #className"_"#funcName"_" + std::string(paramTypesStr); \
+        if (g_mockMap.find(key) == g_mockMap.end()) { \
+            std::vector<ResultWrap> expectRets; \
+            g_mockMap[key] = expectRets; \
+        } \
+        ret temp; \
+        ResultWrap tempRet(temp); \
+        auto it = g_mockMap.find(key); \
+        if (it != g_mockMap.end()) { \
+            std::vector<ResultWrap> expectRets = it->second; \
+            if (!expectRets.empty()) { \
+                tempRet = expectRets[0]; \
+                expectRets.erase(expectRets.begin()); \
+            } \
+            g_mockMap[key] = expectRets; \
+        } \
+        return tempRet.Get<ret>(); \
+    } while(0)
+
+/**
  * @brief Mock a virtual or static member function.
  *        This macro function while create a definition of a function that expected to be mocked.
  * @param ret Indicate the type of return value.
@@ -283,9 +312,9 @@ do {                                                                            
     std::string key = #className"_"#funcName"_"#__VA_ARGS__;                       \
     std::vector<ResultWrap> v;                                                     \
     for (auto e : expectRetVec) {                                                  \
-        if (std::is_same<decltype(e), vector<bool>::reference>::value == true) {   \
+        if constexpr (std::is_same<decltype(e), vector<bool>::reference>::value) { \
             bool conE = bool(e);                                                   \
-            ResultWrap r(conE);                                                 \
+            ResultWrap r(conE);                                                    \
             v.emplace_back(r);                                                     \
         } else {                                                                   \
             ResultWrap r(e);                                                       \
@@ -307,28 +336,28 @@ do {                                                                            
     std::string key = #className"_"#funcName"_"#__VA_ARGS__;                               \
     std::vector<ResultWrap> v;                                                             \
     for (auto e : expectRetVec) {                                                          \
-        if (std::is_same<decltype(e), vector<bool>::reference>::value == true) {           \
+        if constexpr (std::is_same<decltype(e), vector<bool>::reference>::value) {         \
             bool conE = bool(e);                                                           \
             ResultWrap r(conE);                                                            \
-            v.emplace_back(r);                                                     \
-        } else {                                                                   \
-            ResultWrap r(e);                                                       \
-            v.emplace_back(r);                                                     \
-        }                                                                          \
+            v.emplace_back(r);                                                             \
+        } else {                                                                           \
+            ResultWrap r(e);                                                               \
+            v.emplace_back(r);                                                             \
+        }                                                                                  \
     }                                                                                      \
     g_mockMap[key] = v;                                                                    \
     std::vector<std::vector<ResultWrap>> vRefs;                                            \
     for (auto eOuters : expectOutputVec) {                                                 \
         std::vector<ResultWrap> vRef;                                                      \
         for (auto eOuter : eOuters) {                                                      \
-            if (std::is_same<decltype(eOuter), vector<bool>::reference>::value == true) {   \
-                bool conE = bool(eOuter);                                                   \
+            if constexpr (std::is_same<decltype(eOuter), vector<bool>::reference>::value) { \
+                bool conE = bool(eOuter);                                                  \
                 ResultWrap r(conE);                                                        \
-                vRef.emplace_back(r);                                                         \
+                vRef.emplace_back(r);                                                      \
             } else {                                                                       \
                 ResultWrap r(eOuter);                                                      \
-                vRef.emplace_back(r);                                                     \
-            }                                                                          \
+                vRef.emplace_back(r);                                                      \
+            }                                                                              \
         }                                                                                  \
         vRefs.emplace_back(vRef);                                                          \
     }                                                                                      \
