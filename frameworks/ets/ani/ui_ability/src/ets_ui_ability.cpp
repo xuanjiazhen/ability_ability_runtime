@@ -450,7 +450,7 @@ void EtsUIAbility::CreateEtsContext(int32_t screenMode)
     // to be done: CreateAniEmbeddableUIAbilityContext
 }
 
-void EtsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
+void EtsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo, const std::string &specifiedFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
@@ -465,11 +465,11 @@ void EtsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInf
         TAG_LOGE(AAFwkTag::UIABILITY, "null env");
         return;
     }
-    OnStartInner(env, want, sessionInfo);
+    OnStartInner(env, want, specifiedFlag);
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStart end");
 }
 
-void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
+void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, const std::string &specifiedFlag)
 {
     ani_object wantObj = AppExecFwk::WrapWant(env, want);
     if (wantObj == nullptr) {
@@ -485,7 +485,7 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
         TAG_LOGE(AAFwkTag::UIABILITY, "lastRequestWant Object_SetFieldByName_Ref status: %{public}d", status);
         return;
     }
-    SetSelfSpecifiedId(env, sessionInfo);
+    SetSelfSpecifiedId(env, specifiedFlag);
     auto launchParam = GetLaunchParam();
     if (InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
         launchParam.launchReason = AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT;
@@ -519,7 +519,7 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStart end");
 }
 
-void EtsUIAbility::SetSelfSpecifiedId(ani_env *env, sptr<AAFwk::SessionInfo> sessionInfo)
+void EtsUIAbility::SetSelfSpecifiedId(ani_env *env, const std::string &specifiedFlag)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "SetSelfSpecifiedId called");
     if (env == nullptr) {
@@ -535,9 +535,9 @@ void EtsUIAbility::SetSelfSpecifiedId(ani_env *env, sptr<AAFwk::SessionInfo> ses
         return;
     }
     ani_status status = ANI_ERROR;
-    if (sessionInfo != nullptr && abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
+    if (abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
         if ((status = env->Object_SetFieldByName_Ref(etsAbilityObj_->aniObj,
-            "specifiedId", AppExecFwk::GetAniString(env, sessionInfo->specifiedFlag))) != ANI_OK) {
+            "specifiedId", AppExecFwk::GetAniString(env, specifiedFlag))) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UIABILITY, "specifiedId Object_SetFieldByName_Ref status: %{public}d", status);
             return;
         }

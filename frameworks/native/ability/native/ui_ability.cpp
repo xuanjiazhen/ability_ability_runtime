@@ -240,7 +240,8 @@ ani_object UIAbility::GetEtsWindowStage()
 }
 #endif
 
-void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
+void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo,
+    const std::string &specifiedFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (abilityInfo_ == nullptr) {
