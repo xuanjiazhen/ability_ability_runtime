@@ -45,11 +45,11 @@ static constexpr int DEFAULT_APPFREEZE_REPORT_TIMES = 1;
 class AppfreezeManager : public std::enable_shared_from_this<AppfreezeManager> {
 public:
     struct AppInfo {
-        bool isOccurException = false;
-        int pid;
-        int uid;
         std::string bundleName;
         std::string processName;
+        int32_t pid = 0;
+        int32_t uid = 0;
+        bool isOccurException = false;
     };
 
     enum TypeAttribute {
@@ -65,20 +65,20 @@ public:
     };
 
     struct ParamInfo {
-        bool needKillProcess = true;
-        int typeId = TypeAttribute::NORMAL_TIMEOUT;
-        int32_t pid = 0;
         std::string eventName;
         std::string bundleName;
         std::string msg;
+        int32_t pid = 0;
+        int32_t typeId = TypeAttribute::NORMAL_TIMEOUT;
+        bool needKillProcess = true;
     };
 
     struct AppfreezeEventRecord {
+        std::string dumpResult;
         uint64_t schedTime = 0;
         uint64_t detectTime = 0;
         uint64_t dumpStartTime = 0;
         uint64_t dumpFinishTime = 0;
-        std::string dumpResult;
         int32_t appStatus = -1;
         bool isRepeatKilledThread = false;
     };
@@ -131,10 +131,10 @@ private:
     };
 
     struct AppFreezeInfo {
-        int state = 0;
-        int pid = 0;
-        int reportTimes = DEFAULT_APPFREEZE_REPORT_TIMES;
         int64_t occurTime = 0;
+        int32_t pid = 0;
+        int32_t reportTimes = DEFAULT_APPFREEZE_REPORT_TIMES;
+        int32_t state = 0;
         bool isRepeatKilledThread = false;
     };
 

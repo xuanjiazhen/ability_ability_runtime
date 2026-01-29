@@ -21,9 +21,9 @@
 namespace OHOS {
 namespace AppExecFwk {
 struct KillProcessConfig {
+    std::string reason;
     bool clearPageStack = false;
     bool addKillingCaller = false;
-    std::string reason;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

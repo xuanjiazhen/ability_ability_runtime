@@ -174,20 +174,18 @@ public:
     Want GetConnectWant() const;
 private:
     static int64_t connectRecordId;
-    int32_t callerUid_ = 0;                             // caller uid
-    int32_t callerPid_ = 0;                             // caller pid
-    uint32_t callerTokenId_ = 0;                        // caller pid
-    std::atomic<int32_t> recordId_ = 0;                                  // record id
-    ConnectionState state_;                         // service connection state
-    sptr<IRemoteObject> callerToken_ = nullptr;               // from:caller token
-    std::shared_ptr<BaseExtensionRecord> targetService_ = nullptr;  // target:service need to be connected
-
-    mutable std::mutex callbackMutex_;
-    sptr<IAbilityConnection> connCallback_ = nullptr;         // service connect callback
-    std::string callerName_;                        // caller bundleName or processName
-
     Want connectWant_;
+    sptr<IRemoteObject> callerToken_;              // from:caller token
+    std::shared_ptr<BaseExtensionRecord> targetService_; // target:service need to be connected
     std::weak_ptr<AbilityConnectManager> abilityConnectManager_;
+    mutable std::mutex callbackMutex_;
+    sptr<IAbilityConnection> connCallback_;        // service connect callback
+    std::string callerName_;                       // caller bundleName or processName
+    std::atomic<int32_t> recordId_;                // record id
+    int32_t callerUid_;                            // caller uid
+    int32_t callerPid_;                            // caller pid
+    uint32_t callerTokenId_;                       // caller token id
+    ConnectionState state_;                        // service connection state
 
     DISALLOW_COPY_AND_MOVE(ConnectionRecord);
 };
