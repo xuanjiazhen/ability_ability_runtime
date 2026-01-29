@@ -43,10 +43,10 @@ struct StartAbilityInfo {
         return abilityInfo.applicationInfo.bundleName;
     }
 
-    int32_t status = ERR_OK;
     AppExecFwk::AbilityInfo abilityInfo;
-    AppExecFwk::ExtensionProcessMode extensionProcessMode = AppExecFwk::ExtensionProcessMode::UNDEFINED;
     std::string customProcess;
+    int32_t status = ERR_OK;
+    AppExecFwk::ExtensionProcessMode extensionProcessMode = AppExecFwk::ExtensionProcessMode::UNDEFINED;
     bool isTargetPlugin = false;
 };
 
@@ -87,24 +87,24 @@ struct StartAbilityInfoWrap {
 
 struct StartAbilityWrapParam {
     Want want;
-    sptr<IRemoteObject> callerToken = nullptr;
-    int requestCode = -1;
-    bool isPendingWantCaller = false;
-    int32_t userId = -1;
-    bool isStartAsCaller = false;
-    uint32_t specifyTokenId = 0;
-    bool isForegroundToRestartApp = false;
-    bool isImplicit = false;
-    bool isUIAbilityOnly = false;
-    bool isAppCloneSelector = false;
-    bool hideFailureTipDialog = false;
-    bool isBySCB = false;
-    bool isFreeInstallFromService = false;
-    uint64_t specifiedFullTokenId = 0;
-    bool removeInsightIntentFlag = false;
-    std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
-    bool isFromOpenLink = false;
-    bool isServiceMatch = false;
+    std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams;
+    sptr<IRemoteObject> callerToken;
+    uint64_t specifiedFullTokenId;
+    int32_t userId;
+    int requestCode;
+    uint32_t specifyTokenId;
+    bool isPendingWantCaller;
+    bool isStartAsCaller;
+    bool isForegroundToRestartApp;
+    bool isImplicit;
+    bool isUIAbilityOnly;
+    bool isAppCloneSelector;
+    bool hideFailureTipDialog;
+    bool isBySCB;
+    bool isFreeInstallFromService;
+    bool removeInsightIntentFlag;
+    bool isFromOpenLink;
+    bool isServiceMatch;
 };
 }
 }

@@ -33,10 +33,10 @@ public:
     AssertFaultCallbackDeathMgr() = default;
     virtual ~AssertFaultCallbackDeathMgr();
     struct DeathItem {
-        int32_t pid_;
         sptr<IRemoteObject> iremote_;
         sptr<IRemoteObject::DeathRecipient> deathObj_;
         CallbackTask callbackTask_;
+        int32_t pid_;
     };
 
     void AddAssertFaultCallback(sptr<IRemoteObject> &remote, CallbackTask callback);
