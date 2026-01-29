@@ -283,9 +283,9 @@ do {                                                                            
     std::string key = #className"_"#funcName"_"#__VA_ARGS__;                       \
     std::vector<ResultWrap> v;                                                     \
     for (auto e : expectRetVec) {                                                  \
-        if (std::is_same<decltype(e), vector<bool>::reference>::value == true) {   \
+        if constexpr (std::is_same<decltype(e), vector<bool>::reference>::value) { \
             bool conE = bool(e);                                                   \
-            ResultWrap r(conE);                                                 \
+            ResultWrap r(conE);                                                    \
             v.emplace_back(r);                                                     \
         } else {                                                                   \
             ResultWrap r(e);                                                       \
@@ -307,28 +307,28 @@ do {                                                                            
     std::string key = #className"_"#funcName"_"#__VA_ARGS__;                               \
     std::vector<ResultWrap> v;                                                             \
     for (auto e : expectRetVec) {                                                          \
-        if (std::is_same<decltype(e), vector<bool>::reference>::value == true) {           \
+        if constexpr (std::is_same<decltype(e), vector<bool>::reference>::value) {         \
             bool conE = bool(e);                                                           \
             ResultWrap r(conE);                                                            \
-            v.emplace_back(r);                                                     \
-        } else {                                                                   \
-            ResultWrap r(e);                                                       \
-            v.emplace_back(r);                                                     \
-        }                                                                          \
+            v.emplace_back(r);                                                             \
+        } else {                                                                           \
+            ResultWrap r(e);                                                               \
+            v.emplace_back(r);                                                             \
+        }                                                                                  \
     }                                                                                      \
     g_mockMap[key] = v;                                                                    \
     std::vector<std::vector<ResultWrap>> vRefs;                                            \
     for (auto eOuters : expectOutputVec) {                                                 \
         std::vector<ResultWrap> vRef;                                                      \
         for (auto eOuter : eOuters) {                                                      \
-            if (std::is_same<decltype(eOuter), vector<bool>::reference>::value == true) {   \
-                bool conE = bool(eOuter);                                                   \
+            if constexpr (std::is_same<decltype(eOuter), vector<bool>::reference>::value) { \
+                bool conE = bool(eOuter);                                                  \
                 ResultWrap r(conE);                                                        \
-                vRef.emplace_back(r);                                                         \
+                vRef.emplace_back(r);                                                      \
             } else {                                                                       \
                 ResultWrap r(eOuter);                                                      \
-                vRef.emplace_back(r);                                                     \
-            }                                                                          \
+                vRef.emplace_back(r);                                                      \
+            }                                                                              \
         }                                                                                  \
         vRefs.emplace_back(vRef);                                                          \
     }                                                                                      \
