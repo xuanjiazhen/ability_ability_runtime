@@ -36,10 +36,10 @@ ohos_shared_library("child_process_manager") {
   sources = []
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
-    "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_services_path}/common:app_util",
   ]
 
