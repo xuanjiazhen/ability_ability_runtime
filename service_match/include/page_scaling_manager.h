@@ -77,18 +77,19 @@ private:
     ~PageScalingManager() = default;
 
     void ProcessDpiConfig(const std::vector<Config>& configs, const std::string& tag,
-    Rosen::FoldDisplayMode foldDisplayMode, const sptr<Rosen::Window>& window,
-    const std::string& toPage, const std::string& targetPage);
-void ProcessVerticalDisplayConfig(const std::vector<Config>& configs,
+        Rosen::FoldDisplayMode foldDisplayMode, const sptr<Rosen::Window>& window,
+        const std::string& toPage, int32_t toPageNameLen, const Page& configPage);
+    void ProcessVerticalDisplayConfig(const std::vector<Config>& configs,
         const std::string& tag, Rosen::DisplayOrientation orientation,
         Rosen::FoldDisplayMode foldDisplayMode, const sptr<Rosen::Window>& window,
-        const std::string& fromPage, const std::string& toPage, const std::string& targetPage);
-void ProcessHideStatusBarConfig(const std::vector<Config>& configs,
-    const std::string& tag, const sptr<Rosen::Window>& window,
-    const std::string& toPage, const std::string& targetPage);
-void ProcessVideoShrinkConfig(const std::vector<Config>& configs,
-    const std::string& tag, const sptr<Rosen::Window>& window,
-    const std::string& toPage, const std::string& targetPage);
+        const std::string& fromPage, int32_t fromPageNameLen,
+        const std::string& toPage, int32_t toPageNameLen, const Page& configPage)
+    void ProcessHideStatusBarConfig(const std::vector<Config>& configs,
+        const std::string& tag, const sptr<Rosen::Window>& window,
+        const std::string& toPage, int32_t toPageNameLen, const Page& configPage);
+    void ProcessVideoShrinkConfig(const std::vector<Config>& configs,
+        const std::string& tag, const sptr<Rosen::Window>& window,
+        const std::string& toPage, int32_t toPageNameLen, const Page& configPage);
     std::vector<std::string> ParseCondition(const std::string& condition);
 
     void RestoreDPI(const sptr<Rosen::Window>& window);
