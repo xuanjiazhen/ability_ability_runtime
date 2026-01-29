@@ -281,7 +281,11 @@ void PageScalingManager::ProcessVerticalDisplayConfig(
             hasStayCondition = true;
             
             // 2. 再检查设备状态
-            bool isDeviceMatch = ConditionCheck(condition, orientation, foldDisplayMode);
+            bool isConditionMatch = ConditionCheck(condition, orientation, foldDisplayMode);
+            if (!isConditionMatch) {
+                TAG_LOGE(AAFwkTag::ABILITY, "Condition %{public}s not match ", condition.c_str());
+                continue; // 如果条件不匹配，跳过此配置项
+            }
             
             bool isEnterTargetPage = ComparePage(configPage.pageName, toPage, 
                 configPage.patternType, toPageNameLen) && 
@@ -295,15 +299,17 @@ void PageScalingManager::ProcessVerticalDisplayConfig(
             
             // 3. Stay 逻辑：退出时无需检查设备状态，进入时需检查
             if (isEnterTargetPage) {
-                if (isDeviceMatch) {
-                    int32_t valueInt = std::stoi(value);
-                    window->UpdateCompatibleStyleMode(
-                        static_cast<Rosen::CompatibleStyleMode>(valueInt));
-                    return;
-                }
+                TAG_LOGI(AAFwkTag::ABILITY, "Setting compatible mode for stay condition: entering target page %{public}s, value: %{public}d",
+                    configPage.pageName.c_str(), valueInt);
+                int32_t valueInt = std::stoi(value);
+                window->UpdateCompatibleStyleMode(
+                    static_cast<Rosen::CompatibleStyleMode>(valueInt));
+                return;
                 // 进入但设备不匹配：不设置，继续检查其他配置
             } else if (isExitTargetPage) {
                 // 离开页面：无论当前设备状态如何，都恢复
+                TAG_LOGI(AAFwkTag::ABILITY, "Restoring vertical display for stay condition: exiting target page %{public}s",
+                    configPage.pageName.c_str());
                 RestoreVerticalDisplay(window);
                 return;
             }
