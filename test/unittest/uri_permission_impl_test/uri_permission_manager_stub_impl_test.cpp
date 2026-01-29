@@ -2205,5 +2205,825 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_AddPolicyRecordCache_004, TestS
 
     EXPECT_EQ(upmsi->policyMap_.size(), 1);
 }
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: GrantUriPermissionPrivilegedImpl
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService GrantUriPermissionPrivilegedImpl
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedImpl_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchStringUri batchUris;
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+    FUDAppInfo callerInfo = { 1000, "caller", "callerAlter" };
+    FUDAppInfo targetAppInfo = { 1001, "target", "targetAlter" };
+    int32_t hideSensitiveType = 0;
+
+    auto result = upmsi->GrantUriPermissionPrivilegedImpl(batchUris, flag, callerInfo, targetAppInfo,
+        hideSensitiveType);
+
+    EXPECT_EQ(result, INNER_ERR);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: GrantUriPermissionPrivilegedImpl
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService GrantUriPermissionPrivilegedImpl
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedImpl_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchStringUri batchUris;
+    batchUris.uriStrVec = { "file://docs/test.txt?networkid=123" };
+
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+    FUDAppInfo callerInfo = { 1000, "caller", "callerAlter" };
+    FUDAppInfo targetAppInfo = { 1001, "target", "targetAlter" };
+    int32_t hideSensitiveType = 0;
+
+    auto result = upmsi->GrantUriPermissionPrivilegedImpl(batchUris, flag, callerInfo, targetAppInfo,
+        hideSensitiveType);
+
+    EXPECT_EQ(result, INNER_ERR);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: GrantUriPermissionPrivilegedImpl
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService GrantUriPermissionPrivilegedImpl
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedImpl_003, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchStringUri batchUris;
+    batchUris.mediaUriVec = { "file://media/test.jpg" };
+
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+    FUDAppInfo callerInfo = { 1000, "caller", "callerAlter" };
+    FUDAppInfo targetAppInfo = { 1001, "target", "targetAlter" };
+    int32_t hideSensitiveType = 0;
+
+    auto result = upmsi->GrantUriPermissionPrivilegedImpl(batchUris, flag, callerInfo, targetAppInfo,
+        hideSensitiveType);
+
+    EXPECT_EQ(result, INNER_ERR);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: GrantUriPermissionPrivilegedImpl
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService GrantUriPermissionPrivilegedImpl
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedImpl_004, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchStringUri batchUris;
+    PolicyInfo policy;
+    policy.path = "/data/storage/test.txt";
+    policy.mode = 1;
+    batchUris.policyVec = { policy };
+
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+    FUDAppInfo callerInfo = { 1000, "caller", "callerAlter" };
+    FUDAppInfo targetAppInfo = { 1001, "target", "targetAlter" };
+    int32_t hideSensitiveType = 0;
+
+    auto result = upmsi->GrantUriPermissionPrivilegedImpl(batchUris, flag, callerInfo, targetAppInfo,
+        hideSensitiveType);
+
+    EXPECT_EQ(result, INNER_ERR);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: GrantUriPermissionPrivilegedImpl
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService GrantUriPermissionPrivilegedImpl
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedImpl_005, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchStringUri batchUris;
+    batchUris.contentUris = { "content://test" };
+
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+    FUDAppInfo callerInfo = { 1000, "caller", "callerAlter" };
+    FUDAppInfo targetAppInfo = { 1001, "target", "targetAlter" };
+    int32_t hideSensitiveType = 0;
+
+    auto result = upmsi->GrantUriPermissionPrivilegedImpl(batchUris, flag, callerInfo, targetAppInfo,
+        hideSensitiveType);
+
+    EXPECT_EQ(result, INNER_ERR);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: GrantUriPermissionPrivilegedImpl
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService GrantUriPermissionPrivilegedImpl
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedImpl_006, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchStringUri batchUris;
+    batchUris.uriStrVec = { "file://docs/test.txt?networkid=123" };
+    batchUris.mediaUriVec = { "file://media/test.jpg" };
+    PolicyInfo policy;
+    policy.path = "/data/storage/test.txt";
+    policy.mode = 1;
+    batchUris.policyVec = { policy };
+    batchUris.contentUris = { "content://test" };
+
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION;
+    FUDAppInfo callerInfo = { 1000, "caller", "callerAlter" };
+    FUDAppInfo targetAppInfo = { 1001, "target", "targetAlter" };
+    int32_t hideSensitiveType = 0;
+
+    auto result = upmsi->GrantUriPermissionPrivilegedImpl(batchUris, flag, callerInfo, targetAppInfo,
+        hideSensitiveType);
+
+    EXPECT_EQ(result, INNER_ERR);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: GrantUriPermissionPrivilegedImpl
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService GrantUriPermissionPrivilegedImpl
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedImpl_007, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchStringUri batchUris;
+    batchUris.uriStrVec = { "file://docs/test.txt?networkid=123" };
+
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION |
+                    Want::FLAG_AUTH_WRITE_URI_PERMISSION |
+                    Want::FLAG_AUTH_PERSISTABLE_URI_PERMISSION;
+    FUDAppInfo callerInfo = { 1000, "caller", "callerAlter" };
+    FUDAppInfo targetAppInfo = { 1001, "target", "targetAlter" };
+    int32_t hideSensitiveType = 0;
+
+    auto result = upmsi->GrantUriPermissionPrivilegedImpl(batchUris, flag, callerInfo, targetAppInfo,
+        hideSensitiveType);
+
+    EXPECT_EQ(result, INNER_ERR);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService CheckUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_CheckUriPermission_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchUri batchUri;
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+    uint32_t callerTokenId = 1000;
+    std::string callerAlterableBundleName = "callerBundle";
+    uint32_t targetTokenId = 1001;
+
+    auto result = upmsi->CheckUriPermission(batchUri, flag, callerTokenId, callerAlterableBundleName, targetTokenId);
+
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService CheckProxyUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_CheckProxyUriPermission_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchUri batchUri;
+    uint32_t callerTokenId = 1000;
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+
+    MyFlag::permissionProxyAuthorization_ = false;
+
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService CheckProxyUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_CheckProxyUriPermission_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchUri batchUri;
+    uint32_t callerTokenId = 1000;
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+
+    MyFlag::permissionProxyAuthorization_ = true;
+
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService CheckProxyUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_CheckProxyUriPermission_003, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchUri batchUri;
+    uint32_t callerTokenId = 1000;
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+
+    MyFlag::permissionProxyAuthorization_ = true;
+
+    PolicyInfo policy;
+    policy.path = "/data/storage/proxy.txt";
+    policy.mode = 1;
+    batchUri.otherPolicyInfos = { policy };
+
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService CheckProxyUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_CheckProxyUriPermission_004, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    BatchUri batchUri;
+    uint32_t callerTokenId = 1000;
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION;
+
+    MyFlag::permissionProxyAuthorization_ = true;
+
+    PolicyInfo policy;
+    policy.path = "/data/storage/proxy.txt";
+    policy.mode = 1;
+    batchUri.otherPolicyInfos = { policy };
+
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokeMapUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokeMapUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeMapUriPermission_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    upmsi->uriMap_.clear();
+
+    upmsi->RevokeMapUriPermission(tokenId);
+
+    EXPECT_TRUE(upmsi->uriMap_.empty());
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokeMapUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokeMapUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeMapUriPermission_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    GrantInfo info1 = { Want::FLAG_AUTH_READ_URI_PERMISSION, 999, tokenId };
+    GrantInfo info2 = { Want::FLAG_AUTH_WRITE_URI_PERMISSION, 998, 1001 };
+    std::list<GrantInfo> infoList = { info1, info2 };
+
+    upmsi->uriMap_["file://test1.txt"] = infoList;
+    upmsi->uriMap_["file://test2.txt"] = { info2 };
+
+    upmsi->RevokeMapUriPermission(tokenId);
+
+    auto it1 = upmsi->uriMap_.find("file://test1.txt");
+    EXPECT_TRUE(it1 != upmsi->uriMap_.end());
+    EXPECT_EQ(it1->second.size(), 1);
+
+    auto it2 = upmsi->uriMap_.find("file://test2.txt");
+    EXPECT_TRUE(it2 != upmsi->uriMap_.end());
+    EXPECT_EQ(it2->second.size(), 1);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokeMapUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokeMapUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeMapUriPermission_003, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    GrantInfo info = { Want::FLAG_AUTH_READ_URI_PERMISSION, 999, tokenId };
+    upmsi->uriMap_["file://test.txt"] = { info };
+
+    upmsi->RevokeMapUriPermission(tokenId);
+
+    auto it = upmsi->uriMap_.find("file://test.txt");
+    EXPECT_TRUE(it == upmsi->uriMap_.end());
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokeMapUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokeMapUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeMapUriPermission_004, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    GrantInfo info1 = { Want::FLAG_AUTH_READ_URI_PERMISSION, 999, tokenId };
+    GrantInfo info2 = { Want::FLAG_AUTH_WRITE_URI_PERMISSION, 998, tokenId };
+    GrantInfo info3 = { Want::FLAG_AUTH_READ_URI_PERMISSION, 997, 1001 };
+
+    std::list<GrantInfo> infoList = { info1, info2, info3 };
+    upmsi->uriMap_["file://test.txt"] = infoList;
+
+    upmsi->RevokeMapUriPermission(tokenId);
+
+    auto it = upmsi->uriMap_.find("file://test.txt");
+    EXPECT_TRUE(it != upmsi->uriMap_.end());
+    EXPECT_EQ(it->second.size(), 1);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokePolicyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokePolicyUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokePolicyUriPermission_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    upmsi->policyMap_.clear();
+
+    upmsi->RevokePolicyUriPermission(tokenId);
+
+    EXPECT_TRUE(upmsi->policyMap_.empty());
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokePolicyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokePolicyUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokePolicyUriPermission_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    GrantPolicyInfo policyInfo1 = { 999, tokenId };
+    GrantPolicyInfo policyInfo2 = { 998, 1001 };
+    GrantPolicyInfo policyInfo3 = { tokenId, 1002 };
+
+    std::list<GrantPolicyInfo> policyList1 = { policyInfo1, policyInfo2 };
+    std::list<GrantPolicyInfo> policyList2 = { policyInfo3 };
+
+    upmsi->policyMap_["/data/path1"] = policyList1;
+    upmsi->policyMap_["/data/path2"] = policyList2;
+
+    upmsi->RevokePolicyUriPermission(tokenId);
+
+    auto it1 = upmsi->policyMap_.find("/data/path1");
+    EXPECT_TRUE(it1 != upmsi->policyMap_.end());
+    EXPECT_EQ(it1->second.size(), 1);
+
+    auto it2 = upmsi->policyMap_.find("/data/path2");
+    EXPECT_TRUE(it2 != upmsi->policyMap_.end());
+    EXPECT_EQ(it2->second.size(), 1);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokePolicyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokePolicyUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokePolicyUriPermission_003, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    GrantPolicyInfo policyInfo = { 999, tokenId };
+    upmsi->policyMap_["/data/path"] = { policyInfo };
+
+    upmsi->RevokePolicyUriPermission(tokenId);
+
+    auto it = upmsi->policyMap_.find("/data/path");
+    EXPECT_TRUE(it == upmsi->policyMap_.end());
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokePolicyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokePolicyUriPermission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokePolicyUriPermission_004, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    GrantPolicyInfo policyInfo1 = { 999, tokenId };
+    GrantPolicyInfo policyInfo2 = { 998, tokenId };
+    GrantPolicyInfo policyInfo3 = { 997, 1001 };
+
+    upmsi->policyMap_["/data/path1"] = { policyInfo1, policyInfo3 };
+    upmsi->policyMap_["/data/path2"] = { policyInfo2 };
+    upmsi->policyMap_["/data/path3"] = { policyInfo3 };
+
+    upmsi->RevokePolicyUriPermission(tokenId);
+
+    auto it1 = upmsi->policyMap_.find("/data/path1");
+    EXPECT_TRUE(it1 != upmsi->policyMap_.end());
+    EXPECT_EQ(it1->second.size(), 1);
+
+    auto it2 = upmsi->policyMap_.find("/data/path2");
+    EXPECT_TRUE(it2 == upmsi->policyMap_.end());
+
+    auto it3 = upmsi->policyMap_.find("/data/path3");
+    EXPECT_TRUE(it3 != upmsi->policyMap_.end());
+    EXPECT_EQ(it3->second.size(), 1);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokeAllPolicyUriPermissions
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokeAllPolicyUriPermissions
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeAllPolicyUriPermissions_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    upmsi->policyMap_.clear();
+
+    auto result = upmsi->RevokeAllPolicyUriPermissions(tokenId);
+
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(upmsi->policyMap_.empty());
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokeAllPolicyUriPermissions
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokeAllPolicyUriPermissions
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeAllPolicyUriPermissions_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    GrantPolicyInfo policyInfo1 = { 999, tokenId };
+    GrantPolicyInfo policyInfo2 = { tokenId, 1001 };
+    GrantPolicyInfo policyInfo3 = { 998, 1002 };
+
+    std::list<GrantPolicyInfo> policyList1 = { policyInfo1, policyInfo2, policyInfo3 };
+    std::list<GrantPolicyInfo> policyList2 = { policyInfo3 };
+
+    upmsi->policyMap_["/data/path1"] = policyList1;
+    upmsi->policyMap_["/data/path2"] = policyList2;
+
+    auto result = upmsi->RevokeAllPolicyUriPermissions(tokenId);
+
+    auto it1 = upmsi->policyMap_.find("/data/path1");
+    EXPECT_TRUE(it1 != upmsi->policyMap_.end());
+    EXPECT_EQ(it1->second.size(), 1);
+
+    auto it2 = upmsi->policyMap_.find("/data/path2");
+    EXPECT_TRUE(it2 != upmsi->policyMap_.end());
+    EXPECT_EQ(it2->second.size(), 1);
+
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokeAllPolicyUriPermissions
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokeAllPolicyUriPermissions
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeAllPolicyUriPermissions_003, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t tokenId = 1000;
+
+    GrantPolicyInfo policyInfo1 = { 999, tokenId };
+    GrantPolicyInfo policyInfo2 = { tokenId, 1001 };
+
+    upmsi->policyMap_["/data/path1"] = { policyInfo1 };
+    upmsi->policyMap_["/data/path2"] = { policyInfo2 };
+
+    auto result = upmsi->RevokeAllPolicyUriPermissions(tokenId);
+
+    auto it1 = upmsi->policyMap_.find("/data/path1");
+    EXPECT_TRUE(it1 == upmsi->policyMap_.end());
+
+    auto it2 = upmsi->policyMap_.find("/data/path2");
+    EXPECT_TRUE(it2 == upmsi->policyMap_.end());
+
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokePolicyUriPermissionManually
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokePolicyUriPermissionManually
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokePolicyUriPermissionManually_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t callerTokenId = 1000;
+    uint32_t targetTokenId = 1001;
+    Uri uri("file://com.example.app/test.txt");
+
+    auto result = upmsi->RevokePolicyUriPermissionManually(callerTokenId, targetTokenId, uri);
+
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: RevokeMediaUriPermissionManually
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService RevokeMediaUriPermissionManually
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeMediaUriPermissionManually_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t callerTokenId = 1000;
+    uint32_t targetTokenId = 1001;
+    Uri uri("file://media/test.jpg");
+
+    auto result = upmsi->RevokeMediaUriPermissionManually(callerTokenId, targetTokenId, uri);
+
+    EXPECT_EQ(result, -1);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckCalledBySandBox
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService CheckCalledBySandBox
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_CheckCalledBySandBox_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    MyFlag::isSandboxAppRet_ = false;
+
+    auto result = upmsi->CheckCalledBySandBox();
+
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckCalledBySandBox
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService CheckCalledBySandBox
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_CheckCalledBySandBox_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    MyFlag::isSandboxAppRet_ = true;
+
+    auto result = upmsi->CheckCalledBySandBox();
+
+    EXPECT_EQ(result, ERR_CODE_GRANT_URI_PERMISSION);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: BoolVecToRawData
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService BoolVecToRawData
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_BoolVecToRawData_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    std::vector<bool> boolVector;
+    UriPermissionRawData rawData;
+    std::vector<char> charVector;
+
+    upmsi->BoolVecToRawData(boolVector, rawData, charVector);
+
+    EXPECT_EQ(rawData.size, sizeof(uint32_t));
+    EXPECT_TRUE(rawData.data != nullptr);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: BoolVecToRawData
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService BoolVecToRawData
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_BoolVecToRawData_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    std::vector<bool> boolVector = { true, false, true, false, true };
+    UriPermissionRawData rawData;
+    std::vector<char> charVector;
+
+    upmsi->BoolVecToRawData(boolVector, rawData, charVector);
+
+    uint32_t expectedSize = sizeof(uint32_t) + 5 * sizeof(char);
+    EXPECT_EQ(rawData.size, expectedSize);
+    EXPECT_TRUE(rawData.data != nullptr);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: BoolVecToRawData
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService BoolVecToRawData
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_BoolVecToRawData_003, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    std::vector<bool> boolVector = { false };
+    UriPermissionRawData rawData;
+    std::vector<char> charVector;
+
+    upmsi->BoolVecToRawData(boolVector, rawData, charVector);
+
+    uint32_t expectedSize = sizeof(uint32_t) + sizeof(char);
+    EXPECT_EQ(rawData.size, expectedSize);
+    EXPECT_TRUE(rawData.data != nullptr);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckGrantUriPermissionPrivileged
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService CheckGrantUriPermissionPrivileged
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_CheckGrantUriPermissionPrivileged_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    uint32_t callerTokenId = 1000;
+    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
+
+    MyFlag::permissionAll_ = false;
+
+    auto result = upmsi->CheckGrantUriPermissionPrivileged(callerTokenId, flag);
+
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: StringVecToRawData
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService StringVecToRawData
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_StringVecToRawData_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    std::vector<std::string> stringVec;
+    StorageFileRawData rawData;
+
+    upmsi->StringVecToRawData(stringVec, rawData);
+
+    EXPECT_EQ(rawData.size, sizeof(uint32_t));
+    EXPECT_TRUE(rawData.data != nullptr);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: StringVecToRawData
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService StringVecToRawData
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_StringVecToRawData_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    std::vector<std::string> stringVec = { "test1", "test22", "test333" };
+    StorageFileRawData rawData;
+
+    upmsi->StringVecToRawData(stringVec, rawData);
+
+    uint32_t expectedSize = sizeof(uint32_t);
+    for (const auto& str : stringVec) {
+        expectedSize += sizeof(uint32_t) + str.length();
+    }
+
+    EXPECT_EQ(rawData.size, expectedSize);
+    EXPECT_TRUE(rawData.data != nullptr);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: StringVecToRawData
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService StringVecToRawData
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_StringVecToRawData_003, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    std::vector<std::string> stringVec = { "single" };
+    StorageFileRawData rawData;
+
+    upmsi->StringVecToRawData(stringVec, rawData);
+
+    uint32_t expectedSize = sizeof(uint32_t) + sizeof(uint32_t) + stringVec[0].length();
+    EXPECT_EQ(rawData.size, expectedSize);
+    EXPECT_TRUE(rawData.data != nullptr);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: StringVecToRawData
+ * SubFunction: NA
+ * FunctionPoints: UriPermissionManagerService StringVecToRawData
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_StringVecToRawData_004, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+
+    std::vector<std::string> stringVec = { "", "non-empty", "" };
+    StorageFileRawData rawData;
+
+    upmsi->StringVecToRawData(stringVec, rawData);
+
+    uint32_t expectedSize = sizeof(uint32_t);
+    for (const auto& str : stringVec) {
+        expectedSize += sizeof(uint32_t) + str.length();
+    }
+
+    EXPECT_EQ(rawData.size, expectedSize);
+    EXPECT_TRUE(rawData.data != nullptr);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
