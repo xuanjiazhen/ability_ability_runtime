@@ -44,11 +44,11 @@ enum class TaskQueuePriority {
 };
 
 struct TaskAttribute {
-    std::string taskName_;
     int64_t delayMillis_ = 0;
+    int64_t timeoutMillis_ = 0;  // task should be started within timeout
+    std::string taskName_;
     TaskQoS taskQos_ = TaskQoS::DEFAULT;
     TaskQueuePriority taskPriority_ = TaskQueuePriority::LOW;
-    int64_t timeoutMillis_ = 0;  // task should be started within timeout
     bool insertHead_ = false;  // insert into the head of the queue
 };
 } // namespace AAFwk
