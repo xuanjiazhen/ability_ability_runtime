@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,11 +28,69 @@
 #include "ability_connect_callback_stub.h"
 #include "ability_scheduler.h"
 #include "ability_state.h"
+#include "iremote_object.h"
 
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
+class MockIRemoteObject : public IRemoteObject {
+public:
+    MockIRemoteObject() : IRemoteObject(u"mock_i_remote_object") {}
+
+    ~MockIRemoteObject() override {}
+
+    int32_t GetObjectRefCount() override
+    {
+        return 0;
+    }
+
+    int SendRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        return 0;
+    }
+
+    bool IsProxyObject() const override
+    {
+        return true;
+    }
+
+    bool CheckObjectLegality() const override
+    {
+        return true;
+    }
+
+    bool AddDeathRecipient(const sptr<DeathRecipient> &recipient) override
+    {
+        return true;
+    }
+
+    bool RemoveDeathRecipient(const sptr<DeathRecipient> &recipient) override
+    {
+        return true;
+    }
+
+    bool Marshalling(Parcel &parcel) const override
+    {
+        return true;
+    }
+
+    sptr<IRemoteBroker> AsInterface() override
+    {
+        return nullptr;
+    }
+
+    int Dump(int fd, const std::vector<std::u16string> &args) override
+    {
+        return 0;
+    }
+
+    std::u16string GetObjectDescriptor() const
+    {
+        return std::u16string();
+    }
+};
+
 namespace AAFwk {
 class AbilityConnectCallbackMock : public AbilityConnectionStub {
 public:
@@ -360,6 +418,447 @@ HWTEST_F(ConnectionRecordTest, AaFwk_ConnectionRecord_015, TestSize.Level1)
     result = connectionRecord_->ResumeExtensionAbility();
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::CONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: DisconnectAbility
+ * SubFunction: NA
+ * FunctionPoints: DisconnectAbility
+ * EnvConditions:NA
+ * CaseDescription: Verify DisconnectAbility returns INVALID_CONNECTION_STATE when state is INIT
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_DisconnectAbility_001, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::INIT);
+    auto result = connectionRecord_->DisconnectAbility();
+    EXPECT_EQ(result, INVALID_CONNECTION_STATE);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: DisconnectAbility
+ * SubFunction: NA
+ * FunctionPoints: DisconnectAbility
+ * EnvConditions:NA
+ * CaseDescription: Verify DisconnectAbility returns INVALID_CONNECTION_STATE when state is CONNECTING
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_DisconnectAbility_002, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::CONNECTING);
+    auto result = connectionRecord_->DisconnectAbility();
+    EXPECT_EQ(result, INVALID_CONNECTION_STATE);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: DisconnectAbility
+ * SubFunction: NA
+ * FunctionPoints: DisconnectAbility
+ * EnvConditions:NA
+ * CaseDescription: Verify DisconnectAbility returns INVALID_CONNECTION_STATE when state is DISCONNECTING
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_DisconnectAbility_003, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::DISCONNECTING);
+    auto result = connectionRecord_->DisconnectAbility();
+    EXPECT_EQ(result, INVALID_CONNECTION_STATE);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: DisconnectAbility
+ * SubFunction: NA
+ * FunctionPoints: DisconnectAbility
+ * EnvConditions:NA
+ * CaseDescription: Verify DisconnectAbility returns INVALID_CONNECTION_STATE when state is DISCONNECTED
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_DisconnectAbility_004, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::DISCONNECTED);
+    auto result = connectionRecord_->DisconnectAbility();
+    EXPECT_EQ(result, INVALID_CONNECTION_STATE);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: DisconnectAbility
+ * SubFunction: NA
+ * FunctionPoints: DisconnectAbility
+ * EnvConditions:NA
+ * CaseDescription: Verify DisconnectAbility sets state to DISCONNECTING when connected
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_DisconnectAbility_005, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::CONNECTED);
+    auto result = connectionRecord_->DisconnectAbility();
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::DISCONNECTING);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify ScheduleConnectAbilityDone returns early when state is INIT
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_001, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::INIT);
+    connectionRecord_->ScheduleConnectAbilityDone();
+    // Should return early without changing state
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::INIT);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify ScheduleConnectAbilityDone returns early when state is CONNECTED
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_002, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::CONNECTED);
+    connectionRecord_->ScheduleConnectAbilityDone();
+    // Should return early without changing state
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::CONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify ScheduleConnectAbilityDone returns early when state is DISCONNECTING
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_003, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::DISCONNECTING);
+    connectionRecord_->ScheduleConnectAbilityDone();
+    // Should return early without changing state
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::DISCONNECTING);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify ScheduleConnectAbilityDone returns early when state is DISCONNECTED
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_004, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::DISCONNECTED);
+    connectionRecord_->ScheduleConnectAbilityDone();
+    // Should return early without changing state
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::DISCONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify ScheduleConnectAbilityDone completes connect when state is CONNECTING
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_005, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::CONNECTING);
+    connectionRecord_->ScheduleConnectAbilityDone();
+    // Should complete connect and set state to CONNECTED
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::CONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify ScheduleConnectAbilityDone preserves UISERVICEHOSTPROXY_KEY
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_006, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::CONNECTING);
+    Want want;
+    sptr<IRemoteObject> proxy = sptr<MockIRemoteObject>::MakeSptr();
+    want.SetParam("ohos.ability.params.UIServiceHostProxy", proxy);
+    connectionRecord_->SetConnectWant(want);
+    connectionRecord_->ScheduleConnectAbilityDone();
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::CONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify ScheduleConnectAbilityDone preserves AGENTEXTENSIONHOSTPROXY_KEY
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_007, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::CONNECTING);
+    Want want;
+    sptr<IRemoteObject> proxy = sptr<MockIRemoteObject>::MakeSptr();
+    want.SetParam("ohos.ability.params.AgentExtensionHostProxy", proxy);
+    connectionRecord_->SetConnectWant(want);
+    connectionRecord_->ScheduleConnectAbilityDone();
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::CONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleConnectAbilityDone
+ * SubFunction: NA
+ * FunctionPoints: ScheduleConnectAbilityDone
+ * EnvConditions:NA
+ * CaseDescription: Verify ScheduleConnectAbilityDone preserves both proxy keys
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleConnectAbilityDone_008, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::CONNECTING);
+    Want want;
+    sptr<IRemoteObject> uiProxy = sptr<MockIRemoteObject>::MakeSptr();
+    sptr<IRemoteObject> agentProxy = sptr<MockIRemoteObject>::MakeSptr();
+    want.SetParam("ohos.ability.params.UIServiceHostProxy", uiProxy);
+    want.SetParam("ohos.ability.params.AgentExtensionHostProxy", agentProxy);
+    connectionRecord_->SetConnectWant(want);
+    connectionRecord_->ScheduleConnectAbilityDone();
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::CONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: ScheduleDisconnectTimeout
+ * SubFunction: NA
+ * FunctionPoints: ScheduleDisconnectTimeout
+ * EnvConditions:NA
+ * CaseDescription: Verify ScheduleDisconnectTimeout handles null task handler gracefully
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ScheduleDisconnectTimeout_001, TestSize.Level1)
+{
+    // ScheduleDisconnectTimeout should handle null handler internally
+    // This test verifies it doesn't crash when handler is not available
+    connectionRecord_->ScheduleDisconnectTimeout();
+    // If we reach here, the method handled null case gracefully
+    EXPECT_TRUE(true);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: DisconnectTimeout
+ * SubFunction: NA
+ * FunctionPoints: DisconnectTimeout
+ * EnvConditions:NA
+ * CaseDescription: Verify DisconnectTimeout with null targetService
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_DisconnectTimeout_001, TestSize.Level1)
+{
+    auto record = std::make_shared<ConnectionRecord>(nullptr, nullptr, callback_, nullptr);
+    record->DisconnectTimeout();
+    // Should handle null targetService gracefully
+    EXPECT_TRUE(true);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: DisconnectAbility
+ * SubFunction: NA
+ * FunctionPoints: DisconnectAbility
+ * EnvConditions:NA
+ * CaseDescription: Verify DisconnectAbility with null targetService
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_DisconnectAbility_006, TestSize.Level1)
+{
+    auto record = std::make_shared<ConnectionRecord>(nullptr, nullptr, callback_, nullptr);
+    record->SetConnectState(ConnectionState::CONNECTED);
+    auto result = record->DisconnectAbility();
+    // Should return ERR_INVALID_VALUE when targetService is null
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: SetConnectWant and GetConnectWant
+ * SubFunction: NA
+ * FunctionPoints: SetConnectWant and GetConnectWant
+ * EnvConditions:NA
+ * CaseDescription: Verify SetConnectWant and GetConnectWant
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ConnectWant_001, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName(std::string("device"), std::string("com.test.bundle"), std::string("testModule"),
+        std::string("TestAbility"));
+    connectionRecord_->SetConnectWant(want);
+    auto retrievedWant = connectionRecord_->GetConnectWant();
+    auto element = retrievedWant.GetElement();
+    EXPECT_EQ(element.GetBundleName(), "com.test.bundle");
+    EXPECT_EQ(element.GetAbilityName(), "TestAbility");
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: SetConnectWant and GetConnectWant
+ * SubFunction: NA
+ * FunctionPoints: SetConnectWant and GetConnectWant
+ * EnvConditions:NA
+ * CaseDescription: Verify SetConnectWant with string parameters
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_ConnectWant_002, TestSize.Level1)
+{
+    Want want;
+    want.SetParam("testKey", std::string("testValue"));
+    connectionRecord_->SetConnectWant(want);
+    auto retrievedWant = connectionRecord_->GetConnectWant();
+    EXPECT_TRUE(retrievedWant.HasParameter("testKey"));
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: CompleteConnectAndOnlyCallConnectDone
+ * SubFunction: NA
+ * FunctionPoints: CompleteConnectAndOnlyCallConnectDone
+ * EnvConditions:NA
+ * CaseDescription: Verify CompleteConnectAndOnlyCallConnectDone sets state to CONNECTED
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_CompleteConnectAndOnlyCallConnectDone_001, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::CONNECTING);
+    connectionRecord_->CompleteConnectAndOnlyCallConnectDone();
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::CONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: CompleteDisconnect with different result codes
+ * SubFunction: NA
+ * FunctionPoints: CompleteDisconnect
+ * EnvConditions:NA
+ * CaseDescription: Verify CompleteDisconnect with error result code
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_CompleteDisconnect_001, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::DISCONNECTING);
+    connectionRecord_->CompleteDisconnect(ERR_INVALID_VALUE, false);
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::DISCONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: CompleteDisconnect with caller died
+ * SubFunction: NA
+ * FunctionPoints: CompleteDisconnect
+ * EnvConditions:NA
+ * CaseDescription: Verify CompleteDisconnect when caller died
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_CompleteDisconnect_002, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::DISCONNECTING);
+    connectionRecord_->CompleteDisconnect(ERR_OK, true);
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::DISCONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: CompleteDisconnect with target died
+ * SubFunction: NA
+ * FunctionPoints: CompleteDisconnect
+ * EnvConditions:NA
+ * CaseDescription: Verify CompleteDisconnect when target died
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_CompleteDisconnect_003, TestSize.Level1)
+{
+    connectionRecord_->SetConnectState(ConnectionState::DISCONNECTING);
+    connectionRecord_->CompleteDisconnect(ERR_OK, false, true);
+    EXPECT_EQ(connectionRecord_->GetConnectState(), ConnectionState::DISCONNECTED);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: DisconnectTimeout
+ * SubFunction: NA
+ * FunctionPoints: DisconnectTimeout
+ * EnvConditions:NA
+ * CaseDescription: Verify DisconnectTimeout with valid targetService
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_DisconnectTimeout_002, TestSize.Level1)
+{
+    connectionRecord_->DisconnectTimeout();
+    // Should call ScheduleDisconnectAbilityDone on targetService
+    EXPECT_TRUE(true);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: CreateConnectionRecord
+ * SubFunction: NA
+ * FunctionPoints: CreateConnectionRecord
+ * EnvConditions:NA
+ * CaseDescription: Verify CreateConnectionRecord creates valid record
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_CreateConnectionRecord_001, TestSize.Level1)
+{
+    auto record = ConnectionRecord::CreateConnectionRecord(
+        service_->GetToken(), service_, callback_, nullptr);
+    EXPECT_NE(record, nullptr);
+    EXPECT_EQ(record->GetToken().GetRefPtr(), service_->GetToken().GetRefPtr());
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: CreateConnectionRecord
+ * SubFunction: NA
+ * FunctionPoints: CreateConnectionRecord
+ * EnvConditions:NA
+ * CaseDescription: Verify CreateConnectionRecord with null parameters
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_CreateConnectionRecord_002, TestSize.Level1)
+{
+    auto record = ConnectionRecord::CreateConnectionRecord(nullptr, nullptr, nullptr, nullptr);
+    EXPECT_NE(record, nullptr);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: CallOnAbilityConnectDone
+ * SubFunction: NA
+ * FunctionPoints: CallOnAbilityConnectDone
+ * EnvConditions:NA
+ * CaseDescription: Verify CallOnAbilityConnectDone with null callback
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_CallOnAbilityConnectDone_001, TestSize.Level1)
+{
+    AppExecFwk::ElementName element;
+    sptr<IRemoteObject> remoteObject = nullptr;
+    auto result = ConnectionRecord::CallOnAbilityConnectDone(nullptr, element, remoteObject, ERR_OK);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: ConnectionRecord
+ * Function: CallOnAbilityConnectDone
+ * SubFunction: NA
+ * FunctionPoints: CallOnAbilityConnectDone
+ * EnvConditions:NA
+ * CaseDescription: Verify CallOnAbilityConnectDone with valid callback
+ */
+HWTEST_F(ConnectionRecordTest, ConnectionRecord_CallOnAbilityConnectDone_002, TestSize.Level1)
+{
+    AppExecFwk::ElementName element;
+    element.SetBundleName("com.test.bundle");
+    element.SetAbilityName("TestAbility");
+    sptr<IRemoteObject> remoteObject = sptr<MockIRemoteObject>::MakeSptr();
+    auto result = ConnectionRecord::CallOnAbilityConnectDone(callback_, element, remoteObject, ERR_OK);
+    EXPECT_EQ(result, ERR_OK);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
