@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include "js_agent_extension.h"
+
 #include "ability_business_error.h"
 #include "agent_extension.h"
 #include "agent_extension_context.h"
@@ -21,9 +23,8 @@
 #include "configuration_utils.h"
 #include "connection_manager.h"
 #include "hilog_tag_wrapper.h"
-#include "js_agent_extension.h"
+#include "js_agent_connector_proxy.h"
 #include "js_agent_extension_context.h"
-#include "js_agent_extension_host_proxy.h"
 #include "js_extension_common.h"
 #include "js_extension_context.h"
 #include "js_runtime_utils.h"
@@ -213,7 +214,7 @@ sptr<IRemoteObject> JsAgentExtension::OnConnect(const AAFwk::Want &want,
         TAG_LOGI(AAFwkTag::SER_ROUTER, "hostProxy exist");
         return stubObject;
     }
-    napi_ref hostProxyNref = JsAgentExtensionHostProxy::CreateJsAgentExtensionHostProxy(env, hostProxy);
+    napi_ref hostProxyNref = JsAgentConnectorProxy::CreateJsAgentConnectorProxy(env, hostProxy);
     if (hostProxyNref == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null hostProxyNref");
         return nullptr;
