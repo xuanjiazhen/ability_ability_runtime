@@ -59,7 +59,8 @@ void UIAbilityImpl::Init(const std::shared_ptr<AppExecFwk::OHOSApplication> &app
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
-void UIAbilityImpl::Start(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
+void UIAbilityImpl::Start(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessionInfo,
+    const std::string &specifiedFlag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
@@ -70,7 +71,7 @@ void UIAbilityImpl::Start(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sess
 #ifdef SUPPORT_GRAPHICS
     ability_->HandleCreateAsRecovery(want);
 #endif
-    ability_->OnStart(want, sessionInfo);
+    ability_->OnStart(want, sessionInfo, specifiedFlag);
 
 #ifdef SUPPORT_GRAPHICS
     lifecycleState_ = AAFwk::ABILITY_STATE_STARTED_NEW;
@@ -202,7 +203,7 @@ void UIAbilityImpl::HandleAbilityTransaction(
         ability_->SetLaunchParam(targetState.launchParam);
         if (lifecycleState_ == AAFwk::ABILITY_STATE_INITIAL) {
             ability_->SetStartAbilitySetting(targetState.setting);
-            Start(want, sessionInfo);
+            Start(want, sessionInfo, targetState.specifiedFlag);
             CheckAndRestore();
         }
     }

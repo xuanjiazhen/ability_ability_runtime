@@ -44,7 +44,7 @@ public:
         GTEST_LOG_(INFO) << "MockUIAbility::OnNewWant called";
     }
 
-    void OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
+    void OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo, const std::string &specifiedFlag)
     {
         GTEST_LOG_(INFO) << "MockUIAbility::OnStart called";
         state_ = ON_START;
