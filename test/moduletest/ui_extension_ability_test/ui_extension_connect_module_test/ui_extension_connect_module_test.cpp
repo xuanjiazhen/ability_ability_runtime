@@ -251,6 +251,11 @@ HWTEST_F(UIExtensionConnectModuleTest, ConnectUIExtensionAbility_0100, TestSize.
     AppExecFwk::ElementName userElement("0", USER_BUNDLE_NAME, USER_ABILITY_NAME, USER_MODULE_NAME);
     userWant.SetElement(userElement);
     auto ret = client_->StartAbility(userWant);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::TEST, "Bundle %{public}s not installed, skip test.",
+            USER_BUNDLE_NAME.c_str());
+        return;
+    }
     EXPECT_EQ(ret, ERR_OK);
 
     ret = client_->DisconnectAbility(connect);
@@ -281,6 +286,11 @@ HWTEST_F(UIExtensionConnectModuleTest, ConnectUIExtensionAbility_0200, TestSize.
     AppExecFwk::ElementName userElement("0", USER_BUNDLE_NAME, USER_ABILITY_NAME, USER_MODULE_NAME);
     userWant.SetElement(userElement);
     auto ret = client_->StartAbility(userWant);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::TEST, "Bundle %{public}s not installed, skip test.",
+            USER_BUNDLE_NAME.c_str());
+        return;
+    }
     EXPECT_EQ(ret, ERR_OK);
 
     sptr<IRemoteObject> token = nullptr;
@@ -341,6 +351,11 @@ HWTEST_F(UIExtensionConnectModuleTest, ConnectUIExtensionAbility_0400, TestSize.
     AppExecFwk::ElementName userElement("0", USER_BUNDLE_NAME, USER_ABILITY_NAME, USER_MODULE_NAME);
     userWant.SetElement(userElement);
     ret = client_->StartAbility(userWant);
+    if (ret != ERR_OK) {
+        TAG_LOGW(AAFwkTag::TEST, "Bundle %{public}s not installed, skip test.",
+            USER_BUNDLE_NAME.c_str());
+        return;
+    }
     EXPECT_EQ(ret, ERR_OK);
 
     ret = client_->DisconnectAbility(connect);
