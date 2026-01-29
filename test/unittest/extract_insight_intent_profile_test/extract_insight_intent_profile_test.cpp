@@ -473,5 +473,683 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0200, TestSize.Level0)
     EXPECT_EQ(linkInfo2.paramMapping.size(), 1);
     TAG_LOGI(AAFwkTag::TEST, "TransformTo_0200 called. end");
 }
+
+/**
+ * @tc.number: TransformTo_0300
+ * @tc.name: Test DecoratorType DECORATOR_PAGE branch
+ * @tc.desc: Test DECORATOR_PAGE normal and pagePath empty failure
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0300, TestSize.Level0)
+{
+    // 正常DECORATOR_PAGE场景
+    const std::string pageProfileJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentPage\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"PageIntent\","
+            "\"domain\": \"page\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"PageIntentName\","
+            "\"pagePath\": \"/pages/TestPage\","
+            "\"uiAbility\": \"TestUiAbility\","
+            "\"navigationId\": \"nav123\","
+            "\"navDestinationName\": \"dest123\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec pageInfos;
+    bool result = ExtractInsightIntentProfile::TransformTo(pageProfileJsonStr, pageInfos);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(pageInfos.insightIntents.size(), 1);
+    EXPECT_EQ(pageInfos.insightIntents[0].decoratorType, "@InsightIntentPage");
+    EXPECT_EQ(pageInfos.insightIntents[0].pagePath, "/pages/TestPage");
+
+    // PagePath为空的失败场景
+    const std::string pageProfileEmptyPathJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentPage\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"PageIntent\","
+            "\"domain\": \"page\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"PageIntentName\","
+            "\"pagePath\": \"\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec pageEmptyPathInfos;
+    result = ExtractInsightIntentProfile::TransformTo(pageProfileEmptyPathJsonStr, pageEmptyPathInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.number: TransformTo_0400
+ * @tc.name: Test DecoratorType DECORATOR_ENTRY branch
+ * @tc.desc: Test DECORATOR_ENTRY normal, abilityName empty failure and unsupported executeMode
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0400, TestSize.Level0)
+{
+    // 正常DECORATOR_ENTRY场景（含支持的executeMode）
+    const std::string entryProfileJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentEntry\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"EntryIntent\","
+            "\"domain\": \"entry\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"EntryIntentName\","
+            "\"abilityName\": \"TestAbility\","
+            "\"executeMode\": [\"foreground\", \"background\"]"
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec entryInfos;
+    bool result = ExtractInsightIntentProfile::TransformTo(entryProfileJsonStr, entryInfos);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(entryInfos.insightIntents.size(), 1);
+    EXPECT_EQ(entryInfos.insightIntents[0].decoratorType, "@InsightIntentEntry");
+    EXPECT_EQ(entryInfos.insightIntents[0].abilityName, "TestAbility");
+
+    // abilityName为空的失败场景
+    const std::string entryEmptyAbilityJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentEntry\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"EntryIntent\","
+            "\"domain\": \"entry\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"EntryIntentName\","
+            "\"abilityName\": \"\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec entryEmptyAbilityInfos;
+    result = ExtractInsightIntentProfile::TransformTo(entryEmptyAbilityJsonStr, entryEmptyAbilityInfos);
+    EXPECT_EQ(result, false);
+
+    // 含不支持的executeMode场景（验证TransformToEntryInfo分支）
+    const std::string entryUnsupportedModeJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentEntry\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"EntryIntent\","
+            "\"domain\": \"entry\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"EntryIntentName\","
+            "\"abilityName\": \"TestAbility\","
+            "\"executeMode\": [\"unsupportedMode\"]"
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec entryUnsupportedModeInfos;
+    result = ExtractInsightIntentProfile::TransformTo(entryUnsupportedModeJsonStr, entryUnsupportedModeInfos);
+    EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.number: TransformTo_0500
+ * @tc.name: Test DecoratorType DECORATOR_FUNCTION branch
+ * @tc.desc: Test DECORATOR_FUNCTION normal and functionName empty failure
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0500, TestSize.Level0)
+{
+    // 正常DECORATOR_FUNCTION场景
+    const std::string functionProfileJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentFunction\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"FunctionIntent\","
+            "\"domain\": \"function\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"FunctionIntentName\","
+            "\"functionName\": \"testFunction\","
+            "\"functionParams\": [\"param1\", \"param2\"]"
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec functionInfos;
+    bool result = ExtractInsightIntentProfile::TransformTo(functionProfileJsonStr, functionInfos);
+    EXPECT_EQ(result, false);
+    EXPECT_EQ(functionInfos.insightIntents.size(), 1);
+    EXPECT_EQ(functionInfos.insightIntents[0].decoratorType, "@InsightIntentFunction");
+    EXPECT_EQ(functionInfos.insightIntents[0].functionName, "testFunction");
+
+    // functionName为空的失败场景
+    const std::string functionEmptyNameJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentFunction\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"FunctionIntent\","
+            "\"domain\": \"function\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"FunctionIntentName\","
+            "\"functionName\": \"\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec functionEmptyNameInfos;
+    result = ExtractInsightIntentProfile::TransformTo(functionEmptyNameJsonStr, functionEmptyNameInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.number: TransformTo_0600
+ * @tc.name: Test DecoratorType DECORATOR_FORM branch
+ * @tc.desc: Test DECORATOR_FORM normal and formName/abilityName empty failure
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0600, TestSize.Level0)
+{
+    // 正常DECORATOR_FORM场景
+    const std::string formProfileJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentForm\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"FormIntent\","
+            "\"domain\": \"form\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"FormIntentName\","
+            "\"formName\": \"testForm\","
+            "\"abilityName\": \"TestAbility\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec formInfos;
+    bool result = ExtractInsightIntentProfile::TransformTo(formProfileJsonStr, formInfos);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(formInfos.insightIntents.size(), 1);
+    EXPECT_EQ(formInfos.insightIntents[0].decoratorType, "@InsightIntentForm");
+    EXPECT_EQ(formInfos.insightIntents[0].formName, "testForm");
+    EXPECT_EQ(formInfos.insightIntents[0].abilityName, "TestAbility");
+
+    // formName为空的失败场景
+    const std::string formEmptyFormNameJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentForm\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"FormIntent\","
+            "\"domain\": \"form\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"FormIntentName\","
+            "\"formName\": \"\","
+            "\"abilityName\": \"TestAbility\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec formEmptyFormNameInfos;
+    result = ExtractInsightIntentProfile::TransformTo(formEmptyFormNameJsonStr, formEmptyFormNameInfos);
+    EXPECT_EQ(result, false);
+
+    // abilityName为空的失败场景
+    const std::string formEmptyAbilityNameJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentForm\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"FormIntent\","
+            "\"domain\": \"form\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"FormIntentName\","
+            "\"formName\": \"testForm\","
+            "\"abilityName\": \"\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec formEmptyAbilityNameInfos;
+    result = ExtractInsightIntentProfile::TransformTo(formEmptyAbilityNameJsonStr, formEmptyAbilityNameInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.number: TransformTo_0700
+ * @tc.name: Test DecoratorType DECORATOR_UNKNOWN branch
+ * @tc.desc: Test invalid decoratorType failure
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0700, TestSize.Level0)
+{
+    const std::string unknownDecoratorJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InvalidType\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"UnknownIntent\","
+            "\"domain\": \"unknown\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"UnknownIntentName\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec unknownInfos;
+    bool result = ExtractInsightIntentProfile::TransformTo(unknownDecoratorJsonStr, unknownInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.number: TransformTo_0800
+ * @tc.name: Test CheckProfileInfo required fields empty
+ * @tc.desc: Test failure when required fields are empty
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0800, TestSize.Level0)
+{
+    // decoratorFile为空
+    const std::string emptyDecoratorFileJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentLink\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"EmptyFieldIntent\","
+            "\"domain\": \"link\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"EmptyFieldIntentName\","
+            "\"uri\": \"/data/app/base\","
+            "\"paramMappings\": [{"
+                "\"paramName\": \"aaa\""
+            "}]"
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec emptyDecoratorFileInfos;
+    bool result = ExtractInsightIntentProfile::TransformTo(emptyDecoratorFileJsonStr, emptyDecoratorFileInfos);
+    EXPECT_EQ(result, false);
+
+    // bundleName为空
+    const std::string emptyBundleNameJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentLink\","
+            "\"bundleName\": \"\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"EmptyFieldIntent\","
+            "\"domain\": \"link\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"EmptyFieldIntentName\","
+            "\"uri\": \"/data/app/base\","
+            "\"paramMappings\": [{"
+                "\"paramName\": \"aaa\""
+            "}]"
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec emptyBundleNameInfos;
+    result = ExtractInsightIntentProfile::TransformTo(emptyBundleNameJsonStr, emptyBundleNameInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.number: TransformTo_0900
+ * @tc.name: Test entity required fields empty
+ * @tc.desc: Test failure when entity className/entityId is empty
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0900, TestSize.Level0)
+{
+    // entity className为空
+    const std::string entityEmptyClassNameJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentLink\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"EntityEmptyIntent\","
+            "\"domain\": \"link\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"EntityEmptyIntentName\","
+            "\"uri\": \"/data/app/base\","
+            "\"paramMappings\": [{"
+                "\"paramName\": \"aaa\""
+            "}],"
+            "\"entities\": [{"
+                "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+                "\"className\": \"\","
+                "\"decoratorType\": \"@IntentEntityDecorator\","
+                "\"entityId\": \"11\","
+                "\"entityCategory\": \"entity Category\""
+            "}]"
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec entityEmptyClassNameInfos;
+    bool result = ExtractInsightIntentProfile::TransformTo(entityEmptyClassNameJsonStr, entityEmptyClassNameInfos);
+    EXPECT_EQ(result, false);
+
+    // entity entityId为空
+    const std::string entityEmptyEntityIdJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentLink\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"EntityEmptyIntent\","
+            "\"domain\": \"link\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"EntityEmptyIntentName\","
+            "\"uri\": \"/data/app/base\","
+            "\"paramMappings\": [{"
+                "\"paramName\": \"aaa\""
+            "}],"
+            "\"entities\": [{"
+                "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+                "\"className\": \"TestEntity\","
+                "\"decoratorType\": \"@IntentEntityDecorator\","
+                "\"entityId\": \"\","
+                "\"entityCategory\": \"entity Category\""
+            "}]"
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec entityEmptyEntityIdInfos;
+    result = ExtractInsightIntentProfile::TransformTo(entityEmptyEntityIdJsonStr, entityEmptyEntityIdInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.number: TransformTo_1000
+ * @tc.name: Test parameters/result not object type
+ * @tc.desc: Test parse failure when parameters/result is not object
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_1000, TestSize.Level0)
+{
+    // parameters为数组（非object）
+    const std::string paramsNotObjectJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentLink\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"ParamsNotObjectIntent\","
+            "\"domain\": \"link\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"ParamsNotObjectIntentName\","
+            "\"uri\": \"/data/app/base\","
+            "\"paramMappings\": [{"
+                "\"paramName\": \"aaa\""
+            "}],"
+            "\"parameters\": [1,2,3]"
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec paramsNotObjectInfos;
+    bool result = ExtractInsightIntentProfile::TransformTo(paramsNotObjectJsonStr, paramsNotObjectInfos);
+    EXPECT_EQ(result, false);
+
+    // result为字符串（非object）
+    const std::string resultNotObjectJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentLink\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"ResultNotObjectIntent\","
+            "\"domain\": \"link\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"ResultNotObjectIntentName\","
+            "\"uri\": \"/data/app/base\","
+            "\"paramMappings\": [{"
+                "\"paramName\": \"aaa\""
+            "}],"
+            "\"result\": \"not object\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec resultNotObjectInfos;
+    result = ExtractInsightIntentProfile::TransformTo(resultNotObjectJsonStr, resultNotObjectInfos);
+    EXPECT_EQ(result, false);
+
+    // entity parameters为数字（非object）
+    const std::string entityParamsNotObjectJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentLink\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"EntityParamsNotObjectIntent\","
+            "\"domain\": \"link\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"EntityParamsNotObjectIntentName\","
+            "\"uri\": \"/data/app/base\","
+            "\"paramMappings\": [{"
+                "\"paramName\": \"aaa\""
+            "}],"
+            "\"entities\": [{"
+                "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+                "\"className\": \"TestEntity\","
+                "\"decoratorType\": \"@IntentEntityDecorator\","
+                "\"entityId\": \"11\","
+                "\"entityCategory\": \"entity Category\","
+                "\"parameters\": 123"
+            "}]"
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec entityParamsNotObjectInfos;
+    result = ExtractInsightIntentProfile::TransformTo(entityParamsNotObjectJsonStr, entityParamsNotObjectInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.number: ToJson_0100
+ * @tc.name: Test ToJson parameters/result discarded
+ * @tc.desc: Test ToJson failure when parameters/result is invalid json string
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ToJson_0100, TestSize.Level0)
+{
+    // 构造parameters为无效json字符串的info
+    ExtractInsightIntentProfileInfo invalidParamsInfo;
+    invalidParamsInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    invalidParamsInfo.decoratorClass = "base";
+    invalidParamsInfo.decoratorType = "@InsightIntentLink";
+    invalidParamsInfo.bundleName = "com.example.instent";
+    invalidParamsInfo.moduleName = "entry";
+    invalidParamsInfo.intentName = "InvalidParamsIntent";
+    invalidParamsInfo.domain = "link";
+    invalidParamsInfo.intentVersion = "1.0.0";
+    invalidParamsInfo.displayName = "InvalidParamsIntentName";
+    invalidParamsInfo.uri = "/data/app/base";
+    invalidParamsInfo.parameters = "{invalid json}";
+
+    nlohmann::json invalidParamsJson;
+    bool result = ExtractInsightIntentProfile::ToJson(invalidParamsInfo, invalidParamsJson);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(invalidParamsJson.contains(INSIGHT_INTENT_PARAMETERS), false);
+
+    // 构造result为无效json字符串的info
+    ExtractInsightIntentProfileInfo invalidResultInfo;
+    invalidResultInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    invalidResultInfo.decoratorClass = "base";
+    invalidResultInfo.decoratorType = "@InsightIntentLink";
+    invalidResultInfo.bundleName = "com.example.instent";
+    invalidResultInfo.moduleName = "entry";
+    invalidResultInfo.intentName = "InvalidResultIntent";
+    invalidResultInfo.domain = "link";
+    invalidResultInfo.intentVersion = "1.0.0";
+    invalidResultInfo.displayName = "InvalidResultIntentName";
+    invalidResultInfo.uri = "/data/app/base";
+    invalidResultInfo.result = "[invalid json]";
+
+    nlohmann::json invalidResultJson;
+    result = ExtractInsightIntentProfile::ToJson(invalidResultInfo, invalidResultJson);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(invalidResultJson.contains(INSIGHT_INTENT_RESULT), false);
+}
+
+/**
+ * @tc.number: ProfileInfoFormat_0100
+ * @tc.name: Test ProfileInfoFormat all decoratorType branches
+ * @tc.desc: Test ProfileInfoFormat for PAGE/ENTRY/FUNCTION/FORM decoratorType
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0100, TestSize.Level0)
+{
+    // 测试DECORATOR_PAGE转换
+    ExtractInsightIntentProfileInfo pageProfileInfo;
+    pageProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    pageProfileInfo.decoratorClass = "base";
+    pageProfileInfo.decoratorType = "@InsightIntentPage";
+    pageProfileInfo.bundleName = "com.example.instent";
+    pageProfileInfo.moduleName = "entry";
+    pageProfileInfo.intentName = "PageFormatIntent";
+    pageProfileInfo.domain = "page";
+    pageProfileInfo.intentVersion = "1.0.0";
+    pageProfileInfo.displayName = "PageFormatIntentName";
+    pageProfileInfo.pagePath = "/pages/TestPage";
+    pageProfileInfo.uiAbility = "TestUiAbility";
+
+    ExtractInsightIntentInfo pageFormatInfo;
+    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(pageProfileInfo, pageFormatInfo);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(pageFormatInfo.genericInfo.decoratorType, "@InsightIntentPage");
+    InsightIntentPageInfo pageInfo = pageFormatInfo.genericInfo.get<InsightIntentPageInfo>();
+    EXPECT_EQ(pageInfo.pagePath, "/pages/TestPage");
+    EXPECT_EQ(pageInfo.uiAbility, "TestUiAbility");
+
+    // 测试DECORATOR_ENTRY转换
+    ExtractInsightIntentProfileInfo entryProfileInfo;
+    entryProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    entryProfileInfo.decoratorClass = "base";
+    entryProfileInfo.decoratorType = "@InsightIntentEntry";
+    entryProfileInfo.bundleName = "com.example.instent";
+    entryProfileInfo.moduleName = "entry";
+    entryProfileInfo.intentName = "EntryFormatIntent";
+    entryProfileInfo.domain = "entry";
+    entryProfileInfo.intentVersion = "1.0.0";
+    entryProfileInfo.displayName = "EntryFormatIntentName";
+    entryProfileInfo.abilityName = "TestAbility";
+    entryProfileInfo.executeMode = {"foreground"};
+
+    ExtractInsightIntentInfo entryFormatInfo;
+    result = ExtractInsightIntentProfile::ProfileInfoFormat(entryProfileInfo, entryFormatInfo);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(entryFormatInfo.genericInfo.decoratorType, "@InsightIntentEntry");
+    InsightIntentEntryInfo entryInfo = entryFormatInfo.genericInfo.get<InsightIntentEntryInfo>();
+    EXPECT_EQ(entryInfo.abilityName, "TestAbility");
+
+    // 测试DECORATOR_FUNCTION转换
+    ExtractInsightIntentProfileInfo functionProfileInfo;
+    functionProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    functionProfileInfo.decoratorClass = "base";
+    functionProfileInfo.decoratorType = "@InsightIntentFunction";
+    functionProfileInfo.bundleName = "com.example.instent";
+    functionProfileInfo.moduleName = "entry";
+    functionProfileInfo.intentName = "FunctionFormatIntent";
+    functionProfileInfo.domain = "function";
+    functionProfileInfo.intentVersion = "1.0.0";
+    functionProfileInfo.displayName = "FunctionFormatIntentName";
+    functionProfileInfo.functionName = "testFunction";
+    functionProfileInfo.functionParams = {"param1"};
+
+    ExtractInsightIntentInfo functionFormatInfo;
+    result = ExtractInsightIntentProfile::ProfileInfoFormat(functionProfileInfo, functionFormatInfo);
+    EXPECT_EQ(result, false);
+
+    // 测试DECORATOR_FORM转换
+    ExtractInsightIntentProfileInfo formProfileInfo;
+    formProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    formProfileInfo.decoratorClass = "base";
+    formProfileInfo.decoratorType = "@InsightIntentForm";
+    formProfileInfo.bundleName = "com.example.instent";
+    formProfileInfo.moduleName = "entry";
+    formProfileInfo.intentName = "FormFormatIntent";
+    formProfileInfo.domain = "form";
+    formProfileInfo.intentVersion = "1.0.0";
+    formProfileInfo.displayName = "FormFormatIntentName";
+    formProfileInfo.formName = "testForm";
+    formProfileInfo.abilityName = "TestAbility";
+
+    ExtractInsightIntentInfo formFormatInfo;
+    result = ExtractInsightIntentProfile::ProfileInfoFormat(formProfileInfo, formFormatInfo);
+    EXPECT_EQ(result, true);
+    EXPECT_EQ(formFormatInfo.genericInfo.decoratorType, "@InsightIntentForm");
+    InsightIntentFormInfo formInfo = formFormatInfo.genericInfo.get<InsightIntentFormInfo>();
+    EXPECT_EQ(formInfo.formName, "testForm");
+    EXPECT_EQ(formInfo.abilityName, "TestAbility");
+
+    // 测试DECORATOR_UNKNOWN转换失败
+    ExtractInsightIntentProfileInfo unknownProfileInfo;
+    unknownProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
+    unknownProfileInfo.decoratorClass = "base";
+    unknownProfileInfo.decoratorType = "@InvalidType";
+    unknownProfileInfo.bundleName = "com.example.instent";
+    unknownProfileInfo.moduleName = "entry";
+    unknownProfileInfo.intentName = "UnknownFormatIntent";
+    unknownProfileInfo.domain = "unknown";
+    unknownProfileInfo.intentVersion = "1.0.0";
+    unknownProfileInfo.displayName = "UnknownFormatIntentName";
+
+    ExtractInsightIntentInfo unknownFormatInfo;
+    result = ExtractInsightIntentProfile::ProfileInfoFormat(unknownProfileInfo, unknownFormatInfo);
+    EXPECT_EQ(result, false);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
