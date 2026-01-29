@@ -118,6 +118,13 @@ public:
      * @return The pair of the dump result and the dump key.
      */
     static std::pair<bool, DumpUtils::DumpsysKey> DumpsysMap(std::string argString);
+
+    /**
+     * ShowHelp, display help information for dump tool.
+     *
+     * @param result The result string to be filled with help information.
+     */
+    static void ShowHelp(std::string& result);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

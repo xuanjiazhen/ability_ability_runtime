@@ -76,7 +76,6 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     abilityms->Dump(intParam, args);
     abilityms->Dump(args, stringParam);
     abilityms->ProcessMultiParam(info, stringParam);
-    abilityms->ShowHelp(stringParam);
     abilityms->ShowIllegalInfomation(stringParam);
     abilityms->DumpAbilityInfoDone(info, token);
     abilityms->SetMissionLabel(token, stringParam);
