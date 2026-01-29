@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -426,6 +426,7 @@ public:
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (const sptr<IRemoteObject> &abilityToken), (override));
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (int32_t sessionId), (override));
 #endif
+    MOCK_METHOD(int32_t, GetUserLockedBundleList, (int32_t, std::set<std::string> &), (override));
 };  // namespace AAFwk
 }   // namespace OHOS
 }
