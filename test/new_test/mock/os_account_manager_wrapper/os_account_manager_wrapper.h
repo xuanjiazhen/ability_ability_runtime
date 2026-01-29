@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,22 +16,31 @@
 #ifndef MOCK_OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 #define MOCK_OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H
 
+#include <vector>
 #include "errors.h"
-#include "singleton.h"
 #include "oh_mock_utils.h"
+#include "mock_singleton.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-class OsAccountManagerWrapper : public DelayedSingleton<OsAccountManagerWrapper> {
-public:
-    ErrCode GetOsAccountLocalIdFromUid(const int32_t uid, int32_t &id)
-    {
-        return 0;
-    }
 
-    OH_MOCK_METHOD_WITH_OUTPUT_1(ErrCode, isOsAccountExists, OsAccountManagerWrapper,
-        IsOsAccountExists, const int, bool& isOsAccountExists);
+class OsAccountManagerWrapper {
+public:
+    OH_MOCK_METHOD(int32_t, OsAccountManagerWrapper, QueryActiveOsAccountIds, std::vector<int32_t>&);
+
+    OH_MOCK_METHOD_WITH_DECORATOR(static, OsAccountManagerWrapper*, OsAccountManagerWrapper,
+        DelayedSingleton_OsAccountManagerWrapper_GetInstance);
 };
-} // namespace AppExecFwk
-} // namespace OHOS
-#endif
+
+// Specialization for OsAccountManagerWrapper
+template<>
+class DelayedSingleton<OsAccountManagerWrapper> {
+public:
+    static OsAccountManagerWrapper* GetInstance() {
+        return OsAccountManagerWrapper::DelayedSingleton_OsAccountManagerWrapper_GetInstance();
+    }
+};
+
+}  // namespace AppExecFwk
+}  // namespace OHOS
+#endif  // MOCK_OHOS_ABILITY_RUNTIME_OS_ACCOUNT_MANAGER_WRAPPER_H

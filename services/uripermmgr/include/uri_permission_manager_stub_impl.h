@@ -21,7 +21,6 @@
 #include <vector>
 #include <unordered_set>
 #include <sstream>
-#include "app_mgr_interface.h"
 #include "batch_uri.h"
 #include "file_uri_distribution_utils.h"
 #include "istorage_manager.h"
@@ -275,7 +274,6 @@ private:
     std::mutex mutex_;
     std::mutex mgrMutex_;
     std::mutex policyMapMutex_;
-    sptr<AppExecFwk::IAppMgr> appMgr_ = nullptr;
     sptr<StorageManager::IStorageManager> storageManager_ = nullptr;
     std::set<uint32_t> permissionTokenMap_;
     std::mutex ptMapMutex_;
