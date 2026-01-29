@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1113,6 +1113,7 @@ bool AbilityManagerService::StartAbilityInChain(StartAbilityParams &params, int 
     if (result != ERR_OK) {
         return true;
     }
+    AddToUserLockedBundleList(params.want.GetElement().GetBundleName(), params.GetValidUserId());
     result = StartAbilitySandboxSavefile::GetInstance().HandleStartRequest(params);
     return true;
 }
@@ -1639,6 +1640,9 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         result = uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
+        if (result == ERR_OK) {
+            AddToUserLockedBundleList(callerBundleName, oriValidUserId);
+        }
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "NotifySCBToStartUIAbility failed");
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
     }
@@ -1654,6 +1658,9 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     ReportEventToRSS(abilityInfo, param.callerToken);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start ability, name is %{public}s", abilityInfo.name.c_str());
     result = missionListManager->StartAbility(abilityRequest);
+    if (result == ERR_OK) {
+        AddToUserLockedBundleList(callerBundleName, oriValidUserId);
+    }
     AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "missionListManager StartAbility failed");
     return result;
 }
@@ -2426,6 +2433,9 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_NULL_UI_ABILITY_MANAGER);
         result = uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
+        if (result == ERR_OK) {
+            AddToUserLockedBundleList(callerBundleName, oriValidUserId);
+        }
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "NotifySCBToStartUIAbility failed");
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
     }
@@ -2439,7 +2449,11 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID,
             DisplayUtil::GetDefaultDisplayId());
     }
-    return missionListManager->StartAbility(abilityRequest);
+    result = missionListManager->StartAbility(abilityRequest);
+    if (result == ERR_OK) {
+        AddToUserLockedBundleList(abilityInfo.bundleName, oriValidUserId);
+    }
+    return result;
 }
 
 int32_t AbilityManagerService::CheckWantForSplitMode(const AAFwk::Want &secondaryWant, sptr<IRemoteObject> callerToken,
@@ -2587,7 +2601,11 @@ int32_t AbilityManagerService::StartUIAbilitiesInSplitWindowMode(int32_t primary
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
     abilityRequest.primaryWindowId = primaryWindowId;
     abilityRequest.isStartInSplitMode = true;
-    return uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
+    result = uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
+    if (result != ERR_OK) {
+        AddToUserLockedBundleList(abilityRequest.want.GetElement().GetBundleName(), oriValidUserId);
+    }
+    return result;
 }
 
 ErrCode AbilityManagerService::StartUIAbilities(const std::vector<AAFwk::Want> &wantList,
@@ -2624,15 +2642,21 @@ ErrCode AbilityManagerService::StartUIAbilities(const std::vector<AAFwk::Want> &
     }
 
     TAG_LOGD(AAFwkTag::ABILITYMGR, "StartUIAbilities ready to NotifySCBToStartUIAbilities");
+    std::set<std::string> bundleNames;
     for (AbilityRequest &abilityRequest : abilityRequestList) {
         auto abilityInfo = abilityRequest.abilityInfo;
         ReportEventToRSS(abilityInfo, abilityRequest.callerToken);
         abilityRequest.userId = oriValidUserId;
         abilityRequest.want.SetParam(ServerConstant::IS_CALL_BY_SCB, false);
+        bundleNames.insert(abilityRequest.want.GetElement().GetBundleName());
     }
     auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
-    return uiAbilityManager->NotifySCBToStartUIAbilities(abilityRequestList, requestKey);
+    auto result = uiAbilityManager->NotifySCBToStartUIAbilities(abilityRequestList, requestKey);
+    if (result == ERR_OK) {
+        AddToUserLockedBundleList(bundleNames, oriValidUserId);
+    }
+    return result;
 }
 
 int32_t AbilityManagerService::StartUIAbilitiesHandleWant(const Want &want, sptr<IRemoteObject> callerToken,
@@ -3789,6 +3813,7 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(
         eventInfo.errReason = "PreloadUIExtensionAbilityLocked error";
         SendExtensionReport(eventInfo, result);
     }
+    AddToUserLockedBundleList(abilityRequest.want.GetElement().GetBundleName(), validUserId);
     return result;
 }
 
@@ -4082,6 +4107,8 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
         } else {
             EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HISYSEVENT_FAULT, eventInfo);
         }
+    } else {
+        AddToUserLockedBundleList(abilityRequest.want.GetElement().GetBundleName(), validUserId);
     }
     ReportAbilityAssociatedStartInfoToRSS(abilityRequest.abilityInfo, RES_TYPE_EXTENSION_START_ABILITY, callerToken);
     return eventInfo.errCode;
@@ -4436,6 +4463,8 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     if (eventInfo.errCode != ERR_OK) {
         eventInfo.errReason = "StartAbility error";
         SendExtensionReport(eventInfo, eventInfo.errCode);
+    } else {
+        AddToUserLockedBundleList(abilityRequest.want.GetElement().GetBundleName(), validUserId);
     }
     return eventInfo.errCode;
 }
@@ -9054,15 +9083,17 @@ std::function<void(int32_t)> AbilityManagerService::GetScreenUnlockCallback()
     return screenUnlockCallback;
 }
 
-std::function<void()> AbilityManagerService::GetUserScreenUnlockCallback()
+std::function<void(int32_t)> AbilityManagerService::GetUserScreenUnlockCallback()
 {
-    auto userScreenUnlockCallback = [abilityManager = weak_from_this()]() {
+    auto userScreenUnlockCallback = [abilityManager = weak_from_this()](int32_t userId) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "On user screen unlocked.");
         auto abilityMgr = abilityManager.lock();
         if (abilityMgr == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid abilityMgr pointer.");
             return;
         }
+        AbilityRuntime::UserController::GetInstance().SetUserLockStatus(userId,
+            AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED);
         abilityMgr->RemoveScreenUnlockInterceptor();
     };
     return userScreenUnlockCallback;
@@ -9631,13 +9662,16 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
 
     AbilityRuntime::UserController::GetInstance().SetForegroundUserId(userId, displayId);
     auto ret = SwitchToUser(oldUserId, userId, displayId, callback, isAppRecovery);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SwitchToUser filed, oldUserId:%{public}d, hasDisplayId:%{public}d", oldUserId, hasDisplayId);
-        if (hasDisplayId) {
-            AbilityRuntime::UserController::GetInstance().SetForegroundUserId(oldUserId, displayId);
-        } else {
-            AbilityRuntime::UserController::GetInstance().ClearDisplayId(displayId);
-        }
+    if (ret == ERR_OK) {
+        AbilityRuntime::UserController::GetInstance().SetUserLockStatus(userId,
+            AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "SwitchToUser filed, oldUserId:%{public}d, hasDisplayId:%{public}d", oldUserId, hasDisplayId);
+    if (hasDisplayId) {
+        AbilityRuntime::UserController::GetInstance().SetForegroundUserId(oldUserId, displayId);
+    } else {
+        AbilityRuntime::UserController::GetInstance().ClearDisplayId(displayId);
     }
     return ret;
 }
@@ -9679,6 +9713,7 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
         missionListWrap->RemoveUserDir(userId);
     }
     ClearUserData(userId);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(userId);
     AbilityRuntime::UserController::GetInstance().ClearUserId(userId);
     callback->OnStopUserDone(userId, ERR_OK);
     UpdateApplicationKeepAlive(userId);
@@ -9731,6 +9766,7 @@ int AbilityManagerService::LogoutUser(int32_t userId, sptr<IUserCallback> callba
     RemoveLauncherDeathRecipient(userId);
     ClearUserData(userId);
     DelayedSingleton<AppScheduler>::GetInstance()->SetEnableStartProcessFlagByUserId(userId, false);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(userId);
     AbilityRuntime::UserController::GetInstance().ClearUserId(userId);
     DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByUserId(userId,
         system::GetBoolParameter(DEVELOPER_MODE_STATE, false), callback);
@@ -16634,6 +16670,83 @@ int32_t AbilityManagerService::UnRegisterPreloadUIExtensionHostClient(int32_t ca
         return ERR_INVALID_VALUE;
     }
     return connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
+}
+
+int32_t AbilityManagerService::GetUserLockedBundleList(int32_t userId, std::set<std::string> &userLockedBundleList)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "GetUserLockedBundleList called");
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetUserLockedBundleList, current process not foundation process");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    {
+        std::lock_guard<ffrt::mutex> guard(userLockedBundleMapMutex_);
+        auto it = userLockedBundleMap_.find(userId);
+        if (it != userLockedBundleMap_.end()) {
+            userLockedBundleList = std::move(it->second);
+            userLockedBundleMap_.erase(it);
+            return ERR_OK;
+        }
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "GetUserLockedBundleList, no bundle list for userId: %{public}d", userId);
+    return ERR_INVALID_VALUE;
+}
+
+void AbilityManagerService::AddToUserLockedBundleList(const std::string &bundleName, int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AddToUserLockedBundleList called, bundleName: %{public}s, userId: %{public}d",
+        bundleName.c_str(), userId);
+
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "empty bundleName");
+        return;
+    }
+
+    if (userId == DEFAULT_INVAL_VALUE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid userId: %{public}d", userId);
+        return;
+    }
+
+    if (userId == U0_USER_ID || userId == U1_USER_ID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid userId: %{public}d", userId);
+        return;
+    }
+
+    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId);
+    if (userLockStatus != AbilityRuntime::UserController::UserLockStatus::USER_LOCKED) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid user lock status: %{public}d", static_cast<int32_t>(userLockStatus));
+        return;
+    }
+
+    {
+        std::lock_guard<ffrt::mutex> guard(userLockedBundleMapMutex_);
+        userLockedBundleMap_[userId].insert(bundleName);
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "AddToUserLockedBundleList success, userId: %{public}d, bundleName: %{public}s",
+        userId, bundleName.c_str());
+}
+
+void AbilityManagerService::AddToUserLockedBundleList(const std::set<std::string> &bundleNames, int32_t userId)
+{
+    if (bundleNames.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "empty bundleNames");
+        return;
+    }
+
+    if (userId == DEFAULT_INVAL_VALUE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid userId: %{public}d", userId);
+        return;
+    }
+
+    if (userId == U0_USER_ID || userId == U1_USER_ID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid userId: %{public}d", userId);
+        return;
+    }
+
+    for (const auto &bundleName : bundleNames) {
+        AddToUserLockedBundleList(bundleName, userId);
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS

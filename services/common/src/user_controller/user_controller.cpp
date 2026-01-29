@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -175,6 +175,31 @@ int32_t UserController::CheckUserParam(int32_t userId) const
         return AAFwk::INVALID_USERID_VALUE;
     }
     return ERR_OK;
+}
+
+UserController::UserLockStatus UserController::GetUserLockStatus(int32_t userId)
+{
+    std::lock_guard<ffrt::mutex> guard(userLock_);
+    auto iter = userLockStatusMap_.find(userId);
+    if (iter != userLockStatusMap_.end()) {
+        return iter->second;
+    }
+    return UserLockStatus::USER_LOCK_STATUS_BUTT;
+}
+
+void UserController::SetUserLockStatus(int32_t userId, UserController::UserLockStatus status)
+{
+    std::lock_guard<ffrt::mutex> guard(userLock_);
+    userLockStatusMap_[userId] = status;
+    TAG_LOGD(AAFwkTag::USER_CONTROLLER, "SetUserLockStatus successful, userId:%{public}d, status:%{public}d",
+        userId, static_cast<int32_t>(status));
+}
+
+void UserController::DeleteUserLockStatus(int32_t userId)
+{
+    std::lock_guard<ffrt::mutex> guard(userLock_);
+    userLockStatusMap_.erase(userId);
+    TAG_LOGD(AAFwkTag::USER_CONTROLLER, "DeleteUserLockStatus successful, userId:%{public}d", userId);
 }
 }
 }

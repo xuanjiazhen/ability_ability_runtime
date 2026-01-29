@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -2442,6 +2442,15 @@ protected:
      */
     virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE) override;
 
+    /**
+     * @brief Get list of applications launched before the first unlock.
+     * @param userId The User Id.
+     * @param userLockedBundleList List of applications launched before the first unlock.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetUserLockedBundleList(int32_t userId, std::set<std::string> &userLockedBundleList) override;
+
 private:
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
@@ -2642,7 +2651,7 @@ private:
     void SubscribeUserUnlockedEvent();
     void SubscribeScreenUnlockedEvent();
     std::function<void(int32_t)> GetScreenUnlockCallback();
-    std::function<void()> GetUserScreenUnlockCallback();
+    std::function<void(int32_t)> GetUserScreenUnlockCallback();
     void UnSubscribeScreenUnlockedEvent();
     void RetrySubscribeUnlockedEvent(int32_t retryCount, std::shared_ptr<EventFwk::CommonEventSubscriber> subscriber,
         bool isUserUnlockSubscriber = false);
@@ -3122,6 +3131,8 @@ private:
         const Want &want, uint32_t targetTokenId, AppExecFwk::ExtensionAbilityType extensionType);
 
     bool IsAllowAttachOrDetachAppDebug(AppExecFwk::ApplicationInfo &appInfo);
+    void AddToUserLockedBundleList(const std::string &bundleName, int32_t userId);
+    void AddToUserLockedBundleList(const std::set<std::string> &bundleNames, int32_t userId);
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
 #endif
@@ -3165,6 +3176,9 @@ private:
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;
+
+    ffrt::mutex userLockedBundleMapMutex_;
+    std::unordered_map<int32_t, std::set<std::string>> userLockedBundleMap_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
