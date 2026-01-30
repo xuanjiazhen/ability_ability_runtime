@@ -54,7 +54,6 @@ ohos_unittest("ability_manager_service_thirteenth_test") {
     "${ability_runtime_innerkits_path}/session_handler/include",
     "${ability_runtime_innerkits_path}/wantagent/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/agent_extension_ability/connection",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
@@ -67,6 +66,7 @@ ohos_unittest("ability_manager_service_thirteenth_test") {
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_utils_path}/global/constant",
     "${ability_runtime_utils_path}/server/constant",
+    "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection",
     "//prebuilts/jdk/jdk8/linux-x86/include",
     "//prebuilts/jdk/jdk8/linux-x86/include/linux",
   ]

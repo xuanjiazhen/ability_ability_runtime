@@ -23,8 +23,8 @@ ohos_shared_library("agentmanager") {
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native/agent_extension_ability",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/agent_extension_ability/connection",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
+    "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection",
   ]
 
   sources = [

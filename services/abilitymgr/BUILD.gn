@@ -131,10 +131,10 @@ ohos_shared_library("abilityms") {
   ]
   include_dirs = [
     "${ability_runtime_services_path}/appdfr/include",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/agent_extension_ability/connection",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection",
     "${ability_runtime_path}/utils/global/time/include",
     "${ability_runtime_services_path}/abilitymgr/include/mission",
+    "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection",
   ]
   deps = [
     ":wantagent_manager",
