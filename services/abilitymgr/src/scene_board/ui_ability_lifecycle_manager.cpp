@@ -361,34 +361,9 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
     return uiAbilityRecord;
 }
 
-void UIAbilityLifecycleManager::CheckPrelaunchTag(const AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo)
-{
-    auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
-    if (iter == sessionAbilityMap_.end() || iter->second == nullptr) {
-        return;
-    }
-    if (!iter->second->GetPrelaunchFlag()) {
-        return;
-    }
-    auto callerAbilityRecord = GetAbilityRecordByToken(abilityRequest.callerToken);
-    if (callerAbilityRecord != nullptr && !callerAbilityRecord->IsSceneBoard()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, " %{public}s not sceneboard start after prelaunch, kill and restart",
-            abilityRequest.abilityInfo.bundleName.c_str());
-        AppExecFwk::RunningProcessInfo processInfo = {};
-        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByToken(iter->second->GetToken(),
-            processInfo);
-        iter->second->SetKillReason("Prelaunch Kill");
-        iter->second->SetIsKillPrecedeStart(true);
-        std::vector<int32_t> pidToBeKilled {processInfo.pid_};
-        IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pidToBeKilled,
-            "Prelaunch Kill", true, true));
-    }
-}
-
 UIAbilityRecordPtr UIAbilityLifecycleManager::GenerateAbilityRecord(AbilityRequest &abilityRequest,
     sptr<SessionInfo> sessionInfo, bool &isColdStart)
 {
-    CheckPrelaunchTag(abilityRequest, sessionInfo);
     auto iter = sessionAbilityMap_.find(sessionInfo->persistentId);
     bool isLowMemKill = (iter != sessionAbilityMap_.end()) &&
         (iter->second != nullptr) && (iter->second->IsKillPrecedeStart());
@@ -528,7 +503,7 @@ void UIAbilityLifecycleManager::SendKeyEvent(const AbilityRequest &abilityReques
         eventInfo.abilityName = abilityRequest.abilityInfo.name;
         eventInfo.bundleName = abilityRequest.abilityInfo.bundleName;
         eventInfo.moduleName = abilityRequest.abilityInfo.moduleName;
-        EventReport::SendKeyEvent(EventName::START_PRIVATE_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
+        EventReport::SendKeyEvent(EventName::START_PRIVATE_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
     }
 }
 
@@ -3223,7 +3198,7 @@ void UIAbilityLifecycleManager::MoreAbilityNumbersSendEventInfo(
         eventInfo.moduleName = moduleName;
         // get ability number created previously and add new one.
         eventInfo.abilityNumber = checkAbilityNumber + 1;
-        EventReport::SendAbilityEvent(EventName::START_STANDARD_ABILITIES, HiSysEventType::BEHAVIOR, eventInfo);
+        EventReport::SendAbilityEvent(EventName::START_STANDARD_ABILITIES, HISYSEVENT_BEHAVIOR, eventInfo);
     }
 }
 
@@ -4483,7 +4458,7 @@ void UIAbilityLifecycleManager::SendAbilityEvent(const AppExecFwk::AbilityInfo &
     eventInfo.errCode = ERR_SCB_INTERCEPTION;
     eventInfo.errMsg = reason;
     ffrt::submit([eventInfo]() {
-        EventReport::SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
+        EventReport::SendAbilityEvent(EventName::START_ABILITY_ERROR, HISYSEVENT_FAULT, eventInfo);
         }, ffrt::task_attr().timeout(AbilityRuntime::GlobalConstant::FFRT_TASK_TIMEOUT));
 }
 

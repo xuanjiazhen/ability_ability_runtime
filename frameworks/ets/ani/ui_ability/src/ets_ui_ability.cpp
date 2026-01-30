@@ -77,6 +77,8 @@ constexpr const char *ON_COLLABORATE =
     "C{std.core.Record}:C{@ohos.app.ability.AbilityConstant.AbilityConstant.CollaborateResult}";
 constexpr const char *ON_SAVE_STATE_CALLBACK =
     "C{std.core.Record}C{@ohos.app.ability.AbilityConstant.AbilityConstant.OnSaveResult}i:";
+constexpr const int32_t API12 = 12;
+constexpr int32_t API_VERSION_MOD = 1000;
 
 #define DISPATCH_ABILITY_INTEROP(type, applicationContext, etsRuntime, ability)                      \
     do {                                                                                            \
@@ -987,6 +989,11 @@ bool EtsUIAbility::OnBackPress()
     UIAbility::OnBackPress();
     bool ret = CallObjectMethod(true, "onBackPressed", nullptr);
     TAG_LOGD(AAFwkTag::UIABILITY, "ret: %{public}d", ret);
+    bool defaultRet = BackPressDefaultValue();
+    if (!ret) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "null etsValue, return defaultRet %{public}d", defaultRet);
+        return defaultRet;
+    }
     return ret;
 }
 
@@ -2106,6 +2113,7 @@ bool EtsUIAbility::CallObjectMethod(bool withResult, const char *name, const cha
         if ((status = env->Object_CallMethod_Boolean_V(obj, method, &res, args)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::UIABILITY, "Object_CallMethod_Boolean_V status: %{public}d", status);
             etsRuntime_.HandleUncaughtError();
+            va_end(args);
             return false;
         }
         va_end(args);
@@ -2116,6 +2124,7 @@ bool EtsUIAbility::CallObjectMethod(bool withResult, const char *name, const cha
     if ((status = env->Object_CallMethod_Void_V(obj, method, args)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "Object_CallMethod_Void_V status: %{public}d", status);
         etsRuntime_.HandleUncaughtError();
+        va_end(args);
         return false;
     }
     va_end(args);
@@ -2198,6 +2207,22 @@ int32_t EtsUIAbility::CallSaveState(ani_value args[], WantParams &wantParams, Ap
     callbackInfo->Call(saveStateResult);
     AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult>::Destroy(callbackInfo);
     return numberResult;
+}
+
+bool EtsUIAbility::CheckSatisfyTargetAPIVersion(int32_t version)
+{
+    auto applicationInfo = GetApplicationInfo();
+    if (!applicationInfo) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null targetAPIVersion");
+        return false;
+    }
+    TAG_LOGD(AAFwkTag::UIABILITY, "targetAPIVersion: %{public}d", applicationInfo->apiTargetVersion);
+    return applicationInfo->apiTargetVersion % API_VERSION_MOD >= version;
+}
+
+bool EtsUIAbility::BackPressDefaultValue()
+{
+    return CheckSatisfyTargetAPIVersion(API12) ? true : false;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
