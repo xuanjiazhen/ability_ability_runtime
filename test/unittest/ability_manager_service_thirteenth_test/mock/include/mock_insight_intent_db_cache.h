@@ -50,7 +50,7 @@ public:
     void GetConfigInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
         const std::string &intentName, const int32_t userId, InsightIntentInfo &info);
     int32_t SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
-        const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos,
+        const int32_t userId, uint32_t versionCode, ExtractInsightIntentProfileInfoVec profileInfos,
         std::vector<InsightIntentInfo> configInfos);
     int32_t DeleteInsightIntentTotalInfo(const std::string &bundleName,
         const std::string &moduleName, const int32_t userId);
@@ -60,6 +60,7 @@ private:
     int32_t userId_ = -1;
     mutable std::mutex genericInfosMutex_;
     std::map<std::string, std::vector<ExtractInsightIntentGenericInfo>> intentGenericInfos_;
+    std::map<std::string, std::string> bundleVersionMap_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

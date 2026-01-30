@@ -249,7 +249,7 @@ void HisyseventReport::InsertParam(const char* name, std::vector<char*> value)
         return;
     }
     HiSysEventParam param = {
-        .t = HISYSEVENT_STRING,
+        .t = HISYSEVENT_STRING_ARRAY,
         .v = { .array = nullptr},
         .arraySize = 0,
     };
