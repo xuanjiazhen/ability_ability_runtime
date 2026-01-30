@@ -162,7 +162,7 @@ HWTEST_F(BatchUriTest, BatchUri_Branch_09, Function | MediumTest | Level1)
 {
     BatchUri batchUri;
     batchUri.Init({"file://target/1.txt", "file://other/2.txt"}, 0, "", "target", false);
-    batchUri.otherPolicyInfos.emplace_back(PolicyInfo{}); 
+    batchUri.otherPolicyInfos.emplace_back(PolicyInfo{});
     batchUri.otherPolicyInfos.emplace_back(PolicyInfo{});
 
     std::vector<PolicyInfo> proxyUris;
