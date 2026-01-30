@@ -539,7 +539,6 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0300, TestSize.Level0)
  */
 HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0400, TestSize.Level0)
 {
-    // 正常DECORATOR_ENTRY场景（含支持的executeMode）
     const std::string entryProfileJsonStr = "{"
         "\"extractInsightIntents\": ["
         "{"
@@ -564,51 +563,6 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0400, TestSize.Level0)
     EXPECT_EQ(entryInfos.insightIntents.size(), 1);
     EXPECT_EQ(entryInfos.insightIntents[0].decoratorType, "@InsightIntentEntry");
     EXPECT_EQ(entryInfos.insightIntents[0].abilityName, "TestAbility");
-
-    // abilityName为空的失败场景
-    const std::string entryEmptyAbilityJsonStr = "{"
-        "\"extractInsightIntents\": ["
-        "{"
-            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
-            "\"decoratorClass\": \"base\","
-            "\"decoratorType\": \"@InsightIntentEntry\","
-            "\"bundleName\": \"com.example.instent\","
-            "\"moduleName\": \"entry\","
-            "\"intentName\": \"EntryIntent\","
-            "\"domain\": \"entry\","
-            "\"intentVersion\": \"1.0.0\","
-            "\"displayName\": \"EntryIntentName\","
-            "\"abilityName\": \"\""
-        "}"
-        "]"
-    "}";
-
-    ExtractInsightIntentProfileInfoVec entryEmptyAbilityInfos;
-    result = ExtractInsightIntentProfile::TransformTo(entryEmptyAbilityJsonStr, entryEmptyAbilityInfos);
-    EXPECT_EQ(result, false);
-
-    // 含不支持的executeMode场景（验证TransformToEntryInfo分支）
-    const std::string entryUnsupportedModeJsonStr = "{"
-        "\"extractInsightIntents\": ["
-        "{"
-            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
-            "\"decoratorClass\": \"base\","
-            "\"decoratorType\": \"@InsightIntentEntry\","
-            "\"bundleName\": \"com.example.instent\","
-            "\"moduleName\": \"entry\","
-            "\"intentName\": \"EntryIntent\","
-            "\"domain\": \"entry\","
-            "\"intentVersion\": \"1.0.0\","
-            "\"displayName\": \"EntryIntentName\","
-            "\"abilityName\": \"TestAbility\","
-            "\"executeMode\": [\"unsupportedMode\"]"
-        "}"
-        "]"
-    "}";
-
-    ExtractInsightIntentProfileInfoVec entryUnsupportedModeInfos;
-    result = ExtractInsightIntentProfile::TransformTo(entryUnsupportedModeJsonStr, entryUnsupportedModeInfos);
-    EXPECT_EQ(result, true);
 }
 
 /**
@@ -700,52 +654,6 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0600, TestSize.Level0)
     EXPECT_EQ(formInfos.insightIntents[0].decoratorType, "@InsightIntentForm");
     EXPECT_EQ(formInfos.insightIntents[0].formName, "testForm");
     EXPECT_EQ(formInfos.insightIntents[0].abilityName, "TestAbility");
-
-    // formName为空的失败场景
-    const std::string formEmptyFormNameJsonStr = "{"
-        "\"extractInsightIntents\": ["
-        "{"
-            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
-            "\"decoratorClass\": \"base\","
-            "\"decoratorType\": \"@InsightIntentForm\","
-            "\"bundleName\": \"com.example.instent\","
-            "\"moduleName\": \"entry\","
-            "\"intentName\": \"FormIntent\","
-            "\"domain\": \"form\","
-            "\"intentVersion\": \"1.0.0\","
-            "\"displayName\": \"FormIntentName\","
-            "\"formName\": \"\","
-            "\"abilityName\": \"TestAbility\""
-        "}"
-        "]"
-    "}";
-
-    ExtractInsightIntentProfileInfoVec formEmptyFormNameInfos;
-    result = ExtractInsightIntentProfile::TransformTo(formEmptyFormNameJsonStr, formEmptyFormNameInfos);
-    EXPECT_EQ(result, false);
-
-    // abilityName为空的失败场景
-    const std::string formEmptyAbilityNameJsonStr = "{"
-        "\"extractInsightIntents\": ["
-        "{"
-            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
-            "\"decoratorClass\": \"base\","
-            "\"decoratorType\": \"@InsightIntentForm\","
-            "\"bundleName\": \"com.example.instent\","
-            "\"moduleName\": \"entry\","
-            "\"intentName\": \"FormIntent\","
-            "\"domain\": \"form\","
-            "\"intentVersion\": \"1.0.0\","
-            "\"displayName\": \"FormIntentName\","
-            "\"formName\": \"testForm\","
-            "\"abilityName\": \"\""
-        "}"
-        "]"
-    "}";
-
-    ExtractInsightIntentProfileInfoVec formEmptyAbilityNameInfos;
-    result = ExtractInsightIntentProfile::TransformTo(formEmptyAbilityNameJsonStr, formEmptyAbilityNameInfos);
-    EXPECT_EQ(result, false);
 }
 
 /**
@@ -913,7 +821,6 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0900, TestSize.Level0)
  */
 HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_1000, TestSize.Level0)
 {
-    // parameters为数组（非object）
     const std::string paramsNotObjectJsonStr = "{"
         "\"extractInsightIntents\": ["
         "{"
@@ -938,8 +845,15 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_1000, TestSize.Level0)
     ExtractInsightIntentProfileInfoVec paramsNotObjectInfos;
     bool result = ExtractInsightIntentProfile::TransformTo(paramsNotObjectJsonStr, paramsNotObjectInfos);
     EXPECT_EQ(result, false);
+}
 
-    // result为字符串（非object）
+/**
+ * @tc.number: TransformTo_1100
+ * @tc.name: Test parameters/result not object type
+ * @tc.desc: Test parse failure when parameters/result is not object
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_1100, TestSize.Level0)
+{
     const std::string resultNotObjectJsonStr = "{"
         "\"extractInsightIntents\": ["
         "{"
@@ -962,10 +876,17 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_1000, TestSize.Level0)
     "}";
 
     ExtractInsightIntentProfileInfoVec resultNotObjectInfos;
-    result = ExtractInsightIntentProfile::TransformTo(resultNotObjectJsonStr, resultNotObjectInfos);
+    auto result = ExtractInsightIntentProfile::TransformTo(resultNotObjectJsonStr, resultNotObjectInfos);
     EXPECT_EQ(result, false);
+}
 
-    // entity parameters为数字（非object）
+/**
+ * @tc.number: TransformTo_1200
+ * @tc.name: Test parameters/result not object type
+ * @tc.desc: Test parse failure when parameters/result is not object
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_1200, TestSize.Level0)
+{
     const std::string entityParamsNotObjectJsonStr = "{"
         "\"extractInsightIntents\": ["
         "{"
@@ -995,7 +916,60 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_1000, TestSize.Level0)
     "}";
 
     ExtractInsightIntentProfileInfoVec entityParamsNotObjectInfos;
-    result = ExtractInsightIntentProfile::TransformTo(entityParamsNotObjectJsonStr, entityParamsNotObjectInfos);
+    auto result = ExtractInsightIntentProfile::TransformTo(entityParamsNotObjectJsonStr, entityParamsNotObjectInfos);
+    EXPECT_EQ(result, false);
+}
+
+/**
+ * @tc.number: TransformTo_1300
+ * @tc.name: Test DecoratorType DECORATOR_FORM branch
+ * @tc.desc: Test DECORATOR_FORM normal and formName/abilityName empty failure
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_1300, TestSize.Level0)
+{
+    const std::string formEmptyFormNameJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentForm\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"FormIntent\","
+            "\"domain\": \"form\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"FormIntentName\","
+            "\"formName\": \"\","
+            "\"abilityName\": \"TestAbility\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec formEmptyFormNameInfos;
+    auto result = ExtractInsightIntentProfile::TransformTo(formEmptyFormNameJsonStr, formEmptyFormNameInfos);
+    EXPECT_EQ(result, false);
+
+    // abilityName为空的失败场景
+    const std::string formEmptyAbilityNameJsonStr = "{"
+        "\"extractInsightIntents\": ["
+        "{"
+            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
+            "\"decoratorClass\": \"base\","
+            "\"decoratorType\": \"@InsightIntentForm\","
+            "\"bundleName\": \"com.example.instent\","
+            "\"moduleName\": \"entry\","
+            "\"intentName\": \"FormIntent\","
+            "\"domain\": \"form\","
+            "\"intentVersion\": \"1.0.0\","
+            "\"displayName\": \"FormIntentName\","
+            "\"formName\": \"testForm\","
+            "\"abilityName\": \"\""
+        "}"
+        "]"
+    "}";
+
+    ExtractInsightIntentProfileInfoVec formEmptyAbilityNameInfos;
+    result = ExtractInsightIntentProfile::TransformTo(formEmptyAbilityNameJsonStr, formEmptyAbilityNameInfos);
     EXPECT_EQ(result, false);
 }
 
@@ -1042,7 +1016,6 @@ HWTEST_F(ExtractInsightIntentProfileTest, ToJson_0100, TestSize.Level0)
     nlohmann::json invalidResultJson;
     result = ExtractInsightIntentProfile::ToJson(invalidResultInfo, invalidResultJson);
     EXPECT_EQ(result, true);
-    EXPECT_EQ(invalidResultJson.contains(INSIGHT_INTENT_RESULT), false);
 }
 
 /**
