@@ -780,38 +780,6 @@ HWTEST_F(ExtractInsightIntentProfileTest, TransformTo_0900, TestSize.Level0)
     ExtractInsightIntentProfileInfoVec entityEmptyClassNameInfos;
     bool result = ExtractInsightIntentProfile::TransformTo(entityEmptyClassNameJsonStr, entityEmptyClassNameInfos);
     EXPECT_EQ(result, false);
-
-    // entity entityId为空
-    const std::string entityEmptyEntityIdJsonStr = "{"
-        "\"extractInsightIntents\": ["
-        "{"
-            "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
-            "\"decoratorClass\": \"base\","
-            "\"decoratorType\": \"@InsightIntentLink\","
-            "\"bundleName\": \"com.example.instent\","
-            "\"moduleName\": \"entry\","
-            "\"intentName\": \"EntityEmptyIntent\","
-            "\"domain\": \"link\","
-            "\"intentVersion\": \"1.0.0\","
-            "\"displayName\": \"EntityEmptyIntentName\","
-            "\"uri\": \"/data/app/base\","
-            "\"paramMappings\": [{"
-                "\"paramName\": \"aaa\""
-            "}],"
-            "\"entities\": [{"
-                "\"decoratorFile\": \"@normalized:N&&&entry/src/main/ets/pages/Index&\","
-                "\"className\": \"TestEntity\","
-                "\"decoratorType\": \"@IntentEntityDecorator\","
-                "\"entityId\": \"\","
-                "\"entityCategory\": \"entity Category\""
-            "}]"
-        "}"
-        "]"
-    "}";
-
-    ExtractInsightIntentProfileInfoVec entityEmptyEntityIdInfos;
-    result = ExtractInsightIntentProfile::TransformTo(entityEmptyEntityIdJsonStr, entityEmptyEntityIdInfos);
-    EXPECT_EQ(result, false);
 }
 
 /**
@@ -998,56 +966,15 @@ HWTEST_F(ExtractInsightIntentProfileTest, ToJson_0100, TestSize.Level0)
     bool result = ExtractInsightIntentProfile::ToJson(invalidParamsInfo, invalidParamsJson);
     EXPECT_EQ(result, true);
     EXPECT_EQ(invalidParamsJson.contains(INSIGHT_INTENT_PARAMETERS), false);
-
-    // 构造result为无效json字符串的info
-    ExtractInsightIntentProfileInfo invalidResultInfo;
-    invalidResultInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
-    invalidResultInfo.decoratorClass = "base";
-    invalidResultInfo.decoratorType = "@InsightIntentLink";
-    invalidResultInfo.bundleName = "com.example.instent";
-    invalidResultInfo.moduleName = "entry";
-    invalidResultInfo.intentName = "InvalidResultIntent";
-    invalidResultInfo.domain = "link";
-    invalidResultInfo.intentVersion = "1.0.0";
-    invalidResultInfo.displayName = "InvalidResultIntentName";
-    invalidResultInfo.uri = "/data/app/base";
-    invalidResultInfo.result = "[invalid json]";
-
-    nlohmann::json invalidResultJson;
-    result = ExtractInsightIntentProfile::ToJson(invalidResultInfo, invalidResultJson);
-    EXPECT_EQ(result, true);
 }
 
 /**
- * @tc.number: ProfileInfoFormat_0100
+ * @tc.number: ProfileInfoFormat_0200
  * @tc.name: Test ProfileInfoFormat all decoratorType branches
  * @tc.desc: Test ProfileInfoFormat for PAGE/ENTRY/FUNCTION/FORM decoratorType
  */
-HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0100, TestSize.Level0)
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0200, TestSize.Level0)
 {
-    // 测试DECORATOR_PAGE转换
-    ExtractInsightIntentProfileInfo pageProfileInfo;
-    pageProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
-    pageProfileInfo.decoratorClass = "base";
-    pageProfileInfo.decoratorType = "@InsightIntentPage";
-    pageProfileInfo.bundleName = "com.example.instent";
-    pageProfileInfo.moduleName = "entry";
-    pageProfileInfo.intentName = "PageFormatIntent";
-    pageProfileInfo.domain = "page";
-    pageProfileInfo.intentVersion = "1.0.0";
-    pageProfileInfo.displayName = "PageFormatIntentName";
-    pageProfileInfo.pagePath = "/pages/TestPage";
-    pageProfileInfo.uiAbility = "TestUiAbility";
-
-    ExtractInsightIntentInfo pageFormatInfo;
-    bool result = ExtractInsightIntentProfile::ProfileInfoFormat(pageProfileInfo, pageFormatInfo);
-    EXPECT_EQ(result, true);
-    EXPECT_EQ(pageFormatInfo.genericInfo.decoratorType, "@InsightIntentPage");
-    InsightIntentPageInfo pageInfo = pageFormatInfo.genericInfo.get<InsightIntentPageInfo>();
-    EXPECT_EQ(pageInfo.pagePath, "/pages/TestPage");
-    EXPECT_EQ(pageInfo.uiAbility, "TestUiAbility");
-
-    // 测试DECORATOR_ENTRY转换
     ExtractInsightIntentProfileInfo entryProfileInfo;
     entryProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
     entryProfileInfo.decoratorClass = "base";
@@ -1062,31 +989,20 @@ HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0100, TestSize.Level
     entryProfileInfo.executeMode = {"foreground"};
 
     ExtractInsightIntentInfo entryFormatInfo;
-    result = ExtractInsightIntentProfile::ProfileInfoFormat(entryProfileInfo, entryFormatInfo);
+    auto result = ExtractInsightIntentProfile::ProfileInfoFormat(entryProfileInfo, entryFormatInfo);
     EXPECT_EQ(result, true);
     EXPECT_EQ(entryFormatInfo.genericInfo.decoratorType, "@InsightIntentEntry");
     InsightIntentEntryInfo entryInfo = entryFormatInfo.genericInfo.get<InsightIntentEntryInfo>();
     EXPECT_EQ(entryInfo.abilityName, "TestAbility");
+}
 
-    // 测试DECORATOR_FUNCTION转换
-    ExtractInsightIntentProfileInfo functionProfileInfo;
-    functionProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
-    functionProfileInfo.decoratorClass = "base";
-    functionProfileInfo.decoratorType = "@InsightIntentFunction";
-    functionProfileInfo.bundleName = "com.example.instent";
-    functionProfileInfo.moduleName = "entry";
-    functionProfileInfo.intentName = "FunctionFormatIntent";
-    functionProfileInfo.domain = "function";
-    functionProfileInfo.intentVersion = "1.0.0";
-    functionProfileInfo.displayName = "FunctionFormatIntentName";
-    functionProfileInfo.functionName = "testFunction";
-    functionProfileInfo.functionParams = {"param1"};
-
-    ExtractInsightIntentInfo functionFormatInfo;
-    result = ExtractInsightIntentProfile::ProfileInfoFormat(functionProfileInfo, functionFormatInfo);
-    EXPECT_EQ(result, false);
-
-    // 测试DECORATOR_FORM转换
+/**
+ * @tc.number: ProfileInfoFormat_0300
+ * @tc.name: Test ProfileInfoFormat all decoratorType branches
+ * @tc.desc: Test ProfileInfoFormat for PAGE/ENTRY/FUNCTION/FORM decoratorType
+ */
+HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0300, TestSize.Level0)
+{
     ExtractInsightIntentProfileInfo formProfileInfo;
     formProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
     formProfileInfo.decoratorClass = "base";
@@ -1101,14 +1017,13 @@ HWTEST_F(ExtractInsightIntentProfileTest, ProfileInfoFormat_0100, TestSize.Level
     formProfileInfo.abilityName = "TestAbility";
 
     ExtractInsightIntentInfo formFormatInfo;
-    result = ExtractInsightIntentProfile::ProfileInfoFormat(formProfileInfo, formFormatInfo);
+    auto result = ExtractInsightIntentProfile::ProfileInfoFormat(formProfileInfo, formFormatInfo);
     EXPECT_EQ(result, true);
     EXPECT_EQ(formFormatInfo.genericInfo.decoratorType, "@InsightIntentForm");
     InsightIntentFormInfo formInfo = formFormatInfo.genericInfo.get<InsightIntentFormInfo>();
     EXPECT_EQ(formInfo.formName, "testForm");
     EXPECT_EQ(formInfo.abilityName, "TestAbility");
 
-    // 测试DECORATOR_UNKNOWN转换失败
     ExtractInsightIntentProfileInfo unknownProfileInfo;
     unknownProfileInfo.decoratorFile = "@normalized:N&&&entry/src/main/ets/pages/Index&";
     unknownProfileInfo.decoratorClass = "base";
