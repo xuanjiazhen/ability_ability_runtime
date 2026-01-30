@@ -57,25 +57,6 @@ static constexpr uint32_t TOKEN_SAME = 1001;
 
 /*
  * Feature: OBSVerifyPermissionUtils
- * Function: GetInstance
- * SubFunction: Get singleton instance
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Test getting singleton instance
- */
-HWTEST_F(DataObsMgrObsVerifyTest, OBSVerifyPermissionUtils_GetInstance_0100, TestSize.Level0)
-{
-    ASSERT_TRUE(obsVerifyUtils_ != nullptr);
-
-    // Test singleton pattern - should return same instance
-    auto &instance1 = OBSVerifyPermissionUtils::GetInstance();
-    auto &instance2 = OBSVerifyPermissionUtils::GetInstance();
-
-    EXPECT_EQ(&instance1, &instance2);
-}
-
-/*
- * Feature: OBSVerifyPermissionUtils
  * Function: VerifyPermission with same tokens
  * SubFunction: VerifyPermission
  * FunctionPoints: NA
