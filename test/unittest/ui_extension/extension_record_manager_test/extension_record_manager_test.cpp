@@ -1435,5 +1435,273 @@ HWTEST_F(ExtensionRecordManagerTest, UpdateProcessName_0900, TestSize.Level1)
     result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
     EXPECT_NE(result, ERR_OK);
 }
+
+/**
+ * @tc.name: QueryPreLoadUIExtensionRecord_0100
+ * @tc.desc: Test QueryPreLoadUIExtensionRecord with empty moduleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, QueryPreLoadUIExtensionRecord_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecord_0100 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    AppExecFwk::ElementName element;
+    element.SetBundleName("com.test.empty");
+    element.SetAbilityName("TestAbility");
+    std::string emptyModuleName = "";
+    int32_t hostPid = 1001;
+    int32_t recordNum = -1;
+
+    auto ret = extRecordMgr->QueryPreLoadUIExtensionRecord(element, emptyModuleName, hostPid, recordNum);
+
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(recordNum, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecord_0100 end");
+}
+
+/**
+ * @tc.name: QueryPreLoadUIExtensionRecord_0200
+ * @tc.desc: Test QueryPreLoadUIExtensionRecord with empty bundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, QueryPreLoadUIExtensionRecord_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecord_0200 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    AppExecFwk::ElementName element;
+    element.SetBundleName("");
+    element.SetAbilityName("TestAbility");
+    std::string moduleName = "entry";
+    int32_t hostPid = 1002;
+    int32_t recordNum = -1;
+
+    auto ret = extRecordMgr->QueryPreLoadUIExtensionRecord(element, moduleName, hostPid, recordNum);
+
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(recordNum, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecord_0500 end");
+}
+
+/**
+ * @tc.name: QueryPreLoadUIExtensionRecord_0300
+ * @tc.desc: Test QueryPreLoadUIExtensionRecord with empty abilityName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, QueryPreLoadUIExtensionRecord_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecord_0300 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    AppExecFwk::ElementName element;
+    element.SetBundleName("com.test.empty");
+    element.SetAbilityName("");
+    std::string moduleName = "entry";
+    int32_t hostPid = 1002;
+    int32_t recordNum = -1;
+
+    auto ret = extRecordMgr->QueryPreLoadUIExtensionRecord(element, moduleName, hostPid, recordNum);
+
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(recordNum, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "QueryPreLoadUIExtensionRecord_0300 end");
+}
+
+/**
+ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0100
+ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with empty map
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, ClearAllPreloadUIExtensionRecordForHost_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ClearAllPreloadUIExtensionRecordForHost_0100 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    // Map is empty, should not crash
+    auto ret = extRecordMgr->ClearAllPreloadUIExtensionRecordForHost();
+
+    EXPECT_EQ(ret, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "ClearAllPreloadUIExtensionRecordForHost_0100 end");
+}
+
+/**
+ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0200
+ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with matching records
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, ClearAllPreloadUIExtensionRecordForHost_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ClearAllPreloadUIExtensionRecordForHost_0200 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    int32_t callingPid = IPCSkeleton::GetCallingPid();
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.clearall";
+    abilityRequest.abilityInfo.name = "ClearAllAbility";
+    abilityRequest.abilityInfo.moduleName = "entry";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+
+    extRecord->hostPid_ = callingPid;
+
+    auto extensionRecordMapKey = std::make_tuple("ClearAllAbility", "com.test.clearall", "entry", callingPid);
+    std::vector<std::shared_ptr<ExtensionRecord>> extensions;
+    extensions.push_back(extRecord);
+    {
+        std::lock_guard<std::mutex> lock(extRecordMgr->preloadUIExtensionMapMutex_);
+        extRecordMgr->preloadUIExtensionMap_[extensionRecordMapKey] = extensions;
+    }
+
+    // Verify record exists
+    {
+        std::lock_guard<std::mutex> lock(extRecordMgr->preloadUIExtensionMapMutex_);
+        EXPECT_EQ(extRecordMgr->preloadUIExtensionMap_.size(), 1);
+    }
+
+    auto ret = extRecordMgr->ClearAllPreloadUIExtensionRecordForHost();
+
+    EXPECT_EQ(ret, ERR_OK);
+
+    // Verify record was removed
+    {
+        std::lock_guard<std::mutex> lock(extRecordMgr->preloadUIExtensionMapMutex_);
+        EXPECT_EQ(extRecordMgr->preloadUIExtensionMap_.size(), 0);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "ClearAllPreloadUIExtensionRecordForHost_0200 end");
+}
+
+/**
+ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0300
+ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost with non-matching pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, ClearAllPreloadUIExtensionRecordForHost_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ClearAllPreloadUIExtensionRecordForHost_0300 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    int32_t differentPid = 9999;
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.noclear";
+    abilityRequest.abilityInfo.name = "NoClearAbility";
+    abilityRequest.abilityInfo.moduleName = "entry";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+
+    extRecord->hostPid_ = differentPid;
+
+    auto extensionRecordMapKey = std::make_tuple("NoClearAbility", "com.test.noclear", "entry", differentPid);
+    std::vector<std::shared_ptr<ExtensionRecord>> extensions;
+    extensions.push_back(extRecord);
+    {
+        std::lock_guard<std::mutex> lock(extRecordMgr->preloadUIExtensionMapMutex_);
+        extRecordMgr->preloadUIExtensionMap_[extensionRecordMapKey] = extensions;
+    }
+
+    // Verify record exists
+    {
+        std::lock_guard<std::mutex> lock(extRecordMgr->preloadUIExtensionMapMutex_);
+        EXPECT_EQ(extRecordMgr->preloadUIExtensionMap_.size(), 1);
+    }
+
+    auto ret = extRecordMgr->ClearAllPreloadUIExtensionRecordForHost();
+
+    EXPECT_EQ(ret, ERR_OK);
+
+    // Verify record still exists (different pid)
+    {
+        std::lock_guard<std::mutex> lock(extRecordMgr->preloadUIExtensionMapMutex_);
+        EXPECT_EQ(extRecordMgr->preloadUIExtensionMap_.size(), 1);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "ClearAllPreloadUIExtensionRecordForHost_0300 end");
+}
+
+/**
+ * @tc.name: HandlePreloadUIExtensionLoaded_0200
+ * @tc.desc: Test HandlePreloadUIExtensionLoaded with nullptr record
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, HandlePreloadUIExtensionLoaded_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandlePreloadUIExtensionLoaded_0200 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    // Should not crash with nullptr
+    extRecordMgr->HandlePreloadUIExtensionLoaded(nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "HandlePreloadUIExtensionLoaded_0200 end");
+}
+
+/**
+ * @tc.name: HandlePreloadUIExtensionDestroyed_0200
+ * @tc.desc: Test HandlePreloadUIExtensionDestroyed with nullptr record
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, HandlePreloadUIExtensionDestroyed_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandlePreloadUIExtensionDestroyed_0200 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    // Should not crash with nullptr
+    extRecordMgr->HandlePreloadUIExtensionDestroyed(nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "HandlePreloadUIExtensionDestroyed_0200 end");
+}
+
+/**
+ * @tc.name: HandlePreloadUIExtensionSuccess_0100
+ * @tc.desc: Test HandlePreloadUIExtensionSuccess with non-existent record
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, HandlePreloadUIExtensionSuccess_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandlePreloadUIExtensionSuccess_0100 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    int32_t nonExistentRecordId = 9999;
+
+    // Should not crash with non-existent record
+    extRecordMgr->HandlePreloadUIExtensionSuccess(nonExistentRecordId, true);
+
+    TAG_LOGI(AAFwkTag::TEST, "HandlePreloadUIExtensionSuccess_0100 end");
+}
+
+/**
+ * @tc.name: GetUIExtensionRootHostInfo_0300
+ * @tc.desc: Test GetUIExtensionRootHostInfo with non-UIExtension ability
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtensionRecordManagerTest, GetUIExtensionRootHostInfo_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionRootHostInfo_0300 start");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.noui";
+    abilityRequest.abilityInfo.name = "NoUIAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+
+    auto token = abilityRecord->GetToken();
+    ASSERT_NE(token, nullptr);
+
+    auto result = extRecordMgr->GetUIExtensionRootHostInfo(token);
+
+    EXPECT_EQ(result, nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "GetUIExtensionRootHostInfo_0300 end");
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS
