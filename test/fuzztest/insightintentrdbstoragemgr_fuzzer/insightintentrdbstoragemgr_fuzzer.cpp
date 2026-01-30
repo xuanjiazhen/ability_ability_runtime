@@ -33,6 +33,7 @@ using namespace OHOS::AppExecFwk;
 namespace OHOS {
 namespace {
 constexpr size_t STRING_MAX_LENGTH = 128;
+constexpr size_t U32_AT_SIZE = 4;
 }
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
@@ -44,6 +45,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     std::unordered_map<std::string, std::string> valueVec;
     std::string key = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     std::string value = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    uint32_t versionCode = fdp.ConsumeIntegralInRange<int32_t>(0, U32_AT_SIZE);
     valueVec[key] = value;
     userId = fdp.ConsumeIntegral<int32_t>();
     std::vector<InsightIntentInfo> configInfos;
@@ -59,7 +61,8 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadConfigInsightIntentInfo(bundleName, moduleName, intentName, userId, configInfo);
     DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->TransformConfigIntent(valueVec, configInfos);
     DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->Transform(valueVec, totalInfos, configInfos);
-    DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(bundleName, moduleName, userId, profileInfos, configInfos);
+    DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->
+        SaveStorageInsightIntentData(bundleName, moduleName, userId, versionCode, profileInfos, configInfos);
     DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->DeleteStorageInsightIntentByUserId(userId);
     DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->DeleteStorageInsightIntentData(bundleName, moduleName, userId);
     return true;
