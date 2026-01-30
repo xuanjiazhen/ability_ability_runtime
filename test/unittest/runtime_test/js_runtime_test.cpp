@@ -1938,5 +1938,181 @@ HWTEST_F(JsRuntimeTest, RegisterUncatchableExceptionHandler_0100, TestSize.Level
     EXPECT_NE(jsRuntime, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "RegisterUncatchableExceptionHandler_0100 end");
 }
+
+/**
+ * @tc.name: GetSystemKitsMap_0100
+ * @tc.desc: JsRuntime test for GetSystemKitsMap.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, GetSystemKitsMap_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetSystemKitsMap_0100 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    auto kitsMap = jsRuntime->GetSystemKitsMap(0);
+    EXPECT_TRUE(kitsMap.empty());
+    TAG_LOGI(AAFwkTag::TEST, "GetSystemKitsMap_0100 end");
+}
+
+/**
+ * @tc.name: GetSafeData_0100
+ * @tc.desc: JsRuntime test for GetSafeData with empty path.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, GetSafeData_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetSafeData_0100 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    std::string fileFullName;
+    auto safeData = jsRuntime->GetSafeData("", fileFullName);
+    EXPECT_EQ(safeData, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "GetSafeData_0100 end");
+}
+
+/**
+ * @tc.name: GetSafeData_0200
+ * @tc.desc: JsRuntime test for GetSafeData with invalid path.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, GetSafeData_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetSafeData_0200 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    std::string fileFullName;
+    auto safeData = jsRuntime->GetSafeData("/invalid/path/file.abc", fileFullName);
+    EXPECT_EQ(safeData, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "GetSafeData_0200 end");
+}
+
+/**
+ * @tc.name: InheritPluginNamespace_0100
+ * @tc.desc: JsRuntime test for InheritPluginNamespace.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, InheritPluginNamespace_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "InheritPluginNamespace_0100 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    std::vector<std::string> moduleNames;
+    jsRuntime->InheritPluginNamespace(moduleNames);
+    SUCCEED();
+    TAG_LOGI(AAFwkTag::TEST, "InheritPluginNamespace_0100 end");
+}
+
+/**
+ * @tc.name: CreatePluginDefaultNamespace_0100
+ * @tc.desc: JsRuntime test for CreatePluginDefaultNamespace.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, CreatePluginDefaultNamespace_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CreatePluginDefaultNamespace_0100 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    jsRuntime->CreatePluginDefaultNamespace("");
+    SUCCEED();
+    TAG_LOGI(AAFwkTag::TEST, "CreatePluginDefaultNamespace_0100 end");
+}
+
+/**
+ * @tc.name: NotifyHotReloadPage_0100
+ * @tc.desc: JsRuntime test for NotifyHotReloadPage.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, NotifyHotReloadPage_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "NotifyHotReloadPage_0100 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    auto result = jsRuntime->NotifyHotReloadPage();
+    EXPECT_EQ(result, false);
+    TAG_LOGI(AAFwkTag::TEST, "NotifyHotReloadPage_0100 end");
+}
+
+/**
+ * @tc.name: ShouldSkipDebugMode_0100
+ * @tc.desc: JsRuntime test for ShouldSkipDebugMode returning false when both flags are false.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, ShouldSkipDebugMode_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0100 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    DebugOption option;
+    option.isDebugFromLocal = false;
+    option.isDeveloperMode = false;
+    auto result = jsRuntime->ShouldSkipDebugMode(option);
+    EXPECT_EQ(result, false);
+    TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0100 end");
+}
+
+/**
+ * @tc.name: ShouldSkipDebugMode_0200
+ * @tc.desc: JsRuntime test for ShouldSkipDebugMode returning true when isDeveloperMode is true.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, ShouldSkipDebugMode_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0200 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    DebugOption option;
+    option.isDebugFromLocal = false;
+    option.isDeveloperMode = true;
+    auto result = jsRuntime->ShouldSkipDebugMode(option);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0200 end");
+}
+
+/**
+ * @tc.name: ShouldSkipDebugMode_0300
+ * @tc.desc: JsRuntime test for ShouldSkipDebugMode returning true when isDebugFromLocal is true.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, ShouldSkipDebugMode_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0300 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    DebugOption option;
+    option.isDebugFromLocal = true;
+    option.isDeveloperMode = false;
+    auto result = jsRuntime->ShouldSkipDebugMode(option);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0300 end");
+}
+
+/**
+ * @tc.name: ShouldSkipDebugMode_0400
+ * @tc.desc: JsRuntime test for ShouldSkipDebugMode returning false when arkTSMode is not CODE_LANGUAGE_ARKTS_1_0.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(JsRuntimeTest, ShouldSkipDebugMode_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0400 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    EXPECT_NE(jsRuntime, nullptr);
+    DebugOption option;
+    option.isDebugFromLocal = true;
+    option.isDeveloperMode = true;
+    option.arkTSMode = "not_dynamic";
+    auto result = jsRuntime->ShouldSkipDebugMode(option);
+    EXPECT_EQ(result, false);
+    TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0400 end");
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
