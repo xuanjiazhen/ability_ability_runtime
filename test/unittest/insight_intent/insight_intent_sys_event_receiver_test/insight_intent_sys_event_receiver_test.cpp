@@ -28,6 +28,7 @@ const int32_t MAIN_USER_ID = 100;
 const int32_t OTHER_USER_ID = 101;
 const int32_t INVALID_USER_ID = -1;
 const int32_t ZERO_USER_ID = 0;
+const uint32_t VERSION_CODE = 0;
 const std::string INVALID_BUNDLE_NAME = "";
 const std::string TEST_BUNDLE_NAME = "com.test.insightintent";
 const std::string TEST_MODULE_NAME = "testmodule";
@@ -109,23 +110,23 @@ HWTEST_F(InsightIntentSysEventReceiverTest, SaveInsightIntentInfos_0002, TestSiz
     auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
     
     // 测试1: 无效bundle名称
-    sysEventReceiver->SaveInsightIntentInfos(INVALID_BUNDLE_NAME, TEST_MODULE_NAME, MAIN_USER_ID);
+    sysEventReceiver->SaveInsightIntentInfos(INVALID_BUNDLE_NAME, TEST_MODULE_NAME, VERSION_CODE, MAIN_USER_ID);
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0); // 验证对象状态正常，未被异常影响
     
     // 测试2: 空模块名称
-    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, EMPTY_MODULE_NAME, MAIN_USER_ID);
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, EMPTY_MODULE_NAME, VERSION_CODE, MAIN_USER_ID);
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
     
     // 测试3: 多模块名称
-    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, MULTI_MODULE_NAME, MAIN_USER_ID);
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, MULTI_MODULE_NAME, VERSION_CODE, MAIN_USER_ID);
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
     
     // 测试4: 无效用户ID
-    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, INVALID_USER_ID);
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, VERSION_CODE, INVALID_USER_ID);
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
     
     // 测试5: 合法参数
-    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, MAIN_USER_ID);
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, VERSION_CODE, MAIN_USER_ID);
     EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
 }
 
