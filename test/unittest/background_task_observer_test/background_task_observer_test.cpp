@@ -178,7 +178,8 @@ HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesApply_001, TestSiz
 HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesApply_002, TestSize.Level1)
 {
     EXPECT_NE(observer_, nullptr);
-    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info = std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
+    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info =
+        std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
     EXPECT_NE(info, nullptr);
     int testUid = 12345;
     info->uid_ = testUid;
