@@ -1987,5 +1987,686 @@ HWTEST_F(ContextImplTest, RegisterGetAllUIAbilitiesCallback_001, Function | Medi
     GTEST_LOG_(INFO) << "RegisterGetAllUIAbilitiesCallback_001 end";
 }
 #endif
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetBundleNameWithContext_001
+ * @tc.name: GetBundleNameWithContext
+ * @tc.desc: Test GetBundleNameWithContext with null input context
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetBundleNameWithContext_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleNameWithContext_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    // branch when inputContext is null
+    auto bundleName = contextImpl->GetBundleNameWithContext(nullptr);
+    EXPECT_EQ(bundleName, "");
+
+    // branch when inputContext is not null
+    auto inputContext = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(inputContext, nullptr);
+    auto applicationInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    EXPECT_NE(applicationInfo, nullptr);
+    applicationInfo->bundleName = "com.test.inputcontext";
+    inputContext->SetApplicationInfo(applicationInfo);
+    bundleName = contextImpl->GetBundleNameWithContext(inputContext);
+    EXPECT_EQ(bundleName, "com.test.inputcontext");
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleNameWithContext_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_IsModuleExist_001
+ * @tc.name: IsModuleExist
+ * @tc.desc: Test IsModuleExist function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_IsModuleExist_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_IsModuleExist_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    // branch when applicationInfo is nullptr
+    auto isExist = contextImpl->IsModuleExist("testModuleName");
+    EXPECT_EQ(isExist, false);
+
+    // branch when module exists
+    auto applicationInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    EXPECT_NE(applicationInfo, nullptr);
+    AppExecFwk::ModuleInfo moduleInfo;
+    moduleInfo.moduleName = "testModuleName";
+    applicationInfo->moduleInfos.push_back(moduleInfo);
+    contextImpl->SetApplicationInfo(applicationInfo);
+    isExist = contextImpl->IsModuleExist("testModuleName");
+    EXPECT_EQ(isExist, true);
+
+    // branch when module does not exist
+    isExist = contextImpl->IsModuleExist("nonExistentModule");
+    EXPECT_EQ(isExist, false);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_IsModuleExist_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_SetMcc_001
+ * @tc.name: SetMcc
+ * @tc.desc: Test SetMcc function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetMcc_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMcc_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    // branch when config is nullptr
+    contextImpl->SetMcc("460");
+
+    // branch when config is not nullptr
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    EXPECT_NE(config, nullptr);
+    contextImpl->SetConfiguration(config);
+    contextImpl->SetMcc("460");
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMcc_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_SetMnc_001
+ * @tc.name: SetMnc
+ * @tc.desc: Test SetMnc function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetMnc_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMnc_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    // branch when config is nullptr
+    contextImpl->SetMnc("01");
+
+    // branch when config is not nullptr
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    EXPECT_NE(config, nullptr);
+    contextImpl->SetConfiguration(config);
+    contextImpl->SetMnc("01");
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMnc_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateSystemHspModuleResourceManager_001
+ * @tc.name: CreateSystemHspModuleResourceManager
+ * @tc.desc: Test CreateSystemHspModuleResourceManager with empty bundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateSystemHspModuleResourceManager_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateSystemHspModuleResourceManager_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
+    auto ret = contextImpl->CreateSystemHspModuleResourceManager("", "entry", resourceManager);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    ret = contextImpl->CreateSystemHspModuleResourceManager("bundleName", "", resourceManager);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateSystemHspModuleResourceManager_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateHspModuleResourceManager_001
+ * @tc.name: CreateHspModuleResourceManager
+ * @tc.desc: Test CreateHspModuleResourceManager with empty params
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateHspModuleResourceManager_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateHspModuleResourceManager_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
+    auto ret = contextImpl->CreateHspModuleResourceManager("", "entry", resourceManager);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    ret = contextImpl->CreateHspModuleResourceManager("bundleName", "", resourceManager);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateHspModuleResourceManager_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_UpdateResConfig_001
+ * @tc.name: UpdateResConfig
+ * @tc.desc: Test UpdateResConfig with null resourceManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_UpdateResConfig_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateResConfig_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
+    contextImpl->UpdateResConfig(resourceManager);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateResConfig_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_UpdateResConfig_002
+ * @tc.name: UpdateResConfig
+ * @tc.desc: Test UpdateResConfig with valid resourceManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_UpdateResConfig_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateResConfig_002 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
+    EXPECT_NE(resourceManager, nullptr);
+    contextImpl->UpdateResConfig(resourceManager);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateResConfig_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetOverlayMgrProxy_001
+ * @tc.name: GetOverlayMgrProxy
+ * @tc.desc: Test GetOverlayMgrProxy function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetOverlayMgrProxy_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetOverlayMgrProxy_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    auto ret = contextImpl->GetOverlayMgrProxy();
+    EXPECT_EQ(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetOverlayMgrProxy_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetOverlayModuleInfos_001
+ * @tc.name: GetOverlayModuleInfos
+ * @tc.desc: Test GetOverlayModuleInfos function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetOverlayModuleInfos_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetOverlayModuleInfos_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    std::vector<AppExecFwk::OverlayModuleInfo> overlayModuleInfos;
+    auto ret = contextImpl->GetOverlayModuleInfos("bundleName", "moduleName", overlayModuleInfos);
+    EXPECT_EQ(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetOverlayModuleInfos_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_InitPluginExtensionInfo_001
+ * @tc.name: InitPluginExtensionInfo
+ * @tc.desc: Test InitPluginExtensionInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_InitPluginExtensionInfo_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginExtensionInfo_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    EXPECT_NE(abilityInfo, nullptr);
+    std::string hostBundleName = "hostBundleName";
+
+    contextImpl->InitPluginExtensionInfo(abilityInfo, hostBundleName);
+    auto extensionInfo = contextImpl->GetPluginExtensionInfo();
+    EXPECT_EQ(extensionInfo, nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginExtensionInfo_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_InitPluginExtensionInfo_002
+ * @tc.name: InitPluginExtensionInfo
+ * @tc.desc: Test InitPluginExtensionInfo with null params
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_InitPluginExtensionInfo_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginExtensionInfo_002 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    // branch when abilityInfo is nullptr
+    contextImpl->InitPluginExtensionInfo(nullptr, "hostBundleName");
+
+    // branch when hostBundleName is empty
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    EXPECT_NE(abilityInfo, nullptr);
+    contextImpl->InitPluginExtensionInfo(abilityInfo, "");
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginExtensionInfo_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetPluginExtensionInfo_001
+ * @tc.name: GetPluginExtensionInfo
+ * @tc.desc: Test GetPluginExtensionInfo function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetPluginExtensionInfo_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginExtensionInfo_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    auto extensionInfo = contextImpl->GetPluginExtensionInfo();
+    EXPECT_EQ(extensionInfo, nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginExtensionInfo_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_KillProcessBySelf_001
+ * @tc.name: KillProcessBySelf
+ * @tc.desc: Test KillProcessBySelf function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_KillProcessBySelf_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_KillProcessBySelf_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    contextImpl->KillProcessBySelf(true);
+    contextImpl->KillProcessBySelf(false);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_KillProcessBySelf_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetProcessRunningInformation_001
+ * @tc.name: GetProcessRunningInformation
+ * @tc.desc: Test GetProcessRunningInformation function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetProcessRunningInformation_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetProcessRunningInformation_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    AppExecFwk::RunningProcessInfo info;
+    auto ret = contextImpl->GetProcessRunningInformation(info);
+    EXPECT_GE(ret, 0);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetProcessRunningInformation_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetAllRunningInstanceKeys_001
+ * @tc.name: GetAllRunningInstanceKeys
+ * @tc.desc: Test GetAllRunningInstanceKeys function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetAllRunningInstanceKeys_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetAllRunningInstanceKeys_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    std::vector<std::string> instanceKeys;
+    auto ret = contextImpl->GetAllRunningInstanceKeys(instanceKeys);
+    EXPECT_GE(ret, 0);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetAllRunningInstanceKeys_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_RestartApp_001
+ * @tc.name: RestartApp
+ * @tc.desc: Test RestartApp function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_RestartApp_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_RestartApp_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    AAFwk::Want want;
+    auto ret = contextImpl->RestartApp(want);
+    EXPECT_GE(ret, 0);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_RestartApp_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_AppHasDarkRes_001
+ * @tc.name: AppHasDarkRes
+ * @tc.desc: Test AppHasDarkRes with null resourceManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_AppHasDarkRes_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_AppHasDarkRes_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    bool darkRes = false;
+    contextImpl->AppHasDarkRes(darkRes);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_AppHasDarkRes_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_AppHasDarkRes_002
+ * @tc.name: AppHasDarkRes
+ * @tc.desc: Test AppHasDarkRes with valid resourceManager
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_AppHasDarkRes_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_AppHasDarkRes_002 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
+    EXPECT_NE(resourceManager, nullptr);
+    contextImpl->SetResourceManager(resourceManager);
+
+    bool darkRes = false;
+    contextImpl->AppHasDarkRes(darkRes);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_AppHasDarkRes_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateDirIfNotExist_001
+ * @tc.name: CreateDirIfNotExist
+ * @tc.desc: Test CreateDirIfNotExist function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateDirIfNotExist_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateDirIfNotExist_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    // Create a temp directory for testing
+    std::string testDir = "/data/test_context_impl_dir";
+    contextImpl->CreateDirIfNotExist(testDir, 0770);
+
+    // Test with mode 0
+    contextImpl->CreateDirIfNotExist(testDir, 0);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateDirIfNotExist_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_ShallowCopySelf_001
+ * @tc.name: ShallowCopySelf
+ * @tc.desc: Test ShallowCopySelf function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_ShallowCopySelf_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_ShallowCopySelf_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    auto config = std::make_shared<AppExecFwk::Configuration>();
+    EXPECT_NE(config, nullptr);
+    contextImpl->SetConfiguration(config);
+    contextImpl->SetProcessName("testProcess");
+    contextImpl->SwitchArea(1);
+
+    std::shared_ptr<AbilityRuntime::ContextImpl> targetContext = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(targetContext, nullptr);
+
+    contextImpl->ShallowCopySelf(targetContext);
+    EXPECT_EQ(targetContext->GetProcessName(), "testProcess");
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_ShallowCopySelf_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_ClearUpApplicationData_001
+ * @tc.name: ClearUpApplicationData
+ * @tc.desc: Test ClearUpApplicationData function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_ClearUpApplicationData_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_ClearUpApplicationData_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    contextImpl->ClearUpApplicationData();
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_ClearUpApplicationData_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_SetLaunchParameter_001
+ * @tc.name: SetLaunchParameter
+ * @tc.desc: Test SetLaunchParameter function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetLaunchParameter_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetLaunchParameter_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    AAFwk::Want want;
+    want.SetParam("testKey", "testValue");
+    contextImpl->SetLaunchParameter(want);
+
+    // Test GetLaunchParameter
+    auto launchParam = contextImpl->GetLaunchParameter();
+    EXPECT_FALSE(launchParam.empty());
+
+    // Set again should not update (only cold-start)
+    contextImpl->SetLaunchParameter(want);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetLaunchParameter_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetLaunchParameter_001
+ * @tc.name: GetLaunchParameter
+ * @tc.desc: Test GetLaunchParameter with null launchParameter_
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetLaunchParameter_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetLaunchParameter_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    auto launchParam = contextImpl->GetLaunchParameter();
+    EXPECT_EQ(launchParam, "");
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetLaunchParameter_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_SetLatestParameter_001
+ * @tc.name: SetLatestParameter
+ * @tc.desc: Test SetLatestParameter function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetLatestParameter_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetLatestParameter_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    AAFwk::Want want;
+    want.SetParam("testKey", "testValue");
+    contextImpl->SetLatestParameter(want);
+
+    // Test GetLatestParameter
+    auto latestParam = contextImpl->GetLatestParameter();
+    EXPECT_FALSE(latestParam.empty());
+
+    // Set again should update
+    want.SetParam("testKey2", "testValue2");
+    contextImpl->SetLatestParameter(want);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetLatestParameter_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetLatestParameter_001
+ * @tc.name: GetLatestParameter
+ * @tc.desc: Test GetLatestParameter with null latestParameter_
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetLatestParameter_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetLatestParameter_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    auto latestParam = contextImpl->GetLatestParameter();
+    EXPECT_EQ(latestParam, "");
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetLatestParameter_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_SetConfigUpdateReason_001
+ * @tc.name: SetConfigUpdateReason
+ * @tc.desc: Test SetConfigUpdateReason and GetConfigUpdateReason
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetConfigUpdateReason_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetConfigUpdateReason_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_SETTING;
+    contextImpl->SetConfigUpdateReason(reason);
+
+    auto retReason = contextImpl->GetConfigUpdateReason();
+    EXPECT_EQ(retReason, ConfigUpdateReason::CONFIG_UPDATE_REASON_SETTING);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetConfigUpdateReason_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateTargetPluginContext_001
+ * @tc.name: CreateTargetPluginContext
+ * @tc.desc: Test CreateTargetPluginContext with empty params
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateTargetPluginContext_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateTargetPluginContext_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    // branch with empty hostBundName
+    auto ret = contextImpl->CreateTargetPluginContext("", "pluginBundleName", "moduleName", contextImpl_);
+    EXPECT_EQ(ret, nullptr);
+
+    // branch with empty pluginBundleName
+    ret = contextImpl->CreateTargetPluginContext("hostBundName", "", "moduleName", contextImpl_);
+    EXPECT_EQ(ret, nullptr);
+
+    // branch with empty moduleName
+    ret = contextImpl->CreateTargetPluginContext("hostBundName", "pluginBundleName", "", contextImpl_);
+    EXPECT_EQ(ret, nullptr);
+
+    // branch with null inputContext
+    ret = contextImpl->CreateTargetPluginContext("hostBundName", "pluginBundleName", "moduleName", nullptr);
+    EXPECT_EQ(ret, nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateTargetPluginContext_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateModuleOrPluginContext_001
+ * @tc.name: CreateModuleOrPluginContext
+ * @tc.desc: Test CreateModuleOrPluginContext with empty params
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateModuleOrPluginContext_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateModuleOrPluginContext_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    // branch with empty bundleName
+    auto ret = contextImpl->CreateModuleOrPluginContext("", "moduleName");
+    EXPECT_EQ(ret, nullptr);
+
+    // branch with empty moduleName
+    ret = contextImpl->CreateModuleOrPluginContext("bundleName", "");
+    EXPECT_EQ(ret, nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateModuleOrPluginContext_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateModuleOrPluginContext_002
+ * @tc.name: CreateModuleOrPluginContext
+ * @tc.desc: Test CreateModuleOrPluginContext with hasPlugin flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateModuleOrPluginContext_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateModuleOrPluginContext_002 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    auto applicationInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    EXPECT_NE(applicationInfo, nullptr);
+    applicationInfo->hasPlugin = true;
+    contextImpl->SetApplicationInfo(applicationInfo);
+
+    auto ret = contextImpl->CreateModuleOrPluginContext("bundleName", "moduleName");
+    // Should return nullptr since CreateModuleContext and CreatePluginContext both return nullptr
+    EXPECT_EQ(ret, nullptr);
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateModuleOrPluginContext_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_UnsubscribeToOverlayEvents_001
+ * @tc.name: UnsubscribeToOverlayEvents
+ * @tc.desc: Test UnsubscribeToOverlayEvents function
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_UnsubscribeToOverlayEvents_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UnsubscribeToOverlayEvents_001 start";
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    EXPECT_NE(contextImpl, nullptr);
+
+    // branch when overlaySubscriber_ is nullptr
+    contextImpl->UnsubscribeToOverlayEvents();
+
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UnsubscribeToOverlayEvents_001 end";
+}
+
+#endif
 }  // namespace AppExecFwk
 }
