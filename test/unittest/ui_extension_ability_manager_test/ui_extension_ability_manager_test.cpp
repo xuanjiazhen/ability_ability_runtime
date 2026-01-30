@@ -1845,9 +1845,145 @@ HWTEST_F(UIExtensionAbilityManagerTest, PreloadUIExtensionAbilityLocked_002, Tes
     abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
     std::string hostBundleName = "testBundle";
     int32_t hostPid = 1234;
-    
+
     int res = connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName, hostPid);
     EXPECT_EQ(res, ERR_NULL_OBJECT);
 }
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CheckUIExtensionAbilitySessionExist
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CheckUIExtensionAbilitySessionExist with null abilityRecord
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, CheckUIExtensionAbilitySessionExist_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+
+    bool result = connectManager->CheckUIExtensionAbilitySessionExist(nullptr);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CheckUIExtensionAbilitySessionExist
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CheckUIExtensionAbilitySessionExist with empty uiExtensionMap_
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, CheckUIExtensionAbilitySessionExist_002, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    connectManager->uiExtensionMap_.clear();
+
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    bool result = connectManager->CheckUIExtensionAbilitySessionExist(abilityRecord);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CheckUIExtensionAbilitySessionExist
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CheckUIExtensionAbilitySessionExist with existing record in uiExtensionMap_
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, CheckUIExtensionAbilitySessionExist_003, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    connectManager->uiExtensionMap_.clear();
+
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+
+    connectManager->uiExtensionMap_[token] = {abilityRecord, sessionInfo};
+
+    bool result = connectManager->CheckUIExtensionAbilitySessionExist(abilityRecord);
+    EXPECT_TRUE(result);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: CheckUIExtensionAbilitySessionExist
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify CheckUIExtensionAbilitySessionExist with non-existing record in uiExtensionMap_
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, CheckUIExtensionAbilitySessionExist_004, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    connectManager->uiExtensionMap_.clear();
+
+    std::shared_ptr<BaseExtensionRecord> abilityRecord1 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    sptr<IRemoteObject> token1 = abilityRecord1->GetToken();
+    sptr<SessionInfo> sessionInfo = new SessionInfo();
+    connectManager->uiExtensionMap_[token1] = {abilityRecord1, sessionInfo};
+
+    std::shared_ptr<BaseExtensionRecord> abilityRecord2 = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest1_);
+
+    bool result = connectManager->CheckUIExtensionAbilitySessionExist(abilityRecord2);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: IsUIExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify IsUIExtensionAbility with null abilityRecord
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionAbility_001, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+
+    bool result = connectManager->IsUIExtensionAbility(nullptr);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: IsUIExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify IsUIExtensionAbility with non-UIExtension ability
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionAbility_002, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    abilityRecord->abilityInfo_.extensionAbilityType = ExtensionAbilityType::SERVICE;
+
+    bool result = connectManager->IsUIExtensionAbility(abilityRecord);
+    EXPECT_FALSE(result);
+}
+
+/*
+ * Feature: UIExtensionAbilityManager
+ * Function: IsUIExtensionAbility
+ * SubFunction: NA
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify IsUIExtensionAbility with UIExtension ability
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, IsUIExtensionAbility_003, TestSize.Level1)
+{
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
+    abilityRecord->abilityInfo_.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+
+    bool result = connectManager->IsUIExtensionAbility(abilityRecord);
+    EXPECT_TRUE(result);
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
