@@ -178,7 +178,8 @@ HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesApply_001, TestSiz
 HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesApply_002, TestSize.Level1)
 {
     EXPECT_NE(observer_, nullptr);
-    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info = std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
+    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info =
+        std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
     EXPECT_NE(info, nullptr);
     int testUid = 12345;
     info->uid_ = testUid;
@@ -199,7 +200,8 @@ HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesApply_002, TestSiz
 HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesApply_003, TestSize.Level1)
 {
     EXPECT_NE(observer_, nullptr);
-    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info = std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
+    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info =
+        std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
     EXPECT_NE(info, nullptr);
     int testUid = 12345;
     info->uid_ = testUid;
@@ -235,7 +237,8 @@ HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesReset_001, TestSiz
 HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesReset_002, TestSize.Level1)
 {
     EXPECT_NE(observer_, nullptr);
-    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info = std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
+    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info =
+        std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
     EXPECT_NE(info, nullptr);
     int testUid = 67890;
     info->uid_ = testUid;
@@ -257,7 +260,8 @@ HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesReset_002, TestSiz
 HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesReset_003, TestSize.Level1)
 {
     EXPECT_NE(observer_, nullptr);
-    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info = std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
+    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info =
+        std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
     EXPECT_NE(info, nullptr);
     int testUid = 11223;
     info->uid_ = testUid;
@@ -279,7 +283,8 @@ HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesReset_003, TestSiz
 HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesReset_004, TestSize.Level1)
 {
     EXPECT_NE(observer_, nullptr);
-    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info = std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
+    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info =
+        std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
     EXPECT_NE(info, nullptr);
     int testUid = 44556;
     info->uid_ = testUid;
@@ -305,7 +310,8 @@ HWTEST_F(BackgroundTaskObserverTest, OnProcEfficiencyResourcesReset_004, TestSiz
 HWTEST_F(BackgroundTaskObserverTest, OnAppEfficiencyResourcesApply_001, TestSize.Level1)
 {
     EXPECT_NE(observer_, nullptr);
-    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info = std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
+    std::shared_ptr<BackgroundTaskMgr::ResourceCallbackInfo> info =
+        std::make_shared<BackgroundTaskMgr::ResourceCallbackInfo>();
     EXPECT_NE(info, nullptr);
     int testUid = 77889;
     info->uid_ = testUid;

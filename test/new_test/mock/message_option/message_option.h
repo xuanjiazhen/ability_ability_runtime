@@ -21,13 +21,13 @@
 namespace OHOS {
 class MessageOption {
 public:
-	enum Flags {
+    enum Flags {
         TF_SYNC = 0,
-		TF_ASYNC = 1,
-	};
-	MessageOption() = default;
+        TF_ASYNC = 1,
+    };
+    MessageOption() = default;
     MessageOption(Flags) {}
-	explicit MessageOption(int) {}
+    explicit MessageOption(int) {}
 };
 } // namespace OHOS
 #endif // MOCK_OHOS_IPC_MESSAGE_OPTION_H
