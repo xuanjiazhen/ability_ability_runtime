@@ -534,6 +534,7 @@ void AbilityManagerService::InitInterceptor()
 void AbilityManagerService::InitInterceptorForScreenUnlock()
 {
     if (interceptorExecuter_) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "SU life, begin");
         interceptorExecuter_->AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
     }
 }
@@ -9112,6 +9113,7 @@ void AbilityManagerService::RetrySubscribeUnlockedEvent(int32_t retryCount,
 void AbilityManagerService::RemoveScreenUnlockInterceptor()
 {
     if (interceptorExecuter_ != nullptr) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "SU life, end");
         interceptorExecuter_->RemoveInterceptor("ScreenUnlock");
     }
 }
