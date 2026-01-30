@@ -106,6 +106,12 @@ bool BundleMgrHelper::GetBundleInfo(
     return true;
 }
 
+ErrCode BundleMgrHelper::GetBundleInfosV9(int32_t flags,
+    std::vector<BundleInfo> &bundleInfos, int32_t userId)
+{
+    return ERR_OK;
+}
+
 ErrCode BundleMgrHelper::GetCloneBundleInfo(const std::string &bundleName, int32_t flags, int32_t appCloneIndex,
     BundleInfo &bundleInfo, int32_t userId)
 {
