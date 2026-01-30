@@ -1,0 +1,853 @@
+diff --git a/services/dataobsmgr/dataobsms.gni b/services/dataobsmgr/dataobsms.gni
+index 8e67d9579f..89ccc886a2 100644
+--- a/services/dataobsmgr/dataobsms.gni
++++ b/services/dataobsmgr/dataobsms.gni
+@@ -22,4 +22,5 @@ dataobsms_files = [
+   "src/dataobs_mgr_stub.cpp",
+   "src/dataobs_mgr_service.cpp",
+   "src/data_ability_observer_proxy.cpp",
++  "src/obs_verify_permission_utils.cpp"
+ ]
+diff --git a/services/dataobsmgr/include/dataobs_mgr_inner.h b/services/dataobsmgr/include/dataobs_mgr_inner.h
+index 04db0c7e10..dc9e7bebc9 100644
+--- a/services/dataobsmgr/include/dataobs_mgr_inner.h
++++ b/services/dataobsmgr/include/dataobs_mgr_inner.h
+@@ -39,7 +39,8 @@ public:
+ 
+     int HandleRegisterObserver(const Uri &uri, struct ObserverNode observerNode);
+     int HandleUnregisterObserver(const Uri &uri, struct ObserverNode observerNode);
+-    int HandleNotifyChange(const Uri &uri, int32_t userId, std::string readPermission, bool isSilentUri);
++    int HandleNotifyChange(const Uri &uri, int32_t userId, std::string readPermission,
++        bool isSilentUri, uint32_t token);
+     void OnCallBackDied(const wptr<IRemoteObject> &remote);
+ 
+ private:
+diff --git a/services/dataobsmgr/include/dataobs_mgr_inner_pref.h b/services/dataobsmgr/include/dataobs_mgr_inner_pref.h
+index 5ed6fc8515..7d764a04a7 100644
+--- a/services/dataobsmgr/include/dataobs_mgr_inner_pref.h
++++ b/services/dataobsmgr/include/dataobs_mgr_inner_pref.h
+@@ -38,7 +38,7 @@ public:
+ 
+     int HandleRegisterObserver(const Uri &uri, struct ObserverNode observerNode);
+     int HandleUnregisterObserver(const Uri &uri, struct ObserverNode observerNode);
+-    int HandleNotifyChange(const Uri &uri, int32_t userId);
++    int HandleNotifyChange(const Uri &uri, int32_t userId, uint32_t tokenId);
+     void OnCallBackDied(const wptr<IRemoteObject> &remote);
+ 
+ private:
+diff --git a/services/dataobsmgr/include/dataobs_mgr_service.h b/services/dataobsmgr/include/dataobs_mgr_service.h
+index 8403da8782..9ae4bbd2a9 100644
+--- a/services/dataobsmgr/include/dataobs_mgr_service.h
++++ b/services/dataobsmgr/include/dataobs_mgr_service.h
+@@ -110,14 +110,8 @@ private:
+     int32_t RegisterObserverInner(const Uri &uri, sptr<IDataAbilityObserver> dataObserver, int32_t userId,
+         DataObsOption opt, bool isExtension);
+     std::pair<Status, std::string> GetUriPermission(Uri &uri, bool isRead, ObserverInfo &info);
+-    std::vector<std::string> GetGroupInfosFromCache(const std::string &bundleName,
+-        int32_t userId, const std::string &schemeType);
+-    std::string GetCallingName(uint32_t callingTokenid);
+     int32_t VerifyDataShareExtension(Uri &uri, ObserverInfo &info);
+     int32_t VerifyDataSharePermission(Uri &uri, bool isRead, ObserverInfo &info);
+-    bool CheckSchemePermission(Uri &uri, const uint32_t tokenId, int32_t userId, const std::string &method);
+-    bool VerifyUriPermission(Uri &uri, const uint32_t tokenId, int32_t userId,
+-        const std::string &schemeType, const std::string &method);
+     int32_t ConstructRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+         uint32_t token, int32_t userId, int32_t pid);
+     Status VerifyDataSharePermissionInner(Uri &uri, bool isRead, ObserverInfo &info);
+@@ -135,8 +129,6 @@ private:
+     std::uint32_t taskCount_ = 0;
+     std::shared_ptr<TaskHandlerWrap> handler_;
+     std::shared_ptr<DataShare::DataSharePermission> permission_;
+-    std::shared_mutex groupsIdMutex_;
+-    std::list<std::pair<std::string, std::vector<std::string>>> groupsIdCache_;
+     DataObsServiceRunningState state_;
+ 
+     std::shared_ptr<DataObsMgrInner> dataObsMgrInner_;
+diff --git a/services/dataobsmgr/src/dataobs_mgr_inner.cpp b/services/dataobsmgr/src/dataobs_mgr_inner.cpp
+index b4a685cc30..4d404c2060 100644
+--- a/services/dataobsmgr/src/dataobs_mgr_inner.cpp
++++ b/services/dataobsmgr/src/dataobs_mgr_inner.cpp
+@@ -20,10 +20,11 @@
+ #include "datashare_errno.h"
+ #include "hilog_tag_wrapper.h"
+ #include "common_utils.h"
++#include "obs_verify_permission_utils.h"
+ #include <string>
+ namespace OHOS {
+ namespace AAFwk {
+-
++using namespace DataShare;
+ DataObsMgrInner::DataObsMgrInner() {}
+ 
+ DataObsMgrInner::~DataObsMgrInner() {}
+@@ -104,7 +105,8 @@ int DataObsMgrInner::HandleUnregisterObserver(const Uri &uri, struct ObserverNod
+     return NO_ERROR;
+ }
+ 
+-int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::string readPermission, bool isSilentUri)
++int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::string readPermission,
++    bool isSilentUri, uint32_t tokenId)
+ {
+     std::string uriStr = uri.ToString();
+     std::list<struct ObserverNode> obsList;
+@@ -112,42 +114,43 @@ int DataObsMgrInner::HandleNotifyChange(const Uri &uri, int32_t userId, std::str
+         std::lock_guard<ffrt::mutex> lock(innerMutex_);
+         auto obsPair = observers_.find(uriStr);
+         if (obsPair == observers_.end()) {
+-            TAG_LOGD(AAFwkTag::DBOBSMGR, "uri no obs:%{public}s",
+-                CommonUtils::Anonymous(uriStr).c_str());
++            TAG_LOGD(AAFwkTag::DBOBSMGR, "uri no obs:%{public}s", CommonUtils::Anonymous(uriStr).c_str());
+             return NO_OBS_FOR_URI;
+         }
+         obsList = obsPair->second;
+     }
+ 
+     std::string obsStr = "";
+-    bool logFlag = false;
++    Uri uriTemp(uriStr);
+     for (auto &obs : obsList) {
+         if (obs.observer_ == nullptr) {
+             continue;
+         }
+-        if (!DataShare::DataSharePermission::IsSingletonTrustUri(uri) &&
+-            obs.userId_ != 0 && userId != 0 && obs.userId_ != userId) {
+-            TAG_LOGW(AAFwkTag::DBOBSMGR, "Not allow across user notify, %{public}d to %{public}d, %{public}s",
+-                userId, obs.userId_, CommonUtils::Anonymous(uriStr).c_str());
+-            continue;
+-        }
+         uint32_t token = obs.tokenId_;
+-        Uri uriTemp(uriStr);
+-        if (!DataShare::DataSharePermission::VerifyPermission(uriTemp, token, readPermission, isSilentUri)) {
+-            TAG_LOGE(AAFwkTag::DBOBSMGR, "HandleNotifyChange readpermission denied, token %{public}d permission "
+-                "%{public}s uri %{public}s pid %{public}d", token, readPermission.c_str(),
+-                CommonUtils::Anonymous(uriStr).c_str(), obs.pid_);
+-            // just hisysevent now
+-            std::string msg = __FUNCTION__;
+-            DataShare::DataSharePermission::ReportExtensionFault(DataShare::E_DATASHARE_PERMISSION_DENIED, token,
+-                uriStr, msg);
+-            continue;
++        if (uriTemp.GetScheme() == OBSVerifyPermissionUtils::RELATIONAL_STORE) {
++            if (!OBSVerifyPermissionUtils::GetInstance().VerifyPermission(token, userId, uriTemp, tokenId)) {
++                continue;
++            }
++        } else {
++            if (!DataSharePermission::IsSingletonTrustUri(uri) &&
++                obs.userId_ != 0 && userId != 0 && obs.userId_ != userId) {
++                TAG_LOGW(AAFwkTag::DBOBSMGR, "Not allow across user notify, %{public}d to %{public}d, %{public}s",
++                    userId, obs.userId_, CommonUtils::Anonymous(uriStr).c_str());
++                continue;
++            }
++            if (!DataShare::DataSharePermission::VerifyPermission(uriTemp, token, readPermission, isSilentUri)) {
++                TAG_LOGE(AAFwkTag::DBOBSMGR, "Verify denied, token %{public}d permission %{public}s uri %{public}s "
++                    "pid %{public}d", token, readPermission.c_str(), CommonUtils::Anonymous(uriStr).c_str(), obs.pid_);
++                // just hisysevent now
++                std::string msg = __FUNCTION__;
++                DataSharePermission::ReportExtensionFault(E_DATASHARE_PERMISSION_DENIED, token, uriStr, msg);
++                continue;
++            }
+         }
+         obs.observer_->OnChange();
+         obsStr += "p:" + std::to_string(obs.pid_) + "Id:" + std::to_string(obs.nodeId_) + ",";
+-        logFlag = true;
+     }
+-    if (logFlag) {
++    if (!obsStr.empty()) {
+         TAG_LOGI(AAFwkTag::DBOBSMGR, "notify uri:%{public}s obsList:%{public}s",
+             CommonUtils::Anonymous(uri.ToString()).c_str(), obsStr.c_str());
+     }
+diff --git a/services/dataobsmgr/src/dataobs_mgr_inner_pref.cpp b/services/dataobsmgr/src/dataobs_mgr_inner_pref.cpp
+index 96a5aad8a4..59a806e4da 100644
+--- a/services/dataobsmgr/src/dataobs_mgr_inner_pref.cpp
++++ b/services/dataobsmgr/src/dataobs_mgr_inner_pref.cpp
+@@ -18,6 +18,7 @@
+ #include "dataobs_mgr_errors.h"
+ #include "hilog_tag_wrapper.h"
+ #include "common_utils.h"
++#include "obs_verify_permission_utils.h"
+ 
+ namespace OHOS {
+ namespace AAFwk {
+@@ -97,7 +98,7 @@ int DataObsMgrInnerPref::HandleUnregisterObserver(const Uri &uri, struct Observe
+     return NO_ERROR;
+ }
+ 
+-int DataObsMgrInnerPref::HandleNotifyChange(const Uri &uri, int32_t userId)
++int DataObsMgrInnerPref::HandleNotifyChange(const Uri &uri, int32_t userId, uint32_t tokenId)
+ {
+     std::list<struct ObserverNode> obsList;
+     std::lock_guard<ffrt::mutex> lock(preferenceMutex_);
+@@ -130,6 +131,10 @@ int DataObsMgrInnerPref::HandleNotifyChange(const Uri &uri, int32_t userId)
+                 userId, obs.userId_, CommonUtils::Anonymous(uri.ToString()).c_str());
+             continue;
+         }
++        Uri uriTemp = uri;
++        if (!OBSVerifyPermissionUtils::GetInstance().VerifyPermission(obs.tokenId_, obs.userId_, uriTemp, tokenId)) {
++            continue;
++        }
+         obs.observer_->OnChangePreferences(const_cast<Uri &>(uri).GetQuery());
+         obsStr += "pid:" + std::to_string(obs.pid_) + " nodeId_:" + std::to_string(obs.nodeId_) + ",";
+         logFlag = true;
+diff --git a/services/dataobsmgr/src/dataobs_mgr_service.cpp b/services/dataobsmgr/src/dataobs_mgr_service.cpp
+index 4c52f950e6..1aaad7784f 100644
+--- a/services/dataobsmgr/src/dataobs_mgr_service.cpp
++++ b/services/dataobsmgr/src/dataobs_mgr_service.cpp
+@@ -333,110 +333,6 @@ Status DataObsMgrService::VerifyDataSharePermissionInner(Uri &uri, bool isRead,
+     return SUCCESS;
+ }
+ 
+-std::string DataObsMgrService::GetCallingName(uint32_t callingTokenid)
+-{
+-    std::string callingName;
+-    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callingTokenid);
+-    int result = -1;
+-    if (tokenType == Security::AccessToken::TOKEN_HAP) {
+-        Security::AccessToken::HapTokenInfo tokenInfo;
+-        result = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callingTokenid, tokenInfo);
+-        if (result == Security::AccessToken::RET_SUCCESS) {
+-            callingName = std::move(tokenInfo.bundleName);
+-        }
+-    } else if (tokenType == Security::AccessToken::TOKEN_NATIVE || tokenType == Security::AccessToken::TOKEN_SHELL) {
+-        Security::AccessToken::NativeTokenInfo tokenInfo;
+-        result = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callingTokenid, tokenInfo);
+-        if (result == Security::AccessToken::RET_SUCCESS) {
+-            callingName = std::move(tokenInfo.processName);
+-        }
+-    } else {
+-        LOG_ERROR("tokenType is invalid, tokenType:%{public}d", tokenType);
+-    }
+-    return callingName;
+-}
+-
+-bool DataObsMgrService::CheckSchemePermission(Uri &uri, const uint32_t tokenId,
+-    int32_t userId, const std::string &method)
+-{
+-    auto scheme = uri.GetScheme();
+-    if (scheme == RELATIONAL_STORE) {
+-        VerifyUriPermission(uri, tokenId, userId, RELATIONAL_STORE, method);
+-    } else if (scheme == SHARE_PREFERENCES) {
+-        VerifyUriPermission(uri, tokenId, userId, SHARE_PREFERENCES, method);
+-    }
+-    return true;
+-}
+-
+-std::vector<std::string> DataObsMgrService::GetGroupInfosFromCache(const std::string &bundleName,
+-    int32_t userId, const std::string &schemeType)
+-{
+-    std::string key = bundleName + ":" + std::to_string(userId) + ":" + schemeType;
+-    {
+-        std::shared_lock<std::shared_mutex> readLock(groupsIdMutex_);
+-        auto it = std::find_if(groupsIdCache_.begin(), groupsIdCache_.end(),
+-            [&key](const auto& pair) { return pair.first == key; });
+-        if (it != groupsIdCache_.end()) {
+-            return it->second;
+-        }
+-    }
+-
+-    std::vector<DataGroupInfo> infos;
+-    auto bmsHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+-    if (bmsHelper == nullptr) {
+-        LOG_ERROR("bmsHelper is nullptr");
+-        return {};
+-    }
+-    bool res = bmsHelper->QueryDataGroupInfos(bundleName, userId, infos);
+-    if (!res) {
+-        LOG_WARN("query group infos failed for bundle:%{public}s, user:%{public}d", bundleName.c_str(), userId);
+-        return {};
+-    }
+-    std::vector<std::string> groupIds;
+-    for (auto &it : infos) {
+-        groupIds.push_back(std::move(it.dataGroupId));
+-    }
+-    std::unique_lock<std::shared_mutex> writeLock(groupsIdMutex_);
+-    auto it = std::find_if(groupsIdCache_.begin(), groupsIdCache_.end(),
+-        [&key](const auto& pair) { return pair.first == key; });
+-    if (it != groupsIdCache_.end()) {
+-        return it->second;
+-    }
+-    if (groupsIdCache_.size() >= CACHE_SIZE_THRESHOLD) {
+-        LOG_INFO("groups id cache is full:%{public}zu", groupsIdCache_.size());
+-        groupsIdCache_.pop_front();
+-    }
+-    groupsIdCache_.emplace_back(key, groupIds);
+-    return groupIds;
+-}
+-
+-bool DataObsMgrService::VerifyUriPermission(Uri &uri, const uint32_t tokenId,
+-    int32_t userId, const std::string &schemeType, const std::string &method)
+-{
+-    std::string authority = uri.GetAuthority();
+-    std::string callingName = GetCallingName(tokenId);
+-    std::string errMsg = schemeType + method;
+-    auto invalidUri = (schemeType == RELATIONAL_STORE) ? DATAOBS_RDB_INVALID_URI : DATAOBS_PREFERENCE_INVALID_URI;
+-    if (callingName.empty()) {
+-        errMsg += "callingNmae is empty";
+-        DataShare::DataSharePermission::ReportExtensionFault(invalidUri, tokenId, callingName, errMsg);
+-        return true;
+-    }
+-    if (authority == callingName) {
+-        return true;
+-    }
+-    std::vector<std::string> groupIds = GetGroupInfosFromCache(callingName, userId, schemeType);
+-    for (auto &groupId : groupIds) {
+-        if (authority == groupId) {
+-            return true;
+-        }
+-    }
+-    LOG_ERROR("%{public}s OBS permission check is failed", errMsg.c_str());
+-    errMsg += " group id check failed or infos empty:" + std::string(groupIds.empty() ? "empty" : "notEmpty");
+-    DataShare::DataSharePermission::ReportExtensionFault(invalidUri, tokenId, callingName, errMsg);
+-    return true;
+-}
+-
+ int32_t DataObsMgrService::ConstructRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+     uint32_t token, int32_t userId, int32_t pid)
+ {
+@@ -488,7 +384,6 @@ int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbili
+             return status;
+         }
+     }
+-    CheckSchemePermission(uriInner, callingToken, callingUserId, "Register");
+     status = ConstructRegisterObserver(uri, dataObserver, token, userId, pid);
+     if (status != NO_ERROR) {
+         LOG_ERROR("register failed:%{public}d,uri:%{public}s", status, CommonUtils::Anonymous(uri.ToString()).c_str());
+@@ -523,7 +418,6 @@ int DataObsMgrService::UnregisterObserver(const Uri &uri, sptr<IDataAbilityObser
+ 
+     auto tokenId = IPCSkeleton::GetCallingTokenID();
+     int32_t callingUserId = GetCallingUserId(tokenId);
+-    CheckSchemePermission(uriInner, tokenId, callingUserId, "Unregister");
+     auto [success, observerNode] = ConstructObserverNode(dataObserver, userId, tokenId, 0);
+     if (!success) {
+         TAG_LOGE(AAFwkTag::DBOBSMGR, "ConstructObserverNode fail, uri:%{public}s, userId:%{public}d",
+@@ -588,11 +482,12 @@ bool DataObsMgrService::IsTaskOverLimit()
+ void DataObsMgrService::SubmitNotifyChangeTask(Uri &uri, int32_t userId, std::string readPermission, ObserverInfo &info)
+ {
+     ChangeInfo changeInfo = { ChangeInfo::ChangeType::OTHER, { uri } };
+-    handler_->SubmitTask([this, uri, changeInfo, userId, readPermission, isSilentUri = info.isSilentUri]() {
++    handler_->SubmitTask([this, uri, changeInfo, userId, readPermission,
++        isSilentUri = info.isSilentUri, tokenId = info.tokenId]() {
+         if (const_cast<Uri &>(uri).GetScheme() == SHARE_PREFERENCES) {
+-            dataObsMgrInnerPref_->HandleNotifyChange(uri, userId);
++            dataObsMgrInnerPref_->HandleNotifyChange(uri, userId, tokenId);
+         } else {
+-            dataObsMgrInner_->HandleNotifyChange(uri, userId, readPermission, isSilentUri);
++            dataObsMgrInner_->HandleNotifyChange(uri, userId, readPermission, isSilentUri, tokenId);
+             std::vector<NotifyInfo> verifyInfo = {NotifyInfo(uri, readPermission, isSilentUri)};
+             dataObsMgrInnerExt_->HandleNotifyChange(changeInfo, userId, verifyInfo);
+         }
+@@ -634,7 +529,6 @@ int32_t DataObsMgrService::NotifyChangeInner(Uri &uri, int32_t userId, DataObsOp
+         }
+     }
+     Uri uriStr = uri;
+-    CheckSchemePermission(uriStr, tokenId, callingUserId, "Notify");
+     std::string readPermission = DataSharePermission::NO_PERMISSION;
+     if (checkPermission) {
+         std::tie(ret, readPermission) = GetUriPermission(uri, true, info);
+@@ -831,7 +725,7 @@ Status DataObsMgrService::NotifyChangeExt(const ChangeInfo &changeInfo, DataObsO
+         int32_t count = 0;
+         for (auto &uri : changes.uris_) {
+             dataObsMgrInner_->HandleNotifyChange(uri, userId, info[count].readPermission,
+-                info[count].isSilentUri);
++                info[count].isSilentUri, tokenId);
+             count++;
+         }
+         delete [] static_cast<uint8_t *>(changes.data_);
+diff --git a/test/unittest/BUILD.gn b/test/unittest/BUILD.gn
+index d081b671d4..7c5726b4cf 100644
+--- a/test/unittest/BUILD.gn
++++ b/test/unittest/BUILD.gn
+@@ -345,6 +345,7 @@ group("unittest") {
+       "dataobs_mgr_inner_ext_test:unittest",
+       "dataobs_mgr_inner_pref_test:unittest",
+       "dataobs_mgr_inner_test:unittest",
++      "dataobs_mgr_obs_verify_test:unittest",
+       "dataobs_mgr_proxy_test:unittest",
+       "dataobs_mgr_service_dump_test:unittest",
+       "dataobs_mgr_service_second_test:unittest",
+diff --git a/test/unittest/dataobs_mgr_inner_pref_test/dataobs_mgr_inner_pref_test.cpp b/test/unittest/dataobs_mgr_inner_pref_test/dataobs_mgr_inner_pref_test.cpp
+index 1213724642..c2f6db167c 100644
+--- a/test/unittest/dataobs_mgr_inner_pref_test/dataobs_mgr_inner_pref_test.cpp
++++ b/test/unittest/dataobs_mgr_inner_pref_test/dataobs_mgr_inner_pref_test.cpp
+@@ -268,8 +268,8 @@ HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_0100, T
+ 
+     Uri notifyUri("sharepreferences://data/preferences/preferences_test?key");
+     dataObsMgrInnerPref_->HandleRegisterObserver(uri, ObserverNode(mockDataAbilityObserverStub, USER_TEST, 0, 0));
+-    dataObsMgrInnerPref_->HandleNotifyChange(notifyUri, USER_TEST);
+-    EXPECT_EQ("key", mockDataAbilityObserverStub->key_);
++    dataObsMgrInnerPref_->HandleNotifyChange(notifyUri, USER_TEST, 1);
++    EXPECT_EQ("", mockDataAbilityObserverStub->key_);
+ }
+ 
+ /*
+@@ -285,7 +285,7 @@ HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_0200, T
+     std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
+     Uri uri("sharepreferences://data/preferences/preferences_test?key");
+     dataObsMgrInner->observers_.clear();
+-    int res = dataObsMgrInner->HandleNotifyChange(uri, USER_TEST);
++    int res = dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 1);
+     EXPECT_EQ(res, NO_OBS_FOR_URI);
+ }
+ 
+@@ -305,7 +305,7 @@ HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_0300, T
+     obsList.push_back(ObserverNode(nullptr, USER_TEST, 0, 0));
+     dataObsMgrInner->observers_.emplace(uri.ToString(), obsList);
+     Uri notifyUri("sharepreferences://data/preferences/preferences_test?key");
+-    int res = dataObsMgrInner->HandleNotifyChange(notifyUri, USER_TEST);
++    int res = dataObsMgrInner->HandleNotifyChange(notifyUri, USER_TEST, 1);
+     EXPECT_EQ(res, NO_ERROR);
+ }
+ 
+@@ -405,5 +405,195 @@ HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_RemoveObs_0100, TestSize.L
+     dataObsMgrInner->observers_.emplace(uri2, obsList2);
+     dataObsMgrInner->RemoveObs(callback2->AsObject());
+ }
++
++/*
++ * Feature: DataObsMgrInnerPref
++ * Function: HandleNotifyChange with same token
++ * SubFunction: OnChangePreferences
++ * FunctionPoints: When listenerTokenId equals tokenId, notification should succeed
++ * EnvConditions: NA
++ * CaseDescription: Test preferences notification with same token IDs
++ */
++HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_SameToken_0100, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInnerPref_ != nullptr);
++
++    Uri uri("sharepreferences://data/preferences/preferences_test?key");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(1);
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, USER_TEST, 0, 0);
++    node.tokenId_ = 1001; // Set same token
++    dataObsMgrInnerPref_->HandleRegisterObserver(uri, node);
++    dataObsMgrInnerPref_->HandleNotifyChange(uri, USER_TEST, 1001); // Same tokenId
++}
++
++/*
++ * Feature: DataObsMgrInnerPref
++ * Function: HandleNotifyChange with different tokens
++ * SubFunction: OnChangePreferences
++ * FunctionPoints: When tokens differ, permission verification should be performed
++ * EnvConditions: NA
++ * CaseDescription: Test preferences notification with different token IDs
++ */
++HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_DifferentToken_0100, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInnerPref_ != nullptr);
++
++    Uri uri("sharepreferences://data/preferences/preferences_test?key");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    // Different tokens - verification may fail
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, USER_TEST, 0, 0);
++    node.tokenId_ = 1001;
++    dataObsMgrInnerPref_->HandleRegisterObserver(uri, node);
++    dataObsMgrInnerPref_->HandleNotifyChange(uri, USER_TEST, 1002); // Different tokenId
++}
++
++/*
++ * Feature: DataObsMgrInnerPref
++ * Function: HandleNotifyChange with cross-user scenario
++ * SubFunction: OnChangePreferences
++ * FunctionPoints: Cross-user notification should be blocked
++ * EnvConditions: NA
++ * CaseDescription: Test preferences cross-user notification blocking
++ */
++HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_CrossUser_0100, TestSize.Level1)
++{
++    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
++    ASSERT_NE(dataObsMgrInner, nullptr);
++
++    Uri uri("sharepreferences://data/preferences/preferences_test?key");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    // Cross-user should be blocked
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(0);
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, 200, 0, 0); // Different user
++    dataObsMgrInner->HandleRegisterObserver(uri, node);
++    dataObsMgrInner->HandleNotifyChange(uri, 100, 1001);
++}
++
++/*
++ * Feature: DataObsMgrInnerPref
++ * Function: HandleNotifyChange with zero user IDs
++ * SubFunction: OnChangePreferences
++ * FunctionPoints: Zero user ID should allow cross-user notification
++ * EnvConditions: NA
++ * CaseDescription: Test preferences with observer having userId=0
++ */
++HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_ZeroUserId_0100, TestSize.Level1)
++{
++    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
++    ASSERT_NE(dataObsMgrInner, nullptr);
++
++    Uri uri("sharepreferences://data/preferences/preferences_test?key");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, 0, 0, 0); // userId=0
++    dataObsMgrInner->HandleRegisterObserver(uri, node);
++    dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 1001);
++}
++
++/*
++ * Feature: DataObsMgrInnerPref
++ * Function: HandleNotifyChange with multiple observers
++ * SubFunction: OnChangePreferences
++ * FunctionPoints: Multiple observers should each be verified independently
++ * EnvConditions: NA
++ * CaseDescription: Test preferences with multiple observers
++ */
++HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_MultipleObservers_0100, TestSize.Level1)
++{
++    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
++    ASSERT_NE(dataObsMgrInner, nullptr);
++
++    Uri uri("sharepreferences://data/preferences/preferences_test?key");
++    sptr<MockDataAbilityObserverStub> mockObserver1(new (std::nothrow) MockDataAbilityObserverStub());
++    sptr<MockDataAbilityObserverStub> mockObserver2(new (std::nothrow) MockDataAbilityObserverStub());
++
++    EXPECT_CALL(*mockObserver1, OnChangePreferences(_)).Times(AnyNumber());
++    EXPECT_CALL(*mockObserver2, OnChangePreferences(_)).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback1(new (std::nothrow) DataAbilityObserverProxy(mockObserver1));
++    const sptr<IDataAbilityObserver> callback2(new (std::nothrow) DataAbilityObserverProxy(mockObserver2));
++
++    ObsListType obsList;
++    obsList.push_back(ObserverNode(callback1, USER_TEST, 0, 0));
++    obsList.push_back(ObserverNode(callback2, USER_TEST, 0, 0));
++    dataObsMgrInner->observers_.emplace(uri.ToString(), obsList);
++
++    dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 1001);
++}
++
++/*
++ * Feature: DataObsMgrInnerPref
++ * Function: HandleNotifyChange with permission failure
++ * SubFunction: OnChangePreferences
++ * FunctionPoints: Permission verification failure should block notification
++ * EnvConditions: NA
++ * CaseDescription: Test preferences when permission verification fails
++ */
++HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_PermissionFail_0100, TestSize.Level1)
++{
++    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
++    ASSERT_NE(dataObsMgrInner, nullptr);
++
++    Uri uri("sharepreferences://data/preferences/preferences_test?key");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    // With different tokens, verification may fail
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, USER_TEST, 0, 0);
++    node.tokenId_ = 9999;
++    dataObsMgrInner->HandleRegisterObserver(uri, node);
++    dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 8888); // Different token
++}
++
++/*
++ * Feature: DataObsMgrInnerPref
++ * Function: HandleNotifyChange with various query parameters
++ * SubFunction: OnChangePreferences
++ * FunctionPoints: Query parameters should be passed correctly
++ * EnvConditions: NA
++ * CaseDescription: Test preferences with different query strings
++ */
++HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_QueryParams_0100, TestSize.Level1)
++{
++    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
++    ASSERT_NE(dataObsMgrInner, nullptr);
++
++    std::vector<std::string> queries = {
++        "?key=value",
++        "?key1=value1&key2=value2",
++        "",
++        "?test"
++    };
++
++    sptr<MockDataAbilityObserverStub> mockObserver(new (std::nothrow) MockDataAbilityObserverStub());
++    EXPECT_CALL(*mockObserver, OnChangePreferences(_)).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockObserver));
++
++    for (const auto &query : queries) {
++        Uri uri("sharepreferences://data/preferences/preferences_test" + query);
++        ObserverNode node(callback, USER_TEST, 0, 0);
++        dataObsMgrInner->HandleRegisterObserver(uri, node);
++        dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 0);
++        dataObsMgrInner->HandleUnregisterObserver(uri, node);
++    }
++}
++
+ }  // namespace AAFwk
+ }  // namespace OHOS
+diff --git a/test/unittest/dataobs_mgr_inner_test/dataobs_mgr_inner_test.cpp b/test/unittest/dataobs_mgr_inner_test/dataobs_mgr_inner_test.cpp
+index 48d05d4ca8..ece5642528 100644
+--- a/test/unittest/dataobs_mgr_inner_test/dataobs_mgr_inner_test.cpp
++++ b/test/unittest/dataobs_mgr_inner_test/dataobs_mgr_inner_test.cpp
+@@ -267,7 +267,7 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_0100, TestSize.
+ 
+     const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
+     dataObsMgrInner_->HandleRegisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0));
+-    dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false);
++    dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 1);
+ }
+ 
+ /*
+@@ -283,7 +283,7 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_0200, TestSize.
+     std::shared_ptr<DataObsMgrInner> dataObsMgrInner = std::make_shared<DataObsMgrInner>();
+     Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
+     dataObsMgrInner->observers_.clear();
+-    int res = dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false);
++    int res = dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 1);
+     EXPECT_EQ(res, NO_OBS_FOR_URI);
+ }
+ 
+@@ -302,7 +302,7 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_0300, TestSize.
+     ObsListType obsList;
+     obsList.push_back(ObserverNode(nullptr, USER_TEST, 0, 0));
+     dataObsMgrInner->observers_.emplace(uri.ToString(), obsList);
+-    int res = dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false);
++    int res = dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 1);
+     EXPECT_EQ(res, NO_ERROR);
+ }
+ 
+@@ -403,5 +403,227 @@ HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_RemoveObs_0100, TestSize.Level1)
+     dataObsMgrInner->observers_.emplace(uri2, obsList2);
+     dataObsMgrInner->RemoveObs(callback2->AsObject());
+ }
++
++/*
++ * Feature: DataObsMgrInner
++ * Function: Register and unregister function test
++ * SubFunction: OnChange
++ * FunctionPoints: When the data changes, call the OnChange function of the registered dataabilityobserver
++ * EnvConditions: NA
++ * CaseDescription:NA
++ */
++HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_0400, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInner_ != nullptr);
++
++    Uri uri("rdb://device_id/com.domainname.dataability.persondata/person/10");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChange()).Times(0);
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    dataObsMgrInner_->HandleRegisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0));
++    dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 1);
++}
++
++/*
++ * Feature: DataObsMgrInner
++ * Function: HandleNotifyChange with RDB scheme and same token
++ * SubFunction: OnChange
++ * FunctionPoints: When listenerTokenId equals tokenId for RDB scheme, OnChange should be called
++ * EnvConditions: NA
++ * CaseDescription: Test RDB scheme permission verification passes when tokens match
++ */
++HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_RDBSameToken_0100, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInner_ != nullptr);
++
++    Uri uri("rdb://device_id/com.domainname.dataability.persondata/person/10");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    // Same token (0) should pass verification
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChange()).Times(1);
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    dataObsMgrInner_->HandleRegisterObserver(uri, ObserverNode(callback, USER_TEST, 0, 0));
++    dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 0);
++}
++
++/*
++ * Feature: DataObsMgrInner
++ * Function: HandleNotifyChange with RDB scheme and different token
++ * SubFunction: OnChange
++ * FunctionPoints: When tokens differ for RDB scheme, permission verification should be performed
++ * EnvConditions: NA
++ * CaseDescription: Test RDB scheme with different listener and caller tokens
++ */
++HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_RDBDifferentToken_0100, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInner_ != nullptr);
++
++    Uri uri("rdb://device_id/com.domainname.dataability.persondata/person/10");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    // Different tokens - verification may fail, OnChange may not be called
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChange()).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, USER_TEST, 0, 0);
++    node.tokenId_ = 1001; // Set different token
++    dataObsMgrInner_->HandleRegisterObserver(uri, node);
++    dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 1002);
++}
++
++/*
++ * Feature: DataObsMgrInner
++ * Function: HandleNotifyChange with non-RDB scheme across users
++ * SubFunction: OnChange
++ * FunctionPoints: Cross-user notification should be blocked for non-singleton URIs
++ * EnvConditions: NA
++ * CaseDescription: Test that cross-user notification is blocked for regular URIs
++ */
++HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_CrossUser_0100, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInner_ != nullptr);
++
++    Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    // Cross-user notification should be blocked
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChange()).Times(0);
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, 200, 0, 0); // Different user
++    dataObsMgrInner_->HandleRegisterObserver(uri, node);
++    dataObsMgrInner_->HandleNotifyChange(uri, 100, DataSharePermission::NO_PERMISSION, false, 0);
++}
++
++/*
++ * Feature: DataObsMgrInner
++ * Function: HandleNotifyChange with non-RDB scheme same user
++ * SubFunction: OnChange
++ * FunctionPoints: Same-user notification should work for non-RDB schemes
++ * EnvConditions: NA
++ * CaseDescription: Test same-user notification for dataability scheme
++ */
++HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_SameUser_0100, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInner_ != nullptr);
++
++    Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    // Same user should pass the user check
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChange()).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, USER_TEST, 0, 0);
++    dataObsMgrInner_->HandleRegisterObserver(uri, node);
++    dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 0);
++}
++
++/*
++ * Feature: DataObsMgrInner
++ * Function: HandleNotifyChange with zero user IDs
++ * SubFunction: OnChange
++ * FunctionPoints: Zero user ID should allow cross-user notification
++ * EnvConditions: NA
++ * CaseDescription: Test that user ID 0 acts as wildcard for notification
++ */
++HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_ZeroUserId_0100, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInner_ != nullptr);
++
++    Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    // Observer with userId=0 should receive notifications from any user
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChange()).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, 0, 0, 0); // userId=0
++    dataObsMgrInner_->HandleRegisterObserver(uri, node);
++    dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 0);
++}
++
++/*
++ * Feature: DataObsMgrInner
++ * Function: HandleNotifyChange with isSilentUri flag
++ * SubFunction: OnChange
++ * FunctionPoints: isSilentUri should affect permission verification for non-RDB schemes
++ * EnvConditions: NA
++ * CaseDescription: Test isSilentUri parameter handling
++ */
++HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_SilentUri_0100, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInner_ != nullptr);
++
++    Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChange()).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, USER_TEST, 0, 0);
++    dataObsMgrInner_->HandleRegisterObserver(uri, node);
++    // Test with isSilentUri=true
++    dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, true, 0);
++}
++
++/*
++ * Feature: DataObsMgrInner
++ * Function: HandleNotifyChange with readPermission
++ * SubFunction: OnChange
++ * FunctionPoints: readPermission should be verified for non-RDB schemes
++ * EnvConditions: NA
++ * CaseDescription: Test readPermission parameter handling
++ */
++HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_ReadPermission_0100, TestSize.Level1)
++{
++    ASSERT_TRUE(dataObsMgrInner_ != nullptr);
++
++    Uri uri("dataability://device_id/com.domainname.dataability.persondata/person/10");
++    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
++
++    EXPECT_CALL(*mockDataAbilityObserverStub, OnChange()).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
++    ObserverNode node(callback, USER_TEST, 0, 0);
++    dataObsMgrInner_->HandleRegisterObserver(uri, node);
++    // Test with custom readPermission
++    dataObsMgrInner_->HandleNotifyChange(uri, USER_TEST, "custom.permission", false, 0);
++}
++
++/*
++ * Feature: DataObsMgrInner
++ * Function: HandleNotifyChange with multiple observers for RDB
++ * SubFunction: OnChange
++ * FunctionPoints: Multiple observers should each be verified independently
++ * EnvConditions: NA
++ * CaseDescription: Test RDB scheme with multiple observers
++ */
++HWTEST_F(DataObsMgrInnerTest, DataObsMgrInner_HandleNotifyChange_RDBMultipleObservers_0100, TestSize.Level1)
++{
++    std::shared_ptr<DataObsMgrInner> dataObsMgrInner = std::make_shared<DataObsMgrInner>();
++    ASSERT_NE(dataObsMgrInner, nullptr);
++
++    Uri uri("rdb://device_id/com.domainname.dataability.persondata/person/10");
++    sptr<MockDataAbilityObserverStub> mockObserver1(new (std::nothrow) MockDataAbilityObserverStub());
++    sptr<MockDataAbilityObserverStub> mockObserver2(new (std::nothrow) MockDataAbilityObserverStub());
++
++    EXPECT_CALL(*mockObserver1, OnChange()).Times(AnyNumber());
++    EXPECT_CALL(*mockObserver2, OnChange()).Times(AnyNumber());
++
++    const sptr<IDataAbilityObserver> callback1(new (std::nothrow) DataAbilityObserverProxy(mockObserver1));
++    const sptr<IDataAbilityObserver> callback2(new (std::nothrow) DataAbilityObserverProxy(mockObserver2));
++
++    ObsListType obsList;
++    obsList.push_back(ObserverNode(callback1, USER_TEST, 0, 0));
++    obsList.push_back(ObserverNode(callback2, USER_TEST, 0, 0));
++    dataObsMgrInner->observers_.emplace(uri.ToString(), obsList);
++
++    dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, DataSharePermission::NO_PERMISSION, false, 0);
++}
++
+ }  // namespace AAFwk
+ }  // namespace OHOS

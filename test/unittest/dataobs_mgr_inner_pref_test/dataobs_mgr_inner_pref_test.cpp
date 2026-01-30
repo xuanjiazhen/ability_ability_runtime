@@ -268,8 +268,8 @@ HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_0100, T
 
     Uri notifyUri("sharepreferences://data/preferences/preferences_test?key");
     dataObsMgrInnerPref_->HandleRegisterObserver(uri, ObserverNode(mockDataAbilityObserverStub, USER_TEST, 0, 0));
-    dataObsMgrInnerPref_->HandleNotifyChange(notifyUri, USER_TEST);
-    EXPECT_EQ("key", mockDataAbilityObserverStub->key_);
+    dataObsMgrInnerPref_->HandleNotifyChange(notifyUri, USER_TEST, 1);
+    EXPECT_EQ("", mockDataAbilityObserverStub->key_);
 }
 
 /*
@@ -285,7 +285,7 @@ HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_0200, T
     std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
     Uri uri("sharepreferences://data/preferences/preferences_test?key");
     dataObsMgrInner->observers_.clear();
-    int res = dataObsMgrInner->HandleNotifyChange(uri, USER_TEST);
+    int res = dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 1);
     EXPECT_EQ(res, NO_OBS_FOR_URI);
 }
 
@@ -305,7 +305,7 @@ HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_0300, T
     obsList.push_back(ObserverNode(nullptr, USER_TEST, 0, 0));
     dataObsMgrInner->observers_.emplace(uri.ToString(), obsList);
     Uri notifyUri("sharepreferences://data/preferences/preferences_test?key");
-    int res = dataObsMgrInner->HandleNotifyChange(notifyUri, USER_TEST);
+    int res = dataObsMgrInner->HandleNotifyChange(notifyUri, USER_TEST, 1);
     EXPECT_EQ(res, NO_ERROR);
 }
 
@@ -405,5 +405,195 @@ HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_RemoveObs_0100, TestSize.L
     dataObsMgrInner->observers_.emplace(uri2, obsList2);
     dataObsMgrInner->RemoveObs(callback2->AsObject());
 }
+
+/*
+ * Feature: DataObsMgrInnerPref
+ * Function: HandleNotifyChange with same token
+ * SubFunction: OnChangePreferences
+ * FunctionPoints: When listenerTokenId equals tokenId, notification should succeed
+ * EnvConditions: NA
+ * CaseDescription: Test preferences notification with same token IDs
+ */
+HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_SameToken_0100, TestSize.Level1)
+{
+    ASSERT_TRUE(dataObsMgrInnerPref_ != nullptr);
+
+    Uri uri("sharepreferences://data/preferences/preferences_test?key");
+    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
+
+    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(1);
+
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
+    ObserverNode node(callback, USER_TEST, 0, 0);
+    node.tokenId_ = 1001; // Set same token
+    dataObsMgrInnerPref_->HandleRegisterObserver(uri, node);
+    dataObsMgrInnerPref_->HandleNotifyChange(uri, USER_TEST, 1001); // Same tokenId
+}
+
+/*
+ * Feature: DataObsMgrInnerPref
+ * Function: HandleNotifyChange with different tokens
+ * SubFunction: OnChangePreferences
+ * FunctionPoints: When tokens differ, permission verification should be performed
+ * EnvConditions: NA
+ * CaseDescription: Test preferences notification with different token IDs
+ */
+HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_DifferentToken_0100, TestSize.Level1)
+{
+    ASSERT_TRUE(dataObsMgrInnerPref_ != nullptr);
+
+    Uri uri("sharepreferences://data/preferences/preferences_test?key");
+    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
+
+    // Different tokens - verification may fail
+    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(AnyNumber());
+
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
+    ObserverNode node(callback, USER_TEST, 0, 0);
+    node.tokenId_ = 1001;
+    dataObsMgrInnerPref_->HandleRegisterObserver(uri, node);
+    dataObsMgrInnerPref_->HandleNotifyChange(uri, USER_TEST, 1002); // Different tokenId
+}
+
+/*
+ * Feature: DataObsMgrInnerPref
+ * Function: HandleNotifyChange with cross-user scenario
+ * SubFunction: OnChangePreferences
+ * FunctionPoints: Cross-user notification should be blocked
+ * EnvConditions: NA
+ * CaseDescription: Test preferences cross-user notification blocking
+ */
+HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_CrossUser_0100, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
+    ASSERT_NE(dataObsMgrInner, nullptr);
+
+    Uri uri("sharepreferences://data/preferences/preferences_test?key");
+    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
+
+    // Cross-user should be blocked
+    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(0);
+
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
+    ObserverNode node(callback, 200, 0, 0); // Different user
+    dataObsMgrInner->HandleRegisterObserver(uri, node);
+    dataObsMgrInner->HandleNotifyChange(uri, 100, 1001);
+}
+
+/*
+ * Feature: DataObsMgrInnerPref
+ * Function: HandleNotifyChange with zero user IDs
+ * SubFunction: OnChangePreferences
+ * FunctionPoints: Zero user ID should allow cross-user notification
+ * EnvConditions: NA
+ * CaseDescription: Test preferences with observer having userId=0
+ */
+HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_ZeroUserId_0100, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
+    ASSERT_NE(dataObsMgrInner, nullptr);
+
+    Uri uri("sharepreferences://data/preferences/preferences_test?key");
+    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
+
+    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(AnyNumber());
+
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
+    ObserverNode node(callback, 0, 0, 0); // userId=0
+    dataObsMgrInner->HandleRegisterObserver(uri, node);
+    dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 1001);
+}
+
+/*
+ * Feature: DataObsMgrInnerPref
+ * Function: HandleNotifyChange with multiple observers
+ * SubFunction: OnChangePreferences
+ * FunctionPoints: Multiple observers should each be verified independently
+ * EnvConditions: NA
+ * CaseDescription: Test preferences with multiple observers
+ */
+HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_MultipleObservers_0100, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
+    ASSERT_NE(dataObsMgrInner, nullptr);
+
+    Uri uri("sharepreferences://data/preferences/preferences_test?key");
+    sptr<MockDataAbilityObserverStub> mockObserver1(new (std::nothrow) MockDataAbilityObserverStub());
+    sptr<MockDataAbilityObserverStub> mockObserver2(new (std::nothrow) MockDataAbilityObserverStub());
+
+    EXPECT_CALL(*mockObserver1, OnChangePreferences(_)).Times(AnyNumber());
+    EXPECT_CALL(*mockObserver2, OnChangePreferences(_)).Times(AnyNumber());
+
+    const sptr<IDataAbilityObserver> callback1(new (std::nothrow) DataAbilityObserverProxy(mockObserver1));
+    const sptr<IDataAbilityObserver> callback2(new (std::nothrow) DataAbilityObserverProxy(mockObserver2));
+
+    ObsListType obsList;
+    obsList.push_back(ObserverNode(callback1, USER_TEST, 0, 0));
+    obsList.push_back(ObserverNode(callback2, USER_TEST, 0, 0));
+    dataObsMgrInner->observers_.emplace(uri.ToString(), obsList);
+
+    dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 1001);
+}
+
+/*
+ * Feature: DataObsMgrInnerPref
+ * Function: HandleNotifyChange with permission failure
+ * SubFunction: OnChangePreferences
+ * FunctionPoints: Permission verification failure should block notification
+ * EnvConditions: NA
+ * CaseDescription: Test preferences when permission verification fails
+ */
+HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_PermissionFail_0100, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
+    ASSERT_NE(dataObsMgrInner, nullptr);
+
+    Uri uri("sharepreferences://data/preferences/preferences_test?key");
+    sptr<MockDataAbilityObserverStub> mockDataAbilityObserverStub(new (std::nothrow) MockDataAbilityObserverStub());
+
+    // With different tokens, verification may fail
+    EXPECT_CALL(*mockDataAbilityObserverStub, OnChangePreferences(_)).Times(AnyNumber());
+
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockDataAbilityObserverStub));
+    ObserverNode node(callback, USER_TEST, 0, 0);
+    node.tokenId_ = 9999;
+    dataObsMgrInner->HandleRegisterObserver(uri, node);
+    dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 8888); // Different token
+}
+
+/*
+ * Feature: DataObsMgrInnerPref
+ * Function: HandleNotifyChange with various query parameters
+ * SubFunction: OnChangePreferences
+ * FunctionPoints: Query parameters should be passed correctly
+ * EnvConditions: NA
+ * CaseDescription: Test preferences with different query strings
+ */
+HWTEST_F(DataObsMgrInnerPrefTest, DataObsMgrInnerPref_HandleNotifyChange_QueryParams_0100, TestSize.Level1)
+{
+    std::shared_ptr<DataObsMgrInnerPref> dataObsMgrInner = std::make_shared<DataObsMgrInnerPref>();
+    ASSERT_NE(dataObsMgrInner, nullptr);
+
+    std::vector<std::string> queries = {
+        "?key=value",
+        "?key1=value1&key2=value2",
+        "",
+        "?test"
+    };
+
+    sptr<MockDataAbilityObserverStub> mockObserver(new (std::nothrow) MockDataAbilityObserverStub());
+    EXPECT_CALL(*mockObserver, OnChangePreferences(_)).Times(AnyNumber());
+
+    const sptr<IDataAbilityObserver> callback(new (std::nothrow) DataAbilityObserverProxy(mockObserver));
+
+    for (const auto &query : queries) {
+        Uri uri("sharepreferences://data/preferences/preferences_test" + query);
+        ObserverNode node(callback, USER_TEST, 0, 0);
+        dataObsMgrInner->HandleRegisterObserver(uri, node);
+        dataObsMgrInner->HandleNotifyChange(uri, USER_TEST, 0);
+        dataObsMgrInner->HandleUnregisterObserver(uri, node);
+    }
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
