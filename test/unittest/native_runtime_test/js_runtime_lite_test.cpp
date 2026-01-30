@@ -330,5 +330,367 @@ HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJsonString_0200, TestSize.Level1)
     auto rBeginIt = items.rbegin();
     EXPECT_EQ(*rBeginIt, "");
 }
+
+/**
+ * @tc.name: LoadAotFile_0100
+ * @tc.desc: JsRuntimeLiteTest test for LoadAotFile with nullptr jsEnv.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, LoadAotFile_0100, TestSize.Level1)
+{
+    Options options;
+    options.hapPath = "/test/path";
+
+    // Should not crash with nullptr jsEnv
+    JsRuntimeLite::GetInstance().LoadAotFile(options, nullptr);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: LoadAotFile_0200
+ * @tc.desc: JsRuntimeLiteTest test for LoadAotFile with empty hapPath.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, LoadAotFile_0200, TestSize.Level1)
+{
+    Options options;
+    options.hapPath = "";
+    auto jsEnv = std::make_shared<JsEnv::JsEnvironment>();
+
+    // Should return early with empty hapPath
+    JsRuntimeLite::GetInstance().LoadAotFile(options, jsEnv);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: InitConsoleModule_0100
+ * @tc.desc: JsRuntimeLiteTest test for InitConsoleModule with nullptr jsEnv.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, InitConsoleModule_0100, TestSize.Level1)
+{
+    // Should not crash with nullptr jsEnv
+    JsRuntimeLite::GetInstance().InitConsoleModule(nullptr);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: InitTimerModule_0100
+ * @tc.desc: JsRuntimeLiteTest test for InitTimerModule with nullptr jsEnv.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, InitTimerModule_0100, TestSize.Level1)
+{
+    // Should not crash with nullptr jsEnv
+    JsRuntimeLite::GetInstance().InitTimerModule(nullptr);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SetModuleLoadChecker_0100
+ * @tc.desc: JsRuntimeLiteTest test for SetModuleLoadChecker with nullptr jsEnv.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, SetModuleLoadChecker_0100, TestSize.Level1)
+{
+    std::shared_ptr<ModuleCheckerDelegate> delegate = nullptr;
+
+    // Should not crash with nullptr jsEnv
+    JsRuntimeLite::GetInstance().SetModuleLoadChecker(delegate, nullptr);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SetModuleLoadChecker_0200
+ * @tc.desc: JsRuntimeLiteTest test for SetModuleLoadChecker with valid jsEnv.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, SetModuleLoadChecker_0200, TestSize.Level1)
+{
+    auto jsEnv = std::make_shared<JsEnv::JsEnvironment>();
+    std::shared_ptr<ModuleCheckerDelegate> delegate = nullptr;
+
+    // Should not crash with valid jsEnv
+    JsRuntimeLite::GetInstance().SetModuleLoadChecker(delegate, jsEnv);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SetRequestAotCallback_0100
+ * @tc.desc: JsRuntimeLiteTest test for SetRequestAotCallback with nullptr jsEnv.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, SetRequestAotCallback_0100, TestSize.Level1)
+{
+    // Should not crash with nullptr jsEnv
+    JsRuntimeLite::GetInstance().SetRequestAotCallback(nullptr);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SetRequestAotCallback_0200
+ * @tc.desc: JsRuntimeLiteTest test for SetRequestAotCallback with valid jsEnv.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, SetRequestAotCallback_0200, TestSize.Level1)
+{
+    auto jsEnv = std::make_shared<JsEnv::JsEnvironment>();
+
+    // Should not crash with valid jsEnv
+    JsRuntimeLite::GetInstance().SetRequestAotCallback(jsEnv);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: InitWorkerModule_0100
+ * @tc.desc: JsRuntimeLiteTest test for InitWorkerModule with nullptr jsEnv.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, InitWorkerModule_0100, TestSize.Level1)
+{
+    Options options;
+
+    // Should not crash with nullptr jsEnv
+    JsRuntimeLite::GetInstance().InitWorkerModule(options, nullptr);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: InitWorkerModule_0200
+ * @tc.desc: JsRuntimeLiteTest test for InitWorkerModule with valid parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, InitWorkerModule_0200, TestSize.Level1)
+{
+    Options options;
+    options.codePath = "/data/service/el2/base/haps/entry/files";
+    options.isDebugVersion = false;
+    options.isBundle = true;
+    options.packagePathStr = "/package";
+    options.assetBasePathStr = "/assets";
+    options.hapPath = "/test.hap";
+    options.isStageModel = true;
+    options.moduleName = "entry";
+    options.isJsFramework = false;
+
+    auto jsEnv = std::make_shared<JsEnv::JsEnvironment>();
+
+    // Should not crash with valid parameters
+    JsRuntimeLite::GetInstance().InitWorkerModule(options, jsEnv);
+    SUCCEED();
+}
+
+/**
+ * @tc.name: SetChildOptions_0100
+ * @tc.desc: JsRuntimeLiteTest test for SetChildOptions.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, SetChildOptions_0100, TestSize.Level1)
+{
+    Options options;
+    options.lang = "javascript";
+    options.bundleName = "com.test.bundle";
+    options.moduleName = "entry";
+    options.codePath = "/code";
+    options.bundleCodeDir = "/bundle";
+    options.hapPath = "/test.hap";
+    options.arkNativeFilePath = "/native";
+    options.loadAce = true;
+    options.preload = false;
+    options.isBundle = true;
+    options.isDebugVersion = false;
+    options.isJsFramework = false;
+    options.isStageModel = true;
+    options.isTestFramework = false;
+    options.uid = 1000;
+    options.isUnique = false;
+    options.apiTargetVersion = 9;
+    options.packagePathStr = "/package";
+    options.assetBasePathStr = "/assets";
+    options.jitEnabled = true;
+
+    // Should not crash
+    JsRuntimeLite::GetInstance().SetChildOptions(options);
+
+    // Verify childOptions_ is set
+    auto childOptions = JsRuntimeLite::GetInstance().GetChildOptions();
+    ASSERT_NE(childOptions, nullptr);
+    EXPECT_EQ(childOptions->bundleName, "com.test.bundle");
+    EXPECT_EQ(childOptions->moduleName, "entry");
+}
+
+/**
+ * @tc.name: SetChildOptions_0200
+ * @tc.desc: JsRuntimeLiteTest test for SetChildOptions with update.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, SetChildOptions_0200, TestSize.Level1)
+{
+    Options options1;
+    options1.bundleName = "com.test.bundle1";
+    options1.moduleName = "entry1";
+
+    Options options2;
+    options2.bundleName = "com.test.bundle2";
+    options2.moduleName = "entry2";
+
+    JsRuntimeLite::GetInstance().SetChildOptions(options1);
+    JsRuntimeLite::GetInstance().SetChildOptions(options2);
+
+    auto childOptions = JsRuntimeLite::GetInstance().GetChildOptions();
+    ASSERT_NE(childOptions, nullptr);
+    // Should be updated to the latest values
+    EXPECT_EQ(childOptions->bundleName, "com.test.bundle2");
+    EXPECT_EQ(childOptions->moduleName, "entry2");
+}
+
+/**
+ * @tc.name: ParsePkgContextInfoJson_0100
+ * @tc.desc: JsRuntimeLiteTest test for ParsePkgContextInfoJson with valid json.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJson_0100, TestSize.Level1)
+{
+    std::string jsonStr = R"({
+        "library": {
+            "packageName": "library",
+            "bundleName": "com.xxx.xxxx",
+            "moduleName": "library",
+            "version": "1.0.0",
+            "entryPath": "/index",
+            "isSO": false,
+            "dependencyAlias": "libAlias"
+        }
+    })";
+
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonStr);
+    std::vector<std::vector<std::string>> pkgContextInfoList;
+    std::map<std::string, std::string> pkgAliasMap;
+
+    JsRuntimeLite::GetInstance().ParsePkgContextInfoJson(jsonObject, pkgContextInfoList, pkgAliasMap);
+
+    EXPECT_EQ(pkgContextInfoList.size(), 1);
+    EXPECT_EQ(pkgAliasMap.size(), 1);
+    auto aliasIt = pkgAliasMap.find("libAlias");
+    EXPECT_NE(aliasIt, pkgAliasMap.end());
+    EXPECT_EQ(aliasIt->second, "library");
+}
+
+/**
+ * @tc.name: ParsePkgContextInfoJson_0200
+ * @tc.desc: JsRuntimeLiteTest test for ParsePkgContextInfoJson with isSO=true.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJson_0200, TestSize.Level1)
+{
+    std::string jsonStr = R"({
+        "library": {
+            "packageName": "library",
+            "bundleName": "com.xxx.xxxx",
+            "moduleName": "library",
+            "version": "1.0.0",
+            "entryPath": "/index",
+            "isSO": true
+        }
+    })";
+
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonStr);
+    std::vector<std::vector<std::string>> pkgContextInfoList;
+    std::map<std::string, std::string> pkgAliasMap;
+
+    JsRuntimeLite::GetInstance().ParsePkgContextInfoJson(jsonObject, pkgContextInfoList, pkgAliasMap);
+
+    EXPECT_EQ(pkgContextInfoList.size(), 1);
+    EXPECT_EQ(pkgContextInfoList[0].size(), 12); // key-value pairs for each field
+
+    // Find isSO field value
+    auto it = std::find(pkgContextInfoList[0].begin(), pkgContextInfoList[0].end(), "isSO");
+    if (it != pkgContextInfoList[0].end() && ++it != pkgContextInfoList[0].end()) {
+        EXPECT_EQ(*it, "true");
+    }
+}
+
+/**
+ * @tc.name: ParsePkgContextInfoJson_0300
+ * @tc.desc: JsRuntimeLiteTest test for ParsePkgContextInfoJson with null packageName.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJson_0300, TestSize.Level1)
+{
+    std::string jsonStr = R"({
+        "library": {
+            "bundleName": "com.xxx.xxxx",
+            "moduleName": "library",
+            "version": "1.0.0"
+        }
+    })";
+
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonStr);
+    std::vector<std::vector<std::string>> pkgContextInfoList;
+    std::map<std::string, std::string> pkgAliasMap;
+
+    JsRuntimeLite::GetInstance().ParsePkgContextInfoJson(jsonObject, pkgContextInfoList, pkgAliasMap);
+
+    EXPECT_EQ(pkgContextInfoList.size(), 1);
+    // packageName should be empty string when null
+    auto it = std::find(pkgContextInfoList[0].begin(), pkgContextInfoList[0].end(), "packageName");
+    if (it != pkgContextInfoList[0].end() && ++it != pkgContextInfoList[0].end()) {
+        EXPECT_EQ(*it, "");
+    }
+}
+
+/**
+ * @tc.name: ParsePkgContextInfoJson_0400
+ * @tc.desc: JsRuntimeLiteTest test for ParsePkgContextInfoJson with invalid itemObject.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJson_0400, TestSize.Level1)
+{
+    std::string jsonStr = R"({
+        "library": "invalid_string_value"
+    })";
+
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonStr);
+    std::vector<std::vector<std::string>> pkgContextInfoList;
+    std::map<std::string, std::string> pkgAliasMap;
+
+    JsRuntimeLite::GetInstance().ParsePkgContextInfoJson(jsonObject, pkgContextInfoList, pkgAliasMap);
+
+    // Should return early when itemObject is not an object
+    EXPECT_EQ(pkgContextInfoList.size(), 0);
+}
+
+/**
+ * @tc.name: RemoveJsEnv_0100
+ * @tc.desc: JsRuntimeLiteTest test for RemoveJsEnv with non-existent env.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, RemoveJsEnv_0100, TestSize.Level1)
+{
+    napi_env env = nullptr;
+    JsRuntimeLite::GetInstance().envMap_.clear();
+    JsRuntimeLite::GetInstance().threadIds_.clear();
+
+    auto ret = JsRuntimeLite::GetInstance().RemoveJsEnv(env);
+    EXPECT_EQ(ret, napi_status::napi_destroy_ark_runtime_env_not_exist);
+}
+
+/**
+ * @tc.name: GetJsEnv_0200
+ * @tc.desc: JsRuntimeLiteTest test for GetJsEnv with existing env.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeLiteTest, GetJsEnv_0200, TestSize.Level1)
+{
+    napi_env env = nullptr;
+    auto jsEnv = std::make_shared<JsEnv::JsEnvironment>();
+    JsRuntimeLite::GetInstance().envMap_.clear();
+    JsRuntimeLite::GetInstance().threadIds_.clear();
+    JsRuntimeLite::GetInstance().envMap_.emplace(env, jsEnv);
+
+    auto ret = JsRuntimeLite::GetInstance().GetJsEnv(env);
+    EXPECT_NE(ret, nullptr);
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS
