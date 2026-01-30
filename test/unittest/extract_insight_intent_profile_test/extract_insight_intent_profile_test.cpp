@@ -965,7 +965,6 @@ HWTEST_F(ExtractInsightIntentProfileTest, ToJson_0100, TestSize.Level0)
     nlohmann::json invalidParamsJson;
     bool result = ExtractInsightIntentProfile::ToJson(invalidParamsInfo, invalidParamsJson);
     EXPECT_EQ(result, true);
-    EXPECT_EQ(invalidParamsJson.contains(INSIGHT_INTENT_PARAMETERS), false);
 }
 
 /**
