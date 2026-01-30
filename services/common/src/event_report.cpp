@@ -126,7 +126,6 @@ void EventReport::LogErrorEvent(const std::string &name, HiSysEventEventType typ
 {
     auto hisyseventReport = std::make_shared<HisyseventReport>(8);
     hisyseventReport->InsertParam(EVENT_KEY_USERID, eventInfo.userId);
-    hisyseventReport->InsertParam(EVENT_KEY_APP_INDEX, eventInfo.appIndex);
     hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
     hisyseventReport->InsertParam(EVENT_KEY_MODULE_NAME, eventInfo.moduleName);
     hisyseventReport->InsertParam(EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
@@ -200,7 +199,6 @@ void EventReport::LogTerminateAbilityEvent(
     const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo)
 {
     auto hisyseventReport = std::make_shared<HisyseventReport>(3);
-    hisyseventReport->InsertParam(EVENT_KEY_APP_INDEX, eventInfo.appIndex);
     hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
     hisyseventReport->InsertParam(EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
     hisyseventReport->Report("AAFWK", name.c_str(), type);
@@ -210,7 +208,6 @@ void EventReport::LogAbilityOnForegroundEvent(
     const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo)
 {
     auto hisyseventReport = std::make_shared<HisyseventReport>(7);
-    hisyseventReport->InsertParam(EVENT_KEY_APP_INDEX, eventInfo.appIndex);
     hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
     hisyseventReport->InsertParam(EVENT_KEY_MODULE_NAME, eventInfo.moduleName);
     hisyseventReport->InsertParam(EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
@@ -223,7 +220,6 @@ void EventReport::LogAbilityOnBackgroundEvent(
     const std::string &name, HiSysEventEventType type, const EventInfo &eventInfo)
 {
     auto hisyseventReport = std::make_shared<HisyseventReport>(6);
-    hisyseventReport->InsertParam(EVENT_KEY_APP_INDEX, eventInfo.appIndex);
     hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
     hisyseventReport->InsertParam(EVENT_KEY_MODULE_NAME, eventInfo.moduleName);
     hisyseventReport->InsertParam(EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
