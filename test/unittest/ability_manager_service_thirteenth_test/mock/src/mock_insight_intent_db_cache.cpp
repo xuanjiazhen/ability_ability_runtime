@@ -30,11 +30,12 @@ int32_t InsightIntentDbCache::InitInsightIntentCache(const int32_t userId)
     }
     std::vector<ExtractInsightIntentInfo> totalInfos;
     std::vector<InsightIntentInfo> configInfos;
+    std::map<std::string, std::string> bundleVersionMap;
     totalInfos.clear();
     configInfos.clear();
     intentGenericInfos_.clear();
     if (DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->LoadInsightIntentInfos(
-        userId, totalInfos, configInfos) != ERR_OK) {
+        userId, bundleVersionMap, totalInfos, configInfos) != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "Load All IntentData failed");
         return ERR_INVALID_VALUE;
     }
@@ -55,7 +56,8 @@ InsightIntentDbCache::~InsightIntentDbCache()
 {}
 
 int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
-    const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos, std::vector<InsightIntentInfo> configInfos)
+    const int32_t userId, uint32_t versionCode, ExtractInsightIntentProfileInfoVec profileInfos, 
+    std::vector<InsightIntentInfo> configInfos)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
     if (userId != userId_) {
@@ -83,13 +85,14 @@ int32_t InsightIntentDbCache::SaveInsightIntentTotalInfo(const std::string &bund
     } else {
         intentGenericInfos_[bundleName] = genericInfos;
     }
+    bundleVersionMap_[bundleName] = std::string(versionCode);
     int32_t res = DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->DeleteStorageInsightIntentData(bundleName,
         moduleName, userId);
     if (res != ERR_OK) {
         TAG_LOGW(AAFwkTag::INTENT, "Save before delete key error");
     }
-    return DelayedSingleton<InsightRdbStorageMgr>::GetInstance()
-            ->SaveStorageInsightIntentData(bundleName, moduleName, userId, profileInfos, configInfos);
+    return DelayedSingleton<InsightRdbStorageMgr>::GetInstance()->SaveStorageInsightIntentData(
+        bundleName, moduleName, userId, versionCode, profileInfos, configInfos);
 }
 
 int32_t InsightIntentDbCache::DeleteInsightIntentTotalInfo(const std::string &bundleName,
