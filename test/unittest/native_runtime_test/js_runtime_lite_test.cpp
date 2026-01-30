@@ -463,15 +463,6 @@ HWTEST_F(JsRuntimeLiteTest, InitWorkerModule_0100, TestSize.Level1)
 HWTEST_F(JsRuntimeLiteTest, InitWorkerModule_0200, TestSize.Level1)
 {
     Options options;
-    options.codePath = "/data/service/el2/base/haps/entry/files";
-    options.isDebugVersion = false;
-    options.isBundle = true;
-    options.packagePathStr = "/package";
-    options.assetBasePathStr = "/assets";
-    options.hapPath = "/test.hap";
-    options.isStageModel = true;
-    options.moduleName = "entry";
-    options.isJsFramework = false;
 
     auto jsEnv = std::make_shared<JsEnv::JsEnvironment>();
 
@@ -488,26 +479,8 @@ HWTEST_F(JsRuntimeLiteTest, InitWorkerModule_0200, TestSize.Level1)
 HWTEST_F(JsRuntimeLiteTest, SetChildOptions_0100, TestSize.Level1)
 {
     Options options;
-    options.lang = "javascript";
     options.bundleName = "com.test.bundle";
     options.moduleName = "entry";
-    options.codePath = "/code";
-    options.bundleCodeDir = "/bundle";
-    options.hapPath = "/test.hap";
-    options.arkNativeFilePath = "/native";
-    options.loadAce = true;
-    options.preload = false;
-    options.isBundle = true;
-    options.isDebugVersion = false;
-    options.isJsFramework = false;
-    options.isStageModel = true;
-    options.isTestFramework = false;
-    options.uid = 1000;
-    options.isUnique = false;
-    options.apiTargetVersion = 9;
-    options.packagePathStr = "/package";
-    options.assetBasePathStr = "/assets";
-    options.jitEnabled = true;
 
     // Should not crash
     JsRuntimeLite::GetInstance().SetChildOptions(options);
