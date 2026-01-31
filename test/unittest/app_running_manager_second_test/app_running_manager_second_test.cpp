@@ -287,7 +287,7 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_ProcessExitByBundleName_
     record1->appInfos_.emplace(BUNDLE_NAME, appInfo_);
 
     /**
-     * @tc.steps: step2. process resident process and ExitResidentProcessManager Memory Size Insufficent
+     * @tc.steps: step2. process resident process and ExitResidentProcessManager Memory Size Insufficient
      * @tc.expected: step2. expect pids not empty
      */
     std::vector<ExitResidentProcessInfo> processInfos;
@@ -297,13 +297,13 @@ HWTEST_F(AppRunningManagerSecondTest, AppRunningManager_ProcessExitByBundleName_
     record1->SetKeepAliveDkv(true);
     record1->SetMainProcess(true);
     record1->GetPriorityObject()->SetPid(10000); // 10000 means valid process id
-    ExitResidentProcessManager::GetInstance().HandleMemorySizeInSufficent(); // marked mem insufficient
+    ExitResidentProcessManager::GetInstance().HandleMemorySizeInsufficient(); // marked mem insufficient
     std::list<pid_t> pids;
     appRunningManager->ProcessExitByBundleName(BUNDLE_NAME, pids, false);
     EXPECT_TRUE(pids.empty());
 
     /**
-     * @tc.steps: step2. process resident process and ExitResidentProcessManager Memory Size Insufficent
+     * @tc.steps: step2. process resident process and ExitResidentProcessManager Memory Size Insufficient
      * @tc.expected: step2. expect pids not empty, memory size sufficient
      */
     pids.clear();

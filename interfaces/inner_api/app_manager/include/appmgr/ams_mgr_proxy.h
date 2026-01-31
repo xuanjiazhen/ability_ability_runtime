@@ -464,6 +464,8 @@ public:
 
     virtual int32_t VerifyKillProcessPermission(const std::string &bundleName) override;
 
+    virtual int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid) override;
+
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

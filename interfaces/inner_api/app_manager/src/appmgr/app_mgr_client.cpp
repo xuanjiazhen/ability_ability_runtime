@@ -1449,6 +1449,21 @@ bool AppMgrClient::IsNoRequireBigMemory() const
     return amsService->IsNoRequireBigMemory();
 }
 
+int32_t AppMgrClient::RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return ERR_NULL_OBJECT;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr.");
+        return ERR_NULL_OBJECT;
+    }
+    return amsService->RecordKeepAliveAppExitInLowMem(bundleName, uid);
+}
+
 int32_t AppMgrClient::PreloadApplication(const std::string &bundleName, int32_t userId,
     AppExecFwk::PreloadMode preloadMode, int32_t appIndex)
 {

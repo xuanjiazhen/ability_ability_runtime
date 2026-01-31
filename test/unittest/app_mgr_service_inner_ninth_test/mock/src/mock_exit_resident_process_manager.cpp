@@ -53,9 +53,9 @@ void ExitResidentProcessManager::RecordExitResidentBundleDependedOnWeb(const std
 {
 }
 
-int32_t ExitResidentProcessManager::HandleMemorySizeInSufficent()
+int32_t ExitResidentProcessManager::HandleMemorySizeInsufficient()
 {
-    return AAFwk::MyStatus::GetInstance().handleMemorySizeInSufficent_;
+    return AAFwk::MyStatus::GetInstance().handleMemorySizeInsufficient_;
 }
 
 int32_t ExitResidentProcessManager::HandleRequireBigMemoryOptimization()
