@@ -1688,5 +1688,36 @@ int32_t AmsMgrProxy::VerifyKillProcessPermission(const std::string &bundleName)
     }
     return reply.ReadInt32();
 }
+
+int32_t AmsMgrProxy::RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write token failed");
+        return ERR_INVALID_DATA;
+    }
+
+    if (bundleName.empty() || !data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write bundleName failed");
+        return ERR_INVALID_DATA;
+    }
+
+    if (!data.WriteInt32(uid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write uid failed");
+        return ERR_INVALID_DATA;
+    }
+
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    auto ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::RECORD_KEEP_ALIVE_APP_EXIT_IN_LOW_MEM),
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request err: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

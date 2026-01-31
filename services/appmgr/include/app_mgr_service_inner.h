@@ -1943,6 +1943,8 @@ private:
     void ReportUIExtensionProcColdStartToRss(const std::shared_ptr<AbilityInfo>& abilityInfo,
         const std::shared_ptr<AAFwk::Want>& want, bool isPreloadUIExtension);
 
+    int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid);
+
 private:
     /**
      * ClearUpApplicationData, clear the application data.

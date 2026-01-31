@@ -8817,6 +8817,21 @@ bool AppMgrServiceInner::IsNeedRestartKeepAliveProcess(const std::string &bundle
     return true;
 }
 
+int32_t AppMgrServiceInner::RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "record keepAlive App in low memory: %{public}s, uid: %{public}d",
+        bundleName.c_str(), uid);
+    
+    bool success = ExitResidentProcessManager::GetInstance().RecordExitResidentBundleName(bundleName, uid);
+    if (success) {
+        TAG_LOGI(AAFwkTag::APPMGR, "successfully recorded in low memory: %{public}s", bundleName.c_str());
+        return ERR_OK;
+    } else {
+        TAG_LOGW(AAFwkTag::APPMGR, "failed to record App: %{public}s", bundleName.c_str());
+        return ERR_INVALID_OPERATION;
+    }
+}
+
 void AppMgrServiceInner::ClearAppRunningDataForKeepAlive(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     ClearResidentProcessAppRunningData(appRecord);
@@ -9930,9 +9945,9 @@ int32_t AppMgrServiceInner::NotifyMemorySizeStateChanged(int32_t memorySizeState
     std::vector<ExitResidentProcessInfo> exitProcessInfos;
     switch (memorySizeState) {
         case MemoryState::LOW_MEMORY:
-            ret = ExitResidentProcessManager::GetInstance().HandleMemorySizeInSufficent();
+            ret = ExitResidentProcessManager::GetInstance().HandleMemorySizeInsufficient();
             if (ret != ERR_OK) {
-                TAG_LOGE(AAFwkTag::APPMGR, "handleMemorySizeInSufficent fail, ret: %{public}d", ret);
+                TAG_LOGE(AAFwkTag::APPMGR, "handleMemorySizeInsufficient fail, ret: %{public}d", ret);
             }
             break;
         case MemoryState::REQUIRE_BIG_MEMORY:
