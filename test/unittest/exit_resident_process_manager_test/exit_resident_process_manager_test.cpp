@@ -87,6 +87,35 @@ HWTEST_F(ExitResidentProcessManagerTest, RecordExitResidentBundleName_002, TestS
 }
 
 /**
+ * @tc.name: RecordExitResidentBundleName_003
+ * @tc.desc: Verify that duplicate elements are not added to exitResidentInfos_
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExitResidentProcessManagerTest, RecordExitResidentBundleName_003, TestSize.Level1)
+{
+    auto exitResidentProcessManager = std::make_shared<ExitResidentProcessManager>();
+    exitResidentProcessManager->currentMemorySizeState_ = MemoryState::LOW_MEMORY;
+    
+    std::string bundleName = "test.bundle";
+    int32_t uid = 1000;
+    
+    // Add the same element twice
+    bool result1 = exitResidentProcessManager->RecordExitResidentBundleName(bundleName, uid);
+    bool result2 = exitResidentProcessManager->RecordExitResidentBundleName(bundleName, uid);
+    
+    // Both calls should return true (success)
+    EXPECT_EQ(result1, true);
+    EXPECT_EQ(result2, true);
+    
+    // But exitResidentInfos_ should only contain one element
+    std::vector<ExitResidentProcessInfo> infos;
+    exitResidentProcessManager->HandleMemorySizeSufficient(infos);
+    EXPECT_EQ(infos.size(), 1);
+    EXPECT_EQ(infos[0].bundleName, bundleName);
+    EXPECT_EQ(infos[0].uid, uid);
+}
+
+/**
  * @tc.name: RecordExitResidentBundleDependedOnWeb_001
  * @tc.desc: Verify that the RecordExitResidentBundleDependedOnWeb interface calls normally
  * @tc.type: FUNC
