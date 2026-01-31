@@ -20,12 +20,9 @@
 #include <vector>
 
 #include "ability_manager_errors.h"
-#include "file_uri_distribution_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
-#include "iservice_registry.h"
-#include "system_ability_definition.h"
 #include "want.h"
 
 namespace OHOS {
