@@ -1846,7 +1846,7 @@ HWTEST_F(UIExtensionAbilityManagerTest, PreloadUIExtensionAbilityLocked_002, Tes
     abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
     std::string hostBundleName = "testBundle";
     int32_t hostPid = 1234;
-
+    
     int res = connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName, hostPid);
     EXPECT_EQ(res, ERR_NULL_OBJECT);
 }

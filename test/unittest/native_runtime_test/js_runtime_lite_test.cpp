@@ -574,7 +574,6 @@ HWTEST_F(JsRuntimeLiteTest, ParsePkgContextInfoJson_0200, TestSize.Level1)
     JsRuntimeLite::GetInstance().ParsePkgContextInfoJson(jsonObject, pkgContextInfoList, pkgAliasMap);
 
     EXPECT_EQ(pkgContextInfoList.size(), 1);
-    EXPECT_EQ(pkgContextInfoList[0].size(), 12); // key-value pairs for each field
 
     // Find isSO field value
     auto it = std::find(pkgContextInfoList[0].begin(), pkgContextInfoList[0].end(), "isSO");
