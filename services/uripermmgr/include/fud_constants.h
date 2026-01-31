@@ -25,6 +25,14 @@ constexpr const char *FILE_SCHEME = "file";
 constexpr const char *CONTENT_SCHEME = "content";
 constexpr const char *DOCS_AUTHORITY = "docs";
 constexpr const char *MEDIA_AUTHORITY = "media";
+
+// UID constants
+constexpr int32_t COLLABORATION_FWK_UID = 5520;
+constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t UDMF_UID = 3012;
+constexpr int32_t PASTEBOARD_UID = 3816;
+constexpr int32_t BROKER_PASTEBOARD_UID = 5557;
+constexpr int32_t DFS_UID = 1009;
 }  // FUDConstants
 }  // AAFwk
 }  // OHOS
