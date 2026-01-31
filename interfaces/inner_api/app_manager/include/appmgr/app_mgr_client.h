@@ -896,6 +896,14 @@ public:
     bool IsNoRequireBigMemory() const;
 
     /**
+     * Record keepalive app exit for later restart.
+     * @param bundleName The bundle name of the app.
+     * @param uid The uid of the app.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid);
+
+    /**
      * Record process exit reason to appRunningRecord
      * @param pid pid
      * @param reason reason enum

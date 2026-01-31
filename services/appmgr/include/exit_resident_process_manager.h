@@ -32,6 +32,12 @@ struct ExitResidentProcessInfo {
     ExitResidentProcessInfo() = default;
     ExitResidentProcessInfo(const std::string &bundleName, int32_t uid)
         : bundleName(bundleName), uid(uid) {}
+    
+    bool operator==(const ExitResidentProcessInfo& other) const
+    {
+        return bundleName == other.bundleName && uid == other.uid;
+    }
+    
     std::string bundleName;
     int32_t uid = 0;
 };

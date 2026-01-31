@@ -474,6 +474,8 @@ public:
 
     virtual int32_t VerifyKillProcessPermission(const std::string &bundleName) override;
 
+    int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid) override;
+
 private:
     /**
      * @brief Judge whether the application service is ready.
