@@ -27,8 +27,8 @@ using namespace Security::AccessToken;
 using namespace AppExecFwk;
 ObsPermissionVerifier& ObsPermissionVerifier::GetInstance()
 {
-    static ObsPermissionVerifier instance_;
-    return instance_;
+    static ObsPermissionVerifier instance;
+    return instance;
 }
 
 bool ObsPermissionVerifier::VerifyPermission(uint32_t listenerTokenId, int32_t userId,
@@ -63,16 +63,13 @@ std::pair<bool, std::string> ObsPermissionVerifier::GetCallingInfo(uint32_t call
     bool isSA = false;
     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callingTokenid);
 
-    int result = -1;
     if (tokenType == Security::AccessToken::TOKEN_HAP) {
         Security::AccessToken::HapTokenInfo tokenInfo;
-        result = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callingTokenid, tokenInfo);
+        int result = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(callingTokenid, tokenInfo);
         if (result == Security::AccessToken::RET_SUCCESS) {
             callingName = std::move(tokenInfo.bundleName);
         }
     } else if (tokenType == Security::AccessToken::TOKEN_NATIVE || tokenType == Security::AccessToken::TOKEN_SHELL) {
-        Security::AccessToken::NativeTokenInfo tokenInfo;
-        result = Security::AccessToken::AccessTokenKit::GetNativeTokenInfo(callingTokenid, tokenInfo);
         isSA = true;
     } else {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "tokenType is invalid, tokenType:%{public}d", tokenType);
@@ -117,7 +114,7 @@ std::vector<std::string> ObsPermissionVerifier::GetGroupInfosFromCache(const std
     if (it != groupsIdCache_.end()) {
         return it->second;
     }
-    if (groupsIdCache_.size() >= CACHE_SIZE_THRESHOLD) {
+    while (groupsIdCache_.size() >= CACHE_SIZE_THRESHOLD) {
         groupsIdCache_.pop_front();
     }
     groupsIdCache_.emplace_back(key, groupIds);
