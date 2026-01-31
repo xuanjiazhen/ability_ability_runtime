@@ -32,6 +32,12 @@ struct ExitResidentProcessInfo {
     ExitResidentProcessInfo() = default;
     ExitResidentProcessInfo(const std::string &bundleName, int32_t uid)
         : bundleName(bundleName), uid(uid) {}
+    
+    bool operator==(const ExitResidentProcessInfo& other) const
+    {
+        return bundleName == other.bundleName && uid == other.uid;
+    }
+    
     std::string bundleName;
     int32_t uid = 0;
 };
@@ -45,7 +51,7 @@ public:
     bool RecordExitResidentBundleName(const std::string &bundleName, int32_t uid);
     bool RecordExitResidentBundleNameOnRequireBigMemory(const std::string &bundleName, int32_t uid);
     void RecordExitResidentBundleDependedOnWeb(const std::string &bundleName, int32_t uid);
-    int32_t HandleMemorySizeInSufficent();
+    int32_t HandleMemorySizeInsufficient();
     int32_t HandleRequireBigMemoryOptimization();
     int32_t HandleMemorySizeSufficient(std::vector<ExitResidentProcessInfo>& bundleNames);
     int32_t HandleNoRequireBigMemoryOptimization(std::vector<ExitResidentProcessInfo>& bundleNames);

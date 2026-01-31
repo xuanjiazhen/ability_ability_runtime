@@ -2229,7 +2229,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, NotifyMemorySizeStateChanged_002, TestSiz
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().checkSpecific_ = true;
     OHOS::AAFwk::MyStatus::GetInstance().getBoolParameter_ = true;
-    AAFwk::MyStatus::GetInstance().handleMemorySizeInSufficent_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().handleMemorySizeInsufficient_ = ERR_OK;
 
     int32_t memorySizeState = MemoryState::LOW_MEMORY;
     auto ret = appMgrServiceInner->NotifyMemorySizeStateChanged(memorySizeState);

@@ -1642,6 +1642,8 @@ public:
 
     void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName);
 
+    int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);

@@ -526,6 +526,8 @@ public:
         return ERR_OK;
     }
 
+    virtual int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid) = 0;
+
     enum class Message {
         LOAD_ABILITY = 0,
         TERMINATE_ABILITY,
@@ -590,6 +592,7 @@ public:
         CHECK_PRELOAD_APP_RECORD_EXIST,
         VERIFY_KILL_PROCESS_PERMISSION,
         NOTIFY_LOAD_ABILITY_FINISHED,
+        RECORD_KEEP_ALIVE_APP_EXIT_IN_LOW_MEM,
         // Add enumeration values above
         END
     };

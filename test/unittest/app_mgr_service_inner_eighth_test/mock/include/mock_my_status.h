@@ -134,7 +134,7 @@ public:
     ErrCode queryActiveOsAccountIds_ = ERR_OK;
     ErrCode getOsAccountLocalIdFromUid_ = ERR_OK;
     // exit resident
-    ErrCode handleMemorySizeInSufficent_ = ERR_OK;
+    ErrCode handleMemorySizeInsufficient_ = ERR_OK;
     ErrCode handleRequireBigMemoryOptimization_ = ERR_OK;
     ErrCode handleNoRequireBigMemoryOptimization_ = ERR_OK;
     bool isStartSpecifiedProcess_ = true;

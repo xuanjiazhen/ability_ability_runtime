@@ -900,5 +900,18 @@ int32_t AmsMgrScheduler::VerifyKillProcessPermission(const std::string &bundleNa
     }
     return static_cast<int32_t>(amsMgrServiceInner_->VerifyKillProcessPermission(bundleName));
 }
+
+int32_t AmsMgrScheduler::RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
+    }
+    if (!amsMgrServiceInner_->IsFoundationCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
+        return ERR_PERMISSION_DENIED;
+    }
+    return amsMgrServiceInner_->RecordKeepAliveAppExitInLowMem(bundleName, uid);
+}
 } // namespace AppExecFwk
 }  // namespace OHOS

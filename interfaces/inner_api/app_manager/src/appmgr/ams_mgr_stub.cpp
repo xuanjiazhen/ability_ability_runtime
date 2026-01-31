@@ -237,6 +237,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleVerifyKillProcessPermission(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_LOAD_ABILITY_FINISHED):
             return HandleNotifyLoadAbilityFinished(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::RECORD_KEEP_ALIVE_APP_EXIT_IN_LOW_MEM):
+            return HandleRecordKeepAliveAppExitInLowMem(data, reply);
     }
     return AAFwk::ERR_CODE_NOT_EXIST;
 }
@@ -1048,6 +1050,25 @@ int32_t AmsMgrStub::HandleVerifyKillProcessPermission(MessageParcel &data, Messa
     }
 
     auto result = VerifyKillProcessPermission(bundleName);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
+        return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AmsMgrStub::HandleRecordKeepAliveAppExitInLowMem(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    auto bundleName = data.ReadString();
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Bundle name is empty.");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto uid = data.ReadInt32();
+    
+    auto result = RecordKeepAliveAppExitInLowMem(bundleName, uid);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to write result.");
         return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;

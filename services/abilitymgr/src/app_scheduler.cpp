@@ -691,6 +691,15 @@ bool AppScheduler::IsNoRequireBigMemory() const
     return appMgrClient_->IsNoRequireBigMemory();
 }
 
+int32_t AppScheduler::RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid)
+{
+    if (!appMgrClient_) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null appMgrClient");
+        return ERR_NULL_OBJECT;
+    }
+    return IN_PROCESS_CALL(appMgrClient_->RecordKeepAliveAppExitInLowMem(bundleName, uid));
+}
+
 void AppScheduler::AttachedToStatusBar(const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
