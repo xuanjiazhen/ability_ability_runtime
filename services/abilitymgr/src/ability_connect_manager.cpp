@@ -2192,6 +2192,20 @@ bool AbilityConnectManager::IsNeedToRestart(const std::shared_ptr<BaseExtensionR
         TAG_LOGD(AAFwkTag::EXT, "restart keep alive ability");
         return true;
     }
+
+    // Race condition fix: Record exit intent when deciding not to restart due to low memory
+    // This ensures the process will be recovered when memory becomes sufficient again
+    int32_t uid = abilityRecord->GetUid();
+    if (uid > 0) {
+        DelayedSingleton<AppScheduler>::GetInstance()->RecordKeepAliveAppExitInLowMem(
+            bundleName, uid);
+        TAG_LOGI(AAFwkTag::EXT, "recorded keepAlive for %{public}s due to low memory, uid=%{public}d", 
+            bundleName.c_str(), uid);
+    } else {
+        TAG_LOGW(AAFwkTag::EXT, "failed to get uid for %{public}s, cannot record keepAlive", 
+            bundleName.c_str());
+    }
+
     TAG_LOGD(AAFwkTag::EXT, "not restart keep alive ability");
     return false;
 }

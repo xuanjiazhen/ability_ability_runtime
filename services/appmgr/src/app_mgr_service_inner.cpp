@@ -8817,6 +8817,20 @@ bool AppMgrServiceInner::IsNeedRestartKeepAliveProcess(const std::string &bundle
     return true;
 }
 
+int32_t AppMgrServiceInner::RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "record exit intent in low memory: %{public}s, uid: %{public}d", bundleName.c_str(), uid);
+    
+    bool success = ExitResidentProcessManager::GetInstance().RecordExitResidentBundleName(bundleName, uid);
+    if (success) {
+        TAG_LOGI(AAFwkTag::APPMGR, "successfully recorded exit intent in low memory: %{public}s", bundleName.c_str());
+        return ERR_OK;
+    } else {
+        TAG_LOGW(AAFwkTag::APPMGR, "failed to record exit intent in low memory, state may have changed: %{public}s", bundleName.c_str());
+        return ERR_INVALID_OPERATION;
+    }
+}
+
 void AppMgrServiceInner::ClearAppRunningDataForKeepAlive(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     ClearResidentProcessAppRunningData(appRecord);

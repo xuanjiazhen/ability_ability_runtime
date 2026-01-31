@@ -526,6 +526,15 @@ public:
         return ERR_OK;
     }
 
+    /**
+     * Records the exit intent for a keep-alive application in low memory scenario.
+     *
+     * @param bundleName The bundle name of the application.
+     * @param uid The user ID of the application.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid) = 0;
+
     enum class Message {
         LOAD_ABILITY = 0,
         TERMINATE_ABILITY,

@@ -14,6 +14,7 @@
  */
 #include "exit_resident_process_manager.h"
 
+#include <algorithm>
 #include <mutex>
 
 #include "ability_manager_errors.h"
@@ -55,7 +56,21 @@ bool ExitResidentProcessManager::RecordExitResidentBundleName(const std::string 
     if (currentMemorySizeState_ == MemoryState::MEMORY_RECOVERY) {
         return false;
     }
-    exitResidentInfos_.emplace_back(bundleName, uid);
+    
+    // Check if the same bundleName and uid already exist in exitResidentInfos_
+    ExitResidentProcessInfo newInfo(bundleName, uid);
+    auto it = std::find_if(exitResidentInfos_.begin(), exitResidentInfos_.end(),
+        [&newInfo](const ExitResidentProcessInfo& info) {
+            return info == newInfo;
+        });
+    
+    if (it != exitResidentInfos_.end()) {
+        TAG_LOGD(AAFwkTag::APPMGR, "bundleName %{public}s with uid %{public}d already exists in exitResidentInfos_", 
+                 bundleName.c_str(), uid);
+        return true;
+    }
+    
+    exitResidentInfos_.emplace_back(newInfo);
     return true;
 }
 

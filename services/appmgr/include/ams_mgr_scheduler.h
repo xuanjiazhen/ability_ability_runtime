@@ -474,6 +474,15 @@ public:
 
     virtual int32_t VerifyKillProcessPermission(const std::string &bundleName) override;
 
+    /**
+     * Records the exit intent for a keep-alive application in low memory scenario.
+     *
+     * @param bundleName The bundle name of the application.
+     * @param uid The user ID of the application.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid) override;
+
 private:
     /**
      * @brief Judge whether the application service is ready.

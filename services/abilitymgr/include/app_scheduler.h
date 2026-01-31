@@ -640,6 +640,15 @@ public:
     virtual bool IsNoRequireBigMemory() const;
 
     /**
+     * Record keepalive app exit intent for later restart.
+     * @param bundleName The bundle name of the app.
+     * @param uid The uid of the app.
+     * @param reason The reason for exit intent (low_memory, require_big_memory, etc).
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid);
+
+    /**
      * Notifies that one ability is attached to status bar.
      *
      * @param token the token of the abilityRecord that is attached to status bar.
