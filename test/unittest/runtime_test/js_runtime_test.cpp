@@ -2049,7 +2049,7 @@ HWTEST_F(JsRuntimeTest, ShouldSkipDebugMode_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0100 start");
     auto jsRuntime = std::make_unique<JsRuntime>();
     EXPECT_NE(jsRuntime, nullptr);
-    DebugOption option;
+    JsRuntime::DebugOption option;
     option.isDebugFromLocal = false;
     option.isDeveloperMode = false;
     auto result = jsRuntime->ShouldSkipDebugMode(option);
@@ -2068,7 +2068,7 @@ HWTEST_F(JsRuntimeTest, ShouldSkipDebugMode_0200, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0200 start");
     auto jsRuntime = std::make_unique<JsRuntime>();
     EXPECT_NE(jsRuntime, nullptr);
-    DebugOption option;
+    JsRuntime::DebugOption option;
     option.isDebugFromLocal = false;
     option.isDeveloperMode = true;
     auto result = jsRuntime->ShouldSkipDebugMode(option);
@@ -2087,7 +2087,7 @@ HWTEST_F(JsRuntimeTest, ShouldSkipDebugMode_0300, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0300 start");
     auto jsRuntime = std::make_unique<JsRuntime>();
     EXPECT_NE(jsRuntime, nullptr);
-    DebugOption option;
+    JsRuntime::DebugOption option;
     option.isDebugFromLocal = true;
     option.isDeveloperMode = false;
     auto result = jsRuntime->ShouldSkipDebugMode(option);
@@ -2106,7 +2106,7 @@ HWTEST_F(JsRuntimeTest, ShouldSkipDebugMode_0400, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "ShouldSkipDebugMode_0400 start");
     auto jsRuntime = std::make_unique<JsRuntime>();
     EXPECT_NE(jsRuntime, nullptr);
-    DebugOption option;
+    JsRuntime::DebugOption option;
     option.isDebugFromLocal = true;
     option.isDeveloperMode = true;
     option.arkTSMode = "not_dynamic";
