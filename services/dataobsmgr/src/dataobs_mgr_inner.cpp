@@ -20,7 +20,7 @@
 #include "datashare_errno.h"
 #include "hilog_tag_wrapper.h"
 #include "common_utils.h"
-#include "obs_verify_permission_utils.h"
+#include "obs_permission_verifier.h"
 #include <string>
 namespace OHOS {
 namespace AAFwk {
