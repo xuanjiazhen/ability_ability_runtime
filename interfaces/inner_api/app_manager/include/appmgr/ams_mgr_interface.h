@@ -526,6 +526,8 @@ public:
         return ERR_OK;
     }
 
+    virtual int32_t RecordKeepAliveAppExitInLowMem(const std::string &bundleName, int32_t uid) = 0;
+
     enum class Message {
         LOAD_ABILITY = 0,
         TERMINATE_ABILITY,
