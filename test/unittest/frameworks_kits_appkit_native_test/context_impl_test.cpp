@@ -2060,16 +2060,15 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetMcc_001, Function | MediumTe
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMcc_001 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
-
-    // branch when config is nullptr
-    contextImpl->SetMcc("460");
 
     // branch when config is not nullptr
     auto config = std::make_shared<AppExecFwk::Configuration>();
-    EXPECT_NE(config, nullptr);
     contextImpl->SetConfiguration(config);
     contextImpl->SetMcc("460");
+
+    // Verify the mcc was set in config
+    auto mcc = config->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MCC);
+    EXPECT_EQ(mcc, "460");
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMcc_001 end";
 }
@@ -2084,16 +2083,15 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetMnc_001, Function | MediumTe
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMnc_001 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
-
-    // branch when config is nullptr
-    contextImpl->SetMnc("01");
 
     // branch when config is not nullptr
     auto config = std::make_shared<AppExecFwk::Configuration>();
-    EXPECT_NE(config, nullptr);
     contextImpl->SetConfiguration(config);
     contextImpl->SetMnc("01");
+
+    // Verify the mnc was set in config
+    auto mnc = config->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MNC);
+    EXPECT_EQ(mnc, "01");
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetMnc_001 end";
 }
@@ -2152,9 +2150,9 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_UpdateResConfig_001, Function |
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateResConfig_001 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
 
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager = nullptr;
+    // Verify function handles null resourceManager gracefully (no crash)
     contextImpl->UpdateResConfig(resourceManager);
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateResConfig_001 end";
@@ -2170,10 +2168,9 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_UpdateResConfig_002, Function |
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateResConfig_002 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
 
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager(Global::Resource::CreateResourceManager());
-    EXPECT_NE(resourceManager, nullptr);
+    // Verify function can update valid resourceManager without crash
     contextImpl->UpdateResConfig(resourceManager);
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UpdateResConfig_002 end";
@@ -2249,15 +2246,17 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_InitPluginExtensionInfo_002, Fu
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginExtensionInfo_002 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
 
-    // branch when abilityInfo is nullptr
+    // branch when abilityInfo is nullptr - should not crash
     contextImpl->InitPluginExtensionInfo(nullptr, "hostBundleName");
+    auto extensionInfo = contextImpl->GetPluginExtensionInfo();
+    EXPECT_EQ(extensionInfo, nullptr);
 
-    // branch when hostBundleName is empty
+    // branch when hostBundleName is empty - should not crash
     auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
-    EXPECT_NE(abilityInfo, nullptr);
     contextImpl->InitPluginExtensionInfo(abilityInfo, "");
+    extensionInfo = contextImpl->GetPluginExtensionInfo();
+    EXPECT_EQ(extensionInfo, nullptr);
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_InitPluginExtensionInfo_002 end";
 }
@@ -2290,8 +2289,9 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_KillProcessBySelf_001, Function
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_KillProcessBySelf_001 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
 
+    // Test that function can be called without crash
+    // Note: This is an integration test that calls AppMgrClient
     contextImpl->KillProcessBySelf(true);
     contextImpl->KillProcessBySelf(false);
 
@@ -2365,10 +2365,12 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_AppHasDarkRes_001, Function | M
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_AppHasDarkRes_001 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
 
     bool darkRes = false;
     contextImpl->AppHasDarkRes(darkRes);
+    // When resourceManager is null, darkRes should remain false (not changed)
+    // This test verifies the function handles null resourceManager gracefully
+    EXPECT_EQ(darkRes, false);
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_AppHasDarkRes_001 end";
 }
@@ -2405,14 +2407,19 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateDirIfNotExist_001, Functi
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateDirIfNotExist_001 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
 
     // Create a temp directory for testing
     std::string testDir = "/data/test_context_impl_dir";
     contextImpl->CreateDirIfNotExist(testDir, 0770);
 
-    // Test with mode 0
+    // Verify directory exists after creation
+    bool dirExists = OHOS::FileExists(testDir);
+    EXPECT_EQ(dirExists, true);
+
+    // Test with mode 0 - directory should still exist
     contextImpl->CreateDirIfNotExist(testDir, 0);
+    dirExists = OHOS::FileExists(testDir);
+    EXPECT_EQ(dirExists, true);
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateDirIfNotExist_001 end";
 }
@@ -2454,8 +2461,9 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_ClearUpApplicationData_001, Fun
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_ClearUpApplicationData_001 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
 
+    // Test that function can be called without crash
+    // Note: This is an integration test that calls AppMgrClient
     contextImpl->ClearUpApplicationData();
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_ClearUpApplicationData_001 end";
@@ -2659,14 +2667,12 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_UnsubscribeToOverlayEvents_001,
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UnsubscribeToOverlayEvents_001 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
 
-    // branch when overlaySubscriber_ is nullptr
+    // Test that function handles null overlaySubscriber_ gracefully (no crash)
     contextImpl->UnsubscribeToOverlayEvents();
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_UnsubscribeToOverlayEvents_001 end";
 }
 
-#endif
 }  // namespace AppExecFwk
 }
