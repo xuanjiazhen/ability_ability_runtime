@@ -612,6 +612,7 @@ bool ETSEnvironment::FinishPreload(napi_env jsEnv) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed: ANI env nullptr");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ETSRUNTIME, "FinishPreload called");
     ark::ets::ETSAni::Prefork(env, reinterpret_cast<void *>(jsEnv));
     return true;
 }
