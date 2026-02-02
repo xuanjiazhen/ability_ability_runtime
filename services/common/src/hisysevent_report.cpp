@@ -195,9 +195,13 @@ void HisyseventReport::InsertParam(const char* name, char* value)
     }
     HiSysEventParam param = {
         .t = HISYSEVENT_STRING,
-        .v = { .s = value},
+        .v = { .s = nullptr},
         .arraySize = 0,
     };
+    int32_t ret = strcpy_s(param.v.s, sizeof(param.v.s), value);
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "SetChar err %{public}d", ret);
+    }
     SetParamName(param, name);
     params_[pos_++] = param;
 }
