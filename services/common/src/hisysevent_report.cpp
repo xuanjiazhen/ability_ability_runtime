@@ -193,9 +193,12 @@ void HisyseventReport::InsertParam(const char* name, char* value)
         TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
         return;
     }
+    std::string copiedValue = value;
+    paramString_.emplace_back(copiedValue);
+    std::string& strInVector = paramString_.back();
     HiSysEventParam param = {
         .t = HISYSEVENT_STRING,
-        .v = { .s = value},
+        .v = { .s = const_cast<char*>(strInVector.data())},
         .arraySize = 0,
     };
     SetParamName(param, name);
