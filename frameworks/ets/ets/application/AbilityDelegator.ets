@@ -488,8 +488,13 @@ class AbilityDelegatorInner implements AbilityDelegator {
 
   getCurrentTopAbility(callback: AsyncCallback<UIAbility, void>): void {
     let getCurrentTopAbilityCall = new AsyncCallbackWrapper<UIAbility>(callback);
+<<<<<<< Updated upstream
     let p = taskpool.execute((): UIAbility => {
       this.nativeGetCurrentTopAbility(getCurrentTopAbilityCall)
+=======
+    let p = taskpool.execute(() => {
+      return this.nativeGetCurrentTopAbility(getCurrentTopAbilityCall)
+>>>>>>> Stashed changes
     });
     console.log("getCurrentTopAbility callback2_04");
   }
@@ -503,8 +508,13 @@ class AbilityDelegatorInner implements AbilityDelegator {
           reject(err);
         }
       });
+<<<<<<< Updated upstream
       taskpool.execute((): UIAbility => {
         this.nativeGetCurrentTopAbility(getCurrentTopAbilityCall);
+=======
+      taskpool.execute(() => {
+       return this.nativeGetCurrentTopAbility(getCurrentTopAbilityCall);
+>>>>>>> Stashed changes
       });
     });
     return p;
