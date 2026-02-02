@@ -34,7 +34,7 @@ std::map<std::string, std::string> AgentUIExtensionModuleLoader::GetParams()
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "called");
     std::map<std::string, std::string> params;
-    // type means extension type in ExtensionAbilityType of extension_ability_info.h, need to confirm the actual type value for agent ui extension
+    // type means extension type in ExtensionAbilityType of extension_ability_info.h, 38 means agent ui extension.
     params.insert(std::pair<std::string, std::string>("type", "38"));
     params.insert(std::pair<std::string, std::string>("name", "AgentUIExtensionAbility"));
     return params;
