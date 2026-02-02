@@ -36,7 +36,21 @@ public:
     }
     ~HisyseventReport()
     {
-        delete[] params_;
+        for (size_t i = 0; i < pos_; ++i) {
+            HiSysEventParam& param = params_[i];
+            if (param.v.s != nullptr) {
+                free(param.v.s);
+                param.v.s = nullptr;
+            }
+            if (param.name != nullptr) {
+                free(param.name);
+                param.name = nullptr;
+            }
+        }
+        if (params_ != nullptr) {
+            delete[] params_;
+            params_ = nullptr;
+        }
     }
 
     void InsertParam(const char* name, bool value);

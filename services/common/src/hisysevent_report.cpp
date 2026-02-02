@@ -193,9 +193,14 @@ void HisyseventReport::InsertParam(const char* name, char* value)
         TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
         return;
     }
+    char* copiedValue = strdup(value);
+    if (copiedValue == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "strdup for value failed, out of memory");
+        return;
+    }
     HiSysEventParam param = {
         .t = HISYSEVENT_STRING,
-        .v = { .s = value},
+        .v = { .s = copiedValue},
         .arraySize = 0,
     };
     SetParamName(param, name);
