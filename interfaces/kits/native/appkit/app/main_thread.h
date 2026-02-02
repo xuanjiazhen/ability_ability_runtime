@@ -74,6 +74,7 @@ struct UncatchableTaskInfo {
     uint32_t versionCode;
     std::string appRunningId;
     int32_t pid;
+    int32_t uid;
     std::string processName;
 };
 struct RuntimeUpdateParam {
@@ -87,7 +88,9 @@ struct ProcessExitInfo {
     std::string summary;
     std::string appRunningId;
     std::string processName;
+    std::string version;
     int32_t pid;
+    int32_t uid;
     bool foreground;
     bool isUncatchable;
 };
