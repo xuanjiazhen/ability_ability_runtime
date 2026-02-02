@@ -776,6 +776,14 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetIntentExemptionInfo_OnRem
     EXPECT_EQ(res, NO_ERROR);
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnRemoteRequest
+ * EnvConditions: code is START_UI_EXTENSION_ABILITY
+ * CaseDescription: Verify that starting a UI extension ability succeeds
+ */
 HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbility_OnRemote_0100, TestSize.Level1)
 {
     MessageParcel data;
@@ -791,6 +799,14 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbility_OnRe
     EXPECT_EQ(res, NO_ERROR);
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnRemoteRequest
+ * EnvConditions: code is START_UI_EXTENSION_ABILITY_EMBEDDED
+ * CaseDescription: Verify that starting an embedded UI extension ability succeeds
+ */
 HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbilityEmbedded_OnRemote_0100, TestSize.Level1)
 {
     MessageParcel data;
@@ -801,12 +817,20 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbilityEmbed
     data.WriteBool(false);
     data.WriteInt32(USER_ID);
 
-    int res = stub_->OnRemoteRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_EXTENSION_ABILITY_EMBEDDED),
-        data, reply, option);
+    int res = stub_->OnRemoteRequest(static_cast<uint32_t>(
+        AbilityManagerInterfaceCode::START_UI_EXTENSION_ABILITY_EMBEDDED), data, reply, option);
     EXPECT_EQ(res, NO_ERROR);
 }
 
-HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbilityConstrainedEmbedded_OnRemote_0100, TestSize.Level1)
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnRemoteRequest
+ * EnvConditions: code is START_UI_EXTENSION_CONSTRAINED_EMBEDDED
+ * CaseDescription: Verify that starting a constrained embedded UI extension ability succeeds
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbility0100, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -816,11 +840,19 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbilityConst
     data.WriteBool(false);
     data.WriteInt32(USER_ID);
 
-    int res = stub_->OnRemoteRequest(
-        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_EXTENSION_CONSTRAINED_EMBEDDED), data, reply, option);
+    int res = stub_->OnRemoteRequest(static_cast<uint32_t>(
+        AbilityManagerInterfaceCode::START_UI_EXTENSION_CONSTRAINED_EMBEDDED), data, reply, option);
     EXPECT_EQ(res, NO_ERROR);
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnRemoteRequest
+ * EnvConditions: code is START_UI_EXTENSION_PRE_VIEW_EMBEDDED
+ * CaseDescription: Verify that starting a preview embedded UI extension ability succeeds
+ */
 HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionPreViewEmbedded_OnRemote_0100, TestSize.Level1)
 {
     MessageParcel data;
@@ -831,11 +863,19 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionPreViewEmbed
     data.WriteBool(false);
     data.WriteInt32(USER_ID);
 
-    int res = stub_->OnRemoteRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_EXTENSION_PRE_VIEW_EMBEDDED),
-        data, reply, option);
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_EXTENSION_PRE_VIEW_EMBEDDED), data, reply, option);
     EXPECT_EQ(res, NO_ERROR);
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnRemoteRequest
+ * EnvConditions: code is PRELOAD_APPLICATION
+ * CaseDescription: Verify that preloading an application succeeds
+ */
 HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_PreloadApplication_OnRemote_0100, TestSize.Level1)
 {
     MessageParcel data;
@@ -852,6 +892,14 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_PreloadApplication_OnRemote_
     EXPECT_EQ(res, NO_ERROR);
 }
 
+/*
+ * Feature: AbilityManagerService
+ * Function: OnRemoteRequest
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService OnRemoteRequest
+ * EnvConditions: code is START_SELF_UI_ABILITY_WITH_PID_RESULT
+ * CaseDescription: Verify that starting a self UI ability with PID result succeeds
+ */
 HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartSelfUIAbilityWithPidResult_OnRemote_0100, TestSize.Level1)
 {
     MessageParcel data;
