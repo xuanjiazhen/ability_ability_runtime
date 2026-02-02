@@ -31,6 +31,9 @@
 #include "mock_bundle_manager.h"
 #include "napi/native_api.h"
 #include "native_engine/native_engine.h"
+#include "file_ex.h"
+#include "overlay_module_info.h"
+#include "running_process_info.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
 
@@ -2568,13 +2571,12 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_SetConfigUpdateReason_001, Func
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetConfigUpdateReason_001 start";
     auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
-    EXPECT_NE(contextImpl, nullptr);
 
-    ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_SETTING;
+    ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_IN_WHITE_LIST;
     contextImpl->SetConfigUpdateReason(reason);
 
     auto retReason = contextImpl->GetConfigUpdateReason();
-    EXPECT_EQ(retReason, ConfigUpdateReason::CONFIG_UPDATE_REASON_SETTING);
+    EXPECT_EQ(retReason, ConfigUpdateReason::CONFIG_UPDATE_REASON_IN_WHITE_LIST);
 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_SetConfigUpdateReason_001 end";
 }
