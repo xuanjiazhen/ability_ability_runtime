@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -36,6 +36,7 @@
 #include "server_constant.h"
 #include "startup_util.h"
 #include "ui_extension_wrapper.h"
+#include "user_controller/user_controller.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ability_first_frame_state_observer_manager.h"
 #endif
@@ -492,6 +493,8 @@ int MissionListManager::StartAbilityLocked(const std::shared_ptr<AbilityRecord> 
 #else
     targetAbilityRecord->ProcessForegroundAbility(0);
 #endif
+    AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(
+        abilityRequest.want.GetElement().GetBundleName(), userId_);
     return ERR_OK;
 }
 
@@ -3447,7 +3450,9 @@ int MissionListManager::CallAbilityLocked(const AbilityRequest &abilityRequest)
         TAG_LOGI(AAFwkTag::ABILITYMGR, "set pending BACKGROUND");
         targetAbilityRecord->SetPendingState(AbilityState::BACKGROUND);
     }
-    return targetAbilityRecord->LoadAbility();
+    ret = targetAbilityRecord->LoadAbility();
+    return AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(
+            abilityRequest.want.GetElement().GetBundleName(), userId_, ret);
 }
 
 int MissionListManager::ReleaseCallLocked(
