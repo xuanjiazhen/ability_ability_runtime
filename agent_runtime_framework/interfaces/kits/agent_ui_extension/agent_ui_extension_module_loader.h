@@ -16,46 +16,30 @@
 #ifndef OHOS_AGENT_RUNTIME_AGENT_UI_EXTENSION_MODULE_LOADER_H
 #define OHOS_AGENT_RUNTIME_AGENT_UI_EXTENSION_MODULE_LOADER_H
 
-#include <map>
-#include <memory>
-#include <string>
-
 #include "extension_module_loader.h"
 
 namespace OHOS {
-namespace AbilityRuntime {
-class Runtime;
-} // namespace AbilityRuntime
-
 namespace AgentRuntime {
-/**
- * @brief Module loader for Agent UI Extension.
- *
- * This class is responsible for loading Agent UI Extension modules and
- * providing the necessary parameters for extension registration.
- */
-class AgentUIExtensionModuleLoader : public AbilityRuntime::ExtensionModuleLoader {
+class AgentUIExtensionModuleLoader :
+    public AbilityRuntime::ExtensionModuleLoader, public Singleton<AgentUIExtensionModuleLoader> {
+    DECLARE_SINGLETON(AgentUIExtensionModuleLoader);
+
 public:
-    AgentUIExtensionModuleLoader();
-    virtual ~AgentUIExtensionModuleLoader();
-
     /**
-     * @brief Create an Extension instance based on the runtime.
+     * @brief Create Extension.
      *
-     * @param runtime The runtime instance used to create the extension.
-     * @return Returns a pointer to the created Extension instance.
+     * @param runtime The runtime.
+     * @return The Extension instance.
      */
-    AbilityRuntime::Extension *Create(
-        const std::unique_ptr<AbilityRuntime::Runtime> &runtime) const override;
+    AbilityRuntime::Extension *Create(const std::unique_ptr<AbilityRuntime::Runtime> &runtime) const override;
 
     /**
-     * @brief Get the parameters for the Agent UI Extension module.
+     * @brief Get the Params object
      *
-     * @return Returns a map containing the module parameters including type and name.
+     * @return std::map<std::string, std::string> The map of extension type and extension name.
      */
     std::map<std::string, std::string> GetParams() override;
 };
-
 } // namespace AgentRuntime
 } // namespace OHOS
 #endif // OHOS_AGENT_RUNTIME_AGENT_UI_EXTENSION_MODULE_LOADER_H
