@@ -404,11 +404,6 @@ public:
     {
         return 0;
     }
-
-    virtual int32_t DeleteUserDir(const std::string &path) override
-    {
-        return 0;
-    }
 };
 
 } // namespace StorageManager
