@@ -204,8 +204,8 @@ constexpr const char* UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExten
 // Share picker params
 constexpr char SHARE_PICKER_DIALOG_BUNDLE_NAME_KEY[] = "const.system.sharePicker.bundleName";
 constexpr char SHARE_PICKER_DIALOG_ABILITY_NAME_KEY[] = "const.system.sharePicker.abilityName";
-constexpr char SHARE_PICKER_DIALOG_DEFAULY_BUNDLE_NAME[] = "com.ohos.sharepickerdialog";
-constexpr char SHARE_PICKER_DIALOG_DEFAULY_ABILITY_NAME[] = "PickerDialog";
+constexpr char SHARE_PICKER_DIALOG_DEFAULT_BUNDLE_NAME[] = "com.ohos.sharepickerdialog";
+constexpr char SHARE_PICKER_DIALOG_DEFAULT_ABILITY_NAME[] = "PickerDialog";
 constexpr char TOKEN_KEY[] = "ohos.ability.params.token";
 // Developer mode param
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
@@ -249,7 +249,7 @@ constexpr const char* EXPECT_WINDOW_MODE = "expectWindowMode";
 constexpr const char* AUTO_STARTUP_READY = "persist.sys.abilityms.if_startup_ready";
 
 constexpr char ASSERT_FAULT_DETAIL[] = "assertFaultDialogDetail";
-constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
+constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persist.sys.abilityms.support_assert_fault_dialog";
 constexpr const char* ABILITYMS_ENABLE_UISERVICE = "const.abilityms.enable_uiservice";
 
 constexpr const char* DLP_PARAMS_SECURITY_FLAG = "ohos.dlp.params.securityFlag";
@@ -1687,7 +1687,7 @@ int AbilityManagerService::StartAbilityByConnectManager(const Want& want, const 
     auto connectManager = GetConnectManagerByUserId(validUserId, abilityInfo.extensionAbilityType);
     if (!connectManager) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "connectManager null userId=%{public}d", validUserId);
-        return CONNECT_MAMAGER_NOT_FIND_BY_USERID;
+        return CONNECT_MANAGER_NOT_FIND_BY_USERID;
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start service or extension, name is %{public}s", abilityInfo.name.c_str());
     InsightIntentExecuteParam::RemoveInsightIntent(const_cast<Want &>(want));
@@ -3782,7 +3782,7 @@ int AbilityManagerService::PreloadUIExtensionAbilityInner(
     if (connectManager == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "connectManager null, userId:%{public}d", validUserId);
         eventInfo.errReason = "get connectManager by userId failed";
-        SendExtensionReport(eventInfo, CONNECT_MAMAGER_NOT_FIND_BY_USERID);
+        SendExtensionReport(eventInfo, CONNECT_MANAGER_NOT_FIND_BY_USERID);
         return ERR_INVALID_VALUE;
     }
     result = connectManager->PreloadUIExtensionAbilityLocked(abilityRequest, hostBundleName, hostPid);
@@ -4061,7 +4061,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
         if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
             eventInfo.errReason = "get connectManager by userId failed";
             eventInfo.appIndex = appIndex;
-            SendExtensionReport(eventInfo, CONNECT_MAMAGER_NOT_FIND_BY_USERID, true);
+            SendExtensionReport(eventInfo, CONNECT_MANAGER_NOT_FIND_BY_USERID, true);
         } else {
             eventInfo.errCode = ERR_INVALID_VALUE;
             EventReport::SendExtensionEvent(EventName::START_EXTENSION_ERROR, HISYSEVENT_FAULT, eventInfo);
@@ -4116,7 +4116,7 @@ void AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionInfo
         WantParams &parameters = const_cast<WantParams &>(extensionSessionInfo->want.GetParams());
         parameters.SetParam(UIEXTENSION_TYPE_KEY, AAFwk::String::Box("sys/commonUI"));
         if (!JudgeSystemParamsForPicker(parameters)) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "parames include systemApi but not a systemAPP");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "params include systemApi but not a systemAPP");
             extensionSessionInfo->want.RemoveParam(SCREENCONFIG_SCREENMODE);
         }
         extensionSessionInfo->want.SetParams(parameters);
@@ -4159,7 +4159,7 @@ void AbilityManagerService::SetPickerElementNameAndParams(const sptr<SessionInfo
         parameters.SetParam(UIEXTENSION_TYPE_KEY, AAFwk::String::Box(pickerType));
 
         if (!JudgeSystemParamsForPicker(parameters)) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "parames include systemApi but not a systemAPP");
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "params include systemApi but not a systemAPP");
             extensionSessionInfo->want.RemoveParam(SCREENCONFIG_SCREENMODE);
         }
         extensionSessionInfo->want.SetParams(parameters);
@@ -4277,14 +4277,14 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     }
 
     if (InsightIntentExecuteParam::IsInsightIntentExecute(extensionSessionInfo->want)) {
-        auto callerBundlename = InsightIntentGetcallerBundleName();
-        if (callerBundlename.empty()) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "insightIntent get callerBundlename failed");
+        auto callerBundleName = InsightIntentGetcallerBundleName();
+        if (callerBundleName.empty()) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "insightIntent get callerBundleName failed");
         }
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "start uiExtension ability, bundlename: %{public}s", callerBundlename.c_str());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "start uiExtension ability, bundlename: %{public}s", callerBundleName.c_str());
         int32_t result = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateWant(
             extensionSessionInfo->want, AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY,
-            GetValidUserId(userId), callerBundlename);
+            GetValidUserId(userId), callerBundleName);
         if (result != ERR_OK) {
             eventInfo.errReason = "CheckAndUpdateWant error";
             SendExtensionReport(eventInfo, result);
@@ -4423,7 +4423,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     if (!connectManager) {
         TAG_LOGE(AAFwkTag::UI_EXT, "connectManager null userId=%{public}d", validUserId);
         eventInfo.errReason = "get connectManager by userId failed";
-        SendExtensionReport(eventInfo, CONNECT_MAMAGER_NOT_FIND_BY_USERID);
+        SendExtensionReport(eventInfo, CONNECT_MANAGER_NOT_FIND_BY_USERID);
         return ERR_INVALID_VALUE;
     }
     TAG_LOGD(AAFwkTag::UI_EXT, "name:%{public}s", abilityInfo.name.c_str());
@@ -5750,7 +5750,7 @@ int AbilityManagerService::DisconnectLocalAbility(const sptr<IAbilityConnection>
             return ERR_OK;
         }
     }
-    return CONNECT_MAMAGER_NOT_FIND_BY_USERID;
+    return CONNECT_MANAGER_NOT_FIND_BY_USERID;
 }
 
 int32_t AbilityManagerService::HandleExtensionConnectionByUserId(sptr<IAbilityConnection> connect, int32_t userId,
@@ -11451,9 +11451,9 @@ int32_t AbilityManagerService::ShowPickerDialog(
 {
     AAFwk::Want newWant = want;
     std::string sharePickerBundleName =
-        OHOS::system::GetParameter(SHARE_PICKER_DIALOG_BUNDLE_NAME_KEY, SHARE_PICKER_DIALOG_DEFAULY_BUNDLE_NAME);
+        OHOS::system::GetParameter(SHARE_PICKER_DIALOG_BUNDLE_NAME_KEY, SHARE_PICKER_DIALOG_DEFAULT_BUNDLE_NAME);
     std::string sharePickerAbilityName =
-        OHOS::system::GetParameter(SHARE_PICKER_DIALOG_ABILITY_NAME_KEY, SHARE_PICKER_DIALOG_DEFAULY_ABILITY_NAME);
+        OHOS::system::GetParameter(SHARE_PICKER_DIALOG_ABILITY_NAME_KEY, SHARE_PICKER_DIALOG_DEFAULT_ABILITY_NAME);
     newWant.SetElementName(sharePickerBundleName, sharePickerAbilityName);
     newWant.SetParam(TOKEN_KEY, callerToken);
     // note: clear actions
@@ -13240,11 +13240,11 @@ std::string AbilityManagerService::InsightIntentGetcallerBundleName()
     TAG_LOGD(AAFwkTag::ABILITYMGR, "InsightIntentGetcallerBundleName called");
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     auto bundleMgr = AbilityUtil::GetBundleManagerHelper();
-    std::string callerBundlename;
+    std::string callerBundleName;
     if (bundleMgr != nullptr) {
-       IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, callerBundlename));
+       IN_PROCESS_CALL(bundleMgr->GetNameForUid(callerUid, callerBundleName));
     }
-    return callerBundlename;
+    return callerBundleName;
 }
 
 int32_t AbilityManagerService::StartAbilityWithServiceMatch(const InsightIntentExecuteParam &param, int32_t userId, int requestCode)
@@ -13284,9 +13284,9 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (param.isServiceMatch_) {
         return StartAbilityWithServiceMatch(param);
     }
-    auto callerBundlename = InsightIntentGetcallerBundleName();
-    if (callerBundlename.empty()) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "callerBundlename is null");
+    auto callerBundleName = InsightIntentGetcallerBundleName();
+    if (callerBundleName.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "callerBundleName is null");
     }
 
     if(IsCrossUserCall(param.userId_)) {
@@ -13307,7 +13307,7 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
         (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION);
     auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(key, callerToken,
-        paramPtr, callerBundlename, ignoreAbilityName);
+        paramPtr, callerBundleName, ignoreAbilityName);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -15900,7 +15900,7 @@ int32_t AbilityManagerService::StartAbilityWithWait(Want &want, sptr<IAbilitySta
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not shell call");
         return ERR_PERMISSION_DENIED;
     }
-    // 1.regist observer
+    // 1.register observer
     int32_t result = AbilityStartWithWaitObserverManager::GetInstance().RegisterObserver(want, observer);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "register ability start with wait observer fail, result:%{public}d", result);
@@ -15921,7 +15921,7 @@ int32_t AbilityManagerService::CheckStartPlugin(const Want& want, sptr<IRemoteOb
         return ERR_OK;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "start plugin ability");
-    // bundleName, abilityName, moduoleName not empty
+    // bundleName, abilityName, moduleName not empty
     auto element = want.GetElement();
     if (element.GetBundleName().empty() || element.GetAbilityName().empty() || element.GetModuleName().empty()) {
         return INVALID_PARAMETERS_ERR;
@@ -15951,7 +15951,7 @@ int32_t AbilityManagerService::GetAllInsightIntentInfo(
     int32_t userId)
 {
     TAG_LOGI(AAFwkTag::INTENT, "GetAllInsightIntentInfo");
-    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckGetInsightIntenInfoPermission();
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckGetInsightIntentInfoPermission();
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::INTENT, "not system app or permission denied");
         return ret;
@@ -16040,7 +16040,7 @@ int32_t AbilityManagerService::GetInsightIntentInfoByBundleName(
     int32_t userId)
 {
     TAG_LOGI(AAFwkTag::INTENT, "GetInsightIntentInfoByBundleName");
-    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckGetInsightIntenInfoPermission();
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckGetInsightIntentInfoPermission();
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::INTENT, "not system app or permission denied");
         return ret;
@@ -16133,7 +16133,7 @@ int32_t AbilityManagerService::GetInsightIntentInfoByIntentName(
     int32_t userId)
 {
     TAG_LOGI(AAFwkTag::INTENT, "GetInsightIntentInfoByIntentName");
-    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckGetInsightIntenInfoPermission();
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckGetInsightIntentInfoPermission();
     if (ret != ERR_OK) {
         TAG_LOGD(AAFwkTag::INTENT, "not system app or permission denied");
         return ret;
@@ -16354,7 +16354,7 @@ int32_t AbilityManagerService::HandleExtensionAbility(sptr<IAbilityConnection> c
             return ERR_OK;
         }
     }
-    return CONNECT_MAMAGER_NOT_FIND_BY_USERID;
+    return CONNECT_MANAGER_NOT_FIND_BY_USERID;
 }
 
 int AbilityManagerService::SuspendExtensionAbility(sptr<IAbilityConnection> connect)
