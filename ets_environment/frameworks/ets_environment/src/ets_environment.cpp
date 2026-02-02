@@ -612,6 +612,7 @@ bool ETSEnvironment::FinishPreload(napi_env jsEnv) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed: ANI env nullptr");
         return false;
     }
+    TAG_LOGE(AAFwkTag::ETSRUNTIME, "FinishPreload called");
     ark::ets::ETSAni::Prefork(env, reinterpret_cast<void *>(jsEnv));
     return true;
 }
@@ -621,6 +622,7 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
     const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner)
 {
+    TAG_LOGE(AAFwkTag::ETSRUNTIME, "PostFork called");
     InitEventHandler(eventRunner);
 
     std::vector<ani_option> options;
