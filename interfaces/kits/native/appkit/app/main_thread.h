@@ -87,6 +87,7 @@ struct ProcessExitInfo {
     std::string summary;
     std::string appRunningId;
     std::string processName;
+    std::string version;
     int32_t pid;
     bool foreground;
     bool isUncatchable;

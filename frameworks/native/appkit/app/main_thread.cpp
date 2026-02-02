@@ -176,6 +176,7 @@ constexpr char EVENT_KEY_THREAD_NAME[] = "THREAD_NAME";
 constexpr char EVENT_KEY_APP_RUNNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
 constexpr char EVENT_KEY_PROCESS_RSS_MEMINFO[] = "PROCESS_RSS_MEMINFO";
 constexpr char EVENT_KEY_PROCESS_LIFETIME[] = "PROCESS_LIFETIME";
+constexpr char EVENT_KEY_FOREGROUND[] = "FOREGROUND";
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
 constexpr const char* INHERIT_PLUGIN_NAMESPACE = "persist.sys.abilityms.inherit_plugin_namespace";
@@ -2079,12 +2080,14 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
+        bool foreground = (appThread->applicationImpl_ && appThread->applicationImpl_->GetState() ==
+            ApplicationImpl::APP_STATE_FOREGROUND) ? true : false;
 
         time_t timet;
         time(&timet);
         std::string lifeTime = GetProcessLifeCycleByPid(pid);
         if (!ApplicationDataManager::jsErrorHasReport_.exchange(true)) {
-            auto hisyseventReport = std::make_shared<HisyseventReport>(12);
+            auto hisyseventReport = std::make_shared<HisyseventReport>(13);
             hisyseventReport->InsertParam(EVENT_KEY_PACKAGE_NAME, bundleName);
             hisyseventReport->InsertParam(EVENT_KEY_VERSION, std::to_string(versionCode));
             hisyseventReport->InsertParam(EVENT_KEY_TYPE, JSCRASH_TYPE);
@@ -2098,11 +2101,12 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
                 std::to_string(DumpProcessHelper::GetProcRssMemInfo()));
             hisyseventReport->InsertParam(EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
             hisyseventReport->InsertParam(EVENT_KEY_PROCESS_LIFETIME, lifeTime);
+            hisyseventReport->InsertParam(EVENT_KEY_FOREGROUND, foreground);
             int result = hisyseventReport->Report("AAFWK", "JS_ERROR", HISYSEVENT_FAULT);
             TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,JS_ERROR],"
-                " packageName=%{public}s, pid=%{public}d, appRunningId=%{public}s, threadName=%{public}s,"
-                " isUncatchable=%{public}d", result, bundleName.c_str(), pid, appRunningId.c_str(),
-                DumpProcessHelper::GetThreadName().c_str(), isUncatchable);
+                " packageName=%{public}s, pid=%{public}d, appRunningUniqueId=%{public}s, threadName=%{public}s,"
+                " isUncatchable=%{public}d, foreground=%{public}d", result, bundleName.c_str(), pid,
+                appRunningId.c_str(), DumpProcessHelper::GetThreadName().c_str(), isUncatchable, foreground);
             ApplicationDataManager::jsErrorEnv_.store(env, std::memory_order_relaxed);
         }
 
@@ -2120,16 +2124,11 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
             return;
         }
 
-        if (ApplicationDataManager::jsErrorEnv_.load(std::memory_order_relaxed) != env) {
-            TAG_LOGW(AAFwkTag::APPKIT, "Current thread does not need to exit the process");
-            return;
+        if (ApplicationDataManager::jsErrorEnv_.load(std::memory_order_relaxed) == env) {
+            ProcessExitInfo info = {bundleName, errorObject.name, summary, appRunningId, processName,
+                std::to_string(versionCode), pid, foreground, isUncatchable};
+            ProcessExit(info);
         }
-
-        bool foreground = (appThread->applicationImpl_ && appThread->applicationImpl_->GetState() ==
-            ApplicationImpl::APP_STATE_FOREGROUND) ? true : false;
-        ProcessExitInfo info = {bundleName, errorObject.name, summary, appRunningId, processName, pid, foreground,
-            isUncatchable};
-        ProcessExit(info);
     };
 }
 
@@ -2149,7 +2148,7 @@ void MainThread::ProcessExit(const ProcessExitInfo& info)
     TAG_LOGE(AAFwkTag::APPKIT, "\n%{public}s is about to exit due to RuntimeError\nError type:%{public}s\n"
         "%{public}s", info.bundleName.c_str(), info.errorObjectName.c_str(), info.summary.c_str());
     std::string eventKeyReason = "JsError";
-    auto hisyseventReport = std::make_shared<HisyseventReport>(12);
+    auto hisyseventReport = std::make_shared<HisyseventReport>(8);
     hisyseventReport->InsertParam("PID", info.pid);
     hisyseventReport->InsertParam("PROCESS_NAME", info.processName);
     hisyseventReport->InsertParam(EVENT_KEY_APP_RUNNING_UNIQUE_ID, info.appRunningId);
@@ -2157,10 +2156,12 @@ void MainThread::ProcessExit(const ProcessExitInfo& info)
     hisyseventReport->InsertParam("MSG", KILL_REASON);
     hisyseventReport->InsertParam("FOREGROUND", info.foreground);
     hisyseventReport->InsertParam("IS_UNCATCHABLE", info.isUncatchable);
+    hisyseventReport->InsertParam(EVENT_KEY_VERSION, info.version);
     int result = hisyseventReport->Report("FRAMEWORK", "PROCESS_KILL", HISYSEVENT_FAULT);
     TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL],"
-        " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
-        result, info.pid, info.processName.c_str(), KILL_REASON, info.foreground, info.isUncatchable);
+        " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d,"
+        " version=%{public}s, appRunningUniqueId=%{public}s", result, info.pid, info.processName.c_str(), KILL_REASON,
+        info.foreground, info.isUncatchable, info.version.c_str(), info.appRunningId.c_str());
     _exit(JS_ERROR_EXIT);
 }
 
