@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2025 Huawei Device Co., Ltd.
+* Copyright (c) 2026 Huawei Device Co., Ltd.
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
 * You may obtain a copy of the License at
@@ -13,33 +13,24 @@
 * limitations under the License.
 */
 
-#ifndef OHOS_ABILITY_RUNTIME_POLICY_INFO_H
-#define OHOS_ABILITY_RUNTIME_POLICY_INFO_H
+#ifndef OHOS_ABILITY_RUNTIME_FILE_URI_DISTRIBUTION_UTILS_MOCK_H
+#define OHOS_ABILITY_RUNTIME_FILE_URI_DISTRIBUTION_UTILS_MOCK_H
 
 #include <string>
+#include <cstdint>
+#include "oh_mock_utils.h"
 
 namespace OHOS {
 namespace AAFwk {
 
-typedef enum PolicyType {
-    UNKNOWN = 0,
-    SELF_PATH = 1,
-    AUTHORIZATION_PATH = 2,
-    OTHERS_PATH = 3,
-} PolicyType;
-
-struct PolicyInfo final {
-    std::string path;
-    uint64_t mode;
-    PolicyType type = PolicyType::UNKNOWN;
-};
-
-struct SetInfo final {
+class FUDUtils {
 public:
-    std::string bundleName;
-    uint64_t timestamp;
-    SetInfo() : bundleName(""), timestamp(0) {}
+    // Mock GetAlterableBundleNameByTokenId - static method with output parameter
+    OH_MOCK_METHOD_WITH_DECORATOR_AND_OUTPUT_1(static, bool, bundleName, FUDUtils,
+        GetAlterableBundleNameByTokenId, uint32_t, std::string&);
 };
-} // AAFwk
-} // OHOS
-#endif // OHOS_ABILITY_RUNTIME_POLICY_INFO_H
+
+}  // namespace AAFwk
+}  // namespace OHOS
+
+#endif  // OHOS_ABILITY_RUNTIME_FILE_URI_DISTRIBUTION_UTILS_MOCK_H
