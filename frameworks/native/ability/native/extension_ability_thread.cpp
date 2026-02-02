@@ -69,7 +69,6 @@ const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_
 #ifdef SUPPORT_GRAPHICS
     { AppExecFwk::ExtensionAbilityType::SHARE, SHARE_EXTENSION },
     { AppExecFwk::ExtensionAbilityType::ACTION, ACTION_EXTENSION },
-    { AppExecFwk::ExtensionAbilityType::AGENT_UI, AGENTUI_EXTENSION },
 #ifdef SUPPORT_AUTO_FILL
     { AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD, AUTO_FILL_EXTENSION },
     { AppExecFwk::ExtensionAbilityType::AUTO_FILL_SMART, AUTO_FILL_EXTENSION },
