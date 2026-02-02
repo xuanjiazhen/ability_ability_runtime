@@ -6310,6 +6310,28 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BatchNotifySCBPendingActivations_0008, T
 }
 
 /**
+ * @tc.name: BatchNotifySCBPendingActivationsByCaller_0001
+ * @tc.desc: normal callerAbilityRecord nullptr
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, BatchNotifySCBPendingActivationsByCaller_0001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIAbilityLifecycleManagerTest BatchNotifySCBPendingActivationsByCaller_0001 start");
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    EXPECT_NE(mgr, nullptr);
+
+    int32_t requestId = 1;
+    std::vector<sptr<SessionInfo>> sessionInfoList;
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfoList.emplace_back(requestId, sessionInfo);
+
+    int32_t ret = mgr->BatchNotifySCBPendingActivationsByCaller(nullptr, sessionInfoList);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "UIAbilityLifecycleManagerTest BatchNotifySCBPendingActivationsByCaller_0001 end");
+}
+
+/**
  * @tc.name: HandleAbilitiesRequestDone_0001
  * @tc.desc: requestListId not found
  */
