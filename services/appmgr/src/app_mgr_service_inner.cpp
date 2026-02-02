@@ -6886,6 +6886,9 @@ void AppMgrServiceInner::AttachRenderProcess(const pid_t pid, const sptr<IRender
         TAG_LOGE(AAFwkTag::APPMGR, "invalid render process pid:%{public}d", pid);
         return;
     }
+    if (eventHandler_) {
+        eventHandler_->RemoveEvent(AMSEventHandler::RENDER_ATTACH_TIMEOUT_MSG, pid);
+    }
     if (!scheduler) {
         TAG_LOGE(AAFwkTag::APPMGR, "render scheduler null");
         return;
@@ -6907,6 +6910,7 @@ void AppMgrServiceInner::AttachRenderProcess(const pid_t pid, const sptr<IRender
         TAG_LOGE(AAFwkTag::APPMGR, "no renderRecord, pid:%{public}d", pid);
         return;
     }
+    CheckRenderAttachTimeout(renderRecord);
 
     sptr<AppDeathRecipient> appDeathRecipient = new AppDeathRecipient();
     appDeathRecipient->SetTaskHandler(taskHandler_);
@@ -7076,6 +7080,19 @@ void AppMgrServiceInner::SetRenderStartMsg(AppSpawnStartMsg &startMsg, std::shar
         startMsg.procName += RENDER_PROCESS_NAME;
         startMsg.processType = RENDER_PROCESS_TYPE;
     }
+
+    // Add fds to startMsg.fds so appspawn can properly inherit them to child process
+    int32_t ipcFd = renderRecord->GetIpcFd();
+    int32_t sharedFd = renderRecord->GetSharedFd();
+    int32_t crashFd = renderRecord->GetCrashFd();
+
+    startMsg.fds["ipc-fd"] = ipcFd;
+    startMsg.fds["shared-fd"] = sharedFd;
+    startMsg.fds["crash-fd"] = crashFd;
+
+    TAG_LOGI(AAFwkTag::APPMGR, "SetRenderStartMsg: ipcFd=%{public}d, sharedFd=%{public}d, crashFd=%{public}d",
+              ipcFd, sharedFd, crashFd);
+
     startMsg.code = 0; // 0: DEFAULT
 }
 
