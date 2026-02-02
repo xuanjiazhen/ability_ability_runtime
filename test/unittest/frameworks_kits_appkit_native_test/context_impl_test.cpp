@@ -1987,5 +1987,686 @@ HWTEST_F(ContextImplTest, RegisterGetAllUIAbilitiesCallback_001, Function | Medi
     GTEST_LOG_(INFO) << "RegisterGetAllUIAbilitiesCallback_001 end";
 }
 #endif
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetBundleNameWithContext_001
+ * @tc.name: GetBundleNameWithContext
+ * @tc.desc: Get bundle name with context
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetBundleNameWithContext_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleNameWithContext_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string bundleName = "com.ohos.demo";
+    auto result = contextImpl_->GetBundleNameWithContext();
+    EXPECT_EQ(result, bundleName);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleNameWithContext_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001
+ * @tc.name: GetDatabaseDirWithCheck
+ * @tc.desc: Get database dir with check
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string databaseDir;
+    int32_t result = contextImpl_->GetDatabaseDirWithCheck(true, databaseDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(databaseDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_001
+ * @tc.name: GetGroupDatabaseDirWithCheck
+ * @tc.desc: Get group database dir with check
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string groupId = "groupIdtest";
+    std::string databaseDir;
+    int32_t result = contextImpl_->GetGroupDatabaseDirWithCheck(groupId, true, databaseDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(databaseDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDatabaseDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetSystemDatabaseDir_001
+ * @tc.name: GetSystemDatabaseDir
+ * @tc.desc: Get system database dir
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetSystemDatabaseDir_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetSystemDatabaseDir_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string systemDatabaseDir;
+    int32_t result = contextImpl_->GetSystemDatabaseDir("", true, systemDatabaseDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(systemDatabaseDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetSystemDatabaseDir_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetPreferencesDirWithCheck_001
+ * @tc.name: GetPreferencesDirWithCheck
+ * @tc.desc: Get preferences dir with check
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetPreferencesDirWithCheck_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPreferencesDirWithCheck_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string preferencesDir;
+    int32_t result = contextImpl_->GetPreferencesDirWithCheck(true, preferencesDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(preferencesDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPreferencesDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_StringToUint32_001
+ * @tc.name: StringToUint32
+ * @tc.desc: StringToUint32 with valid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_StringToUint32_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_001 start";
+    std::string str = "12345";
+    uint32_t outVal = 0;
+    bool result = AbilityRuntime::StringToUint32(str, outVal);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(outVal, 12345);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_StringToUint32_002
+ * @tc.name: StringToUint32
+ * @tc.desc: StringToUint32 with empty input
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_StringToUint32_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_002 start";
+    std::string str = "";
+    uint32_t outVal = 0;
+    bool result = AbilityRuntime::StringToUint32(str, outVal);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_StringToUint32_003
+ * @tc.name: StringToUint32
+ * @tc.desc: StringToUint32 with invalid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_StringToUint32_003, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_003 start";
+    std::string str = "abc123";
+    uint32_t outVal = 0;
+    bool result = AbilityRuntime::StringToUint32(str, outVal);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_003 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetGroupDirWithCheck_001
+ * @tc.name: GetGroupDirWithCheck
+ * @tc.desc: GetGroupDirWithCheck with valid groupId
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetGroupDirWithCheck_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string groupDir;
+    std::string groupId = "test_group";
+    int32_t result = contextImpl_->GetGroupDirWithCheck(groupId, true, groupDir);
+    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetGroupDirWithCheck_002
+ * @tc.name: GetGroupDirWithCheck
+ * @tc.desc: GetGroupDirWithCheck with empty groupId
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetGroupDirWithCheck_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string groupDir;
+    std::string groupId = "";
+    int32_t result = contextImpl_->GetGroupDirWithCheck(groupId, true, groupDir);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_IsModuleExist_001
+ * @tc.name: IsModuleExist
+ * @tc.desc: IsModuleExist with valid moduleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_IsModuleExist_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_IsModuleExist_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string moduleName = "test_module";
+    bool result = contextImpl_->IsModuleExist(moduleName);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_IsModuleExist_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_IsModuleExist_002
+ * @tc.name: IsModuleExist
+ * @tc.desc: IsModuleExist with empty moduleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_IsModuleExist_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_IsModuleExist_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string moduleName = "";
+    bool result = contextImpl_->IsModuleExist(moduleName);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_IsModuleExist_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetResourceDir_001
+ * @tc.name: GetResourceDir
+ * @tc.desc: GetResourceDir with valid moduleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetResourceDir_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetResourceDir_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string moduleName = "test_module";
+    std::string result = contextImpl_->GetResourceDir(moduleName);
+    EXPECT_TRUE(result.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetResourceDir_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetResourceDir_002
+ * @tc.name: GetResourceDir
+ * @tc.desc: GetResourceDir with empty moduleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetResourceDir_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetResourceDir_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string moduleName = "";
+    std::string result = contextImpl_->GetResourceDir(moduleName);
+    EXPECT_TRUE(result.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetResourceDir_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetSystemPreferencesDir_001
+ * @tc.name: GetSystemPreferencesDir
+ * @tc.desc: Get system preferences dir
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetSystemPreferencesDir_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetSystemPreferencesDir_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string systemPreferencesDir;
+    int32_t result = contextImpl_->GetSystemPreferencesDir("", true, systemPreferencesDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(systemPreferencesDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetSystemPreferencesDir_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetGroupDirWithCheck_001
+ * @tc.name: GetGroupDirWithCheck
+ * @tc.desc: Get group dir with check
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetGroupDirWithCheck_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string groupId = "groupIdtest";
+    std::string groupDir;
+    int32_t result = contextImpl_->GetGroupDirWithCheck(groupId, true, groupDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(groupDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_IsModuleExist_001
+ * @tc.name: IsModuleExist
+ * @tc.desc: Is module exist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_IsModuleExist_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_IsModuleExist_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string moduleName = "entry";
+    bool result = contextImpl_->IsModuleExist(moduleName);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_IsModuleExist_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetAllTempBase_001
+ * @tc.name: GetAllTempBase
+ * @tc.desc: Get all temp base
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetAllTempBase_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetAllTempBase_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::vector<std::string> tempBases;
+    contextImpl_->GetAllTempBase(tempBases);
+    EXPECT_FALSE(tempBases.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetAllTempBase_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreateSystemHspModuleResourceManager_001
+ * @tc.name: CreateSystemHspModuleResourceManager
+ * @tc.desc: Create system hsp module resource manager
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreateSystemHspModuleResourceManager_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateSystemHspModuleResourceManager_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string bundleName = "com.ohos.system.hsp";
+    std::string moduleName = "system_module";
+    std::shared_ptr<Global::Resource::ResourceManager> resourceManager;
+    int32_t result = contextImpl_->CreateSystemHspModuleResourceManager(bundleName, moduleName, resourceManager);
+    EXPECT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreateSystemHspModuleResourceManager_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_WrapContext_001
+ * @tc.name: WrapContext
+ * @tc.desc: Wrap context
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_WrapContext_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_WrapContext_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto context = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(context, nullptr);
+    auto result = contextImpl_->WrapContext(context);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_WrapContext_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetPluginInfo_001
+ * @tc.name: GetPluginInfo
+ * @tc.desc: Get plugin info
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetPluginInfo_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string pluginName = "com.ohos.plugin";
+    std::unique_ptr<AppExecFwk::PluginInfo> pluginInfo = std::make_unique<AppExecFwk::PluginInfo>();
+    bool result = contextImpl_->GetPluginInfo(pluginName, *pluginInfo);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_CreatePluginContext_001
+ * @tc.name: CreatePluginContext
+ * @tc.desc: Create plugin context
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreatePluginContext_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string pluginName = "com.ohos.plugin";
+    auto result = contextImpl_->CreatePluginContext(pluginName);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_StringToUint32_001
+ * @tc.name: StringToUint32
+ * @tc.desc: StringToUint32 test with valid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_StringToUint32_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_001 start";
+    std::string str = "12345";
+    uint32_t outVal = 0;
+    bool result = StringToUint32(str, outVal);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(outVal, 12345);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_StringToUint32_002
+ * @tc.name: StringToUint32
+ * @tc.desc: StringToUint32 test with empty input
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_StringToUint32_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_002 start";
+    std::string str = "";
+    uint32_t outVal = 0;
+    bool result = StringToUint32(str, outVal);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_StringToUint32_003
+ * @tc.name: StringToUint32
+ * @tc.desc: StringToUint32 test with invalid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_StringToUint32_003, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_003 start";
+    std::string str = "123abc";
+    uint32_t outVal = 0;
+    bool result = StringToUint32(str, outVal);
+    EXPECT_FALSE(result);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_003 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetBundleName_001
+ * @tc.name: GetBundleName
+ * @tc.desc: GetBundleName test with applicationInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetBundleName_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string bundleName = "com.ohos.demo";
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    appInfo->bundleName = bundleName;
+    contextImpl_->SetApplicationInfo(appInfo);
+    std::string result = contextImpl_->GetBundleName();
+    EXPECT_EQ(result, bundleName);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetBundleName_002
+ * @tc.name: GetBundleName
+ * @tc.desc: GetBundleName test without applicationInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetBundleName_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    // Create a new ContextImpl without applicationInfo
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    std::string result = contextImpl->GetBundleName();
+    EXPECT_TRUE(result.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetBundleName_003
+ * @tc.name: GetBundleName
+ * @tc.desc: GetBundleName test with parentContext
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetBundleName_003, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_003 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    // Create a parent context with applicationInfo
+    auto parentContext = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(parentContext, nullptr);
+    std::string parentBundleName = "com.ohos.parent";
+    auto parentAppInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    parentAppInfo->bundleName = parentBundleName;
+    parentContext->SetApplicationInfo(parentAppInfo);
+    
+    // Create a child context without applicationInfo but with parentContext
+    auto childContext = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(childContext, nullptr);
+    childContext->SetParentContext(parentContext);
+    
+    std::string result = childContext->GetBundleName();
+    EXPECT_EQ(result, parentBundleName);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleName_003 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetBundleNameWithContext_001
+ * @tc.name: GetBundleNameWithContext
+ * @tc.desc: GetBundleNameWithContext test with inputContext
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetBundleNameWithContext_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleNameWithContext_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    // Create an input context with applicationInfo
+    auto inputContext = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(inputContext, nullptr);
+    std::string inputBundleName = "com.ohos.input";
+    auto inputAppInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    inputAppInfo->bundleName = inputBundleName;
+    inputContext->SetApplicationInfo(inputAppInfo);
+    
+    std::string result = contextImpl_->GetBundleNameWithContext(inputContext);
+    EXPECT_EQ(result, inputBundleName);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleNameWithContext_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetBundleNameWithContext_002
+ * @tc.name: GetBundleNameWithContext
+ * @tc.desc: GetBundleNameWithContext test without inputContext
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetBundleNameWithContext_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleNameWithContext_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string bundleName = "com.ohos.demo";
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    appInfo->bundleName = bundleName;
+    contextImpl_->SetApplicationInfo(appInfo);
+    
+    std::string result = contextImpl_->GetBundleNameWithContext(nullptr);
+    EXPECT_EQ(result, bundleName);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetBundleNameWithContext_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001
+ * @tc.name: GetDatabaseDirWithCheck
+ * @tc.desc: GetDatabaseDirWithCheck test for non-system app
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string databaseDir;
+    int32_t result = contextImpl_->GetDatabaseDirWithCheck(true, databaseDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(databaseDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_002
+ * @tc.name: GetDatabaseDirWithCheck
+ * @tc.desc: GetDatabaseDirWithCheck test for system app
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    // Set as system app
+    contextImpl->SetFlags(AbilityRuntime::ContextImpl::CONTEXT_CREATE_BY_SYSTEM_APP);
+    std::string bundleName = "com.ohos.system";
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    appInfo->bundleName = bundleName;
+    contextImpl->SetApplicationInfo(appInfo);
+    
+    std::string databaseDir;
+    int32_t result = contextImpl->GetDatabaseDirWithCheck(true, databaseDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(databaseDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_003
+ * @tc.name: GetDatabaseDirWithCheck
+ * @tc.desc: GetDatabaseDirWithCheck test with parent context
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_003, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_003 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto parentContext = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(parentContext, nullptr);
+    
+    auto childContext = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(childContext, nullptr);
+    childContext->SetParentContext(parentContext);
+    
+    std::string bundleName = "com.ohos.demo";
+    auto appInfo = std::make_shared<AppExecFwk::ApplicationInfo>();
+    appInfo->bundleName = bundleName;
+    childContext->SetApplicationInfo(appInfo);
+    
+    // Set HapModuleInfo
+    auto hapModuleInfo = std::make_shared<AppExecFwk::HapModuleInfo>();
+    hapModuleInfo->moduleName = "entry";
+    childContext->InitHapModuleInfo(*hapModuleInfo);
+    
+    std::string databaseDir;
+    int32_t result = childContext->GetDatabaseDirWithCheck(true, databaseDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(databaseDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetDatabaseDirWithCheck_003 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetSystemDatabaseDir_001
+ * @tc.name: GetSystemDatabaseDir
+ * @tc.desc: GetSystemDatabaseDir test with empty groupId
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetSystemDatabaseDir_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetSystemDatabaseDir_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string systemDatabaseDir;
+    int32_t result = contextImpl_->GetSystemDatabaseDir("", true, systemDatabaseDir);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_FALSE(systemDatabaseDir.empty());
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetSystemDatabaseDir_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetSystemDatabaseDir_002
+ * @tc.name: GetSystemDatabaseDir
+ * @tc.desc: GetSystemDatabaseDir test with non-empty groupId
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetSystemDatabaseDir_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetSystemDatabaseDir_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    std::string systemDatabaseDir;
+    std::string groupId = "groupIdtest";
+    int32_t result = contextImpl_->GetSystemDatabaseDir(groupId, true, systemDatabaseDir);
+    // Expect error because bundleMgr_ is not initialized
+    EXPECT_NE(result, ERR_OK);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetSystemDatabaseDir_002 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetGroupDirWithCheck_001
+ * @tc.name: GetGroupDirWithCheck
+ * @tc.desc: GetGroupDirWithCheck test with el1 level
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetGroupDirWithCheck_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_001 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    // Set to el1 level
+    contextImpl->SwitchArea(0);
+    
+    std::string groupId = "groupIdtest";
+    std::string groupDir;
+    int32_t result = contextImpl->GetGroupDirWithCheck(groupId, true, groupDir);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_001 end";
+}
+
+/**
+ * @tc.number: AppExecFwk_ContextImpl_GetGroupDirWithCheck_002
+ * @tc.name: GetGroupDirWithCheck
+ * @tc.desc: GetGroupDirWithCheck test with valid input
+ * @tc.type: FUNC
+ */
+HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetGroupDirWithCheck_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_002 start";
+    ASSERT_NE(contextImpl_, nullptr);
+    auto contextImpl = std::make_shared<AbilityRuntime::ContextImpl>();
+    ASSERT_NE(contextImpl, nullptr);
+    // Set to el2 level
+    contextImpl->SwitchArea(1);
+    
+    std::string groupId = "groupIdtest";
+    std::string groupDir;
+    int32_t result = contextImpl->GetGroupDirWithCheck(groupId, true, groupDir);
+    // Expect error because bundleMgr_ is not initialized
+    EXPECT_NE(result, ERR_OK);
+    GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetGroupDirWithCheck_002 end";
+}
 }  // namespace AppExecFwk
 }
