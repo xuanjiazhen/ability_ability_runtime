@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -38,7 +38,6 @@ constexpr static char UI_EXTENSION[] = "UIExtensionAbility";
 constexpr static char CUSTOM_EXTENSION[] = "ExtensionAbility";
 constexpr static char USER_AUTH_EXTENSION[] = "UserAuthExtensionAbility";
 constexpr static char ACTION_EXTENSION[] = "ActionExtensionAbility";
-constexpr static char AGENTUI_EXTENSION[] = "AgentUIExtensionAbility";
 constexpr static char SHARE_EXTENSION[] = "ShareExtensionAbility";
 #ifdef SUPPORT_AUTO_FILL
 constexpr static char AUTO_FILL_EXTENSION[] = "AutoFillExtensionAbility";
