@@ -164,10 +164,9 @@ bool FUDUtils::CheckIsSystemAppByBundleName(std::string &bundleName)
         TAG_LOGW(AAFwkTag::URIPERMMGR, "GetApplicationInfo failed");
         return false;
     }
-    auto isSystemApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(appInfo.accessTokenIdEx);
     TAG_LOGD(AAFwkTag::URIPERMMGR, "BundleName:%{public}s, isSystemApp:%{public}d", bundleName.c_str(),
-             static_cast<int32_t>(isSystemApp));
-    return isSystemApp;
+        static_cast<int32_t>(appInfo.isSystemApp));
+    return appInfo.isSystemApp;
 }
 
 bool FUDUtils::GetBundleApiTargetVersion(const std::string &bundleName, int32_t &targetApiVersion)
