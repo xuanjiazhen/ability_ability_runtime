@@ -801,12 +801,12 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbilityEmbed
     data.WriteBool(false);
     data.WriteInt32(USER_ID);
 
-    int res = stub_->OnRemoteRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_EXTENSION_ABILITY_EMBEDDED),
-        data, reply, option);
+    int res = stub_->OnRemoteRequest(static_cast<uint32_t>(
+        AbilityManagerInterfaceCode::START_UI_EXTENSION_ABILITY_EMBEDDED), data, reply, option);
     EXPECT_EQ(res, NO_ERROR);
 }
 
-HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbilityConstrainedEmbedded_OnRemote_0100, TestSize.Level1)
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbility0100, TestSize.Level1)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -816,8 +816,8 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionAbilityConst
     data.WriteBool(false);
     data.WriteInt32(USER_ID);
 
-    int res = stub_->OnRemoteRequest(
-        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_EXTENSION_CONSTRAINED_EMBEDDED), data, reply, option);
+    int res = stub_->OnRemoteRequest(static_cast<uint32_t>(
+        AbilityManagerInterfaceCode::START_UI_EXTENSION_CONSTRAINED_EMBEDDED), data, reply, option);
     EXPECT_EQ(res, NO_ERROR);
 }
 
@@ -831,8 +831,8 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIExtensionPreViewEmbed
     data.WriteBool(false);
     data.WriteInt32(USER_ID);
 
-    int res = stub_->OnRemoteRequest(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_EXTENSION_PRE_VIEW_EMBEDDED),
-        data, reply, option);
+    int res = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_UI_EXTENSION_PRE_VIEW_EMBEDDED), data, reply, option);
     EXPECT_EQ(res, NO_ERROR);
 }
 

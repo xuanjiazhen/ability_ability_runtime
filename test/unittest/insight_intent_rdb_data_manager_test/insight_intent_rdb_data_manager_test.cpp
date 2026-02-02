@@ -176,7 +176,7 @@ HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0400, Func
  */
 HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0500, Function | SmallTest | Level1)
 {
-    static constexpr const char INVALID_TABLE_NAME[] = "1 invalid table";
+    static constexpr const char* INVALID_TABLE_NAME = "1 invalid table";
     auto rdbMgr = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance();
     std::string originalTable = rdbMgr->intentRdbConfig_.tableName;
     rdbMgr->intentRdbConfig_.tableName = INVALID_TABLE_NAME;
@@ -191,7 +191,7 @@ HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0500, Func
  */
 HWTEST_F(InsightIntentRdbDataManagerTest, InsightIntentRdbDataManager_0600, Function | SmallTest | Level1)
 {
-    static constexpr const char INVALID_TABLE_NAME[] = "1 invalid table";
+    static constexpr const char* INVALID_TABLE_NAME = "1 invalid table";
     auto rdbMgr = DelayedSingleton<InsightIntentRdbDataMgr>::GetInstance();
     std::string originalTable = rdbMgr->intentRdbConfig_.tableName;
     rdbMgr->intentRdbConfig_.tableName = INVALID_TABLE_NAME;

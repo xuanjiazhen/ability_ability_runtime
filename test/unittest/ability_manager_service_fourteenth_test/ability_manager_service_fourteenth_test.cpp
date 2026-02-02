@@ -1674,7 +1674,7 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, GetConnectManagerByToken_001, Test
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService GetUIExtensionAbilityManagers
  * EnvConditions: helper not initialized
- * CaseDescription: Ensure GetUIExtensionAbilityManagers returns an empty map when no helper is present and remains empty after initialization
+ * CaseDescription: Ensure GetUIExtensionAbilityManagers returns an empty map
  */
 HWTEST_F(AbilityManagerServiceFourteenthTest, GetUIExtensionAbilityManagers_001, TestSize.Level1)
 {
