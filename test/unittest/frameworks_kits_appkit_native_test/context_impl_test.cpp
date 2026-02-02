@@ -2084,7 +2084,7 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_StringToUint32_001, Function | 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_001 start";
     std::string str = "12345";
     uint32_t outVal = 0;
-    bool result = AbilityRuntime::StringToUint32(str, outVal);
+    bool result = StringToUint32(str, outVal);
     EXPECT_TRUE(result);
     EXPECT_EQ(outVal, 12345);
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_001 end";
@@ -2101,7 +2101,7 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_StringToUint32_002, Function | 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_002 start";
     std::string str = "";
     uint32_t outVal = 0;
-    bool result = AbilityRuntime::StringToUint32(str, outVal);
+    bool result = StringToUint32(str, outVal);
     EXPECT_FALSE(result);
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_002 end";
 }
@@ -2117,7 +2117,7 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_StringToUint32_003, Function | 
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_003 start";
     std::string str = "abc123";
     uint32_t outVal = 0;
-    bool result = AbilityRuntime::StringToUint32(str, outVal);
+    bool result = StringToUint32(str, outVal);
     EXPECT_FALSE(result);
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_StringToUint32_003 end";
 }
@@ -2332,9 +2332,11 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_GetPluginInfo_001, Function | M
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_001 start";
     ASSERT_NE(contextImpl_, nullptr);
-    std::string pluginName = "com.ohos.plugin";
-    std::unique_ptr<AppExecFwk::PluginInfo> pluginInfo = std::make_unique<AppExecFwk::PluginInfo>();
-    bool result = contextImpl_->GetPluginInfo(pluginName, *pluginInfo);
+    std::string hostBundleName = "com.ohos.host";
+    std::string pluginBundleName = "com.ohos.plugin";
+    std::string pluginModuleName = "entry";
+    AppExecFwk::PluginBundleInfo pluginBundleInfo;
+    bool result = contextImpl_->GetPluginInfo(hostBundleName, pluginBundleName, pluginModuleName, pluginBundleInfo);
     EXPECT_FALSE(result);
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_GetPluginInfo_001 end";
 }
@@ -2349,8 +2351,9 @@ HWTEST_F(ContextImplTest, AppExecFwk_ContextImpl_CreatePluginContext_001, Functi
 {
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_001 start";
     ASSERT_NE(contextImpl_, nullptr);
-    std::string pluginName = "com.ohos.plugin";
-    auto result = contextImpl_->CreatePluginContext(pluginName);
+    std::string pluginBundleName = "com.ohos.plugin";
+    std::string moduleName = "entry";
+    auto result = contextImpl_->CreatePluginContext(pluginBundleName, moduleName, contextImpl_);
     EXPECT_EQ(result, nullptr);
     GTEST_LOG_(INFO) << "AppExecFwk_ContextImpl_CreatePluginContext_001 end";
 }
