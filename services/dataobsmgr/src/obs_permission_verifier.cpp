@@ -50,10 +50,10 @@ bool ObsPermissionVerifier::VerifyPermission(uint32_t listenerTokenId, int32_t u
     }
     std::string scheme = uriTemp.GetScheme();
     std::string errMsg = scheme + " checkfailed:" + std::string(listenerGroupIds.empty() ? "empty" : "notEmpty");
-    auto invalidUri = (scheme == RELATIONAL_STORE) ? DATAOBS_RDB_INVALID_URI : DATAOBS_PREFERENCE_INVALID_URI;
-    TAG_LOGE(AAFwkTag::DBOBSMGR, "verify failed listenerCallingName:%{public}s, invalidUri:%{public}s",
-        listenerCallingName.c_str(), invalidUri.c_str());
-    DataShare::DataSharePermission::ReportExtensionFault(invalidUri, listenerTokenId, listenerCallingName, errMsg);
+    auto errCode = (scheme == RELATIONAL_STORE) ? DATAOBS_RDB_INVALID_URI : DATAOBS_PREFERENCE_INVALID_URI;
+    TAG_LOGE(AAFwkTag::DBOBSMGR, "verify failed listenerCallingName:%{public}s, errCode:%{public}d",
+        listenerCallingName.c_str(), errCode);
+    DataShare::DataSharePermission::ReportExtensionFault(errCode, listenerTokenId, listenerCallingName, errMsg);
     return false;
 }
 
