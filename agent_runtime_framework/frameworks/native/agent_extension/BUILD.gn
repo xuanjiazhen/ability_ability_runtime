@@ -181,6 +181,7 @@ ohos_shared_library("agent_extension") {
     "${agent_runtime_framework_path}/interfaces/kits/native/appkit/ability_runtime",
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension",
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection",
+    "${agent_runtime_framework_path}/frameworks/ets/ani/agent_extension/include",
     "${ability_runtime_path}/services/common/include",
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_path}/utils/global/freeze/include",
@@ -193,9 +194,11 @@ ohos_shared_library("agent_extension") {
     "${agent_runtime_framework_path}/frameworks/native/agent_extension/connection/agent_extension_stub_impl.cpp",
     "${agent_runtime_framework_path}/frameworks/native/agent_extension/js_agent_extension.cpp",
     "${agent_runtime_framework_path}/frameworks/native/agent_extension/js_agent_extension_context.cpp",
+    "${agent_runtime_framework_path}/frameworks/ets/ani/agent_extension/src/ets_agent_extension_instance.cpp",
   ]
 
   deps = [
+    ":agent_extension_ani",
     ":agent_extension_connection",
     ":js_agent_connection",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
