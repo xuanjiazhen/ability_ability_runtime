@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1122,6 +1122,8 @@ bool AbilityManagerService::StartAbilityInChain(StartAbilityParams &params, int 
     if (result != ERR_OK) {
         return true;
     }
+    AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(params.want.GetElement().GetBundleName(),
+        params.GetValidUserId());
     result = StartAbilitySandboxSavefile::GetInstance().HandleStartRequest(params);
     return true;
 }
@@ -9069,15 +9071,17 @@ std::function<void(int32_t)> AbilityManagerService::GetScreenUnlockCallback()
     return screenUnlockCallback;
 }
 
-std::function<void()> AbilityManagerService::GetUserScreenUnlockCallback()
+std::function<void(int32_t)> AbilityManagerService::GetUserScreenUnlockCallback()
 {
-    auto userScreenUnlockCallback = [abilityManager = weak_from_this()]() {
+    auto userScreenUnlockCallback = [abilityManager = weak_from_this()](int32_t userId) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "On user screen unlocked.");
         auto abilityMgr = abilityManager.lock();
         if (abilityMgr == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid abilityMgr pointer.");
             return;
         }
+        AbilityRuntime::UserController::GetInstance().SetUserLockStatus(userId,
+            AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED);
         abilityMgr->RemoveScreenUnlockInterceptor();
     };
     return userScreenUnlockCallback;
@@ -9648,13 +9652,16 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
 
     AbilityRuntime::UserController::GetInstance().SetForegroundUserId(userId, displayId);
     auto ret = SwitchToUser(oldUserId, userId, displayId, callback, isAppRecovery);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "SwitchToUser filed, oldUserId:%{public}d, hasDisplayId:%{public}d", oldUserId, hasDisplayId);
-        if (hasDisplayId) {
-            AbilityRuntime::UserController::GetInstance().SetForegroundUserId(oldUserId, displayId);
-        } else {
-            AbilityRuntime::UserController::GetInstance().ClearDisplayId(displayId);
-        }
+    if (ret == ERR_OK) {
+        AbilityRuntime::UserController::GetInstance().SetUserLockStatus(userId,
+            AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+        return ERR_OK;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "SwitchToUser filed, oldUserId:%{public}d, hasDisplayId:%{public}d", oldUserId, hasDisplayId);
+    if (hasDisplayId) {
+        AbilityRuntime::UserController::GetInstance().SetForegroundUserId(oldUserId, displayId);
+    } else {
+        AbilityRuntime::UserController::GetInstance().ClearDisplayId(displayId);
     }
     return ret;
 }
@@ -9696,6 +9703,7 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
         missionListWrap->RemoveUserDir(userId);
     }
     ClearUserData(userId);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(userId);
     AbilityRuntime::UserController::GetInstance().ClearUserId(userId);
     callback->OnStopUserDone(userId, ERR_OK);
     UpdateApplicationKeepAlive(userId);
@@ -9748,6 +9756,7 @@ int AbilityManagerService::LogoutUser(int32_t userId, sptr<IUserCallback> callba
     RemoveLauncherDeathRecipient(userId);
     ClearUserData(userId);
     DelayedSingleton<AppScheduler>::GetInstance()->SetEnableStartProcessFlagByUserId(userId, false);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(userId);
     AbilityRuntime::UserController::GetInstance().ClearUserId(userId);
     DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByUserId(userId,
         system::GetBoolParameter(DEVELOPER_MODE_STATE, false), callback);
@@ -16651,6 +16660,17 @@ int32_t AbilityManagerService::UnRegisterPreloadUIExtensionHostClient(int32_t ca
         return ERR_INVALID_VALUE;
     }
     return connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
+}
+
+int32_t AbilityManagerService::GetUserLockedBundleList(int32_t userId, std::unordered_set<std::string> &userLockedBundleList)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "GetUserLockedBundleList called");
+    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetUserLockedBundleList, current process not foundation process");
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    return AbilityRuntime::UserController::GetInstance().GetUserLockedBundleList(userId, userLockedBundleList);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

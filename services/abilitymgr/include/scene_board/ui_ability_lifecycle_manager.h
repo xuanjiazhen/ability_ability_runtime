@@ -1259,6 +1259,8 @@ private:
     bool HandleRestartUIAbility(sptr<SessionInfo> sessionInfo);
     void GetActiveAbilityListLocked(int32_t uid, int32_t pid, std::vector<std::string> &abilityList);
     UIAbilityRecordPtr FindUIAbilityRecordByIdLocked(int64_t abilityRecordId);
+    int32_t BatchNotifySCBPendingActivationsByCaller(const UIAbilityRecordPtr &callerAbilityRecord,
+        const std::vector<sptr<SessionInfo>> &sessionInfoList);
 
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
