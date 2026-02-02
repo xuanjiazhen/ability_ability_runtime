@@ -6916,15 +6916,11 @@ void AppMgrServiceInner::AttachRenderProcess(const pid_t pid, const sptr<IRender
     renderRecord->SetDeathRecipient(appDeathRecipient);
     renderRecord->RegisterDeathRecipient();
 
-    TAG_LOGI(AAFwkTag::APPMGR, "attachRenderProcess_%{public}d, notify fd", pid);
     // notify fd to render process
     if (appRecord->GetBrowserHost() != nullptr && renderRecord->GetProcessType() == ProcessType::GPU) {
         TAG_LOGD(AAFwkTag::APPMGR, "GPU has host remote object");
         scheduler->NotifyBrowserFd(renderRecord->GetIpcFd(),
             renderRecord->GetSharedFd(), renderRecord->GetCrashFd(), appRecord->GetBrowserHost());
-    } else {
-        scheduler->NotifyBrowserFd(renderRecord->GetIpcFd(),
-            renderRecord->GetSharedFd(), renderRecord->GetCrashFd(), nullptr);
     }
 }
 
@@ -7076,6 +7072,15 @@ void AppMgrServiceInner::SetRenderStartMsg(AppSpawnStartMsg &startMsg, std::shar
         startMsg.procName += RENDER_PROCESS_NAME;
         startMsg.processType = RENDER_PROCESS_TYPE;
     }
+
+    // Add fds to startMsg.fds so appspawn can properly inherit them to child process
+    int32_t ipcFd = renderRecord->GetIpcFd();
+    int32_t sharedFd = renderRecord->GetSharedFd();
+    int32_t crashFd = renderRecord->GetCrashFd();
+    startMsg.fds["ipc-fd"] = ipcFd;
+    startMsg.fds["shared-fd"] = sharedFd;
+    startMsg.fds["crash-fd"] = crashFd;
+
     startMsg.code = 0; // 0: DEFAULT
 }
 
