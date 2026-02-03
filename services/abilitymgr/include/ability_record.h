@@ -1045,9 +1045,6 @@ protected:
 
     // Resident memory optimization flag
     bool isResidentAbility_ = false;
-
-    // Allow DeepCopy method to access private/protected members
-    friend std::shared_ptr<AbilityRecord> std::shared_ptr<AbilityRecord>::operator()(const AbilityRecord*) const;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
