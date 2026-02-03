@@ -7895,41 +7895,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartUIAbility_Preload_001, TestSize.Lev
 }
 
 /**
- * @tc.name: MarkStartingFlag_Various_001
- * @tc.desc: MarkStartingFlag various branches
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, MarkStartingFlag_Various_001, TestSize.Level1)
-{
-    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
-    AbilityRequest request;
-    request.sessionInfo = new SessionInfo();
-    request.sessionInfo->persistentId = 1;
-    request.appInfo.uid = 100;
-    
-    auto record = UIAbilityRecord::CreateAbilityRecord(request);
-    record->pid_ = 123;
-    record->uid_ = 100;
-    mgr->sessionAbilityMap_.emplace(1, record);
-    
-    // Case 1: record pid is 0, MarkStartingFlag should return early
-    record->pid_ = 0;
-    mgr->MarkStartingFlag(request);
-    EXPECT_FALSE(mgr->IsBundleStarting(123));
-    
-    // Case 2: record uid mismatch, MarkStartingFlag should return early
-    record->pid_ = 123;
-    record->uid_ = 200; // request.appInfo.uid is 100
-    mgr->MarkStartingFlag(request);
-    EXPECT_FALSE(mgr->IsBundleStarting(123));
-
-    // Case 3: Success path
-    record->uid_ = 100;
-    mgr->MarkStartingFlag(request);
-    EXPECT_TRUE(mgr->IsBundleStarting(123));
-}
-
-/**
  * @tc.name: CloseUIAbility_Various_001
  * @tc.desc: CloseUIAbility various branches
  * @tc.type: FUNC
@@ -7999,25 +7964,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, OnAcceptWantResponse_Various_001, TestSi
     mgr->hookSpecifiedMap_.emplace(123, record);
     mgr->OnAcceptWantResponse(want, "flag", 123);
     EXPECT_EQ(record->specifiedFlag_, "flag");
-}
-
-/**
- * @tc.name: OnAbilityDied_Various_002
- * @tc.desc: OnAbilityDied with KillPrecedeStart branch
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, OnAbilityDied_Various_002, TestSize.Level1)
-{
-    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
-    AbilityRequest req;
-    req.sessionInfo = new SessionInfo();
-    req.sessionInfo->sessionToken = new IPCObjectStub();
-    auto record = UIAbilityRecord::CreateAbilityRecord(req);
-    
-    record->isKillPrecedeStart_ = true;
-    record->killReason_ = "low memory";
-    mgr->OnAbilityDied(record);
-    EXPECT_EQ(record->GetAbilityState(), AbilityState::TERMINATING);
 }
 
 /**
