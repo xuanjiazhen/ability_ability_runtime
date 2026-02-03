@@ -290,15 +290,6 @@ public:
     static bool IsJsCallbackObjectEquals(napi_env env,
         std::unique_ptr<NativeReference> &callback, napi_value value);
 
-private:
-    /**
-     * Convert element name to JavaScript object.
-     *
-     * @param element The element name to convert.
-     * @return Returns the JavaScript object.
-     */
-    napi_value ConvertElement(const AppExecFwk::ElementName &element);
-
 protected:
     napi_env env_;
     int64_t connectionId_ = -1;

@@ -340,8 +340,48 @@ napi_value JSAgentConnection::CallObjectMethod(const char* name, napi_value cons
 
 void JSAgentConnection::ReleaseNativeReference(NativeReference* ref)
 {
-    if (ref != nullptr) {
+    if (ref == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null ref");
+        return;
+    }
+    uv_loop_t *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null loop");
         delete ref;
+        return;
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null work");
+        delete ref;
+        return;
+    }
+    work->data = reinterpret_cast<void *>(ref);
+    int ret = uv_queue_work(loop, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+        if (work == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "null work");
+            return;
+        }
+        if (work->data == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "null data");
+            delete work;
+            work = nullptr;
+            return;
+        }
+        NativeReference *refPtr = reinterpret_cast<NativeReference *>(work->data);
+        delete refPtr;
+        refPtr = nullptr;
+        delete work;
+        work = nullptr;
+    });
+    if (ret != 0) {
+        delete ref;
+        if (work != nullptr) {
+            delete work;
+            work = nullptr;
+        }
     }
 }
 
@@ -363,23 +403,6 @@ bool JSAgentConnection::IsJsCallbackObjectEquals(napi_env env,
         return false;
     }
     return isEqual;
-}
-
-napi_value JSAgentConnection::ConvertElement(const AppExecFwk::ElementName &element)
-{
-    napi_value value = nullptr;
-    napi_status status = napi_create_object(env_, &value);
-    if (status != napi_ok) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to create object");
-        return nullptr;
-    }
-
-    napi_set_named_property(env_, value, "bundleName", CreateJsValue(env_, element.GetBundleName()));
-    napi_set_named_property(env_, value, "abilityName", CreateJsValue(env_, element.GetAbilityName()));
-    napi_set_named_property(env_, value, "moduleName", CreateJsValue(env_, element.GetModuleName()));
-    napi_set_named_property(env_, value, "deviceId", CreateJsValue(env_, element.GetDeviceID()));
-
-    return value;
 }
 } // namespace AgentRuntime
 } // namespace OHOS
