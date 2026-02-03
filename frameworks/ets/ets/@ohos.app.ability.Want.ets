@@ -45,7 +45,7 @@ class RecordWriter {
   private wantParams: NativeWantParams | null = null;
   private static readonly GETTER_PREFIX = '<get>'
 
-  private static asFixedArray<E>(obj: object): FixedArray<E> {
+  private static asFixedArray<E = Any>(obj: object): FixedArray<E> {
     return obj as FixedArray<E>
   }
 
