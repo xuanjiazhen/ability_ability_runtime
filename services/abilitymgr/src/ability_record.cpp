@@ -223,6 +223,14 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         keepAliveBundle_ = true;
     }
+
+    // Check if this is a resident ability for memory optimization
+    bool isResident = abilityRequest.want.GetBoolParam(AbilityConfig::PARAM_IS_RESIDENT_ABILITY, false);
+    if (isResident) {
+        isResidentAbility_ = true;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Marked as resident ability for memory optimization: %{public}s/%{public}s",
+            abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str());
+    }
 }
 
 AbilityRecordType AbilityRecord::GetAbilityRecordType()
