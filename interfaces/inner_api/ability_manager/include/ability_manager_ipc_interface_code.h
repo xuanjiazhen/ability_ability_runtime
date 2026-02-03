@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -550,6 +550,9 @@ enum class AbilityManagerInterfaceCode {
     UPGRADE_APP = 6004,
     MOVE_UI_ABILITY_TO_BACKGROUND = 6005,
     RECORD_PROCESS_EXIT_REASON_PLUS = 6006,
+    KILL_APP_WITH_REASON = 6007,
+    KILL_BUNDLE_WITH_REASON = 6008,
+    RECORD_APP_WITH_REASON = 6009,
 
     // ipc id for register auto startup system callback
     REGISTER_AUTO_STARTUP_SYSTEM_CALLBACK = 6101,
