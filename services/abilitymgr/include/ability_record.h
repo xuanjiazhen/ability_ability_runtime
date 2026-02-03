@@ -831,6 +831,9 @@ public:
         isResidentAbility_ = flag;
     }
 
+    // Create a deep copy of this AbilityRecord for memory defragmentation
+    std::shared_ptr<AbilityRecord> DeepCopy() const;
+
 protected:
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
@@ -1042,6 +1045,9 @@ protected:
 
     // Resident memory optimization flag
     bool isResidentAbility_ = false;
+
+    // Allow DeepCopy method to access private/protected members
+    friend std::shared_ptr<AbilityRecord> std::shared_ptr<AbilityRecord>::operator()(const AbilityRecord*) const;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

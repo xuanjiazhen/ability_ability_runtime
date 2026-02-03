@@ -3290,5 +3290,158 @@ bool AbilityRecord::PromotePriority()
     }
     return false;
 }
+
+std::shared_ptr<AbilityRecord> AbilityRecord::DeepCopy() const
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Starting deep copy for AbilityRecord: %{public}s/%{public}s",
+        abilityInfo_.bundleName.c_str(), abilityInfo_.name.c_str());
+
+    // Create a new AbilityRecord with the same core parameters
+    auto newRecord = std::make_shared<AbilityRecord>(want_, abilityInfo_, abilityInfo_.applicationInfo, requestCode_);
+
+    // Copy basic type members
+    newRecord->isReady_ = isReady_;
+    newRecord->isWindowStarted_ = isWindowStarted_;
+    newRecord->isWindowAttached_ = isWindowAttached_;
+    newRecord->isLauncherAbility_ = isLauncherAbility_;
+    newRecord->isLoading_ = isLoading_;
+    newRecord->isTerminating_ = isTerminating_;
+    newRecord->isCreateByConnect_ = isCreateByConnect_;
+    newRecord->isUninstall_ = isUninstall_;
+    newRecord->isLauncherRoot_ = isLauncherRoot_;
+    newRecord->isSwitchingPause_ = isSwitchingPause_;
+    newRecord->isAbilityForegrounding_ = isAbilityForegrounding_;
+    newRecord->isRestarting_ = isRestarting_;
+    newRecord->isStartedByCall_ = isStartedByCall_;
+    newRecord->isStartToBackground_ = isStartToBackground_;
+    newRecord->isStartToForeground_ = isStartToForeground_;
+    newRecord->minimizeReason_ = minimizeReason_;
+    newRecord->clearMissionFlag_ = clearMissionFlag_;
+    newRecord->keepAliveBundle_ = keepAliveBundle_;
+    newRecord->isKeepAliveDied_ = isKeepAliveDied_;
+    newRecord->lockedState_ = lockedState_;
+    newRecord->isAttachDebug_ = isAttachDebug_;
+    newRecord->isAssertDebug_ = isAssertDebug_;
+    newRecord->isAppAutoStartup_ = isAppAutoStartup_;
+    newRecord->isRestartApp_ = isRestartApp_;
+    newRecord->isLaunching_ = isLaunching_;
+    newRecord->securityFlag_ = securityFlag_;
+    newRecord->isPluginAbility_ = isPluginAbility_;
+    newRecord->isPrelaunch_ = isPrelaunch_;
+    newRecord->isHook_ = isHook_;
+    newRecord->isResidentAbility_ = false;  // Reset resident flag on the copy
+    newRecord->isKillForPermissionUpdate_ = isKillForPermissionUpdate_;
+    newRecord->isPrepareTerminate_ = isPrepareTerminate_;
+
+#ifdef SUPPORT_SCREEN
+    newRecord->isStartingWindow_ = isStartingWindow_;
+    newRecord->isCompleteFirstFrameDrawing_ = isCompleteFirstFrameDrawing_;
+    newRecord->coldStart_ = coldStart_;
+#endif
+
+    // Copy atomic variables (by value)
+    newRecord->isPreloadStart_ = isPreloadStart_.load();
+    newRecord->currentState_ = currentState_.load();
+    newRecord->pendingState_ = pendingState_.load();
+    newRecord->abilityVisibilityState_ = abilityVisibilityState_.load();
+    newRecord->isCallerSetProcess_ = isCallerSetProcess_.load();
+    newRecord->backgroundAbilityWindowDelayed_ = backgroundAbilityWindowDelayed_.load();
+    newRecord->isPrepareTerminateAbilityCalled_ = isPrepareTerminateAbilityCalled_.load();
+    newRecord->isPrepareTerminateAbilityDone_ = isPrepareTerminateAbilityDone_.load();
+    newRecord->isLastWantBackgroundDriven_ = isLastWantBackgroundDriven_.load();
+    newRecord->scenarios_ = scenarios_.load();
+    newRecord->isPreloaded_ = isPreloaded_.load();
+    newRecord->isFrozenByPreload_ = isFrozenByPreload_.load();
+    newRecord->isAbilityConnectionReported_ = isAbilityConnectionReported_.load();
+
+    // Copy integer members
+    newRecord->uiExtensionAbilityId_ = uiExtensionAbilityId_;
+    newRecord->uid_ = uid_;
+    newRecord->pid_ = pid_;
+    newRecord->missionId_ = missionId_;
+    newRecord->ownerMissionUserId_ = ownerMissionUserId_;
+    newRecord->extensionProcessMode_ = extensionProcessMode_;
+    newRecord->appIndex_ = appIndex_;
+    newRecord->restartCount_ = restartCount_;
+    newRecord->restartMax_ = restartMax_;
+    newRecord->collaboratorType_ = collaboratorType_;
+    newRecord->callerAccessTokenId_ = callerAccessTokenId_;
+    newRecord->specifyTokenId_ = specifyTokenId_;
+    newRecord->recordId_ = recordId_;
+    newRecord->startId_ = startId_;
+    newRecord->startTime_ = startTime_;
+    newRecord->restartTime_ = restartTime_;
+
+    // Copy string members
+    newRecord->customProcessFlag_ = customProcessFlag_;
+    newRecord->specifiedFlag_ = specifiedFlag_;
+    newRecord->uri_ = uri_;
+    newRecord->instanceKey_ = instanceKey_;
+    newRecord->missionAffinity_ = missionAffinity_;
+    newRecord->killReason_ = killReason_;
+    newRecord->firstCallerBundleName_ = firstCallerBundleName_;
+
+    // Copy shared pointers (deep copy the pointed objects if they exist)
+    if (result_ != nullptr) {
+        newRecord->result_ = std::make_shared<AbilityResult>(*result_);
+    }
+    if (connectWant_ != nullptr) {
+        newRecord->connectWant_ = std::make_shared<Want>(*connectWant_);
+    }
+    if (saCallerInfo_ != nullptr) {
+        newRecord->saCallerInfo_ = std::make_shared<CallerAbilityInfo>(*saCallerInfo_);
+    }
+    if (launchWant_ != nullptr) {
+        newRecord->launchWant_ = std::make_shared<Want>(*launchWant_);
+    }
+    if (lastWant_ != nullptr) {
+        newRecord->lastWant_ = std::make_shared<Want>(*lastWant_);
+    }
+    if (uiAbilityProperty_ != nullptr) {
+        newRecord->uiAbilityProperty_ = std::make_shared<UIAbilityProperty>(*uiAbilityProperty_);
+    }
+
+    // Copy containers (deep copy)
+    {
+        std::lock_guard<std::mutex> lock(callerListLock_);
+        for (const auto& caller : callerList_) {
+            if (caller != nullptr) {
+                // Create a new CallerRecord with copied values
+                auto newCaller = std::make_shared<CallerRecord>();
+                newCaller->SetRequestCodeSet(caller->GetRequestCodeSet());
+                // Note: caller_, saCaller_, and callerInfo_ are weak/shared pointers
+                // We copy them as-is (shallow copy) since they represent runtime connections
+                // that should not be duplicated
+                newRecord->callerList_.push_back(newCaller);
+            }
+        }
+    }
+
+    // Copy value types
+    newRecord->stateDatas_ = stateDatas_;
+    newRecord->windowConfig_ = windowConfig_;
+    newRecord->appState_ = appState_;
+    newRecord->launchDebugInfo_ = launchDebugInfo_;
+
+    // Copy ability window state map
+    newRecord->abilityWindowStateMap_ = abilityWindowStateMap_;
+
+    // Copy dump info
+    newRecord->dumpInfos_ = dumpInfos_;
+    newRecord->isDumpTimeout_ = isDumpTimeout_;
+
+    // Note: The following members are NOT copied as they represent runtime state or system resources:
+    // - token_, scheduler_, schedulerDeathRecipient_ (Binder objects)
+    // - lifecycleDeal_ (unique_ptr, manages lifecycle)
+    // - sessionInfo_ (session-specific)
+    // - callContainer_ (may have complex state)
+    // - All mutex and condition_variable objects (cannot be copied)
+    // - DeathRecipient callbacks
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed for AbilityRecord: %{public}s/%{public}s",
+        abilityInfo_.bundleName.c_str(), abilityInfo_.name.c_str());
+
+    return newRecord;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

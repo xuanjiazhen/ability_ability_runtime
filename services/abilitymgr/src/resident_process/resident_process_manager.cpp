@@ -437,15 +437,13 @@ void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bu
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Performing memory defrag for resident ability %{public}s/%{public}s",
             bundleName.c_str(), abilityName.c_str());
 
-        // Create a deep copy of AbilityRecord to trigger memory reallocation
-        // This helps reduce memory fragmentation by allocating fresh memory blocks
-        Want tempWant = abilityRecord->GetWant();
-        AppExecFwk::AbilityInfo tempAbilityInfo = abilityRecord->GetAbilityInfo();
-        AppExecFwk::ApplicationInfo tempAppInfo = abilityRecord->GetApplicationInfo();
+        // Create a deep copy of the entire AbilityRecord to trigger memory reallocation
+        // This helps reduce memory fragmentation by allocating fresh memory blocks for all members
+        auto deepCopiedRecord = abilityRecord->DeepCopy();
 
-        // The temporary copies will be destroyed here, triggering memory deallocation
-        // This forces the system to allocate new contiguous memory blocks later
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Memory defrag completed for %{public}s/%{public}s",
+        // The deep copied record will be destroyed here, triggering memory deallocation
+        // This forces the system to allocate new contiguous memory blocks
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed and destroyed for %{public}s/%{public}s",
             bundleName.c_str(), abilityName.c_str());
 
         // Clear the resident ability flag to avoid repeated execution
