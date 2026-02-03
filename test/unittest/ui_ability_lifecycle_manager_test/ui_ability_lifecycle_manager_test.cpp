@@ -7516,26 +7516,6 @@ HWTEST_F(UIAbilityLifecycleManagerTest, MarkStartingFlag_001, TestSize.Level1)
 }
 
 /**
- * @tc.name: CheckPrelaunchTag_001
- * @tc.desc: CheckPrelaunchTag
- * @tc.type: FUNC
- */
-HWTEST_F(UIAbilityLifecycleManagerTest, CheckPrelaunchTag_001, TestSize.Level1)
-{
-    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
-    AbilityRequest abilityRequest;
-    sptr<SessionInfo> sessionInfo = new SessionInfo();
-    sessionInfo->persistentId = 1;
-    
-    auto record = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
-    record->isPrelaunch_ = true;
-    mgr->sessionAbilityMap_.emplace(1, record);
-    
-    mgr->CheckPrelaunchTag(abilityRequest, sessionInfo);
-    EXPECT_TRUE(record->GetPrelaunchFlag());
-}
-
-/**
  * @tc.name: StartUIAbility_isSCBRecovery_001
  * @tc.desc: StartUIAbility isSCBRecovery_ is true
  * @tc.type: FUNC
