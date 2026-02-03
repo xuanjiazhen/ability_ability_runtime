@@ -111,7 +111,12 @@ int32_t ConvertDisplayId(std::string displayId)
     if (displayId == OHOS::AppExecFwk::ConfigurationInner::EMPTY_STRING) {
         return -1;
     }
-    return std::stoi(displayId);
+    try {
+        return std::stoi(displayId);
+    } catch (...) {
+        TAG_LOGW(AAFwkTag::DEFAULT, "stoi(%{public}s) failed", displayId.c_str());
+        return -1;
+    }
 }
 
 namespace OHOS {
@@ -132,10 +137,20 @@ CConfiguration CreateCConfiguration(const OHOS::AppExecFwk::Configuration &confi
     std::string hasPointerDevice = configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE);
     cfg.hasPointerDevice = hasPointerDevice == "true" ? true : false;
     std::string fontSizeScale = configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_FONT_SIZE_SCALE);
-    cfg.fontSizeScale = fontSizeScale == "" ? 1.0 : std::stod(fontSizeScale);
+    try {
+        cfg.fontSizeScale = fontSizeScale == "" ? 1.0 : std::stod(fontSizeScale);
+    } catch (...) {
+        TAG_LOGW(AAFwkTag::DEFAULT, "stod(%{public}s) failed", fontSizeScale.c_str());
+        cfg.fontSizeScale = 1.0;
+    }
     std::string fontWeightScale = configuration.GetItem(
         OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_FONT_WEIGHT_SCALE);
-    cfg.fontWeightScale = fontWeightScale == "" ? 1.0 : std::stod(fontWeightScale);
+    try {
+        cfg.fontWeightScale = fontWeightScale == "" ? 1.0 : std::stod(fontWeightScale);
+    } catch (...) {
+        TAG_LOGW(AAFwkTag::DEFAULT, "stod(%{public}s) failed", fontWeightScale.c_str());
+        cfg.fontWeightScale = 1.0;
+    }
     cfg.mcc = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_MCC));
     cfg.mnc = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_MNC));
     return cfg;

@@ -343,7 +343,12 @@ int32_t JsRuntime::JsperfProfilerCommandParse(const std::string &command, int32_
         return defaultValue;
     }
 
-    return std::stoi(interval);
+    try {
+        return std::stoi(interval);
+    } catch (...) {
+        TAG_LOGW(AAFwkTag::JSRUNTIME, "stoi(%{public}s) failed", interval.c_str());
+        return defaultValue;
+    }
 }
 
 void JsRuntime::StartProfiler(const DebugOption dOption)

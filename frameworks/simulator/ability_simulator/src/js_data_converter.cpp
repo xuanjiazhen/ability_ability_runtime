@@ -47,7 +47,12 @@ int32_t ConvertDisplayId(const std::string &displayId)
         return -1;
     }
 
-    return std::stoi(displayId);
+    try {
+        return std::stoi(displayId);
+    } catch (...) {
+        TAG_LOGW(AAFwkTag::ABILITY_SIM, "stoi(%{public}s) failed", displayId.c_str());
+        return -1;
+    }
 }
 
 Global::Resource::ScreenDensity ConvertDensity(const std::string &density)
