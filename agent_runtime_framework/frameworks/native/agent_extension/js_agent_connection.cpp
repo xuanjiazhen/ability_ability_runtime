@@ -20,11 +20,14 @@
 #include "js_agent_receiver_proxy.h"
 #include "js_error_utils.h"
 #include "js_runtime_utils.h"
+#include "napi_common_want.h"
+#include "napi_remote_object.h"
 
 namespace OHOS {
 namespace AgentRuntime {
 namespace {
 constexpr int32_t ARGC_ONE = 1;
+constexpr int32_t ARGC_TWO = 2;
 // Registry for agent connections
 static std::map<ConnectionKey, sptr<JSAgentConnection>, KeyCompare> g_agentConnects;
 static std::recursive_mutex g_agentConnectsLock_;
@@ -109,7 +112,6 @@ void FindAgentConnection(napi_env env, AAFwk::Want &want, napi_value callback,
     connection = item->second;
     TAG_LOGD(AAFwkTag::SER_ROUTER, "Found connection");
 }
-
 } // namespace AgentConnectionUtils
 
 JSAgentConnection::JSAgentConnection(napi_env env) : env_(env)
@@ -127,40 +129,71 @@ JSAgentConnection::~JSAgentConnection()
     ReleaseNativeReference(serviceProxyObject_.release());
 }
 
-void JSAgentConnection::OnAbilityConnectDone(
-    const AppExecFwk::ElementName &element, const sptr<IRemoteObject> &remoteObject, int resultCode)
+void JSAgentConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &element,
+    const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "OnAbilityConnectDone, resultCode: %{public}d", resultCode);
-    if (napiAsyncTask_ != nullptr) {
-        TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentReceiverProxy");
-        sptr<JsAgentConnectorStubImpl> hostStub = GetServiceHostStub();
-        sptr<IRemoteObject> hostProxy = nullptr;
-        if (hostStub != nullptr) {
-            hostProxy = hostStub->AsObject();
-        }
-        napi_value proxy = AgentRuntime::JsAgentReceiverProxy::CreateJsAgentReceiverProxy(env_, remoteObject,
-            connectionId_, hostProxy);
-        SetProxyObject(proxy);
-        napiAsyncTask_->ResolveWithNoError(env_, proxy);
-        ResolveDuplicatedPendingTask(env_, proxy);
-    } else {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "napiAsyncTask_ is null");
-    }
-    napiAsyncTask_ = nullptr;
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "resultCode:%{public}d", resultCode);
+    wptr<JSAgentConnection> connection = this;
+    std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
+        ([connection, element, remoteObject, resultCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+            sptr<JSAgentConnection> connectionSptr = connection.promote();
+            if (!connectionSptr) {
+                TAG_LOGE(AAFwkTag::SER_ROUTER, "null connectionSptr");
+                return;
+            }
+            connectionSptr->HandleOnAbilityConnectDone(element, remoteObject, resultCode);
+        });
+
+    napi_ref callback = nullptr;
+    std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JSAgentConnection::OnAbilityConnectDone",
+        env_, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
+}
+
+void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName &element,
+    const sptr<IRemoteObject> &remoteObject, int resultCode)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "start, resultCode:%{public}d", resultCode);
+    HandleScope handleScope(env_);
+    // wrap ElementName
+    napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
+
+    // wrap RemoteObject
+    napi_value napiRemoteObject = NAPI_ohos_rpc_CreateJsRemoteObject(env_, remoteObject);
+    napi_value argv[] = { napiElementName, napiRemoteObject };
+    CallObjectMethod("onConnect", argv, ARGC_TWO);
 }
 
 void JSAgentConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
 {
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "OnAbilityDisconnectDone, resultCode: %{public}d", resultCode);
-    if (napiAsyncTask_ != nullptr) {
-        napi_value innerError = CreateJsError(env_, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
-        napiAsyncTask_->Reject(env_, innerError);
-        RejectDuplicatedPendingTask(env_, innerError);
-        napiAsyncTask_ = nullptr;
-    }
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "resultCode:%{public}d", resultCode);
+    wptr<JSAgentConnection> connection = this;
+    std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
+        ([connection, element, resultCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+            sptr<JSAgentConnection> connectionSptr = connection.promote();
+            if (!connectionSptr) {
+                TAG_LOGI(AAFwkTag::SER_ROUTER, "null connectionSptr");
+                return;
+            }
+            connectionSptr->HandleOnAbilityDisconnectDone(element, resultCode);
+        });
+    napi_ref callback = nullptr;
+    std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;
+    NapiAsyncTask::Schedule("JSAgentConnection::OnAbilityDisconnectDone",
+        env_, std::make_unique<NapiAsyncTask>(callback, std::move(execute), std::move(complete)));
+}
 
-    CallJsOnDisconnect();
+void JSAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementName &element,
+    int resultCode)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "resultCode:%{public}d", resultCode);
+    HandleScope handleScope(env_);
+    napi_value napiElementName = OHOS::AppExecFwk::WrapElementName(env_, element);
+    napi_value argv[] = { napiElementName };
+
+    // release connect
     AgentConnectionUtils::RemoveAgentConnection(connectionId_);
+    CallObjectMethod("onDisconnect", argv, ARGC_ONE);
 }
 
 void JSAgentConnection::SetProxyObject(napi_value proxy)
@@ -277,12 +310,6 @@ void JSAgentConnection::HandleOnAuthorize(const std::string &data)
     CallObjectMethod("onAuth", argv, ARGC_ONE);
 }
 
-void JSAgentConnection::CallJsOnDisconnect()
-{
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "CallJsOnDisconnect");
-    CallObjectMethod("onDisconnect", nullptr, 0);
-}
-
 void JSAgentConnection::SetJsConnectionObject(napi_value jsConnectionObject)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "SetJsConnectionObject");
@@ -340,8 +367,48 @@ napi_value JSAgentConnection::CallObjectMethod(const char* name, napi_value cons
 
 void JSAgentConnection::ReleaseNativeReference(NativeReference* ref)
 {
-    if (ref != nullptr) {
+    if (ref == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null ref");
+        return;
+    }
+    uv_loop_t *loop = nullptr;
+    napi_get_uv_event_loop(env_, &loop);
+    if (loop == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null loop");
         delete ref;
+        return;
+    }
+    uv_work_t *work = new (std::nothrow) uv_work_t;
+    if (work == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "null work");
+        delete ref;
+        return;
+    }
+    work->data = reinterpret_cast<void *>(ref);
+    int ret = uv_queue_work(loop, work, [](uv_work_t *work) {},
+        [](uv_work_t *work, int status) {
+        if (work == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "null work");
+            return;
+        }
+        if (work->data == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "null data");
+            delete work;
+            work = nullptr;
+            return;
+        }
+        NativeReference *refPtr = reinterpret_cast<NativeReference *>(work->data);
+        delete refPtr;
+        refPtr = nullptr;
+        delete work;
+        work = nullptr;
+    });
+    if (ret != 0) {
+        delete ref;
+        if (work != nullptr) {
+            delete work;
+            work = nullptr;
+        }
     }
 }
 
@@ -363,23 +430,6 @@ bool JSAgentConnection::IsJsCallbackObjectEquals(napi_env env,
         return false;
     }
     return isEqual;
-}
-
-napi_value JSAgentConnection::ConvertElement(const AppExecFwk::ElementName &element)
-{
-    napi_value value = nullptr;
-    napi_status status = napi_create_object(env_, &value);
-    if (status != napi_ok) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to create object");
-        return nullptr;
-    }
-
-    napi_set_named_property(env_, value, "bundleName", CreateJsValue(env_, element.GetBundleName()));
-    napi_set_named_property(env_, value, "abilityName", CreateJsValue(env_, element.GetAbilityName()));
-    napi_set_named_property(env_, value, "moduleName", CreateJsValue(env_, element.GetModuleName()));
-    napi_set_named_property(env_, value, "deviceId", CreateJsValue(env_, element.GetDeviceID()));
-
-    return value;
 }
 } // namespace AgentRuntime
 } // namespace OHOS
