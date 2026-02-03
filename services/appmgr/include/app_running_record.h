@@ -667,6 +667,101 @@ public:
         return appInfo_;
     }
 
+    // Bitfield accessor methods for ProcessLifecycleFlags
+    inline bool IsTerminating() const { return lifecycleFlags_.isTerminating; }
+    inline void SetTerminating() { lifecycleFlags_.isTerminating = 1; }
+    inline bool IsCaching() const { return lifecycleFlags_.isCaching; }
+    inline void SetProcessCaching(bool isCaching) { lifecycleFlags_.isCaching = isCaching ? 1 : 0; }
+    inline bool IsPrepareExit() const { return lifecycleFlags_.isPrepareExit; }
+    inline void SetPrepareExit() { lifecycleFlags_.isPrepareExit = 1; }
+    inline bool IsContinuousTask() const { return lifecycleFlags_.isContinuousTask; }
+    inline void SetContinuousTaskAppState(bool isContinuousTask) { lifecycleFlags_.isContinuousTask = isContinuousTask ? 1 : 0; }
+    inline bool GetRestartAppFlag() const { return lifecycleFlags_.isRestartApp; }
+    inline void SetRestartAppFlag(bool isRestartApp) { lifecycleFlags_.isRestartApp = isRestartApp ? 1 : 0; }
+    inline bool IsAssertionPause() const { return lifecycleFlags_.isAssertPause; }
+    inline void SetAssertionPauseFlag(bool flag) { lifecycleFlags_.isAssertPause = flag ? 1 : 0; }
+    inline bool IsNativeStart() const { return lifecycleFlags_.isNativeStart; }
+    inline void SetNativeStart(bool isNativeStart) { lifecycleFlags_.isNativeStart = isNativeStart ? 1 : 0; }
+
+    // Bitfield accessor methods for ProcessClassificationFlags
+    inline bool IsMainProcess() const { return classificationFlags_.isMainProcess; }
+    inline void SetMainProcess(bool isMainProcess) { classificationFlags_.isMainProcess = isMainProcess ? 1 : 0; }
+    inline bool IsSingleton() const { return classificationFlags_.isSingleton; }
+    inline void SetSingleton(bool isSingleton) { classificationFlags_.isSingleton = isSingleton ? 1 : 0; }
+    inline bool IsStageBasedModel() const { return classificationFlags_.isStageBasedModel; }
+    inline void SetStageModelState(bool isStageBasedModel) { classificationFlags_.isStageBasedModel = isStageBasedModel ? 1 : 0; }
+    inline bool IsLauncherApp() const { return classificationFlags_.isLauncherApp; }
+    inline void SetLauncherApp(bool isLauncherApp) { classificationFlags_.isLauncherApp = isLauncherApp ? 1 : 0; }
+    inline bool GetExtensionSandBoxFlag() const { return classificationFlags_.isExtensionSandBox; }
+    inline void SetExtensionSandBoxFlag(bool extensionSandBoxFlag) { classificationFlags_.isExtensionSandBox = extensionSandBoxFlag ? 1 : 0; }
+
+    // Bitfield accessor methods for KeepAliveFlags
+    inline bool IsKeepAliveApp() const { return keepAliveFlags_.isKeepAliveBundle && isKeepAliveRdb_.load(); }
+    inline void SetKeepAliveEnableState(bool isKeepAliveEnable) { isKeepAliveRdb_.store(isKeepAliveEnable); }
+    inline bool IsKeepAliveDkv() const { return keepAliveFlags_.isKeepAliveDkv; }
+    inline void SetKeepAliveDkv(bool isKeepAliveDkv) { keepAliveFlags_.isKeepAliveDkv = isKeepAliveDkv ? 1 : 0; }
+    inline bool IsKeepAliveAppService() const { return keepAliveFlags_.isKeepAliveAppService; }
+    inline void SetKeepAliveAppService(bool isKeepAliveAppService) { keepAliveFlags_.isKeepAliveAppService = isKeepAliveAppService ? 1 : 0; }
+    inline bool IsEmptyKeepAliveApp() const { return keepAliveFlags_.isEmptyKeepAliveApp; }
+    inline void SetEmptyKeepAliveAppState(bool isEmptyKeepAliveApp) { keepAliveFlags_.isEmptyKeepAliveApp = isEmptyKeepAliveApp ? 1 : 0; }
+    inline bool IsMainElementRunning() const { return keepAliveFlags_.isMainElementRunning; }
+    inline void SetMainElementRunning(bool isMainElementRunning) { keepAliveFlags_.isMainElementRunning = isMainElementRunning ? 1 : 0; }
+    inline void SetKeepAliveBundle(bool isKeepAliveBundle) { keepAliveFlags_.isKeepAliveBundle = isKeepAliveBundle ? 1 : 0; }
+
+    // Bitfield accessor methods for DebugFlags
+    inline bool IsDebugApp() { return debugFlags_.isDebugApp; }
+    inline void SetDebugApp(bool isDebugApp) { debugFlags_.isDebugApp = isDebugApp ? 1 : 0; }
+    inline bool IsNativeDebug() const { return debugFlags_.isNativeDebug; }
+    inline void SetNativeDebug(bool isNativeDebug) { debugFlags_.isNativeDebug = isNativeDebug ? 1 : 0; }
+    inline bool IsAttachDebug() const { return debugFlags_.isAttachDebug; }
+    inline void SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal = false) {
+        debugFlags_.isAttachDebug = isAttachDebug ? 1 : 0;
+    }
+    inline bool IsJITEnabled() const { return debugFlags_.jitEnabled; }
+    inline void SetJITEnabled(bool jitEnabled) { debugFlags_.jitEnabled = jitEnabled ? 1 : 0; }
+    inline bool IsErrorInfoEnhance() const { return debugFlags_.isErrorInfoEnhance; }
+    inline void SetErrorInfoEnhance(bool errorInfoEnhance) { debugFlags_.isErrorInfoEnhance = errorInfoEnhance ? 1 : 0; }
+    inline bool IsMultiThread() const { return debugFlags_.isMultiThread; }
+    inline void SetMultiThread(bool multiThread) { debugFlags_.isMultiThread = multiThread ? 1 : 0; }
+
+    // Bitfield accessor methods for ApplicationFeatureFlags
+    inline bool HasGPU() { return featureFlags_.hasGPU; }
+    inline void SetHasGPU(bool gpu) { featureFlags_.hasGPU = gpu ? 1 : 0; }
+    inline bool IsAttachedToStatusBar() { return featureFlags_.isAttachedToStatusBar; }
+    inline void SetAttachedToStatusBar(bool isAttached) { featureFlags_.isAttachedToStatusBar = isAttached ? 1 : 0; }
+    inline bool IsDependedOnArkWeb() { return featureFlags_.isDependedOnArkWeb; }
+    inline void SetIsDependedOnArkWeb(bool isDepend) { featureFlags_.isDependedOnArkWeb = isDepend ? 1 : 0; }
+    inline bool HasUIAbilityLaunched() { return featureFlags_.hasUIAbilityLaunched; }
+    inline void SetUIAbilityLaunched(bool hasLaunched) { featureFlags_.hasUIAbilityLaunched = hasLaunched ? 1 : 0; }
+    inline bool GetIsKia() const { return featureFlags_.isKia; }
+    inline void SetIsKia(bool isKia) { featureFlags_.isKia = isKia ? 1 : 0; }
+    inline bool IsNWebPreload() const { return featureFlags_.isAllowedNWebPreload; }
+    inline void SetNWebPreload(bool isAllowedNWebPreload) { featureFlags_.isAllowedNWebPreload = isAllowedNWebPreload ? 1 : 0; }
+    inline bool IsUnSetPermission() { return featureFlags_.isUnSetPermission; }
+    inline void SetIsUnSetPermission(bool isUnSetPermission) { featureFlags_.isUnSetPermission = isUnSetPermission ? 1 : 0; }
+
+    // Bitfield accessor methods for SystemIntegrationFlags
+    inline bool IsStrictMode() const { return systemFlags_.isStrictMode; }
+    inline void SetStrictMode(bool strictMode) { systemFlags_.isStrictMode = strictMode ? 1 : 0; }
+    inline bool GetNetworkEnableFlags() const { return systemFlags_.networkEnableFlags; }
+    inline void SetNetworkEnableFlags(bool enable) { systemFlags_.networkEnableFlags = enable ? 1 : 0; }
+    inline bool GetSAEnableFlags() const { return systemFlags_.saEnableFlags; }
+    inline void SetSAEnableFlags(bool enable) { systemFlags_.saEnableFlags = enable ? 1 : 0; }
+    inline bool IsUserRequestCleaning() const { return systemFlags_.isUserRequestCleaning; }
+    inline void SetUserRequestCleaning() { systemFlags_.isUserRequestCleaning = 1; }
+    inline bool GetSecurityFlag() const { return systemFlags_.securityFlag; }
+    inline void SetSecurityFlag(bool securityFlag) { systemFlags_.securityFlag = securityFlag ? 1 : 0; }
+
+    // Bitfield accessor methods for PerformanceFlags
+    inline bool GetEnableProcessCache() { return performanceFlags_.enableProcessCache; }
+    inline bool SetEnableProcessCache(bool enable) { performanceFlags_.enableProcessCache = enable ? 1 : 0; return true; }
+    inline bool GetProcessCacheBlocked() { return performanceFlags_.processCacheBlocked; }
+    inline void SetProcessCacheBlocked(bool isBlocked) { performanceFlags_.processCacheBlocked = isBlocked ? 1 : 0; }
+    inline bool GetNeedPreloadModule() { return performanceFlags_.isNeedPreloadModule; }
+    inline void SetNeedPreloadModule(bool isNeedPreloadModule) { performanceFlags_.isNeedPreloadModule = isNeedPreloadModule ? 1 : 0; }
+    inline bool GetNeedLimitPrio() { return performanceFlags_.isNeedLimitPrio; }
+    inline void SetNeedLimitPrio(bool isNeedLimitPrio) { performanceFlags_.isNeedLimitPrio = isNeedLimitPrio ? 1 : 0; }
+
     void SetRestartResidentProcCount(int count);
     void DecRestartResidentProcCount();
     int GetRestartResidentProcCount() const;
@@ -1244,6 +1339,76 @@ private:
     int32_t GetAddStageTimeout() const;
     void SetModuleLoaded(const std::string &moduleName) const;
 
+    // Bitfield structures for boolean flag optimization
+    struct ProcessLifecycleFlags {
+        uint8_t isTerminating : 1;
+        uint8_t isCaching : 1;
+        uint8_t isPrepareExit : 1;
+        uint8_t isContinuousTask : 1;
+        uint8_t isRestartApp : 1;
+        uint8_t isAssertPause : 1;
+        uint8_t isNativeStart : 1;
+        uint8_t reserved1 : 1;
+    };
+
+    struct ProcessClassificationFlags {
+        uint8_t isMainProcess : 1;
+        uint8_t isSingleton : 1;
+        uint8_t isStageBasedModel : 1;
+        uint8_t reserved2 : 1;
+        uint8_t isLauncherApp : 1;
+        uint8_t isExtensionSandBox : 1;
+        uint8_t reserved3 : 2;
+    };
+
+    struct KeepAliveFlags {
+        uint8_t isKeepAliveBundle : 1;
+        uint8_t isEmptyKeepAliveApp : 1;
+        uint8_t isKeepAliveDkv : 1;
+        uint8_t isKeepAliveAppService : 1;
+        uint8_t isMainElementRunning : 1;
+        uint8_t reserved4 : 3;
+    };
+
+    struct DebugFlags {
+        uint8_t isDebugApp : 1;
+        uint8_t isNativeDebug : 1;
+        uint8_t isAttachDebug : 1;
+        uint8_t reserved5 : 1;
+        uint8_t jitEnabled : 1;
+        uint8_t isErrorInfoEnhance : 1;
+        uint8_t isMultiThread : 1;
+        uint8_t reserved6 : 1;
+    };
+
+    struct ApplicationFeatureFlags {
+        uint8_t hasGPU : 1;
+        uint8_t isAttachedToStatusBar : 1;
+        uint8_t isDependedOnArkWeb : 1;
+        uint8_t hasUIAbilityLaunched : 1;
+        uint8_t isKia : 1;
+        uint8_t isAllowedNWebPreload : 1;
+        uint8_t isUnSetPermission : 1;
+        uint8_t reserved7 : 1;
+    };
+
+    struct SystemIntegrationFlags {
+        uint8_t isStrictMode : 1;
+        uint8_t networkEnableFlags : 1;
+        uint8_t saEnableFlags : 1;
+        uint8_t isUserRequestCleaning : 1;
+        uint8_t securityFlag : 1;
+        uint8_t reserved8 : 3;
+    };
+
+    struct PerformanceFlags {
+        uint8_t enableProcessCache : 1;
+        uint8_t processCacheBlocked : 1;
+        uint8_t isNeedPreloadModule : 1;
+        uint8_t isNeedLimitPrio : 1;
+        uint8_t reserved9 : 4;
+    };
+
 private:
     class RemoteObjHash {
     public:
@@ -1254,60 +1419,33 @@ private:
     };
     bool IsWindowIdsEmpty();
 
+    // High-contention atomic flags (kept separate for performance)
     std::atomic_bool isKeepAliveRdb_ = false;  // Only resident processes can be set to true, please choose carefully
-    bool isKeepAliveBundle_ = false;
-    bool isEmptyKeepAliveApp_ = false;  // Only empty resident processes can be set to true, please choose carefully
-    bool isKeepAliveDkv_ = false; // Only non-resident keep-alive processes can be set to true, please choose carefully
-    bool isMainElementRunning_ = false;
-    bool isKeepAliveAppService_ = false;
-    bool isMainProcess_ = true; // Only MainProcess can be keepalive
-    bool isSingleton_ = false;
-    bool isStageBasedModel_ = false;
     std::atomic_bool isFocused_ = false; // if process is focused.
     std::atomic<ApplicationState> curState_ = ApplicationState::APP_STATE_CREATE;  // current state of this process
-    ApplicationPendingState pendingState_ = ApplicationPendingState::READY;
-    ApplicationScheduleState scheduleState_ = ApplicationScheduleState::SCHEDULE_READY;
-    WatchdogVisibilityState watchdogVisibilityState_ = WatchdogVisibilityState::WATCHDOG_STATE_READY;
     /**
      * If there is an ability is foregrounding, this flag will be true,
      * and this flag will remain true until this application is background.
      */
     std::atomic_bool isAbilityForegrounding_ = false;
-    bool isTerminating = false;
-    bool isCaching_ = false;
-    bool isLauncherApp_;
-    bool isDebugApp_ = false;
-    bool isNativeDebug_ = false;
-    bool isAttachDebug_ = false;
-    bool jitEnabled_ = false;
-    bool securityFlag_ = false; // render record
-    bool isContinuousTask_ = false;    // Only continuesTask processes can be set to true, please choose carefully
-    bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
-    bool isAssertPause_ = false;
-    bool isErrorInfoEnhance_ = false;
-    bool isNativeStart_ = false;
-    bool isMultiThread_ = false;
-    bool enableProcessCache_ = true;
-    std::atomic<bool> processCacheLocked_ = false;
-    bool processCacheBlocked = false; // temporarily block process cache feature
-    bool hasGPU_ = false;
-    bool isStrictMode_ = false;
-    bool networkEnableFlags_ = true;
-    bool saEnableFlags_ = true;
-    bool isAttachedToStatusBar = false;
-    bool isDependedOnArkWeb_ = false;
-    bool isUserRequestCleaning_ = false;
-    bool hasUIAbilityLaunched_ = false;
-    bool isKia_ = false;
-    bool isNeedPreloadModule_ = false;
-    bool isNeedLimitPrio_ = false;
-    bool isAllowedNWebPreload_ = false;
-    bool isUnSetPermission_ = false;
-    bool isExtensionSandBox_ = false;
-    bool isPrepareExit_ = false;
     std::atomic<bool> isKilling_ = false;
     std::atomic_bool isSpawned_ = false;
     std::atomic<bool> isPreForeground_ = false;
+    std::atomic<bool> processCacheLocked_ = false;
+
+    // Application state enums
+    ApplicationPendingState pendingState_ = ApplicationPendingState::READY;
+    ApplicationScheduleState scheduleState_ = ApplicationScheduleState::SCHEDULE_READY;
+    WatchdogVisibilityState watchdogVisibilityState_ = WatchdogVisibilityState::WATCHDOG_STATE_READY;
+
+    // Bitfield groups for optimized memory layout
+    ProcessLifecycleFlags lifecycleFlags_ = {};
+    ProcessClassificationFlags classificationFlags_ = {};
+    KeepAliveFlags keepAliveFlags_ = {};
+    DebugFlags debugFlags_ = {};
+    ApplicationFeatureFlags featureFlags_ = {};
+    SystemIntegrationFlags systemFlags_ = {};
+    PerformanceFlags performanceFlags_ = {};
 
     int32_t appRecordId_ = 0;
     std::atomic<int32_t> mainUid_ = -1;
