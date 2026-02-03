@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -139,6 +139,7 @@
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
 #include "res_sched_client.h"
 #endif
+#include "xcollie/thread_kill_reason.h"
 #include "xcollie/watchdog.h"
 
 using OHOS::AppExecFwk::ElementName;
@@ -3381,6 +3382,82 @@ int32_t AbilityManagerService::ForceExitApp(const int32_t pid, const ExitReason 
     appExitReasonHelper_->RecordAppExitReason(bundleName, uid, appIndex, exitReason);
 
     return DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(bundleName, false, appIndex);
+}
+
+int32_t AbilityManagerService::KillAppWithReason(
+    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
+        !AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not sa or shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
+    if (!IsExitReasonValid(exitReason)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "exit reason is invalid");
+        appExitReasonHelper_->RecordInvalidKillId(pid, exitReason);
+        return ERR_INVALID_VALUE;
+    }
+    AppExecFwk::ApplicationInfo application;
+    bool debug = false;
+    auto ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->GetApplicationInfoByProcessID(pid,
+        application, debug));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "getApplicationInfoByProcessID failed");
+        return ret;
+    }
+
+    std::string bundleName = application.bundleName;
+    int32_t appIndex = application.appIndex;
+    if (DelayedSingleton<AppScheduler>::GetInstance()->VerifyKillProcessPermission(bundleName) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcess permission verification fail");
+        return ERR_PERMISSION_DENIED;
+    }
+    appExitReasonHelper_->AddAppExitReason(bundleName, pid, uid, appIndex, exitReason);
+
+    return DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(bundleName, false, appIndex);
+}
+
+int32_t AbilityManagerService::KillBundleWithReason(
+    const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
+        !AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not sa or shell call");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (DelayedSingleton<AppScheduler>::GetInstance()->VerifyKillProcessPermission(bundleName) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "KillProcess permission verification fail");
+        return ERR_PERMISSION_DENIED;
+    }
+    CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
+    if (!IsExitReasonValid(exitReason)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "exit reason is invalid");
+        appExitReasonHelper_->RecordInvalidKillId(NO_PID, exitReason, bundleName, userId);
+        return ERR_INVALID_VALUE;
+    }
+    appExitReasonHelper_->AddBundleExitReason(bundleName, userId, appIndex, exitReason);
+
+    return DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(bundleName, false, appIndex);
+}
+
+int32_t AbilityManagerService::RecordAppWithReason(
+    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_APP_EXIT_REASON_HELPER);
+    if (!IsExitReasonValid(exitReason)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "exit reason is invalid");
+        appExitReasonHelper_->RecordInvalidKillId(pid, exitReason);
+        return ERR_INVALID_VALUE;
+    }
+    return appExitReasonHelper_->RecordAppWithReason(pid, uid, exitReason);
 }
 
 int32_t AbilityManagerService::GetConfiguration(AppExecFwk::Configuration& config)
@@ -16651,6 +16728,17 @@ int32_t AbilityManagerService::UnRegisterPreloadUIExtensionHostClient(int32_t ca
         return ERR_INVALID_VALUE;
     }
     return connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
+}
+
+bool AbilityManagerService::IsExitReasonValid(const ExitReasonCompability &reason)
+{
+    if (reason.reason < REASON_MIN || reason.reason > REASON_MAX) {
+        return false;
+    }
+    if (HiviewDFX::ThreadKillReason::GetKillReason(reason.killId).find("InvalidKillId") != std::string::npos) {
+        return false;
+    }
+    return true;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

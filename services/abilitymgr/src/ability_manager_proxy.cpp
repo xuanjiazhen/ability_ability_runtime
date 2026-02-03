@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -4802,6 +4802,84 @@ int32_t AbilityManagerProxy::RecordProcessExitReason(int32_t pid, int32_t uid, c
     PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &exitReason);
 
     int32_t error = SendRequest(AbilityManagerInterfaceCode::RECORD_PROCESS_EXIT_REASON_PLUS, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end.");
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::KillAppWithReason(
+    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "start.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, pid);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, uid);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &exitReason);
+
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::KILL_APP_WITH_REASON, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end.");
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::KillBundleWithReason(
+    const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "start.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, String, bundleName);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, userId);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, appIndex);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &exitReason);
+
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::KILL_BUNDLE_WITH_REASON, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end.");
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::RecordAppWithReason(
+    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, pid);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, uid);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &exitReason);
+
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::RECORD_APP_WITH_REASON, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
         return error;
