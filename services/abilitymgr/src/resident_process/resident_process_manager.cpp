@@ -25,6 +25,7 @@
 #include "ffrt.h"
 #include "keep_alive_utils.h"
 #include "main_element_utils.h"
+#include "mission/mission_list_manager.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
@@ -413,16 +414,20 @@ void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bu
     element.SetBundleName(bundleName);
     element.SetAbilityName(abilityName);
 
-    std::vector<std::shared_ptr<AbilityRecord>> records;
-    missionListMgr->GetAbilityRecordsByName(element, records);
+    // Use GetAbilityRecordByName (implementation class method) via dynamic_cast
+    auto missionListMgrImpl = dynamic_cast<MissionListManager*>(missionListMgr.get());
+    if (missionListMgrImpl == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to cast MissionListManager to implementation class");
+        return;
+    }
 
-    if (records.empty()) {
+    auto abilityRecord = missionListMgrImpl->GetAbilityRecordByName(element);
+    if (abilityRecord == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "AbilityRecord not found for %{public}s/%{public}s",
             bundleName.c_str(), abilityName.c_str());
         return;
     }
 
-    auto abilityRecord = records[0];
     int32_t missionId = abilityRecord->GetMissionId();
 
     // Store weak_ptr to avoid dangling pointer after 140 seconds
