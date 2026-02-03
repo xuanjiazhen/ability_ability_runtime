@@ -154,6 +154,15 @@ void Clean(ani_env *env, ani_object object)
     if (nativePtr != 0) {
         delete reinterpret_cast<EtsBaseContext *>(nativePtr);
     }
+    ani_long nativeContextLong = 0;
+    status = env->Object_GetFieldByName_Long(object, "nativeContext", &nativeContextLong);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "nativeContext GetField status: %{public}d", status);
+        return;
+    }
+    if (nativeContextLong != 0) {
+        delete reinterpret_cast<std::weak_ptr<Context> *>(nativeContextLong);
+    }
 }
 
 bool SetNativeContextLong(ani_env *env, ani_object aniObj, ani_long nativeContextLong)
