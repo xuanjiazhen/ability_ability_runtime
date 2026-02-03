@@ -172,6 +172,27 @@ public:
 
     void SetConnectWant(const Want &want);
     Want GetConnectWant() const;
+
+    /**
+     * Clear the ConnectionRecord for reuse by the memory pool.
+     * Resets all smart pointers and clears internal state.
+     */
+    void ClearForReuse();
+
+    /**
+     * Reinitialize the ConnectionRecord with new parameters for reuse.
+     *
+     * @param callerToken The token of the caller ability.
+     * @param targetService The target service ability.
+     * @param connCallback The connection callback.
+     * @param abilityConnectManager Pointer to the connect manager.
+     */
+    void Reinitialize(
+        const sptr<IRemoteObject>& callerToken,
+        const std::shared_ptr<BaseExtensionRecord>& targetService,
+        const sptr<IAbilityConnection>& connCallback,
+        std::shared_ptr<AbilityConnectManager> abilityConnectManager);
+
 private:
     static int64_t connectRecordId;
     int32_t callerUid_ = 0;                             // caller uid

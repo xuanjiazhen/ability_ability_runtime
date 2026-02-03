@@ -15,8 +15,10 @@
 
 #include "connection_record.h"
 
+#include "ability_connect_manager.h"
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "connection_record_pool.h"
 #include "connection_state_manager.h"
 #include "freeze_util.h"
 #include "ui_service_extension_connection_constants.h"
@@ -49,11 +51,9 @@ std::shared_ptr<ConnectionRecord> ConnectionRecord::CreateConnectionRecord(const
     const std::shared_ptr<BaseExtensionRecord> &targetService, const sptr<IAbilityConnection> &connCallback,
     std::shared_ptr<AbilityConnectManager> abilityConnectManager)
 {
-    auto connRecord = std::make_shared<ConnectionRecord>(
+    // Use memory pool for allocation
+    return ConnectionRecordPool::GetInstance().Acquire(
         callerToken, targetService, connCallback, abilityConnectManager);
-    CHECK_POINTER_AND_RETURN(connRecord, nullptr);
-    connRecord->SetConnectState(ConnectionState::INIT);
-    return connRecord;
 }
 
 void ConnectionRecord::SetConnectState(const ConnectionState &state)
@@ -473,6 +473,48 @@ int32_t ConnectionRecord::ResumeExtensionAbility()
 
     DelayedSingleton<ConnectionStateManager>::GetInstance()->ResumeConnection(shared_from_this());
     return ERR_OK;
+}
+
+void ConnectionRecord::ClearForReuse()
+{
+    std::lock_guard<std::mutex> lock(callbackMutex_);
+
+    // Clear smart pointers to release old references
+    callerToken_.clear();
+    targetService_.reset();
+    connCallback_.clear();
+
+    // Clear strings
+    callerName_.clear();
+
+    // Clear Want (has its own clear mechanism)
+    Want::ClearWant(&connectWant_);
+
+    // Reset weak_ptr
+    abilityConnectManager_.reset();
+
+    // Reset state to INIT
+    state_ = ConnectionState::INIT;
+
+    // Note: recordId_ is NOT reset - maintains unique identity
+    // Note: Primitive types (callerUid_, callerPid_, callerTokenId_)
+    //       will be overwritten in Reinitialize()
+}
+
+void ConnectionRecord::Reinitialize(
+    const sptr<IRemoteObject>& callerToken,
+    const std::shared_ptr<BaseExtensionRecord>& targetService,
+    const sptr<IAbilityConnection>& connCallback,
+    std::shared_ptr<AbilityConnectManager> abilityConnectManager)
+{
+    callerToken_ = callerToken;
+    targetService_ = targetService;
+    connCallback_ = connCallback;
+    abilityConnectManager_ = abilityConnectManager;
+    state_ = ConnectionState::INIT;
+
+    // Note: recordId_ already set in constructor, don't reset
+    // Note: callerUid_, callerPid_, callerTokenId_ set via AttachCallerInfo()
 }
 }  // namespace AAFwk
 }  // namespace OHOS

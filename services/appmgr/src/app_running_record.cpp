@@ -66,7 +66,7 @@ AppRunningRecord::AppRunningRecord(
     if (info) {
         appInfo_ = info;
         mainBundleName_ = info->bundleName;
-        isLauncherApp_ = info->isLauncherApp;
+        classificationFlags_.isLauncherApp = info->isLauncherApp ? 1 : 0;
         mainAppName_ = info->name;
     }
     priorityObject_ = std::make_shared<PriorityObject>();
@@ -132,7 +132,7 @@ void AppRunningRecord::SetCallerTokenId(int32_t tokenId)
 
 bool AppRunningRecord::IsLauncherApp() const
 {
-    return isLauncherApp_;
+    return classificationFlags_.isLauncherApp;
 }
 
 int32_t AppRunningRecord::GetRecordId() const
@@ -172,12 +172,12 @@ const std::string &AppRunningRecord::GetProcessName() const
 
 bool AppRunningRecord::GetExtensionSandBoxFlag() const
 {
-    return isExtensionSandBox_;
+    return classificationFlags_.isExtensionSandBox;
 }
 
 void AppRunningRecord::SetExtensionSandBoxFlag(bool extensionSandBoxFlag)
 {
-    isExtensionSandBox_ = extensionSandBoxFlag;
+    classificationFlags_.isExtensionSandBox = extensionSandBoxFlag ? 1 : 0;
 }
 
 void AppRunningRecord::SetSpecifiedProcessFlag(const std::string &flag)
@@ -221,7 +221,7 @@ std::chrono::system_clock::time_point AppRunningRecord::GetPreloadAttachTimeoutS
 
 bool AppRunningRecord::ShouldSkipTimeout() const
 {
-    return isDebugApp_ || isNativeDebug_ || isAttachDebug_;
+    return debugFlags_.isDebugApp || debugFlags_.isNativeDebug || debugFlags_.isAttachDebug;
 }
 
 int32_t AppRunningRecord::GetUserId() const
@@ -377,16 +377,16 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetUserTestInfo(userTestRecord_);
     launchData.SetAppIndex(appIndex_);
     launchData.SetInstanceKey(instanceKey_);
-    launchData.SetDebugApp(isDebugApp_);
+    launchData.SetDebugApp(debugFlags_.isDebugApp);
     launchData.SetPerfCmd(perfCmd_);
-    launchData.SetErrorInfoEnhance(isErrorInfoEnhance_);
-    launchData.SetMultiThread(isMultiThread_);
-    launchData.SetJITEnabled(jitEnabled_);
-    launchData.SetNativeStart(isNativeStart_);
+    launchData.SetErrorInfoEnhance(debugFlags_.isErrorInfoEnhance);
+    launchData.SetMultiThread(debugFlags_.isMultiThread);
+    launchData.SetJITEnabled(debugFlags_.jitEnabled);
+    launchData.SetNativeStart(lifecycleFlags_.isNativeStart);
     launchData.SetAppRunningUniqueId(std::to_string(startTimeMillis_));
-    launchData.SetIsNeedPreloadModule(isNeedPreloadModule_);
+    launchData.SetIsNeedPreloadModule(performanceFlags_.isNeedPreloadModule);
     launchData.SetAppPreloadMode(preloadMode_);
-    launchData.SetNWebPreload(isAllowedNWebPreload_);
+    launchData.SetNWebPreload(featureFlags_.isAllowedNWebPreload);
     launchData.SetPreloadModuleName(preloadModuleName_);
     launchData.SetDebugFromLocal(isDebugFromLocal_);
     launchData.SetStartupTaskData(startupTaskData_);
@@ -400,7 +400,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
 
 void AppRunningRecord::UpdateApplicationInfoInstalled(const ApplicationInfo &appInfo, const std::string &moduleName)
 {
-    if (!isStageBasedModel_) {
+    if (!classificationFlags_.isStageBasedModel) {
         TAG_LOGI(AAFwkTag::APPMGR, "Current version than supports");
         return;
     }
@@ -414,7 +414,7 @@ void AppRunningRecord::UpdateApplicationInfoInstalled(const ApplicationInfo &app
 
 void AppRunningRecord::AddAbilityStage()
 {
-    if (!isStageBasedModel_) {
+    if (!classificationFlags_.isStageBasedModel) {
         TAG_LOGI(AAFwkTag::APPMGR, "Current version than supports");
         return;
     }
@@ -1122,7 +1122,7 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
     auto abilityRecord = moduleRecord->GetAbilityByTerminateLists(token);
     if (abilityRecord != nullptr && abilityRecord->GetAbilityInfo() != nullptr) {
         isExtensionDebug = (abilityRecord->GetAbilityInfo()->type == AppExecFwk::AbilityType::EXTENSION) &&
-                           (isAttachDebug_ || isDebugApp_);
+                           (debugFlags_.isAttachDebug || debugFlags_.isDebugApp);
     }
     TAG_LOGD(AAFwkTag::APPMGR, "Extension debug is [%{public}s]", isExtensionDebug ? "true" : "false");
 
@@ -1377,7 +1377,7 @@ bool AppRunningRecord::IsLastPageAbilityRecord(const sptr<IRemoteObject> &token)
 
 void AppRunningRecord::SetTerminating()
 {
-    isTerminating = true;
+    lifecycleFlags_.isTerminating = 1;
     auto prioObject = GetPriorityObject();
     if (prioObject) {
         AbilityRuntime::FreezeUtil::GetInstance().DeleteAppLifecycleEvent(prioObject->GetPid());
@@ -1386,89 +1386,89 @@ void AppRunningRecord::SetTerminating()
 
 bool AppRunningRecord::IsTerminating()
 {
-    return isTerminating;
+    return lifecycleFlags_.isTerminating;
 }
 
 bool AppRunningRecord::IsKeepAliveApp() const
 {
-    if (!isMainProcess_ || !isKeepAliveBundle_ || !isKeepAliveRdb_) {
+    if (!classificationFlags_.isMainProcess || !keepAliveFlags_.isKeepAliveBundle || !isKeepAliveRdb_.load()) {
         return false;
     }
     auto userId = GetUid() / BASE_USER_RANGE;
     if (userId == 0) {
-        return isSingleton_;
+        return classificationFlags_.isSingleton;
     }
     return true;
 }
 
 bool AppRunningRecord::IsKeepAliveDkv() const
 {
-    return isKeepAliveDkv_;
+    return keepAliveFlags_.isKeepAliveDkv;
 }
 
 bool AppRunningRecord::IsKeepAliveAppService() const
 {
-    return isKeepAliveAppService_;
+    return keepAliveFlags_.isKeepAliveAppService;
 }
 
 void AppRunningRecord::SetKeepAliveEnableState(bool isKeepAliveEnable)
 {
-    isKeepAliveRdb_ = isKeepAliveEnable;
+    isKeepAliveRdb_.store(isKeepAliveEnable);
 }
 
 void AppRunningRecord::SetKeepAliveDkv(bool isKeepAliveDkv)
 {
-    isKeepAliveDkv_ = isKeepAliveDkv;
+    keepAliveFlags_.isKeepAliveDkv = isKeepAliveDkv ? 1 : 0;
 }
 
 void AppRunningRecord::SetMainElementRunning(bool isMainElementRunning)
 {
-    isMainElementRunning_ = isMainElementRunning;
+    keepAliveFlags_.isMainElementRunning = isMainElementRunning ? 1 : 0;
 }
 
 bool AppRunningRecord::IsMainElementRunning() const
 {
-    return isMainElementRunning_;
+    return keepAliveFlags_.isMainElementRunning;
 }
 
 void AppRunningRecord::SetKeepAliveAppService(bool isKeepAliveAppService)
 {
-    isKeepAliveAppService_ = isKeepAliveAppService;
+    keepAliveFlags_.isKeepAliveAppService = isKeepAliveAppService ? 1 : 0;
 }
 
 void AppRunningRecord::SetKeepAliveBundle(bool isKeepAliveBundle)
 {
-    isKeepAliveBundle_ = isKeepAliveBundle;
+    keepAliveFlags_.isKeepAliveBundle = isKeepAliveBundle ? 1 : 0;
 }
 
 bool AppRunningRecord::IsEmptyKeepAliveApp() const
 {
-    return isEmptyKeepAliveApp_;
+    return keepAliveFlags_.isEmptyKeepAliveApp;
 }
 
 void AppRunningRecord::SetEmptyKeepAliveAppState(bool isEmptyKeepAliveApp)
 {
-    isEmptyKeepAliveApp_ = isEmptyKeepAliveApp;
+    keepAliveFlags_.isEmptyKeepAliveApp = isEmptyKeepAliveApp ? 1 : 0;
 }
 
 bool AppRunningRecord::IsMainProcess() const
 {
-    return isMainProcess_;
+    return classificationFlags_.isMainProcess;
 }
 
 void AppRunningRecord::SetMainProcess(bool isMainProcess)
 {
-    isMainProcess_ = isMainProcess;
+    classificationFlags_.isMainProcess = isMainProcess ? 1 : 0;
 }
 
 void AppRunningRecord::SetSingleton(bool isSingleton)
 {
-    isSingleton_ = isSingleton;
+    classificationFlags_.isSingleton = isSingleton ? 1 : 0;
 }
 
 void AppRunningRecord::SetStageModelState(bool isStageBasedModel)
 {
-    isStageBasedModel_ = isStageBasedModel;
+    classificationFlags_.isStageBasedModel = isStageBasedModel ? 1 : 0;
 }
 
 bool AppRunningRecord::GetTheModuleInfoNeedToUpdated(const std::string bundleName, HapModuleInfo &info)
@@ -1848,7 +1848,7 @@ AppSpawnStartMsg AppRunningRecord::GetStartMsg()
 
 bool AppRunningRecord::IsDebug()
 {
-    if (IsDebugApp() || isNativeDebug_ || !perfCmd_.empty() || IsAttachDebug() || IsAssertionPause()) {
+    if (IsDebugApp() || debugFlags_.isNativeDebug || !perfCmd_.empty() || IsAttachDebug() || IsAssertionPause()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "debugApp, no need to handle");
         return true;
     }
@@ -1858,18 +1858,18 @@ bool AppRunningRecord::IsDebug()
 void AppRunningRecord::SetDebugApp(bool isDebugApp)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "value is %{public}d", isDebugApp);
-    isDebugApp_ = isDebugApp;
+    debugFlags_.isDebugApp = isDebugApp ? 1 : 0;
 }
 
 bool AppRunningRecord::IsDebugApp()
 {
-    return isDebugApp_;
+    return debugFlags_.isDebugApp;
 }
 
 void AppRunningRecord::SetNativeDebug(bool isNativeDebug)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "SetNativeDebug, value is %{public}d", isNativeDebug);
-    isNativeDebug_ = isNativeDebug;
+    debugFlags_.isNativeDebug = isNativeDebug ? 1 : 0;
 }
 
 void AppRunningRecord::SetPerfCmd(const std::string &perfCmd)
@@ -1879,12 +1879,12 @@ void AppRunningRecord::SetPerfCmd(const std::string &perfCmd)
 
 void AppRunningRecord::SetErrorInfoEnhance(bool errorInfoEnhance)
 {
-    isErrorInfoEnhance_ = errorInfoEnhance;
+    debugFlags_.isErrorInfoEnhance = errorInfoEnhance ? 1 : 0;
 }
 
 void AppRunningRecord::SetMultiThread(bool multiThread)
 {
-    isMultiThread_ = multiThread;
+    debugFlags_.isMultiThread = multiThread ? 1 : 0;
 }
 
 void AppRunningRecord::SetAppIndex(const int32_t appIndex)
@@ -1936,12 +1936,12 @@ std::string AppRunningRecord::GetInstanceKey() const
 
 void AppRunningRecord::SetSecurityFlag(bool securityFlag)
 {
-    securityFlag_ = securityFlag;
+    systemFlags_.securityFlag = securityFlag ? 1 : 0;
 }
 
 bool AppRunningRecord::GetSecurityFlag() const
 {
-    return securityFlag_;
+    return systemFlags_.securityFlag;
 }
 
 void AppRunningRecord::SetKilling()
@@ -2158,12 +2158,12 @@ bool AppRunningRecord::IsWindowIdsEmpty()
 
 bool AppRunningRecord::IsContinuousTask()
 {
-    return isContinuousTask_;
+    return lifecycleFlags_.isContinuousTask;
 }
 
 void AppRunningRecord::SetContinuousTaskAppState(bool isContinuousTask)
 {
-    isContinuousTask_ = isContinuousTask;
+    lifecycleFlags_.isContinuousTask = isContinuousTask ? 1 : 0;
 }
 
 bool AppRunningRecord::GetFocusFlag() const
@@ -2256,19 +2256,19 @@ int32_t AppRunningRecord::ChangeAppGcState(int32_t state, uint64_t tid)
 void AppRunningRecord::SetAttachDebug(bool isAttachDebug, bool isDebugFromLocal)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
-    isAttachDebug_ = isAttachDebug;
+    debugFlags_.isAttachDebug = isAttachDebug ? 1 : 0;
     isDebugFromLocal_ = isDebugFromLocal;
 
     if (appLifeCycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
         return;
     }
-    isAttachDebug_ ? appLifeCycleDeal_->AttachAppDebug(isDebugFromLocal_) : appLifeCycleDeal_->DetachAppDebug();
+    debugFlags_.isAttachDebug ? appLifeCycleDeal_->AttachAppDebug(isDebugFromLocal_) : appLifeCycleDeal_->DetachAppDebug();
 }
 
 bool AppRunningRecord::IsAttachDebug() const
 {
-    return isAttachDebug_;
+    return debugFlags_.isAttachDebug;
 }
 
 void AppRunningRecord::SetApplicationPendingState(ApplicationPendingState pendingState)
@@ -2359,12 +2359,12 @@ void AppRunningRecord::GetChildProcessInfos(std::list<SimpleProcessInfo> &proces
 
 void AppRunningRecord::SetJITEnabled(const bool jitEnabled)
 {
-    jitEnabled_ = jitEnabled;
+    debugFlags_.jitEnabled = jitEnabled ? 1 : 0;
 }
 
 bool AppRunningRecord::IsJITEnabled() const
 {
-    return jitEnabled_;
+    return debugFlags_.jitEnabled;
 }
 
 void AppRunningRecord::SetPreloadMode(PreloadMode mode)
@@ -2424,37 +2424,37 @@ void AppRunningRecord::SetAssignTokenId(int32_t assignTokenId)
 
 void AppRunningRecord::SetRestartAppFlag(bool isRestartApp)
 {
-    isRestartApp_ = isRestartApp;
+    lifecycleFlags_.isRestartApp = isRestartApp ? 1 : 0;
 }
 
 bool AppRunningRecord::GetRestartAppFlag() const
 {
-    return isRestartApp_;
+    return lifecycleFlags_.isRestartApp;
 }
 
 void AppRunningRecord::SetAssertionPauseFlag(bool flag)
 {
-    isAssertPause_ = flag;
+    lifecycleFlags_.isAssertPause = flag ? 1 : 0;
 }
 
 bool AppRunningRecord::IsAssertionPause() const
 {
-    return isAssertPause_;
+    return lifecycleFlags_.isAssertPause;
 }
 
 bool AppRunningRecord::IsDebugging() const
 {
-    return isDebugApp_ || isAssertPause_;
+    return debugFlags_.isDebugApp || lifecycleFlags_.isAssertPause;
 }
 
 void AppRunningRecord::SetNativeStart(bool isNativeStart)
 {
-    isNativeStart_ = isNativeStart;
+    lifecycleFlags_.isNativeStart = isNativeStart ? 1 : 0;
 }
 
 bool AppRunningRecord::isNativeStart() const
 {
-    return isNativeStart_;
+    return lifecycleFlags_.isNativeStart;
 }
 
 void AppRunningRecord::SetExitReason(int32_t reason)
@@ -2557,13 +2557,13 @@ bool AppRunningRecord::SetSupportedProcessCache(bool isSupport)
 bool AppRunningRecord::SetEnableProcessCache(bool enable)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "call");
-    enableProcessCache_ = enable;
+    performanceFlags_.enableProcessCache = enable ? 1 : 0;
     return true;
 }
 
 bool AppRunningRecord::GetEnableProcessCache()
 {
-    return enableProcessCache_;
+    return performanceFlags_.enableProcessCache;
 }
 
 SupportProcessCacheState AppRunningRecord::GetSupportProcessCacheState()
@@ -2602,13 +2602,13 @@ sptr<IRemoteObject> AppRunningRecord::GetBrowserHost()
 void AppRunningRecord::SetHasGPU(bool gpu)
 {
     if (gpu) {
-        hasGPU_ = gpu;
+        featureFlags_.hasGPU = 1;
     }
 }
 
 bool AppRunningRecord::HasGPU()
 {
-    return hasGPU_;
+    return featureFlags_.hasGPU;
 }
 
 void AppRunningRecord::SetGPUPid(pid_t gpuPid)
@@ -2632,22 +2632,22 @@ pid_t AppRunningRecord::GetPid()
 
 void AppRunningRecord::SetAttachedToStatusBar(bool isAttached)
 {
-    isAttachedToStatusBar = isAttached;
+    featureFlags_.isAttachedToStatusBar = isAttached ? 1 : 0;
 }
 
 bool AppRunningRecord::IsAttachedToStatusBar()
 {
-    return isAttachedToStatusBar;
+    return featureFlags_.isAttachedToStatusBar;
 }
 
 void AppRunningRecord::SetProcessCacheBlocked(bool isBlocked)
 {
-    processCacheBlocked = isBlocked;
+    performanceFlags_.processCacheBlocked = isBlocked ? 1 : 0;
 }
 
 bool AppRunningRecord::GetProcessCacheBlocked()
 {
-    return processCacheBlocked;
+    return performanceFlags_.processCacheBlocked;
 }
 
 void AppRunningRecord::SetProcessCacheLocked(bool isLock)
@@ -2679,12 +2679,12 @@ bool AppRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()
 
 void AppRunningRecord::SetUserRequestCleaning()
 {
-    isUserRequestCleaning_ = true;
+    systemFlags_.isUserRequestCleaning = 1;
 }
 
 bool AppRunningRecord::IsUserRequestCleaning() const
 {
-    return isUserRequestCleaning_;
+    return systemFlags_.isUserRequestCleaning;
 }
 
 bool AppRunningRecord::IsProcessAttached() const
@@ -2697,22 +2697,22 @@ bool AppRunningRecord::IsProcessAttached() const
 
 void AppRunningRecord::SetUIAbilityLaunched(bool hasLaunched)
 {
-    hasUIAbilityLaunched_ = hasLaunched;
+    featureFlags_.hasUIAbilityLaunched = hasLaunched ? 1 : 0;
 }
 
 bool AppRunningRecord::HasUIAbilityLaunched()
 {
-    return hasUIAbilityLaunched_;
+    return featureFlags_.hasUIAbilityLaunched;
 }
 
 void AppRunningRecord::SetProcessCaching(bool isCaching)
 {
-    isCaching_ = isCaching;
+    lifecycleFlags_.isCaching = isCaching ? 1 : 0;
 }
 
 bool AppRunningRecord::IsCaching()
 {
-    return isCaching_;
+    return lifecycleFlags_.isCaching;
 }
 
 void AppRunningRecord::AddAppLifecycleEvent(const std::string &msg)
@@ -2725,42 +2725,42 @@ void AppRunningRecord::AddAppLifecycleEvent(const std::string &msg)
 
 void AppRunningRecord::SetNeedPreloadModule(bool isNeedPreloadModule)
 {
-    isNeedPreloadModule_ = isNeedPreloadModule;
+    performanceFlags_.isNeedPreloadModule = isNeedPreloadModule ? 1 : 0;
 }
 
 bool AppRunningRecord::GetNeedPreloadModule()
 {
-    return isNeedPreloadModule_;
+    return performanceFlags_.isNeedPreloadModule;
 }
 
 void AppRunningRecord::SetNWebPreload(const bool isAllowedNWebPreload)
 {
-    isAllowedNWebPreload_ = isAllowedNWebPreload;
+    featureFlags_.isAllowedNWebPreload = isAllowedNWebPreload ? 1 : 0;
 }
 
 bool AppRunningRecord::IsNWebPreload() const
 {
-    return isAllowedNWebPreload_;
+    return featureFlags_.isAllowedNWebPreload;
 }
 
 void AppRunningRecord::SetIsUnSetPermission(bool isUnSetPermission)
 {
-    isUnSetPermission_ = isUnSetPermission;
+    featureFlags_.isUnSetPermission = isUnSetPermission ? 1 : 0;
 }
 
 bool AppRunningRecord::IsUnSetPermission()
 {
-    return isUnSetPermission_;
+    return featureFlags_.isUnSetPermission;
 }
 
 bool AppRunningRecord::GetNeedLimitPrio()
 {
-    return isNeedLimitPrio_;
+    return performanceFlags_.isNeedLimitPrio;
 }
 
 void AppRunningRecord::SetNeedLimitPrio(bool isNeedLimitPrio)
 {
-    isNeedLimitPrio_ = isNeedLimitPrio;
+    performanceFlags_.isNeedLimitPrio = isNeedLimitPrio ? 1 : 0;
 }
 
 void AppRunningRecord::UnSetPolicy()
@@ -2805,5 +2805,87 @@ void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
     std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
     supportMultiProcessDeviceFeature_ = support;
 }
+
+// Bitfield accessor method implementations
+void AppRunningRecord::SetPrepareExit()
+{
+    lifecycleFlags_.isPrepareExit = 1;
+}
+
+void AppRunningRecord::SetLauncherApp(bool isLauncherApp)
+{
+    classificationFlags_.isLauncherApp = isLauncherApp ? 1 : 0;
+}
+
+bool AppRunningRecord::IsSingleton() const
+{
+    return classificationFlags_.isSingleton;
+}
+
+bool AppRunningRecord::IsStageBasedModel() const
+{
+    return classificationFlags_.isStageBasedModel;
+}
+
+void AppRunningRecord::SetStrictMode(bool strictMode)
+{
+    systemFlags_.isStrictMode = strictMode ? 1 : 0;
+}
+
+void AppRunningRecord::SetNetworkEnableFlags(bool enable)
+{
+    systemFlags_.networkEnableFlags = enable ? 1 : 0;
+}
+
+void AppRunningRecord::SetSAEnableFlags(bool enable)
+{
+    systemFlags_.saEnableFlags = enable ? 1 : 0;
+}
+
+void AppRunningRecord::SetIsDependedOnArkWeb(bool isDepend)
+{
+    featureFlags_.isDependedOnArkWeb = isDepend ? 1 : 0;
+}
+
+bool AppRunningRecord::IsDependedOnArkWeb()
+{
+    return featureFlags_.isDependedOnArkWeb;
+}
+
+void AppRunningRecord::SetIsKia(bool isKia)
+{
+    featureFlags_.isKia = isKia ? 1 : 0;
+}
+
+bool AppRunningRecord::GetIsKia() const
+{
+    return featureFlags_.isKia;
+}
+
+bool AppRunningRecord::IsErrorInfoEnhance() const
+{
+    return debugFlags_.isErrorInfoEnhance;
+}
+
+bool AppRunningRecord::IsNativeDebug() const
+{
+    return debugFlags_.isNativeDebug;
+}
+
+bool AppRunningRecord::IsMultiThread() const
+{
+    return debugFlags_.isMultiThread;
+}
+
+bool AppRunningRecord::GetNetworkEnableFlags() const
+{
+    return systemFlags_.networkEnableFlags;
+}
+
+bool AppRunningRecord::GetSAEnableFlags() const
+{
+    return systemFlags_.saEnableFlags;
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

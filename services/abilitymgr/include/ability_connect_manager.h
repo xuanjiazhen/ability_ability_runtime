@@ -43,18 +43,48 @@ namespace OHOS {
 namespace AAFwk {
 using OHOS::AppExecFwk::AbilityType;
 using UIExtensionAbilityConnectInfo = AbilityRuntime::UIExtensionAbilityConnectInfo;
+
+// Hash function for sptr<IRemoteObject> to enable unordered_map usage
+struct IRemoteObjectHash {
+    size_t operator()(const sptr<IRemoteObject>& obj) const noexcept {
+        if (obj == nullptr) {
+            return 0;
+        }
+        return std::hash<void*>()(obj.GetRefPtr());
+    }
+};
+
+// Equality functor for sptr<IRemoteObject>
+struct IRemoteObjectEqual {
+    bool operator()(const sptr<IRemoteObject>& lhs, const sptr<IRemoteObject>& rhs) const noexcept {
+        if (lhs == nullptr && rhs == nullptr) {
+            return true;
+        }
+        if (lhs == nullptr || rhs == nullptr) {
+            return false;
+        }
+        return lhs.GetRefPtr() == rhs.GetRefPtr();
+    }
+};
+
 /**
  * @class AbilityConnectManager
  * AbilityConnectManager provides a facility for managing service ability connection.
  */
 class AbilityConnectManager : public std::enable_shared_from_this<AbilityConnectManager> {
 public:
-    using ConnectMapType = std::map<sptr<IRemoteObject>, std::list<std::shared_ptr<ConnectionRecord>>>;
-    using ServiceMapType = std::map<std::string, std::shared_ptr<BaseExtensionRecord>>;
+    using ConnectMapType = std::unordered_map<sptr<IRemoteObject>,
+        std::list<std::shared_ptr<ConnectionRecord>>,
+        IRemoteObjectHash, IRemoteObjectEqual>;
+    using ServiceMapType = std::unordered_map<std::string, std::shared_ptr<BaseExtensionRecord>>;
     using ConnectListType = std::list<std::shared_ptr<ConnectionRecord>>;
-    using RecipientMapType = std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>>;
+    using RecipientMapType = std::unordered_map<sptr<IRemoteObject>,
+        sptr<IRemoteObject::DeathRecipient>,
+        IRemoteObjectHash, IRemoteObjectEqual>;
     using WindowExtMapValType = std::pair<uint32_t, sptr<SessionInfo>>;
-    using WindowExtensionMapType = std::map<sptr<IRemoteObject>, WindowExtMapValType>;
+    using WindowExtensionMapType = std::unordered_map<sptr<IRemoteObject>,
+        WindowExtMapValType,
+        IRemoteObjectHash, IRemoteObjectEqual>;
 
     explicit AbilityConnectManager(int userId);
     virtual ~AbilityConnectManager();
