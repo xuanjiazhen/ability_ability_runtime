@@ -202,8 +202,7 @@ sptr<IRemoteObject> JsAgentExtension::OnConnect(const AAFwk::Want &want,
         return nullptr;
     }
     if (extensionStub_ == nullptr) {
-        std::weak_ptr<JsAgentExtension> weakThis =
-            std::static_pointer_cast<JsAgentExtension>(shared_from_this());
+        std::weak_ptr<JsAgentExtension> weakThis = std::static_pointer_cast<JsAgentExtension>(shared_from_this());
         extensionStub_ = sptr<AgentExtensionStubImpl>::MakeSptr(weakThis);
     }
     sptr<IRemoteObject> stubObject = nullptr;
