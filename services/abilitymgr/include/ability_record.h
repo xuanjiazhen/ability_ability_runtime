@@ -815,7 +815,18 @@ public:
     bool GetPromotePriority();
 
     bool PromotePriority();
-    
+
+    void SetResidentAbility(bool isResident)
+    {
+        isResidentAbility_ = isResident;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Set resident ability: %{public}d", isResident);
+    }
+
+    bool IsResidentAbility() const
+    {
+        return isResidentAbility_;
+    }
+
     std::string GetFirstCallerBundleName()
     {
         return firstCallerBundleName_;
@@ -929,7 +940,8 @@ protected:
     bool isPluginAbility_ = false;
     bool isPrelaunch_ = false;
     bool isHook_ = false;
-    std::atomic_bool isCallerSetProcess_ = false;       // new version
+    bool isResidentAbility_ = false;
+    std::atomic_bool isCallerSetProcess_ = false;
     std::atomic_bool backgroundAbilityWindowDelayed_ = false;
 
     int32_t uiExtensionAbilityId_ = 0;                // uiextension ability id

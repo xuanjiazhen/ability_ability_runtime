@@ -17,9 +17,11 @@
 
 #include <singleton.h>
 
+#include "ability_config.h"
 #include "ability_manager_service.h"
 #include "ability_resident_process_rdb.h"
 #include "ability_scheduler_stub.h"
+#include "resident_memory_defrag_manager.h"
 #include "app_exit_reason_data_manager.h"
 #include "appfreeze_manager.h"
 #include "app_utils.h"
@@ -221,6 +223,16 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         keepAliveBundle_ = true;
+    }
+
+    bool isResident = abilityRequest.want.GetBoolParam(AbilityConfig::PARAM_IS_RESIDENT_ABILITY, false);
+    if (isResident) {
+        SetResidentAbility(true);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Marked ability as resident: %{public}s/%{public}s",
+            abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str());
+
+        DelayedSingleton<ResidentMemoryDefragManager>::GetInstance()->RegisterResidentAbility(
+            shared_from_this());
     }
 }
 

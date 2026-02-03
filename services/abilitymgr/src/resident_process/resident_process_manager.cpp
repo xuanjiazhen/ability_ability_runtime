@@ -15,11 +15,13 @@
 
 #include "resident_process_manager.h"
 
+#include "ability_config.h"
 #include "ability_manager_service.h"
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
 #include "app_utils.h"
 #include "ffrt.h"
+#include "hilog_tag.h"
 #include "keep_alive_utils.h"
 #include "main_element_utils.h"
 #include "user_controller/user_controller.h"
@@ -133,9 +135,9 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
     }
 
     needEraseIndexSet.insert(index);
-    // startAbility
     Want want;
     want.SetElementName(hapModuleInfo.bundleName, mainElement);
+    want.SetParam(AbilityConfig::PARAM_IS_RESIDENT_ABILITY, true);
     ResidentAbilityInfoGuard residentAbilityInfoGuard(hapModuleInfo.bundleName, mainElement, userId);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentAbility, bundleName: %{public}s, mainElement: %{public}s",
         hapModuleInfo.bundleName.c_str(), mainElement.c_str());

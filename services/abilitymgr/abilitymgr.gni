@@ -123,6 +123,7 @@ abilityms_files = [
 
   #resident_process
   "src/resident_process/resident_process_manager.cpp",
+  "src/resident_process/resident_memory_defrag_manager.cpp",
 
   "src/ability_bundle_event_callback.cpp",
 

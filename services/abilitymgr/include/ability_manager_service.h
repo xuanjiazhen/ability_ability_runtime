@@ -63,6 +63,7 @@
 #include "parameter.h"
 #include "pending_want_manager.h"
 #include "permission_verification.h"
+#include "resident_memory_defrag_manager.h"
 #include "resident_process_manager.h"
 #include "scene_board/ui_ability_lifecycle_manager.h"
 #include "start_ability_handler.h"

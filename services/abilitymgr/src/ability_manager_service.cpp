@@ -460,6 +460,10 @@ bool AbilityManagerService::Init()
     insightIntentEventMgr_ = std::make_shared<AbilityRuntime::InsightIntentEventMgr>();
     insightIntentEventMgr_->SubscribeSysEventReceiver();
     ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent();
+
+    DelayedSingleton<ResidentMemoryDefragManager>::GetInstance()->Init();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ResidentMemoryDefragManager initialized");
+
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     ResourceSchedule::ResSchedClient::GetInstance().InitKillReasonListener();
 #endif
