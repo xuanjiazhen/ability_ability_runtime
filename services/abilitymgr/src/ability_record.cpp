@@ -3403,7 +3403,7 @@ std::shared_ptr<AbilityRecord> AbilityRecord::DeepCopy() const
 
     // Copy containers (deep copy)
     {
-        std::lock_guard<std::mutex> lock(callerListLock_);
+        std::lock_guard<ffrt::mutex> lock(callerListLock_);
         for (const auto& caller : callerList_) {
             if (caller != nullptr) {
                 // Create a new CallerRecord with copied values
