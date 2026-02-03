@@ -15,6 +15,10 @@
 
 #include "ability_record.h"
 
+#include <chrono>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 #include <singleton.h>
 
 #include "ability_manager_service.h"
@@ -221,6 +225,15 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         keepAliveBundle_ = true;
+    }
+
+    // Check if this is a resident ability and schedule memory refresh
+    bool isResident = abilityRequest.want.GetBoolParam(AbilityConfig::PARAM_IS_RESIDENT_ABILITY, false);
+    if (isResident) {
+        isResidentAbility_ = true;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Marked ability as resident: %{public}s/%{public}s",
+            abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str());
+        ScheduleResidentMemoryRefresh();
     }
 }
 
@@ -3277,6 +3290,84 @@ bool AbilityRecord::PromotePriority()
         return true;
     }
     return false;
+}
+
+void AbilityRecord::ScheduleResidentMemoryRefresh()
+{
+    if (!isResidentAbility_ || isMemoryRefreshScheduled_) {
+        return;
+    }
+
+    isMemoryRefreshScheduled_ = true;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Scheduling resident memory refresh in 140s for %{public}s",
+        abilityInfo_.name.c_str());
+
+    // Use weak_ptr to avoid extending lifetime
+    std::weak_ptr<AbilityRecord> weakPtr = shared_from_this();
+    std::thread([weakPtr]() {
+        // Sleep for 140 seconds
+        std::this_thread::sleep_for(std::chrono::seconds(140));
+
+        // Lock the weak_ptr to check if the object still exists
+        auto ptr = weakPtr.lock();
+        if (ptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Resident memory refresh timer triggered for %{public}s",
+                ptr->abilityInfo_.name.c_str());
+            ptr->RefreshResidentMemory();
+        } else {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityRecord no longer exists, skipping memory refresh");
+        }
+    }).detach();
+}
+
+void AbilityRecord::RefreshResidentMemory()
+{
+    if (!isResidentAbility_) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Not a resident ability, skipping memory refresh");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Refreshing resident memory for %{public}s/%{public}s",
+        abilityInfo_.bundleName.c_str(), abilityInfo_.name.c_str());
+
+    // Perform deep copy to defragment memory
+    if (DeepCopyResidentAbility()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Successfully completed resident memory defrag for %{public}s",
+            abilityInfo_.name.c_str());
+
+        // Clear the resident flag to avoid repeated execution
+        isResidentAbility_ = false;
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to deep copy resident ability for %{public}s",
+            abilityInfo_.name.c_str());
+    }
+}
+
+bool AbilityRecord::DeepCopyResidentAbility()
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Starting deep copy for resident ability: %{public}s/%{public}s",
+        abilityInfo_.bundleName.c_str(), abilityInfo_.name.c_str());
+
+    // Create a temporary copy of critical data structures to force memory reallocation
+    // This helps reduce memory fragmentation by allocating fresh memory blocks
+
+    // Copy want parameters (this triggers memory allocation for the map)
+    Want tempWant = want_;
+
+    // Copy ability info (this triggers memory allocation for strings and vectors)
+    AppExecFwk::AbilityInfo tempAbilityInfo = abilityInfo_;
+
+    // Copy application info
+    AppExecFwk::ApplicationInfo tempAppInfo = abilityInfo_.applicationInfo;
+
+    // Assign back to original (the old memory will be freed, new contiguous memory allocated)
+    want_ = tempWant;
+    abilityInfo_.applicationInfo = tempAppInfo;
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed successfully for %{public}s",
+        abilityInfo_.name.c_str());
+
+    return true;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

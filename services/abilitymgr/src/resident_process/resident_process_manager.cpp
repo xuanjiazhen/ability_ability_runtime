@@ -136,6 +136,7 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
     // startAbility
     Want want;
     want.SetElementName(hapModuleInfo.bundleName, mainElement);
+    want.SetParam(AbilityConfig::PARAM_IS_RESIDENT_ABILITY, true);
     ResidentAbilityInfoGuard residentAbilityInfoGuard(hapModuleInfo.bundleName, mainElement, userId);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentAbility, bundleName: %{public}s, mainElement: %{public}s",
         hapModuleInfo.bundleName.c_str(), mainElement.c_str());

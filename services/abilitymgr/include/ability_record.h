@@ -821,6 +821,11 @@ public:
         return firstCallerBundleName_;
     }
 
+    // Resident memory optimization methods
+    void ScheduleResidentMemoryRefresh();
+    void RefreshResidentMemory();
+    bool DeepCopyResidentAbility();
+
 protected:
     sptr<Token> token_ = {};                               // used to interact with kit and wms
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
@@ -1029,6 +1034,10 @@ protected:
     };
     std::shared_ptr<UIAbilityProperty> uiAbilityProperty_ = nullptr;
     std::string firstCallerBundleName_ = "";
+
+    // Resident memory optimization flags
+    bool isResidentAbility_ = false;
+    bool isMemoryRefreshScheduled_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
