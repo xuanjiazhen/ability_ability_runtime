@@ -607,5 +607,6 @@ HWTEST_F(ChildMainThreadTest, UpdateNativeChildLibModuleName_0300, TestSize.Leve
 }
 
 
+
 } // namespace AppExecFwk
 } // namespace OHOS
