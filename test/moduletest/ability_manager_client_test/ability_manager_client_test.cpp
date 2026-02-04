@@ -649,5 +649,35 @@ HWTEST_F(AbilityManagerClientTest, ManualStartAutoStartupApps_0100, TestSize.Lev
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "ManualStartAutoStartupApps_0100 end");
 }
+
+/**
+ * @tc.name: QueryCallerTokenIdForAnco_0100
+ * @tc.desc: QueryCallerTokenIdForAnco with valid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, QueryCallerTokenIdForAnco_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAnco_0100 start");
+    int32_t userId = 101;
+    int32_t asCallerForAncoSessionId = 520;
+    auto result = AbilityManagerClient::GetInstance()->QueryCallerTokenIdForAnco(userId, dialogSessionId);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAnco_0100 end");
+}
+
+/**
+ * @tc.name: QueryCallerTokenIdForAnco_0200
+ * @tc.desc: QueryCallerTokenIdForAnco with invalid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, QueryCallerTokenIdForAnco_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAnco_0200 start");
+    int32_t userId = -1;
+    int32_t asCallerForAncoSessionId = -1;
+    auto result = AbilityManagerClient::GetInstance()->QueryCallerTokenIdForAnco(userId, dialogSessionId);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAnco_0200 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

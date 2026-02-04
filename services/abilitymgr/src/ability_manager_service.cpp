@@ -218,6 +218,8 @@ constexpr const char* STR_PHONE = "phone";
 constexpr const char* PARAM_RESV_ANCO_CALLER_UID = "ohos.anco.param.callerUid";
 constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.callerBundleName";
 constexpr const char* PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME = "ohos.anco.param.isNeedUpdateName";
+constexpr const char* SHELL_ASSISTANT_BUNDLENAME = "com.ohos.shell_assistant";
+constexpr int32_t BROKER_UID = 5557;
 // Distributed continued session Id
 constexpr const char* DMS_CONTINUED_SESSION_ID = "ohos.dms.continueSessionId";
 constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
@@ -13092,6 +13094,26 @@ int32_t AbilityManagerService::ManualStartAutoStartupApps(int32_t userId)
     }
     StartAutoStartupApps(userId, true);
     return ERR_OK;
+}
+
+uint32_t AbilityManagerService::QueryCallerTokenIdForAnco(int32_t userId, int32_t asCallerForAncoSessionId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "QueryCallerTokenIdForAnco userId: %{public}d, asCallerForAncoSessionId: %{public}d",
+        userId, asCallerForAncoSessionId);
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE); // 权限校验
+    std::string callerBundleName;
+    if (IN_PROCESS_CALL(bms->GetNameForUid(callerUid, callerBundleName)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get caller bundleName failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (IPCSkeleton::GetCallingUid() != BROKER_UID && callerBundleName != SHELL_ASSISTANT_BUNDLENAME) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verify Broker or anco fail");
+        return CHECK_PERMISSION_FAILED;
+    }
+    auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    return uiAbilityManager->QueryCallerTokenIdForAnco(dialogSessionId);
 }
 
 int AbilityManagerService::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isTerminate)

@@ -34,6 +34,8 @@
 #include "process_options.h"
 #include "request_id_util.h"
 #include "restart_app_manager.h"
+#include "session_info.h"
+#include "start_ability_utils.h"
 #include "scene_board/status_bar_delegate_manager.h"
 #include "server_constant.h"
 #include "session_manager_lite.h"
@@ -61,6 +63,7 @@ constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 constexpr const char* DMS_PROCESS_NAME = "distributedsched";
 constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
 constexpr const char* IS_SHELL_CALL = "isShellCall";
+constexpr const char* PARAM_DIALOG_SESSION_ID_FOR_ANCO = "ohos.anco.param.dialogSessionId";
 constexpr const char* SPECIFED_PROCESS_CALLER_PROCESS = "ohoSpecifiedProcessCallerProcess";
 constexpr const char* BACKGROUND_DELAY_TIME = "persist.sys.abilityms.backgroundDelayTime";
 constexpr int32_t DEFAULT_BACKGROUND_DELAY_TIME = 6 * 1000 * 1000;
@@ -214,6 +217,12 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         sessionInfo->instanceKey.c_str(), sessionInfo->requestId, isCallBySCB, sessionInfo->reuseDelegatorWindow,
         sessionInfo->scenarios, abilityRequest.requestCode);
     abilityRequest.sessionInfo = sessionInfo;
+    if (sessionInfo->callerTypeForAnco == CallerTypeForAnco::ADD) {
+        auto dialogSessionId = StartAbilityUtils::GenerateAsCallerForAncoSessionId();
+        std::lock_guard<ffrt::mutex> guard(callerInfoMapLock_); // sessionLock_ ?
+        callerInfoMap_.emplace(dialogSessionId, sessionInfo->callingTokenId);
+        abilityRequest.want.SetParam(PARAM_DIALOG_SESSION_ID_FOR_ANCO, dialogSessionId);
+    }
     auto uiAbilityRecord = GenerateAbilityRecord(abilityRequest, sessionInfo, isColdStart);
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
     if (!isColdStart && shouldReturnPid && uiAbilityRecord->GetPid() > 0) {
@@ -276,6 +285,12 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         isStartupHide = abilityRequest.processOptions->startupVisibility == StartupVisibility::STARTUP_HIDE;
     }
     ForegroundOptions options = { params.sceneFlag, isShellCall, isStartupHide, sessionInfo->targetGrantBundleName };
+    options.callerTypeForAnco = sessionInfo->callerTypeForAnco;
+    if (sessionInfo->callerTypeForAnco == CallerTypeForAnco::QUERY) {
+        uint32_t realCallerTokenId = 0;
+        UpdateWantWithRealCallerInfo(abilityRequest.want, realCallerTokenId);
+        options.realCallerTokenId = realCallerTokenId;
+    }
     if (shouldReturnPid) {
         options.callingPid = abilityRequest.processOptions->callingPid;
         options.loadAbilityCallbackId = abilityRequest.processOptions->loadAbilityCallbackId;
@@ -4471,6 +4486,36 @@ void UIAbilityLifecycleManager::HandleUIAbilityDiedByPid(int32_t pid)
             abilityRecord->OnProcessDied();
         }
     }
+}
+
+uint32_t UIAbilityLifecycleManager::QueryCallerTokenIdForAnco(int32_t asCallerForAncoSessionId)
+{
+    std::lock_guard<ffrt::mutex> guard(callerInfoMapLock_);
+    auto it = callerInfoMap_.find(asCallerForAncoSessionId);
+    if (it == callerInfoMap_.end()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to query the corresponding CallerTokenId through "
+            "asCallerForAncoSessionId: %{public}d", asCallerForAncoSessionId);
+        return ERR_INVALID_VALUE;
+    }
+    return it->second;
+}
+
+void UIAbilityLifecycleManager::UpdateWantWithRealCallerInfo(AAFwk::Want &want, uint32_t &realCallerTokenId)
+{
+    std::lock_guard<ffrt::mutex> guard(callerInfoMapLock_);
+    auto realAsCallerForAncoSessionId = want.GetIntParam(PARAM_DIALOG_SESSION_ID_FOR_ANCO, 0);
+    auto it = callerInfoMap_.find(realAsCallerForAncoSessionId);
+    if (it == callerInfoMap_.end()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to find CallerTokenId through realAsCallerForAncoSessionId: %{public}d",
+            realAsCallerForAncoSessionId);
+        return ERR_INVALID_VALUE;
+    }
+    realCallerTokenId = it->second;
+    callerInfoMap_.erase(it);
+    // Update the Want with real CallerTokenId for ANCO
+    want.SetParam(AAFwk::Want::PARAM_RESV_CALLER_TOKEN, static_cast<int>(realCallerTokenId));
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "UpdateWantWithRealCallerInfo: realAsCallerForAncoSessionId = %{public}d, "
+        "realCallerTokenId = %{public}u", realAsCallerForAncoSessionId, realCallerTokenId);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
