@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1948,6 +1948,15 @@ ErrCode AbilityManagerClient::ManualStartAutoStartupApps(int32_t userId)
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->ManualStartAutoStartupApps(userId);
+}
+
+ErrCode AbilityManagerClient::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
+    uint32_t &callerTokenId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "QueryCallerTokenIdForAnco called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId, callerTokenId);
 }
 
 ErrCode AbilityManagerClient::PrepareTerminateAbilityBySCB(sptr<SessionInfo> sessionInfo,
