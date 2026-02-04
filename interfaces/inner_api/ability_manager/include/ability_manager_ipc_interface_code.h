@@ -565,6 +565,8 @@ enum class AbilityManagerInterfaceCode {
     GET_AUTO_STARTUP_STATUS_FOR_SELF = 6106,
     // ipc id for manual start auto startup apps.
     MANUAL_START_AUTO_STARTUP_APPS = 6107,
+    // ipc id for query the caller's token id through want id.
+    QUERY_CALLERTOKENID_BY_WANTID = 6108,
 
     // ipc id for on auto starup on
     ON_AUTO_STARTUP_ON = 6111,

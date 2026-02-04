@@ -73,6 +73,7 @@ public:
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
     void SignRestartProcess(int32_t pid);
+    uint32_t QueryCallerTokenIdByWantID(int32_t wantID);
 
     /**
      * StartUIAbility with request.
@@ -1266,7 +1267,9 @@ private:
     std::unordered_map<int32_t, UIAbilityRecordPtr> lowMemKillAbilityMap_;
     std::unordered_map<int32_t, UIAbilityRecordPtr> tmpAbilityMap_;
     std::unordered_map<UIAbilityRecordPtr, std::list<AbilityRequest>> callRequestCache_;
+    std::unordered_map<int32_t, uint32_t> callerTypeMap_;
     std::list<UIAbilityRecordPtr> terminateAbilityList_;
+    ffrt::mutex callerTypeMapLock_;
     // if window reused, persistentId will be reused, keep previous record here until the ability is dead
     std::unordered_set<UIAbilityRecordPtr> reuseWindowRecords_;
     sptr<IRemoteObject> rootSceneSession_;
