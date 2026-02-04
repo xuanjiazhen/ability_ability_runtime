@@ -1950,6 +1950,14 @@ ErrCode AbilityManagerClient::ManualStartAutoStartupApps(int32_t userId)
     return abms->ManualStartAutoStartupApps(userId);
 }
 
+ErrCode AbilityManagerClient::QueryCallerTokenIdByWantID(int32_t wantID)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "QueryCallerTokenIdByWantID called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->QueryCallerTokenIdByWantID(wantID);
+}
+
 ErrCode AbilityManagerClient::PrepareTerminateAbilityBySCB(sptr<SessionInfo> sessionInfo,
     bool &isPrepareTerminate)
 {

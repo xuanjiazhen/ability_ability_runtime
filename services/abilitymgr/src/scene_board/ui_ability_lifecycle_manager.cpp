@@ -63,6 +63,7 @@ constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
 constexpr const char* IS_SHELL_CALL = "isShellCall";
 constexpr const char* SPECIFED_PROCESS_CALLER_PROCESS = "ohoSpecifiedProcessCallerProcess";
 constexpr const char* BACKGROUND_DELAY_TIME = "persist.sys.abilityms.backgroundDelayTime";
+constexpr const char* PARAM_WANT_ID = "ohos.ability.want.id"; //BROKER_PARAM_WANT_ID ?
 constexpr int32_t DEFAULT_BACKGROUND_DELAY_TIME = 6 * 1000 * 1000;
 #ifdef SUPPORT_ASAN
 constexpr int KILL_TIMEOUT_MULTIPLE = 45;
@@ -80,6 +81,7 @@ constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsI
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
 constexpr int32_t BY_CALL_TIMEOUT = 10 * 1000 * 1000; // 10s
 constexpr int32_t SCENE_FLAG_BYCALL = 4;
+int32_t wantID = 1;
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
@@ -214,6 +216,12 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         sessionInfo->instanceKey.c_str(), sessionInfo->requestId, isCallBySCB, sessionInfo->reuseDelegatorWindow,
         sessionInfo->scenarios, abilityRequest.requestCode);
     abilityRequest.sessionInfo = sessionInfo;
+    if (sessionInfo->callerType == 1) {
+        std::lock_guard<ffrt::mutex> guard(callerTypeMapLock_); // sessionLock_ ?
+        callerTypeMap_.emplace(wantID, sessionInfo->callingTokenId);
+        abilityRequest.want.SetParam(PARAM_WANT_ID, wantID);
+        wantID++;
+    }
     auto uiAbilityRecord = GenerateAbilityRecord(abilityRequest, sessionInfo, isColdStart);
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
     if (!isColdStart && shouldReturnPid && uiAbilityRecord->GetPid() > 0) {
@@ -276,6 +284,12 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         isStartupHide = abilityRequest.processOptions->startupVisibility == StartupVisibility::STARTUP_HIDE;
     }
     ForegroundOptions options = { params.sceneFlag, isShellCall, isStartupHide, sessionInfo->targetGrantBundleName };
+    options.callerType = sessionInfo->callerType;
+    if (sessionInfo->callerType == 2) {
+        auto realtWantID = abilityRequest.want.GetIntParam(PARAM_WANT_ID, 0);
+        auto realCallerTokenId = callerTypeMap_[realtWantID];
+        options.realCallerTokenId = realCallerTokenId;
+    }
     if (shouldReturnPid) {
         options.callingPid = abilityRequest.processOptions->callingPid;
         options.loadAbilityCallbackId = abilityRequest.processOptions->loadAbilityCallbackId;
@@ -4471,6 +4485,17 @@ void UIAbilityLifecycleManager::HandleUIAbilityDiedByPid(int32_t pid)
             abilityRecord->OnProcessDied();
         }
     }
+}
+
+uint32_t UIAbilityLifecycleManager::QueryCallerTokenIdByWantID(int32_t wantID)
+{
+    auto it = callerTypeMap_.find(wantID);
+    if (it == callerTypeMap_.end()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to query the corresponding CallerTokenId through WantID: %{public}d",
+            wantID);
+        return ERR_INVALID_VALUE;
+    }
+    return it->second;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
