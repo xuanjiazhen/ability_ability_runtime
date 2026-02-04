@@ -61,6 +61,7 @@ constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 constexpr const char* DMS_PROCESS_NAME = "distributedsched";
 constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
 constexpr const char* IS_SHELL_CALL = "isShellCall";
+constexpr const char* PARAM_DIALOG_SESSION_ID_FOR_ANCO = "ohos.anco.param.dialogSessionId";
 constexpr const char* SPECIFED_PROCESS_CALLER_PROCESS = "ohoSpecifiedProcessCallerProcess";
 constexpr const char* BACKGROUND_DELAY_TIME = "persist.sys.abilityms.backgroundDelayTime";
 constexpr int32_t DEFAULT_BACKGROUND_DELAY_TIME = 6 * 1000 * 1000;
@@ -214,6 +215,12 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         sessionInfo->instanceKey.c_str(), sessionInfo->requestId, isCallBySCB, sessionInfo->reuseDelegatorWindow,
         sessionInfo->scenarios, abilityRequest.requestCode);
     abilityRequest.sessionInfo = sessionInfo;
+    if (sessionInfo->callerTypeForAnco == CallerTypeForAnco::ADD) {
+        auto dialogSessionId = DialogSessionManager::GetInstance().GenerateDialogSessionId();
+        std::lock_guard<ffrt::mutex> guard(callerInfoMapLock_); // sessionLock_ ?
+        callerInfoMap_.emplace(dialogSessionId, sessionInfo->callingTokenId);
+        abilityRequest.want.SetParam(PARAM_DIALOG_SESSION_ID_FOR_ANCO, dialogSessionId);
+    }
     auto uiAbilityRecord = GenerateAbilityRecord(abilityRequest, sessionInfo, isColdStart);
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
     if (!isColdStart && shouldReturnPid && uiAbilityRecord->GetPid() > 0) {
@@ -276,6 +283,13 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         isStartupHide = abilityRequest.processOptions->startupVisibility == StartupVisibility::STARTUP_HIDE;
     }
     ForegroundOptions options = { params.sceneFlag, isShellCall, isStartupHide, sessionInfo->targetGrantBundleName };
+    options.callerTypeForAnco = sessionInfo->callerTypeForAnco;
+    if (sessionInfo->callerTypeForAnco == CallerTypeForAnco::QUERY) {
+        std::lock_guard<ffrt::mutex> guard(callerInfoMapLock_);
+        auto realtWantID = abilityRequest.want.GetIntParam(PARAM_DIALOG_SESSION_ID_FOR_ANCO, 0);
+        auto realCallerTokenId = callerInfoMap_[realtWantID];
+        options.realCallerTokenId = realCallerTokenId;
+    }
     if (shouldReturnPid) {
         options.callingPid = abilityRequest.processOptions->callingPid;
         options.loadAbilityCallbackId = abilityRequest.processOptions->loadAbilityCallbackId;
@@ -4471,6 +4485,18 @@ void UIAbilityLifecycleManager::HandleUIAbilityDiedByPid(int32_t pid)
             abilityRecord->OnProcessDied();
         }
     }
+}
+
+uint32_t UIAbilityLifecycleManager::QueryCallerTokenIdForAnco(int32_t dialogSessionId)
+{
+    std::lock_guard<ffrt::mutex> guard(callerInfoMapLock_);
+    auto it = callerInfoMap_.find(dialogSessionId);
+    if (it == callerInfoMap_.end()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to query the corresponding CallerTokenId through WantID: %{public}d",
+            dialogSessionId);
+        return ERR_INVALID_VALUE;
+    }
+    return it->second;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

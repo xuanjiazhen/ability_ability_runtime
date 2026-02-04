@@ -398,7 +398,7 @@ public:
     void RecordPidKilling(pid_t pid, const std::string &reason, bool isKillPrecedeStart);
 
     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
-
+    uint32_t QueryCallerTokenIdForAnco(int32_t dialogSessionId);
     ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
     void HandleUIAbilityDiedByPid(int32_t pid);

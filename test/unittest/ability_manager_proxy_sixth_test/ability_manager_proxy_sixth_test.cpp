@@ -1097,5 +1097,50 @@ HWTEST_F(AbilityManagerProxySixthTest, AbilityManagerProxy_ManualStartAutoStartu
     auto res = proxy_->ManualStartAutoStartupApps(userId);
     EXPECT_EQ(res, -1);
 }
+
+/**
+ * @tc.name: AbilityManagerProxy_QueryCallerTokenIdByWantID_001
+ * @tc.desc: QueryCallerTokenIdForAnco with valid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxySixthTest, AbilityManagerProxy_QueryCallerTokenIdByWantID_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(-1));
+    int32_t dialogSessionId = 520;
+    auto res = proxy_->QueryCallerTokenIdForAnco(dialogSessionId);
+    EXPECT_EQ(res, -1);
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_QueryCallerTokenIdByWantID_002
+ * @tc.desc: QueryCallerTokenIdForAnco with successful request
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxySixthTest, AbilityManagerProxy_QueryCallerTokenIdByWantID_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    int32_t dialogSessionId = 520;
+    auto res = proxy_->QueryCallerTokenIdForAnco(dialogSessionId);
+    EXPECT_EQ(res, 0);
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_QueryCallerTokenIdByWantID_003
+ * @tc.desc: QueryCallerTokenIdForAnco with invalid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxySixthTest, AbilityManagerProxy_QueryCallerTokenIdByWantID_003, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    int32_t dialogSessionId = -1;
+    auto res = proxy_->QueryCallerTokenIdForAnco(dialogSessionId);
+    EXPECT_EQ(res, 0);
+}
 } // namespace AAFwk
 } // namespace OHOS

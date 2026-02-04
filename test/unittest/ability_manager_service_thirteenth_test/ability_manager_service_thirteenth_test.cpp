@@ -3215,5 +3215,39 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ManualStartAutoStartupApps_002, Te
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ManualStartAutoStartupApps_002 end");
 }
+
+/*
+ * Feature: QueryCallerTokenIdByWantID_001
+ * Function: QueryCallerTokenIdForAnco
+ * SubFunction: NA
+ * FunctionPoints: uiAbilityManager is null
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, QueryCallerTokenIdByWantID_001, TestSize.Level1) {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdByWantID_001 start");
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = FOUNDATION_UID;
+    int32_t dialogSessionId = 520;
+    auto result = abilityManagerService->QueryCallerTokenIdForAnco(dialogSessionId);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdByWantID_001 end");
+}
+
+/*
+ * Feature: QueryCallerTokenIdByWantID_002
+ * Function: QueryCallerTokenIdForAnco
+ * SubFunction: NA
+ * FunctionPoints: negative dialogSessionId
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, QueryCallerTokenIdByWantID_002, TestSize.Level1) {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdByWantID_002 start");
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = FOUNDATION_UID;
+    int32_t dialogSessionId = -1;
+    auto result = abilityManagerService->QueryCallerTokenIdForAnco(dialogSessionId);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdByWantID_002 end");
+}
 } // namespace AAFwk
 } // namespace OHOS

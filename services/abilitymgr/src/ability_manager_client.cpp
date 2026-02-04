@@ -1950,6 +1950,14 @@ ErrCode AbilityManagerClient::ManualStartAutoStartupApps(int32_t userId)
     return abms->ManualStartAutoStartupApps(userId);
 }
 
+ErrCode AbilityManagerClient::QueryCallerTokenIdForAnco(int32_t dialogSessionId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "QueryCallerTokenIdForAnco called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->QueryCallerTokenIdForAnco(dialogSessionId);
+}
+
 ErrCode AbilityManagerClient::PrepareTerminateAbilityBySCB(sptr<SessionInfo> sessionInfo,
     bool &isPrepareTerminate)
 {
