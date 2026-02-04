@@ -13094,6 +13094,19 @@ int32_t AbilityManagerService::ManualStartAutoStartupApps(int32_t userId)
     return ERR_OK;
 }
 
+uint32_t AbilityManagerService::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "QueryCallerTokenIdForAnco userId: %{public}d, asCallerForAncoSessionId: %{public}s",
+        userId, asCallerForAncoSessionId.c_str());
+    if (IPCSkeleton::GetCallingUid() != BROKER_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verify broker failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+    auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    return uiAbilityManager->QueryCallerTokenIdForAnco(asCallerForAncoSessionId);
+}
+
 int AbilityManagerService::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isTerminate)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
