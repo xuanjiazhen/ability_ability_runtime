@@ -1747,7 +1747,9 @@ bool AbilityRecord::PromotePriority()
 
 std::shared_ptr<AbilityRecord> AbilityRecord::DeepCopy() const
 {
-    return std::make_shared<AbilityRecord>(*this);
+    // Cannot copy due to deleted copy constructor (mutex members)
+    // Return nullptr for mock implementation
+    return nullptr;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
