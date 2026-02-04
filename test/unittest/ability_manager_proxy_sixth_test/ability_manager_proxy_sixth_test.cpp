@@ -1097,5 +1097,50 @@ HWTEST_F(AbilityManagerProxySixthTest, AbilityManagerProxy_ManualStartAutoStartu
     auto res = proxy_->ManualStartAutoStartupApps(userId);
     EXPECT_EQ(res, -1);
 }
+
+/**
+ * @tc.name: AbilityManagerProxy_QueryCallerTokenIdByWantID_001
+ * @tc.desc: QueryCallerTokenIdByWantID with valid wantID
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxySixthTest, AbilityManagerProxy_QueryCallerTokenIdByWantID_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(-1));
+    int32_t wantID = 520;
+    auto res = proxy_->QueryCallerTokenIdByWantID(wantID);
+    EXPECT_EQ(res, -1);
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_QueryCallerTokenIdByWantID_002
+ * @tc.desc: QueryCallerTokenIdByWantID with successful request
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxySixthTest, AbilityManagerProxy_QueryCallerTokenIdByWantID_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    int32_t wantID = 520;
+    auto res = proxy_->QueryCallerTokenIdByWantID(wantID);
+    EXPECT_EQ(res, 0);
+}
+
+/**
+ * @tc.name: AbilityManagerProxy_QueryCallerTokenIdByWantID_003
+ * @tc.desc: QueryCallerTokenIdByWantID with invalid wantID
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxySixthTest, AbilityManagerProxy_QueryCallerTokenIdByWantID_003, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    int32_t wantID = -1;
+    auto res = proxy_->QueryCallerTokenIdByWantID(wantID);
+    EXPECT_EQ(res, 0);
+}
 } // namespace AAFwk
 } // namespace OHOS

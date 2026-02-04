@@ -1782,6 +1782,13 @@ public:
     virtual int32_t ManualStartAutoStartupApps(int32_t userId) override;
 
     /**
+     * @brief Query the caller's Token ID through Want ID.
+     * @param wantID Indicates the ID of cached information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual uint32_t QueryCallerTokenIdByWantID(int32_t wantID) override;
+
+    /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
      *
      * @param sessionInfo the session info of the ability to start.
