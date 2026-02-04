@@ -947,6 +947,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_FOREGROUND_APP_CONNECTION_OBSERVER) {
         return RegisterForegroundAppObserverInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::QUERY_CALLER_TOKEN_ID_FOR_ANCO) {
+        return QueryCallerTokenIdForAncoInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::MANUAL_START_AUTO_STARTUP_APPS) {
         return ManualStartAutoStartupAppsInner(data, reply);
     }
@@ -3913,6 +3916,15 @@ int32_t AbilityManagerStub::ManualStartAutoStartupAppsInner(MessageParcel &data,
     int32_t userId = data.ReadInt32();
     int32_t result = ManualStartAutoStartupApps(userId);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::QueryCallerTokenIdForAncoInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t userId = data.ReadInt32();
+    std::string asCallerForAncoSessionId = data.ReadString();
+    uint32_t result = QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId);
+    reply.WriteUint32(result); // result is uint32_t
     return NO_ERROR;
 }
 

@@ -1802,6 +1802,17 @@ public:
     }
 
     /**
+     * @brief Query the caller's Token ID for anco.
+     * @param userId Indicates the user ID.
+     * @param asCallerForAncoSessionId Indicates the anco session Id of cached information.
+     * @return Returns tokenId on success, 0 on failure.
+     */
+    virtual uint32_t QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId)
+    {
+        return 0;
+    }
+
+    /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
      *
      * @param sessionInfo the session info of the ability to start.
