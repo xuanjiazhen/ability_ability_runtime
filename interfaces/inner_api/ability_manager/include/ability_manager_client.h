@@ -1200,6 +1200,13 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ManualStartAutoStartupApps(int32_t userId);
+    
+    /**
+     * @brief Query the caller's Token ID for anco.
+     * @param dialogSessionId Indicates the ID of cached information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode QueryCallerTokenIdForAnco(int32_t userId, int32_t dialogSessionId);
 
     /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.

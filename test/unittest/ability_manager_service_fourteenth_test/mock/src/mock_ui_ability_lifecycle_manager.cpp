@@ -766,5 +766,10 @@ void UIAbilityLifecycleManager::HandleUIAbilityDiedByPid(int32_t pid)
 {
     return;
 }
+
+uint32_t UIAbilityLifecycleManager::QueryCallerTokenIdForAnco(int32_t dialogSessionId)
+{
+    return ERR_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

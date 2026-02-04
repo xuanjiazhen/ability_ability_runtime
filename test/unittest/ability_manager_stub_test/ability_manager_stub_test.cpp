@@ -4357,5 +4357,64 @@ HWTEST_F(AbilityManagerStubTest, ManualStartAutoStartupAppsInner_0200, TestSize.
     EXPECT_EQ(result, NO_ERROR);
     TAG_LOGI(AAFwkTag::TEST, "ManualStartAutoStartupAppsInner_0200 end");
 }
+
+/**
+ * @tc.name: QueryCallerTokenIdForAncoInner_0100
+ * @tc.desc: QueryCallerTokenIdForAncoInner with valid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, QueryCallerTokenIdForAncoInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0100 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t dialogSessionId = 520;
+    ASSERT_TRUE(data.WriteInt32(dialogSessionId));
+    auto result = stub_->QueryCallerTokenIdForAncoInner(data, reply);
+    EXPECT_EQ(result, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0100 end");
+}
+
+/**
+ * @tc.name: QueryCallerTokenIdForAncoInner_0200
+ * @tc.desc: QueryCallerTokenIdForAncoInner with invalid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, QueryCallerTokenIdForAncoInner_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0200 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t dialogSessionId = -1;
+    ASSERT_TRUE(data.WriteInt32(dialogSessionId));
+    auto result = stub_->QueryCallerTokenIdForAncoInner(data, reply);
+    EXPECT_EQ(result, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0200 end");
+}
+
+/**
+ * @tc.name: QueryCallerTokenIdForAncoInner_0300
+ * @tc.desc: QueryCallerTokenIdForAncoInner with OnRemoteRequest
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, QueryCallerTokenIdForAncoInner_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0300 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
+    int32_t dialogSessionId = 100;
+    ASSERT_TRUE(data.WriteInt32(dialogSessionId));
+
+    auto result = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::QueryCallerTokenIdForAnco), data, reply, option);
+
+    EXPECT_EQ(result, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0300 end");
+}
 } // namespace AAFwk
 } // namespace OHOS

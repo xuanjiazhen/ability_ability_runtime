@@ -1802,6 +1802,16 @@ public:
     }
 
     /**
+     * @brief Query the caller's Token ID for anco.
+     * @param dialogSessionId Indicates the ID of cached information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual uint32_t QueryCallerTokenIdForAnco(int32_t dialogSessionId)
+    {
+        return 0;
+    }
+
+    /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
      *
      * @param sessionInfo the session info of the ability to start.

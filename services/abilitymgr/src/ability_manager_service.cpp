@@ -13094,6 +13094,14 @@ int32_t AbilityManagerService::ManualStartAutoStartupApps(int32_t userId)
     return ERR_OK;
 }
 
+uint32_t AbilityManagerService::QueryCallerTokenIdForAnco(int32_t dialogSessionId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "QueryCallerTokenIdForAnco dialogSessionId: %{public}d", dialogSessionId);
+    auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    return uiAbilityManager->QueryCallerTokenIdForAnco(dialogSessionId);
+}
+
 int AbilityManagerService::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isTerminate)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
