@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -565,6 +565,8 @@ enum class AbilityManagerInterfaceCode {
     GET_AUTO_STARTUP_STATUS_FOR_SELF = 6106,
     // ipc id for manual start auto startup apps.
     MANUAL_START_AUTO_STARTUP_APPS = 6107,
+    // ipc id for query the caller's token id for anco
+    QUERY_CALLER_TOKEN_ID_FOR_ANCO = 6108,
 
     // ipc id for on auto starup on
     ON_AUTO_STARTUP_ON = 6111,
