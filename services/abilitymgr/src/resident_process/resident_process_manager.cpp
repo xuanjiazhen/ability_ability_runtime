@@ -151,8 +151,23 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
     if (ret != ERR_OK) {
         AddFailedResidentAbility(hapModuleInfo.bundleName, mainElement, userId);
     } else {
-        // Start memory defragmentation task after 140 seconds
-        StartResidentMemoryDefragTask(hapModuleInfo.bundleName, mainElement, userId);
+        // Get missionId immediately after StartAbility succeeds
+        auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+        auto missionListMgr = ams->GetMissionListManagerByUserId(userId);
+        if (missionListMgr != nullptr) {
+            AppExecFwk::ElementName element;
+            element.SetBundleName(hapModuleInfo.bundleName);
+            element.SetAbilityName(mainElement);
+
+            // Use static_cast since we know the actual type (no RTTI)
+            auto missionListMgrImpl = static_cast<MissionListManager*>(missionListMgr.get());
+            auto abilityRecord = missionListMgrImpl->GetAbilityRecordByName(element);
+            if (abilityRecord != nullptr) {
+                int32_t missionId = abilityRecord->GetMissionId();
+                // Start memory defragmentation task with missionId
+                StartResidentMemoryDefragTask(hapModuleInfo.bundleName, mainElement, userId, missionId);
+            }
+        }
     }
 }
 
@@ -391,66 +406,36 @@ void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleN
 }
 
 void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bundleName,
-    const std::string &abilityName, int32_t userId)
+    const std::string &abilityName, int32_t userId, int32_t missionId)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Starting memory defrag task for %{public}s/%{public}s, will trigger after 140s",
-        bundleName.c_str(), abilityName.c_str());
-
-    // Get MissionListManager and AbilityRecord NOW, store weak_ptr
-    auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
-    if (ams == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
-        return;
-    }
-
-    auto missionListMgr = ams->GetMissionListManagerByUserId(userId);
-    if (missionListMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get MissionListManager for userId %{public}d", userId);
-        return;
-    }
-
-    // Find AbilityRecord by name and get missionId
-    AppExecFwk::ElementName element;
-    element.SetBundleName(bundleName);
-    element.SetAbilityName(abilityName);
-
-    // Use GetAbilityRecordByName (implementation class method) via dynamic_cast
-    auto missionListMgrImpl = dynamic_cast<MissionListManager*>(missionListMgr.get());
-    if (missionListMgrImpl == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to cast MissionListManager to implementation class");
-        return;
-    }
-
-    auto abilityRecord = missionListMgrImpl->GetAbilityRecordByName(element);
-    if (abilityRecord == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "AbilityRecord not found for %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
-        return;
-    }
-
-    int32_t missionId = abilityRecord->GetMissionId();
-
-    // Store weak_ptr to avoid dangling pointer after 140 seconds
-    std::weak_ptr<AbilityRecord> weakRecord = abilityRecord;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Starting memory defrag task for %{public}s/%{public}s, missionId: %{public}d, "
+        "will trigger after 140s", bundleName.c_str(), abilityName.c_str(), missionId);
 
     // Start a background thread to handle memory defragmentation after 140 seconds
-    std::thread([bundleName, abilityName, userId, missionId, weakRecord]() {
+    std::thread([bundleName, abilityName, userId, missionId]() {
         // Sleep for 140 seconds
         std::this_thread::sleep_for(std::chrono::seconds(140));
 
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Memory defrag timer triggered for %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Memory defrag timer triggered for %{public}s/%{public}s, missionId: %{public}d",
+            bundleName.c_str(), abilityName.c_str(), missionId);
 
-        // Check if AbilityRecord still exists using weak_ptr
-        auto abilityRecord = weakRecord.lock();
-        if (abilityRecord == nullptr) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityRecord has been destroyed, skipping memory defrag");
+        // Get AbilityRecord by missionId using interface method (no RTTI needed)
+        auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+        if (ams == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
             return;
         }
 
-        // Verify it's still the same record by checking missionId
-        if (abilityRecord->GetMissionId() != missionId) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "AbilityRecord missionId mismatch, skipping defrag");
+        auto missionListMgr = ams->GetMissionListManagerByUserId(userId);
+        if (missionListMgr == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get MissionListManager for userId %{public}d", userId);
+            return;
+        }
+
+        auto abilityRecord = missionListMgr->GetAbilityRecordByMissionId(missionId);
+        if (abilityRecord == nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityRecord has been destroyed (missionId: %{public}d), "
+                "skipping memory defrag", missionId);
             return;
         }
 

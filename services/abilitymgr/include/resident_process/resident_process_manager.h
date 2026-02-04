@@ -102,7 +102,8 @@ private:
         size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId);
     void StartResidentProcessWithMainElementPerBundleHap(const AppExecFwk::HapModuleInfo &hapModuleInfo,
         const std::string &processName, size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId);
-    void StartResidentMemoryDefragTask(const std::string &bundleName, const std::string &abilityName, int32_t userId);
+    void StartResidentMemoryDefragTask(const std::string &bundleName, const std::string &abilityName,
+        int32_t userId, int32_t missionId);
 
     std::mutex residentAbilityInfoMutex_;
     std::list<ResidentAbilityInfo> residentAbilityInfos_;
