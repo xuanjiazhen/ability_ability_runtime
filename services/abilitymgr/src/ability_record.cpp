@@ -1307,10 +1307,6 @@ void AbilityRecord::SendResultByBackToCaller(const std::shared_ptr<AbilityResult
     CHECK_POINTER(scheduler_);
     CHECK_POINTER(result);
     scheduler_->SendResult(result->requestCode_, result->resultCode_, result->resultWant_);
-    if (GetCallerInfo() != nullptr) {
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(
-            GetCallerInfo()->callerPid, GetPid(), GetAbilityRecordId());
-    }
 }
 
 void AbilityRecord::SendSandboxSavefileResult(const Want &want, int resultCode, int requestCode)
@@ -1539,16 +1535,26 @@ void AbilityRecord::RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> calle
         TAG_LOGI(AAFwkTag::ABILITYMGR, "null record");
         return;
     }
-    std::lock_guard guard(callerListLock_);
-    for (auto it = callerList_.begin(); it != callerList_.end(); it++) {
-        if ((*it)->GetCaller() == callerAbilityRecord) {
-            (*it)->RemoveHistoryRequestCode(requestCode);
-            if ((*it)->GetRequestCodeSet().empty()) {
-                callerList_.erase(it);
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "remove callerRecord");
+    bool removePidConnection = false;
+    {
+        std::lock_guard guard(callerListLock_);
+        for (auto it = callerList_.begin(); it != callerList_.end(); it++) {
+            if ((*it)->GetCaller() == callerAbilityRecord) {
+                (*it)->RemoveHistoryRequestCode(requestCode);
+                if (!(*it)->HasForResultRequestCode()) {
+                    removePidConnection = true;
+                }
+                if ((*it)->GetRequestCodeSet().empty()) {
+                    callerList_.erase(it);
+                    TAG_LOGI(AAFwkTag::ABILITYMGR, "remove callerRecord");
+                }
+                continue;
             }
-            return;
         }
+    }
+    if (removePidConnection) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(
+            callerAbilityRecord->GetPid(), GetPid(), GetAbilityRecordId());
     }
 }
 
@@ -3233,6 +3239,43 @@ void AbilityRecord::ReportAbilityConnectionForResultTerminate()
             for (auto requestCode : requestCodeSet) {
                 if (requestCode != DEFAULT_REQUEST_CODE) {
                     isForResultTerminate = true;
+                    break;
+                }
+            }
+            if (isForResultTerminate) {
+                auto callerInfo = caller->GetCallerInfo();
+                if (callerInfo == nullptr) {
+                    TAG_LOGE(AAFwkTag::ABILITYMGR, "callerInfo is null");
+                    continue;
+                }
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "found forResult callerPid %{public}d", callerInfo->callerPid);
+                notifyCallerPids.emplace_back(callerInfo->callerPid);
+            }
+        }
+    }
+    for (auto pid : notifyCallerPids) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(pid,
+            curPid, curRecordId);
+    }
+}
+
+void AbilityRecord::ReportAbilityConnectionSendResultBack()
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call ReportAbilityConnectionSendResultBack");
+    std::vector<int32_t> notifyCallerPids;
+    int32_t curPid = GetPid();
+    int32_t curRecordId = GetAbilityRecordId();
+    {
+        std::lock_guard guard(callerListLock_);
+        for (auto caller : callerList_) {
+            if (caller == nullptr) {
+                continue;
+            }
+            auto requestCodeSet = caller->GetRequestCodeSet();
+            bool foundCaller = false;
+            for (auto requestCode : requestCodeSet) {
+                if (requestCode != DEFAULT_REQUEST_CODE) {
+                    foundCaller = true;
                     break;
                 }
             }
