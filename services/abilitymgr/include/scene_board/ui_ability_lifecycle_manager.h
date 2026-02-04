@@ -65,6 +65,11 @@ struct AbilitiesRequest {
     sptr<IRemoteObject> callerToken;
 };
 
+struct CallerInfo {
+    uint32_t callerTokenId = 0;
+    Want targetWant;
+};
+
 class UIAbilityLifecycleManager : public std::enable_shared_from_this<UIAbilityLifecycleManager> {
 public:
     UIAbilityLifecycleManager() = default;
@@ -73,6 +78,8 @@ public:
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
     void SignRestartProcess(int32_t pid);
+    uint32_t QueryCallerTokenIdForAnco(const std::string &asCallerForAncoSessionId);
+    void UpdateTokenIdAndWantWithRealCallerInfo(AAFwk::Want &want, uint32_t &realCallerTokenId);
 
     /**
      * StartUIAbility with request.
@@ -1266,7 +1273,9 @@ private:
     std::unordered_map<int32_t, UIAbilityRecordPtr> lowMemKillAbilityMap_;
     std::unordered_map<int32_t, UIAbilityRecordPtr> tmpAbilityMap_;
     std::unordered_map<UIAbilityRecordPtr, std::list<AbilityRequest>> callRequestCache_;
+    std::unordered_map<std::string, CallerInfo> callerInfoMap_;
     std::list<UIAbilityRecordPtr> terminateAbilityList_;
+    ffrt::mutex callerInfoMapLock_;
     // if window reused, persistentId will be reused, keep previous record here until the ability is dead
     std::unordered_set<UIAbilityRecordPtr> reuseWindowRecords_;
     sptr<IRemoteObject> rootSceneSession_;
