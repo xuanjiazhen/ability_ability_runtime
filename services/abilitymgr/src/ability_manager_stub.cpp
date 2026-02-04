@@ -950,6 +950,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::MANUAL_START_AUTO_STARTUP_APPS) {
         return ManualStartAutoStartupAppsInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::QUERY_CALLERTOKENID_BY_WANTID) {
+        return QueryCallerTokenIdByWantIDInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -3913,6 +3916,14 @@ int32_t AbilityManagerStub::ManualStartAutoStartupAppsInner(MessageParcel &data,
     int32_t userId = data.ReadInt32();
     int32_t result = ManualStartAutoStartupApps(userId);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::QueryCallerTokenIdByWantIDInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t wantID = data.ReadInt32();
+    uint32_t result = QueryCallerTokenIdByWantID(wantID);
+    reply.WriteUint32(result); // result is uint32_t
     return NO_ERROR;
 }
 

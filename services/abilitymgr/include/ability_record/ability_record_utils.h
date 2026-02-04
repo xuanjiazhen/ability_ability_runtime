@@ -111,6 +111,8 @@ struct ForegroundOptions {
     uint64_t loadAbilityCallbackId = 0;
     pid_t selfPid = -1;
     int32_t requestCode = -1;
+    int32_t callerType = 0;
+    uint32_t realCallerTokenId = 0;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

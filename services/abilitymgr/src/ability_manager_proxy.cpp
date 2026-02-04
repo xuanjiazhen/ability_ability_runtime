@@ -5294,6 +5294,27 @@ int32_t AbilityManagerProxy::ManualStartAutoStartupApps(int32_t userId)
     return reply.ReadInt32();
 }
 
+uint32_t AbilityManagerProxy::QueryCallerTokenIdByWantID(int32_t wantID)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    if (!data.WriteInt32(wantID)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write wantID fail");
+        return ERR_WRITE_INT32_FAILED;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::QUERY_CALLERTOKENID_BY_WANTID, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadUint32(); // ReadInt32
+}
+
 int AbilityManagerProxy::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isPrepareTerminate)
 {
     MessageParcel data;
