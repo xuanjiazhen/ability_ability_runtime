@@ -402,6 +402,7 @@ public:
     ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
     void HandleUIAbilityDiedByPid(int32_t pid);
+    uint32_t QueryCallerTokenIdByWantID(int32_t wantID);
 
 private:
     void AddStartingPid(pid_t pid);

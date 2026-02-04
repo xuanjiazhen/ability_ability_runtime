@@ -649,5 +649,33 @@ HWTEST_F(AbilityManagerClientTest, ManualStartAutoStartupApps_0100, TestSize.Lev
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "ManualStartAutoStartupApps_0100 end");
 }
+
+/**
+ * @tc.name: QueryCallerTokenIdByWantID_0100
+ * @tc.desc: QueryCallerTokenIdByWantID with valid wantID
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, QueryCallerTokenIdByWantID_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdByWantID_0100 start");
+    int32_t wantID = 520;
+    auto result = AbilityManagerClient::GetInstance()->QueryCallerTokenIdByWantID(wantID);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdByWantID_0100 end");
+}
+
+/**
+ * @tc.name: QueryCallerTokenIdByWantID_0200
+ * @tc.desc: QueryCallerTokenIdByWantID with invalid wantID
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, QueryCallerTokenIdByWantID_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdByWantID_0200 start");
+    int32_t wantID = -1;
+    auto result = AbilityManagerClient::GetInstance()->QueryCallerTokenIdByWantID(wantID);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdByWantID_0200 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

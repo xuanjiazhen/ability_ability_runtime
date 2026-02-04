@@ -775,5 +775,10 @@ void UIAbilityLifecycleManager::HandleUIAbilityDiedByPid(int32_t pid)
 {
     return;
 }
+
+uint32_t UIAbilityLifecycleManager::QueryCallerTokenIdByWantID(int32_t wantID)
+{
+    return ERR_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
