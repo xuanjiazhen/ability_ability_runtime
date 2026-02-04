@@ -65,6 +65,7 @@ struct StartAbilityUtils {
         sptr<IRemoteObject> callerToken, int32_t &appIndex);
     static int32_t HandleSelfRedirection(bool isFromOpenLink,
         const std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+    static std::string GenerateAsCallerForAncoSessionId()
 
     static thread_local std::shared_ptr<StartAbilityInfo> startAbilityInfo;
     static thread_local std::shared_ptr<StartAbilityInfo> callerAbilityInfo;
