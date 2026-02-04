@@ -446,6 +446,9 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         if (isNotifyCollaborator) {
             targetBundleName = options.targetGrantBundleName;
         }
+        if (options.callerTypeForAnco == CallerTypeForAnco::QUERY) {
+            tokenId = options.realCallerTokenId;
+        }
         GrantUriPermission(want_, targetBundleName, false, tokenId, isNotifyCollaborator);
     }
 #endif // SUPPORT_UPMS
