@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include "ability_manager_service.h"
 #include "ability_resident_process_rdb.h"
 #include "ability_scheduler_stub.h"
+#include "agent_extension_connection_constants.h"
 #include "app_exit_reason_data_manager.h"
 #include "appfreeze_manager.h"
 #include "app_utils.h"
@@ -836,6 +837,10 @@ int AbilityRecord::TerminateAbility()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "TerminateAbility:%{public}s", abilityInfo_.name.c_str());
+
+    // Notify all startAbilityByCall callers that this ability is terminating
+    NotifyCallersOnTerminate();
+
 #ifdef WITH_DLP
     HandleDlpClosed();
 #endif // WITH_DLP
@@ -2049,6 +2054,9 @@ void AbilityRecord::SetWant(const Want &want)
     if (want_.HasParameter(UISERVICEHOSTPROXY_KEY)) {
         want_.RemoveParam(UISERVICEHOSTPROXY_KEY);
     }
+    if (want_.HasParameter(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY)) {
+        want_.RemoveParam(AgentRuntime::AGENTEXTENSIONHOSTPROXY_KEY);
+    }
 }
 
 Want AbilityRecord::GetWant() const
@@ -2570,6 +2578,22 @@ bool AbilityRecord::IsNeedToCallRequest() const
     }
 
     return callContainer_->IsNeedToCallRequest();
+}
+
+void AbilityRecord::NotifyCallersOnTerminate()
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Notify callers on terminate: %{public}s",
+        abilityInfo_.name.c_str());
+
+    if (callContainer_ == nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "callContainer_ is null, no callers to notify");
+        return;
+    }
+
+    AppExecFwk::ElementName element(abilityInfo_.deviceId, abilityInfo_.bundleName,
+        abilityInfo_.name, abilityInfo_.moduleName);
+
+    callContainer_->NotifyAllCallDisconnect(element);
 }
 
 void AbilityRecord::ContinueAbility(const std::string& deviceId, uint32_t versionCode)
