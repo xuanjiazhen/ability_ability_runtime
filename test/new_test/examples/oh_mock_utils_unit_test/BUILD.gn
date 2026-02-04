@@ -1,0 +1,193 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+module_output_path = "ability_runtime/ability_runtime/oh_mock_utils_unit_test"
+
+# ResultWrap类测试
+ohos_unittest("oh_mock_utils_resultwrap_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "../../mock_utils",
+  ]
+
+  sources = [
+    "resultwrap_test.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+# 基础返回值测试
+ohos_unittest("oh_mock_utils_basic_return_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "../../mock_utils",
+    "mock_classes",
+  ]
+
+  sources = [
+    "basic_return_test.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+# void方法测试
+ohos_unittest("oh_mock_utils_void_method_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "../../mock_utils",
+    "mock_classes",
+  ]
+
+  sources = [
+    "void_method_test.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+# 输出参数测试（4个宏）
+ohos_unittest("oh_mock_utils_output_param_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "../../mock_utils",
+    "mock_classes",
+  ]
+
+  sources = [
+    "output_param_test.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+# sptr返回值测试
+ohos_unittest("oh_mock_utils_sptr_return_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "../../mock_utils",
+    "mock_classes",
+    "../../../mock/iremote_broker",
+    "../../../mock/iremote_object",
+  ]
+
+  sources = [
+    "sptr_return_test.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
+}
+
+# 装饰器测试（5个宏）
+ohos_unittest("oh_mock_utils_decorator_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "../../mock_utils",
+    "mock_classes",
+  ]
+
+  sources = [
+    "decorator_test.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+# 默认参数测试
+ohos_unittest("oh_mock_utils_default_param_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "../../mock_utils",
+    "mock_classes",
+  ]
+
+  sources = [
+    "default_param_test.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+# 全局函数测试（3个宏）
+ohos_unittest("oh_mock_utils_global_function_test") {
+  module_out_path = module_output_path
+
+  include_dirs = [
+    "../../mock_utils",
+    "mock_classes",
+  ]
+
+  sources = [
+    "global_function_test.cpp",
+  ]
+
+  external_deps = [
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+  ]
+}
+
+group("unittest") {
+  testonly = true
+  deps = [
+    ":oh_mock_utils_resultwrap_test",
+    ":oh_mock_utils_basic_return_test",
+    ":oh_mock_utils_void_method_test",
+    ":oh_mock_utils_output_param_test",
+    ":oh_mock_utils_sptr_return_test",
+    ":oh_mock_utils_decorator_test",
+    ":oh_mock_utils_default_param_test",
+    ":oh_mock_utils_global_function_test",
+  ]
+}
