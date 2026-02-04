@@ -297,23 +297,29 @@ ohos_shared_library("abilitykit_native") {
     "${ability_runtime_native_path}/ability/native/ability.cpp",
     "${ability_runtime_native_path}/ability/native/ability_context.cpp",
     "${ability_runtime_native_path}/ability/native/ability_impl.cpp",
-    "${ability_runtime_native_path}/ability/native/ability_impl_factory.cpp",
+    # 移除FA模型文件（已移至abilitykit_fa库）：
+    # "${ability_runtime_native_path}/ability/native/ability_impl_factory.cpp",
     "${ability_runtime_native_path}/ability/native/ability_lifecycle.cpp",
     "${ability_runtime_native_path}/ability/native/ability_lifecycle_executor.cpp",
     "${ability_runtime_native_path}/ability/native/ability_loader.cpp",
     "${ability_runtime_native_path}/ability/native/ability_post_event_timeout.cpp",
     "${ability_runtime_native_path}/ability/native/ability_process.cpp",
+    # 新增：FA能力动态加载器（用于在AbilityThread层面动态加载FA模型）
+    "${ability_runtime_native_path}/ability/native/fa_ability_loader.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/ets_observer_instance.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_ability.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_ability_context.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_caller_complex.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_uiservice_ability_connection.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/ui_ability_servicehost_stub_impl.cpp",
-    "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_handler.cpp",
-    "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_manager.cpp",
-    "${ability_runtime_native_path}/ability/native/continuation/distributed/reverse_continuation_scheduler_primary.cpp",
-    "${ability_runtime_native_path}/ability/native/data_ability_helper_impl.cpp",
-    "${ability_runtime_native_path}/ability/native/data_ability_impl.cpp",
+    # 移除FA模型continuation文件（已移至abilitykit_fa库）：
+    # "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_handler.cpp",
+    # "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_manager.cpp",
+    # "${ability_runtime_native_path}/ability/native/continuation/distributed/reverse_continuation_scheduler_primary.cpp",
+    # 移除FA模型文件（已移至abilitykit_fa库）：
+    # "${ability_runtime_native_path}/ability/native/data_ability_helper_impl.cpp",
+    # "${ability_runtime_native_path}/ability/native/data_ability_impl.cpp",
+    # "${ability_runtime_native_path}/ability/native/service_ability_impl.cpp",
     "${ability_runtime_native_path}/ability/native/data_uri_utils.cpp",
     "${ability_runtime_native_path}/ability/native/distributed_ability_runtime/distributed_client.cpp",
     "${ability_runtime_native_path}/ability/native/free_install_observer_proxy.cpp",
@@ -326,7 +332,6 @@ ohos_shared_library("abilitykit_native") {
     "${ability_runtime_native_path}/ability/native/preload_ui_extension_host_client.cpp",
     "${ability_runtime_native_path}/ability/native/query_erms_observer_proxy.cpp",
     "${ability_runtime_native_path}/ability/native/query_erms_observer_stub.cpp",
-    "${ability_runtime_native_path}/ability/native/service_ability_impl.cpp",
     "${ability_runtime_native_path}/ability/native/start_abilities_observer.cpp",
     "${ability_runtime_native_path}/appkit/app/app_context.cpp",
     "${ability_runtime_native_path}/appkit/app/context_container.cpp",
@@ -455,7 +460,8 @@ ohos_shared_library("abilitykit_native") {
     include_dirs += []
     sources += [
       "${ability_runtime_native_path}/ability/native/ability_window.cpp",
-      "${ability_runtime_native_path}/ability/native/page_ability_impl.cpp",
+      # 移除FA模型文件（已移至abilitykit_fa库）：
+      # "${ability_runtime_native_path}/ability/native/page_ability_impl.cpp",
     ]
 
     external_deps += [
@@ -1166,7 +1172,8 @@ ohos_shared_library("ability_thread") {
   sources = [
     "${ability_runtime_native_path}/ability/native/ability_thread.cpp",
     "${ability_runtime_native_path}/ability/native/extension_ability_thread.cpp",
-    "${ability_runtime_native_path}/ability/native/fa_ability_thread.cpp",
+    # 移除FA模型文件（已移至abilitykit_fa库）：
+    # "${ability_runtime_native_path}/ability/native/fa_ability_thread.cpp",
     "${ability_runtime_native_path}/ability/native/ui_ability_thread.cpp",
   ]
 
@@ -3814,4 +3821,122 @@ ohos_shared_library("app_service_extension_module") {
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+}
+
+# ============================================
+# FA模型独立库（动态加载）
+# 用于支持FA模型按需加载，Stage模型应用不需要此库
+# ============================================
+ohos_shared_library("abilitykit_fa") {
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
+  include_dirs = [
+    "${ability_runtime_innerkits_path}/ability_manager/include",
+    "${ability_runtime_innerkits_path}/ability_manager/include/continuation",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/app/task",
+    "${ability_runtime_napi_path}/inner/napi_common",
+    "${ability_runtime_napi_path}/featureAbility",
+    "${ability_runtime_native_path}/ability/native",
+    "${ability_runtime_services_path}/common/include",
+  ]
+
+  # FA模型特有文件
+  sources = [
+    "page_ability_impl.cpp",              # PageAbility实现
+    "service_ability_impl.cpp",           # ServiceAbility实现
+    "data_ability_impl.cpp",              # DataAbility实现
+    "data_ability_helper.cpp",            # DataAbility辅助实现
+    "data_ability_helper_impl.cpp",       # DataAbility辅助实现
+    "fa_ability_thread.cpp",              # FA Ability线程
+    "fa_ability_register.cpp",            # 导出注册函数
+    "ability_impl_factory.cpp",           # FA模型工厂（仅FA使用）
+
+    # FA模型的continuation相关
+    "continuation/distributed/continuation_handler.cpp",
+    "continuation/distributed/continuation_manager.cpp",
+    "continuation/distributed/continuation_state.cpp",
+    "continuation/distributed/reverse_continuation_scheduler_primary.cpp",
+    "continuation/remote_register_service/continuation_connector.cpp",
+    "continuation/remote_register_service/connect_callback_proxy.cpp",
+    "continuation/remote_register_service/connect_callback_stub.cpp",
+    "continuation/remote_register_service/continuation_device_callback_proxy.cpp",
+    "continuation/remote_register_service/continuation_register_manager.cpp",
+    "continuation/remote_register_service/continuation_register_manager_proxy.cpp",
+    "continuation/remote_register_service/remote_register_service_proxy.cpp",
+    "continuation/remote_register_service/remote_register_service_stub.cpp",
+    "continuation/distributed/reverse_continuation_scheduler_recipient.cpp",
+    "continuation/distributed/reverse_continuation_scheduler_replica.cpp",
+    "continuation/distributed/reverse_continuation_scheduler_replica_proxy.cpp",
+    "continuation/distributed/reverse_continuation_scheduler_replica_stub.cpp",
+    "continuation/distributed/reverse_continuation_scheduler_primary_proxy.cpp",
+    "continuation/distributed/reverse_continuation_scheduler_primary_stub.cpp",
+
+    # FA模型相关辅助类
+    "dummy_values_bucket.cpp",
+    "data_ability_operation.cpp",
+    "data_ability_operation_builder.cpp",
+    "data_ability_result.cpp",
+  ]
+
+  # 图形支持（PageAbility需要）
+  if (!defined(global_parts_info) ||
+      defined(global_parts_info.window_window_manager)) {
+    sources += [
+      "ability_window.cpp",
+    ]
+    external_deps += [
+      "window_manager:libwm",
+      "graphic_2d:2d_graphics",
+    ]
+    defines = [ "SUPPORT_GRAPHICS" ]
+  }
+
+  # DataAbility相关依赖
+  if (ability_runtime_relational) {
+    external_deps += [
+      "relational_store:native_dataability",
+      "relational_store:native_rdb",
+      "data_share:datashare_common",
+    ]
+  }
+
+  public_configs = [ ":abilitykit_fa_public_config" ]
+
+  deps = [
+    ":continuation_ipc",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
+    "${ability_runtime_native_path}/appkit:appkit_native",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ability_base:configuration",
+    "ability_base:continuation_handler",
+    "ability_base:zuri",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_core",
+    "ipc:ipc_napi",
+    "napi:ace_napi",
+    "resource_management:global_resmgr",
+    "access_token:libaccesstoken_sdk",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+
+  # 安装到标准库路径，可以被dlopen找到
+  relative_install_dir = "lib"
+}
+
+config("abilitykit_fa_public_config") {
+  include_dirs = [
+    "${ability_runtime_native_path}/ability/native",
+  ]
 }

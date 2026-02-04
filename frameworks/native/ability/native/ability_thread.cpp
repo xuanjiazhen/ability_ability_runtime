@@ -16,8 +16,8 @@
 #include "ability_thread.h"
 
 #include "extension_ability_thread.h"
-#include "fa_ability_thread.h"
 #include "ui_ability_thread.h"
+#include "fa_ability_loader.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 
@@ -45,7 +45,9 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     } else if (abilityInfo->type == AbilityType::EXTENSION) {
         thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
     } else {
-        thread = sptr<AbilityRuntime::FAAbilityThread>::MakeSptr();
+        // FA模型：动态加载libabilitykit_fa.so
+        TAG_LOGI(AAFwkTag::ABILITY, "Creating FA Ability, loading FA library dynamically");
+        thread = FAAbilityLoader::LoadFAAbilityThread();
     }
     if (thread == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null thread");
@@ -78,7 +80,9 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     } else if (abilityInfo->type == AbilityType::EXTENSION) {
         thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
     } else {
-        thread = sptr<AbilityRuntime::FAAbilityThread>::MakeSptr();
+        // FA模型：动态加载libabilitykit_fa.so
+        TAG_LOGI(AAFwkTag::ABILITY, "Creating FA Ability, loading FA library dynamically");
+        thread = FAAbilityLoader::LoadFAAbilityThread();
     }
     if (thread == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null thread");
