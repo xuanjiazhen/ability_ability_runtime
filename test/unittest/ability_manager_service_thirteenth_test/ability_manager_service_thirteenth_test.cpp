@@ -3215,5 +3215,43 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ManualStartAutoStartupApps_002, Te
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ManualStartAutoStartupApps_002 end");
 }
+
+/*
+ * Feature: QueryCallerTokenIdForAnco_001
+ * Function: QueryCallerTokenIdForAnco
+ * SubFunction: NA
+ * FunctionPoints: uiAbilityManager is null
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, QueryCallerTokenIdForAnco_001, TestSize.Level1) {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_001 start");
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = FOUNDATION_UID;
+    int32_t userId = 101;
+    std::string asCallerForAncoSessionId = "520";
+    uint32_t callerTokenId = 0;
+    auto result = abilityManagerService->QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId, callerTokenId);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_001 end");
+}
+
+/*
+ * Feature: QueryCallerTokenIdForAnco_002
+ * Function: QueryCallerTokenIdForAnco
+ * SubFunction: NA
+ * FunctionPoints: negative dialogSessionId
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, QueryCallerTokenIdForAnco_002, TestSize.Level1) {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_002 start");
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = FOUNDATION_UID;
+    int32_t userId = -1;
+    std::string asCallerForAncoSessionId = "-1";
+    uint32_t callerTokenId = 0;
+    auto result = abilityManagerService->QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId, callerTokenId);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_002 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
