@@ -43,6 +43,12 @@ enum class SpecifiedProcessState: u_int8_t {
     STATE_ABILITY = 2
 };
 
+enum class CallerTypeForAnco : int32_t {
+    DEFAULT = 0,
+    ADD = 1,
+    QUERY = 2
+};
+
 struct SpecifiedRequest {
     bool preCreateProcessName = false;
     bool isCold = false;
@@ -73,6 +79,7 @@ public:
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
     void SignRestartProcess(int32_t pid);
+    uint32_t QueryCallerTokenIdForAnco(int32_t asCallerForAncoSessionId);
 
     /**
      * StartUIAbility with request.
@@ -1266,7 +1273,9 @@ private:
     std::unordered_map<int32_t, UIAbilityRecordPtr> lowMemKillAbilityMap_;
     std::unordered_map<int32_t, UIAbilityRecordPtr> tmpAbilityMap_;
     std::unordered_map<UIAbilityRecordPtr, std::list<AbilityRequest>> callRequestCache_;
+    std::unordered_map<int32_t, uint32_t> callerInfoMap_;
     std::list<UIAbilityRecordPtr> terminateAbilityList_;
+    ffrt::mutex callerInfoMapLock_;
     // if window reused, persistentId will be reused, keep previous record here until the ability is dead
     std::unordered_set<UIAbilityRecordPtr> reuseWindowRecords_;
     sptr<IRemoteObject> rootSceneSession_;

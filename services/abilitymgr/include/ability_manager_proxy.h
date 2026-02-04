@@ -1379,6 +1379,13 @@ public:
     virtual int32_t ManualStartAutoStartupApps(int32_t userId) override;
 
     /**
+     * @brief Query the caller's Token ID for anco.
+     * @param asCallerForAncoSessionId Indicates the ID of cached information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual uint32_t QueryCallerTokenIdForAnco(int32_t userId, int32_t asCallerForAncoSessionId) override;
+
+    /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
      *
      * @param sessionInfo the session info of the ability to start.
