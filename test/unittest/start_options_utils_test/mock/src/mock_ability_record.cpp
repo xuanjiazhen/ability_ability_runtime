@@ -27,5 +27,18 @@ const AppExecFwk::AbilityInfo &AbilityRecord::GetAbilityInfo() const
 {
     return abilityInfo;
 }
+
+std::shared_ptr<AbilityRecord> AbilityRecord::DeepCopy() const
+{
+    return std::make_shared<AbilityRecord>(*this);
+}
+
+bool AbilityRecord::IsResidentAbility() const
+{
+    return false;
+}
+
+void AbilityRecord::SetResidentAbilityFlag(bool flag)
+{}
 }  // namespace AAFwk
 }  // namespace OHOS

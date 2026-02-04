@@ -58,6 +58,9 @@ public:
 
     virtual void Init(const AbilityRequest &abilityRequest);
     virtual AbilityRecordType GetAbilityRecordType();
+    virtual std::shared_ptr<AbilityRecord> DeepCopy() const;
+    virtual bool IsResidentAbility() const;
+    virtual void SetResidentAbilityFlag(bool flag);
 protected:
     bool isPrelaunch_ = false;
     bool isHook_ = false;

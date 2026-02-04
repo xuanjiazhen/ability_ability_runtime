@@ -39,6 +39,10 @@ public:
      */
     const AppExecFwk::AbilityInfo &GetAbilityInfo() const;
 
+    std::shared_ptr<AbilityRecord> DeepCopy() const;
+    bool IsResidentAbility() const;
+    void SetResidentAbilityFlag(bool flag);
+
 public:
     AppExecFwk::AbilityInfo abilityInfo;
 };

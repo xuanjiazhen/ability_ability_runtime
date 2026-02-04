@@ -57,6 +57,10 @@ public:
 
     int32_t CreateModalUIExtension(const Want &want);
 
+    std::shared_ptr<AbilityRecord> DeepCopy() const;
+    bool IsResidentAbility() const;
+    void SetResidentAbilityFlag(bool flag);
+
 public:
     AppExecFwk::AbilityInfo abilityInfo;
 };
