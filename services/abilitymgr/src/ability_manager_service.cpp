@@ -13094,6 +13094,26 @@ int32_t AbilityManagerService::ManualStartAutoStartupApps(int32_t userId)
     return ERR_OK;
 }
 
+uint32_t AbilityManagerService::QueryCallerTokenIdForAnco(int32_t userId, int32_t asCallerForAncoSessionId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "QueryCallerTokenIdForAnco userId: %{public}d, asCallerForAncoSessionId: %{public}d",
+        userId, asCallerForAncoSessionId);
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, ERR_INVALID_VALUE); // 权限校验
+    std::string callerBundleName;
+    if (IN_PROCESS_CALL(bms->GetNameForUid(IPCSkeleton::GetCallingUid(), callerBundleName)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get caller bundleName failed");
+        return CHECK_PERMISSION_FAILED;
+    }
+    if (IPCSkeleton::GetCallingUid() != BROKER_UID && callerBundleName != SHELL_ASSISTANT_BUNDLENAME) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verify Broker or anco fail");
+        return CHECK_PERMISSION_FAILED;
+    }
+    auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    return uiAbilityManager->QueryCallerTokenIdForAnco(asCallerForAncoSessionId);
+}
+
 int AbilityManagerService::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isTerminate)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
