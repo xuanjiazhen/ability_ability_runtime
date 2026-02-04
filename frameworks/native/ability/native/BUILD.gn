@@ -1031,14 +1031,11 @@ ohos_shared_library("uiabilitykit_native") {
     "${ability_runtime_path}/utils/global/time/include",
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_utils_path}/global/constant",
-    "${ability_runtime_native_path}/ability/native/ability_runtime/madvise",
   ]
 
   sources = [
     "${ability_runtime_native_path}/ability/native/ability_runtime/ets_ui_ability_instance.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_ui_ability.cpp",
-    "${ability_runtime_native_path}/ability/native/ability_runtime/madvise/madvise_utils.cpp",
-    "${ability_runtime_native_path}/ability/native/ability_runtime/madvise/vma_utils.cpp",
     "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_handler_stage.cpp",
     "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_manager_stage.cpp",
     "${ability_runtime_native_path}/ability/native/continuation/distributed/reverse_continuation_scheduler_primary_stage.cpp",
@@ -1060,6 +1057,7 @@ ohos_shared_library("uiabilitykit_native") {
     ":continuation_ipc",
     ":extensionkit_native",
     ":ui_extension",
+    "${ability_runtime_native_path}/ability/native/ability_runtime/madvise:ability_madvise",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",

@@ -1,3 +1,18 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #ifndef MADVISE_UTILS_H
 #define MADVISE_UTILS_H
 
@@ -44,6 +59,19 @@ bool madvise_general_file(const char* filename);
  * @note 一次遍历获取所有文件的 VMA，然后应用 madvise
  */
 int madvise_general_files(const std::vector<std::string>& filenames);
+
+/**
+ * @brief 使用配置文件对指定应用应用 madvise 优化
+ *
+ * @param package_name 应用包名
+ * @return int 成功优化的库数量，失败返回 -1
+ *
+ * @note 此函数会从默认配置文件路径读取配置，然后应用 madvise 优化
+ *       配置文件路径: /system/etc/madvise_config.json
+ *       - type: ELF -> 调用 madvise_single_library()
+ *       - type: VMA -> 调用 madvise_general_file()
+ */
+int madvise_with_config_file(const char* package_name);
 
 } // namespace madviseUtil
 

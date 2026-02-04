@@ -1,0 +1,59 @@
+{
+  "apps": [
+    {
+      "package_name": "com.alipay.mobile.client",
+      "libraries": [
+        {
+          "name": "entry.hap",
+          "type": "vma",
+          "hot_page_offsets": []
+        },
+        {
+          "name": "libALIPAYKMP.so",
+          "type": "elf",
+          "hot_page_offsets": []
+        },
+        {
+          "name": "libmyv8.so",
+          "type": "elf",
+          "hot_page_offsets": []
+        },
+        {
+          "name": "libcube.so",
+          "type": "elf",
+          "hot_page_offsets": []
+        },
+        {
+          "name": "libGLES_mali.so",
+          "type": "elf",
+          "hot_page_offsets": []
+        },
+        {
+          "name": "libBifrost.so",
+          "type": "elf",
+          "hot_page_offsets": []
+        },
+        {
+          "name": "libantuserohos.so",
+          "type": "elf",
+          "hot_page_offsets": []
+        },
+        {
+          "name": "libblueshield.so",
+          "type": "elf",
+          "hot_page_offsets": []
+        },
+        {
+          "name": "libxriver.so",
+          "type": "elf",
+          "hot_page_offsets": []
+        },
+        {
+          "name": "libpie_dynamic.so",
+          "type": "elf",
+          "hot_page_offsets": []
+        }
+      ]
+    }
+  ]
+}

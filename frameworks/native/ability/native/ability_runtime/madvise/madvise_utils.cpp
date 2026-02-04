@@ -1,6 +1,22 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 #include "madvise_utils.h"
 #include "vma_utils.h"
 #include "hilog_tag_wrapper.h"
+#include "cJSON.h"
 #include <libgen.h>
 #include <cstring>
 #include <dlfcn.h>
@@ -8,9 +24,232 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <cstdio>
+#include <cstdlib>
 #include <unordered_set>
 #include <string>
 #include <vector>
+
+namespace {
+constexpr char MADVISE_CONFIG_FILE_PATH[] = "/system/etc/madvise_config.json";
+
+/**
+ * @brief 库文件类型
+ */
+enum class LibraryType {
+    UNKNOWN = 0,
+    ELF,
+    VMA
+};
+
+/**
+ * @brief 单个库的配置
+ */
+struct LibraryConfig {
+    std::string name;
+    LibraryType type;
+    std::vector<unsigned long> hot_page_offsets;  // 预留字段，当前未使用
+};
+
+/**
+ * @brief 应用配置
+ */
+struct AppConfig {
+    std::string package_name;
+    std::vector<LibraryConfig> libraries;
+};
+
+/**
+ * @brief Madvise 配置
+ */
+struct MadviseConfig {
+    std::vector<AppConfig> apps;
+
+    bool IsValid() const {
+        return !apps.empty();
+    }
+
+    const AppConfig* FindApp(const char* package_name) const {
+        if (!package_name || strlen(package_name) == 0) {
+            return nullptr;
+        }
+        for (const auto& app : apps) {
+            if (app.package_name == package_name) {
+                return &app;
+            }
+        }
+        return nullptr;
+    }
+};
+
+/**
+ * @brief 字符串转 LibraryType
+ */
+LibraryType ParseLibraryType(const std::string& typeStr) {
+    if (typeStr == "elf") {
+        return LibraryType::ELF;
+    } else if (typeStr == "vma") {
+        return LibraryType::VMA;
+    }
+    return LibraryType::UNKNOWN;
+}
+
+/**
+ * @brief 从默认路径加载配置文件
+ */
+MadviseConfig LoadConfigFromFile()
+{
+    MadviseConfig config;
+    const char* config_path = MADVISE_CONFIG_FILE_PATH;
+
+    // 读取文件内容
+    FILE* file = fopen(config_path, "r");
+    if (!file) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to open config file: %{public}s", config_path);
+        return config;
+    }
+
+    // 获取文件大小
+    fseek(file, 0, SEEK_END);
+    long file_size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    if (file_size <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Config file is empty: %{public}s", config_path);
+        fclose(file);
+        return config;
+    }
+
+    // 读取文件内容
+    std::string content;
+    content.resize(file_size);
+    size_t read_size = fread(&content[0], 1, file_size, file);
+    fclose(file);
+
+    if (read_size != static_cast<size_t>(file_size)) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to read config file: %{public}s", config_path);
+        return config;
+    }
+
+    // 使用 cJSON 解析 JSON
+    cJSON* root = cJSON_Parse(content.c_str());
+    if (!root) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to parse JSON config: %{public}s", config_path);
+        return config;
+    }
+
+    // 获取 apps 数组
+    cJSON* appsArray = cJSON_GetObjectItemCaseSensitive(root, "apps");
+    if (!cJSON_IsArray(appsArray)) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Invalid config format: 'apps' not found or not an array");
+        cJSON_Delete(root);
+        return config;
+    }
+
+    // 遍历 apps 数组
+    cJSON* appItem = nullptr;
+    cJSON_ArrayForEach(appItem, appsArray) {
+        AppConfig appConfig;
+
+        // 获取 package_name
+        cJSON* packageNameItem = cJSON_GetObjectItemCaseSensitive(appItem, "package_name");
+        if (cJSON_IsString(packageNameItem) && packageNameItem->valuestring) {
+            appConfig.package_name = packageNameItem->valuestring;
+        }
+
+        // 获取 libraries 数组
+        cJSON* libsArray = cJSON_GetObjectItemCaseSensitive(appItem, "libraries");
+        if (cJSON_IsArray(libsArray)) {
+            cJSON* libItem = nullptr;
+            cJSON_ArrayForEach(libItem, libsArray) {
+                LibraryConfig libConfig;
+
+                // 获取 name
+                cJSON* nameItem = cJSON_GetObjectItemCaseSensitive(libItem, "name");
+                if (cJSON_IsString(nameItem) && nameItem->valuestring) {
+                    libConfig.name = nameItem->valuestring;
+                }
+
+                // 获取 type
+                cJSON* typeItem = cJSON_GetObjectItemCaseSensitive(libItem, "type");
+                if (cJSON_IsString(typeItem) && typeItem->valuestring) {
+                    libConfig.type = ParseLibraryType(typeItem->valuestring);
+                }
+
+                // hot_page_offsets 字段存在但当前未使用，直接跳过
+                // cJSON 会在下面 Delete 时自动释放
+
+                // 只添加有效的库配置
+                if (!libConfig.name.empty() && libConfig.type != LibraryType::UNKNOWN) {
+                    appConfig.libraries.push_back(libConfig);
+                }
+            }
+        }
+
+        // 只添加有效的应用配置
+        if (!appConfig.package_name.empty() && !appConfig.libraries.empty()) {
+            config.apps.push_back(appConfig);
+        }
+    }
+
+    cJSON_Delete(root);
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "Loaded madvise config from %{public}s: %{public}zu apps",
+        config_path, config.apps.size());
+
+    return config;
+}
+
+/**
+ * @brief 使用配置对指定应用应用 madvise 优化
+ */
+int ApplyMadviseWithConfig(const char* package_name, const MadviseConfig& config)
+{
+    if (!package_name || strlen(package_name) == 0) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Invalid package name: null or empty");
+        return 0;
+    }
+
+    // 查找匹配的应用配置
+    const AppConfig* appConfig = config.FindApp(package_name);
+    if (!appConfig) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "No config found for package: %{public}s", package_name);
+        return 0;
+    }
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "Applying madvise for package: %{public}s, libraries: %{public}zu",
+        package_name, appConfig->libraries.size());
+
+    int success_count = 0;
+
+    // 遍历库列表进行优化
+    for (const auto& libConfig : appConfig->libraries) {
+        bool libSuccess = false;
+
+        if (libConfig.type == LibraryType::ELF) {
+            // 使用 ELF 专用接口
+            TAG_LOGI(AAFwkTag::UIABILITY, "Applying ELF madvise for: %{public}s", libConfig.name.c_str());
+            libSuccess = madviseUtil::madvise_single_library(libConfig.name.c_str());
+        } else if (libConfig.type == LibraryType::VMA) {
+            // 使用通用接口
+            TAG_LOGI(AAFwkTag::UIABILITY, "Applying VMA madvise for: %{public}s", libConfig.name.c_str());
+            libSuccess = madviseUtil::madvise_general_file(libConfig.name.c_str());
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITY, "Unknown library type for: %{public}s", libConfig.name.c_str());
+            continue;
+        }
+
+        if (libSuccess) {
+            success_count++;
+        }
+    }
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "Madvise completed for package %{public}s: %{public}d/%{public}zu libraries succeeded",
+        package_name, success_count, appConfig->libraries.size());
+
+    return success_count;
+}
+
+} // anonymous namespace
 
 // madvise 回调函数的数据结构（单个库）
 struct MadviseData {
@@ -400,6 +639,25 @@ int madvise_general_files(const std::vector<std::string>& filenames)
     TAG_LOGI(AAFwkTag::UIABILITY, "madvise_general_files completed: %{public}d segments optimized", success_count);
 
     return success_count;
+}
+
+int madvise_with_config_file(const char* package_name)
+{
+    if (!package_name || strlen(package_name) == 0) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Invalid package name: null or empty");
+        return -1;
+    }
+
+    // 加载配置文件
+    MadviseConfig config = LoadConfigFromFile();
+
+    if (!config.IsValid()) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to load valid config from: %{public}s", MADVISE_CONFIG_FILE_PATH);
+        return -1;
+    }
+
+    // 应用配置
+    return ApplyMadviseWithConfig(package_name, config);
 }
 
 } // namespace madviseUtil
