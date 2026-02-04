@@ -27,7 +27,8 @@ AbilityRecordType AbilityRecord::GetAbilityRecordType()
 
 std::shared_ptr<AbilityRecord> AbilityRecord::DeepCopy() const
 {
-    return std::make_shared<AbilityRecord>(*this);
+    // Mock implementation - return nullptr since copy constructor is deleted
+    return nullptr;
 }
 
 bool AbilityRecord::IsResidentAbility() const
