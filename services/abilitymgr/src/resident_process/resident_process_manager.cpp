@@ -120,11 +120,16 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
     const AppExecFwk::HapModuleInfo &hapModuleInfo, const std::string &processName,
     size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentProcessWithMainElementPerBundleHap called, bundle: %{public}s, userId: %{public}d",
+        hapModuleInfo.bundleName.c_str(), userId);
+
     std::string mainElement;
     bool isDataAbility = false;
     std::string uriStr;
     if (!MainElementUtils::CheckMainElement(hapModuleInfo,
         processName, mainElement, isDataAbility, uriStr, userId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "CheckMainElement returned false, isDataAbility: %{public}d",
+            isDataAbility);
         if (isDataAbility) {
             // dataability, need use AcquireDataAbility
             needEraseIndexSet.insert(index);
