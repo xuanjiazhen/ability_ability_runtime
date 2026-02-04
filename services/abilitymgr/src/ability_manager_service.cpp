@@ -9109,12 +9109,12 @@ void AbilityManagerService::RetrySubscribeUnlockedEvent(int32_t retryCount,
     auto retrySubscribeScreenUnlockedEventTask = [aams = weak_from_this(), unlockedEventSubscriber = subscriber,
                                                      retryCount, isUserUnlock = isUserUnlockSubscriber]() {
         CHECK_POINTER_LOG(unlockedEventSubscriber, "unlockedEventSubscriber nullptr");
-        bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(unlockedEventSubscriber);
         auto obj = aams.lock();
         if (obj == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "retry subscribe screen unlocked event, obj null");
             return;
         }
+        bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(unlockedEventSubscriber);
         if (subResult) {
             if (!isUserUnlock) {
                 obj->isSubscribed_ = true;
