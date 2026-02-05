@@ -169,7 +169,11 @@ void InsightIntentSysEventReceiver::HandleUserSwitched(const EventFwk::CommonEve
     TAG_LOGI(AAFwkTag::INTENT, "userId: %{public}d switch to  current userId: %{public}d", lastUserId_, userId);
     lastUserId_ = userId;
 
-    auto task = [self = shared_from_this(), userId]() { self->LoadInsightIntentInfos(userId); };
+    auto task = [self = shared_from_this(), userId]() {
+        TAG_LOGI("squirrel sleep start");
+        std::this_thread::sleep_for(std::chrono::seconds(130));
+        TAG_LOGI("squirrel sleep start");
+        self->LoadInsightIntentInfos(userId); };
     ffrt::submit(task);
 }
 
