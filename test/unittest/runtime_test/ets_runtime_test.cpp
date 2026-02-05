@@ -338,5 +338,31 @@ HWTEST_F(EtsRuntimeTest, SetExtensionApiCheckCallback_100, TestSize.Level1)
     etsRuntime->SetExtensionApiCheckCallback(callback);
     EXPECT_EQ(etsRuntime->GetJsRuntime(), nullptr);
 }
+
+/**
+ * @tc.name: GetHspPathList_100
+ * @tc.desc: EtsRuntime test for GetHspPathList.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, GetHspPathList_100, TestSize.Level1)
+{
+    std::unique_ptr<EtsEnv::ETSEnvironment> etsEnvironment = std::make_unique<EtsEnv::ETSEnvironment>();
+    etsEnvironment->commonHspBundleInfos_ = {};
+    auto hspPathList = etsEnvironment->GetHspPathList();
+    EXPECT_EQ(hspPathList.size(), 0);
+}
+
+/**
+ * @tc.name: GetHspPathList_200
+ * @tc.desc: EtsRuntime test for GetHspPathList.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, GetHspPathList_200, TestSize.Level1)
+{
+    std::unique_ptr<EtsEnv::ETSEnvironment> etsEnvironment = std::make_unique<EtsEnv::ETSEnvironment>();
+    etsEnvironment->commonHspBundleInfos_ = {{0,"","","/system/app/path1","static"}};
+    auto hspPathList = etsEnvironment->GetHspPathList();
+    EXPECT_EQ(hspPathList[0], "/system/app/path1");
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
