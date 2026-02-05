@@ -1,0 +1,93 @@
+diff --git a/frameworks/native/ability/native/ability_runtime/js_ui_ability.cpp b/frameworks/native/ability/native/ability_runtime/js_ui_ability.cpp
+index 3609254e81..cd6166ef7b 100644
+--- a/frameworks/native/ability/native/ability_runtime/js_ui_ability.cpp
++++ b/frameworks/native/ability/native/ability_runtime/js_ui_ability.cpp
+@@ -530,6 +530,7 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
+         applicationContext->DispatchOnAbilityWillCreate(ability);
+     }
+ 
++    WriteLifecycleLog("onCreate");
+     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+     CallObjectMethod("onCreate", argv, ArraySize(argv));
+     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+@@ -554,6 +555,17 @@ void JsUIAbility::HandleAbilityDelegatorStart()
+     }
+ }
+ 
++void JsUIAbility::WriteLifecycleLog(const std::string lifecycleName)
++{
++    if (!IsPageSwitchLoggable()) {
++        return;
++    }
++    std::string msg = lifecycleName + ", AbilityName: " + GetAbilityName();
++    if (WritePageSwitch(msg.c_str()) != ERR_OK) {
++       TAG_LOGE(AAFwkTag::UIABILITY, "write lifecycle log failed [%{public}d]", ret);
++    }
++}
++
+ void JsUIAbility::AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState state, const std::string &methodName) const
+ {
+     auto entry = std::string("JsUIAbility::") + methodName + " begin";
+@@ -606,6 +618,7 @@ void JsUIAbility::OnStop()
+         JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
+         applicationContext->DispatchOnAbilityWillDestroy(ability);
+     }
++    WriteLifecycleLog("onDestroy");
+     CallObjectMethod("onDestroy");
+     OnStopCallback();
+     TAG_LOGD(AAFwkTag::UIABILITY, "end");
+@@ -709,6 +722,7 @@ void JsUIAbility::OnSceneCreated()
+         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "onWindowStageCreate");
+         std::string methodName = "OnSceneCreated";
+         AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
++        WriteLifecycleLog("onWindowStageCreate");
+         CallObjectMethod("onWindowStageCreate", argv, ArraySize(argv));
+         AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+     }
+@@ -795,6 +809,7 @@ void JsUIAbility::onSceneDestroyed()
+     }
+     HandleScope handleScope(jsRuntime_);
+     UpdateJsWindowStage(nullptr);
++    WriteLifecycleLog("onWindowStageDestroy");
+     CallObjectMethod("onWindowStageDestroy");
+ 
+     if (scene_ != nullptr) {
+@@ -867,6 +882,7 @@ void JsUIAbility::CallOnForegroundFunc(const Want &want)
+         applicationContext->DispatchOnAbilityWillForeground(ability);
+     }
+ 
++    WriteLifecycleLog("onForeground");
+     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
+     std::string methodName = "OnForeground";
+     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+@@ -902,6 +918,7 @@ void JsUIAbility::OnBackground()
+     std::string methodName = "OnBackground";
+     HandleScope handleScope(jsRuntime_);
+     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
++    WriteLifecycleLog("onBackground");
+     CallObjectMethod("onBackground");
+     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+ 
+@@ -1929,6 +1946,7 @@ void JsUIAbility::OnNewWant(const Want &want)
+     };
+     std::string methodName = "OnNewWant";
+     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
++    WriteLifecycleLog("onNewWant");
+     CallObjectMethod("onNewWant", argv, ArraySize(argv));
+     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+ 
+diff --git a/interfaces/kits/native/ability/native/ability_runtime/js_ui_ability.h b/interfaces/kits/native/ability/native/ability_runtime/js_ui_ability.h
+index e13e0ba1c6..840574f37b 100644
+--- a/interfaces/kits/native/ability/native/ability_runtime/js_ui_ability.h
++++ b/interfaces/kits/native/ability/native/ability_runtime/js_ui_ability.h
+@@ -439,6 +439,7 @@ private:
+         napi_ref &jsWantParamsRef, AppExecFwk::AbilityTransactionCallbackInfo<int32_t> *callbackInfo);
+     void RemoveShareRouterByBundleType(const Want &want);
+     void HandleAbilityDelegatorStart();
++    void WriteLifecycleLog(const std::string lifecycleName);
+ 
+     JsRuntime &jsRuntime_;
+     std::shared_ptr<NativeReference> shellContextRef_;
+diff --git a/services/dialog_ui/ams_system_dialog/hvigorw b/services/dialog_ui/ams_system_dialog/hvigorw
+old mode 100644
+new mode 100755
