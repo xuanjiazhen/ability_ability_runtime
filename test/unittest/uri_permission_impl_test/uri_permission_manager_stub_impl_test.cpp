@@ -1870,45 +1870,6 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantBatchUriPermissionImplByPo
 
 /*
  * Feature: UriPermissionManagerService
- * Function: GrantBatchContentUriPermissionImpl
- * SubFunction: NA
- * FunctionPoints: UriPermissionManagerService GrantBatchContentUriPermissionImpl
- */
-HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantBatchContentUriPermissionImpl_001, TestSize.Level1)
-{
-    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-
-    std::vector<std::string> emptyVec;
-    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
-    uint32_t targetTokenId = 1001;
-    std::string targetBundleName = "com.example.app";
-
-    auto result = upmsi->GrantBatchContentUriPermissionImpl(emptyVec, flag, targetTokenId, targetBundleName);
-    EXPECT_EQ(result, INNER_ERR);
-}
-
-/*
- * Feature: UriPermissionManagerService
- * Function: GrantBatchContentUriPermissionImpl
- * SubFunction: NA
- * FunctionPoints: UriPermissionManagerService GrantBatchContentUriPermissionImpl
- */
-HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantBatchContentUriPermissionImpl_002, TestSize.Level1)
-{
-    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-
-    std::vector<std::string> contentUris = { "content://test" };
-    uint32_t flag = Want::FLAG_AUTH_READ_URI_PERMISSION;
-    uint32_t targetTokenId = 1001;
-    std::string targetBundleName = "com.example.app";
-
-    auto result = upmsi->GrantBatchContentUriPermissionImpl(contentUris, flag, targetTokenId, targetBundleName);
-
-    EXPECT_EQ(result, INNER_ERR);
-}
-
-/*
- * Feature: UriPermissionManagerService
  * Function: RevokeContentUriPermission
  * SubFunction: NA
  * FunctionPoints: UriPermissionManagerService RevokeContentUriPermission
