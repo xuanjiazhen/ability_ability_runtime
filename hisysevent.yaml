@@ -1,14 +1,919 @@
-(allow storage_daemon unlabeled (filesystem ( unmount )))
-(allow storage_daemon storage_daemon (capability ( sys_rawio )))
+From b22285236a8e389cb11f8e79cd2dc108de5605f3 Mon Sep 17 00:00:00 2001
+From: sWX1475960 <sWX1475960@notesmail.huawei.com/>
+Date: Thu, 5 Feb 2026 19:47:34 +0800
+Subject: [PATCH] TicketNo:${ticketNo} Description:${title} Team: Feature or
+ Bugfix: Binary Source: PrivateCode(Yes/No):
 
-# avc: denied { unmount } for pid=672, comm="/system/bin/storage_daemon"  scontext=u:r:storage_daemon:s0 tcontext=u:object_r:unlabeled:s0 tclass=filesystem permissive=1
-allow storage_daemon unlabeled:filesystem { unmount };
+Change-Id: Ib75d1958c60bdb948734102368a668c374aef086
+---
+ bundle.json                                   |   3 +-
+ common/include/utils/dcamera_utils_tools.h    |   1 +
+ sa_profile/dcamera.cfg                        |   4 +-
+ .../base/include/dcamera_capture_info_cmd.h   |   1 +
+ .../base/include/dcamera_sink_frame_info.h    |  36 +++++
+ .../base/include/icamera_controller.h         |   2 +-
+ .../base/src/dcamera_capture_info_cmd.cpp     |  10 ++
+ .../base/src/dcamera_sink_frame_info.cpp      |  71 ++++++++++
+ .../cameraoperator/handler/BUILD.gn           |   4 +
+ .../handler/src/dcamera_handler.cpp           |   6 +
+ services/cameraservice/sinkservice/BUILD.gn   |   6 +
+ .../distributedcameramgr/dcamera_imu_sensor.h |  56 ++++++++
+ .../dcamera_sink_controller.h                 |  14 +-
+ .../dcamera_imu_sensor.cpp                    |  81 +++++++++++
+ .../dcamera_sink_controller.cpp               | 130 +++++++++++++++++-
+ .../distributedcameramgr/dcamera_source_dev.h |   1 +
+ .../dcamera_source_controller.h               |   3 +-
+ .../dcamera_source_dev.cpp                    |  15 +-
+ .../dcamera_source_controller.cpp             |   5 +-
+ services/channel/BUILD.gn                     |   1 +
+ .../channel/include/dcamera_softbus_adapter.h |   9 ++
+ .../channel/src/dcamera_softbus_adapter.cpp   |  27 ++++
+ 22 files changed, 477 insertions(+), 9 deletions(-)
+ create mode 100644 services/cameraservice/sinkservice/include/distributedcameramgr/dcamera_imu_sensor.h
+ create mode 100644 services/cameraservice/sinkservice/src/distributedcameramgr/dcamera_imu_sensor.cpp
 
-# avc: denied { sys_rawio } for pid=10482, comm="/bin/eject"  capability=17 scontext=u:r:storage_daemon:s0 tcontext=u:r:storage_daemon:s0 tclass=capability permissive=1
-allow storage_daemon storage_daemon:capability { sys_rawio };
+diff --git a/bundle.json b/bundle.json
+index a6b73e31..67c9b9f4 100644
+--- a/bundle.json
++++ b/bundle.json
+@@ -58,7 +58,8 @@
+                 "drivers_interface_camera",
+                 "access_token",
+                 "av_codec",
+-                "os_account"
++                "os_account",
++                "sensor"
+             ]
+         },
+         "build": {
+diff --git a/common/include/utils/dcamera_utils_tools.h b/common/include/utils/dcamera_utils_tools.h
+index 87d7ce3a..1aad3697 100755
+--- a/common/include/utils/dcamera_utils_tools.h
++++ b/common/include/utils/dcamera_utils_tools.h
+@@ -22,6 +22,7 @@
+ #include <fstream>
+ #include <map>
+ #include <memory>
++#include <vector>
+ #include <functional>
+ #include "dhfwk_single_instance.h"
+ #include "iaccess_listener.h"
+diff --git a/sa_profile/dcamera.cfg b/sa_profile/dcamera.cfg
+index fdbba86f..072a5fdd 100644
+--- a/sa_profile/dcamera.cfg
++++ b/sa_profile/dcamera.cfg
+@@ -11,7 +11,9 @@
+             "ohos.permission.DISTRIBUTED_DATASYNC",
+             "ohos.permission.DISTRIBUTED_SOFTBUS_CENTER",
+             "ohos.permission.CAMERA",
+-            "ohos.permission.ACCESS_DISTRIBUTED_HARDWARE"
++            "ohos.permission.ACCESS_DISTRIBUTED_HARDWARE",
++            "ohos.permission.ACCELEROMETER",
++			"ohos.permission.GYROSCOPE"
+         ],
+         "secon" : "u:r:dcamera:s0"
+     }]
+diff --git a/services/cameraservice/base/include/dcamera_capture_info_cmd.h b/services/cameraservice/base/include/dcamera_capture_info_cmd.h
+index e8e25c01..ce05883b 100644
+--- a/services/cameraservice/base/include/dcamera_capture_info_cmd.h
++++ b/services/cameraservice/base/include/dcamera_capture_info_cmd.h
+@@ -45,6 +45,7 @@ public:
+     int32_t userId_;
+     uint64_t tokenId_;
+     std::string accountId_;
++    bool isDebounce_;
+ 
+ public:
+     int32_t Marshal(std::string& jsonStr);
+diff --git a/services/cameraservice/base/include/dcamera_sink_frame_info.h b/services/cameraservice/base/include/dcamera_sink_frame_info.h
+index 953a9a88..62448440 100644
+--- a/services/cameraservice/base/include/dcamera_sink_frame_info.h
++++ b/services/cameraservice/base/include/dcamera_sink_frame_info.h
+@@ -20,6 +20,40 @@
+ 
+ namespace OHOS {
+ namespace DistributedHardware {
++struct SensorData {
++    float x;
++    float y;
++    float z;
++};
++struct SensorDataInfo {
++    long long timeStamp;
++    double x;
++    double y;
++    double z;
++};
++struct GyroData {
++    long long timeStamp;
++    double x;
++    double y;
++    double z;
++};
++struct GyroDataPack {
++    bool isValid;
++    GyroData *data = nullptr;
++    int dataArrayLen = 0;
++};
++
++struct AccData {
++    long long timeStamp;
++    double x;
++    double y;
++    double z;
++};
++struct AccDataPack {
++    bool isValid;
++    AccData *data = nullptr;
++    int dataArrayLen = 0;
++};
+ class DCameraSinkFrameInfo {
+ public:
+     DCameraSinkFrameInfo()
+@@ -34,6 +68,8 @@ public:
+     int64_t sendT_;
+     std::string ver_;
+     std::string rawTime_;
++    std::vector<SensorDataInfo> accVec_;
++    std::vector<SensorDataInfo> gyroVec_;
+ 
+ public:
+     const std::string FRAME_INFO_TYPE = "type";
+diff --git a/services/cameraservice/base/include/icamera_controller.h b/services/cameraservice/base/include/icamera_controller.h
+index 7c0884bd..9c0340d9 100644
+--- a/services/cameraservice/base/include/icamera_controller.h
++++ b/services/cameraservice/base/include/icamera_controller.h
+@@ -31,7 +31,7 @@ public:
+     virtual ~ICameraController() = default;
+ 
+     virtual int32_t StartCapture(std::vector<std::shared_ptr<DCameraCaptureInfo>>& captureInfos,
+-        int32_t sceneMode) = 0;
++        int32_t sceneMode, bool isDebounce) = 0;
+     virtual int32_t StopCapture() = 0;
+     virtual int32_t ChannelNeg(std::shared_ptr<DCameraChannelInfo>& info) = 0;
+     virtual int32_t DCameraNotify(std::shared_ptr<DCameraEvent>& events) = 0;
+diff --git a/services/cameraservice/base/src/dcamera_capture_info_cmd.cpp b/services/cameraservice/base/src/dcamera_capture_info_cmd.cpp
+index 8bb50d0a..2115628a 100644
+--- a/services/cameraservice/base/src/dcamera_capture_info_cmd.cpp
++++ b/services/cameraservice/base/src/dcamera_capture_info_cmd.cpp
+@@ -62,6 +62,8 @@ int32_t DCameraCaptureInfoCmd::Marshal(std::string& jsonStr)
+     cJSON_AddNumberToObject(rootValue, "userId", userId_);
+     cJSON_AddNumberToObject(rootValue, "tokenId", tokenId_);
+     cJSON_AddStringToObject(rootValue, "accountId", accountId_.c_str());
++    cJSON_AddBoolToObject(rootValue, "isDebounce", isDebounce_);
++    DHLOGI("shj src Marshal isDebounce_ %{public}d", isDebounce_);
+ 
+     char *data = cJSON_Print(rootValue);
+     if (data == nullptr) {
+@@ -122,6 +124,14 @@ int32_t DCameraCaptureInfoCmd::Unmarshal(const std::string& jsonStr)
+     } else {
+         accountId_ = accountId->valuestring;
+     }
++    cJSON *isDebounce = cJSON_GetObjectItemCaseSensitive(rootValue, "isDebounce");
++    if (isDebounce == nullptr || !cJSON_IsTrue(isDebounce)) {
++        isDebounce_ = false;
++        DHLOGI("shj sink Unmarshal false");
++    } else {
++        isDebounce_ = true;
++        DHLOGI("shj sink Unmarshal true");
++    }
+     cJSON_Delete(rootValue);
+     return ret;
+ }
+diff --git a/services/cameraservice/base/src/dcamera_sink_frame_info.cpp b/services/cameraservice/base/src/dcamera_sink_frame_info.cpp
+index 693fb8ed..61e74099 100644
+--- a/services/cameraservice/base/src/dcamera_sink_frame_info.cpp
++++ b/services/cameraservice/base/src/dcamera_sink_frame_info.cpp
+@@ -17,6 +17,7 @@
+ #include "distributed_camera_errno.h"
+ #include "distributed_hardware_log.h"
+ #include "cJSON.h"
++#include "dcamera_utils_tools.h"
+ 
+ namespace OHOS {
+ namespace DistributedHardware {
+@@ -34,6 +35,38 @@ void DCameraSinkFrameInfo::Marshal(std::string& jsonStr)
+     cJSON_AddNumberToObject(frameInfo, FRAME_INFO_SENDT.c_str(), sendT_);
+     cJSON_AddStringToObject(frameInfo, FRAME_INFO_VERSION.c_str(), ver_.c_str());
+     cJSON_AddStringToObject(frameInfo, RAW_TIME.c_str(), rawTime_.c_str());
++    //shj-Marshal IMU数据
++//#ifdef DCAMERA_WAKEUP
++    cJSON* accArray = cJSON_CreateArray();
++    DHLOGI("shj acc vec size = %{public}zu", accVec_.size());
++    for (const auto& accData : accVec_) {
++        cJSON* accItem = cJSON_CreateObject();
++        cJSON_AddNumberToObject(accItem, "timestamp", accData.timeStamp);
++        cJSON_AddNumberToObject(accItem, "x", accData.x);
++        cJSON_AddNumberToObject(accItem, "y", accData.y);
++        cJSON_AddNumberToObject(accItem, "z", accData.z);
++        cJSON_AddItemToArray(accArray, accItem);
++        DHLOGI("shj acc callback time = %{public}lld, x = %{public}f, y = %{public}f, z = %{public}f",
++            accData.timeStamp, accData.x, accData.y, accData.z);
++    }
++    cJSON_AddItemToObject(frameInfo, "accVec", accArray);
++
++    // 序列化 gyroVec
++    cJSON* gyroArray = cJSON_CreateArray();
++    DHLOGI("shj gyro vec size = %{public}zu", gyroVec_.size());
++    for (const auto& gyroData : gyroVec_) {
++        cJSON* gyroItem = cJSON_CreateObject();
++        cJSON_AddNumberToObject(gyroItem, "timestamp", gyroData.timeStamp);
++        cJSON_AddNumberToObject(gyroItem, "x", gyroData.x);
++        cJSON_AddNumberToObject(gyroItem, "y", gyroData.y);
++        cJSON_AddNumberToObject(gyroItem, "z", gyroData.z);
++        cJSON_AddItemToArray(gyroArray, gyroItem);
++        // DHLOGI("shj gyro callback time = %{public}lld, x = %{public}f, y = %{public}f, z = %{public}f",
++        //     gyroData.timeStamp, gyroData.x, gyroData.y, gyroData.z);
++    }
++    cJSON_AddItemToObject(frameInfo, "gyroVec", gyroArray);
++    DHLOGI("shj Marshal sensorData.");
++//#endif
+ 
+     char *data = cJSON_Print(frameInfo);
+     if (data == nullptr) {
+@@ -85,6 +118,44 @@ int32_t DCameraSinkFrameInfo::Unmarshal(const std::string& jsonStr)
+         DCAMERA_BAD_VALUE, rootValue, "ver parse fail.");
+     ver_ = std::string(ver->valuestring);
+ 
++    //shj-Unmarshal IMU数据
++//#ifdef DCAMERA_WAKEUP
++    cJSON* accArray = cJSON_GetObjectItem(rootValue, "accVec");
++    if (accArray != nullptr && cJSON_IsArray(accArray)) {
++        accVec_.clear();
++        for (int i = 0; i < cJSON_GetArraySize(accArray); i++) {
++            cJSON* accItem = cJSON_GetArrayItem(accArray, i);
++            SensorDataInfo accData;
++            accData.timeStamp = cJSON_GetObjectItem(accItem, "timestamp")->valuedouble;
++            accData.x = cJSON_GetObjectItem(accItem, "x")->valuedouble;
++            accData.y = cJSON_GetObjectItem(accItem, "y")->valuedouble;
++            accData.z = cJSON_GetObjectItem(accItem, "z")->valuedouble;
++            DHLOGI("shj acc callback time = %{public}lld, x = %{public}f, y = %{public}f, z = %{public}f",
++                accData.timeStamp, accData.x, accData.y, accData.z);
++            accVec_.push_back(accData);
++        }
++        DHLOGI("shj acc vec size = %{public}zu", accVec_.size());
++    }
++
++    // 解析 gyroVec
++    cJSON* gyroArray = cJSON_GetObjectItem(rootValue, "gyroVec");
++    if (gyroArray != nullptr && cJSON_IsArray(gyroArray)) {
++        gyroVec_.clear();
++        for (int i = 0; i < cJSON_GetArraySize(gyroArray); i++) {
++            cJSON* gyroItem = cJSON_GetArrayItem(gyroArray, i);
++            SensorDataInfo gyroData;
++            gyroData.timeStamp = cJSON_GetObjectItem(gyroItem, "timestamp")->valuedouble;
++            gyroData.x = cJSON_GetObjectItem(gyroItem, "x")->valuedouble;
++            gyroData.y = cJSON_GetObjectItem(gyroItem, "y")->valuedouble;
++            gyroData.z = cJSON_GetObjectItem(gyroItem, "z")->valuedouble;
++            // DHLOGI("shj gyro callback time = %{public}lld, x = %{public}f, y = %{public}f, z = %{public}f",
++            //     gyroData.timeStamp, gyroData.x, gyroData.y, gyroData.z);
++            gyroVec_.push_back(gyroData);
++        }
++        DHLOGI("shj gyro vec size = %{public}zu", gyroVec_.size());
++    }
++//#endif
++
+     cJSON *rawTime = cJSON_GetObjectItemCaseSensitive(rootValue, RAW_TIME.c_str());
+     if (rawTime == nullptr) {
+         rawTime_ = "";
+diff --git a/services/cameraservice/cameraoperator/handler/BUILD.gn b/services/cameraservice/cameraoperator/handler/BUILD.gn
+index 3f707432..7d7f405c 100644
+--- a/services/cameraservice/cameraoperator/handler/BUILD.gn
++++ b/services/cameraservice/cameraoperator/handler/BUILD.gn
+@@ -58,6 +58,10 @@ ohos_shared_library("distributed_camera_handler") {
+     cflags = [ "-DDCAMERA_FRONT" ]
+   }
+ 
++  if (distributed_camera_wakeup_enabled) {
++    cflags += [ "-DDCAMERA_WAKEUP" ]
++  }
++
+   external_deps = [
+     "av_codec:av_codec_client",
+     "cJSON:cjson",
+diff --git a/services/cameraservice/cameraoperator/handler/src/dcamera_handler.cpp b/services/cameraservice/cameraoperator/handler/src/dcamera_handler.cpp
+index f7e3ee65..7832062f 100644
+--- a/services/cameraservice/cameraoperator/handler/src/dcamera_handler.cpp
++++ b/services/cameraservice/cameraoperator/handler/src/dcamera_handler.cpp
+@@ -233,6 +233,7 @@ int32_t DCameraHandler::CreateMetaDHItem(sptr<CameraStandard::CameraDevice>& inf
+     return DCAMERA_OK;
+ }
+ 
++//shj-查询设备能力
+ int32_t DCameraHandler::CreateDHItem(sptr<CameraStandard::CameraDevice>& info, DHItem& item)
+ {
+     CHECK_AND_RETURN_RET_LOG(info == nullptr, DCAMERA_BAD_VALUE, "CreateDHItem info is null");
+@@ -279,6 +280,11 @@ int32_t DCameraHandler::CreateDHItem(sptr<CameraStandard::CameraDevice>& info, D
+ 
+     ret = CreateMeatdataStr(info, root);
+     CHECK_AND_FREE_RETURN_RET_LOG(ret != DCAMERA_OK, DCAMERA_BAD_VALUE, root, "CreateMeatdataStr failed");
++    //shj-添加防抖节点到attrs - 用宏隔离
++//#ifdef DCAMERA_WAKEUP
++    cJSON_AddBoolToObject(root, "isDebounce", true);
++    DHLOGI("shj DCAMERA_WAKEUP isDebounce is %{public}d", true);
++//#endif
+     char *jsonstr = cJSON_Print(root);
+     CHECK_AND_FREE_RETURN_RET_LOG(jsonstr == nullptr, DCAMERA_BAD_VALUE, root, "jsonstr is null");
+ 
+diff --git a/services/cameraservice/sinkservice/BUILD.gn b/services/cameraservice/sinkservice/BUILD.gn
+index 0dce7ba4..f80ca84c 100644
+--- a/services/cameraservice/sinkservice/BUILD.gn
++++ b/services/cameraservice/sinkservice/BUILD.gn
+@@ -80,6 +80,7 @@ ohos_shared_library("distributed_camera_sink") {
+     "src/distributedcameramgr/listener/dcamera_sink_controller_channel_listener.cpp",
+     "src/distributedcameramgr/listener/dcamera_sink_data_process_listener.cpp",
+     "src/distributedcameramgr/listener/dcamera_sink_output_channel_listener.cpp",
++    "src/distributedcameramgr/dcamera_imu_sensor.cpp",
+   ]
+ 
+   ldflags = [
+@@ -114,6 +115,10 @@ ohos_shared_library("distributed_camera_sink") {
+     cflags = [ "-DDCAMERA_OPEN_STABILE" ]
+   }
+ 
++  if (distributed_camera_wakeup_enabled) {
++    cflags += [ "-DDCAMERA_WAKEUP" ]
++  }
++
+   if (!distributed_camera_common) {
+     defines += [ "SECURITY_LEVEL_CHECK_ENABLE" ]
+   }
+@@ -139,6 +144,7 @@ ohos_shared_library("distributed_camera_sink") {
+     "ipc:ipc_core",
+     "safwk:system_ability_fwk",
+     "samgr:samgr_proxy",
++    "sensor:sensor_interface_native",
+   ]
+ 
+   if (os_account_camera) {
+diff --git a/services/cameraservice/sinkservice/include/distributedcameramgr/dcamera_imu_sensor.h b/services/cameraservice/sinkservice/include/distributedcameramgr/dcamera_imu_sensor.h
+new file mode 100644
+index 00000000..8fb1b2cb
+--- /dev/null
++++ b/services/cameraservice/sinkservice/include/distributedcameramgr/dcamera_imu_sensor.h
+@@ -0,0 +1,56 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef DCAMERA_IMU_SENSOR_H
++#define DCAMERA_IMU_SENSOR_H
++
++#include <condition_variable>
++#include <cstdint>
++#include <mutex>
++#include <thread>
++
++#include "event_handler.h"
++#include "sensor_agent.h"
++#include "sensor_agent_type.h"
++#include "single_instance.h"
++#include "dcamera_sink_frame_info.h"
++
++namespace OHOS {
++namespace DistributedHardware {
++enum class SensorTypeId : int32_t {
++    SENSOR_TYPE_ID_ACCELEROMETER = 1,
++    SENSOR_TYPE_ID_GYROSCOPE = 2
++};
++class DCameraImuSensor {
++DECLARE_SINGLE_INSTANCE_BASE(DCameraImuSensor);
++
++public:
++    void Init();
++    void UnInit();
++    void StartEventHandler();
++    void SendSensorData(SensorTypeId type, SensorDataInfo data);
++
++private:
++    DCameraImuSensor();
++    ~DCameraImuSensor();
++
++    std::mutex eventMutex_;
++    std::thread eventThread_;
++    std::condition_variable eventCon_;
++    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_ = nullptr;
++};
++} // namespace DistributedHardware
++} // namespace OHOS
++#endif // DCAMERA_IMU_SENSOR_H
+diff --git a/services/cameraservice/sinkservice/include/distributedcameramgr/dcamera_sink_controller.h b/services/cameraservice/sinkservice/include/distributedcameramgr/dcamera_sink_controller.h
+index 63cd15c4..829d17e3 100644
+--- a/services/cameraservice/sinkservice/include/distributedcameramgr/dcamera_sink_controller.h
++++ b/services/cameraservice/sinkservice/include/distributedcameramgr/dcamera_sink_controller.h
+@@ -29,6 +29,7 @@
+ #include "device_manager_callback.h"
+ #include "property_carrier.h"
+ #include "idcamera_sink_callback.h"
++#include "dcamera_imu_sensor.h"
+ 
+ namespace OHOS {
+ namespace DistributedHardware {
+@@ -40,13 +41,15 @@ enum DcameraBusinessState : int32_t {
+     RUNNING,
+     PAUSING
+ };
++
+ class DCameraSinkController : public ICameraController, public std::enable_shared_from_this<DCameraSinkController> {
+ public:
+     explicit DCameraSinkController(std::shared_ptr<ICameraSinkAccessControl>& accessControl,
+         const sptr<IDCameraSinkCallback> &sinkCallback);
+     ~DCameraSinkController() override;
+ 
+-    int32_t StartCapture(std::vector<std::shared_ptr<DCameraCaptureInfo>>& captureInfos, int32_t sceneMode) override;
++    int32_t StartCapture(std::vector<std::shared_ptr<DCameraCaptureInfo>>& captureInfos, int32_t sceneMode,
++        bool isDebounce) override;
+     int32_t StopCapture() override;
+     int32_t ChannelNeg(std::shared_ptr<DCameraChannelInfo>& info) override;
+     int32_t DCameraNotify(std::shared_ptr<DCameraEvent>& events) override;
+@@ -106,6 +109,14 @@ private:
+     };
+     void HandleCaptureError(int32_t errorCode, const std::string& errorMsg);
+     void CheckAndCommitCapture();
++    void AccRegisterSensorListener();
++    static void AccSensorCallback(SensorEvent* event);
++    void GyroRegisterSensorListener();
++    static void GyroSensorCallback(SensorEvent* event);
++    void UnRegisterSensorListener();
++    void OpenCl();
++    SensorUser accUser = { "", nullptr, nullptr };
++    SensorUser gyroUser = { "", nullptr, nullptr };
+     std::atomic<bool> isEncoderReady_ {false};
+     std::atomic<bool> isCameraReady_ {false};
+     int32_t encoderResult_ = DCAMERA_OK;
+@@ -138,6 +149,7 @@ private:
+     uint64_t tokenId_ = 0;
+     uint64_t sinkTokenId_ = 0;
+     std::string accountId_ = "";
++    bool isDebounce_ = false;
+ 
+     const std::string SESSION_FLAG = "control";
+     const std::string SRC_TYPE = "camera";
+diff --git a/services/cameraservice/sinkservice/src/distributedcameramgr/dcamera_imu_sensor.cpp b/services/cameraservice/sinkservice/src/distributedcameramgr/dcamera_imu_sensor.cpp
+new file mode 100644
+index 00000000..703c471b
+--- /dev/null
++++ b/services/cameraservice/sinkservice/src/distributedcameramgr/dcamera_imu_sensor.cpp
+@@ -0,0 +1,81 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "dcamera_imu_sensor.h"
++#include "distributed_hardware_log.h"
++#include "dcamera_softbus_adapter.h"
++
++namespace OHOS {
++namespace DistributedHardware {
++IMPLEMENT_SINGLE_INSTANCE(DCameraImuSensor);
++
++constexpr int64_t POSTURE_INTERVAL = 100000000; // 100ms
++
++DCameraImuSensor::DCameraImuSensor()
++{}
++
++DCameraImuSensor::~DCameraImuSensor()
++{}
++
++void DCameraImuSensor::Init()
++{
++    DHLOGI("shj DCameraImuSensor Init.");
++    eventThread_ = std::thread([this]() { this->StartEventHandler(); });
++    std::unique_lock<std::mutex> lock(eventMutex_);
++    eventCon_.wait(lock, [this] {
++        return eventHandler_ != nullptr;
++    });
++}
++
++void DCameraImuSensor::UnInit()
++{
++    DHLOGI("shj DCameraImuSensor UnInit.");
++    if ((eventHandler_ != nullptr) && (eventHandler_->GetEventRunner() != nullptr)) {
++        eventHandler_->GetEventRunner()->Stop();
++    }
++    if (eventThread_.joinable()) {
++        eventThread_.join();
++    }
++    eventHandler_ = nullptr;
++}
++
++void DCameraImuSensor::StartEventHandler()
++{
++    DHLOGI("shj DCameraImuSensor StartEventHandler.");
++    //prctl(PR_SET_NAME, SINK_START_EVENT.c_str());
++    auto runner = AppExecFwk::EventRunner::Create(false);
++    {
++        std::lock_guard<std::mutex> lock(eventMutex_);
++        eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(runner);
++    }
++    eventCon_.notify_one();
++    runner->Run();
++}
++
++void DCameraImuSensor::SendSensorData(SensorTypeId type, SensorDataInfo data)
++{
++    auto sendFunc = [this, type, data]() mutable {
++        if (type == SensorTypeId::SENSOR_TYPE_ID_ACCELEROMETER) {
++            DCameraSoftbusAdapter::GetInstance().SendSensorAccData(data);
++        } else if (type == SensorTypeId::SENSOR_TYPE_ID_GYROSCOPE) {
++            DCameraSoftbusAdapter::GetInstance().SendSensorGyroData(data);
++        }
++    };
++    if (eventHandler_ != nullptr) {
++        eventHandler_->PostTask(sendFunc);
++    }
++}
++}
++}
+\ No newline at end of file
+diff --git a/services/cameraservice/sinkservice/src/distributedcameramgr/dcamera_sink_controller.cpp b/services/cameraservice/sinkservice/src/distributedcameramgr/dcamera_sink_controller.cpp
+index db2e2496..9208d323 100644
+--- a/services/cameraservice/sinkservice/src/distributedcameramgr/dcamera_sink_controller.cpp
++++ b/services/cameraservice/sinkservice/src/distributedcameramgr/dcamera_sink_controller.cpp
+@@ -56,6 +56,8 @@ const int DEFAULT_DEVICE_SECURITY_LEVEL = -1;
+ constexpr int32_t MINIMUM_SECURITY_LEVEL = 3;
+ #endif
+ const std::string PAGE_SUBTYPE = "camera";
++constexpr int64_t POSTURE_INTERVAL = 20000; // 20ms
++//constexpr int64_t POSTURE_INTERVAL = 30000; // 30ms
+ 
+ DCameraSinkController::DCameraSinkController(std::shared_ptr<ICameraSinkAccessControl>& accessControl,
+     const sptr<IDCameraSinkCallback> &sinkCallback)
+@@ -71,10 +73,117 @@ DCameraSinkController::~DCameraSinkController()
+     }
+ }
+ 
++//shj-启动IMU监听 SENSOR_TYPE_ID_ACCELEROMETER
++void DCameraSinkController::AccRegisterSensorListener()
++{
++    DHLOGI("shj start");
++    if (accUser.callback != nullptr) {
++        return;
++    }
++    accUser.callback = DCameraSinkController::AccSensorCallback;
++    int32_t subscribeRet = SubscribeSensor(SENSOR_TYPE_ID_ACCELEROMETER, &accUser);
++    DHLOGI("shj SENSOR_TYPE_ID_ACCELEROMETER, subscribeRet: %{public}d", subscribeRet);
++    int32_t setBatchRet = SetBatch(SENSOR_TYPE_ID_ACCELEROMETER, &accUser, POSTURE_INTERVAL, 0);
++    DHLOGI("shj SENSOR_TYPE_ID_ACCELEROMETER, setBatchRet: %{public}d", setBatchRet);
++    int32_t activateRet = ActivateSensor(SENSOR_TYPE_ID_ACCELEROMETER, &accUser);
++    DHLOGI("shj SENSOR_TYPE_ID_ACCELEROMETER, activateRet: %{public}d", activateRet);
++}
++
++void DCameraSinkController::AccSensorCallback(SensorEvent* event)
++{
++    if (event == nullptr) {
++        DHLOGI("event == nullptr");
++        return;
++    }
++    SensorData *data = reinterpret_cast<SensorData*>(event->data);
++    SensorDataInfo accData;
++    accData.timeStamp = event->timestamp;
++    accData.x = static_cast<double>(data->x);
++    accData.y = static_cast<double>(data->y);
++    accData.z = static_cast<double>(data->z);
++    DCameraImuSensor::GetInstance().SendSensorData(SensorTypeId::SENSOR_TYPE_ID_ACCELEROMETER, accData);
++    // DHLOGI("shj acc callback time = %{public}lld, x = %{public}f, y = %{public}f, z = %{public}f, dataLen = %{public}d",
++    //     accData.timeStamp, accData.x, accData.y, accData.z, event->dataLen);
++}
++
++void DCameraSinkController::GyroRegisterSensorListener()
++{
++    DHLOGI("shj start");
++    if (gyroUser.callback != nullptr) {
++        return;
++    }
++    gyroUser.callback = DCameraSinkController::GyroSensorCallback;
++    int32_t subscribeRet = SubscribeSensor(SENSOR_TYPE_ID_GYROSCOPE, &gyroUser);
++    DHLOGI("shj SENSOR_TYPE_ID_GYROSCOPE, subscribeRet: %{public}d", subscribeRet);
++    int32_t setBatchRet = SetBatch(SENSOR_TYPE_ID_GYROSCOPE, &gyroUser, POSTURE_INTERVAL, 0);
++    DHLOGI("shj SENSOR_TYPE_ID_GYROSCOPE, setBatchRet: %{public}d", setBatchRet);
++    int32_t activateRet = ActivateSensor(SENSOR_TYPE_ID_GYROSCOPE, &gyroUser);
++    DHLOGI("shj SENSOR_TYPE_ID_GYROSCOPE, activateRet: %{public}d", activateRet);
++}
++
++void DCameraSinkController::GyroSensorCallback(SensorEvent* event)
++{
++    if (event == nullptr) {
++        DHLOGI("event == nullptr");
++        return;
++    }
++    SensorData *data = reinterpret_cast<SensorData*>(event->data);
++    SensorDataInfo gyroData;
++    gyroData.timeStamp = event->timestamp;
++    gyroData.x = static_cast<double>(data->x);
++    gyroData.y = static_cast<double>(data->y);
++    gyroData.z = static_cast<double>(data->z);
++    DCameraImuSensor::GetInstance().SendSensorData(SensorTypeId::SENSOR_TYPE_ID_GYROSCOPE, gyroData);
++    // DHLOGI("shj gyro callback time = %{public}" PRId64 ", x = %{public}f, y = %{public}f, z = %{public}f, dataLen = %{public}d",
++    //     event->timestamp, gyroData.x, gyroData.y, gyroData.z, event->dataLen);
++}
++
++void DCameraSinkController::UnRegisterSensorListener()
++{
++    DCameraImuSensor::GetInstance().UnInit();
++    int32_t activateRet = DeactivateSensor(SENSOR_TYPE_ID_ACCELEROMETER, &accUser);
++    DHLOGE("shj SENSOR_TYPE_ID_ACCELEROMETER, activateRet: %{public}d", activateRet);
++    int32_t subscribeRet = UnsubscribeSensor(SENSOR_TYPE_ID_ACCELEROMETER, &accUser);
++    DHLOGE("shj SENSOR_TYPE_ID_ACCELEROMETER, subscribeRet: %{public}d", subscribeRet);
++
++    activateRet = DeactivateSensor(SENSOR_TYPE_ID_GYROSCOPE, &gyroUser);
++    DHLOGE("shj SENSOR_TYPE_ID_GYROSCOPE, activateRet: %{public}d", activateRet);
++    subscribeRet = UnsubscribeSensor(SENSOR_TYPE_ID_GYROSCOPE, &gyroUser);
++    DHLOGE("shj SENSOR_TYPE_ID_GYROSCOPE, subscribeRet: %{public}d", subscribeRet);
++    accUser.callback = nullptr;
++    gyroUser.callback = nullptr;
++}
++
++
++void DCameraSinkController::OpenCl()
++{
++   errno = 0;
++    void* openclHandle = dlopen("/vendor/lib64/libOpenCL.so", RTLD_NOW | RTLD_LOCAL);
++    if(!openclHandle) {
++        DHLOGI("dlopen libOpenCL.so failed! %{public}d", errno);
++        return;
++    }
++	//打印成功日志
++	if (openclHandle == nullptr) {
++        DHLOGI("dlclose libOpenCL.so failed: gOpenclHandle is nullptr!");
++    }
++    if (dlclose(openclHandle) != 0) {
++        DHLOGI("dlclose libOpenCL.so failed!");
++        openclHandle = nullptr;
++        return;
++    }
++    openclHandle = nullptr;
++    DHLOGI("dlclose libOpenCL.so successfully!");
++}
++
+ int32_t DCameraSinkController::StartCapture(std::vector<std::shared_ptr<DCameraCaptureInfo>>& captureInfos,
+-    int32_t sceneMode)
++    int32_t sceneMode, bool isDebounce)
+ {
+     DHLOGI("StartCapture dhId: %{public}s, mode: %{public}d", GetAnonyString(dhId_).c_str(), sceneMode);
++    OpenCl();
++//#ifdef DCAMERA_WAKEUP
++    DCameraImuSensor::GetInstance().Init();
++//#endif
+     std::string accessType = "";
+     CHECK_AND_RETURN_RET_LOG(accessControl_ == nullptr, DCAMERA_BAD_VALUE, "accessControl_ is null.");
+     if ((accessControl_->IsSensitiveSrcAccess(SRC_TYPE)) &&
+@@ -95,6 +204,13 @@ int32_t DCameraSinkController::StartCapture(std::vector<std::shared_ptr<DCameraC
+         int32_t ret = StartCaptureInner(captureInfos);
+         if (ret == DCAMERA_OK) {
+             accessControl_->NotifySensitiveSrc(SRC_TYPE);
++//#ifdef DCAMERA_WAKEUP
++            if (isDebounce == true) {
++                AccRegisterSensorListener();
++                GyroRegisterSensorListener();
++                DHLOGI("shj StartCapture isDebounce_: %{public}d", isDebounce_);
++            }
++//#endif
+         }
+         return ret;
+     } else {
+@@ -115,6 +231,10 @@ int32_t DCameraSinkController::StartCapture(std::vector<std::shared_ptr<DCameraC
+ int32_t DCameraSinkController::StopCapture()
+ {
+     DHLOGI("StopCapture dhId: %{public}s", GetAnonyString(dhId_).c_str());
++//#ifdef DCAMERA_WAKEUP
++    UnRegisterSensorListener();
++//#endif
++
+     std::unique_lock<std::mutex> lock(captureStateMutex_);
+     if (!captureStateCv_.wait_for(lock, std::chrono::seconds(MAX_RETRY_TIMES_),
+         [this] { return captureState_ != CAPTURE_STARTING; })) {
+@@ -791,6 +911,7 @@ int32_t DCameraSinkController::DCameraNotifyInner(int32_t type, int32_t result,
+     return DCameraNotify(event);
+ }
+ 
++//接受数据
+ int32_t DCameraSinkController::HandleReceivedData(std::shared_ptr<DataBuffer>& dataBuffer)
+ {
+     DHLOGI("DCameraSinkController::HandleReceivedData dhId: %{public}s", GetAnonyString(dhId_).c_str());
+@@ -820,6 +941,11 @@ int32_t DCameraSinkController::HandleReceivedData(std::shared_ptr<DataBuffer>& d
+         userId_ = captureInfoCmd.userId_;
+         tokenId_ = captureInfoCmd.tokenId_;
+         accountId_ = captureInfoCmd.accountId_;
++        //shj-防抖参数
++//#ifdef DCAMERA_WAKEUP
++        isDebounce_ = captureInfoCmd.isDebounce_;
++        DHLOGE("shj DCAMERA_WAKEUP isDebounce_ = %{public}d", isDebounce_);
++//#endif
+         if (!CheckAclRight()) {
+             DHLOGE("ACL check failed.");
+             return DCAMERA_BAD_VALUE;
+@@ -827,7 +953,7 @@ int32_t DCameraSinkController::HandleReceivedData(std::shared_ptr<DataBuffer>& d
+ #ifdef DCAMERA_OPEN_STABILE
+         CHECK_AND_RETURN_RET_LOG(!IsIdenticalAccount(srcDevId_), DCAMERA_BAD_VALUE, "Account check failed.");
+ #endif
+-        return StartCapture(captureInfoCmd.value_, sceneMode_);
++        return StartCapture(captureInfoCmd.value_, sceneMode_, isDebounce_);
+     } else if ((!command.empty()) && (command.compare(DCAMERA_PROTOCOL_CMD_UPDATE_METADATA) == 0)) {
+         DCameraMetadataSettingCmd metadataSettingCmd;
+         int32_t ret = metadataSettingCmd.Unmarshal(jsonStr);
+diff --git a/services/cameraservice/sourceservice/include/distributedcameramgr/dcamera_source_dev.h b/services/cameraservice/sourceservice/include/distributedcameramgr/dcamera_source_dev.h
+index caff7ff7..638a32cf 100644
+--- a/services/cameraservice/sourceservice/include/distributedcameramgr/dcamera_source_dev.h
++++ b/services/cameraservice/sourceservice/include/distributedcameramgr/dcamera_source_dev.h
+@@ -124,6 +124,7 @@ private:
+     sptr<IDCameraProviderCallback> hdiCallback_;
+     int32_t sceneMode_ = 0;
+     uint64_t tokenId_ = 0;
++    bool isDebounce_ = false;
+ 
+     std::map<uint32_t, DCameraNotifyFunc> memberFuncMap_;
+     std::map<uint32_t, DCameraEventResult> eventResultMap_;
+diff --git a/services/cameraservice/sourceservice/include/distributedcameramgr/dcameracontrol/dcamera_source_controller.h b/services/cameraservice/sourceservice/include/distributedcameramgr/dcameracontrol/dcamera_source_controller.h
+index 134d3d6d..4764c301 100644
+--- a/services/cameraservice/sourceservice/include/distributedcameramgr/dcameracontrol/dcamera_source_controller.h
++++ b/services/cameraservice/sourceservice/include/distributedcameramgr/dcameracontrol/dcamera_source_controller.h
+@@ -37,7 +37,8 @@ public:
+     DCameraSourceController(std::string devId, std::string dhId,
+         std::shared_ptr<DCameraSourceStateMachine>& stateMachine, std::shared_ptr<DCameraSourceDev>& camDev);
+     ~DCameraSourceController() override;
+-    int32_t StartCapture(std::vector<std::shared_ptr<DCameraCaptureInfo>>& captureInfos, int32_t sceneMode) override;
++    int32_t StartCapture(std::vector<std::shared_ptr<DCameraCaptureInfo>>& captureInfos, int32_t sceneMode,
++        bool isDebounce) override;
+     int32_t StopCapture() override;
+     int32_t ChannelNeg(std::shared_ptr<DCameraChannelInfo>& info) override;
+     int32_t DCameraNotify(std::shared_ptr<DCameraEvent>& events) override;
+diff --git a/services/cameraservice/sourceservice/src/distributedcameramgr/dcamera_source_dev.cpp b/services/cameraservice/sourceservice/src/distributedcameramgr/dcamera_source_dev.cpp
+index a51a7172..5e97c215 100644
+--- a/services/cameraservice/sourceservice/src/distributedcameramgr/dcamera_source_dev.cpp
++++ b/services/cameraservice/sourceservice/src/distributedcameramgr/dcamera_source_dev.cpp
+@@ -106,6 +106,19 @@ int32_t DCameraSourceDev::RegisterDistributedHardware(const std::string& devId,
+     DCameraIndex index(devId, dhId);
+     actualDevInfo_.insert(index);
+ 
++    cJSON* root = cJSON_Parse(param.sinkAttrs.c_str());
++    if (root == nullptr) {
++        return -1;
++    }
++    if (cJSON_HasObjectItem(root, "isDebounce")) {
++        cJSON* item = cJSON_GetObjectItemCaseSensitive(root, "isDebounce");
++        isDebounce_ = item->valueint;
++        DHLOGI("shj open isDebounce_ = %{public}d", isDebounce_);
++    } else {
++        DHLOGI("shj close isDebounce_ = %{public}d", isDebounce_);
++    }
++    cJSON_Delete(root);
++
+     std::shared_ptr<DCameraRegistParam> regParam = std::make_shared<DCameraRegistParam>(devId, dhId, reqId,
+         param.sinkAttrs, param.sourceAttrs);
+     DCameraSourceEvent event(DCAMERA_EVENT_REGIST, regParam);
+@@ -659,7 +672,7 @@ int32_t DCameraSourceDev::StartCapture(std::vector<std::shared_ptr<DCCaptureInfo
+     }
+ 
+     DHLOGI("startcapture sceneMode_: %{public}d", sceneMode_);
+-    ret = controller_->StartCapture(captures, sceneMode_);
++    ret = controller_->StartCapture(captures, sceneMode_, isDebounce_);
+     if (ret != DCAMERA_OK) {
+         DHLOGE("DCameraSourceDev Execute StartCapture StartCapture failed, ret: %{public}d, devId: %{public}s dhId: "
+             "%{public}s", ret, GetAnonyString(devId_).c_str(), GetAnonyString(dhId_).c_str());
+diff --git a/services/cameraservice/sourceservice/src/distributedcameramgr/dcameracontrol/dcamera_source_controller.cpp b/services/cameraservice/sourceservice/src/distributedcameramgr/dcameracontrol/dcamera_source_controller.cpp
+index abd2c1b5..86ff5352 100644
+--- a/services/cameraservice/sourceservice/src/distributedcameramgr/dcameracontrol/dcamera_source_controller.cpp
++++ b/services/cameraservice/sourceservice/src/distributedcameramgr/dcameracontrol/dcamera_source_controller.cpp
+@@ -67,7 +67,7 @@ DCameraSourceController::~DCameraSourceController()
+ }
+ 
+ int32_t DCameraSourceController::StartCapture(std::vector<std::shared_ptr<DCameraCaptureInfo>>& captureInfos,
+-    int32_t sceneMode)
++    int32_t sceneMode, bool isDebounce)
+ {
+     if (indexs_.empty() || indexs_.size() > DCAMERA_MAX_NUM) {
+         DHLOGE("StartCapture not support operate %{public}zu camera", indexs_.size());
+@@ -87,6 +87,9 @@ int32_t DCameraSourceController::StartCapture(std::vector<std::shared_ptr<DCamer
+     cmd.userId_ = userId_;
+     cmd.tokenId_ = tokenId_;
+     cmd.accountId_ = accountId_;
++    //shj-添加防抖信息
++    cmd.isDebounce_ = isDebounce;
++    DHLOGI("shj add isDebounce %{public}d", isDebounce);
+     std::string jsonStr;
+     int32_t ret = cmd.Marshal(jsonStr);
+     if (ret != DCAMERA_OK) {
+diff --git a/services/channel/BUILD.gn b/services/channel/BUILD.gn
+index 05085ea5..59871685 100644
+--- a/services/channel/BUILD.gn
++++ b/services/channel/BUILD.gn
+@@ -86,6 +86,7 @@ ohos_shared_library("distributed_camera_channel") {
+     "ipc:ipc_core",
+     "ipc:ipc_single",
+     "ffrt:libffrt",
++    "sensor:sensor_interface_native",
+   ]
+ 
+   subsystem_name = "distributedhardware"
+diff --git a/services/channel/include/dcamera_softbus_adapter.h b/services/channel/include/dcamera_softbus_adapter.h
+index caa1f55e..062981b5 100644
+--- a/services/channel/include/dcamera_softbus_adapter.h
++++ b/services/channel/include/dcamera_softbus_adapter.h
+@@ -33,6 +33,8 @@
+ #include "device_type.h"
+ #include "iaccess_listener.h"
+ 
++#include "dcamera_imu_sensor.h"
++
+ namespace OHOS {
+ namespace DistributedHardware {
+ typedef enum {
+@@ -74,6 +76,9 @@ public:
+ 
+     void CloseSessionWithNetWorkId(const std::string &networkId);
+     void ProcessAuthorizationResult(const std::string &requestId, bool granted);
++
++    void SendSensorAccData(SensorDataInfo accData);
++    void SendSensorGyroData(SensorDataInfo gyroData);
+ public:
+     std::map<std::string, std::shared_ptr<DCameraSoftbusSession>> sinkSessions_;
+ 
+@@ -108,6 +113,10 @@ private:
+     static const uint32_t SOFTBUS_VIDEO_I_FRAME = 1;
+     static const uint32_t SOFTBUS_VIDEO_P_FRAME = 2;
+ 
++    std::vector<SensorDataInfo> accVec;
++    std::vector<SensorDataInfo> gyroVec;
++    std::mutex dataMutex;
++
+     int32_t sourceSocketId_ = -1;
+     std::mutex trustSessionIdLock_;
+     struct TrustSessionId {
+diff --git a/services/channel/src/dcamera_softbus_adapter.cpp b/services/channel/src/dcamera_softbus_adapter.cpp
+index 0f57c298..77624bca 100644
+--- a/services/channel/src/dcamera_softbus_adapter.cpp
++++ b/services/channel/src/dcamera_softbus_adapter.cpp
+@@ -13,6 +13,8 @@
+  * limitations under the License.
+  */
+ 
++#include <stdio.h>
++
+ #include "anonymous_string.h"
+ #include "dcamera_hisysevent_adapter.h"
+ #include "dcamera_sink_frame_info.h"
+@@ -354,6 +356,17 @@ int32_t DCameraSoftbusAdapter::SendSofbusStream(int32_t socket, std::shared_ptr<
+     sinkFrameInfo.finishEncodeT_ = finishEncodeT;
+     sinkFrameInfo.sendT_ = GetNowTimeStampUs();
+     sinkFrameInfo.rawTime_ = std::to_string(timeStamp);
++//#ifdef DCAMERA_WAKEUP
++    DHLOGI("shj DCAMERA_WAKEUP acc data & dataLen");
++    {
++        std::lock_guard<std::mutex> lock(dataMutex);
++        sinkFrameInfo.accVec_ = accVec;
++        sinkFrameInfo.gyroVec_ = gyroVec;
++        accVec.clear();
++        gyroVec.clear();
++    }
++//#endif
++    DHLOGI("shj acc data & dataLen");
+     sinkFrameInfo.Marshal(jsonStr);
+     DHLOGI("send videoPts=%{public}s to softbus,frameType:%{public}d", sinkFrameInfo.rawTime_.c_str(), frameType);
+     StreamData ext = { const_cast<char *>(jsonStr.c_str()), jsonStr.length() };
+@@ -383,6 +396,20 @@ int32_t DCameraSoftbusAdapter::DCameraSoftbusSourceGetSession(int32_t socket,
+     return DCAMERA_OK;
+ }
+ 
++void DCameraSoftbusAdapter::SendSensorAccData(SensorDataInfo accData)
++{
++    std::lock_guard<std::mutex> lock(dataMutex);
++    accVec.push_back(accData);
++    DHLOGI("acc add data");
++}
++
++void DCameraSoftbusAdapter::SendSensorGyroData(SensorDataInfo gyroData)
++{
++    std::lock_guard<std::mutex> lock(dataMutex);
++    gyroVec.push_back(gyroData);
++    DHLOGI("gyro add data");
++}
++
+ // source
+ int32_t DCameraSoftbusAdapter::SourceOnBind(int32_t socket, PeerSocketInfo info)
+ {
+-- 
+2.45.2.huawei.10
 
-base/security/selinux_adapter/sepolicy/base/public/filesystem.te
-neverallow storage_daemon ~{ exfat vfat ntfs hmdfs sharefs tmpfs labeledfs mnt_external_file unlabeled }:filesystem unmount;
-
-base/security/selinux_adapter/sepolicy/base/public/domain.te 324
-neverallow { domain -init -chipset_init -cap_violator_sysrawio -storage_info -storage_daemon } self:{ capability cap_userns } sys_rawio;
