@@ -9698,7 +9698,9 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
         callback->OnStopUserDone(userId, ERR_OK);
         return ERR_OK;
     }
-    DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByUserId(userId);
+    DelayedSingleton<AppScheduler>::GetInstance()->SetEnableStartProcessFlagByUserId(userId, false);
+    DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByUserId(userId,
+        system::GetBoolParameter(DEVELOPER_MODE_STATE, false), callback, UserOperationType::STOP_USER);
 
     if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         auto missionListWrap = GetMissionListWrap();
@@ -9711,7 +9713,6 @@ int AbilityManagerService::StopUser(int userId, const sptr<IUserCallback> &callb
     }
     ClearUserData(userId);
     AbilityRuntime::UserController::GetInstance().ClearUserId(userId);
-    callback->OnStopUserDone(userId, ERR_OK);
     UpdateApplicationKeepAlive(userId);
     return ERR_OK;
 }

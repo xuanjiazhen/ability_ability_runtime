@@ -106,6 +106,14 @@ constexpr int32_t BASE_USER_RANGE = 200000;
 constexpr int32_t START_ID_FOR_CHILD_PROCESS_ISOLATION = 110000;
 constexpr int32_t END_ID_FOR_CHILD_PROCESS_ISOLATION = 119999;
 
+/**
+ * @brief User operation type for StopUser and LogoutUser
+ */
+enum class UserOperationType {
+    STOP_USER = 0,
+    LOGOUT_USER = 1
+};
+
 class AppMgrServiceInner : public std::enable_shared_from_this<AppMgrServiceInner> {
 public:
     struct LoadAbilityCallbackGuard {
@@ -220,10 +228,12 @@ public:
      *
      * @param userId, the user id.
      * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
+     * @param callback, user callback for operation completion.
+     * @param operationType, operation type (STOP_USER or LOGOUT_USER).
      * @return
      */
     virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
-        sptr<AAFwk::IUserCallback> callback = nullptr);
+        sptr<AAFwk::IUserCallback> callback = nullptr, UserOperationType operationType = UserOperationType::LOGOUT_USER);
 
     /**
      * KillProcessesByPids, only in process call is allowed,
@@ -2167,6 +2177,16 @@ private:
     int32_t ProcessKia(bool isKia, std::shared_ptr<AppRunningRecord> appRecord,
         const std::string& watermarkBusinessName, bool isWatermarkEnabled);
     bool CheckAppRecordAndPriorityObject(const std::shared_ptr<AppRunningRecord> &appRecord);
+
+    /**
+     * @brief Notify user operation done callback (unified handler for StopUser and LogoutUser)
+     * @param callback User callback interface
+     * @param operationType Operation type (STOP_USER or LOGOUT_USER)
+     * @param userId User ID
+     * @param errCode Error code
+     */
+    void NotifyUserOperationDone(const sptr<AAFwk::IUserCallback> &callback,
+        UserOperationType operationType, int32_t userId, int32_t errCode) const;
 #ifdef SUPPORT_CHILD_PROCESS
     void GetAppCloneInfo(const std::shared_ptr<AppRunningRecord> &appRecord,
         RunningMultiAppInfo &info);

@@ -114,10 +114,12 @@ public:
      *
      * @param userId, the user id.
      * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
+     * @param callback, user callback for operation completion.
+     * @param operationType, operation type (STOP_USER or LOGOUT_USER).
      * @return
      */
     virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
-        sptr<AAFwk::IUserCallback> callback = nullptr) override;
+        sptr<AAFwk::IUserCallback> callback = nullptr, UserOperationType operationType = UserOperationType::LOGOUT_USER) override;
 
     /**
      * KillProcessesByPids, only in process call is allowed,

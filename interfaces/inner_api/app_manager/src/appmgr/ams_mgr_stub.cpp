@@ -336,8 +336,10 @@ ErrCode AmsMgrStub::HandleKillProcessesByUserId(MessageParcel &data, MessageParc
     if (isWithCallback) {
         callback = iface_cast<AAFwk::IUserCallback>(data.ReadRemoteObject());
     }
+    int32_t operationTypeInt = data.ReadInt32();
+    UserOperationType operationType = static_cast<UserOperationType>(operationTypeInt);
 
-    KillProcessesByUserId(userId, callback);
+    KillProcessesByUserId(userId, callback, operationType);
     return NO_ERROR;
 }
 

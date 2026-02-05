@@ -236,7 +236,7 @@ void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token
 }
 
 void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
-    sptr<AAFwk::IUserCallback> callback)
+    sptr<AAFwk::IUserCallback> callback, UserOperationType operationType)
 {
     if (!IsReady()) {
         return;
@@ -257,8 +257,8 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSp
     }
 
     std::function<void()> killProcessesByUserIdFunc = [amsMgrServiceInner = amsMgrServiceInner_, userId,
-                                                          isNeedSendAppSpawnMsg, callback]() {
-        amsMgrServiceInner->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
+                                                          isNeedSendAppSpawnMsg, callback, operationType]() {
+        amsMgrServiceInner->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback, operationType);
     };
     amsHandler_->SubmitTask(killProcessesByUserIdFunc, TASK_KILL_PROCESSES_BY_USERID);
 }

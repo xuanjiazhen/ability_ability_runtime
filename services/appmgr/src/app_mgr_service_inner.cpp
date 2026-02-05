@@ -2212,14 +2212,35 @@ int32_t AppMgrServiceInner::WaitProcessesExitAndKill(std::list<pid_t> &pids, con
     return result;
 }
 
+void AppMgrServiceInner::NotifyUserOperationDone(const sptr<AAFwk::IUserCallback> &callback,
+    UserOperationType operationType, int32_t userId, int32_t errCode) const
+{
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "callback is nullptr");
+        return;
+    }
+
+    switch (operationType) {
+        case UserOperationType::STOP_USER:
+            callback->OnStopUserDone(userId, errCode);
+            break;
+        case UserOperationType::LOGOUT_USER:
+            callback->OnLogoutUserDone(userId, errCode);
+            break;
+        default:
+            TAG_LOGE(AAFwkTag::APPMGR, "unknown operation type: %{public}d", static_cast<int>(operationType));
+            break;
+    }
+}
+
 bool AppMgrServiceInner::DoAllProcessExitCallback(std::list<SimpleProcessInfo> &processInfos,
-    int32_t userId, sptr<AAFwk::IUserCallback> callback, int64_t startTime)
+    int32_t userId, sptr<AAFwk::IUserCallback> callback, int64_t startTime, UserOperationType operationType)
 {
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "callback nullptr");
         return false;
     }
-    auto checkProcessExistCallback = [processInfos, userId, callback, startTime,
+    auto checkProcessExistCallback = [processInfos, userId, callback, startTime, operationType,
         appMgrInner = shared_from_this()] () mutable {
         TAG_LOGI(AAFwkTag::APPMGR, "checkProcessExistCallback call");
         if (callback == nullptr) {
@@ -2228,25 +2249,25 @@ bool AppMgrServiceInner::DoAllProcessExitCallback(std::list<SimpleProcessInfo> &
         }
         if (appMgrInner == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "appMgrInner nullptr");
-            callback->OnLogoutUserDone(userId, AAFwk::ERR_LOGOUT_USER_APP_MANAGER_NULL);
+            NotifyUserOperationDone(callback, operationType, userId, AAFwk::ERR_LOGOUT_USER_APP_MANAGER_NULL);
             return;
         }
         if (ProcessUtil::IsAllProcessKilled(processInfos)) {
             TAG_LOGI(AAFwkTag::APPMGR, "all process exit");
-            callback->OnLogoutUserDone(userId, ERR_OK);
+            NotifyUserOperationDone(callback, operationType, userId, ERR_OK);
             return;
         }
         int64_t currentTime = appMgrInner->SystemTimeMillisecond();
         if (currentTime - startTime > LOGOUT_USER_TIMEOUT_MILLISION_SECONDS) {
             TAG_LOGE(AAFwkTag::APPMGR, "kill process timeout");
-            callback->OnLogoutUserDone(userId, AAFwk::ERR_LOGOUT_USER_KILL_PROCESS_TIMEOUT);
+            NotifyUserOperationDone(callback, operationType, userId, AAFwk::ERR_LOGOUT_USER_KILL_PROCESS_TIMEOUT);
             return;
         }
-        appMgrInner->DoAllProcessExitCallback(processInfos, userId, callback, startTime);
+        appMgrInner->DoAllProcessExitCallback(processInfos, userId, callback, startTime, operationType);
     };
     if (taskHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "taskHandler_ nullptr");
-        callback->OnLogoutUserDone(userId, AAFwk::ERR_LOGOUT_USER_TASK_HANDLE_NULL);
+        NotifyUserOperationDone(callback, operationType, userId, AAFwk::ERR_LOGOUT_USER_TASK_HANDLE_NULL);
         return false;
     }
     taskHandler_->SubmitTaskJust(checkProcessExistCallback, "DelayCheckProcessExit",
@@ -2255,14 +2276,15 @@ bool AppMgrServiceInner::DoAllProcessExitCallback(std::list<SimpleProcessInfo> &
 }
 
 int32_t AppMgrServiceInner::WaitProcessesExitAndKill(std::list<SimpleProcessInfo> &processInfos,
-    const int64_t startTime, const std::string& reason, int32_t userId, sptr<AAFwk::IUserCallback> callback)
+    const int64_t startTime, const std::string& reason, int32_t userId, sptr<AAFwk::IUserCallback> callback,
+    UserOperationType operationType)
 {
     int32_t result = ERR_OK;
     ProcessUtil::UpdateProcessNameByProcFile(processInfos);
     if (WaitForRemoteProcessExit(processInfos, startTime)) {
         TAG_LOGI(AAFwkTag::APPMGR, "remote process exited successs");
         if (callback) {
-            callback->OnLogoutUserDone(userId, ERR_OK);
+            NotifyUserOperationDone(callback, operationType, userId, ERR_OK);
         }
         return result;
     }
@@ -2273,7 +2295,7 @@ int32_t AppMgrServiceInner::WaitProcessesExitAndKill(std::list<SimpleProcessInfo
             result = singleRet;
         }
     }
-    DoAllProcessExitCallback(processInfos, userId, callback, startTime);
+    DoAllProcessExitCallback(processInfos, userId, callback, startTime, operationType);
     return result;
 }
 
@@ -3741,7 +3763,7 @@ void AppMgrServiceInner::KillProcessByAbilityToken(const sptr<IRemoteObject> &to
 }
 
 void AppMgrServiceInner::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
-    sptr<AAFwk::IUserCallback> callback)
+    sptr<AAFwk::IUserCallback> callback, UserOperationType operationType)
 {
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
@@ -3761,18 +3783,18 @@ void AppMgrServiceInner::KillProcessesByUserId(int32_t userId, bool isNeedSendAp
         }
         result = WaitProcessesExitAndKill(pids, startTime, "KillProcessesByUserId");
     } else {
-        // for logout user to callback
+        // for stop user or logout user to callback
         std::list<SimpleProcessInfo> processInfos;
         if (!appRunningManager_->GetProcessInfosByUserId(userId, processInfos)) {
             TAG_LOGI(AAFwkTag::APPMGR, "process corresponding uId unstart");
-            callback->OnLogoutUserDone(userId, ERR_OK);
+            NotifyUserOperationDone(callback, operationType, userId, ERR_OK);
             if (isNeedSendAppSpawnMsg) {
                 TAG_LOGI(AAFwkTag::APPMGR, "developer mode, send uninstall debug hap messages");
                 SendAppSpawnUninstallDebugHapMsg(userId);
             }
             return;
         }
-        result = WaitProcessesExitAndKill(processInfos, startTime, "KillProcessesByUserId", userId, callback);
+        result = WaitProcessesExitAndKill(processInfos, startTime, "KillProcessesByUserId", userId, callback, operationType);
     }
     if (result == ERR_OK && isNeedSendAppSpawnMsg) {
         TAG_LOGI(AAFwkTag::APPMGR, "developer mode, send uninstall debug hap messages");

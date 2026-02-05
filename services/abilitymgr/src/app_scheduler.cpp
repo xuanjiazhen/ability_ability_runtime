@@ -169,12 +169,12 @@ void AppScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
 }
 
 void AppScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
-    sptr<AAFwk::IUserCallback> callback)
+    sptr<AAFwk::IUserCallback> callback, UserOperationType operationType)
 {
     TAG_LOGI(
         AAFwkTag::ABILITYMGR, "user id: %{public}d isNeedSendAppSpawnMsg: %{public}d", userId, isNeedSendAppSpawnMsg);
     CHECK_POINTER(appMgrClient_);
-    appMgrClient_->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback);
+    appMgrClient_->KillProcessesByUserId(userId, isNeedSendAppSpawnMsg, callback, operationType);
 }
 
 int32_t AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason, bool subProcess,

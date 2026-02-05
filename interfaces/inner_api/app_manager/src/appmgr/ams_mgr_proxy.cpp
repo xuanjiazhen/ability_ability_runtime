@@ -273,7 +273,7 @@ void AmsMgrProxy::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
 }
 
 void AmsMgrProxy::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
-    sptr<AAFwk::IUserCallback> callback)
+    sptr<AAFwk::IUserCallback> callback, UserOperationType operationType)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "start");
     MessageParcel data;
@@ -299,6 +299,10 @@ void AmsMgrProxy::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnM
             TAG_LOGE(AAFwkTag::ABILITYMGR, "write IUserCallback fail");
             return;
         }
+    }
+    if (!data.WriteInt32(static_cast<int32_t>(operationType))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel WriteInt32 operationType failed");
+        return;
     }
     int32_t ret =
         SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::KILL_PROCESSES_BY_USERID), data, reply, option);

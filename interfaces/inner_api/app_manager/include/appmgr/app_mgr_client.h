@@ -47,6 +47,15 @@ namespace OHOS {
 namespace AbilityRuntime {
 struct LoadParam;
 }
+
+/**
+ * @brief User operation type for StopUser and LogoutUser
+ */
+enum class UserOperationType {
+    STOP_USER = 0,
+    LOGOUT_USER = 1
+};
+
 namespace AppExecFwk {
 class AppServiceManager;
 class Configuration;
@@ -135,10 +144,12 @@ public:
      *
      * @param userId, the user id.
      * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
+     * @param callback, user callback for operation completion.
+     * @param operationType, operation type (STOP_USER or LOGOUT_USER).
      * @return Returns RESULT_OK on success, others on failure.
      */
     virtual AppMgrResultCode KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
-        sptr<AAFwk::IUserCallback> callback = nullptr);
+        sptr<AAFwk::IUserCallback> callback = nullptr, UserOperationType operationType = UserOperationType::LOGOUT_USER);
 
     /**
      * KillProcessesByPids, only in process call is allowed,
