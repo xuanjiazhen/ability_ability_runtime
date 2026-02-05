@@ -419,20 +419,28 @@ void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bu
         }
 
         // Resident abilities are ServiceAbility or ServiceExtension, which are managed by ConnectManager
-        // MissionListManager only manages UIAbility (PAGE type)
-        auto connectManager = ams->GetConnectManagerByUserId(userId, AppExecFwk::ExtensionAbilityType::SERVICE);
-        if (connectManager == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get ConnectManager for userId %{public}d", userId);
+        // Use GetServiceMapByUserId to get the service map (public method)
+        AbilityConnectManager::ServiceMapType serviceMap;
+        auto result = ams->GetServiceMapByUserId(serviceMap, userId);
+        if (result != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get ServiceMap for userId %{public}d", userId);
             return;
         }
 
-        // Construct element key for ConnectManager (format: bundleName/abilityName)
+        // Construct element key for ServiceMap lookup (format: bundleName/abilityName)
         std::string element = bundleName + "/" + abilityName;
 
-        // Get ExtensionRecord from ConnectManager
-        auto extensionRecord = connectManager->GetServiceRecordByElementName(element);
-        if (extensionRecord == nullptr) {
+        // Find ExtensionRecord from ServiceMap
+        auto it = serviceMap.find(element);
+        if (it == serviceMap.end()) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "ExtensionRecord not found for %{public}s, "
+                "skipping memory defrag", element.c_str());
+            return;
+        }
+
+        auto extensionRecord = it->second;
+        if (extensionRecord == nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "ExtensionRecord is null for %{public}s, "
                 "skipping memory defrag", element.c_str());
             return;
         }
