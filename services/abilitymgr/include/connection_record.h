@@ -173,6 +173,8 @@ public:
     void SetConnectWant(const Want &want);
     Want GetConnectWant() const;
 private:
+    void ScheduleDisconnectTimeout();
+
     static int64_t connectRecordId;
     Want connectWant_;
     ConnectionState state_;                            // service connection state

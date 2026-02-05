@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AgentCard } from './@ohos.app.ability.AgentCard';
+import { AgentCard } from './@ohos.app.agent.AgentCard';
 
 export default namespace agentManager {
-  loadLibraryWithPermissionCheck("agent_manager_ani.z", "@ohos.app.ability.agentManager")
+  loadLibraryWithPermissionCheck("agent_manager_ani.z", "@ohos.app.agent.agentManager")
 
   export native function nativeGetAllAgentCards(): Array<AgentCard>;
   export native function nativeGetAgentCardsByBundleName(bundleName: string): Array<AgentCard>;
-  export native function nativeGetAgentCardByUrl(bundleName: string, url: string): AgentCard;
+  export native function nativeGetAgentCardByAgentId(bundleName: string, agentId: string): AgentCard;
 
   export function getAllAgentCards(): Promise<Array<AgentCard>> {
     let p: Promise<Array<AgentCard>> = new Promise<Array<AgentCard>>(
@@ -51,11 +51,11 @@ export default namespace agentManager {
     return p;
   }
 
-  export function getAgentCardByUrl(bundleName: string, url: string): Promise<AgentCard> {
+  export function getAgentCardByAgentId(bundleName: string, agentId: string): Promise<AgentCard> {
     let p: Promise<AgentCard> = new Promise<AgentCard>(
       (res: (data: AgentCard) => void, rej: (error: Error) => void): void => {
       taskpool.execute((): AgentCard => {
-        return agentManager.nativeGetAgentCardByUrl(bundleName, url);
+        return agentManager.nativeGetAgentCardByAgentId(bundleName, agentId);
       }).then((e: Any) => {
         let card: AgentCard = e as AgentCard;
         res(card);

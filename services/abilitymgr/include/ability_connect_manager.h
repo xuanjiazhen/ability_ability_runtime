@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -355,7 +355,7 @@ protected:
     * @param abilityRequest The ability request.
     * @return Returns generated bundle name.
     */
-    std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
+    static std::string GenerateBundleName(const AbilityRequest &abilityRequest);
 
     /**
     * Call EnqueueStartServiceReq internally.
@@ -643,11 +643,11 @@ private:
     int DisconnectAbilityLocked(const sptr<IAbilityConnection> &connect, bool callerDied);
 
     /**
-     * ConnectAbility.Schedule connect ability
+     * ConnectAbility.Schedule connect ability for per-connection-type extensions
      *
      * @param abilityRecord, the ptr of the ability to connect.
      */
-    void ConnectUIServiceExtAbility(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
+    void ConnectPerConnectionTypeExtension(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         int connectRecordId, const Want &want);
 
     /**
@@ -809,6 +809,7 @@ private:
     void KeepAbilityAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void ProcessEliminateAbilityRecord(std::shared_ptr<BaseExtensionRecord> eliminateRecord);
     static std::string GetServiceKey(const std::shared_ptr<BaseExtensionRecord> &service);
+    static std::string GetServiceKey(const AbilityRequest &abilityRequest);
 
     void SetExtensionLoadParam(AbilityRuntime::LoadParam &loadParam,
         std::shared_ptr<BaseExtensionRecord> abilityRecord);

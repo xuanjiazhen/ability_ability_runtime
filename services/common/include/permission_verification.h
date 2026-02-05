@@ -32,7 +32,6 @@ struct VerificationInfo {
     bool isBackgroundCall = true;
     bool associatedWakeUp = false;
     bool withContinuousTask = false;
-    bool isProcessInStatusBar = false;
 };
 
     PermissionVerification() = default;
