@@ -23,8 +23,8 @@ extern const char _binary_agent_extension_ability_abc_end[];
 #ifdef ENABLE_ERRCODE
 static napi_module _module = {
     .nm_version = 0,
-    .nm_filename = "app/ability/libagentextensionability.so/agent_extension_ability.js",
-    .nm_modname = "app.ability.AgentExtensionAbility",
+    .nm_filename = "app/agent/libagentextensionability.so/agent_extension_ability.js",
+    .nm_modname = "app.agent.AgentExtensionAbility",
 };
 
 extern "C" __attribute__((constructor)) void NAPI_app_ability_AgentExtensionAbility_AutoRegister()
