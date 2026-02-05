@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -42,6 +42,7 @@
 #include "startup_util.h"
 #include "timeout_state_utils.h"
 #include "ui_extension_wrapper.h"
+#include "user_controller/user_controller.h"
 #include "utils/state_utils.h"
 #ifdef SUPPORT_GRAPHICS
 #include "ability_first_frame_state_observer_manager.h"
@@ -842,18 +843,32 @@ int32_t UIAbilityLifecycleManager::BatchNotifySCBPendingActivations(const Abilit
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null tmpSceneSession, scb does not exist");
             return ERR_INVALID_VALUE;
         }
+        std::unordered_set<std::string> bundleList;
         for (auto sessionInfo : sessionInfoList) {
             sessionInfo->canStartAbilityFromBackground = true;
+            bundleList.insert(sessionInfo->want.GetElement().GetBundleName());
         }
         TAG_LOGI(AAFwkTag::ABILITYMGR,
             "scb call, StartUIAbilities BatchPendingSessionsActivation for rootSceneSession");
-        return static_cast<int>(tmpSceneSession->BatchPendingSessionsActivation(sessionInfoList));
+        auto ret = static_cast<int>(tmpSceneSession->BatchPendingSessionsActivation(sessionInfoList));
+        return AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(bundleList, userId_, ret);
+    }
+    return BatchNotifySCBPendingActivationsByCaller(callerAbilityRecord, sessionInfoList);
+}
+
+int32_t UIAbilityLifecycleManager::BatchNotifySCBPendingActivationsByCaller(
+    const UIAbilityRecordPtr &callerAbilityRecord, const std::vector<sptr<SessionInfo>> &sessionInfoList)
+{
+    if (callerAbilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerAbilityRecord nullptr");
+        return ERR_INVALID_VALUE;
     }
     auto callerSessionInfo = callerAbilityRecord->GetSessionInfo();
     CHECK_POINTER_AND_RETURN(callerSessionInfo, ERR_INVALID_VALUE);
     CHECK_POINTER_AND_RETURN(callerSessionInfo->sessionToken, ERR_INVALID_VALUE);
     auto callerSession = iface_cast<Rosen::ISession>(callerSessionInfo->sessionToken);
     CHECK_POINTER_AND_RETURN(callerSession, ERR_INVALID_VALUE);
+    std::unordered_set<std::string> bundleList;
     for (auto sessionInfo : sessionInfoList) {
         CheckCallerFromBackground(callerAbilityRecord, sessionInfo);
         auto requestId = sessionInfo->want.GetStringParam(KEY_REQUEST_ID);
@@ -861,9 +876,11 @@ int32_t UIAbilityLifecycleManager::BatchNotifySCBPendingActivations(const Abilit
             callerAbilityRecord->NotifyAbilityRequestSuccess(requestId, sessionInfo->want.GetElement());
         }
         sessionInfo->want.RemoveParam(KEY_REQUEST_ID);
+        bundleList.insert(sessionInfo->want.GetElement().GetBundleName());
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, StartUIAbilities BatchPendingSessionsActivation for callerSession");
-    return static_cast<int>(callerSession->BatchPendingSessionsActivation(sessionInfoList));
+    auto ret = static_cast<int>(callerSession->BatchPendingSessionsActivation(sessionInfoList));
+    return AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(bundleList, userId_, ret);
 }
 
 void UIAbilityLifecycleManager::HandleAbilitiesRequestDone(int32_t requestId, int32_t requestListId,
@@ -1716,7 +1733,9 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivationInSplitMode(sptr<Sessio
     for (auto &sessionInfo : sessionInfoList) {
         sessionInfo->canStartAbilityFromBackground = true;
     }
-    return static_cast<int>(tmpSceneSession->BatchPendingSessionsActivation(sessionInfoList, configList));
+    auto ret = static_cast<int>(tmpSceneSession->BatchPendingSessionsActivation(sessionInfoList, configList));
+    return AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(
+        sessionInfo->want.GetElement().GetBundleName(), userId_, ret);
 }
 
 int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &sessionInfo,
@@ -1772,7 +1791,8 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
         }
-        return ret;
+        return AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(
+            sessionInfo->want.GetElement().GetBundleName(), userId_, ret);
     }
     auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
     if (tmpSceneSession == nullptr) {
@@ -1796,7 +1816,8 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
     }
-    return ret;
+    return AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(
+        sessionInfo->want.GetElement().GetBundleName(), userId_, ret);
 }
 
 bool UIAbilityLifecycleManager::IsHookModule(const AbilityRequest &abilityRequest) const
@@ -2819,12 +2840,15 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCBInSplitMode(int primaryWindow
     CreateSessionConfigurations(sessionInfoList, primaryWindowId, configList, sessionInfo);
     auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
     CHECK_POINTER_AND_RETURN(tmpSceneSession, ERR_INVALID_VALUE);
+    std::unordered_set<std::string> bundleList;
     for (auto &sessionInfo : sessionInfoList) {
         sessionInfo->canStartAbilityFromBackground = true;
+        bundleList.insert(sessionInfo->want.GetElement().GetBundleName());
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s",
         sessionInfo->want.GetElement().GetAbilityName().c_str());
     tmpSceneSession->BatchPendingSessionsActivation(sessionInfoList, configList);
+    AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(bundleList, userId_);
     return ERR_OK;
 }
 
