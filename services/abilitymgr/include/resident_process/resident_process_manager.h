@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_RESIDENT_PROCESS_MANAGER_H
 
 #include <list>
-#include <memory>
 #include <mutex>
 
 #include "app_scheduler.h"
@@ -26,8 +25,6 @@
 
 namespace OHOS {
 namespace AAFwk {
-// Forward declaration
-class AbilityRecord;
 
 struct ResidentAbilityInfo {
     std::string bundleName;
@@ -106,8 +103,6 @@ private:
         size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId);
     void StartResidentProcessWithMainElementPerBundleHap(const AppExecFwk::HapModuleInfo &hapModuleInfo,
         const std::string &processName, size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId);
-    void StartResidentMemoryDefragTask(const std::string &bundleName, const std::string &abilityName,
-        const std::weak_ptr<AbilityRecord> &weakRecord);
 
     std::mutex residentAbilityInfoMutex_;
     std::list<ResidentAbilityInfo> residentAbilityInfos_;

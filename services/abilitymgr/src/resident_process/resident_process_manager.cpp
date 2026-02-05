@@ -155,52 +155,9 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
         hapModuleInfo.name, mainElement, true, userId);
     if (ret != ERR_OK) {
         AddFailedResidentAbility(hapModuleInfo.bundleName, mainElement, userId);
-    } else {
-        // Get AbilityRecord immediately after StartAbility succeeds
-        auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
-        if (ams != nullptr) {
-            auto missionListMgr = ams->GetMissionListManagerByUserId(userId);
-            if (missionListMgr != nullptr) {
-                // Find the missionId for this resident ability
-                std::vector<MissionInfo> missionInfos;
-                int32_t missionId = -1;
-                auto result = missionListMgr->GetMissionInfos(-1, missionInfos);
-                if (result == ERR_OK) {
-                    for (const auto &missionInfo : missionInfos) {
-                        const auto &elem = missionInfo.want.GetElement();
-                        if (elem.GetBundleName() == hapModuleInfo.bundleName &&
-                            elem.GetAbilityName() == mainElement) {
-                            missionId = missionInfo.id;
-                            TAG_LOGI(AAFwkTag::ABILITYMGR, "Found missionId: %{public}d for %{public}s/%{public}s",
-                                missionId, hapModuleInfo.bundleName.c_str(), mainElement.c_str());
-                            break;
-                        }
-                    }
-                }
-
-                if (missionId != -1) {
-                    // Get AbilityRecord immediately while MissionListManager is still valid
-                    auto abilityRecord = missionListMgr->GetAbilityRecordByMissionId(missionId);
-                    if (abilityRecord != nullptr) {
-                        TAG_LOGI(AAFwkTag::ABILITYMGR, "Got AbilityRecord for %{public}s/%{public}s, starting memory defrag task",
-                            hapModuleInfo.bundleName.c_str(), mainElement.c_str());
-                        // Capture weak_ptr to avoid extending lifetime
-                        std::weak_ptr<AbilityRecord> weakRecord = abilityRecord;
-                        StartResidentMemoryDefragTask(hapModuleInfo.bundleName, mainElement, weakRecord);
-                    } else {
-                        TAG_LOGW(AAFwkTag::ABILITYMGR, "AbilityRecord is null for missionId %{public}d", missionId);
-                    }
-                } else {
-                    TAG_LOGW(AAFwkTag::ABILITYMGR, "MissionId not found for %{public}s/%{public}s",
-                        hapModuleInfo.bundleName.c_str(), mainElement.c_str());
-                }
-            } else {
-                TAG_LOGW(AAFwkTag::ABILITYMGR, "MissionListManager is null for userId %{public}d", userId);
-            }
-        } else {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "AbilityManagerService is null");
-        }
     }
+    // Note: Memory defrag task is now triggered from AbilityRecord::Init()
+    // when PARAM_IS_RESIDENT_ABILITY is detected, no need to handle here
 }
 
 int32_t ResidentProcessManager::SetResidentProcessEnabled(
@@ -437,52 +394,5 @@ void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleN
     });
 }
 
-void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bundleName,
-    const std::string &abilityName, const std::weak_ptr<AbilityRecord> &weakRecord)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Starting memory defrag task for %{public}s/%{public}s, will trigger after 140s",
-        bundleName.c_str(), abilityName.c_str());
-
-    // Start a background thread to handle memory defragmentation after 140 seconds
-    // Capture weak_ptr to safely access AbilityRecord after delay
-    std::thread([bundleName, abilityName, weakRecord]() {
-        // Sleep for 140 seconds
-        std::this_thread::sleep_for(std::chrono::seconds(140));
-
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Memory defrag timer triggered for %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
-
-        // Try to lock the weak_ptr to get shared_ptr
-        auto abilityRecord = weakRecord.lock();
-        if (abilityRecord == nullptr) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityRecord has been destroyed for %{public}s/%{public}s, "
-                "skipping memory defrag", bundleName.c_str(), abilityName.c_str());
-            return;
-        }
-
-        // Check if this is still marked as resident ability
-        if (!abilityRecord->IsResidentAbility()) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityRecord is no longer marked as resident, skipping defrag");
-            return;
-        }
-
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Performing memory defrag for resident ability %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
-
-        // Create a deep copy of the entire AbilityRecord to trigger memory reallocation
-        // This helps reduce memory fragmentation by allocating fresh memory blocks for all members
-        auto deepCopiedRecord = abilityRecord->DeepCopy();
-
-        // The deep copied record will be destroyed here, triggering memory deallocation
-        // This forces the system to allocate new contiguous memory blocks
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed and destroyed for %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
-
-        // Clear the resident ability flag to avoid repeated execution
-        abilityRecord->SetResidentAbilityFlag(false);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Cleared resident flag for %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
-    }).detach();
-}
 }  // namespace AAFwk
 }  // namespace OHOS
