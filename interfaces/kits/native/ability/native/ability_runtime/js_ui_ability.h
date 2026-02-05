@@ -439,6 +439,7 @@ private:
         napi_ref &jsWantParamsRef, AppExecFwk::AbilityTransactionCallbackInfo<int32_t> *callbackInfo);
     void RemoveShareRouterByBundleType(const Want &want);
     void HandleAbilityDelegatorStart();
+    void WriteLifecycleLog(const std::string lifecycleName);
 
     JsRuntime &jsRuntime_;
     std::shared_ptr<NativeReference> shellContextRef_;

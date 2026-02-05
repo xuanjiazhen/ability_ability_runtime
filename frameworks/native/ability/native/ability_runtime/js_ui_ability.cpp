@@ -530,6 +530,7 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
         applicationContext->DispatchOnAbilityWillCreate(ability);
     }
 
+    WriteLifecycleLog("onCreate");
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     CallObjectMethod("onCreate", argv, ArraySize(argv));
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
@@ -551,6 +552,18 @@ void JsUIAbility::HandleAbilityDelegatorStart()
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
         property->object_ = jsAbilityObj_;
         delegator->PostPerformStart(property);
+    }
+}
+
+void JsUIAbility::WriteLifecycleLog(const std::string lifecycleName)
+{
+    if (!IsPageSwitchLoggable()) {
+        return;
+    }
+    std::string msg = lifecycleName + ", AbilityName: " + GetAbilityName();
+    int ret = WritePageSwitch(msg.c_str());
+    if (ret != ERR_OK) {
+       TAG_LOGE(AAFwkTag::UIABILITY, "write lifecycle log failed [%{public}d]", ret);
     }
 }
 
@@ -606,6 +619,7 @@ void JsUIAbility::OnStop()
         JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
         applicationContext->DispatchOnAbilityWillDestroy(ability);
     }
+    WriteLifecycleLog("onDestroy");
     CallObjectMethod("onDestroy");
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
@@ -709,6 +723,7 @@ void JsUIAbility::OnSceneCreated()
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "onWindowStageCreate");
         std::string methodName = "OnSceneCreated";
         AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+        WriteLifecycleLog("onWindowStageCreate");
         CallObjectMethod("onWindowStageCreate", argv, ArraySize(argv));
         AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     }
@@ -795,6 +810,7 @@ void JsUIAbility::onSceneDestroyed()
     }
     HandleScope handleScope(jsRuntime_);
     UpdateJsWindowStage(nullptr);
+    WriteLifecycleLog("onWindowStageDestroy");
     CallObjectMethod("onWindowStageDestroy");
 
     if (scene_ != nullptr) {
@@ -867,6 +883,7 @@ void JsUIAbility::CallOnForegroundFunc(const Want &want)
         applicationContext->DispatchOnAbilityWillForeground(ability);
     }
 
+    WriteLifecycleLog("onForeground");
     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
     std::string methodName = "OnForeground";
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
@@ -902,6 +919,7 @@ void JsUIAbility::OnBackground()
     std::string methodName = "OnBackground";
     HandleScope handleScope(jsRuntime_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+    WriteLifecycleLog("onBackground");
     CallObjectMethod("onBackground");
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
 
@@ -1929,6 +1947,7 @@ void JsUIAbility::OnNewWant(const Want &want)
     };
     std::string methodName = "OnNewWant";
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    WriteLifecycleLog("onNewWant");
     CallObjectMethod("onNewWant", argv, ArraySize(argv));
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
 
