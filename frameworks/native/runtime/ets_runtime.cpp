@@ -62,6 +62,8 @@ const std::string ETS_SYSLIB_PATH =
 #endif
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr char SANDBOX_ARK_CACHE_PATH[] = "/data/storage/ark-cache/";
+constexpr char SANDBOX_SHARED_BUNDLE_ARK_CACHE_PATH[] =
+    "/data/service/el1/public/for-all-app/shared_bundles_ark_cache/";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
 
 const char *ETS_ENV_LIBNAME = "libets_environment.z.so";
@@ -163,6 +165,50 @@ void ETSRuntime::PreloadLibrary()
     }
 }
 
+std::string ETSRuntime::GetHspAotPath(const Options &options)
+{
+    std::vector<std::string> aotFiles;
+    if (!options.arkNativeFilePath.empty()) {
+        // Handle Hap and Inner Hsp
+        // path: <sandbox_path>/arm64/<moduleName>.an
+        for (const auto& status: options.aotCompileStatusMap) {
+            if (status.second) {
+                aotFiles.push_back(SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + status.first + ".an");
+            }
+        }
+
+        // Handle Outer Hsp
+        // TODO: missing aotCompileStatus for Outer Hsp, will be done at 7.0
+        for (const auto& bundleInfo: options.commonHspBundleInfos) {
+            if (bundleInfo.moduleArkTSMode == std::to_string(AppExecFwk::Constants::ARKTS_MODE_DYNAMIC)) {
+                continue;
+            }
+
+            if (bundleInfo.hapPath.compare(0, EtsEnv::SYS_HSP_FILE_PATH_PREFIX.size(),
+                        EtsEnv::SYS_HSP_FILE_PATH_PREFIX) != 0 && bundleInfo.hapPath.rfind('/') == std::string::npos) {
+                continue;
+            }
+
+            // path: <sandbox_path>/<bundleName>/v<versionCode>/arm64/<moduleName>.an
+            std::string outerHspAnPath = SANDBOX_SHARED_BUNDLE_ARK_CACHE_PATH + bundleInfo.bundleName +
+                std::string(AbilityBase::Constants::FILE_SEPARATOR) + "v" + std::to_string(bundleInfo.versionCode) +
+                std::string(AbilityBase::Constants::FILE_SEPARATOR) + options.arkNativeFilePath +
+                bundleInfo.moduleName + ".an";
+            aotFiles.push_back(outerHspAnPath);
+        }
+    }
+
+    std::string aotFilePath = "";
+    for (const auto& path: aotFiles) {
+        aotFilePath = aotFilePath + path + ":";
+    }
+
+    if (!aotFilePath.empty()) {
+        aotFilePath = aotFilePath.substr(0, aotFilePath.size() - 1);
+    }
+    return aotFilePath;
+}
+
 bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "PostFork begin");
@@ -190,12 +236,7 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
             vm, HybridJsModuleReader(options.bundleName, options.hapPath, options.isUnique));
     }
 
-    std::string aotFilePath = "";
-    if (!options.arkNativeFilePath.empty()) {
-        aotFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + options.moduleName + ".an";
-    }
-
-    g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), aotFilePath, options.appInnerHspPathList,
+    g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), GetHspAotPath(options), options.appInnerHspPathList,
         options.commonHspBundleInfos, options.eventRunner);
     return true;
 }
