@@ -17,6 +17,8 @@
 #include "vma_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "cJSON.h"
+#include <algorithm>
+#include <chrono>
 #include <libgen.h>
 #include <cstring>
 #include <dlfcn.h>
@@ -658,6 +660,152 @@ int madvise_with_config_file(const char* package_name)
 
     // 应用配置
     return ApplyMadviseWithConfig(package_name, config);
+}
+
+/**
+ * @brief 文件页面统计结构
+ */
+struct FilePageStats {
+    std::string filename;
+    size_t page_count;
+
+    bool operator>(const FilePageStats& other) const {
+        return page_count > other.page_count;
+    }
+};
+
+/**
+ * @brief 检查文件是否以 .so 结尾
+ */
+static inline bool IsSoFile(const char* filename)
+{
+    if (!filename) {
+        return false;
+    }
+    size_t len = strlen(filename);
+    return len > 3 && strcmp(filename + len - 3, ".so") == 0;
+}
+
+/**
+ * @brief 从 /proc/self/maps 读取并统计文件页面占用
+ */
+static std::vector<FilePageStats> CollectFilePageStats()
+{
+    std::vector<FilePageStats> stats;
+    FILE* fp = fopen("/proc/self/maps", "r");
+    if (!fp) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to open /proc/self/maps");
+        return stats;
+    }
+
+    char line[1024];
+    size_t page_size = getpagesize();
+
+    while (fgets(line, sizeof(line), fp)) {
+        unsigned long start, end;
+        char perms[5];
+        unsigned long offset, inode;
+        char pathname[256];
+
+        // 解析行: start-end perms offset dev inode pathname
+        int parsed = sscanf(line, "%lx-%lx %4s %lx %*x:%*x %lu %255s",
+            &start, &end, perms, &offset, &inode, pathname);
+
+        // 只处理有文件路径的行，且 pathname 不为空
+        if (parsed >= 6 && strlen(pathname) > 0 && pathname[0] == '/') {
+            // 跳过特殊文件和已删除文件
+            if (strstr(pathname, "[heap]") || strstr(pathname, "[stack]") ||
+                strstr(pathname, "[vvar]") || strstr(pathname, "[vdso]") ||
+                strstr(pathname, "(deleted)")) {
+                continue;
+            }
+
+            // 只统计可读但不可写的段（代码段、只读数据段）
+            bool is_readable = (perms[0] == 'r');
+            bool is_writable = (perms[1] == 'w');
+            if (!is_readable || is_writable) {
+                continue;
+            }
+
+            size_t size = end - start;
+            size_t pages = (size + page_size - 1) / page_size;
+
+            // 查找是否已存在该文件
+            bool found = false;
+            for (auto& stat : stats) {
+                if (stat.filename == pathname) {
+                    stat.page_count += pages;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) {
+                stats.push_back({pathname, pages});
+            }
+        }
+    }
+
+    fclose(fp);
+    return stats;
+}
+
+int madvise_top_files()
+{
+    auto start_time = std::chrono::high_resolution_clock::now();
+
+    // 收集文件页面统计
+    std::vector<FilePageStats> stats = CollectFilePageStats();
+    if (stats.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITY, "No file stats collected");
+        return 0;
+    }
+
+    // 按页面数降序排序
+    std::sort(stats.begin(), stats.end(), std::greater<FilePageStats>());
+
+    // 取前 10 个
+    size_t top_n = (stats.size() < 30) ? stats.size() : 30;
+    std::vector<std::string> top_so_files;
+    std::vector<std::string> top_vma_files;
+
+    for (size_t i = 0; i < top_n; i++) {
+        const std::string& filename = stats[i].filename;
+        TAG_LOGI(AAFwkTag::ABILITY, "Top %{public}zu: %{public}s (%{public}zu pages)",
+            i + 1, filename.c_str(), stats[i].page_count);
+
+        // 根据文件类型分类
+        if (IsSoFile(filename.c_str())) {
+            top_so_files.push_back(filename);
+        } else {
+            top_vma_files.push_back(filename);
+        }
+    }
+
+    // 使用 ELF 方法处理 .so 文件
+    int so_success = 0;
+    if (!top_so_files.empty()) {
+        for (const auto& so_file : top_so_files) {
+            // 获取文件名（不含路径）
+            const char* basename = strrchr(so_file.c_str(), '/');
+            const char* lib_name = basename ? basename + 1 : so_file.c_str();
+
+            if (madvise_single_library(lib_name)) {
+                so_success++;
+            }
+        }
+    }
+
+    // 使用 VMA 方法处理其他文件
+    int vma_success = madvise_general_files(top_vma_files);
+
+    auto end_time = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time);
+
+    TAG_LOGI(AAFwkTag::ABILITY, "Madvise top files: %{public}d .so files, %{public}d other files optimized, time cost: %{public}lld ms",
+        so_success, vma_success, static_cast<long long>(duration.count()));
+
+    return so_success + vma_success;
 }
 
 } // namespace madviseUtil

@@ -73,6 +73,18 @@ int madvise_general_files(const std::vector<std::string>& filenames);
  */
 int madvise_with_config_file(const char* package_name);
 
+/**
+ * @brief 自动优化当前进程占用页面最多的前 10 个文件
+ *
+ * @return int 成功优化的文件数量
+ *
+ * @note 此函数会扫描 /proc/self/maps，统计各文件占用的页面数，
+ *       对页面数最多的前 10 个文件应用 madvise MADV_DONTNEED：
+ *       - 文件名以 .so 结尾：使用 ELF 方法（dl_iterate_phdr）
+ *       - 其他文件：使用 VMA 方法（/proc/self/maps）
+ */
+int madvise_top_files();
+
 } // namespace madviseUtil
 
 #endif // MADVISE_UTILS_H
