@@ -19,6 +19,7 @@
 
 #include "ability_manager_service.h"
 #include "ability_resident_process_rdb.h"
+#include "resident_memory_defrag_manager.h"
 #include "ability_scheduler_stub.h"
 #include "agent_extension_connection_constants.h"
 #include "app_exit_reason_data_manager.h"
@@ -230,6 +231,14 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
         isResidentAbility_ = true;
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Marked as resident ability for memory optimization: %{public}s/%{public}s",
             abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str());
+
+        // Register with the global memory defrag manager
+        // The manager will trigger deep copy after 140 seconds to reduce memory fragmentation
+        std::weak_ptr<AbilityRecord> weakRecord = shared_from_this();
+        ResidentMemoryDefragManager::GetInstance().RegisterAbility(
+            abilityRequest.abilityInfo.bundleName,
+            abilityRequest.abilityInfo.name,
+            weakRecord);
     }
 }
 

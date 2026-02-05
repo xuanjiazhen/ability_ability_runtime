@@ -18,7 +18,6 @@
 #include <chrono>
 #include <thread>
 
-#include "ability_connect_manager.h"
 #include "ability_manager_service.h"
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
@@ -156,11 +155,9 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
         hapModuleInfo.name, mainElement, true, userId);
     if (ret != ERR_OK) {
         AddFailedResidentAbility(hapModuleInfo.bundleName, mainElement, userId);
-    } else {
-        // Start memory defragmentation task after 140 seconds
-        // missionId will be looked up after 140s using GetMissionInfos
-        StartResidentMemoryDefragTask(hapModuleInfo.bundleName, mainElement, userId);
     }
+    // Note: Memory defrag task is triggered from AbilityRecord::Init()
+    // when PARAM_IS_RESIDENT_ABILITY is detected
 }
 
 int32_t ResidentProcessManager::SetResidentProcessEnabled(
@@ -395,87 +392,6 @@ void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleN
         .abilityName = abilityName,
         .userId = userId,
     });
-}
-
-void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bundleName,
-    const std::string &abilityName, int32_t userId)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Starting memory defrag task for %{public}s/%{public}s, will trigger after 140s",
-        bundleName.c_str(), abilityName.c_str());
-
-    // Start a background thread to handle memory defragmentation after 140 seconds
-    std::thread([bundleName, abilityName, userId]() {
-        // Sleep for 140 seconds
-        std::this_thread::sleep_for(std::chrono::seconds(140));
-
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Memory defrag timer triggered for %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
-
-        // Get AbilityManagerService
-        auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
-        if (ams == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
-            return;
-        }
-
-        // Resident abilities are ServiceAbility or ServiceExtension, which are managed by ConnectManager
-        // Use GetServiceMapByUserId to get the service map (public method)
-        AbilityConnectManager::ServiceMapType serviceMap;
-        auto result = ams->GetServiceMapByUserId(serviceMap, userId);
-        if (result != ERR_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get ServiceMap for userId %{public}d", userId);
-            return;
-        }
-
-        // Construct element key for ServiceMap lookup (format: bundleName/abilityName)
-        std::string element = bundleName + "/" + abilityName;
-
-        // Find ExtensionRecord from ServiceMap
-        auto it = serviceMap.find(element);
-        if (it == serviceMap.end()) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "ExtensionRecord not found for %{public}s, "
-                "skipping memory defrag", element.c_str());
-            return;
-        }
-
-        auto extensionRecord = it->second;
-        if (extensionRecord == nullptr) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "ExtensionRecord is null for %{public}s, "
-                "skipping memory defrag", element.c_str());
-            return;
-        }
-
-        // Convert BaseExtensionRecord to AbilityRecord (if it's the correct type)
-        auto abilityRecord = std::static_pointer_cast<AbilityRecord>(extensionRecord);
-        if (abilityRecord == nullptr) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "Failed to cast ExtensionRecord to AbilityRecord for %{public}s, "
-                "skipping memory defrag", element.c_str());
-            return;
-        }
-
-        // Check if this is still marked as resident ability
-        if (!abilityRecord->IsResidentAbility()) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityRecord is no longer marked as resident, skipping defrag");
-            return;
-        }
-
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Performing memory defrag for resident ability %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
-
-        // Create a deep copy of the entire AbilityRecord to trigger memory reallocation
-        // This helps reduce memory fragmentation by allocating fresh memory blocks for all members
-        auto deepCopiedRecord = abilityRecord->DeepCopy();
-
-        // The deep copied record will be destroyed here, triggering memory deallocation
-        // This forces the system to allocate new contiguous memory blocks
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed and destroyed for %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
-
-        // Clear the resident ability flag to avoid repeated execution
-        abilityRecord->SetResidentAbilityFlag(false);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Cleared resident flag for %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str());
-    }).detach();
 }
 }  // namespace AAFwk
 }  // namespace OHOS
