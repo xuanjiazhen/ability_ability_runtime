@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1793,6 +1793,30 @@ ErrCode AbilityManagerClient::RecordProcessExitReason(int32_t pid, int32_t uid, 
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->RecordProcessExitReason(pid, uid, exitReason);
+}
+
+ErrCode AbilityManagerClient::KillAppWithReason(
+    int32_t pid, int32_t uid, const ExitReasonCompability &exitReason)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->KillAppWithReason(pid, uid, exitReason);
+}
+
+ErrCode AbilityManagerClient::KillBundleWithReason(
+    const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->KillBundleWithReason(bundleName, userId, appIndex, exitReason);
+}
+
+ErrCode AbilityManagerClient::RecordAppWithReason(
+    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RecordAppWithReason(pid, uid, exitReason);
 }
 
 void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSession)

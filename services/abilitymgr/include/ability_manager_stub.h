@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -262,6 +262,9 @@ private:
     int32_t RecordAppExitReasonInner(MessageParcel &data, MessageParcel &reply);
     int32_t RecordProcessExitReasonInner(MessageParcel &data, MessageParcel &reply);
     int32_t RecordProcessExitReasonPlusInner(MessageParcel &data, MessageParcel &reply);
+    int32_t KillAppWithReasonInner(MessageParcel &data, MessageParcel &reply);
+    int32_t KillBundleWithReasonInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RecordAppWithReasonInner(MessageParcel &data, MessageParcel &reply);
     int32_t SetResidentProcessEnableInner(MessageParcel &data, MessageParcel &reply);
 
     int SetRootSceneSessionInner(MessageParcel &data, MessageParcel &reply);
