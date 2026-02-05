@@ -675,12 +675,16 @@ void AbilityConnectManager::DisconnectRecordForce(ConnectListType &list,
         TAG_LOGE(AAFwkTag::EXT, "null abilityRecord");
         return;
     }
+    bool hasConnecting = abilityRecord->GetConnectingRecord() != nullptr;
     abilityRecord->RemoveConnectRecordFromList(connectRecord);
     connectRecord->CompleteDisconnect(ERR_OK, true);
     list.emplace_back(connectRecord);
     bool isUIService = (abilityRecord->GetAbilityInfo().extensionAbilityType ==
         AppExecFwk::ExtensionAbilityType::UI_SERVICE);
     if (abilityRecord->IsConnectListEmpty() && !isUIService) {
+        if (hasConnecting) {
+            ReportConnectEventToRss(LoadingStage::CONNECT_END, abilityRecord, nullptr, 0);
+        }
         if (abilityRecord->IsNeverStarted()) {
             TAG_LOGW(AAFwkTag::EXT, "force terminate ability record state: %{public}d",
                 abilityRecord->GetAbilityState());
@@ -846,6 +850,7 @@ int AbilityConnectManager::ScheduleConnectAbilityDoneLocked(
 
     abilityRecord->SetConnRemoteObject(remoteObject);
     // There may be multiple callers waiting for the connection result
+    auto connectingRecord = abilityRecord->GetConnectingRecord();
     auto connectRecordList = abilityRecord->GetConnectRecordList();
     for (auto &connectRecord : connectRecordList) {
         CHECK_POINTER_CONTINUE(connectRecord);
@@ -856,8 +861,7 @@ int AbilityConnectManager::ScheduleConnectAbilityDoneLocked(
         }
     }
     CompleteStartServiceReq(abilityRecord->GetURI());
-    ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::CONNECT_END, abilityRecord->GetPid(),
-        abilityRecord->GetUid(), 0, abilityRecord->GetAbilityRecordId());
+    ReportConnectEventToRss(LoadingStage::CONNECT_END, abilityRecord, connectingRecord, 0);
     return ERR_OK;
 }
 
@@ -1476,9 +1480,36 @@ void AbilityConnectManager::HandlePostConnectTimeout(const std::shared_ptr<BaseE
     abilityRecord->SendEvent(AbilityManagerService::CONNECT_HALF_TIMEOUT_MSG, delayTime / HALF_TIMEOUT, recordId,
         true, taskName);
     abilityRecord->SendEvent(AbilityManagerService::CONNECT_TIMEOUT_MSG, delayTime, recordId, true, taskName);
-    
-    ResSchedUtil::GetInstance().ReportLoadingEventToRss(LoadingStage::CONNECT_BEGIN, abilityRecord->GetPid(),
-        abilityRecord->GetUid(), delayTime, recordId);
+
+    auto connectRecord = abilityRecord->GetConnectingRecord();
+    ReportConnectEventToRss(LoadingStage::CONNECT_BEGIN, abilityRecord, connectRecord, delayTime);
+}
+
+bool AbilityConnectManager::ReportConnectEventToRss(LoadingStage stage,
+    std::shared_ptr<BaseExtensionRecord> abilityRecord,
+    std::shared_ptr<ConnectionRecord> connectRecord,
+    int64_t timeDuration)
+{
+    CHECK_POINTER_AND_RETURN(abilityRecord, false);
+    std::unordered_map<std::string, std::string> extraParams;
+    const auto &abilityInfo = abilityRecord->GetAbilityInfo();
+    extraParams.emplace("extensionName", abilityInfo.name);
+    extraParams.emplace("extensionType",
+        std::to_string(static_cast<int32_t>(abilityInfo.extensionAbilityType)));
+    if (connectRecord) {
+        extraParams.emplace("callerUid", std::to_string(connectRecord->GetCallerUid()));
+        extraParams.emplace("callerPid", std::to_string(connectRecord->GetCallerPid()));
+        extraParams.emplace("callerName", connectRecord->GetCallerName());
+    }
+
+    ResSchedUtil::GetInstance().ReportLoadingEventToRss(
+        stage,
+        abilityRecord->GetPid(),
+        abilityRecord->GetUid(),
+        timeDuration,
+        abilityRecord->GetAbilityRecordId(),
+        extraParams);
+    return true;
 }
 
 int32_t AbilityConnectManager::GetLoadTimeout(int32_t loadTimeout)
@@ -1572,6 +1603,7 @@ void AbilityConnectManager::HandleConnectTimeoutTask(std::shared_ptr<BaseExtensi
         abilityRecord->RemoveConnectRecordFromList(connectRecord);
         RemoveConnectionRecordFromMap(connectRecord);
     }
+    ReportConnectEventToRss(LoadingStage::CONNECT_END, abilityRecord, nullptr, 0);
 
     if (IsSpecialAbility(abilityRecord->GetAbilityInfo()) || abilityRecord->GetStartId() != 0) {
         TAG_LOGI(AAFwkTag::EXT, "no need terminate");
