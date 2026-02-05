@@ -8729,6 +8729,48 @@ int32_t AbilityManagerService::GetServiceMapByUserId(AbilityConnectManager::Serv
     return ERR_OK;
 }
 
+int32_t AbilityManagerService::GetResidentAbilityRecord(const std::string &bundleName,
+    const std::string &abilityName, int32_t userId, std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetResidentAbilityRecord: %{public}s/%{public}s, userId: %{public}d",
+        bundleName.c_str(), abilityName.c_str(), userId);
+
+    // Get service map from ConnectManager
+    AbilityConnectManager::ServiceMapType serviceMap;
+    auto ret = GetServiceMapByUserId(serviceMap, userId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get ServiceMap for userId %{public}d", userId);
+        return ERR_INVALID_VALUE;
+    }
+
+    // Construct element key for ServiceMap lookup (format: bundleName/abilityName)
+    std::string element = bundleName + "/" + abilityName;
+
+    // Find ExtensionRecord from ServiceMap
+    auto it = serviceMap.find(element);
+    if (it == serviceMap.end()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityRecord not found for %{public}s", element.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    auto extensionRecord = it->second;
+    if (extensionRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ExtensionRecord is null for %{public}s", element.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    // Convert BaseExtensionRecord to AbilityRecord
+    abilityRecord = std::static_pointer_cast<AbilityRecord>(extensionRecord);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to cast ExtensionRecord to AbilityRecord for %{public}s",
+            element.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Found AbilityRecord for %{public}s", element.c_str());
+    return ERR_OK;
+}
+
 std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> AbilityManagerService::GetUIExtensionAbilityManagers()
 {
     if (subManagersHelper_ == nullptr) {

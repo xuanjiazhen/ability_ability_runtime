@@ -1306,6 +1306,19 @@ public:
     void GetExtensionRunningInfo(std::shared_ptr<BaseExtensionRecord> &abilityRecord, const int32_t userId,
         std::vector<ExtensionRunningInfo> &info);
 
+    /**
+     * Get resident AbilityRecord by bundleName, abilityName and userId.
+     * This is used for memory defragmentation optimization.
+     *
+     * @param bundleName The bundle name of the ability.
+     * @param abilityName The ability name.
+     * @param userId The user id.
+     * @param abilityRecord The output AbilityRecord pointer.
+     * @return Returns ERR_OK on success, ERR_INVALID_VALUE if not found.
+     */
+    int32_t GetResidentAbilityRecord(const std::string &bundleName, const std::string &abilityName,
+        int32_t userId, std::shared_ptr<AbilityRecord> &abilityRecord);
+
     int GetMissionSaveTime() const;
 
     /**
