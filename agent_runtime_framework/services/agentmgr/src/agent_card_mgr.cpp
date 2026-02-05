@@ -56,7 +56,7 @@ int32_t AgentCardMgr::HandleBundleInstall(const std::string &bundleName, int32_t
     }
     std::vector<AgentCard> cards;
     for (auto const &extensionInfo : bundleInfo.extensionInfos) {
-        if (extensionInfo.type != ExtensionAbilityType::BACKUP) {
+        if (extensionInfo.type != ExtensionAbilityType::AGENT) {
             continue;
         }
         std::vector<std::string> profileInfos{};
