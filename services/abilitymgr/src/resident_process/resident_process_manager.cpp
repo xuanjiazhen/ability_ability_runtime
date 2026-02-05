@@ -18,6 +18,7 @@
 #include <chrono>
 #include <thread>
 
+#include "ability_connect_manager.h"
 #include "ability_manager_service.h"
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
@@ -410,44 +411,37 @@ void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bu
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Memory defrag timer triggered for %{public}s/%{public}s",
             bundleName.c_str(), abilityName.c_str());
 
-        // Get AbilityManagerService and MissionListManager
+        // Get AbilityManagerService
         auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
         if (ams == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
             return;
         }
 
-        auto missionListMgr = ams->GetMissionListManagerByUserId(userId);
-        if (missionListMgr == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get MissionListManager for userId %{public}d", userId);
+        // Resident abilities are ServiceAbility or ServiceExtension, which are managed by ConnectManager
+        // MissionListManager only manages UIAbility (PAGE type)
+        auto connectManager = ams->GetConnectManagerByUserId(userId, AppExecFwk::ExtensionAbilityType::SERVICE);
+        if (connectManager == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get ConnectManager for userId %{public}d", userId);
             return;
         }
 
-        // Get all missions and find the matching one by bundleName and abilityName
-        std::vector<MissionInfo> missionInfos;
-        int32_t missionId = -1;
-        auto result = missionListMgr->GetMissionInfos(-1, missionInfos); // -1 means get all
-        if (result == ERR_OK) {
-            for (const auto &missionInfo : missionInfos) {
-                const auto &element = missionInfo.want.GetElement();
-                if (element.GetBundleName() == bundleName && element.GetAbilityName() == abilityName) {
-                    missionId = missionInfo.id;
-                    break;
-                }
-            }
-        }
+        // Construct element key for ConnectManager (format: bundleName/abilityName)
+        std::string element = bundleName + "/" + abilityName;
 
-        if (missionId == -1) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "Mission not found for %{public}s/%{public}s, skipping memory defrag",
-                bundleName.c_str(), abilityName.c_str());
+        // Get ExtensionRecord from ConnectManager
+        auto extensionRecord = connectManager->GetServiceRecordByElementName(element);
+        if (extensionRecord == nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "ExtensionRecord not found for %{public}s, "
+                "skipping memory defrag", element.c_str());
             return;
         }
 
-        // Get AbilityRecord by missionId using interface method
-        auto abilityRecord = missionListMgr->GetAbilityRecordByMissionId(missionId);
+        // Convert BaseExtensionRecord to AbilityRecord (if it's the correct type)
+        auto abilityRecord = std::static_pointer_cast<AbilityRecord>(extensionRecord);
         if (abilityRecord == nullptr) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityRecord has been destroyed (missionId: %{public}d), "
-                "skipping memory defrag", missionId);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Failed to cast ExtensionRecord to AbilityRecord for %{public}s, "
+                "skipping memory defrag", element.c_str());
             return;
         }
 
