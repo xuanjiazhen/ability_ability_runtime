@@ -31,6 +31,12 @@
 #include "napi_common_want.h"
 #include "runtime.h"
 
+#ifdef WINDOWS_PLATFORM
+#define ETS_EXPORT __declspec(dllexport)
+#else
+#define ETS_EXPORT __attribute__((visibility("default")))
+#endif
+
 namespace OHOS {
 namespace AgentRuntime {
 namespace {
@@ -94,11 +100,6 @@ JsAgentExtension::~JsAgentExtension()
             jsRuntime_.FreeNativeReference(std::move(jsProxyObject));
         }
     }
-}
-
-JsAgentExtension* JsAgentExtension::Create(const std::unique_ptr<Runtime>& runtime)
-{
-    return new JsAgentExtension(static_cast<JsRuntime&>(*runtime));
 }
 
 void JsAgentExtension::Init(const std::shared_ptr<AbilityLocalRecord> &record,
@@ -459,6 +460,11 @@ void JsAgentExtension::GetSrcPath(std::string &srcPath)
         srcPath.erase(srcPath.rfind('.'));
         srcPath.append(".abc");
     }
+}
+
+extern "C" JS_EXPORT AgentExtension* OHOS_CreateJsAgentExtension(const std::unique_ptr<Runtime> &runtime)
+{
+    return new JsAgentExtension(static_cast<JsRuntime&>(*runtime));
 }
 } // namespace AgentRuntime
 } // namespace OHOS
