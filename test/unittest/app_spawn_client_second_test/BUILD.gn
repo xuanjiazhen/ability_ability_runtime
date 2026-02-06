@@ -19,9 +19,15 @@ module_output_path = "ability_runtime/ability_runtime/appmgrservice"
 ohos_unittest("AppSpawnClientSecondTest") {
   module_out_path = module_output_path
 
-  include_dirs = [ "${ability_runtime_test_path}/mock/common/include" ]
+  include_dirs = [
+    "${ability_runtime_test_path}/mock/common/include",
+    "mock/include",
+  ]
 
-  sources = [ "app_spawn_client_second_test.cpp" ]
+  sources = [
+    "app_spawn_client_second_test.cpp",
+    "mock/src/mock_os_account_manager_wrapper.cpp",
+  ]
 
   configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
 
