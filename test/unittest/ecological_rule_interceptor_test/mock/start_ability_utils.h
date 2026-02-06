@@ -52,6 +52,14 @@ struct StartAbilityUtils {
     static bool retGetCallerAbilityInfo;
     static AppExecFwk::AbilityInfo callerAbiltyInfo;
 };
+
+struct StartAbilityInfoWrap {
+    StartAbilityInfoWrap(const Want &want, int32_t validUserId, int32_t appIndex,
+        const sptr<IRemoteObject> &callerToken, bool isExtension = false);
+    StartAbilityInfoWrap();
+    ~StartAbilityInfoWrap();
+    void SetStartAbilityInfo(const AppExecFwk::AbilityInfo& abilityInfo);
+};
 }
 }
 #endif // OHOS_ABILITY_RUNTIME_START_ABILITY_UTILS_H

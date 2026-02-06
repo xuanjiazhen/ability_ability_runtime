@@ -45,5 +45,44 @@ bool StartAbilityUtils::GetCallerAbilityInfo(const sptr<IRemoteObject> &callerTo
     abilityInfo = callerAbiltyInfo;
     return retGetCallerAbilityInfo;
 }
+
+StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId, int32_t appIndex,
+    const sptr<IRemoteObject> &callerToken, bool isExtension)
+{
+    StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(want, validUserId, appIndex, callerToken);
+    StartAbilityUtils::callerAbilityInfo = nullptr;
+    StartAbilityUtils::skipCrowTest = false;
+    StartAbilityUtils::skipStartOther = false;
+    StartAbilityUtils::skipErms = false;
+    StartAbilityUtils::isWantWithAppCloneIndex = false;
+}
+
+StartAbilityInfoWrap::StartAbilityInfoWrap()
+{
+    StartAbilityUtils::startAbilityInfo.reset();
+    StartAbilityUtils::callerAbilityInfo.reset();
+    StartAbilityUtils::skipCrowTest = false;
+    StartAbilityUtils::skipStartOther = false;
+    StartAbilityUtils::skipErms = false;
+    StartAbilityUtils::isWantWithAppCloneIndex = false;
+}
+
+StartAbilityInfoWrap::~StartAbilityInfoWrap()
+{
+    StartAbilityUtils::startAbilityInfo.reset();
+    StartAbilityUtils::callerAbilityInfo.reset();
+    StartAbilityUtils::skipCrowTest = false;
+    StartAbilityUtils::skipStartOther = false;
+    StartAbilityUtils::skipErms = false;
+    StartAbilityUtils::isWantWithAppCloneIndex = false;
+}
+
+void StartAbilityInfoWrap::SetStartAbilityInfo(const AppExecFwk::AbilityInfo& abilityInfo)
+{
+    if (StartAbilityUtils::startAbilityInfo == nullptr) {
+        StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
+    }
+    StartAbilityUtils::startAbilityInfo->abilityInfo = abilityInfo;
+}
 }
 }
