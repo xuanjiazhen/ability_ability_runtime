@@ -34,6 +34,8 @@ namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::AbilityBase::Constants;
 using OHOS::AbilityRuntime::ChildProcessManager;
+constexpr const char* PLUGIN_DEFAULT_NAMESPACE_LDDICTIONARY =
+    "persist.sys.abilityms.plugin_default_namespace_lddictionary";
 ChildMainThread::ChildMainThread()
 {
     processArgs_ = std::make_shared<ChildProcessArgs>();
@@ -405,6 +407,12 @@ void ChildMainThread::UpdateNativeChildLibModuleName(const AppLibPathMap &appLib
                 nativeModuleMgr->SetAppLibPath(libPathPair.first, libPathPair.second, isSystemApp);
                 TAG_LOGI(AAFwkTag::APPKIT, "Find native lib in app module: %{public}s--%{public}s",
                     libPathPair.first.c_str(), nativeLibPath.c_str());
+                std::string lddictionaries = system::GetParameter(PLUGIN_DEFAULT_NAMESPACE_LDDICTIONARY, "");
+                TAG_LOGD(AAFwkTag::APPKIT, "plugin_default_namespace_lddictionary: %{public}s",
+                    pluginDefaultNamespaceLdDictionary_.c_str());
+                if (!lddictionaries.empty()) {
+                    AbilityRuntime::JsRuntime::CreatePluginDefaultNamespace(lddictionaries);
+                }
                 return;
             } else {
                 tmpPath.emplace(nativeLibPath, ret);
