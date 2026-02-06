@@ -11,29 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/config/components/ets_frontend/es2abc_config.gni")
 import("//build/ohos.gni")
-
-es2abc_gen_abc("gen_agent_extension_context_abc") {
-  src_js = rebase_path("agent_extension_context.js")
-  dst_file = rebase_path(target_out_dir + "/agent_extension_context.abc")
-  in_puts = [ "agent_extension_context.js" ]
-  out_puts = [ target_out_dir + "/agent_extension_context.abc" ]
-  extra_args = [ "--module" ]
-}
-
-gen_js_obj("agent_extension_context_js") {
-  input = "agent_extension_context.js"
-  output = target_out_dir + "/agent_extension_context.o"
-}
-
-gen_js_obj("agent_extension_context_abc") {
-  input =
-      get_label_info(":gen_agent_extension_context_abc",
-                     "target_out_dir") + "/agent_extension_context.abc"
-  output = target_out_dir + "/agent_extension_context_abc.o"
-  dep = ":gen_agent_extension_context_abc"
-}
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("agentextensioncontext_napi") {
   sanitize = {
@@ -47,16 +26,67 @@ ohos_shared_library("agentextensioncontext_napi") {
   }
   branch_protector_ret = "pac_ret"
 
-  sources = [ "agent_extension_context_module.cpp" ]
+  sources = [ "js_agent_extension_context_module.cpp" ]
 
   deps = [
-    ":agent_extension_context_abc",
-    ":agent_extension_context_js",
+    "${agent_runtime_framework_path}/frameworks/js/js/agent_extension_context:agent_extension_context_abc",
+    "${agent_runtime_framework_path}/frameworks/js/js/agent_extension_context:agent_extension_context_js",
   ]
 
   external_deps = [ "napi:ace_napi" ]
 
   relative_install_dir = "module/application"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_shared_library("js_agent_extension_context") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+  branch_protector_ret = "pac_ret"
+
+  defines = [ "AMS_LOG_TAG = \"Agent\"" ]
+  defines += [ "AMS_LOG_DOMAIN = 0xD001353" ]
+  include_dirs = [
+    "include",
+    "${ability_runtime_path}/services/common/include",
+    "${ability_runtime_innerkits_path}/ability_manager/include",
+  ]
+
+  sources = [
+    "src/js_agent_extension_context.cpp",
+  ]
+
+  deps = [
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:configuration",
+    "ability_base:want",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "ipc:ipc_core",
+    "ipc:ipc_napi",
+    "napi:ace_napi",
+  ]
+
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
