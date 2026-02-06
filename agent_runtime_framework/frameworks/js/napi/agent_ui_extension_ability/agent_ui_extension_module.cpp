@@ -23,7 +23,7 @@ extern const char _binary_agent_ui_extension_ability_abc_end[];
 static napi_module _module = {
     .nm_version = 0,
     .nm_filename = "app/ability/libagentuiextensionability.so/agent_ui_extension_ability.js",
-    .nm_modname = "app.ability.AgentUIExtensionAbility",
+    .nm_modname = "app.agent.AgentUIExtensionAbility",
 };
 extern "C" __attribute__((constructor)) void NAPI_app_ability_AgentUIExtensionAbility_AutoRegister()
 {
