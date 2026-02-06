@@ -28,6 +28,7 @@
 #include "constants.h"
 #include "ets_interface.h"
 #include "file_path_utils.h"
+#include "aot_helpers.h"
 #include "hilog_tag_wrapper.h"
 #include "hdc_register.h"
 #include "hitrace_meter.h"
@@ -62,6 +63,9 @@ const std::string ETS_SYSLIB_PATH =
 #endif
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr char SANDBOX_ARK_CACHE_PATH[] = "/data/storage/ark-cache/";
+constexpr char SANDBOX_ARK_PROFILE_PATH[] = "/data/storage/ark-profile/";
+constexpr char ARK_PROFILE_ENTRY_NAME[] = "entry";
+constexpr char ARK_PROFILE_SUFFIX[] = ".ap";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
 
 const char *ETS_ENV_LIBNAME = "libets_environment.z.so";
@@ -197,7 +201,64 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
 
     g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), aotFilePath, options.appInnerHspPathList,
         options.commonHspBundleInfos, options.eventRunner);
+
+    RegisterProfilePaths(options);
+
     return true;
+}
+
+void ETSRuntime::RegisterProfilePaths(const Options &options)
+{
+    ani_env *aniEnv = GetAniEnv();
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "RegisterProfilePaths: null aniEnv, skip");
+        return;
+    }
+
+    auto profileInfos = BuildProfilePathInfos(options);
+    if (profileInfos.empty()) {
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "RegisterProfilePaths: no modules to register profile paths");
+        return;
+    }
+
+    std::vector<arkts::aot_helpers::profile_path_info> infos;
+    infos.reserve(profileInfos.size());
+    for (auto &profileInfo : profileInfos) {
+        infos.push_back(arkts::aot_helpers::profile_path_info {
+            profileInfo.abcPath.c_str(),
+            profileInfo.curProfilePath.c_str(),
+            profileInfo.baselineProfilePath.empty() ? nullptr : profileInfo.baselineProfilePath.c_str(),
+        });
+    }
+
+    ani_status status = arkts::aot_helpers::RegisterProfilePaths(aniEnv, infos.data(), infos.size());
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "RegisterProfilePaths: failed, status: %{public}d", status);
+    }
+}
+
+std::vector<ProfilePathInfo> ETSRuntime::BuildProfilePathInfos(const Options &options)
+{
+    // Build abc -> profile path mapping for Hap and Inner Hsp.
+    // profile path: entry  -> <sandbox_path>/entry.ap
+    //               others -> <sandbox_path>/<moduleName>.ap
+    std::vector<ProfilePathInfo> profileInfos;
+    profileInfos.reserve(options.hapModulePath.size());
+    for (const auto &entry : options.hapModulePath) {
+        const std::string &moduleName = entry.first;
+        if (moduleName.empty()) {
+            TAG_LOGW(AAFwkTag::ETSRUNTIME, "RegisterProfilePaths: skip empty moduleName");
+            continue;
+        }
+        // Entry module uses "entry.ap"; others use "<moduleName>.ap".
+        const std::string profileName =
+            (moduleName == options.moduleName) ? ARK_PROFILE_ENTRY_NAME : moduleName;
+        std::string abcPath = std::string(BUNDLE_INSTALL_PATH) + moduleName + MERGE_ABC_PATH;
+        std::string curProfilePath =
+            std::string(SANDBOX_ARK_PROFILE_PATH) + profileName + ARK_PROFILE_SUFFIX;
+        profileInfos.push_back({std::move(abcPath), std::move(curProfilePath), {}});
+    }
+    return profileInfos;
 }
 
 std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
