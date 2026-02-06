@@ -18,6 +18,7 @@ group("agent_runtime_napi_packages") {
   deps = [
     "${agent_runtime_framework_path}/frameworks/js/napi/agent_extension_ability:agentextensionability",
     "${agent_runtime_framework_path}/frameworks/js/napi/agent_extension_context:agentextensioncontext_napi",
+    "${agent_runtime_framework_path}/frameworks/js/napi/agent_manager:agentmanager_napi",
     "${agent_runtime_framework_path}/frameworks/js/napi/agent_ui_extension_ability:agentuiextensionability",
   ]
 }
