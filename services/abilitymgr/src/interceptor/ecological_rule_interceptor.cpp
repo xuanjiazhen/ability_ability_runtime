@@ -146,7 +146,7 @@ ErrCode EcologicalRuleInterceptor::QueryAtomicServiceStartupRule(Want &want, spt
     want.SetElement(launchWant.GetElement());
 
     int32_t appIndex = 0;
-    StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(want, userId, appIndex, nullptr);
+    StartAbilityInfoWrap infoWrap(want, userId, appIndex, nullptr);
     CHECK_POINTER_AND_RETURN_LOG(StartAbilityUtils::startAbilityInfo, INNER_ERR, "null startAbilityInfo");
     CHECK_RET_RETURN_RET(StartAbilityUtils::startAbilityInfo->status, "Get targetApplicationInfo failed");
 
