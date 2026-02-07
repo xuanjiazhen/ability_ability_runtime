@@ -101,12 +101,20 @@ public:
     void SetJsRuntime(std::unique_ptr<AbilityRuntime::Runtime> &jsRuntime);
 
 private:
+    struct ProfilePathInfo {
+        std::string abcPath;
+        std::string curProfilePath;
+        std::string baselineProfilePath;
+    };
+
     bool Initialize(const Options &options, std::unique_ptr<Runtime> &jsRuntime, bool isMove = true);
     void Deinitialize();
     bool CreateEtsEnv(const Options &options);
     std::unique_ptr<AppExecFwk::ETSNativeReference> LoadEtsModule(const std::string &moduleName,
         const std::string &fileName, const std::string &hapPath, const std::string &srcEntrance);
     bool PostFork(const Options &options, std::unique_ptr<Runtime> &jsRuntime, bool isMove = true);
+    void RegisterProfilePaths(const Options &options);
+    std::vector<ProfilePathInfo> BuildProfilePathInfos(const Options &options);
     std::string HandleOhmUrlSrcEntry(const std::string &srcEntry);
     void HandleOhmUrlFileName(std::string &fileName);
     static void PreloadLibrary();

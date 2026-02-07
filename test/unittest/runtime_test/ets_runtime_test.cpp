@@ -338,5 +338,61 @@ HWTEST_F(EtsRuntimeTest, SetExtensionApiCheckCallback_100, TestSize.Level1)
     etsRuntime->SetExtensionApiCheckCallback(callback);
     EXPECT_EQ(etsRuntime->GetJsRuntime(), nullptr);
 }
+
+/**
+ * @tc.name: BuildProfilePathInfos_100
+ * @tc.desc: Verify profile path mapping for entry and non-entry modules.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, BuildProfilePathInfos_100, TestSize.Level1)
+{
+    auto etsRuntime = std::make_unique<ETSRuntime>();
+    Runtime::Options options;
+    options.moduleName = "entry";
+    options.hapModulePath["entry"] = "/path/entry.hap";
+    options.hapModulePath["feature"] = "/path/feature.hap";
+    options.hapModulePath[""] = "/path/invalid.hap";
+
+    auto infos = etsRuntime->BuildProfilePathInfos(options);
+    ASSERT_EQ(infos.size(), 2);
+
+    const std::string entryAbc = "/data/storage/el1/bundle/entry/ets/modules_static.abc";
+    const std::string entryProfile = "/data/storage/ark-profile/entry.ap";
+    const std::string featureAbc = "/data/storage/el1/bundle/feature/ets/modules_static.abc";
+    const std::string featureProfile = "/data/storage/ark-profile/feature.ap";
+
+    auto findInfo = [&infos](const std::string &abc) -> const ETSRuntime::ProfilePathInfo * {
+        for (const auto &it : infos) {
+            if (it.abcPath == abc) {
+                return &it;
+            }
+        }
+        return nullptr;
+    };
+
+    auto entryInfo = findInfo(entryAbc);
+    ASSERT_NE(entryInfo, nullptr);
+    EXPECT_EQ(entryInfo->curProfilePath, entryProfile);
+    EXPECT_TRUE(entryInfo->baselineProfilePath.empty());
+
+    auto featureInfo = findInfo(featureAbc);
+    ASSERT_NE(featureInfo, nullptr);
+    EXPECT_EQ(featureInfo->curProfilePath, featureProfile);
+    EXPECT_TRUE(featureInfo->baselineProfilePath.empty());
+}
+
+/**
+ * @tc.name: BuildProfilePathInfos_200
+ * @tc.desc: Verify empty module map returns empty profile mapping.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, BuildProfilePathInfos_200, TestSize.Level1)
+{
+    auto etsRuntime = std::make_unique<ETSRuntime>();
+    Runtime::Options options;
+    options.moduleName = "entry";
+    auto infos = etsRuntime->BuildProfilePathInfos(options);
+    EXPECT_TRUE(infos.empty());
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
