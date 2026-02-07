@@ -532,7 +532,6 @@ void EtsUIServiceExtension::HandleSendData(sptr<IRemoteObject> hostProxy, const 
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "null etsHostProxy");
         return;
     }
-
     bool isAttachThread = false;
     ani_env *env = AppExecFwk::AttachAniEnv(etsVm_, isAttachThread);
     if (env == nullptr) {
