@@ -227,11 +227,6 @@ public:
         return 0;
     }
 
-    virtual int32_t RemoveCallerIfNeed(Want &want)
-    {
-        return 0;
-    }
-
     /**
      * @brief kill processes by bundleName.
      * @param bundleName the bundleName of processes to be killed.
@@ -293,8 +288,7 @@ public:
         GRANT_URI_PERMISSION,
         REVOKE_URI_PERMISSION,
         NOTIFY_GRANT_URI_PERMISSION_START,
-        NOTIFY_GRANT_URI_PERMISSION_END,
-        REMOVE_CALLER_IF_NEED
+        NOTIFY_GRANT_URI_PERMISSION_END
     };
 };
 }  // namespace AAFwk

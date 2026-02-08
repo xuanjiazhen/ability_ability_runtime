@@ -882,6 +882,7 @@ bool AppUtils::IsStartUIAbilityInCurrentProcess()
     TAG_LOGD(AAFwkTag::DEFAULT, "startAbilityInCurrentProcess: %{public}d", isStartUIAbilityInCurrentProcess_.value);
     return isStartUIAbilityInCurrentProcess_.value;
 }
+<<<<<<< HEAD
 
 bool AppUtils::IsProductAppbootSettingEnabled()
 {
@@ -939,5 +940,7 @@ bool AppUtils::IsHybridSpawnUnified()
     TAG_LOGD(AAFwkTag::DEFAULT, "IsHybridSpawnUnified: %{public}d", isHybridSpawnUnified_.value);
     return isHybridSpawnUnified_.value;
 }
+=======
+>>>>>>> parent of 8ce9026fe3... add collaborator
 }  // namespace AAFwk
 }  // namespace OHOS

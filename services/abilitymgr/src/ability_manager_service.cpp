@@ -34,7 +34,6 @@
 #include "app_mgr_util.h"
 #include "application_util.h"
 #include "assert_fault_callback_death_mgr.h"
-#include "collaborator_util.h"
 #include "concurrent_task_client.h"
 #include "config_policy_utils.h"
 #include "connection_state_manager.h"
@@ -218,6 +217,7 @@ constexpr const char* STR_PHONE = "phone";
 constexpr const char* PARAM_RESV_ANCO_CALLER_UID = "ohos.anco.param.callerUid";
 constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.callerBundleName";
 constexpr const char* PARAM_RESV_ANCO_IS_NEED_UPDATE_NAME = "ohos.anco.param.isNeedUpdateName";
+constexpr const char* PARAM_ANCO_APP_IDENTIFIER = "persist.hmos_fusion_mgr.anco_identifier";
 // Distributed continued session Id
 constexpr const char* DMS_CONTINUED_SESSION_ID = "ohos.dms.continueSessionId";
 constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
@@ -1445,6 +1445,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         return result;
     }
 #endif
+<<<<<<< HEAD
     auto abilityRecord = Token::GetAbilityRecordByToken(param.callerToken);
     std::string callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
     auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
@@ -1453,6 +1454,27 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     bool selfFreeInstallEnable = (result == RESOLVE_ABILITY_ERR && param.want.GetElement().GetModuleName() != "" &&
                                   param.want.GetElement().GetBundleName() == callerBundleName);
     bool isStartFreeInstallByWant = AbilityUtil::IsStartFreeInstall(param.want);
+=======
+    std::string identifier = system::GetParameter(PARAM_ANCO_APP_IDENTIFIER, "");
+    std::string targetBundleName = want.GetBundle();
+    if (!identifier.empty() && !targetBundleName.empty() && identifier.find(targetBundleName) != std::string::npos) {
+        auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
+        if (collaborator != nullptr) {
+            Want tempWant = want;
+            int32_t ret = collaborator->UpdateTargetIfNeed(tempWant);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateTargetIfNeed end,ret:%{public}d", ret);
+            (const_cast<Want &>(want)).SetElement(tempWant.GetElement());
+        } else {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "UpdateTargetIfNeed error due to collaborator is nullptr");
+        }
+    }
+    result = GenerateAbilityRequest(want, requestCode, abilityRequest, callerToken, validUserId);
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    std::string callerBundleName = abilityRecord ? abilityRecord->GetAbilityInfo().bundleName : "";
+    bool selfFreeInstallEnable = (result == RESOLVE_ABILITY_ERR && want.GetElement().GetModuleName() != "" &&
+                                  want.GetElement().GetBundleName() == callerBundleName);
+    bool isStartFreeInstallByWant = AbilityUtil::IsStartFreeInstall(want);
+>>>>>>> parent of 8ce9026fe3... add collaborator
     if (isStartFreeInstallByWant || selfFreeInstallEnable) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "selfFreeInstallEnable: %{public}d, isStartFreeInstallByWant: %{public}d",
             selfFreeInstallEnable, isStartFreeInstallByWant);
@@ -1645,7 +1667,19 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, std::string(""));
             abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, std::string(""));
         }
+<<<<<<< HEAD
         CollaboratorUtil::HandleCallerIfNeed(param.callerToken, collaborator, abilityRequest.want, callerBundleName);
+=======
+        if (StartAbilityUtils::IsCallFromAncoShellOrBroker(callerToken)) {
+            auto collaborator = GetCollaborator(CollaboratorType::RESERVE_TYPE);
+            if (collaborator != nullptr) {
+                int32_t ret = collaborator->UpdateCallerIfNeed(abilityRequest.want);
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateCallerIfNeed end,ret:%{public}d", ret);
+            } else {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "UpdateCallerIfNeed error due to collaborator is nullptr");
+            }
+        }
+>>>>>>> parent of 8ce9026fe3... add collaborator
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         result = uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
