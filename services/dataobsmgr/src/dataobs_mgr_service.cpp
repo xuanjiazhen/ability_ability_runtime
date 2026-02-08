@@ -32,7 +32,7 @@
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
-#include "os_account_manager.h"
+#include "system_ability.h"
 #include "system_ability_definition.h"
 #include "tokenid_kit.h"
 #include "common_utils.h"
