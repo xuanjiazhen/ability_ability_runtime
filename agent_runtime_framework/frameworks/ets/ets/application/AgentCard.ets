@@ -70,7 +70,6 @@ export interface AgentCard {
   bundleName: string;
   moduleName: string;
   abilityName: string;
-  appIndex: int;
   name: string;
   description: string;
   url: string;
@@ -89,7 +88,6 @@ class AgentCardImpl implements AgentCard {
   public bundleName: string = '';
   public moduleName: string = '';
   public abilityName: string = '';
-  public appIndex: int;
   public name: string = '';
   public description: string = '';
   public url: string = '';
