@@ -19,6 +19,12 @@
 #include "extension_module_loader.h"
 
 namespace OHOS {
+namespace AbilityRuntime {
+class ExtensionModuleLoader;
+class Extension;
+class Runtime;
+}
+
 namespace AgentRuntime {
 class AgentUIExtensionModuleLoader :
     public AbilityRuntime::ExtensionModuleLoader, public Singleton<AgentUIExtensionModuleLoader> {
@@ -31,7 +37,7 @@ public:
      * @param runtime The runtime.
      * @return The Extension instance.
      */
-    AbilityRuntime::Extension *Create(const std::unique_ptr<AbilityRuntime::Runtime> &runtime) const override;
+    AbilityRuntime::Extension *Create(const std::unique_ptr<Runtime> &runtime) const override;
 
     /**
      * @brief Get the Params object

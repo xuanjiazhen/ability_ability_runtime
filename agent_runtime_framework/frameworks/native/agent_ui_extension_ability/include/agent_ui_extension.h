@@ -27,21 +27,30 @@ namespace OHOS {
 namespace AgentRuntime {
 
 /**
- * @brief Action extension components.
+ * @brief Agent ui extension components.
  */
-class AgentUIExtension : public AbilityRuntime::UIExtensionBase<AbilityRuntime::UIExtensionContext>,
+class AgentUIExtension : public UIExtensionBase<UIExtensionContext>,
                         public std::enable_shared_from_this<AgentUIExtension> {
 public:
     AgentUIExtension() = default;
     virtual ~AgentUIExtension() = default;
 
     /**
-     * @brief Create action extension.
+     * @brief Create agent ui extension.
      *
      * @param runtime The runtime.
-     * @return The action extension instance.
+     * @return The agent ui extension instance.
      */
-    static AgentUIExtension *Create(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
+    static AgentUIExtension *Create(const std::unique_ptr<Runtime> &runtime);
+
+private:
+    /**
+     * @brief Create js agent ui extension.
+     *
+     * @param runtime The runtime.
+     * @return The agent ui extension instance.
+     */
+    static AgentUIExtension* CreateJsAgentUIExtension(const std::unique_ptr<Runtime>& runtime);
 };
 } // namespace AgentRuntime
 } // namespace OHOS
