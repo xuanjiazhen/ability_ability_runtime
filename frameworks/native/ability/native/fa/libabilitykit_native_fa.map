@@ -1,0 +1,6 @@
+{
+  global:
+    CreateFAAbilityThread;
+  local:
+    *;
+};

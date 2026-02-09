@@ -294,26 +294,30 @@ ohos_shared_library("abilitykit_native") {
 
   sources = [
     "${ability_runtime_innerkits_path}/app_manager/src/appmgr/process_info.cpp",
-    "${ability_runtime_native_path}/ability/native/ability.cpp",
+    "${ability_runtime_native_path}/ability/native/fa_ability_thread_loader.cpp",  # FA 动态加载器
+    # === FA 专用代码 - 移到 libabilitykit_native_fa.so ===
+    # "${ability_runtime_native_path}/ability/native/ability.cpp",  # FA专用: Ability类
+    # "${ability_runtime_native_path}/ability/native/ability_runtime/js_ability.cpp",  # FA专用: JsAbility
+    # "${ability_runtime_native_path}/ability/native/ability_impl.cpp",  # FA专用: AbilityImpl实现
+    # "${ability_runtime_native_path}/ability/native/ability_impl_factory.cpp",  # FA专用: 仅创建FA三种Impl
+    # "${ability_runtime_native_path}/ability/native/ability_process.cpp",  # FA专用: Ability进程管理
+    # "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_handler.cpp",  # FA专用: 迁移处理
+    # "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_manager.cpp",  # FA专用: 迁移管理器
+    # "${ability_runtime_native_path}/ability/native/service_ability_impl.cpp",  # FA专用: ServiceAbility
+    # "${ability_runtime_native_path}/ability/native/data_ability_impl.cpp",  # FA专用: DataAbility
+    # ========================================================
     "${ability_runtime_native_path}/ability/native/ability_context.cpp",
-    "${ability_runtime_native_path}/ability/native/ability_impl.cpp",
-    "${ability_runtime_native_path}/ability/native/ability_impl_factory.cpp",
     "${ability_runtime_native_path}/ability/native/ability_lifecycle.cpp",
     "${ability_runtime_native_path}/ability/native/ability_lifecycle_executor.cpp",
     "${ability_runtime_native_path}/ability/native/ability_loader.cpp",
     "${ability_runtime_native_path}/ability/native/ability_post_event_timeout.cpp",
-    "${ability_runtime_native_path}/ability/native/ability_process.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/ets_observer_instance.cpp",
-    "${ability_runtime_native_path}/ability/native/ability_runtime/js_ability.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_ability_context.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_caller_complex.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/js_uiservice_ability_connection.cpp",
     "${ability_runtime_native_path}/ability/native/ability_runtime/ui_ability_servicehost_stub_impl.cpp",
-    "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_handler.cpp",
-    "${ability_runtime_native_path}/ability/native/continuation/distributed/continuation_manager.cpp",
     "${ability_runtime_native_path}/ability/native/continuation/distributed/reverse_continuation_scheduler_primary.cpp",
     "${ability_runtime_native_path}/ability/native/data_ability_helper_impl.cpp",
-    "${ability_runtime_native_path}/ability/native/data_ability_impl.cpp",
     "${ability_runtime_native_path}/ability/native/data_uri_utils.cpp",
     "${ability_runtime_native_path}/ability/native/distributed_ability_runtime/distributed_client.cpp",
     "${ability_runtime_native_path}/ability/native/free_install_observer_proxy.cpp",
@@ -326,7 +330,6 @@ ohos_shared_library("abilitykit_native") {
     "${ability_runtime_native_path}/ability/native/preload_ui_extension_host_client.cpp",
     "${ability_runtime_native_path}/ability/native/query_erms_observer_proxy.cpp",
     "${ability_runtime_native_path}/ability/native/query_erms_observer_stub.cpp",
-    "${ability_runtime_native_path}/ability/native/service_ability_impl.cpp",
     "${ability_runtime_native_path}/ability/native/start_abilities_observer.cpp",
     "${ability_runtime_native_path}/appkit/app/app_context.cpp",
     "${ability_runtime_native_path}/appkit/app/context_container.cpp",
@@ -455,7 +458,7 @@ ohos_shared_library("abilitykit_native") {
     include_dirs += []
     sources += [
       "${ability_runtime_native_path}/ability/native/ability_window.cpp",
-      "${ability_runtime_native_path}/ability/native/page_ability_impl.cpp",
+      # "${ability_runtime_native_path}/ability/native/page_ability_impl.cpp",  # FA专用: PageAbility (移到libabilitykit_native_fa.so)
     ]
 
     external_deps += [
