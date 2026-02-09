@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,11 +15,68 @@
 
 #include "ability_thread.h"
 
+#include "dlfcn.h"
 #include "extension_ability_thread.h"
-#include "fa_ability_thread.h"
 #include "ui_ability_thread.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "mutex"
+
+namespace OHOS {
+namespace AppExecFwk {
+
+// FA 动态加载相关定义
+static void* g_faLibHandle = nullptr;
+static std::mutex g_faLibMutex;
+using CreateFAAbilityThreadFunc = sptr<AbilityThread>(*)();
+using DestroyFAAbilityThreadFunc = void(*)(sptr<AbilityThread>*);
+
+/**
+ * @brief 动态创建 FAAbilityThread
+ * @return Returns sptr<AbilityThread> pointing to FAAbilityThread, or nullptr if failed
+ */
+sptr<AbilityThread> CreateFAAbilityThreadDynamic()
+{
+    std::lock_guard<std::mutex> lock(g_faLibMutex);
+
+    // 如果已经加载过，直接使用缓存
+    static auto createFunc = reinterpret_cast<CreateFAAbilityThreadFunc>(nullptr);
+
+    if (createFunc != nullptr) {
+        return createFunc();
+    }
+
+    // 首次加载 FA SO 文件
+    const char* faSoPath = "libabilitykit_native_fa.so";
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "dlopen_libabilitykit_native_fa");
+
+    g_faLibHandle = dlopen(faSoPath, RTLD_LAZY | RTLD_NODELETE);
+    if (g_faLibHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to load %{public}s: %{public}s",
+                 faSoPath, dlerror());
+        return nullptr;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITY, "Successfully loaded %{public}s", faSoPath);
+
+    // 获取 CreateFAAbilityThread 函数
+    createFunc = reinterpret_cast<CreateFAAbilityThreadFunc>(
+        dlsym(g_faLibHandle, "CreateFAAbilityThread"));
+
+    if (createFunc == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to find CreateFAAbilityThread: %{public}s",
+                 dlerror());
+        dlclose(g_faLibHandle);
+        g_faLibHandle = nullptr;
+        return nullptr;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITY, "CreateFAAbilityThread loaded successfully");
+    return createFunc();
+}
+
+} // namespace AppExecFwk
+} // namespace OHOS
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -40,13 +97,27 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     }
 
     sptr<AbilityThread> thread = nullptr;
+
+    // Stage 模型 PAGE 类型：直接创建 UIAbilityThread
     if (abilityInfo->type == AbilityType::PAGE && abilityInfo->isStageBasedModel) {
         thread = sptr<AbilityRuntime::UIAbilityThread>::MakeSptr();
-    } else if (abilityInfo->type == AbilityType::EXTENSION) {
-        thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
-    } else {
-        thread = sptr<AbilityRuntime::FAAbilityThread>::MakeSptr();
+        TAG_LOGI(AAFwkTag::ABILITY, "Create UIAbilityThread for Stage model");
     }
+    // Extension 组件：直接创建 ExtensionAbilityThread
+    else if (abilityInfo->type == AbilityType::EXTENSION) {
+        thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
+        TAG_LOGI(AAFwkTag::ABILITY, "Create ExtensionAbilityThread");
+    }
+    // FA 模型：动态加载 FAAbilityThread
+    else {
+        thread = CreateFAAbilityThreadDynamic();
+        if (thread == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Failed to create FAAbilityThread dynamically");
+            return;
+        }
+        TAG_LOGI(AAFwkTag::ABILITY, "Create FAAbilityThread (dynamically loaded)");
+    }
+
     if (thread == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null thread");
         return;
@@ -73,13 +144,27 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     }
 
     sptr<AbilityThread> thread = nullptr;
+
+    // Stage 模型 PAGE 类型：直接创建 UIAbilityThread
     if (abilityInfo->type == AbilityType::PAGE && abilityInfo->isStageBasedModel) {
         thread = sptr<AbilityRuntime::UIAbilityThread>::MakeSptr();
-    } else if (abilityInfo->type == AbilityType::EXTENSION) {
-        thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
-    } else {
-        thread = sptr<AbilityRuntime::FAAbilityThread>::MakeSptr();
+        TAG_LOGI(AAFwkTag::ABILITY, "Create UIAbilityThread for Stage model");
     }
+    // Extension 组件：直接创建 ExtensionAbilityThread
+    else if (abilityInfo->type == AbilityType::EXTENSION) {
+        thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
+        TAG_LOGI(AAFwkTag::ABILITY, "Create ExtensionAbilityThread");
+    }
+    // FA 模型：动态加载 FAAbilityThread
+    else {
+        thread = CreateFAAbilityThreadDynamic();
+        if (thread == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Failed to create FAAbilityThread dynamically");
+            return;
+        }
+        TAG_LOGI(AAFwkTag::ABILITY, "Create FAAbilityThread (dynamically loaded)");
+    }
+
     if (thread == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null thread");
         return;
