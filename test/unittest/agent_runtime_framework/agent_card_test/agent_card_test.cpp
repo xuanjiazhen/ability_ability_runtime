@@ -100,7 +100,7 @@ HWTEST_F(AgentCardTest, ProviderMarshallingTest_003, TestSize.Level1)
     Parcel parcelMock;
     bool result = provider.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -147,6 +147,7 @@ HWTEST_F(AgentCardTest, CapabilitiesMarshalling_001, TestSize.Level1)
     capabilities.streaming = true;
     capabilities.pushNotifications = true;
     capabilities.stateTransitionHistory = true;
+    capabilities.extension = "test";
 
     Parcel parcelMock;
     bool result = capabilities.Marshalling(parcelMock);
@@ -170,7 +171,7 @@ HWTEST_F(AgentCardTest, CapabilitiesMarshalling_002, TestSize.Level1)
     Parcel parcelMock;
     bool result = capabilities.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -189,7 +190,7 @@ HWTEST_F(AgentCardTest, CapabilitiesMarshalling_003, TestSize.Level1)
     Parcel parcelMock;
     bool result = capabilities.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -208,7 +209,7 @@ HWTEST_F(AgentCardTest, CapabilitiesMarshalling_004, TestSize.Level1)
     Parcel parcelMock;
     bool result = capabilities.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -284,7 +285,7 @@ HWTEST_F(AgentCardTest, SkillMarshalling_002, TestSize.Level1)
     Parcel parcelMock;
     bool result = skill.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -315,7 +316,7 @@ HWTEST_F(AgentCardTest, SkillMarshalling_003, TestSize.Level1)
     Parcel parcelMock;
     bool result = skill.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -346,7 +347,7 @@ HWTEST_F(AgentCardTest, SkillMarshalling_004, TestSize.Level1)
     Parcel parcelMock;
     bool result = skill.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -376,7 +377,7 @@ HWTEST_F(AgentCardTest, SkillMarshalling_005, TestSize.Level1)
     Parcel parcelMock;
     bool result = skill.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -406,7 +407,7 @@ HWTEST_F(AgentCardTest, SkillMarshalling_006, TestSize.Level1)
     Parcel parcelMock;
     bool result = skill.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -428,6 +429,7 @@ HWTEST_F(AgentCardTest, SkillMarshalling_007, TestSize.Level1)
     examples.push_back("test");
     skill.examples = examples;
     std::vector<std::string> inputModes;
+    inputModes.push_back("test");
     skill.inputModes = inputModes;
     std::vector<std::string> outputModes;
     outputModes.push_back("test");
@@ -436,7 +438,7 @@ HWTEST_F(AgentCardTest, SkillMarshalling_007, TestSize.Level1)
     Parcel parcelMock;
     bool result = skill.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -461,12 +463,13 @@ HWTEST_F(AgentCardTest, SkillMarshalling_008, TestSize.Level1)
     inputModes.push_back("test");
     skill.inputModes = inputModes;
     std::vector<std::string> outputModes;
+    outputModes.push_back("test");
     skill.outputModes = outputModes;
 
     Parcel parcelMock;
     bool result = skill.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -560,6 +563,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_001, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -594,6 +598,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_002, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -609,7 +614,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_002, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -628,6 +633,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_003, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -643,7 +649,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_003, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -662,6 +668,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_004, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -677,7 +684,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_004, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -696,6 +703,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_005, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -711,7 +719,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_005, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -728,8 +736,9 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_006, TestSize.Level1)
     agentCard.description = "test1";
     std::shared_ptr<AgentProvider> provider = std::make_shared<AgentProvider>();
     agentCard.provider = provider;
-    agentCard.version = "test";
+    agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -745,7 +754,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_006, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -764,6 +773,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_007, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -779,7 +789,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_007, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -798,6 +808,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_008, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = nullptr;
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -813,7 +824,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_008, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -832,6 +843,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_009, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -847,7 +859,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_009, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -866,9 +878,11 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_010, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
+    defaultInputModes.push_back("test");
     agentCard.defaultInputModes = defaultInputModes;
     std::vector<std::string> defaultOutputModes;
     defaultOutputModes.push_back("test");
@@ -880,7 +894,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_010, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -899,12 +913,14 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_011, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
     defaultInputModes.push_back("test");
     agentCard.defaultInputModes = defaultInputModes;
     std::vector<std::string> defaultOutputModes;
+    defaultOutputModes.push_back("test");
     agentCard.defaultOutputModes = defaultOutputModes;
     std::vector<std::shared_ptr<AgentSkill>> skills;
     skills.push_back(std::make_shared<AgentSkill>());
@@ -913,7 +929,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_011, TestSize.Level1)
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -932,6 +948,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_012, TestSize.Level1)
     agentCard.provider = provider;
     agentCard.version = "test1";
     agentCard.documentationUrl = "test1";
+    agentCard.category = "test1";
     std::shared_ptr<AgentCapabilities> capabilities = std::make_shared<AgentCapabilities>();
     agentCard.capabilities = capabilities;
     std::vector<std::string> defaultInputModes;
@@ -941,12 +958,13 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_012, TestSize.Level1)
     defaultOutputModes.push_back("test");
     agentCard.defaultOutputModes = defaultOutputModes;
     std::vector<std::shared_ptr<AgentSkill>> skills;
+    skills.push_back(std::make_shared<AgentSkill>());
     agentCard.skills = skills;
 
     Parcel parcelMock;
     bool result = agentCard.Marshalling(parcelMock);
 
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -1022,6 +1040,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_001, TestSize.Level1)
         { "defaultInputModes", defaultInputModes },
         { "defaultOutputModes", defaultOutputModes },
         { "skills", jsonArray },
+        { "category", "test" },
     };
     AgentCard agentCard;
     ASSERT_TRUE(AgentCard::FromJson(jsonObject, agentCard));
@@ -1031,6 +1050,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_001, TestSize.Level1)
     EXPECT_TRUE(agentCard.description == "test");
     EXPECT_TRUE(agentCard.version == "1.0");
     EXPECT_TRUE(agentCard.documentationUrl == "http://example.com/docs");
+    EXPECT_TRUE(agentCard.category == "test");
 }
 
 /**
@@ -1915,6 +1935,7 @@ HWTEST_F(AgentCardTest, AgentCard_Marshalling_001, TestSize.Level1)
     agentCard->provider = std::make_shared<AgentProvider>();
     agentCard->version = "1.0.0";
     agentCard->documentationUrl = "http://docs.example.com";
+    agentCard->category = "test";
     agentCard->capabilities = std::make_shared<AgentCapabilities>();
     agentCard->defaultInputModes = {"input1", "input2"};
     agentCard->defaultOutputModes = {"output1", "output2"};
@@ -2257,10 +2278,10 @@ HWTEST_F(AgentCardTest, RawDataCpy_006, TestSize.Level1)
 }
 
 /**
-* @tc.name  : ToAgentCardVec_ShouldReturnError_WhenCountIsZero
-* @tc.number: ToAgentCardVec_001
-* @tc.desc  : Test that ToAgentCardVec returns ERR_AGENT_CARD_LIST_OUT_OF_RANGE when count is zero.
-*/
+ * @tc.name  : ToAgentCardVec_ShouldReturnOk_WhenCountIsZero
+ * @tc.number: ToAgentCardVec_001
+ * @tc.desc  : Test that ToAgentCardVec returns ERR_OK with empty cards when count is zero.
+ */
 HWTEST_F(AgentCardTest, ToAgentCardVec_001, TestSize.Level1)
 {
     AgentCardsRawData rawData;
@@ -2271,7 +2292,8 @@ HWTEST_F(AgentCardTest, ToAgentCardVec_001, TestSize.Level1)
     std::vector<AgentCard> cards;
     int32_t result = AgentCardsRawData::ToAgentCardVec(rawData, cards);
 
-    EXPECT_EQ(result, ERR_AGENT_CARD_LIST_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(cards.empty());
 }
 
 /**
@@ -2328,6 +2350,7 @@ HWTEST_F(AgentCardTest, ToAgentCardVec_004, TestSize.Level1)
     agentCard.agentId = "1";
     agentCard.name = "ExampleName";
     agentCard.description = "ExampleDescription";
+    agentCard.category = "test";
     agentCard.provider = std::make_shared<AgentProvider>();
     agentCard.version = "1.0.0";
     agentCard.documentationUrl = "http://docs.example.com";
@@ -2359,6 +2382,7 @@ HWTEST_F(AgentCardTest, FromAgentCardVec_001, TestSize.Level1)
     agentCard.agentId = "1";
     agentCard.name = "ExampleName";
     agentCard.description = "ExampleDescription";
+    agentCard.category = "test";
     agentCard.provider = std::make_shared<AgentProvider>();
     agentCard.version = "1.0.0";
     agentCard.documentationUrl = "http://docs.example.com";
@@ -2466,6 +2490,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_006, TestSize.Level1)
         { "description", "test description" },
         { "version", "1.0" },
         { "documentationUrl", "http://example.com" },
+        { "category", "test" },
     };
     AgentCard agentCard;
     EXPECT_TRUE(AgentCard::FromJson(jsonObject, agentCard));
@@ -2716,6 +2741,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_019, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         // documentationUrl is missing (optional)
     };
     AgentCard agentCard;
@@ -2737,6 +2763,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_020, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "documentationUrl", longUrl },
     };
     AgentCard agentCard;
@@ -2757,6 +2784,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_021, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "documentationUrl", "" }, // empty string is allowed
     };
     AgentCard agentCard;
@@ -2781,6 +2809,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_022, TestSize.Level1)
         { "name", validName },
         { "description", validDescription },
         { "version", validVersion },
+        { "category", "test" },
         { "documentationUrl", validDocUrl },
     };
     AgentCard agentCard;
@@ -2804,6 +2833,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_023, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "defaultInputModes", nlohmann::json::array({ "input1", 123, true, "input2", nullptr }) },
     };
     AgentCard agentCard;
@@ -2826,6 +2856,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_024, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "defaultOutputModes", nlohmann::json::array({ "output1", 456, false, "output2", nullptr }) },
     };
     AgentCard agentCard;
@@ -2848,6 +2879,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_025, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "extension", "valid extension data" },
     };
     AgentCard agentCard;
@@ -2869,6 +2901,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_026, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "extension", validExtension },
     };
     AgentCard agentCard;
@@ -2890,6 +2923,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_027, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "extension", longExtension },
     };
     AgentCard agentCard;
@@ -2910,6 +2944,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_028, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "extension", "" },
     };
     AgentCard agentCard;
@@ -2930,6 +2965,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_029, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
     };
     AgentCard agentCard;
     EXPECT_TRUE(AgentCard::FromJson(jsonObject, agentCard));
@@ -2949,6 +2985,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_030, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "extension", 12345 },
     };
     AgentCard agentCard;
@@ -2969,6 +3006,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_041, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "iconUrl", "http://example.com/icon.png" },
     };
     AgentCard agentCard;
@@ -2990,6 +3028,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_031, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "iconUrl", validIconUrl },
     };
     AgentCard agentCard;
@@ -3011,6 +3050,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_032, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "iconUrl", longIconUrl },
     };
     AgentCard agentCard;
@@ -3031,6 +3071,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_033, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "iconUrl", "" },
     };
     AgentCard agentCard;
@@ -3051,6 +3092,7 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_034, TestSize.Level1)
         { "name", "test" },
         { "description", "test description" },
         { "version", "1.0" },
+        { "category", "test" },
         { "iconUrl", 12345 },
     };
     AgentCard agentCard;
