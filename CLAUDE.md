@@ -266,12 +266,12 @@ ability_runtime/
 
 ### 日志记录
 
-使用 HiLog 进行日志记录：
+使用 HiLog 进行日志记录，已封装在hilog_tag_wrapper.h文件中。
 ```cpp
-#include "hilog/log.h"
+#include "hilog_tag_wrapper.h"
 
-constexpr OHOS::HiviewDFX::HiLogLabel LABEL = {LOG_CORE, 0, "MyTag"};
-HILOG_INFO(LABEL, "Message: %{public}d", value);
+// LABEL定义在AAFwkLogTag， 如AAFwkLogTag::ABILITY
+TAG_LOGI(LABEL, "Message: %{public}d", value);
 ```
 
 ### aa 命令
@@ -289,6 +289,197 @@ aa dump -a
 
 # 强制停止应用进程
 aa force-stop <bundle-name>
+```
+
+## 编码规范
+
+本章总结 OpenHarmony 特有的编码规范，以及容易出错或需要特别注意的约定。编写代码时，需要遵循该规范。
+
+### OpenHarmony 命名约定
+
+- **全局变量**：使用 `g_` 前缀（警告作用，尽量少用）
+  ```cpp
+  int g_activeUserCount;  // Good
+  ```
+- **类成员变量**：使用 `_` 后缀（区分局部变量）
+  ```cpp
+  class Foo {
+  private:
+      int userId_;  // Good
+  };
+  ```
+- **文件命名**：下划线小写（如 `user_manager.h` / `user_manager.cpp`）
+- **struct/union 成员变量**：不加 `_` 后缀（与局部变量风格一致）
+
+### 格式规范
+
+- **行宽**：不超过 120 个字符
+- **缩进**：使用空格，每次缩进 4 个空格（**禁止使用 Tab**）
+- **大括号风格**：K&R 风格
+- **if/for/while 必须使用大括号**，即使只有一条语句
+- **禁止 if/else/else if 写在同一行**
+- 较长表达式换行时，**运算符放行末**
+- **头文件排列顺序**：按照字典序进行排列
+
+### 头文件规范（OpenHarmony 特有）
+
+- **License年份**：必须是文件创建或修改的年份（如 `Copyright (c) 2023-2026`）
+- **头文件保护**：必须使用 `#define` 保护（**禁止使用 `#pragma once`**）
+  ```cpp
+  #ifndef FOO_BAR_H
+  #define FOO_BAR_H
+  // ...
+  #endif
+  ```
+- **避免在 `extern "C"` 中包含头文件**（可能导致链接规范错误）
+- **禁止头文件循环依赖**
+
+### 类设计关键规则
+
+- **单参数构造函数**：声明为 `explicit`（避免隐式转换）
+  ```cpp
+  class Foo {
+  public:
+      explicit Foo(int size);  // Good: 避免隐式转换
+  };
+  ```
+- **虚函数禁止使用缺省参数值**（静态绑定，不会达到多态效果）
+  ```cpp
+  // Bad: 缺省参数静态绑定
+  virtual void Display(const string& text = "default");
+
+  // Good: 无缺省参数
+  virtual void Display(const string& text);
+  ```
+- **禁止重新定义继承而来的非虚函数**（会导致多态失效）
+- **拷贝/移动语义**：成对出现或同时禁止
+  ```cpp
+  class Foo {
+  public:
+      Foo(const Foo&) = delete;             // 成对禁止
+      Foo& operator=(const Foo&) = delete;
+  };
+  ```
+
+### 函数设计限制
+
+- **函数参数个数不超过 5 个**（过多考虑拆分函数或使用结构体）
+- **禁止使用魔鬼数字**（定义 const 常量或 enum）
+- **禁止使用宏表示常量**（使用 `const` 或 `enum`）
+  ```cpp
+  // Bad
+  #define MAX_SIZE 100
+
+  // Good
+  const int MAX_SIZE = 100;
+  enum { MAX_SIZE = 100 };
+  ```
+
+### 智能指针与对象生命周期管理（OpenHarmony 特有）
+
+#### OpenHarmony 智能指针
+**优先使用 `sptr<T>` 和 `wptr<T>`**（OpenHarmony 提供的引用计数智能指针）
+
+- **`sptr<T>`**：强引用指针，用于对象的生命周期管理
+- **`wptr<T>`**：弱引用指针，用于打破循环引用
+- 对象需继承自 `RefCounted` 基类
+
+```cpp
+#include "refbase.h"
+
+class MyObject : public RefCounted {
+    // ...
+};
+
+// 使用 sptr 管理对象
+sptr<MyObject> obj = new MyObject();  // Good: 引用计数 = 1
+sptr<MyObject> obj2 = obj;            // Good: 引用计数 = 2
+
+// 使用 wptr 打破循环引用
+class Parent : public RefCounted {
+public:
+    wptr<Child> child_;  // Good: 弱引用，打破循环
+};
+```
+
+#### STL 智能指针使用场景
+**仅在特定场景下使用 STL 智能指针**（`std::unique_ptr`、`std::shared_ptr`）
+
+- 与第三方库交互时
+- STL 容器管理非 OpenHarmony 对象
+- 单例、类成员等所有权明确的，优先使用原始指针
+
+```cpp
+// 场景1：与第三方库交互
+void ThirdPartyCallback(std::shared_ptr<ThirdPartyType> obj);
+
+// 场景2：类成员 - 明确所有权，使用原始指针
+class Foo {
+public:
+    ~Foo() { delete child_; }
+private:
+    Child* child_;  // Good: 析构函数中释放
+};
+
+// 场景3：禁止混用
+sptr<MyObject> obj = new MyObject();
+std::shared_ptr<MyObject> bad = obj;  // Bad: 破坏引用计数
+```
+
+#### 禁止使用
+- **禁止使用 `std::auto_ptr`**（已废弃）
+- **禁止对 OpenHarmony 对象使用 STL 智能指针**（会破坏引用计数机制）
+- 指针使用nullptr而不是NULL
+
+### Lambda 捕获注意事项
+
+- **非局部范围避免按引用捕获**（可能导致悬空引用）
+  ```cpp
+  // Bad: 按引用捕获，可能悬空
+  threadPool.QueueWork([&local] { Process(local); });
+
+  // Good: 按值捕获
+  threadPool.QueueWork([local] { Process(local); });
+  ```
+- **避免使用默认捕获模式**（`[&]` 或 `[=]`）
+  ```cpp
+  // Bad: 默认捕获
+  auto lambda = [=]() { Use(data_); };
+
+  // Good: 显式捕获
+  auto lambda = [this]() { Use(data_); };
+  ```
+
+### 泛型编程限制
+
+**OpenHarmony 项目中禁止泛型编程**（仅少数部件例外，如 STL 适配层）
+
+- 泛型编程与面向对象编程思想不同，容易导致代码难以理解和维护
+- 模板编译错误信息不友好，调试困难
+- 如需泛型，优先考虑继承和多态
+
+### RAII 资源管理
+
+**使用 RAII 特性来帮助追踪动态分配**
+
+```cpp
+class LockGuard {
+public:
+    explicit LockGuard(Mutex& mutex) : mutex_(mutex) {
+        mutex_.Lock();
+    }
+    ~LockGuard() {
+        mutex_.Unlock();
+    }
+private:
+    Mutex& mutex_;
+};
+
+// 使用
+void Process() {
+    LockGuard lock(mutex);  // 自动加锁
+    // ... 临界区代码 ...
+}  // 自动解锁
 ```
 
 ## 配置
@@ -311,6 +502,8 @@ aa force-stop <bundle-name>
 - `ipc`：IPC/RPC 通信
 - `samgr`：系统能力管理器
 - `hilog`：日志记录
+- `hisysevent`: 打点事件
+- `hitrace`：trace记录
 - `window_manager`：窗口管理
 - `ace_engine`：ArkUI 引擎
 - `ets_runtime`：ETS 运行时

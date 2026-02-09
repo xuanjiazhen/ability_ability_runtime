@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(grep:*)",
+      "Bash(tree:*)",
+      "Bash(for:*)",
+      "Bash(do if [ -d \"$dir\" ])",
+      "Bash(then echo \"✓ $dir exists\")",
+      "Bash(else echo \"✗ $dir MISSING\")",
+      "Bash(fi:*)",
+      "Bash(done:*)",
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(run -t UT -tp uripermmgr -ts file_uri_distribution_utils_test)",
+      "Bash(find:*)",
+      "Bash(awk:*)",
+      "Bash(findstr:*)",
+      "Bash(powershell -Command \"Get-ChildItem -Path .claude -Recurse -Filter ''*.json'' | Select-Object -ExpandProperty FullName\")",
+      "Bash(powershell:*)"
+    ]
+  }
+}
