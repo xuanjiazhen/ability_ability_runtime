@@ -23,6 +23,7 @@ class AgentProviderImpl implements AgentProvider {
   public url: string = '';
 }
 
+<<<<<<< HEAD:agent_runtime_framework/frameworks/ets/ets/@ohos.app.agent.AgentCard.ets
 export interface AgentAppInfo {
   bundleName?: string;
   moduleName?: string;
@@ -41,14 +42,23 @@ class AgentAppInfoImpl implements AgentAppInfo {
 
 export interface AgentCapabilities {
   streaming: boolean;
+=======
+export interface Capabilities {
+  streaming?: boolean;
+>>>>>>> 3d24f1575e (feat: Connect/Disconnect ets):agent_runtime_framework/frameworks/ets/ets/application/AgentCard.ets
   pushNotifications?: boolean;
   stateTransitionHistory?: boolean;
   extension?: string;
   extendedAgentCard?: boolean;
 }
 
+<<<<<<< HEAD:agent_runtime_framework/frameworks/ets/ets/@ohos.app.agent.AgentCard.ets
 class AgentCapabilitiesImpl implements AgentCapabilities {
   public streaming: boolean;
+=======
+class CapabilitiesImpl implements Capabilities {
+  public streaming?: boolean;
+>>>>>>> 3d24f1575e (feat: Connect/Disconnect ets):agent_runtime_framework/frameworks/ets/ets/application/AgentCard.ets
   public pushNotifications?: boolean;
   public stateTransitionHistory?: boolean;
   public extension?: string;
@@ -79,7 +89,13 @@ class AgentSkillImpl implements AgentSkill {
 
 export interface AgentCard {
   agentId: string;
+<<<<<<< HEAD:agent_runtime_framework/frameworks/ets/ets/@ohos.app.agent.AgentCard.ets
   appIndex: int;
+=======
+  bundleName: string;
+  moduleName: string;
+  abilityName: string;
+>>>>>>> 3d24f1575e (feat: Connect/Disconnect ets):agent_runtime_framework/frameworks/ets/ets/application/AgentCard.ets
   name: string;
   description: string;
   provider?: AgentProvider;
@@ -97,7 +113,13 @@ export interface AgentCard {
 
 class AgentCardImpl implements AgentCard {
   public agentId: string = '';
+<<<<<<< HEAD:agent_runtime_framework/frameworks/ets/ets/@ohos.app.agent.AgentCard.ets
   public appIndex: int;
+=======
+  public bundleName: string = '';
+  public moduleName: string = '';
+  public abilityName: string = '';
+>>>>>>> 3d24f1575e (feat: Connect/Disconnect ets):agent_runtime_framework/frameworks/ets/ets/application/AgentCard.ets
   public name: string = '';
   public description: string = '';
   public provider?: AgentProvider;
