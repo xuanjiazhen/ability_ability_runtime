@@ -1029,5 +1029,59 @@ HWTEST_F(EtsEnvironmentTest, CreateRuntimeLinker_0300, TestSize.Level0)
     auto obj = etsEnv->CreateRuntimeLinker(mockEnv.GetEnv(), cls, undefinedRef, refArray);
     EXPECT_NE(obj, nullptr);
 }
+
+/**
+ * @tc.name: BuildProfilePathInfos_100
+ * @tc.desc: Verify profile path mapping for static modules.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, BuildProfilePathInfos_100, TestSize.Level1)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    std::vector<std::string> moduleNames = {"entry", "feature", ""};
+    auto infos = etsEnv->BuildProfilePathInfos(moduleNames);
+    ASSERT_EQ(infos.size(), 2);
+
+    const std::string entryAbc = "/data/storage/el1/bundle/entry/ets/modules_static.abc";
+    const std::string entryProfile = "/data/storage/ark-profile/entry.ap";
+    const std::string featureAbc = "/data/storage/el1/bundle/feature/ets/modules_static.abc";
+    const std::string featureProfile = "/data/storage/ark-profile/feature.ap";
+
+    auto findInfo = [&infos](const std::string &abc) -> const ETSEnvironment::ProfilePathInfo * {
+        for (const auto &it : infos) {
+            if (it.abcPath == abc) {
+                return &it;
+            }
+        }
+        return nullptr;
+    };
+
+    auto entryInfo = findInfo(entryAbc);
+    ASSERT_NE(entryInfo, nullptr);
+    EXPECT_EQ(entryInfo->curProfilePath, entryProfile);
+    EXPECT_TRUE(entryInfo->baselineProfilePath.empty());
+
+    auto featureInfo = findInfo(featureAbc);
+    ASSERT_NE(featureInfo, nullptr);
+    EXPECT_EQ(featureInfo->curProfilePath, featureProfile);
+    EXPECT_TRUE(featureInfo->baselineProfilePath.empty());
+}
+
+/**
+ * @tc.name: BuildProfilePathInfos_200
+ * @tc.desc: Verify empty module list returns empty profile mapping.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, BuildProfilePathInfos_200, TestSize.Level1)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    std::vector<std::string> moduleNames;
+    auto infos = etsEnv->BuildProfilePathInfos(moduleNames);
+    EXPECT_TRUE(infos.empty());
+}
 } // namespace EtsEnv
 } // namespace OHOS

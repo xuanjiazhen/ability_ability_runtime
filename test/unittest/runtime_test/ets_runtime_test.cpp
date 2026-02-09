@@ -338,5 +338,6 @@ HWTEST_F(EtsRuntimeTest, SetExtensionApiCheckCallback_100, TestSize.Level1)
     etsRuntime->SetExtensionApiCheckCallback(callback);
     EXPECT_EQ(etsRuntime->GetJsRuntime(), nullptr);
 }
+
 } // namespace AbilityRuntime
 } // namespace OHOS
