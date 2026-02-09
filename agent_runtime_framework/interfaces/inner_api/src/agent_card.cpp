@@ -452,8 +452,8 @@ bool AgentCard::ReadFromParcel(Parcel &parcel)
         std::shared_ptr<AgentSkill> skill(parcel.ReadParcelable<AgentSkill>());
         skills.push_back(skill);
     }
-    extension = parcel.ReadString();
     iconUrl = parcel.ReadString();
+    extension = parcel.ReadString();
     appInfo.reset(parcel.ReadParcelable<AgentAppInfo>());
     return true;
 }
@@ -484,6 +484,10 @@ bool AgentCard::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::SER_ROUTER, "write documentationUrl failed");
         return false;
     }
+    if (!parcel.WriteString(category)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write category failed");
+        return false;
+    }
     if (!parcel.WriteParcelable(capabilities.get())) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Write capabilities failed.");
         return false;
@@ -512,10 +516,6 @@ bool AgentCard::Marshalling(Parcel &parcel) const
     }
     if (!parcel.WriteString(extension)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "write extension failed");
-        return false;
-    }
-    if (!parcel.WriteString(category)) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "write category failed");
         return false;
     }
     if (!parcel.WriteParcelable(appInfo.get())) {
@@ -690,6 +690,15 @@ bool AgentCard::FromJson(nlohmann::json jsonObject, AgentCard &agentCard)
                     agentCard.skills.push_back(skill);
                 }
             }
+        }
+    }
+
+    // Optional iconUrl field
+    if (jsonObject.contains("iconUrl") && jsonObject["iconUrl"].is_string()) {
+        agentCard.iconUrl = jsonObject["iconUrl"];
+        if (agentCard.iconUrl.length() < 1 || agentCard.iconUrl.length() > LENGTH_51200) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "iconUrl length is invalid");
+            agentCard.iconUrl = "";
         }
     }
 
