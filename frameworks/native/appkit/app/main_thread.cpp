@@ -153,6 +153,7 @@ constexpr int32_t UNSPECIFIED_USERID = -2;
 constexpr int32_t JS_ERROR_EXIT = -2;
 constexpr int32_t TIME_OUT = 120;
 constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
+constexpr int32_t PROCESS_EXIT_DELAY_TIME = 3;
 
 enum class SignalType {
     SIGNAL_JSHEAP_OLD,
@@ -2122,7 +2123,7 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
 
         if (ApplicationDataManager::jsErrorEnv_.load(std::memory_order_relaxed) != env) {
             TAG_LOGW(AAFwkTag::APPKIT, "Current thread does not need to exit the process");
-            return;
+            sleep(PROCESS_EXIT_DELAY_TIME);
         }
 
         bool foreground = (appThread->applicationImpl_ && appThread->applicationImpl_->GetState() ==
