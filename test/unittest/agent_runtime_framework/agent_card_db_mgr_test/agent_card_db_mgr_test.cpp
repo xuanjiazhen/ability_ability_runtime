@@ -391,9 +391,86 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_007, TestSize.Level1)
     std::vector<AgentCard> queryCards;  // Empty vector
     int ret = agentCardDbMgr.QueryAllData(queryCards);
 
-    // Assert: Should populate the vector correctly
+    // Assert: Should populate vector correctly
     EXPECT_TRUE(ret == ERR_OK);
     EXPECT_TRUE(queryCards.size() >= 1);
 }
+
+/**
+ * @tc.name: QueryAllDataTest_008
+ * @tc.desc: Test QueryAllData with category field - should preserve category
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_008, TestSize.Level1)
+{
+    // Arrange: Insert a card with category field
+    std::vector<AgentCard> insertCards;
+    AgentCard card;
+    card.agentId = "agent_category_001";
+    card.name = "Category Test Agent";
+    card.description = "Test agent with category";
+    card.version = "1.0.0";
+    card.category = "productivity";
+    insertCards.push_back(card);
+
+    AgentCardDbMgr agentCardDbMgr;
+    int insertRet = agentCardDbMgr.InsertData("com.test.category", 100, insertCards);
+    EXPECT_TRUE(insertRet == ERR_OK);
+
+    // Act: Query all data
+    std::vector<AgentCard> queryCards;
+    int queryRet = agentCardDbMgr.QueryAllData(queryCards);
+
+    // Assert: Verify category is preserved
+    EXPECT_TRUE(queryRet == ERR_OK);
+    bool found = false;
+    for (const auto &queryCard : queryCards) {
+        if (queryCard.agentId == "agent_category_001") {
+            EXPECT_TRUE(queryCard.category == "productivity");
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found);
+}
+
+/**
+ * @tc.name: QueryDataTest_002
+ * @tc.desc: Test QueryData with category field - should preserve category
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardDbMgrTest, QueryDataTest_002, TestSize.Level1)
+{
+    // Arrange: Insert a card with category field
+    std::vector<AgentCard> insertCards;
+    AgentCard card;
+    card.agentId = "agent_query_category_001";
+    card.name = "Query Category Test Agent";
+    card.version = "1.0.0";
+    card.category = "assistant";
+    insertCards.push_back(card);
+
+    AgentCardDbMgr agentCardDbMgr;
+    int insertRet = agentCardDbMgr.InsertData("com.test.querycategory", 100, insertCards);
+    EXPECT_TRUE(insertRet == ERR_OK);
+
+    // Act: Query data by bundle name
+    std::vector<AgentCard> queryCards;
+    int queryRet = agentCardDbMgr.QueryData("com.test.querycategory", 100, queryCards);
+
+    // Assert: Verify category is preserved
+    EXPECT_TRUE(queryRet == ERR_OK);
+    EXPECT_TRUE(queryCards.size() >= 1);
+    bool found = false;
+    for (const auto &queryCard : queryCards) {
+        if (queryCard.agentId == "agent_query_category_001") {
+            EXPECT_TRUE(queryCard.category == "assistant");
+            found = true;
+            break;
+        }
+    }
+    EXPECT_TRUE(found);
 } // namespace AgentRuntime
 } // namespace OHOS

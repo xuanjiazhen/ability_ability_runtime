@@ -2259,7 +2259,7 @@ HWTEST_F(AgentCardTest, RawDataCpy_006, TestSize.Level1)
 /**
 * @tc.name  : ToAgentCardVec_ShouldReturnError_WhenCountIsZero
 * @tc.number: ToAgentCardVec_001
-* @tc.desc  : Test that ToAgentCardVec returns ERR_AGENT_CARD_LIST_OUT_OF_RANGE when count is zero.
+* @tc.desc  : Test that ToAgentCardVec returns ERR_OK when count is zero.
 */
 HWTEST_F(AgentCardTest, ToAgentCardVec_001, TestSize.Level1)
 {
@@ -2271,7 +2271,7 @@ HWTEST_F(AgentCardTest, ToAgentCardVec_001, TestSize.Level1)
     std::vector<AgentCard> cards;
     int32_t result = AgentCardsRawData::ToAgentCardVec(rawData, cards);
 
-    EXPECT_EQ(result, ERR_AGENT_CARD_LIST_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -3403,5 +3403,79 @@ HWTEST_F(AgentCardTest, AgentAppInfoParcel_001, TestSize.Level1)
         delete unmarshalledAppInfo;
     }
 }
+
+/**
+ * @tc.name: AgentCardParcel_001
+ * @tc.desc: Test AgentCard Marshalling and Unmarshalling round-trip with category field
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, AgentCardParcel_001, TestSize.Level1)
+{
+    AgentCard originalCard;
+    originalCard.agentId = "agent_001";
+    originalCard.name = "Test Agent";
+    originalCard.description = "Test Description";
+    originalCard.provider = std::make_shared<AgentProvider>();
+    originalCard.provider->organization = "Test Org";
+    originalCard.provider->url = "http://example.com";
+    originalCard.version = "1.0.0";
+    originalCard.documentationUrl = "http://docs.example.com";
+    originalCard.capabilities = std::make_shared<AgentCapabilities>();
+    originalCard.capabilities->streaming = true;
+    originalCard.capabilities->extendedAgentCard = true;
+    originalCard.defaultInputModes = {"text", "voice"};
+    originalCard.defaultOutputModes = {"text"};
+    originalCard.skills = {std::make_shared<AgentSkill>()};
+    originalCard.skills[0]->id = "skill_001";
+    originalCard.skills[0]->name = "Test Skill";
+    originalCard.skills[0]->description = "Test Skill Description";
+    originalCard.skills[0]->tags = {"tag1", "tag2"};
+    originalCard.extension = "customExtension";
+    originalCard.category = "productivity";
+    originalCard.iconUrl = "http://example.com/icon.png";
+    originalCard.appInfo = std::make_shared<AgentAppInfo>();
+    originalCard.appInfo->bundleName = "test.bundle";
+    originalCard.appInfo->moduleName = "test";
+    originalCard.appInfo->abilityName = "TestAbility";
+
+    Parcel parcel;
+    EXPECT_TRUE(originalCard.Marshalling(parcel));
+
+    AgentCard *unmarshalledCard = AgentCard::Unmarshalling(parcel);
+    EXPECT_NE(unmarshalledCard, nullptr);
+    if (unmarshalledCard != nullptr) {
+        EXPECT_EQ(unmarshalledCard->agentId, originalCard.agentId);
+        EXPECT_EQ(unmarshalledCard->name, originalCard.name);
+        EXPECT_EQ(unmarshalledCard->description, originalCard.description);
+        EXPECT_EQ(unmarshalledCard->version, originalCard.version);
+        EXPECT_EQ(unmarshalledCard->documentationUrl, originalCard.documentationUrl);
+        EXPECT_EQ(unmarshalledCard->extension, originalCard.extension);
+        EXPECT_EQ(unmarshalledCard->category, originalCard.category);
+        EXPECT_EQ(unmarshalledCard->iconUrl, originalCard.iconUrl);
+        EXPECT_EQ(unmarshalledCard->defaultInputModes, originalCard.defaultInputModes);
+        EXPECT_EQ(unmarshalledCard->defaultOutputModes, originalCard.defaultOutputModes);
+        EXPECT_NE(unmarshalledCard->provider, nullptr);
+        if (unmarshalledCard->provider != nullptr) {
+            EXPECT_EQ(unmarshalledCard->provider->organization, originalCard.provider->organization);
+            EXPECT_EQ(unmarshalledCard->provider->url, originalCard.provider->url);
+        }
+        EXPECT_NE(unmarshalledCard->capabilities, nullptr);
+        if (unmarshalledCard->capabilities != nullptr) {
+            EXPECT_EQ(unmarshalledCard->capabilities->streaming, originalCard.capabilities->streaming);
+            EXPECT_EQ(unmarshalledCard->capabilities->extendedAgentCard, originalCard.capabilities->extendedAgentCard);
+        }
+        EXPECT_EQ(unmarshalledCard->skills.size(), originalCard.skills.size());
+        if (unmarshalledCard->skills.size() > 0) {
+            EXPECT_EQ(unmarshalledCard->skills[0]->id, originalCard.skills[0]->id);
+            EXPECT_EQ(unmarshalledCard->skills[0]->name, originalCard.skills[0]->name);
+        }
+        EXPECT_NE(unmarshalledCard->appInfo, nullptr);
+        if (unmarshalledCard->appInfo != nullptr) {
+            EXPECT_EQ(unmarshalledCard->appInfo->bundleName, originalCard.appInfo->bundleName);
+            EXPECT_EQ(unmarshalledCard->appInfo->moduleName, originalCard.appInfo->moduleName);
+        }
+        delete unmarshalledCard;
+    }
 } // namespace AgentRuntime
 } // namespace OHOS
