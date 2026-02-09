@@ -1,0 +1,359 @@
+diff --git a/frameworks/native/appkit/ability_runtime/context/ability_stage_context.cpp b/frameworks/native/appkit/ability_runtime/context/ability_stage_context.cpp
+index ef3af68d68..e12bd38db3 100755
+--- a/frameworks/native/appkit/ability_runtime/context/ability_stage_context.cpp
++++ b/frameworks/native/appkit/ability_runtime/context/ability_stage_context.cpp
+@@ -18,7 +18,6 @@
+ #include "context.h"
+ #include "context_impl.h"
+ #include "hilog_tag_wrapper.h"
+-#include "resource_manager.h"
+ 
+ namespace OHOS {
+ namespace AbilityRuntime {
+diff --git a/interfaces/kits/native/appkit/app_startup/startup_manager.h b/interfaces/kits/native/appkit/app_startup/startup_manager.h
+index 5547e54231..f4a556e1d7 100644
+--- a/interfaces/kits/native/appkit/app_startup/startup_manager.h
++++ b/interfaces/kits/native/appkit/app_startup/startup_manager.h
+@@ -22,12 +22,11 @@
+ #include <string>
+ #include <vector>
+ 
+-#include "app_launch_data.h"
+ #include "app_startup_task.h"
+ #include "app_startup_task_matcher.h"
+ #include "bundle_info.h"
++#include "app_launch_data.h"
+ #include "native_startup_task.h"
+-#include "nlohmann/json.hpp"
+ #include "preload_so_startup_task.h"
+ #include "singleton.h"
+ #include "startup_config.h"
+diff --git a/services/abilitymgr/include/ability_manager_collaborator_proxy.h b/services/abilitymgr/include/ability_manager_collaborator_proxy.h
+index ea883ddae7..fcd7547b01 100644
+--- a/services/abilitymgr/include/ability_manager_collaborator_proxy.h
++++ b/services/abilitymgr/include/ability_manager_collaborator_proxy.h
+@@ -159,7 +159,7 @@ public:
+      */
+     virtual int32_t GrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag, uint32_t targetTokenId,
+         const std::string &targetBundleName) override;
+-    
++
+     /**
+      * @brief revoke uri permission
+      * @param tokenId the tokenId of target application.
+diff --git a/services/abilitymgr/include/ability_manager_proxy.h b/services/abilitymgr/include/ability_manager_proxy.h
+index 8d192c699d..cea14f9ce0 100644
+--- a/services/abilitymgr/include/ability_manager_proxy.h
++++ b/services/abilitymgr/include/ability_manager_proxy.h
+@@ -1311,7 +1311,6 @@ public:
+     */
+     virtual int32_t UnregisterIAbilityManagerCollaborator(int32_t type) override;
+ 
+-    virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
+ 
+     /**
+      * @brief get ability manager collaborator.
+@@ -1319,6 +1318,8 @@ public:
+      */
+     virtual sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator() override;
+ 
++    virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
++
+     virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear) override;
+ 
+     /**
+@@ -1803,15 +1804,6 @@ public:
+      */
+     virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
+ 
+-    /**
+-     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
+-     *
+-     * @param want Ability want.
+-     * @param observer ability foreground notify observer for aa tool.
+-     * @return Returns ERR_OK on success, others on failure.
+-     */
+-    int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
+-
+     /**
+      * Get all insight intent infos.
+      * @param flag, the get type.
+@@ -1853,20 +1845,14 @@ public:
+         InsightIntentInfoForQuery &info,
+         int32_t userId = DEFAULT_INVAL_VALUE) override;
+ 
+-    int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
+-
+-    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
+-
+-    int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
+-
+-    int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
+-
+     /**
+-     * Register sa interceptor.
+-     * @param interceptor, The sa interceptor.
++     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
++     *
++     * @param want Ability want.
++     * @param observer ability foreground notify observer for aa tool.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+-    virtual ErrCode RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
++    int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
+ 
+     /**
+      * Set keep-alive flag for app service extension under u1 user.
+@@ -1883,6 +1869,21 @@ public:
+      */
+     virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list) override;
+ 
++    int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
++
++    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
++
++    int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
++
++    int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
++
++    /**
++     * Register sa interceptor.
++     * @param interceptor, The sa interceptor.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    virtual ErrCode RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
++
+     /**
+      * SuspendExtensionAbility, suspend session with service ability.
+      *
+diff --git a/services/abilitymgr/include/ability_manager_service.h b/services/abilitymgr/include/ability_manager_service.h
+index 848e5e9e5c..72c3a774e9 100644
+--- a/services/abilitymgr/include/ability_manager_service.h
++++ b/services/abilitymgr/include/ability_manager_service.h
+@@ -1372,6 +1372,24 @@ public:
+     virtual int PrepareTerminateAbility(const sptr<IRemoteObject> &token,
+         sptr<IPrepareTerminateCallback> &callback) override;
+ 
++    /**
++     * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
++     *
++     * @param token, the token of the ability to terminate.
++     * @param callback callback.
++     */
++    virtual void PrepareTerminateAbilityDone(const sptr<IRemoteObject> &token, bool isTerminate) override;
++
++    /**
++     * KillProcessWithPrepareTerminateDone, called when KillProcessWithPrepareTerminate call is done.
++     *
++     * @param moduleName, the module name of the application.
++     * @param prepareTermination, the result of prepareTermination call of the module.
++     * @param isExist, whether the prepareTerminate functions are implemented.
++     */
++    virtual void KillProcessWithPrepareTerminateDone(const std::string &moduleName,
++        int32_t prepareTermination, bool isExist) override;
++
+     void HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
+ 
+     void HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
+@@ -2126,14 +2144,6 @@ public:
+         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
+         bool isCallByShortcut = false);
+ 
+-    /**
+-     * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
+-     *
+-     * @param token, the token of the ability to terminate.
+-     * @param callback callback.
+-     */
+-    virtual void PrepareTerminateAbilityDone(const sptr<IRemoteObject> &token, bool isTerminate) override;
+-
+     /**
+      * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
+      * force kill the application by accessTokenId, notify exception to SCB.
+@@ -2143,15 +2153,6 @@ public:
+      */
+     virtual int32_t KillProcessForPermissionUpdate(uint32_t accessTokenId) override;
+ 
+-    /**
+-     * KillProcessWithPrepareTerminateDone, called when KillProcessWithPrepareTerminate call is done.
+-     *
+-     * @param moduleName, the module name of the application.
+-     * @param prepareTermination, the result of prepareTermination call of the module.
+-     * @param isExist, whether the prepareTerminate functions are implemented.
+-     */
+-    virtual void KillProcessWithPrepareTerminateDone(const std::string &moduleName,
+-        int32_t prepareTermination, bool isExist) override;
+     std::shared_ptr<AppExitReasonHelper> GetAppExitReasonHelper()
+     {
+         return appExitReasonHelper_;
+@@ -2197,15 +2198,6 @@ public:
+ 
+     virtual int32_t SetOnNewWantSkipScenarios(sptr<IRemoteObject> callerToken, int32_t scenarios) override;
+ 
+-    /**
+-     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
+-     *
+-     * @param want Ability want.
+-     * @param observer ability foreground notify observer for aa tool.
+-     * @return Returns ERR_OK on success, others on failure.
+-     */
+-    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
+-
+     /**
+      * Get all insight intent infos.
+      * @param flag, the get type.
+@@ -2247,6 +2239,15 @@ public:
+         InsightIntentInfoForQuery &info,
+         int32_t userId = DEFAULT_INVAL_VALUE) override;
+ 
++   /**
++     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
++     *
++     * @param want Ability want.
++     * @param observer ability foreground notify observer for aa tool.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
++
+     int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
+ 
+     int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
+@@ -2257,13 +2258,6 @@ public:
+ 
+     std::shared_ptr<AbilityInterceptorExecuter> GetAbilityInterceptorExecuter();
+ 
+-    /**
+-     * Register sa interceptor.
+-     * @param interceptor, The sa interceptor.
+-     * @return Returns ERR_OK on success, others on failure.
+-     */
+-    virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
+-
+      /**
+      * Set keep-alive flag for app service extension under u1 user.
+      * @param bundleName Bundle name.
+@@ -2279,6 +2273,13 @@ public:
+      */
+     virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list) override;
+ 
++    /**
++     * Register sa interceptor.
++     * @param interceptor, The sa interceptor.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
++
+     virtual int32_t NotifyStartupExceptionBySCB(int32_t requestId) override;
+ 
+     /**
+diff --git a/services/abilitymgr/include/ability_manager_stub.h b/services/abilitymgr/include/ability_manager_stub.h
+index 9950b268e1..64a14fa6db 100644
+--- a/services/abilitymgr/include/ability_manager_stub.h
++++ b/services/abilitymgr/include/ability_manager_stub.h
+@@ -345,10 +345,10 @@ private:
+     int32_t UnregisterHiddenStartObserverInner(MessageParcel &data, MessageParcel &reply);
+     int32_t QueryPreLoadUIExtensionRecordInner(MessageParcel &data, MessageParcel &reply);
+     int32_t RevokeDelegatorInner(MessageParcel &data, MessageParcel &reply);
+-    int32_t StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply);
+     int32_t GetAllInsightIntentInfoInner(MessageParcel &data, MessageParcel &reply);
+     int32_t GetInsightIntentInfoByBundleNameInner(MessageParcel &data, MessageParcel &reply);
+     int32_t GetInsightIntentInfoByIntentNameInner(MessageParcel &data, MessageParcel &reply);
++    int32_t StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply);
+     int32_t RestartSelfAtomicServiceInner(MessageParcel &data, MessageParcel &reply);
+     int32_t RegisterSAInterceptorInner(MessageParcel &data, MessageParcel &reply);
+     int32_t SuspendExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
+diff --git a/services/abilitymgr/include/ability_record.h b/services/abilitymgr/include/ability_record.h
+index 6b5cc7cc3a..fcdd56d7d9 100644
+--- a/services/abilitymgr/include/ability_record.h
++++ b/services/abilitymgr/include/ability_record.h
+@@ -815,7 +815,7 @@ public:
+     bool GetPromotePriority();
+ 
+     bool PromotePriority();
+-    
++
+     std::string GetFirstCallerBundleName()
+     {
+         return firstCallerBundleName_;
+@@ -926,9 +926,9 @@ protected:
+     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
+     bool isLaunching_ = true;
+     bool securityFlag_ = false;
++    bool isHook_ = false;
+     bool isPluginAbility_ = false;
+     bool isPrelaunch_ = false;
+-    bool isHook_ = false;
+     std::atomic_bool isCallerSetProcess_ = false;       // new version
+     std::atomic_bool backgroundAbilityWindowDelayed_ = false;
+ 
+diff --git a/services/abilitymgr/include/app_scheduler.h b/services/abilitymgr/include/app_scheduler.h
+index 850b681f00..9457d8832e 100644
+--- a/services/abilitymgr/include/app_scheduler.h
++++ b/services/abilitymgr/include/app_scheduler.h
+@@ -634,8 +634,8 @@ public:
+     virtual bool IsMemorySizeSufficient() const;
+ 
+     /**
+-     * whether or not requier a big memory
+-     * @return Returens true is no big memory, others return false.
++     * whether or not require a big memory
++     * @return Return true is no big memory, others return false.
+      */
+     virtual bool IsNoRequireBigMemory() const;
+ 
+diff --git a/services/abilitymgr/include/exit_info_data_manager.h b/services/abilitymgr/include/exit_info_data_manager.h
+index be4535349e..dd401c9702 100644
+--- a/services/abilitymgr/include/exit_info_data_manager.h
++++ b/services/abilitymgr/include/exit_info_data_manager.h
+@@ -40,6 +40,7 @@ public:
+         static ExitInfoDataManager instance;
+         return instance;
+     }
++
+     virtual ~ExitInfoDataManager() = default;
+ 
+     bool AddExitInfo(uint32_t accessTokenId, ExitCacheInfo &cacheInfo);
+@@ -53,13 +54,13 @@ public:
+     bool IsExitInfoExist(uint32_t accessTokenId);
+ 
+ private:
++    std::mutex mutex_;
+     ExitInfoDataManager() = default;
+     DISALLOW_COPY_AND_MOVE(ExitInfoDataManager);
+ 
+ private:
+-    std::mutex mutex_;
+     std::map<uint32_t, ExitCacheInfo> exitCacheInfos_;
+ };
+-}  // namespace AbilityRuntime
+-}  // namespace OHOS
+-#endif  // OHOS_ABILITY_RUNTIME_EXIT_INFO_DATA_MANAGER_H
++} // namespace AbilityRuntime
++} // namespace OHOS
++#endif // OHOS_ABILITY_RUNTIME_EXIT_INFO_DATA_MANAGER_H
+diff --git a/services/abilitymgr/src/ability_auto_startup_data_manager.cpp b/services/abilitymgr/src/ability_auto_startup_data_manager.cpp
+index fe0a11c27a..4463527956 100644
+--- a/services/abilitymgr/src/ability_auto_startup_data_manager.cpp
++++ b/services/abilitymgr/src/ability_auto_startup_data_manager.cpp
+@@ -496,7 +496,8 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupStatusFromValue(
+         startupStatus.setterUserId = jsonObject.at(JSON_KEY_SETTER_USERID).get<int32_t>();
+     }
+     if (jsonObject.contains(JSON_KEY_SETTER_TYPE) && jsonObject[JSON_KEY_SETTER_TYPE].is_number()) {
+-        startupStatus.setterType = jsonObject.at(JSON_KEY_SETTER_TYPE).get<AutoStartupSetterType>();
++        startupStatus.setterType =
++            static_cast<AutoStartupSetterType>(jsonObject.at(JSON_KEY_SETTER_TYPE).get<int32_t>());
+     }
+ }
+ 
+diff --git a/services/abilitymgr/src/ability_connect_manager.cpp b/services/abilitymgr/src/ability_connect_manager.cpp
+index 58ec26e6a0..8dde50ab6c 100644
+--- a/services/abilitymgr/src/ability_connect_manager.cpp
++++ b/services/abilitymgr/src/ability_connect_manager.cpp
+@@ -2278,6 +2278,7 @@ void AbilityConnectManager::HandleAfterServiceRemoved(const std::shared_ptr<Base
+     } else {
+         HandleNotifyAssertFaultDialogDied(abilityRecord);
+     }
++    TAG_LOGI(AAFwkTag::EXT, "HandleAbilityDiedTask end");
+ }
+ 
+ void AbilityConnectManager::HandleConnectRecordOnAbilityDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)

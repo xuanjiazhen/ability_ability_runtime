@@ -1,0 +1,425 @@
+diff --git a/frameworks/ets/ani/photo_editor_extension_ability/src/ets_photo_editor_extension_context.cpp b/frameworks/ets/ani/photo_editor_extension_ability/src/ets_photo_editor_extension_context.cpp
+index dddfd08f6c635b0135ee6ebf0d1ff8869fc052fa..253f04ee87c2281a8070573fb841e2ff2402a1e7 100644
+--- a/frameworks/ets/ani/photo_editor_extension_ability/src/ets_photo_editor_extension_context.cpp
++++ b/frameworks/ets/ani/photo_editor_extension_ability/src/ets_photo_editor_extension_context.cpp
+@@ -245,7 +245,7 @@ void EtsPhotoEditorExtensionContext::SaveWithImageCheck(ani_env* aniEnv, ani_obj
+     }
+ 
+     if (format == "") {
+-        TAG_LOGE(AAFwkTag::UI_EXT, "fromat is empty");
++        TAG_LOGE(AAFwkTag::UI_EXT, "format is empty");
+         AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(aniEnv, ERR_MSG_PARAMS_ERROR);
+         return;
+     }
+diff --git a/services/abilitymgr/include/utils/ability_util.h b/services/abilitymgr/include/utils/ability_util.h
+index b083b670aa05b181fedcc154f0e19f8d66da0f8b..18cb080c19432c133b85b3402aebeefca1252284 100644
+--- a/services/abilitymgr/include/utils/ability_util.h
++++ b/services/abilitymgr/include/utils/ability_util.h
+@@ -54,19 +54,19 @@ constexpr const char* JUMP_INTERCEPTOR_DIALOG_CALLER_PKG = "interceptor_callerPk
+ 
+ #define CHECK_POINTER_CONTINUE(object)                         \
+     if (!object) {                                             \
+-        TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr"); \
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr");        \
+         continue;                                              \
+     }
+ 
+ #define CHECK_POINTER_IS_NULLPTR(object)                       \
+     if (object == nullptr) {                                   \
+-        TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr"); \
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr");        \
+         return;                                                \
+     }
+ 
+ #define CHECK_POINTER(object)                                  \
+     if (!object) {                                             \
+-        TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr"); \
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "nullptr");        \
+         return;                                                \
+     }
+ 
+diff --git a/services/abilitymgr/src/mission/mission_data_storage.cpp b/services/abilitymgr/src/mission/mission_data_storage.cpp
+index ad2572685b8d11fa28dfb5c460ae53ce1a1b0494..c205ce2c96ed613fd4013052c4cca0724812003a 100644
+--- a/services/abilitymgr/src/mission/mission_data_storage.cpp
++++ b/services/abilitymgr/src/mission/mission_data_storage.cpp
+@@ -121,7 +121,7 @@ void MissionDataStorage::DeleteMissionInfo(int missionId)
+ void MissionDataStorage::SaveMissionSnapshot(int32_t missionId, const MissionSnapshot& missionSnapshot)
+ {
+ #ifdef SUPPORT_SCREEN
+-    TAG_LOGI(AAFwkTag::ABILITYMGR, "save snapshot from cache, missionId = %{public}d", missionId);
++    TAG_LOGI(AAFwkTag::ABILITYMGR, "snapshot: save snapshot from cache, missionId = %{public}d", missionId);
+     SaveCachedSnapshot(missionId, missionSnapshot);
+     SaveSnapshotFile(missionId, missionSnapshot);
+     TAG_LOGI(AAFwkTag::ABILITYMGR, "delete snapshot from cache, missionId = %{public}d", missionId);
+diff --git a/services/abilitymgr/src/utils/extension_permissions_util.cpp b/services/abilitymgr/src/utils/extension_permissions_util.cpp
+index 361a82d5d02d68646451f3b96d4bc7fd5693f6ec..f0df6b46ae4ff47bc8c19a99648c82491572b0fa 100644
+--- a/services/abilitymgr/src/utils/extension_permissions_util.cpp
++++ b/services/abilitymgr/src/utils/extension_permissions_util.cpp
+@@ -16,6 +16,7 @@
+ #include "utils/extension_permissions_util.h"
+ 
+ #include "hilog_tag_wrapper.h"
++#include "hilog_wrapper.h"
+ #include "permission_verification.h"
+ 
+ namespace OHOS {
+diff --git a/services/appdfr/src/appfreeze_cpu_freq_manager.cpp b/services/appdfr/src/appfreeze_cpu_freq_manager.cpp
+index 9602fafa9f221f52414bdefaac8d47b065886ad6..743470dfa350b2cccaa49a38664dc9144b600670 100644
+--- a/services/appdfr/src/appfreeze_cpu_freq_manager.cpp
++++ b/services/appdfr/src/appfreeze_cpu_freq_manager.cpp
+@@ -454,12 +454,12 @@ bool AppfreezeCpuFreqManager::IsContainHalfData(const std::string &key, CpuDataP
+     std::lock_guard<ffrt::mutex> lock(freezeInfoMutex_);
+     auto it = cpuInfoMap_.find(key);
+     if (it == cpuInfoMap_.end()) {
+-        TAG_LOGI(AAFwkTag::APPDFR, "Not find warning fault, pid: %{public}d", pid);
++        TAG_LOGI(AAFwkTag::APPDFR, "Not find warning fault, pid:%{public}d", pid);
+         return false;
+     }
+     int warningPid = it->second.GetPid();
+     if (warningPid != pid) {
+-        TAG_LOGI(AAFwkTag::APPDFR, "Not find current pid:%{public}d, warning pid:%{public}d", pid, warningPid);
++        TAG_LOGI(AAFwkTag::APPDFR, "Not find current pid:%{public}d, warning pid:%{public}d.", pid, warningPid);
+         return false;
+     }
+     cpuData = it->second;
+diff --git a/services/appdfr/src/appfreeze_manager.cpp b/services/appdfr/src/appfreeze_manager.cpp
+index 606727abdd64a7c786618ba4bd1eb289e5d7c81a..0a37a317045622a01041daa33fad92fcd485402d 100644
+--- a/services/appdfr/src/appfreeze_manager.cpp
++++ b/services/appdfr/src/appfreeze_manager.cpp
+@@ -419,7 +419,7 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
+     std::set<int> asyncPids;
+     std::set<int> syncPids = GetBinderPeerPids(binderInfo, params, asyncPids, terminalBinder);
+     if (syncPids.empty()) {
+-        binderInfo +="PeerBinder pids is empty\n";
++        binderInfo += "PeerBinder pids is empty\n";
+     }
+     for (auto& pidTemp : syncPids) {
+         TAG_LOGI(AAFwkTag::APPDFR, "PeerBinder pidTemp pids:%{public}d", pidTemp);
+diff --git a/services/appdfr/src/appfreeze_util.cpp b/services/appdfr/src/appfreeze_util.cpp
+index 8db274c3d67f4fb647ebfc9cab6d6b29812711db..c52fa75d63736299d6df830abcaf5ab8f4fd76b6 100644
+--- a/services/appdfr/src/appfreeze_util.cpp
++++ b/services/appdfr/src/appfreeze_util.cpp
+@@ -87,6 +87,17 @@ std::string AppfreezeUtil::RoundToTwoDecimals(float value)
+     return ss.str();
+ }
+ 
++std::string AppfreezeUtil::FreezePathToRealPath(const std::string& filePath)
++{
++    std::string realPath;
++    if (!OHOS::PathToRealPath(filePath, realPath)) {
++        TAG_LOGE(AAFwkTag::APPDFR, "pathToRealPath failed, file:%{public}s, errno:%{public}d",
++            filePath.c_str(), errno);
++        return "";
++    }
++    return realPath;
++}
++
+ int AppfreezeUtil::GetCpuCount()
+ {
+     std::string procStatPath = PROC_STAT_PATH;
+@@ -119,17 +130,6 @@ int AppfreezeUtil::GetCpuCount()
+     return cpuCount;
+ }
+ 
+-std::string AppfreezeUtil::FreezePathToRealPath(const std::string& filePath)
+-{
+-    std::string realPath;
+-    if (!OHOS::PathToRealPath(filePath, realPath)) {
+-        TAG_LOGE(AAFwkTag::APPDFR, "pathToRealPath failed, file:%{public}s, errno:%{public}d",
+-            filePath.c_str(), errno);
+-        return "";
+-    }
+-    return realPath;
+-}
+-
+ int32_t AppfreezeUtil::GetUidByPid(const int32_t pid)
+ {
+     std::string pidStatusPath = "/proc/" + std::to_string(pid) + "/status";
+diff --git a/services/appmgr/include/app_lifecycle_deal.h b/services/appmgr/include/app_lifecycle_deal.h
+index ca910ff74b8f8ade79191f1f397982a60fbf8743..650eba77b5684fd3ebf92d0c89c7fe78c7281d2b 100644
+--- a/services/appmgr/include/app_lifecycle_deal.h
++++ b/services/appmgr/include/app_lifecycle_deal.h
+@@ -211,6 +211,7 @@ public:
+      * UpdateConfiguration, ANotify application update system environment changes.
+      *
+      * @param config, System environment change parameters.
++     * @param reason, Identify config change scene.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+     int32_t UpdateConfiguration(const Configuration &config,
+diff --git a/services/appmgr/include/app_mgr_service_inner.h b/services/appmgr/include/app_mgr_service_inner.h
+index a13336af36b6f6b5f7b10cb8721bbf57e9684e7b..8d9994b5dd5e0cc1320566d5845503eeda7aa6db 100644
+--- a/services/appmgr/include/app_mgr_service_inner.h
++++ b/services/appmgr/include/app_mgr_service_inner.h
+@@ -1353,7 +1353,7 @@ public:
+     /**
+      * Elevate the current process to be a candidate master process.
+      *
+-     * @param isInsertToHead Whether inset current process to the head of candidate master process list.
++     * @param isInsertToHead Whether insert current process to the head of candidate master process list.
+      * @return Return ERR_OK if success, others fail.
+      */
+     int32_t PromoteCurrentToCandidateMasterProcess(bool isInsertToHead);
+@@ -1630,6 +1630,7 @@ public:
+ 
+     int32_t KillChildProcessByPid(int32_t pid);
+ 
++    void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName);
+     /**
+      * Preload extension process.
+      *
+@@ -1640,8 +1641,6 @@ public:
+      */
+     virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
+ 
+-    void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName);
+-
+ private:
+     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
+         const int appIndex = 0);
+@@ -2180,6 +2179,7 @@ private:
+     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
+     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(std::shared_ptr<ApplicationInfo> appInfo,
+         const std::string &processName, const BundleInfo &bundleInfo);
++
+     void AddUIExtensionBindItem(
+         std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
+     void RemoveUIExtensionBindItem(std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
+@@ -2223,7 +2223,6 @@ private:
+     sptr<IStartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
+     ffrt::mutex configurationObserverLock_;
+     std::vector<ConfigurationObserverWithUserId> configurationObservers_;
+-
+ #ifdef SUPPORT_SCREEN
+     sptr<WindowFocusChangedListener> focusListener_;
+     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
+diff --git a/services/appmgr/include/app_running_manager.h b/services/appmgr/include/app_running_manager.h
+index 1948252d3cb41ae9b3c550bef063001557a2c38b..c46eb4eff5d8e534d87f31d6db8ff27cf5a301c6 100644
+--- a/services/appmgr/include/app_running_manager.h
++++ b/services/appmgr/include/app_running_manager.h
+@@ -446,7 +446,6 @@ public:
+     
+     int32_t AssignRunningProcessInfoByAppRecord(
+         std::shared_ptr<AppRunningRecord> appRecord, AppExecFwk::RunningProcessInfo &info) const;
+-
+     void HandleChildRelation(
+         std::shared_ptr<ChildProcessRecord> childRecord, std::shared_ptr<AppRunningRecord> appRecord);
+     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForUIExtension(
+diff --git a/services/appmgr/include/app_state_observer_manager.h b/services/appmgr/include/app_state_observer_manager.h
+index 656da72f9cec7c63374a59b0103ed418fbf036eb..b56de0c87c4105b84b6be34486fe56b1ca00557e 100644
+--- a/services/appmgr/include/app_state_observer_manager.h
++++ b/services/appmgr/include/app_state_observer_manager.h
+@@ -76,10 +76,10 @@ public:
+     void OnProcessStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord,
+         bool isFromWindowFocusChanged = false, bool isByCall = false);
+     void OnProcessBindingRelationChanged(const std::shared_ptr<AppRunningRecord> &appRecord,
+-                                         const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation);
++        const UIExtensionProcessBindInfo &bindInfo, int32_t bindingRelation);
+     void OnWindowShow(const std::shared_ptr<AppRunningRecord> &appRecord);
+     void OnWindowHidden(const std::shared_ptr<AppRunningRecord> &appRecord);
+-    void OnRenderProcessCreated(const std::shared_ptr<RenderRecord> &RenderRecord, const bool isPreload);
++    void OnRenderProcessCreated(const std::shared_ptr<RenderRecord> &renderRecord, const bool isPreload);
+ #ifdef SUPPORT_CHILD_PROCESS
+     void OnChildProcessCreated(std::shared_ptr<ChildProcessRecord> childRecord);
+ #endif // SUPPORT_CHILD_PROCESS
+@@ -106,7 +106,7 @@ private:
+     void HandleStateChangedNotifyObserver(const AbilityStateData abilityStateData, bool isAbility,
+         bool isFromWindowFocusChanged, BundleType bundleType = BundleType::APP);
+     void HandleOnAppProcessCreated(const std::shared_ptr<AppRunningRecord> &appRecord, bool isPreload);
+-    void HandleOnRenderProcessCreated(const std::shared_ptr<RenderRecord> &RenderRecord, const bool isPreload);
++    void HandleOnRenderProcessCreated(const std::shared_ptr<RenderRecord> &renderRecord, const bool isPreload);
+ #ifdef SUPPORT_CHILD_PROCESS
+     void HandleOnChildProcessCreated(std::shared_ptr<ChildProcessRecord> childRecord);
+ #endif // SUPPORT_CHILD_PROCESS
+diff --git a/services/appmgr/src/app_running_manager.cpp b/services/appmgr/src/app_running_manager.cpp
+index ee5300d53fb6bec418d281c375898f4c135d2252..11d8fd60d8fbeab398310fa87414917edbf4e035 100644
+--- a/services/appmgr/src/app_running_manager.cpp
++++ b/services/appmgr/src/app_running_manager.cpp
+@@ -1251,11 +1251,12 @@ void AppRunningManager::ExecuteConfigurationTask(const BackgroundAppInfo& info,
+         if (appRecord == nullptr) {
+             continue;
+         }
+-        bool userIdFlag = (userId == -1 || appRecord->GetUid() / BASE_USER_RANGE == 0
+-            || appRecord->GetUid() / BASE_USER_RANGE == userId);
++        bool userIdFlag = (userId == -1 || appRecord->GetUid() / BASE_USER_RANGE == 0 ||
++                           appRecord->GetUid() / BASE_USER_RANGE == userId);
+         if (!userIdFlag) {
+             continue;
+         }
++
+         if (info.bandleName == appRecord->GetBundleName() && info.appIndex == appRecord->GetAppIndex() && item.second
+             && appRecord->GetState() == ApplicationState::APP_STATE_BACKGROUND) {
+             if (UpdateConfiguration(appRecord, Rosen::ConfigMode::COLOR_MODE, reason)) {
+diff --git a/services/appmgr/src/app_running_record.cpp b/services/appmgr/src/app_running_record.cpp
+index 69c1e576d49cf8f8577625662f482f1ee3dcaa6a..9954441a3840954c152e852ff030e8be63a9bc4b 100644
+--- a/services/appmgr/src/app_running_record.cpp
++++ b/services/appmgr/src/app_running_record.cpp
+@@ -2038,8 +2038,8 @@ bool AppRunningRecord::IsAbilitiesBackground()
+     }
+     return true;
+ }
+-#ifdef SUPPORT_SCREEN
+ 
++#ifdef SUPPORT_SCREEN
+ void AppRunningRecord::ChangeWindowVisibility(const sptr<OHOS::Rosen::WindowVisibilityInfo> &info)
+ {
+     if (info == nullptr) {
+diff --git a/services/common/include/event_report.h b/services/common/include/event_report.h
+index 83b1260902c2b2bc58c6bd8ae6df795f25e9fc70..e2fe76957861ff1daba089c4f993c24502aba252 100644
+--- a/services/common/include/event_report.h
++++ b/services/common/include/event_report.h
+@@ -44,7 +44,6 @@ struct EventInfo {
+     int64_t duration = 0;
+     int32_t reason = -1;
+     int32_t subReason = -1;
+-    int32_t exitReason = -1;
+     int32_t preloadMode = 0;
+     int32_t appIndex = -1;
+     int32_t persistentId = 0;
+@@ -60,13 +59,14 @@ struct EventInfo {
+     std::string callerBundleName;
+     std::string callerVersionName;
+     std::string uri;
++    int32_t exitReason = -1;
+     std::string errReason;
+     std::string lifeCycle;
+     std::string intentName;
+     std::string errMsg;
++    std::string exitMsg = "";
+     std::string componentName;
+     std::string partitionName;
+-    std::string exitMsg = "";
+     uint64_t remainPartitionSize;
+     std::vector<std::string> fileOfFolderPath;
+     std::vector<uint64_t> fileOfFolderSize;
+diff --git a/services/common/src/app_utils.cpp b/services/common/src/app_utils.cpp
+index 3d332f40200cebc659d917128c4ae6eaae44ee93..2fc05b2dc1e5cdc909e865fb3e2464f5e3398cce 100644
+--- a/services/common/src/app_utils.cpp
++++ b/services/common/src/app_utils.cpp
+@@ -83,9 +83,9 @@ constexpr const char* CONNECT_SUPPORT_CROSS_USER = "const.abilityms.connect_supp
+ constexpr const char* SUPPORT_APP_SERVICE_EXTENSION = "const.abilityms.support_app_service";
+ constexpr const char* PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED = "const.product.preload_application.setting.enabled";
+ constexpr const char* FORBID_START = "persist.sys.abilityms.forbid_start";
+-constexpr const char* RESTART_APP_WITH_WINDOW = "persist.sys.abilityms.restart_app_with_window";
+ constexpr const char* ALLOW_DEBUG_PERMISSION = "persist.sys.abilityms.allow_debug_permission";
+ constexpr const char* START_ABILITY_IN_CURRENT_PROCESS = "persist.sys.abilityms.start_ability_in_current_process";
++constexpr const char* RESTART_APP_WITH_WINDOW = "persist.sys.abilityms.restart_app_with_window";
+ // Support prepare terminate
+ constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
+ constexpr const char* PREPARE_TERMINATE_ENABLE_PARAMETER = "persist.sys.prepare_terminate";
+diff --git a/services/common/src/event_report.cpp b/services/common/src/event_report.cpp
+index 00b297281e2fb3966e6d7925e8617b5fd81799f2..6e59b1acebe16c7ab88330cf2ae65aba4cf89bb8 100644
+--- a/services/common/src/event_report.cpp
++++ b/services/common/src/event_report.cpp
+@@ -67,14 +67,14 @@ constexpr const char *EVENT_KEY_LIFE_CYCLE = "LIFE_CYCLE";
+ constexpr const char *EVENT_KEY_PERSISTENT_ID = "PERSISTENT_ID";
+ constexpr const char *EVENT_KEY_INTENT_NAME = "INTENT_NAME";
+ constexpr const char *EVENT_KEY_ERROR_MESSAGE = "ERROR_MESSAGE";
++constexpr const char *EVENT_KEY_CALLER_PID = "CALLER_PID";
++constexpr const char *EVENT_KEY_EXIT_MESSAGE = "EXIT_MESSAGE";
++constexpr const char *EVENT_KEY_SHOULD_KILL_FOREGROUND = "SHOULD_KILL_FOREGROUND";
+ constexpr const char *EVENT_FILE_OR_FOLDER_PATH = "FILE_OR_FOLDER_PATH";
+ constexpr const char *EVENT_FILE_OR_FOLDER_SIZE = "FILE_OR_FOLDER_SIZE";
+ constexpr const char *EVENT_COMPONENT_NAME_KEY = "COMPONENT_NAME";
+ constexpr const char *EVENT_PARTITION_NAME_KEY = "PARTITION_NAME";
+ constexpr const char *EVENT_REMAIN_PARTITION_SIZE_KEY = "REMAIN_PARTITION_SIZE";
+-constexpr const char *EVENT_KEY_CALLER_PID = "CALLER_PID";
+-constexpr const char *EVENT_KEY_EXIT_MESSAGE = "EXIT_MESSAGE";
+-constexpr const char *EVENT_KEY_SHOULD_KILL_FOREGROUND = "SHOULD_KILL_FOREGROUND";
+ 
+ constexpr const int32_t DEFAULT_EXTENSION_TYPE = -1;
+ }
+diff --git a/services/dataobsmgr/src/dataobs_mgr_service.cpp b/services/dataobsmgr/src/dataobs_mgr_service.cpp
+index 4c52f950e6fe94d09e89a0bcf76c2b0ef7ea338f..7d429d42d390d110f75500e6275892b560b641a1 100644
+--- a/services/dataobsmgr/src/dataobs_mgr_service.cpp
++++ b/services/dataobsmgr/src/dataobs_mgr_service.cpp
+@@ -337,6 +337,7 @@ std::string DataObsMgrService::GetCallingName(uint32_t callingTokenid)
+ {
+     std::string callingName;
+     auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callingTokenid);
++
+     int result = -1;
+     if (tokenType == Security::AccessToken::TOKEN_HAP) {
+         Security::AccessToken::HapTokenInfo tokenInfo;
+@@ -388,6 +389,7 @@ std::vector<std::string> DataObsMgrService::GetGroupInfosFromCache(const std::st
+         return {};
+     }
+     bool res = bmsHelper->QueryDataGroupInfos(bundleName, userId, infos);
++
+     if (!res) {
+         LOG_WARN("query group infos failed for bundle:%{public}s, user:%{public}d", bundleName.c_str(), userId);
+         return {};
+@@ -403,6 +405,7 @@ std::vector<std::string> DataObsMgrService::GetGroupInfosFromCache(const std::st
+         return it->second;
+     }
+     if (groupsIdCache_.size() >= CACHE_SIZE_THRESHOLD) {
++
+         LOG_INFO("groups id cache is full:%{public}zu", groupsIdCache_.size());
+         groupsIdCache_.pop_front();
+     }
+@@ -418,7 +421,7 @@ bool DataObsMgrService::VerifyUriPermission(Uri &uri, const uint32_t tokenId,
+     std::string errMsg = schemeType + method;
+     auto invalidUri = (schemeType == RELATIONAL_STORE) ? DATAOBS_RDB_INVALID_URI : DATAOBS_PREFERENCE_INVALID_URI;
+     if (callingName.empty()) {
+-        errMsg += "callingNmae is empty";
++        errMsg += "callingName is empty";
+         DataShare::DataSharePermission::ReportExtensionFault(invalidUri, tokenId, callingName, errMsg);
+         return true;
+     }
+diff --git a/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets b/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets
+index 577e3de2068b61a8786478e4acc20b7b544b2513..fdb035acacacb95cfc1b547480ebb2a754e0a680 100644
+--- a/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets
++++ b/services/dialog_ui/ams_system_dialog/entry/src/main/ets/pages/selectorPhoneDialog.ets
+@@ -129,8 +129,8 @@ struct SelectorPhoneDialog {
+         return;
+       }
+       console.log(this.TAG + ' startAbility finish, data: ' + JSON.stringify(data));
+-      globalThis.selectExtensionContext.terminateSelf();
+     });
++    globalThis.selectExtensionContext.terminateSelf();
+   }
+ 
+   getHapListStyle() {
+diff --git a/tools/aa/include/ability_command.h b/tools/aa/include/ability_command.h
+index c0a2d2343e9afae304ede58295c19d7e3d1fc676..247f5ee150accf1201324d9671b7fc8a308280d2 100644
+--- a/tools/aa/include/ability_command.h
++++ b/tools/aa/include/ability_command.h
+@@ -161,6 +161,7 @@ const std::string HELP_MSG_APPDEBUG_APP_DEBUG =
+     "  -g, --get                                   get wait debug mode application bundle name and persist flag\n";
+ 
+ const std::string HELP_MSG_FORCE_STOP = "usage: aa force-stop <bundle-name> [-p pid] [-r kill-reason]\n";
++const std::string HELP_MSG_BLOCK_ABILITY = "usage: aa block-ability <abilityrecordid>\n";
+ const std::string HELP_MSG_FORCE_TIMEOUT =
+     "usage: aa force-timeout <ability-name> <INITIAL|INACTIVE|COMMAND|FOREGROUND|BACKGROUND|TERMINATING>\n"
+     "usage: aa force-timeout clean.";
+diff --git a/tools/aa/src/ability_command.cpp b/tools/aa/src/ability_command.cpp
+index bea1eb53315bd439521b4d8bf94a82f12dbbaa99..26875a357da1387ac30d8a7f176dd3e31fc44400 100644
+--- a/tools/aa/src/ability_command.cpp
++++ b/tools/aa/src/ability_command.cpp
+@@ -1022,7 +1022,7 @@ ErrCode AbilityManagerShellCommand::RunAsSendMemoryLevelCommand()
+     std::string pidParse = "";
+     std::string memoryLevelParse = "";
+     ParsePidMemoryLevel(pidParse, memoryLevelParse);
+-    if(pidParse.empty() || memoryLevelParse.empty()) {
++    if (pidParse.empty() || memoryLevelParse.empty()) {
+         resultReceiver_.append(HELP_MSG_SEND_MEMORY_LEVEL + "\n");
+         return OHOS::ERR_INVALID_VALUE;
+     }
+@@ -1742,7 +1742,7 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
+                     TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -s' no arg", cmd_.c_str());
+ 
+                     resultReceiver_.append("error: option ");
+-                    resultReceiver_.append("' requires a value.\n");
++                    resultReceiver_.append("requires a value.\n");
+ 
+                     result = OHOS::ERR_INVALID_VALUE;
+                     break;
+@@ -2135,7 +2135,7 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
+                 break;
+             }
+             case 'c': {
+-                // 'aa start -c' for xts use
++                // 'aa start -c'
+                 // set ability launch reason = continuation
+                 isContinuation = true;
+                 break;
