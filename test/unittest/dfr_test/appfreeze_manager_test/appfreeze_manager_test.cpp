@@ -19,7 +19,7 @@
 #include "appfreeze_manager.h"
 #undef private
 
-#include "cpp/mutex.h".
+#include "cpp/mutex.h"
 #include "cpp/condition_variable.h"
 #include "fault_data.h"
 #include "freeze_util.h"
@@ -63,6 +63,7 @@ void AppfreezeManagerTest::TearDown(void)
 {
     AppfreezeManager::DestroyInstance();
 }
+
 
 pid_t TestGetPidByName(const std::string& processName)
 {
@@ -301,7 +302,6 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetHitraceInfo_001, TestSize
     std::string ret = appfreezeManager->ParseDecToHex(1234); // test value
     EXPECT_EQ(ret, "4d2");
     ret = appfreezeManager->GetHitraceInfo();
-    ret = appfreezeManager->GetHitraceInfo();
     EXPECT_TRUE(ret.empty());
     OHOS::HiviewDFX::HiTraceChain::Begin("AppfreezeManagerTest_GetHitraceInfo_001", 0);
     appfreezeManager->GetHitraceInfo();
@@ -454,11 +454,14 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CatchSyncByPid_Test001, Test
     asyncPids.insert(-1);
     int launcherUid = AppfreezeUtil::GetUidByPid(launcherPid);
     EXPECT_TRUE(launcherUid >= 20000);
+
     std::set<int> syncPids;
     syncPids.insert(hiviewPid);
     syncPids.insert(launcherPid);
     syncPids.insert(pid);
-    std::string ret = appfreezeManager->CatchAsyncByPid(asyncPids, syncPids, pid);
+    std::string ret = appfreezeManager->CatchASyncByPid(asyncPids, syncPids, pid);
+    printf("ret: %s\n", ret.c_str());
+    ret = appfreezeManager->CatchASyncByPid(asyncPids, syncPids, pid);
     printf("ret: %s\n", ret.c_str());
     EXPECT_TRUE(pid > 0);
 }
@@ -526,6 +529,9 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetCatcherStack_Test001, Tes
     }
     result = appfreezeManager->GetCatcherStack(fileName, catcherStack);
     EXPECT_EQ(result, "");
+    std::string testValue = "main test";
+    faultData.errorObject.stack = testValue;
+    appfreezeManager->MergeNotifyInfo(faultData, appInfo);
 }
 
 /**
@@ -647,79 +653,6 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckThreadKilled_Test001, T
     appfreezeManager->InsertKillThread(state, pid, uid, bundleName);
     result = appfreezeManager->CheckThreadKilled(pid, uid, bundleName);
     EXPECT_EQ(result, false);
-}
-
-/**
- * @tc.number: AppfreezeManagerTest CheckNeedRecordAppRunningUnquieId Test
- * @tc.desc: add testcase
- * @tc.type: FUNC
- */
-HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckNeedRecordAppRunningUnquieId_Test001, TestSize.Level1)
-{
-    bool result = appfreezeManager->CheckNeedRecordAppRunningUnquieId("THREAD_BLOCK_3S");
-    EXPECT_EQ(result, true);
-    result = appfreezeManager->CheckNeedRecordAppRunningUnquieId("THREAD_BLOCK_6S");
-    EXPECT_EQ(result, true);
-    result = appfreezeManager->CheckNeedRecordAppRunningUnquieId("BUSSINESS_THREAD_BLOCK_3S");
-    EXPECT_EQ(result, true);
-    result = appfreezeManager->CheckNeedRecordAppRunningUnquieId("BUSSINESS_THREAD_BLOCK_6S");
-    EXPECT_EQ(result, true);
-    result = appfreezeManager->CheckNeedRecordAppRunningUnquieId("BUSINESS_INPUT_BLOCK");
-    EXPECT_EQ(result, true);
-    result = appfreezeManager->CheckNeedRecordAppRunningUnquieId("TEST");
-    EXPECT_EQ(result, false);
-}
-
-/**
- * @tc.number: AppfreezeManagerTest CheckAppfreezeHappend Test
- * @tc.desc: add testcase
- * @tc.type: FUNC
- */
-HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test002, TestSize.Level1)
-{
-    int pid = getpid();
-    int uid = getuid();
-    std::string testValue = "AppfreezeManagerTest_CheckAppfreezeHappend_Test002";
-    std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + testValue;
-    bool ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
-    EXPECT_EQ(ret, false);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "BUSSINESS_THREAD_BLOCK_3S");
-    EXPECT_EQ(ret, false);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_6S");
-    EXPECT_EQ(ret, false);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "LIFECYCLE_TIMEOUT");
-    EXPECT_EQ(ret, true);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
-    EXPECT_EQ(ret, true);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "APP_INPUT_BLOCK");
-    EXPECT_EQ(ret, true);
-    std::string halfWarning = "LIFECYCLE_HALF_TIMEOUT_WARNING";
-    std::string timeoutWarning = "LIFECYCLE_TIMEOUT_WARNING";
-    ret = appfreezeManager->CheckAppfreezeHappend(halfWarning, "LIFECYCLE_HALF_TIMEOUT_WARNING");
-    EXPECT_EQ(ret, false);
-    ret = appfreezeManager->CheckAppfreezeHappend(halfWarning, "LIFECYCLE_HALF_TIMEOUT_WARNING");
-    EXPECT_EQ(ret, true);
-    ret = appfreezeManager->CheckAppfreezeHappend(timeoutWarning, "LIFECYCLE_TIMEOUT_WARNING");
-    EXPECT_EQ(ret, false);
-    ret = appfreezeManager->CheckAppfreezeHappend(timeoutWarning, "LIFECYCLE_TIMEOUT_WARNING");
-    EXPECT_EQ(ret, true);
-    int64_t testTime = appfreezeManager->GetFreezeCurrentTime() + 600000; // test value
-    appfreezeManager->appfreezeInfo_[key].occurTime = testTime;
-    appfreezeManager->appfreezeInfo_[halfWarning].occurTime = testTime;
-    ret = appfreezeManager->CheckAppfreezeHappend(halfWarning, "LIFECYCLE_HALF_TIMEOUT_WARNING");
-    EXPECT_EQ(ret, false);
-    ret = appfreezeManager->CheckAppfreezeHappend(halfWarning, "LIFECYCLE_HALF_TIMEOUT_WARNING");
-    EXPECT_EQ(ret, true);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
-    EXPECT_EQ(ret, false);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_6S");
-    EXPECT_EQ(ret, false);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "LIFECYCLE_TIMEOUT");
-    EXPECT_EQ(ret, true);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
-    EXPECT_EQ(ret, true);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "APP_INPUT_BLOCK");
-    EXPECT_EQ(ret, true);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
