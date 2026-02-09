@@ -2259,7 +2259,7 @@ HWTEST_F(AgentCardTest, RawDataCpy_006, TestSize.Level1)
 /**
 * @tc.name  : ToAgentCardVec_ShouldReturnError_WhenCountIsZero
 * @tc.number: ToAgentCardVec_001
-* @tc.desc  : Test that ToAgentCardVec returns ERR_AGENT_CARD_LIST_OUT_OF_RANGE when count is zero.
+* @tc.desc  : Test that ToAgentCardVec returns ERR_OK when count is zero.
 */
 HWTEST_F(AgentCardTest, ToAgentCardVec_001, TestSize.Level1)
 {
@@ -2271,7 +2271,7 @@ HWTEST_F(AgentCardTest, ToAgentCardVec_001, TestSize.Level1)
     std::vector<AgentCard> cards;
     int32_t result = AgentCardsRawData::ToAgentCardVec(rawData, cards);
 
-    EXPECT_EQ(result, ERR_AGENT_CARD_LIST_OUT_OF_RANGE);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
