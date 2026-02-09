@@ -21,7 +21,6 @@
 #include <sys/syscall.h>
 #include <sys/stat.h>
 #include <fstream>
-#include <sstream>
 
 #include "faultloggerd_client.h"
 #include "file_ex.h"
@@ -195,11 +194,11 @@ int AppfreezeManager::MergeNotifyInfo(FaultData& faultNotifyData, const Appfreez
     std::string catcherStack;
     faultNotifyData.errorObject.message += "\nCatche stack trace start time: " +
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
-    uint64_t dumpStartTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::system_clock::now().time_since_epoch()).count();
+    uint64_t dumpStartTime = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count());
     std::string resultMsg;
-    if (faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING ||
-        faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
+   if (faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING ||
+        faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT_WARNING) {
         catcherStack += CatcherStacktrace(appInfo.pid, faultNotifyData.errorObject.stack);
     } else {
         std::pair<std::string, std::string> catchResult =
@@ -393,7 +392,7 @@ FaultData AppfreezeManager::GetFaultNotifyData(const FaultData& faultData, int p
     faultNotifyData.errorObject.stack = faultData.errorObject.stack;
     faultNotifyData.faultType = FaultDataType::APP_FREEZE;
     faultNotifyData.eventId = faultData.eventId;
-    if (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK || FaultData.tid <= 0) { 
+    if (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK || faultData.tid <= 0) {
         faultNotifyData.tid = pid;
     } else {
         faultNotifyData.tid = faultData.tid;
@@ -443,7 +442,7 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
         }
         binderInfo += content;
     }
-    binderInfo += CatchAsyncByPid(asyncPids, syncPids, pid);
+    binderInfo += CatchASyncByPid(asyncPids, syncPids, pid);
     std::string fileName = faultData.errorObject.name + "_" +
         AbilityRuntime::TimeUtil::FormatTime("%Y%m%d%H%M%S") + "_" + std::to_string(pid) + "_binder";
     std::string fullStackPath = WriteToFile(fileName, binderInfo);
@@ -453,13 +452,13 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     return ret;
 }
 
-std::string AppfreezeManager::CatchAsyncByPid(const std::set<int> &asyncPids, const std::set<int> &syncPids, int pid)
+std::string AppfreezeManager::CatchASyncByPid(const std::set<int> &asyncPids, const std::set<int> &syncPids, int pid)
 {
     std::string binderInfo;
     for (auto& pidTemp : asyncPids) {
         int uid = AppfreezeUtil::GetUidByPid(pidTemp);
         if (uid < 0 || uid >= MIN_APP_UID) {
-            TAG_LOGI(AAFwkTag::APPDFR, "Async stack, skip current pid: %{public}d", pid);
+            TAG_LOGI(AAFwkTag::APPDFR, "Async stack, skip current pid:%{public}d, uid:%{public}d", pidTemp, uid);
             continue;
         }
         TAG_LOGI(AAFwkTag::APPDFR, "AsyncBinder pidTemp pids:%{public}d", pidTemp);
@@ -493,7 +492,7 @@ std::string AppfreezeManager::GetHitraceInfo()
         ", parent_span_id: " << ParseDecToHex(hitraceId.GetParentSpanId()) <<
         ", trace_flag: " << ParseDecToHex(hitraceId.GetFlags());
     std::string hiTraceIdInfo = hitraceIdStr.str();
-    TAG_LOGW(AAFwkTag::APPDFR, "hitraceIdStr:%{public}s", hiTraceIdInfo.c_str());
+    TAG_LOGW(AAFwkTag::APPDFR, "hitraceIdStr: %{public}s", hiTraceIdInfo.c_str());
     return hitraceIdStr.str();
 #endif
     return "";
@@ -805,7 +804,7 @@ bool AppfreezeManager::IsProcessDebug(int32_t pid, std::string bundleName)
     std::lock_guard<ffrt::mutex> lock(freezeFilterMutex_);
     auto it = appfreezeFilterMap_.find(bundleName);
     if (it != appfreezeFilterMap_.end() && it->second.pid == pid) {
-        bool result = it->second.state == AppFreezeState::APPFREEZE_STATE_CANCELED;
+        bool result = (it->second.state == AppFreezeState::APPFREEZE_STATE_CANCELING);
         TAG_LOGW(AAFwkTag::APPDFR, "AppfreezeFilter: %{public}d, "
             "bundleName=%{public}s, pid:%{public}d, state:%{public}d, g_betaVersion:%{public}d,"
             " g_developMode:%{public}d",
@@ -907,12 +906,13 @@ bool AppfreezeManager::IsNeedIgnoreFreezeEvent(const std::string& key, const std
     if (state == AppFreezeState::APPFREEZE_STATE_FREEZE) {
         auto diff = GetFreezeCurrentTime() - GetLastOccurTime(key);
         int reportTimes = GetReportTimes(key);
-        TAG_LOGW(AAFwkTag::APPDFR, "durationTime: %{public}" PRId64 " eventName: %{public}s "
-            "reportTimes: %{public}d key: %{public}s",
-            diff, eventName.c_str(), reportTimes, key.c_str());
-        if (diff >= 0 && diff <= FREEZE_TIME_LIMIT) {
-            return reportTimes > maxReportTimes;
+        if (diff >= FREEZE_TIME_LIMIT || reportTimes <= maxReportTimes) {
+            TAG_LOGW(AAFwkTag::APPDFR, "durationTime: %{public}" PRId64 " eventName: %{public}s "
+                "reportTimes: %{public}d key: %{public}s",
+                diff, eventName.c_str(), reportTimes, key.c_str());
+            return false;
         }
+        return true;
     }
     SetFreezeState(key, AppFreezeState::APPFREEZE_STATE_FREEZE, eventName);
     TAG_LOGI(AAFwkTag::APPDFR, "Set freeze info, eventName: %{public}s key: %{public}s",
