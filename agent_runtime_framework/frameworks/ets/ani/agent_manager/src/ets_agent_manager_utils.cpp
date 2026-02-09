@@ -26,11 +26,11 @@ namespace OHOS {
 namespace AgentManagerEts {
 namespace {
 constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
-constexpr const char *PROVIDER_IMPL_CLASS_NAME = "@ohos.app.agent.AgentCard.ProviderImpl";
-constexpr const char *CAPABILITIES_IMPL_CLASS_NAME = "@ohos.app.agent.AgentCard.CapabilitiesImpl";
-constexpr const char *AUTHENTICATION_IMPL_CLASS_NAME = "@ohos.app.agent.AgentCard.AuthenticationImpl";
-constexpr const char *SKILL_IMPL_CLASS_NAME = "@ohos.app.agent.AgentCard.SkillImpl";
-constexpr const char *AGENT_CARD_IMPL_CLASS_NAME = "@ohos.app.agent.AgentCard.AgentCardImpl";
+constexpr const char *PROVIDER_IMPL_CLASS_NAME = "application.AgentCard.ProviderImpl";
+constexpr const char *CAPABILITIES_IMPL_CLASS_NAME = "application.AgentCard.CapabilitiesImpl";
+constexpr const char *AUTHENTICATION_IMPL_CLASS_NAME = "application.AgentCard.AuthenticationImpl";
+constexpr const char *SKILL_IMPL_CLASS_NAME = "application.AgentCard.SkillImpl";
+constexpr const char *AGENT_CARD_IMPL_CLASS_NAME = "application.AgentCard.AgentCardImpl";
 }  // namespace
 
 ani_object CreateEtsProvider(ani_env *env, const Provider &provider)
@@ -92,7 +92,8 @@ ani_object CreateEtsCapabilities(ani_env *env, const Capabilities &capabilities)
         TAG_LOGE(AAFwkTag::SER_ROUTER, "new object failed: %{public}d", status);
         return nullptr;
     }
-    status = env->Object_SetPropertyByName_Boolean(object, "streaming", capabilities.streaming);
+    status = env->Object_SetPropertyByName_Ref(object, "streaming",
+        CreateBoolean(env, static_cast<ani_boolean>(capabilities.streaming)));
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "failed status:%{public}d", status);
         return nullptr;
