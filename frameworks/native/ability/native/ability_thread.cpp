@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,8 +15,8 @@
 
 #include "ability_thread.h"
 
+#include "fa_ability_thread_loader.h"
 #include "extension_ability_thread.h"
-#include "fa_ability_thread.h"
 #include "ui_ability_thread.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -40,13 +40,27 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     }
 
     sptr<AbilityThread> thread = nullptr;
+
+    // Stage 模型 PAGE 类型：直接创建 UIAbilityThread
     if (abilityInfo->type == AbilityType::PAGE && abilityInfo->isStageBasedModel) {
         thread = sptr<AbilityRuntime::UIAbilityThread>::MakeSptr();
-    } else if (abilityInfo->type == AbilityType::EXTENSION) {
-        thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
-    } else {
-        thread = sptr<AbilityRuntime::FAAbilityThread>::MakeSptr();
+        TAG_LOGI(AAFwkTag::ABILITY, "Create UIAbilityThread for Stage model");
     }
+    // Extension 组件：直接创建 ExtensionAbilityThread
+    else if (abilityInfo->type == AbilityType::EXTENSION) {
+        thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
+        TAG_LOGI(AAFwkTag::ABILITY, "Create ExtensionAbilityThread");
+    }
+    // FA 模型：动态加载 FAAbilityThread
+    else {
+        thread = CreateFAAbilityThreadDynamic();
+        if (thread == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Failed to create FAAbilityThread dynamically");
+            return;
+        }
+        TAG_LOGI(AAFwkTag::ABILITY, "Create FAAbilityThread (dynamically loaded)");
+    }
+
     if (thread == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null thread");
         return;
@@ -73,13 +87,27 @@ void AbilityThread::AbilityThreadMain(const std::shared_ptr<OHOSApplication> &ap
     }
 
     sptr<AbilityThread> thread = nullptr;
+
+    // Stage 模型 PAGE 类型：直接创建 UIAbilityThread
     if (abilityInfo->type == AbilityType::PAGE && abilityInfo->isStageBasedModel) {
         thread = sptr<AbilityRuntime::UIAbilityThread>::MakeSptr();
-    } else if (abilityInfo->type == AbilityType::EXTENSION) {
-        thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
-    } else {
-        thread = sptr<AbilityRuntime::FAAbilityThread>::MakeSptr();
+        TAG_LOGI(AAFwkTag::ABILITY, "Create UIAbilityThread for Stage model");
     }
+    // Extension 组件：直接创建 ExtensionAbilityThread
+    else if (abilityInfo->type == AbilityType::EXTENSION) {
+        thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
+        TAG_LOGI(AAFwkTag::ABILITY, "Create ExtensionAbilityThread");
+    }
+    // FA 模型：动态加载 FAAbilityThread
+    else {
+        thread = CreateFAAbilityThreadDynamic();
+        if (thread == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITY, "Failed to create FAAbilityThread dynamically");
+            return;
+        }
+        TAG_LOGI(AAFwkTag::ABILITY, "Create FAAbilityThread (dynamically loaded)");
+    }
+
     if (thread == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "null thread");
         return;
