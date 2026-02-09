@@ -640,7 +640,8 @@ ani_object CreateContextObject(ani_env* env, ani_class contextClass, std::shared
         TAG_LOGE(AAFwkTag::APPKIT, "null ctorMethod");
         return nullptr;
     }
-    std::unique_ptr<EtsBaseContext> etsContext = std::make_unique<EtsBaseContext>(nativeContext);
+    std::unique_ptr<ContextUtil::EtsBaseContext> etsContext =
+        std::make_unique<ContextUtil::EtsBaseContext>(nativeContext);
     auto workContext = new (std::nothrow) std::weak_ptr<Context>(etsContext->GetContext());
     if (workContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "workContext nullptr");
