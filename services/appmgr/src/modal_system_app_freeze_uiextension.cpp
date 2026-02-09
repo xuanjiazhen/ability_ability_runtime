@@ -41,7 +41,7 @@ const std::string FREEZE_WINDOW_WIDTH = "FREEZE_WINDOW_WIDTH";
 const std::string FREEZE_WINDOW_HEIGHT = "FREEZE_WINDOW_HEIGHT";
 const std::string START_BUNDLE_NAME = "startBundleName";
 const std::string APP_FREEZE_TOKEN = "freezeToken";
-const std::string APP_FREEZE_EVENT_NAME = "eventName";
+const std::string APP_FREEZE_EVENT_NAME = "eventName"; 
 const std::string APP_FREEZE_RUNNING_UNIQUE_ID = "appRunningUniqueId";
 constexpr int32_t INVALID_USERID = -1;
 constexpr int32_t MESSAGE_PARCEL_KEY_SIZE = 3;
@@ -73,10 +73,10 @@ void ModalSystemAppFreezeUIExtension::ProcessAppFreeze(bool focusFlag, const Fau
     }
     bool isAppFreezeDialog = name == AppFreezeType::THREAD_BLOCK_6S ||
         name == AppFreezeType::APP_INPUT_BLOCK || name == AppFreezeType::BUSINESS_INPUT_BLOCK;
-    TAG_LOGI(AAFwkTag::ABILITYMGR,
+     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "ProcessAppFreeze %{public}s is %{public}s pid:%{public}s eventName:%{public}s", bundleName.c_str(),
         focusFlag ? "focus" : "not focus", pid.c_str(), name.c_str());
-    if (focusFlag && isAppFreezeDialog) {
+     if (focusFlag && isAppFreezeDialog) {
         CreateModalUIExtension(pid, bundleName, faultData);
     } else if (callback && (faultType != FaultDataType::APP_FREEZE || !isAppFreezeDialog)) {
         callback();
