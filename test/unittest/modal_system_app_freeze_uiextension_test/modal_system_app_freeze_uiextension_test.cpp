@@ -42,7 +42,7 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
-
+..
     bool callbackCalled = false;
     void ResetCallbackFlag() { callbackCalled = false; }
     void CallbackFunction() { callbackCalled = true; }

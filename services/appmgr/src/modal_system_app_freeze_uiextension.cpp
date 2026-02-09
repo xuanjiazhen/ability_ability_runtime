@@ -29,7 +29,7 @@
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::Rosen;
-
+..
 namespace OHOS {
 namespace AppExecFwk {
 const std::string UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionType";

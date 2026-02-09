@@ -17,7 +17,7 @@
 
 #define private public
 #include "appfreeze_inner.h"
-#include "application_anr_listener.h"
+#include "application_anr_listener.h"..
 #undef private
 
 using namespace testing;
