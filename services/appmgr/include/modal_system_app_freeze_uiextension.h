@@ -43,16 +43,18 @@ public:
     virtual ~ModalSystemAppFreezeUIExtension();
 
     void ProcessAppFreeze(bool focusFlag, const FaultData &faultData, std::string pid, std::string bundleName,
-        std::function<void()> callback);
+        std::function<void()> callback, bool isDialogExist);
 
 private:
-    bool CreateModalUIExtension(std::string &pid, std::string &bundleName, const FaultData &faultData);
+    bool CreateModalUIExtension(std::string &pid, std::string &bundleName);
     bool CreateSystemDialogWant(
-        std::string &pid, std::string &bundleName, sptr<IRemoteObject> token, AAFwk::Want &want,
-        const FaultData &faultData);
+        std::string &pid, std::string &bundleName, sptr<IRemoteObject> token, AAFwk::Want &want);
 
 private:
+    bool lastFocusStatus = false;
+    uint64_t lastFreezeTime = 0;
     std::mutex appFreezeResultMutex_;
+    std::string lastFreezePid;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

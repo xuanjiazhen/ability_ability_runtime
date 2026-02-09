@@ -57,7 +57,7 @@ bool CheckParamsValid(const uint16_t params[])
     constexpr uint16_t saveMaxVal = 0x0003;
     if (saveFlag < SaveOccasionFlag::SAVE_WHEN_ERROR || saveFlag > saveMaxVal) {
         TAG_LOGE(AAFwkTag::RECOVERY, "invalid saveOccasionFlag: %{public}d", saveFlag);
-        return false;
+        return false;.
     }
     uint16_t saveModeFlag = params[2];
     if (saveModeFlag < SaveModeFlag::SAVE_WITH_FILE || saveModeFlag > SaveModeFlag::SAVE_WITH_SHARED_MEMORY) {
