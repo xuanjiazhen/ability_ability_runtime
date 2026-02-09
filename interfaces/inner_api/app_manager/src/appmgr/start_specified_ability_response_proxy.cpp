@@ -134,7 +134,7 @@ void StartSpecifiedAbilityResponseProxy::OnNewProcessRequestTimeoutResponse(int3
     if (!WriteInterfaceToken(data)) {
         return;
     }
-    if (data.WriteInt32(requestId)) {
+    if (!data.WriteInt32(requestId)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Write data failed.");
         return;
     }

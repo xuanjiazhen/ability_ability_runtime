@@ -159,7 +159,7 @@ public:
      */
     virtual int32_t GrantUriPermission(const std::vector<std::string> &uriVec, uint32_t flag, uint32_t targetTokenId,
         const std::string &targetBundleName) override;
-    
+
     /**
      * @brief revoke uri permission
      * @param tokenId the tokenId of target application.
