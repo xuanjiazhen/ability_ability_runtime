@@ -52,7 +52,10 @@ private:
         const FaultData &faultData);
 
 private:
+    bool lastFocusStatus = false;
+    uint64_t lastFreezeTime = 0;
     std::mutex appFreezeResultMutex_;
+    std::string lastFreezePid;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
