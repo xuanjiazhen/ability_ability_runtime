@@ -1452,9 +1452,7 @@ void EtsAbilityContext::OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_s
         return;
     }
     auto errCode = context->SetMissionLabel(label);
-    if (errCode != ERR_OK) {
-        errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode));
-    }
+    errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode));
     AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
 }
 
