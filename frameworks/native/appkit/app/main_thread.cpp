@@ -153,6 +153,7 @@ constexpr int32_t UNSPECIFIED_USERID = -2;
 constexpr int32_t JS_ERROR_EXIT = -2;
 constexpr int32_t TIME_OUT = 120;
 constexpr int32_t DEFAULT_SLEEP_TIME = 100000;
+constexpr int32_t PROCESS_EXIT_DELAY_TIME = 3;
 
 enum class SignalType {
     SIGNAL_JSHEAP_OLD,
@@ -176,6 +177,7 @@ constexpr char EVENT_KEY_THREAD_NAME[] = "THREAD_NAME";
 constexpr char EVENT_KEY_APP_RUNNING_UNIQUE_ID[] = "APP_RUNNING_UNIQUE_ID";
 constexpr char EVENT_KEY_PROCESS_RSS_MEMINFO[] = "PROCESS_RSS_MEMINFO";
 constexpr char EVENT_KEY_PROCESS_LIFETIME[] = "PROCESS_LIFETIME";
+constexpr char EVENT_KEY_FOREGROUND[] = "FOREGROUND";
 constexpr char DEVELOPER_MODE_STATE[] = "const.security.developermode.state";
 constexpr char PRODUCT_ASSERT_FAULT_DIALOG_ENABLED[] = "persisit.sys.abilityms.support_assert_fault_dialog";
 constexpr const char* INHERIT_PLUGIN_NAMESPACE = "persist.sys.abilityms.inherit_plugin_namespace";
@@ -2079,12 +2081,14 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
+        bool foreground = (appThread->applicationImpl_ && appThread->applicationImpl_->GetState() ==
+            ApplicationImpl::APP_STATE_FOREGROUND) ? true : false;
 
         time_t timet;
         time(&timet);
         std::string lifeTime = GetProcessLifeCycleByPid(pid);
         if (!ApplicationDataManager::jsErrorHasReport_.exchange(true)) {
-            auto hisyseventReport = std::make_shared<HisyseventReport>(12);
+            auto hisyseventReport = std::make_shared<HisyseventReport>(13);
             hisyseventReport->InsertParam(EVENT_KEY_PACKAGE_NAME, bundleName);
             hisyseventReport->InsertParam(EVENT_KEY_VERSION, std::to_string(versionCode));
             hisyseventReport->InsertParam(EVENT_KEY_TYPE, JSCRASH_TYPE);
@@ -2098,11 +2102,12 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
                 std::to_string(DumpProcessHelper::GetProcRssMemInfo()));
             hisyseventReport->InsertParam(EVENT_KEY_THREAD_NAME, DumpProcessHelper::GetThreadName());
             hisyseventReport->InsertParam(EVENT_KEY_PROCESS_LIFETIME, lifeTime);
+            hisyseventReport->InsertParam(EVENT_KEY_FOREGROUND, foreground);
             int result = hisyseventReport->Report("AAFWK", "JS_ERROR", HISYSEVENT_FAULT);
             TAG_LOGW(AAFwkTag::APPKIT, "hisysevent write result=%{public}d, send event [FRAMEWORK,JS_ERROR],"
                 " packageName=%{public}s, pid=%{public}d, appRunningId=%{public}s, threadName=%{public}s,"
-                " isUncatchable=%{public}d", result, bundleName.c_str(), pid, appRunningId.c_str(),
-                DumpProcessHelper::GetThreadName().c_str(), isUncatchable);
+                " isUncatchable=%{public}d, foreground=%{public}d", result, bundleName.c_str(), pid,
+                appRunningId.c_str(), DumpProcessHelper::GetThreadName().c_str(), isUncatchable, foreground);
             ApplicationDataManager::jsErrorEnv_.store(env, std::memory_order_relaxed);
         }
 
@@ -2122,11 +2127,8 @@ void MainThread::InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, co
 
         if (ApplicationDataManager::jsErrorEnv_.load(std::memory_order_relaxed) != env) {
             TAG_LOGW(AAFwkTag::APPKIT, "Current thread does not need to exit the process");
-            return;
+            sleep(PROCESS_EXIT_DELAY_TIME);
         }
-
-        bool foreground = (appThread->applicationImpl_ && appThread->applicationImpl_->GetState() ==
-            ApplicationImpl::APP_STATE_FOREGROUND) ? true : false;
         ProcessExitInfo info = {bundleName, errorObject.name, summary, appRunningId, processName, pid, foreground,
             isUncatchable};
         ProcessExit(info);
