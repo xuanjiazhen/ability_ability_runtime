@@ -529,6 +529,9 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetCatcherStack_Test001, Tes
     }
     result = appfreezeManager->GetCatcherStack(fileName, catcherStack);
     EXPECT_EQ(result, "");
+    std::string testValue = "main test";
+ 	faultData.errorObject.stack = testValue;
+ 	appfreezeManager->MergeNotifyInfo(faultData, appInfo);
 }
 
 /**
