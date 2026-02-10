@@ -46,9 +46,9 @@ public:
         std::function<void()> callback);
 
 private:
-    bool CreateModalUIExtension(std::string &pid, std::string &bundleName, const FaultData &faultData);
-    bool CreateSystemDialogWant(
-        std::string &pid, std::string &bundleName, sptr<IRemoteObject> token, AAFwk::Want &want,
+    bool CreateModalUIExtension(std::string &pid, std::string &bundleName, const FaultData &faultData);	 
+    bool CreateSystemDialogWant(	 
+        std::string &pid, std::string &bundleName, sptr<IRemoteObject> token, AAFwk::Want &want,	 
         const FaultData &faultData);
 
 private:

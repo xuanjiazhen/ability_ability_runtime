@@ -42,7 +42,7 @@ const std::string FREEZE_WINDOW_HEIGHT = "FREEZE_WINDOW_HEIGHT";
 const std::string START_BUNDLE_NAME = "startBundleName";
 const std::string APP_FREEZE_TOKEN = "freezeToken";
 const std::string APP_FREEZE_EVENT_NAME = "eventName";
-const std::string APP_FREEZE_RUNNING_UNIQUE_ID = "appRunningUniqueId";
+const std::string APP_FREEZE_RUNNING_UNIQUE_ID = "appRunningUniqueId"
 constexpr int32_t INVALID_USERID = -1;
 constexpr int32_t MESSAGE_PARCEL_KEY_SIZE = 3;
 constexpr uint32_t COMMAND_START_DIALOG = 1;
@@ -108,7 +108,7 @@ bool ModalSystemAppFreezeUIExtension::CreateModalUIExtension(std::string& pid, s
 }
 
 bool ModalSystemAppFreezeUIExtension::CreateSystemDialogWant(
-    std::string& pid, std::string& bundleName, sptr<IRemoteObject> token, AAFwk::Want &want,
+    std::string& pid, std::string& bundleName, sptr<IRemoteObject> token, AAFwk::Want &want, 
     const FaultData &faultData)
 {
     want.SetElementName(APP_NO_RESPONSE_BUNDLENAME, APP_NO_RESPONSE_ABILITY);
