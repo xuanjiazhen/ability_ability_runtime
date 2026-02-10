@@ -54,22 +54,6 @@ Capabilities *Capabilities::Unmarshalling(Parcel &parcel)
     return capabilities;
 }
 
-bool Authentication::ReadFromParcel(Parcel &parcel)
-{
-    return true;
-}
-
-bool Authentication::Marshalling(Parcel &parcel) const
-{
-    return true;
-}
-
-Authentication *Authentication::Unmarshalling(Parcel &parcel)
-{
-    Authentication *authentication = new (std::nothrow) Authentication();
-    return authentication;
-}
-
 bool Skill::ReadFromParcel(Parcel &parcel)
 {
     return true;
