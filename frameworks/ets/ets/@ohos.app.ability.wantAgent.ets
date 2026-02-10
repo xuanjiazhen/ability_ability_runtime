@@ -88,7 +88,9 @@ namespace wantAgent {
       try {
         nativeGetBundleName(agent, call);
       } catch (err) {
-        callback(err as BusinessError, "");
+        if (err instanceof BusinessError) {
+          callback(err as BusinessError, "");
+        }
       }
     });
   }
@@ -108,7 +110,9 @@ namespace wantAgent {
         try {
           nativeTriggerAsync(agent, triggerInfo, context, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError) {
+            reject(err as BusinessError);
+          }
         }
       });
     });
@@ -134,7 +138,9 @@ namespace wantAgent {
         try {
           nativeGetBundleName(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError) {
+            reject(err as BusinessError);
+          }
         }
       });
     });
@@ -149,7 +155,9 @@ namespace wantAgent {
       try {
         nativeGetUid(agent, call);
       } catch (err) {
-        callback(err as BusinessError, -1);
+        if (err instanceof BusinessError) {
+          callback(err as BusinessError, -1);
+        }
       }
     });
   }
@@ -170,7 +178,9 @@ namespace wantAgent {
         try {
           nativeGetUid(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError) {
+            reject(err as BusinessError);
+          }
         }
       });
     });
@@ -185,7 +195,9 @@ namespace wantAgent {
       try {
         nativeGetWant(agent, call);
       } catch (err) {
-        callback(err as BusinessError, {} as Want);
+        if (err instanceof BusinessError) {
+          callback(err as BusinessError, {} as Want);
+        }
       }
     });
   }
@@ -206,7 +218,9 @@ namespace wantAgent {
         try {
           nativeGetWant(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError) {
+            reject(err as BusinessError);
+          }
         }
       });
     });
@@ -221,7 +235,9 @@ namespace wantAgent {
       try {
         nativeCancel(agent, call);
       } catch (err) {
-        callback(err as BusinessError, undefined);
+        if (err instanceof BusinessError) {
+          callback(err as BusinessError, undefined);
+        }
       }
     });
   }
@@ -242,7 +258,9 @@ namespace wantAgent {
         try {
           nativeCancel(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError) {
+            reject(err as BusinessError);
+          }
         }
       });
     });
@@ -258,7 +276,9 @@ namespace wantAgent {
         try {
           nativeTrigger(agent, triggerInfo, call);
         } catch (err) {
-          callback(err as BusinessError, {info: new Object(), want: new Want(), finalCode: 0, finalData: 'undefined'} as CompleteData);
+          if (err instanceof BusinessError) {
+            callback(err as BusinessError, {info: new Object(), want: new Want(), finalCode: 0, finalData: 'undefined'} as CompleteData);
+          }
         }
       }
     });
@@ -276,7 +296,9 @@ namespace wantAgent {
       try {
         nativeEqual(agent, otherAgent, call);
       } catch (err) {
-        callback(err as BusinessError, false);
+        if (err instanceof BusinessError) {
+          callback(err as BusinessError, false);
+        }
       }
     });
   }
@@ -301,7 +323,9 @@ namespace wantAgent {
         try {
           nativeEqual(agent, otherAgent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError) {
+            reject(err as BusinessError);
+          }
         }
       });
     });
@@ -313,7 +337,9 @@ namespace wantAgent {
       try {
         nativeGetWantAgent(info, call);
       } catch (err) {
-        callback(err as BusinessError, {} as WantAgent);
+        if (err instanceof BusinessError) {
+          callback(err as BusinessError, {} as WantAgent);
+        }
       }
     });
   }
@@ -332,7 +358,9 @@ namespace wantAgent {
         try {
           nativeGetWantAgent(info, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError) {
+            reject(err as BusinessError);
+          }
         }
       });
     });
@@ -347,7 +375,9 @@ namespace wantAgent {
       try {
         nativeGetOperationType(agent, call);
       } catch (err) {
-        callback(err as BusinessError, -1);
+        if (err instanceof BusinessError) {
+          callback(err as BusinessError, -1);
+        }
       }
     });
   }
@@ -368,7 +398,9 @@ namespace wantAgent {
         try {
           nativeGetOperationType(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError) {
+            reject(err as BusinessError);
+          }
         }
       });
     });
