@@ -46,6 +46,7 @@ struct DialogCallerInfo {
     // for app gallery selector
     bool needGrantUriPermission = false;
     uint32_t callerAccessTokenId = 0;
+    sptr<IRemoteObject> sessionToken = nullptr;
 };
 
 struct StartupSessionInfo {
