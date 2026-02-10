@@ -88,7 +88,11 @@ namespace wantAgent {
       try {
         nativeGetBundleName(agent, call);
       } catch (err) {
-        callback(err as BusinessError, "");
+        if (err instanceof BusinessError<void>) {
+          callback(err, "");
+        } else {
+          console.error(`nativeGetBundleName error type not expected ${err}`)
+        }
       }
     });
   }
@@ -108,7 +112,11 @@ namespace wantAgent {
         try {
           nativeTriggerAsync(agent, triggerInfo, context, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeTriggerAsync error type not expected ${err}`)
+          }
         }
       });
     });
@@ -134,7 +142,11 @@ namespace wantAgent {
         try {
           nativeGetBundleName(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeGetBundleName error type not expected ${err}`)
+          }
         }
       });
     });
@@ -149,7 +161,11 @@ namespace wantAgent {
       try {
         nativeGetUid(agent, call);
       } catch (err) {
-        callback(err as BusinessError, -1);
+        if (err instanceof BusinessError<void>) {
+          callback(err, -1);
+        } else {
+          console.error(`nativeGetUid error type not expected ${err}`)
+        }
       }
     });
   }
@@ -170,7 +186,11 @@ namespace wantAgent {
         try {
           nativeGetUid(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeGetUid error type not expected ${err}`)
+          }
         }
       });
     });
@@ -185,7 +205,11 @@ namespace wantAgent {
       try {
         nativeGetWant(agent, call);
       } catch (err) {
-        callback(err as BusinessError, {} as Want);
+        if (err instanceof BusinessError<void>) {
+          callback(err, {} as Want);
+        } else {
+          console.error(`nativeGetWant error type not expected ${err}`)
+        }
       }
     });
   }
@@ -206,7 +230,11 @@ namespace wantAgent {
         try {
           nativeGetWant(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeGetWant error type not expected ${err}`)
+          }
         }
       });
     });
@@ -221,7 +249,11 @@ namespace wantAgent {
       try {
         nativeCancel(agent, call);
       } catch (err) {
-        callback(err as BusinessError, undefined);
+        if (err instanceof BusinessError<void>) {
+          callback(err, undefined);
+        } else {
+          console.error(`nativeCancel error type not expected ${err}`)
+        }
       }
     });
   }
@@ -242,7 +274,11 @@ namespace wantAgent {
         try {
           nativeCancel(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeCancel error type not expected ${err}`)
+          }
         }
       });
     });
@@ -258,7 +294,11 @@ namespace wantAgent {
         try {
           nativeTrigger(agent, triggerInfo, call);
         } catch (err) {
-          callback(err as BusinessError, {info: new Object(), want: new Want(), finalCode: 0, finalData: 'undefined'} as CompleteData);
+          if (err instanceof BusinessError<void>) {
+            callback(err, {info: new Object(), want: new Want(), finalCode: 0, finalData: 'undefined'} as CompleteData);
+          } else {
+            console.error(`nativeTrigger error type not expected ${err}`)
+          }
         }
       }
     });
@@ -276,7 +316,11 @@ namespace wantAgent {
       try {
         nativeEqual(agent, otherAgent, call);
       } catch (err) {
-        callback(err as BusinessError, false);
+        if (err instanceof BusinessError<void>) {
+          callback(err, false);
+        } else {
+          console.error(`nativeEqual error type not expected ${err}`)
+        }
       }
     });
   }
@@ -301,7 +345,11 @@ namespace wantAgent {
         try {
           nativeEqual(agent, otherAgent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeEqual error type not expected ${err}`)
+          }
         }
       });
     });
@@ -313,7 +361,11 @@ namespace wantAgent {
       try {
         nativeGetWantAgent(info, call);
       } catch (err) {
-        callback(err as BusinessError, {} as WantAgent);
+        if (err instanceof BusinessError<void>) {
+          callback(err, {} as WantAgent);
+        } else {
+          console.error(`nativeGetWantAgent error type not expected ${err}`)
+        }
       }
     });
   }
@@ -332,7 +384,11 @@ namespace wantAgent {
         try {
           nativeGetWantAgent(info, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeGetWantAgent error type not expected ${err}`)
+          }
         }
       });
     });
@@ -347,7 +403,11 @@ namespace wantAgent {
       try {
         nativeGetOperationType(agent, call);
       } catch (err) {
-        callback(err as BusinessError, -1);
+        if (err instanceof BusinessError<void>) {
+          callback(err, -1);
+        } else {
+          console.error(`nativeGetOperationType error type not expected ${err}`)
+        }
       }
     });
   }
@@ -368,7 +428,11 @@ namespace wantAgent {
         try {
           nativeGetOperationType(agent, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeGetOperationType error type not expected ${err}`)
+          }
         }
       });
     });

@@ -311,7 +311,11 @@ export default namespace abilityManager {
         try {
           abilityManager.nativePreloadUIExtensionAbility(want, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativePreloadUIExtensionAbility error type not expected ${err}`)
+          }
         }
       });
     });
@@ -330,7 +334,11 @@ export default namespace abilityManager {
         try {
           abilityManager.nativeClearPreloadedUIExtensionAbility(preloadId, call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeClearPreloadedUIExtensionAbility error type not expected ${err}`)
+          }
         }
       });
     });
@@ -349,7 +357,11 @@ export default namespace abilityManager {
         try {
           abilityManager.nativeClearPreloadedUIExtensionAbilities(call);
         } catch (err) {
-          reject(err as BusinessError);
+          if (err instanceof BusinessError<void>) {
+            reject(err);
+          } else {
+            console.error(`nativeClearPreloadedUIExtensionAbilities error type not expected ${err}`)
+          }
         }
       });
     });
