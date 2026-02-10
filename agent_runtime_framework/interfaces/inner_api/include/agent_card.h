@@ -33,7 +33,7 @@ struct Provider : public Parcelable {
     virtual bool Marshalling(Parcel &parcel) const override;
     static Provider *Unmarshalling(Parcel &parcel);
     nlohmann::json ToJson();
-    static Provider FromJson(const nlohmann::json &jsonObject);
+    static bool FromJson(const nlohmann::json &jsonObject, Provider &provider);
 };
 
 struct Capabilities : public Parcelable {
@@ -79,7 +79,7 @@ struct Skill : public Parcelable {
     virtual bool Marshalling(Parcel &parcel) const override;
     static Skill *Unmarshalling(Parcel &parcel);
     nlohmann::json ToJson();
-    static Skill FromJson(const nlohmann::json &jsonObject);
+    static bool FromJson(const nlohmann::json &jsonObject, Skill &skill);
 };
 
 struct AgentCard : public Parcelable {
@@ -104,7 +104,7 @@ struct AgentCard : public Parcelable {
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     nlohmann::json ToJson() const;
-    static AgentCard FromJson(nlohmann::json jsonObject);
+    static bool FromJson(nlohmann::json jsonObject, AgentCard &agentCard);
     static AgentCard *Unmarshalling(Parcel &parcel);
 };
 
