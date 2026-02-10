@@ -638,6 +638,7 @@ bool ExtractInsightIntentProfile::TransformTo(const std::string &profileStr,
         return false;
     }
 
+    
     std::lock_guard<std::mutex> lock(g_extraMutex);
     g_extraParseResult = ERR_OK;
     intentInfos = jsonObject.get<ExtractInsightIntentProfileInfoVec>();
