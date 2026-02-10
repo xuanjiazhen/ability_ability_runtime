@@ -16615,7 +16615,7 @@ int32_t AbilityManagerService::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "GetUserLockedBundleList called");
-    if (IPCSkeleton::GetCallingUid() != FOUNDATION_UID) {
+    if (IS_FOUNDATION_CALL) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "GetUserLockedBundleList, current process not foundation process");
         return CHECK_PERMISSION_FAILED;
     }
