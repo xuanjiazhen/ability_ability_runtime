@@ -200,6 +200,13 @@ ani_object CreateEtsSkill(ani_env *env, const Skill &skill)
         TAG_LOGE(AAFwkTag::SER_ROUTER, "set outputModes failed");
         return nullptr;
     }
+    if (!skill.extension.empty()) {
+        status = env->Object_SetPropertyByName_Ref(object, "extension", GetAniString(env, skill.extension));
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "set extension failed: %{public}d", status);
+            return nullptr;
+        }
+    }
     return object;
 }
 
@@ -300,11 +307,6 @@ ani_object CreateEtsAgentCard(ani_env *env, const AgentCard &card)
         TAG_LOGE(AAFwkTag::SER_ROUTER, "failed status:%{public}d", status);
         return nullptr;
     }
-    status = env->Object_SetPropertyByName_Ref(object, "url", GetAniString(env, card.url));
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "failed status:%{public}d", status);
-        return nullptr;
-    }
     status = env->Object_SetPropertyByName_Ref(object, "version", GetAniString(env, card.version));
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "failed status:%{public}d", status);
@@ -352,6 +354,27 @@ ani_object CreateEtsAgentCard(ani_env *env, const AgentCard &card)
         status = env->Object_SetPropertyByName_Ref(object, "skills", CreateEtsSkillArray(env, card.skills));
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "failed status:%{public}d", status);
+            return nullptr;
+        }
+    }
+    if (!card.extension.empty()) {
+        status = env->Object_SetPropertyByName_Ref(object, "extension", GetAniString(env, card.extension));
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "set extension failed: %{public}d", status);
+            return nullptr;
+        }
+    }
+    if (!card.category.empty()) {
+        status = env->Object_SetPropertyByName_Ref(object, "category", GetAniString(env, card.category));
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "set category failed: %{public}d", status);
+            return nullptr;
+        }
+    }
+    if (!card.iconUrl.empty()) {
+        status = env->Object_SetPropertyByName_Ref(object, "iconUrl", GetAniString(env, card.iconUrl));
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "set iconUrl failed: %{public}d", status);
             return nullptr;
         }
     }
