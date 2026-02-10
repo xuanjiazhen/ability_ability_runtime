@@ -23,8 +23,10 @@
 namespace OHOS {
 namespace AAFwk {
 class AppScheduler {
-    DECLARE_DELAYED_SINGLETON(AppScheduler)
 public:
+    AppScheduler() = default;
+    ~AppScheduler() = default;
+
     /**
      * Get running process information by pid.
      *
