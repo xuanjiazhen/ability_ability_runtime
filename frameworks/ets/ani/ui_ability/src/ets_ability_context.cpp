@@ -100,7 +100,7 @@ constexpr const char *SIGNATURE_START_ABILITY_AS_CALLER = "C{@ohos.app.ability.W
 constexpr const char *SIGNATURE_START_RECENT_ABILITY = "C{@ohos.app.ability.Want.Want}"
     "C{utils.AbilityUtils.AsyncCallbackWrapper}C{@ohos.app.ability.StartOptions.StartOptions}:";
 constexpr const char *COMPLETION_HANDLER_FAILURE_CODE =
-    "@ohos.app.ability.CompletionHandlerForAtomicService.FailureCode;";
+    "@ohos.app.ability.CompletionHandlerForAtomicService.FailureCode";
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
 constexpr int32_t ARGC_THREE = 3;
@@ -1452,9 +1452,7 @@ void EtsAbilityContext::OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_s
         return;
     }
     auto errCode = context->SetMissionLabel(label);
-    if (errCode != ERR_OK) {
-        errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode));
-    }
+    errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode));
     AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
 }
 
