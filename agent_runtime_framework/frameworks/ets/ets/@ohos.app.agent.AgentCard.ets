@@ -53,6 +53,7 @@ export interface Skill {
   examples?: Array<string>;
   inputModes?: Array<string>;
   outputModes?: Array<string>;
+  extension?: string;
 }
 
 class SkillImpl implements Skill {
@@ -63,6 +64,7 @@ class SkillImpl implements Skill {
   public examples?: Array<string>;
   public inputModes?: Array<string>;
   public outputModes?: Array<string>;
+  public extension?: string;
 }
 
 export interface AgentCard {
@@ -73,7 +75,6 @@ export interface AgentCard {
   appIndex: int;
   name: string;
   description: string;
-  url: string;
   provider?: Provider;
   version: string;
   documentationUrl?: string;
@@ -82,6 +83,7 @@ export interface AgentCard {
   defaultInputModes?: Array<string>;
   defaultOutputModes?: Array<string>;
   skills?: Array<Skill>;
+  extension?: string;
 }
 
 class AgentCardImpl implements AgentCard {
@@ -92,7 +94,6 @@ class AgentCardImpl implements AgentCard {
   public appIndex: int;
   public name: string = '';
   public description: string = '';
-  public url: string = '';
   public provider?: Provider;
   public version: string = '';
   public documentationUrl?: string;
@@ -101,4 +102,5 @@ class AgentCardImpl implements AgentCard {
   public defaultInputModes?: Array<string>;
   public defaultOutputModes?: Array<string>;
   public skills?: Array<Skill>;
+  public extension?: string;
 }
