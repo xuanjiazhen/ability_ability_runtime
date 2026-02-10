@@ -929,5 +929,60 @@ HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_GetFocusedWindowInfo
     GTEST_LOG_(INFO) << "AaFwk_DataObsMgrServiceTest_GetFocusedWindowInfo_0001 end";
 }
 
+/*
+ * Feature: DataObsMgrService
+ * Function: RegisterObserver
+ * SubFunction: NA
+ * FunctionPoints: DataObsMgrService RegisterObserver
+ * EnvConditions: NA
+ * CaseDescription: Verify that the DataObsMgrService RegisterObserver is normal.
+ */
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_RegisterObserver_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0100 start");
+    const int testVal = static_cast<int>(NO_ERROR);
+    const sptr<MockDataAbilityObserverStub> dataobsAbility(new (std::nothrow) MockDataAbilityObserverStub());
+    std::shared_ptr<Uri> uri =
+        std::make_shared<Uri>("datashare:///com.ohos.calllogability/calls/calllog");
+    auto dataObsMgrServer = DelayedSingleton<DataObsMgrService>::GetInstance();
+
+    EXPECT_EQ(testVal, dataObsMgrServer->RegisterObserver(*uri, dataobsAbility, -1, DataObsOption(false, true)));
+
+    testing::Mock::AllowLeak(dataobsAbility);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0100 end");
+}
+
+/*
+ * Feature: DataObsMgrService
+ * Function: RegisterObserver
+ * SubFunction: NA
+ * FunctionPoints: DataObsMgrService RegisterObserver caller system check
+ * EnvConditions: NA
+ * CaseDescription: Verify that the DataObsMgrService RegisterObserver system check success
+    when caller possess TOKEN_NATIVE
+ */
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_RegisterObserver_0510, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0510 start");
+    const int testVal = static_cast<int>(NO_ERROR);
+    const sptr<MockDataAbilityObserverStub> dataobsAbility(new (std::nothrow) MockDataAbilityObserverStub());
+    std::shared_ptr<Uri> uri =
+        std::make_shared<Uri>("datashare:///com.ohos.calllogability/calls/calllog");
+    auto dataObsMgrServer = DelayedSingleton<DataObsMgrService>::GetInstance();
+    auto originalToken = GetSelfTokenID();
+
+    // set token native
+    uint32_t tokenID = Security::AccessToken::DEFAULT_TOKEN_VERSION;
+    Security::AccessToken::AccessTokenIDInner *idInner =
+        reinterpret_cast<Security::AccessToken::AccessTokenIDInner *>(&tokenID);
+    idInner->type = Security::AccessToken::TOKEN_NATIVE;
+    SetSelfTokenID(tokenID);
+
+    EXPECT_EQ(testVal, dataObsMgrServer->RegisterObserver(*uri, dataobsAbility, -1, DataObsOption(false, true)));
+
+    testing::Mock::AllowLeak(dataobsAbility);
+    SetSelfTokenID(originalToken);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0510 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

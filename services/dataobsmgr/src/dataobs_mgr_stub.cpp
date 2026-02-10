@@ -57,6 +57,7 @@ DataObsOption ReadObsOpt(MessageParcel &data)
     opt.SetFirstCallerTokenID(token);
     opt.SetFirstCallerPid(pid);
     opt.SetDataShare(isDataShare);
+    opt.SetFirstCallerFullTokenID(data.ReadUint64());
     return opt;
 }
 
