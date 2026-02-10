@@ -53,6 +53,7 @@ export interface Skill {
   examples?: Array<string>;
   inputModes?: Array<string>;
   outputModes?: Array<string>;
+  extension?: string;
 }
 
 class SkillImpl implements Skill {
@@ -63,6 +64,7 @@ class SkillImpl implements Skill {
   public examples?: Array<string>;
   public inputModes?: Array<string>;
   public outputModes?: Array<string>;
+  public extension?: string;
 }
 
 export interface AgentCard {

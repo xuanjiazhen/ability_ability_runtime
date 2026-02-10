@@ -200,6 +200,13 @@ ani_object CreateEtsSkill(ani_env *env, const Skill &skill)
         TAG_LOGE(AAFwkTag::SER_ROUTER, "set outputModes failed");
         return nullptr;
     }
+    if (!skill.extension.empty()) {
+        status = env->Object_SetPropertyByName_Ref(object, "extension", GetAniString(env, skill.extension));
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "set extension failed: %{public}d", status);
+            return nullptr;
+        }
+    }
     return object;
 }
 
