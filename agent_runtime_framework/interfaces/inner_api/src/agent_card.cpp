@@ -28,6 +28,10 @@ namespace OHOS {
 namespace AgentRuntime {
 constexpr int32_t SKILLS_MAX_SIZE = 100;
 constexpr uint32_t MAX_AGENT_CARD_COUNT = 200000;
+constexpr uint32_t LENGTH_32 = 32;
+constexpr uint32_t LENGTH_64 = 64;
+constexpr uint32_t LENGTH_128 = 128;
+constexpr uint32_t LENGTH_512 = 512;
 
 bool Provider::ReadFromParcel(Parcel &parcel)
 {
@@ -68,16 +72,27 @@ nlohmann::json Provider::ToJson()
     };
 }
 
-Provider Provider::FromJson(const nlohmann::json &jsonObject)
+bool Provider::FromJson(const nlohmann::json &jsonObject, Provider &provider)
 {
-    Provider provider;
-    if (jsonObject.contains("organization") && jsonObject["organization"].is_string()) {
-        provider.organization = jsonObject.at("organization");
+    if (!jsonObject.contains("organization") || !jsonObject["organization"].is_string()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, organization not exist");
+        return false;
     }
-    if (jsonObject.contains("url") && jsonObject["url"].is_string()) {
-        provider.url = jsonObject.at("url");
+    provider.organization = jsonObject["organization"];
+    if (provider.organization.length() > LENGTH_128 || provider.organization.length() == 0) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "organization is long than 128 or empty");
+        return false;
     }
-    return provider;
+    if (!jsonObject.contains("url") || !jsonObject["url"].is_string()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, url not exist");
+        return false;
+    }
+    provider.url = jsonObject["url"];
+    if (provider.url.length() > LENGTH_512 || provider.url.length() == 0) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "url is long than 512 or empty");
+        return false;
+    }
+    return true;
 }
 
 bool Capabilities::ReadFromParcel(Parcel &parcel)
@@ -186,7 +201,11 @@ Authentication Authentication::FromJson(const nlohmann::json &jsonObject)
 {
     Authentication authentication;
     if (jsonObject.contains("schemes") && jsonObject["schemes"].is_array()) {
-        authentication.schemes = jsonObject.at("schemes");
+        for (const auto &element : jsonObject.at("schemes")) {
+            if (element.is_string()) {
+                authentication.schemes.push_back(element.get<std::string>());
+            }
+        }
     }
     if (jsonObject.contains("credentials") && jsonObject["credentials"].is_string()) {
         authentication.credentials = jsonObject.at("credentials");
@@ -271,31 +290,76 @@ nlohmann::json Skill::ToJson()
     };
 }
 
-Skill Skill::FromJson(const nlohmann::json &jsonObject)
+bool Skill::FromJson(const nlohmann::json &jsonObject, Skill &skill)
 {
-    Skill skill;
-    if (jsonObject.contains("id") && jsonObject["id"].is_string()) {
-        skill.id = jsonObject.at("id");
+    if (!jsonObject.contains("id") || !jsonObject["id"].is_string()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, id not exist");
+        return false;
     }
-    if (jsonObject.contains("name") && jsonObject["name"].is_string()) {
-        skill.name = jsonObject.at("name");
+    skill.id = jsonObject["id"];
+    if (skill.id.length() > LENGTH_64 || skill.id.length() == 0) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "id is long than 64 or empty");
+        return false;
     }
-    if (jsonObject.contains("description") && jsonObject["description"].is_string()) {
-        skill.description = jsonObject.at("description");
+    if (!jsonObject.contains("name") || !jsonObject["name"].is_string()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, name not exist");
+        return false;
     }
-    if (jsonObject.contains("tags") && jsonObject["tags"].is_array()) {
-        skill.tags = jsonObject.at("tags");
+    skill.name = jsonObject["name"];
+    if (skill.name.length() > LENGTH_128 || skill.name.length() == 0) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "name is long than 128 or empty");
+        return false;
+    }
+    if (!jsonObject.contains("description") || !jsonObject["description"].is_string()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, description not exist");
+        return false;
+    }
+    skill.description = jsonObject["description"];
+    if (skill.description.length() > LENGTH_512 || skill.description.length() == 0) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "description is long than 512 or empty");
+        return false;
+    }
+    if (!jsonObject.contains("tags") || !jsonObject["tags"].is_array()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, tags not exist");
+        return false;
+    }
+    for (const auto &element : jsonObject.at("tags")) {
+        if (element.is_string()) {
+            skill.tags.push_back(element.get<std::string>());
+        }
+    }
+    if (skill.tags.size() > SKILLS_MAX_SIZE) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "tags size exceeds max");
+        return false;
+    }
+    for (const auto &tag : skill.tags) {
+        if (tag.length() > LENGTH_32) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "tag is long than 32");
+            return false;
+        }
     }
     if (jsonObject.contains("examples") && jsonObject["examples"].is_array()) {
-        skill.examples = jsonObject.at("examples");
+        for (const auto &element : jsonObject.at("examples")) {
+            if (element.is_string()) {
+                skill.examples.push_back(element.get<std::string>());
+            }
+        }
     }
     if (jsonObject.contains("inputModes") && jsonObject["inputModes"].is_array()) {
-        skill.inputModes = jsonObject.at("inputModes");
+        for (const auto &element : jsonObject.at("inputModes")) {
+            if (element.is_string()) {
+                skill.inputModes.push_back(element.get<std::string>());
+            }
+        }
     }
     if (jsonObject.contains("outputModes") && jsonObject["outputModes"].is_array()) {
-        skill.outputModes = jsonObject.at("outputModes");
+        for (const auto &element : jsonObject.at("outputModes")) {
+            if (element.is_string()) {
+                skill.outputModes.push_back(element.get<std::string>());
+            }
+        }
     }
-    return skill;
+    return true;
 }
 
 bool AgentCard::ReadFromParcel(Parcel &parcel)
@@ -457,10 +521,8 @@ nlohmann::json AgentCard::ToJson() const
     return jsonObject;
 }
 
-AgentCard AgentCard::FromJson(nlohmann::json jsonObject)
+bool AgentCard::FromJson(nlohmann::json jsonObject, AgentCard &agentCard)
 {
-    AgentCard agentCard;
-
     // Required fields
     if (jsonObject.contains("bundleName") && jsonObject["bundleName"].is_string()) {
         agentCard.bundleName = jsonObject["bundleName"];
@@ -471,39 +533,73 @@ AgentCard AgentCard::FromJson(nlohmann::json jsonObject)
     if (jsonObject.contains("abilityName") && jsonObject["abilityName"].is_string()) {
         agentCard.abilityName = jsonObject["abilityName"];
     }
-    if (jsonObject.contains("agentId") && jsonObject["agentId"].is_string()) {
-        agentCard.agentId = jsonObject["agentId"];
+    if (!jsonObject.contains("agentId") || !jsonObject["agentId"].is_string()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, agentId not exist");
+        return false;
     }
-    if (jsonObject.contains("name") && jsonObject["name"].is_string()) {
-        agentCard.name = jsonObject["name"];
+    agentCard.agentId = jsonObject["agentId"];
+    if (agentCard.agentId.length() > LENGTH_64 || agentCard.agentId.length() == 0) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "agentId is long than 64 or empty");
+        return false;
     }
-    if (jsonObject.contains("description") && jsonObject["description"].is_string()) {
-        agentCard.description = jsonObject["description"];
+    if (!jsonObject.contains("name") || !jsonObject["name"].is_string()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, name not exist");
+        return false;
+    }
+    agentCard.name = jsonObject["name"];
+    if (agentCard.name.length() > LENGTH_64 || agentCard.name.length() == 0) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "name is long than 64 or empty");
+        return false;
+    }
+    if (!jsonObject.contains("description") || !jsonObject["description"].is_string()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, description not exist");
+        return false;
+    }
+    agentCard.description = jsonObject["description"];
+    if (agentCard.description.length() > LENGTH_512 || agentCard.description.length() == 0) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "description is long than 512 or empty");
+        return false;
+    }
+    if (!jsonObject.contains("version") || !jsonObject["version"].is_string()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, version not exist");
+        return false;
+    }
+    agentCard.version = jsonObject["version"];
+    if (agentCard.version.length() > LENGTH_32 || agentCard.version.length() == 0) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "version is long than 32 or empty");
+        return false;
+    }
+    if (jsonObject.contains("documentationUrl") && jsonObject["documentationUrl"].is_string()) {
+        agentCard.documentationUrl = jsonObject["documentationUrl"];
+        if (agentCard.documentationUrl.length() > LENGTH_512) {
+            agentCard.documentationUrl = "";
+        }
     }
     if (jsonObject.contains("url") && jsonObject["url"].is_string()) {
         agentCard.url = jsonObject["url"];
     }
 
-    // Optional fields
-    if (jsonObject.contains("version") && jsonObject["version"].is_string()) {
-        agentCard.version = jsonObject["version"];
-    }
-    if (jsonObject.contains("documentationUrl") && jsonObject["documentationUrl"].is_string()) {
-        agentCard.documentationUrl = jsonObject["documentationUrl"];
-    }
-
     if (jsonObject.contains("defaultInputModes") && jsonObject["defaultInputModes"].is_array()) {
-        agentCard.defaultInputModes = jsonObject["defaultInputModes"].get<std::vector<std::string>>();
+        for (const auto &element : jsonObject.at("defaultInputModes")) {
+            if (element.is_string()) {
+                agentCard.defaultInputModes.push_back(element.get<std::string>());
+            }
+        }
     }
     if (jsonObject.contains("defaultOutputModes") && jsonObject["defaultOutputModes"].is_array()) {
-        agentCard.defaultOutputModes = jsonObject["defaultOutputModes"].get<std::vector<std::string>>();
+        for (const auto &element : jsonObject.at("defaultOutputModes")) {
+            if (element.is_string()) {
+                agentCard.defaultOutputModes.push_back(element.get<std::string>());
+            }
+        }
     }
 
     // Optional objects
     if (jsonObject.contains("provider") && jsonObject["provider"].is_object()) {
         auto provider = std::make_shared<Provider>();
-        *provider = Provider::FromJson(jsonObject["provider"]);
-        agentCard.provider = provider;
+        if (Provider::FromJson(jsonObject["provider"], *provider)) {
+            agentCard.provider = provider;
+        }
     }
 
     if (jsonObject.contains("capabilities") && jsonObject["capabilities"].is_object()) {
@@ -523,13 +619,14 @@ AgentCard AgentCard::FromJson(nlohmann::json jsonObject)
         for (const auto& skillJson : jsonObject["skills"]) {
             if (skillJson.is_object()) {
                 auto skill = std::make_shared<Skill>();
-                *skill = Skill::FromJson(skillJson);
-                agentCard.skills.push_back(skill);
+                if (Skill::FromJson(skillJson, *skill)) {
+                    agentCard.skills.push_back(skill);
+                }
             }
         }
     }
 
-    return agentCard;
+    return true;
 }
 
 int32_t AgentCardsRawData::RawDataCpy(const void *readdata)
@@ -581,7 +678,10 @@ int32_t AgentCardsRawData::ToAgentCardVec(const AgentCardsRawData &rawData, std:
         std::string cardStr(cardSize, '\0');
         ss.read(cardStr.data(), cardSize);
         nlohmann::json jsonObject = nlohmann::json::parse(cardStr, nullptr, false);
-        cards[i] = AgentCard::FromJson(jsonObject);
+        if (!AgentCard::FromJson(jsonObject, cards[i])) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, index: %{public}u", i);
+            return ERR_INVALID_AGENT_CARD_DATA;
+        }
     }
     return ERR_OK;
 }
