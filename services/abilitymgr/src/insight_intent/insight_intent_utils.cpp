@@ -160,6 +160,8 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
     queryInfo.icon = intentInfo.icon;
     queryInfo.llmDescription = intentInfo.llmDescription;
     queryInfo.result = intentInfo.result;
+    queryInfo.srcEntry = intentInfo.decoratorFile;
+    TAG_LOGE(AAFwkTag::INTENT, "testTag 1111111, srcEntry:%{public}s", intentInfo.decoratorFile.c_str());
 
     for (auto &keyword : intentInfo.keywords) {
         queryInfo.keywords.emplace_back(keyword);
@@ -183,6 +185,7 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
 uint32_t InsightIntentUtils::ConvertConfigInsightIntentInfo(
     InsightIntentInfo &intentInfo, InsightIntentInfoForQuery &queryInfo, bool getEntity)
 {
+    TAG_LOGE(AAFwkTag::INTENT, "testTag 22222222, srcEntry:%{public}s", intentInfo.srcEntry.c_str());
     queryInfo.isConfig = true;
     queryInfo.bundleName = intentInfo.bundleName;
     queryInfo.moduleName = intentInfo.moduleName;

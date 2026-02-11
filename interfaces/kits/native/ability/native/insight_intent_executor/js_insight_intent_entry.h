@@ -65,9 +65,14 @@ public:
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback,
         bool& isAsync) override;
 
+    static napi_value GetTargetMethod(napi_env env, napi_value constructor, const std::string &methodName);
+
 private:
     static std::unique_ptr<NativeReference> LoadJsCode(
         const InsightIntentExecutorInfo& insightIntentInfo,
+        JsRuntime& runtime);
+    static std::unique_ptr<NativeReference> LoadJsEntityCode(
+        const InsightIntentExecutorInfo& info,
         JsRuntime& runtime);
 
     napi_value CallJsFunctionWithResultInner(
@@ -97,9 +102,15 @@ private:
 
     bool AssignObject(napi_env env, const AAFwk::WantParams &wantParams);
 
+    // 调用entityQuery方法, 返回业务侧查询到的entity对象
+    napi_value callEntityQuery(napi_env env, const AAFwk::WantParams &param, std::unique_ptr<NativeReference>& entityObj);
+    // 设置业务侧的entity对象到业务侧的executor对象中的字段上
+    bool SetEntityObj(napi_env env, napi_value entityObj);
+
     JsRuntime& runtime_;
     State state_ = State::CREATED;
     std::unique_ptr<NativeReference> jsObj_ = nullptr;
+    std::unique_ptr<NativeReference> entityObj_ = nullptr;
     std::unique_ptr<NativeReference> contextObj_ = nullptr;
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;
     bool isAsync_ = false;

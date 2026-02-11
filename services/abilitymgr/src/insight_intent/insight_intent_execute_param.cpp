@@ -52,6 +52,7 @@ bool InsightIntentExecuteParam::ReadFromParcel(Parcel &parcel)
     navigationId_ = Str16ToStr8(parcel.ReadString16());
     navDestinationName_ = Str16ToStr8(parcel.ReadString16());
     isServiceMatch_ = parcel.ReadBool();
+    queryParam_.ReadFromParcel(parcel);
     return true;
 }
 
@@ -91,6 +92,7 @@ bool InsightIntentExecuteParam::Marshalling(Parcel &parcel) const
     parcel.WriteString16(Str8ToStr16(navigationId_));
     parcel.WriteString16(Str8ToStr16(navDestinationName_));
     parcel.WriteBool(isServiceMatch_);
+    queryParam_.Marshalling(parcel);
     return true;
 }
 
@@ -232,6 +234,46 @@ void InsightIntentExecuteParam::UpdateInsightIntentCallerInfo(const WantParams &
     insightIntentParam.Remove(AAFwk::Want::PARAM_RESV_CALLER_BUNDLE_NAME);
     insightIntentParam.SetParam(AAFwk::Want::PARAM_RESV_CALLER_BUNDLE_NAME,
         AAFwk::String::Box(wantParams.GetStringParam(AAFwk::Want::PARAM_RESV_CALLER_BUNDLE_NAME)));
+}
+
+bool InsightIntentQueryParam::ReadFromParcel(Parcel &parcel)
+{
+    bundleName_ = Str16ToStr8(parcel.ReadString16());
+    moduleName_ = Str16ToStr8(parcel.ReadString16());
+    intentName_ = Str16ToStr8(parcel.ReadString16());
+    className_ = Str16ToStr8(parcel.ReadString16());
+    std::shared_ptr<WantParams> wantParams(parcel.ReadParcelable<WantParams>());
+    if (wantParams == nullptr) {
+        return false;
+    }
+    queryEntityParam_ = wantParams;
+    userId_ = parcel.ReadInt32();
+    return true;
+}
+
+InsightIntentQueryParam *InsightIntentQueryParam::Unmarshalling(Parcel &parcel)
+{
+    InsightIntentQueryParam *param = new (std::nothrow) InsightIntentQueryParam();
+    if (param == nullptr) {
+        return nullptr;
+    }
+
+    if (!param->ReadFromParcel(parcel)) {
+        delete param;
+        param = nullptr;
+    }
+    return param;
+}
+
+bool InsightIntentQueryParam::Marshalling(Parcel &parcel) const
+{
+    parcel.WriteString16(Str8ToStr16(bundleName_));
+    parcel.WriteString16(Str8ToStr16(moduleName_));
+    parcel.WriteString16(Str8ToStr16(intentName_));
+    parcel.WriteString16(Str8ToStr16(className_));
+    parcel.WriteParcelable(queryEntityParam_.get());
+    parcel.WriteInt32(userId_);
+    return true;
 }
 } // namespace AppExecFwk
 } // namespace OHOS

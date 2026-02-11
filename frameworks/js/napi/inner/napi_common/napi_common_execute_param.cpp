@@ -121,5 +121,77 @@ bool UnwrapExecuteParam(napi_env env, napi_value param, InsightIntentExecutePara
 
     return true;
 }
+
+bool UnwrapQueryParam(napi_env env, napi_value param, InsightIntentQueryParam &queryParam)
+{
+    if (!IsTypeForNapiValue(env, param, napi_object)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "invalid params");
+        return false;
+    }
+
+    std::string bundleName {""};
+    if (!UnwrapStringByPropertyName(env, param, "bundleName", bundleName)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type bundleName");
+        return false;
+    }
+    queryParam.bundleName_ = bundleName;
+    TAG_LOGI(AAFwkTag::JSNAPI, "testTag bundleName %{public}s", bundleName.c_str());
+
+    std::string moduleName {""};
+    if (!UnwrapStringByPropertyName(env, param, "moduleName", moduleName)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type moduleName");
+        return false;
+    }
+    queryParam.moduleName_ = moduleName;
+    TAG_LOGI(AAFwkTag::JSNAPI, "testTag moduleName %{public}s", moduleName.c_str());
+
+    std::string intentName {""};
+    if (!UnwrapStringByPropertyName(env, param, "intentName", intentName)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type intentName");
+        return false;
+    }
+    queryParam.intentName_ = intentName;
+    TAG_LOGI(AAFwkTag::JSNAPI, "testTag intentName %{public}s", intentName.c_str());
+
+    std::string className {""};
+    if (!UnwrapStringByPropertyName(env, param, "className", className)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type className");
+        return false;
+    }
+    queryParam.className_ = className;
+    TAG_LOGI(AAFwkTag::JSNAPI, "testTag className %{public}s", className.c_str());
+
+    napi_value napiIntentParam = nullptr;
+    napi_get_named_property(env, param, "queryEntityParam", &napiIntentParam);
+    if (napiIntentParam == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null napiIntentParam");
+        return false;
+    }
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, napiIntentParam, &valueType);
+    if (valueType != napi_object) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "wrong argument type intentParam");
+        return false;
+    }
+    auto wp = std::make_shared<WantParams>();
+    if (!AppExecFwk::UnwrapWantParams(env, napiIntentParam, *wp)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "unwrap want fail");
+        return false;
+    }
+    queryParam.queryEntityParam_ = wp;
+    TAG_LOGI(AAFwkTag::JSNAPI, "testTag queryEntityParam_ %{public}s", wp->ToString().c_str());
+
+    if (IsExistsByPropertyName(env, param, "userId")) {
+        int32_t userId = DEFAULT_INVAL_VALUE;
+        if (!UnwrapInt32ByPropertyName(env, param, "userId", userId)) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument userId fail");
+            return false;
+        }
+        queryParam.userId_ = userId;
+        TAG_LOGE(AAFwkTag::JSNAPI, "testTag userId %{public}d", userId);
+    }
+
+    return true;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

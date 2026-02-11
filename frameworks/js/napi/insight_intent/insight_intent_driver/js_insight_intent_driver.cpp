@@ -34,6 +34,11 @@
 #include "string_wrapper.h"
 #include "int_wrapper.h"
 
+#include "napi_common_want.h"
+
+#include "bundle_mgr_helper.h"
+#include "extract_insight_intent_profile.h"
+
 #include <mutex>
 
 namespace OHOS {
@@ -63,6 +68,12 @@ public:
         AppExecFwk::InsightIntentExecuteResult executeResult) override
     {
         TAG_LOGI(AAFwkTag::INTENT, "complete");
+        TAG_LOGE(AAFwkTag::INTENT, "testTag query result complete");
+        if (executeResult.result == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "testTag null result");
+        } else {
+            TAG_LOGE(AAFwkTag::INTENT, "testTag result:%{public}s", executeResult.result->ToString().c_str());
+        }
         NapiAsyncTask::CompleteCallback complete = [resultCode = resultCode, executeResult = executeResult]
             (napi_env env, NapiAsyncTask &task, int32_t status) {
             HandleScope handleScope(env);
@@ -102,6 +113,11 @@ public:
     static napi_value Execute(napi_env env, napi_callback_info info)
     {
         GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentDriver, OnExecute);
+    }
+
+    static napi_value QueryEntityInfo(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsInsightIntentDriver, OnQueryEntityInfo);
     }
 
     static napi_value GetAllInsightIntentInfo(napi_env env, napi_callback_info info)
@@ -272,6 +288,57 @@ private:
         }
         auto err = AbilityManagerClient::GetInstance()->ExecuteIntent(key,
             InsightIntentHostClient::GetInstance(), param);
+        if (err != 0) {
+            asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
+            InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
+        }
+        return handleEscape.Escape(result);
+    }
+
+    napi_value OnQueryEntityInfo(napi_env env, NapiCallbackInfo& info)
+    {
+        HandleEscape handleEscape(env);
+        TAG_LOGI(AAFwkTag::INTENT, "OnQueryEntityInfo call");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        InsightIntentExecuteParam executeParam;
+        // InsightIntentQueryParam param;
+        if (!UnwrapQueryParam(env, info.argv[INDEX_ZERO], executeParam.queryParam_)) {
+            TAG_LOGE(AAFwkTag::INTENT, "parse on off type failed");
+            ThrowInvalidParamError(env, "Parameter error: Parse param failed, param must be a QueryParam.");
+            return CreateJsUndefined(env);
+        }
+        TAG_LOGE(AAFwkTag::INTENT, "testTag UnwrapQueryParam success");
+
+        // executeParam.bundleName_ = executeParam.queryParam_.bundleName_;
+        // executeParam.moduleName_ = executeParam.queryParam_.moduleName_;
+        // // executeParam.abilityName_ = "EntryAbility";
+        // executeParam.insightIntentName_ = executeParam.queryParam_.intentName_;
+        // executeParam.executeMode_ = 1;
+
+        // auto wp = std::make_shared<WantParams>(*executeParam.queryParam_.queryEntityParam_);
+        // wp->SetParam("className", AAFwk::String::Box(executeParam.queryParam_.className_));
+        // executeParam.insightIntentParam_ = wp;
+
+        napi_value result = nullptr;
+        napi_deferred nativeDeferred = nullptr;
+        napi_ref callbackRef = nullptr;
+        std::unique_ptr<NapiAsyncTask> asyncTask = nullptr;
+        napi_create_promise(env, &nativeDeferred, &result);
+        asyncTask = std::make_unique<NapiAsyncTask>(nativeDeferred, nullptr, nullptr);
+
+        if (asyncTask == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null asyncTask");
+            return CreateJsUndefined(env);
+        }
+        auto client = std::make_shared<JsInsightIntentExecuteCallbackClient>(env, nativeDeferred, callbackRef);
+        uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(client);
+        auto err = AbilityManagerClient::GetInstance()->ExecuteIntent(key,
+            InsightIntentHostClient::GetInstance(), executeParam);
         if (err != 0) {
             asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
@@ -568,6 +635,9 @@ napi_value JsInsightIntentDriverInit(napi_env env, napi_value exportObj)
 
     const char *moduleName = "JsInsightIntentDriver";
     BindNativeFunction(env, exportObj, "execute", moduleName, JsInsightIntentDriver::Execute);
+    TAG_LOGE(AAFwkTag::INTENT, "testTag 1111111111111");
+    BindNativeFunction(env, exportObj, "queryEntityInfo", moduleName, JsInsightIntentDriver::QueryEntityInfo);
+    TAG_LOGE(AAFwkTag::INTENT, "testTag 2222222222222");
     BindNativeFunction(env, exportObj,
         "getAllInsightIntentInfo", moduleName, JsInsightIntentDriver::GetAllInsightIntentInfo);
     BindNativeFunction(env, exportObj,

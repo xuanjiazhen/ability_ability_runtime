@@ -68,6 +68,23 @@ napi_value ReturnModeInit(napi_env env)
     return handleEscape.Escape(objValue);
 }
 
+napi_value ReturnQueryInit(napi_env env)
+{
+     if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null env");
+        return nullptr;
+    }
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+    std::string all = "all";
+    std::string single = "single";
+    std::string regex = "regex";
+    napi_set_named_property(env, objValue, "ALL", CreateJsValue(env, all));
+    napi_set_named_property(env, objValue, "SINGLE", CreateJsValue(env, single));
+    napi_set_named_property(env, objValue, "REGEX", CreateJsValue(env, regex));
+    return objValue;
+}
+
 napi_value JsInsightIntentInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
@@ -78,6 +95,7 @@ napi_value JsInsightIntentInit(napi_env env, napi_value exportObj)
     HandleScope handleScope(env);
     napi_set_named_property(env, exportObj, "ExecuteMode", ExecuteModeInit(env));
     napi_set_named_property(env, exportObj, "ReturnMode", ReturnModeInit(env));
+    napi_set_named_property(env, exportObj, "QueryType", ReturnQueryInit(env));
     return exportObj;
 }
 } // namespace AbilityRuntime

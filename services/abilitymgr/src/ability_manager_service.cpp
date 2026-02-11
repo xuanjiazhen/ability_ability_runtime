@@ -13266,6 +13266,17 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     const InsightIntentExecuteParam &param)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "testTag bundleName:%{public}s, moduleName:%{public}s, intentName:%{public}s, "
+        "className:%{public}s, userId:%{public}d, queryEntityParam:%{public}s",
+        param.queryParam_.bundleName_.c_str(),
+        param.queryParam_.moduleName_.c_str(),
+        param.queryParam_.intentName_.c_str(),
+        param.queryParam_.className_.c_str(),
+        param.queryParam_.userId_,
+        param.insightIntentParam_->ToString().c_str());
+
+    return QueryEntityInfo(key, callerToken, param.queryParam_);
+
     if (param.isServiceMatch_) {
         return StartAbilityWithServiceMatch(param);
     }
@@ -13290,6 +13301,11 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     bool ignoreAbilityName = openLinkExecuteFlag ||
         (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE) ||
         (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "testTag execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
+        "intentName: %{public}s, intentId:%{public}" PRIu64", openLinkExecuteFlag: %{public}d, executeMode: %{public}d, "
+        "ignore:%{public}d, type: %{public}s",
+        param.bundleName_.c_str(), param.moduleName_.c_str(), param.insightIntentName_.c_str(), param.insightIntentId_,
+        openLinkExecuteFlag, param.executeMode_, ignoreAbilityName, infos.decoratorType.c_str());
     auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(key, callerToken,
         paramPtr, callerBundlename, ignoreAbilityName);
@@ -13324,7 +13340,7 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
             break;
         case AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND: {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode UI_ABILITY_BACKGROUND.");
-            ret = StartAbilityByCallWithInsightIntent(want, callerToken, param, param.userId_);
+            ret = StartAbilityByCallWithInsightIntent(want, callerToken, param.userId_);
             if (ret != ERR_OK) {
                 eventInfo.errReason = "StartAbilityByCallWithInsightIntent error";
                 SendIntentReport(eventInfo, ret, param.insightIntentName_);
@@ -13354,6 +13370,73 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     }
     if (ret != ERR_OK) {
         DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(paramPtr->insightIntentId_);
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteIntent done, ret: %{public}d.", ret);
+    return ret;
+}
+
+int32_t AbilityManagerService::QueryEntityInfo(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    const InsightIntentQueryParam &param)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "testTag bundleName:%{public}s, moduleName:%{public}s, intentName:%{public}s, "
+        "className:%{public}s, userId:%{public}d",
+        param.bundleName_.c_str(),
+        param.moduleName_.c_str(),
+        param.intentName_.c_str(),
+        param.className_.c_str(),
+        param.userId_);
+
+    auto callerBundlename = InsightIntentGetcallerBundleName();
+    if (callerBundlename.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "callerBundlename is null");
+    }
+
+    if(IsCrossUserCall(param.userId_)) {
+        if (VerifyAccountPermission(param.userId_) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
+            return CHECK_PERMISSION_FAILED;
+        }
+        if (!JudgeMultiUserConcurrency(param.userId_)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "multi-user non-concurrent unsatisfied");
+            return ERR_CROSS_USER;
+        }
+    }
+
+    auto paramPtr = std::make_shared<InsightIntentQueryParam>(param);
+    // auto paramPtr = std::make_shared<InsightIntentExecuteParam>();
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateIntentQueryParam(key, callerToken,
+        paramPtr, callerBundlename);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
+        "intentName: %{public}s, userId: %{public}d",
+        param.bundleName_.c_str(), param.moduleName_.c_str(), param.intentName_.c_str(), param.userId_);
+
+    Want want;
+    ret = InsightIntentExecuteManager::GenerateQueryWant(paramPtr, want);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "testTagGenerateWant error:%{public}d", ret);
+        return ret;
+    }
+    TAG_LOGE(AAFwkTag::ABILITYMGR, "testTagGenerateWant success");
+
+    int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    EventInfo eventInfo = BuildEventInfo(want, callerUserId);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ExecuteMode UI_ABILITY_BACKGROUND.");
+    ret = StartAbilityByCallWithInsightIntent(want, callerToken, param.userId_);
+    if (ret != ERR_OK) {
+        eventInfo.errReason = "StartAbilityByCallWithInsightIntent error";
+        SendIntentReport(eventInfo, ret, param.intentName_);
+    }
+
+    if (ret == START_ABILITY_WAITING) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Top ability is foregrounding. The intent will be queued for execution");
+        ret = ERR_OK;
+    }
+    if (ret != ERR_OK) {
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(paramPtr->intentId_);
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteIntent done, ret: %{public}d.", ret);
     return ret;
@@ -13421,7 +13504,7 @@ int32_t AbilityManagerService::StartExtensionAbilityWithInsightIntent(const Want
 }
 
 int32_t AbilityManagerService::StartAbilityByCallWithInsightIntent(const Want &want,
-    const sptr<IRemoteObject> &callerToken, const InsightIntentExecuteParam &param, int32_t userId)
+    const sptr<IRemoteObject> &callerToken, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "called");
     sptr<IAbilityConnection> connect = sptr<AbilityBackgroundConnection>::MakeSptr();

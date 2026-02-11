@@ -40,6 +40,9 @@ std::shared_ptr<InsightIntentExecutor> InsightIntentExecutor::Create(Runtime& ru
                 case InsightIntentType::DECOR_FUNC:
                     return static_cast<std::shared_ptr<InsightIntentExecutor>>(JsInsightIntentFunc::Create(
                         static_cast<JsRuntime&>(runtime)));
+                // case InsightIntentType::DECOR_QUERY:
+                //     return static_cast<std::shared_ptr<InsightIntentExecutor>>(JsInsightIntentFunc::Create(
+                //         static_cast<JsRuntime&>(runtime)));
                 case InsightIntentType::DECOR_PAGE:
                     return static_cast<std::shared_ptr<InsightIntentExecutor>>(JsInsightIntentPage::Create(
                         static_cast<JsRuntime&>(runtime)));
