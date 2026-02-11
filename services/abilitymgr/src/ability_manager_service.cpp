@@ -4367,6 +4367,21 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     }
     abilityRequest.extensionType = abilityRequest.abilityInfo.extensionAbilityType;
 
+    // Check AGENT_UI extension launch limit: max 5 extensions per caller per bundle
+    if (abilityRequest.extensionType == AppExecFwk::ExtensionAbilityType::AGENT_UI) {
+        int64_t callerRecordId = callerRecord->GetRecordId();
+        std::string bundleName = abilityRequest.abilityInfo.bundleName;
+        int64_t extensionAbilityId = abilityRequest.sessionInfo ? abilityRequest.sessionInfo->persistentId : 0;
+
+        int ret = CheckAgentUILaunchLimit(callerRecordId, bundleName, extensionAbilityId);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "CheckAgentUILaunchLimit failed");
+            eventInfo.errReason = "AGENT_UI extension limit exceeded";
+            SendExtensionReport(eventInfo, ret);
+            return ret;
+        }
+    }
+
     abilityRequest.moduleProcess = "";
     AppExecFwk::HapModuleInfo hapModuleInfo;
     if (DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->GetHapModuleInfo(
@@ -4442,6 +4457,33 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         SendExtensionReport(eventInfo, eventInfo.errCode);
     }
     return eventInfo.errCode;
+}
+
+int AbilityManagerService::CheckAgentUILaunchLimit(int64_t callerRecordId, const std::string &bundleName,
+    int64_t extensionAbilityId)
+{
+    std::lock_guard<std::mutex> lock(agentUIExtensionMutex_);
+    auto& bundleMap = agentUIExtensionRecords_[callerRecordId];
+    auto& extensionSet = bundleMap[bundleName];
+
+    if (extensionSet.find(extensionAbilityId) != extensionSet.end()) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "AGENT_UI extension already launched, callerId=%{public}ld, bundle=%{public}s, id=%{public}ld",
+            callerRecordId, bundleName.c_str(), extensionAbilityId);
+        return ERR_OK;
+    }
+
+    if (extensionSet.size() >= 5) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "AGENT_UI extension limit reached: max 5 per caller per bundle, "
+            "callerId=%{public}ld, bundle=%{public}s, currentCount=%{public}zu",
+            callerRecordId, bundleName.c_str(), extensionSet.size());
+        return ERR_INVALID_VALUE;
+    }
+
+    extensionSet.insert(extensionAbilityId);
+    TAG_LOGI(AAFwkTag::UI_EXT, "AGENT_UI extension launched: callerId=%{public}ld, bundle=%{public}s, "
+        "id=%{public}ld, count=%{public}zu/%{public}d",
+        callerRecordId, bundleName.c_str(), extensionAbilityId, extensionSet.size(), 5);
+    return ERR_OK;
 }
 
 int AbilityManagerService::StopExtensionAbility(const Want &want, const sptr<IRemoteObject> &callerToken,
