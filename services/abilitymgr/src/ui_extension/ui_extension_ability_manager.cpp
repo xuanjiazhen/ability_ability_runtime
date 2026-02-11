@@ -802,12 +802,15 @@ void UIExtensionAbilityManager::RemoveUIExtensionAbilityRecord(
     }
     uiExtensionAbilityRecordMgr_->RemoveExtensionRecord(abilityRecord->GetUIExtensionAbilityId());
 
-    // Remove AgentUI extension record from AbilityManagerService
-    auto callerRecord = abilityRecord->GetCallerRecord();
-    auto sessionInfo = abilityRecord->GetSessionInfo();
-    if (callerRecord != nullptr && sessionInfo != nullptr) {
+    // Remove AgentUI extension record from AbilityManagerService (only for AGENT_UI type)
+    if (abilityRecord->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT_UI) {
         auto abilityMs = DelayedSingleton<AbilityManagerService>::GetInstance();
-        if (abilityMs != nullptr) {
+        if (abilityMs == nullptr) {
+            return;
+        }
+        auto callerRecord = abilityRecord->GetCallerRecord();
+        auto sessionInfo = abilityRecord->GetSessionInfo();
+        if (callerRecord != nullptr && sessionInfo != nullptr) {
             abilityMs->RemoveAgentUIExtensionRecord(
                 callerRecord->GetRecordId(),
                 abilityRecord->GetAbilityInfo().bundleName,
