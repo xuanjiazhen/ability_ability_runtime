@@ -4369,9 +4369,16 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
 
     // Check AGENT_UI extension launch limit: max 5 extensions per caller per bundle
     if (abilityRequest.extensionType == AppExecFwk::ExtensionAbilityType::AGENT_UI) {
+        if (!abilityRequest.sessionInfo) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "sessionInfo is null");
+            eventInfo.errReason = "sessionInfo is null";
+            SendExtensionReport(eventInfo, ERR_INVALID_VALUE);
+            return ERR_INVALID_VALUE;
+        }
+
         int64_t callerRecordId = callerRecord->GetRecordId();
         std::string bundleName = abilityRequest.abilityInfo.bundleName;
-        int64_t extensionAbilityId = abilityRequest.sessionInfo ? abilityRequest.sessionInfo->persistentId : 0;
+        int64_t extensionAbilityId = abilityRequest.sessionInfo->persistentId;
 
         int ret = CheckAgentUILaunchLimit(callerRecordId, bundleName, extensionAbilityId);
         if (ret != ERR_OK) {
@@ -4483,6 +4490,49 @@ int AbilityManagerService::CheckAgentUILaunchLimit(int64_t callerRecordId, const
         "id:%{public}ld, count:%{public}zu",
         callerRecordId, bundleName.c_str(), extensionAbilityId, extensionSet.size());
     return ERR_OK;
+}
+
+void AbilityManagerService::RemoveAgentUIExtensionRecord(int64_t callerRecordId, const std::string &bundleName,
+    int64_t extensionAbilityId)
+{
+    std::lock_guard<std::mutex> lock(agentUIExtensionMutex_);
+    auto callerIt = agentUIExtensionRecords_.find(callerRecordId);
+    if (callerIt == agentUIExtensionRecords_.end()) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "callerRecordId not found, callerId:%{public}ld", callerRecordId);
+        return;
+    }
+
+    auto& bundleMap = callerIt->second;
+    auto bundleIt = bundleMap.find(bundleName);
+    if (bundleIt == bundleMap.end()) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "bundleName not found, callerId:%{public}ld, bundle:%{public}s",
+            callerRecordId, bundleName.c_str());
+        return;
+    }
+
+    auto& extensionSet = bundleIt->second;
+    auto extIt = extensionSet.find(extensionAbilityId);
+    if (extIt == extensionSet.end()) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "extensionAbilityId not found, callerId:%{public}ld, bundle:%{public}s, id:%{public}ld",
+            callerRecordId, bundleName.c_str(), extensionAbilityId);
+        return;
+    }
+
+    extensionSet.erase(extIt);
+    TAG_LOGI(AAFwkTag::UI_EXT, "agentUI removed, callerId:%{public}ld, bundle:%{public}s, "
+        "id:%{public}ld, count:%{public}zu",
+        callerRecordId, bundleName.c_str(), extensionAbilityId, extensionSet.size());
+
+    // Clean up empty maps
+    if (extensionSet.empty()) {
+        bundleMap.erase(bundleIt);
+        TAG_LOGD(AAFwkTag::UI_EXT, "bundleMap erased, bundle:%{public}s", bundleName.c_str());
+    }
+
+    if (bundleMap.empty()) {
+        agentUIExtensionRecords_.erase(callerIt);
+        TAG_LOGD(AAFwkTag::UI_EXT, "callerMap erased, callerId:%{public}ld", callerRecordId);
+    }
 }
 
 int AbilityManagerService::StopExtensionAbility(const Want &want, const sptr<IRemoteObject> &callerToken,

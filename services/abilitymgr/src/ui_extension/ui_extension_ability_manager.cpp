@@ -801,6 +801,20 @@ void UIExtensionAbilityManager::RemoveUIExtensionAbilityRecord(
         ClearPreloadUIExtensionRecord(abilityRecord);
     }
     uiExtensionAbilityRecordMgr_->RemoveExtensionRecord(abilityRecord->GetUIExtensionAbilityId());
+
+    // Remove AgentUI extension record from AbilityManagerService
+    auto callerRecord = abilityRecord->GetCallerRecord();
+    auto sessionInfo = abilityRecord->GetSessionInfo();
+    if (callerRecord != nullptr && sessionInfo != nullptr) {
+        auto abilityMs = DelayedSingleton<AbilityManagerService>::GetInstance();
+        if (abilityMs != nullptr) {
+            abilityMs->RemoveAgentUIExtensionRecord(
+                callerRecord->GetRecordId(),
+                abilityRecord->GetAbilityInfo().bundleName,
+                sessionInfo->persistentId
+            );
+        }
+    }
 }
 
 void UIExtensionAbilityManager::AddUIExtensionAbilityRecordToTerminatedList(

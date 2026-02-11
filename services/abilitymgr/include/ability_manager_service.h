@@ -2661,6 +2661,14 @@ private:
     int CheckAgentUILaunchLimit(int64_t callerRecordId, const std::string &bundleName, int64_t extensionAbilityId);
 
     /**
+     * @brief Remove AgentUI extension record when ability is terminated.
+     * @param callerRecordId The caller's record ID.
+     * @param bundleName The target bundle name.
+     * @param extensionAbilityId The extension ability ID to remove.
+     */
+    void RemoveAgentUIExtensionRecord(int64_t callerRecordId, const std::string &bundleName, int64_t extensionAbilityId);
+
+    /**
      * initialization of u0 user.
      *
      */
