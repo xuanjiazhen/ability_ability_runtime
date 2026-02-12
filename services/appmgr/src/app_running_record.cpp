@@ -2188,22 +2188,13 @@ uint64_t AppRunningRecord::GetAppRunningUniqueId() const
 
 uint64_t AppRunningRecord::GenerateRunningId()
 {
-    struct timespec t;
-    t.tv_sec = 0;
-    t.tv_nsec = 0;
-    if (clock_gettime(CLOCK_MONOTONIC, &t) != 0) {
-        TAG_LOGE(AAFwkTag::APPMGR, "clock_gettime failed, using timestamp only");
-        return static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count());
-    }
-    
-    uint64_t timestamp = static_cast<uint64_t>(((t.tv_sec) * NANOSECONDS + t.tv_nsec) / MICROSECONDS);
-    
     std::random_device rd;
     std::mt19937_64 engine(rd());
-    std::uniform_int_distribution<uint64_t> dist(0, 0xFFFFFFFF);
-    uint64_t random = dist(engine);
-    
-    return (timestamp << 32) | random;
+    std::uniform_int_distribution<uint64_t> dist(
+        std::numeric_limits<uint64_t>::min(),
+        std::numeric_limits<uint64_t>::max()
+    );
+    return dist(engine);
 }
 
 void AppRunningRecord::SetRequestProcCode(int32_t requestProcCode)
