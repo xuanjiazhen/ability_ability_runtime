@@ -46,6 +46,7 @@ struct DialogCallerInfo {
     SelectorType type = SelectorType::WITHOUT_SELECTOR;
     // for app gallery selector
     bool needGrantUriPermission = false;
+    sptr<IRemoteObject> sessionToken = nullptr;
 };
 
 struct StartupSessionInfo {
