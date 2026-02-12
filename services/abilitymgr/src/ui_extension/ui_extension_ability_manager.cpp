@@ -56,6 +56,7 @@ const std::string UIEXTENSION_NOTIFY_BIND = "ohos.uiextension.params.notifyProce
 const std::string IS_PRELOAD_UIEXTENSION_ABILITY = "ability.want.params.is_preload_uiextension_ability";
 const std::string SEPARATOR = ":";
 const int DEFAULT_INVAL_VALUE = -1;
+const int MAX_AGENT_UI_LIMIT = 5;
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 #ifdef SUPPORT_ASAN
 const int LOAD_TIMEOUT_MULTIPLE = 150;
@@ -557,6 +558,20 @@ int32_t UIExtensionAbilityManager::StartAbilityLocked(const AbilityRequest &abil
     targetService->DoBackgroundAbilityWindowDelayed(false);
     targetService->SetSessionInfo(abilityRequest.sessionInfo);
 
+    // Check and update AgentUI extension launch limit
+    if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT_UI) {
+        int64_t callerRecordId = callerAbilityRecord->GetRecordId();
+        std::string bundleName = abilityRequest.abilityInfo.bundleName;
+        int64_t extensionAbilityId = targetService->GetUIExtensionAbilityId();
+
+        int ret = CheckAgentUILaunchLimit(callerRecordId, bundleName, extensionAbilityId);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "agentUI launch limit reached, ret:%{public}d", ret);
+            return ret;
+        }
+        UpdateAgentUILaunchRecord(callerRecordId, bundleName, extensionAbilityId, false);
+    }
+
     if (abilityRequest.sessionInfo && abilityRequest.sessionInfo->sessionToken) {
         auto &remoteObj = abilityRequest.sessionInfo->sessionToken;
         {
@@ -800,6 +815,10 @@ void UIExtensionAbilityManager::RemoveUIExtensionAbilityRecord(
     if (abilityRecord->GetWant().GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
         ClearPreloadUIExtensionRecord(abilityRecord);
     }
+    // Remove AgentUI extension record from local map (only for AGENT_UI type)
+    UpdateAgentUILaunchRecord(abilityRecord->GetCallerRecord()->GetRecordId(),
+        abilityRecord->GetAbilityInfo().bundleName,
+        abilityRecord->GetUIExtensionAbilityId, true);
     uiExtensionAbilityRecordMgr_->RemoveExtensionRecord(abilityRecord->GetUIExtensionAbilityId());
 }
 
@@ -1437,6 +1456,78 @@ void UIExtensionAbilityManager::CompleteBackground(const std::shared_ptr<BaseExt
     CompleteStartServiceReq(abilityRecord->GetURI());
     // Abilities ahead of the one started were put in terminate list, we need to terminate them.
     TerminateAbilityLocked(abilityRecord->GetToken());
+}
+
+void UIExtensionAbilityManager::UpdateAgentUILaunchRecord(
+    int64_t callerRecordId, const std::string& bundleName, int64_t extensionAbilityId, bool isRemove)
+{
+    if (extensionAbilityType != AppExecFwk::ExtensionAbilityType::AGENT_UI) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(agentUIExtensionMutex_);
+    auto& bundleMap = agentUIExtensionRecords_[callerRecordId];
+    auto bundleIt = bundleMap.find(bundleName);
+    if (bundleIt == bundleMap.end()) {
+        return;
+    }
+
+    auto& extensionSet = bundleIt->second;
+    auto extIt = extensionSet.find(extensionAbilityId);
+    if (isRemove) {
+        // Remove operation
+        if (extIt != extensionSet.end()) {
+            extensionSet.erase(extIt);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "agentUI removed, callerId:%{public}ld, bundle:%{public}s, "
+                "id:%{public}ld, count:%{public}zu",
+                callerRecord->GetRecordId(), abilityRecord->GetAbilityInfo().bundleName.c_str(),
+                sessionInfo->persistentId, extensionSet.size());
+        }
+    } else {
+        // Add operation
+        if (extIt == extensionSet.end() && extensionSet.size() < MAX_AGENT_UI_LIMIT) {
+            extensionSet.insert(sessionInfo->persistentId);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "agentUI launched, callerId:%{public}ld, bundle:%{public}s, "
+                "id:%{public}ld, count:%{public}zu",
+                callerRecord->GetRecordId(), abilityRecord->GetAbilityInfo().bundleName.c_str(),
+                sessionInfo->persistentId, extensionSet.size());
+        }
+    }
+
+    // Clean up empty maps
+    if (extensionSet.empty()) {
+        bundleMap.erase(bundleIt);
+    }
+    if (bundleMap.empty()) {
+        agentUIExtensionRecords_.erase(callerRecord->GetRecordId());
+    }
+}
+
+int UIExtensionAbilityManager::CheckAgentUILaunchLimit(int64_t callerRecordId, const std::string &bundleName,
+    int64_t extensionAbilityId)
+{
+    std::lock_guard<std::mutex> lock(agentUIExtensionMutex_);
+    auto& bundleMap = agentUIExtensionRecords_[callerRecordId];
+    auto& extensionSet = bundleMap[bundleName];
+
+    if (extensionSet.find(extensionAbilityId) != extensionSet.end()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR,
+            "agentUI was launched, callerId:%{public}ld, bundle:%{public}s, id:%{public}ld",
+            callerRecordId, bundleName.c_str(), extensionAbilityId);
+        return ERR_OK;
+    }
+
+    if (extensionSet.size() >= MAX_AGENT_UI_LIMIT) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "agentUI reach limit, callerId:%{public}ld, bundle:%{public}s, count:%{public}zu",
+            callerRecordId, bundleName.c_str(), extensionSet.size());
+        return ERR_OVERFLOW;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "agentUI launch allowed, callerId:%{public}ld, bundle:%{public}s, id:%{public}ld",
+        callerRecordId, bundleName.c_str(), extensionAbilityId);
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
