@@ -118,7 +118,7 @@ foundation/ability            #元能力子系统
 
 * 示例
 
-  更多开发指导可参考[**示例文档**](https://gitee.com/openharmony/docs/tree/master/zh-cn/application-dev/application-models/Readme-CN.md)
+  更多开发指导可参考[**示例文档**](https://gitcode.com/openharmony/docs/tree/master/zh-cn/application-dev/application-models/Readme-CN.md)
 
 
 ## **aa命令**
@@ -160,16 +160,16 @@ aa force-stop com.ohos.app
 ## 相关仓
 元能力子系统
 
-[ability_base](https://gitee.com/openharmony/ability_ability_base)
+[ability_base](https://gitcode.com/openharmony/ability_ability_base)
 
-[ability_lite](https://gitee.com/openharmony/ability_ability_lite)
+[ability_lite](https://gitcode.com/openharmony/ability_ability_lite)
 
-[**ability_runtime**](https://gitee.com/openharmony/ability_ability_runtime)
+[**ability_runtime**](https://gitcode.com/openharmony/ability_ability_runtime)
 
-[dmsfwk](https://gitee.com/openharmony/ability_dmsfwk)
+[dmsfwk](https://gitcode.com/openharmony/ability_dmsfwk)
 
-[dmsfwk_lite](https://gitee.com/openharmony/ability_dmsfwk_lite)
+[dmsfwk_lite](https://gitcode.com/openharmony/ability_dmsfwk_lite)
 
-[form_fwk](https://gitee.com/openharmony/ability_form_fwk)
+[form_fwk](https://gitcode.com/openharmony/ability_form_fwk)
 
-[idl_tool](https://gitee.com/openharmony/ability_idl_tool)
+[idl_tool](https://gitcode.com/openharmony/ability_idl_tool)
