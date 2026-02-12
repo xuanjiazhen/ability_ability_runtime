@@ -2486,7 +2486,7 @@ public:
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex) override;
 
     int StartAbilityWithRemoveIntentFlag(const StartAbilityWrapParam &param);
-    
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2651,14 +2651,6 @@ private:
      *
      */
     bool Init();
-    /**
-     * @brief Check if the caller can launch the AGENT_UI extension.
-     * @param callerRecordId The caller's record ID.
-     * @param bundleName The target bundle name.
-     * @param extensionAbilityId The extension ability ID to launch.
-     * @return Returns ERR_OK if allowed, ERR_OVERFLOW if limit exceeded (max 5 per caller per bundle).
-     */
-    int CheckAgentUILaunchLimit(int64_t callerRecordId, const std::string &bundleName, int64_t extensionAbilityId);
 
     /**
      * initialization of u0 user.
