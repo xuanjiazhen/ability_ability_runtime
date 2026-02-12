@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+#include <limits>
 #include <optional>
+#include <random>
 
 #include "ability_window_configuration.h"
 #include "app_running_record.h"
@@ -76,7 +78,10 @@ AppRunningRecord::AppRunningRecord(
     t.tv_nsec = 0;
     clock_gettime(CLOCK_MONOTONIC, &t);
     startTimeMillis_ = static_cast<int64_t>(((t.tv_sec) * NANOSECONDS + t.tv_nsec) / MICROSECONDS);
+    appRunningUniqueId_ = GenerateRunningId();
 }
+
+void AppRunningRecord::SetApplicationClient(const sptr<IAppScheduler> &thread)
 
 void AppRunningRecord::SetApplicationClient(const sptr<IAppScheduler> &thread)
 {
@@ -383,7 +388,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetMultiThread(isMultiThread_);
     launchData.SetJITEnabled(jitEnabled_);
     launchData.SetNativeStart(isNativeStart_);
-    launchData.SetAppRunningUniqueId(std::to_string(startTimeMillis_));
+    launchData.SetAppRunningUniqueId(std::to_string(appRunningUniqueId_));
     launchData.SetIsNeedPreloadModule(isNeedPreloadModule_);
     launchData.SetAppPreloadMode(preloadMode_);
     launchData.SetNWebPreload(isAllowedNWebPreload_);
@@ -2174,6 +2179,31 @@ bool AppRunningRecord::GetFocusFlag() const
 int64_t AppRunningRecord::GetAppStartTime() const
 {
     return startTimeMillis_;
+}
+
+uint64_t AppRunningRecord::GetAppRunningUniqueId() const
+{
+    return appRunningUniqueId_;
+}
+
+uint64_t AppRunningRecord::GenerateRunningId()
+{
+    struct timespec t;
+    t.tv_sec = 0;
+    t.tv_nsec = 0;
+    if (clock_gettime(CLOCK_MONOTONIC, &t) != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "clock_gettime failed, using timestamp only");
+        return static_cast<uint64_t>(std::chrono::system_clock::now().time_since_epoch().count());
+    }
+    
+    uint64_t timestamp = static_cast<uint64_t>(((t.tv_sec) * NANOSECONDS + t.tv_nsec) / MICROSECONDS);
+    
+    std::random_device rd;
+    std::mt19937_64 engine(rd());
+    std::uniform_int_distribution<uint64_t> dist(0, 0xFFFFFFFF);
+    uint64_t random = dist(engine);
+    
+    return (timestamp << 32) | random;
 }
 
 void AppRunningRecord::SetRequestProcCode(int32_t requestProcCode)
