@@ -36,6 +36,9 @@ gen_js_obj("embeddable_ui_ability_abc") {
 
 ohos_shared_library("embeddableuiability_napi") {
   sources = [ "embeddable_ui_ability_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":embeddable_ui_ability_abc",

@@ -26,6 +26,7 @@ ohos_shared_library("cj_errormanager_ffi") {
   cflags = [
     "-O2",
     "-D_FORTIFY_SOURCE=2",
+    "--coverage",
   ]
 
   cflags_cc = cflags
@@ -56,6 +57,7 @@ ohos_shared_library("cj_errormanager_ffi") {
     "cj_error_manager_ffi.cpp",
     "cj_error_observer.cpp",
   ]
+  ldflags = [ "--coverage" ]
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"

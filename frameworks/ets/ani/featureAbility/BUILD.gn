@@ -36,6 +36,9 @@ ohos_shared_library("featureability_ani") {
   public_configs = [ ":featureability_public_config" ]
 
   sources = [ "./src/ani_data_ability_helper.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_native_path}/ability/native:abilitykit_native",

@@ -55,6 +55,9 @@ ohos_shared_library("libupms") {
   include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper" ]
 
   sources = libupms_sources
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",

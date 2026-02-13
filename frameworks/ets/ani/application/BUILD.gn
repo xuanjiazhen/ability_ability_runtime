@@ -39,6 +39,9 @@ ohos_shared_library("application_ani") {
   ]
 
   sources = [ "./src/ets_application.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",

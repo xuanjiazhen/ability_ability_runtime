@@ -49,12 +49,15 @@ ohos_shared_library("page_config_manager") {
   branch_protector_ret = "pac_ret"
 
   sources = [ "src/page_config_manager.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   external_deps = [
-    "hilog:libhilog",
-    "window_manager:libwm",
     "c_utils:utils",
+    "hilog:libhilog",
     "ipc:ipc_core",
+    "window_manager:libwm",
   ]
 
   configs = [

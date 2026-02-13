@@ -36,6 +36,9 @@ gen_js_obj("environment_callback_abc") {
 
 ohos_shared_library("environmentcallback") {
   sources = [ "environment_callback_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":environment_callback_abc",

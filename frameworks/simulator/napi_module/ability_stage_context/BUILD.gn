@@ -28,6 +28,9 @@ ohos_shared_library("abilitystagecontext_napi") {
   }
 
   sources = [ "${ability_runtime_napi_path}/app/ability_stage_context/ability_stage_context_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":gen_obj_src_ability_stage_context_abc",

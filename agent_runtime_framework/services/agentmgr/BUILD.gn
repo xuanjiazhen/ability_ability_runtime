@@ -36,6 +36,9 @@ ohos_shared_library("agentmgr") {
     "src/agent_event_handler.cpp",
     "src/agent_manager_service.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   public_configs = []
 

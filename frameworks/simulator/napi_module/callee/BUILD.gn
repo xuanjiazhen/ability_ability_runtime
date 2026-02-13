@@ -28,6 +28,9 @@ ohos_shared_library("callee") {
   }
 
   sources = [ "${ability_runtime_napi_path}/callee/callee_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":gen_obj_src_callee_abc",

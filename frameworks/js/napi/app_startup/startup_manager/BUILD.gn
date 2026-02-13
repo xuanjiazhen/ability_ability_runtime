@@ -30,6 +30,9 @@ ohos_shared_library("startupmanager_napi") {
     "js_startup_manager.cpp",
     "startup_manager_module.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [ "${ability_runtime_services_path}/common:common_config" ]
 

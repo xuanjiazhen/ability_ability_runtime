@@ -27,6 +27,9 @@ ohos_shared_library("appmanager_napi") {
     "js_app_manager_utils.cpp",
     "js_app_state_observer.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [
     "${ability_runtime_services_path}/common:common_config",

@@ -30,6 +30,9 @@ ohos_shared_library("auto_startup_manager") {
   ]
 
   sources = [ "./src/ets_ability_auto_startup_manager.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 

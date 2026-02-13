@@ -48,6 +48,9 @@ ohos_shared_library("appserviceextensioncontext_napi") {
   branch_protector_ret = "pac_ret"
 
   sources = [ "app_service_extension_context_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":app_service_extension_context_abc",
