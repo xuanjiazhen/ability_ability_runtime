@@ -166,7 +166,7 @@ void InsightRdbStorageMgr::Transform(std::unordered_map<std::string, std::string
             if (!ExtractInsightIntentProfile::ProfileInfoFormat(profileInfo, totalInfo)) {
                 TAG_LOGE(AAFwkTag::INTENT, "ProfileInfoFormat error, key: %{private}s", item.first.c_str());
             }
-            totalInfos.emplace_back(totalInfo);
+            totalInfos.emplace_back(std::move(totalInfo));
         }
     }
     for (const auto &item : value) {

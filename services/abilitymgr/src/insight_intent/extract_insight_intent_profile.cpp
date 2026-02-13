@@ -640,7 +640,7 @@ bool ExtractInsightIntentProfile::TransformTo(const std::string &profileStr,
 
     std::lock_guard<std::mutex> lock(g_extraMutex);
     g_extraParseResult = ERR_OK;
-    intentInfos = jsonObject.get<ExtractInsightIntentProfileInfoVec>();
+    intentInfos = std::move(jsonObject.get<ExtractInsightIntentProfileInfoVec>());
     if (g_extraParseResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "parse result: %{public}d, profileStr: %{public}s",
             g_extraParseResult, profileStr.c_str());
