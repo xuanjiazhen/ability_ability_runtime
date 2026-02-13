@@ -14,6 +14,7 @@
  */
 
 #include "insight_intent_db_cache.h"
+#include "ffrt.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -48,6 +49,23 @@ int32_t InsightIntentDbCache::InitInsightIntentCache(const int32_t userId)
         std::string bundleName = info.genericInfo.bundleName;
         intentGenericInfos_[bundleName].push_back(info.genericInfo);
     }
+    TAG_LOGI(AAFwkTag::INTENT, "squirrel Schedule memory defragmentation task");
+    auto task = [this]() {
+        TAG_LOGI(AAFwkTag::INTENT, "squirrel before sleep");
+        std::this_thread::sleep_for(std::chrono::seconds(120));
+        TAG_LOGI(AAFwkTag::INTENT, "squirrel Start intent info memory defragmentation");
+        if (intentGenericInfos_.empty()) {
+            TAG_LOGI(AAFwkTag::INTENT, "squirrel intent info is empty, skip memory defragmentation");
+            return;
+        }
+        std::map<std::string, std::vector<ExtractInsightIntentGenericInfo>> newIntentGenericInfos;
+        for (const auto& item : intentGenericInfos_) {
+            intentGenericInfos_[item.first] = item.second;
+        }
+        intentGenericInfos_.swap(newIntentGenericInfos);
+        TAG_LOGI(AAFwkTag::INTENT, "squirrel intentn info memory defragmentation completed");
+    }
+    ffrt::submit(task);
     return ERR_OK;
 }
 
