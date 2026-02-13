@@ -39,6 +39,15 @@ public:
 
         return (name.substr(0, HEAD_SIZE) + REPLACE_CHAIN + name.substr(name.length() - END_SIZE, END_SIZE));
     }
+
+    static std::string AlternateMask(const std::string &name, size_t interval = 1)
+    {
+        std::string result = name;
+        for (size_t i = interval; i < result.length(); i += interval + 1) {
+            result[i] = '*';
+        }
+        return result;
+    }
 };
 }
 } // namespace OHOS
