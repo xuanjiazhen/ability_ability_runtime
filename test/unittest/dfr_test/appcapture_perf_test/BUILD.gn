@@ -44,7 +44,7 @@ config("ability_start_setting_config") {
  
 ohos_unittest("appcapture_perf_test") {
   module_out_path = module_output_path
- 
+  use_exception = true
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
     "${ability_runtime_path}/utils/global/time/include",
