@@ -338,5 +338,29 @@ HWTEST_F(EtsRuntimeTest, SetExtensionApiCheckCallback_100, TestSize.Level1)
     etsRuntime->SetExtensionApiCheckCallback(callback);
     EXPECT_EQ(etsRuntime->GetJsRuntime(), nullptr);
 }
+
+/**
+ * @tc.name: ForceFullGC_0100
+ * @tc.desc: EtsRuntimeTest test for ForceFullGC.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, ForceFullGC_0100, TestSize.Level2)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    etsRuntime->ForceFullGC(0);
+    ASSERT_NE(etsRuntime, nullptr);
+}
+
+/**
+ * @tc.name: XGC_0100
+ * @tc.desc: EtsRuntimeTest test for XGC.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, XGC_0100, TestSize.Level2)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    etsRuntime->XGC();
+    ASSERT_NE(etsRuntime, nullptr);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
