@@ -821,11 +821,7 @@ void EventReport::SendReportDataPartitionUsageEvent(const EventName &eventName, 
     hisyseventReport->InsertParam(EVENT_COMPONENT_NAME_KEY, eventInfo.componentName);
     hisyseventReport->InsertParam(EVENT_PARTITION_NAME_KEY, eventInfo.partitionName);
     hisyseventReport->InsertParam(EVENT_REMAIN_PARTITION_SIZE_KEY, eventInfo.remainPartitionSize);
-    std::vector<char*> list = {};
-    for (auto s : eventInfo.fileOfFolderPath) {
-        list.emplace_back(const_cast<char *>(s.c_str()));
-    }
-    hisyseventReport->InsertParam(EVENT_FILE_OR_FOLDER_PATH, list);
+    hisyseventReport->InsertParam(EVENT_FILE_OR_FOLDER_PATH, eventInfo.fileOfFolderPath);
     hisyseventReport->InsertParam(EVENT_FILE_OR_FOLDER_SIZE, eventInfo.fileOfFolderSize);
 #ifdef USE_EXTENSION_DATA
     hisyseventReport->Report("FILEMANAGEMENT", name.c_str(), type);

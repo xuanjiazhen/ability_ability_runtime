@@ -27,12 +27,12 @@ public:
     HisyseventReport()
     {
     }
-    HisyseventReport(int32_t len) : length_(len)
+    HisyseventReport(int32_t len)
     {
         if (len > SYSTEM_PARAM_MAX_LEN) {
             return;
         }
-        this->params_ = new (std::nothrow) HiSysEventParam[len];
+        this->params_ = new (std::nothrow) HiSysEventParam[SYSTEM_PARAM_MAX_LEN];
     }
     ~HisyseventReport()
     {
@@ -56,14 +56,16 @@ public:
     void InsertParam(const char* name, std::vector<int32_t> value);
     void InsertParam(const char* name, std::vector<char*> &value);
     void InsertParam(const char* name, std::vector<uint64_t> value);
+    void InsertParam(const char* name, std::vector<std::string> value);
     int32_t Report(const char* domain, const char* event, HiSysEventEventType type);
 
 private:
     void SetParamName(HiSysEventParam& param, const char* name);
 
     std::vector<std::unique_ptr<char[]>> paramBuffers_;
+    std::vector<char*> vectorParamBuffers_;
     HiSysEventParam* params_;
-    int32_t length_ = 0;
+    int32_t length_ = SYSTEM_PARAM_MAX_LEN;
     int32_t pos_ = 0;
 };
 } // namespace AAFwk

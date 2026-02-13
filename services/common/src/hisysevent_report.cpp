@@ -273,6 +273,40 @@ void HisyseventReport::InsertParam(const char* name, std::vector<char*> &value)
     params_[pos_++] = param;
 }
 
+void HisyseventReport::InsertParam(const char* name, std::vector<std::string> value)
+{
+    if (length_ <= pos_) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "param is full");
+        return;
+    }
+
+    for (auto s : value) {
+        char* c = const_cast<char *>(s.c_str());
+        int32_t len = std::strlen(c) + 1;
+        auto buffer = std::make_unique<char[]>(len);
+        int32_t ret = strcpy_s(buffer.get(), len, c);
+        if (ret != 0) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "InsertParam err %{public}d", ret);
+            return;
+        }
+        paramBuffers_.emplace_back(std::move(buffer));
+        vectorParamBuffers_.emplace_back(buffer.get());
+    }
+
+    HiSysEventParam param = {
+        .t = HISYSEVENT_STRING_ARRAY,
+        .v = { .array = nullptr},
+        .arraySize = 0,
+    };
+
+    if (!value.empty()) {
+        param.v.array = static_cast<void*>(vectorParamBuffers_.data());
+        param.arraySize = value.size();
+    }
+    SetParamName(param, name);
+    params_[pos_++] = param;
+}
+
 void HisyseventReport::InsertParam(const char* name, std::string value)
 {
     this->InsertParam(name, const_cast<char *>(value.c_str()));
