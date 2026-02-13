@@ -94,6 +94,7 @@ int32_t AppCapturePerf::CapturePerf(const FaultData &faultData)
     hisyseventReport->InsertParam("APP_NAME", faultData.errorObject.name);
     hisyseventReport->InsertParam("TIDS", tids);
     std::vector<char*> list;
+    list.reserve(perf.size());
     for (auto s : perf) {
         list.emplace_back(const_cast<char *>(s.c_str()));
     }
