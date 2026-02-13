@@ -26,10 +26,11 @@ ohos_shared_library("completionhandlerforabilitystartcallback") {
   ]
 
   sources = [ "completion_handler_for_abilitystartcallback_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
-  deps = [
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-  ]
+  deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
 
   external_deps = [
     "c_utils:utils",

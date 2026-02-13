@@ -26,6 +26,9 @@ ohos_shared_library("appRecovery_ani") {
   include_dirs = [ "./include" ]
 
   sources = [ "./src/app_recovery_ani.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",

@@ -68,10 +68,12 @@ ohos_shared_library("cj_context_ffi") {
   ]
 
   sources = [ "cj_context.cpp" ]
+  ldflags = [ "--coverage" ]
 
   cflags = [
     "-O2",
     "-D_FORTIFY_SOURCE=2",
+    "--coverage",
   ]
 
   cflags_cc = cflags

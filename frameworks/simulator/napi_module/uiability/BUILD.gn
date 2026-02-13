@@ -28,6 +28,9 @@ ohos_shared_library("uiability") {
   }
   defines += [ "ENABLE_ERRCODE" ]
   sources = [ "${ability_runtime_napi_path}/ability/ability_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":gen_obj_src_ability_abc",

@@ -26,6 +26,7 @@ ohos_shared_library("cj_app_manager_ffi") {
   cflags = [
     "-O2",
     "-D_FORTIFY_SOURCE=2",
+    "--coverage",
   ]
 
   cflags_cc = cflags
@@ -60,6 +61,7 @@ ohos_shared_library("cj_app_manager_ffi") {
   }
 
   sources = [ "cj_app_manager.cpp" ]
+  ldflags = [ "--coverage" ]
 
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"

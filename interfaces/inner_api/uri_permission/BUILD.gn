@@ -56,6 +56,9 @@ ohos_shared_library("uri_permission_mgr") {
     "src/uri_permission_manager_client.cpp",
     "src/uri_permission_raw_data.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
   output_values = get_target_outputs(":uri_permission_manager_interface")
   sources += filter_include(output_values, [ "*_proxy.cpp" ])
   sources += filter_include(output_values, [ "*_stub.cpp" ])

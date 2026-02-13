@@ -26,6 +26,9 @@ ohos_shared_library("agentextensionability") {
   }
   branch_protector_ret = "pac_ret"
   sources = [ "js_agent_extension_ability_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${agent_runtime_framework_path}/frameworks/js/js/agent_extension_ability:agent_extension_ability_abc",
@@ -71,6 +74,9 @@ ohos_shared_library("js_agent_connection") {
     "src/connection/js_agent_connector_stub_impl.cpp",
     "src/connection/js_agent_receiver_proxy.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
@@ -119,15 +125,15 @@ ohos_shared_library("js_agent_extension") {
   ]
 
   sources = [
-    "src/js_agent_extension_stub_impl.cpp",
     "src/js_agent_extension.cpp",
+    "src/js_agent_extension_stub_impl.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":js_agent_connection",
-    "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
-    "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
@@ -135,6 +141,9 @@ ohos_shared_library("js_agent_extension") {
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${agent_runtime_framework_path}/frameworks/js/napi/agent_extension_context:js_agent_extension_context",

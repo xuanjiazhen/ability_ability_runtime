@@ -36,6 +36,9 @@ gen_js_obj("ability_stage_abc") {
 
 ohos_shared_library("abilitystage") {
   sources = [ "ability_stage_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":ability_stage_abc",
@@ -53,6 +56,9 @@ ohos_shared_library("abilitystage") {
 
 ohos_shared_library("abilitystage_napi") {
   sources = [ "ability_stage_napi_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":ability_stage_abc",

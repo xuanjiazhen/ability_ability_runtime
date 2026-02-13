@@ -38,6 +38,9 @@ ohos_shared_library("session_handler") {
     "src/session_handler_proxy.cpp",
     "src/session_handler_stub.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [
     ":session_handler_config",

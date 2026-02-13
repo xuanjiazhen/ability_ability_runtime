@@ -34,6 +34,9 @@ ohos_shared_library("ani_base_context") {
   ]
 
   sources = [ "src/ani_base_context.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = []
 

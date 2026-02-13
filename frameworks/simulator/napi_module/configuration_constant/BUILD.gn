@@ -18,6 +18,9 @@ ohos_shared_library("configurationconstant") {
   include_dirs = [ "${resource_management_path}/interfaces/inner_api/include" ]
 
   sources = [ "${ability_runtime_napi_path}/configuration_constant/configuration_constant_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   external_deps = [ "napi:ace_napi" ]
 

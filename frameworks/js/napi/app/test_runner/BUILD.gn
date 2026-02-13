@@ -36,6 +36,9 @@ gen_js_obj("test_runner_abc") {
 
 ohos_shared_library("testrunner_napi") {
   sources = [ "test_runner_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":test_runner_abc",
