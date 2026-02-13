@@ -27,6 +27,7 @@
 #include "appfreeze_manager.h"
 #include "assert_fault_callback_death_mgr.h"
 #include "cache_extension_utils.h"
+#include "config_policy_utils.h"
 #include "datetime_ex.h"
 #include "extension_ability_info.h"
 #include "foreground_app_connection_manager.h"
