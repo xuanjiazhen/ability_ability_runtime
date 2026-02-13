@@ -15,9 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("errorcode_napi") {
-  include_dirs = [
-    "${ability_runtime_services_path}/common/include",
-  ]
+  include_dirs = [ "${ability_runtime_services_path}/common/include" ]
 
   sanitize = {
     cfi = true
@@ -26,10 +24,11 @@ ohos_shared_library("errorcode_napi") {
   }
 
   sources = [ "ability_errorcode_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
-  deps = [
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-  ]
+  deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
 
   external_deps = [
     "hilog:libhilog",

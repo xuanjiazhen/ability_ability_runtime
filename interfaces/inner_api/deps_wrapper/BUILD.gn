@@ -37,6 +37,9 @@ ohos_shared_library("ability_deps_wrapper") {
     "src/os_account_manager_wrapper.cpp",
     "src/sa_mgr_client.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   public_configs = [ ":ability_deps_wrapper_config" ]
 

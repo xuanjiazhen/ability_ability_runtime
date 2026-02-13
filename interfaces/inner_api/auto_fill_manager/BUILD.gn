@@ -36,6 +36,9 @@ ohos_shared_library("auto_fill_manager") {
     "src/auto_fill_manager.cpp",
     "src/auto_fill_manager_util.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",

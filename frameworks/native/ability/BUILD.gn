@@ -67,6 +67,9 @@ ohos_shared_library("ability_context_native") {
     "native/panel_start_callback.cpp",
     "native/ui_extension_callback.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
@@ -78,8 +81,8 @@ ohos_shared_library("ability_context_native") {
     "${ability_runtime_native_path}/ability/native:dialog_request_callback",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
-    "${ability_runtime_services_path}/common:app_util",
     "${ability_runtime_path}/utils/global/common:runtime_utils",
+    "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = [
@@ -139,6 +142,9 @@ ohos_shared_library("cj_ability_context_native") {
   ]
 
   sources = [ "ability_runtime/cj_extension_context.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":ability_context_native",

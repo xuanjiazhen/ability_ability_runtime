@@ -47,6 +47,9 @@ ohos_shared_library("uiserviceextensionability_napi") {
   branch_protector_ret = "pac_ret"
 
   sources = [ "ui_service_extension_ability_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":ui_service_extension_ability_abc",
@@ -73,6 +76,9 @@ ohos_shared_library("uiserviceextensionability") {
   branch_protector_ret = "pac_ret"
 
   sources = [ "ui_service_extension_ability_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":ui_service_extension_ability_abc",

@@ -36,6 +36,9 @@ ohos_shared_library("caller_complex_ani") {
   public_configs = [ ":caller_complex_ani_public_config" ]
 
   sources = [ "./src/ets_caller_complex.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",

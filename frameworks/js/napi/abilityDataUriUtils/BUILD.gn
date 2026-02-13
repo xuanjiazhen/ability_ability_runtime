@@ -36,6 +36,9 @@ gen_js_obj("ability_data_uri_utils_abc") {
 
 ohos_shared_library("datauriutils") {
   sources = [ "ability_data_uri_utils_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":ability_data_uri_utils_abc",

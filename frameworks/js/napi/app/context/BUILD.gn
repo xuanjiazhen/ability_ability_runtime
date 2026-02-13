@@ -43,6 +43,7 @@ ohos_shared_library("context_napi") {
     "-fstack-protector-strong",
     "-D_FORTIFY_SOURCE=2",
     "-Oz",
+    "--coverage",
   ]
   cflags_cc = [
     "-flto=full",
@@ -51,10 +52,12 @@ ohos_shared_library("context_napi") {
     "-fstack-protector-strong",
     "-D_FORTIFY_SOURCE=2",
     "-Oz",
+    "--coverage",
   ]
   ldflags = [
     "-flto=full",
     "-Wl",
+    "--coverage",
   ]
 
   deps = [

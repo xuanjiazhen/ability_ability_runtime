@@ -41,6 +41,9 @@ ohos_shared_library("dataobs_manager") {
     "${ability_runtime_services_path}/dataobsmgr/src/dataobs_mgr_client.cpp",
     "${ability_runtime_services_path}/dataobsmgr/src/dataobs_mgr_proxy.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   public_configs = [
     ":dataobs_manager_public_config",

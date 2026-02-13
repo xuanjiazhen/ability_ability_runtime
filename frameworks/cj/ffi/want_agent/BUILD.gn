@@ -82,10 +82,12 @@ ohos_shared_library("cj_want_agent_ffi") {
     "src/cj_want_agent_ffi.cpp",
     "src/cj_want_agent_object.cpp",
   ]
+  ldflags = [ "--coverage" ]
 
   cflags = [
     "-O2",
     "-D_FORTIFY_SOURCE=2",
+    "--coverage",
   ]
 
   cflags_cc = cflags

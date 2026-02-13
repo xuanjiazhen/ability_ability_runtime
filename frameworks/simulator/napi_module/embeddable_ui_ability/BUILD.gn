@@ -27,6 +27,9 @@ ohos_shared_library("embeddableuiability_napi") {
   }
 
   sources = [ "${ability_runtime_napi_path}/embeddable_ui_ability/embeddable_ui_ability_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":gen_obj_src_embeddable_ui_ability_abc",

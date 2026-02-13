@@ -36,6 +36,9 @@ gen_js_obj("insight_intent_executor_abc") {
 
 ohos_shared_library("insightintentexecutor_napi") {
   sources = [ "insight_intent_executor_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":insight_intent_executor_abc",

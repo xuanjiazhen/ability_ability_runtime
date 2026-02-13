@@ -35,6 +35,9 @@ ohos_shared_library("ani_wantagent_common") {
   public_configs = [ ":ani_wantagent_common_public_config" ]
 
   sources = [ "ani_common_want_agent.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
