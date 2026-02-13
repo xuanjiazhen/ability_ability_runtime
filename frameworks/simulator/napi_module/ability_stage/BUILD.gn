@@ -30,6 +30,9 @@ ohos_shared_library("abilitystage") {
   sources = [
     "${ability_runtime_napi_path}/app/ability_stage/ability_stage_module.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":gen_obj_src_ability_stage_abc",

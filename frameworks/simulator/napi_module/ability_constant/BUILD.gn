@@ -21,6 +21,9 @@ ohos_shared_library("abilityconstant") {
   ]
 
   sources = [ "ability_constant_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [ "${ability_runtime_path}/frameworks/simulator/osal:simulator_osal" ]
 

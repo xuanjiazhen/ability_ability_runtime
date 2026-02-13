@@ -30,6 +30,9 @@ ohos_shared_library("wantagent_napi") {
     "../napi_want_agent.cpp",
     "want_agent_module.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",

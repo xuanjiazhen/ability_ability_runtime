@@ -18,6 +18,9 @@ ohos_shared_library("contextconstant_napi") {
   include_dirs = []
 
   sources = [ "application_context_constant_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = []
 

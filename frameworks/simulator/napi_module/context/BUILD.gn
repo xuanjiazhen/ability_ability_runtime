@@ -28,6 +28,9 @@ ohos_shared_library("context_napi") {
   }
 
   sources = [ "${ability_runtime_napi_path}/app/context/context_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":gen_obj_src_context_abc",

@@ -50,7 +50,6 @@ config("ability_config") {
   } else if (target_cpu == "x86_64") {
     defines += [ "APP_USE_X86_64" ]
   }
-
 }
 
 config("agent_extension_public_config") {
@@ -93,16 +92,17 @@ ohos_shared_library("agent_extension") {
     "${agent_runtime_framework_path}/frameworks/native/agent_extension_context/include",
   ]
 
-  sources = [
-    "src/agent_extension.cpp",
-  ]
+  sources = [ "src/agent_extension.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
-    "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
     "${ability_runtime_native_path}/ability/native:extensionkit_native",
+    "${ability_runtime_native_path}/appkit:app_context",
     "${agent_runtime_framework_path}/frameworks/native/agent_extension_context:agent_extension_context",
   ]
 
@@ -139,6 +139,9 @@ ohos_shared_library("agent_extension_module") {
   ]
 
   sources = [ "src/agent_extension_module_loader.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
   configs = [ ":ability_config" ]
   public_configs = [ ":agent_extension_public_config" ]
 
@@ -160,11 +163,9 @@ ohos_shared_library("agent_extension_module") {
     "napi:ace_napi",
   ]
 
-  if (ability_runtime_graphics) { 
-    external_deps += [ 
-      "window_manager:libwm", 
-    ] 
-  } 
+  if (ability_runtime_graphics) {
+    external_deps += [ "window_manager:libwm" ]
+  }
 
   relative_install_dir = "extensionability/"
   subsystem_name = "ability"

@@ -31,6 +31,9 @@ ohos_shared_library("share_extension_ani") {
   ]
 
   sources = [ "${ability_runtime_path}/frameworks/ets/ani/share_extension_ability/src/ets_share_extension.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_native_path}/ability:ability_context_native",

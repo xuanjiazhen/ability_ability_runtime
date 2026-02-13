@@ -22,6 +22,9 @@ ohos_shared_library("featureability_napi") {
     "feature_ability_module.cpp",
     "js_feature_ability.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [
     "${ability_runtime_services_path}/common:common_config",

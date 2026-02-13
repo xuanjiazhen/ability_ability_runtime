@@ -17,12 +17,12 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 group("unittest") {
   testonly = true
   deps = [
+    "../examples/oh_mock_utils_unit_test:unittest",
     "ability_auto_startup_client_unit_test:unittest",
     "ability_connection_unit_test:unittest",
-    "app_startup/ext_native_startup_task_test:unittest",
     "app_startup/ext_native_startup_manager_test:unittest",
+    "app_startup/ext_native_startup_task_test:unittest",
     "batch_uri_unit_test:unittest",
-    "../examples/oh_mock_utils_unit_test:unittest",
     "user_controller_unit_test:unittest",
   ]
 }

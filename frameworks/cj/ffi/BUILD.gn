@@ -81,6 +81,7 @@ ohos_shared_library("cj_ability_ffi") {
     "cj_element_name_ffi.cpp",
     "cj_want_ffi.cpp",
   ]
+  ldflags = [ "--coverage" ]
 
   if (cj_frontend) {
     sources += [
@@ -96,6 +97,7 @@ ohos_shared_library("cj_ability_ffi") {
   cflags = [
     "-O2",
     "-D_FORTIFY_SOURCE=2",
+    "--coverage",
   ]
 
   cflags_cc = cflags

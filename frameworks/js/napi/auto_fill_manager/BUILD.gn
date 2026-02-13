@@ -20,6 +20,9 @@ ohos_shared_library("autofillmanager_napi") {
     "js_auto_fill_manager.cpp",
     "js_auto_save_request_callback.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [
     "${ability_runtime_services_path}/common:common_config",

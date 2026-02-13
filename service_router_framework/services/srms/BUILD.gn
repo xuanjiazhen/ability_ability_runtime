@@ -40,6 +40,9 @@ ohos_shared_library("libsrms") {
     "src/sr_common_event_subscriber.cpp",
     "src/sr_samgr_helper.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [ ":srms_config" ]
 

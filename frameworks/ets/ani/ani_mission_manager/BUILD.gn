@@ -31,6 +31,9 @@ ohos_shared_library("missionmanager_ani") {
     "./src/ets_mission_listener.cpp",
     "./src/ets_mission_manager.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   include_dirs = [
     "./include",

@@ -43,6 +43,9 @@ ohos_shared_library("mission_manager") {
     "src/mission_manager_client.cpp",
     "src/mission_manager_proxy.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   sanitize = {
     cfi = true

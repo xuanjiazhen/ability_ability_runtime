@@ -28,6 +28,9 @@ ohos_shared_library("apprecovery_napi") {
     "app_recovery_api.cpp",
     "app_recovery_module.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [ "${ability_runtime_services_path}/common:common_config" ]
 
