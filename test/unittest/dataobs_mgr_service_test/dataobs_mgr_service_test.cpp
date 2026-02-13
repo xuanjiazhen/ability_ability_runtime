@@ -991,7 +991,6 @@ HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_RegisterObserver_051
 
     EXPECT_EQ(testVal, dataObsMgrServer->RegisterObserver(*uri, dataobsAbility, -1, DataObsOption(false, true)));
 
-    testing::Mock::AllowLeak(dataobsAbility);
     SetSelfTokenID(originalToken);
     TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0510 end");
 }
