@@ -184,7 +184,7 @@ bool DataObsMgrService::IsDataMgrService(uint32_t tokenId, int32_t uid)
 
 // Collect non-system app calling data for dfx perpose
 void DataObsMgrService::ReportSystemPermissionCheckResult(uint32_t callerTokenId, uint64_t fullTokenId,
-    std::string callingFunc, const Uri &uri, bool isExtension)
+    const std::string &callingFunc, const Uri &uri, bool isExtension)
 {
     Security::AccessToken::ATokenTypeEnum tokenType =
         Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerTokenId);
@@ -198,10 +198,11 @@ void DataObsMgrService::ReportSystemPermissionCheckResult(uint32_t callerTokenId
     if (IsSystemApp(callerTokenId, fullTokenId)) {
         return;
     }
-    std::string uriStr = uri.ToString();
+    // mask uri using interval of 2
+    std::string uriAnis = CommonUtils::AlternateMask(uri.ToString(), 2);
     std::string appendix = callingFunc + "isExtension:" + std::to_string(isExtension);
     TAG_LOGE(AAFwkTag::DBOBSMGR, "normal app calling uri:%{public}s,"
-        "fullToken %{public}" PRId64, CommonUtils::Anonymous(uri.ToString()).c_str(), fullTokenId);
+        "fullToken %{public}" PRId64, uriAnis.c_str(), fullTokenId);
     DataShare::DataSharePermission::ReportExtensionFault(E_NOT_SYSTEM_APP, callerTokenId, uriStr, appendix);
 }
 
@@ -691,8 +692,9 @@ std::pair<Status, std::vector<NotifyInfo>> DataObsMgrService::MakeNotifyInfos(Ch
     bool isDataShare = opt.IsDataShare();
     std::vector<NotifyInfo> notifyInfo;
     Status status = SUCCESS;
+    uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
     // datashare remove permission denied uri
-    changes.uris_.remove_if([this, &notifyInfo, tokenId, userId, isDataShare, &status](Uri &uri) {
+    changes.uris_.remove_if([this, &notifyInfo, tokenId, userId, isDataShare, &status, fullTokenId](Uri &uri) {
         bool isDataShareUri = DataSharePermission::IsDataShareUri(uri);
         if (isDataShare && !isDataShareUri) {
             LOG_ERROR("uri invalid, uri:%{public}s", CommonUtils::Anonymous(uri.ToString()).c_str());
@@ -703,7 +705,7 @@ std::pair<Status, std::vector<NotifyInfo>> DataObsMgrService::MakeNotifyInfos(Ch
             return false;
         }
         // check for fault report purpose
-        ReportSystemPermissionCheckResult(tokenId, IPCSkeleton::GetCallingFullTokenID(), __FUNCTION__, uri, false);
+        ReportSystemPermissionCheckResult(tokenId, fullTokenId, __FUNCTION__, uri, false);
         ObserverInfo info(tokenId, 0, tokenId, userId, false);
         info.errMsg = "NotifyChangeExt";
         info.pid = IPCSkeleton::GetCallingPid();
