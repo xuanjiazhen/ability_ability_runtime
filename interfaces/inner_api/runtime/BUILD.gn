@@ -83,6 +83,9 @@ ohos_shared_library("runtime") {
     "${ability_runtime_native_path}/runtime/ohos_loop_handler.cpp",
     "${ability_runtime_native_path}/runtime/runtime.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [
     ":runtime_config",

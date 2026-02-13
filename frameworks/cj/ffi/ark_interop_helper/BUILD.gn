@@ -18,6 +18,9 @@ ohos_shared_library("ark_interop_helper_ffi") {
   defines = []
 
   sources = [ "ark_interop_helper.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   external_deps = [
     "bundle_framework:appexecfwk_base",

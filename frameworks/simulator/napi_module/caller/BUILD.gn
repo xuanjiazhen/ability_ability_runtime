@@ -28,6 +28,9 @@ ohos_shared_library("caller_napi") {
   }
 
   sources = [ "${ability_runtime_napi_path}/caller/caller_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":gen_obj_src_caller_abc",

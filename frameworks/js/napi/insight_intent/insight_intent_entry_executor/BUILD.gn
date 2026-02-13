@@ -28,8 +28,9 @@ gen_js_obj("insight_intent_entry_executor_js") {
 }
 
 gen_js_obj("insight_intent_entry_executor_abc") {
-  input = get_label_info(":gen_insight_intent_entry_executor_abc", "target_out_dir") +
-          "/insight_intent_entry_executor.abc"
+  input =
+      get_label_info(":gen_insight_intent_entry_executor_abc",
+                     "target_out_dir") + "/insight_intent_entry_executor.abc"
   output = target_out_dir + "/insight_intent_entry_executor_abc.o"
   dep = ":gen_insight_intent_entry_executor_abc"
 }
@@ -47,6 +48,9 @@ ohos_shared_library("insightintententryexecutor_napi") {
   branch_protector_ret = "pac_ret"
 
   sources = [ "insight_intent_entry_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":insight_intent_entry_executor_abc",

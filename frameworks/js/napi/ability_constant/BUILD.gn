@@ -21,8 +21,11 @@ ohos_shared_library("abilityconstant_napi") {
   ]
 
   sources = [ "ability_constant_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
-  deps = ["${ability_runtime_innerkits_path}/runtime:runtime"]
+  deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
 
   external_deps = [
     "ability_base:zuri",
@@ -45,8 +48,11 @@ ohos_shared_library("abilityconstant") {
   ]
 
   sources = [ "ability_constant_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
-  deps = ["${ability_runtime_innerkits_path}/runtime:runtime"]
+  deps = [ "${ability_runtime_innerkits_path}/runtime:runtime" ]
 
   external_deps = [
     "ability_base:zuri",

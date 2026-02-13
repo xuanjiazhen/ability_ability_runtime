@@ -38,6 +38,9 @@ gen_js_obj("application_state_change_callback_abc") {
 
 ohos_shared_library("applicationstatechangecallback") {
   sources = [ "application_state_change_callback_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     ":application_state_change_callback_abc",

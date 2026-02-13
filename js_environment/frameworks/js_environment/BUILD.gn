@@ -36,6 +36,9 @@ ohos_shared_library("js_environment") {
     "src/source_map.cpp",
     "src/uncaught_exception_callback.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [
     ":js_environment_config",

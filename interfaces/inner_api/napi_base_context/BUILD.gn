@@ -20,6 +20,9 @@ config("napi_context_base_public_config") {
 
 ohos_shared_library("napi_base_context") {
   sources = [ "src/napi_base_context.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = []
 

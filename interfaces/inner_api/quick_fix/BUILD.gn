@@ -56,6 +56,9 @@ ohos_shared_library("quickfix_manager") {
     "src/quick_fix_manager_client.cpp",
     "src/quick_fix_utils.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
   sources += filter_include(output_values, [ "*.cpp" ])
   defines = [ "AMS_LOG_TAG = \"QuickFixService\"" ]
   deps = [

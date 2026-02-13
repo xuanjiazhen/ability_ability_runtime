@@ -15,7 +15,7 @@ import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("appmanager") {
-  include_dirs = ["${ability_runtime_utils_path}/global/common/include"]
+  include_dirs = [ "${ability_runtime_utils_path}/global/common/include" ]
 
   if (ability_runtime_graphics) {
     include_dirs += [ "./" ]
@@ -28,6 +28,9 @@ ohos_shared_library("appmanager") {
     "js_app_manager_utils.cpp",
     "js_app_state_observer.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   if (ability_runtime_graphics) {
     sources += [ "js_ability_first_frame_state_observer.cpp" ]

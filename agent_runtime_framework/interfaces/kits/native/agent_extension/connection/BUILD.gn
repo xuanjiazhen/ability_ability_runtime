@@ -42,6 +42,9 @@ ohos_shared_library("agent_extension_connection") {
     "src/agent_receiver_proxy.cpp",
     "src/agent_receiver_stub.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = []
 

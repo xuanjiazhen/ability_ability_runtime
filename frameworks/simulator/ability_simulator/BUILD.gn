@@ -35,7 +35,10 @@ ohos_shared_library("ability_simulator_inner") {
       "__IDE_PREVIEW__",
     ]
 
-    cflags = [ "-std=c++17" ]
+    cflags = [
+      "-std=c++17",
+      "--coverage",
+    ]
 
     include_dirs = [
       "${ability_runtime_path}/js_environment/interfaces/inner_api",
@@ -91,6 +94,8 @@ ohos_shared_library("ability_simulator_inner") {
       "src/resource_manager_helper.cpp",
       "src/simulator.cpp",
     ]
+    ldflags = [ "--coverage" ]
+    cflags_cc = [ "--coverage" ]
 
     public_configs = [
       ":ability_simulator_public_config",

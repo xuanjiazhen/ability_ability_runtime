@@ -38,6 +38,9 @@ ohos_shared_library("napi_wantagent_common") {
   public_configs = [ ":napi_wantagent_common_public_config" ]
 
   sources = [ "napi_common_want_agent.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",

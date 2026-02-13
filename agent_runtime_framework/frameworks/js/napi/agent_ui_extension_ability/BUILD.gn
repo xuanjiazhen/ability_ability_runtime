@@ -16,20 +16,23 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_shared_library("agentuiextensionability_napi") {
   sanitize = {
-      integer_overflow = true
-      ubsan = true
-      boundary_sanitize = true
-      cfi = true
-      cfi_cross_dso = true
-      cfi_vcall_icall_only = true
-      debug = false
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
   }
   branch_protector_ret = "pac_ret"
   sources = [ "js_agent_ui_extension_module.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
-      "${agent_runtime_framework_path}/frameworks/js/js/agent_ui_extension_ability:agent_ui_extension_ability_abc",
-      "${agent_runtime_framework_path}/frameworks/js/js/agent_ui_extension_ability:agent_ui_extension_ability_js",
+    "${agent_runtime_framework_path}/frameworks/js/js/agent_ui_extension_ability:agent_ui_extension_ability_abc",
+    "${agent_runtime_framework_path}/frameworks/js/js/agent_ui_extension_ability:agent_ui_extension_ability_js",
   ]
 
   external_deps = [ "napi:ace_napi" ]
@@ -42,12 +45,12 @@ ohos_shared_library("agentuiextensionability_napi") {
 config("agent_ui_extension_config") {
   visibility = [ ":*" ]
   include_dirs = [
-      "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
-      "${ability_runtime_path}/interfaces/kits/native/ability/native",
-      "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
-      "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
-      "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
-      "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+    "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
   ]
 }
 
@@ -76,21 +79,22 @@ ohos_shared_library("js_agent_ui_extension") {
     "${agent_runtime_framework_path}/frameworks/native/agent_ui_extension_ability/include",
   ]
 
-  sources = [
-    "src/js_agent_ui_extension.cpp",
-  ]
+  sources = [ "src/js_agent_ui_extension.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-      "${ability_runtime_native_path}/ability/native:abilitykit_utils",
-      "${ability_runtime_native_path}/ability/native:extensionkit_native",
-      "${ability_runtime_native_path}/ability/native:ui_extension",
-      "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-      "${ability_runtime_innerkits_path}/runtime:runtime",
-      "${ability_runtime_napi_path}/inner/napi_common:napi_common",
-      "${ability_runtime_native_path}/ability:ability_context_native",
-      "${ability_runtime_native_path}/ability/native:ability_business_error",
-      "${ability_runtime_native_path}/appkit:app_context",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
+    "${ability_runtime_native_path}/ability/native:ui_extension",
+    "${ability_runtime_native_path}/appkit:app_context",
   ]
 
   external_deps = [
@@ -105,7 +109,7 @@ ohos_shared_library("js_agent_ui_extension") {
   ]
 
   if (ability_runtime_graphics) {
-      external_deps += [ "window_manager:libwm" ]
+    external_deps += [ "window_manager:libwm" ]
   }
 
   subsystem_name = "ability"

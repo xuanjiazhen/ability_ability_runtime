@@ -28,18 +28,14 @@ ohos_shared_library("agent_extension_context") {
 
   defines = [ "AMS_LOG_TAG = \"Agent\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001353" ]
-  include_dirs = [
-    "include",
-  ]
+  include_dirs = [ "include" ]
 
-  sources = [
-    "src/agent_extension_context.cpp",
-  ]
+  sources = [ "src/agent_extension_context.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   deps = [
-    "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
-    "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
@@ -47,6 +43,9 @@ ohos_shared_library("agent_extension_context") {
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
+    "${ability_runtime_native_path}/ability/native:extensionkit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
   ]

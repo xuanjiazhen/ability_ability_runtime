@@ -94,6 +94,9 @@ ohos_shared_library("srms_fwk") {
     "src/service_router_load_callback.cpp",
     "src/service_router_mgr_helper.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
   output_values = get_target_outputs(":service_router_mgr_interface")
   sources += filter_include(output_values, [ "*_proxy.cpp" ])
 

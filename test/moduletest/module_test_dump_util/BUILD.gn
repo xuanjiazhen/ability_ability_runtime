@@ -27,6 +27,9 @@ config("module_test_dump_util_config") {
 
 ohos_shared_library("module_test_dump_util_lib") {
   sources = [ "${ability_runtime_test_path}/moduletest/module_test_dump_util/module_test_dump_util.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   configs = [ ":module_test_dump_util_config" ]
 

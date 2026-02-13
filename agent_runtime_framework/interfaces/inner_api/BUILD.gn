@@ -28,9 +28,10 @@ ohos_shared_library("agent_fwk") {
     "${ability_runtime_services_path}/common/include",
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection/include",
   ]
-  sources = [
-    "src/agent_card.cpp",
-  ]
+  sources = [ "src/agent_card.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   public_configs = []
 
@@ -60,9 +61,10 @@ ohos_shared_library("agent_connection_manager") {
     "${ability_runtime_services_path}/common/include",
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection/include",
   ]
-  sources = [
-    "src/agent_connection_manager.cpp",
-  ]
+  sources = [ "src/agent_connection_manager.cpp" ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
 
   public_configs = []
 
@@ -128,6 +130,9 @@ ohos_shared_library("agent_manager") {
     "src/agent_load_callback.cpp",
     "src/agent_manager_client.cpp",
   ]
+  ldflags = [ "--coverage" ]
+  cflags = [ "--coverage" ]
+  cflags_cc = [ "--coverage" ]
   sources += filter_include(output_values, [ "*.cpp" ])
   defines = [ "AMS_LOG_TAG = \"AgentManagerService\"" ]
   deps = [
