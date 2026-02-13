@@ -24,6 +24,7 @@
 #include "hilog_tag_wrapper.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
+#include "ets_runtime.h"
 #include "singleton.h"
 #include "dfx_jsnapi.h"
 #include "parameters.h"
@@ -228,20 +229,33 @@ void DumpRuntimeHelper::DumpJsHeap(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
     }
-    if (runtime->GetLanguage() != OHOS::AbilityRuntime::Runtime::Language::JS) {
-        TAG_LOGE(AAFwkTag::APPKIT, "runtime language is not JS");
+    auto language = runtime->GetLanguage();
+    if (language != OHOS::AbilityRuntime::Runtime::Language::JS &&
+        language != OHOS::AbilityRuntime::Runtime::Language::ETS) {
+        TAG_LOGE(AAFwkTag::APPKIT, "runtime language is not JS or ETS");
         return;
     }
-    if (info.needLeakobj) {
+    if (info.needLeakobj && language == OHOS::AbilityRuntime::Runtime::Language::JS) {
         std::string checkList = "";
         GetCheckList(runtime, checkList);
         WriteCheckList(checkList);
     }
 
-    if (info.needSnapshot == true) {
+    if (info.needSnapshot && language == OHOS::AbilityRuntime::Runtime::Language::JS) {
         runtime->DumpHeapSnapshot(info.tid, info.needGc, info.needBinary);
-    } else {
-        if (info.needGc == true) {
+        return;
+    }
+    if (info.needGc) {
+        if (language == OHOS::AbilityRuntime::Runtime::Language::ETS) {
+            auto &etsRuntime = static_cast<OHOS::AbilityRuntime::ETSRuntime&>(*runtime);
+            etsRuntime.XGC();
+            auto jsRuntimePtr = etsRuntime.GetJsRuntime();
+            auto jsRuntime = static_cast<OHOS::AbilityRuntime::JsRuntime*>(jsRuntimePtr.get());
+            if (jsRuntime != nullptr) {
+                jsRuntime->ForceFullGC(info.tid);
+            }
+            runtime->ForceFullGC(info.tid);
+        } else {
             runtime->ForceFullGC(info.tid);
         }
     }

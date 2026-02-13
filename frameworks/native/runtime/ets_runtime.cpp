@@ -349,6 +349,72 @@ bool ETSRuntime::Initialize(const Options &options, std::unique_ptr<Runtime> &js
     return true;
 }
 
+void ETSRuntime::ForceFullGC(uint32_t tid)
+{
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "ETSRuntime ForceFullGC Start");
+    auto env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_namespace imageNameSpace;
+    if ((status = env->FindNamespace("std.core.GC", &imageNameSpace)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindNamespace failed, status: %{public}d", status);
+        return;
+    }
+    ani_enum aniEnumInt {};
+    if ((status = env->FindEnum("std.core.GC.Cause", &aniEnumInt)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindEnum failed, status: %{public}d", status);
+        return;
+    }
+    ani_enum_item full {};
+    if ((status = env->Enum_GetEnumItemByName(aniEnumInt, "FULL", &full)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Enum_GetEnumItemByName failed, status: %{public}d", status);
+        return;
+    }
+    ani_function gcFunc {};
+    if ((status = env->Namespace_FindFunction(imageNameSpace, "StartGC", "E{std.core.GC.Cause}C{std.core.Boolean}:l",
+        &gcFunc)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Namespace_FindFunction failed, status: %{public}d", status);
+        return;
+    }
+    ani_long implPtr;
+    ani_boolean inPlaceMode = true;
+    if ((status = env->Function_Call_Long(gcFunc, &implPtr, full, inPlaceMode)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Function_Call_Long failed, status: %{public}d", status);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "ETSRuntime ForceFullGC End");
+}
+
+void ETSRuntime::XGC()
+{
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "ETSRuntime XGC Start");
+    auto env = GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
+        return;
+    }
+    ani_status status = ANI_ERROR;
+    ani_class cls {};
+    if ((status = env->FindClass("std.interop.js.JSRuntime", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass failed, status: %{public}d", status);
+        return;
+    }
+    ani_static_method ctor {};
+    if ((status = env->Class_FindStaticMethod(cls, "xgc", ":l", &ctor)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindStaticMethod failed, status: %{public}d", status);
+        return;
+    }
+    ani_long longnum;
+    if ((status = env->Class_CallStaticMethod_Long(cls, ctor, &longnum)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_CallStaticMethod_Long failed, status: %{public}d", status);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "ETSRuntime XGC End");
+}
+
 void ETSRuntime::FinishPreload()
 {
     if (jsRuntime_ != nullptr) {
