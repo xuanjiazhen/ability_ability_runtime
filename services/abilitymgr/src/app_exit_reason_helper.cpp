@@ -514,6 +514,7 @@ int32_t AppExitReasonHelper::AddProcessExitReason(const RecordExitReasonParams &
         TAG_LOGW(AAFwkTag::ABILITYMGR, "notify failed:%{public}d", ret);
     }
     ExitReason tmpReason(exitReason.reason, exitReason.subReason, exitReason.exitMsg);
+    tmpReason.killId = exitReason.killId;
     return DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->SetAppExitReason(
         params.bundleName, params.accessTokenId, abilityLists, tmpReason, params.processInfo,
         params.fromKillWithReason);
