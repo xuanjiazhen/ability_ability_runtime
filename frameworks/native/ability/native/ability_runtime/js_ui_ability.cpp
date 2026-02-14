@@ -55,6 +55,7 @@
 #include "string_wrapper.h"
 #include "system_ability_definition.h"
 #include "time_util.h"
+#include "madvise/madvise_utils.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -924,6 +925,12 @@ void JsUIAbility::OnBackground()
     auto want = GetWant();
     if (want != nullptr) {
         HandleCollaboration(*want);
+    }
+    // Apply madvise optimization based on config file (only once per process)
+    static bool madviseApplied = false;
+    if (!madviseApplied && abilityInfo_ != nullptr) {
+        madviseUtil::madvise_with_config_file(abilityInfo_->bundleName.c_str());
+        madviseApplied = true;
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
