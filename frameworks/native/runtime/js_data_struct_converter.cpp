@@ -118,6 +118,7 @@ napi_value CreateLastExitDetailInfo(napi_env env, const AAFwk::LastExitDetailInf
     napi_set_named_property(env, object, "processState", CreateJsValue(env,
         ConvertToJsAppProcessState(static_cast<AppExecFwk::AppProcessState>(lastExitDetailInfo.processState), false)));
     napi_set_named_property(env, object, "timestamp", CreateJsValue(env, lastExitDetailInfo.timestamp));
+    napi_set_named_property(env, object, "killId", CreateJsValue(env, lastExitDetailInfo.killId));
 
     return object;
 }
