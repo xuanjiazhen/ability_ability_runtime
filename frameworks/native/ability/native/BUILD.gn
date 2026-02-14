@@ -1057,6 +1057,7 @@ ohos_shared_library("uiabilitykit_native") {
     ":continuation_ipc",
     ":extensionkit_native",
     ":ui_extension",
+    "${ability_runtime_native_path}/ability/native/ability_runtime/madvise:ability_madvise",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
