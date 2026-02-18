@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+/**
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -135,6 +135,23 @@ void SetPacMapObject(AppExecFwk::PacMap &pacMap, ani_env* env, std::string keySt
     pacMap.PutObject(keyStr, nullptr);
 }
 
+bool GetTupleValue(ani_env* env, ani_ref keyValue, size_t itemNum, ani_ref &value)
+{
+    std::string itemName = "$" + std::to_string(itemNum);
+    ani_ref tupleItem = nullptr;
+    ani_status status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(keyValue), itemName.c_str(), &tupleItem);
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::FA, "Failed to get tuple Item status: %{public}d", status);
+        return false;
+    }
+    status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(tupleItem), "value", &value);
+    if (ANI_OK != status) {
+        TAG_LOGE(AAFwkTag::FA, "Failed to get key Item status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
 void AnalysisPacMap(AppExecFwk::PacMap &pacMap, ani_env* env, const ani_object &aniObject)
 {
     if (env == nullptr) {
@@ -167,15 +184,11 @@ void AnalysisPacMap(AppExecFwk::PacMap &pacMap, ani_env* env, const ani_object &
             return;
         }
         ani_ref aniKey = nullptr;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 0, &aniKey);
-        if (ANI_OK != status) {
-            TAG_LOGE(AAFwkTag::FA, "Failed to get key Item status: %{public}d", status);
+        if (!GetTupleValue(env, keyValue, 0, aniKey)) {
             return;
         }
         ani_ref aniVal = nullptr;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 1, &aniVal);
-        if (ANI_OK != status) {
-            TAG_LOGE(AAFwkTag::FA, "Failed to get key Item status: %{public}d", status);
+        if (!GetTupleValue(env, keyValue, 1, aniVal)) {
             return;
         }
         std::string mapKey = "";
