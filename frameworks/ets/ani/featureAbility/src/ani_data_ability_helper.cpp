@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+/**
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -166,14 +166,25 @@ void AnalysisPacMap(AppExecFwk::PacMap &pacMap, ani_env* env, const ani_object &
             TAG_LOGE(AAFwkTag::FA, "Failed to get key value status: %{public}d", status);
             return;
         }
+        ani_ref tupleItem = nullptr;
+        status = env->Object_GetFieldByName_Ref(keyValue, "$0", &tupleItem);
+        if (ANI_OK != status) {
+            TAG_LOGE(AAFwkTag::FA, "Failed to get tuple Item status: %{public}d", status);
+            return;
+        }
         ani_ref aniKey = nullptr;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 0, &aniKey);
+        status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(tupleItem), "value", &aniKey);
         if (ANI_OK != status) {
             TAG_LOGE(AAFwkTag::FA, "Failed to get key Item status: %{public}d", status);
             return;
         }
+        status = env->Object_GetFieldByName_Ref(keyValue, "$1", &tupleItem);
+        if (ANI_OK != status) {
+            TAG_LOGE(AAFwkTag::FA, "Failed to get tuple Item status: %{public}d", status);
+            return;
+        }
         ani_ref aniVal = nullptr;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 1, &aniVal);
+        status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(tupleItem), "value", &aniVal);
         if (ANI_OK != status) {
             TAG_LOGE(AAFwkTag::FA, "Failed to get key Item status: %{public}d", status);
             return;

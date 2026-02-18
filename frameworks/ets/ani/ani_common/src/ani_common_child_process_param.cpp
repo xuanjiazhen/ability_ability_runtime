@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+/**
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -156,15 +156,26 @@ bool UnwrapChildProcessFds(ani_env* env, ani_object object, std::map<std::string
             TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get key value status: %{public}d", status);
             return false;
         }
-        ani_ref aniKey;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 0, &aniKey);
+        ani_ref tupleItem = nullptr;
+        status = env->Object_GetFieldByName_Ref(keyValue, "$0", &tupleItem);
+        if (ANI_OK != status) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get tuple Item status: %{public}d", status);
+            return false;
+        }
+        ani_ref aniKey = nullptr;
+        status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(tupleItem), "value", &aniKey);
         if (ANI_OK != status) {
             TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get key Item status: %{public}d", status);
             errorMsg = "The type of args.fds must be Record<string, int>.";
             return false;
         }
-        ani_ref aniVal;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 1, &aniVal);
+        status = env->Object_GetFieldByName_Ref(keyValue, "$1", &tupleItem);
+        if (ANI_OK != status) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get tuple Item status: %{public}d", status);
+            return false;
+        }
+        ani_ref aniVal = nullptr;
+        status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(tupleItem), "value", &aniVal);
         if (ANI_OK != status) {
             TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get key Item status: %{public}d", status);
             errorMsg = "The type of args.fds must be Record<string, int>.";
