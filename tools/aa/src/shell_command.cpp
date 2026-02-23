@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -67,6 +67,28 @@ ErrCode ShellCommand::OnCommand()
     return result;
 }
 
+
+// ErrCode ShellCommand::OnCommand1()
+// {
+//     TAG_LOGD(AAFwkTag::AA_TOOL, "start");
+//     int result = OHOS::ERR_OK;
+
+//     auto respond = commandMap_[cmd_];
+//     if (respond == nullptr) {
+//         resultReceiver_.append(GetCommandErrorMsg());
+//         respond = commandMap_["help"];
+//     }
+
+//     if (init() == OHOS::ERR_OK) {
+//         respond();
+//     } else {
+//         result = OHOS::ERR_INVALID_VALUE;
+//     }
+
+//     TAG_LOGD(AAFwkTag::AA_TOOL, "end");
+//     return result;
+// }
+
 std::string ShellCommand::ExecCommand()
 {
     TAG_LOGD(AAFwkTag::AA_TOOL, "start");
@@ -90,6 +112,31 @@ std::string ShellCommand::ExecCommand()
     return resultReceiver_;
     TAG_LOGD(AAFwkTag::AA_TOOL, "end");
 }
+
+
+// std::string ShellCommand::ExecCommand2)
+// {
+//     TAG_LOGD(AAFwkTag::AA_TOOL, "start");
+//     int result = CreateCommandMap();
+//     if (result != OHOS::ERR_OK) {
+//         TAG_LOGE(AAFwkTag::AA_TOOL, "CreateCommandMap failed\n");
+//     }
+
+//     result = CreateMessageMap();
+//     if (result != OHOS::ERR_OK) {
+//         TAG_LOGE(AAFwkTag::AA_TOOL, "CreateMessageMap failed\n");
+//     }
+
+//     result = OnCommand();
+//     if (result != OHOS::ERR_OK) {
+//         TAG_LOGE(AAFwkTag::AA_TOOL, "failed to execute your command\n");
+
+//         resultReceiver_ = "error: failed to execute your command.\n";
+//     }
+
+//     return resultReceiver_;
+//     TAG_LOGD(AAFwkTag::AA_TOOL, "end");
+// }
 
 std::string ShellCommand::GetCommandErrorMsg() const
 {
