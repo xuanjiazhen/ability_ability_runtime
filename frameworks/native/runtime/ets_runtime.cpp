@@ -230,9 +230,10 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
     }
 
     g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), GetAotPath(options), options.appInnerHspPathList,
-        options.commonHspBundleInfos, options.eventRunner);
+        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner);
     return true;
 }
+
 
 std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
     std::unique_ptr<Runtime> &jsRuntime, bool isMove)
