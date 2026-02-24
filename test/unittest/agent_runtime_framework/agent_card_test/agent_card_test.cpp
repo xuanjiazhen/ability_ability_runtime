@@ -1781,7 +1781,7 @@ HWTEST_F(AgentCardTest, SkillFromJson_027, TestSize.Level1)
 
 /**
  * @tc.name: SkillFromJson_028
- * @tc.desc: Test FromJson succeeds with valid extension field (length 1-1280)
+ * @tc.desc: Test FromJson succeeds with valid extension field (length 1-1024)
  * @tc.type: FUNC
  * @tc.require: AR000H1N32
  */
@@ -1801,13 +1801,13 @@ HWTEST_F(AgentCardTest, SkillFromJson_028, TestSize.Level1)
 
 /**
  * @tc.name: SkillFromJson_029
- * @tc.desc: Test FromJson succeeds when extension length is exactly 1280
+ * @tc.desc: Test FromJson succeeds when extension length is exactly 1024
  * @tc.type: FUNC
  * @tc.require: AR000H1N32
  */
 HWTEST_F(AgentCardTest, SkillFromJson_029, TestSize.Level1)
 {
-    std::string validExtension(1280, 'a');
+    std::string validExtension(1024, 'a');
     nlohmann::json jsonObject = nlohmann::json {
         { "id", "test" },
         { "name", "test" },
@@ -1817,18 +1817,18 @@ HWTEST_F(AgentCardTest, SkillFromJson_029, TestSize.Level1)
     };
     AgentSkill skill;
     EXPECT_TRUE(AgentSkill::FromJson(jsonObject, skill));
-    EXPECT_EQ(skill.extension.length(), 1280);
+    EXPECT_EQ(skill.extension.length(), 1024);
 }
 
 /**
  * @tc.name: SkillFromJson_030
- * @tc.desc: Test FromJson sets extension to empty when length exceeds 1280
+ * @tc.desc: Test FromJson sets extension to empty when length exceeds 1024
  * @tc.type: FUNC
  * @tc.require: AR000H1N32
  */
 HWTEST_F(AgentCardTest, SkillFromJson_030, TestSize.Level1)
 {
-    std::string longExtension(1281, 'a');
+    std::string longExtension(1025, 'a');
     nlohmann::json jsonObject = nlohmann::json {
         { "id", "test" },
         { "name", "test" },
@@ -2857,13 +2857,13 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_025, TestSize.Level1)
 
 /**
  * @tc.name: AgentCardFromJson_026
- * @tc.desc: Test FromJson succeeds when extension length is exactly 51200
+ * @tc.desc: Test FromJson succeeds when extension length is exactly 5120
  * @tc.type: FUNC
  * @tc.require: AR000H1N32
  */
 HWTEST_F(AgentCardTest, AgentCardFromJson_026, TestSize.Level1)
 {
-    std::string validExtension(51200, 'a');
+    std::string validExtension(5120, 'a');
     nlohmann::json jsonObject = nlohmann::json {
         { "agentId", "1" },
         { "name", "test" },
@@ -2873,18 +2873,18 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_026, TestSize.Level1)
     };
     AgentCard agentCard;
     EXPECT_TRUE(AgentCard::FromJson(jsonObject, agentCard));
-    EXPECT_EQ(agentCard.extension.length(), 51200);
+    EXPECT_EQ(agentCard.extension.length(), 5120);
 }
 
 /**
  * @tc.name: AgentCardFromJson_027
- * @tc.desc: Test FromJson sets extension to empty when length exceeds 51200
+ * @tc.desc: Test FromJson sets extension to empty when length exceeds 5120
  * @tc.type: FUNC
  * @tc.require: AR000H1N32
  */
 HWTEST_F(AgentCardTest, AgentCardFromJson_027, TestSize.Level1)
 {
-    std::string longExtension(51201, 'a');
+    std::string longExtension(5121, 'a');
     nlohmann::json jsonObject = nlohmann::json {
         { "agentId", "1" },
         { "name", "test" },
@@ -3274,7 +3274,7 @@ HWTEST_F(AgentCardTest, AgentAppInfoFromJson_002, TestSize.Level1)
 
 /**
  * @tc.name: AgentAppInfoFromJson_003
- * @tc.desc: Test AgentAppInfo FromJson fails when deviceTypes length exceeds 128
+ * @tc.desc: Test AgentAppInfo FromJson sets deviceTypes to empty when length exceeds 128
  * @tc.type: FUNC
  * @tc.require: AR000H1N32
  */
@@ -3285,7 +3285,8 @@ HWTEST_F(AgentCardTest, AgentAppInfoFromJson_003, TestSize.Level1)
         { "deviceTypes", longDeviceTypes },
     };
     AgentAppInfo appInfo;
-    EXPECT_FALSE(AgentAppInfo::FromJson(jsonObject, appInfo));
+    EXPECT_TRUE(AgentAppInfo::FromJson(jsonObject, appInfo));
+    EXPECT_EQ(appInfo.deviceTypes, "");
 }
 
 /**
@@ -3307,7 +3308,7 @@ HWTEST_F(AgentCardTest, AgentAppInfoFromJson_004, TestSize.Level1)
 
 /**
  * @tc.name: AgentAppInfoFromJson_005
- * @tc.desc: Test AgentAppInfo FromJson fails when minAppVersion length exceeds 32
+ * @tc.desc: Test AgentAppInfo FromJson sets minAppVersion to empty when length exceeds 32
  * @tc.type: FUNC
  * @tc.require: AR000H1N32
  */
@@ -3318,7 +3319,8 @@ HWTEST_F(AgentCardTest, AgentAppInfoFromJson_005, TestSize.Level1)
         { "minAppVersion", longMinAppVersion },
     };
     AgentAppInfo appInfo;
-    EXPECT_FALSE(AgentAppInfo::FromJson(jsonObject, appInfo));
+    EXPECT_TRUE(AgentAppInfo::FromJson(jsonObject, appInfo));
+    EXPECT_EQ(appInfo.minAppVersion, "");
 }
 
 /**
@@ -3359,13 +3361,13 @@ HWTEST_F(AgentCardTest, CapabilitiesFromJson_009, TestSize.Level1)
 
 /**
  * @tc.name: CapabilitiesFromJson_010
- * @tc.desc: Test Capabilities FromJson fails when extension length exceeds 1280
+ * @tc.desc: Test Capabilities FromJson fails when extension length exceeds 1024
  * @tc.type: FUNC
  * @tc.require: AR000H1N32
  */
 HWTEST_F(AgentCardTest, CapabilitiesFromJson_010, TestSize.Level1)
 {
-    std::string longExtension(1281, 'a');
+    std::string longExtension(1025, 'a');
     nlohmann::json jsonObject = nlohmann::json {
         { "streaming", true },
         { "extension", longExtension },
