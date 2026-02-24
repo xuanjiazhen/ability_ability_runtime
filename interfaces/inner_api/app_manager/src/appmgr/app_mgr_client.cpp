@@ -266,8 +266,8 @@ AppMgrResultCode AppMgrClient::KillProcessesByUserId(int32_t userId, bool isNeed
         }
     }
     if (callback) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
-        callback->OnLogoutUserDone(userId, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
+        TAG_LOGE(AAFwkTag::Tag, "Service is nullptr.");
+        callback->OnUserCmdDone(userId, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
     }
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
