@@ -1321,6 +1321,9 @@ void AppMgrServiceInner::HandleExistingAppRecordAfterFound(std::shared_ptr<AppRu
         appRecord->SetPreloadState(PreloadState::NONE);
         appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
     }
+    if (loadParam->isPrelaunch) {
+        appRecord->SetPreloadMode(PreloadMode::PRE_LAUNCH);
+    }
     int32_t requestProcCode = (want == nullptr) ? 0 : want->GetIntParam(Want::PARAM_RESV_REQUEST_PROC_CODE, 0);
     if (requestProcCode != 0 && appRecord->GetRequestProcCode() == 0) {
         appRecord->SetRequestProcCode(requestProcCode);
