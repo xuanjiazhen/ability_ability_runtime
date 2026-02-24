@@ -60,7 +60,7 @@ const std::string Parcel::ReadString()
 
 bool Parcel::WriteBool(bool value)
 {
-    return value;
+    return true;
 }
 
 bool Parcel::WriteStringVector(const std::vector<std::string>& value)
