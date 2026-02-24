@@ -21,27 +21,11 @@ namespace OHOS {
 namespace AAFwk {
 UserCallbackStub::UserCallbackStub() {}
 
-int UserCallbackStub::OnStopUserDoneInner(MessageParcel &data, MessageParcel &reply)
+int UserCallbackStub::OnUserCmdDoneInner(MessageParcel &data, MessageParcel &reply)
 {
     auto accountId = data.ReadInt32();
     auto errCode = data.ReadInt32();
-    OnStopUserDone(accountId, errCode);
-    return NO_ERROR;
-}
-
-int UserCallbackStub::OnStartUserDoneInner(MessageParcel &data, MessageParcel &reply)
-{
-    auto accountId = data.ReadInt32();
-    auto errCode = data.ReadInt32();
-    OnStartUserDone(accountId, errCode);
-    return NO_ERROR;
-}
-
-int UserCallbackStub::OnLogoutUserDoneInner(MessageParcel &data, MessageParcel &reply)
-{
-    auto accountId = data.ReadInt32();
-    auto errCode = data.ReadInt32();
-    OnLogoutUserDone(accountId, errCode);
+    OnUserCmdDone(accountId, errCode);
     return NO_ERROR;
 }
 
@@ -57,12 +41,8 @@ int UserCallbackStub::OnRemoteRequest(
 
     if (code < UserCallbackCmd::CMD_MAX && code >= 0) {
         switch (code) {
-            case UserCallbackCmd::ON_STOP_USER_DONE:
-                return OnStopUserDoneInner(data, reply);
-            case UserCallbackCmd::ON_START_USER_DONE:
-                return OnStartUserDoneInner(data, reply);
-            case UserCallbackCmd::ON_LOGOUT_USER_DONE:
-                return OnLogoutUserDoneInner(data, reply);
+            case UserCallbackCmd::ON_USER_CMD_DONE:
+                return OnUserCmdDoneInner(data, reply);
         }
     }
 
