@@ -37,6 +37,7 @@
 #include "mock_my_status.h"
 #include "mock_sa_call.h"
 #include "unlock_screen_manager.h"
+#include "view_data.h"
 
 using namespace testing;
 using namespace testing::ext;
