@@ -3023,5 +3023,29 @@ HWTEST_F(MainThreadTest, GetPluginNativeLibPath_0500, TestSize.Level1)
     EXPECT_EQ(appLibPaths["pluginBundleName/validModule"][0],
         "/data/storage/el1/bundle/+plugins/libs/arm");
 }
+
+/**
+ * @tc.name: ProcessExit_0100
+ * @tc.desc: ProcessExit Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, ProcessExit_0100, TestSize.Level1)
+{
+    pid_t childPid = fork();
+    if (childPid < 0) {
+        printf("failed to fork process.\n");
+    } else if (childPid == 0) {
+        std::string testValue = "ProcessExit_0100";
+        ProcessExitInfo info = {testValue, testValue, testValue, testValue,
+            testValue, getpid(), false, false};
+        mainThread_->ProcessExit(info);
+        EXPECT_TRUE(!info.isUncatchable);
+    } else {
+        if (waitpid(childPid, nullptr, 0) != childPid) {
+            printf("failed to wait process.\n");
+        }
+        printf("waitpid process success.\n");
+    }
+}
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -22,6 +22,7 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <sstream>
+#include <sys/ioctl.h>
 
 #include "faultloggerd_client.h"
 #include "file_ex.h"
@@ -43,7 +44,10 @@
 #include "appfreeze_cpu_freq_manager.h"
 #include "appfreeze_event_report.h"
 #include "appfreeze_util.h"
+#include "xcollie/process_kill_reason.h"
 
+#undef FREEZE_DOMAIN
+#define FREEZE_DOMAIN 0xD001310
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
@@ -73,6 +77,38 @@ static constexpr const char *const HITRACE_ID = "hitrace_id: ";
 static constexpr const char *const SPAN_ID = "span_id: ";
 static constexpr const char *const PARENT_SPAN_ID = "parent_span_id: ";
 static constexpr const char *const TRACE_FLAG = "trace_flag: ";
+static constexpr const char *const DEV_SYSLOAD = "/dev/sysload";
+
+#define KILL_LOG_BASE 'S'
+#define GET_KILL_INFO _IOWR(KILL_LOG_BASE, 0x06, int32_t)
+#define SET_KILL_INFO _IOWR(KILL_LOG_BASE, 0x07, int32_t)
+
+static constexpr int SYSLOAD_GET_KILL_INFO_MAGIC = 0xE5AC02;
+static constexpr int SYSLOAD_SET_KILL_INNFO_MAGIC = 0xE5AC03;
+
+#define SYSLOAD_GET_KILL_INFO_MAGIC 0xE5AC02
+#define SYSLOAD_SET_KILL_INNFO_MAGIC 0xE5AC03
+
+struct kevent_info_s {
+    int processed;
+    enum HiviewDFX::ProcessKillReason::KillEventId id;
+    bool foreground;
+    int adj;
+    pid_t pid;
+    int uid;
+    int64_t timestamp;
+    int64_t event_param1;
+    int64_t event_param2;
+    int64_t event_param3;
+    int64_t event_param4;
+};
+
+struct kill_info_s {
+    unsigned int magic;
+    pid_t pid;
+    struct kevent_info_s data;
+    unsigned int struct_size;
+};
 }
 static constexpr const char *const TWELVE_BIG_CPU_CUR_FREQ = "/sys/devices/system/cpu/cpufreq/policy2/scaling_cur_freq";
 static constexpr const char *const TWELVE_BIG_CPU_MAX_FREQ = "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
@@ -1223,6 +1259,37 @@ bool AppfreezeManager::IsSkipDetect(int32_t pid, int32_t uid, const std::string&
         return true;
     }
     return false;
+}
+
+std::string AppfreezeManager::GetExitReasonByKillId(int32_t killId)
+{
+    return HiviewDFX::ProcessKillReason::GetKillReason(killId);
+}
+
+std::string AppfreezeManager::GetExitKernelReason(int32_t pid)
+{
+    int sysloadFd = open(DEV_SYSLOAD, O_RDWR);
+    if (sysloadFd < 0) {
+        TAG_LOGW(AAFwkTag::APPDFR, "open failed, errno:%{public}d", errno);
+        return "";
+    }
+    fdsan_exchange_owner_tag(sysloadFd, 0, FREEZE_DOMAIN);
+    kill_info_s info = {0};
+    info.magic = SYSLOAD_GET_KILL_INFO_MAGIC;
+    info.pid = pid;
+    info.struct_size = sizeof(struct kill_info_s);
+
+    int res = ioctl(sysloadFd, GET_KILL_INFO, &info);
+    if (fdsan_close_with_tag(sysloadFd, FREEZE_DOMAIN) != 0) {
+        TAG_LOGW(AAFwkTag::APPDFR, "GetExitKernelReason fdsan close failed, errno:%{public}d", errno);
+    }
+    int killId = -1;
+    if (res == 0) {
+        killId = static_cast<int>(info.data.id);
+    } else {
+        TAG_LOGW(AAFwkTag::APPDFR, "ioctl failed, errno:%{public}d", errno);
+    }
+    return GetExitReasonByKillId(killId);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
