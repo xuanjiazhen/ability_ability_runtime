@@ -198,12 +198,6 @@ std::shared_ptr<Context> MockAbilityRuntimeContext::CreateAreaModeContext(int ar
     return {};
 }
 
-std::shared_ptr<Context> MockAbilityRuntimeContext::CreateModuleOrPluginContext(const std::string &bundleName,
-    const std::string &moduleName)
-{
-    return {};
-}
-
 #ifdef SUPPORT_GRAPHICS
 std::shared_ptr<Context> MockAbilityRuntimeContext::CreateDisplayContext(uint64_t displayId)
 {

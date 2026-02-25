@@ -290,11 +290,6 @@ public:
         return nullptr;
     }
 
-    virtual std::shared_ptr<Context> CreateModuleOrPluginContext(const std::string &bundleName,
-        const std::string &moduleName)
-    {
-        return nullptr;
-    }
     virtual std::shared_ptr<Context> CreateDisplayContext(uint64_t displayId)
     {
         return nullptr;
