@@ -31,8 +31,6 @@ class EtsAgentUIExtension : public AgentRuntime::AgentUIExtension,
 public:
     explicit EtsAgentUIExtension(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
     virtual ~EtsAgentUIExtension() override;
-
-    static EtsAgentUIExtension *Create(const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
 };
 } // namespace AgentRuntime
 } // namespace OHOS

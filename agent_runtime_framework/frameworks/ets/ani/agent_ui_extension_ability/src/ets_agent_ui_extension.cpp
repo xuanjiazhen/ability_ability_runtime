@@ -27,11 +27,6 @@
 
 namespace OHOS {
 namespace AgentRuntime {
-EtsAgentUIExtension *EtsAgentUIExtension::Create(const std::unique_ptr<AbilityRuntime::Runtime> &runtime)
-{
-    return new (std::nothrow) EtsAgentUIExtension(runtime);
-}
-
 EtsAgentUIExtension::EtsAgentUIExtension(const std::unique_ptr<AbilityRuntime::Runtime> &runtime)
 {
     std::shared_ptr<AbilityRuntime::UIExtensionBaseImpl> uiExtensionBaseImpl =
@@ -49,5 +44,5 @@ EtsAgentUIExtension::~EtsAgentUIExtension()
 ETS_EXPORT extern "C" OHOS::AgentRuntime::AgentUIExtension *OHOS_ETS_AGENT_UI_EXTENSION_Create(
     const std::unique_ptr<OHOS::AbilityRuntime::Runtime> &runtime)
 {
-    return OHOS::AgentRuntime::EtsAgentUIExtension::Create(runtime);
+    return new EtsAgentUIExtension(runtime);
 }
