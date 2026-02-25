@@ -513,7 +513,8 @@ ohos_shared_library("cj_abilitykit_native_ffi") {
   external_deps = [
     "ace_engine:ace_uicontent",
     "eventhandler:libeventhandler",
-    "form_fwk:form_manager",
+    "form_fwk:form_render_info",
+    "form_fwk:form_common_info",
     "ipc:cj_ipc_ffi",
     "ipc:ipc_core",
     "ipc:ipc_napi",
@@ -1284,7 +1285,8 @@ ohos_shared_library("ets_form_extension") {
       external_deps += [
         "form_fwk:fmskit_native",
         "form_fwk:fmskit_provider_client",
-        "form_fwk:form_manager",
+        "form_fwk:form_render_info",
+        "form_fwk:form_common_info",
         "form_fwk:formutil_napi",
       ]
     }
@@ -1345,7 +1347,8 @@ ohos_shared_library("form_extension") {
       external_deps += [
         "form_fwk:fmskit_native",
         "form_fwk:fmskit_provider_client",
-        "form_fwk:form_manager",
+        "form_fwk:form_render_info",
+        "form_fwk:form_common_info",
         "form_fwk:formutil_napi",
       ]
     }
@@ -1410,7 +1413,8 @@ ohos_shared_library("cj_form_extension") {
       external_deps += [
         "form_fwk:fmskit_native",
         "form_fwk:fmskit_provider_client",
-        "form_fwk:form_manager",
+        "form_fwk:form_render_info",
+        "form_fwk:form_common_info",
         "form_fwk:formutil_napi",
       ]
     }
