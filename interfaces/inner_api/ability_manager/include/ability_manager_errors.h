@@ -1110,6 +1110,9 @@ enum {
     // Result (2099213) for agent card id does not exist.
     ERR_INVALID_AGENT_CARD_ID = 2099213,
 
+    // Result (2099214) for the bundle of the agent card does not exist.
+    ERR_INVALID_AGENT_CARD_BUNDLE = 2099214,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */
