@@ -221,7 +221,7 @@ int32_t UserController::GetUserLockedBundleList(int32_t userId, std::unordered_s
         }
     }
     TAG_LOGE(AAFwkTag::USER_CONTROLLER, "GetUserLockedBundleList, no bundle list for userId: %{public}d", userId);
-    return ERR_INVALID_VALUE;
+    return ERR_OK;
 }
 
 void UserController::DeleteUserLockedBundleListByUserId(int32_t userId)
