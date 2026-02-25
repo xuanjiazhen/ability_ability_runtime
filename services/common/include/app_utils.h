@@ -149,7 +149,7 @@ public:
     bool IsSupportStartAbilities();
 
     /**
-     * IsStartOptionsWithAnimation, check whether it is a multi-process model.
+     * IsMultiProcessModel, check whether it is a multi-process model.
      *
      * @return Whether it is a multi-process model.
      */
