@@ -194,7 +194,7 @@ void DataObsMgrService::ReportSystemPermissionCheckResult(uint32_t callerTokenId
         return;
     }
 
-    // Do not report system hap
+    // check if the app is system app
     if (IsSystemApp(callerTokenId, fullTokenId)) {
         return;
     }
