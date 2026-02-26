@@ -710,6 +710,10 @@ void AbilityDelegator::FinishUserTest(const std::string &msg, const int64_t resu
         return;
     }
 
+    if (testRunner_) {
+        testRunner_->OnStop();
+    }
+
     auto realMsg(msg);
     if (realMsg.length() > INFORMATION_MAX_LENGTH) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "too long message");

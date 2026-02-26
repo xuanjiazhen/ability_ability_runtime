@@ -15,8 +15,10 @@
 
 export type OnPrepareFn = () => void;
 export type OnRunFn = () => void;
+export type onStopFn = () => void;
 
 export default interface TestRunner {
     onPrepare: OnPrepareFn;
     onRun: OnRunFn;
+    onStop: onStopFn;
 }

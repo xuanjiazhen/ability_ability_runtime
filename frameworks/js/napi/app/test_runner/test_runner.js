@@ -17,6 +17,7 @@ class TestRunner {
   constructor() { }
   onPrepare() { }
   onRun() { }
+  OnStop() { }
 }
 
 export default TestRunner;
