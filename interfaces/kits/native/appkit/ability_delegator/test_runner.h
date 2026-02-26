@@ -64,6 +64,11 @@ public:
      * Initialize runtime only fo ace 1.0.
      */
     virtual bool Initialize();
+
+    /**
+     * Notifies test is about to be destroyed.
+     */
+    virtual void OnDestroy();
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
