@@ -21,7 +21,7 @@ std::atomic<int32_t> RequestIdUtil::requestId_{ 1 };
 int32_t RequestIdUtil::GetRequestId()
 {
     int32_t id = requestId_.fetch_add(1, std::memory_order_relaxed);
-    if (id == 0 || id == INT32_MAX) {
+    if (id == 0 || id == INT32_MAX - 1) {
         int32_t expect = id + 1;
         requestId_.compare_exchange_strong(expect, 1);
         id = requestId_.fetch_add(1, std::memory_order_relaxed);
