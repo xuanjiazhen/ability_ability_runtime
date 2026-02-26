@@ -95,14 +95,16 @@ void ExtensionConfigMgr::UpdateRuntimeModuleChecker(const std::unique_ptr<Abilit
     }
 
     std::unordered_map<int32_t, std::unordered_set<std::string>> localBlocklist;
-    {
-        std::lock_guard<std::mutex> lock(extensionBlockListMutex_);
-        localBlocklist = extensionBlocklist_;
+    if (!hasUpdatedChecker_) {
+        {
+            std::lock_guard<std::mutex> lock(extensionBlockListMutex_);
+            localBlocklist = extensionBlocklist_;
+        }
+        hasUpdatedChecker_ = true;
     }
 
     auto moduleChecker = std::make_shared<AppModuleChecker>(extensionType_, localBlocklist);
     runtime->SetModuleLoadChecker(moduleChecker);
-    extensionBlocklist_.clear();
 }
 
 void ExtensionConfigMgr::GenerateExtensionEtsBlocklists()
