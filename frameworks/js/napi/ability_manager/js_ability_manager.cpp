@@ -125,6 +125,11 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsAbilityManager, OnOff);
     }
 
+    static napi_value IsEmbeddedUIExtensionSupported(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnIsEmbeddedUIExtensionSupported);
+    }
+
     static napi_value IsEmbeddedOpenAllowed(napi_env env, napi_callback_info info)
     {
         GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnIsEmbeddedOpenAllowed);
@@ -696,6 +701,27 @@ private:
         return handleEscape.Escape(result);
     }
 
+    napi_value OnIsEmbeddedUIExtensionSupported(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
+        auto sharedResult = std::make_shared<bool>(false);
+        NapiAsyncTask::ExecuteCallback execute = [sharedResult]() {
+            *sharedResult = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
+        };
+
+        NapiAsyncTask::CompleteCallback complete = [sharedResult](napi_env env, NapiAsyncTask &task, int32_t status) {
+            HandleScope handleScope(env);
+            task.Resolve(env, CreateJsValue(env, *sharedResult));
+        };
+
+        napi_value lastParam = (info.argc > 0) ? info.argv[0] : nullptr;
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("JsAbilityManager::OnIsEmbeddedUIExtensionSupported", env,
+            CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+        return handleEscape.Escape(result);
+    }
+
     napi_value OnIsEmbeddedOpenAllowed(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
@@ -1197,6 +1223,7 @@ napi_value JsAbilityManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "on", moduleName, JsAbilityManager::On);
     BindNativeFunction(env, exportObj, "off", moduleName, JsAbilityManager::Off);
     BindNativeFunction(env, exportObj, "isEmbeddedOpenAllowed", moduleName, JsAbilityManager::IsEmbeddedOpenAllowed);
+    BindNativeFunction(env, exportObj, "isEmbeddedUIExtensionSupported", moduleName, JsAbilityManager::IsEmbeddedUIExtensionSupported);
     BindNativeFunction(
         env, exportObj, "restartSelfAtomicService", moduleName, JsAbilityManager::RestartSelfAtomicService);
     BindNativeFunction(
