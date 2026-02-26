@@ -93,8 +93,9 @@ int32_t AppCapturePerf::CapturePerf(const FaultData &faultData)
     auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(4);
     hisyseventReport->InsertParam("APP_NAME", faultData.errorObject.name);
     hisyseventReport->InsertParam("TIDS", tids);
-    std::vector<char*> list;
-    for (auto s : perf) {
+    std::vector<char*> list = {};
+    list.reserve(perf.size());
+    for (const auto& s : perf) {
         list.emplace_back(const_cast<char *>(s.c_str()));
     }
     hisyseventReport->InsertParam("PERF", list);

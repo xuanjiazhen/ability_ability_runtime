@@ -1403,7 +1403,7 @@ void AbilityRecord::SaveResultToCallers(const int resultCode, const Want *result
 {
     auto callerRecordList = GetCallerRecordList();
     if (callerRecordList.empty()) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "callerRecordList empty");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "callerRecordList is empty");
         return;
     }
     auto latestCaller = callerRecordList.back();
@@ -1846,8 +1846,11 @@ void AbilityRecord::RemoveAbilityDeathRecipient() const
 
 void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "OnSchedulerDied called");
     std::lock_guard<ffrt::mutex> guard(lock_);
+    if (IsAbilityDiedHandled()) {
+        return;
+    }
     CHECK_POINTER(scheduler_);
 
     auto object = remote.promote();
@@ -1895,13 +1898,35 @@ void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
     NotifyRemoveShellProcess(CollaboratorType::OTHERS_TYPE);
 }
 
-void AbilityRecord::OnProcessDied()
+bool AbilityRecord::IsAbilityDiedHandled()
+{
+    if (handledAbilityDied_) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "abilityDied already handled");
+        return handledAbilityDied_;
+    }
+    handledAbilityDied_ = true;
+    return false;
+}
+
+void AbilityRecord::OnProcessDied(bool isKeepAliveDied)
 {
     CancelPrepareTerminate();
     std::lock_guard<ffrt::mutex> guard(lock_);
-    if (!IsSceneBoard() && scheduler_ != nullptr && !isKeepAliveDied_) {
+    if (!IsSceneBoard() && scheduler_ != nullptr && !isKeepAliveDied) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnProcessDied: '%{public}s', attached.", abilityInfo_.name.c_str());
         return;
+    }
+    if (IsAbilityDiedHandled()) {
+        return;
+    }
+    if (scheduler_ != nullptr && schedulerDeathRecipient_ != nullptr) {
+        auto schedulerObject = scheduler_->AsObject();
+        if (schedulerObject != nullptr) {
+            schedulerObject->RemoveDeathRecipient(schedulerDeathRecipient_);
+        }
+    }
+    if (lifecycleDeal_ != nullptr) {
+        lifecycleDeal_->SetScheduler(nullptr);
     }
     isWindowAttached_ = false;
 
@@ -2677,8 +2702,8 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     grantInfo.callerTokenId = callerTokenId;
     grantInfo.collaboratorType = collaboratorType_;
     grantInfo.isSandboxApp = isSandboxApp;
-    grantInfo.targetBundleName = targetBundleName;
     grantInfo.appIndex = appIndex_;
+    grantInfo.targetBundleName = targetBundleName;
     grantInfo.userId = GetOwnerMissionUserId();
     grantInfo.flag = want.GetFlags();
     grantInfo.isNotifyCollaborator = isNotifyCollaborator;
@@ -2970,6 +2995,11 @@ bool AbilityRecord::GetRestartAppFlag() const
     return isRestartApp_;
 }
 
+void AbilityRecord::SetSpecifyTokenId(uint32_t specifyTokenId)
+{
+    specifyTokenId_ = specifyTokenId;
+}
+
 void AbilityRecord::SetKillForPermissionUpdateFlag(bool isKillForPermissionUpdate)
 {
     isKillForPermissionUpdate_ = isKillForPermissionUpdate;
@@ -2996,11 +3026,6 @@ void AbilityRecord::UpdateUIExtensionInfo(const WantParams &wantParams)
         want_.RemoveParam(UIEXTENSION_ROOT_HOST_PID);
     }
     want_.SetParam(UIEXTENSION_ROOT_HOST_PID, wantParams.GetIntParam(UIEXTENSION_ROOT_HOST_PID, -1));
-}
-
-void AbilityRecord::SetSpecifyTokenId(uint32_t specifyTokenId)
-{
-    specifyTokenId_ = specifyTokenId;
 }
 
 void AbilityRecord::SetDebugAppByWaitingDebugFlag()
@@ -3080,22 +3105,6 @@ void AbilityRecord::SetDebugUIExtension()
     launchDebugInfo_.debugApp = true;
 }
 
-void AbilityRecord::NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
-    const std::string &message, int32_t resultCode)
-{
-    CHECK_POINTER(lifecycleDeal_);
-    nlohmann::json jsonObject = nlohmann::json {
-        { JSON_KEY_ERR_MSG, message },
-    };
-    lifecycleDeal_->NotifyAbilityRequestFailure(requestId, element, jsonObject.dump(), resultCode);
-}
-
-void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
-{
-    CHECK_POINTER(lifecycleDeal_);
-    lifecycleDeal_->NotifyAbilityRequestSuccess(requestId, element);
-}
-
 void AbilityRecord::NotifyAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode)
 {
     CHECK_POINTER(lifecycleDeal_);
@@ -3134,6 +3143,22 @@ void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams)
         want_.RemoveParam(UIEXTENSION_HOST_BUNDLENAME);
     }
     want_.SetParam(UIEXTENSION_HOST_BUNDLENAME, wantParams.GetStringParam(UIEXTENSION_HOST_BUNDLENAME));
+}
+
+void AbilityRecord::NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message, int32_t resultCode)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    nlohmann::json jsonObject = nlohmann::json {
+        { JSON_KEY_ERR_MSG, message },
+    };
+    lifecycleDeal_->NotifyAbilityRequestFailure(requestId, element, jsonObject.dump(), resultCode);
+}
+
+void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    lifecycleDeal_->NotifyAbilityRequestSuccess(requestId, element);
 }
 
 void AbilityRecord::SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType,

@@ -1936,7 +1936,6 @@ void AbilityConnectManager::AddConnectDeathRecipient(sptr<IRemoteObject> connect
         });
     if (!connectObject->AddDeathRecipient(deathRecipient)) {
         TAG_LOGW(AAFwkTag::EXT, "fail");
-        return;
     }
     std::lock_guard guard(recipientMapMutex_);
     recipientMap_.emplace(connectObject, deathRecipient);
@@ -2282,6 +2281,7 @@ void AbilityConnectManager::HandleAfterServiceRemoved(const std::shared_ptr<Base
     } else {
         HandleNotifyAssertFaultDialogDied(abilityRecord);
     }
+    TAG_LOGI(AAFwkTag::EXT, "HandleAbilityDiedTask end");
 }
 
 void AbilityConnectManager::HandleConnectRecordOnAbilityDied(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)

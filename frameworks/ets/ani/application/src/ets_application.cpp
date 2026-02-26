@@ -146,7 +146,7 @@ bool SetNativeContextLong(ani_env *env, std::shared_ptr<Context> context, ani_cl
     }
 
     std::unique_ptr<ContextUtil::EtsBaseContext> eteBaseContext =
- 	         std::make_unique<ContextUtil::EtsBaseContext>(context);
+        std::make_unique<ContextUtil::EtsBaseContext>(context);
     auto workContext = new (std::nothrow) std::weak_ptr<Context>(eteBaseContext->GetContext());
     if (workContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "workContext nullptr");
