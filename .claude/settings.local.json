@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(done)",
+      "Bash(find . -name \"*.h\" -type f -exec grep -l \"class Parcel\" {} ;)",
+      "Bash(xargs grep -l \"CreateJsAgentCard\")",
+      "Bash(xargs grep -l \"CreateEtsAgentCard\")",
+      "Bash(xargs wc -l)",
+      "Bash(find . -name \"*.cpp\" -not -path \"*/mock/*\" -exec wc -l {} +)",
+      "Bash(xargs cat)",
+      "Bash(xargs grep -c \"^[[:space:]]*$\")",
+      "Read(//c/code1/ability_ability_runtime_9012/test/unittest/agent_runtime_framework/**)",
+      "Bash(xargs grep -c \"^[[:space:]]*\\\\/\\\\/\")",
+      "Bash(xargs grep \"^[[:space:]]*$\")",
+      "Bash(echo \"注释行 \\(//\\):\")",
+      "Bash(xargs grep \"^[[:space:]]*\\\\/\\\\/\")",
+      "Bash(awk 'length > 35')"
+    ]
+  }
+}
