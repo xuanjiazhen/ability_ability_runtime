@@ -95,5 +95,8 @@ bool TestRunner::Initialize()
 {
     return true;
 }
+
+void TestRunner::OnDestroy()
+{}
 }  // namespace AppExecFwk
 }  // namespace OHOS

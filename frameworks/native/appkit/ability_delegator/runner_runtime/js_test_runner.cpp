@@ -159,6 +159,13 @@ void JsTestRunner::Run()
     CallObjectMethod("onRun");
 }
 
+void JsTestRunner::OnDestroy()
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
+    TestRunner::OnDestroy();
+    CallObjectMethod("onDestroy");
+}
+
 void JsTestRunner::CallObjectMethod(const char *name, napi_value const *argv, size_t argc)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "callJsMethod(%{public}s)", name);
