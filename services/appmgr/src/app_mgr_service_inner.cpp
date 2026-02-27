@@ -118,7 +118,6 @@
 #ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
-#include "xcollie/process_kill_reason.h"
 #endif
 
 namespace OHOS {
@@ -7893,10 +7892,8 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
             AppExecFwk::AppfreezeManager::GetInstance()->RegisterAppKillTime(pid, now);
             bool isInBackGround = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData);
             std::string reason = isInBackGround ? AppFreezeType::BG_FREEZE_WARNING : faultData.errorObject.name;
-            int killId = -1;
-#ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
-            killId = HiviewDFX::ProcessKillReason::REASON_APP_FREEZE;
-#endif
+            int killId =
+                AppExecFwk::AppfreezeManager::GetInstance()->GetFreezeExitReason(faultData.errorObject.name);
             innerService->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
             innerService->KillProcessByPid(pid, reason);
             return;
