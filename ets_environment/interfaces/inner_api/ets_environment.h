@@ -45,10 +45,8 @@ using DebuggerPostTask = std::function<void(std::function<void()>&&)>;
 
 class ETSEnvironment final : public std::enable_shared_from_this<ETSEnvironment> {
 public:
-    ETSEnvironment() {};
-    ~ETSEnvironment();
 
-    static std::unique_ptr<ETSEnvironment> &GetInstance();
+    static ETSEnvironment *GetInstance();
     static void InitETSSDKNS(const std::string &path);
     static void InitETSSysNS(const std::string &path);
     static ETSEnvFuncs *RegisterFuncs();
@@ -94,6 +92,8 @@ public:
     };
 
 private:
+    ETSEnvironment() {};
+    ~ETSEnvironment();
     bool ConvertHspPathToAniArray(ani_env *aniEnv, const std::vector<std::string> &hapPathInfos,
         ani_array &refArray);
     std::vector<std::string> GetHspPathList();
