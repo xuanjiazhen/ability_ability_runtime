@@ -76,14 +76,10 @@ constexpr const int32_t ARG_ONE = 1;
 
 static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs);
 ETSRuntimeAPI ETSEnvironment::lazyApis_ {};
-std::unique_ptr<ETSEnvironment> instance_ = nullptr;
-
-std::unique_ptr<ETSEnvironment> &ETSEnvironment::GetInstance()
+ETSEnvironment &ETSEnvironment::GetInstance()
 {
-    if (instance_ == nullptr) {
-        instance_ = std::make_unique<ETSEnvironment>();
-    }
-    return instance_;
+    static ETSEnvironment instance;
+    return instance;
 }
 
 ETSEnvironment::~ETSEnvironment()
@@ -675,58 +671,58 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             ETSEnvironment::InitETSSysNS(path);
         },
         .Initialize = [](const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isStartWithDebug) {
-            return ETSEnvironment::GetInstance()->Initialize(eventRunner, isStartWithDebug);
+            return ETSEnvironment::GetInstance().Initialize(eventRunner, isStartWithDebug);
         },
         .RegisterUncaughtExceptionHandler = [](const ETSUncaughtExceptionInfo &exceptionInfo) {
-            ETSEnvironment::GetInstance()->RegisterUncaughtExceptionHandler(exceptionInfo);
+            ETSEnvironment::GetInstance().RegisterUncaughtExceptionHandler(exceptionInfo);
         },
         .GetAniEnv = []() {
-            return ETSEnvironment::GetInstance()->GetAniEnv();
+            return ETSEnvironment::GetInstance().GetAniEnv();
         },
         .HandleUncaughtError = []() {
-            ETSEnvironment::GetInstance()->HandleUncaughtError();
+            ETSEnvironment::GetInstance().HandleUncaughtError();
         },
         .PreloadModule = [](const std::string &modulePath) {
-            return ETSEnvironment::GetInstance()->PreloadModule(modulePath);
+            return ETSEnvironment::GetInstance().PreloadModule(modulePath);
         },
         .LoadModule = [](const std::string &modulePath, const std::string &srcEntrance, void *&cls,
              void *&obj,  void *&ref) {
-            return ETSEnvironment::GetInstance()->LoadModule(modulePath, srcEntrance, cls, obj, ref);
+            return ETSEnvironment::GetInstance().LoadModule(modulePath, srcEntrance, cls, obj, ref);
         },
         .SetAppLibPath = [](const std::map<std::string, std::string> &abcPathsToBundleModuleNameMap,
             std::function<bool(const std::string &bundleModuleName, std::string &namespaceName)> &cb) {
             ark::ets::EtsNamespaceManager::SetAppLibPaths(abcPathsToBundleModuleNameMap, cb);
         },
         .FinishPreload = [](napi_env jsEnv) {
-            ETSEnvironment::GetInstance()->FinishPreload(jsEnv);
+            ETSEnvironment::GetInstance().FinishPreload(jsEnv);
         },
         .PostFork = [](void *napiEnv, const std::string &aotPath, const std::vector<std::string> &appInnerHspPathList,
             const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
             const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner) {
-            ETSEnvironment::GetInstance()->PostFork(
+            ETSEnvironment::GetInstance().PostFork(
                 napiEnv, aotPath, appInnerHspPathList, commonHspBundleInfos, eventRunner);
         },
         .PreloadSystemClass = [](const char *className) {
-            ETSEnvironment::GetInstance()->PreloadSystemClass(className);
+            ETSEnvironment::GetInstance().PreloadSystemClass(className);
         },
         .SetExtensionApiCheckCallback = [](
             std::function<bool(const std::string &className, const std::string &fileName)> &cb) {
             ark::ets::EtsNamespaceManager::SetExtensionApiCheckCallback(cb);
         },
         .RemoveInstance = [](uint32_t instanceId) {
-            return ETSEnvironment::GetInstance()->RemoveInstance(instanceId);
+            return ETSEnvironment::GetInstance().RemoveInstance(instanceId);
         },
         .StopDebugMode = [](void *jsVm) {
-            return ETSEnvironment::GetInstance()->StopDebugMode(jsVm);
+            return ETSEnvironment::GetInstance().StopDebugMode(jsVm);
         },
         .StartDebuggerForSocketPair = [](std::string &option, int32_t socketFd) {
-            return ETSEnvironment::GetInstance()->StartDebuggerForSocketPair(option, socketFd);
+            return ETSEnvironment::GetInstance().StartDebuggerForSocketPair(option, socketFd);
         },
         .NotifyDebugMode = [](uint32_t tid, uint32_t instanceId, bool isStartWithDebug, void *jsVm) {
-            return ETSEnvironment::GetInstance()->NotifyDebugMode(tid, instanceId, isStartWithDebug, jsVm);
+            return ETSEnvironment::GetInstance().NotifyDebugMode(tid, instanceId, isStartWithDebug, jsVm);
         },
         .BroadcastAndConnect = [](const std::string& bundleName, int socketFd) {
-            return ETSEnvironment::GetInstance()->BroadcastAndConnect(bundleName, socketFd);
+            return ETSEnvironment::GetInstance().BroadcastAndConnect(bundleName, socketFd);
         }
     };
     return &funcs;
@@ -965,7 +961,7 @@ ani_object ETSEnvironment::CreateRuntimeLinker(
 
 static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs)
 {
-    ETSEnvironment::GetInstance()->PostTask([task, data]() { task(data); }, taskName, delayMs);
+    ETSEnvironment::GetInstance().PostTask([task, data]() { task(data); }, taskName, delayMs);
 }
 
 
