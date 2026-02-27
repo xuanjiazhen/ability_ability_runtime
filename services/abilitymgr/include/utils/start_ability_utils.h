@@ -86,6 +86,22 @@ struct StartAbilityInfoWrap {
     void SetStartAbilityInfo(const AppExecFwk::AbilityInfo& abilityInfo);
 };
 
+struct ErmsFlagGuard {
+    explicit ErmsFlagGuard(bool &flag) : flag_(flag) { flag_ = false; }
+    ~ErmsFlagGuard()
+    {
+        flag_ = false;
+    }
+
+    bool Get() const
+    {
+        return flag_;
+    }
+
+private:
+    bool &flag_;
+};
+
 struct StartAbilityWrapParam {
     Want want;
     sptr<IRemoteObject> callerToken = nullptr;

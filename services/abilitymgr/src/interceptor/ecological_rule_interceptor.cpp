@@ -41,6 +41,7 @@ ErrCode EcologicalRuleInterceptor::DoProcess(AbilityInterceptorParam param)
     if (param.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME) ==
         param.want.GetElement().GetBundleName()) {
         TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "same bundle");
+        StartAbilityUtils::ermsSupportBackToCallerFlag = true;
         return ERR_OK;
     }
     if (param.isTargetPlugin) {
