@@ -147,6 +147,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryDataTest_002, TestSize.Level1)
     card.name = "Query Invalid JSON Test";
     card.version = "1.0.0";
     card.category = "test";
+    card.defaultInputModes = {"text"};
+    card.defaultOutputModes = {"text"};
+    auto skill = std::make_shared<AgentSkill>();
+    skill->id = "skill_query_001";
+    skill->name = "Test Skill";
+    skill->description = "Test skill description";
+    skill->tags = {"test"};
+    card.skills.push_back(skill);
     insertCards.push_back(card);
 
     AgentCardDbMgr agentCardDbMgr;
@@ -177,6 +185,16 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_001, TestSize.Level1)
     card1.description = "Test agent 1 description";
     card1.version = "1.0.0";
     card1.category = "test";
+    card1.defaultInputModes = {"text"};
+    card1.defaultOutputModes = {"text"};
+
+    auto skill = std::make_shared<AgentSkill>();
+    skill->id = "skill_001";
+    skill->name = "Test Skill";
+    skill->description = "Test skill description";
+    skill->tags = {"test"};
+    card1.skills.push_back(skill);
+
     insertCards.push_back(card1);
 
     // Act: Insert data and then query all
@@ -230,6 +248,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_003, TestSize.Level1)
     card1.description = "Test description 1";
     card1.version = "1.0.0";
     card1.category = "test";
+    card1.defaultInputModes = {"text"};
+    card1.defaultOutputModes = {"text"};
+    auto skill1 = std::make_shared<AgentSkill>();
+    skill1->id = "skill_001";
+    skill1->name = "Test Skill 1";
+    skill1->description = "Test skill description";
+    skill1->tags = {"test"};
+    card1.skills.push_back(skill1);
     cards1.push_back(card1);
 
     std::vector<AgentCard> cards2;
@@ -239,6 +265,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_003, TestSize.Level1)
     card2.description = "Test description 2";
     card2.version = "1.0.0";
     card2.category = "test";
+    card2.defaultInputModes = {"text"};
+    card2.defaultOutputModes = {"text"};
+    auto skill2 = std::make_shared<AgentSkill>();
+    skill2->id = "skill_002";
+    skill2->name = "Test Skill 2";
+    skill2->description = "Test skill description";
+    skill2->tags = {"test"};
+    card2.skills.push_back(skill2);
     cards2.push_back(card2);
 
     std::vector<AgentCard> cards3;
@@ -248,6 +282,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_003, TestSize.Level1)
     card3.description = "Test description 3";
     card3.version = "1.0.0";
     card3.category = "test";
+    card3.defaultInputModes = {"text"};
+    card3.defaultOutputModes = {"text"};
+    auto skill3 = std::make_shared<AgentSkill>();
+    skill3->id = "skill_003";
+    skill3->name = "Test Skill 3";
+    skill3->description = "Test skill description";
+    skill3->tags = {"test"};
+    card3.skills.push_back(skill3);
     cards3.push_back(card3);
 
     // Act: Insert cards for different bundles/users
@@ -289,6 +331,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_004, TestSize.Level1)
     card1.description = "Test description 1";
     card1.version = "1.0.0";
     card1.category = "test";
+    card1.defaultInputModes = {"text"};
+    card1.defaultOutputModes = {"text"};
+    auto skill1 = std::make_shared<AgentSkill>();
+    skill1->id = "skill_single_001";
+    skill1->name = "Test Skill 1";
+    skill1->description = "Test skill description";
+    skill1->tags = {"test"};
+    card1.skills.push_back(skill1);
     insertCards.push_back(card1);
 
     AgentCard card2;
@@ -297,6 +347,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_004, TestSize.Level1)
     card2.description = "Test description 2";
     card2.version = "1.0.0";
     card2.category = "test";
+    card2.defaultInputModes = {"text"};
+    card2.defaultOutputModes = {"text"};
+    auto skill2 = std::make_shared<AgentSkill>();
+    skill2->id = "skill_single_002";
+    skill2->name = "Test Skill 2";
+    skill2->description = "Test skill description";
+    skill2->tags = {"test"};
+    card2.skills.push_back(skill2);
     insertCards.push_back(card2);
 
     AgentCard card3;
@@ -305,6 +363,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_004, TestSize.Level1)
     card3.description = "Test description 3";
     card3.version = "1.0.0";
     card3.category = "test";
+    card3.defaultInputModes = {"text"};
+    card3.defaultOutputModes = {"text"};
+    auto skill3 = std::make_shared<AgentSkill>();
+    skill3->id = "skill_single_003";
+    skill3->name = "Test Skill 3";
+    skill3->description = "Test skill description";
+    skill3->tags = {"test"};
+    card3.skills.push_back(skill3);
     insertCards.push_back(card3);
 
     // Act: Insert multiple cards for same bundle
@@ -345,6 +411,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_005, TestSize.Level1)
     std::vector<std::string> outputModes = {"text", "voice"};
     card.defaultInputModes = inputModes;
     card.defaultOutputModes = outputModes;
+
+    auto skill = std::make_shared<AgentSkill>();
+    skill->id = "skill_verify_001";
+    skill->name = "Verify Test Skill";
+    skill->description = "Test skill description";
+    skill->tags = {"test"};
+    card.skills.push_back(skill);
+
     insertCards.push_back(card);
 
     // Act: Insert and query
@@ -385,6 +459,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_006, TestSize.Level1)
     card.description = "Test description";
     card.version = "1.0.0";
     card.category = "test";
+    card.defaultInputModes = {"text"};
+    card.defaultOutputModes = {"text"};
+    auto skill = std::make_shared<AgentSkill>();
+    skill->id = "skill_delete_001";
+    skill->name = "Delete Test Skill";
+    skill->description = "Test skill description";
+    skill->tags = {"test"};
+    card.skills.push_back(skill);
     insertCards.push_back(card);
 
     AgentCardDbMgr agentCardDbMgr;
@@ -438,6 +520,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_007, TestSize.Level1)
     card.name = "Empty Vector Test";
     card.version = "1.0.0";
     card.category = "test";
+    card.defaultInputModes = {"text"};
+    card.defaultOutputModes = {"text"};
+    auto skill = std::make_shared<AgentSkill>();
+    skill->id = "skill_emptyvec_001";
+    skill->name = "Empty Vector Test Skill";
+    skill->description = "Test skill description";
+    skill->tags = {"test"};
+    card.skills.push_back(skill);
     insertCards.push_back(card);
 
     AgentCardDbMgr agentCardDbMgr;
@@ -467,6 +557,14 @@ HWTEST_F(AgentCardDbMgrTest, QueryAllDataTest_008, TestSize.Level1)
     card.name = "Invalid JSON Test";
     card.version = "1.0.0";
     card.category = "test";
+    card.defaultInputModes = {"text"};
+    card.defaultOutputModes = {"text"};
+    auto skill = std::make_shared<AgentSkill>();
+    skill->id = "skill_invalidjson_001";
+    skill->name = "Invalid JSON Test Skill";
+    skill->description = "Test skill description";
+    skill->tags = {"test"};
+    card.skills.push_back(skill);
     insertCards.push_back(card);
 
     AgentCardDbMgr agentCardDbMgr;
