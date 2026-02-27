@@ -1224,7 +1224,8 @@ napi_value JsAbilityManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "on", moduleName, JsAbilityManager::On);
     BindNativeFunction(env, exportObj, "off", moduleName, JsAbilityManager::Off);
     BindNativeFunction(env, exportObj, "isEmbeddedOpenAllowed", moduleName, JsAbilityManager::IsEmbeddedOpenAllowed);
-    BindNativeFunction(env, exportObj, "isEmbeddedUIExtensionSupported", moduleName, JsAbilityManager::IsEmbeddedUIExtensionSupported);
+    BindNativeFunction(
+        env, exportObj, "isEmbeddedUIExtensionSupported", moduleName, JsAbilityManager::IsEmbeddedUIExtensionSupported);
     BindNativeFunction(
         env, exportObj, "restartSelfAtomicService", moduleName, JsAbilityManager::RestartSelfAtomicService);
     BindNativeFunction(

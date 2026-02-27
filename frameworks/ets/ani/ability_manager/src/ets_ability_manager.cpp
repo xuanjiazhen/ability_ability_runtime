@@ -376,7 +376,9 @@ void EtsAbilityManager::IsEmbeddedUIExtensionSupported(ani_env *env, ani_object 
     if (result) {
         aniResult = ANI_TRUE;
     }
-    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), AppExecFwk::CreateBoolean(env, aniResult));
+    auto error = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
+    auto booleanValue = AppExecFwk::CreateBoolean(env, aniResult);
+    AppExecFwk::AsyncCallback(env, callback, error, booleanValue);
 }
 
 void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj,
