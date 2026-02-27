@@ -31,6 +31,7 @@
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
 #include "app_mgr_interface.h"
+#include "app_utils.h"
 #include "application_context.h"
 #include "ets_ability_foreground_state_observer.h"
 #include "ets_ability_manager_utils.h"
@@ -375,12 +376,7 @@ void EtsAbilityManager::IsEmbeddedUIExtensionSupported(ani_env *env, ani_object 
     if (result) {
         aniResult = ANI_TRUE;
     }
-    ani_value retValue = nullptr;
-    if (env->GetBooleanValue(aniResult, &retValue) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetBooleanValue failed");
-        return;
-    }
-    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), retValue);
+    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), AppExecFwk::CreateBoolean(env, aniResult));
 }
 
 void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj,

@@ -21,6 +21,7 @@
 #include <future>
 
 #include "ability_business_error.h"
+#include "app_utils.h"
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "acquire_share_data_callback_stub.h"

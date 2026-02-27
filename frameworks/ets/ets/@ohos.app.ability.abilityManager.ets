@@ -150,13 +150,6 @@ export default namespace abilityManager {
     });
   }
 
-  function isEmbeddedUIExtensionSupported(callback: AsyncCallback<boolean>): void {
-    let asyncCall = new AsyncCallbackWrapper<boolean>(callback);
-    taskpool.execute((): void => {
-      abilityManager.nativeIsEmbeddedUIExtensionSupported(asyncCall);
-    });
-  }
-
   function isEmbeddedOpenAllowed(context: Context, appId: string): Promise<boolean> {
     abilityManager.nativeIsEmbeddedOpenAllowedCheck(context);
     return new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError)=>void):void => {
