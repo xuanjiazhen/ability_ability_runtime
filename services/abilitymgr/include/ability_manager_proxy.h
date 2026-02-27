@@ -1253,6 +1253,35 @@ public:
     virtual int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason) override;
 
     /**
+     * Force app exit and record exit reason.
+     * @param pid The process id.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillAppWithReason(const int32_t pid, const ExitReasonCompability &exitReason) override;
+
+    /**
+     * Force bundle exit and record exit reason.
+     * @param bundleName Bundle name of kill app.
+     * @param appIndex The app index of app clone.
+     * @param userId User ID.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillBundleWithReason(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const ExitReasonCompability &exitReason) override;
+
+    /**
+     * Record app exit reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RecordAppWithReason(
+        const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason) override;
+
+    /**
      * Set rootSceneSession by SCB.
      *
      * @param rootSceneSession Indicates root scene session of SCB.
@@ -1311,13 +1340,13 @@ public:
     */
     virtual int32_t UnregisterIAbilityManagerCollaborator(int32_t type) override;
 
-    virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
-
     /**
      * @brief get ability manager collaborator.
      * @return Returns object pointer on success, others on null.
      */
     virtual sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator() override;
+
+    virtual int32_t RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate) override;
 
     virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear) override;
 
@@ -1377,6 +1406,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t ManualStartAutoStartupApps(int32_t userId) override;
+
+    /**
+     * @brief Query the caller's Token ID for anco.
+     * @param userId Indicates the user ID.
+     * @param asCallerForAncoSessionId Indicates the anco session Id of cached information.
+     * @param callerTokenId Indicates the output caller Token ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
+        uint32_t &callerTokenId) override;
 
     /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
@@ -1804,15 +1843,6 @@ public:
     virtual int32_t RevokeDelegator(sptr<IRemoteObject> token) override;
 
     /**
-     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
-     *
-     * @param want Ability want.
-     * @param observer ability foreground notify observer for aa tool.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
-
-    /**
      * Get all insight intent infos.
      * @param flag, the get type.
      * @param infos, the insight intent infos.
@@ -1853,20 +1883,14 @@ public:
         InsightIntentInfoForQuery &info,
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
-    int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
-
-    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
-
-    int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
-
-    int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
-
     /**
-     * Register sa interceptor.
-     * @param interceptor, The sa interceptor.
+     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
+     *
+     * @param want Ability want.
+     * @param observer ability foreground notify observer for aa tool.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual ErrCode RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
+    int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
 
     /**
      * Set keep-alive flag for app service extension under u1 user.
@@ -1882,6 +1906,21 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list) override;
+
+    int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
+
+    int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
+
+    int32_t ExitKioskMode(sptr<IRemoteObject> callerToken) override;
+
+    int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
+
+    /**
+     * Register sa interceptor.
+     * @param interceptor, The sa interceptor.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
 
     /**
      * SuspendExtensionAbility, suspend session with service ability.
@@ -1963,6 +2002,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * @brief Get list of applications launched before the first unlock.
+     * @param userId The User Id.
+     * @param userLockedBundleList List of applications launched before the first unlock.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetUserLockedBundleList(int32_t userId,
+        std::unordered_set<std::string> &userLockedBundleList) override;
 
 private:
     template <typename T>

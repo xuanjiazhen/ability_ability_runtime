@@ -261,9 +261,9 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
     std::string bootString = "--ext:--boot-panda-files=" + bootfiles;
     options.push_back(ani_option { bootString.data(), nullptr });
     options.push_back(ani_option { "--ext:--compiler-enable-jit=false", nullptr });
+    options.push_back(ani_option { "--ext:--verification-mode=ahead-of-time", nullptr });
     options.push_back(ani_option { "--ext:--log-level=info", nullptr });
     options.push_back(ani_option { "--ext:taskpool-support-interop=true", nullptr });
-    options.push_back(ani_option { "--ext:--verification-mode=disabled", nullptr });
     std::string interpreerMode = "--ext:--interpreter-type=cpp";
     std::string debugEnalbeMode = "--ext:--debugger-enable=true";
     std::string debugLibraryPathMode = "--ext:--debugger-library-path=/system/lib64/libarkinspector.so";
@@ -630,7 +630,7 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     std::vector<ani_option> options;
     std::string aotPathString = "";
     if (!aotPath.empty()) {
-        aotPathString = "--ext:--aot-file=" + aotPath;
+        aotPathString = "--ext:--aot-files=" + aotPath;
         options.push_back(ani_option { aotPathString.data(), nullptr });
         options.push_back(ani_option { "--ext:--enable-an", nullptr });
         TAG_LOGD(AAFwkTag::ETSRUNTIME, "aotPathString: %{public}s", aotPathString.c_str());

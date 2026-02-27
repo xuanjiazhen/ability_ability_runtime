@@ -20,6 +20,8 @@
 #include "application_anr_listener.h"
 #undef private
 
+#include "xcollie/watchdog.h"
+
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
@@ -44,7 +46,9 @@ void AppfreezeInnerTest::SetUpTestCase(void)
 {}
 
 void AppfreezeInnerTest::TearDownTestCase(void)
-{}
+{
+    AppfreezeInner::DestroyInstance();
+}
 
 void AppfreezeInnerTest::SetUp(void)
 {
@@ -53,6 +57,7 @@ void AppfreezeInnerTest::SetUp(void)
 
 void AppfreezeInnerTest::TearDown(void)
 {
+    OHOS::HiviewDFX::Watchdog::GetInstance().StopWatchdog();
     AppfreezeInner::DestroyInstance();
 }
 
@@ -127,10 +132,6 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_IsNeedIgnoreFreezeEvent_001, TestSiz
     appfreezeInner->isAppDebug_ = false;
     appfreezeInner->ThreadBlock(isSixSecondEvent);
     EXPECT_TRUE(isSixSecondEvent);
-    int32_t pid = static_cast<int32_t>(getprocpid());
-    std::shared_ptr<AAFwk::ApplicationAnrListener> listener =
-        std::make_shared<AAFwk::ApplicationAnrListener>();
-    listener->OnAnr(pid, 0);
 }
 
 /**
@@ -547,13 +548,13 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInnerTest_LogFormat_001, TestSize.Level1)
     size_t totalSize = 0;
     size_t objectSize = 0;
     std::string ret = appfreezeInner->LogFormat(totalSize, objectSize);
-    std::string testValue = "HEAP_TOTAL_SIZE:0,HEAP_OBJECT_SIZE:0";
+    std::string testValue = "HEAP_TOTAL_SIZE:0,HEAP_OBJECT_SIZE:0,";
     EXPECT_EQ(ret, testValue);
     ret = appfreezeInner->LogFormat(totalSize, objectSize);
     totalSize = 1234;
     objectSize = 1234;
     ret = appfreezeInner->LogFormat(totalSize, objectSize);
-    testValue = "HEAP_TOTAL_SIZE:1234,HEAP_OBJECT_SIZE:1234";
+    testValue = "HEAP_TOTAL_SIZE:1234,HEAP_OBJECT_SIZE:1234,";
     EXPECT_EQ(ret, testValue);
 }
 

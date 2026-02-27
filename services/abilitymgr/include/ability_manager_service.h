@@ -1018,82 +1018,270 @@ public:
     virtual sptr<IWantSender> GetWantSender(
         const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t uid = -1) override;
 
+    /**
+     * @brief Send want sender.
+     * @param target The target want sender to be triggered.
+     * @param senderInfo The sender information containing result data and callbacks.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo) override;
 
+    /**
+     * @brief Send local pending want without IPC.
+     * @param senderInfo The sender information containing result data and callbacks.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int SendLocalWantSender(const SenderInfo &senderInfo) override;
 
+    /**
+     * @brief Cancel a pending want sender.
+     * @param sender The want sender to be cancelled.
+     */
     virtual void CancelWantSender(const sptr<IWantSender> &sender) override;
 
+    /**
+     * @brief Get the UID of a pending want sender.
+     * @param target The target want sender.
+     * @return Returns the UID on success, -1 on failure.
+     */
     virtual int GetPendingWantUid(const sptr<IWantSender> &target) override;
 
+    /**
+     * @brief Get the user ID of a pending want sender.
+     * @param target The target want sender.
+     * @return Returns the user ID on success, -1 on failure.
+     */
     virtual int GetPendingWantUserId(const sptr<IWantSender> &target) override;
 
+    /**
+     * @brief Get the bundle name of a pending want sender.
+     * @param target The target want sender.
+     * @return Returns the bundle name.
+     */
     virtual std::string GetPendingWantBundleName(const sptr<IWantSender> &target) override;
 
+    /**
+     * @brief Get the request code of a pending want sender.
+     * @param target The target want sender.
+     * @return Returns the request code on success, -1 on failure.
+     */
     virtual int GetPendingWantCode(const sptr<IWantSender> &target) override;
 
+    /**
+     * @brief Get the type of a pending want sender.
+     * @param target The target want sender.
+     * @return Returns the type on success, -1 on failure.
+     */
     virtual int GetPendingWantType(const sptr<IWantSender> &target) override;
 
+    /**
+     * @brief Register a cancel listener for pending want sender.
+     * @param sender The want sender to listen on.
+     * @param receiver The callback receiver for cancel event.
+     */
     virtual void RegisterCancelListener(const sptr<IWantSender> &sender, const sptr<IWantReceiver> &receiver) override;
 
+    /**
+     * @brief Unregister a cancel listener from pending want sender.
+     * @param sender The want sender.
+     * @param receiver The callback receiver to be unregistered.
+     */
     virtual void UnregisterCancelListener(
         const sptr<IWantSender> &sender, const sptr<IWantReceiver> &receiver) override;
 
+    /**
+     * @brief Get the pending want from a want sender.
+     * @param target The target want sender.
+     * @param want The output pending want.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int GetPendingRequestWant(const sptr<IWantSender> &target, std::shared_ptr<Want> &want) override;
 
+    /**
+     * @brief Get the want sender information.
+     * @param target The target want sender.
+     * @param info The output want sender information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int GetWantSenderInfo(const sptr<IWantSender> &target, std::shared_ptr<WantSenderInfo> &info) override;
 
+    /**
+     * @brief Register an observer for connection state changes.
+     * @param observer The connection observer to be registered.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int RegisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer) override;
 
+    /**
+     * @brief Unregister a connection observer.
+     * @param observer The connection observer to be unregistered.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int UnregisterObserver(const sptr<AbilityRuntime::IConnectionObserver> &observer) override;
 
 #ifdef WITH_DLP
+    /**
+     * @brief Get DLP (Data Loss Prevention) connection information.
+     * @param infos The output DLP connection information list.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int GetDlpConnectionInfos(std::vector<AbilityRuntime::DlpConnectionInfo> &infos) override;
 #endif // WITH_DLP
 
+    /**
+     * @brief Get ability connection data.
+     * @param connectionData The output connection data list.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int GetConnectionData(std::vector<AbilityRuntime::ConnectionData> &connectionData) override;
 
+    /**
+     * @brief Cancel want sender by specified flags.
+     * @param sender The want sender to be cancelled.
+     * @param flags The flags to control cancellation behavior.
+     */
     virtual void CancelWantSenderByFlags(const sptr<IWantSender> &sender, uint32_t flags) override;
 
+    /**
+     * @brief Lock a mission for cleanup operation.
+     * @param missionId The ID of the mission to be locked.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int LockMissionForCleanup(int32_t missionId) override;
 
+    /**
+     * @brief Unlock a mission after cleanup.
+     * @param missionId The ID of the mission to be unlocked.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int UnlockMissionForCleanup(int32_t missionId) override;
 
+    /**
+     * @brief Set the locked state of a session.
+     * @param sessionId The ID of the session.
+     * @param lockedState The locked state to be set.
+     */
     virtual void SetLockedState(int32_t sessionId, bool lockedState) override;
 
+    /**
+     * @brief Register a mission listener.
+     * @param listener The mission listener to be registered.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int RegisterMissionListener(const sptr<IMissionListener> &listener) override;
 
+    /**
+     * @brief Unregister a mission listener.
+     * @param listener The mission listener to be unregistered.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int UnRegisterMissionListener(const sptr<IMissionListener> &listener) override;
 
+    /**
+     * @brief Get all mission information within specified device.
+     * @param deviceId The target device ID.
+     * @param numMax The maximum number of missions to retrieve.
+     * @param missionInfos The output mission information list.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int GetMissionInfos(const std::string& deviceId, int32_t numMax,
         std::vector<MissionInfo> &missionInfos) override;
 
+    /**
+     * @brief Get specific mission information.
+     * @param deviceId The target device ID.
+     * @param missionId The ID of the mission.
+     * @param missionInfo The output mission information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int GetMissionInfo(const std::string& deviceId, int32_t missionId,
         MissionInfo &missionInfo) override;
 
+    /**
+     * @brief Clean a specific mission.
+     * @param missionId The ID of the mission to be cleaned.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int CleanMission(int32_t missionId) override;
 
+    /**
+     * @brief Clean all missions.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int CleanAllMissions() override;
 
+    /**
+     * @brief Move a specific mission to front.
+     * @param missionId The ID of the mission.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int MoveMissionToFront(int32_t missionId) override;
 
+    /**
+     * @brief Move a specific mission to front with start options.
+     * @param missionId The ID of the mission.
+     * @param startOptions The start options for the mission.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int MoveMissionToFront(int32_t missionId, const StartOptions &startOptions) override;
 
+    /**
+     * @brief Move multiple missions to foreground.
+     * @param missionIds The list of mission IDs to be moved.
+     * @param topMissionId The ID of the top mission after moving.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int MoveMissionsToForeground(const std::vector<int32_t>& missionIds, int32_t topMissionId) override;
 
+    /**
+     * @brief Move multiple missions to background.
+     * @param missionIds The list of mission IDs to be moved.
+     * @param result The output list of moved mission IDs.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int MoveMissionsToBackground(const std::vector<int32_t>& missionIds,
         std::vector<int32_t>& result) override;
 
+    /**
+     * @brief Get mission ID by ability token.
+     * @param token The ability token.
+     * @return Returns the mission ID on success, -1 on failure.
+     */
     virtual int32_t GetMissionIdByToken(const sptr<IRemoteObject> &token) override;
 
+    /**
+     * @brief Get ability token by call stub object.
+     * @param callStub The call stub object.
+     * @param token The output ability token.
+     */
     void GetAbilityTokenByCalleeObj(const sptr<IRemoteObject> &callStub, sptr<IRemoteObject> &token) override;
 
+    /**
+     * @brief Start synchronizing remote missions with specified device.
+     * @param devId The target device ID.
+     * @param fixConflict Whether to fix conflict when syncing.
+     * @param tag The synchronization tag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int StartSyncRemoteMissions(const std::string& devId, bool fixConflict, int64_t tag) override;
 
+    /**
+     * @brief Stop synchronizing remote missions with specified device.
+     * @param devId The target device ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
     virtual int StopSyncRemoteMissions(const std::string& devId) override;
 
+    /**
+     * @brief Get application memory size.
+     * @return Returns the memory size in bytes, or 0 on failure.
+     */
     virtual int GetAppMemorySize() override;
 
+    /**
+     * @brief Check if the device is RAM constrained.
+     * @return Returns true if RAM constrained, false otherwise.
+     */
     virtual bool IsRamConstrainedDevice() override;
 
     /**
@@ -1372,6 +1560,24 @@ public:
     virtual int PrepareTerminateAbility(const sptr<IRemoteObject> &token,
         sptr<IPrepareTerminateCallback> &callback) override;
 
+    /**
+     * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
+     *
+     * @param token, the token of the ability to terminate.
+     * @param callback callback.
+     */
+    virtual void PrepareTerminateAbilityDone(const sptr<IRemoteObject> &token, bool isTerminate) override;
+
+    /**
+     * KillProcessWithPrepareTerminateDone, called when KillProcessWithPrepareTerminate call is done.
+     *
+     * @param moduleName, the module name of the application.
+     * @param prepareTermination, the result of prepareTermination call of the module.
+     * @param isExist, whether the prepareTerminate functions are implemented.
+     */
+    virtual void KillProcessWithPrepareTerminateDone(const std::string &moduleName,
+        int32_t prepareTermination, bool isExist) override;
+
     void HandleFocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
 
     void HandleUnfocused(const sptr<OHOS::Rosen::FocusChangeInfo> &focusChangeInfo);
@@ -1644,6 +1850,35 @@ public:
      */
     virtual int32_t RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason) override;
 
+    /**
+     * Force app exit and record exit reason.
+     * @param pid The process id.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillAppWithReason(const int32_t pid, const ExitReasonCompability &ExitReason) override;
+
+    /**
+     * Force bundle exit and record exit reason.
+     * @param bundleName Bundle name of kill app.
+     * @param appIndex The app index of app clone.
+     * @param userId User ID.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillBundleWithReason(const std::string &bundleName, int32_t userId, int32_t appIndex,
+        const ExitReasonCompability &exitReason) override;
+
+    /**
+     * Record app exit reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RecordAppWithReason(
+        const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason) override;
+
     int32_t GetConfiguration(AppExecFwk::Configuration& config);
 
     int32_t GetConfiguration(AppExecFwk::Configuration& config, int32_t userId);
@@ -1780,6 +2015,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t ManualStartAutoStartupApps(int32_t userId) override;
+
+    /**
+     * @brief Query the caller's Token ID for anco.
+     * @param userId Indicates the user ID.
+     * @param asCallerForAncoSessionId Indicates the anco session Id of cached information.
+     * @param callerTokenId Indicates the output caller Token ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
+        uint32_t &callerTokenId) override;
 
     /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
@@ -2127,14 +2372,6 @@ public:
         bool isCallByShortcut = false);
 
     /**
-     * PrepareTerminateAbilityDone, called when PrepareTerminateAbility call is done.
-     *
-     * @param token, the token of the ability to terminate.
-     * @param callback callback.
-     */
-    virtual void PrepareTerminateAbilityDone(const sptr<IRemoteObject> &token, bool isTerminate) override;
-
-    /**
      * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
      * force kill the application by accessTokenId, notify exception to SCB.
      *
@@ -2143,15 +2380,6 @@ public:
      */
     virtual int32_t KillProcessForPermissionUpdate(uint32_t accessTokenId) override;
 
-    /**
-     * KillProcessWithPrepareTerminateDone, called when KillProcessWithPrepareTerminate call is done.
-     *
-     * @param moduleName, the module name of the application.
-     * @param prepareTermination, the result of prepareTermination call of the module.
-     * @param isExist, whether the prepareTerminate functions are implemented.
-     */
-    virtual void KillProcessWithPrepareTerminateDone(const std::string &moduleName,
-        int32_t prepareTermination, bool isExist) override;
     std::shared_ptr<AppExitReasonHelper> GetAppExitReasonHelper()
     {
         return appExitReasonHelper_;
@@ -2198,15 +2426,6 @@ public:
     virtual int32_t SetOnNewWantSkipScenarios(sptr<IRemoteObject> callerToken, int32_t scenarios) override;
 
     /**
-     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
-     *
-     * @param want Ability want.
-     * @param observer ability foreground notify observer for aa tool.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
-
-    /**
      * Get all insight intent infos.
      * @param flag, the get type.
      * @param infos, the insight intent infos.
@@ -2247,6 +2466,15 @@ public:
         InsightIntentInfoForQuery &info,
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
+   /**
+     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
+     *
+     * @param want Ability want.
+     * @param observer ability foreground notify observer for aa tool.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
+
     int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
 
     int32_t EnterKioskMode(sptr<IRemoteObject> callerToken) override;
@@ -2256,13 +2484,6 @@ public:
     int32_t GetKioskStatus(AAFwk::KioskStatus &kioskStatus) override;
 
     std::shared_ptr<AbilityInterceptorExecuter> GetAbilityInterceptorExecuter();
-
-    /**
-     * Register sa interceptor.
-     * @param interceptor, The sa interceptor.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
 
      /**
      * Set keep-alive flag for app service extension under u1 user.
@@ -2278,6 +2499,13 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list) override;
+
+    /**
+     * Register sa interceptor.
+     * @param interceptor, The sa interceptor.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor) override;
 
     virtual int32_t NotifyStartupExceptionBySCB(int32_t requestId) override;
 
@@ -2443,6 +2671,16 @@ protected:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * @brief Get list of applications launched before the first unlock.
+     * @param userId The User Id.
+     * @param userLockedBundleList List of applications launched before the first unlock.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetUserLockedBundleList(int32_t userId,
+        std::unordered_set<std::string> &userLockedBundleList) override;
 
 private:
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
@@ -2642,7 +2880,7 @@ private:
     void SubscribeUserUnlockedEvent();
     void SubscribeScreenUnlockedEvent();
     std::function<void(int32_t)> GetScreenUnlockCallback();
-    std::function<void()> GetUserScreenUnlockCallback();
+    std::function<void(int32_t)> GetUserScreenUnlockCallback();
     void UnSubscribeScreenUnlockedEvent();
     void RetrySubscribeUnlockedEvent(int32_t retryCount, std::shared_ptr<EventFwk::CommonEventSubscriber> subscriber,
         bool isUserUnlockSubscriber = false);
@@ -3069,8 +3307,6 @@ private:
 
     std::shared_ptr<AbilityRuntime::InsightIntentEventMgr> insightIntentEventMgr_;
 
-    std::list<std::string> vpnAllowList_;
-
     bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
 
     void PrintStartAbilityInfo(AppExecFwk::AbilityInfo callerInfo, AppExecFwk::AbilityInfo calledInfo);
@@ -3085,10 +3321,6 @@ private:
     bool ConvertFullPath(const std::string& partialPath, std::string& fullPath);
 
     bool ParseJsonFromBoot(const std::string &relativePath);
-
-    bool CheckSupportVpn(AppExecFwk::AbilityInfo abilityInfo);
-
-    bool ParseVpnAllowListJson(const std::string &relativePath, const std::string &jsonItemStr);
 
     void SetReserveInfo(const std::string &linkString, AbilityRequest& abilityRequest);
     void CloseAssertDialog(const std::string &assertSessionId, int32_t userId);
@@ -3122,6 +3354,7 @@ private:
         const Want &want, uint32_t targetTokenId, AppExecFwk::ExtensionAbilityType extensionType);
 
     bool IsAllowAttachOrDetachAppDebug(AppExecFwk::ApplicationInfo &appInfo);
+    bool IsExitReasonValid(const ExitReasonCompability &reason);
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
 #endif
@@ -3161,7 +3394,6 @@ private:
     ffrt::mutex shouldBlockAllAppStartMutex_;
     mutable ffrt::mutex timeoutMapLock_;
     std::mutex whiteListMutex_;
-    std::mutex allowListMutex_;
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;

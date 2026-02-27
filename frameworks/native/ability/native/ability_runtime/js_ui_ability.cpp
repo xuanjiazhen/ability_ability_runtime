@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -49,9 +49,12 @@
 #include "scene_board_judgement.h"
 #endif
 #include "ohos_application.h"
+#include "madvise/madvise_utils.h"
 #include "napi_common_configuration.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
+#include "page_switch_log.h"
+#include "parameters.h"
 #include "string_wrapper.h"
 #include "system_ability_definition.h"
 #include "time_util.h"
@@ -530,6 +533,7 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
         applicationContext->DispatchOnAbilityWillCreate(ability);
     }
 
+    WriteLifecycleSwitchLog("onCreate");
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     CallObjectMethod("onCreate", argv, ArraySize(argv));
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
@@ -551,6 +555,18 @@ void JsUIAbility::HandleAbilityDelegatorStart()
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
         property->object_ = jsAbilityObj_;
         delegator->PostPerformStart(property);
+    }
+}
+
+void JsUIAbility::WriteLifecycleSwitchLog(const std::string lifecycleName)
+{
+    if (!OHOS::HiviewDFX::IsPageSwitchLoggable()) {
+        return;
+    }
+    std::string msg = lifecycleName + ", ModuleName: " + GetModuleName() + ", AbilityName: " + GetAbilityName();
+    auto ret = OHOS::HiviewDFX::WritePageSwitchStr(msg);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "write lifecycle switch log failed [%{public}d]", ret);
     }
 }
 
@@ -606,6 +622,7 @@ void JsUIAbility::OnStop()
         JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
         applicationContext->DispatchOnAbilityWillDestroy(ability);
     }
+    WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod("onDestroy");
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
@@ -634,6 +651,7 @@ void JsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackI
         JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
         applicationContext->DispatchOnAbilityWillDestroy(ability);
     }
+    WriteLifecycleSwitchLog("onDestroy");
     napi_value result = CallObjectMethod("onDestroy", nullptr, 0, true);
     if (!CheckPromise(result)) {
         OnStopCallback();
@@ -709,6 +727,7 @@ void JsUIAbility::OnSceneCreated()
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "onWindowStageCreate");
         std::string methodName = "OnSceneCreated";
         AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+        WriteLifecycleSwitchLog("onWindowStageCreate");
         CallObjectMethod("onWindowStageCreate", argv, ArraySize(argv));
         AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     }
@@ -795,6 +814,7 @@ void JsUIAbility::onSceneDestroyed()
     }
     HandleScope handleScope(jsRuntime_);
     UpdateJsWindowStage(nullptr);
+    WriteLifecycleSwitchLog("onWindowStageDestroy");
     CallObjectMethod("onWindowStageDestroy");
 
     if (scene_ != nullptr) {
@@ -867,6 +887,7 @@ void JsUIAbility::CallOnForegroundFunc(const Want &want)
         applicationContext->DispatchOnAbilityWillForeground(ability);
     }
 
+    WriteLifecycleSwitchLog("onForeground");
     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
     std::string methodName = "OnForeground";
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
@@ -902,6 +923,7 @@ void JsUIAbility::OnBackground()
     std::string methodName = "OnBackground";
     HandleScope handleScope(jsRuntime_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+    WriteLifecycleSwitchLog("onBackground");
     CallObjectMethod("onBackground");
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
 
@@ -924,6 +946,15 @@ void JsUIAbility::OnBackground()
     auto want = GetWant();
     if (want != nullptr) {
         HandleCollaboration(*want);
+    }
+    // Apply madvise optimization based on config file (only once per process)
+    static bool madviseApplied = false;
+    if (!madviseApplied && abilityInfo_ != nullptr) {
+        bool enableMadvise = OHOS::system::GetBoolParameter("persist.sys.abilityms.enable_madvise", false);
+        if (enableMadvise) {
+            MadviseUtil::MadviseWithConfigFile(abilityInfo_->bundleName.c_str());
+        }
+        madviseApplied = true;
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -1929,6 +1960,7 @@ void JsUIAbility::OnNewWant(const Want &want)
     };
     std::string methodName = "OnNewWant";
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    WriteLifecycleSwitchLog("onNewWant");
     CallObjectMethod("onNewWant", argv, ArraySize(argv));
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
 

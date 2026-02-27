@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -480,6 +480,15 @@ int AbilityManagerStub::OnRemoteRequestInnerEleventh(uint32_t code, MessageParce
     if (interfaceCode == AbilityManagerInterfaceCode::RECORD_PROCESS_EXIT_REASON_PLUS) {
         return RecordProcessExitReasonPlusInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_APP_WITH_REASON) {
+        return KillAppWithReasonInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::KILL_BUNDLE_WITH_REASON) {
+        return KillBundleWithReasonInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::RECORD_APP_WITH_REASON) {
+        return RecordAppWithReasonInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::IS_RESTART_APP_LIMIT) {
         return IsRestartAppLimitInner(data, reply);
     }
@@ -947,8 +956,14 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::REGISTER_FOREGROUND_APP_CONNECTION_OBSERVER) {
         return RegisterForegroundAppObserverInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::QUERY_CALLER_TOKEN_ID_FOR_ANCO) {
+        return QueryCallerTokenIdForAncoInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::MANUAL_START_AUTO_STARTUP_APPS) {
         return ManualStartAutoStartupAppsInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_USER_LOCKED_BUNDLE_LIST) {
+        return GetUserLockedBundleListInner(data, reply);
     }
     return ERR_CODE_NOT_EXIST;
 }
@@ -3658,6 +3673,57 @@ int32_t AbilityManagerStub::RecordProcessExitReasonPlusInner(MessageParcel &data
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::KillAppWithReasonInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t pid = data.ReadInt32();
+    std::unique_ptr<ExitReasonCompability> exitReason(data.ReadParcelable<ExitReasonCompability>());
+    if (!exitReason) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "exitReasonCompability null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = KillAppWithReason(pid, *exitReason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::KillBundleWithReasonInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName = data.ReadString();
+    int32_t userId = data.ReadInt32();
+    int32_t appIndex = data.ReadInt32();
+    std::unique_ptr<ExitReasonCompability> exitReason(data.ReadParcelable<ExitReasonCompability>());
+    if (!exitReason) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "exitReasonCompability null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = KillBundleWithReason(bundleName, userId, appIndex, *exitReason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::RecordAppWithReasonInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t pid = data.ReadInt32();
+    int32_t uid = data.ReadInt32();
+    std::unique_ptr<ExitReasonCompability> exitReason(data.ReadParcelable<ExitReasonCompability>());
+    if (!exitReason) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "exitReason null");
+        return ERR_READ_EXIT_REASON_FAILED;
+    }
+    int32_t result = RecordAppWithReason(pid, uid, *exitReason);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
 int AbilityManagerStub::SetRootSceneSessionInner(MessageParcel &data, MessageParcel &reply)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Call.");
@@ -3913,6 +3979,23 @@ int32_t AbilityManagerStub::ManualStartAutoStartupAppsInner(MessageParcel &data,
     int32_t userId = data.ReadInt32();
     int32_t result = ManualStartAutoStartupApps(userId);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::QueryCallerTokenIdForAncoInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t userId = data.ReadInt32();
+    std::string asCallerForAncoSessionId = data.ReadString();
+    uint32_t callerTokenId = 0;
+    ErrCode result = QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId, callerTokenId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteUint32(callerTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerTokenId fail");
+        return ERR_INVALID_VALUE;
+    }
     return NO_ERROR;
 }
 
@@ -5219,6 +5302,30 @@ int32_t AbilityManagerStub::UnRegisterPreloadUIExtensionHostClientInner(MessageP
     int32_t result = UnRegisterPreloadUIExtensionHostClient(callerPid);
     reply.WriteInt32(result);
     return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::GetUserLockedBundleListInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t userId = data.ReadInt32();
+    std::unordered_set<std::string> bundleList;
+    int32_t result = GetUserLockedBundleList(userId, bundleList);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (result == ERR_OK) {
+        if (!reply.WriteInt32(bundleList.size())) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write bundleList size fail");
+            return ERR_INVALID_VALUE;
+        }
+        for (const auto &bundle : bundleList) {
+            if (!reply.WriteString16(Str8ToStr16(bundle))) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write bundle fail");
+                return ERR_INVALID_VALUE;
+            }
+        }
+    }
+    return result;
 }
 } // namespace AAFwk
 } // namespace OHOS

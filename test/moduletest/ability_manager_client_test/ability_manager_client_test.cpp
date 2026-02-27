@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -166,6 +166,48 @@ HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RecordProcessExitReason_
     auto result = AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient_RecordProcessExitReason_0100 end");
+}
+
+/**
+ * @tc.name: AbilityManagerClient_KillAppWithReason_0100
+ * @tc.desc: KillAppWithReason
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_KillAppWithReason_0100, TestSize.Level1)
+{
+    int32_t pid = 0;
+    ExitReasonCompability exitReason;
+    auto result = AbilityManagerClient::GetInstance()->KillAppWithReason(pid, exitReason);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_KillBundleWithReason_0100
+ * @tc.desc: KillBundleWithReason
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_KillBundleWithReason_0100, TestSize.Level1)
+{
+    std::string bundleName = "test.bundle.name";
+    int32_t userId = 0;
+    int32_t appIndex = 0;
+    ExitReasonCompability exitReason;
+    auto result = AbilityManagerClient::GetInstance()->KillBundleWithReason(bundleName, userId, appIndex, exitReason);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_RecordAppWithReason_0100
+ * @tc.desc: RecordAppWithReason
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, AbilityManagerClient_RecordAppWithReason_0100, TestSize.Level1)
+{
+    int32_t pid = 0;
+    int32_t uid = 0;
+    ExitReasonCompability exitReason;
+    auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, uid, exitReason);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -648,6 +690,40 @@ HWTEST_F(AbilityManagerClientTest, ManualStartAutoStartupApps_0100, TestSize.Lev
     auto result = AbilityManagerClient::GetInstance()->ManualStartAutoStartupApps(userId);
     EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "ManualStartAutoStartupApps_0100 end");
+}
+
+/**
+ * @tc.name: QueryCallerTokenIdForAnco_0100
+ * @tc.desc: QueryCallerTokenIdForAnco with valid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, QueryCallerTokenIdForAnco_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAnco_0100 start");
+    int32_t userId = 101;
+    std::string asCallerForAncoSessionId = "520";
+    uint32_t callerTokenId = 0;
+    auto result = AbilityManagerClient::GetInstance()->QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId,
+        callerTokenId);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAnco_0100 end");
+}
+
+/**
+ * @tc.name: QueryCallerTokenIdForAnco_0200
+ * @tc.desc: QueryCallerTokenIdForAnco with invalid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientTest, QueryCallerTokenIdForAnco_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAnco_0200 start");
+    int32_t userId = -1;
+    std::string asCallerForAncoSessionId = "-1";
+    uint32_t callerTokenId = 0;
+    auto result = AbilityManagerClient::GetInstance()->QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId,
+        callerTokenId);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAnco_0200 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -54,9 +54,9 @@ int32_t AgentCardMgr::HandleBundleInstall(const std::string &bundleName, int32_t
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Get Bundle Info fail");
         return -1;
     }
-    std::vector<AgentCard> cards;
+    std::map<std::string, AgentCard> cards;
     for (auto const &extensionInfo : bundleInfo.extensionInfos) {
-        if (extensionInfo.type != ExtensionAbilityType::BACKUP) {
+        if (extensionInfo.type != ExtensionAbilityType::AGENT) {
             continue;
         }
         std::vector<std::string> profileInfos{};
@@ -66,19 +66,30 @@ int32_t AgentCardMgr::HandleBundleInstall(const std::string &bundleName, int32_t
                 return -1;
             }
             json j = json::parse(profileInfo);
-            if (!j.contains("agent_cards")) {
+            if (!j.contains("agentCards")) {
                 return -1;
             }
-            for (auto cardStr : j["agent_cards"]) {
-                AgentCard card = AgentCard::FromJson(cardStr);
-                card.bundleName = bundleName;
-                card.moduleName = extensionInfo.moduleName;
-                card.abilityName = extensionInfo.name;
-                cards.push_back(card);
+            for (auto cardStr : j["agentCards"]) {
+                AgentCard card;
+                if (!AgentCard::FromJson(cardStr, card)) {
+                    TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed");
+                    continue;
+                }
+                if (card.appInfo == nullptr) {
+                    card.appInfo = std::make_shared<AgentAppInfo>();
+                }
+                card.appInfo->bundleName = bundleName;
+                card.appInfo->moduleName = extensionInfo.moduleName;
+                card.appInfo->abilityName = extensionInfo.name;
+                cards[card.agentId] = card;
             }
         }
     }
-    return AgentCardDbMgr::GetInstance().InsertData(bundleName, userId, cards);
+    std::vector<AgentCard> cardVec;
+    for (const auto& [key, value] : cards) {
+        cardVec.push_back(value);
+    }
+    return AgentCardDbMgr::GetInstance().InsertData(bundleName, userId, cardVec);
 }
 
 int32_t AgentCardMgr::HandleBundleUpdate(const std::string &bundleName, int32_t userId)
@@ -113,10 +124,21 @@ int32_t AgentCardMgr::GetAgentCardByAgentId(const std::string &bundleName, const
 {
     std::vector<AgentCard> cards;
     int32_t resultCode = GetAgentCardsByBundleName(bundleName, cards);
+    if (resultCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "failed: %{public}d", resultCode);
+        return resultCode;
+    }
+    bool found = false;
     for (const AgentCard &agentCard : cards) {
         if (agentCard.agentId == agentId) {
             card = agentCard;
+            found = true;
+            break;
         }
+    }
+    if (!found) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "not found");
+        return ERR_NAME_NOT_FOUND;
     }
     return resultCode;
 }

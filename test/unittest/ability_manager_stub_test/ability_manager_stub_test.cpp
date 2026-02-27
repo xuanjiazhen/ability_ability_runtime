@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -3338,6 +3338,72 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_RecordProcessExitReasonInner
 
 /*
  * Feature: AbilityManagerService
+ * Function: KillAppWithReasonInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillAppWithReasonInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function KillAppWithReasonInner is normal flow.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_KillAppWithReasonInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    auto res = stub_->KillAppWithReasonInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+    ExitReasonCompability exitReason;
+    data.WriteInt32(1);
+    data.WriteParcelable(&exitReason);
+    res = stub_->KillAppWithReasonInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillBundleWithReasonInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillBundleWithReasonInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function KillBundleWithReasonInner is normal flow.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_KillBundleWithReasonInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    auto res = stub_->KillBundleWithReasonInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+    ExitReasonCompability exitReason;
+    data.WriteString("test");
+    data.WriteInt32(1);
+    data.WriteInt32(1);
+    data.WriteParcelable(&exitReason);
+    res = stub_->KillBundleWithReasonInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RecordAppWithReasonInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService RecordAppWithReasonInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function RecordAppWithReasonInner is normal flow.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_RecordAppWithReasonInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    auto res = stub_->RecordAppWithReasonInner(data, reply);
+    EXPECT_EQ(res, ERR_READ_EXIT_REASON_FAILED);
+    ExitReasonCompability exitReason;
+    data.WriteInt32(1);
+    data.WriteInt32(1);
+    data.WriteParcelable(&exitReason);
+    res = stub_->RecordAppWithReasonInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: SetRootSceneSessionInner
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService SetRootSceneSessionInner
@@ -4721,6 +4787,71 @@ HWTEST_F(AbilityManagerStubTest, ClearAllPreloadUIExtensionAbilityInner_0100, Te
 }
 
 /**
+ * @tc.name: QueryCallerTokenIdForAncoInner_0100
+ * @tc.desc: QueryCallerTokenIdForAncoInner with valid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, QueryCallerTokenIdForAncoInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0100 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t userId = 101;
+    std::string asCallerForAncoSessionId = "520";
+    ASSERT_TRUE(data.WriteInt32(userId));
+    ASSERT_TRUE(data.WriteString(asCallerForAncoSessionId));
+    auto result = stub_->QueryCallerTokenIdForAncoInner(data, reply);
+    EXPECT_EQ(result, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0100 end");
+}
+
+/**
+ * @tc.name: QueryCallerTokenIdForAncoInner_0200
+ * @tc.desc: QueryCallerTokenIdForAncoInner with invalid dialogSessionId
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, QueryCallerTokenIdForAncoInner_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0200 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    int32_t userId = -1;
+    std::string asCallerForAncoSessionId = "-1";
+    ASSERT_TRUE(data.WriteInt32(userId));
+    ASSERT_TRUE(data.WriteString(asCallerForAncoSessionId));
+    auto result = stub_->QueryCallerTokenIdForAncoInner(data, reply);
+    EXPECT_EQ(result, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0200 end");
+}
+
+/**
+ * @tc.name: QueryCallerTokenIdForAncoInner_0300
+ * @tc.desc: QueryCallerTokenIdForAncoInner with OnRemoteRequest
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, QueryCallerTokenIdForAncoInner_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0300 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
+    int32_t userId = 100;
+    std::string asCallerForAncoSessionId = "100";
+    ASSERT_TRUE(data.WriteInt32(userId));
+    ASSERT_TRUE(data.WriteString(asCallerForAncoSessionId));
+
+    auto result = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::QUERY_CALLER_TOKEN_ID_FOR_ANCO), data, reply, option);
+
+    EXPECT_EQ(result, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "QueryCallerTokenIdForAncoInner_0300 end");
+}
+
+/**
  * @tc.name: ManualStartAutoStartupAppsInner_0100
  * @tc.desc: ManualStartAutoStartupAppsInner
  * @tc.type: FUNC
@@ -4761,6 +4892,37 @@ HWTEST_F(AbilityManagerStubTest, ManualStartAutoStartupAppsInner_0200, TestSize.
 
     EXPECT_EQ(result, NO_ERROR);
     TAG_LOGI(AAFwkTag::TEST, "ManualStartAutoStartupAppsInner_0200 end");
+}
+
+/**
+ * @tc.name: GetUserLockedBundleListInner_0100
+ * @tc.desc: Test normal call of GetUserLockedBundleListInner with empty bundle list
+ * @tc.type: FUNC
+ * @tc.level: Level1
+ */
+HWTEST_F(AbilityManagerStubTest, GetUserLockedBundleListInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetUserLockedBundleListInner_0100 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
+
+    int32_t testUserId = USER_ID;
+    ASSERT_TRUE(data.WriteInt32(testUserId));
+
+    auto result = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::GET_USER_LOCKED_BUNDLE_LIST), data, reply, option);
+
+    int32_t businessRet = reply.ReadInt32();
+    EXPECT_EQ(businessRet, ERR_OK);
+
+    int32_t listSize = reply.ReadInt32();
+    EXPECT_NE(listSize, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "GetUserLockedBundleListInner_0100 end");
 }
 } // namespace AAFwk
 } // namespace OHOS
