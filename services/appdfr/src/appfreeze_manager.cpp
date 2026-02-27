@@ -67,6 +67,7 @@ static constexpr int DUMP_STACK_FAILED = -1;
 static constexpr int DUMP_KERNEL_STACK_SUCCESS = 1;
 static constexpr int MIN_APP_UID = 20000;
 static constexpr int MAX_REPORT_STACK_SIZE = 256 * 1024; // 256KB
+static constexpr int UNKNOWN_FREEZE_REASON = -1;
 const std::string LOG_FILE_PATH = "/data/log/eventlog";
 static bool g_betaVersion = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
 static bool g_overseaVersion = OHOS::system::GetParameter("const.global.region", "CN") != "CN";
@@ -1286,6 +1287,26 @@ std::string AppfreezeManager::GetExitKernelReason(int32_t pid)
         TAG_LOGW(AAFwkTag::APPDFR, "ioctl failed, errno:%{public}d", errno);
     }
     return GetExitReasonByKillId(killId);
+}
+
+int AppfreezeManager::GetFreezeExitReason(const std::string& eventName)
+{
+    if (eventName == AppFreezeType::THREAD_BLOCK_6S) {
+        return HiviewDFX::ProcessKillReason::REASON_THREAD_BLOCK_6S;
+    }
+    if (eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
+        return HiviewDFX::ProcessKillReason::REASON_LIFECYCLE_TIMEOUT;
+    }
+    if (eventName == AppFreezeType::APP_INPUT_BLOCK) {
+        return HiviewDFX::ProcessKillReason::REASON_APP_INPUT_BLOCK;
+    }
+    if (eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
+        return HiviewDFX::ProcessKillReason::REASON_BUSINESS_THREAD_BLOCK_6S;
+    }
+    if (eventName == AppFreezeType::BUSINESS_INPUT_BLOCK) {
+        return HiviewDFX::ProcessKillReason::REASON_BUSINESS_INPUT_BLOCK;
+    }
+    return UNKNOWN_FREEZE_REASON;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

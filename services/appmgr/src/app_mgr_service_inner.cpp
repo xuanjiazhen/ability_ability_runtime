@@ -118,7 +118,11 @@
 #ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
-#include "xcollie/process_kill_reason.h"
+#endif
+#ifdef AMS_KILL_REASON_TAG
+#include "ability_manager_client.h"
+#include "ability_state.h"
+#include "exit_reason.h"
 #endif
 
 namespace OHOS {
@@ -7891,14 +7895,14 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
             uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
             AppExecFwk::AppfreezeManager::GetInstance()->RegisterAppKillTime(pid, now);
+#ifdef AMS_KILL_REASON_TAG
             bool isInBackGround = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData);
             std::string reason = isInBackGround ? AppFreezeType::BG_FREEZE_WARNING : faultData.errorObject.name;
-            int killId = -1;
-#ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
-            killId = HiviewDFX::ProcessKillReason::REASON_APP_FREEZE;
-#endif
-            innerService->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
-            innerService->KillProcessByPid(pid, reason);
+            AAFwk::ExitReasonCompability exitReason = { REASON_APP_FREEZE, "Reason:" + reason };
+            exitReason.killId =
+                AppExecFwk::AppfreezeManager::GetInstance()->GetFreezeExitReason(faultData.errorObject.name);
+            AbilityManagerClient::GetInstance()->KillAppWithReason(pid, exitReason);
+#endif;
             return;
         };
         int32_t waitTime = AppExecFwk::AppfreezeManager::GetInstance()->IsBetaVersion() ?
