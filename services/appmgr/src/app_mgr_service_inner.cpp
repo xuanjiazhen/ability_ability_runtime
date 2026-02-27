@@ -3199,7 +3199,8 @@ void AppMgrServiceInner::GetRunningProcess(const std::shared_ptr<AppRunningRecor
     info.preloadMode_ = appRecord->GetPreloadMode();
     info.isDebugApp  = appRecord->GetApplicationInfo()->debug;
     info.isExiting = appRecord->IsTerminating() || appRecord->IsKilling()
-        || appRecord->GetRestartAppFlag() || appRecord->IsUserRequestCleaning();
+        || appRecord->GetRestartAppFlag() || appRecord->IsUserRequestCleaning()
+        || appRecord->IsCaching() || appRecord->GetProcessCacheLocked();
     info.isPreForeground  = appRecord->IsPreForeground();
     info.isCached = DelayedSingleton<CacheProcessManager>::GetInstance()->IsCachedProcess(appRecord);
     if (appRecord->GetUserTestInfo() != nullptr && system::GetBoolParameter(DEVELOPER_MODE_STATE, false)) {
