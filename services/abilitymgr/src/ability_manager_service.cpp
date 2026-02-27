@@ -1293,6 +1293,7 @@ void AbilityManagerService::CheckExtensionRateLimit(const Want &want)
 int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto ermsFlagGuard = ErmsFlagGuard(StartAbilityUtils::ermsSupportBackToCallerFlag);
     if (!param.isStartAsCaller || param.isImplicit) {
         param.want.RemoveParam("ability.params.picker.erms.policy");
     }
@@ -1610,10 +1611,9 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         return ERR_WOULD_BLOCK;
     }
 
-    auto backFlag = StartAbilityUtils::ermsSupportBackToCallerFlag;
+    auto backFlag = ermsFlagGuard.Get();
     UpdateCallerInfoUtil::GetInstance().UpdateBackToCallerFlag(param.callerToken, abilityRequest.want,
         param.requestCode, backFlag);
-    StartAbilityUtils::ermsSupportBackToCallerFlag = false;
 
     abilityRequest.want.RemoveParam(SPECIFY_TOKEN_ID);
     if (param.specifyTokenId > 0) {
@@ -2099,6 +2099,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     bool isStartAsCaller, uint32_t specifyTokenId, bool isImplicit, bool isCallByShortcut)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto ermsFlagGuard = ErmsFlagGuard(StartAbilityUtils::ermsSupportBackToCallerFlag);
     EventInfo eventInfo = BuildEventInfo(want, userId);
     // prevent the app from dominating the screen
     if (callerToken == nullptr && !IsCallerSceneBoard() && !isCallByShortcut &&
@@ -2401,9 +2402,8 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         return result;
     }
 #endif // SUPPORT_GRAPHICS
-    auto backFlag = StartAbilityUtils::ermsSupportBackToCallerFlag;
+    auto backFlag = ermsFlagGuard.Get();
     UpdateCallerInfoUtil::GetInstance().UpdateBackToCallerFlag(callerToken, abilityRequest.want, requestCode, backFlag);
-    StartAbilityUtils::ermsSupportBackToCallerFlag = false;
 
     abilityRequest.want.RemoveParam(SPECIFY_TOKEN_ID);
     if (specifyTokenId > 0) {
