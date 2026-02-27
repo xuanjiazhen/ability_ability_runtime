@@ -53,8 +53,29 @@ constexpr char INSIGHT_INTENT_FUNC_PARAM_METHODPARAMS[] = "ohos.insightIntent.fu
 constexpr char INSIGHT_INTENT_PAGE_PARAM_PAGEPATH[] = "ohos.insightIntent.pageParam.pagePath";
 constexpr char INSIGHT_INTENT_PAGE_PARAM_NAVIGATIONID[] = "ohos.insightIntent.pageParam.navigationId";
 constexpr char INSIGHT_INTENT_PAGE_PARAM_NAVDESTINATIONNAME[] = "ohos.insightIntent.pageParam.navDestinationName";
+// constexpr char INSIGHT_INTENT_EXECUTE_PARAM_CLASSNAME[] = "ohos.insightIntent.executeParam.className";
 
 constexpr int32_t INVALID_DISPLAY_ID = -1;
+class InsightIntentQueryParam : public Parcelable {
+    const int32_t DEFAULT_INVAL_VALUE = -1;
+public:
+    InsightIntentQueryParam() = default;
+    ~InsightIntentQueryParam() = default;
+
+    bool ReadFromParcel(Parcel &parcel);
+    virtual bool Marshalling(Parcel &parcel) const override;
+    static InsightIntentQueryParam *Unmarshalling(Parcel &parcel);
+
+    std::string bundleName_;
+    std::string moduleName_;
+    std::string intentName_;
+    std::string className_;
+    std::shared_ptr<WantParams> queryEntityParam_;
+    int32_t userId_ = DEFAULT_INVAL_VALUE;
+
+    // 被调用时ams层使用
+    uint64_t intentId_ = 0;
+};
 
 class InsightIntentExecuteParam : public Parcelable {
     const int32_t DEFAULT_INVAL_VALUE = -1;
@@ -95,6 +116,7 @@ public:
     std::string pagePath_;
     std::string navigationId_;
     std::string navDestinationName_;
+    InsightIntentQueryParam queryParam_;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

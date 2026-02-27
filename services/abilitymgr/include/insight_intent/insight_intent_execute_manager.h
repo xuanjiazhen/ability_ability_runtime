@@ -77,6 +77,8 @@ public:
     int32_t CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, std::string callerBundleName = "",
         const bool ignoreAbilityName = false);
+    int32_t CheckAndUpdateIntentQueryParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const std::shared_ptr<AppExecFwk::InsightIntentQueryParam> &param, std::string callerBundleName);
 
     int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId,
         std::string callerBundleName = "");
@@ -94,6 +96,9 @@ public:
 
     static int32_t GenerateWant(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
+        Want &want);
+    static int32_t GenerateQueryWant(
+        const std::shared_ptr<AppExecFwk::InsightIntentQueryParam> &param,
         Want &want);
 
     std::map<int32_t, int64_t> GetAllIntentExemptionInfo() const;
@@ -125,6 +130,8 @@ private:
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         const AbilityRuntime::ExtractInsightIntentGenericInfo &decoratorInfo,
         Want &want);
+    static int32_t UpdateIntentQueryParams(const std::shared_ptr<AppExecFwk::InsightIntentQueryParam> &param,
+        Want &want);
     static int32_t UpdateFuncDecoratorParams(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         AbilityRuntime::ExtractInsightIntentInfo &info, Want &want);
     static int32_t UpdatePageDecoratorParams(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
@@ -133,7 +140,7 @@ private:
         AbilityRuntime::ExtractInsightIntentInfo &info, Want &want);
     static int32_t UpdateEntryDecoratorParams(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId);
     static std::string GetMainElementName(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param);
-
+    static std::string GetMainElementNameByQuery(const std::shared_ptr<AppExecFwk::InsightIntentQueryParam> &param);
     void SendIntentReport(EventInfo &eventInfo, int32_t errCode);
 };
 } // namespace AAFwk

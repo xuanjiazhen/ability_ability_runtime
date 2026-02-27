@@ -70,6 +70,14 @@ bool JsInsightIntentEntry::Init(const InsightIntentExecutorInfo& insightIntentIn
         }
     }
 
+    if (entityObj_ == nullptr) {
+        entityObj_ = JsInsightIntentEntry::LoadJsEntityCode(insightIntentInfo, runtime_);
+        if (entityObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "load js entity failed");
+            STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
+        }
+    }
+
     auto env = runtime_.GetNapiEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null env");
@@ -154,7 +162,7 @@ std::unique_ptr<NativeReference> JsInsightIntentEntry::LoadJsCode(
     std::string moduleName(executeParam->moduleName_);
     std::string hapPath(info.hapPath);
     std::string srcEntrance(executeParam->srcEntrance_);
-    TAG_LOGD(AAFwkTag::INTENT, "moduleName %{public}s, hapPath %{private}s, srcEntrance %{private}s",
+    TAG_LOGE(AAFwkTag::INTENT, "moduleName %{public}s, hapPath %{public}s, srcEntrance %{public}s",
         moduleName.c_str(), hapPath.c_str(), srcEntrance.c_str());
 
     auto ret = runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
@@ -294,6 +302,13 @@ bool JsInsightIntentEntry::ExecuteInsightIntent(
         return ExecuteIntentCheckError();
     }
 
+    auto objValue = callEntityQuery(env, param, entityObj_);
+    if (objValue == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "testTag callEntityQuery is nullptr");
+    } else {
+        TAG_LOGE(AAFwkTag::INTENT, "testTag callEntityQuery success");
+    }
+
     if (!AssignObject(env, param)) {
         TAG_LOGE(AAFwkTag::INTENT, "assign object failed");
         return ExecuteIntentCheckError();
@@ -306,7 +321,8 @@ bool JsInsightIntentEntry::ExecuteInsightIntent(
         return ExecuteIntentCheckError();
     }
 
-    return HandleResultReturnedFromJsFunc(result);
+    return HandleResultReturnedFromJsFunc(objValue);
+    // return HandleResultReturnedFromJsFunc(result);
 }
 
 bool JsInsightIntentEntry::PrepareParameters(InsightIntentExecuteMode mode,
@@ -488,5 +504,349 @@ bool JsInsightIntentEntry::AssignObject(napi_env env, const AAFwk::WantParams &w
 
     return true;
 }
+
+namespace
+{
+    
+// bool UnWrapItem(napi_env env, napi_value item)
+// {
+//     // get type
+//     napi_valuetype type = napi_undefined;
+//     napi_status status = napi_typeof(env, item, &type);
+//     if (status != napi_ok || type == napi_undefined) {
+//         TAG_LOGE(AAFwkTag::INTENT, "get type failed");
+//         return napi_invalid_arg;
+//     }
+
+//     // get property name
+//     std::string propName;
+//     if (!AbilityRuntime::ConvertFromJsValue(env, item, propName)) {
+//         TAG_LOGE(AAFwkTag::INTENT, "convert napi value failed");
+//         return false;
+//     }
+
+//     switch (type) {
+//         case napi_number:
+//         {
+//             TAG_LOGE(AAFwkTag::INTENT, "unwrap int32");
+//             int32_t propValue;
+//             if (!AppExecFwk::UnwrapInt32ByPropertyName(env, item, propName.c_str(), propValue)) {
+//                 TAG_LOGE(AAFwkTag::INTENT, "Wrong argument type %{public}s", propName.c_str());
+//                 return false;
+//             }
+//             TAG_LOGE(AAFwkTag::INTENT, "testTag property name:%{public}s, value:%{public}d",
+//                 propName.c_str(), propValue);
+//             break;
+//         }
+//         case napi_string:
+//         {
+//             TAG_LOGE(AAFwkTag::INTENT, "unwrap string");
+//             std::string propValue;
+//             if (!AppExecFwk::UnwrapStringByPropertyName(env, item, propName.c_str(), propValue)) {
+//                 TAG_LOGE(AAFwkTag::INTENT, "Wrong argument type %{public}s", propName.c_str());
+//                 return false;
+//             }
+//             TAG_LOGE(AAFwkTag::INTENT, "testTag property name:%{public}s, value:%{public}s",
+//                 propName.c_str(), propValue.c_str());
+//             break;
+//         }
+//         case napi_boolean:
+//         {
+//             TAG_LOGE(AAFwkTag::INTENT, "unwrap boolean");
+//             bool propValue;
+//             if (!AppExecFwk::UnwrapBooleanByPropertyName(env, item, propName.c_str(), propValue)) {
+//                 TAG_LOGE(AAFwkTag::INTENT, "Wrong argument type %{public}s", propName.c_str());
+//                 return false;
+//             }
+//             break;
+//         }
+//         default:
+//             TAG_LOGE(AAFwkTag::INTENT, "Wrong argument type %{public}d", type);
+//             return false;
+//     }
+//     return true;
+// }
+
+bool UnwrapExecuteParam(napi_env env, napi_value param)
+{
+    TAG_LOGE(AAFwkTag::INTENT, "testTag UnwrapExecuteParam start");
+    if (!AppExecFwk::IsTypeForNapiValue(env, param, napi_object)) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid params");
+        return false;
+    }
+
+    AppExecFwk::ComplexArrayData jsObjStringIntentEntity;
+    if (!AppExecFwk::UnwrapArrayComplexFromJS(env, param, jsObjStringIntentEntity)) {
+        TAG_LOGE(AAFwkTag::INTENT, "jsObjStringIntentEntity not array.");
+        return false;
+    }
+
+    size_t jsObjStringIntentEntitySize = jsObjStringIntentEntity.objectList.size();
+    TAG_LOGE(AAFwkTag::INTENT, "testTag jsObjStringIntentEntitySize %{public}d", jsObjStringIntentEntitySize);
+    for(size_t i = 0; i < jsObjStringIntentEntitySize; i++) {
+        std::string entityId {""};
+        std::string displayName {""};
+
+        auto item = jsObjStringIntentEntity.objectList[i];
+        if (!AppExecFwk::UnwrapStringByPropertyName(env, item, "entityId", entityId)) {
+            TAG_LOGE(AAFwkTag::INTENT, "Wrong argument type entityId");
+            continue;
+        }
+
+        if (AppExecFwk::IsExistsByPropertyName(env, item, "displayName")) {
+            if (!AppExecFwk::UnwrapStringByPropertyName(env, item, "displayName", displayName)) {
+                TAG_LOGE(AAFwkTag::INTENT, "Wrong argument type displayName");
+                continue;
+            }
+        }
+
+        TAG_LOGI(AAFwkTag::INTENT, "testTag entityId:%{public}s, displayName:%{public}s",
+            entityId.c_str(), displayName.c_str());
+
+        AAFwk::WantParams wp;
+        if(!AppExecFwk::UnwrapWantParams(env, item, wp)) {
+            TAG_LOGE(AAFwkTag::INTENT, "testTag UnwrapWantParams failed");
+            continue;
+        }
+        TAG_LOGE(AAFwkTag::INTENT, "testTag item:%{public}s", wp.ToString().c_str());
+
+        auto entityId1 = wp.GetStringParam("entityId");
+        auto displayName1 = wp.GetStringParam("displayName");
+        auto name = wp.GetStringParam("name");
+        auto value = wp.GetStringParam("value");
+        auto description = wp.GetStringParam("description");
+        auto extension = wp.GetIntParam("extension", 0);
+
+        TAG_LOGE(AAFwkTag::INTENT, "testTag %{public}s, %{public}s, %{public}s, %{public}s, %{public}s, %{public}d",
+            entityId1.c_str(), displayName1.c_str(), name.c_str(), value.c_str(), description.c_str(), extension);
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "UnwrapExecuteParam end");
+    return true;
+}
+
+napi_value OnPromiseCallback(napi_env env, napi_callback_info info)
+{
+    TAG_LOGE(AAFwkTag::INTENT, "testTag OnPromiseCallback start");
+    void *data = nullptr;
+    size_t argc = ARGC_MAX_COUNT;
+    napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+    NAPI_CALL_NO_THROW(napi_get_cb_info(env, info, &argc, argv, nullptr, &data), nullptr);
+
+    auto *callbackInfo = static_cast<AppExecFwk::AbilityTransactionCallbackInfo<napi_value> *>(data);
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null callbackInfo or unwrap flag result failed");
+        return nullptr;
+    }
+    callbackInfo->Call(argv[0]);
+
+    AppExecFwk::AbilityTransactionCallbackInfo<napi_value>::Destroy(callbackInfo);
+    data = nullptr;
+    TAG_LOGE(AAFwkTag::INTENT, "testTag OnPromiseCallback end");
+    return nullptr;
+}
+
+}
+
+napi_value JsInsightIntentEntry::GetTargetMethod(napi_env env, napi_value constructor, const std::string &methodName)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "methodName %{public}s", methodName.c_str());
+    napi_value method;
+    auto status = napi_get_named_property(env, constructor, methodName.c_str(), &method);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "get method failed %{public}d", status);
+        return nullptr;
+    }
+
+    // Check validity of method
+    napi_value undefined;
+    status = napi_get_undefined(env, &undefined);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "get undefined failed %{public}d", status);
+        return nullptr;
+    }
+
+    bool isUndefined;
+    status = napi_strict_equals(env, method, undefined, &isUndefined);
+    if (isUndefined) {
+        TAG_LOGE(AAFwkTag::INTENT, "target method %{private}s didn't exist", methodName.c_str());
+        return nullptr;
+    }
+
+    return method;
+}
+
+std::unique_ptr<NativeReference> JsInsightIntentEntry::LoadJsEntityCode(
+    const InsightIntentExecutorInfo& info,
+    JsRuntime& runtime)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "LoadJsEntityCode start");
+
+    auto executeParam = info.executeParam;
+    if (executeParam == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null executeParam");
+        return std::unique_ptr<NativeReference>();
+    }
+
+    std::string moduleName(executeParam->moduleName_);
+    std::string hapPath(info.hapPath);
+    std::string srcEntrance(executeParam->srcEntrance_);
+    TAG_LOGE(AAFwkTag::INTENT, "testTag moduleName %{public}s, hapPath %{public}s, srcEntrance %{public}s",
+        moduleName.c_str(), hapPath.c_str(), srcEntrance.c_str());
+
+    auto ret = runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::INTENT, "execute failed");
+        return std::unique_ptr<NativeReference>();
+    }
+
+    TAG_LOGE(AAFwkTag::INTENT, "insightIntentParam: %{public}s", executeParam->insightIntentParam_->ToString().c_str());
+    std::string className = executeParam->insightIntentParam_->GetStringParam("className");
+    napi_value exportObj = runtime.GetExportObjectFromOhmUrl(srcEntrance, className);
+    // napi_value exportObj = runtime.GetExportObjectFromOhmUrl(srcEntrance, "StringIntentEntityImpl");
+
+    if (exportObj == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "get default object failed");
+        // return std::unique_ptr<NativeReference>();
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "get default object success");
+
+    auto* env = runtime.GetNapiEnv();
+    napi_value instanceValue = nullptr;
+    auto status = napi_new_instance(env, exportObj, 0, nullptr, &instanceValue);
+    if (status != napi_ok || instanceValue == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "new instance failed %{public}d", status);
+        return std::unique_ptr<NativeReference>();
+    }
+
+    napi_ref resultRef = nullptr;
+    status = napi_create_reference(env, instanceValue, 1, &resultRef);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "create instance failed %{public}d", status);
+        return std::unique_ptr<NativeReference>();
+    }
+
+    return std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
+}
+
+napi_value JsInsightIntentEntry::callEntityQuery(napi_env env, const AAFwk::WantParams &param, std::unique_ptr<NativeReference>& entityObj)
+{
+    TAG_LOGE(AAFwkTag::INTENT, "testTag callEntityQuery start");
+
+    napi_value obj = entityObj->GetNapiValue();
+    napi_value argv[] = { AppExecFwk::WrapWantParams(env, param) };
+    // return JsInsightIntentUtils::CallJsFunctionWithResult(env, obj, "entityQuery", ArraySize(argv), argv);
+
+    // find method
+    std::string methodName("entityQuery");
+    auto method = GetTargetMethod(env, obj, methodName);
+    if (method == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "get target method %{public}s failed", methodName.c_str());
+        return nullptr;
+    }
+
+    // Call target method
+    napi_value result;
+    auto status = napi_call_function(env, obj, method, ArraySize(argv), argv, &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "call function failed %{public}d", status);
+        return nullptr;
+    }
+
+    if (result == nullptr || !CheckTypeForNapiValue(env, result, napi_object)) {
+        TAG_LOGE(AAFwkTag::INTENT, "queryType unimplemented");
+        return nullptr;
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "testTag get result success");
+
+    bool isPromise = false;
+    napi_is_promise(env, result, &isPromise);
+    if (!isPromise) {
+        TAG_LOGD(AAFwkTag::APPKIT, "result not promise");
+        return nullptr;
+    }
+    TAG_LOGE(AAFwkTag::INTENT, "testTag isPromise success");
+
+    // create callbackinfo
+    auto callback = [this, env] (napi_value entityObj) {
+        SetEntityObj(env, entityObj);
+    };
+
+    auto *callbackInfo = AppExecFwk::AbilityTransactionCallbackInfo<napi_value>::Create();
+    if (callbackInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null callbackInfo");
+        return nullptr;
+    }
+    callbackInfo->Push(callback);
+
+    bool callResult = false;
+    do {
+        napi_value then = nullptr;
+        napi_get_named_property(env, result, "then", &then);
+        if (then == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null then");
+            break;
+        }
+        bool isCallable = false;
+        napi_is_callable(env, then, &isCallable);
+        if (!isCallable) {
+            TAG_LOGE(AAFwkTag::INTENT, "not callable property then");
+            break;
+        }
+        napi_value promiseCallback = nullptr;
+        napi_create_function(env, "promiseCallback", strlen("promiseCallback"),
+            OnPromiseCallback, callbackInfo, &promiseCallback);
+        napi_value argv[1] = { promiseCallback };
+        auto status = napi_call_function(env, result, then, 1, argv, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::INTENT, "call promise error %{public}d", status);
+            break;
+        }
+        callResult = true;
+    } while (false);
+
+    if (!callResult) {
+        TAG_LOGE(AAFwkTag::INTENT, "call promise error");
+        return nullptr;
+    }
+
+    TAG_LOGE(AAFwkTag::INTENT, "testTag callEntityQuery end");
+    return result;
+}
+
+bool JsInsightIntentEntry::SetEntityObj(napi_env env, napi_value entityObj)
+{
+    TAG_LOGE(AAFwkTag::INTENT, "testTag SetEntityObj start");
+
+    UnwrapExecuteParam(env, entityObj);
+
+    auto executorObj = jsObj_->GetNapiValue();
+    
+    // 设置entity到executorObj的targetStringEntities字段上
+    auto status = napi_set_named_property(env, executorObj, "targetStringEntities", entityObj);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::INTENT, "set targetStringEntities property failed with %{public}d", status);
+        return false;
+    }
+
+    // 打印executorObj的所有字段
+    // napi_value propertys;
+    // NAPI_CALL_BASE(env, napi_get_property_names(env, executorObj, &propertys), false);
+    // uint32_t propCnt;
+    // NAPI_CALL_BASE(env, napi_get_array_length(env, propertys, &propCnt), false);
+    // for (uint32_t i = 0; i < propCnt; i++) {
+    //     napi_value propKey;
+    //     NAPI_CALL_BASE(env, napi_get_element(env, propertys, i, &propKey), false);
+
+    //     std::string propName;
+    //     if (!ConvertFromJsValue(env, propKey, propName)) {
+    //         TAG_LOGE(AAFwkTag::INTENT, "convert napi value failed");
+    //         return false;
+    //     }
+    //     TAG_LOGE(AAFwkTag::INTENT, "testTag param %{public}s", propName.c_str());
+    // }
+    TAG_LOGE(AAFwkTag::INTENT, "testTag SetEntityObj end");
+    return true;
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS

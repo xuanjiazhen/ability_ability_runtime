@@ -21,6 +21,7 @@
 
 
 #include "napi_common_execute_result.h"
+#include "napi_common_want.h"
 #include "insight_intent_delay_result_callback_mgr.h"
 
 namespace OHOS {

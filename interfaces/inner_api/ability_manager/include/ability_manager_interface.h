@@ -88,6 +88,7 @@ using KeepAliveInfo = AbilityRuntime::KeepAliveInfo;
 using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 using InsightIntentExecuteResult = AppExecFwk::InsightIntentExecuteResult;
+using InsightIntentQueryParam = AppExecFwk::InsightIntentQueryParam;
 using UIExtensionAbilityConnectInfo = AbilityRuntime::UIExtensionAbilityConnectInfo;
 using UIExtensionHostInfo = AbilityRuntime::UIExtensionHostInfo;
 using UIExtensionSessionInfo = AbilityRuntime::UIExtensionSessionInfo;

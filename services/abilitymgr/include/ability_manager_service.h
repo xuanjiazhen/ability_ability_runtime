@@ -2026,6 +2026,9 @@ public:
     int32_t ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const InsightIntentExecuteParam &param) override;
 
+    int32_t QueryEntityInfo(uint64_t key, const sptr<IRemoteObject> &callerToken,
+        const InsightIntentQueryParam &param);
+
     /**
      * @brief Execute intent.
      * @param abilityRequest The abilityRequest.
@@ -2036,7 +2039,7 @@ public:
         int requestCode = DEFAULT_INVAL_VALUE);
 
     int32_t StartAbilityByCallWithInsightIntent(const Want &want, const sptr<IRemoteObject> &callerToken,
-        const InsightIntentExecuteParam &param, int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
      * @brief Check if ability controller can start.
