@@ -805,6 +805,22 @@ ErrCode AbilityManagerClient::RecordProcessExitReason(int32_t pid, int32_t uid, 
     return ERR_OK;
 }
 
+ErrCode AbilityManagerClient::KillAppWithReason(int32_t pid, const ExitReasonCompability &exitReason)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::KillBundleWithReason(
+    const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason)
+{
+    return ERR_OK;
+}
+
 void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSession)
 {}
 
@@ -1100,6 +1116,11 @@ ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::El
 }
 
 ErrCode AbilityManagerClient::RevokeDelegator(sptr<IRemoteObject> token)
+{
+    return ERR_OK;
+}
+
+ErrCode GetUserLockedBundleList(int32_t userId, std::unordered_set<std::string> &userLockedBundleList)
 {
     return ERR_OK;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,10 +43,10 @@ struct StartAbilityInfo {
         return abilityInfo.applicationInfo.bundleName;
     }
 
-    int32_t status = ERR_OK;
     AppExecFwk::AbilityInfo abilityInfo;
-    AppExecFwk::ExtensionProcessMode extensionProcessMode = AppExecFwk::ExtensionProcessMode::UNDEFINED;
     std::string customProcess;
+    int32_t status = ERR_OK;
+    AppExecFwk::ExtensionProcessMode extensionProcessMode = AppExecFwk::ExtensionProcessMode::UNDEFINED;
     bool isTargetPlugin = false;
 };
 
@@ -65,6 +65,7 @@ struct StartAbilityUtils {
         sptr<IRemoteObject> callerToken, int32_t &appIndex);
     static int32_t HandleSelfRedirection(bool isFromOpenLink,
         const std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+    static std::string GenerateAsCallerForAncoSessionId();
 
     static thread_local std::shared_ptr<StartAbilityInfo> startAbilityInfo;
     static thread_local std::shared_ptr<StartAbilityInfo> callerAbilityInfo;
@@ -100,11 +101,11 @@ struct StartAbilityWrapParam {
     bool hideFailureTipDialog = false;
     bool isBySCB = false;
     bool isFreeInstallFromService = false;
-    uint64_t specifiedFullTokenId = 0;
     bool removeInsightIntentFlag = false;
-    std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
     bool isFromOpenLink = false;
     bool isServiceMatch = false;
+    uint64_t specifiedFullTokenId = 0;
+    std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
 };
 }
 }

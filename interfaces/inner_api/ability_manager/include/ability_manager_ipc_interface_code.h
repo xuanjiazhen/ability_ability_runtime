@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -550,6 +550,9 @@ enum class AbilityManagerInterfaceCode {
     UPGRADE_APP = 6004,
     MOVE_UI_ABILITY_TO_BACKGROUND = 6005,
     RECORD_PROCESS_EXIT_REASON_PLUS = 6006,
+    KILL_APP_WITH_REASON = 6007,
+    KILL_BUNDLE_WITH_REASON = 6008,
+    RECORD_APP_WITH_REASON = 6009,
 
     // ipc id for register auto startup system callback
     REGISTER_AUTO_STARTUP_SYSTEM_CALLBACK = 6101,
@@ -565,6 +568,8 @@ enum class AbilityManagerInterfaceCode {
     GET_AUTO_STARTUP_STATUS_FOR_SELF = 6106,
     // ipc id for manual start auto startup apps.
     MANUAL_START_AUTO_STARTUP_APPS = 6107,
+    // ipc id for query the caller's token id for anco
+    QUERY_CALLER_TOKEN_ID_FOR_ANCO = 6108,
 
     // ipc id for on auto starup on
     ON_AUTO_STARTUP_ON = 6111,
@@ -703,6 +708,9 @@ enum class AbilityManagerInterfaceCode {
 
     // unregister preload UIExtension host client
     UNREGISTER_PRELOAD_UI_EXTENSION_HOST_CLIENT = 6158,
+
+    // get user locked bundle list
+    GET_USER_LOCKED_BUNDLE_LIST = 6159,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

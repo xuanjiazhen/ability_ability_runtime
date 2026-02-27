@@ -420,12 +420,17 @@ public:
     MOCK_METHOD(AppExecFwk::ElementName, GetElementNameByToken,
         (sptr<IRemoteObject> token, bool isNeedLocalDeviceId), (override));
     MOCK_METHOD(int32_t, RecordProcessExitReason, (int32_t pid, int32_t uid, const ExitReason &exitReason), ());
+    MOCK_METHOD(int32_t, KillAppWithReason, (int32_t pid, const ExitReasonCompability &exitReason), ());
+    MOCK_METHOD(int32_t, KillBundleWithReason,
+        (const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason), ());
+    MOCK_METHOD(int32_t, RecordAppWithReason, (int32_t pid, int32_t uid, const ExitReasonCompability &exitReason), ());
 #ifdef SUPPORT_SCREEN
     MOCK_METHOD(int, SetMissionIcon, (const sptr<IRemoteObject> &token,
         const std::shared_ptr<OHOS::Media::PixelMap> &icon), (override));
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (const sptr<IRemoteObject> &abilityToken), (override));
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (int32_t sessionId), (override));
 #endif
+    MOCK_METHOD(int32_t, GetUserLockedBundleList, (int32_t, std::unordered_set<std::string> &), (override));
 };  // namespace AAFwk
 }   // namespace OHOS
 }

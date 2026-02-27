@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -109,19 +109,19 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
 }
 
 bool AppRunningManager::CheckAppProcessNameIsSame(const std::shared_ptr<AppRunningRecord> &appRecord,
-    const std::string &processName)
+    const std::string &processName, bool isPreload)
 {
     if (appRecord == nullptr) {
         return false;
     }
-    return (appRecord->GetProcessName() == processName) &&
-        (appRecord->GetPreloadMode() == PreloadMode::PRELOAD_MODULE || !(appRecord->GetExtensionSandBoxFlag()));
+    return (appRecord->GetProcessName() == processName) && (isPreload
+        || appRecord->GetPreloadMode() == PreloadMode::PRELOAD_MODULE || !(appRecord->GetExtensionSandBoxFlag()));
 }
 
 std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExist(const std::string &appName,
     const std::string &processName, const int uid, const BundleInfo &bundleInfo,
     const std::string &specifiedProcessFlag, bool *isProCache, const std::string &instanceKey,
-    const std::string &customProcessFlag, const bool notReuseCachedPorcess)
+    const std::string &customProcessFlag, const bool notReuseCachedPorcess, bool isPreload)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
@@ -133,13 +133,13 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
     auto jointUserId = bundleInfo.jointUserId;
     TAG_LOGD(AAFwkTag::APPMGR, "jointUserId : %{public}s", jointUserId.c_str());
     ClipStringContent(rule, bundleInfo.appId, signCode);
-    auto findSameProcess = [signCode, specifiedProcessFlag, processName, jointUserId, customProcessFlag]
+    auto findSameProcess = [signCode, specifiedProcessFlag, processName, jointUserId, customProcessFlag, isPreload]
         (const auto &pair) {
             return (pair.second != nullptr) &&
             (specifiedProcessFlag.empty() || pair.second->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
             (pair.second->GetCustomProcessFlag() == customProcessFlag) &&
             (pair.second->GetSignCode() == signCode) &&
-            AppRunningManager::CheckAppProcessNameIsSame(pair.second, processName) &&
+            AppRunningManager::CheckAppProcessNameIsSame(pair.second, processName, isPreload) &&
             (pair.second->GetJointUserId() == jointUserId) && !(pair.second->IsTerminating()) &&
             !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag()) &&
             !(pair.second->IsKillPrecedeStart());
@@ -151,7 +151,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
     }
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
-        if (appRecord && CheckAppProcessNameIsSame(appRecord, processName) &&
+        if (appRecord && CheckAppProcessNameIsSame(appRecord, processName, isPreload) &&
             appRecord->GetInstanceKey() == instanceKey &&
             (specifiedProcessFlag.empty() || appRecord->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
             (appRecord->GetCustomProcessFlag() == customProcessFlag) &&
@@ -167,10 +167,8 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
                 customProcessFlag.c_str());
             auto isExist = [&appName, &uid, &appRecord](const std::shared_ptr<ApplicationInfo> &appInfo) {
                 TAG_LOGD(AAFwkTag::APPMGR, "appInfo->name: %{public}s", appInfo->name.c_str());
-                if (appInfo->bundleType == BundleType::APP_PLUGIN) {
-                    return appRecord->GetUid() == uid;
-                }
-                return appInfo->name == appName && appInfo->uid == uid;
+                return (appInfo->name == appName && appInfo->uid == uid) ||
+                    (appInfo->bundleType == BundleType::APP_PLUGIN && appRecord->GetUid() == uid);
             };
             auto appInfoIter = std::find_if(appInfoList.begin(), appInfoList.end(), isExist);
             if (appInfoIter == appInfoList.end()) {
@@ -1251,11 +1249,12 @@ void AppRunningManager::ExecuteConfigurationTask(const BackgroundAppInfo& info, 
         if (appRecord == nullptr) {
             continue;
         }
-        bool userIdFlag = (userId == -1 || appRecord->GetUid() / BASE_USER_RANGE == 0
-            || appRecord->GetUid() / BASE_USER_RANGE == userId);
+        bool userIdFlag = (userId == -1 || appRecord->GetUid() / BASE_USER_RANGE == 0 ||
+                           appRecord->GetUid() / BASE_USER_RANGE == userId);
         if (!userIdFlag) {
             continue;
         }
+
         if (info.bandleName == appRecord->GetBundleName() && info.appIndex == appRecord->GetAppIndex() && item.second
             && appRecord->GetState() == ApplicationState::APP_STATE_BACKGROUND) {
             if (UpdateConfiguration(appRecord, Rosen::ConfigMode::COLOR_MODE, reason)) {
@@ -1956,7 +1955,7 @@ int32_t AppRunningManager::GetAppRunningUniqueIdByPid(pid_t pid, std::string &ap
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
         return ERR_INVALID_VALUE;
     }
-    appRunningUniqueId = std::to_string(appRecord->GetAppStartTime());
+    appRunningUniqueId = std::to_string(appRecord->GetAppRunningUniqueId());
     TAG_LOGD(AAFwkTag::APPMGR, "appRunningUniqueId = %{public}s.", appRunningUniqueId.c_str());
     return ERR_OK;
 }
