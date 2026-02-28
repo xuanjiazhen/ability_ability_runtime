@@ -69,6 +69,11 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsChildProcessManager, OnStartNativeChildProcess);
     }
 
+    static napi_value IsChildProcessSupported(napi_env env, napi_callback_info info)
+    {
+        GET_CB_INFO_AND_CALL(env, info, JsChildProcessManager, OnIsChildProcessSupported);
+    }
+
 private:
     napi_value OnStartChildProcess(napi_env env, size_t argc, napi_value* argv)
     {
@@ -246,6 +251,38 @@ private:
         return result;
     }
 
+    napi_value OnIsChildProcessSupported(napi_env env, size_t argc, napi_value* argv)
+    {
+        TAG_LOGI(AAFwkTag::PROCESSMGR, "called");
+        // 参数校验：不接受任何参数
+        if (argc > 0) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "invalid argc, expected 0");
+            ThrowInvalidParamError(env, "Invalid number of parameters, expected 0.");
+            return CreateJsUndefined(env);
+        }
+        napi_value result = nullptr;
+        auto isSupported = std::make_shared<bool>(false);
+        NapiAsyncTask::ExecuteCallback execute = [isSupported]() {
+            if (!isSupported) {
+                TAG_LOGE(AAFwkTag::PROCESSMGR, "null isSupported");
+                return;
+            }
+            *isSupported = ChildProcessManager::GetInstance().IsChildProcessSupported();
+        };
+        NapiAsyncTask::CompleteCallback complete =
+            [isSupported](napi_env env, NapiAsyncTask &task, int32_t status) {
+            if (!isSupported) {
+                TAG_LOGE(AAFwkTag::PROCESSMGR, "null isSupported");
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                return;
+            }
+            task.ResolveWithNoError(env, CreateJsValue(env, *isSupported));
+        };
+        NapiAsyncTask::Schedule("JsChildProcessManager::OnIsChildProcessSupported",
+            env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+        return result;
+    }
+
     bool ParseArgsAndOptions(const napi_env &env, napi_value* argv, size_t argc, AppExecFwk::ChildProcessArgs &args,
         AppExecFwk::ChildProcessOptions &options)
     {
@@ -317,6 +354,8 @@ napi_value JsChildProcessManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "startArkChildProcess", moduleName, JsChildProcessManager::StartArkChildProcess);
     BindNativeFunction(env, exportObj, "startNativeChildProcess", moduleName,
         JsChildProcessManager::StartNativeChildProcess);
+    BindNativeFunction(env, exportObj, "isChildProcessSupported", moduleName,
+        JsChildProcessManager::IsChildProcessSupported);
     return CreateJsUndefined(env);
 }
 }  // namespace AbilityRuntime

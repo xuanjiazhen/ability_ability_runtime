@@ -41,6 +41,7 @@ public:
     static void HandleSigChild(int32_t signo);
     bool IsChildProcess();
     bool IsChildProcessBySelfFork();
+    bool IsChildProcessSupported();
     ChildProcessManagerErrorCode StartChildProcessBySelfFork(const std::string &srcEntry, pid_t &pid);
     ChildProcessManagerErrorCode StartChildProcessByAppSpawnFork(const std::string &srcEntry, pid_t &pid);
     ChildProcessManagerErrorCode StartChildProcessWithArgs(const std::string &srcEntry, pid_t &pid,
