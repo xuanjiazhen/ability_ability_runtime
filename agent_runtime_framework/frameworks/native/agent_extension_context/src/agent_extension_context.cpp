@@ -12,3 +12,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "agent_extension_context.h"
+
+#include "agent_card.h"
+
+namespace OHOS {
+namespace AgentRuntime {
+AgentExtensionContext::SetAgentCard(AgentCard agentCard)
+{
+    agentCard_ = agentCard;
+}
+} // namespace AbilityRuntime
+} // namespace OHOS

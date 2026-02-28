@@ -18,9 +18,11 @@
 
 #include "extension_context.h"
 
+#include "agent_card.h"
+
 namespace OHOS {
 namespace AgentRuntime {
-using namespace OHOS::AbilityRuntime;
+typedef struct AgentCard AgentCard;
 /**
  * @brief context supply for AgentExtension
  *
@@ -30,8 +32,14 @@ public:
     AgentExtensionContext() = default;
     virtual ~AgentExtensionContext() = default;
 
-private:
-    std::string agentId;
+    /**
+     * @brief Obtains AgentCard.
+     *
+     * @param agentCard info.
+     */
+    void SetAgentCard(AgentCard agentCard);
+
+    AgentCard agentCard_;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
