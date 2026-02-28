@@ -97,6 +97,11 @@ public:
         GetInstance().OnStartNativeChildProcessCheck(env, etsSrcEntry, ChildProcessArgs, ChildProcessOptions);
     }
 
+    static bool IsChildProcessSupported(ani_env *env)
+    {
+        return GetInstance().OnIsChildProcessSupported(env);
+    }
+
 private:
     void OnStartChildProcess(ani_env *env, ani_string etsSrcEntry, ani_enum_item etsStartMode, ani_object callback)
     {
@@ -473,6 +478,16 @@ private:
         }
         return true;
     }
+
+    bool OnIsChildProcessSupported(ani_env *env)
+    {
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "IsChildProcessSupported called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "env is null");
+            return false;
+        }
+        return AbilityRuntime::ChildProcessManager::GetInstance().IsChildProcessSupported();
+    }
 };
 
 void EtsChildProcessManagerInit(ani_env *env)
@@ -525,7 +540,10 @@ void EtsChildProcessManagerInit(ani_env *env)
         ani_native_function {"nativeStartNativeChildProcessCheck",
             "C{std.core.String}C{@ohos.app.ability.ChildProcessArgs.ChildProcessArgs}"
             "C{@ohos.app.ability.ChildProcessOptions.ChildProcessOptions}:",
-            reinterpret_cast<void *>(EtsChildProcessManager::StartNativeChildProcessCheck)}
+            reinterpret_cast<void *>(EtsChildProcessManager::StartNativeChildProcessCheck)},
+        ani_native_function {"isChildProcessSupported",
+            ":z",
+            reinterpret_cast<void *>(EtsChildProcessManager::IsChildProcessSupported)}
     };
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
     if (status != ANI_OK) {

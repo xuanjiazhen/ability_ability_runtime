@@ -574,5 +574,42 @@ ChildProcessManagerErrorCode ChildProcessManager::KillChildProcessByPid(int32_t 
     }
     return ChildProcessManagerErrorCode::ERR_OK;
 }
+
+bool ChildProcessManager::IsChildProcessSupported()
+{
+    // 条件1: persist.sys.abilityms.multi_process_model 为 true
+    if (AAFwk::AppUtils::GetInstance().IsMultiProcessModel()) {
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessModel enabled, support child process");
+        return true;
+    }
+    // 获取应用信息
+    AppExecFwk::BundleInfo bundleInfo;
+    bool hasBundleInfo = GetBundleInfo(bundleInfo);
+    if (!hasBundleInfo) {
+        TAG_LOGW(AAFwkTag::PROCESSMGR, "Failed to get bundle info");
+    }
+    // 条件2: 应用在 allow_native_child_process_apps 白名单中
+    if (hasBundleInfo) {
+        std::string appIdentifier = bundleInfo.signatureInfo.appIdentifier;
+        if (!appIdentifier.empty() &&
+            AAFwk::AppUtils::GetInstance().IsAllowNativeChildProcess(appIdentifier)) {
+            TAG_LOGD(AAFwkTag::PROCESSMGR, "App %{public}s in whitelist, support child process",
+                appIdentifier.c_str());
+            return true;
+        }
+    }
+    // 条件3:
+    // - const.sys.abilityms.allow_child_process_in_multi_process_feature_app 为 true
+    // - 且应用 requiredDeviceFeatures 下配置了 "large_screen"
+    if (AAFwk::AppUtils::GetInstance().AllowChildProcessInMultiProcessFeatureApp()) {
+        if (hasBundleInfo && IsMultiProcessFeatureApp(bundleInfo)) {
+            TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessFeatureApp with large_screen, support child process");
+            return true;
+        }
+    }
+
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "Child process not supported for current app");
+    return false;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
