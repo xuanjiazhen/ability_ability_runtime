@@ -596,5 +596,199 @@ HWTEST_F(ChildProcessManagerTest, GetErrorCodeCompat_0100, TestSize.Level2)
 
     TAG_LOGI(AAFwkTag::TEST, "GetErrorCodeCompat_0100 end.");
 }
+
+/**
+ * @tc.number: IsChildProcessSupported_0100
+ * @tc.desc: Test IsChildProcessSupported when condition 1 is met (multi process model enabled)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, IsChildProcessSupported_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0100 start.");
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isMultiProcessModel_.isLoaded = true;
+    appUtils.isMultiProcessModel_.value = true;
+    
+    bool result = ChildProcessManager::GetInstance().IsChildProcessSupported();
+    EXPECT_TRUE(result);
+    
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0100 end.");
+}
+
+/**
+ * @tc.number: IsChildProcessSupported_0200
+ * @tc.desc: Test IsChildProcessSupported when condition 1 not met, condition 2 check fails
+ *       (whitelist has entries but appId does not match)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, IsChildProcessSupported_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0200 start.");
+    
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isMultiProcessModel_.isLoaded = true;
+    appUtils.isMultiProcessModel_.value = false;
+    
+    appUtils.allowStartNativeProcessApps_.isLoaded = true;
+    appUtils.allowStartNativeProcessApps_.value = {"com.test.app"};
+    
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = false;
+    
+    bool result = ChildProcessManager::GetInstance().IsChildProcessSupported();
+    EXPECT_FALSE(result);
+    
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0200 end.");
+}
+
+/**
+ * @tc.number: IsChildProcessSupported_0300
+ * @tc.desc: Test IsChildProcessSupported when condition 1&2 not met, condition 3 partially met
+ *       (allow_child_process_in_multi_process_feature_app is true but app doesn't have large_screen)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, IsChildProcessSupported_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0300 start.");
+    
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isMultiProcessModel_.isLoaded = true;
+    appUtils.isMultiProcessModel_.value = false;
+    
+    appUtils.allowStartNativeProcessApps_.isLoaded = true;
+    appUtils.allowStartNativeProcessApps_.value = {};
+    
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = true;
+
+    bool result = ChildProcessManager::GetInstance().IsChildProcessSupported();
+    EXPECT_FALSE(result);
+    
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0300 end.");
+}
+
+/**
+ * @tc.number: IsChildProcessSupported_0400
+ * @tc.desc: Test IsChildProcessSupported when no conditions are met
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, IsChildProcessSupported_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0400 start.");
+    
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isMultiProcessModel_.isLoaded = true;
+    appUtils.isMultiProcessModel_.value = false;
+    
+    appUtils.allowStartNativeProcessApps_.isLoaded = true;
+    appUtils.allowStartNativeProcessApps_.value = {};
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = false;
+    
+    bool result = ChildProcessManager::GetInstance().IsChildProcessSupported();
+    EXPECT_FALSE(result);
+    
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0400 end.");
+}
+
+/**
+ * @tc.number: IsChildProcessSupported_0500
+ * @tc.desc: Test IsChildProcessSupported when condition 3 partially met with allow flag true
+ *       but IsMultiProcessFeatureApp returns false (no large_screen in mock BundleInfo)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, IsChildProcessSupported_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0500 start.");
+    
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isMultiProcessModel_.isLoaded = true;
+    appUtils.isMultiProcessModel_.value = false;
+    
+    appUtils.allowStartNativeProcessApps_.isLoaded = true;
+    appUtils.allowStartNativeProcessApps_.value = {"com.other.app"};
+    
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = true;
+    
+    bool result = ChildProcessManager::GetInstance().IsChildProcessSupported();
+    EXPECT_FALSE(result);
+    
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0500 end.");
+}
+
+/**
+ * @tc.number: IsChildProcessSupported_0600
+ * @tc.desc: Test IsChildProcessSupported when condition 1 is met - early return true
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, IsChildProcessSupported_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0600 start.");
+    
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isMultiProcessModel_.isLoaded = true;
+    appUtils.isMultiProcessModel_.value = true;
+    
+    appUtils.allowStartNativeProcessApps_.isLoaded = true;
+    appUtils.allowStartNativeProcessApps_.value = {};
+    
+    bool result = ChildProcessManager::GetInstance().IsChildProcessSupported();
+    EXPECT_TRUE(result);
+    
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0600 end.");
+}
+
+/**
+ * @tc.number: IsChildProcessSupported_0700
+ * @tc.desc: Test IsChildProcessSupported with non-empty whitelist but empty appId from BundleInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, IsChildProcessSupported_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0700 start.");
+    
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    // Condition 1 not met
+    appUtils.isMultiProcessModel_.isLoaded = true;
+    appUtils.isMultiProcessModel_.value = false;
+    
+    appUtils.allowStartNativeProcessApps_.isLoaded = true;
+    appUtils.allowStartNativeProcessApps_.value = {"com.test.whitelist.app"};
+    
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = false;
+    
+    bool result = ChildProcessManager::GetInstance().IsChildProcessSupported();
+    EXPECT_FALSE(result);
+    
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0700 end.");
+}
+
+/**
+ * @tc.number: IsChildProcessSupported_0800
+ * @tc.desc: Test IsChildProcessSupported with condition 3: allowChildProcessInMultiProcessFeatureApp true
+ *       but BundleInfo has no large_screen feature
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildProcessManagerTest, IsChildProcessSupported_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0800 start.");
+    
+    auto &appUtils = AAFwk::AppUtils::GetInstance();
+    appUtils.isMultiProcessModel_.isLoaded = true;
+    appUtils.isMultiProcessModel_.value = false;
+    
+    appUtils.allowStartNativeProcessApps_.isLoaded = true;
+    appUtils.allowStartNativeProcessApps_.value = {};
+    
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
+    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = true;
+    
+    bool result = ChildProcessManager::GetInstance().IsChildProcessSupported();
+    EXPECT_FALSE(result);
+    
+    TAG_LOGI(AAFwkTag::TEST, "IsChildProcessSupported_0800 end.");
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
