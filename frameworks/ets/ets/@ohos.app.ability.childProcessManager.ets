@@ -36,6 +36,8 @@ namespace childProcessManager {
   export native function nativeStartArkChildProcessCheck(srcEntry: string, args: ChildProcessArgs, options?: ChildProcessOptions): void;
   export native function nativeStartNativeChildProcessCheck(entryPoint: string, args: ChildProcessArgs, options?: ChildProcessOptions): void;
 
+  export native function nativeIsChildProcessSupported(): boolean;
+
   export function startChildProcess(srcEntry: string, startMode: StartMode): Promise<int> {
     childProcessManager.nativeStartChildProcessCheck(srcEntry, startMode);
     let p = new Promise<int>((resolve: (data: int) => void, reject: (err: BusinessError) => void): void => {
@@ -109,6 +111,10 @@ namespace childProcessManager {
       });
     });
     return p;
+  }
+
+  export function isChildProcessSupported(): boolean {
+    return childProcessManager.nativeIsChildProcessSupported();
   }
 }
 

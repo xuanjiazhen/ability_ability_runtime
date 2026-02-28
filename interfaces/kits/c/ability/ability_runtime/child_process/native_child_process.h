@@ -504,6 +504,19 @@ Ability_NativeChildProcess_ErrCode OH_Ability_UnregisterNativeChildProcessExitCa
  */
 Ability_NativeChildProcess_ErrCode OH_Ability_KillChildProcess(int32_t pid);
 
+/**
+ * @brief Checks whether the child process is supported on the current device for the current application.
+ *
+ * @return Returns true if child process is supported, false otherwise.
+ *         Child process is supported when any of the following conditions is met:
+ *         1. The system parameter "persist.sys.abilityms.multi_process_model" is true.
+ *         2. The current application is in the white list "allow_native_child_process_apps".
+ *         3. The system parameter "const.sys.abilityms.allow_child_process_in_multi_process_feature_app" is true
+ *            and the application has configured "large_screen" in requiredDeviceFeatures.
+ * @since 22
+ */
+bool OH_Ability_IsChildProcessSupported();
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
