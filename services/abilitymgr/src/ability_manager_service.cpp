@@ -533,6 +533,10 @@ void AbilityManagerService::InitInterceptor()
 void AbilityManagerService::InitInterceptorForScreenUnlock()
 {
     if (interceptorExecuter_) {
+        if (AbilityRuntime::AbilityEventMapManager::GetInstance().CheckUserUnlocked(userId)) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "SU life, user already unlocked, skip interceptor registration");
+            return;
+        }
         TAG_LOGI(AAFwkTag::ABILITYMGR, "SU life, begin");
         interceptorExecuter_->AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
     }
