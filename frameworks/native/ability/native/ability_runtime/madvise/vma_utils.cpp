@@ -28,15 +28,15 @@
 #include "securec.h"
 
 namespace {
-typedef int (*VmaCallback)(const OHOS::AbilityRuntime::VmaUtil::VMARegion* region, void* userdata);
+typedef int32_t (*VmaCallback)(const OHOS::AbilityRuntime::VmaUtil::VMARegion* region, void* userdata);
 
-constexpr int HEX_BASE = 16;
-constexpr int DEC_BASE = 10;
-constexpr int PERMS_INDEX_0 = 0;
-constexpr int PERMS_INDEX_1 = 1;
-constexpr int PERMS_INDEX_2 = 2;
-constexpr int PERMS_INDEX_3 = 3;
-constexpr int PERMS_LEN = 4;
+constexpr int32_t HEX_BASE = 16;
+constexpr int32_t DEC_BASE = 10;
+constexpr int32_t PERMS_INDEX_0 = 0;
+constexpr int32_t PERMS_INDEX_1 = 1;
+constexpr int32_t PERMS_INDEX_2 = 2;
+constexpr int32_t PERMS_INDEX_3 = 3;
+constexpr int32_t PERMS_LEN = 4;
 constexpr size_t LINE_BUFFER_SIZE = 1024;
 
 static constexpr uintptr_t HexToUintptr(const char* str, size_t len)
@@ -56,9 +56,9 @@ static constexpr uintptr_t HexToUintptr(const char* str, size_t len)
     return value;
 }
 
-static constexpr unsigned long DecToUlong(const char* str)
+static constexpr uint64_tDecToUlong(const char* str)
 {
-    unsigned long value = 0;
+    uint64_tvalue = 0;
     while (*str >= '0' && *str <= '9') {
         value = value * DEC_BASE + (*str - '0');
         str++;
@@ -153,7 +153,7 @@ static bool ParseMapsLine(const char* line, size_t lineLen, OHOS::AbilityRuntime
     return true;
 }
 
-static int IterateMapsInternal(const char* filename, VmaCallback callback, void* userdata)
+static int32_t IterateMapsInternal(const char* filename, VmaCallback callback, void* userdata)
 {
     const char* mapsPath = "/proc/self/maps";
     FILE* fp = fopen(mapsPath, "r");
@@ -161,7 +161,7 @@ static int IterateMapsInternal(const char* filename, VmaCallback callback, void*
         TAG_LOGE(OHOS::AAFwk::AAFwkLogTag::DEFAULT, "Failed to open %{public}s: %{public}d", mapsPath, errno);
         return -1;
     }
-    int count = 0;
+    int32_t count = 0;
     char line[LINE_BUFFER_SIZE];
     while (fgets(line, sizeof(line), fp) != nullptr) {
         OHOS::AbilityRuntime::VmaUtil::VMARegion region;
@@ -194,15 +194,15 @@ std::vector<VMARegion> GetFileVmas(const char* filename)
         TAG_LOGE(AAFwkTag::ABILITY, "Invalid filename: null or empty");
         return {};
     }
-    TAG_LOGI(AAFwkTag::UIABILITY, "GetFileVmas: searching for %{public}s", filename);
+    TAG_LOGD(AAFwkTag::UIABILITY, "GetFileVmas: searching for %{public}s", filename);
     std::vector<VMARegion> vmaList;
-    auto collectCallback = [](const VMARegion* region, void* userdata) -> int {
+    auto collectCallback = [](const VMARegion* region, void* userdata) -> int32_t {
         std::vector<VMARegion>* list = static_cast<std::vector<VMARegion>*>(userdata);
         list->push_back(*region);
         return 0;
     };
     IterateMapsInternal(filename, collectCallback, &vmaList);
-    TAG_LOGI(AAFwkTag::UIABILITY, "GetFileVmas: found %{public}zu VMAs for %{public}s", vmaList.size(), filename);
+    TAG_LOGD(AAFwkTag::UIABILITY, "GetFileVmas: found %{public}zu VMAs for %{public}s", vmaList.size(), filename);
     return vmaList;
 }
 
@@ -217,10 +217,10 @@ std::vector<VMARegion> GetFileVmas(const std::vector<std::string>& filenames)
         TAG_LOGE(AAFwkTag::ABILITY, "Filename list is empty");
         return {};
     }
-    TAG_LOGI(AAFwkTag::UIABILITY, "GetFileVmas: searching for %{public}zu files", filenames.size());
+    TAG_LOGD(AAFwkTag::UIABILITY, "GetFileVmas: searching for %{public}zu files", filenames.size());
     std::unordered_set<std::string> targetSet(filenames.begin(), filenames.end());
     std::vector<VMARegion> vmaList;
-    auto multiFileCallback = [](const VMARegion* region, void* userdata) -> int {
+    auto multiFileCallback = [](const VMARegion* region, void* userdata) -> int32_t {
         MultiFileCallbackData* data = static_cast<MultiFileCallbackData*>(userdata);
         const char* pathname = region->pathname;
         if (!pathname || strlen(pathname) == 0) {
@@ -235,7 +235,7 @@ std::vector<VMARegion> GetFileVmas(const std::vector<std::string>& filenames)
     };
     MultiFileCallbackData callbackData = {targetSet, &vmaList};
     IterateMapsInternal("", multiFileCallback, &callbackData);
-    TAG_LOGI(AAFwkTag::UIABILITY, "GetFileVmas: found %{public}zu VMAs for %{public}zu files",
+    TAG_LOGD(AAFwkTag::UIABILITY, "GetFileVmas: found %{public}zu VMAs for %{public}zu files",
         vmaList.size(), filenames.size());
     return vmaList;
 }

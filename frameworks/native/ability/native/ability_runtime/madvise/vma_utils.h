@@ -31,8 +31,8 @@ struct VMARegion {
     uintptr_t end;
     uintptr_t size;
     char perms[VMA_MAX_PERMS];
-    unsigned long offset;
-    unsigned long inode;
+    uint64_t offset;
+    uint64_t inode;
     char pathname[VMA_MAX_PATH_NAME];
 };
 

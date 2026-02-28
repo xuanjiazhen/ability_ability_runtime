@@ -27,9 +27,9 @@ bool MadviseSingleLibrary(const char* libName);
 
 bool MadviseGeneralFile(const char* filename);
 
-int MadviseGeneralFiles(const std::vector<std::string>& filenames);
+int32_t MadviseGeneralFiles(const std::vector<std::string>& filenames);
 
-int MadviseWithConfigFile(const char* packageName);
+int32_t MadviseWithConfigFile(const char* packageName);
 
 std::string GetConfigPath();
 

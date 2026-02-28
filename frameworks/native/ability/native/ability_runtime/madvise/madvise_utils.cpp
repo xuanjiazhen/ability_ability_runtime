@@ -37,10 +37,10 @@
 namespace {
 constexpr const char* MADVISE_CONFIG_DEFAULT_FILE_PATH = "/system/etc/madvise_config.json";
 constexpr const char* MADVISE_CONFIG_FILE_PATH = "/etc/madvise_config.json";
-constexpr int PERMS_INDEX_0 = 0;
-constexpr int PERMS_INDEX_1 = 1;
-constexpr int PERMS_INDEX_2 = 2;
-constexpr int PERMS_INDEX_3 = 3;
+constexpr int32_t PERMS_INDEX_0 = 0;
+constexpr int32_t PERMS_INDEX_1 = 1;
+constexpr int32_t PERMS_INDEX_2 = 2;
+constexpr int32_t PERMS_INDEX_3 = 3;
 
 enum class LibraryType {
     UNKNOWN = 0,
@@ -51,7 +51,6 @@ enum class LibraryType {
 struct LibraryConfig {
     std::string name;
     LibraryType type;
-    std::vector<unsigned long> hotPageOffsets;
 };
 
 struct AppConfig {
@@ -106,15 +105,15 @@ MadviseConfig LoadConfigFromFile()
         return config;
     }
     long fileSize = ftell(file);
-    if (fseek(file, 0, SEEK_SET) != 0) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Failed to seek file begin: %{public}s", configPath.c_str());
+    if (fileSize <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Config file is empty: %{public}s", configPath.c_str());
         if (fclose(file) != 0) {
             TAG_LOGE(AAFwkTag::ABILITY, "Failed to close file");
         }
         return config;
     }
-    if (fileSize <= 0) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Config file is empty: %{public}s", configPath.c_str());
+    if (fseek(file, 0, SEEK_SET) != 0) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to seek file begin: %{public}s", configPath.c_str());
         if (fclose(file) != 0) {
             TAG_LOGE(AAFwkTag::ABILITY, "Failed to close file");
         }
@@ -172,12 +171,12 @@ MadviseConfig LoadConfigFromFile()
         }
     }
     cJSON_Delete(root);
-    TAG_LOGI(AAFwkTag::UIABILITY, "Loaded madvise config from %{public}s: %{public}zu apps",
+    TAG_LOGD(AAFwkTag::UIABILITY, "Loaded madvise config from %{public}s: %{public}zu apps",
         configPath.c_str(), config.apps.size());
     return config;
 }
 
-int ApplyMadviseWithConfig(const char* packageName, const MadviseConfig& config)
+int32_t ApplyMadviseWithConfig(const char* packageName, const MadviseConfig& config)
 {
     if (!packageName || strlen(packageName) == 0) {
         TAG_LOGE(AAFwkTag::ABILITY, "Invalid package name: null or empty");
@@ -190,14 +189,14 @@ int ApplyMadviseWithConfig(const char* packageName, const MadviseConfig& config)
     }
     TAG_LOGI(AAFwkTag::UIABILITY, "Applying madvise for package: %{public}s, libraries: %{public}zu",
         packageName, appConfig->libraries.size());
-    int successCount = 0;
+    int32_t successCount = 0;
     for (const auto& libConfig : appConfig->libraries) {
         bool libSuccess = false;
         if (libConfig.type == LibraryType::ELF) {
-            TAG_LOGI(AAFwkTag::UIABILITY, "Applying ELF madvise for: %{public}s", libConfig.name.c_str());
+            TAG_LOGD(AAFwkTag::UIABILITY, "Applying ELF madvise for: %{public}s", libConfig.name.c_str());
             libSuccess = OHOS::AbilityRuntime::MadviseUtil::MadviseSingleLibrary(libConfig.name.c_str());
         } else if (libConfig.type == LibraryType::VMA) {
-            TAG_LOGI(AAFwkTag::UIABILITY, "Applying VMA madvise for: %{public}s", libConfig.name.c_str());
+            TAG_LOGD(AAFwkTag::UIABILITY, "Applying VMA madvise for: %{public}s", libConfig.name.c_str());
             libSuccess = OHOS::AbilityRuntime::MadviseUtil::MadviseGeneralFile(libConfig.name.c_str());
         } else {
             TAG_LOGW(AAFwkTag::ABILITY, "Unknown library type for: %{public}s", libConfig.name.c_str());
@@ -216,12 +215,12 @@ int ApplyMadviseWithConfig(const char* packageName, const MadviseConfig& config)
 } // anonymous namespace
 
 struct MadviseData {
-    int successCount;
-    int failCount;
+    int32_t successCount;
+    int32_t failCount;
     const char* targetLibName;
 };
 
-static int MadvisePhdrCallback(struct dl_phdr_info *info, size_t size, void *data)
+static int32_t MadvisePhdrCallback(struct dl_phdr_info *info, size_t size, void *data)
 {
     MadviseData* madviseData = static_cast<MadviseData*>(data);
     const char* currentLibName = info->dlpi_name;
@@ -231,8 +230,8 @@ static int MadvisePhdrCallback(struct dl_phdr_info *info, size_t size, void *dat
     if (strstr(currentLibName, madviseData->targetLibName) == nullptr) {
         return 0;
     }
-    TAG_LOGI(AAFwkTag::UIABILITY, "Found target library: %{public}s", currentLibName);
-    for (int i = 0; i < info->dlpi_phnum; i++) {
+    TAG_LOGD(AAFwkTag::UIABILITY, "Found target library: %{public}s", currentLibName);
+    for (int32_t i = 0; i < info->dlpi_phnum; i++) {
         const ElfW(Phdr) *phdr = &info->dlpi_phdr[i];
         if (phdr->p_type != PT_LOAD) {
             continue;
@@ -260,17 +259,15 @@ static int MadvisePhdrCallback(struct dl_phdr_info *info, size_t size, void *dat
             perms[PERMS_INDEX_2] = 'x';
         }
         perms[PERMS_INDEX_3] = '\0';
-        TAG_LOGI(AAFwkTag::UIABILITY,
-            "madvise: lib=%{public}s, perms=%{public}s, addr=%{public}p, len=%{public}zu, alignedLen=%{public}zu",
-            info->dlpi_name ? info->dlpi_name : "unknown", perms, startAddr, len, alignedLen);
-        int result = madvise(alignedStart, alignedLen, MADV_DONTNEED);
+        TAG_LOGD(AAFwkTag::UIABILITY,
+            "madvise: lib=%{public}s, perms=%{public}s, len=%{public}zu, alignedLen=%{public}zu",
+            info->dlpi_name ? info->dlpi_name : "unknown", perms, len, alignedLen);
+        int32_t result = madvise(alignedStart, alignedLen, MADV_DONTNEED);
         if (result == 0) {
-            TAG_LOGI(AAFwkTag::UIABILITY,
-                "madvise success: addr=%{public}p, len=%{public}zu", alignedStart, alignedLen);
+            TAG_LOGD(AAFwkTag::UIABILITY, "madvise success: len=%{public}zu", alignedLen);
             madviseData->successCount++;
         } else {
-            TAG_LOGE(AAFwkTag::ABILITY, "madvise failed: addr=%{public}p, len=%{public}zu, errno=%{public}d",
-                alignedStart, alignedLen, errno);
+            TAG_LOGE(AAFwkTag::ABILITY, "madvise failed: len=%{public}zu, errno=%{public}d", alignedLen, errno);
             madviseData->failCount++;
         }
     }
@@ -287,16 +284,16 @@ bool MadviseSingleLibrary(const char* libName)
         TAG_LOGE(AAFwkTag::ABILITY, "Invalid library name: empty string");
         return false;
     }
-    TAG_LOGI(AAFwkTag::UIABILITY, "MadviseSingleLibrary called for library=%{public}s", libName);
+    TAG_LOGD(AAFwkTag::UIABILITY, "MadviseSingleLibrary called for library=%{public}s", libName);
     MadviseData madviseData = {0, 0, libName};
     dl_iterate_phdr(MadvisePhdrCallback, &madviseData);
-    TAG_LOGI(AAFwkTag::UIABILITY,
+    TAG_LOGD(AAFwkTag::UIABILITY,
         "madvise completed for lib=%{public}s: successCount=%{public}d, failCount=%{public}d",
         libName, madviseData.successCount, madviseData.failCount);
     return (madviseData.successCount > 0);
 }
 
-static int ApplyMadviseToRegion(const OHOS::AbilityRuntime::VmaUtil::VMARegion& region, size_t pageSize,
+static int32_t ApplyMadviseToRegion(const OHOS::AbilityRuntime::VmaUtil::VMARegion& region, size_t pageSize,
     const char* filename)
 {
     bool isReadonly = (strstr(region.perms, "r--") != nullptr);
@@ -310,26 +307,25 @@ static int ApplyMadviseToRegion(const OHOS::AbilityRuntime::VmaUtil::VMARegion& 
     void* endAddr = reinterpret_cast<void*>(region.end);
     size_t alignedLen = (reinterpret_cast<uintptr_t>(endAddr) + pageSize - 1) & ~(pageSize - 1);
     alignedLen -= reinterpret_cast<uintptr_t>(alignedStart);
-    TAG_LOGI(AAFwkTag::UIABILITY,
-        "madvise: file=%{public}s, perms=%{public}s, addr=%{public}p, len=%{public}zu, alignedLen=%{public}zu",
-        filename ? filename : "unknown", region.perms, startAddr, region.size, alignedLen);
-    int result = madvise(alignedStart, alignedLen, MADV_DONTNEED);
+    TAG_LOGD(AAFwkTag::UIABILITY,
+        "madvise: file=%{public}s, perms=%{public}s, len=%{public}zu, alignedLen=%{public}zu",
+        filename ? filename : "unknown", region.perms, region.size, alignedLen);
+    int32_t result = madvise(alignedStart, alignedLen, MADV_DONTNEED);
     if (result == 0) {
-        TAG_LOGI(AAFwkTag::UIABILITY, "madvise success: addr=%{public}p, len=%{public}zu", alignedStart, alignedLen);
+        TAG_LOGD(AAFwkTag::UIABILITY, "madvise success: len=%{public}zu", alignedLen);
         return 1;
     } else {
-        TAG_LOGE(AAFwkTag::ABILITY, "madvise failed: addr=%{public}p, len=%{public}zu, errno=%{public}d",
-            alignedStart, alignedLen, errno);
+        TAG_LOGE(AAFwkTag::ABILITY, "madvise failed: len=%{public}zu, errno=%{public}d", alignedLen, errno);
         return 0;
     }
 }
 
-static int ProcessVmaRegions(const std::vector<OHOS::AbilityRuntime::VmaUtil::VMARegion>& regions)
+static int32_t ProcessVmaRegions(const std::vector<OHOS::AbilityRuntime::VmaUtil::VMARegion>& regions)
 {
     if (regions.empty()) {
         return 0;
     }
-    int successCount = 0;
+    int32_t successCount = 0;
     size_t pageSize = getpagesize();
     for (const auto& region : regions) {
         successCount += ApplyMadviseToRegion(region, pageSize, region.pathname);
@@ -343,37 +339,37 @@ bool MadviseGeneralFile(const char* filename)
         TAG_LOGE(AAFwkTag::ABILITY, "Invalid filename: empty string");
         return false;
     }
-    TAG_LOGI(AAFwkTag::UIABILITY, "MadviseGeneralFile called for file=%{public}s", filename);
+    TAG_LOGD(AAFwkTag::UIABILITY, "MadviseGeneralFile called for file=%{public}s", filename);
     std::vector<AbilityRuntime::VmaUtil::VMARegion> regions = AbilityRuntime::VmaUtil::GetFileVmas(filename);
     if (regions.empty()) {
         TAG_LOGE(AAFwkTag::ABILITY, "No VMA regions found for %{public}s", filename);
         return false;
     }
-    int successCount = ProcessVmaRegions(regions);
-    TAG_LOGI(AAFwkTag::UIABILITY,
+    int32_t successCount = ProcessVmaRegions(regions);
+    TAG_LOGD(AAFwkTag::UIABILITY,
         "MadviseGeneralFile completed for %{public}s: successCount=%{public}d", filename, successCount);
     return (successCount > 0);
 }
 
-int MadviseGeneralFiles(const std::vector<std::string>& filenames)
+int32_t MadviseGeneralFiles(const std::vector<std::string>& filenames)
 {
     if (filenames.empty()) {
         TAG_LOGE(AAFwkTag::ABILITY, "Filename list is empty");
         return 0;
     }
-    TAG_LOGI(AAFwkTag::UIABILITY, "MadviseGeneralFiles called for %{public}zu files", filenames.size());
+    TAG_LOGD(AAFwkTag::UIABILITY, "MadviseGeneralFiles called for %{public}zu files", filenames.size());
     std::vector<AbilityRuntime::VmaUtil::VMARegion> regions = AbilityRuntime::VmaUtil::GetFileVmas(filenames);
     if (regions.empty()) {
         TAG_LOGE(AAFwkTag::ABILITY, "No VMA regions found for any of the %{public}zu files", filenames.size());
         return 0;
     }
-    TAG_LOGI(AAFwkTag::UIABILITY, "Found %{public}zu total VMA regions", regions.size());
-    int successCount = ProcessVmaRegions(regions);
-    TAG_LOGI(AAFwkTag::UIABILITY, "MadviseGeneralFiles completed: %{public}d segments optimized", successCount);
+    TAG_LOGD(AAFwkTag::UIABILITY, "Found %{public}zu total VMA regions", regions.size());
+    int32_t successCount = ProcessVmaRegions(regions);
+    TAG_LOGD(AAFwkTag::UIABILITY, "MadviseGeneralFiles completed: %{public}d segments optimized", successCount);
     return successCount;
 }
 
-int MadviseWithConfigFile(const char* packageName)
+int32_t MadviseWithConfigFile(const char* packageName)
 {
     if (!packageName || strlen(packageName) == 0) {
         TAG_LOGE(AAFwkTag::ABILITY, "Invalid package name: null or empty");
