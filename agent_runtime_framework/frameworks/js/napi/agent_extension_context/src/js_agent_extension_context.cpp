@@ -47,17 +47,16 @@ napi_value CreateJsAgentExtensionContext(napi_env env, std::shared_ptr<AgentExte
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "called");
     std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo = nullptr;
+    AgentCard agentCard;
     if (context) {
         abilityInfo = context->GetAbilityInfo();
+        agentCard = context->GetAgentCard();
     }
     napi_value object = CreateJsExtensionContext(env, context, abilityInfo);
-
     std::unique_ptr<JsAgentExtensionContext> jsContext = std::make_unique<JsAgentExtensionContext>(context);
     napi_wrap(env, object, jsContext.release(), JsAgentExtensionContext::Finalizer, nullptr, nullptr);
-
-    std::string type = "AgentExtensionContext";
-    napi_set_named_property(env, object, "contextType", CreateJsValue(env, type));
-
+    napi_set_named_property(env, object, "agentCard", CreateJsAgentCard(env, agentCard));
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "end");
     return object;
 }
 }
