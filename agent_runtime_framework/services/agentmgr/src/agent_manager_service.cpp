@@ -20,6 +20,7 @@
 #include "agent_card_mgr.h"
 #include "agent_config.h"
 #include "agent_extension_connection_constants.h"
+#include "app_mgr_client.h"
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -145,12 +146,21 @@ int32_t AgentManagerService::GetAgentCardsByBundleName(const std::string &bundle
 int32_t AgentManagerService::GetAgentCardByAgentId(const std::string &bundleName, const std::string &agentId,
     AgentCard &card)
 {
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
+    std::string callerBundleName;
+    int32_t callerUid;
+    int32_t ret = IN_PROCESS_CALL(
+        DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->GetBundleNameByPid(
+            callerPid, callerBundleName, callerUid));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "getBundleNameByPid failed %{public}d", ret);
+    }
     if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
-        AAFwk::PermissionConstants::PERMISSION_GET_AGENT_CARD)) {
+        AAFwk::PermissionConstants::PERMISSION_GET_AGENT_CARD) && bundleName != callerBundleName) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Permission verification failed");
         return ERR_PERMISSION_DENIED;
     }
-    auto ret = AgentCardMgr::GetInstance().GetAgentCardByAgentId(bundleName, agentId, card);
+    ret = AgentCardMgr::GetInstance().GetAgentCardByAgentId(bundleName, agentId, card);
     if (ret == ERR_NAME_NOT_FOUND) {
         int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
         AppExecFwk::ApplicationInfo appInfo;

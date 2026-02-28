@@ -16,22 +16,39 @@
 #ifndef OHOS_AGENT_RUNTIME_AGENT_EXTENSION_CONTEXT_H
 #define OHOS_AGENT_RUNTIME_AGENT_EXTENSION_CONTEXT_H
 
+#include "agent_card.h"
 #include "extension_context.h"
 
 namespace OHOS {
 namespace AgentRuntime {
-using namespace OHOS::AbilityRuntime;
+typedef struct AgentCard AgentCard;
 /**
  * @brief context supply for AgentExtension
  *
  */
-class AgentExtensionContext : public ExtensionContext {
+class AgentExtensionContext : public AbilityRuntime::ExtensionContext {
 public:
     AgentExtensionContext() = default;
     virtual ~AgentExtensionContext() = default;
 
+    /**
+     * @brief Set AgentCard.
+     *
+     * @param agentCard info.
+     * @return void.
+     */
+    void SetAgentCard(AgentCard agentCard);
+
+    /**
+     * @brief Obtains AgentCard.
+     *
+     * @return AgentCard.
+     */
+    AgentCard GetAgentCard();
+
 private:
-    std::string agentId;
+
+    AgentCard agentCard_;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
