@@ -15,55 +15,26 @@
 
 #include "ets_agent_extension_context.h"
 
+#include "agent_card.h"
+#include "ets_agent_manager_utils.h"
 #include "ets_context_utils.h"
 #include "ets_extension_context.h"
 #include "hilog_tag_wrapper.h"
 
+using namespace OHOS::AbilityRuntime;
+using namespace OHOS::AgentManagerEts;
+
 namespace OHOS {
 namespace AgentRuntime {
-using namespace OHOS::AbilityRuntime;
 
 namespace {
-constexpr const char *CONTEXT_CLASS_NAME = "application.AgentExtensionContext.AgentExtensionContext";
+constexpr const char *CONTEXT_CLASS_NAME = "@ohos.app.agent.AgentExtensionContext.AgentExtensionContext";
 }
 
 void EtsAgentExtensionContext::Finalizer(ani_env *env, void *data, void *hint)
 {
     TAG_LOGD(AAFwkTag::SER_ROUTER, "EtsAgentExtensionContext::Finalizer called");
     std::unique_ptr<EtsAgentExtensionContext>(static_cast<EtsAgentExtensionContext*>(data));
-}
-
-EtsAgentExtensionContext *EtsAgentExtensionContext::GetEtsAgentExtensionContext(
-    ani_env *env, ani_object aniObj)
-{
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "GetEtsAgentExtensionContext");
-    ani_class cls = nullptr;
-    ani_long nativeContextLong;
-    ani_field contextField = nullptr;
-    ani_status status = ANI_ERROR;
-
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null env");
-        return nullptr;
-    }
-
-    if ((status = env->FindClass(CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to find class, status : %{public}d", status);
-        return nullptr;
-    }
-
-    if ((status = env->Class_FindField(cls, "nativeEtsContext", &contextField)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to find field, status : %{public}d", status);
-        return nullptr;
-    }
-
-    if ((status = env->Object_GetField_Long(aniObj, contextField, &nativeContextLong)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to get field, status : %{public}d", status);
-        return nullptr;
-    }
-
-    auto weakContext = reinterpret_cast<EtsAgentExtensionContext *>(nativeContextLong);
-    return weakContext;
 }
 
 ani_object CreateEtsAgentExtensionContext(ani_env *env, std::shared_ptr<AgentExtensionContext> context)
@@ -95,6 +66,13 @@ ani_object CreateEtsAgentExtensionContext(ani_env *env, std::shared_ptr<AgentExt
     if ((status = env->Object_New(cls, method, &contextObj,
         (ani_long)etsContext.release())) != ANI_OK || contextObj == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Failed to create object, status : %{public}d", status);
+        return nullptr;
+    }
+
+    status = env->Object_SetPropertyByName_Ref(
+        contextObj, "agentCard", AgentManagerEts::CreateEtsAgentCard(env, context->GetAgentCard()));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "set agentCard failed:%{public}d", status);
         return nullptr;
     }
 

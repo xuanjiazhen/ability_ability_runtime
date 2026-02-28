@@ -38,8 +38,6 @@ ohos_shared_library("agentmanager_ani") {
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
-  public_configs = []
-
   sources = [
     "./src/ets_agent_manager.cpp",
     "./src/ets_agent_manager_utils.cpp",
