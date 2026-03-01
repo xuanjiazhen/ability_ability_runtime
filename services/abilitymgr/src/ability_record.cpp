@@ -109,6 +109,7 @@ constexpr const char* DMS_CALLER_NATIVE_NAME = "ohos.dms.param.sourceCallerNativ
 constexpr const char* DMS_CALLER_APP_ID = "ohos.dms.param.sourceCallerAppId";
 constexpr const char* DMS_CALLER_APP_IDENTIFIER = "ohos.dms.param.sourceCallerAppIdentifier";
 constexpr const char* IS_HOOK = "ohos.ability_runtime.is_hook";
+constexpr const char* START_BY_AUTOSTARTUP_SERVICE = "startByAutoStartupService";
 const int32_t SHELL_ASSISTANT_DIETYPE = 0;
 std::atomic<int64_t> AbilityRecord::abilityRecordId = 0;
 const int32_t DEFAULT_USER_ID = 0;
@@ -443,6 +444,8 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "ability record: %{public}s/%{public}s", GetElementName().GetBundleName().c_str(),
         GetElementName().GetAbilityName().c_str());
+    needCheckAutoStartupStatusBar_ = GetWant().GetBoolParam(START_BY_AUTOSTARTUP_SERVICE, false);
+    GetWant().RemoveParam(START_BY_AUTOSTARTUP_SERVICE);
 #ifdef SUPPORT_UPMS
     {
         std::lock_guard guard(wantLock_);
