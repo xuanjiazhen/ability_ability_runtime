@@ -108,9 +108,9 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     service->AddHandledAutoStartupUsers(int32Param);
     service->RemoveHandledAutoStartupUsers(int32Param);
     service->FindHandledAutoStartupUsers(int32Param);
-
+    DistributedKv::Key originKey;
     AutoStartupStatus status =
-        DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(info);
+        DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(info, originKey);
     status.code = int32Param;
     service->InnerApplicationAutoStartupByEDM(info, isSet, flag);
     status.code = ERR_NAME_NOT_FOUND;
