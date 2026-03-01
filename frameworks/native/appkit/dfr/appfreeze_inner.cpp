@@ -272,11 +272,11 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
             faultData.processedId, faultData.dispatchedEventId);
     }
     int32_t pid = IPCSkeleton::GetCallingPid();
-    std::string stack = "";
+    std::string mainThreadStack;
     std::string startTime = "\nDump main thread stack start time: " +
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
-    if (HiviewDFX::GetBacktraceStringByTidWithMix(stack, pid, 0, true)) {
-        faultData.errorObject.stack = startTime + stack + "\nDump main thread stack end time: " +
+    if (HiviewDFX::GetBacktraceStringByTidWithMix(mainThreadStack, pid, 0, true)) {
+        faultData.errorObject.mainThreadStack = startTime + mainThreadStack + "\nDump main thread stack end time: " +
             AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
     }
     bool isExit = IsExitApp(faultData.errorObject.name) && faultData.needKillProcess;

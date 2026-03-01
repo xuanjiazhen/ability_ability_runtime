@@ -200,10 +200,10 @@ int AppfreezeManager::MergeNotifyInfo(FaultData& faultNotifyData, const Appfreez
     std::string resultMsg;
     if (faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING ||
         faultNotifyData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT_WARNING) {
-        catcherStack += CatcherStacktrace(appInfo.pid, faultNotifyData.errorObject.stack);
+        catcherStack += CatcherStacktrace(appInfo.pid);
     } else {
         std::pair<std::string, std::string> catchResult =
-            CatchJsonStacktrace(appInfo.pid, faultNotifyData.errorObject.name, faultNotifyData.errorObject.stack);
+            CatchJsonStacktrace(appInfo.pid, faultNotifyData.errorObject.name);
         catcherStack += catchResult.first;
         resultMsg += catchResult.second;
     }
@@ -434,7 +434,7 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
             continue;
         }
         std::string content = "Binder catcher stacktrace, type is peer, pid : " + std::to_string(pidTemp) + "\n";
-        content += CatcherStacktrace(pidTemp, "");
+        content += CatcherStacktrace(pidTemp);
         binderPidsStr += " " + std::to_string(pidTemp);
         if (terminalBinder.pid > 0 && pidTemp == terminalBinder.pid) {
             terminalBinder.tid  = (terminalBinder.tid > 0) ? terminalBinder.tid : terminalBinder.pid;
@@ -466,7 +466,7 @@ std::string AppfreezeManager::CatchASyncByPid(const std::set<int> &asyncPids, co
         TAG_LOGI(AAFwkTag::APPDFR, "AsyncBinder pidTemp pids:%{public}d", pidTemp);
         if (pidTemp != pid && syncPids.find(pidTemp) == syncPids.end()) {
             std::string content = "Binder catcher stacktrace, type is async, pid : " + std::to_string(pidTemp) + "\n";
-            content += CatcherStacktrace(pidTemp, "");
+            content += CatcherStacktrace(pidTemp);
             binderInfo += content;
         }
     }
@@ -552,6 +552,7 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     eventInfo.freezeMemory = memoryContent + "\n" + faultData.procStatm;
     eventInfo.appRunningUniqueId = appRunningUniqueId;
     eventInfo.errorStack = faultData.errorObject.stack;
+    eventInfo.mainThreadStack = faultData.errorObject.mainThreadStack;
     eventInfo.errorName = eventName;
     eventInfo.errorMessage = faultData.errorObject.message;
     eventInfo.freezeInfoFile = GetAppfreezeInfoPath(faultData, appInfo);
@@ -756,8 +757,7 @@ void AppfreezeManager::FindStackByPid(std::string& msg, int pid) const
     }
 }
 
-std::pair<std::string, std::string> AppfreezeManager::CatchJsonStacktrace(int pid, const std::string& faultType,
-    const std::string& stack) const
+std::pair<std::string, std::string> AppfreezeManager::CatchJsonStacktrace(int pid, const std::string& faultType) const
 {
     HITRACE_METER_FMT(HITRACE_TAG_APP, "CatchJsonStacktrace pid:%{public}d", pid);
     HiviewDFX::DfxDumpCatcher dumplog;
@@ -767,7 +767,7 @@ std::pair<std::string, std::string> AppfreezeManager::CatchJsonStacktrace(int pi
     std::pair<int, std::string> dumpResult = dumplog.DumpCatchWithTimeout(pid, msg, timeout, tid, true);
     if (dumpResult.first == DUMP_STACK_FAILED) {
         TAG_LOGI(AAFwkTag::APPDFR, "appfreeze catch json stacktrace failed, %{public}s", dumpResult.second.c_str());
-        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + msg + stack;
+        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + msg;
         if (faultType == AppFreezeType::APP_INPUT_BLOCK) {
             FindStackByPid(msg, pid);
         }
@@ -784,7 +784,7 @@ std::pair<std::string, std::string> AppfreezeManager::CatchJsonStacktrace(int pi
     return std::make_pair(msg, dumpResult.second);
 }
 
-std::string AppfreezeManager::CatcherStacktrace(int pid, const std::string& stack) const
+std::string AppfreezeManager::CatcherStacktrace(int pid) const
 {
     HITRACE_METER_FMT(HITRACE_TAG_APP, "CatcherStacktrace pid:%{public}d", pid);
     HiviewDFX::DfxDumpCatcher dumplog;
@@ -793,7 +793,7 @@ std::string AppfreezeManager::CatcherStacktrace(int pid, const std::string& stac
     if (dumpResult.first == DUMP_STACK_FAILED) {
         TAG_LOGI(AAFwkTag::APPDFR, "appfreeze catch stacktrace failed, %{public}s",
             dumpResult.second.c_str());
-        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + msg + stack;
+        msg = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second + msg;
     } else if (dumpResult.first == DUMP_KERNEL_STACK_SUCCESS) {
         msg = "Failed to dump normal stacktrace for " + std::to_string(pid) + "\n" + dumpResult.second +
             "Kernel stack is:\n" + msg;
