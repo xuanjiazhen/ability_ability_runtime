@@ -42,6 +42,7 @@ const std::string JSON_KEY_ACCESS_TOKENID = "accessTokenId";
 const std::string JSON_KEY_SETTER_USERID = "setterUserId";
 const std::string JSON_KEY_USERID = "userId";
 const std::string JSON_KEY_SETTER_TYPE = "setterType";
+const std::string JSON_KEY_IS_HIDDEN_START = "isHiddenStart";
 } // namespace
 const DistributedKv::AppId AbilityAutoStartupDataManager::APP_ID = { "auto_startup_storage" };
 const DistributedKv::StoreId AbilityAutoStartupDataManager::STORE_ID = { "auto_startup_infos" };
@@ -472,6 +473,7 @@ DistributedKv::Value AbilityAutoStartupDataManager::ConvertAutoStartupStatusToVa
         { JSON_KEY_TYPE_NAME, info.abilityTypeName },
         { JSON_KEY_SETTER_USERID, info.setterUserId },
         { JSON_KEY_SETTER_TYPE, info.setterType },
+        { JSON_KEY_IS_HIDDEN_START, info.isHiddenStart },
     };
     DistributedKv::Value value(jsonObject.dump());
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "value: %{public}s", value.ToString().c_str());
@@ -498,6 +500,9 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupStatusFromValue(
     if (jsonObject.contains(JSON_KEY_SETTER_TYPE) && jsonObject[JSON_KEY_SETTER_TYPE].is_number()) {
         startupStatus.setterType =
             static_cast<AutoStartupSetterType>(jsonObject.at(JSON_KEY_SETTER_TYPE).get<int32_t>());
+    }
+    if (jsonObject.contains(JSON_KEY_IS_HIDDEN_START) && jsonObject[JSON_KEY_IS_HIDDEN_START].is_boolean()) {
+        startupStatus.isHiddenStart = jsonObject.at(JSON_KEY_IS_HIDDEN_START).get<bool>();
     }
 }
 
@@ -578,6 +583,10 @@ void AbilityAutoStartupDataManager::ConvertAutoStartupInfoFromValue(
 
     if (jsonValueObject.contains(JSON_KEY_SETTER_USERID) && jsonValueObject[JSON_KEY_SETTER_USERID].is_number()) {
         info.setterUserId = jsonValueObject.at(JSON_KEY_SETTER_USERID).get<int32_t>();
+    }
+
+    if (jsonValueObject.contains(JSON_KEY_IS_HIDDEN_START) && jsonValueObject[JSON_KEY_IS_HIDDEN_START].is_boolean()) {
+        info.isHiddenStart = jsonValueObject.at(JSON_KEY_IS_HIDDEN_START).get<bool>();
     }
 }
 
