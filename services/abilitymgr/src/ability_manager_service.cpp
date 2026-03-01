@@ -332,6 +332,7 @@ constexpr const char* PERMISSIONMGR_BUNDLE_NAME = "com.ohos.permissionmanager";
 constexpr const char* PERMISSIONMGR_ABILITY_NAME = "com.ohos.permissionmanager.GrantAbility";
 constexpr const char* SCENEBOARD_BUNDLE_NAME = "com.ohos.sceneboard";
 constexpr const char* SPECIFY_TOKEN_ID = "specifyTokenId";
+constexpr int CREATE_STATUS_BAR_TIMEOUT_MILLISECONDS = 5000;  // 5s
 constexpr const char* PROCESS_SUFFIX = "embeddable";
 constexpr int32_t DEFAULT_DMS_MISSION_ID = -1;
 constexpr const char* PARAM_PREVENT_STARTABILITY = "persist.sys.abilityms.prevent_startability";
@@ -7000,6 +7001,13 @@ int AbilityManagerService::AttachAbilityThread(
             "force timeout ability, state:INITIAL, ability:%{public}s", abilityInfo.name.c_str());
         return ERR_OK;
     }
+    if (abilityRecord->NeedCheckAutoStartupStatusBar()) {
+        CHECK_POINTER_AND_RETURN_LOG(abilityAutoStartupService_, ERR_INVALID_VALUE, "autoStartupService_ nullptr");
+        CHECK_POINTER_AND_RETURN(taskHandler_, ERR_INVALID_VALUE);
+        auto task = abilityAutoStartupService_->CreateHiddenStartCheckTask(abilityRecord);
+        auto taskName = "CheckStatusBar_" + std::to_string(abilityRecord->GetApplicationInfo().uid);
+        taskHandler_->SubmitTask(task, taskName, CREATE_STATUS_BAR_TIMEOUT_MILLISECONDS);
+    }
     if (type == AppExecFwk::AbilityType::SERVICE || type == AppExecFwk::AbilityType::EXTENSION) {
         auto connectManager = GetConnectManagerByUserId(userId, abilityInfo.extensionAbilityType);
         if (!connectManager) {
@@ -9002,7 +9010,11 @@ void AbilityManagerService::StartAutoStartupApps(std::queue<AutoStartupInfo> inf
         result = StartExtensionAbility(
             want, nullptr, userId, AppExecFwk::ExtensionAbilityType::APP_SERVICE);
     } else {
-        result = StartAbility(want, userId);
+        if (!info.isHiddenStart) {
+            result = StartAbility(want, userId);
+        } else {
+            result = abilityAutoStartupService_->HiddenStartAutoStartupApp(want, userId)
+        }
     }
     if ((result != ERR_OK) && (info.retryCount > 0)) {
         info.retryCount--;
@@ -13592,13 +13604,13 @@ int32_t AbilityManagerService::ExecuteInsightIntentDone(const sptr<IRemoteObject
         intentId, result.innerErr, result);
 }
 
-int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag)
+int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag, bool isHiddenStart)
 {
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
     }
-    return abilityAutoStartupService_->SetApplicationAutoStartupByEDM(info, flag);
+    return abilityAutoStartupService_->SetApplicationAutoStartupByEDM(info, flag, isHiddenStart);
 }
 
 int32_t AbilityManagerService::CancelApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag)
