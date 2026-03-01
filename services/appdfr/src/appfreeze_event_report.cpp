@@ -53,7 +53,7 @@ int AppfreezeEventReport::SendAppfreezeEvent(const std::string &eventName, HiSys
     if (eventName == AppFreezeType::APP_INPUT_BLOCK) {
         return LogAppInputBlockEvent(eventName, type, eventInfo);
     }
-    if (eventName == AppFreezeType::THREAD_BLOCK_6S) {
+    if (eventName == AppFreezeType::THREAD_BLOCK_3S || eventName == AppFreezeType::THREAD_BLOCK_6S) {
         return LogThreadBlockEvent(eventName, type, eventInfo);
     }
     if (eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
@@ -105,12 +105,14 @@ int AppfreezeEventReport::LogThreadBlockEvent(const std::string &name, HiSysEven
     hisyseventReport->InsertParam(EVENT_APP_RUNNING_UNIQUE_ID, eventInfo.appRunningUniqueId);
     hisyseventReport->InsertParam(EVENT_FREEZE_MEMORY, eventInfo.freezeMemory);
     hisyseventReport->InsertParam(EVENT_MAIN_STACK, eventInfo.mainStack);
-    hisyseventReport->InsertParam(EVENT_TRACE_ID, eventInfo.hitraceInfo);
     hisyseventReport->InsertParam(EVENT_FREEZE_INFO_PATH, eventInfo.freezeInfoFile);
     hisyseventReport->InsertParam(EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze);
     hisyseventReport->InsertParam(EVENT_FOREGROUND, eventInfo.foregroundState);
     hisyseventReport->InsertParam(EVENT_APPLICATION_HEAP_INFO, eventInfo.applicationHeapInfo);
     hisyseventReport->InsertParam(EVENT_PROCESS_LIFECYCLE_INFO, eventInfo.processLifeTime);
+    if (eventName == AppFreezeType::THREAD_BLOCK_6S) {
+        hisyseventReport->InsertParam(EVENT_TRACE_ID, eventInfo.hitraceInfo);
+    }
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
 }
