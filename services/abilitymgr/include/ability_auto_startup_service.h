@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_AUTO_STARTUP_SERVICE_H
 #define OHOS_ABILITY_RUNTIME_ABILITY_AUTO_STARTUP_SERVICE_H
 
+#include <functional>
 #include <map>
 #include <mutex>
 #include <vector>
@@ -110,9 +111,10 @@ public:
      * @brief Set application auto start up state by EDM.
      * @param info The auto startup info, include bundle name, module name, ability name.
      * @param flag Indicate whether the application is prohibited from changing the auto start up state.
+     * @param isHiddenStart Indicate whether the application is hidden start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag);
+    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag, bool isHiddenStart = false);
 
     /**
      * @brief Cancel application auto start up state by EDM.
@@ -171,6 +173,9 @@ private:
     int32_t InnerApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool isSet, bool flag);
     int32_t GetAbilityInfo(const AutoStartupInfo &info, AutoStartupAbilityData &abilityData);
     void GetCallbackVector(std::vector<sptr<IRemoteObject>>& callbackVector);
+
+    std::function<void()> CreateHiddenStartCheckTask(const std::string &bundleName, uint32_t accessTokenId,
+        int32_t uid, int32_t userId, bool isMultiInstance);
 
     mutable std::mutex autoStartUpMutex_;
     mutable std::mutex deathRecipientsMutex_;
