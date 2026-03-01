@@ -25,12 +25,17 @@
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
 #include "permission_constants.h"
+#include "process_options.h"
 #include "server_constant.h"
+#include "start_options.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AAFwk;
+namespace {
+constexpr const char* START_BY_AUTOSTARTUP_SERVICE = "startByAutoStartupService";
+}
 
 AbilityAutoStartupService::AbilityAutoStartupService() {}
 
@@ -116,6 +121,7 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartup(const AutoStartupIn
     fullInfo.userId = abilityData.userId;
     fullInfo.canUserModify = true;
     fullInfo.setterType = AutoStartupSetterType::USER;
+    fullInfo.moduleName = abilityData.moduleName;
 
     return InnerSetApplicationAutoStartup(fullInfo);
 }
@@ -143,15 +149,11 @@ int32_t AbilityAutoStartupService::InnerSetApplicationAutoStartup(const AutoStar
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Edm abnormal");
         return ERR_EDM_APP_CONTROLLED;
     }
-    if (!status.isAutoStartup) {
-        result =
-            DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->UpdateAutoStartupData(info, true, false);
-        if (result == ERR_OK) {
-            ExecuteCallbacks(true, info);
-        }
-        return result;
+    result = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->UpdateAutoStartupData(info, true, false);
+    if (result == ERR_OK) {
+        ExecuteCallbacks(true, info);
     }
-    return ERR_OK;
+    return result;
 }
 
 int32_t AbilityAutoStartupService::CancelApplicationAutoStartup(const AutoStartupInfo &info)
@@ -179,6 +181,7 @@ int32_t AbilityAutoStartupService::CancelApplicationAutoStartup(const AutoStartu
     fullInfo.userId = abilityData.userId;
     fullInfo.canUserModify = true;
     fullInfo.setterType = AutoStartupSetterType::USER;
+    fullInfo.moduleName = abilityData.moduleName;
 
     return InnerCancelApplicationAutoStartup(fullInfo);
 }
@@ -493,6 +496,7 @@ bool AbilityAutoStartupService::GetAbilityData(const AutoStartupInfo &info, Auto
             if (IsTargetAbility(info, abilityInfo)) {
                 abilityData.isVisible = abilityInfo.visible;
                 abilityData.abilityTypeName = GetAbilityTypeName(abilityInfo);
+                abilityData.moduleName = abilityInfo.moduleName;
                 return true;
             }
         }
@@ -502,6 +506,7 @@ bool AbilityAutoStartupService::GetAbilityData(const AutoStartupInfo &info, Auto
         if (IsTargetExtension(info, extensionInfo)) {
             abilityData.isVisible = extensionInfo.visible;
             abilityData.abilityTypeName = GetExtensionTypeName(extensionInfo);
+            abilityData.moduleName = extensionInfo.moduleName;
             return true;
         }
     }
@@ -610,7 +615,25 @@ int32_t AbilityAutoStartupService::GetAbilityInfo(
     return ERR_OK;
 }
 
-int32_t AbilityAutoStartupService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag)
+int32_t AbilityAutoStartupService::HiddenStartAutoStartupApp(AAFwk::Want &want, int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "HiddenStartAutoStartupApp called");
+    if (!DelayedSingleton<AbilityManagerService>::GetInstance()->IsSupportStatusBarByUserId(userId)) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "not support statusBar, cannot hidden start");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    StartOptions options;
+    options.processOptions = std::make_shared<ProcessOptions>();
+    options.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
+    want.SetParam(START_BY_AUTOSTARTUP_SERVICE, true);
+
+    return IN_PROCESS_CALL(DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(want,
+        options, nullptr, userId, DEFAULT_INVAL_VALUE));
+}
+
+int32_t AbilityAutoStartupService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag,
+    bool isHiddenStart)
 {
     int32_t errorCode = CheckPermissionForEDM();
     if (errorCode != ERR_OK) {
@@ -621,6 +644,12 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartupByEDM(const AutoStar
     if (errorCode != ERR_OK) {
         return errorCode;
     }
+    bool isSupportStatusBar = DelayedSingleton<AbilityManagerService>::GetInstance()->
+        IsSupportStatusBarByUserId(abilityData.userId);
+    if (isHiddenStart && !isSupportStatusBar) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "not support statusBar, cannot set hidden start");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
     AutoStartupInfo fullInfo(info);
     fullInfo.abilityTypeName = abilityData.abilityTypeName;
     fullInfo.accessTokenId = abilityData.accessTokenId;
@@ -628,6 +657,8 @@ int32_t AbilityAutoStartupService::SetApplicationAutoStartupByEDM(const AutoStar
     fullInfo.userId = abilityData.userId;
     fullInfo.canUserModify = !flag;
     fullInfo.setterType = AutoStartupSetterType::SYSTEM;
+    fullInfo.isHiddenStart = isHiddenStart;
+    fullInfo.moduleName = abilityData.moduleName;
     return InnerApplicationAutoStartupByEDM(fullInfo, true, flag);
 }
 
@@ -649,6 +680,7 @@ int32_t AbilityAutoStartupService::CancelApplicationAutoStartupByEDM(const AutoS
     fullInfo.userId = abilityData.userId;
     fullInfo.canUserModify = !flag;
     fullInfo.setterType = AutoStartupSetterType::SYSTEM;
+    fullInfo.moduleName = abilityData.moduleName;
     return InnerApplicationAutoStartupByEDM(fullInfo, false, flag);
 }
 
@@ -656,9 +688,9 @@ int32_t AbilityAutoStartupService::InnerApplicationAutoStartupByEDM(const AutoSt
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP,
         "Called, bundleName: %{public}s, moduleName: %{public}s, abilityName: %{public}s, accessTokenId: %{public}s,"
-        " setterUserId: %{public}d, isSet: %{public}d, flag: %{public}d",
+        " setterUserId: %{public}d, isHiddenStart: %{public}d, isSet: %{public}d, flag: %{public}d",
         info.bundleName.c_str(), info.moduleName.c_str(), info.abilityName.c_str(),
-        info.accessTokenId.c_str(), info.setterUserId, isSet, flag);
+        info.accessTokenId.c_str(), info.setterUserId, info.isHiddenStart, isSet, flag);
     AutoStartupStatus status =
         DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->QueryAutoStartupData(info);
     if (status.code != ERR_OK && status.code != ERR_NAME_NOT_FOUND) {
@@ -675,25 +707,11 @@ int32_t AbilityAutoStartupService::InnerApplicationAutoStartupByEDM(const AutoSt
         }
         return result;
     }
-
-    bool isFlag = isSet ? !status.isAutoStartup : status.isAutoStartup;
-    if (isFlag) {
-        result =
-            DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->UpdateAutoStartupData(info, isSet, flag);
-        if (result == ERR_OK) {
-            ExecuteCallbacks(isSet, info);
-        }
-        return result;
+    // Always update record regardless of whether there is a difference
+    result = DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->UpdateAutoStartupData(info, isSet, flag);
+    if (result == ERR_OK) {
+        ExecuteCallbacks(isSet, info);
     }
-    if (status.isEdmForce != flag) {
-        result =
-            DelayedSingleton<AbilityAutoStartupDataManager>::GetInstance()->UpdateAutoStartupData(info, isSet, flag);
-        if (result == ERR_OK) {
-            ExecuteCallbacks(isSet, info);
-        }
-        return result;
-    }
-
     return result;
 }
 
@@ -740,6 +758,38 @@ bool AbilityAutoStartupService::FindHandledAutoStartupUsers(int32_t userId)
         }
     }
     return false;
+}
+
+std::function<void()> AbilityAutoStartupService::CreateHiddenStartCheckTask(
+    std::shared_ptr<AbilityRecord> abilityRecord)
+{
+    std::weak_ptr<AAFwk::AbilityRecord> abilityRecordWeak = abilityRecord;
+    auto userId = abilityRecord->GetApplicationInfo().uid / BASE_USER_RANGE;
+    return [abilityRecordWeak, userId]() {
+        auto abilityRecord = abilityRecordWeak.lock();
+        if (!abilityRecord) {
+            TAG_LOGI(AAFwkTag::AUTO_STARTUP, "abilityRecord has been destoryed");
+            return;
+        }
+        if (!abilityRecord->NeedCheckAutoStartupStatusBar()) {
+            TAG_LOGI(AAFwkTag::AUTO_STARTUP, "has been started in other situation");
+            return;
+        }
+        auto applicationInfo = abilityRecord->GetApplicationInfo();
+        pid_t pid = abilityRecord->GetPid();
+        bool isMultiInstance =
+            applicationInfo.multiAppMode.multiAppModeType == AppExecFwk::MultiAppModeType::MULTI_INSTANCE;
+        bool isStatusBarCreated =
+            DelayedSingleton<AbilityManagerService>::GetInstance()->IsInStatusBar(applicationInfo.accessTokenId,
+            applicationInfo.uid, isMultiInstance);
+        if (isStatusBarCreated) {
+            TAG_LOGI(AAFwkTag::AUTO_STARTUP, "status bar is created");
+            return;
+        }
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "timeout, status bar not created, killing app");
+        std::vector<pid_t> pids = { pid };
+        (void)DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->KillProcessesByPids(pids);
+    };
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
