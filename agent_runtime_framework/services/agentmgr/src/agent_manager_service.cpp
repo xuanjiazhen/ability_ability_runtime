@@ -110,11 +110,6 @@ void AgentManagerService::RegisterBundleEventCallback()
 
 int32_t AgentManagerService::GetAllAgentCards(AgentCardsRawData &cards)
 {
-    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
-        AAFwk::PermissionConstants::PERMISSION_GET_AGENT_CARD)) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "Permission verification failed");
-        return ERR_PERMISSION_DENIED;
-    }
     return AgentCardMgr::GetInstance().GetAllAgentCards(cards);
 }
 

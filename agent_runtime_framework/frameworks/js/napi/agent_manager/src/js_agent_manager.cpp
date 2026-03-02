@@ -141,11 +141,6 @@ bool JsAgentManager::CheckCallerIsSystemApp()
 // JsAgentManager instance methods
 napi_value JsAgentManager::OnGetAllAgentCards(napi_env env, size_t argc, napi_value *argv)
 {
-    if (!CheckCallerIsSystemApp()) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "not system app");
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
-        return CreateJsUndefined(env);
-    }
     auto innerErrorCode = std::make_shared<int32_t>(ERR_OK);
     auto cards = std::make_shared<std::vector<AgentCard>>();
     NapiAsyncTask::ExecuteCallback execute = [innerErrorCode, cards]() {
