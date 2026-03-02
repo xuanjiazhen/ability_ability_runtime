@@ -1,0 +1,21 @@
+# Build outputs
+*.o
+*.so
+*.a
+
+# Dependencies
+out/
+*.d
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git worktrees for isolated development
+.worktrees/
+
+# Test outputs
+test_results/
+coverage/
