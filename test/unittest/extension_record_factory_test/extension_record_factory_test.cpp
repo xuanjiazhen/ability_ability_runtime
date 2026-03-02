@@ -179,7 +179,7 @@ HWTEST_F(ExtensionRecordFactoryTest, CreateRecord_0100, TestSize.Level1)
 HWTEST_F(ExtensionRecordFactoryTest, AppServiceExtension_ExtensionProcessMode_TYPE_0100, TestSize.Level1)
 {
     AAFwk::AbilityRequest abilityRequest;
-    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::SERVICE;
+    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::APP_SERVICE;
     abilityRequest.extensionProcessMode = AppExecFwk::ExtensionProcessMode::TYPE;
 
     bool isHostSpecified = false;
