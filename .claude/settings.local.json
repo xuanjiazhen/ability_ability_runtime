@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs grep -l \"Execute\\\\|abc\")",
+      "Bash(xargs grep -l \"JSNApi::Execute\")",
+      "Bash(git checkout -- \"c:\\\\code1\\\\ability_ability_runtime_9012\\\\tools\\\\aa\\\\src\\\\ability_command.cpp\" \"c:\\\\code1\\\\ability_ability_runtime_9012\\\\tools\\\\aa\\\\include\\\\ability_command.h\")",
+      "Bash(xargs grep -l \"class JSNApi\\\\|namespace JSNApi\")"
+    ]
+  }
+}
