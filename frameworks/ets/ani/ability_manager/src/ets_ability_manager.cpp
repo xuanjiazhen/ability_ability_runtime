@@ -127,7 +127,7 @@ public:
     static void CheckSystemApp(ani_env *env);
     static void GetTopAbilityCheck(ani_env *env);
     static void GetAbilityRunningInfos(ani_env *env, ani_object callback);
-    static void IsEmbeddedUIExtensionSupported(ani_env *env, ani_object callback);
+    static void IsEmbeddedUIExtensionSupported(ani_env *env);
     static void IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj, ani_string aniAppId, ani_object callbackObj);
     static void IsEmbeddedOpenAllowedCheck(ani_env *env, ani_object contextObj);
     static void NativeOn(ani_env *env, ani_string aniType, ani_object aniObserver);
@@ -364,21 +364,15 @@ void EtsAbilityManager::IsEmbeddedOpenAllowedCheck(ani_env *env, ani_object cont
     }
 }
 
-void EtsAbilityManager::IsEmbeddedUIExtensionSupported(ani_env *env, ani_object callback)
+bool EtsAbilityManager::IsEmbeddedUIExtensionSupported(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "IsEmbeddedUIExtensionSupported");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
-        return;
+        return false;
     }
     bool result = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
-    ani_boolean aniResult = ANI_FALSE;
-    if (result) {
-        aniResult = ANI_TRUE;
-    }
-    auto error = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
-    auto booleanValue = AppExecFwk::CreateBoolean(env, aniResult);
-    AppExecFwk::AsyncCallback(env, callback, error, booleanValue);
+    return result;
 }
 
 void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj,
@@ -1138,7 +1132,7 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::GetAbilityRunningInfos) },
         ani_native_function { "nativeGetExtensionRunningInfos", "iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::GetExtensionRunningInfos) },
-        ani_native_function { "nativeIsEmbeddedUIExtensionSupported", ETS_ABILITY_MANAGER_SIGNATURE_VOID,
+        ani_native_function { "nativeIsEmbeddedUIExtensionSupported", ":z",
             reinterpret_cast<void *>(EtsAbilityManager::IsEmbeddedUIExtensionSupported) },
         ani_native_function { "nativeIsEmbeddedOpenAllowed",
             "C{application.Context.Context}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",

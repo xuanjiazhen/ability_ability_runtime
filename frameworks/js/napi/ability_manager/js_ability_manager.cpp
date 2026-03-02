@@ -706,20 +706,8 @@ private:
     {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
         HandleEscape handleEscape(env);
-        auto sharedResult = std::make_shared<bool>(false);
-        NapiAsyncTask::ExecuteCallback execute = [sharedResult]() {
-            *sharedResult = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
-        };
-
-        NapiAsyncTask::CompleteCallback complete = [sharedResult](napi_env env, NapiAsyncTask &task, int32_t status) {
-            HandleScope handleScope(env);
-            task.Resolve(env, CreateJsValue(env, *sharedResult));
-        };
-
-        napi_value lastParam = (info.argc > 0) ? info.argv[0] : nullptr;
-        napi_value result = nullptr;
-        NapiAsyncTask::Schedule("JsAbilityManager::OnIsEmbeddedUIExtensionSupported", env,
-            CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+        bool isSupported = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
+        napi_value result = CreateJsValue(env, isSupported);
         return handleEscape.Escape(result);
     }
 
