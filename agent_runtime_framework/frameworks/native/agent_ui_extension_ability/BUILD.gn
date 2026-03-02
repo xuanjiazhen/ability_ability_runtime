@@ -106,6 +106,7 @@ ohos_shared_library("agent_ui_extension") {
   ]
 
   sources = [
+      "src/agent_module_checker.cpp",
       "src/agent_ui_extension.cpp",
   ]
 

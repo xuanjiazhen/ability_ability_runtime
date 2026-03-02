@@ -106,8 +106,12 @@ void ExtensionConfigMgr::UpdateRuntimeModuleChecker(const std::unique_ptr<Abilit
         }
         hasUpdatedChecker_ = true;
     }
-
-    auto moduleChecker = std::make_shared<AppModuleChecker>(extensionType_, localBlocklist);
+    if (extensionType_ == AppExecFwk::ExtensionAbilityType::AGENT_UI ||
+        extensionType_ == AppExecFwk::ExtensionAbilityType::AGENT) {
+        auto moduleChecker = std::make_shared<AgentModuleChecker>();
+    } else {
+        auto moduleChecker = std::make_shared<AppModuleChecker>(extensionType_, localBlocklist);
+    }
     runtime->SetModuleLoadChecker(moduleChecker);
     {
         std::lock_guard<std::mutex> lock(extensionBlockListMutex_);
