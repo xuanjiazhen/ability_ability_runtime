@@ -1421,6 +1421,16 @@ void AppMgrServiceInner::MakeServiceExtProcessName(const std::shared_ptr<Ability
         return;
     }
 
+    // Check for TYPE mode to generate independent process name: bundleName:abilityName
+    if (processName == appInfo->bundleName &&
+        abilityInfo->extensionAbilityType == ExtensionAbilityType::SERVICE &&
+        abilityInfo->extensionProcessMode == AppExecFwk::ExtensionProcessMode::TYPE) {
+        processName = appInfo->bundleName + ":" + abilityInfo->name;
+        TAG_LOGI(AAFwkTag::APPMGR,
+            "APP_SERVICE TYPE mode, processName: %{public}s", processName.c_str());
+        return;
+    }
+
     if (processName == appInfo->bundleName &&
         abilityInfo->extensionAbilityType == ExtensionAbilityType::SERVICE) {
         auto iter = std::find(
