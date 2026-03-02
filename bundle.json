@@ -160,7 +160,8 @@
           "//foundation/ability/ability_runtime/agent_runtime_framework/frameworks/ets/ani:agent_runtime_ani_packages",
           "//foundation/ability/ability_runtime/agent_runtime_framework/frameworks/js/napi:agent_runtime_napi_packages",
           "//foundation/ability/ability_runtime/agent_runtime_framework/frameworks/native/agent_extension:agent_extension_module",
-          "//foundation/ability/ability_runtime/agent_runtime_framework/frameworks/native/agent_ui_extension_ability:agent_ui_extension_module"
+          "//foundation/ability/ability_runtime/agent_runtime_framework/frameworks/native/agent_ui_extension_ability:agent_ui_extension_module",
+          "//foundation/ability/ability_runtime/agent_runtime_framework/services/agent_module_service:agent_module_service"
         ],
         "inner_api": [
           {
