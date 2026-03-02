@@ -18,6 +18,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <getopt.h>
+#include <fstream>
 #include <iostream>
 #include <regex>
 #include "ability_manager_client.h"
@@ -34,11 +35,290 @@
 #include "system_ability_definition.h"
 #include "test_observer.h"
 #include "app_mem_info.h"
+#include "console.h"
+#include "sys_timer.h"
+#include <future>
+#include <thread>
+#include "event_handler.h"
+#include "event_runner.h"
+#include "ohos_loop_handler.h"
 
+#include "native_engine/impl/ark/ark_native_engine.h"
+#include "script_context.h"
+#include "native_api.h"
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
 namespace AAFwk {
+namespace {
+    std::shared_ptr<AppExecFwk::EventHandler> g_eventHandler = nullptr;
+    std::shared_ptr<AbilityRuntime::AaTool::ScriptContext> g_scriptContext = nullptr;
+
+    // ScriptContext property getters
+    napi_value GetBundleName(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string bundleName = g_scriptContext->GetBundleName();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, bundleName.c_str(), bundleName.length(), &result);
+        return result;
+    }
+
+    napi_value GetProcessName(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string processName = g_scriptContext->GetProcessName();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, processName.c_str(), processName.length(), &result);
+        return result;
+    }
+
+    napi_value GetCacheDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string cacheDir = g_scriptContext->GetCacheDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, cacheDir.c_str(), cacheDir.length(), &result);
+        return result;
+    }
+
+    napi_value GetTempDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string tempDir = g_scriptContext->GetTempDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, tempDir.c_str(), tempDir.length(), &result);
+        return result;
+    }
+
+    napi_value GetFilesDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string filesDir = g_scriptContext->GetFilesDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, filesDir.c_str(), filesDir.length(), &result);
+        return result;
+    }
+
+    napi_value GetResourceDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string resourceDir = g_scriptContext->GetResourceDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, resourceDir.c_str(), resourceDir.length(), &result);
+        return result;
+    }
+
+    napi_value GetBundleCodeDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string bundleCodeDir = g_scriptContext->GetBundleCodeDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, bundleCodeDir.c_str(), bundleCodeDir.length(), &result);
+        return result;
+    }
+
+    napi_value GetDatabaseDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string databaseDir = g_scriptContext->GetDatabaseDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, databaseDir.c_str(), databaseDir.length(), &result);
+        return result;
+    }
+
+    napi_value GetPreferencesDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string preferencesDir = g_scriptContext->GetPreferencesDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, preferencesDir.c_str(), preferencesDir.length(), &result);
+        return result;
+    }
+
+    napi_value GetDistributedFilesDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string distributedFilesDir = g_scriptContext->GetDistributedFilesDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, distributedFilesDir.c_str(), distributedFilesDir.length(), &result);
+        return result;
+    }
+
+    napi_value GetCloudFileDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string cloudFileDir = g_scriptContext->GetCloudFileDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, cloudFileDir.c_str(), cloudFileDir.length(), &result);
+        return result;
+    }
+
+    napi_value GetLogFileDir(napi_env env, napi_callback_info info)
+    {
+        if (!g_scriptContext) {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "scriptContext is null");
+            napi_value undefined = nullptr;
+            napi_get_undefined(env, &undefined);
+            return undefined;
+        }
+        std::string logFileDir = g_scriptContext->GetLogFileDir();
+        napi_value result = nullptr;
+        napi_create_string_utf8(env, logFileDir.c_str(), logFileDir.length(), &result);
+        return result;
+    }
+
+    bool BindScriptContextProperties(napi_env env, napi_value contextObject)
+    {
+        TAG_LOGD(AAFwkTag::AA_TOOL, "Start binding ScriptContext properties");
+
+        // Bind properties using BindNativeProperty
+        BindNativeProperty(env, contextObject, "bundleName", GetBundleName);
+        BindNativeProperty(env, contextObject, "processName", GetProcessName);
+        BindNativeProperty(env, contextObject, "cacheDir", GetCacheDir);
+        BindNativeProperty(env, contextObject, "tempDir", GetTempDir);
+        BindNativeProperty(env, contextObject, "filesDir", GetFilesDir);
+        BindNativeProperty(env, contextObject, "resourceDir", GetResourceDir);
+        BindNativeProperty(env, contextObject, "bundleCodeDir", GetBundleCodeDir);
+        BindNativeProperty(env, contextObject, "databaseDir", GetDatabaseDir);
+        BindNativeProperty(env, contextObject, "preferencesDir", GetPreferencesDir);
+        BindNativeProperty(env, contextObject, "distributedFilesDir", GetDistributedFilesDir);
+        BindNativeProperty(env, contextObject, "cloudFileDir", GetCloudFileDir);
+        BindNativeProperty(env, contextObject, "logFileDir", GetLogFileDir);
+
+        TAG_LOGI(AAFwkTag::AA_TOOL, "ScriptContext properties bound successfully");
+        return true;
+    }
+
+    bool BindScriptContextToGlobal(napi_env env, const std::shared_ptr<AbilityRuntime::AaTool::ScriptContext>& scriptContext)
+    {
+        TAG_LOGD(AAFwkTag::AA_TOOL, "Start binding ScriptContext to global");
+
+        // Store script context globally for getters
+        g_scriptContext = scriptContext;
+
+        // Get global object
+        napi_value global = nullptr;
+        napi_status status = napi_get_global(env, &global);
+        if (status != napi_ok || global == nullptr) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Failed to get global object, status: %{public}d", status);
+            return false;
+        }
+
+        // Create napi_value for ScriptContext
+        napi_value contextObject = nullptr;
+        status = napi_create_object(env, &contextObject);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Failed to create context object, status: %{public}d", status);
+            return false;
+        }
+
+        // Wrap native ScriptContext object
+        status = napi_wrap(env, contextObject, scriptContext.get(),
+            [](napi_env env, void* data, void* hint) {
+                // Finalizer callback - ScriptContext is managed by shared_ptr
+                TAG_LOGD(AAFwkTag::AA_TOOL, "ScriptContext finalizer called");
+                g_scriptContext = nullptr;
+            }, nullptr, nullptr);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Failed to wrap ScriptContext, status: %{public}d", status);
+            return false;
+        }
+
+        // Bind properties
+        if (!BindScriptContextProperties(env, contextObject)) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Failed to bind ScriptContext properties");
+            return false;
+        }
+
+        // Set ScriptContext to global as "scriptContext"
+        status = napi_set_named_property(env, global, "scriptContext", contextObject);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Failed to set scriptContext to global, status: %{public}d", status);
+            return false;
+        }
+
+        TAG_LOGI(AAFwkTag::AA_TOOL, "ScriptContext bound to global successfully");
+        return true;
+    }
+
+    void SetupScriptContext(napi_env env)
+    {
+        TAG_LOGD(AAFwkTag::AA_TOOL, "Start setting up ScriptContext");
+
+        auto scriptContext = std::make_shared<AbilityRuntime::AaTool::ScriptContext>();
+        if (!scriptContext) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Failed to create ScriptContext");
+            return;
+        }
+
+        // Set script context properties
+        scriptContext->SetBundleName("com.example.script");
+        scriptContext->SetProcessName("com.example.script:script");
+        scriptContext->SetBundleCodePath("/data/app/el2/100/base/com.example.script");
+        scriptContext->SetBaseDir("/data/app/el2/100/base/com.example.script");
+
+        // Bind to global
+        if (!BindScriptContextToGlobal(env, scriptContext)) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "Failed to bind ScriptContext to global");
+        }
+    }
+}
 using TerminateReason = AbilityStartWithWaitObserverUtil::TerminateReason;
 namespace {
 constexpr size_t PARAM_LENGTH = 1024;
@@ -65,6 +345,12 @@ constexpr int INNER_ERR_TEST = 10108501;
 constexpr int INNER_ERR_DEBUG = 10108601;
 constexpr int64_t WAIT_INTERVAL = 10 * 1000; // us
 constexpr int64_t MAX_WAIT_TIME = 15 * 1000 * 1000; // us
+
+// JSVM constants for execute-abc command
+constexpr int64_t DEFAULT_GC_POOL_SIZE = 0x10000000; // 256MB
+constexpr int32_t DEFAULT_ARK_PROPERTIES = -1;
+constexpr size_t DEFAULT_GC_THREAD_NUM = 7;
+constexpr size_t DEFAULT_LONG_PAUSE_TIME = 40;
 
 const std::string DEVELOPERMODE_STATE = "const.security.developermode.state";
 
@@ -236,15 +522,26 @@ constexpr struct option LONG_OPTIONS_SEND_MEMORY_LEVEL[] = {
     {"level", required_argument, nullptr, 'l' },
     {nullptr, 0, nullptr, 0 },
 };
+
+// JSVM creation function for execute-abc command
+panda::ecmascript::EcmaVM* CreateJSVM()
+{
+    panda::RuntimeOption pandaOption;
+    pandaOption.SetArkProperties(DEFAULT_ARK_PROPERTIES);
+    pandaOption.SetGcThreadNum(DEFAULT_GC_THREAD_NUM);
+    pandaOption.SetLongPauseTime(DEFAULT_LONG_PAUSE_TIME);
+    pandaOption.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
+    pandaOption.SetGcPoolSize(DEFAULT_GC_POOL_SIZE);
+    pandaOption.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::FOLLOW);
+    pandaOption.SetEnableAsmInterpreter(true);
+    pandaOption.SetAsmOpcodeDisableRange("");
+    return panda::JSNApi::CreateJSVM(pandaOption);
+}
 }  // namespace
 
 AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
 {
     for (int i = 0; i < argc_; i++) {
-        if (i > 1) {
-            TAG_LOGI(AAFwkTag::AA_TOOL, "argc greater than 2, ignoring the rest");
-            return;
-        }
         TAG_LOGI(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", i, argv_[i]);
     }
 }
@@ -263,6 +560,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"execute-abc", [this]() { return this->RunAsExecuteAbcCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -1061,6 +1359,172 @@ ErrCode AbilityManagerShellCommand::RunAsSendMemoryLevelCommand()
     }
 
     return result;
+}
+
+void DelayedExit(int milliseconds)
+{
+    std::async(std::launch::async, [milliseconds]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+        std::quick_exit(0);
+    });
+}
+
+void PostTaskToHandler(const uv_task_info_t* taskInfo)
+{
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
+    if (!taskInfo || !taskInfo->func || !taskInfo->work) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Invalid parameters");
+        return;
+    }
+
+    auto task = [func = taskInfo->func, work = taskInfo->work, status = taskInfo->status]() {
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "Do uv work");
+        func(work, status);
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "Do uv work end");
+    };
+
+    AppExecFwk::EventQueue::Priority prio = AppExecFwk::EventQueue::Priority::IMMEDIATE;
+    switch (taskInfo->prio) {
+        case uv_qos_t::uv_qos_user_interactive:
+            prio = AppExecFwk::EventQueue::Priority::VIP;
+            break;
+        case uv_qos_t::uv_qos_user_initiated:
+            prio = AppExecFwk::EventQueue::Priority::IMMEDIATE;
+            break;
+        case uv_qos_t::uv_qos_utility:
+            prio = AppExecFwk::EventQueue::Priority::LOW;
+            break;
+        case uv_qos_t::uv_qos_background:
+            prio = AppExecFwk::EventQueue::Priority::IDLE;
+            break;
+        default:
+            prio = AppExecFwk::EventQueue::Priority::HIGH;
+            break;
+    }
+
+    if (g_eventHandler == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Invalid parameters");
+        return;
+    }
+    if (taskInfo->location == UV_POST_TASK_TO_HEAD) {
+        g_eventHandler->PostTaskAtFront(task, taskInfo->name ? taskInfo->name : "uv_loop_task", prio);
+    } else {
+        g_eventHandler->PostTask(task, taskInfo->name ? taskInfo->name : "uv_io_cb", 0, prio);
+    }
+}
+
+ErrCode AbilityManagerShellCommand::RunAsExecuteAbcCommand()
+{
+    TAG_LOGD(AAFwkTag::AA_TOOL, "execute-abc command");
+
+    // Check for help option
+    if (argc_ >= 2 && (strcmp(argv_[1], "-h") == 0 || strcmp(argv_[1], "--help") == 0)) {
+        resultReceiver_.append(HELP_MSG_EXECUTE_ABC);
+        return OHOS::ERR_OK;
+    }
+
+    // Get abc file path from command line
+    if (argc_ < 2) {
+        resultReceiver_.append("error: abc file path is required\n");
+        resultReceiver_.append(HELP_MSG_EXECUTE_ABC);
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    std::string abcFilePath = argv_[2];
+    TAG_LOGI(AAFwkTag::AA_TOOL, "executing abc file: %{public}s", abcFilePath.c_str());
+
+    // Read abc file
+    std::ifstream stream(abcFilePath, std::ios::ate | std::ios::binary);
+    if (!stream.is_open()) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to open abc file: %{public}s", abcFilePath.c_str());
+        resultReceiver_ = "error: failed to open abc file: " + abcFilePath + "\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    size_t len = stream.tellg();
+    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(len);
+    stream.seekg(0);
+    stream.read(reinterpret_cast<char*>(buffer.get()), len);
+    stream.close();
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "abc file loaded, size: %{public}zu bytes", len);
+
+    // Create JSVM
+    panda::ecmascript::EcmaVM *vm = CreateJSVM();
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to create JSVM");
+        resultReceiver_ = "error: failed to create JS runtime environment\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "JSVM created successfully");
+
+    auto engine = new (std::nothrow) ArkNativeEngine(vm, nullptr);
+    if (engine == nullptr) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "null engine");
+        return false;
+    }
+    napi_env env = reinterpret_cast<napi_env>(engine);
+
+    // Setup and bind ScriptContext to global
+    SetupScriptContext(env);
+
+    JsSysModule::Console::InitConsoleModule(env);
+    (void)JsSysModule::Timer::RegisterTime(env);
+
+    std::shared_ptr<EventRunner> eventRunner = EventRunner::GetMainEventRunner();
+    if (eventRunner == nullptr) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "null runner");
+        return false;
+    }
+
+    auto eventHandler = std::make_shared<AppExecFwk::EventHandler>(eventRunner);
+    g_eventHandler = eventHandler;
+
+    auto uvLoop = engine->GetUVLoop();
+    auto fd = uvLoop != nullptr ? uv_backend_fd(uvLoop) : -1;
+    if (fd < 0) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "get fd failed");
+        return false;
+    }
+
+    uv_run(uvLoop, UV_RUN_NOWAIT);
+
+    if (eventHandler != nullptr) {
+        uint32_t events = AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT | AppExecFwk::FILE_DESCRIPTOR_OUTPUT_EVENT;
+        eventHandler->AddFileDescriptorListener(fd, events, std::make_shared<AbilityRuntime::OHOSLoopHandler>(uvLoop), "uvLoopTask");
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "uv_register_task_to_event");
+        if (eventHandler->GetEventRunner().get() == AppExecFwk::EventRunner::GetMainEventRunner().get()) {
+            static const bool canInterrupt = system::GetBoolParameter("persist.sys.uv_can_interrupt", true);
+            TAG_LOGD(AAFwkTag::JSRUNTIME, "uv_register_task_to_event with canInterrupt: %{public}d", canInterrupt);
+            uv_register_task_to_event(uvLoop, PostTaskToHandler, nullptr);
+            // send signal here to trigger uv tasks generated during initialization.
+            uv_async_send(&uvLoop->wq_async);
+        }
+    }
+
+    // Execute abc file
+    bool execResult = panda::JSNApi::Execute(vm, buffer.get(), len, "query", "test");
+    if (execResult) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "abc file executed successfully");
+    } else {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to execute abc file");
+        resultReceiver_ = "error: failed to execute abc file\n";
+        panda::JSNApi::DestroyJSVM(vm);
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    int ret = eventRunner->Run();
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to run");
+    }
+
+    // Destroy JSVM
+    panda::JSNApi::DestroyJSVM(vm);
+    vm = nullptr;
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "execute-abc command completed successfully");
+    return OHOS::ERR_OK;
 }
 
 ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, std::string &memoryLevelParse)
