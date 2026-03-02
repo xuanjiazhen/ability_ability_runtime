@@ -18,6 +18,7 @@
 #include <csignal>
 #include <cstdlib>
 #include <getopt.h>
+#include <fstream>
 #include <iostream>
 #include <regex>
 #include "ability_manager_client.h"
@@ -35,6 +36,7 @@
 #include "test_observer.h"
 #include "app_mem_info.h"
 
+#include "native_engine/impl/ark/ark_native_engine.h"
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
@@ -72,6 +74,11 @@ const std::string SHORT_OPTIONS = "ch:d:a:b:e:t:p:s:m:A:U:CDESNR";
 const std::string SHORT_OPTION_CHARS = "chdabetpsmAUCDESNR";
 const std::string RESOLVE_ABILITY_ERR_SOLUTION_ONE =
     "Check if the parameter abilityName of aa -a and the parameter bundleName of -b are correct";
+// JSVM constants for execute-abc command
+constexpr int64_t DEFAULT_GC_POOL_SIZE = 0x10000000; // 256MB
+constexpr int32_t DEFAULT_ARK_PROPERTIES = -1;
+constexpr size_t DEFAULT_GC_THREAD_NUM = 7;
+constexpr size_t DEFAULT_LONG_PAUSE_TIME = 40;
 const std::string RESOLVE_ABILITY_ERR_SOLUTION_TWO =
     "Check if the application corresponding to the specified bundleName is installed";
 const std::string RESOLVE_ABILITY_ERR_SOLUTION_THREE =
@@ -236,6 +243,21 @@ constexpr struct option LONG_OPTIONS_SEND_MEMORY_LEVEL[] = {
     {"level", required_argument, nullptr, 'l' },
     {nullptr, 0, nullptr, 0 },
 };
+
+// JSVM creation function for execute-abc command
+panda::ecmascript::EcmaVM* CreateJSVM()
+{
+    panda::RuntimeOption pandaOption;
+    pandaOption.SetArkProperties(DEFAULT_ARK_PROPERTIES);
+    pandaOption.SetGcThreadNum(DEFAULT_GC_THREAD_NUM);
+    pandaOption.SetLongPauseTime(DEFAULT_LONG_PAUSE_TIME);
+    pandaOption.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
+    pandaOption.SetGcPoolSize(DEFAULT_GC_POOL_SIZE);
+    pandaOption.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::FOLLOW);
+    pandaOption.SetEnableAsmInterpreter(true);
+    pandaOption.SetAsmOpcodeDisableRange("");
+    return panda::JSNApi::CreateJSVM(pandaOption);
+}
 }  // namespace
 
 AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
@@ -263,6 +285,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"execute-abc", [this]() { return this->RunAsExecuteAbcCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -1061,6 +1084,71 @@ ErrCode AbilityManagerShellCommand::RunAsSendMemoryLevelCommand()
     }
 
     return result;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsExecuteAbcCommand()
+{
+    TAG_LOGD(AAFwkTag::AA_TOOL, "execute-abc command");
+
+    // Check for help option
+    if (argc_ >= 2 && (strcmp(argv_[1], "-h") == 0 || strcmp(argv_[1], "--help") == 0)) {
+        resultReceiver_.append(HELP_MSG_EXECUTE_ABC);
+        return OHOS::ERR_OK;
+    }
+
+    // Get abc file path from command line
+    if (argc_ < 2) {
+        resultReceiver_.append("error: abc file path is required\n");
+        resultReceiver_.append(HELP_MSG_EXECUTE_ABC);
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    std::string abcFilePath = argv_[1];
+    TAG_LOGI(AAFwkTag::AA_TOOL, "executing abc file: %{public}s", abcFilePath.c_str());
+
+    // Read abc file
+    std::ifstream stream(abcFilePath, std::ios::ate | std::ios::binary);
+    if (!stream.is_open()) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to open abc file: %{public}s", abcFilePath.c_str());
+        resultReceiver_ = "error: failed to open abc file: " + abcFilePath + "\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    size_t len = stream.tellg();
+    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(len);
+    stream.seekg(0);
+    stream.read(reinterpret_cast<char*>(buffer.get()), len);
+    stream.close();
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "abc file loaded, size: %{public}zu bytes", len);
+
+    // Create JSVM
+    panda::ecmascript::EcmaVM *vm = CreateJSVM();
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to create JSVM");
+        resultReceiver_ = "error: failed to create JS runtime environment\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "JSVM created successfully");
+
+    // Execute abc file
+    bool execResult = panda::JSNApi::Execute(vm, buffer.get(), len, "_GLOBAL::func_main_0");
+    if (execResult) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "abc file executed successfully");
+    } else {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to execute abc file");
+        resultReceiver_ = "error: failed to execute abc file\n";
+        panda::JSNApi::DestroyJSVM(vm);
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    // Destroy JSVM
+    panda::JSNApi::DestroyJSVM(vm);
+    vm = nullptr;
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "execute-abc command completed successfully");
+    return OHOS::ERR_OK;
 }
 
 ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, std::string &memoryLevelParse)
