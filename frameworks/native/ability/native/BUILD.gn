@@ -576,6 +576,7 @@ ohos_shared_library("extensionkit_native") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
     "${ability_runtime_napi_path}/inner/napi_common",
     "${ability_runtime_path}/utils/global/freeze/include",
+    "${agent_runtime_framework_path}/services/agent_module_service/include",
   ]
 
   sources = [
@@ -606,6 +607,7 @@ ohos_shared_library("extensionkit_native") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
+    "${agent_runtime_framework_path}/services/agent_module_service:agent_module_service",
   ]
 
   external_deps = [
