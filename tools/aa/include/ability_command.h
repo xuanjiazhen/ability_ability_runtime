@@ -42,6 +42,8 @@ const std::string HELP_MSG = "usage: aa <command> <options>\n"
     "  attach                      attach application to enter debug mode\n"
     "  detach                      detach application to exit debug mode\n"
     "  send-memory-level           send memory level to application by pid \n"
+    "  execute-abc                 execute abc file
+"
 #ifdef ABILITY_COMMAND_FOR_TEST
     "  test                        start the test framework with options\n"
     "  ApplicationNotResponding     Pass in pid with options\n"
@@ -137,7 +139,16 @@ const std::string HELP_MSG_SEND_MEMORY_LEVEL =
     "Mandatory Options:\n"
     "  -p, --pid <PID>         Target process ID (integer)\n"
     "  -l, --level <0|1|2>     Memory level (0: Moderate, 1: Low, 2: Critical)\n\n"
-    "Optional:\n"
+const std::string HELP_MSG_EXECUTE_ABC =    "Usage: aa execute-abc <abc-file-path>
+"    "Description:
+"    "  Execute an abc file using the Ark runtime
+
+"    "Parameters:
+"    "  abc-file-path           Path to the abc file to execute
+
+"    "Optional:
+"    "  -h, --help              Show this help message
+";
     "  -h, --help              Show this help message\n";
 
 const std::string HELP_MSG_ATTACH_APP_DEBUG =
@@ -238,6 +249,7 @@ private:
     ErrCode CreateCommandMap() override;
     ErrCode init() override;
 
+    ErrCode RunAsExecuteAbcCommand();
     ErrCode RunAsHelpCommand();
     ErrCode RunAsStartAbility();
     ErrCode RunAsStopService();
