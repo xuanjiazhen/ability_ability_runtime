@@ -127,7 +127,7 @@ public:
     static void CheckSystemApp(ani_env *env);
     static void GetTopAbilityCheck(ani_env *env);
     static void GetAbilityRunningInfos(ani_env *env, ani_object callback);
-    static void IsEmbeddedUIExtensionSupported(ani_env *env);
+    static ani_boolean IsEmbeddedUIExtensionSupported(ani_env *env);
     static void IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj, ani_string aniAppId, ani_object callbackObj);
     static void IsEmbeddedOpenAllowedCheck(ani_env *env, ani_object contextObj);
     static void NativeOn(ani_env *env, ani_string aniType, ani_object aniObserver);
@@ -364,15 +364,15 @@ void EtsAbilityManager::IsEmbeddedOpenAllowedCheck(ani_env *env, ani_object cont
     }
 }
 
-bool EtsAbilityManager::IsEmbeddedUIExtensionSupported(ani_env *env)
+ani_boolean EtsAbilityManager::IsEmbeddedUIExtensionSupported(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "IsEmbeddedUIExtensionSupported");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
-        return false;
+        return ANI_FALSE;
     }
     bool result = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
-    return result;
+    return result ? ANI_TRUE : ANI_FALSE;
 }
 
 void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj,
