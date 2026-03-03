@@ -13121,6 +13121,14 @@ int32_t AbilityManagerService::ManualStartAutoStartupApps(int32_t userId)
     return ERR_OK;
 }
 
+int32_t AbilityManagerService::IsAutoStartupSupported(bool &isSupported)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "IsAutoStartupSupported called");
+    isSupported = AppUtils::GetInstance().IsProductAppbootSettingEnabled();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "IsAutoStartupSupported: %{public}d", isSupported);
+    return ERR_OK;
+}
+
 ErrCode AbilityManagerService::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
     uint32_t &callerTokenId)
 {

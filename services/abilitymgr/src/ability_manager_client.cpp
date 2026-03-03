@@ -1978,6 +1978,14 @@ ErrCode AbilityManagerClient::ManualStartAutoStartupApps(int32_t userId)
     return abms->ManualStartAutoStartupApps(userId);
 }
 
+ErrCode AbilityManagerClient::IsAutoStartupSupported(bool &isSupported)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "IsAutoStartupSupported called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->IsAutoStartupSupported(isSupported);
+}
+
 ErrCode AbilityManagerClient::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
     uint32_t &callerTokenId)
 {
