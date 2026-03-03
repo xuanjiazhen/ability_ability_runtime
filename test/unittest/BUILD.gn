@@ -422,6 +422,7 @@ group("unittest") {
       "load_ability_callback_manager_test:unittest",
       "local_pending_want_test:unittest",
       "local_want_agent_info_test:unittest",
+      "madvise_utils_test:unittest",
       "main_element_utils_test:unittest",
       "mission_ability_record_test:unittest",
       "mission_data_storage_test:unittest",
