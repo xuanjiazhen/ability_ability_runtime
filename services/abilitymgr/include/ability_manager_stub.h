@@ -291,6 +291,7 @@ private:
     int32_t GetAutoStartupStatusForSelfInner(MessageParcel &data, MessageParcel &reply);
     int32_t ManualStartAutoStartupAppsInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryCallerTokenIdForAncoInner(MessageParcel &data, MessageParcel &reply);
+    int32_t IsAutoStartupSupportedInner(MessageParcel &data, MessageParcel &reply);
 
     int PrepareTerminateAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int RegisterSessionHandlerInner(MessageParcel &data, MessageParcel &reply);

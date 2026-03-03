@@ -1839,6 +1839,16 @@ public:
     }
 
     /**
+     * @brief Query whether auto startup is supported on current device.
+     * @param isSupported Output parameter, indicates whether auto startup is supported.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t IsAutoStartupSupported(bool &isSupported)
+    {
+        return 0;
+    }
+
+    /**
      * @brief Query the caller's Token ID for anco.
      * @param userId Indicates the user ID.
      * @param asCallerForAncoSessionId Indicates the anco session Id of cached information.

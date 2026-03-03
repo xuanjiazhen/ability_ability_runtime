@@ -714,6 +714,9 @@ enum class AbilityManagerInterfaceCode {
 
     // set app recovery flag
     SET_APP_RECOVERY_FLAG  = 6160,
+
+    // is auto startup supported
+    IS_AUTO_STARTUP_SUPPORTED = 6161,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

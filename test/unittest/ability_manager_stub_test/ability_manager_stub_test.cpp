@@ -4895,6 +4895,45 @@ HWTEST_F(AbilityManagerStubTest, ManualStartAutoStartupAppsInner_0200, TestSize.
 }
 
 /**
+ * @tc.name: IsAutoStartupSupportedInner_0100
+ * @tc.desc: IsAutoStartupSupportedInner
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, IsAutoStartupSupportedInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsAutoStartupSupportedInner_0100 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
+    auto result = stub_->IsAutoStartupSupportedInner(data, reply);
+
+    EXPECT_EQ(result, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "IsAutoStartupSupportedInner_0100 end");
+}
+
+/**
+ * @tc.name: IsAutoStartupSupportedInner_0200
+ * @tc.desc: IsAutoStartupSupportedInner
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubTest, IsAutoStartupSupportedInner_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsAutoStartupSupportedInner_0200 begin");
+
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    ASSERT_TRUE(data.WriteInterfaceToken(AbilityManagerStub::GetDescriptor()));
+
+    auto result = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::IS_AUTO_STARTUP_SUPPORTED), data, reply, option);
+
+    EXPECT_EQ(result, NO_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "IsAutoStartupSupportedInner_0200 end");
+}
+
+/**
  * @tc.name: GetUserLockedBundleListInner_0100
  * @tc.desc: Test normal call of GetUserLockedBundleListInner with empty bundle list
  * @tc.type: FUNC
