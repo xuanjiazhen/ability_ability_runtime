@@ -27,6 +27,7 @@ export default namespace autoStartupManager {
   export native function autoStartupInfoCheck(info: AutoStartupInfo): void;
   export native function nativeCancelApplicationAutoStartup(info: AutoStartupInfo, callback: AsyncCallbackWrapper<void>): void;
   export native function nativeQueryAllAutoStartupApplications(callback: AsyncCallbackWrapper<Array<AutoStartupInfo>>): void;
+  export native function nativeIsAutoStartupSupported(): boolean;
   export native function nativeCheckCallerIsSystemApp(): void;
 
   export function onSystemAutoStartup(callback: AutoStartupCallback): void {
@@ -114,5 +115,9 @@ export default namespace autoStartupManager {
       });
     });
     return p;
+  }
+
+  export function isAutoStartupSupported(): boolean {
+    return autoStartupManager.nativeIsAutoStartupSupported();
   }
 }

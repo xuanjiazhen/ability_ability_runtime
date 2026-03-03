@@ -149,6 +149,11 @@ bool AppLaunchData::MarshallingExtend(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to write startupTaskData");
         return false;
     }
+
+    if (!parcel.WriteBool(isAutoStartupSupported_)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write isAutoStartupSupported");
+        return false;
+    }
     return true;
 }
 
@@ -202,6 +207,7 @@ bool AppLaunchData::ReadFromParcel(Parcel &parcel)
     if (!ReadStartupTaskDataFromParcel(parcel)) {
         return false;
     }
+    isAutoStartupSupported_ = parcel.ReadBool();
     return true;
 }
 
@@ -345,6 +351,16 @@ void AppLaunchData::SetDebugFromLocal(bool isDebugFromLocal)
 bool AppLaunchData::GetDebugFromLocal() const
 {
     return isDebugFromLocal_;
+}
+
+void AppLaunchData::SetIsAutoStartupSupported(bool isAutoStartupSupported)
+{
+    isAutoStartupSupported_ = isAutoStartupSupported;
+}
+
+bool AppLaunchData::IsAutoStartupSupported() const
+{
+    return isAutoStartupSupported_;
 }
 
 bool StartupTaskData::Marshalling(Parcel &parcel) const
