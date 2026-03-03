@@ -21,6 +21,10 @@
 #include <memory>
 #include <string>
 
+#if defined(LINUX_PLATFORM)
+#include "ani.h"
+#include "window_scene.h"
+#endif
 #include "configuration.h"
 #include "options.h"
 
@@ -30,6 +34,9 @@
 #define ABILITY_EXPORT __attribute__((visibility("default")))
 #endif
 namespace OHOS {
+namespace Rosen {
+using SendRenderDataCallback = bool (*)(const void*, const size_t, const int32_t, const int32_t, const uint64_t);
+} // Rosen
 namespace AbilityRuntime {
 class ABILITY_EXPORT Simulator {
 public:
@@ -48,7 +55,7 @@ public:
     virtual ~Simulator() = default;
 
     virtual int64_t StartAbility(
-        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName = "") = 0;
+        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName, Rosen::SendRenderDataCallback renderCallback) = 0;
     virtual void TerminateAbility(int64_t abilityId) = 0;
     virtual void UpdateConfiguration(const AppExecFwk::Configuration &config) = 0;
     virtual void SetMockList(const std::map<std::string, std::string> &mockList) = 0;

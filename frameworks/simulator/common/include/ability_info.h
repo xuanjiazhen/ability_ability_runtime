@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "application_info.h"
+#include "bundle_constants.h"
 #include "extension_ability_info.h"
 
 namespace OHOS {

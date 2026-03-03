@@ -20,8 +20,117 @@ config("ability_simulator_public_config") {
   cflags_cc = [ "-Wno-unused-variable" ]
 }
 
+ohos_shared_library("simulator_context_ani") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  include_dirs = [
+    "${ability_runtime_services_path}/common/include",
+  ]
+
+  sources = [
+    "${ability_runtime_path}/frameworks/ets/ani/native_constructor/context_native_constructor.cpp",
+  ]
+
+  external_deps = [
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "ipc:rpc_ani",
+    "runtime_core:ani",
+  ]
+
+  if (!is_linux) {
+    deps = [
+      "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    ]
+  }
+
+  if (is_linux) {
+    defines = [ "LINUX_PREVIEW" ]
+    external_deps -= [
+      "ipc:ipc_single",
+      "ipc:rpc_ani",
+    ]
+  }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  output_extension = "so"
+}
+
+ohos_shared_library("simulator_context_ani_kit") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  include_dirs = [
+    "./include",
+    "${ability_runtime_napi_path}/ability_auto_startup_callback",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
+    "${ability_runtime_path}/frameworks/simulator/common/include",
+  ]
+
+  configs = []
+
+  public_configs = []
+
+  sources = [ "./src/ets_context_mock.cpp" ]
+
+  if (!is_linux) {
+    deps = [
+      "${ability_runtime_innerkits_path}/ani_base_context:ani_base_context",
+      "${ability_runtime_innerkits_path}/error_utils:ability_runtime_error_util",
+      "${ability_runtime_innerkits_path}/runtime:runtime",
+      "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+      "${ability_runtime_native_path}/ability/native:ability_business_error",
+      "${ability_runtime_native_path}/appkit:app_context",
+      "${ability_runtime_native_path}/appkit:app_context_utils",
+      "${ability_runtime_native_path}/appkit:appkit_native",
+      "${ability_runtime_native_path}/appkit:application_context_manager",
+      "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
+    ]
+  }
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "napi:ace_napi",
+    "runtime_core:ani",
+    "runtime_core:ani_helpers",
+  ]
+
+  if (is_linux) {
+    defines = [ "LINUX_PREVIEW" ]
+
+    external_deps -= [
+    "c_utils:utils",
+    "hitrace:hitrace_meter",
+    "runtime_core:ani_helpers",
+    ]
+
+    include_dirs -= [
+      "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+    ]
+  }
+
+  innerapi_tags = [ "platformsdk" ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
 ohos_shared_library("ability_simulator_inner") {
-  if (is_mingw || is_mac) {
+  if (is_mingw || is_mac || is_linux) {
     defines = []
     if (is_mingw) {
       defines += [
@@ -45,6 +154,7 @@ ohos_shared_library("ability_simulator_inner") {
       "${ability_runtime_innerkits_path}/error_utils/include",
       "${ability_runtime_innerkits_path}/runtime/include",
       "${windowmanager_path}/previewer/include",
+      "${windowmanager_path}/previewer",
       "${windowmanager_path}/previewer/mock",
       "${windowmanager_path}/previewer/mock/transaction",
       "${windowmanager_path}/previewer/mock/ui",
@@ -52,7 +162,17 @@ ohos_shared_library("ability_simulator_inner") {
       "${windowmanager_path}/interfaces/kits/napi/window_runtime/window_stage_napi",
       "include/bundle_parser",
       "${simulator_path}/napi_module/application",
+      "${resource_management_path}/interfaces/inner_api/include",
     ]
+
+    if (is_linux) {
+      include_dirs += [
+        "${windowmanager_path}/interfaces/kits/ani/window_runtime/window_stage_ani/include/",
+      ]
+      defines += [ "LINUX_PREVIEW" ]
+      defines += [ "LINUX_PLATFORM" ]
+      defines += [ "PREVIEW" ]
+    }
 
     sources = [
       "${ability_runtime_native_path}/ability/native/ability_business_error/ability_business_error.cpp",
@@ -92,6 +212,12 @@ ohos_shared_library("ability_simulator_inner") {
       "src/simulator.cpp",
     ]
 
+    if (is_linux) {
+      sources += [
+        "src/dynamic_loader_linux.cpp",
+      ]
+    }
+
     public_configs = [
       ":ability_simulator_public_config",
       "${simulator_path}/common:ability_simulator_common_config",
@@ -111,6 +237,12 @@ ohos_shared_library("ability_simulator_inner") {
       "resource_management:resmgr_napi_core_preview",
     ]
 
+    if (is_linux) {
+      external_deps += [
+        "runtime_core:ani",
+      ]
+    }
+
     if (ability_runtime_graphics) {
       external_deps += [
         "ace_engine:ace_uicontent",
@@ -121,8 +253,10 @@ ohos_shared_library("ability_simulator_inner") {
 
     if (is_mingw) {
       external_deps += [ "resource_management:win_resmgr" ]
-    } else {
+    } else if (is_mac) {
       external_deps += [ "resource_management:mac_resmgr" ]
+    } else if (is_linux) {
+      external_deps += [ "resource_management:linux_resmgr" ]
     }
   }
 
@@ -133,7 +267,7 @@ ohos_shared_library("ability_simulator_inner") {
 }
 
 group("ability_simulator") {
-  if (is_mingw || is_mac) {
+  if (is_mingw || is_mac || is_linux) {
     public_deps = [ ":ability_simulator_inner" ]
   }
 }

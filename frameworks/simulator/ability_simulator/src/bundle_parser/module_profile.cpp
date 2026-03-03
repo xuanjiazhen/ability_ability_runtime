@@ -19,6 +19,8 @@
 #include <mutex>
 #include <set>
 #include <sstream>
+#include <unordered_map>
+
 #include "bundle_constants.h"
 #include "bundle_info.h"
 #include "common_profile.h"

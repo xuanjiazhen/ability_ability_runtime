@@ -21,6 +21,7 @@
 #include "ability_info.h"
 #include "application_info.h"
 #include "extension_ability_info.h"
+#include "bundle_constants.h"
 
 namespace OHOS {
 namespace AppExecFwk {
