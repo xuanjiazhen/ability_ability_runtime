@@ -711,6 +711,9 @@ enum class AbilityManagerInterfaceCode {
 
     // get user locked bundle list
     GET_USER_LOCKED_BUNDLE_LIST = 6159,
+
+    // start ability by oe extension
+    START_ABILITY_BY_OE_EXT = 6160,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
