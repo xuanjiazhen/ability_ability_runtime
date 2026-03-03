@@ -2915,6 +2915,7 @@ HWTEST_F(AbilityManagerProxyTest, GetAutoStartupStatusForSelf_0100, TestSize.Lev
     EXPECT_EQ(res, ERR_OK);
 }
 
+
 /**
  * @tc.name: AbilityManagerProxy_SetResidentProcessEnable_0100
  * @tc.desc: RestartApp
