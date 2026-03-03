@@ -431,6 +431,7 @@ bool JsInsightIntentExecutor::HandlePromiseResult(napi_env env, napi_value resul
     }
     constexpr size_t argcThen = 1;
     napi_value argvThen[argcThen] = { resolveCbJs };
+    TAG_LOGI(AAFwkTag::INTENT, "call JS code");
     napi_call_function(env, resultJs, then, argcThen, argvThen, nullptr);
     napi_value promiseCatch = nullptr;
     napi_get_named_property(env, resultJs, "catch", &promiseCatch);
@@ -440,7 +441,7 @@ bool JsInsightIntentExecutor::HandlePromiseResult(napi_env env, napi_value resul
     constexpr size_t argcCatch = 1;
     napi_value argvCatch[argcCatch] = { rejectCbJs };
     napi_call_function(env, resultJs, promiseCatch, argcCatch, argvCatch, nullptr);
-
+    TAG_LOGI(AAFwkTag::INTENT, "call JS code end");
     return true;
 }
 
