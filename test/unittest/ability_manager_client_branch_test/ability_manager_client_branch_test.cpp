@@ -1893,6 +1893,18 @@ HWTEST_F(AbilityManagerClientBranchTest, GetAutoStartupStatusForSelf_0100, TestS
 }
 
 /**
+ * @tc.name: AbilityManagerClient_IsAutoStartupSupported_0100
+ * @tc.desc: IsAutoStartupSupported
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, IsAutoStartupSupported_0100, TestSize.Level1)
+{
+    bool isSupported = false;
+    auto result = client_->IsAutoStartupSupported(isSupported);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
  * @tc.name: AbilityManagerClient_RegisterIAbilityManagerCollaborator_0100
  * @tc.desc: RegisterIAbilityManagerCollaborator
  * @tc.type: FUNC

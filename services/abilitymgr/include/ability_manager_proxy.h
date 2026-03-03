@@ -1394,6 +1394,13 @@ public:
     virtual int32_t QueryAllAutoStartupApplications(std::vector<AutoStartupInfo> &infoList) override;
 
     /**
+     * @brief Query whether auto startup is supported on current device.
+     * @param isSupported Output parameter, indicates whether auto startup is supported.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t IsAutoStartupSupported(bool &isSupported) override;
+
+    /**
      * @brief Retrieves the auto startup status of the current application.
      * @param isAutoStartEnabled Indicates whether auto startup is enabled for the current application.
      * @return Returns ERR_OK on success, others on failure.

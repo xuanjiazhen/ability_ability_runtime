@@ -712,8 +712,11 @@ enum class AbilityManagerInterfaceCode {
     // get user locked bundle list
     GET_USER_LOCKED_BUNDLE_LIST = 6159,
 
-    // set app recovery flag
+    // set app recovery flag 
     SET_APP_RECOVERY_FLAG  = 6160,
+
+    // is auto startup supported
+    IS_AUTO_STARTUP_SUPPORTED = 6161,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
