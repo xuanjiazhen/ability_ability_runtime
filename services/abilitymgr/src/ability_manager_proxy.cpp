@@ -4818,6 +4818,82 @@ int32_t AbilityManagerProxy::RecordProcessExitReason(int32_t pid, int32_t uid, c
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::KillAppWithReason(const int32_t pid, const ExitReasonCompability &exitReason)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "start.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, pid);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &exitReason);
+
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::KILL_APP_WITH_REASON, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end.");
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::KillBundleWithReason(
+    const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "start.");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, String, bundleName);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, userId);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, appIndex);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &exitReason);
+
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::KILL_BUNDLE_WITH_REASON, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end.");
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::RecordAppWithReason(
+    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, pid);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, uid);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &exitReason);
+
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::RECORD_APP_WITH_REASON, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end.");
+    return reply.ReadInt32();
+}
+
 void AbilityManagerProxy::SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession)
 {
     MessageParcel data;
@@ -5292,6 +5368,38 @@ int32_t AbilityManagerProxy::ManualStartAutoStartupApps(int32_t userId)
         return ret;
     }
     return reply.ReadInt32();
+}
+
+ErrCode AbilityManagerProxy::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
+    uint32_t &callerTokenId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write userId fail");
+        return ERR_WRITE_INT32_FAILED;
+    }
+    if (!data.WriteString(asCallerForAncoSessionId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write asCallerForAncoSessionId fail");
+        return ERR_WRITE_STRING_FAILED;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::QUERY_CALLER_TOKEN_ID_FOR_ANCO, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error:%{public}d", ret);
+        return ret;
+    }
+    auto resultCode = reply.ReadInt32();
+    if (resultCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply error:%{public}d", resultCode);
+        return resultCode;
+    }
+    callerTokenId = reply.ReadUint32();
+    return NO_ERROR;
 }
 
 int AbilityManagerProxy::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isPrepareTerminate)
@@ -6803,7 +6911,7 @@ int32_t AbilityManagerProxy::QueryPreLoadUIExtensionRecord(const AppExecFwk::Ele
 
     if (!data.WriteString(moduleName)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "write moduleName fail");
-        return ERR_INVALID_VALUE;
+        return INNER_ERR;
     }
 
     if (!data.WriteInt32(hostPid)) {
@@ -7538,6 +7646,43 @@ int32_t AbilityManagerProxy::UnRegisterPreloadUIExtensionHostClient(int32_t call
     }
     int32_t result = reply.ReadInt32();
     return result;
+}
+
+int32_t AbilityManagerProxy::GetUserLockedBundleList(int32_t userId,
+    std::unordered_set<std::string> &userLockedBundleList)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write userId fail");
+        return ERR_INVALID_VALUE;
+    }
+    auto error = SendRequest(
+        AbilityManagerInterfaceCode::GET_USER_LOCKED_BUNDLE_LIST, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    auto errCode = reply.ReadInt32();
+    if (errCode != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetUserLockedBundleList failed, errCode: %{public}d", errCode);
+        return errCode;
+    }
+    int32_t bundleListSize = reply.ReadInt32();
+    if (bundleListSize > MAX_DUMP_STATE_SIZE) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundle list size error");
+        return ERR_INVALID_VALUE;
+    }
+    for (int32_t i = 0; i < bundleListSize; ++i) {
+        std::string bundle = Str16ToStr8(reply.ReadString16());
+        userLockedBundleList.insert(bundle);
+    }
+    return NO_ERROR;
 }
 } // namespace AAFwk
 } // namespace OHOS

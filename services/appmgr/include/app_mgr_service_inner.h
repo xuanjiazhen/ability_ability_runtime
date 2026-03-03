@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -996,6 +996,9 @@ public:
      */
     int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
 
+    int32_t NotifyAppMgrRecordExitReasonCompability(
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg);
+
     /**
      * Notify application status.
      *
@@ -1353,7 +1356,7 @@ public:
     /**
      * Elevate the current process to be a candidate master process.
      *
-     * @param isInsertToHead Whether inset current process to the head of candidate master process list.
+     * @param isInsertToHead Whether insert current process to the head of candidate master process list.
      * @return Return ERR_OK if success, others fail.
      */
     int32_t PromoteCurrentToCandidateMasterProcess(bool isInsertToHead);
@@ -1630,6 +1633,7 @@ public:
 
     int32_t KillChildProcessByPid(int32_t pid);
 
+    void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName);
     /**
      * Preload extension process.
      *
@@ -1639,8 +1643,6 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
-
-    void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName);
 
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
@@ -2195,6 +2197,7 @@ private:
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(std::shared_ptr<ApplicationInfo> appInfo,
         const std::string &processName, const BundleInfo &bundleInfo);
+
     void AddUIExtensionBindItem(
         std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
     void RemoveUIExtensionBindItem(std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
@@ -2216,18 +2219,50 @@ private:
     void InsertUninstallOrUpgradeUidSet(int32_t uid);
     void RemoveUninstallOrUpgradeUidSet(int32_t uid);
     bool IsUninstallingOrUpgrading(int32_t uid);
-    bool isInitAppWaitingDebugListExecuted_ = false;
-    std::atomic<bool> sceneBoardAttachFlag_ = true;
-    std::atomic<int32_t> willKillPidsNum_ = 0;
-    std::unordered_map<int32_t, int32_t> lastRenderProcessIsolationIdMap_;
-    std::unordered_map<int32_t, int32_t> lastChildProcessIsolationIdMap_;
-    const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
-    std::vector<AppStateCallbackWithUserId> appStateCallbacks_;
     std::shared_ptr<RemoteClientManager> remoteClientManager_;
     std::shared_ptr<AppRunningManager> appRunningManager_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> rssTaskHandler_;
     std::shared_ptr<AMSEventHandler> eventHandler_;
+    std::shared_ptr<AAFwk::TaskHandlerWrap> dfxTaskHandler_;
+    std::shared_ptr<AppDebugManager> appDebugManager_;
+    std::shared_ptr<AbilityRuntime::AppRunningStatusModule> appRunningStatusModule_;
+    std::shared_ptr<AdvancedSecurityModeManager> securityModeManager_;
+    std::shared_ptr<AppPreloader> appPreloader_;
+    std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
+    std::shared_ptr<AppExecFwk::AppMgrEventSubscriber> screenOffSubscriber_;
+
+    sptr<IStartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
+    sptr<IAbilityDebugResponse> abilityDebugResponse_;
+    sptr<IKiaInterceptor> kiaInterceptor_;
+#ifdef SUPPORT_SCREEN
+    sptr<WindowFocusChangedListener> focusListener_;
+    sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
+    sptr<WindowPidVisibilityChangedListener> windowPidVisibilityChangedListener_;
+#endif //SUPPORT_SCREEN
+    std::atomic<bool> sceneBoardAttachFlag_ = true;
+    std::atomic<int32_t> willKillPidsNum_ = 0;
+    std::unordered_map<int32_t, int32_t> lastRenderProcessIsolationIdMap_;
+    std::unordered_map<int32_t, int32_t> lastChildProcessIsolationIdMap_;
+    mutable std::map<int64_t, std::string> killedProcessMap_;
+    std::map<std::string, std::vector<BaseSharedBundleInfo>> runningSharedBundleList_;
+    std::map<std::string, bool> waitingDebugBundleList_;
+    std::map<int32_t, std::unordered_map<pid_t, int32_t>> uiExtensionBindReleations_;
+    std::unordered_set<int32_t> renderProcessIsolationUidSet_;
+    std::unordered_set<int32_t> childProcessIsolationUidSet_;
+    std::unordered_set<int32_t> uninstallOrUpgradeUidSet_ {};
+    std::unordered_set<std::string> nwebPreloadSet_ {};
+
+    std::vector<AppStateCallbackWithUserId> appStateCallbacks_;
+    std::vector<ConfigurationObserverWithUserId> configurationObservers_;
+    std::vector<std::shared_ptr<AppRunningRecord>> restartResidentTaskList_;
+    std::vector<std::string> serviceExtensionWhiteList_;
+    std::vector<LoadAbilityTaskFunc> loadAbilityTaskFuncList_;
+
+    const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
+    std::string supportIsolationMode_ {"false"};
+    std::string supportServiceExtMultiProcess_ {"false"};
+
     ffrt::mutex userTestLock_;
     ffrt::mutex appStateCallbacksLock_;
     ffrt::mutex renderProcessIsolationUidSetLock_;
@@ -2235,55 +2270,22 @@ private:
     ffrt::mutex exceptionLock_;
     ffrt::mutex browserHostLock_;
     ffrt::mutex restartResidentTaskListMutex_;
-    sptr<IStartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
     ffrt::mutex configurationObserverLock_;
-    std::vector<ConfigurationObserverWithUserId> configurationObservers_;
-
-#ifdef SUPPORT_SCREEN
-    sptr<WindowFocusChangedListener> focusListener_;
-    sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
-    sptr<WindowPidVisibilityChangedListener> windowPidVisibilityChangedListener_;
-#endif //SUPPORT_SCREEN
-    std::vector<std::shared_ptr<AppRunningRecord>> restartResidentTaskList_;
     ffrt::mutex runningSharedBundleListMutex_;
-    std::map<std::string, std::vector<BaseSharedBundleInfo>> runningSharedBundleList_;
-    std::map<std::string, bool> waitingDebugBundleList_;
     ffrt::mutex waitingDebugLock_;
-    std::unordered_set<int32_t> renderProcessIsolationUidSet_;
-    std::unordered_set<int32_t> childProcessIsolationUidSet_;
-    std::string supportIsolationMode_ {"false"};
-    std::string supportServiceExtMultiProcess_ {"false"};
-    sptr<IAbilityDebugResponse> abilityDebugResponse_;
-    std::shared_ptr<AppDebugManager> appDebugManager_;
     ffrt::mutex killedProcessMapLock_;
-    mutable std::map<int64_t, std::string> killedProcessMap_;
 #ifdef SUPPORT_CHILD_PROCESS
     ffrt::mutex startChildProcessLock_;
 #endif //SUPPORT_CHILD_PROCESS
-    std::vector<std::string> serviceExtensionWhiteList_;
-    std::shared_ptr<AbilityRuntime::AppRunningStatusModule> appRunningStatusModule_;
-    std::shared_ptr<AdvancedSecurityModeManager> securityModeManager_;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> dfxTaskHandler_;
-    std::shared_ptr<AppPreloader> appPreloader_;
-
     std::mutex loadTaskListMutex_;
-    std::vector<LoadAbilityTaskFunc> loadAbilityTaskFuncList_;
     std::mutex kiaInterceptorMutex_;
-    sptr<IKiaInterceptor> kiaInterceptor_;
-    std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
-    std::unordered_set<std::string> nwebPreloadSet_ {};
-    std::shared_ptr<AppExecFwk::AppMgrEventSubscriber> screenOffSubscriber_;
-
     std::mutex screenOffSubscriberMutex_;
     std::mutex childProcessRecordMapMutex_;
-
     std::mutex uiExtensionBindReleationsLock_;
-    std::map<int32_t, std::unordered_map<pid_t, int32_t>> uiExtensionBindReleations_;
-
-    std::shared_mutex startProcessLock_;
     ffrt::mutex uninstallOrUpgradeUidSetLock_;
-    std::unordered_set<int32_t> uninstallOrUpgradeUidSet_ {};
     ffrt::mutex exitMasterProcessRoleLock_;
+    std::shared_mutex startProcessLock_;
+    bool isInitAppWaitingDebugListExecuted_ = false;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
