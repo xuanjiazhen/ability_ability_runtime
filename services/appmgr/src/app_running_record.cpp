@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,7 +13,9 @@
  * limitations under the License.
  */
 
+#include <limits>
 #include <optional>
+#include <random>
 
 #include "ability_window_configuration.h"
 #include "app_running_record.h"
@@ -76,6 +78,7 @@ AppRunningRecord::AppRunningRecord(
     t.tv_nsec = 0;
     clock_gettime(CLOCK_MONOTONIC, &t);
     startTimeMillis_ = static_cast<int64_t>(((t.tv_sec) * NANOSECONDS + t.tv_nsec) / MICROSECONDS);
+    appRunningUniqueId_ = GenerateRunningId();
 }
 
 void AppRunningRecord::SetApplicationClient(const sptr<IAppScheduler> &thread)
@@ -383,7 +386,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetMultiThread(isMultiThread_);
     launchData.SetJITEnabled(jitEnabled_);
     launchData.SetNativeStart(isNativeStart_);
-    launchData.SetAppRunningUniqueId(std::to_string(startTimeMillis_));
+    launchData.SetAppRunningUniqueId(std::to_string(appRunningUniqueId_));
     launchData.SetIsNeedPreloadModule(isNeedPreloadModule_);
     launchData.SetAppPreloadMode(preloadMode_);
     launchData.SetNWebPreload(isAllowedNWebPreload_);
@@ -2053,8 +2056,8 @@ bool AppRunningRecord::IsAbilitiesBackground()
     }
     return true;
 }
-#ifdef SUPPORT_SCREEN
 
+#ifdef SUPPORT_SCREEN
 void AppRunningRecord::ChangeWindowVisibility(const sptr<OHOS::Rosen::WindowVisibilityInfo> &info)
 {
     if (info == nullptr) {
@@ -2174,6 +2177,18 @@ bool AppRunningRecord::GetFocusFlag() const
 int64_t AppRunningRecord::GetAppStartTime() const
 {
     return startTimeMillis_;
+}
+
+uint64_t AppRunningRecord::GetAppRunningUniqueId() const
+{
+    return appRunningUniqueId_;
+}
+
+uint64_t AppRunningRecord::GenerateRunningId()
+{
+    thread_local std::mt19937_64 engine(std::random_device{}());
+    thread_local std::uniform_int_distribution<uint64_t> dist;
+    return dist(engine);
 }
 
 void AppRunningRecord::SetRequestProcCode(int32_t requestProcCode)
@@ -2475,6 +2490,36 @@ void AppRunningRecord::SetExitMsg(const std::string &exitMsg)
 std::string AppRunningRecord::GetExitMsg() const
 {
     return exitMsg_;
+}
+
+void AppRunningRecord::SetKillId(int32_t killId)
+{
+    killId_ = killId;
+}
+
+int32_t AppRunningRecord::GetKillId() const
+{
+    return killId_;
+}
+
+void AppRunningRecord::SetKillMsg(const std::string &killMsg)
+{
+    killMsg_ = killMsg;
+}
+
+std::string AppRunningRecord::GetKillMsg() const
+{
+    return killMsg_;
+}
+
+void AppRunningRecord::SetInnerMsg(const std::string &innerMsg)
+{
+    innerMsg_ = innerMsg;
+}
+
+std::string AppRunningRecord::GetInnerMsg() const
+{
+    return innerMsg_;
 }
 
 int AppRunningRecord::DumpIpcStart(std::string& result)

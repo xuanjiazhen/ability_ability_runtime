@@ -62,16 +62,13 @@ const std::string ETS_SYSLIB_PATH =
 #endif
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr char SANDBOX_ARK_CACHE_PATH[] = "/data/storage/ark-cache/";
+constexpr char SANDBOX_SHARED_BUNDLE_ARK_CACHE_PATH[] =
+    "/data/service/el1/public/for-all-app/shared_bundles_ark_cache/";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
+const std::string SYS_HSP_FILE_PATH_PREFIX = "/system/app/";
 
 const char *ETS_ENV_LIBNAME = "libets_environment.z.so";
 const char *ETS_ENV_REGISTER_FUNCS = "OHOS_ETS_ENV_RegisterFuncs";
-
-static void HandleOhmUrlBase(std::string &base)
-{
-    // <dir1>/<dir2>/  =>  <dir1>.<dir2>.
-    std::replace(base.begin(), base.end(), '/', '.');
-}
 
 ETSEnvFuncs *g_etsEnvFuncs = nullptr;
 
@@ -163,6 +160,46 @@ void ETSRuntime::PreloadLibrary()
     }
 }
 
+std::string ETSRuntime::GetAotPath(const Options &options)
+{
+    std::vector<std::string> aotFiles;
+    // Handle Hap and Inner Hsp
+    // path: <sandbox_path>/arm64/<moduleName>.an
+    for (const auto& status: options.aotCompileStatusMap) {
+        if (status.second) {
+            aotFiles.push_back(SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + status.first + ".an");
+        }
+    }
+
+    // Handle Outer Hsp
+    for (const auto& bundleInfo: options.commonHspBundleInfos) {
+        if (bundleInfo.moduleArkTSMode == AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+            continue;
+        }
+
+        if (bundleInfo.hapPath.compare(0, SYS_HSP_FILE_PATH_PREFIX.size(), SYS_HSP_FILE_PATH_PREFIX) != 0 &&
+            bundleInfo.hapPath.rfind('/') == std::string::npos) {
+            continue;
+        }
+
+        // path: <sandbox_path>/<bundleName>/v<versionCode>/arm64/<moduleName>.an
+        std::string outerHspAnPath = SANDBOX_SHARED_BUNDLE_ARK_CACHE_PATH + bundleInfo.bundleName +
+            std::string(AbilityBase::Constants::FILE_SEPARATOR) + std::to_string(bundleInfo.versionCode) +
+            std::string(AbilityBase::Constants::FILE_SEPARATOR) + options.arkNativeFilePath +
+            bundleInfo.moduleName + ".an";
+        aotFiles.push_back(outerHspAnPath);
+    }
+
+    std::string aotFilePath;
+    for (const auto& path: aotFiles) {
+        if (!aotFilePath.empty()) {
+            aotFilePath += ":";
+        }
+        aotFilePath += path;
+    }
+    return aotFilePath;
+}
+
 bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRuntime, bool isMove)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "PostFork begin");
@@ -190,13 +227,8 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
             vm, HybridJsModuleReader(options.bundleName, options.hapPath, options.isUnique));
     }
 
-    std::string aotFilePath = "";
-    if (!options.arkNativeFilePath.empty()) {
-        aotFilePath = SANDBOX_ARK_CACHE_PATH + options.arkNativeFilePath + options.moduleName + ".an";
-    }
-
-    g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), aotFilePath, options.appInnerHspPathList,
-        options.commonHspBundleInfos, options.eventRunner);
+    g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), GetAotPath(options), options.appInnerHspPathList,
+        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner);
     return true;
 }
 
@@ -281,6 +313,7 @@ void ETSRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths,
     };
     g_etsEnvFuncs->SetAppLibPath(abcPathsToBundleModuleNameMap, cb);
 }
+
 void ETSRuntime::SetExtensionApiCheckCallback(
     std::function<bool(const std::string &className, const std::string &fileName)> &cb)
 {
@@ -519,11 +552,29 @@ void ETSRuntime::PreloadSystemModule(const std::string &moduleName)
     }
 }
 
+bool ETSRuntime::PreloadSystemClass(const char *className)
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreloadSystemClass called");
+    if (g_etsEnvFuncs == nullptr ||
+        g_etsEnvFuncs->PreloadSystemClass == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or PreloadSystemClass");
+        return false;
+    }
+    g_etsEnvFuncs->PreloadSystemClass(className);
+    return true;
+}
+
 void ETSRuntime::SetModuleLoadChecker(const std::shared_ptr<ModuleCheckerDelegate> moduleCheckerDelegate) const
 {
     if (jsRuntime_ != nullptr) {
         jsRuntime_->SetModuleLoadChecker(moduleCheckerDelegate);
     }
+}
+
+static void HandleOhmUrlBase(std::string &base)
+{
+    // <dir1>/<dir2>/  =>  <dir1>.<dir2>.
+    std::replace(base.begin(), base.end(), '/', '.');
 }
 
 std::string ETSRuntime::HandleOhmUrlSrcEntry(const std::string &srcEntry)
@@ -552,18 +603,6 @@ void ETSRuntime::HandleOhmUrlFileName(std::string &fileName)
         // <fileName>  =>  <fileName>.<fileName>
         fileName = fileName + "." + fileName;
     }
-}
-
-bool ETSRuntime::PreloadSystemClass(const char *className)
-{
-    TAG_LOGD(AAFwkTag::ETSRUNTIME, "PreloadSystemClass called");
-    if (g_etsEnvFuncs == nullptr ||
-        g_etsEnvFuncs->PreloadSystemClass == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null g_etsEnvFuncs or PreloadSystemClass");
-        return false;
-    }
-    g_etsEnvFuncs->PreloadSystemClass(className);
-    return true;
 }
 
 void ETSRuntime::StartDebugMode(const DebugOption dOption)

@@ -23,6 +23,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include "resource_config_helper.h"
 #include "ability_manager_client.h"
 #include "constants.h"
 #include "ability_delegator.h"
@@ -68,7 +69,6 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "load_ability_callback_manager.h"
-#include "resource_config_helper.h"
 #ifdef SUPPORT_SCREEN
 #include "locale_config_ext.h"
 #include "ace_forward_compatibility.h"
@@ -1791,17 +1791,21 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
                 options.hapModulePath[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
                 options.packageNameList[hapModuleInfo.moduleName] = hapModuleInfo.packageName;
-                if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::SHARED &&
-                    hapModuleInfo.moduleArkTSMode != AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
-                    TAG_LOGD(AAFwkTag::APPKIT, "appInnerHspPathList: %{public}s", hapModuleInfo.hapPath.c_str());
-                    options.appInnerHspPathList.push_back(hapModuleInfo.hapPath);
+                if (hapModuleInfo.moduleArkTSMode != AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+                    TAG_LOGD(AAFwkTag::APPKIT, "staticHapModuleNameList: %{public}s", hapModuleInfo.moduleName.c_str());
+                    options.staticHapModuleNameList.push_back(hapModuleInfo.moduleName);
+                    if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::SHARED) {
+                        TAG_LOGD(AAFwkTag::APPKIT, "appInnerHspPathList: %{public}s", hapModuleInfo.hapPath.c_str());
+                        options.appInnerHspPathList.push_back(hapModuleInfo.hapPath);
+                    }
                 }
                 options.aotCompileStatusMap[hapModuleInfo.moduleName] =
                     static_cast<int32_t>(hapModuleInfo.aotCompileStatus);
             }
         }
         for (const auto &hsp : hspList) {
-            options.commonHspBundleInfos.push_back({hsp.bundleName, hsp.moduleName, hsp.hapPath, hsp.moduleArkTSMode});
+            options.commonHspBundleInfos.push_back({hsp.versionCode, hsp.bundleName, hsp.moduleName,
+                                                    hsp.hapPath, hsp.moduleArkTSMode});
         }
         options.enableWarmStartupSmartGC =
             (appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRE_MAKE ||
@@ -1814,7 +1818,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             return;
         }
         runtimeUpdateParam_.option = options;
-
         if (appInfo.debug && appLaunchData.GetDebugApp()) {
             wptr<MainThread> weak = this;
             auto cb = [weak]() {
@@ -1828,7 +1831,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             runtime->SetDeviceDisconnectCallback(cb);
         }
         auto perfCmd = appLaunchData.GetPerfCmd();
-
         int32_t pid = -1;
         std::string processName = "";
         if (processInfo_ != nullptr) {

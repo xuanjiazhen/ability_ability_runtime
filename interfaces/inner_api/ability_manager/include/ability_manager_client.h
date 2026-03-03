@@ -1200,6 +1200,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ManualStartAutoStartupApps(int32_t userId);
+    
+    /**
+     * @brief Query the caller's Token ID for anco.
+     * @param userId Indicates the user ID.
+     * @param asCallerForAncoSessionId Indicates the anco session Id of cached information.
+     * @param callerTokenId Indicates the output caller Token ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
+        uint32_t &callerTokenId);
 
     /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
@@ -1485,6 +1495,34 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason);
+
+    /**
+     * kill app reason.
+     * @param pid The process id.
+     * @param exitReason The reason of kill app.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode KillAppWithReason(int32_t pid, const ExitReasonCompability &exitReason);
+
+    /**
+     * Force bundle exit and record exit reason.
+     * @param bundleName Bundle name of kill app.
+     * @param appIndex The app index of app clone.
+     * @param userId User ID.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode KillBundleWithReason(
+        const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason);
+
+    /**
+     * Record app exit reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason);
 
     /**
      * Set rootSceneSession by SCB.
@@ -2040,6 +2078,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE);
+
+    /**
+     * @brief Get list of applications launched before the first unlock.
+     * @param userId The User Id.
+     * @param userLockedBundleList List of applications launched before the first unlock.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetUserLockedBundleList(int32_t userId, std::unordered_set<std::string> &userLockedBundleList);
 
 private:
     AbilityManagerClient();

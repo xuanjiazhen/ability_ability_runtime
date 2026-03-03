@@ -34,6 +34,8 @@
 #include "process_options.h"
 #include "request_id_util.h"
 #include "restart_app_manager.h"
+#include "session_info.h"
+#include "start_ability_utils.h"
 #include "scene_board/status_bar_delegate_manager.h"
 #include "server_constant.h"
 #include "session_manager_lite.h"
@@ -61,7 +63,8 @@ constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 constexpr const char* DMS_PROCESS_NAME = "distributedsched";
 constexpr const char* DMS_PERSISTENT_ID = "ohos.dms.persistentId";
 constexpr const char* IS_SHELL_CALL = "isShellCall";
-constexpr const char* SPECIFED_PROCESS_CALLER_PROCESS = "ohoSpecifiedProcessCallerProcess";
+constexpr const char* SPECIFIED_PROCESS_CALLER_PROCESS = "ohoSpecifiedProcessCallerProcess";
+constexpr const char* PARAM_DIALOG_SESSION_ID = "ohos.ability.param.sessionId";
 constexpr const char* BACKGROUND_DELAY_TIME = "persist.sys.abilityms.backgroundDelayTime";
 constexpr int32_t DEFAULT_BACKGROUND_DELAY_TIME = 6 * 1000 * 1000;
 #ifdef SUPPORT_ASAN
@@ -75,7 +78,6 @@ constexpr int32_t START_UI_ABILITY_PER_SECOND_UPPER_LIMIT = 20;
 constexpr int32_t API20 = 20;
 constexpr int32_t API_VERSION_MOD = 100;
 constexpr int32_t REQUEST_LIST_ID_INIT = -1;
-constexpr int32_t DEFAULT_REQUEST_CODE = -1;
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
 constexpr int32_t BY_CALL_TIMEOUT = 10 * 1000 * 1000; // 10s
@@ -214,6 +216,15 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         sessionInfo->instanceKey.c_str(), sessionInfo->requestId, isCallBySCB, sessionInfo->reuseDelegatorWindow,
         sessionInfo->scenarios, abilityRequest.requestCode);
     abilityRequest.sessionInfo = sessionInfo;
+    if (sessionInfo->callerTypeForAnco == static_cast<int32_t>(CallerTypeForAnco::ADD)) {
+        auto asCallerForAncoSessionId = StartAbilityUtils::GenerateAsCallerForAncoSessionId();
+        CallerInfo callerInfo;
+        callerInfo.callerTokenId = sessionInfo->callingTokenId;
+        callerInfo.targetWant = abilityRequest.want;
+        std::lock_guard<ffrt::mutex> guard(callerInfoMapLock_);
+        callerInfoMap_.emplace(asCallerForAncoSessionId, std::move(callerInfo));
+        abilityRequest.want.SetParam(PARAM_DIALOG_SESSION_ID, asCallerForAncoSessionId);
+    }
     auto uiAbilityRecord = GenerateAbilityRecord(abilityRequest, sessionInfo, isColdStart);
     CHECK_POINTER_AND_RETURN(uiAbilityRecord, ERR_INVALID_VALUE);
     if (!isColdStart && shouldReturnPid && uiAbilityRecord->GetPid() > 0) {
@@ -227,12 +238,12 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         uiAbilityRecord->lifeCycleStateInfo_.sceneFlagBak = params.sceneFlag;
         return ERR_OK;
     }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartUIAbility, specifyTokenId is %{public}u.", abilityRequest.specifyTokenId);
     auto want = uiAbilityRecord->GetWant();
     if (want.GetBoolParam(IS_CALLING_FROM_DMS, false) && !(sessionInfo->isNewWant)) {
         want.RemoveParam(IS_CALLING_FROM_DMS);
         uiAbilityRecord->SetWant(want);
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartUIAbility, specifyTokenId is %{public}u.", abilityRequest.specifyTokenId);
     uiAbilityRecord->SetSpecifyTokenId(abilityRequest.specifyTokenId);
     UpdateAbilityRecordLaunchReason(abilityRequest, uiAbilityRecord);
     NotifyAbilityToken(uiAbilityRecord->GetToken(), abilityRequest);
@@ -276,6 +287,12 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         isStartupHide = abilityRequest.processOptions->startupVisibility == StartupVisibility::STARTUP_HIDE;
     }
     ForegroundOptions options = { params.sceneFlag, isShellCall, isStartupHide, sessionInfo->targetGrantBundleName };
+    options.callerTypeForAnco = sessionInfo->callerTypeForAnco;
+    if (sessionInfo->callerTypeForAnco == static_cast<int32_t>(CallerTypeForAnco::QUERY)) {
+        uint32_t realCallerTokenId = 0;
+        UpdateTokenIdAndWantWithRealCallerInfo(abilityRequest.want, realCallerTokenId);
+        options.realCallerTokenId = realCallerTokenId;
+    }
     if (shouldReturnPid) {
         options.callingPid = abilityRequest.processOptions->callingPid;
         options.loadAbilityCallbackId = abilityRequest.processOptions->loadAbilityCallbackId;
@@ -2079,6 +2096,14 @@ int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityR
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability on terminating");
         return ERR_OK;
     }
+
+    // If this is a host ability, terminate all associated plugin abilities first
+    auto pluginAbilities = abilityRecord->GetPluginAbilities();
+    abilityRecord->ClearPluginAbilities();
+    for (const auto& plugin : pluginAbilities) {
+        TerminateSession(plugin);
+    }
+
     PrepareCloseUIAbility(abilityRecord, resultCode, resultWant, isClearSession);
     if (abilityRecord->GetAbilityState() == AbilityState::INITIAL) {
         if (abilityRecord->GetScheduler() == nullptr) {
@@ -2169,6 +2194,10 @@ void UIAbilityLifecycleManager::CompleteTerminate(const UIAbilityRecordPtr &abil
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, %{public}s, ability not terminating", __func__);
         return;
     }
+
+    // If this is a plugin ability, remove it from host's plugin list
+    abilityRecord->PluginCompleteTerminate();
+
     abilityRecord->RemoveAbilityDeathRecipient();
     auto ret = abilityRecord->TerminateAbility();
     // notify AppMS terminate
@@ -2607,11 +2636,11 @@ void UIAbilityLifecycleManager::OnStartSpecifiedProcessResponse(const std::strin
     auto &abilityRequest = request->abilityRequest;
     abilityRequest.want.SetParam(PARAM_SPECIFIED_PROCESS_FLAG, flag);
     if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
-        abilityRequest.want.RemoveParam(SPECIFED_PROCESS_CALLER_PROCESS);
-        abilityRequest.want.SetParam(SPECIFED_PROCESS_CALLER_PROCESS, callerProcessName);
+        abilityRequest.want.RemoveParam(SPECIFIED_PROCESS_CALLER_PROCESS);
+        abilityRequest.want.SetParam(SPECIFIED_PROCESS_CALLER_PROCESS, callerProcessName);
         request->specifiedProcessState = SpecifiedProcessState::STATE_ABILITY;
         StartSpecifiedRequest(*request);
-        abilityRequest.want.RemoveParam(SPECIFED_PROCESS_CALLER_PROCESS);
+        abilityRequest.want.RemoveParam(SPECIFIED_PROCESS_CALLER_PROCESS);
         return;
     }
     DelayedSingleton<AppScheduler>::GetInstance()->SetSpecifiedProcessRequestId(recordId, -1);
@@ -2692,7 +2721,7 @@ int32_t UIAbilityLifecycleManager::StartSpecifiedProcessRequest(const AbilityReq
         std::string instanceKey;
         Rosen::WMError ret = sceneSessionManager->CreateNewInstanceKey(abilityRequest.want.GetBundle(), instanceKey);
         if (ret != Rosen::WMError::WM_OK) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "create new isntance error:%{public}d", ret);
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "create new instance error:%{public}d", ret);
             return ERR_CREATE_INSTANCE_KEY_FAILED;
         }
         const_cast<AbilityRequest &>(abilityRequest).want.SetParam(Want::APP_INSTANCE_KEY, instanceKey);
@@ -4435,13 +4464,13 @@ ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const Want &want,
             it->second->GetAbilityInfo().name == abilityName &&
             (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
             it->second->GetAppIndex() == appIndex && it->second->GetInstanceKey() == instanceKey) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag is already exist");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag already exists");
             return ERROR_UIABILITY_IS_ALREADY_EXIST;
         }
         if (launchMode != AppExecFwk::LaunchMode::SPECIFIED && it->second->GetAbilityInfo().name == abilityName &&
             (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
             it->second->GetInstanceKey() == instanceKey && it->second->GetAppIndex() == appIndex) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility is already exist");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility already exists");
             return ERROR_UIABILITY_IS_ALREADY_EXIST;
         }
     }
@@ -4471,6 +4500,53 @@ void UIAbilityLifecycleManager::HandleUIAbilityDiedByPid(pid_t pid)
             abilityRecord->OnProcessDied(true);
         }
     }
+}
+
+ErrCode UIAbilityLifecycleManager::QueryCallerTokenIdForAnco(const std::string &asCallerForAncoSessionId,
+    uint32_t &callerTokenId)
+{
+    std::lock_guard<ffrt::mutex> guard(callerInfoMapLock_);
+    auto it = callerInfoMap_.find(asCallerForAncoSessionId);
+    if (it == callerInfoMap_.end()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to query the corresponding CallerTokenId through "
+            "asCallerForAncoSessionId: %{public}s", asCallerForAncoSessionId.c_str());
+        return ERR_INVALID_VALUE;
+    }
+    callerTokenId = it->second.callerTokenId;
+    return ERR_OK;
+}
+
+void UIAbilityLifecycleManager::UpdateTokenIdAndWantWithRealCallerInfo(AAFwk::Want &want, uint32_t &realCallerTokenId)
+{
+    std::lock_guard<ffrt::mutex> guard(callerInfoMapLock_);
+    auto realAsCallerForAncoSessionId = want.GetStringParam(PARAM_DIALOG_SESSION_ID);
+    auto it = callerInfoMap_.find(realAsCallerForAncoSessionId);
+    if (it == callerInfoMap_.end()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to find callerInfo through realAsCallerForAncoSessionId: %{public}s",
+            realAsCallerForAncoSessionId.c_str());
+        return;
+    }
+    CallerInfo callerInfo = it->second;
+    callerInfoMap_.erase(it);
+    realCallerTokenId = callerInfo.callerTokenId;
+    // Update the Want with real callerInfo for ANCO
+    Want& realCallerWant = callerInfo.targetWant;
+    want.SetParam(Want::PARAM_RESV_CALLER_TOKEN, realCallerWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+    want.SetParam(Want::PARAM_RESV_CALLER_UID, realCallerWant.GetIntParam(Want::PARAM_RESV_CALLER_UID, 0));
+    want.SetParam(Want::PARAM_RESV_CALLER_PID, realCallerWant.GetIntParam(Want::PARAM_RESV_CALLER_PID, 0));
+    want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME,
+        realCallerWant.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME));
+    want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME,
+        realCallerWant.GetStringParam(Want::PARAM_RESV_CALLER_ABILITY_NAME));
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX,
+        realCallerWant.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, 0));
+    want.SetParam(Want::PARAM_RESV_CALLER_NATIVE_NAME,
+        realCallerWant.GetStringParam(Want::PARAM_RESV_CALLER_NATIVE_NAME));
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_ID, realCallerWant.GetStringParam(Want::PARAM_RESV_CALLER_APP_ID));
+    want.SetParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER,
+        realCallerWant.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER));
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "UpdateTokenIdAndWantWithRealCallerInfo: realAsCallerForAncoSessionId = %{public}s, "
+        "realCallerTokenId = %{public}u", realAsCallerForAncoSessionId.c_str(), realCallerTokenId);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -226,6 +226,19 @@ public:
     virtual int GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info) = 0;
 
     /**
+     * JudgeSandboxByPid, call JudgeSandboxByPid() through proxy project.
+     * Obtains information about application processes that are running on the device.
+     *
+     * @param pid, the pid of current app running record.
+     * @param isSandbox, current app is or not a sandbox.
+     * @return ERR_OK ,return back success，others fail.
+     */
+    virtual int32_t JudgeSandboxByPid(pid_t pid, bool &isSandbox)
+    {
+        return 0;
+    }
+
+    /**
      * IsTerminatingByPid, call IsTerminatingByPid() through proxy project.
      * Obtains information about application processes that are running on the device.
      *
@@ -907,7 +920,10 @@ public:
 
     virtual int32_t SetProcessCacheEnable(int32_t pid, bool enable) = 0;
 
-    virtual int32_t LockProcessCache(int32_t pid, bool isLock) = 0;
+    virtual int32_t LockProcessCache(int32_t pid, bool isLock)
+    {
+        return 0;
+    }
 
     /**
      * Set application assertion pause state.
@@ -941,7 +957,24 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t CreateNativeChildProcess(const std::string &libName,
-        const sptr<IRemoteObject> &callback, const ChildProcessRequest &request) = 0;
+        const sptr<IRemoteObject> &callback, const ChildProcessRequest &request)
+    {
+        return 0;
+    }
+    
+    /**
+     * Start native child process, callde by ChildProcessManager.
+     * @param libName lib file name to be load in child process
+     * @param childProcessCount current started child process count
+     * @param callback callback for notify start result
+ 
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t CreateNativeChildProcess(const std::string &libName, int32_t childProcessCount,
+        const sptr<IRemoteObject> &callback, const std::string &customProcessName)
+    {
+        return 0;
+    };
 #endif // SUPPORT_CHILD_PROCESS
 
      /**

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,7 @@
 #include "napi_common_want.h"
 #include "napi/native_api.h"
 #include "ohos_application.h"
+#include "page_switch_log.h"
 #include "string_wrapper.h"
 
 #ifdef WINDOWS_PLATFORM
@@ -499,6 +500,18 @@ void EtsUIAbility::CreateEtsContext(int32_t screenMode)
     // to be done: CreateAniEmbeddableUIAbilityContext
 }
 
+void EtsUIAbility::WriteLifecycleSwitchLog(const std::string lifecycleName)
+{
+    if (!OHOS::HiviewDFX::IsPageSwitchLoggable()) {
+        return;
+    }
+    std::string msg = lifecycleName + ", ModuleName: " + GetModuleName() + ", AbilityName: " + GetAbilityName();
+    auto ret = OHOS::HiviewDFX::WritePageSwitchStr(msg);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "write lifecycle switch log failed [%{public}d]", ret);
+    }
+}
+
 void EtsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -549,6 +562,7 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         applicationContext->DispatchOnAbilityWillCreate(ability);
     }
+    WriteLifecycleSwitchLog("onCreate");
     CallObjectMethod(false, "onCreate", nullptr, wantObj, launchParamObj);
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
@@ -566,6 +580,24 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
         DISPATCH_ABILITY_INTEROP(OnAbilityCreate, applicationContext, etsRuntime_, ability);
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStart end");
+}
+
+int32_t EtsUIAbility::OnShare(WantParams &wantParam)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "OnShare called");
+    auto env = etsRuntime_.GetAniEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
+        return ERR_INVALID_VALUE;
+    }
+    ani_ref wantParamRef = AppExecFwk::WrapWantParams(env, wantParam);
+    if (wantParamRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null wantParamRef");
+        return ERR_INVALID_VALUE;
+    }
+    CallObjectMethod(false, "onShare", ON_SHARE_SIGNATURE, wantParamRef);
+    AppExecFwk::UnwrapWantParams(env, wantParamRef, wantParam);
+    return ERR_OK;
 }
 
 void EtsUIAbility::SetSelfSpecifiedId(ani_env *env, sptr<AAFwk::SessionInfo> sessionInfo)
@@ -593,24 +625,6 @@ void EtsUIAbility::SetSelfSpecifiedId(ani_env *env, sptr<AAFwk::SessionInfo> ses
     }
 }
 
-int32_t EtsUIAbility::OnShare(WantParams &wantParam)
-{
-    TAG_LOGD(AAFwkTag::UIABILITY, "OnShare called");
-    auto env = etsRuntime_.GetAniEnv();
-    if (env == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null env");
-        return ERR_INVALID_VALUE;
-    }
-    ani_ref wantParamRef = AppExecFwk::WrapWantParams(env, wantParam);
-    if (wantParamRef == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null wantParamRef");
-        return ERR_INVALID_VALUE;
-    }
-    CallObjectMethod(false, "onShare", ON_SHARE_SIGNATURE, wantParamRef);
-    AppExecFwk::UnwrapWantParams(env, wantParamRef, wantParam);
-    return ERR_OK;
-}
-
 void EtsUIAbility::OnStop()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -625,6 +639,7 @@ void EtsUIAbility::OnStop()
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         applicationContext->DispatchOnAbilityWillDestroy(ability);
     }
+    WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod(false, "onDestroy", nullptr);
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStop end");
@@ -674,6 +689,7 @@ void EtsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callback
         TAG_LOGE(AAFwkTag::UIABILITY, "Object_SetFieldByName_Long status: %{public}d", status);
         return;
     }
+    WriteLifecycleSwitchLog("onDestroy");
     isAsyncCallback = CallObjectMethod(true, "callOnDestroy", ":z");
     TAG_LOGD(AAFwkTag::UIABILITY, "callOnDestroy isAsyncCallback: %{public}d", isAsyncCallback);
     if (!isAsyncCallback) {
@@ -736,6 +752,7 @@ void EtsUIAbility::OnSceneCreated()
         EtsAbilityLifecycleCallbackArgs stage(etsWindowStageObj_);
         applicationContext->DispatchOnWindowStageWillCreate(ability, stage);
     }
+    WriteLifecycleSwitchLog("onWindowStageCreate");
     CallObjectMethod(false, "onWindowStageCreate", nullptr, etsAppWindowStage);
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
@@ -856,6 +873,7 @@ void EtsUIAbility::onSceneDestroyed()
         applicationContext->DispatchOnWindowStageWillDestroy(ability, stage);
     }
     UpdateEtsWindowStage(nullptr);
+    WriteLifecycleSwitchLog("onWindowStageDestroy");
     CallObjectMethod(false, "onWindowStageDestroy", nullptr);
     if (scene_ != nullptr) {
         auto window = scene_->GetMainWindow();
@@ -923,6 +941,7 @@ void EtsUIAbility::CallOnForegroundFunc(const Want &want)
         TAG_LOGE(AAFwkTag::UIABILITY, "lastRequestWant Object_SetFieldByName_Ref status: %{public}d", status);
         return;
     }
+    WriteLifecycleSwitchLog("onForeground");
     CallObjectMethod(false, "onForeground", nullptr, wantRef);
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
@@ -952,6 +971,7 @@ void EtsUIAbility::OnBackground()
         EtsAbilityLifecycleCallbackArgs ability(etsAbilityObj_);
         applicationContext->DispatchOnAbilityWillBackground(ability);
     }
+    WriteLifecycleSwitchLog("onBackground");
     CallObjectMethod(false, "onBackground", nullptr);
     UIAbility::OnBackground();
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
@@ -1961,7 +1981,7 @@ void EtsUIAbility::OnNewWant(const Want &want)
         TAG_LOGE(AAFwkTag::UIABILITY, "WrapLaunchParam failed");
         return;
     }
-    std::string methodName = "OnNewWant";
+    WriteLifecycleSwitchLog("onNewWant");
     CallObjectMethod(false, "onNewWant", nullptr, wantObj, launchParamObj);
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {

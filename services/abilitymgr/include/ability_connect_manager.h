@@ -34,6 +34,7 @@
 #include "extension_running_info.h"
 #include "connection_record.h"
 #include "element_name.h"
+#include "res_sched_util.h"
 #include "ui_extension/ui_extension_ability_connect_info.h"
 #include "want.h"
 #include "iremote_object.h"
@@ -355,7 +356,7 @@ protected:
     * @param abilityRequest The ability request.
     * @return Returns generated bundle name.
     */
-    std::string GenerateBundleName(const AbilityRequest &abilityRequest) const;
+    static std::string GenerateBundleName(const AbilityRequest &abilityRequest);
 
     /**
     * Call EnqueueStartServiceReq internally.
@@ -414,6 +415,11 @@ protected:
 
     void HandlePostConnectTimeout(const std::shared_ptr<BaseExtensionRecord> &abilityRecord,
         int connectRecordId, int64_t recordId);
+
+    bool ReportConnectEventToRss(LoadingStage stage,
+        std::shared_ptr<BaseExtensionRecord> abilityRecord,
+        std::shared_ptr<ConnectionRecord> connectRecord,
+        int64_t timeDuration);
 
     void PrintTimeOutLog(const std::shared_ptr<BaseExtensionRecord> &ability, uint32_t msgId, bool isHalf = false);
     /**
@@ -809,6 +815,7 @@ private:
     void KeepAbilityAlive(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
     void ProcessEliminateAbilityRecord(std::shared_ptr<BaseExtensionRecord> eliminateRecord);
     static std::string GetServiceKey(const std::shared_ptr<BaseExtensionRecord> &service);
+    static std::string GetServiceKey(const AbilityRequest &abilityRequest);
 
     void SetExtensionLoadParam(AbilityRuntime::LoadParam &loadParam,
         std::shared_ptr<BaseExtensionRecord> abilityRecord);
