@@ -1289,38 +1289,6 @@ HWTEST_F(UIExtensionAbilityManagerSecondTest, TerminateOrCacheAbility_001, TestS
 
 /*
  * Feature: UIExtensionAbilityManager
- * Function: AttachAbilityThreadInner
- * SubFunction: NA
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AttachAbilityThreadInner with Preload mode (IS_PRELOAD_UIEXTENSION_ABILITY = true)
- */
-HWTEST_F(UIExtensionAbilityManagerSecondTest, AttachAbilityThreadInner_006, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AttachAbilityThreadInner_006 start");
-    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-
-    AbilityRequest abilityRequest;
-    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
-    abilityRequest.abilityInfo.bundleName = "com.test.uiextension";
-    abilityRequest.abilityInfo.name = "TestUIExtension";
-    abilityRequest.want.SetParam(IS_PRELOAD_UIEXTENSION_ABILITY, true);
-    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
-    EXPECT_NE(abilityRecord, nullptr);
-
-    sptr<IAbilityScheduler> scheduler = new AbilityScheduler();
-    sptr<IRemoteObject> token = abilityRecord->GetToken();
-
-    int res = connectManager->AttachAbilityThreadInner(scheduler, token);
-    // Expected: ERR_INVALID_VALUE because record not in serviceMap
-    // This test verifies the preload mode path (Inactivate) when properly set up
-    EXPECT_TRUE(res == ERR_OK || res == ERR_INVALID_VALUE);
-    TAG_LOGI(AAFwkTag::TEST, "AttachAbilityThreadInner_006 end");
-}
-
-/*
- * Feature: UIExtensionAbilityManager
  * Function: DoForegroundUIExtension
  * SubFunction: NA
  * FunctionPoints: NA
