@@ -3499,6 +3499,7 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
         appRecord->SetDebugApp(want->GetBoolParam(DEBUG_APP, false));
         appRecord->SetNativeDebug(want->GetBoolParam("nativeDebug", false));
         appRecord->SetDebugFromLocal(want->GetBoolParam(DEBUG_FROM, false));
+        appRecord->SetIsAutoStartupSupported(AAFwk::AppUtils::GetInstance().IsProductAppbootSettingEnabled());
         if (want->GetBoolParam(COLD_START, false)) {
             appRecord->SetDebugApp(true);
         }
@@ -5569,6 +5570,7 @@ void AppMgrServiceInner::StartEmptyResidentProcess(
         TAG_LOGE(AAFwkTag::APPMGR, "start process [%{public}s] fail", processName.c_str());
         return;
     }
+    appRecord->SetIsAutoStartupSupported(AAFwk::AppUtils::GetInstance().IsProductAppbootSettingEnabled());
 
     StartProcess(appInfo->name, processName, 0, appRecord, appInfo->uid, info, appInfo->bundleName, 0, appExistFlag);
 
@@ -5932,6 +5934,7 @@ int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IR
     bool isDebugFromLocal = want.GetBoolParam(DEBUG_FROM, false);
     TAG_LOGI(AAFwkTag::APPMGR, "SetDebugFromLocal: %{public}d", isDebugFromLocal);
     appRecord->SetDebugFromLocal(isDebugFromLocal);
+    appRecord->SetIsAutoStartupSupported(AppUtils::GetInstance().IsProductAppbootSettingEnabled());
     if (want.GetBoolParam(COLD_START, false)) {
         appRecord->SetDebugApp(true);
     }
@@ -6115,6 +6118,7 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
             appRecord->SetCallerTokenId(wantPtr->GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, -1));
             appRecord->SetDebugApp(wantPtr->GetBoolParam(DEBUG_APP, false));
             appRecord->SetDebugFromLocal(wantPtr->GetBoolParam(DEBUG_FROM, false));
+            appRecord->SetIsAutoStartupSupported(AAFwk::AppUtils::GetInstance().IsProductAppbootSettingEnabled());
             if (appRecord->IsDebugApp()) {
                 ProcessAppDebug(appRecord, true);
             }
