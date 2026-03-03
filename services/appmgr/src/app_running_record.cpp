@@ -408,6 +408,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetNWebPreload(isAllowedNWebPreload_);
     launchData.SetPreloadModuleName(preloadModuleName_);
     launchData.SetDebugFromLocal(isDebugFromLocal_);
+    launchData.SetIsAutoStartupSupported(isAutoStartupSupported_);
     launchData.SetStartupTaskData(startupTaskData_);
 
     TAG_LOGD(AAFwkTag::APPMGR, "%{public}s called,app is %{public}s.", __func__, GetName().c_str());
@@ -2853,6 +2854,11 @@ int32_t AppRunningRecord::GetAddStageTimeout() const
 void AppRunningRecord::SetDebugFromLocal(bool isDebugFromLocal)
 {
     isDebugFromLocal_ = isDebugFromLocal;
+}
+
+void AppRunningRecord::SetIsAutoStartupSupported(bool isAutoStartupSupported)
+{
+    isAutoStartupSupported_ = isAutoStartupSupported;
 }
 
 std::optional<bool> AppRunningRecord::IsSupportMultiProcessDeviceFeature() const
