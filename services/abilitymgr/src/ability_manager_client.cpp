@@ -1978,6 +1978,7 @@ ErrCode AbilityManagerClient::ManualStartAutoStartupApps(int32_t userId)
     return abms->ManualStartAutoStartupApps(userId);
 }
 
+
 ErrCode AbilityManagerClient::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
     uint32_t &callerTokenId)
 {

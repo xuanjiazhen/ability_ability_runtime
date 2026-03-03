@@ -1200,6 +1200,13 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ManualStartAutoStartupApps(int32_t userId);
+
+    /**
+     * @brief Query whether auto startup is supported on current device.
+     * @param isSupported Output parameter, indicates whether auto startup is supported.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode IsAutoStartupSupported(bool &isSupported);
     
     /**
      * @brief Query the caller's Token ID for anco.

@@ -1170,6 +1170,13 @@ public:
         return isDebugFromLocal_;
     }
 
+    void SetIsAutoStartupSupported(bool isAutoStartupSupported);
+
+    bool IsAutoStartupSupported() const
+    {
+        return isAutoStartupSupported_;
+    }
+
     std::optional<bool> IsSupportMultiProcessDeviceFeature() const;
     void SetSupportMultiProcessDeviceFeature(bool support);
 
@@ -1398,6 +1405,7 @@ private:
     bool isContinuousTask_ = false;    // Only continuesTask processes can be set to true, please choose carefully
     bool isDebugApp_ = false;
     bool isDebugFromLocal_ = false;
+    bool isAutoStartupSupported_ = false;
     bool isDependedOnArkWeb_ = false;
     bool isEmptyKeepAliveApp_ = false;  // Only empty resident processes can be set to true, please choose carefully
     bool isErrorInfoEnhance_ = false;
