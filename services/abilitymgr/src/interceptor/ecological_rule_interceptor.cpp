@@ -54,7 +54,12 @@ ErrCode EcologicalRuleInterceptor::DoProcess(AbilityInterceptorParam param)
     if (param.isStartAsCaller) {
         callerInfo.isAsCaller = true;
     }
-    InitErmsCallerInfo(newWant, param.abilityInfo, callerInfo, param.userId, param.callerToken);
+
+    bool skipCallerInfo = !param.hostBundleName.empty();
+    if (skipCallerInfo) {
+        callerInfo.packageName = param.hostBundleName;
+    }
+    InitErmsCallerInfo(newWant, param.abilityInfo, callerInfo, param.userId, param.callerToken, skipCallerInfo);
 
     int ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance()->QueryStartExperience(newWant,
         callerInfo, rule));
@@ -117,7 +122,7 @@ bool EcologicalRuleInterceptor::DoProcess(Want &want, int32_t userId)
 
     ErmsCallerInfo callerInfo;
     InitErmsCallerInfo(want, std::make_shared<AppExecFwk::AbilityInfo>(startAbilityInfo->abilityInfo),
-        callerInfo, userId);
+        callerInfo, userId, nullptr, false);
 
     ExperienceRule rule;
     auto ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance()->QueryStartExperience(want,
@@ -152,7 +157,7 @@ ErrCode EcologicalRuleInterceptor::QueryAtomicServiceStartupRule(Want &want, spt
 
     ErmsCallerInfo callerInfo;
     InitErmsCallerInfo(want, std::make_shared<AppExecFwk::AbilityInfo>(
-        startAbilityInfo->abilityInfo), callerInfo, userId);
+        startAbilityInfo->abilityInfo), callerInfo, userId, nullptr, false);
 
     ExperienceRule _rule;
     auto ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance()->QueryStartExperience(want,
@@ -259,7 +264,8 @@ void EcologicalRuleInterceptor::GetEcologicalCallerInfo(const Want &want, ErmsCa
 
 void EcologicalRuleInterceptor::InitErmsCallerInfo(const Want &want,
     const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo,
-    ErmsCallerInfo &callerInfo, int32_t userId, const sptr<IRemoteObject> &callerToken)
+    ErmsCallerInfo &callerInfo, int32_t userId, const sptr<IRemoteObject> &callerToken,
+    bool skipCallerInfo)
 {
     if (callerToken != nullptr) {
         auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
@@ -268,17 +274,24 @@ void EcologicalRuleInterceptor::InitErmsCallerInfo(const Want &want,
             callerInfo.callerModelType = ErmsCallerInfo::MODEL_FA;
         }
     }
-    callerInfo.packageName = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
-    callerInfo.uid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
-    callerInfo.pid = want.GetIntParam(Want::PARAM_RESV_CALLER_PID, IPCSkeleton::GetCallingPid());
-    callerInfo.embedded = want.GetIntParam("send_to_erms_embedded", 0);
+
+    if (!skipCallerInfo) {
+        callerInfo.packageName = want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+        callerInfo.uid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
+        callerInfo.pid = want.GetIntParam(Want::PARAM_RESV_CALLER_PID, IPCSkeleton::GetCallingPid());
+        callerInfo.embedded = want.GetIntParam("send_to_erms_embedded", 0);
+    }
+
     callerInfo.userId = userId;
     if (want.GetElement().GetBundleName().empty() && abilityInfo != nullptr) {
         callerInfo.targetBundleName = abilityInfo->bundleName;
     }
 
     GetEcologicalTargetInfo(want, abilityInfo, callerInfo);
-    GetEcologicalCallerInfo(want, callerInfo, userId, callerToken);
+
+    if (!skipCallerInfo) {
+        GetEcologicalCallerInfo(want, callerInfo, userId, callerToken);
+    }
 
     TAG_LOGI(AAFwkTag::ECOLOGICAL_RULE, "ERMS's caller{%{public}s_%{public}d_%{public}d}",
         callerInfo.packageName.c_str(), callerInfo.uid, callerInfo.pid);
