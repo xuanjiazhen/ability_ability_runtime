@@ -302,6 +302,8 @@ ohos_shared_library("abilityms") {
     defines += [ "DISABLE_LAUNCHER" ]
   }
 
+  ldflags = [ "-Wl,-Bsymbolic" ]
+
   version_script = "libabilityms.map"
   subsystem_name = "ability"
   innerapi_tags = [ "platformsdk_indirect" ]
@@ -351,6 +353,8 @@ ohos_shared_library("wantagent_manager") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
   ]
+
+  ldflags += [ "-Wl,-Bsymbolic" ]
 
   innerapi_tags = [
     "platformsdk",
@@ -542,6 +546,8 @@ ohos_shared_library("mission_list") {
       "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
     ]
   }
+
+  ldflags += [ "-Wl,-Bsymbolic" ]
 
   cflags_cc = []
   if (os_dlp_part_enabled) {
