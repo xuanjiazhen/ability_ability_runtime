@@ -102,7 +102,7 @@ int32_t main(int32_t argc, const char *argv[])
     simulator->SetMockList(mockList);
 
     std::string abilitySrcPath {argv[PARAM_EIGHTEEN]};
-    int64_t id = simulator->StartAbility(abilitySrcPath, [](int64_t abilityId) {});
+    int64_t id = simulator->StartAbility(abilitySrcPath, [](int64_t abilityId) {}, "", nullptr);
     if (id < 0) {
         std::cout << "Start Ability failed." << std::endl;
         return 1;

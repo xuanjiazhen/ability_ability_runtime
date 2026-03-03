@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "bundle_constants.h"
 #include "module_info.h"
 
 namespace OHOS {

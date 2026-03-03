@@ -24,6 +24,11 @@
 
 #include "ability_context.h"
 #include "ability_stage_context.h"
+#include "bundle_constants.h"
+#if defined(LINUX_PLATFORM)
+#include "dynamic_loader.h"
+#include "ani_window_stage.h"
+#endif // LINUX_PLATFORM
 #include "bundle_container.h"
 #include "console.h"
 #include "declarative_module_preloader.h"
@@ -67,14 +72,79 @@ const std::string VERSION = "version";
 const std::string ENTRY_PATH = "entryPath";
 const std::string IS_SO = "isSO";
 const std::string DEPENDENCY_ALIAS = "dependencyAlias";
+const std::string ENTERENCE_PATH = "entry.src.main.ets.entryability.EntryAbility.EntryAbility";
 
 #if defined(WINDOWS_PLATFORM)
 constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.dll";
 #elif defined(MAC_PLATFORM)
 constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.dylib";
+#elif defined(LINUX_PLATFORM)
+constexpr char ARK_DEBUGGER_LIB_PATH[] = "libark_inspector.so";
 #else
 #error "Unsupported platform"
 #endif
+
+#if defined(LINUX_PLATFORM)
+struct STSRuntimeAPI {
+    ani_status (*ANI_GetCreatedVMs)(ani_vm **vms_buffer, ani_size vms_buffer_length, ani_size *result);
+    ani_status (*ANI_CreateVM)(const ani_options *options, uint32_t version, ani_vm **result);
+};
+
+using CreateVMSTSRuntimeType = ani_status (*)(const ani_options *options, uint32_t version, ani_vm **result);
+using ANIGetCreatedVMsType = ani_status (*)(ani_vm **vms_buffer, ani_size vms_buffer_length, ani_size *result);
+
+const std::string ARKTS_FRAMEWORK_DIR = "/module/arkts_framework";
+
+bool GetArkTSFrameworkBootFiles(std::string& directoryPath) {
+    std::vector<std::string> filePaths;
+    std::stringstream result;
+    char buffer[PATH_MAX];
+    if (getcwd(buffer, sizeof(buffer)) != nullptr) {
+        std::string arkts_framework_dir(std::string(buffer) + ARKTS_FRAMEWORK_DIR);
+        for (const auto& entry : std::filesystem::directory_iterator(arkts_framework_dir)) {
+            if (entry.is_regular_file()) {
+                filePaths.push_back(entry.path().string());
+            }
+        }
+        if (!filePaths.empty()) {
+            result << filePaths[0];
+            for (size_t i = 1; i < filePaths.size(); ++i) {
+                result << ":" << filePaths[i];
+            }
+        } else {
+            TAG_LOGE(AAFwkTag::ABILITY_SIM, "GetArkTSFrameworkBootFiles failed.");
+            return false;
+    }
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "GetArkTSFrameworkBootFiles failed.");
+        return false;
+    }
+    directoryPath += result.str();
+    return true;
+}
+
+bool LoadSymbolANIGetCreatedVMs(void* handle, STSRuntimeAPI& apis)
+{
+    auto symbol = DynamicFindSymbol(handle, "ANI_GetCreatedVMs");
+    if (symbol == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "runtime api not found: %{public}s", "ANI_GetCreatedVMs");
+        return false;
+    }
+    apis.ANI_GetCreatedVMs = reinterpret_cast<ANIGetCreatedVMsType>(symbol);
+    return true;
+}
+
+bool LoadSymbolCreateVM(void* handle, STSRuntimeAPI& apis)
+{
+    auto symbol = DynamicFindSymbol(handle, "ANI_CreateVM");
+    if (symbol == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "runtime api not found: %{public}s", "ANI_CreateVM");
+        return false;
+    }
+    apis.ANI_CreateVM = reinterpret_cast<CreateVMSTSRuntimeType>(symbol);
+    return true;
+}
+#endif // LINUX_PLATFORM
 
 int32_t PrintVmLog(int32_t, int32_t, const char*, const char*, const char *message)
 {
@@ -105,16 +175,18 @@ public:
     bool Initialize(const Options &options);
 
     int64_t StartAbility(
-        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName = "") override;
+        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName, Rosen::SendRenderDataCallback renderCallback) override;
     void TerminateAbility(int64_t abilityId) override;
     void UpdateConfiguration(const AppExecFwk::Configuration &config) override;
     void SetMockList(const std::map<std::string, std::string> &mockList) override;
     void SetHostResolveBufferTracker(ResolveBufferTrackerCallback cb) override;
+
 private:
     bool OnInit();
     void Run();
     napi_value LoadScript(const std::string &srcPath);
     void InitResourceMgr();
+    void InitAbilityContext();
     void InitJsAbilityContext(napi_env env, napi_value instanceValue);
     void DispatchStartLifecycle(napi_value instanceValue);
     std::unique_ptr<NativeReference> CreateJsWindowStage(const std::shared_ptr<Rosen::WindowScene> &windowScene);
@@ -162,6 +234,22 @@ private:
         std::map<std::string, std::string> &pkgAliasMap);
     void GetPkgContextInfoListInner(nlohmann::json &itemObject, std::vector<std::string> &items,
         std::map<std::string, std::string> &pkgAliasMap, std::string &pkgName);
+    int64_t StartJSAbility(
+        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName = "");
+#if defined(LINUX_PLATFORM)
+    int64_t StartSTSAbility(
+        const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName, Rosen::SendRenderDataCallback renderCallback);
+
+    bool LoadSTSRuntimeApis();
+    bool StartSTSRuntime();
+    bool LoadStsModule();
+    bool onWindowStageCreate(ani_class entryClass, ani_object entryObject, ani_object windowStage);
+    ani_env *aniEnv_ = nullptr;
+    ani_class entryClass_ = nullptr;
+    ani_object entryObject_ = nullptr;
+    STSRuntimeAPI lazyApis_ = {};
+    std::shared_ptr<Rosen::WindowScene> windowScene_;
+#endif // LINUX_PLATFORM
 };
 
 void DebuggerTask::HandleTask(const uv_async_t *req)
@@ -354,13 +442,22 @@ bool SimulatorImpl::ParseAbilityInfo(const std::string &abilitySrcPath, const st
 }
 
 int64_t SimulatorImpl::StartAbility(
-    const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName)
+    const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName, Rosen::SendRenderDataCallback renderCallback)
 {
     if (!ParseAbilityInfo(abilitySrcPath, abilityName)) {
         return -1;
     }
-
     CreateStageContext();
+#if defined(LINUX_PLATFORM)
+    return StartSTSAbility(abilitySrcPath, callback, abilityName, renderCallback);
+#else
+    return StartJSAbility(abilitySrcPath, callback, abilityName);
+#endif // LINUX_PLATFORM
+}
+
+int64_t SimulatorImpl::StartJSAbility(
+    const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName)
+{
     std::ifstream stream(options_.modulePath, std::ios::ate | std::ios::binary);
     if (!stream.is_open()) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "open:%{public}s failed", options_.modulePath.c_str());
@@ -413,18 +510,52 @@ int64_t SimulatorImpl::StartAbility(
     return currentId_;
 }
 
+#if defined(LINUX_PLATFORM)
+int64_t SimulatorImpl::StartSTSAbility(
+    const std::string &abilitySrcPath, TerminateCallback callback, const std::string &abilityName, Rosen::SendRenderDataCallback renderCallback)
+{
+    std::regex reg("modules.abc");
+    std::string modulePath = std::regex_replace(options_.modulePath, reg, "modules_static.abc");
+    options_.modulePath = modulePath;
+    InitAbilityContext();
+
+    LoadSTSRuntimeApis();
+    StartSTSRuntime();
+
+    windowScene_ = std::make_shared<Rosen::WindowScene>();
+    if (windowScene_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Could not create WindowScene");
+        return 0;
+    }
+    sptr<Rosen::IWindowLifeCycle> listener = nullptr;
+    auto ret = windowScene_->Init(-1, context_, listener);
+    if (ret != OHOS::Rosen::WMError::WM_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Could not init WindowScene");
+        return 0;
+    }
+    auto window = windowScene_->GetMainWindow();
+    window->CreateSurfaceNode("default", std::move(renderCallback));
+    LoadStsModule();
+
+    ani_object stsWindowStage = CreateAniWindowStage(aniEnv_, windowScene_);
+    onWindowStageCreate(entryClass_, entryObject_, stsWindowStage);
+
+    ++currentId_;
+    terminateCallback_ = callback;
+    return currentId_;
+}
+#endif // LINUX_PLATFORM
+
 bool SimulatorImpl::LoadAbilityStage(uint8_t *buffer, size_t len)
 {
     if (moduleInfo_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "null moduleInfo");
         return false;
     }
-
     if (moduleInfo_->srcEntrance.empty()) {
         TAG_LOGD(AAFwkTag::ABILITY_SIM, "module src path empty");
         return true;
     }
-
     if (nativeEngine_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY_SIM, "null nativeEngine_");
         return false;
@@ -616,7 +747,7 @@ void SimulatorImpl::InitResourceMgr()
     resourceMgr_->UpdateResConfig(*resConfig);
 }
 
-void SimulatorImpl::InitJsAbilityContext(napi_env env, napi_value obj)
+void SimulatorImpl::InitAbilityContext()
 {
     if (context_ == nullptr) {
         context_ = std::make_shared<AbilityContext>();
@@ -626,6 +757,11 @@ void SimulatorImpl::InitJsAbilityContext(napi_env env, napi_value obj)
         context_->SetResourceManager(resourceMgr_);
         context_->SetAbilityInfo(abilityInfo_);
     }
+}
+
+void SimulatorImpl::InitJsAbilityContext(napi_env env, napi_value obj)
+{
+    InitAbilityContext();
     napi_value contextObj = CreateJsAbilityContext(nativeEngine_, context_);
     auto systemModule = std::shared_ptr<NativeReference>(
         JsRuntime::LoadSystemModuleByEngine(nativeEngine_, "application.AbilityContext", &contextObj, 1));
@@ -716,9 +852,7 @@ void SimulatorImpl::DispatchStartLifecycle(napi_value instanceValue)
     }
     napi_value argv[] = { jsWindowStage->GetNapiValue() };
     CallObjectMethod(nativeEngine_, instanceValue, "onWindowStageCreate", argv, ArraySize(argv));
-
     CallObjectMethod(nativeEngine_, instanceValue, "onForeground", nullptr, 0);
-
     windowScenes_.emplace(currentId_, windowScene);
     jsWindowStages_.emplace(currentId_, std::shared_ptr<NativeReference>(jsWindowStage.release()));
 }
@@ -788,7 +922,7 @@ bool SimulatorImpl::OnInit()
     if (vm_ == nullptr) {
         return false;
     }
-
+    panda::JSNApi::InitHybridVMEnv(vm_);
     panda::JSNApi::DebugOption debugOption = {ARK_DEBUGGER_LIB_PATH, (options_.debugPort != 0), options_.debugPort};
     panda::JSNApi::StartDebugger(vm_, debugOption, 0, [this](std::function<void()> &&arg) {
         debuggerTask_.OnPostTask(std::move(arg));
@@ -940,7 +1074,162 @@ void SimulatorImpl::Run()
         postTask_([this]() { Run(); }, 0);
     }
 }
+
+#if defined(LINUX_PLATFORM)
+bool SimulatorImpl::LoadSTSRuntimeApis()
+{
+    auto dsoAce = DynamicLoadLibrary("libace_compatible.so", 1);
+    if (!dsoAce) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "load library failed: %{public}s", "libace_compatible.so");
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "load library OK: %{public}s", "libace_compatible.so");
+    auto dso = DynamicLoadLibrary("libarkruntime.so", 1);
+    if (!dso) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "load library failed: %{public}s", "libarkruntime.so");
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "load library OK: %{public}s", "libarkruntime.so");
+    if (!LoadSymbolCreateVM(dso, lazyApis_) ||
+        !LoadSymbolANIGetCreatedVMs(dso, lazyApis_)) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "load library failed: %{public}s", "LoadSymbolGetDefaultVMInitArgs");
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "load library OK: %{public}s", "LoadSymbolGetDefaultVMInitArgs");
+    return true;
 }
+
+bool SimulatorImpl::StartSTSRuntime()
+{
+    std::string bootfiles;
+    GetArkTSFrameworkBootFiles(bootfiles);
+    std::vector<ani_option> options;
+    const std::string optionPrefix = "--ext:";
+    std::string bootString = optionPrefix + "--boot-panda-files=" + bootfiles;
+    TAG_LOGI(AAFwkTag::ABILITY_SIM, "bootString %{public}s", bootString.c_str());
+    options.push_back(ani_option{bootString.c_str(), nullptr});
+    std::string forbiddenJIT = optionPrefix + "--compiler-enable-jit=false";
+    ani_option forbiddenJITOption = {forbiddenJIT.data(), nullptr};
+    options.push_back(forbiddenJITOption);
+    options.push_back(ani_option{"--ext:--log-level=info", nullptr});
+    options.push_back(ani_option{"--ext:--gc-type=g1-gc", nullptr});
+    options.push_back(ani_option{"--ext:interop", nativeEngine_});
+    ani_options optionsPtr = {options.size(), options.data()};
+    ani_vm *aniVM = nullptr;
+    auto status = lazyApis_.ANI_CreateVM(&optionsPtr, ANI_VERSION_1, &aniVM);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "ANI_CreateVM failed %{public}d", status);
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "ANI_CreateVM OK %{public}d", status);
+    ani_size nrVMs;
+    if (lazyApis_.ANI_GetCreatedVMs(&aniVM, 1, &nrVMs) != ANI_OK) {
+        return false;
+    };
+
+    if (aniVM->GetEnv(ANI_VERSION_1, &aniEnv_) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Failed GetEnv");
+        return false;
+    }
+    TAG_LOGE(AAFwkTag::ABILITY_SIM, "OK GetEnv END of StartSTSRuntime");
+    return true;
+}
+
+bool SimulatorImpl::LoadStsModule()
+{
+    ani_class stringCls = nullptr;
+    if (aniEnv_->FindClass("std.core.String", &stringCls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "FindClass Lstd/core/String Failed");
+        return false;
+    }
+    std::regex reg("modules.abc");
+    std::string modulePath = std::regex_replace(options_.modulePath, reg, "modules_static.abc");
+    ani_string ani_str;
+    if (aniEnv_->String_NewUTF8(modulePath.c_str(), modulePath.size(), &ani_str) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "String_NewUTF8 modulePath Failed");
+        return false;
+    }
+    ani_ref undefined_ref;
+    if (aniEnv_->GetUndefined(&undefined_ref) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "GetUndefined failed");
+        return false;
+    }
+    ani_array refArray;
+    if (aniEnv_->Array_New(1, undefined_ref, &refArray) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Array_New_Ref Failed");
+        return false;
+    }
+    if (aniEnv_->Array_Set(refArray, 0, ani_str) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Array_Set_Ref Failed");
+        return false;
+    }
+    ani_class cls = nullptr;
+    if (aniEnv_->FindClass("std.core.AbcRuntimeLinker", &cls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "FindClass AbcRuntimeLinker failed");
+        return false;
+    }
+    ani_method method = nullptr;
+    if (aniEnv_->Class_FindMethod(cls, "<ctor>", "C{std.core.RuntimeLinker}C{std.core.Array}:", &method) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Class_FindMethod ctor failed");
+        return false;
+    }
+    ani_object object = nullptr;
+    if (aniEnv_->Object_New(cls, method, &object, undefined_ref, refArray) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Object_New AbcRuntimeLinker failed");
+        return false;
+    }
+    ani_method loadClassMethod = nullptr;
+    if (aniEnv_->Class_FindMethod(cls, "loadClass", nullptr, &loadClassMethod) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Class_FindMethod loadClass failed");
+        return false;
+    }
+    std::string entryPath = ENTERENCE_PATH;
+    ani_string entryClassStr;
+    aniEnv_->String_NewUTF8(entryPath.c_str(), entryPath.length(), &entryClassStr);
+    ani_ref entryClassRef = nullptr;
+    ani_boolean isInit = false;
+    ani_status status = ANI_ERROR;
+    if (aniEnv_->Object_CallMethod_Ref(object, loadClassMethod, &entryClassRef, entryClassStr, isInit) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Object_CallMethod_Ref loadClassMethod failed");
+        return false;
+    }
+    entryClass_ = static_cast<ani_class>(entryClassRef);
+    if (entryClass_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Object_CallMethod_Ref loadClassMethod failed");
+        return false;
+    }
+    ani_method entryMethod = nullptr;
+    if (aniEnv_->Class_FindMethod(entryClass_, "<ctor>", ":", &entryMethod) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Class_FindMethod ctor failed");
+        return false;
+    }
+    if ((status = aniEnv_->Object_New(entryClass_, entryMethod, &entryObject_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "Object_New AbcRuntimeLinker failed, status: %{public}d", status);
+        aniEnv_->DescribeError();
+        return false;
+    }
+    return true;
+}
+
+bool SimulatorImpl::onWindowStageCreate(ani_class entryClass, ani_object entryObject, ani_object windowStage)
+{
+    ani_method method {};
+    TAG_LOGI(AAFwkTag::UIABILITY, "SimulatorImpl::onWindowStageCreate: entryClass: %{public}p entryObject: %{public}p windowStage: %{public}p", entryClass, entryObject, windowStage);
+    auto status = aniEnv_->Class_FindMethod(entryClass, "onWindowStageCreate", "C{@ohos.window.window.WindowStage}:", &method);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "ERROR: find method onWindowStageCreate, status : %{public}d", status);
+        aniEnv_->DescribeError();
+        return false;
+    }
+    if ((status = aniEnv_->Object_CallMethod_Void(entryObject, method, windowStage)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "ERROR: call method onWindowStageCreate, status : %{public}d", status);
+        aniEnv_->DescribeError();
+        return false;
+    }
+    return true;
+}
+#endif // LINUX_PLATFORM
+} // namespace
 
 std::shared_ptr<Simulator> Simulator::Create(const Options &options)
 {

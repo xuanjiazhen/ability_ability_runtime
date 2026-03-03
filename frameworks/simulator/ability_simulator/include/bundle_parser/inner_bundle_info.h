@@ -16,6 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_SIMULATOR_INNER_BUNDLE_INFO_H
 #define OHOS_ABILITY_RUNTIME_SIMULATOR_INNER_BUNDLE_INFO_H
 
+#include <memory>
+#include <optional>
+
 #include "ability_info.h"
 #include "bundle_constants.h"
 #include "bundle_info.h"
