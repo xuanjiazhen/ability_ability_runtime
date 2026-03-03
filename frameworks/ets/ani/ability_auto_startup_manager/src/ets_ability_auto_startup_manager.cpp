@@ -70,6 +70,12 @@ void EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications(
     GetInstance().OnQueryAllAutoStartupApplications(env, callback);
 }
 
+void EtsAbilityAutoStartupManager::IsAutoStartupSupported(
+    ani_env *env, ani_object callback)
+{
+    GetInstance().OnIsAutoStartupSupported(env, callback);
+}
+
 void EtsAbilityAutoStartupManager::AutoStartupInfoCheck(
     ani_env *env, ani_object info)
 {
@@ -252,6 +258,24 @@ void EtsAbilityAutoStartupManager::OnQueryAllAutoStartupApplications(ani_env *en
         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), result);
 }
 
+void EtsAbilityAutoStartupManager::OnIsAutoStartupSupported(ani_env *env, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called IsAutoStartupSupported");
+    bool isSupported = false;
+    auto ret = AbilityManagerClient::GetInstance()->IsAutoStartupSupported(isSupported);
+    if (ret != ERR_OK) {
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+        return;
+    }
+    ani_boolean result = ANI_FALSE;
+    if (isSupported) {
+        result = ANI_TRUE;
+    }
+    AppExecFwk::AsyncCallback(env, callback,
+        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), result);
+}
+
 void EtsAbilityAutoStartupManager::OnNativeCheckCallerIsSystemApp(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called NativeCheckCallerIsSystemApp");
@@ -298,6 +322,9 @@ void EtsAbilityAutoStartupManagerInit(ani_env *env)
         ani_native_function {"nativeQueryAllAutoStartupApplications",
             "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications)},
+        ani_native_function {"nativeIsAutoStartupSupported",
+            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            reinterpret_cast<void *>(EtsAbilityAutoStartupManager::IsAutoStartupSupported)},
         ani_native_function {"nativeCheckCallerIsSystemApp", ":",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::NativeCheckCallerIsSystemApp)},
     };

@@ -74,6 +74,11 @@ napi_value JsAbilityAutoStartupManager::GetAutoStartupStatusForSelf(napi_env env
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityAutoStartupManager, OnGetAutoStartupStatusForSelf);
 }
 
+napi_value JsAbilityAutoStartupManager::IsAutoStartupSupported(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityAutoStartupManager, OnIsAutoStartupSupported);
+}
+
 bool JsAbilityAutoStartupManager::CheckCallerIsSystemApp()
 {
     auto selfToken = IPCSkeleton::GetSelfTokenID();
@@ -380,6 +385,50 @@ napi_value JsAbilityAutoStartupManager::OnGetAutoStartupStatusForSelf(napi_env e
     return handleEscape.Escape(result);
 }
 
+napi_value JsAbilityAutoStartupManager::OnIsAutoStartupSupported(napi_env env, const NapiCallbackInfo &info)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
+    auto retVal = std::make_shared<ErrCode>(ERR_OK);
+    auto isSupported = std::make_shared<bool>(false);
+    NapiAsyncTask::ExecuteCallback execute = [ret = retVal, isSupported]() {
+        if (ret == nullptr || isSupported == nullptr) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret or isSupported");
+            return;
+        }
+        *ret = AbilityManagerClient::GetInstance()->IsAutoStartupSupported(*isSupported);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [ret = retVal, isSupported](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        AbilityRuntime::HandleScope handleScope(env);
+        if (ret == nullptr || isSupported == nullptr) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null ret or isSupported");
+            task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(INNER_ERR)));
+            return;
+        }
+        if (*ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::AUTO_STARTUP, "error:%{public}d", *ret);
+            AbilityErrorCode errCode = GetJsErrorCodeByNativeError(*ret);
+            if (errCode == AbilityErrorCode::ERROR_CODE_CAPABILITY_NOT_SUPPORT) {
+                task.Reject(env, CreateJsError(env, errCode));
+            } else {
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            }
+            return;
+        }
+        task.ResolveWithNoError(env, CreateJsValue(env, *isSupported));
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityAutoStartupManager::OnIsAutoStartupSupported", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return handleEscape.Escape(result);
+}
+
 napi_value JsAbilityAutoStartupManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
@@ -403,6 +452,8 @@ napi_value JsAbilityAutoStartupManagerInit(napi_env env, napi_value exportObj)
         JsAbilityAutoStartupManager::QueryAllAutoStartupApplications);
     BindNativeFunction(env, exportObj, "getAutoStartupStatusForSelf", moduleName,
         JsAbilityAutoStartupManager::GetAutoStartupStatusForSelf);
+    BindNativeFunction(env, exportObj, "isAutoStartupSupported", moduleName,
+        JsAbilityAutoStartupManager::IsAutoStartupSupported);
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "end");
     return CreateJsUndefined(env);
 }

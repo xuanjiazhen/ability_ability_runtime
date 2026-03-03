@@ -962,6 +962,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::MANUAL_START_AUTO_STARTUP_APPS) {
         return ManualStartAutoStartupAppsInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::IS_AUTO_STARTUP_SUPPORTED) {
+        return IsAutoStartupSupportedInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_USER_LOCKED_BUNDLE_LIST) {
         return GetUserLockedBundleListInner(data, reply);
     }
@@ -3979,6 +3982,21 @@ int32_t AbilityManagerStub::ManualStartAutoStartupAppsInner(MessageParcel &data,
     int32_t userId = data.ReadInt32();
     int32_t result = ManualStartAutoStartupApps(userId);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::IsAutoStartupSupportedInner(MessageParcel &data, MessageParcel &reply)
+{
+    bool isSupported = false;
+    int32_t result = IsAutoStartupSupported(isSupported);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteBool(isSupported)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write isSupported fail");
+        return ERR_INVALID_VALUE;
+    }
     return NO_ERROR;
 }
 
