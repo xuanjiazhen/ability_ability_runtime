@@ -343,7 +343,7 @@ constexpr int32_t MAX_EXTENSION_CHILD_PROCESS_DEV_MODE = 3;
 // kill resaon
 constexpr int32_t INVALID_KILL_ID = -2;
 constexpr const char* INVALID_KILL_REASON = "InvalidKillId";
-constexpr int32_t PROCESS_KILL_PARAM = 9;
+constexpr int32_t PROCESS_KILL_PARAM = 11; // PROCESS_KILL params
 
 int32_t GetUserIdByUid(int32_t uid)
 {
@@ -5114,7 +5114,8 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         TAG_LOGE(AAFwkTag::APPMGR, "no appInfo");
         return;
     }
-    std::string versionCode = appInfo->versionName;
+    std::string versionName = appInfo->versionName;
+    auto versionCode = appInfo->versionCode;
     int32_t killId = appRecord->GetKillId();
     std::string killMsg = appRecord->GetKillMsg();
     std::string innerMsg = appRecord->GetInnerMsg();
@@ -5142,7 +5143,9 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     hisyseventReport->InsertParam(EVENT_KEY_REASON, killReason);
     hisyseventReport->InsertParam(EVENT_KEY_FOREGROUND, foreground);
     hisyseventReport->InsertParam("APP_RUNNING_UNIQUE_ID", appRunningUniqueId);
-    hisyseventReport->InsertParam("VERSION", versionCode);
+    hisyseventReport->InsertParam("VERSIONCODE", std::to_string(versionCode));
+    hisyseventReport->InsertParam("VERSIONNAME", versionName);
+    hisyseventReport->InsertParam("INNER_MSG", innerMsg);
     int result = hisyseventReport->Report("FRAMEWORK", "PROCESS_KILL", HISYSEVENT_FAULT);
     TAG_LOGW(AAFwkTag::APPMGR, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], pid="
         "%{public}d, processName=%{public}s, msg=%{public}s, reason=%{public}s, FOREGROUND=%{public}d,"
@@ -7987,7 +7990,7 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
         transformedFaultData.timeoutMarkers = "notifyFault:" + transformedFaultData.errorObject.name +
             std::to_string(pid) + "-" + std::to_string(SystemTimeMillisecond());
     }
-    const int64_t timeout = 3000; // ipc tiomeout 3000ms
+    const int64_t timeout = 3000; // ipc timeout 3000ms
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
         if (!AppExecFwk::AppfreezeManager::GetInstance()->IsHandleAppfreeze(bundleName) || record->IsDebugging()) {
             return ERR_OK;

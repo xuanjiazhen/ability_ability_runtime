@@ -87,7 +87,7 @@ static constexpr int SYSLOAD_GET_KILL_INFO_MAGIC = 0xE5AC02;
 #define SYSLOAD_GET_KILL_INFO_MAGIC 0xE5AC02
 
 struct KillEventInfo {
-    enum HiviewDFX::ProcessKillReason::KillEventId id;
+    int id;
     int adj;
     bool processed;
     bool foreground;
