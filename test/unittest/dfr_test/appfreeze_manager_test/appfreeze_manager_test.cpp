@@ -739,19 +739,19 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test00
  */
 HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetExitReasonByKillId_Test001, TestSize.Level1)
 {
-    int32_t killId = HiviewDFX::ProcessKillReason::REASON_THREAD_BLOCK_6S;
+    int32_t killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_THREAD_BLOCK_6S;
     std::string result = appfreezeManager->GetExitReasonByKillId(killId);
     EXPECT_EQ(result, "THREAD_BLOCK_6S");
-    killId = HiviewDFX::ProcessKillReason::REASON_CPP_CRASH;
+    killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_CPP_CRASH;
     result = appfreezeManager->GetExitReasonByKillId(killId);
     EXPECT_EQ(result, "Cpp Crash");
-    killId = HiviewDFX::ProcessKillReason::REASON_JS_ERROR;
+    killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR;
     result = appfreezeManager->GetExitReasonByKillId(killId);
     EXPECT_EQ(result, "Js Error");
-    killId = HiviewDFX::ProcessKillReason::REASON_LIFECYCLE_TIMEOUT;
+    killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_LIFECYCLE_TIMEOUT;
     result = appfreezeManager->GetExitReasonByKillId(killId);
     EXPECT_EQ(result, "LIFECYCLE_TIMEOUT");
-    killId = HiviewDFX::ProcessKillReason::REASON_APP_INPUT_BLOCK;
+    killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_APP_INPUT_BLOCK;
     result = appfreezeManager->GetExitReasonByKillId(killId);
     EXPECT_EQ(result, "APP_INPUT_BLOCK");
 }
@@ -779,24 +779,24 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetExitKernelReason_Test001,
  */
 HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetFreezeExitReason_Test001, TestSize.Level1)
 {
-    int32_t killId = HiviewDFX::ProcessKillReason::REASON_THREAD_BLOCK_6S;
+    int32_t killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_THREAD_BLOCK_6S;
     std::string eventName = AppFreezeType::THREAD_BLOCK_6S;
     int32_t result = appfreezeManager->GetFreezeExitReason(eventName);
     EXPECT_EQ(result, killId);
     eventName = AppFreezeType::LIFECYCLE_TIMEOUT;
-    killId = HiviewDFX::ProcessKillReason::REASON_LIFECYCLE_TIMEOUT;
+    killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_LIFECYCLE_TIMEOUT;
     result = appfreezeManager->GetFreezeExitReason(eventName);
     EXPECT_EQ(result, killId);
     eventName = AppFreezeType::APP_INPUT_BLOCK;
-    killId = HiviewDFX::ProcessKillReason::REASON_APP_INPUT_BLOCK;
+    killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_APP_INPUT_BLOCK;
     result = appfreezeManager->GetFreezeExitReason(eventName);
     EXPECT_EQ(result, killId);
     eventName = AppFreezeType::BUSSINESS_THREAD_BLOCK_6S;
-    killId = HiviewDFX::ProcessKillReason::REASON_BUSINESS_THREAD_BLOCK_6S;
+    killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_BUSINESS_THREAD_BLOCK_6S;
     result = appfreezeManager->GetFreezeExitReason(eventName);
     EXPECT_EQ(result, killId);
     eventName = AppFreezeType::BUSINESS_INPUT_BLOCK;
-    killId = HiviewDFX::ProcessKillReason::REASON_BUSINESS_INPUT_BLOCK;
+    killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_BUSINESS_INPUT_BLOCK;
     result = appfreezeManager->GetFreezeExitReason(eventName);
     EXPECT_EQ(result, killId);
     eventName = "test";
