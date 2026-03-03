@@ -2905,13 +2905,25 @@ HWTEST_F(AbilityManagerProxyTest, QueryAllAutoStartupApplications_0100, TestSize
 
 /**
  * @tc.name: AbilityManagerProxyTest_GetAutoStartupStatusForSelf_0100
- * @tc.desc: Test the state of GetAutoStartupStatusForSelf
+ * @tc.desc: Test  state of GetAutoStartupStatusForSelf
  * @tc.type: FUNC
  */
 HWTEST_F(AbilityManagerProxyTest, GetAutoStartupStatusForSelf_0100, TestSize.Level1)
 {
     bool isAutoStartEnabled = false;
     auto res = proxy_->GetAutoStartupStatusForSelf(isAutoStartEnabled);
+    EXPECT_EQ(res, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerProxyTest_IsAutoStartupSupported_0100
+ * @tc.desc: Test IsAutoStartupSupported
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerProxyTest, IsAutoStartupSupported_0100, TestSize.Level1)
+{
+    bool isSupported = false;
+    auto res = proxy_->IsAutoStartupSupported(isSupported);
     EXPECT_EQ(res, ERR_OK);
 }
 

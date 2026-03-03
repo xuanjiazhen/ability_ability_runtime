@@ -1775,7 +1775,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, GetAutoStartupStatusForSelf_0100, TestS
 
 /**
  * @tc.name: AbilityManagerServiceFirstTest_GetAutoStartupStatusForSelf_0200
- * @tc.desc: Test the state of GetAutoStartupStatusForSelf
+ * @tc.desc: Test  state of GetAutoStartupStatusForSelf
  * @tc.type: FUNC
  */
 HWTEST_F(AbilityManagerServiceFirstTest, GetAutoStartupStatusForSelf_0200, TestSize.Level1)
@@ -1786,6 +1786,19 @@ HWTEST_F(AbilityManagerServiceFirstTest, GetAutoStartupStatusForSelf_0200, TestS
     bool isAutoStartEnabled = false;
     auto result = abilityMs_->GetAutoStartupStatusForSelf(isAutoStartEnabled);
     EXPECT_NE(result, ERR_NO_INIT);
+}
+
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_IsAutoStartupSupported_0100
+ * @tc.desc: Test IsAutoStartupSupported
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, IsAutoStartupSupported_0100, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    bool isSupported = false;
+    auto result = abilityMs_->IsAutoStartupSupported(isSupported);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /*

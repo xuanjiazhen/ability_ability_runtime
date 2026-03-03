@@ -5370,6 +5370,27 @@ int32_t AbilityManagerProxy::ManualStartAutoStartupApps(int32_t userId)
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::IsAutoStartupSupported(bool &isSupported)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::IS_AUTO_STARTUP_SUPPORTED, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error:%{public}d", ret);
+        return ret;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == ERR_OK) {
+        isSupported = reply.ReadBool();
+    }
+    return result;
+}
+
 ErrCode AbilityManagerProxy::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
     uint32_t &callerTokenId)
 {

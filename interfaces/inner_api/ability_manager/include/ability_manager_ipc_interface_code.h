@@ -711,7 +711,9 @@ enum class AbilityManagerInterfaceCode {
 
     // get user locked bundle list
     GET_USER_LOCKED_BUNDLE_LIST = 6159,
-};
-}  // namespace AAFwk
+
+    // query whether auto startup is supported
+    IS_AUTO_STARTUP_SUPPORTED = 6160,
+};  // namespace AAFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_IPC_INTERFACE_CODE_H
