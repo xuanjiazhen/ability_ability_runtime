@@ -619,7 +619,8 @@ bool ETSEnvironment::FinishPreload(napi_env jsEnv) {
 bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     const std::vector<std::string> &appInnerHspPathList,
     const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
-    const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner)
+    const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner,
+    const bool isBaseLineProfile)
 {
     InitEventHandler(eventRunner);
 
@@ -629,6 +630,9 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
         aotPathString = "--ext:--aot-files=" + aotPath;
         options.push_back(ani_option { aotPathString.data(), nullptr });
         options.push_back(ani_option { "--ext:--enable-an", nullptr });
+        if (isBaseLineProfile) {
+            options.push_back(ani_option { "--ext:--enable-baseLine-profile", nullptr });
+        }
         TAG_LOGD(AAFwkTag::ETSRUNTIME, "aotPathString: %{public}s", aotPathString.c_str());
     }
 
