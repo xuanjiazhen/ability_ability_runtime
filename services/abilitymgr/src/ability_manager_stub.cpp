@@ -3985,6 +3985,7 @@ int32_t AbilityManagerStub::ManualStartAutoStartupAppsInner(MessageParcel &data,
     return NO_ERROR;
 }
 
+
 int32_t AbilityManagerStub::QueryCallerTokenIdForAncoInner(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId = data.ReadInt32();
