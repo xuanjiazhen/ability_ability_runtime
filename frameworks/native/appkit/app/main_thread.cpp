@@ -1810,6 +1810,11 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
              appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE);
         TAG_LOGI(AAFwkTag::APPKIT, "SmartGC: process is start. enable warm startup SmartGC: %{public}d",
             static_cast<int32_t>(options.enableWarmStartupSmartGC));
+        auto perfCmd = appLaunchData.GetPerfCmd();
+        auto findPos = perfCmd.find("baseLineProfile");
+        if (findPos != std::string::npos) {
+            options.baseLineProfile = true;
+        }
         auto runtime = AbilityRuntime::Runtime::Create(options);
         if (!runtime) {
             TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
@@ -1828,7 +1833,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             };
             runtime->SetDeviceDisconnectCallback(cb);
         }
-        auto perfCmd = appLaunchData.GetPerfCmd();
         int32_t pid = -1;
         std::string processName = "";
         if (processInfo_ != nullptr) {

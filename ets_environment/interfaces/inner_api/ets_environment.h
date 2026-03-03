@@ -63,7 +63,8 @@ public:
     bool FinishPreload(napi_env jsEnv);
     bool PostFork(void *napiEnv, const std::string &aotPath, const std::vector<std::string>& appInnerHspPathList,
         const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
-        const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner);
+        const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner,
+        const bool isBaseLineProfile);
     bool PreloadSystemClass(const char *className);
 
     void RemoveInstance(uint32_t instanceId);

@@ -1154,7 +1154,10 @@ bool AbilityManagerShellCommand::CheckPerfCmdString(
     perfCmd = optarg;
     const std::regex regexDumpHeapType(R"(^\s*(dumpheap)\s*$)");
     const std::regex regexSleepType(R"(^\s*(sleep)((\s+\d*)|)\s*$)");
-    if (MatchOrderString(regexDumpHeapType, perfCmd) || MatchOrderString(regexSleepType, perfCmd)) {
+    const std::regex regexBaseLineProfileType(R"(^\s*(baseLineProfile)((\s+\d*)|)\s*$)");
+    if (MatchOrderString(regexDumpHeapType, perfCmd)
+        || MatchOrderString(regexSleepType, perfCmd)
+        || MatchOrderString(regexBaseLineProfileType, perfCmd)) {
         return true;
     }
 
