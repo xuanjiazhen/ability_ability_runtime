@@ -1788,6 +1788,19 @@ HWTEST_F(AbilityManagerServiceFirstTest, GetAutoStartupStatusForSelf_0200, TestS
     EXPECT_NE(result, ERR_NO_INIT);
 }
 
+/**
+ * @tc.name: AbilityManagerServiceFirstTest_IsAutoStartupSupported_0100
+ * @tc.desc: Test IsAutoStartupSupported
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, IsAutoStartupSupported_0100, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    bool isSupported = false;
+    auto result = abilityMs_->IsAutoStartupSupported(isSupported);
+    EXPECT_EQ(result, ERR_OK);
+}
+
 /*
  * Feature: AbilityManagerService
  * Function: GenerateEmbeddableUIAbilityRequest
