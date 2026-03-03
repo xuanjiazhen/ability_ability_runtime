@@ -17,6 +17,7 @@
 #include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "ability_manager_interface.h"
+#include "ability_runtime_constants.h"
 #include "auto_startup_info.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
@@ -72,6 +73,11 @@ napi_value JsAbilityAutoStartupManager::QueryAllAutoStartupApplications(napi_env
 napi_value JsAbilityAutoStartupManager::GetAutoStartupStatusForSelf(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityAutoStartupManager, OnGetAutoStartupStatusForSelf);
+}
+
+napi_value JsAbilityAutoStartupManager::IsAutoStartupSupported(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityAutoStartupManager, OnIsAutoStartupSupported);
 }
 
 bool JsAbilityAutoStartupManager::CheckCallerIsSystemApp()
@@ -380,6 +386,17 @@ napi_value JsAbilityAutoStartupManager::OnGetAutoStartupStatusForSelf(napi_env e
     return handleEscape.Escape(result);
 }
 
+napi_value JsAbilityAutoStartupManager::OnIsAutoStartupSupported(napi_env env, const NapiCallbackInfo &info)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "null env");
+        return nullptr;
+    }
+    AbilityRuntime::HandleEscape handleEscape(env);
+    bool isSupported = AbilityRuntimeConstants::GetInstance().IsAutoStartupSupported();
+    return handleEscape.Escape(CreateJsValue(env, isSupported));
+}
+
 napi_value JsAbilityAutoStartupManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called");
@@ -403,6 +420,8 @@ napi_value JsAbilityAutoStartupManagerInit(napi_env env, napi_value exportObj)
         JsAbilityAutoStartupManager::QueryAllAutoStartupApplications);
     BindNativeFunction(env, exportObj, "getAutoStartupStatusForSelf", moduleName,
         JsAbilityAutoStartupManager::GetAutoStartupStatusForSelf);
+    BindNativeFunction(env, exportObj, "isAutoStartupSupported", moduleName,
+        JsAbilityAutoStartupManager::IsAutoStartupSupported);
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "end");
     return CreateJsUndefined(env);
 }

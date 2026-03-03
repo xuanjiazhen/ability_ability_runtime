@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,7 @@
 #include "ability_util.h"
 #include "app_loader.h"
 #include "app_recovery.h"
+#include "app_utils.h"
 #include "appfreeze_inner.h"
 #include "appfreeze_state.h"
 #include "application_data_manager.h"
@@ -2033,6 +2034,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         return;
     }
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication end");
+    AbilityRuntimeConstants::GetInstance().SetIsAutoStartupSupported(AAFwk::AppUtils::GetInstance().IsProductAppbootSettingEnabled());
     // L1 needs to add corresponding interface
     ApplicationEnvImpl *pAppEvnIml = ApplicationEnvImpl::GetInstance();
 
