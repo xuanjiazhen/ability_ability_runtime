@@ -87,7 +87,7 @@ static constexpr int SYSLOAD_GET_KILL_INFO_MAGIC = 0xE5AC02;
 #define SYSLOAD_GET_KILL_INFO_MAGIC 0xE5AC02
 
 struct KillEventInfo {
-    enum HiviewDFX::ProcessKillReason::KillEventId id;
+    int id;
     int adj;
     bool processed;
     bool foreground;
@@ -1295,19 +1295,19 @@ std::string AppfreezeManager::GetExitKernelReason(int32_t pid)
 int AppfreezeManager::GetFreezeExitReason(const std::string& eventName)
 {
     if (eventName == AppFreezeType::THREAD_BLOCK_6S) {
-        return HiviewDFX::ProcessKillReason::REASON_THREAD_BLOCK_6S;
+        return HiviewDFX::ProcessKillReason::KillEventId::REASON_THREAD_BLOCK_6S;
     }
     if (eventName == AppFreezeType::LIFECYCLE_TIMEOUT) {
-        return HiviewDFX::ProcessKillReason::REASON_LIFECYCLE_TIMEOUT;
+        return HiviewDFX::ProcessKillReason::KillEventId::REASON_LIFECYCLE_TIMEOUT;
     }
     if (eventName == AppFreezeType::APP_INPUT_BLOCK) {
-        return HiviewDFX::ProcessKillReason::REASON_APP_INPUT_BLOCK;
+        return HiviewDFX::ProcessKillReason::KillEventId::REASON_APP_INPUT_BLOCK;
     }
     if (eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
-        return HiviewDFX::ProcessKillReason::REASON_BUSINESS_THREAD_BLOCK_6S;
+        return HiviewDFX::ProcessKillReason::KillEventId::REASON_BUSINESS_THREAD_BLOCK_6S;
     }
     if (eventName == AppFreezeType::BUSINESS_INPUT_BLOCK) {
-        return HiviewDFX::ProcessKillReason::REASON_BUSINESS_INPUT_BLOCK;
+        return HiviewDFX::ProcessKillReason::KillEventId::REASON_BUSINESS_INPUT_BLOCK;
     }
     return UNKNOWN_FREEZE_REASON;
 }
