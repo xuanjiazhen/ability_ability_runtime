@@ -3985,6 +3985,21 @@ int32_t AbilityManagerStub::ManualStartAutoStartupAppsInner(MessageParcel &data,
     return NO_ERROR;
 }
 
+int32_t AbilityManagerStub::IsAutoStartupSupportedInner(MessageParcel &data, MessageParcel &reply)
+{
+    bool isSupported = false;
+    int32_t result = IsAutoStartupSupported(isSupported);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    if (!reply.WriteBool(isSupported)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write isSupported fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
 int32_t AbilityManagerStub::QueryCallerTokenIdForAncoInner(MessageParcel &data, MessageParcel &reply)
 {
     int32_t userId = data.ReadInt32();

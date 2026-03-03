@@ -5932,6 +5932,7 @@ int AppMgrServiceInner::StartEmptyProcess(const AAFwk::Want &want, const sptr<IR
     bool isDebugFromLocal = want.GetBoolParam(DEBUG_FROM, false);
     TAG_LOGI(AAFwkTag::APPMGR, "SetDebugFromLocal: %{public}d", isDebugFromLocal);
     appRecord->SetDebugFromLocal(isDebugFromLocal);
+    appRecord->SetIsAutoStartupSupported(AppUtils::GetInstance().IsProductAppbootSettingEnabled());
     if (want.GetBoolParam(COLD_START, false)) {
         appRecord->SetDebugApp(true);
     }

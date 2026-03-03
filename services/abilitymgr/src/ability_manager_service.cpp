@@ -13177,6 +13177,7 @@ int32_t AbilityManagerService::ManualStartAutoStartupApps(int32_t userId)
     return ERR_OK;
 }
 
+
 ErrCode AbilityManagerService::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
     uint32_t &callerTokenId)
 {

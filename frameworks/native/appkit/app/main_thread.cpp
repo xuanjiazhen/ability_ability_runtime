@@ -2033,6 +2033,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         return;
     }
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication end");
+    AbilityRuntimeConstants::GetInstance().SetIsAutoStartupSupported(appLaunchData.IsAutoStartupSupported());
     // L1 needs to add corresponding interface
     ApplicationEnvImpl *pAppEvnIml = ApplicationEnvImpl::GetInstance();
 

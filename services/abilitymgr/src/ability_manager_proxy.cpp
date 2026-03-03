@@ -5370,6 +5370,7 @@ int32_t AbilityManagerProxy::ManualStartAutoStartupApps(int32_t userId)
     return reply.ReadInt32();
 }
 
+
 ErrCode AbilityManagerProxy::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
     uint32_t &callerTokenId)
 {

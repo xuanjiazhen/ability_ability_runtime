@@ -349,6 +349,9 @@ public:
      */
     bool GetDebugFromLocal() const;
 
+    void SetIsAutoStartupSupported(bool isAutoStartupSupported);
+    bool IsAutoStartupSupported() const;
+
 private:
     bool debugApp_ = false;
     bool jitEnabled_ = false;
@@ -370,6 +373,7 @@ private:
     std::string instanceKey_;
     std::string preloadModuleName_;
     bool isDebugFromLocal_;
+    bool isAutoStartupSupported_ = false;
     std::shared_ptr<StartupTaskData> startupTaskData_ = nullptr;
 };
 }  // namespace AppExecFwk
