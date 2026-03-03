@@ -73,6 +73,7 @@ config("optimize_config") {
   ldflags = [
     "-flto=full",
     "-Wl",
+    "-Wl,-Bsymbolic",
   ]
 }
 
@@ -103,6 +104,8 @@ ohos_shared_library("perm_verification") {
   if (os_dlp_part_enabled) {
     cflags_cc += [ "-DWITH_DLP" ]
   }
+
+  ldflags = [ "-Wl,-Bsymbolic" ]
 
   subsystem_name = "ability"
   innerapi_tags = [ "platformsdk_indirect" ]
@@ -154,6 +157,8 @@ ohos_shared_library("hisysevent_report") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
   ]
+
+  ldflags = [ "-Wl,-Bsymbolic" ]
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
@@ -261,10 +266,13 @@ ohos_shared_library("user_controller") {
 
     deps += []
     external_deps += [
+
       "window_manager:libdm",
       "window_manager:libwsutils",
     ]
   }
+
+  ldflags = [ "-Wl,-Bsymbolic" ]
 
   innerapi_tags = [ "platformsdk_indirect" ]
   subsystem_name = "ability"
