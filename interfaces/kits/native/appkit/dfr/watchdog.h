@@ -132,7 +132,6 @@ private:
     std::string bundleName_;
     bool isSystemApp_ = true;
     int64_t lastBackGroundWatchTime_ = 0;
-    std::string bundleName_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
