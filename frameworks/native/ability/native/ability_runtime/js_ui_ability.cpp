@@ -1380,9 +1380,10 @@ void JsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
         return;
     }
     RegisterDelayResultCallback(executeParam);
-    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentRepeat");
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentRepeat start");
     ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executeInfo, std::move(callback));
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentRepeat end");
     if (!ret) {
         // callback has removed, release in insight intent executor.
         TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
@@ -1428,9 +1429,10 @@ void JsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
         return;
     }
     RegisterDelayResultCallback(executeParam);
-    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentForeground");
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentForeground start");
     ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executeInfo, std::move(callback));
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentForeground end");
     if (!ret) {
         // callback has removed, release in insight intent executor.
         TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");
@@ -1456,8 +1458,10 @@ void JsUIAbility::ExecuteInsightIntentPage(const Want &want,
     InsightIntentExecutorInfo executeInfo;
     executeInfo.hapPath = abilityInfo_->hapPath;
     executeInfo.executeParam = executeParam;
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentPage start");
     auto ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executeInfo, std::move(callback));
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentPage end");
     if (!ret) {
         // callback has removed, release in insight intent executor.
         TAG_LOGE(AAFwkTag::INTENT, "execute insightIntent failed");
@@ -1511,8 +1515,10 @@ void JsUIAbility::ExecuteInsightIntentBackground(const Want &want,
         return;
     }
 
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::BACKGROUND, "IntentBackground start");
     ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executeInfo, std::move(callback));
+    AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::BACKGROUND, "IntentBackground end");
     if (!ret) {
         // callback has removed, release in insight intent executor.
         TAG_LOGE(AAFwkTag::UIABILITY, "execute insightIntent failed");

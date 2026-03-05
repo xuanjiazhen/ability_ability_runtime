@@ -554,8 +554,10 @@ bool JsServiceExtension::HandleInsightIntent(const AAFwk::Want &want)
             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
         return false;
     }
+    FreezeUtil::GetInstance().AddLifecycleEvent(token_, "JsServiceExtension::HandleInsightIntent begin");
     ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executorInfo, std::move(callback));
+    FreezeUtil::GetInstance().AddLifecycleEvent(token_, "JsServiceExtension::HandleInsightIntent end");
     if (!ret) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "Execute insight intent failed");
         return false;
