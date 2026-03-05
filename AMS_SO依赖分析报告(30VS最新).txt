@@ -1,0 +1,973 @@
+========================================================================================================================
+AMS SO依赖数据对比分析
+========================================================================================================================
+
+版本30 AMS总依赖内存: 4663.322916330 KB
+最新版本 AMS总依赖内存: 6317.299855649 KB
+AMS总内存变化: 1653.976939319 KB (35.47%)
+
+========================================================================================================================
+详细对比列表
+========================================================================================================================
+SO名称                                               版本30     最新版本     依赖变化       内存30(KB)     内存新(KB)     
+------------------------------------------------------------------------------------------------------------------------
+lib2d_graphics.z.so                                3    2    3->2       18.0000      26.2857     
+lib3dWidgetAdapter.z.so                            3    0    3->0       0.0000       0.0000      
+libEGL.so                                          3    3    不变         6.7500       7.7143      
+libFillpSo.z.so                                    3    1    3->1       3.0000       5.3333      
+libGLESv3.so                                       3    3    不变         1.5000       1.7143      
+libability_base_want.so                            3    0    3->0       0.0000       0.0000      
+libability_business_error.z.so                     3    2    3->2       2.2500       4.0000      
+libability_connect_callback_stub.z.so              3    3    不变         2.5938       4.0000      
+libability_context_native.z.so                     3    2    3->2       5.2500       16.0000     
+libability_deps_wrapper.z.so                       3    3    不变         2.7500       6.7500      
+libability_manager.z.so                            3    3    不变         34.5938      41.3571     
+libability_runtime_error_util.z.so                 3    2    3->2       1.5000       5.3333      
+libability_start_options.z.so                      3    3    不变         2.2500       2.5714      
+libability_start_setting.z.so                      3    3    不变         2.3750       2.7857      
+libability_thread.z.so                             3    0    3->0       0.0000       0.0000      
+libabilitykit_native.z.so                          3    1    3->1       21.4062      31.5000     
+libabilitykit_utils.z.so                           3    1    3->1       1.5000       4.0000      
+libabilityms.z.so                                  1    1    不变        1710.3333    1766.0000   
+libabsl_base.z.so                                  3    2    3->2       1.5000       2.0000      
+libabsl_raw_logging_internal.z.so                  3    2    3->2       1.5000       2.0000      
+libabsl_spinlock_wait.z.so                         3    1    3->1       1.5000       1.6000      
+libabsl_strings.z.so                               3    2    3->2       1.6875       2.0000      
+libabsl_strings_internal.z.so                      3    2    3->2       1.5000       2.0000      
+libabsl_time.z.so                                  3    2    3->2       2.2500       3.0000      
+libabsl_time_zone.z.so                             3    2    3->2       2.2500       3.0000      
+libaccessibility_common.z.so                       3    2    3->2       1.5000       2.2857      
+libaccessibility_interface.z.so                    3    2    3->2       10.5000      16.0000     
+libaccessibilityclient.z.so                        3    0    3->0       0.0000       0.0000      
+libaccessibilityconfig.z.so                        3    2    3->2       4.5000       6.8571      
+libaccesstoken_common_cxx.z.so                     3    3    不变         5.4375       5.2500      
+libaccesstoken_communication_adapter_cxx.z.so      3    3    不变         3.1562       3.1875      
+libaccesstoken_sdk.z.so                            3    3    不变         5.6250       4.6875      
+libaccount_common.z.so                             3    3    不变         2.2500       2.2500      
+libaccountkits.z.so                                3    3    不变         3.7500       3.7500      
+libace_compatible.z.so                             2    0    2->0       0.0000       0.0000      
+libace_container_scope.z.so                        3    2    3->2       1.5000       1.4545      
+libace_form_render.z.so                            3    0    3->0       0.0000       0.0000      
+libace_forward_compatibility.z.so                  3    2    3->2       1.5000       2.6667      
+libace_napi.z.so                                   3    2    3->2       4.5000       4.3636      
+libace_uicontent.z.so                              3    2    3->2       1.5000       2.6667      
+libani_helpers.z.so                                3    0    3->0       0.0000       0.0000      
+libapi_cache_manager.z.so                          3    3    不变         1.5000       1.6000      
+libapp_context.z.so                                3    2    3->2       3.0000       4.5714      
+libapp_context_utils.z.so                          3    2    3->2       2.2500       8.0000      
+libapp_domain_verify_common.z.so                   3    1    3->1       8.8125       16.0000     
+libapp_domain_verify_mgr_client.z.so               3    1    3->1       13.0625      20.0000     
+libapp_manager.z.so                                3    3    不变         33.3438      49.0714     
+libapp_util.z.so                                   3    3    不变         10.6875      8.3571      
+libappexecfwk_base.z.so                            3    3    不变         64.0312      37.6875     
+libappexecfwk_common.z.so                          3    3    不变         3.3438       2.8000      
+libappexecfwk_core.z.so                            3    3    不变         56.7500      60.6000     
+libappkit_delegator.z.so                           3    1    3->1       2.2500       6.0000      
+libappkit_manager_helper.z.so                      3    3    不变         11.0000      75.0000     
+libappkit_native.z.so                              3    0    3->0       0.0000       0.0000      
+libapplication_context_manager.z.so                3    2    3->2       1.5000       5.3333      
+libappms.z.so                                      1    1    不变         590.0000     578.0000    
+libappspawn_client.z.so                            3    2    3->2       7.1250       34.6667     
+libark_jsruntime.so                                3    2    3->2       22.5000      21.8182     
+libarkaotmanager.so                                3    0    3->0       0.0000       0.0000      
+libarkencoder.so                                   3    0    3->0       0.0000       0.0000      
+libarkruntime.so                                   3    0    3->0       0.0000       0.0000      
+libarktarget_options.z.so                          3    0    3->0       0.0000       0.0000      
+libarktsbase.so                                    3    0    3->0       0.0000       0.0000      
+libarktscompiler.so                                3    0    3->0       0.0000       0.0000      
+libarktsfile.so                                    3    0    3->0       0.0000       0.0000      
+libarktsziparchive.so                              3    0    3->0       0.0000       0.0000      
+libarkweb_core_loader.z.so                         3    0    3->0       0.0000       0.0000      
+libarkweb_core_loader_glue.z.so                    3    0    3->0       0.0000       0.0000      
+libarkweb_glue_base.z.so                           3    0    3->0       0.0000       0.0000      
+libarkweb_utils.z.so                               3    0    3->0       0.0000       0.0000      
+libastc_encoder_shared.z.so                        3    3    不变         2.2500       2.5714      
+libasync_stack.z.so                                3    3    不变         2.2500       2.4000      
+libaudio_capturer.z.so                             3    0    3->0       6.2500       0.0000      
+libaudio_client.z.so                               3    0    3->0       9.5312       0.0000      
+libaudio_client_idl_interface.z.so                 3    0    3->0       8.2500       0.0000      
+libaudio_common.z.so                               3    0    3->0       6.5312       0.0000      
+libaudio_definitions.z.so                          3    0    3->0       2.2500       0.0000      
+libaudio_engine_plugins.z.so                       3    0    3->0       2.2500       0.0000      
+libaudio_foundation.z.so                           3    0    3->0       2.2500       0.0000      
+libaudio_haptic.z.so                               3    0    3->0       2.2500       0.0000      
+libaudio_policy_client.z.so                        3    0    3->0       8.2500       0.0000      
+libaudio_policy_client_idl_interface.z.so          3    0    3->0       11.2500      0.0000      
+libaudio_renderer.z.so                             3    0    3->0       10.6875      0.0000      
+libaudio_schedule.z.so                             3    0    3->0       1.5000       0.0000      
+libaudio_utils.z.so                                3    0    3->0       2.2500       0.0000      
+libauto_fill_manager.z.so                          3    0    3->0       0.0000       0.0000      
+libauto_startup_callback.z.so                      3    1    3->1       2.2500       6.0000      
+libav_codec_client.z.so                            3    0    3->0       20.0000      0.0000      
+libav_codec_media_engine_modules.z.so              3    0    3->0       5.2500       0.0000      
+libav_codec_service_dfx.z.so                       3    0    3->0       2.2500       0.0000      
+libav_codec_service_utils.z.so                     3    0    3->0       1.5000       0.0000      
+libbacktrace_local.so                              3    3    不变         2.2500       2.2500      
+libbase.z.so                                       3    3    不变         5.2500       3.7500      
+libbeget_proxy.z.so                                3    3    不变         5.4375       6.0000      
+libbegetutil.z.so                                  3    3    不变         1.7812       1.5000      
+libbgtaskmgr_innerkits.z.so                        3    1    3->1       8.1562       31.0000     
+libbuffer_handle.z.so                              3    3    不变         2.2500       2.5714      
+libbundle_napi_common.z.so                         3    2    3->2       2.2500       4.0000      
+libc++.so                                          3    3    不变         8.9062       9.5625      
+libc.so                                            3    3    不变         0.0000       0.0000      
+libcesfwk_core.z.so                                3    3    不变         5.0938       12.1875     
+libcesfwk_innerkits.z.so                           3    3    不变         4.7188       4.5000      
+libchild_process_manager.z.so                      3    0    3->0       0.0000       0.0000      
+libcj_bind_native.z.so                             3    1    3->1       1.5000       4.0000      
+libcjson.z.so                                      3    3    不变         1.5000       1.5000      
+libclang_rt.ubsan_minimal.so                       3    3    不变         1.5000       1.5000      
+libcodec_proxy_4.0.z.so                            3    3    不变         2.2500       2.5714      
+libcolor_manager.z.so                              3    3    不变         2.2500       2.7857      
+libcolor_space_object_convertor.z.so               3    1    3->1       1.5000       4.0000      
+libconcurrent_task_client.z.so                     3    2    3->2       2.2500       4.0000      
+libconfigpolicy_util.z.so                          3    3    不变         2.2500       2.2500      
+libconfiguration.z.so                              3    3    不变         4.0000       7.9286      
+libconfiguration_helper.z.so                       3    1    3->1       1.5000       4.0000      
+libconnect_server_manager.z.so                     3    2    3->2       1.5000       2.6667      
+libconnection_obs_manager.z.so                     3    1    3->1       5.7188       18.0000     
+libconsole.z.so                                    3    2    3->2       2.2500       4.0000      
+libcontinuation_ipc.z.so                           3    1    3->1       6.0000       16.0000     
+libcrypto_openssl.z.so                             3    3    不变         93.0000      94.3125     
+libdata_ability_helper.z.so                        3    0    3->0       0.0000       0.0000      
+libdatabase_utils.z.so                             3    3    不变         1.7188       1.8000      
+libdataobs_manager.z.so                            3    3    不变         5.3125       4.2857      
+libdatashare_common.z.so                           3    3    不变         4.5000       6.8182      
+libdatashare_consumer.z.so                         3    3    不变         12.5625      15.2727     
+libddgr.z.so                                       3    2    3->2       25.7500      37.7143     
+libdevicemanagerjson.z.so                          3    3    不变         2.2500       6.0000      
+libdevicemanagersdk.z.so                           3    3    不变         15.3438      20.5000     
+libdevicestatus_client.z.so                        3    2    3->2       6.0000       16.0000     
+libdevicestatus_ipc.z.so                           3    2    3->2       1.5000       4.0000      
+libdevicestatus_util.z.so                          3    2    3->2       2.2500       6.0000      
+libdfx_dumpcatcher.z.so                            3    3    不变         2.2500       2.5714      
+libdfx_procinfo.z.so                               3    3    不变         1.5000       1.5000      
+libdfx_signalhandler.z.so                          3    2    3->2       1.5625       1.6364      
+libdialog_request_callback.z.so                    3    2    3->2       2.2500       8.0000      
+libdialog_request_info.z.so                        3    1    3->1       1.5000       4.0000      
+libdisplay_buffer_hdi_impl_v1_4.z.so               3    3    不变         2.2500       2.5714      
+libdisplay_buffer_proxy_1.0.z.so                   3    3    不变         2.2500       2.5714      
+libdisplay_buffer_proxy_1.1.z.so                   3    3    不变         2.2500       2.5714      
+libdisplay_buffer_proxy_1.2.z.so                   3    3    不变         1.5000       1.7143      
+libdisplay_buffer_proxy_1.3.z.so                   3    3    不变         2.2500       2.5714      
+libdisplay_buffer_proxy_1.4.z.so                   3    3    不变         2.2500       2.5714      
+libdisplaymgr.z.so                                 3    0    3->0       3.7500       0.0000      
+libdistributed_file_daemon_kit_inner.z.so          3    2    3->2       7.3125       21.3333     
+libdistributed_sdk.z.so                            3    2    3->2       3.7500       10.0000     
+libdistributeddata_client_sync.z.so                3    2    3->2       2.2500       6.0000      
+libdistributeddata_inner.z.so                      3    2    3->2       19.6250      45.0000     
+libdistributeddata_mgr.z.so                        3    3    不变         2.2500       2.2500      
+libdistributeddb.z.so                              3    2    3->2       71.9688      168.5000    
+libdistributeddb_client.z.so                       3    3    不变         7.5938       9.8000      
+libdlp_permission_common_interface.z.so            3    3    不变         1.5000       1.7143      
+libdlp_permission_sdk.z.so                         3    3    不变         6.0000       7.2857      
+libdlp_setconfig_sdk.z.so                          3    0    3->0       0.0000       0.0000      
+libdlpparse.z.so                                   3    3    不变         3.7500       4.2857      
+libdm.z.so                                         3    2    3->2       21.0000      37.3333     
+libdomain_account_innerkits.z.so                   3    3    不变         5.2500       5.2500      
+libdrawable_descriptor.z.so                        3    2    3->2       1.5000       4.0000      
+libdrawing_napi_impl.z.so                          3    0    3->0       0.0000       0.0000      
+libdrm_framework.z.so                              3    0    3->0       6.0000       0.0000      
+libdvsync.z.so                                     3    2    3->2       2.2500       3.4286      
+libegl_image.z.so                                  3    1    3->1       2.2500       6.0000      
+libembeddablewindowstage_kit.z.so                  3    0    3->0       0.0000       0.0000      
+libeventhandler.z.so                               3    3    不变         4.4062       4.6875      
+libexif.z.so                                       3    3    不变         18.0000      20.5714     
+libext2_uuid.z.so                                  3    0    3->0       0.0000       0.0000      
+libextension_manager.z.so                          3    3    不变         2.2500       3.2727      
+libextensionkit_native.z.so                        3    1    3->1       2.2500       6.0000      
+libextensionwindow_napi.z.so                       3    0    3->0       0.0000       0.0000      
+libextra_config_napi.z.so                          3    0    3->0       0.0000       0.0000      
+libextractortool.z.so                              3    3    不变         2.6250       2.4000      
+libextractresourcemanager.z.so                     3    2    3->2       2.2500       4.0000      
+libfaultloggerd.z.so                               3    3    不变         1.5000       1.5000      
+libffrt.so                                         3    3    不变         9.0312       7.8750      
+libfileuri_native.z.so                             3    3    不变         2.2500       2.5714      
+libfmskit_native.z.so                              3    0    3->0       0.0000       0.0000      
+libfmskit_provider_client.z.so                     3    0    3->0       0.0000       0.0000      
+libforeground_app_obs_manager.z.so                 3    1    3->1       5.6250       15.0000     
+libform_manager.z.so                               3    1    3->1       57.8438      95.3333     
+libframe_analyzer.z.so                             3    2    3->2       2.2500       3.4286      
+libframe_trace_intf.z.so                           3    2    3->2       1.5000       2.2857      
+libfreeze_util.z.so                                3    3    不变         2.2500       2.7857      
+libfwmark_client.z.so                              1    1    不变         2.0000       2.0000      
+libglobal_resmgr.z.so                              3    3    不变         6.3125       4.8000      
+libgraphics_effect.z.so                            3    2    3->2       12.0000      17.1429     
+libhdf_ipc_adapter.z.so                            3    3    不变         2.2500       2.5714      
+libhdi.z.so                                        3    3    不变         3.0000       3.4286      
+libhdi_base.z.so                                   3    3    不变         2.2500       2.5714      
+libheifparser.z.so                                 3    3    不变         3.7500       4.2857      
+libhiappevent_base.z.so                            3    2    3->2       3.7500       5.7143      
+libhiappevent_innerapi.z.so                        3    2    3->2       1.5000       2.2857      
+libhichecker.so                                    3    2    3->2       2.2500       6.0000      
+libhicollie.z.so                                   3    3    不变         3.0312       3.3750      
+libhilog.so                                        3    3    不变         1.5000       1.5000      
+libhilog_encode.so                                 3    3    不变         1.5000       1.5000      
+libhilog_inner.so                                  3    3    不变         3.3438       3.3750      
+libhiperf_local.z.so                               3    0    3->0       0.0000       0.0000      
+libhistreamer_plugin_base.z.so                     3    0    3->0       0.0000       0.0000      
+libhisysevent.z.so                                 3    3    不变         3.0000       3.0000      
+libhisysevent_report.z.so                          3    3    不变         0.0000       2.1429      
+libhitrace_meter.so                                3    3    不变         1.5000       2.2500      
+libhitracechain.so                                 3    3    不变         2.2500       2.2500      
+libhmicui18n.z.so                                  3    3    不变         14.0625      12.8000     
+libhmicuuc.z.so                                    3    3    不变         26.8750      20.2000     
+libhukssdk.z.so                                    3    2    3->2       4.5000       6.6667      
+libi18n_sa_client.z.so                             1    1    不变         42.0000      8.0000      
+libimage_accessor.z.so                             3    3    不变         6.0000       7.7143      
+libimage_effect_impl.so                            3    0    3->0       0.0000       0.0000      
+libimage_error_convert.z.so                        3    1    3->1       1.5000       4.0000      
+libimage_napi.z.so                                 3    2    3->2       6.7500       20.0000     
+libimage_native.z.so                               3    3    不变         7.5000       46.5000     
+libimage_proxy_2.1.z.so                            3    3    不变         2.2500       2.5714      
+libimage_utils.z.so                                3    3    不变         2.2500       16.9286     
+libimf_hisysevent.z.so                             3    2    3->2       3.0000       8.0000      
+libinputmethod_client.z.so                         3    2    3->2       7.5000       20.0000     
+libinputmethod_common.z.so                         3    2    3->2       4.5000       12.0000     
+libinsight_intent_executor.z.so                    3    0    3->0       0.0000       0.0000      
+libinsightintentcontext.z.so                       3    0    3->0       0.0000       0.0000      
+libintl_register.z.so                              3    2    3->2       1.5000       2.6667      
+libintl_util.z.so                                  3    2    3->2       14.8125      22.2500     
+libipc_common.z.so                                 3    3    不变         1.5312       2.2500      
+libipc_napi.z.so                                   3    2    3->2       4.5000       12.0000     
+libipc_single.z.so                                 3    3    不变         5.0938       6.0000      
+libjit_code_sign.z.so                              3    2    3->2       1.5000       1.4545      
+libjs_environment.z.so                             3    2    3->2       2.2500       4.0000      
+libjsoncpp.z.so                                    3    3    不变         5.7500       5.8125      
+liblz4_shared.z.so                                 3    2    3->2       1.5000       2.2857      
+liblzma.z.so                                       3    3    不变         1.5000       1.5000      
+libmedia_client.z.so                               3    0    3->0       14.2500      0.0000      
+libmedia_foundation.z.so                           3    2    3->2       8.1562       9.0000      
+libmedia_ipc_common.z.so                           3    1    3->1       1.5000       4.0000      
+libmedia_library.z.so                              3    0    3->0       0.0000       0.0000      
+libmedia_library_common.z.so                       3    1    3->1       2.2500       4.0000      
+libmedia_library_manager.z.so                      3    0    3->0       0.0000       0.0000      
+libmedia_monitor_client.z.so                       3    0    3->0       2.2500       0.0000      
+libmedia_monitor_common.z.so                       3    0    3->0       1.5000       0.0000      
+libmedia_permission_helper.z.so                    1    1    不变         6.0000       6.0000      
+libmedia_service_utils.z.so                        3    0    3->0       6.6250       0.0000      
+libmeminfo.z.so                                    1    1    不变         9.0000       6.0000      
+libmemmgrclient.z.so                               3    2    3->2       3.9375       4.4444      
+libmemorytracker_proxy_1.0.z.so                    1    1    不变         6.0000       8.0000      
+libmiscdevice_utils.z.so                           3    0    3->0       2.2500       0.0000      
+libmission_info.z.so                               3    3    不变         2.2500       2.5714      
+libmmi-client.z.so                                 3    2    3->2       8.2500       11.0000     
+libmmi-util.z.so                                   3    2    3->2       3.0000       4.0000      
+libmmi_rust_key_config.z.so                        3    2    3->2       1.5000       2.2857      
+libmodal_system_ui_extension_client.z.so           3    1    3->1       2.2500       6.0000      
+libnapi_base_context.z.so                          0    1    0->1       0.0000       0.0000      
+libnapi_common.z.so                                3    2    3->2       2.2500       8.0000      
+libnative_appdatafwk.z.so                          3    3    不变         2.0000       1.8000      
+libnative_dataability.z.so                         3    3    不变         3.7500       4.2857      
+libnative_preferences.z.so                         3    2    3->2       3.0000       3.2000      
+libnative_rdb.z.so                                 3    3    不变         27.6250      26.8000     
+libnet_conn_manager_if.z.so                        1    1    不变         10.7083      13.5000     
+libnet_manager_common.z.so                         3    1    3->1       2.2500       1.7143      
+libnet_security_config_if.z.so                     3    0    3->0       2.2500       0.0000      
+libnstackx_congestion.z.so                         3    1    3->1       2.2500       4.0000      
+libnstackx_dfile.z.so                              3    1    3->1       4.2812       31.0000     
+libnstackx_util.z.so                               3    1    3->1       3.0000       23.6667     
+libohosffmpeg.z.so                                 3    3    不变         58.1875      65.1429     
+libopencl_wrapper.so                               3    2    3->2       1.5000       2.0000      
+libos_account_innerkits.z.so                       3    3    不变         8.6250       7.6875      
+libpage_config_manager.z.so                        3    0    3->0       0.0000       0.0000      
+libpasteboard_client.z.so                          3    0    3->0       0.0000       0.0000      
+libpasteboard_data.z.so                            3    0    3->0       0.0000       0.0000      
+libpasteboard_framework.z.so                       3    0    3->0       0.0000       0.0000      
+libpcre2.z.so                                      3    3    不变         1.5000       1.5000      
+libperfmonitor.z.so                                3    0    3->0       0.0000       0.0000      
+libperm_verification.z.so                          3    3    不变         8.3750       36.0000     
+libphonenumber_standard.z.so                       3    2    3->2       8.1875       5.0000      
+libpip_ndk.so                                      3    0    3->0       0.0000       0.0000      
+libpip_web.z.so                                    3    0    3->0       0.0000       0.0000      
+libpixelconvertadapter.z.so                        3    3    不变         1.5000       1.7143      
+libpixelmap.so                                     3    0    3->0       7.5000       0.0000      
+libpluginmanager.z.so                              3    3    不变         2.2500       2.5714      
+libpng.z.so                                        3    2    3->2       2.2500       3.0000      
+libpost_proc_gl.z.so                               3    3    不变         2.2500       1.7143      
+libpowermgr_client.z.so                            3    2    3->2       10.5000      18.6667     
+libpreferred_language.z.so                         3    0    3->0       0.0000       0.0000      
+libprivacy_communication_adapter_cxx.z.so          3    1    3->1       3.2188       2.0000      
+libprivacy_sdk.z.so                                3    1    3->1       8.2500       4.2500      
+libprocess_options.z.so                            3    3    不变         1.5000       1.7143      
+libprotobuf_lite.z.so                              3    2    3->2       3.7500       6.0000      
+libpub_utils.z.so                                  3    3    不变         2.2500       2.5714      
+libpurgeable_pixelmap_builder.z.so                 3    0    3->0       0.0000       0.0000      
+libpurgeablemem.z.so                               3    3    不变         1.5000       1.7143      
+libpurgeablemem_plugin.z.so                        3    3    不变         2.2500       2.5714      
+libqos.z.so                                        3    3    不变         1.5000       1.6000      
+librdb_data_ability_adapter.z.so                   3    0    3->0       0.0000       0.0000      
+librdb_data_share_adapter.z.so                     3    0    3->0       0.0000       0.0000      
+librelational_common_base.z.so                     3    3    不变         1.5000       1.6000      
+libremote_file_share_native.z.so                   3    2    3->2       2.2500       8.0000      
+librender_service_base.z.so                        3    2    3->2       89.7500      188.0000    
+librender_service_client.z.so                      3    2    3->2       12.7500      38.8571     
+libresmgr_napi_core.z.so                           3    2    3->2       4.5000       16.0000     
+libressched_client.z.so                            3    3    不变         6.0000       6.0000      
+librestorecon.z.so                                 3    3    不变         1.5000       1.5000      
+librosen_text.z.so                                 3    2    3->2       6.0000       9.1429      
+librtg_interface.z.so                              3    3    不变         2.2500       2.4000      
+libruntime.z.so                                    3    2    3->2       3.7500       5.7143      
+libruntime_utils.z.so                              3    3    不变         2.1250       2.7857      
+libsamgr_common.z.so                               3    3    不变         2.2500       2.6250      
+libsamgr_proxy.z.so                                3    3    不变         6.5938       9.1875      
+libsandbox_helper_native.z.so                      3    0    3->0       0.0000       0.0000      
+libsandbox_manager_communication_adapter_cxx.z.so  1    1    不变         18.0000      9.5000      
+libsandbox_manager_sdk.z.so                        1    1    不变         26.0000      20.5000     
+libscene_session.z.so                              3    2    3->2       46.2188      195.3333    
+libscene_session_manager.z.so                      3    0    3->0       0.0000       0.0000      
+libscreen_session.z.so                             3    2    3->2       16.1875      110.0000    
+libscreen_session_manager_client.z.so              3    2    3->2       6.0000       21.3333     
+libscreenlock_client.z.so                          3    1    3->1       3.7500       4.8000      
+libsec_shared.z.so                                 3    3    不变         1.5000       1.5000      
+libsecurity_component_sdk.z.so                     3    2    3->2       3.0000       5.7143      
+libselinux.z.so                                    3    3    不变         2.2500       2.2500      
+libsession_handler.z.so                            3    0    3->0       0.0000       0.0000      
+libsession_info.z.so                               3    3    不变         2.5000       2.5714      
+libsession_manager.z.so                            3    2    3->2       6.7500       34.6667     
+libsession_manager_lite.z.so                       3    3    不变         4.9688       5.1429      
+libshared_libz.z.so                                3    3    不变         1.5000       1.5000      
+libskia_canvaskit.z.so                             3    3    不变         78.1875      78.0000     
+libsms.z.so                                        3    1    3->1       29.5625      115.5000    
+libsocketpair.z.so                                 3    2    3->2       1.5000       2.2857      
+libsoftbus_adapter.z.so                            3    1    3->1       3.1562       4.3333      
+libsoftbus_client.z.so                             3    1    3->1       23.5312      42.0000     
+libsoftbus_dfx.z.so                                3    1    3->1       6.7500       12.0000     
+libsoftbus_utils.z.so                              3    1    3->1       16.3438      32.3333     
+libsonic.z.so                                      3    0    3->0       1.5000       0.0000      
+libsoundpool_client.z.so                           3    0    3->0       3.0000       0.0000      
+libsqlite.z.so                                     3    3    不变         18.9375      20.0000     
+libstack_printer.z.so                              3    3    不变         1.5000       1.7143      
+libstart_window_option.z.so                        3    3    不变         1.5000       1.7143      
+libstartup_util.z.so                               3    3    不变         3.1875       3.6429      
+libstd.dylib.so                                    3    2    3->2       7.5000       11.4286     
+libstorage_manager_acl.z.so                        3    3    不变         2.2500       2.2500      
+libstorage_manager_sa_proxy.z.so                   3    3    不变         4.5000       8.0000      
+libstring_utils.z.so                               3    3    不变         1.8438       1.6000      
+libsurface.z.so                                    3    3    不变         6.7500       7.7143      
+libsync_fence.z.so                                 3    3    不变         1.5000       1.7143      
+libsystem_ability_fwk.z.so                         3    3    不变         3.0000       5.0625      
+libsystemparam.z.so                                3    3    不变         1.5000       1.5000      
+libtask_handler_wrap.z.so                          3    2    3->2       5.7500       22.6667     
+libtel_common.z.so                                 0    1    0->1       0.0000       25.3333     
+libtel_sms_mms_api.z.so                            0    1    0->1       0.0000       12.0000     
+libtext_napi_impl.z.so                             3    0    3->0       0.0000       0.0000      
+libtime_client.z.so                                3    2    3->2       5.4062       4.1818      
+libtimer.z.so                                      3    2    3->2       2.2500       4.0000      
+libtoken_callback_sdk.z.so                         3    2    3->2       1.5000       5.3333      
+libtokenid_sdk.z.so                                3    3    不变         1.7188       1.5000      
+libtokensetproc_shared.z.so                        3    3    不变         1.5000       1.7143      
+libucollection_client.z.so                         3    3    不变         2.2500       2.2500      
+libudmf.so                                         3    0    3->0       0.0000       0.0000      
+libudmf_client.z.so                                3    2    3->2       10.3125      26.6667     
+libudmf_data_napi.z.so                             3    0    3->0       0.0000       0.0000      
+libui_extension.z.so                               3    0    3->0       0.0000       0.0000      
+libui_service_extension_connection.z.so            3    1    3->1       3.7500       8.0000      
+libui_service_mgr.z.so                             3    0    3->0       0.0000       0.0000      
+libui_session.z.so                                 3    0    3->0       0.0000       0.0000      
+libuiabilitykit_native.z.so                        3    0    3->0       0.0000       0.0000      
+libuiservice_manager_interface_set.z.so            3    0    3->0       0.0000       0.0000      
+libunwinder.z.so                                   3    3    不变         2.2500       2.2500      
+libupms.z.so                                       1    1    不变         48.0000      30.0000     
+liburi_permission_mgr.z.so                         3    3    不变         11.7812      81.7500     
+libuser_controller.z.so                            3    2    3->2       5.1250       21.3333     
+libutd_client.z.so                                 3    3    不变         9.4375       8.6250      
+libutils.z.so                                      3    3    不变         2.5938       2.6250      
+libuv.so                                           3    3    不变         2.2500       3.0000      
+libvibrator_agent.z.so                             3    0    3->0       2.2500       0.0000      
+libvibrator_native.z.so                            3    0    3->0       2.2500       0.0000      
+libvideoprocessingengine.z.so                      3    2    3->2       9.7500       13.0000     
+libview_data.z.so                                  3    1    3->1       9.5000       36.0000     
+libvsync.z.so                                      3    2    3->2       4.5000       6.8571      
+libvulkan.so                                       3    2    3->2       3.7500       5.7143      
+libwant.z.so                                       3    3    不变         14.5938      8.0625      
+libwantagent_innerkits.z.so                        3    1    3->1       3.7500       4.0000      
+libwantagent_manager.z.so                          3    3    不变         3.7500       4.2857      
+libweb_configs.z.so                                3    0    3->0       0.0000       0.0000      
+libwindow_animation.z.so                           3    2    3->2       3.7500       13.3333     
+libwindow_animation_utils.z.so                     3    2    3->2       2.2500       8.0000      
+libwindow_extension_client.z.so                    3    0    3->0       0.0000       0.0000      
+libwindow_native_kit.z.so                          3    1    3->1       9.0000       24.5000     
+libwindow_scene_common.z.so                        3    2    3->2       9.1250       42.0000     
+libwindowstage_kit.z.so                            3    1    3->1       4.1250       6.0000      
+libwm.z.so                                         3    2    3->2       47.2188      194.0000    
+libwmutil.z.so                                     3    2    3->2       22.5000      93.3333     
+libwmutil_base.z.so                                3    3    不变         6.6562       10.5000     
+libwsutils.z.so                                    3    3    不变         1.7188       2.3571      
+libxml2.z.so                                       3    2    3->2       7.4688       8.3636      
+libxperfservice_client.z.so                        3    2    3->2       3.7500       5.0000      
+libxpower_event_js.z.so                            3    0    3->0       0.0000       0.0000      
+libzuri.z.so                                       3    3    不变         3.0000       2.6250      
+
+========================================================================================================================
+新增AMS依赖的SO
+========================================================================================================================
+SO名称                                               依赖次数     分摊内存(KB)    
+---------------------------------------------------------------------------
+libtel_common.z.so                                 1    25.3333     
+libtel_sms_mms_api.z.so                            1    12.0000     
+libnapi_base_context.z.so                          1    0.0000      
+
+========================================================================================================================
+移除AMS依赖的SO
+========================================================================================================================
+SO名称                                               依赖次数     分摊内存(KB)    
+---------------------------------------------------------------------------
+libav_codec_client.z.so                            3    20.0000     
+libmedia_client.z.so                               3    14.2500     
+libaudio_policy_client_idl_interface.z.so          3    11.2500     
+libaudio_renderer.z.so                             3    10.6875     
+libaudio_client.z.so                               3    9.5312      
+libaudio_client_idl_interface.z.so                 3    8.2500      
+libaudio_policy_client.z.so                        3    8.2500      
+libpixelmap.so                                     3    7.5000      
+libmedia_service_utils.z.so                        3    6.6250      
+libaudio_common.z.so                               3    6.5312      
+libaudio_capturer.z.so                             3    6.2500      
+libdrm_framework.z.so                              3    6.0000      
+libav_codec_media_engine_modules.z.so              3    5.2500      
+libdisplaymgr.z.so                                 3    3.7500      
+libsoundpool_client.z.so                           3    3.0000      
+libaudio_definitions.z.so                          3    2.2500      
+libaudio_engine_plugins.z.so                       3    2.2500      
+libaudio_foundation.z.so                           3    2.2500      
+libaudio_haptic.z.so                               3    2.2500      
+libaudio_utils.z.so                                3    2.2500      
+libav_codec_service_dfx.z.so                       3    2.2500      
+libmedia_monitor_client.z.so                       3    2.2500      
+libmiscdevice_utils.z.so                           3    2.2500      
+libnet_security_config_if.z.so                     3    2.2500      
+libvibrator_agent.z.so                             3    2.2500      
+libvibrator_native.z.so                            3    2.2500      
+libaudio_schedule.z.so                             3    1.5000      
+libav_codec_service_utils.z.so                     3    1.5000      
+libmedia_monitor_common.z.so                       3    1.5000      
+libsonic.z.so                                      3    1.5000      
+lib3dWidgetAdapter.z.so                            3    0.0000      
+libability_base_want.so                            3    0.0000      
+libability_thread.z.so                             3    0.0000      
+libaccessibilityclient.z.so                        3    0.0000      
+libace_compatible.z.so                             2    0.0000      
+libace_form_render.z.so                            3    0.0000      
+libani_helpers.z.so                                3    0.0000      
+libappkit_native.z.so                              3    0.0000      
+libarkaotmanager.so                                3    0.0000      
+libarkencoder.so                                   3    0.0000      
+libarkruntime.so                                   3    0.0000      
+libarktarget_options.z.so                          3    0.0000      
+libarktsbase.so                                    3    0.0000      
+libarktscompiler.so                                3    0.0000      
+libarktsfile.so                                    3    0.0000      
+libarktsziparchive.so                              3    0.0000      
+libarkweb_core_loader.z.so                         3    0.0000      
+libarkweb_core_loader_glue.z.so                    3    0.0000      
+libarkweb_glue_base.z.so                           3    0.0000      
+libarkweb_utils.z.so                               3    0.0000      
+libauto_fill_manager.z.so                          3    0.0000      
+libchild_process_manager.z.so                      3    0.0000      
+libdata_ability_helper.z.so                        3    0.0000      
+libdlp_setconfig_sdk.z.so                          3    0.0000      
+libdrawing_napi_impl.z.so                          3    0.0000      
+libembeddablewindowstage_kit.z.so                  3    0.0000      
+libext2_uuid.z.so                                  3    0.0000      
+libextensionwindow_napi.z.so                       3    0.0000      
+libextra_config_napi.z.so                          3    0.0000      
+libfmskit_native.z.so                              3    0.0000      
+libfmskit_provider_client.z.so                     3    0.0000      
+libhiperf_local.z.so                               3    0.0000      
+libhistreamer_plugin_base.z.so                     3    0.0000      
+libimage_effect_impl.so                            3    0.0000      
+libinsight_intent_executor.z.so                    3    0.0000      
+libinsightintentcontext.z.so                       3    0.0000      
+libmedia_library.z.so                              3    0.0000      
+libmedia_library_manager.z.so                      3    0.0000      
+libpage_config_manager.z.so                        3    0.0000      
+libpasteboard_client.z.so                          3    0.0000      
+libpasteboard_data.z.so                            3    0.0000      
+libpasteboard_framework.z.so                       3    0.0000      
+libperfmonitor.z.so                                3    0.0000      
+libpip_ndk.so                                      3    0.0000      
+libpip_web.z.so                                    3    0.0000      
+libpreferred_language.z.so                         3    0.0000      
+libpurgeable_pixelmap_builder.z.so                 3    0.0000      
+librdb_data_ability_adapter.z.so                   3    0.0000      
+librdb_data_share_adapter.z.so                     3    0.0000      
+libsandbox_helper_native.z.so                      3    0.0000      
+libscene_session_manager.z.so                      3    0.0000      
+libsession_handler.z.so                            3    0.0000      
+libtext_napi_impl.z.so                             3    0.0000      
+libudmf.so                                         3    0.0000      
+libudmf_data_napi.z.so                             3    0.0000      
+libui_extension.z.so                               3    0.0000      
+libui_service_mgr.z.so                             3    0.0000      
+libui_session.z.so                                 3    0.0000      
+libuiabilitykit_native.z.so                        3    0.0000      
+libuiservice_manager_interface_set.z.so            3    0.0000      
+libweb_configs.z.so                                3    0.0000      
+libwindow_extension_client.z.so                    3    0.0000      
+libxpower_event_js.z.so                            3    0.0000      
+
+========================================================================================================================
+AMS依赖次数变化的SO (排除新增和移除)
+========================================================================================================================
+SO名称                                               版本30     最新版本     内存30(KB)     内存新(KB)     
+-----------------------------------------------------------------------------------------------
+lib2d_graphics.z.so                                3    2    18.0000      26.2857     
+libFillpSo.z.so                                    3    1    3.0000       5.3333      
+libability_business_error.z.so                     3    2    2.2500       4.0000      
+libability_context_native.z.so                     3    2    5.2500       16.0000     
+libability_runtime_error_util.z.so                 3    2    1.5000       5.3333      
+libabilitykit_native.z.so                          3    1    21.4062      31.5000     
+libabilitykit_utils.z.so                           3    1    1.5000       4.0000      
+libabsl_base.z.so                                  3    2    1.5000       2.0000      
+libabsl_raw_logging_internal.z.so                  3    2    1.5000       2.0000      
+libabsl_spinlock_wait.z.so                         3    1    1.5000       1.6000      
+libabsl_strings.z.so                               3    2    1.6875       2.0000      
+libabsl_strings_internal.z.so                      3    2    1.5000       2.0000      
+libabsl_time.z.so                                  3    2    2.2500       3.0000      
+libabsl_time_zone.z.so                             3    2    2.2500       3.0000      
+libaccessibility_common.z.so                       3    2    1.5000       2.2857      
+libaccessibility_interface.z.so                    3    2    10.5000      16.0000     
+libaccessibilityconfig.z.so                        3    2    4.5000       6.8571      
+libace_container_scope.z.so                        3    2    1.5000       1.4545      
+libace_forward_compatibility.z.so                  3    2    1.5000       2.6667      
+libace_napi.z.so                                   3    2    4.5000       4.3636      
+libace_uicontent.z.so                              3    2    1.5000       2.6667      
+libapp_context.z.so                                3    2    3.0000       4.5714      
+libapp_context_utils.z.so                          3    2    2.2500       8.0000      
+libapp_domain_verify_common.z.so                   3    1    8.8125       16.0000     
+libapp_domain_verify_mgr_client.z.so               3    1    13.0625      20.0000     
+libappkit_delegator.z.so                           3    1    2.2500       6.0000      
+libapplication_context_manager.z.so                3    2    1.5000       5.3333      
+libappspawn_client.z.so                            3    2    7.1250       34.6667     
+libark_jsruntime.so                                3    2    22.5000      21.8182     
+libauto_startup_callback.z.so                      3    1    2.2500       6.0000      
+libbgtaskmgr_innerkits.z.so                        3    1    8.1562       31.0000     
+libbundle_napi_common.z.so                         3    2    2.2500       4.0000      
+libcj_bind_native.z.so                             3    1    1.5000       4.0000      
+libcolor_space_object_convertor.z.so               3    1    1.5000       4.0000      
+libconcurrent_task_client.z.so                     3    2    2.2500       4.0000      
+libconfiguration_helper.z.so                       3    1    1.5000       4.0000      
+libconnect_server_manager.z.so                     3    2    1.5000       2.6667      
+libconnection_obs_manager.z.so                     3    1    5.7188       18.0000     
+libconsole.z.so                                    3    2    2.2500       4.0000      
+libcontinuation_ipc.z.so                           3    1    6.0000       16.0000     
+libddgr.z.so                                       3    2    25.7500      37.7143     
+libdevicestatus_client.z.so                        3    2    6.0000       16.0000     
+libdevicestatus_ipc.z.so                           3    2    1.5000       4.0000      
+libdevicestatus_util.z.so                          3    2    2.2500       6.0000      
+libdfx_signalhandler.z.so                          3    2    1.5625       1.6364      
+libdialog_request_callback.z.so                    3    2    2.2500       8.0000      
+libdialog_request_info.z.so                        3    1    1.5000       4.0000      
+libdistributed_file_daemon_kit_inner.z.so          3    2    7.3125       21.3333     
+libdistributed_sdk.z.so                            3    2    3.7500       10.0000     
+libdistributeddata_client_sync.z.so                3    2    2.2500       6.0000      
+libdistributeddata_inner.z.so                      3    2    19.6250      45.0000     
+libdistributeddb.z.so                              3    2    71.9688      168.5000    
+libdm.z.so                                         3    2    21.0000      37.3333     
+libdrawable_descriptor.z.so                        3    2    1.5000       4.0000      
+libdvsync.z.so                                     3    2    2.2500       3.4286      
+libegl_image.z.so                                  3    1    2.2500       6.0000      
+libextensionkit_native.z.so                        3    1    2.2500       6.0000      
+libextractresourcemanager.z.so                     3    2    2.2500       4.0000      
+libforeground_app_obs_manager.z.so                 3    1    5.6250       15.0000     
+libform_manager.z.so                               3    1    57.8438      95.3333     
+libframe_analyzer.z.so                             3    2    2.2500       3.4286      
+libframe_trace_intf.z.so                           3    2    1.5000       2.2857      
+libgraphics_effect.z.so                            3    2    12.0000      17.1429     
+libhiappevent_base.z.so                            3    2    3.7500       5.7143      
+libhiappevent_innerapi.z.so                        3    2    1.5000       2.2857      
+libhichecker.so                                    3    2    2.2500       6.0000      
+libhukssdk.z.so                                    3    2    4.5000       6.6667      
+libimage_error_convert.z.so                        3    1    1.5000       4.0000      
+libimage_napi.z.so                                 3    2    6.7500       20.0000     
+libimf_hisysevent.z.so                             3    2    3.0000       8.0000      
+libinputmethod_client.z.so                         3    2    7.5000       20.0000     
+libinputmethod_common.z.so                         3    2    4.5000       12.0000     
+libintl_register.z.so                              3    2    1.5000       2.6667      
+libintl_util.z.so                                  3    2    14.8125      22.2500     
+libipc_napi.z.so                                   3    2    4.5000       12.0000     
+libjit_code_sign.z.so                              3    2    1.5000       1.4545      
+libjs_environment.z.so                             3    2    2.2500       4.0000      
+liblz4_shared.z.so                                 3    2    1.5000       2.2857      
+libmedia_foundation.z.so                           3    2    8.1562       9.0000      
+libmedia_ipc_common.z.so                           3    1    1.5000       4.0000      
+libmedia_library_common.z.so                       3    1    2.2500       4.0000      
+libmemmgrclient.z.so                               3    2    3.9375       4.4444      
+libmmi-client.z.so                                 3    2    8.2500       11.0000     
+libmmi-util.z.so                                   3    2    3.0000       4.0000      
+libmmi_rust_key_config.z.so                        3    2    1.5000       2.2857      
+libmodal_system_ui_extension_client.z.so           3    1    2.2500       6.0000      
+libnapi_common.z.so                                3    2    2.2500       8.0000      
+libnative_preferences.z.so                         3    2    3.0000       3.2000      
+libnet_manager_common.z.so                         3    1    2.2500       1.7143      
+libnstackx_congestion.z.so                         3    1    2.2500       4.0000      
+libnstackx_dfile.z.so                              3    1    4.2812       31.0000     
+libnstackx_util.z.so                               3    1    3.0000       23.6667     
+libopencl_wrapper.so                               3    2    1.5000       2.0000      
+libphonenumber_standard.z.so                       3    2    8.1875       5.0000      
+libpng.z.so                                        3    2    2.2500       3.0000      
+libpowermgr_client.z.so                            3    2    10.5000      18.6667     
+libprivacy_communication_adapter_cxx.z.so          3    1    3.2188       2.0000      
+libprivacy_sdk.z.so                                3    1    8.2500       4.2500      
+libprotobuf_lite.z.so                              3    2    3.7500       6.0000      
+libremote_file_share_native.z.so                   3    2    2.2500       8.0000      
+librender_service_base.z.so                        3    2    89.7500      188.0000    
+librender_service_client.z.so                      3    2    12.7500      38.8571     
+libresmgr_napi_core.z.so                           3    2    4.5000       16.0000     
+librosen_text.z.so                                 3    2    6.0000       9.1429      
+libruntime.z.so                                    3    2    3.7500       5.7143      
+libscene_session.z.so                              3    2    46.2188      195.3333    
+libscreen_session.z.so                             3    2    16.1875      110.0000    
+libscreen_session_manager_client.z.so              3    2    6.0000       21.3333     
+libscreenlock_client.z.so                          3    1    3.7500       4.8000      
+libsecurity_component_sdk.z.so                     3    2    3.0000       5.7143      
+libsession_manager.z.so                            3    2    6.7500       34.6667     
+libsms.z.so                                        3    1    29.5625      115.5000    
+libsocketpair.z.so                                 3    2    1.5000       2.2857      
+libsoftbus_adapter.z.so                            3    1    3.1562       4.3333      
+libsoftbus_client.z.so                             3    1    23.5312      42.0000     
+libsoftbus_dfx.z.so                                3    1    6.7500       12.0000     
+libsoftbus_utils.z.so                              3    1    16.3438      32.3333     
+libstd.dylib.so                                    3    2    7.5000       11.4286     
+libtask_handler_wrap.z.so                          3    2    5.7500       22.6667     
+libtime_client.z.so                                3    2    5.4062       4.1818      
+libtimer.z.so                                      3    2    2.2500       4.0000      
+libtoken_callback_sdk.z.so                         3    2    1.5000       5.3333      
+libudmf_client.z.so                                3    2    10.3125      26.6667     
+libui_service_extension_connection.z.so            3    1    3.7500       8.0000      
+libuser_controller.z.so                            3    2    5.1250       21.3333     
+libvideoprocessingengine.z.so                      3    2    9.7500       13.0000     
+libview_data.z.so                                  3    1    9.5000       36.0000     
+libvsync.z.so                                      3    2    4.5000       6.8571      
+libvulkan.so                                       3    2    3.7500       5.7143      
+libwantagent_innerkits.z.so                        3    1    3.7500       4.0000      
+libwindow_animation.z.so                           3    2    3.7500       13.3333     
+libwindow_animation_utils.z.so                     3    2    2.2500       8.0000      
+libwindow_native_kit.z.so                          3    1    9.0000       24.5000     
+libwindow_scene_common.z.so                        3    2    9.1250       42.0000     
+libwindowstage_kit.z.so                            3    1    4.1250       6.0000      
+libwm.z.so                                         3    2    47.2188      194.0000    
+libwmutil.z.so                                     3    2    22.5000      93.3333     
+libxml2.z.so                                       3    2    7.4688       8.3636      
+libxperfservice_client.z.so                        3    2    3.7500       5.0000      
+
+========================================================================================================================
+AMS分摊内存增大的SO (按增大值排序)
+========================================================================================================================
+SO名称                                               版本30(KB)     最新版本(KB)     增加(KB)     增加%     
+----------------------------------------------------------------------------------------------------
+libscene_session.z.so                              46.2188      195.3333     149.1146   322.63  %
+libwm.z.so                                         47.2188      194.0000     146.7812   310.85  %
+librender_service_base.z.so                        89.7500      188.0000     98.2500    109.47  %
+libdistributeddb.z.so                              71.9688      168.5000     96.5312    134.13  %
+libscreen_session.z.so                             16.1875      110.0000     93.8125    579.54  %
+libsms.z.so                                        29.5625      115.5000     85.9375    290.70  %
+libwmutil.z.so                                     22.5000      93.3333      70.8333    314.81  %
+liburi_permission_mgr.z.so                         11.7812      81.7500      69.9688    593.90  %
+libappkit_manager_helper.z.so                      11.0000      75.0000      64.0000    581.82  %
+libabilityms.z.so                                  1710.3333    1766.0000    55.6667    3.25    %
+libimage_native.z.so                               7.5000       46.5000      39.0000    520.00  %
+libform_manager.z.so                               57.8438      95.3333      37.4896    64.81   %
+libwindow_scene_common.z.so                        9.1250       42.0000      32.8750    360.27  %
+libsession_manager.z.so                            6.7500       34.6667      27.9167    413.58  %
+libperm_verification.z.so                          8.3750       36.0000      27.6250    329.85  %
+libappspawn_client.z.so                            7.1250       34.6667      27.5417    386.55  %
+libnstackx_dfile.z.so                              4.2812       31.0000      26.7188    624.09  %
+libview_data.z.so                                  9.5000       36.0000      26.5000    278.95  %
+librender_service_client.z.so                      12.7500      38.8571      26.1071    204.76  %
+libdistributeddata_inner.z.so                      19.6250      45.0000      25.3750    129.30  %
+libtel_common.z.so                                 0.0000       25.3333      25.3333    inf     %
+libbgtaskmgr_innerkits.z.so                        8.1562       31.0000      22.8438    280.08  %
+libnstackx_util.z.so                               3.0000       23.6667      20.6667    688.89  %
+libsoftbus_client.z.so                             23.5312      42.0000      18.4688    78.49   %
+libtask_handler_wrap.z.so                          5.7500       22.6667      16.9167    294.20  %
+libudmf_client.z.so                                10.3125      26.6667      16.3542    158.59  %
+libdm.z.so                                         21.0000      37.3333      16.3333    77.78   %
+libuser_controller.z.so                            5.1250       21.3333      16.2083    316.26  %
+libsoftbus_utils.z.so                              16.3438      32.3333      15.9896    97.83   %
+libapp_manager.z.so                                33.3438      49.0714      15.7277    47.17   %
+libwindow_native_kit.z.so                          9.0000       24.5000      15.5000    172.22  %
+libscreen_session_manager_client.z.so              6.0000       21.3333      15.3333    255.56  %
+libimage_utils.z.so                                2.2500       16.9286      14.6786    652.38  %
+libdistributed_file_daemon_kit_inner.z.so          7.3125       21.3333      14.0208    191.74  %
+libimage_napi.z.so                                 6.7500       20.0000      13.2500    196.30  %
+libinputmethod_client.z.so                         7.5000       20.0000      12.5000    166.67  %
+libconnection_obs_manager.z.so                     5.7188       18.0000      12.2812    214.75  %
+libtel_sms_mms_api.z.so                            0.0000       12.0000      12.0000    inf     %
+libddgr.z.so                                       25.7500      37.7143      11.9643    46.46   %
+libresmgr_napi_core.z.so                           4.5000       16.0000      11.5000    255.56  %
+libability_context_native.z.so                     5.2500       16.0000      10.7500    204.76  %
+libabilitykit_native.z.so                          21.4062      31.5000      10.0938    47.15   %
+libcontinuation_ipc.z.so                           6.0000       16.0000      10.0000    166.67  %
+libdevicestatus_client.z.so                        6.0000       16.0000      10.0000    166.67  %
+libwindow_animation.z.so                           3.7500       13.3333      9.5833     255.56  %
+libforeground_app_obs_manager.z.so                 5.6250       15.0000      9.3750     166.67  %
+lib2d_graphics.z.so                                18.0000      26.2857      8.2857     46.03   %
+libpowermgr_client.z.so                            10.5000      18.6667      8.1667     77.78   %
+libinputmethod_common.z.so                         4.5000       12.0000      7.5000     166.67  %
+libipc_napi.z.so                                   4.5000       12.0000      7.5000     166.67  %
+libintl_util.z.so                                  14.8125      22.2500      7.4375     50.21   %
+libapp_domain_verify_common.z.so                   8.8125       16.0000      7.1875     81.56   %
+libcesfwk_core.z.so                                5.0938       12.1875      7.0938     139.26  %
+libohosffmpeg.z.so                                 58.1875      65.1429      6.9554     11.95   %
+libapp_domain_verify_mgr_client.z.so               13.0625      20.0000      6.9375     53.11   %
+libability_manager.z.so                            34.5938      41.3571      6.7634     19.55   %
+libdistributed_sdk.z.so                            3.7500       10.0000      6.2500     166.67  %
+libapp_context_utils.z.so                          2.2500       8.0000       5.7500     255.56  %
+libdialog_request_callback.z.so                    2.2500       8.0000       5.7500     255.56  %
+libnapi_common.z.so                                2.2500       8.0000       5.7500     255.56  %
+libremote_file_share_native.z.so                   2.2500       8.0000       5.7500     255.56  %
+libwindow_animation_utils.z.so                     2.2500       8.0000       5.7500     255.56  %
+libaccessibility_interface.z.so                    10.5000      16.0000      5.5000     52.38   %
+libsoftbus_dfx.z.so                                6.7500       12.0000      5.2500     77.78   %
+libdevicemanagersdk.z.so                           15.3438      20.5000      5.1562     33.60   %
+libgraphics_effect.z.so                            12.0000      17.1429      5.1429     42.86   %
+libimf_hisysevent.z.so                             3.0000       8.0000       5.0000     166.67  %
+libui_service_extension_connection.z.so            3.7500       8.0000       4.2500     113.33  %
+libability_deps_wrapper.z.so                       2.7500       6.7500       4.0000     145.45  %
+libstd.dylib.so                                    7.5000       11.4286      3.9286     52.38   %
+libconfiguration.z.so                              4.0000       7.9286       3.9286     98.21   %
+libappexecfwk_core.z.so                            56.7500      60.6000      3.8500     6.78    %
+libwmutil_base.z.so                                6.6562       10.5000      3.8438     57.75   %
+libability_runtime_error_util.z.so                 1.5000       5.3333       3.8333     255.56  %
+libapplication_context_manager.z.so                1.5000       5.3333       3.8333     255.56  %
+libtoken_callback_sdk.z.so                         1.5000       5.3333       3.8333     255.56  %
+libappkit_delegator.z.so                           2.2500       6.0000       3.7500     166.67  %
+libauto_startup_callback.z.so                      2.2500       6.0000       3.7500     166.67  %
+libdevicemanagerjson.z.so                          2.2500       6.0000       3.7500     166.67  %
+libdevicestatus_util.z.so                          2.2500       6.0000       3.7500     166.67  %
+libdistributeddata_client_sync.z.so                2.2500       6.0000       3.7500     166.67  %
+libegl_image.z.so                                  2.2500       6.0000       3.7500     166.67  %
+libextensionkit_native.z.so                        2.2500       6.0000       3.7500     166.67  %
+libhichecker.so                                    2.2500       6.0000       3.7500     166.67  %
+libmodal_system_ui_extension_client.z.so           2.2500       6.0000       3.7500     166.67  %
+libstorage_manager_sa_proxy.z.so                   4.5000       8.0000       3.5000     77.78   %
+libvideoprocessingengine.z.so                      9.7500       13.0000      3.2500     33.33   %
+librosen_text.z.so                                 6.0000       9.1429       3.1429     52.38   %
+libnet_conn_manager_if.z.so                        10.7083      13.5000      2.7917     26.07   %
+libmmi-client.z.so                                 8.2500       11.0000      2.7500     33.33   %
+libsecurity_component_sdk.z.so                     3.0000       5.7143       2.7143     90.48   %
+libdatashare_consumer.z.so                         12.5625      15.2727      2.7102     21.57   %
+libsamgr_proxy.z.so                                6.5938       9.1875       2.5938     39.34   %
+libexif.z.so                                       18.0000      20.5714      2.5714     14.29   %
+libabilitykit_utils.z.so                           1.5000       4.0000       2.5000     166.67  %
+libcj_bind_native.z.so                             1.5000       4.0000       2.5000     166.67  %
+libcolor_space_object_convertor.z.so               1.5000       4.0000       2.5000     166.67  %
+libconfiguration_helper.z.so                       1.5000       4.0000       2.5000     166.67  %
+libdevicestatus_ipc.z.so                           1.5000       4.0000       2.5000     166.67  %
+libdialog_request_info.z.so                        1.5000       4.0000       2.5000     166.67  %
+libdrawable_descriptor.z.so                        1.5000       4.0000       2.5000     166.67  %
+libimage_error_convert.z.so                        1.5000       4.0000       2.5000     166.67  %
+libmedia_ipc_common.z.so                           1.5000       4.0000       2.5000     166.67  %
+libaccessibilityconfig.z.so                        4.5000       6.8571       2.3571     52.38   %
+libvsync.z.so                                      4.5000       6.8571       2.3571     52.38   %
+libFillpSo.z.so                                    3.0000       5.3333       2.3333     77.78   %
+libdatashare_common.z.so                           4.5000       6.8182       2.3182     51.52   %
+libprotobuf_lite.z.so                              3.7500       6.0000       2.2500     60.00   %
+libdistributeddb_client.z.so                       7.5938       9.8000       2.2063     29.05   %
+libhukssdk.z.so                                    4.5000       6.6667       2.1667     48.15   %
+libhisysevent_report.z.so                          0.0000       2.1429       2.1429     inf     %
+libsystem_ability_fwk.z.so                         3.0000       5.0625       2.0625     68.75   %
+libmemorytracker_proxy_1.0.z.so                    6.0000       8.0000       2.0000     33.33   %
+libhiappevent_base.z.so                            3.7500       5.7143       1.9643     52.38   %
+libruntime.z.so                                    3.7500       5.7143       1.9643     52.38   %
+libvulkan.so                                       3.7500       5.7143       1.9643     52.38   %
+libwindowstage_kit.z.so                            4.1250       6.0000       1.8750     45.45   %
+libability_business_error.z.so                     2.2500       4.0000       1.7500     77.78   %
+libbundle_napi_common.z.so                         2.2500       4.0000       1.7500     77.78   %
+libconcurrent_task_client.z.so                     2.2500       4.0000       1.7500     77.78   %
+libconsole.z.so                                    2.2500       4.0000       1.7500     77.78   %
+libextractresourcemanager.z.so                     2.2500       4.0000       1.7500     77.78   %
+libjs_environment.z.so                             2.2500       4.0000       1.7500     77.78   %
+libmedia_library_common.z.so                       2.2500       4.0000       1.7500     77.78   %
+libnstackx_congestion.z.so                         2.2500       4.0000       1.7500     77.78   %
+libtimer.z.so                                      2.2500       4.0000       1.7500     77.78   %
+libimage_accessor.z.so                             6.0000       7.7143       1.7143     28.57   %
+libapp_context.z.so                                3.0000       4.5714       1.5714     52.38   %
+libability_connect_callback_stub.z.so              2.5938       4.0000       1.4062     54.22   %
+libcrypto_openssl.z.so                             93.0000      94.3125      1.3125     1.41    %
+libdlp_permission_sdk.z.so                         6.0000       7.2857       1.2857     21.43   %
+libxperfservice_client.z.so                        3.7500       5.0000       1.2500     33.33   %
+libdvsync.z.so                                     2.2500       3.4286       1.1786     52.38   %
+libframe_analyzer.z.so                             2.2500       3.4286       1.1786     52.38   %
+libsoftbus_adapter.z.so                            3.1562       4.3333       1.1771     37.29   %
+libace_forward_compatibility.z.so                  1.5000       2.6667       1.1667     77.78   %
+libace_uicontent.z.so                              1.5000       2.6667       1.1667     77.78   %
+libconnect_server_manager.z.so                     1.5000       2.6667       1.1667     77.78   %
+libintl_register.z.so                              1.5000       2.6667       1.1667     77.78   %
+libsqlite.z.so                                     18.9375      20.0000      1.0625     5.61    %
+libscreenlock_client.z.so                          3.7500       4.8000       1.0500     28.00   %
+libextension_manager.z.so                          2.2500       3.2727       1.0227     45.45   %
+libmmi-util.z.so                                   3.0000       4.0000       1.0000     33.33   %
+libEGL.so                                          6.7500       7.7143       0.9643     14.29   %
+libsurface.z.so                                    6.7500       7.7143       0.9643     14.29   %
+libipc_single.z.so                                 5.0938       6.0000       0.9062     17.79   %
+libxml2.z.so                                       7.4688       8.3636       0.8949     11.98   %
+libmedia_foundation.z.so                           8.1562       9.0000       0.8438     10.34   %
+libaccessibility_common.z.so                       1.5000       2.2857       0.7857     52.38   %
+libframe_trace_intf.z.so                           1.5000       2.2857       0.7857     52.38   %
+libhiappevent_innerapi.z.so                        1.5000       2.2857       0.7857     52.38   %
+liblz4_shared.z.so                                 1.5000       2.2857       0.7857     52.38   %
+libmmi_rust_key_config.z.so                        1.5000       2.2857       0.7857     52.38   %
+libsocketpair.z.so                                 1.5000       2.2857       0.7857     52.38   %
+libabsl_time.z.so                                  2.2500       3.0000       0.7500     33.33   %
+libabsl_time_zone.z.so                             2.2500       3.0000       0.7500     33.33   %
+libhitrace_meter.so                                1.5000       2.2500       0.7500     50.00   %
+libpng.z.so                                        2.2500       3.0000       0.7500     33.33   %
+libuv.so                                           2.2500       3.0000       0.7500     33.33   %
+libipc_common.z.so                                 1.5312       2.2500       0.7188     46.94   %
+libruntime_utils.z.so                              2.1250       2.7857       0.6607     31.09   %
+libc++.so                                          8.9062       9.5625       0.6562     7.37    %
+libwsutils.z.so                                    1.7188       2.3571       0.6384     37.14   %
+libbeget_proxy.z.so                                5.4375       6.0000       0.5625     10.34   %
+libcolor_manager.z.so                              2.2500       2.7857       0.5357     23.81   %
+libdlpparse.z.so                                   3.7500       4.2857       0.5357     14.29   %
+libfreeze_util.z.so                                2.2500       2.7857       0.5357     23.81   %
+libheifparser.z.so                                 3.7500       4.2857       0.5357     14.29   %
+libnative_dataability.z.so                         3.7500       4.2857       0.5357     14.29   %
+libwantagent_manager.z.so                          3.7500       4.2857       0.5357     14.29   %
+libmemmgrclient.z.so                               3.9375       4.4444       0.5069     12.87   %
+libabsl_base.z.so                                  1.5000       2.0000       0.5000     33.33   %
+libabsl_raw_logging_internal.z.so                  1.5000       2.0000       0.5000     33.33   %
+libabsl_strings_internal.z.so                      1.5000       2.0000       0.5000     33.33   %
+libopencl_wrapper.so                               1.5000       2.0000       0.5000     33.33   %
+libstartup_util.z.so                               3.1875       3.6429       0.4554     14.29   %
+libhdi.z.so                                        3.0000       3.4286       0.4286     14.29   %
+libability_start_setting.z.so                      2.3750       2.7857       0.4107     17.29   %
+libsamgr_common.z.so                               2.2500       2.6250       0.3750     16.67   %
+libhicollie.z.so                                   3.0312       3.3750       0.3438     11.34   %
+libability_start_options.z.so                      2.2500       2.5714       0.3214     14.29   %
+libastc_encoder_shared.z.so                        2.2500       2.5714       0.3214     14.29   %
+libbuffer_handle.z.so                              2.2500       2.5714       0.3214     14.29   %
+libcodec_proxy_4.0.z.so                            2.2500       2.5714       0.3214     14.29   %
+libdfx_dumpcatcher.z.so                            2.2500       2.5714       0.3214     14.29   %
+libdisplay_buffer_hdi_impl_v1_4.z.so               2.2500       2.5714       0.3214     14.29   %
+libdisplay_buffer_proxy_1.0.z.so                   2.2500       2.5714       0.3214     14.29   %
+libdisplay_buffer_proxy_1.1.z.so                   2.2500       2.5714       0.3214     14.29   %
+libdisplay_buffer_proxy_1.3.z.so                   2.2500       2.5714       0.3214     14.29   %
+libdisplay_buffer_proxy_1.4.z.so                   2.2500       2.5714       0.3214     14.29   %
+libfileuri_native.z.so                             2.2500       2.5714       0.3214     14.29   %
+libhdf_ipc_adapter.z.so                            2.2500       2.5714       0.3214     14.29   %
+libhdi_base.z.so                                   2.2500       2.5714       0.3214     14.29   %
+libimage_proxy_2.1.z.so                            2.2500       2.5714       0.3214     14.29   %
+libmission_info.z.so                               2.2500       2.5714       0.3214     14.29   %
+libpluginmanager.z.so                              2.2500       2.5714       0.3214     14.29   %
+libpub_utils.z.so                                  2.2500       2.5714       0.3214     14.29   %
+libpurgeablemem_plugin.z.so                        2.2500       2.5714       0.3214     14.29   %
+libabsl_strings.z.so                               1.6875       2.0000       0.3125     18.52   %
+libeventhandler.z.so                               4.4062       4.6875       0.2812     6.38    %
+libwantagent_innerkits.z.so                        3.7500       4.0000       0.2500     6.67    %
+libGLESv3.so                                       1.5000       1.7143       0.2143     14.29   %
+libdisplay_buffer_proxy_1.2.z.so                   1.5000       1.7143       0.2143     14.29   %
+libdlp_permission_common_interface.z.so            1.5000       1.7143       0.2143     14.29   %
+libpixelconvertadapter.z.so                        1.5000       1.7143       0.2143     14.29   %
+libprocess_options.z.so                            1.5000       1.7143       0.2143     14.29   %
+libpurgeablemem.z.so                               1.5000       1.7143       0.2143     14.29   %
+libstack_printer.z.so                              1.5000       1.7143       0.2143     14.29   %
+libstart_window_option.z.so                        1.5000       1.7143       0.2143     14.29   %
+libsync_fence.z.so                                 1.5000       1.7143       0.2143     14.29   %
+libtokensetproc_shared.z.so                        1.5000       1.7143       0.2143     14.29   %
+libnative_preferences.z.so                         3.0000       3.2000       0.2000     6.67    %
+libsession_manager_lite.z.so                       4.9688       5.1429       0.1741     3.50    %
+libasync_stack.z.so                                2.2500       2.4000       0.1500     6.67    %
+librtg_interface.z.so                              2.2500       2.4000       0.1500     6.67    %
+libabsl_spinlock_wait.z.so                         1.5000       1.6000       0.1000     6.67    %
+libapi_cache_manager.z.so                          1.5000       1.6000       0.1000     6.67    %
+libqos.z.so                                        1.5000       1.6000       0.1000     6.67    %
+librelational_common_base.z.so                     1.5000       1.6000       0.1000     6.67    %
+libdatabase_utils.z.so                             1.7188       1.8000       0.0813     4.73    %
+libdfx_signalhandler.z.so                          1.5625       1.6364       0.0739     4.73    %
+libsession_info.z.so                               2.5000       2.5714       0.0714     2.86    %
+libjsoncpp.z.so                                    5.7500       5.8125       0.0625     1.09    %
+libaccesstoken_communication_adapter_cxx.z.so      3.1562       3.1875       0.0312     0.99    %
+libhilog_inner.so                                  3.3438       3.3750       0.0312     0.93    %
+libutils.z.so                                      2.5938       2.6250       0.0312     1.20    %
+
+========================================================================================================================
+AMS分摊内存减小的SO (按减小值排序)
+========================================================================================================================
+SO名称                                               版本30(KB)     最新版本(KB)     减小(KB)     减小%     
+----------------------------------------------------------------------------------------------------
+libi18n_sa_client.z.so                             42.0000      8.0000       34.0000    80.95   %
+libappexecfwk_base.z.so                            64.0312      37.6875      26.3438    41.14   %
+libav_codec_client.z.so                            20.0000      0.0000       20.0000    100.00  %
+libupms.z.so                                       48.0000      30.0000      18.0000    37.50   %
+libmedia_client.z.so                               14.2500      0.0000       14.2500    100.00  %
+libappms.z.so                                      590.0000     578.0000     12.0000    2.03    %
+libaudio_policy_client_idl_interface.z.so          11.2500      0.0000       11.2500    100.00  %
+libaudio_renderer.z.so                             10.6875      0.0000       10.6875    100.00  %
+libaudio_client.z.so                               9.5312       0.0000       9.5312     100.00  %
+libsandbox_manager_communication_adapter_cxx.z.so  18.0000      9.5000       8.5000     47.22   %
+libaudio_client_idl_interface.z.so                 8.2500       0.0000       8.2500     100.00  %
+libaudio_policy_client.z.so                        8.2500       0.0000       8.2500     100.00  %
+libpixelmap.so                                     7.5000       0.0000       7.5000     100.00  %
+libhmicuuc.z.so                                    26.8750      20.2000      6.6750     24.84   %
+libmedia_service_utils.z.so                        6.6250       0.0000       6.6250     100.00  %
+libaudio_common.z.so                               6.5312       0.0000       6.5312     100.00  %
+libwant.z.so                                       14.5938      8.0625       6.5312     44.75   %
+libaudio_capturer.z.so                             6.2500       0.0000       6.2500     100.00  %
+libdrm_framework.z.so                              6.0000       0.0000       6.0000     100.00  %
+libsandbox_manager_sdk.z.so                        26.0000      20.5000      5.5000     21.15   %
+libav_codec_media_engine_modules.z.so              5.2500       0.0000       5.2500     100.00  %
+libprivacy_sdk.z.so                                8.2500       4.2500       4.0000     48.48   %
+libdisplaymgr.z.so                                 3.7500       0.0000       3.7500     100.00  %
+libphonenumber_standard.z.so                       8.1875       5.0000       3.1875     38.93   %
+libmeminfo.z.so                                    9.0000       6.0000       3.0000     33.33   %
+libsoundpool_client.z.so                           3.0000       0.0000       3.0000     100.00  %
+libapp_util.z.so                                   10.6875      8.3571       2.3304     21.80   %
+libaudio_definitions.z.so                          2.2500       0.0000       2.2500     100.00  %
+libaudio_engine_plugins.z.so                       2.2500       0.0000       2.2500     100.00  %
+libaudio_foundation.z.so                           2.2500       0.0000       2.2500     100.00  %
+libaudio_haptic.z.so                               2.2500       0.0000       2.2500     100.00  %
+libaudio_utils.z.so                                2.2500       0.0000       2.2500     100.00  %
+libav_codec_service_dfx.z.so                       2.2500       0.0000       2.2500     100.00  %
+libmedia_monitor_client.z.so                       2.2500       0.0000       2.2500     100.00  %
+libmiscdevice_utils.z.so                           2.2500       0.0000       2.2500     100.00  %
+libnet_security_config_if.z.so                     2.2500       0.0000       2.2500     100.00  %
+libvibrator_agent.z.so                             2.2500       0.0000       2.2500     100.00  %
+libvibrator_native.z.so                            2.2500       0.0000       2.2500     100.00  %
+libglobal_resmgr.z.so                              6.3125       4.8000       1.5125     23.96   %
+libaudio_schedule.z.so                             1.5000       0.0000       1.5000     100.00  %
+libav_codec_service_utils.z.so                     1.5000       0.0000       1.5000     100.00  %
+libbase.z.so                                       5.2500       3.7500       1.5000     28.57   %
+libmedia_monitor_common.z.so                       1.5000       0.0000       1.5000     100.00  %
+libsonic.z.so                                      1.5000       0.0000       1.5000     100.00  %
+libhmicui18n.z.so                                  14.0625      12.8000      1.2625     8.98    %
+libtime_client.z.so                                5.4062       4.1818       1.2244     22.65   %
+libprivacy_communication_adapter_cxx.z.so          3.2188       2.0000       1.2188     37.86   %
+libffrt.so                                         9.0312       7.8750       1.1562     12.80   %
+libdataobs_manager.z.so                            5.3125       4.2857       1.0268     19.33   %
+libaccesstoken_sdk.z.so                            5.6250       4.6875       0.9375     16.67   %
+libos_account_innerkits.z.so                       8.6250       7.6875       0.9375     10.87   %
+libnative_rdb.z.so                                 27.6250      26.8000      0.8250     2.99    %
+libutd_client.z.so                                 9.4375       8.6250       0.8125     8.61    %
+libark_jsruntime.so                                22.5000      21.8182      0.6818     3.03    %
+libappexecfwk_common.z.so                          3.3438       2.8000       0.5438     16.26   %
+libnet_manager_common.z.so                         2.2500       1.7143       0.5357     23.81   %
+libpost_proc_gl.z.so                               2.2500       1.7143       0.5357     23.81   %
+libzuri.z.so                                       3.0000       2.6250       0.3750     12.50   %
+libbegetutil.z.so                                  1.7812       1.5000       0.2812     15.79   %
+libstring_utils.z.so                               1.8438       1.6000       0.2437     13.22   %
+libextractortool.z.so                              2.6250       2.4000       0.2250     8.57    %
+libcesfwk_innerkits.z.so                           4.7188       4.5000       0.2188     4.64    %
+libtokenid_sdk.z.so                                1.7188       1.5000       0.2188     12.73   %
+libnative_appdatafwk.z.so                          2.0000       1.8000       0.2000     10.00   %
+libaccesstoken_common_cxx.z.so                     5.4375       5.2500       0.1875     3.45    %
+libskia_canvaskit.z.so                             78.1875      78.0000      0.1875     0.24    %
+libace_napi.z.so                                   4.5000       4.3636       0.1364     3.03    %
+libace_container_scope.z.so                        1.5000       1.4545       0.0455     3.03    %
+libjit_code_sign.z.so                              1.5000       1.4545       0.0455     3.03    %
+
+========================================================================================================================
+总体统计
+========================================================================================================================
+版本30 AMS总依赖内存: 4663.322916330 KB
+最新版本 AMS总依赖内存: 6317.299855649 KB
+AMS总内存变化: 1653.976939319 KB (35.47%)
+新增AMS依赖的SO数量: 3
+移除AMS依赖的SO数量: 93
+AMS依赖次数变化的SO数量: 139
+AMS分摊内存变化的SO数量: 295
+AMS分摊内存增大的SO数量: 226
+AMS分摊内存减小的SO数量: 69

@@ -107,6 +107,11 @@ declare_args() {
   ability_runtime_auto_fill = true
   ability_runtime_child_process = true
   ability_fault_and_exit_test = false
+
+  # Default: false = enable Bsymbolic (production), true = disable Bsymbolic (test)
+# Use --define ability_runtime_disable_bsymbolic_for_test=true when running TDD tests:
+# ./build.sh --product-name <product> --build-target ability_runtime_test --define ability_runtime_disable_bsymbolic_for_test=true
+  ability_runtime_disable_bsymbolic_for_test = false
   ability_command_for_test = false
   ability_runtime_feature_coverage = false
   ability_runtime_auto_fill_ability =

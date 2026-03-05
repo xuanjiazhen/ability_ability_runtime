@@ -1,0 +1,158 @@
+========================================================================================================================
+SO内存大小对比分析 (最新版本 vs 6.0版本)
+========================================================================================================================
+
+最新版本 SO总内存: 29970.649351 KB
+6.0版本 SO总内存: 30836.506731 KB
+SO总内存变化: -865.857380 KB (-2.81%)
+
+========================================================================================================================
+变大的SO (按内存增加量从大到小排序，6.0版本->最新版本)
+========================================================================================================================
+SO名称                                               6.0版本内存(KB)     最新版本内存(KB)      增加(KB)       增加%       
+---------------------------------------------------------------------------------------------------------
+6317.299856                                        0.000000        510.649351      510.649351   inf       %
+libans.z.so                                        1800.000000     2276.000000     476.000000   26.44     %
+librender_service_base.z.so                        432.000000      658.000000      226.000000   52.31     %
+libuserauth_client.z.so                            120.000000      326.000000      206.000000   171.67    %
+libwmutil.z.so                                     106.000000      280.000000      174.000000   164.15    %
+libimage_native.z.so                               54.000000       217.000000      163.000000   301.85    %
+libscreen_session.z.so                             58.000000       220.000000      162.000000   279.31    %
+libaudio_framework_interface.z.so                  0.000000        152.000000      152.000000   inf       %
+libscreen_session_manager.z.so                     768.000000      900.000000      132.000000   17.19     %
+libwm.z.so                                         197.000000      291.000000      94.000000    47.72     %
+libappexecfwk_core.z.so                            211.000000      303.000000      92.000000    43.60     %
+libscene_session.z.so                              210.000000      293.000000      83.000000    39.52     %
+libans_base.z.so                                   0.000000        76.000000       76.000000    inf       %
+liburi_permission_mgr.z.so                         39.000000       109.000000      70.000000    179.49    %
+libsoftbus_client.z.so                             58.000000       126.000000      68.000000    117.24    %
+libimage_utils.z.so                                12.000000       79.000000       67.000000    558.33    %
+libsms.z.so                                        165.000000      231.000000      66.000000    40.00     %
+libintl_util.z.so                                  24.000000       89.000000       65.000000    270.83    %
+libaudio_policy_client_idl_interface.z.so          0.000000        64.000000       64.000000    inf       %
+libnstackx_dfile.z.so                              29.000000       93.000000       64.000000    220.69    %
+libtel_core_service_api.z.so                       64.000000       127.000000      63.000000    98.44     %
+libohosffmpeg.z.so                                 248.000000      304.000000      56.000000    22.58     %
+libsoftbus_utils.z.so                              41.000000       97.000000       56.000000    136.59    %
+libnstackx_util.z.so                               22.000000       71.000000       49.000000    222.73    %
+libtel_call_manager_api.z.so                       24.000000       73.000000       49.000000    204.17    %
+libaudio_client_idl_interface.z.so                 0.000000        44.000000       44.000000    inf       %
+librender_service_client.z.so                      93.000000       136.000000      43.000000    46.24     %
+libcesfwk_core.z.so                                28.000000       65.000000       37.000000    132.14    %
+libimage_accessor.z.so                             0.000000        36.000000       36.000000    inf       %
+libaudio_stream_client.z.so                        0.000000        32.000000       32.000000    inf       %
+libuser_controller.z.so                            0.000000        32.000000       32.000000    inf       %
+libtel_common.z.so                                 45.000000       76.000000       31.000000    68.89     %
+libforeground_app_obs_manager.z.so                 0.000000        30.000000       30.000000    inf       %
+libwmutil_base.z.so                                19.000000       49.000000       30.000000    157.89    %
+libgraphics_effect.z.so                            32.000000       60.000000       28.000000    87.50     %
+libappspawn_client.z.so                            25.000000       52.000000       27.000000    108.00    %
+libcrypto_openssl.z.so                             478.000000      503.000000      25.000000    5.23      %
+libview_data.z.so                                  48.000000       72.000000       24.000000    50.00     %
+libcamera_framework.z.so                           204.000000      226.000000      22.000000    10.78     %
+libsamgr_proxy.z.so                                28.000000       49.000000       21.000000    75.00     %
+libappexecfwk_base.z.so                            181.000000      201.000000      20.000000    11.05     %
+libaudio_engine_manager.z.so                       0.000000        20.000000       20.000000    inf       %
+libsession_manager.z.so                            32.000000       52.000000       20.000000    62.50     %
+libthermalsrv_client.z.so                          0.000000        20.000000       20.000000    inf       %
+libxperfservice_client.z.so                        0.000000        20.000000       20.000000    inf       %
+libdistributeddb_client.z.so                       31.000000       49.000000       18.000000    58.06     %
+libhilog_inner.so                                  0.000000        18.000000       18.000000    inf       %
+libbtframework.z.so                                196.000000      213.000000      17.000000    8.67      %
+libaudio_policy_manager.z.so                       0.000000        16.000000       16.000000    inf       %
+libfmskit_native.z.so                              0.000000        16.000000       16.000000    inf       %
+libbgtaskmgr_innerkits.z.so                        47.000000       62.000000       15.000000    31.91     %
+libnative_rdb.z.so                                 119.000000      134.000000      15.000000    12.61     %
+libhmicuuc.z.so                                    88.000000       101.000000      13.000000    14.77     %
+libruntime_utils.z.so                              0.000000        13.000000       13.000000    inf       %
+libddgr.z.so                                       120.000000      132.000000      12.000000    10.00     %
+libdisplay_buffer_hdi_impl_v1_4.z.so               0.000000        12.000000       12.000000    inf       %
+libdisplay_buffer_proxy_1.4.z.so                   0.000000        12.000000       12.000000    inf       %
+libhdi_base.z.so                                   0.000000        12.000000       12.000000    inf       %
+libmedia_permission_helper.z.so                    0.000000        12.000000       12.000000    inf       %
+libsandbox_manager_sdk.z.so                        29.000000       41.000000       12.000000    41.38     %
+libdm.z.so                                         102.000000      112.000000      10.000000    9.80      %
+libhisysevent_report.z.so                          0.000000        10.000000       10.000000    inf       %
+libnet_conn_manager_if.z.so                        45.000000       54.000000       9.000000     20.00     %
+libperm_verification.z.so                          39.000000       48.000000       9.000000     23.08     %
+libutd_client.z.so                                 37.000000       46.000000       9.000000     24.32     %
+libcamera_vendor_tag_proxy_1.0.z.so                0.000000        8.000000        8.000000     inf       %
+libcesfwk_services.z.so                            284.000000      292.000000      8.000000     2.82      %
+libdm_lite.z.so                                    56.000000       64.000000       8.000000     14.29     %
+libimage_error_convert.z.so                        0.000000        8.000000        8.000000     inf       %
+liblbsservice_common.z.so                          20.000000       28.000000       8.000000     40.00     %
+libmedia_ipc_common.z.so                           0.000000        8.000000        8.000000     inf       %
+libmedia_library_common.z.so                       0.000000        8.000000        8.000000     inf       %
+libnativetoken_shared.z.so                         0.000000        8.000000        8.000000     inf       %
+libsystemparam.z.so                                0.000000        8.000000        8.000000     inf       %
+libsystem_ability_fwk.z.so                         20.000000       27.000000       7.000000     35.00     %
+libability_deps_wrapper.z.so                       13.000000       18.000000       5.000000     38.46     %
+libc++.so                                          46.000000       51.000000       5.000000     10.87     %
+libprivacy_sdk.z.so                                29.000000       34.000000       5.000000     17.24     %
+libaccesstoken_sdk.z.so                            21.000000       25.000000       4.000000     19.05     %
+libapp_util.z.so                                   35.000000       39.000000       4.000000     11.43     %
+libasync_stack.z.so                                8.000000        12.000000       4.000000     50.00     %
+libaudio_common.z.so                               20.000000       24.000000       4.000000     20.00     %
+libaudio_engine_plugins.z.so                       8.000000        12.000000       4.000000     50.00     %
+libaudio_foundation.z.so                           12.000000       16.000000       4.000000     33.33     %
+libaudio_policy_client.z.so                        40.000000       44.000000       4.000000     10.00     %
+libaudio_utils.z.so                                12.000000       16.000000       4.000000     33.33     %
+libconcurrent_task_client.z.so                     12.000000       16.000000       4.000000     33.33     %
+libdisplaymgr.z.so                                 16.000000       20.000000       4.000000     25.00     %
+libdistributeddata_client_sync.z.so                8.000000        12.000000       4.000000     50.00     %
+libextractortool.z.so                              8.000000        12.000000       4.000000     50.00     %
+libglobal_resmgr.z.so                              20.000000       24.000000       4.000000     20.00     %
+libheifparser.z.so                                 16.000000       20.000000       4.000000     25.00     %
+libhiappevent_base.z.so                            16.000000       20.000000       4.000000     25.00     %
+libhisysevent.z.so                                 12.000000       16.000000       4.000000     33.33     %
+libhitrace_meter.so                                8.000000        12.000000       4.000000     50.00     %
+libhitracechain.so                                 8.000000        12.000000       4.000000     50.00     %
+libimage_napi.z.so                                 36.000000       40.000000       4.000000     11.11     %
+liblbsbase_module.z.so                             16.000000       20.000000       4.000000     25.00     %
+libmedia_foundation.z.so                           32.000000       36.000000       4.000000     12.50     %
+libmedia_monitor_client.z.so                       12.000000       16.000000       4.000000     33.33     %
+libmmi-client.z.so                                 40.000000       44.000000       4.000000     10.00     %
+libpng.z.so                                        8.000000        12.000000       4.000000     50.00     %
+libpowermgr_client.z.so                            52.000000       56.000000       4.000000     7.69      %
+libpub_utils.z.so                                  8.000000        12.000000       4.000000     50.00     %
+libreminder_innerkits.z.so                         28.000000       32.000000       4.000000     14.29     %
+libressched_client.z.so                            28.000000       32.000000       4.000000     14.29     %
+librtg_interface.z.so                              8.000000        12.000000       4.000000     50.00     %
+libscreen_session_manager_client.z.so              28.000000       32.000000       4.000000     14.29     %
+libsecurity_component_sdk.z.so                     16.000000       20.000000       4.000000     25.00     %
+libsession_info.z.so                               8.000000        12.000000       4.000000     50.00     %
+libstatic_subscriber_ipc.z.so                      20.000000       24.000000       4.000000     20.00     %
+libsyscap_interface_shared.z.so                    8.000000        12.000000       4.000000     50.00     %
+libvulkan.so                                       16.000000       20.000000       4.000000     25.00     %
+libwindow_scene_common.z.so                        80.000000       84.000000       4.000000     5.00      %
+libdistributeddata_inner.z.so                      87.000000       90.000000       3.000000     3.45      %
+libipc_common.z.so                                 9.000000        12.000000       3.000000     33.33     %
+libipc_single.z.so                                 29.000000       32.000000       3.000000     10.34     %
+libjsoncpp.z.so                                    28.000000       31.000000       3.000000     10.71     %
+libopenhitls_bsl.z.so                              13.000000       16.000000       3.000000     23.08     %
+libprivacy_communication_adapter_cxx.z.so          13.000000       16.000000       3.000000     23.08     %
+libtask_handler_wrap.z.so                          31.000000       34.000000       3.000000     9.68      %
+libtime_client.z.so                                20.000000       23.000000       3.000000     15.00     %
+libability_connect_callback_stub.z.so              14.000000       16.000000       2.000000     14.29     %
+libcamera_utils.z.so                               94.000000       96.000000       2.000000     2.13      %
+libhicollie.z.so                                   16.000000       18.000000       2.000000     12.50     %
+libos_account_innerkits.z.so                       39.000000       41.000000       2.000000     5.13      %
+libwsutils.z.so                                    9.000000        11.000000       2.000000     22.22     %
+libaccesstoken_communication_adapter_cxx.z.so      16.000000       17.000000       1.000000     6.25      %
+libappexecfwk_common.z.so                          13.000000       14.000000       1.000000     7.69      %
+libcolor_manager.z.so                              12.000000       13.000000       1.000000     8.33      %
+libdatashare_common.z.so                           24.000000       25.000000       1.000000     4.17      %
+libdfx_signalhandler.z.so                          8.000000        9.000000        1.000000     12.50     %
+libfreeze_util.z.so                                12.000000       13.000000       1.000000     8.33      %
+libsqlite.z.so                                     99.000000       100.000000      1.000000     1.01      %
+libzuri.z.so                                       13.000000       14.000000       1.000000     7.69      %
+
+========================================================================================================================
+总体统计
+========================================================================================================================
+最新版本 SO数量: 403
+6.0版本 SO数量: 455
+变大的SO数量: 135
+最新版本 SO总内存: 29970.649351 KB
+6.0版本 SO总内存: 30836.506731 KB
+SO总内存变化: -865.857380 KB (-2.81%)

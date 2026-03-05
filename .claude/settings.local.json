@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(grep:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(git reset:*)",
+      "Bash(git restore:*)",
+      "Bash(awk:*)",
+      "Bash(git checkout:*)",
+      "Bash(git config:*)",
+      "Bash(find:*)",
+      "Bash(cut:*)",
+      "Bash(python3:*)",
+      "Bash(xxd:*)",
+      "Bash(for:*)",
+      "Bash(do sed:*)",
+      "Bash(done)",
+      "Bash(wc:*)",
+      "Bash(echo:*)",
+      "Bash(git pull:*)"
+    ]
+  }
+}

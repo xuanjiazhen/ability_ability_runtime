@@ -1,0 +1,1156 @@
+SO依赖变化详细分析
+================================================================================
+
+新增的SO:
+libtel_sms_mms_api.z.so: 内存=24.0KB, AMS依赖=1次, AMS分摊=12.0KB
+libnapi_base_context.z.so: 内存=0.0KB, AMS依赖=1次, AMS分摊=0.0KB
+libtel_common.z.so: 内存=76.0KB, AMS依赖=1次, AMS分摊=25.33333333KB
+
+删除的SO:
+libaudio_policy_client_idl_interface.z.so: 内存=60.0KB, AMS依赖=3次, AMS分摊=11.25KB
+libui_extension.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libpip_ndk.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libarktsfile.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libui_service_mgr.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libpasteboard_framework.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libarkweb_core_loader_glue.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libfmskit_native.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libarkweb_glue_base.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libav_codec_media_engine_modules.z.so: 内存=28.0KB, AMS依赖=3次, AMS分摊=5.25KB
+libextensionwindow_napi.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libvibrator_native.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libability_thread.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaudio_capturer.z.so: 内存=33.33333333KB, AMS依赖=3次, AMS分摊=6.25KB
+libfmskit_provider_client.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libarkweb_utils.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libarkweb_core_loader.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaccessibilityclient.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libauto_fill_manager.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libvibrator_agent.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libarktsziparchive.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libpurgeable_pixelmap_builder.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaudio_utils.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libmedia_client.z.so: 内存=76.0KB, AMS依赖=3次, AMS分摊=14.25KB
+libmedia_library_manager.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libpixelmap.so: 内存=40.0KB, AMS依赖=3次, AMS分摊=7.5KB
+libace_form_render.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libsession_handler.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libxpower_event_js.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libarktscompiler.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libdrawing_napi_impl.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libarktarget_options.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libsonic.z.so: 内存=8.0KB, AMS依赖=3次, AMS分摊=1.5KB
+libweb_configs.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+librdb_data_share_adapter.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libudmf_data_napi.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libuiservice_manager_interface_set.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libsoundpool_client.z.so: 内存=16.0KB, AMS依赖=3次, AMS分摊=3.0KB
+libaudio_common.z.so: 内存=34.83333333KB, AMS依赖=3次, AMS分摊=6.53125KB
+libperfmonitor.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libhiperf_local.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libudmf.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libability_base_want.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libui_session.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaudio_haptic.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libaudio_client.z.so: 内存=50.83333333KB, AMS依赖=3次, AMS分摊=9.53125KB
+libmiscdevice_utils.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libdlp_setconfig_sdk.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libsandbox_helper_native.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libappkit_native.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libmedia_monitor_common.z.so: 内存=8.0KB, AMS依赖=3次, AMS分摊=1.5KB
+libpip_web.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libextra_config_napi.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libscene_session_manager.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libarkencoder.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+lib3dWidgetAdapter.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libpreferred_language.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libinsight_intent_executor.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaudio_definitions.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libmedia_monitor_client.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libpasteboard_client.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+librdb_data_ability_adapter.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libav_codec_client.z.so: 内存=106.6666667KB, AMS依赖=3次, AMS分摊=20.0KB
+libinsightintentcontext.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libuiabilitykit_native.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libarkruntime.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libchild_process_manager.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libext2_uuid.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libpage_config_manager.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaudio_renderer.z.so: 内存=57.0KB, AMS依赖=3次, AMS分摊=10.6875KB
+libdrm_framework.z.so: 内存=32.0KB, AMS依赖=3次, AMS分摊=6.0KB
+libaudio_engine_plugins.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libembeddablewindowstage_kit.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libani_helpers.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaudio_policy_client.z.so: 内存=44.0KB, AMS依赖=3次, AMS分摊=8.25KB
+libhistreamer_plugin_base.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaudio_client_idl_interface.z.so: 内存=44.0KB, AMS依赖=3次, AMS分摊=8.25KB
+libav_codec_service_utils.z.so: 内存=8.0KB, AMS依赖=3次, AMS分摊=1.5KB
+libpasteboard_data.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaudio_foundation.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libtext_napi_impl.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libimage_effect_impl.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libdisplaymgr.z.so: 内存=20.0KB, AMS依赖=3次, AMS分摊=3.75KB
+libnet_security_config_if.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libarkaotmanager.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libmedia_library.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libav_codec_service_dfx.z.so: 内存=12.0KB, AMS依赖=3次, AMS分摊=2.25KB
+libarktsbase.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libdata_ability_helper.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+libaudio_schedule.z.so: 内存=8.0KB, AMS依赖=3次, AMS分摊=1.5KB
+libace_compatible.z.so: 内存=0.0KB, AMS依赖=2次, AMS分摊=0.0KB
+libmedia_service_utils.z.so: 内存=35.33333333KB, AMS依赖=3次, AMS分摊=6.625KB
+libwindow_extension_client.z.so: 内存=0.0KB, AMS依赖=3次, AMS分摊=0.0KB
+
+有变化的SO:
+libaccessibility_common.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.285714286KB (变化: +0.8KB)
+libmmi-util.z.so:
+  内存: 16.0KB → 16.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.0KB → 4.0KB (变化: +1.0KB)
+libmedia_foundation.z.so:
+  内存: 43.5KB → 36.0KB (变化: -7.5KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 8.15625KB → 9.0KB (变化: +0.8KB)
+libGLESv3.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libpowermgr_client.z.so:
+  内存: 56.0KB → 56.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 10.5KB → 18.66666667KB (变化: +8.2KB)
+libdistributeddb_client.z.so:
+  内存: 40.5KB → 49.0KB (变化: +8.5KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 7.59375KB → 9.8KB (变化: +2.2KB)
+libsoftbus_dfx.z.so:
+  内存: 36.0KB → 36.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 6.75KB → 12.0KB (变化: +5.2KB)
+libsqlite.z.so:
+  内存: 101.0KB → 100.0KB (变化: -1.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 18.9375KB → 20.0KB (变化: +1.1KB)
+libapi_cache_manager.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.6KB (变化: +0.1KB)
+libstorage_manager_sa_proxy.z.so:
+  内存: 24.0KB → 24.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 4.5KB → 8.0KB (变化: +3.5KB)
+libnet_conn_manager_if.z.so:
+  内存: 42.83333333KB → 54.0KB (变化: +11.2KB)
+  AMS依赖: 1次 → 1次 (变化: +0次)
+  AMS分摊: 10.70833333KB → 13.5KB (变化: +2.8KB)
+libvulkan.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.75KB → 5.714285714KB (变化: +2.0KB)
+librender_service_client.z.so:
+  内存: 68.0KB → 136.0KB (变化: +68.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 12.75KB → 38.85714286KB (变化: +26.1KB)
+libwindow_animation.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.75KB → 13.33333333KB (变化: +9.6KB)
+libwantagent_innerkits.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 3.75KB → 4.0KB (变化: +0.2KB)
+libsandbox_manager_sdk.z.so:
+  内存: 52.0KB → 41.0KB (变化: -11.0KB)
+  AMS依赖: 1次 → 1次 (变化: +0次)
+  AMS分摊: 26.0KB → 20.5KB (变化: -5.5KB)
+libdfx_dumpcatcher.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libability_connect_callback_stub.z.so:
+  内存: 13.83333333KB → 16.0KB (变化: +2.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.59375KB → 4.0KB (变化: +1.4KB)
+libimage_napi.z.so:
+  内存: 36.0KB → 40.0KB (变化: +4.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 6.75KB → 20.0KB (变化: +13.2KB)
+libuser_controller.z.so:
+  内存: 27.33333333KB → 32.0KB (变化: +4.7KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 5.125KB → 21.33333333KB (变化: +16.2KB)
+libvideoprocessingengine.z.so:
+  内存: 52.0KB → 52.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 9.75KB → 13.0KB (变化: +3.2KB)
+libutd_client.z.so:
+  内存: 50.33333333KB → 46.0KB (变化: -4.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 9.4375KB → 8.625KB (变化: -0.8KB)
+libappkit_delegator.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 2.25KB → 6.0KB (变化: +3.8KB)
+libaccesstoken_sdk.z.so:
+  内存: 30.0KB → 25.0KB (变化: -5.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 5.625KB → 4.6875KB (变化: -0.9KB)
+libappexecfwk_common.z.so:
+  内存: 17.83333333KB → 14.0KB (变化: -3.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.34375KB → 2.8KB (变化: -0.5KB)
+libabsl_strings.z.so:
+  内存: 9.0KB → 8.0KB (变化: -1.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.6875KB → 2.0KB (变化: +0.3KB)
+libdialog_request_callback.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 8.0KB (变化: +5.8KB)
+libace_forward_compatibility.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.666666667KB (变化: +1.2KB)
+libdisplay_buffer_proxy_1.3.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libhisysevent_report.z.so:
+  内存: 0.0KB → 10.0KB (变化: +10.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 0.0KB → 2.142857143KB (变化: +2.1KB)
+libability_business_error.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 4.0KB (变化: +1.8KB)
+libtoken_callback_sdk.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 5.333333333KB (变化: +3.8KB)
+libegl_image.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 2.25KB → 6.0KB (变化: +3.8KB)
+libdevicemanagersdk.z.so:
+  内存: 81.83333333KB → 41.0KB (变化: -40.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 15.34375KB → 20.5KB (变化: +5.2KB)
+libhilog_inner.so:
+  内存: 17.83333333KB → 18.0KB (变化: +0.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.34375KB → 3.375KB (变化: +0.0KB)
+librelational_common_base.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.6KB (变化: +0.1KB)
+libffrt.so:
+  内存: 48.16666667KB → 42.0KB (变化: -6.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 9.03125KB → 7.875KB (变化: -1.2KB)
+libsms.z.so:
+  内存: 157.6666667KB → 231.0KB (变化: +73.3KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 29.5625KB → 115.5KB (变化: +85.9KB)
+libruntime.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.75KB → 5.714285714KB (变化: +2.0KB)
+libabilitykit_native.z.so:
+  内存: 114.1666667KB → 63.0KB (变化: -51.2KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 21.40625KB → 31.5KB (变化: +10.1KB)
+libdisplay_buffer_proxy_1.2.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libdistributeddb.z.so:
+  内存: 383.8333333KB → 337.0KB (变化: -46.8KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 71.96875KB → 168.5KB (变化: +96.5KB)
+libastc_encoder_shared.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libimage_proxy_2.1.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libabsl_time.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 3.0KB (变化: +0.8KB)
+libmeminfo.z.so:
+  内存: 18.0KB → 12.0KB (变化: -6.0KB)
+  AMS依赖: 1次 → 1次 (变化: +0次)
+  AMS分摊: 9.0KB → 6.0KB (变化: -3.0KB)
+libudmf_client.z.so:
+  内存: 55.0KB → 40.0KB (变化: -15.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 10.3125KB → 26.66666667KB (变化: +16.4KB)
+libace_napi.z.so:
+  内存: 24.0KB → 24.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 4.5KB → 4.363636364KB (变化: -0.1KB)
+libhmicui18n.z.so:
+  内存: 75.0KB → 64.0KB (变化: -11.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 14.0625KB → 12.8KB (变化: -1.3KB)
+libhukssdk.z.so:
+  内存: 24.0KB → 20.0KB (变化: -4.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 4.5KB → 6.666666667KB (变化: +2.2KB)
+libstack_printer.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libsocketpair.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.285714286KB (变化: +0.8KB)
+libpng.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 3.0KB (变化: +0.8KB)
+libwindow_scene_common.z.so:
+  内存: 48.66666667KB → 84.0KB (变化: +35.3KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 9.125KB → 42.0KB (变化: +32.9KB)
+libmemorytracker_proxy_1.0.z.so:
+  内存: 12.0KB → 16.0KB (变化: +4.0KB)
+  AMS依赖: 1次 → 1次 (变化: +0次)
+  AMS分摊: 6.0KB → 8.0KB (变化: +2.0KB)
+libddgr.z.so:
+  内存: 137.3333333KB → 132.0KB (变化: -5.3KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 25.75KB → 37.71428571KB (变化: +12.0KB)
+libscreen_session_manager_client.z.so:
+  内存: 32.0KB → 32.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 6.0KB → 21.33333333KB (变化: +15.3KB)
+libcolor_space_object_convertor.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 1.5KB → 4.0KB (变化: +2.5KB)
+libnapi_common.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 8.0KB (变化: +5.8KB)
+libdistributeddata_inner.z.so:
+  内存: 104.6666667KB → 90.0KB (变化: -14.7KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 19.625KB → 45.0KB (变化: +25.4KB)
+libnstackx_congestion.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 2.25KB → 4.0KB (变化: +1.8KB)
+libabsl_strings_internal.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.0KB (变化: +0.5KB)
+libskia_canvaskit.z.so:
+  内存: 417.0KB → 364.0KB (变化: -53.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 78.1875KB → 78.0KB (变化: -0.2KB)
+libjs_environment.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 4.0KB (变化: +1.8KB)
+libability_start_options.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libpurgeablemem.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libability_runtime_error_util.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 5.333333333KB (变化: +3.8KB)
+libappkit_manager_helper.z.so:
+  内存: 58.66666667KB → 100.0KB (变化: +41.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 11.0KB → 75.0KB (变化: +64.0KB)
+libwmutil_base.z.so:
+  内存: 35.5KB → 49.0KB (变化: +13.5KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 6.65625KB → 10.5KB (变化: +3.8KB)
+libutils.z.so:
+  内存: 13.83333333KB → 14.0KB (变化: +0.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.59375KB → 2.625KB (变化: +0.0KB)
+libwindow_animation_utils.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 8.0KB (变化: +5.8KB)
+libscreen_session.z.so:
+  内存: 86.33333333KB → 220.0KB (变化: +133.7KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 16.1875KB → 110.0KB (变化: +93.8KB)
+libaccessibilityconfig.z.so:
+  内存: 24.0KB → 24.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 4.5KB → 6.857142857KB (变化: +2.4KB)
+libdatabase_utils.z.so:
+  内存: 9.166666667KB → 9.0KB (变化: -0.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.71875KB → 1.8KB (变化: +0.1KB)
+libhicollie.z.so:
+  内存: 16.16666667KB → 18.0KB (变化: +1.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.03125KB → 3.375KB (变化: +0.3KB)
+libbegetutil.z.so:
+  内存: 9.5KB → 8.0KB (变化: -1.5KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.78125KB → 1.5KB (变化: -0.3KB)
+libinputmethod_client.z.so:
+  内存: 40.0KB → 40.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 7.5KB → 20.0KB (变化: +12.5KB)
+libabsl_spinlock_wait.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 1.5KB → 1.6KB (变化: +0.1KB)
+libnstackx_dfile.z.so:
+  内存: 22.83333333KB → 93.0KB (变化: +70.2KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 4.28125KB → 31.0KB (变化: +26.7KB)
+liblz4_shared.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.285714286KB (变化: +0.8KB)
+libability_deps_wrapper.z.so:
+  内存: 14.66666667KB → 18.0KB (变化: +3.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.75KB → 6.75KB (变化: +4.0KB)
+libdevicemanagerjson.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 6.0KB (变化: +3.8KB)
+libaccesstoken_common_cxx.z.so:
+  内存: 29.0KB → 28.0KB (变化: -1.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 5.4375KB → 5.25KB (变化: -0.2KB)
+libdlpparse.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.75KB → 4.285714286KB (变化: +0.5KB)
+libtime_client.z.so:
+  内存: 28.83333333KB → 23.0KB (变化: -5.8KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 5.40625KB → 4.181818182KB (变化: -1.2KB)
+libconnection_obs_manager.z.so:
+  内存: 30.5KB → 36.0KB (变化: +5.5KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 5.71875KB → 18.0KB (变化: +12.3KB)
+libbgtaskmgr_innerkits.z.so:
+  内存: 43.5KB → 62.0KB (变化: +18.5KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 8.15625KB → 31.0KB (变化: +22.8KB)
+libapp_context_utils.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 8.0KB (变化: +5.8KB)
+libappspawn_client.z.so:
+  内存: 38.0KB → 52.0KB (变化: +14.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 7.125KB → 34.66666667KB (变化: +27.5KB)
+libmission_info.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libc++.so:
+  内存: 47.5KB → 51.0KB (变化: +3.5KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 8.90625KB → 9.5625KB (变化: +0.7KB)
+libnet_manager_common.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 2.25KB → 1.714285714KB (变化: -0.5KB)
+libgraphics_effect.z.so:
+  内存: 64.0KB → 60.0KB (变化: -4.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 12.0KB → 17.14285714KB (变化: +5.1KB)
+libbeget_proxy.z.so:
+  内存: 29.0KB → 28.0KB (变化: -1.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 5.4375KB → 6.0KB (变化: +0.6KB)
+libwm.z.so:
+  内存: 251.8333333KB → 291.0KB (变化: +39.2KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 47.21875KB → 194.0KB (变化: +146.8KB)
+libapp_context.z.so:
+  内存: 16.0KB → 16.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.0KB → 4.571428571KB (变化: +1.6KB)
+libsurface.z.so:
+  内存: 36.0KB → 36.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 6.75KB → 7.714285714KB (变化: +1.0KB)
+libnstackx_util.z.so:
+  内存: 16.0KB → 71.0KB (变化: +55.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 3.0KB → 23.66666667KB (变化: +20.7KB)
+libtask_handler_wrap.z.so:
+  内存: 30.66666667KB → 34.0KB (变化: +3.3KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 5.75KB → 22.66666667KB (变化: +16.9KB)
+libexif.z.so:
+  内存: 96.0KB → 96.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 18.0KB → 20.57142857KB (变化: +2.6KB)
+libsoftbus_adapter.z.so:
+  内存: 16.83333333KB → 13.0KB (变化: -3.8KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 3.15625KB → 4.333333333KB (变化: +1.2KB)
+libnative_appdatafwk.z.so:
+  内存: 10.66666667KB → 9.0KB (变化: -1.7KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.0KB → 1.8KB (变化: -0.2KB)
+libpixelconvertadapter.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libprivacy_communication_adapter_cxx.z.so:
+  内存: 17.16666667KB → 16.0KB (变化: -1.2KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 3.21875KB → 2.0KB (变化: -1.2KB)
+libbase.z.so:
+  内存: 28.0KB → 20.0KB (变化: -8.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 5.25KB → 3.75KB (变化: -1.5KB)
+libzuri.z.so:
+  内存: 16.0KB → 14.0KB (变化: -2.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.0KB → 2.625KB (变化: -0.4KB)
+libheifparser.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.75KB → 4.285714286KB (变化: +0.5KB)
+libdrawable_descriptor.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 4.0KB (变化: +2.5KB)
+libconfiguration_helper.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 1.5KB → 4.0KB (变化: +2.5KB)
+libcesfwk_core.z.so:
+  内存: 27.16666667KB → 65.0KB (变化: +37.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 5.09375KB → 12.1875KB (变化: +7.1KB)
+libaccesstoken_communication_adapter_cxx.z.so:
+  内存: 16.83333333KB → 17.0KB (变化: +0.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.15625KB → 3.1875KB (变化: +0.0KB)
+libscene_session.z.so:
+  内存: 246.5KB → 293.0KB (变化: +46.5KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 46.21875KB → 195.3333333KB (变化: +149.1KB)
+libFillpSo.z.so:
+  内存: 16.0KB → 16.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 3.0KB → 5.333333333KB (变化: +2.3KB)
+libability_start_setting.z.so:
+  内存: 12.66666667KB → 13.0KB (变化: +0.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.375KB → 2.785714286KB (变化: +0.4KB)
+libbundle_napi_common.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 4.0KB (变化: +1.8KB)
+libnative_preferences.z.so:
+  内存: 16.0KB → 16.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.0KB → 3.2KB (变化: +0.2KB)
+libimage_error_convert.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 1.5KB → 4.0KB (变化: +2.5KB)
+libsession_info.z.so:
+  内存: 13.33333333KB → 12.0KB (变化: -1.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.5KB → 2.571428571KB (变化: +0.1KB)
+libmedia_ipc_common.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 1.5KB → 4.0KB (变化: +2.5KB)
+lib2d_graphics.z.so:
+  内存: 96.0KB → 92.0KB (变化: -4.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 18.0KB → 26.28571429KB (变化: +8.3KB)
+libintl_util.z.so:
+  内存: 79.0KB → 89.0KB (变化: +10.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 14.8125KB → 22.25KB (变化: +7.4KB)
+libtokensetproc_shared.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libace_uicontent.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.666666667KB (变化: +1.2KB)
+libpurgeablemem_plugin.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libappms.z.so:
+  内存: 1180.0KB → 1156.0KB (变化: -24.0KB)
+  AMS依赖: 1次 → 1次 (变化: +0次)
+  AMS分摊: 590.0KB → 578.0KB (变化: -12.0KB)
+libappexecfwk_base.z.so:
+  内存: 341.5KB → 201.0KB (变化: -140.5KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 64.03125KB → 37.6875KB (变化: -26.3KB)
+libabilityms.z.so:
+  内存: 3420.666667KB → 3532.0KB (变化: +111.3KB)
+  AMS依赖: 1次 → 1次 (变化: +0次)
+  AMS分摊: 1710.333333KB → 1766.0KB (变化: +55.7KB)
+libwindow_native_kit.z.so:
+  内存: 48.0KB → 49.0KB (变化: +1.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 9.0KB → 24.5KB (变化: +15.5KB)
+libprocess_options.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libintl_register.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.666666667KB (变化: +1.2KB)
+libupms.z.so:
+  内存: 96.0KB → 60.0KB (变化: -36.0KB)
+  AMS依赖: 1次 → 1次 (变化: +0次)
+  AMS分摊: 48.0KB → 30.0KB (变化: -18.0KB)
+libhitrace_meter.so:
+  内存: 8.0KB → 12.0KB (变化: +4.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 2.25KB (变化: +0.8KB)
+libconnect_server_manager.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.666666667KB (变化: +1.2KB)
+libextractresourcemanager.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 4.0KB (变化: +1.8KB)
+libdistributed_sdk.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.75KB → 10.0KB (变化: +6.2KB)
+libscreenlock_client.z.so:
+  内存: 20.0KB → 24.0KB (变化: +4.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 3.75KB → 4.8KB (变化: +1.0KB)
+libhdi_base.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libabsl_raw_logging_internal.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.0KB (变化: +0.5KB)
+libmodal_system_ui_extension_client.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 2.25KB → 6.0KB (变化: +3.8KB)
+libdm.z.so:
+  内存: 112.0KB → 112.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 21.0KB → 37.33333333KB (变化: +16.3KB)
+libipc_napi.z.so:
+  内存: 24.0KB → 24.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 4.5KB → 12.0KB (变化: +7.5KB)
+libnative_dataability.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.75KB → 4.285714286KB (变化: +0.5KB)
+libmmi-client.z.so:
+  内存: 44.0KB → 44.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 8.25KB → 11.0KB (变化: +2.8KB)
+libjsoncpp.z.so:
+  内存: 30.66666667KB → 31.0KB (变化: +0.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 5.75KB → 5.8125KB (变化: +0.1KB)
+libprotobuf_lite.z.so:
+  内存: 20.0KB → 24.0KB (变化: +4.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.75KB → 6.0KB (变化: +2.2KB)
+libabsl_time_zone.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 3.0KB (变化: +0.8KB)
+libxperfservice_client.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.75KB → 5.0KB (变化: +1.2KB)
+libjit_code_sign.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 1.454545455KB (变化: -0.0KB)
+libpub_utils.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libremote_file_share_native.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 8.0KB (变化: +5.8KB)
+liburi_permission_mgr.z.so:
+  内存: 62.83333333KB → 109.0KB (变化: +46.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 11.78125KB → 81.75KB (变化: +70.0KB)
+libwant.z.so:
+  内存: 77.83333333KB → 43.0KB (变化: -34.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 14.59375KB → 8.0625KB (变化: -6.5KB)
+libaccessibility_interface.z.so:
+  内存: 56.0KB → 56.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 10.5KB → 16.0KB (变化: +5.5KB)
+libability_manager.z.so:
+  内存: 184.5KB → 193.0KB (变化: +8.5KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 34.59375KB → 41.35714286KB (变化: +6.8KB)
+libwindowstage_kit.z.so:
+  内存: 22.0KB → 12.0KB (变化: -10.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 4.125KB → 6.0KB (变化: +1.9KB)
+libhdf_ipc_adapter.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libdfx_signalhandler.z.so:
+  内存: 8.333333333KB → 9.0KB (变化: +0.7KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5625KB → 1.636363636KB (变化: +0.1KB)
+libxml2.z.so:
+  内存: 39.83333333KB → 46.0KB (变化: +6.2KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 7.46875KB → 8.363636364KB (变化: +0.9KB)
+libipc_single.z.so:
+  内存: 27.16666667KB → 32.0KB (变化: +4.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 5.09375KB → 6.0KB (变化: +0.9KB)
+libform_manager.z.so:
+  内存: 308.5KB → 286.0KB (变化: -22.5KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 57.84375KB → 95.33333333KB (变化: +37.5KB)
+libpluginmanager.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libconcurrent_task_client.z.so:
+  内存: 12.0KB → 16.0KB (变化: +4.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 4.0KB (变化: +1.8KB)
+libcontinuation_ipc.z.so:
+  内存: 32.0KB → 32.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 6.0KB → 16.0KB (变化: +10.0KB)
+libdevicestatus_ipc.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 4.0KB (变化: +2.5KB)
+libstd.dylib.so:
+  内存: 40.0KB → 40.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 7.5KB → 11.42857143KB (变化: +3.9KB)
+libprivacy_sdk.z.so:
+  内存: 44.0KB → 34.0KB (变化: -10.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 8.25KB → 4.25KB (变化: -4.0KB)
+libqos.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.6KB (变化: +0.1KB)
+libsecurity_component_sdk.z.so:
+  内存: 16.0KB → 20.0KB (变化: +4.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.0KB → 5.714285714KB (变化: +2.7KB)
+libabilitykit_utils.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 1.5KB → 4.0KB (变化: +2.5KB)
+libbuffer_handle.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libace_container_scope.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 1.454545455KB (变化: -0.0KB)
+libhichecker.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 6.0KB (变化: +3.8KB)
+libdlp_permission_sdk.z.so:
+  内存: 32.0KB → 34.0KB (变化: +2.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 6.0KB → 7.285714286KB (变化: +1.3KB)
+libextension_manager.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 3.272727273KB (变化: +1.0KB)
+libforeground_app_obs_manager.z.so:
+  内存: 30.0KB → 30.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 5.625KB → 15.0KB (变化: +9.4KB)
+libdevicestatus_client.z.so:
+  内存: 32.0KB → 32.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 6.0KB → 16.0KB (变化: +10.0KB)
+libhdi.z.so:
+  内存: 16.0KB → 16.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.0KB → 3.428571429KB (变化: +0.4KB)
+libuv.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 3.0KB (变化: +0.8KB)
+libtimer.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 4.0KB (变化: +1.8KB)
+libperm_verification.z.so:
+  内存: 44.66666667KB → 48.0KB (变化: +3.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 8.375KB → 36.0KB (变化: +27.6KB)
+libconfiguration.z.so:
+  内存: 21.33333333KB → 37.0KB (变化: +15.7KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 4.0KB → 7.928571429KB (变化: +3.9KB)
+libapplication_context_manager.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 5.333333333KB (变化: +3.8KB)
+libdatashare_common.z.so:
+  内存: 24.0KB → 25.0KB (变化: +1.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 4.5KB → 6.818181818KB (变化: +2.3KB)
+libapp_util.z.so:
+  内存: 57.0KB → 39.0KB (变化: -18.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 10.6875KB → 8.357142857KB (变化: -2.3KB)
+libapp_domain_verify_mgr_client.z.so:
+  内存: 69.66666667KB → 40.0KB (变化: -29.7KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 13.0625KB → 20.0KB (变化: +6.9KB)
+libdisplay_buffer_proxy_1.1.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libvsync.z.so:
+  内存: 24.0KB → 24.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 4.5KB → 6.857142857KB (变化: +2.4KB)
+libdvsync.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 3.428571429KB (变化: +1.2KB)
+libdlp_permission_common_interface.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libresmgr_napi_core.z.so:
+  内存: 24.0KB → 24.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 4.5KB → 16.0KB (变化: +11.5KB)
+libui_service_extension_connection.z.so:
+  内存: 20.0KB → 16.0KB (变化: -4.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 3.75KB → 8.0KB (变化: +4.2KB)
+libimage_accessor.z.so:
+  内存: 32.0KB → 36.0KB (变化: +4.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 6.0KB → 7.714285714KB (变化: +1.7KB)
+libabsl_base.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.0KB (变化: +0.5KB)
+libdistributed_file_daemon_kit_inner.z.so:
+  内存: 39.0KB → 32.0KB (变化: -7.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 7.3125KB → 21.33333333KB (变化: +14.0KB)
+libstartup_util.z.so:
+  内存: 17.0KB → 17.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.1875KB → 3.642857143KB (变化: +0.5KB)
+libhiappevent_base.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.75KB → 5.714285714KB (变化: +2.0KB)
+libview_data.z.so:
+  内存: 50.66666667KB → 72.0KB (变化: +21.3KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 9.5KB → 36.0KB (变化: +26.5KB)
+libos_account_innerkits.z.so:
+  内存: 46.0KB → 41.0KB (变化: -5.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 8.625KB → 7.6875KB (变化: -0.9KB)
+libeventhandler.z.so:
+  内存: 23.5KB → 25.0KB (变化: +1.5KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 4.40625KB → 4.6875KB (变化: +0.3KB)
+libsession_manager_lite.z.so:
+  内存: 26.5KB → 24.0KB (变化: -2.5KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 4.96875KB → 5.142857143KB (变化: +0.2KB)
+libstring_utils.z.so:
+  内存: 9.833333333KB → 8.0KB (变化: -1.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.84375KB → 1.6KB (变化: -0.2KB)
+libfreeze_util.z.so:
+  内存: 12.0KB → 13.0KB (变化: +1.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.785714286KB (变化: +0.5KB)
+libwantagent_manager.z.so:
+  内存: 20.0KB → 20.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.75KB → 4.285714286KB (变化: +0.5KB)
+libsoftbus_client.z.so:
+  内存: 125.5KB → 126.0KB (变化: +0.5KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 23.53125KB → 42.0KB (变化: +18.5KB)
+libextractortool.z.so:
+  内存: 14.0KB → 12.0KB (变化: -2.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.625KB → 2.4KB (变化: -0.2KB)
+libmedia_library_common.z.so:
+  内存: 12.0KB → 8.0KB (变化: -4.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 2.25KB → 4.0KB (变化: +1.8KB)
+libappexecfwk_core.z.so:
+  内存: 302.6666667KB → 303.0KB (变化: +0.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 56.75KB → 60.6KB (变化: +3.9KB)
+librosen_text.z.so:
+  内存: 32.0KB → 32.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 6.0KB → 9.142857143KB (变化: +3.1KB)
+libark_jsruntime.so:
+  内存: 120.0KB → 120.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 22.5KB → 21.81818182KB (变化: -0.7KB)
+libdisplay_buffer_hdi_impl_v1_4.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libdialog_request_info.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 1.5KB → 4.0KB (变化: +2.5KB)
+libasync_stack.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.4KB (变化: +0.1KB)
+libsandbox_manager_communication_adapter_cxx.z.so:
+  内存: 36.0KB → 19.0KB (变化: -17.0KB)
+  AMS依赖: 1次 → 1次 (变化: +0次)
+  AMS分摊: 18.0KB → 9.5KB (变化: -8.5KB)
+libsession_manager.z.so:
+  内存: 36.0KB → 52.0KB (变化: +16.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 6.75KB → 34.66666667KB (变化: +27.9KB)
+libopencl_wrapper.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.0KB (变化: +0.5KB)
+libcodec_proxy_4.0.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libimage_native.z.so:
+  内存: 40.0KB → 217.0KB (变化: +177.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 7.5KB → 46.5KB (变化: +39.0KB)
+libstart_window_option.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libwsutils.z.so:
+  内存: 9.166666667KB → 11.0KB (变化: +1.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.71875KB → 2.357142857KB (变化: +0.6KB)
+libi18n_sa_client.z.so:
+  内存: 84.0KB → 16.0KB (变化: -68.0KB)
+  AMS依赖: 1次 → 1次 (变化: +0次)
+  AMS分摊: 42.0KB → 8.0KB (变化: -34.0KB)
+libruntime_utils.z.so:
+  内存: 11.33333333KB → 13.0KB (变化: +1.7KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.125KB → 2.785714286KB (变化: +0.7KB)
+libimage_utils.z.so:
+  内存: 12.0KB → 79.0KB (变化: +67.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 16.92857143KB (变化: +14.7KB)
+libEGL.so:
+  内存: 36.0KB → 36.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 6.75KB → 7.714285714KB (变化: +1.0KB)
+libapp_manager.z.so:
+  内存: 177.8333333KB → 229.0KB (变化: +51.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 33.34375KB → 49.07142857KB (变化: +15.7KB)
+libsamgr_common.z.so:
+  内存: 12.0KB → 14.0KB (变化: +2.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.625KB (变化: +0.4KB)
+libwmutil.z.so:
+  内存: 120.0KB → 280.0KB (变化: +160.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 22.5KB → 93.33333333KB (变化: +70.8KB)
+libsoftbus_utils.z.so:
+  内存: 87.16666667KB → 97.0KB (变化: +9.8KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 16.34375KB → 32.33333333KB (变化: +16.0KB)
+libcolor_manager.z.so:
+  内存: 12.0KB → 13.0KB (变化: +1.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.785714286KB (变化: +0.5KB)
+libohosffmpeg.z.so:
+  内存: 310.3333333KB → 304.0KB (变化: -6.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 58.1875KB → 65.14285714KB (变化: +7.0KB)
+libsamgr_proxy.z.so:
+  内存: 35.16666667KB → 49.0KB (变化: +13.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 6.59375KB → 9.1875KB (变化: +2.6KB)
+libcj_bind_native.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 1.5KB → 4.0KB (变化: +2.5KB)
+libcrypto_openssl.z.so:
+  内存: 496.0KB → 503.0KB (变化: +7.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 93.0KB → 94.3125KB (变化: +1.3KB)
+libphonenumber_standard.z.so:
+  内存: 43.66666667KB → 20.0KB (变化: -23.7KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 8.1875KB → 5.0KB (变化: -3.2KB)
+libsync_fence.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.5KB → 1.714285714KB (变化: +0.2KB)
+libsystem_ability_fwk.z.so:
+  内存: 16.0KB → 27.0KB (变化: +11.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 3.0KB → 5.0625KB (变化: +2.1KB)
+libimf_hisysevent.z.so:
+  内存: 16.0KB → 16.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.0KB → 8.0KB (变化: +5.0KB)
+libability_context_native.z.so:
+  内存: 28.0KB → 24.0KB (变化: -4.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 5.25KB → 16.0KB (变化: +10.8KB)
+libdisplay_buffer_proxy_1.4.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libfileuri_native.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libauto_startup_callback.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 2.25KB → 6.0KB (变化: +3.8KB)
+libcesfwk_innerkits.z.so:
+  内存: 25.16666667KB → 24.0KB (变化: -1.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 4.71875KB → 4.5KB (变化: -0.2KB)
+libdistributeddata_client_sync.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 6.0KB (变化: +3.8KB)
+libpost_proc_gl.z.so:
+  内存: 12.0KB → 8.0KB (变化: -4.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 1.714285714KB (变化: -0.5KB)
+libhiappevent_innerapi.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.285714286KB (变化: +0.8KB)
+libmemmgrclient.z.so:
+  内存: 21.0KB → 20.0KB (变化: -1.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 3.9375KB → 4.444444444KB (变化: +0.5KB)
+libextensionkit_native.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 2.25KB → 6.0KB (变化: +3.8KB)
+libdevicestatus_util.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 6.0KB (变化: +3.8KB)
+libglobal_resmgr.z.so:
+  内存: 33.66666667KB → 24.0KB (变化: -9.7KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 6.3125KB → 4.8KB (变化: -1.5KB)
+libframe_analyzer.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 3.428571429KB (变化: +1.2KB)
+libapp_domain_verify_common.z.so:
+  内存: 47.0KB → 48.0KB (变化: +1.0KB)
+  AMS依赖: 3次 → 1次 (变化: -2次)
+  AMS分摊: 8.8125KB → 16.0KB (变化: +7.2KB)
+libframe_trace_intf.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.285714286KB (变化: +0.8KB)
+libnative_rdb.z.so:
+  内存: 147.3333333KB → 134.0KB (变化: -13.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 27.625KB → 26.8KB (变化: -0.8KB)
+librtg_interface.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.4KB (变化: +0.1KB)
+libinputmethod_common.z.so:
+  内存: 24.0KB → 24.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 4.5KB → 12.0KB (变化: +7.5KB)
+libconsole.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 2.25KB → 4.0KB (变化: +1.8KB)
+libdisplay_buffer_proxy_1.0.z.so:
+  内存: 12.0KB → 12.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 2.25KB → 2.571428571KB (变化: +0.3KB)
+libdatashare_consumer.z.so:
+  内存: 67.0KB → 56.0KB (变化: -11.0KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 12.5625KB → 15.27272727KB (变化: +2.7KB)
+libdataobs_manager.z.so:
+  内存: 28.33333333KB → 20.0KB (变化: -8.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 5.3125KB → 4.285714286KB (变化: -1.0KB)
+libhmicuuc.z.so:
+  内存: 143.3333333KB → 101.0KB (变化: -42.3KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 26.875KB → 20.2KB (变化: -6.7KB)
+libmmi_rust_key_config.z.so:
+  内存: 8.0KB → 8.0KB (变化: +0.0KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 1.5KB → 2.285714286KB (变化: +0.8KB)
+libipc_common.z.so:
+  内存: 8.166666667KB → 12.0KB (变化: +3.8KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.53125KB → 2.25KB (变化: +0.7KB)
+libtokenid_sdk.z.so:
+  内存: 9.166666667KB → 8.0KB (变化: -1.2KB)
+  AMS依赖: 3次 → 3次 (变化: +0次)
+  AMS分摊: 1.71875KB → 1.5KB (变化: -0.2KB)
+librender_service_base.z.so:
+  内存: 478.6666667KB → 658.0KB (变化: +179.3KB)
+  AMS依赖: 3次 → 2次 (变化: -1次)
+  AMS分摊: 89.75KB → 188.0KB (变化: +98.2KB)
