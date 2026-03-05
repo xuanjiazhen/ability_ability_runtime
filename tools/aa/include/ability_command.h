@@ -19,6 +19,7 @@
 #include <regex>
 
 #include "ability_manager_interface.h"
+#include "insight_intent_execute_param.h"
 #include "shell_command.h"
 
 namespace OHOS {
@@ -160,6 +161,19 @@ const std::string HELP_MSG_APPDEBUG_APP_DEBUG =
     "  -c, --cancel                                let application cancel wait debug\n"
     "  -g, --get                                   get wait debug mode application bundle name and persist flag\n";
 
+const std::string HELP_MSG_EXECUTE_INTENT =
+    "usage: aa execute-intent <options>\n"
+    "options list:\n"
+    "  -h, --help                                  list available commands\n"
+    "  -b, --bundle <bundle-name>                   bundle name (required)\n"
+    "  -m, --module <module-name>                   module name (required)\n"
+    "  -a, --ability <ability-name>                 ability name (required)\n"
+    "  -i, --intent <intent-name>                   insight intent name (required)\n"
+    "  -e, --execute-mode <mode>                   execute mode (required)\n"
+    "  [-d, --display-id <id>]                    display id (optional)\n"
+    "  [-u, --user-id <id>]                       user id (optional)\n"
+    "  [-f, --flags <flags>]                       flags (optional)\n";
+
 const std::string HELP_MSG_FORCE_STOP = "usage: aa force-stop <bundle-name> [-p pid] [-r kill-reason]\n";
 const std::string HELP_MSG_BLOCK_ABILITY = "usage: aa block-ability <abilityrecordid>\n";
 const std::string HELP_MSG_FORCE_TIMEOUT =
@@ -250,6 +264,7 @@ private:
     ErrCode RunAsAttachDebugCommand();
     ErrCode RunAsDetachDebugCommand();
     ErrCode RunAsSendMemoryLevelCommand();
+    ErrCode RunAsExecuteIntentCommand();
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
     bool IsLongStartOption(const std::string &argv);
     bool IsShortStartOption(const std::string &argv);

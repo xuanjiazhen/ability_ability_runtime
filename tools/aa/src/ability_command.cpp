@@ -263,6 +263,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"execute-intent", [this]() { return this->RunAsExecuteIntentCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -1116,6 +1117,229 @@ ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, s
     }
 
     return OHOS::ERR_OK;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsExecuteIntentCommand()
+{
+    TAG_LOGI(AAFwkTag::AA_TOOL, "execute-intent command called");
+    
+    std::string bundleName;
+    std::string moduleName;
+    std::string abilityName;
+    std::string insightIntentName;
+    int32_t executeMode = -1;
+    int32_t displayId = INVALID_DISPLAY_ID;
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    int32_t flags = 0;
+    
+    int option = -1;
+    int counter = 0;
+    ErrCode result = OHOS::ERR_OK;
+    
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_EXECUTE_INTENT.c_str(),
+            LONG_OPTIONS_EXECUTE_INTENT, nullptr);
+        
+        TAG_LOGI(AAFwkTag::AA_TOOL, "option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+        
+        if (optind < 0 || optind > argc_) {
+            resultReceiver_.append(HELP_MSG_EXECUTE_INTENT + "\n");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+                resultReceiver_.append(HELP_MSG_EXECUTE_INTENT + "\n");
+            }
+            break;
+        }
+        
+        if (option == '?') {
+            std::string unknownOption = "";
+            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa execute-intent' option unknown");
+            resultReceiver_.append(unknownOptionMsg);
+            resultReceiver_.append(HELP_MSG_EXECUTE_INTENT + "\n");
+            result = OHOS::ERR_INVALID_VALUE;
+            break;
+        }
+        
+        switch (option) {
+            case 'h': {
+                resultReceiver_.append(HELP_MSG_EXECUTE_INTENT + "\n");
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            case 'b': {
+                if (optarg != nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "bundle name is null");
+                    resultReceiver_.append("error: option -b requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                bundleName = optarg;
+                TAG_LOGI(AAFwkTag::AA_TOOL, "bundleName: %{public}s", bundleName.c_str());
+                break;
+            }
+            case 'm': {
+                if (optarg != nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "module name is null");
+                    resultReceiver_.append("error: option -m requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                moduleName = optarg;
+                TAG_LOGI(AAFwkTag::AA_TOOL, "moduleName: %{public}s", moduleName.c_str());
+                break;
+            }
+            case 'a': {
+                if (optarg != nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "ability name is null");
+                    resultReceiver_.append("error: option -a requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                abilityName = optarg;
+                TAG_LOGI(AAFwkTag::AA_TOOL, "abilityName: %{public}s", abilityName.c_str());
+                break;
+            }
+            case 'i': {
+                if (optarg != nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "intent name is null");
+                    resultReceiver_.append("error: option -i requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                insightIntentName = optarg;
+                TAG_LOGI(AAFwkTag::AA_TOOL, "insightIntentName: %{public}s", insightIntentName.c_str());
+                break;
+            }
+            case 'e': {
+                if (optarg != nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "execute mode is null");
+                    resultReceiver_.append("error: option -e requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                auto res = std::from_chars(optarg, optarg + strlen(optarg), executeMode);
+                if (res.ec != std::errc() || res.ptr != optarg + strlen(optarg)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid execute mode: %{public}s", optarg);
+                    resultReceiver_.append("error: invalid execute mode value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                TAG_LOGI(AAFwkTag::AA_TOOL, "executeMode: {public}d", executeMode);
+                break;
+            }
+            case 'd': {
+                if (optarg != nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "display id is null");
+                    resultReceiver_.append("error: option -d requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                auto res = std::from_chars(optarg, optarg + strlen(optarg), displayId);
+                if (res.ec != std::errc() || res.ptr != optarg + strlen(optarg)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid display id: %{public}s", optarg);
+                    resultReceiver_.append("error: invalid display id value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                if (displayId < 0) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "display id must be >= 0");
+                    resultReceiver_.append("error: display id must be >= 0.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                TAG_LOGI(AAFwkTag::AA_TOOL, "displayId: {public}d", displayId);
+                break;
+            }
+            case 'u': {
+                if (optarg != nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "user id is null");
+                    resultReceiver_.append("error: option -u requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                auto res = std::from_chars(optarg, optarg + strlen(optarg), userId);
+                if (res.ec != std::errc() || res.ptr != optarg + strlen(optarg)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid user id: %{public}s", optarg);
+                    resultReceiver_.append("error: invalid user id value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                TAG_LOGI(AAFwkTag::AA_TOOL, "userId: {public}d", userId);
+                break;
+            }
+            case 'f': {
+                if (optarg != nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "flags is null");
+                    resultReceiver_.append("error: option -f requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                auto res = std::from_chars(optarg, optarg + strlen(optarg), flags);
+                if (res.ec != std::errc() || res.ptr != optarg + strlen(optarg)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid flags: %{public}s", optarg);
+                    resultReceiver_.append("error: invalid flags value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                TAG_LOGI(AAFwkTag::AA_TOOL, "flags: {public}d", flags);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        
+        if (result != OHOS::ERR_OK) {
+            break;
+        }
+    }
+    
+    if (result == OHOS::ERR_OK) {
+        if (bundleName.empty() || moduleName.empty() || abilityName.empty() || 
+            insightIntentName.empty() || executeMode < 0) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "missing required parameters");
+            resultReceiver_.append("error: missing required parameters.\n");
+            resultReceiver_.append("Required: -b, -m, -a, -i, -e\n");
+            resultReceiver_.append(HELP_MSG_EXECUTE_INTENT + "\n");
+            result = OHOS::ERR_INVALID_VALUE;
+        } else {
+            InsightIntentExecuteParam param;
+            param.bundleName_ = bundleName;
+            param.moduleName_ = moduleName;
+            param.abilityName_ = abilityName;
+            param.insightIntentName_ = insightIntentName;
+            param.executeMode_ = executeMode;
+            param.displayId_ = displayId;
+            param.userId_ = userId;
+            param.flags_ = flags;
+            param.insightIntentParam_ = std::make_shared<WantParams>();
+            
+            TAG_LOGI(AAFwkTag::AA_TOOL, "Executing insight intent: bundle=%{public}s, module=%{public}s, "
+                "ability=%{public}s, intent=%{public}s, mode=%{public}d",
+                bundleName.c_str(), moduleName.c_str(), abilityName.c_str(), 
+                insightIntentName.c_str(), executeMode);
+            
+            auto err = AbilityManagerClient::GetInstance()->ExecuteIntent(0, nullptr, param);
+            if (err == OHOS::ERR_OK) {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "execute intent successfully");
+                resultReceiver_.append("execute intent successfully.\n");
+            } else {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "execute intent failed: %{public}d", err);
+                resultReceiver_.append("error: failed to execute intent.\n");
+                resultReceiver_.append(GetMessageFromCode(err));
+                result = err;
+            }
+        }
+    }
+    
+    return result;
 }
 
 bool AbilityManagerShellCommand::MatchOrderString(const std::regex &regexScript, const std::string &orderCmd)
