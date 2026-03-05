@@ -28,7 +28,7 @@ ohos_unittest("extract_insight_intent_profile_test") {
   include_dirs = [
     "${ability_runtime_abilitymgr_path}/include",
     "${ability_runtime_abilitymgr_path}/src",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   sources = [ "extract_insight_intent_profile_test.cpp" ]

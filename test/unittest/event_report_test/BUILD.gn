@@ -21,7 +21,7 @@ ohos_unittest("event_report_test") {
 
   sources = [ "event_report_test.cpp" ]
 
-  deps = [ "${ability_runtime_services_path}/common:app_util" ]
+  deps = [ "${ability_runtime_services_path}/common:app_util_static" ]
 
   external_deps = [
     "hisysevent:libhisysevent",
