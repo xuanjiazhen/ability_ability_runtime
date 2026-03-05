@@ -98,7 +98,7 @@ ohos_unittest("iability_monitor_unittest") {
   deps = [
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [
@@ -130,7 +130,7 @@ ohos_unittest("ability_delegator_unittest") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [
@@ -195,7 +195,7 @@ ohos_unittest("ability_delegator_registry_unittest") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [
@@ -232,7 +232,7 @@ ohos_unittest("js_test_runner_unittest") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_delegator",
     "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [

@@ -28,8 +28,8 @@ ohos_unittest("completed_dispatcher_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
-    "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
+    "${ability_runtime_services_path}/abilitymgr:wantagent_manager_static",
   ]
 
   external_deps = [
