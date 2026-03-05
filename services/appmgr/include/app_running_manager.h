@@ -20,6 +20,7 @@
 #include <mutex>
 #include <regex>
 #include <set>
+#include <shared_mutex>
 
 #include "ability_info.h"
 #include "app_debug_listener_interface.h"
@@ -460,7 +461,7 @@ private:
     bool IsSameAbilityType(
         const std::shared_ptr<AppRunningRecord> &appRecord, const AppExecFwk::AbilityInfo &abilityInfo);
 private:
-    std::mutex runningRecordMapMutex_;
+    std::shared_mutex runningRecordMapMutex_;
     std::map<const int32_t, const std::shared_ptr<AppRunningRecord>> appRunningRecordMap_;
 
     std::mutex uiExtensionMapLock_;
