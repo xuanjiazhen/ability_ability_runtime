@@ -47,6 +47,7 @@ ohos_moduletest("AmsServiceStartModuleTest") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "safwk:system_ability_fwk",
   ]
 
