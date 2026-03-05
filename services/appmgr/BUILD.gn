@@ -210,7 +210,11 @@ ohos_shared_library("libappms") {
 
   cflags += [ "-DAPP_NO_RESPONSE_BUNDLENAME=\"${ability_runtime_app_no_response_bundlename}\"" ]
 
-  ldflags = [ "-Wl,-Bsymbolic" ]
+  if (ability_runtime_disable_bsymbolic_for_test) {
+    ldflags = []
+  } else {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
 
   version_script = "libappms.map"
   subsystem_name = "ability"
