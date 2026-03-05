@@ -72,7 +72,6 @@ ohos_unittest("AmsServiceStartupTest") {
 
   external_deps = [
     "ability_base:want",
-    "access_token:libaccesstoken_sdk",
     "appspawn:appspawn_client",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -92,6 +91,7 @@ ohos_unittest("AmsServiceStartupTest") {
     "memory_utils:libmeminfo",
     "os_account:os_account_innerkits",
     "preferences:native_preferences",
+    "qos_manager:pi_mutex",
     "resource_schedule_service:ressched_client",
     "safwk:api_cache_manager",
     "safwk:system_ability_fwk",
