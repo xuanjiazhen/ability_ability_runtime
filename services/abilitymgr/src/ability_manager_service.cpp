@@ -13562,6 +13562,8 @@ int32_t AbilityManagerService::ExecuteInsightIntentDone(const sptr<IRemoteObject
         return CHECK_PERMISSION_FAILED;
     }
 
+    FreezeUtil::GetInstance().AddLifecycleEvent(token, "ExecuteInsightIntentDone Start");
+
     Want want = abilityRecord->GetWant();
     if (InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
         InsightIntentExecuteParam::RemoveInsightIntent(want);
@@ -13591,8 +13593,10 @@ int32_t AbilityManagerService::ExecuteInsightIntentDone(const sptr<IRemoteObject
     }
 #endif // SUPPORT_UPMS
 
-    return DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->ExecuteIntentDone(
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->ExecuteIntentDone(
         intentId, result.innerErr, result);
+    FreezeUtil::GetInstance().AddLifecycleEvent(token, "ExecuteInsightIntentDone end");
+    return ret;
 }
 
 int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag)
