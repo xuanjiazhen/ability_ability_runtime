@@ -48,7 +48,7 @@ config("common_config") {
     "${ability_runtime_innerkits_path}/ability_manager/include",
   ]
   cflags = []
-  if (target_cpu == "arm") {
+  if (ability_runtime_disable_bsymbolic_for_test) {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 }
@@ -70,11 +70,18 @@ config("optimize_config") {
     "-D_FORTIFY_SOURCE=2",
     "-Oz",
   ]
-  ldflags = [
-    "-flto=full",
-    "-Wl",
-    "-Wl,-Bsymbolic",
-  ]
+  if (ability_runtime_disable_bsymbolic_for_test) {
+    ldflags = [
+      "-flto=full",
+      "-Wl",
+    ]
+  } else {
+    ldflags = [
+      "-flto=full",
+      "-Wl",
+      "-Wl,-Bsymbolic",
+    ]
+  }
 }
 
 #build so

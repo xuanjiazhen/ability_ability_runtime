@@ -80,7 +80,11 @@ ohos_shared_library("quickfixms") {
     defines += [ "SUPPORT_CHILD_PROCESS" ]
   }
 
-  ldflags = [ "-Wl,-Bsymbolic" ]
+  if (ability_runtime_disable_bsymbolic_for_test) {
+    ldflags = []
+  } else {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
