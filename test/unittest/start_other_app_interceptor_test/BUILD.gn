@@ -38,7 +38,7 @@ ohos_unittest("start_other_app_interceptor_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
     "${ability_runtime_services_path}/appmgr:libappms",
     "${ability_runtime_services_path}/common:perm_verification",
   ]

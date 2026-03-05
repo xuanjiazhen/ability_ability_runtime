@@ -35,7 +35,7 @@ ohos_unittest("fault_data_test") {
   sources = [ "fault_data_test.cpp" ]
 
   deps = [
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
     "${ability_runtime_services_path}/common:perm_verification",
   ]
 

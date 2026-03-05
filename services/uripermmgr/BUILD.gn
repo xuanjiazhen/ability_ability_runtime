@@ -115,8 +115,9 @@ ohos_shared_library("libupms") {
     defines += [ "ABILITY_RUNTIME_UDMF_ENABLE" ]
   }
 
-  ldflags = []
   if (ability_runtime_disable_bsymbolic_for_test) {
+    ldflags = []
+  } else {
     ldflags = [ "-Wl,-Bsymbolic" ]
   }
 

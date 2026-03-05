@@ -44,8 +44,8 @@ ohos_unittest("window_options_utils_test") {
   ]
 
   deps = [
-    "${ability_runtime_abilitymgr_path}/:abilityms",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_abilitymgr_path}/:abilityms_static",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [

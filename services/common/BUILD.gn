@@ -53,6 +53,13 @@ config("common_config") {
   }
 }
 
+# Test configuration to disable Bsymbolic for TDD builds
+# Used by unittest targets to allow mocking
+config("test_no_bsymbolic_config") {
+  visibility = [ "${ability_runtime_test_path}/*" ]
+  ldflags = []
+}
+
 config("optimize_config") {
   cflags = [
     "-flto=full",
@@ -112,7 +119,11 @@ ohos_shared_library("perm_verification") {
     cflags_cc += [ "-DWITH_DLP" ]
   }
 
-  ldflags = [ "-Wl,-Bsymbolic" ]
+  if (ability_runtime_disable_bsymbolic_for_test) {
+    ldflags = []
+  } else {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
 
   subsystem_name = "ability"
   innerapi_tags = [ "platformsdk_indirect" ]
@@ -165,7 +176,11 @@ ohos_shared_library("hisysevent_report") {
     "hisysevent:libhisysevent",
   ]
 
-  ldflags = [ "-Wl,-Bsymbolic" ]
+  if (ability_runtime_disable_bsymbolic_for_test) {
+    ldflags = []
+  } else {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
@@ -279,8 +294,166 @@ ohos_shared_library("user_controller") {
     ]
   }
 
-  ldflags = [ "-Wl,-Bsymbolic" ]
+  if (ability_runtime_disable_bsymbolic_for_test) {
+    ldflags = []
+  } else {
+    ldflags = [ "-Wl,-Bsymbolic" ]
+  }
 
+  innerapi_tags = [ "platformsdk_indirect" ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+# Static library versions for test (no Bsymbolic)
+ohos_static_library("perm_verification_static") {
+  include_dirs = [ "${ability_runtime_utils_path}/server/constant" ]
+  public_configs = [ ":common_config" ]
+  sources = [ "src/permission_verification.cpp" ]
+  deps = [ ":app_util_static" ]
+  external_deps = [
+    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+  ]
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+  subsystem_name = "ability"
+  innerapi_tags = [ "platformsdk_indirect" ]
+  part_name = "ability_runtime"
+}
+
+ohos_static_library("task_handler_wrap_static") {
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+  public_configs = [ ":common_config" ]
+  include_dirs = [ "include" ]
+  sources = [
+    "src/event_handler_wrap.cpp",
+    "src/ffrt_task_handler_wrap.cpp",
+    "src/queue_task_handler_wrap.cpp",
+    "src/task_handler_wrap.cpp",
+  ]
+  external_deps = [
+    "ffrt:libffrt",
+    "hilog:libhilog",
+  ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_static_library("hisysevent_report_static") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  include_dirs = [ "include" ]
+  sources = [ "src/hisysevent_report.cpp" ]
+  external_deps = [
+    "hilog:libhilog",
+    "c_utils:utils",
+    "hisysevent:libhisysevent",
+  ]
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_static_library("app_util_static") {
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+  public_configs = [ ":common_config" ]
+  include_dirs = [ "include" ]
+  sources = [
+    "src/ability_manager_radar.cpp",
+    "src/ability_manager_xcollie.cpp",
+    "src/app_utils.cpp",
+    "src/event_report.cpp",
+    "src/hitrace_chain_utils.cpp",
+    "src/json_utils.cpp",
+    "src/rate_limiter.cpp",
+    "src/record_cost_time_util.cpp",
+    "src/res_sched_util.cpp",
+  ]
+  deps = [
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
+    ":hisysevent_report_static",
+  ]
+  external_deps = [
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "config_policy:configpolicy_util",
+    "hicollie:libhicollie",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "hitrace:hitrace_meter",
+    "hitrace:libhitracechain",
+    "init:libbeget_proxy",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "json:nlohmann_json_static",
+    "samgr:samgr_proxy",
+  ]
+  if (ability_runtime_graphics) {
+    defines = [ "SUPPORT_GRAPHICS" ]
+    external_deps += [ "window_manager:libwsutils" ]
+  }
+  if (resource_schedule_service_enable) {
+    defines += [ "RESOURCE_SCHEDULE_SERVICE_ENABLE" ]
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+  }
+  if (ability_runtime_media_library_enable) {
+    defines += [ "ABILITY_RUNTIME_MEDIA_LIBRARY_ENABLE" ]
+  }
+  if (ability_runtime_forbid_start_enabled) {
+    defines += [ "ABILITY_RUNTIME_FORBID_START_ENABLED" ]
+  }
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_static_library("user_controller_static") {
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  include_dirs = [
+    "include/user_controller",
+    "${ability_runtime_innerkits_path}/ability_manager/include",
+    "${ability_runtime_services_path}/common/include",
+  ]
+  defines = []
+  sources = [ "src/user_controller/user_controller.cpp" ]
+  deps = [ "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper" ]
+  external_deps = [
+    "c_utils:utils",
+    "ffrt:libffrt",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+  ]
+  if (ability_runtime_graphics) {
+    defines += [
+      "SUPPORT_GRAPHICS",
+      "SUPPORT_SCREEN",
+    ]
+    deps += []
+    external_deps += [
+      "window_manager:libdm",
+      "window_manager:libwsutils",
+    ]
+  }
   innerapi_tags = [ "platformsdk_indirect" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"

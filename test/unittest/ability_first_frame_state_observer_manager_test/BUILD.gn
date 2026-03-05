@@ -34,7 +34,7 @@ ohos_unittest("ability_first_frame_state_observer_manager_test") {
   ]
 
   deps = [
-    "${ability_runtime_abilitymgr_path}/:abilityms",
+    "${ability_runtime_abilitymgr_path}/:abilityms_static",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
   ]
