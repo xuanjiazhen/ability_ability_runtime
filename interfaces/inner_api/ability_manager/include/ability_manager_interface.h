@@ -2588,6 +2588,14 @@ public:
     {
         return ERR_OK;
     }
+
+    /**
+     * @brief set app recovery restart flag to ability record.
+     */
+    virtual int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag)
+    {
+        return 0;
+    }
 };
 }  // namespace AAFwk
 }  // namespace OHOS

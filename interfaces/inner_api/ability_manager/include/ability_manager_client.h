@@ -2088,6 +2088,12 @@ public:
      */
     ErrCode GetUserLockedBundleList(int32_t userId, std::unordered_set<std::string> &userLockedBundleList);
 
+    /**
+     * @brief set app recovery restart flag to ability record.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

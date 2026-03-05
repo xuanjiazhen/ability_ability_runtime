@@ -364,7 +364,8 @@ private:
     int32_t ClearAllPreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int32_t RegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply);
     int32_t UnRegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply);
-
+    int32_t SetAppRecoveryFlagInner(MessageParcel &data, MessageParcel &reply);
+    
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
     int OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &data,

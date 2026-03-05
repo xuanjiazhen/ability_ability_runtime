@@ -197,6 +197,8 @@ napi_value AppRecoveryRestartFlagInit(napi_env env)
     napi_set_named_property(env, objValue, "RESTART_WHEN_APP_FREEZE",
         CreateJsValue(env, RestartFlag::RESTART_WHEN_APP_FREEZE));
     napi_set_named_property(env, objValue, "NO_RESTART", CreateJsValue(env, RestartFlag::NO_RESTART));
+    napi_set_named_property(env, objValue, "RESTART_WHEN_CPP_CRASH",
+        CreateJsValue(env, RestartFlag::RESTART_WHEN_CPP_CRASH));
     return objValue;
 }
 
