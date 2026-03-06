@@ -33,7 +33,7 @@ ohos_unittest("extract_insight_intent_profile_test") {
 
   sources = [ "extract_insight_intent_profile_test.cpp" ]
 
-  deps = [ "${ability_runtime_abilitymgr_path}/:abilityms" ]
+  deps = [ "${ability_runtime_abilitymgr_path}/abilitymgr:abilityms_static" ]
 
   external_deps = [
     "ability_base:want",

@@ -36,7 +36,7 @@ ohos_unittest("ability_keep_alive_service_test") {
   configs = []
 
   deps = [
-    "${ability_runtime_abilitymgr_path}/:abilityms",
+    "${ability_runtime_abilitymgr_path}/abilitymgr:abilityms_static",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
