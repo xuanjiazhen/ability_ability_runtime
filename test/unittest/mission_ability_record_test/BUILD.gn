@@ -61,7 +61,7 @@ ohos_unittest("mission_ability_record_test") {
     "${ability_runtime_native_path}/ability/native:auto_startup_callback",
     "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_services_path}/abilitymgr:abilityms_static",
-    "${ability_runtime_services_path}/abilitymgr:mission_list_static",
+    "${ability_runtime_services_path}/abilitymgr:mission_list",
     "${ability_runtime_services_path}/common:app_util_static",
     "${ability_runtime_services_path}/common:perm_verification_static",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit:aakit_mock",

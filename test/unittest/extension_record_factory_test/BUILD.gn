@@ -65,7 +65,7 @@ ohos_unittest("extension_record_factory_test") {
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/abilitymgr:abilityms_static",
-    "${ability_runtime_services_path}/abilitymgr:mission_list_static",
+    "${ability_runtime_services_path}/abilitymgr:mission_list",
     "${ability_runtime_services_path}/common:app_util_static",
     "${ability_runtime_services_path}/common:perm_verification_static",
   ]

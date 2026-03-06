@@ -25,7 +25,7 @@ ohos_unittest("mission_list_manager_dump_test") {
 
   deps = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_static",
-    "${ability_runtime_services_path}/abilitymgr:mission_list_static",
+    "${ability_runtime_services_path}/abilitymgr:mission_list",
   ]
 
   external_deps = [
