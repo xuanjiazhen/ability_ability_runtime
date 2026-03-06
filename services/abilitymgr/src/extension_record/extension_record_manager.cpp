@@ -459,8 +459,7 @@ bool ExtensionRecordManager::RemovePreloadUIExtensionRecordById(
     }
     for (auto it = item->second.begin(); it != item->second.end(); ++it) {
         if ((*it)->extensionRecordId_ == extensionRecordId) {
-            std::shared_ptr<ExtensionRecord> extensionRecord = *it;
-            HandlePreloadUIExtensionDestroyed(extensionRecord);
+            HandlePreloadUIExtensionDestroyed(extensionRecordId);
             item->second.erase(it);
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Remove extension record by id: %{public}d success.", extensionRecordId);
             if (item->second.empty()) {
@@ -967,16 +966,16 @@ void ExtensionRecordManager::HandlePreloadUIExtensionLoaded(
     remoteCallback->OnLoadedDone(extensionRecordId);
 }
 
-void ExtensionRecordManager::HandlePreloadUIExtensionDestroyed(
-    const std::shared_ptr<ExtensionRecord> &uiExtensionRecord)
+void ExtensionRecordManager::HandlePreloadUIExtensionDestroyed(int32_t extensionRecordId)
 {
-    if (uiExtensionRecord == nullptr) {
+    auto lockRecord = GetExtensionRecordById(extensionRecordId);
+    if (lockRecord == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtensionRecord");
         return;
     }
-    int32_t extensionRecordId = uiExtensionRecord->extensionRecordId_;
+    int32_t extensionRecordId = lockRecord->extensionRecordId_;
     TAG_LOGD(AAFwkTag::UI_EXT, "HandlePreloadUIExtensionDestroyed called, id: %{public}d", extensionRecordId);
-    sptr<AAFwk::IPreloadUIExtensionExecuteCallback> remoteCallback = GetRemoteCallback(uiExtensionRecord);
+    sptr<AAFwk::IPreloadUIExtensionExecuteCallback> remoteCallback = GetRemoteCallback(lockRecord);
     if (remoteCallback == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null remoteCallback");
         return;
@@ -1074,8 +1073,7 @@ int32_t ExtensionRecordManager::ClearAllPreloadUIExtensionRecordForHost()
     }
     for (const auto &record : recordsToUnload) {
         if (record != nullptr) {
-            std::shared_ptr<ExtensionRecord> extensionRecord = record;
-            HandlePreloadUIExtensionDestroyed(extensionRecord);
+            HandlePreloadUIExtensionDestroyed(record->extensionRecordId_);
             record->UnloadUIExtensionAbility();
         }
     }
