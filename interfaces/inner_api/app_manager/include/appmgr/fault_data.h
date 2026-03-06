@@ -69,8 +69,10 @@ public:
 struct FaultData : public Parcelable {
     bool ReadFromParcel(Parcel &parcel);
     bool ReadContent(Parcel &parcel);
+    bool ReadLeakContent(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     bool WriteContent(Parcel &parcel) const;
+    bool WriteLeakContent(Parcel &parcel) const;
     static FaultData *Unmarshalling(Parcel &parcel);
     // error object
     ErrorObject errorObject;

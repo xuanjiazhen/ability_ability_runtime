@@ -25,6 +25,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 class ApplicationDataManager {
+using LeakObserverFunction = std::function<bool(const LeakObject &obj)>;
 public:
     struct ExceptionParams {
         napi_env env;
@@ -48,6 +49,8 @@ public:
     void SetIsUncatchable(bool isUncatchable);
     bool GetIsUncatchable();
     static bool NotifyUncaughtException(const ExceptionParams &params, const AppExecFwk::ErrorObject &errorObj);
+    bool NotifyLeakObject(const LeakObject &leakObj);
+    void SetLeakObserver(LeakObserverFunction leakCallback);
 private:
     ApplicationDataManager();
     ~ApplicationDataManager();
@@ -55,6 +58,7 @@ private:
     DISALLOW_COPY_AND_MOVE(ApplicationDataManager);
     std::shared_ptr<IErrorObserver> errorObserver_;
     std::atomic_bool isUncatchable_;
+    LeakObserverFunction leakObserver_ = nullptr;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

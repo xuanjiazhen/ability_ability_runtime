@@ -67,6 +67,8 @@ static std::set<GlobalObserverItem> globalPromiseList;
 static std::map<napi_env, std::vector<std::pair<int32_t, std::shared_ptr<NativeReference>>>> observerList;
 static GlobalObserverItem freezeObserver;
 static GlobalObserverItem defaultHandler;
+static GlobalObserverItem defaultLeakObserver;
+static std::mutex defaultLeakMtx;
 static std::mutex defaultHandlerMtx;
 static std::mutex globalErrorMtx;
 static std::mutex globalPromiseMtx;
@@ -76,6 +78,7 @@ static std::once_flag registerCallbackFlag;
 static std::shared_ptr<JsLoopObserver> loopObserver_;
 static bool freezeCallbackRegistered = false;
 static bool isSetHandler = false;
+static bool isSetLeakObserver = false;
 static std::mutex onErrorMtx;
 static std::condition_variable onErrorCv;
 constexpr int ON_ERROR_ASYNC_TIMEOUT = 2;
@@ -753,6 +756,87 @@ static bool GlobalPromiseManagerCallback(
     return true;
 }
 
+static napi_value CreateDetailInfoObject(napi_env env, AppExecFwk::LeakType leakType,
+                                         const AppExecFwk::LeakDetailInfo &obj)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "xyyy null env");
+        return nullptr;
+    }
+
+    napi_value detailObj = nullptr;
+    if (napi_create_object(env, &detailObj) != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "xyyy Create detailInfo object failed");
+        return nullptr;
+    }
+
+    std::map<const char*, int64_t> fieldMap;
+    if (leakType == AppExecFwk::LeakType::PSS_MEMORY || leakType == AppExecFwk::LeakType::FD) {
+        fieldMap = {
+            {"arkts", static_cast<int64_t>(obj.arktsSize)},
+            {"native", static_cast<int64_t>(obj.nativeSize)},
+            {"ion", static_cast<int64_t>(obj.ionSize)},
+            {"gpu", static_cast<int64_t>(obj.gpuSize)},
+            {"ashmem", static_cast<int64_t>(obj.ashmemSize)},
+            {"other", static_cast<int64_t>(obj.otherSize)}
+        };
+    }
+
+    for (const auto& [fieldName, fieldValue] : fieldMap) {
+        napi_value jsValue = CreateJsValue(env, fieldValue);
+        if (jsValue != nullptr) {
+            napi_set_named_property(env, detailObj, fieldName, jsValue);
+        }
+    }
+
+    return detailObj;
+}
+
+static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
+{
+    TAG_LOGI(AAFwkTag::JSNAPI, "xyyy ObserverFunc start");
+    std::lock_guard<std::mutex> lock(defaultLeakMtx);
+    if (!defaultLeakObserver.ref) {
+        TAG_LOGI(AAFwkTag::JSNAPI, " xyyy not register ObserverFunc callback");
+        return false;
+    }
+
+    // 3. 获取JS全局对象（执行回调必须的上下文，所有JS函数都需要挂载到全局对象下执行）
+    napi_value global = nullptr;
+    if (napi_get_global(defaultLeakObserver.env, &global) != napi_ok) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "xyyy Get Global Failed");
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::JSNAPI, "xyyy obj.leakType:%{public}d", obj.leakType);
+    TAG_LOGI(AAFwkTag::JSNAPI, "xyyy obj.leakSize:%{public}ld", obj.leakSize);
+    // 4. 构造JS层回调函数的入参：将Native层的LeakObject转换为JS可识别的值
+    size_t argc = ARGC_THREE;
+    napi_value args[] = {
+        CreateJsValue(defaultLeakObserver.env, obj.leakType),
+        CreateJsValue(defaultLeakObserver.env, static_cast<int64_t>(obj.leakSize)),
+        CreateDetailInfoObject(defaultLeakObserver.env, obj.leakType, obj.detailInfo)
+    };
+    if (!args[2]) {
+        napi_get_undefined(defaultLeakObserver.env, &args[2]);
+    }
+
+    napi_value function = nullptr;
+    // 5. 从NAPI引用中获取JS层注册的回调函数对象
+    if (napi_get_reference_value(defaultLeakObserver.env, defaultLeakObserver.ref, &function) != napi_ok) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "xyyy Get Callback Failed");
+        return false;
+    }
+    // 6. 执行JS层的回调函数（核心步骤：Native → JS的跨层调用）
+    napi_value result = nullptr;
+    if (napi_call_function(defaultLeakObserver.env, global, function, argc, args, &result) != napi_ok) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "xyyy Do Callback Failed");
+        // napi_close_handle_scope(freezeObserver.env, scope_);
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::JSNAPI, "xyyy ObserverFunc end");
+    return true;
+}
+
 class JsErrorManager final {
 public:
     JsErrorManager() {}
@@ -780,6 +864,11 @@ public:
     static napi_value Off(napi_env env, napi_callback_info info)
     {
         GET_CB_INFO_AND_CALL(env, info, JsErrorManager, OnOff);
+    }
+
+    static napi_value SetDefaultLeakObserver(napi_env env, napi_callback_info info)
+    {
+        GET_CB_INFO_AND_CALL(env, info, JsErrorManager, OnSetDefaultLeakObserver);
     }
 
     napi_value SetRejectionCallback(napi_env env) const
@@ -885,6 +974,49 @@ private:
         return object;
     }
 
+    napi_value OnOnSetDefaultLeakObserver(napi_env env, napi_value function)
+    {
+        // 校验是否在主线程
+        TAG_LOGE(AAFwkTag::JSNAPI, "xyyy OnOnSetDefaultLeakObserver start");
+        if (!AppExecFwk::EventRunner::IsAppMainThread()) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "xyyy setDefaultLeakObserver must be called in main thread");
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_MAIN_THREAD);
+            return CreateJsUndefined(env);
+        }
+        // 校验参数类型
+        if (CheckTypeForNapiValue(env, function, napi_null) ||CheckTypeForNapiValue(env, function, napi_undefined)) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "xyyy CheckTypeForNapiValue failed");
+            ThrowInvalidNumParametersError(env);
+            return CreateJsUndefined(env);
+        }
+        std::lock_guard<std::mutex> lock(defaultLeakMtx);
+        napi_value oldObserverFunc = nullptr;
+        // 4. 保存旧的观察者函数（用于返回给JS层）
+        if (defaultLeakObserver.ref == nullptr) {
+            oldObserverFunc = nullptr;
+        } else if (napi_get_reference_value(env, defaultLeakObserver.ref, &oldObserverFunc) != napi_ok) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "xyyy Get old defaultLeakObserver Failed");
+        }
+        // 5. 释放旧的观察者引用（避免内存泄漏）
+        if (defaultLeakObserver.ref) {
+            napi_delete_reference(env, defaultLeakObserver.ref);
+            defaultLeakObserver.ref = nullptr;
+        }
+        // 6. 设置新的观察者函数（如果传入有效的函数）
+        if (function) {
+            NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &defaultLeakObserver.ref));
+        } else {
+            defaultLeakObserver.ref = nullptr;
+        }
+        defaultLeakObserver.env = env;
+        if (!isSetLeakObserver) {
+            isSetLeakObserver= true;
+            TAG_LOGI(AAFwkTag::JSNAPI, "change isSetHandler state successfully");
+        }
+        TAG_LOGE(AAFwkTag::JSNAPI, "xyyy OnOnSetDefaultLeakObserver end");
+        return oldObserverFunc;
+    }
+
     napi_value OnSetDefaultErrorHandler(napi_env env, const size_t argc, napi_value *argv)
     {
         TAG_LOGD(AAFwkTag::JSNAPI, "called");
@@ -896,6 +1028,22 @@ private:
         }
         return argc == ARGC_ONE ?
         OnOnSetDefaultErrorHandler(env, argv[INDEX_ZERO]) : OnOnSetDefaultErrorHandler(env, nullptr);
+    }
+
+    napi_value OnSetDefaultLeakObserver(napi_env env, const size_t argc, napi_value *argv)
+    {
+        TAG_LOGE(AAFwkTag::JSNAPI, "xyyy OnSetDefaultLeakObserver start");
+        // 校验参数个数（0个或1个）
+        if (argc != ARGC_ZERO && argc != ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc: %zu", argc);
+            ThrowInvalidNumParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        // 调用实际处理函数
+        return argc == ARGC_ONE ?
+        OnOnSetDefaultLeakObserver(env, argv[INDEX_ZERO]) : OnOnSetDefaultLeakObserver(env, nullptr);
+
     }
 
     napi_value OnOn(napi_env env, const size_t argc, napi_value* argv)
@@ -1521,6 +1669,34 @@ napi_value ErrorManagerInstanceTypeInit(napi_env env)
     napi_set_named_property(env, objValue, "CUSTOM", CreateJsValue(env, InstanceType::CUSTOM));
     return objValue;
 }
+
+napi_value ErrorManagerLeakTypeInit(napi_env env)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return nullptr;
+    }
+
+    napi_value objValue = nullptr;
+    if (napi_create_object(env, &objValue) != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "create obj failed");
+        return nullptr;
+    }
+
+    if (objValue == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null obj");
+        return nullptr;
+    }
+
+    napi_set_named_property(env, objValue, "PSS_MEMORY", CreateJsValue(env, AppExecFwk::LeakType::PSS_MEMORY));
+    napi_set_named_property(env, objValue, "ION_MEMORY", CreateJsValue(env, AppExecFwk::LeakType::ION_MEMORY));
+    napi_set_named_property(env, objValue, "ASHMEM_MEMORY", CreateJsValue(env, AppExecFwk::LeakType::ASHMEM_MEMORY));
+    napi_set_named_property(env, objValue, "GPU_MEMORY", CreateJsValue(env, AppExecFwk::LeakType::GPU_MEMORY));
+    napi_set_named_property(env, objValue, "FD", CreateJsValue(env, AppExecFwk::LeakType::FD));
+    napi_set_named_property(env, objValue, "THREAD", CreateJsValue(env, AppExecFwk::LeakType::THREAD));
+    return objValue;
+}
+
 napi_value JsErrorManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1547,8 +1723,11 @@ napi_value JsErrorManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "on", moduleName, JsErrorManager::On);
     BindNativeFunction(env, exportObj, "off", moduleName, JsErrorManager::Off);
     BindNativeFunction(env, exportObj, "setDefaultErrorHandler", moduleName, JsErrorManager::SetDefaultErrorHandler);
+    BindNativeFunction(env, exportObj, "setDefaultLeakObserver", moduleName, JsErrorManager::SetDefaultLeakObserver);
+    AppExecFwk::ApplicationDataManager::GetInstance().SetLeakObserver(LeakObserverFunc);
 
     napi_set_named_property(env, exportObj, "InstanceType", ErrorManagerInstanceTypeInit(env));
+    napi_set_named_property(env, exportObj, "LeakType", ErrorManagerLeakTypeInit(env));
     return CreateJsUndefined(env);
 }
 }  // namespace AbilityRuntime

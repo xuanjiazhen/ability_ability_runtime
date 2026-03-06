@@ -225,5 +225,21 @@ bool ApplicationDataManager::NotifyUncaughtException(const ExceptionParams &para
     }
     return false;
 }
+
+bool ApplicationDataManager::NotifyLeakObject(const LeakObject &leakObj)
+{
+    TAG_LOGE(AAFwkTag::APPKIT, "xyyy NotifyLeakObject start");
+    if (leakObserver_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "xyyy in leakObserver_");
+        return leakObserver_(leakObj);
+    }
+    TAG_LOGE(AAFwkTag::APPKIT, "xyyy NotifyLeakObject end");
+    return false;
+}
+
+void ApplicationDataManager::SetLeakObserver(LeakObserverFunction leakCallback)
+{
+    leakObserver_ = leakCallback;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

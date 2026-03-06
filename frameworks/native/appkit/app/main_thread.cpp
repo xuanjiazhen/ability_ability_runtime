@@ -3758,13 +3758,27 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
 
 void MainThread::NotifyAppFault(const FaultData &faultData)
 {
+    TAG_LOGE(AAFwkTag::APPKIT, "xyyy NotifyAppFault start");
     if (faultData.notifyApp) {
         ErrorObject faultErrorObj = {
             .name = faultData.errorObject.name,
             .message = faultData.errorObject.message,
             .stack = faultData.errorObject.stack
         };
-        ApplicationDataManager::GetInstance().NotifyExceptionObject(faultErrorObj);
+
+        LeakObject leakObj = {
+            .leakType = faultData.leakObject.leakType,
+            .leakSize = faultData.leakObject.leakSize,
+        };
+        TAG_LOGE(AAFwkTag::APPKIT, "xyyy pid: %{public}d,type: %{public}d size: %{public}ld",
+                faultData.pid, faultData.leakObject.leakType, faultData.leakObject.leakSize);
+        if (faultData.faultType == FaultDataType :: RESOURCE_CONTROL) {
+            TAG_LOGE(AAFwkTag::APPKIT, "xyyy NotifyAppFault RESOURCE_CONTROL");
+            ApplicationDataManager::GetInstance().NotifyLeakObject(leakObj); 
+        } else {
+            ApplicationDataManager::GetInstance().NotifyExceptionObject(faultErrorObj);
+        }
+        TAG_LOGE(AAFwkTag::APPKIT, "xyyy NotifyAppFault end");
     }
 }
 
