@@ -457,6 +457,11 @@ bool ExtensionRecordManager::RemovePreloadUIExtensionRecordById(
         preloadUIExtensionMap_.erase(extensionRecordMapKey);
         return false;
     }
+    auto uiExtensionRecord = GetExtensionRecordById(extensionRecordId);
+    if (uiExtensionRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtensionRecord");
+        return false;
+    }
     for (auto it = item->second.begin(); it != item->second.end(); ++it) {
         if ((*it)->extensionRecordId_ == extensionRecordId) {
             std::shared_ptr<ExtensionRecord> extensionRecord = *it;
