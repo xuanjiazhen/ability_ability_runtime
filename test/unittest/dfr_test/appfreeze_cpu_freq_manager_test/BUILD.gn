@@ -30,7 +30,7 @@ ohos_unittest("appfreeze_cpu_freq_manager_test") {
 
   deps = [
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [

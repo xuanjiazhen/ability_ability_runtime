@@ -48,8 +48,8 @@ ohos_unittest("keep_alive_process_manager_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
-    "${ability_runtime_services_path}/common:user_controller",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
+    "${ability_runtime_services_path}/common:user_controller_static",
   ]
 
   external_deps = [

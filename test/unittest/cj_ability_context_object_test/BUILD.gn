@@ -60,7 +60,7 @@ ohos_unittest("cj_ability_context_object_test") {
     "${ability_runtime_path}/frameworks/native/ability/native:continuation_ipc",
     "${ability_runtime_path}/frameworks/native/ability/native:extension_blocklist_config",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
-    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:app_util_static",
   ]
 
   external_deps = [

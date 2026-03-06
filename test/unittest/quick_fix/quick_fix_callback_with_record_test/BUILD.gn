@@ -30,7 +30,7 @@ ohos_unittest("quick_fix_callback_with_record_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = [ "${ability_runtime_services_path}/appmgr:libappms" ]
+  deps = [ "${ability_runtime_services_path}/appmgr:libappms_static" ]
 
   external_deps = [
     "ability_base:want",

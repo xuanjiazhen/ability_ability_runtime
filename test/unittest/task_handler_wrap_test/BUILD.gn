@@ -26,7 +26,7 @@ ohos_unittest("task_handler_wrap_test") {
 
   sources = [ "task_handler_wrap_test.cpp" ]
 
-  deps = [ "${ability_runtime_services_path}/common:task_handler_wrap" ]
+  deps = [ "${ability_runtime_services_path}/common:task_handler_wrap_static" ]
 
   cflags = [
     "-Dprivate = public",

@@ -47,7 +47,7 @@ ohos_unittest("ability_context_impl_test") {
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_utils",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [
@@ -107,8 +107,8 @@ ohos_unittest("ability_context_impl_second_test") {
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
-    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
+    "${ability_runtime_services_path}/common:app_util_static",
   ]
 
   external_deps = [
@@ -151,7 +151,7 @@ ohos_unittest("ability_context_test1") {
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [
@@ -215,7 +215,7 @@ ohos_unittest("local_call_container_ut_test") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [
@@ -252,7 +252,7 @@ ohos_unittest("local_call_record_ut_test") {
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [
@@ -323,7 +323,7 @@ ohos_unittest("ability_context_impl_new_test") {
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [

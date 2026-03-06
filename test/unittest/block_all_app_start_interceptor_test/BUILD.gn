@@ -39,7 +39,7 @@ ohos_unittest("block_all_app_start_interceptor_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
-    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
   ]
 
   external_deps = [
