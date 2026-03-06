@@ -15,6 +15,8 @@
 
 #include "ets_app_manager.h"
 
+#include <cinttypes>
+
 #include "ability_manager_client.h"
 #include "ability_manager_interface.h"
 #include "ani_common_util.h"
@@ -566,7 +568,9 @@ bool EtsAppManager::CheckOnOnApplicationStateWithAppStateFilterParam(ani_env *en
     }
     if (!isUndefined && !UnWrapAppStateFilter(env, etsAppStateFilter, appStateFilter)) {
         TAG_LOGE(AAFwkTag::APPMGR, "GetAppStateFilter failed");
-        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env, "Parse appStateFilter failed, value must be a "
+ 	        "combination of values selected from enum FilterBundleType, FilterAppStateType, FilterProcessStateType "
+ 	        "FilterAbilityStateType and FilterCallback.");
         return false;
     }
     return true;
@@ -1000,6 +1004,8 @@ void EtsAppManager::NativeIsSharedBundleRunning(ani_env *env, ani_string aniBund
             AppExecFwk::CreateBoolean(env, false));
         return;
     }
+    TAG_LOGD(AAFwkTag::APPMGR, "NativeGetProcessMemoryByPid pid:%{public}" PRId64,
+        static_cast<int64_t>(aniVersionCode));
     uint32_t versionCode = static_cast<uint32_t>(aniVersionCode);
 
     std::string bundleName;
