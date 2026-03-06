@@ -29,7 +29,7 @@ ohos_unittest("completed_dispatcher_test") {
   }
   deps = [
     "${ability_runtime_services_path}/abilitymgr:abilityms_static",
-    "${ability_runtime_services_path}/abilitymgr:wantagent_manager_static",
+    "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
   ]
 
   external_deps = [

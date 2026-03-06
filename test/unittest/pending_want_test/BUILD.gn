@@ -40,7 +40,7 @@ ohos_unittest("pending_want_test") {
   deps = [
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_services_path}/abilitymgr:abilityms_static",
-    "${ability_runtime_services_path}/abilitymgr:wantagent_manager_static",
+    "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
   ]
 
   external_deps = [
