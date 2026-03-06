@@ -77,6 +77,32 @@ config("optimize_config") {
   ]
 }
 
+# Config for TDD static libraries - no Bsymbolic flag
+# Used by static library targets to enable symbol mocking in tests
+config("tdd_config") {
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Oz",
+  ]
+  cflags_cc = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Oz",
+  ]
+  # NOTE: No Bsymbolic flag here to allow symbol mocking
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
+}
+
 #build so
 ohos_shared_library("perm_verification") {
   branch_protector_ret = "pac_ret"
