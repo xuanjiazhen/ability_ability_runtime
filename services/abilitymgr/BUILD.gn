@@ -213,7 +213,6 @@ ohos_shared_library("abilityms") {
     "window_manager:session_manager_lite",
     "window_manager:sms",
   ]
-  public_external_deps = [ "background_task_mgr:bgtaskmgr_innerkits" ]
 
   if (background_task_mgr_continuous_task_enable) {
     external_deps += [ "background_task_mgr:bgtaskmgr_innerkits" ]
@@ -409,7 +408,6 @@ ohos_static_library("abilityms_static") {
     "window_manager:session_manager_lite",
     "window_manager:sms",
   ]
-  public_external_deps = [ "background_task_mgr:bgtaskmgr_innerkits" ]
 
   if (background_task_mgr_continuous_task_enable) {
     external_deps += [ "background_task_mgr:bgtaskmgr_innerkits" ]
@@ -539,16 +537,13 @@ ohos_shared_library("wantagent_manager") {
 
   external_deps = [
     "ability_base:want",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
-  ]
-
-  public_external_deps = [
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
   ]
 
   innerapi_tags = [
