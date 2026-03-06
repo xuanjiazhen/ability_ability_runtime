@@ -810,14 +810,17 @@ static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
     TAG_LOGI(AAFwkTag::JSNAPI, "xyyy obj.leakType:%{public}d", obj.leakType);
     TAG_LOGI(AAFwkTag::JSNAPI, "xyyy obj.leakSize:%{public}ld", obj.leakSize);
     // 4. 构造JS层回调函数的入参：将Native层的LeakObject转换为JS可识别的值
-    size_t argc = ARGC_THREE;
-    napi_value args[] = {
-        CreateJsValue(defaultLeakObserver.env, obj.leakType),
-        CreateJsValue(defaultLeakObserver.env, static_cast<int64_t>(obj.leakSize)),
-        CreateDetailInfoObject(defaultLeakObserver.env, obj.leakType, obj.detailInfo)
-    };
-    if (!args[2]) {
-        napi_get_undefined(defaultLeakObserver.env, &args[2]);
+    size_t argc = ARGC_TWO;
+    napi_value args[ARGC_THREE];
+    args[0] = CreateJsValue(defaultLeakObserver.env, obj.leakType);
+    args[1] = CreateJsValue(defaultLeakObserver.env, static_cast<int64_t>(obj.leakSize));
+
+    if (obj.leakType == AppExecFwk::LeakType::PSS_MEMORY) {
+        args[2] = CreateDetailInfoObject(defaultLeakObserver.env, obj.leakType, obj.detailInfo);
+        if (!args[2]) {
+            napi_get_undefined(defaultLeakObserver.env, &args[2]);
+        }
+        argc = ARGC_THREE;
     }
 
     napi_value function = nullptr;
