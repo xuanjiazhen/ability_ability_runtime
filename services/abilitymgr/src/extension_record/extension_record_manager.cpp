@@ -720,6 +720,39 @@ std::shared_ptr<AAFwk::AbilityRecord> ExtensionRecordManager::GetUIExtensionRoot
     return AAFwk::Token::GetAbilityRecordByToken(rootCallerToken);
 }
 
+sptr<IRemoteObject> ExtensionRecordManager::GetUIExtensionRootHostToken(const sptr<IRemoteObject> token)
+{
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "input param invalid");
+        return nullptr;
+    }
+
+    auto abilityRecord = AAFwk::Token::GetAbilityRecordByToken(token);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord empty");
+        return nullptr;
+    }
+
+    if (!AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not uiextension ability");
+        return nullptr;
+    }
+
+    sptr<IRemoteObject> rootCallerToken = nullptr;
+    auto extensionRecordId = abilityRecord->GetUIExtensionAbilityId();
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        rootCallerToken = GetRootCallerTokenLocked(extensionRecordId, abilityRecord);
+    }
+
+    if (rootCallerToken == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "get record failed");
+        return nullptr;
+    }
+
+    return rootCallerToken;
+}
+
 int32_t ExtensionRecordManager::GetUIExtensionSessionInfo(
     const sptr<IRemoteObject> token, UIExtensionSessionInfo &uiExtensionSessionInfo)
 {
