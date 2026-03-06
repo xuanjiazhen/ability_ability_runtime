@@ -460,7 +460,7 @@ bool ExtensionRecordManager::RemovePreloadUIExtensionRecordById(
     for (auto it = item->second.begin(); it != item->second.end(); ++it) {
         if ((*it)->extensionRecordId_ == extensionRecordId) {
             std::shared_ptr<ExtensionRecord> extensionRecord = *it;
-            HandlePreloadUIExtensionDestroyed(extensionRecord);
+            HandlePreloadUIExtensionDestroyed(extensionRecord, extensionRecordId);
             item->second.erase(it);
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Remove extension record by id: %{public}d success.", extensionRecordId);
             if (item->second.empty()) {
@@ -968,8 +968,13 @@ void ExtensionRecordManager::HandlePreloadUIExtensionLoaded(
 }
 
 void ExtensionRecordManager::HandlePreloadUIExtensionDestroyed(
-    const std::shared_ptr<ExtensionRecord> &uiExtensionRecord)
+    const std::shared_ptr<ExtensionRecord> &uiExtensionRecord, int32_t extensionRecordId)
 {
+    auto lockRecord = std::static_pointer_cast<UIExtensionRecord>(GetExtensionRecordById(extensionRecordId));
+    if (lockRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtensionRecord");
+        return;
+    }
     if (uiExtensionRecord == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtensionRecord");
         return;
@@ -1075,7 +1080,7 @@ int32_t ExtensionRecordManager::ClearAllPreloadUIExtensionRecordForHost()
     for (const auto &record : recordsToUnload) {
         if (record != nullptr) {
             std::shared_ptr<ExtensionRecord> extensionRecord = record;
-            HandlePreloadUIExtensionDestroyed(extensionRecord);
+            HandlePreloadUIExtensionDestroyed(extensionRecord, record->extensionRecordId_);
             record->UnloadUIExtensionAbility();
         }
     }

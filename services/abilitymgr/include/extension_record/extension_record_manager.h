@@ -142,7 +142,7 @@ public:
                                           int32_t &recordNum);
 
     void HandlePreloadUIExtensionLoaded(const std::shared_ptr<ExtensionRecord> &extensionRecord);
-    void HandlePreloadUIExtensionDestroyed(const std::shared_ptr<ExtensionRecord> &extensionRecord);
+    void HandlePreloadUIExtensionDestroyed(const std::shared_ptr<ExtensionRecord> &extensionRecord, int32_t extensionRecordId);
     void HandlePreloadUIExtensionSuccess(int32_t extensionRecordId, bool isPreloadedSuccess);
     int32_t ClearPreloadedUIExtensionAbility(int32_t extensionRecordId);
     int32_t ClearAllPreloadUIExtensionRecordForHost();
