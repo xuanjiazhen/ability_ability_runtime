@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,7 +15,7 @@
 
 import AbilityStateData from 'application.AbilityStateData';
 import { ElementName } from 'bundleManager.ElementName'
-import { BusinessError, AsyncCallback } from '@ohos.base';
+import { BusinessError, AsyncCallback, RecordData } from '@ohos.base';
 import AsyncCallbackWrapper from './utils/AbilityUtils';
 import { AbilityRunningInfo as _AbilityRunningInfo } from 'application.AbilityRunningInfo';
 import { ExtensionRunningInfo } from 'application.ExtensionRunningInfo';
@@ -25,6 +25,7 @@ import { Configuration } from '@ohos.app.ability.Configuration';
 import _AbilityForegroundStateObserver from 'application.AbilityForegroundStateObserver';
 import { ExtensionRunningInfo as _ExtensionRunningInfo } from './application/ExtensionRunningInfo';
 import Want from '@ohos.app.ability.Want';
+import { AbilityResult } from 'ability.abilityResult';
 
 export default namespace abilityManager {
   loadLibraryWithPermissionCheck("ability_manager_ani_kit.z", "@ohos.app.ability.abilityManager")
@@ -38,6 +39,7 @@ export default namespace abilityManager {
   export native function nativeCheckPreloadUIExtensionAbilityPermission() : void;
   export native function nativeGetTopAbilityCheck() : void;
   export native function nativeGetAbilityRunningInfos(callback:AsyncCallbackWrapper<Array<AbilityRunningInfo>>) : void;
+  export native function nativeIsEmbeddedUIExtensionSupported() : boolean;
   export native function nativeIsEmbeddedOpenAllowed(context: Context, appId: string, callback:AsyncCallbackWrapper<boolean>) : void;
   export native function nativeIsEmbeddedOpenAllowedCheck(context: Context): void;
   export native function nativeOn(type:string, observer: AbilityForegroundStateObserver): void;
@@ -46,7 +48,7 @@ export default namespace abilityManager {
   export native function nativeNotifyDebugAssertResultCheck(sessionId: string, status: UserStatus): void;
   export native function nativeSetResidentProcessEnabled(bundleName: string, enable: boolean, callback: AsyncCallbackWrapper<void>): void;
   export native function nativeSetResidentProcessEnabledCheck(bundleName: string): void;
-  export native function nativeAcquireShareData(missionId: int, callback: AsyncCallbackWrapper<Record<string, Object>>): void;
+  export native function nativeAcquireShareData(missionId: int, callback: AsyncCallbackWrapper<Record<string, RecordData>>): void;
   export native function nativeUpdateConfiguration(config: Configuration, callback: AsyncCallbackWrapper<void>): void;
   export native function nativeQueryAtomicServiceStartupRule(context: Context, appId: string, callback:AsyncCallbackWrapper<AtomicServiceStartupRule>) : void;
   export native function nativeQueryAtomicServiceStartupRuleCheck(context: Context): void;
@@ -58,6 +60,8 @@ export default namespace abilityManager {
   export native function nativePreloadUIExtensionAbility(want: Want, callback: AsyncCallbackWrapper<int>): void;
   export native function nativeClearPreloadedUIExtensionAbility(preloadId: int, callback: AsyncCallbackWrapper<void>): void;
   export native function nativeClearPreloadedUIExtensionAbilities(callback: AsyncCallbackWrapper<void>): void;
+  export native function nativeNotifySaveAsResult(parameter: AbilityResult, requestCode: int, callback: AsyncCallbackWrapper<void>): void;
+  export native function nativeNotifySaveAsResultCheck(parameter: AbilityResult): void;
 
   export function getForegroundUIAbilities():Promise<Array<AbilityStateData>> {
     let p = new Promise<Array<AbilityStateData>>((resolve: (data: Array<AbilityStateData>) => void, reject: (error: Error) => void): void => {
@@ -65,7 +69,7 @@ export default namespace abilityManager {
         return nativeGetForegroundUIAbilities();
       };
       let p1 = taskpool.execute(executeFunc);
-      p1.then((e :NullishType)=>{
+      p1.then((e :Any)=>{
         let abilities: Array<AbilityStateData> = e as Array<AbilityStateData>;
         resolve(abilities);
       }, (err: Error): void => {
@@ -131,9 +135,13 @@ export default namespace abilityManager {
     });
   }
 
+  function isEmbeddedUIExtensionSupported(): boolean {
+    return abilityManager.nativeIsEmbeddedUIExtensionSupported();
+  }
+
   function isEmbeddedOpenAllowed(context: Context, appId: string): Promise<boolean> {
     abilityManager.nativeIsEmbeddedOpenAllowedCheck(context);
-    return new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError | null)=>void):void => {
+    return new Promise<boolean>((resolve:(data:boolean)=>void, reject:(err: BusinessError)=>void):void => {
       let asyncCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null, data: boolean | undefined)=>{
         if (err == null || err.code == 0) {
           resolve(data as boolean);
@@ -179,20 +187,20 @@ export default namespace abilityManager {
     });
   }
 
-  function acquireShareData(missionId: int, callback: AsyncCallback<Record<string, Object>>): void {
-    let asyncCall = new AsyncCallbackWrapper<Record<string, Object>>(callback);
+  function acquireShareData(missionId: int, callback: AsyncCallback<Record<string, RecordData>>): void {
+    let asyncCall = new AsyncCallbackWrapper<Record<string, RecordData>>(callback);
     taskpool.execute( (): void => {
         abilityManager.nativeAcquireShareData(missionId, asyncCall);
     });
   }
 
-  function acquireShareData(missionId: int): Promise<Record<string, Object>> {
-    return new Promise<Record<string, Object>>((resolve: (data: Record<string, Object>) => void,
+  function acquireShareData(missionId: int): Promise<Record<string, RecordData>> {
+    return new Promise<Record<string, RecordData>>((resolve: (data: Record<string, RecordData>) => void,
       reject: (err: BusinessError) => void): void => {
-      let asyncCall = new AsyncCallbackWrapper<Record<string, Object>>((err: BusinessError | null,
-        data: Record<string, Object> | undefined) => {
+      let asyncCall = new AsyncCallbackWrapper<Record<string, RecordData>>((err: BusinessError | null,
+        data: Record<string, RecordData> | undefined) => {
         if (err == null || err.code == 0) {
-          resolve(data as Record<string, Object>);
+          resolve(data as Record<string, RecordData>);
         } else {
           reject(err);
         }
@@ -232,7 +240,7 @@ export default namespace abilityManager {
 
   function queryAtomicServiceStartupRule(context: Context, appId: string): Promise<AtomicServiceStartupRule> {
     abilityManager.nativeQueryAtomicServiceStartupRuleCheck(context);
-    return new Promise<AtomicServiceStartupRule>((resolve:(data:AtomicServiceStartupRule)=>void, reject:(err: BusinessError | null)=>void):void => {
+    return new Promise<AtomicServiceStartupRule>((resolve:(data:AtomicServiceStartupRule)=>void, reject:(err: Error)=>void):void => {
       let asyncCall = new AsyncCallbackWrapper<AtomicServiceStartupRule>((err: BusinessError | null, data: AtomicServiceStartupRule | undefined)=>{
         if (err == null || err.code == 0) {
           resolve(data as AtomicServiceStartupRule);
@@ -307,8 +315,8 @@ export default namespace abilityManager {
       taskpool.execute((): void => {
         try {
           abilityManager.nativePreloadUIExtensionAbility(want, call);
-        } catch (err: BusinessError) {
-          reject(err);
+        } catch (err) {
+          reject(err as BusinessError);
         }
       });
     });
@@ -326,8 +334,8 @@ export default namespace abilityManager {
       taskpool.execute((): void => {
         try {
           abilityManager.nativeClearPreloadedUIExtensionAbility(preloadId, call);
-        } catch (err: BusinessError) {
-          reject(err);
+        } catch (err) {
+          reject(err as BusinessError);
         }
       });
     });
@@ -345,9 +353,33 @@ export default namespace abilityManager {
       taskpool.execute((): void => {
         try {
           abilityManager.nativeClearPreloadedUIExtensionAbilities(call);
-        } catch (err: BusinessError) {
+        } catch (err) {
+          reject(err as BusinessError);
+        }
+      });
+    });
+  }
+
+  export function notifySaveAsResult(parameter: AbilityResult, requestCode: int, callback: AsyncCallback<void>): void {
+    abilityManager.nativeNotifySaveAsResultCheck(parameter);
+    let myCall = new AsyncCallbackWrapper<void>(callback);
+    taskpool.execute( (): void => {
+        abilityManager.nativeNotifySaveAsResult(parameter, requestCode, myCall);
+    });
+  }
+
+  export function notifySaveAsResult(parameter: AbilityResult, requestCode: int): Promise<void> {
+    abilityManager.nativeNotifySaveAsResultCheck(parameter);
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
           reject(err);
         }
+      });
+      taskpool.execute((): void => {
+        abilityManager.nativeNotifySaveAsResult(parameter, requestCode, asyncCall);
       });
     });
   }

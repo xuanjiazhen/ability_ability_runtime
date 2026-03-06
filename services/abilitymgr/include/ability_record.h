@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58,7 +58,6 @@ namespace AAFwk {
 using Closure = std::function<void()>;
 
 class AbilityRecord;
-class ConnectionRecord;
 class CallContainer;
 struct EventInfo;
 
@@ -99,7 +98,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int LoadAbility(bool isShellCall = false, bool isStartupHide = false, pid_t callingPid = -1,
-        uint64_t loadAbilityCallbackId = 0);
+        uint64_t loadAbilityCallbackId = 0, pid_t selfPid = -1);
 
     /**
      * foreground the ability.
@@ -123,8 +122,6 @@ public:
     void RemoveForegroundTimeoutTask();
 
     void RemoveLoadTimeoutTask();
-
-    void PostUIExtensionAbilityTimeoutTask(uint32_t messageId);
 
     /**
      * move the ability to back ground.
@@ -178,8 +175,6 @@ public:
 
     bool GetAbilityForegroundingFlag() const;
 
-    void SetAbilityForegroundingFlag();
-
     /**
      * get ability's state.
      *
@@ -223,34 +218,6 @@ public:
     sptr<Token> GetToken() const;
 
     /**
-     * set ability's previous ability record.
-     *
-     * @param abilityRecord , previous ability record
-     */
-    void SetPreAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
-
-    /**
-     * get ability's previous ability record.
-     *
-     * @return previous ability record
-     */
-    std::shared_ptr<AbilityRecord> GetPreAbilityRecord() const;
-
-    /**
-     * set ability's next ability record.
-     *
-     * @param abilityRecord , next ability record
-     */
-    void SetNextAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
-
-    /**
-     * get ability's previous ability record.
-     *
-     * @return previous ability record
-     */
-    std::shared_ptr<AbilityRecord> GetNextAbilityRecord() const;
-
-    /**
      * check whether the ability is ready.
      *
      * @return true : ready ,false: not ready
@@ -262,13 +229,6 @@ public:
     bool GetRecoveryInfo();
 
 #ifdef SUPPORT_SCREEN
-    /**
-     * check whether the ability 's window is attached.
-     *
-     * @return true : attached ,false: not attached
-     */
-    bool IsWindowAttached() const;
-
     inline bool IsStartingWindow() const
     {
         return isStartingWindow_;
@@ -289,38 +249,11 @@ public:
         return killReason_;
     }
 
-    inline void SetIsKillPrecedeStart(bool isKillPrecedeStart)
-    {
-        isKillPrecedeStart_.store(isKillPrecedeStart);
-    }
-
-    inline bool IsKillPrecedeStart()
-    {
-        return isKillPrecedeStart_.load();
-    }
-
-    void PostCancelStartingWindowHotTask();
-
-    /**
-     * process request of foregrounding the ability.
-     *
-     */
-    void ProcessForegroundAbility(bool isRecent, const AbilityRequest &abilityRequest,
-        std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<AbilityRecord> &callerAbility,
-        uint32_t sceneFlag = 0);
-
-    void ProcessForegroundAbility(const std::shared_ptr<AbilityRecord> &callerAbility, bool needExit = true,
-        uint32_t sceneFlag = 0);
-    void NotifyAnimationFromTerminatingAbility() const;
-    void NotifyAnimationFromMinimizeAbility(bool& animaEnabled);
-
     bool ReportAtomicServiceDrawnCompleteEvent();
     void SetCompleteFirstFrameDrawing(const bool flag);
     bool IsCompleteFirstFrameDrawing() const;
     bool GetColdStartFlag();
     void SetColdStartFlag(bool isColdStart);
-    bool GetPrelaunchFlag();
-    void SetPrelaunchFlag(bool isPrelaunch);
 #endif
 
     /**
@@ -387,30 +320,6 @@ public:
      *
      */
     void Terminate(const Closure &task);
-
-    /**
-     * connect the ability.
-     *
-     */
-    void ConnectAbility();
-
-    /**
-     * connect the ability with want.
-     *
-     */
-    void ConnectAbilityWithWant(const Want &want);
-
-    /**
-     * disconnect the ability.
-     *
-     */
-    void DisconnectAbility();
-
-    /**
-     * disconnect the ability with want
-     *
-     */
-    void DisconnectAbilityWithWant(const Want &want);
 
     /**
      * Command the ability.
@@ -486,7 +395,7 @@ public:
      * send result object to caller ability thread.
      *
      */
-    void SendResult(bool isSandboxApp, uint32_t tokeId);
+    void SendResult(bool isSandboxApp, uint32_t tokeId, bool schedulerdied = false);
 
     /**
      * send result object to caller ability thread.
@@ -519,47 +428,6 @@ public:
      */
     void SaveResult(int resultCode, const Want *resultWant, std::shared_ptr<CallerRecord> caller);
 
-    bool NeedConnectAfterCommand();
-
-    /**
-     * add connect record to the list.
-     *
-     */
-    void AddConnectRecordToList(const std::shared_ptr<ConnectionRecord> &connRecord);
-
-    /**
-     * get the list of connect record.
-     *
-     */
-    std::list<std::shared_ptr<ConnectionRecord>> GetConnectRecordList() const;
-
-    /**
-     * get the list of connect record.
-     *
-     */
-    std::list<std::shared_ptr<ConnectionRecord>> GetConnectingRecordList();
-
-    /**
-     * get the count of In Progress record.
-     *
-     */
-    uint32_t GetInProgressRecordCount();
-    /**
-     * remove the connect record from list.
-     *
-     */
-    void RemoveConnectRecordFromList(const std::shared_ptr<ConnectionRecord> &connRecord);
-
-    /**
-     * check whether connect list is empty.
-     *
-     */
-    bool IsConnectListEmpty();
-
-    size_t GetConnectedListSize();
-
-    size_t GetConnectingListSize();
-
     void RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> callerAbilityRecord, int32_t requestCode);
 
     /**
@@ -577,18 +445,6 @@ public:
     std::shared_ptr<AbilityRecord> GetCallerRecord() const;
 
     std::shared_ptr<CallerAbilityInfo> GetCallerInfo() const;
-
-    /**
-     * get connecting record from list.
-     *
-     */
-    std::shared_ptr<ConnectionRecord> GetConnectingRecord() const;
-
-    /**
-     * get disconnecting record from list.
-     *
-     */
-    std::shared_ptr<ConnectionRecord> GetDisconnectingRecord() const;
 
     /**
      * convert ability state (enum type to string type).
@@ -617,7 +473,7 @@ public:
      * dump ability info.
      *
      */
-    void Dump(std::vector<std::string> &info);
+    virtual void Dump(std::vector<std::string> &info);
 
     void DumpClientInfo(std::vector<std::string> &info, const std::vector<std::string> &params,
         bool isClient = false, bool dumpConfig = true) const;
@@ -638,30 +494,6 @@ public:
     void SetStartTime();
 
     int64_t GetStartTime() const;
-
-    /**
-     * dump service info.
-     *
-     */
-    void DumpService(std::vector<std::string> &info, bool isClient = false) const;
-
-    /**
-     * dump service info.
-     *
-     */
-    void DumpService(std::vector<std::string> &info, std::vector<std::string> &params, bool isClient = false) const;
-
-    /**
-     * set connect remote object.
-     *
-     */
-    void SetConnRemoteObject(const sptr<IRemoteObject> &remoteObject);
-
-    /**
-     * get connect remote object.
-     *
-     */
-    sptr<IRemoteObject> GetConnRemoteObject() const;
 
     /**
      * check whether the ability is never started.
@@ -700,6 +532,7 @@ public:
     {
         return keepAliveBundle_;
     }
+    bool IsAbilityDiedHandled();
     void SetLoading(bool status);
     bool IsLoading() const;
     int64_t GetRestartTime();
@@ -735,6 +568,10 @@ public:
     ResolveResultType Resolve(const AbilityRequest &abilityRequest);
     bool ReleaseCall(const sptr<IAbilityConnection> &connect);
     bool IsNeedToCallRequest() const;
+    /**
+     * @brief Notify all callers that this ability is terminating
+     */
+    void NotifyCallersOnTerminate();
     bool IsStartedByCall() const;
     void SetStartedByCall(const bool isFlag);
     void CallRequest();
@@ -763,7 +600,6 @@ public:
 
     bool CanRestartResident();
 
-    std::string GetLabel();
     inline int64_t GetAbilityRecordId() const
     {
         return recordId_;
@@ -772,8 +608,6 @@ public:
     void SetPendingState(AbilityState state);
     AbilityState GetPendingState() const;
 
-    bool IsNeedBackToOtherMissionStack();
-    void SetNeedBackToOtherMissionStack(bool isNeedBackToOtherMissionStack);
     std::shared_ptr<AbilityRecord> GetOtherMissionStackAbilityRecord() const;
     void SetOtherMissionStackAbilityRecord(const std::shared_ptr<AbilityRecord> &abilityRecord);
     void RemoveAbilityDeathRecipient() const;
@@ -807,7 +641,7 @@ public:
     void SetUIExtensionAbilityId(const int32_t uiExtensionAbilityId);
     int32_t GetUIExtensionAbilityId() const;
 
-    void OnProcessDied();
+    void OnProcessDied(bool isKeepAliveDied = false);
 
     void SetProcessName(const std::string &process);
 
@@ -881,33 +715,19 @@ public:
         return isPluginAbility_;
     }
 
+    // Host-Plugin relationship management
+    void AddPluginAbility(std::shared_ptr<AbilityRecord> pluginAbility);
+    void RemovePluginAbility(std::shared_ptr<AbilityRecord> pluginAbility);
+    std::vector<std::shared_ptr<AbilityRecord>> GetPluginAbilities() const;
+    void ClearPluginAbilities();
+    void InitPluginAbility(const AbilityRequest &abilityRequest);
+    void PluginCompleteTerminate();
+
     void NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
         const std::string &message, int32_t resultCode = 0);
 
     void NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element);
     void NotifyAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode);
-
-    void ScheduleCollaborate(const Want &want);
-
-    bool IsHook () const
-    {
-        return isHook_;
-    }
-
-    inline void SetIsHook(bool isHook)
-    {
-        isHook_ = isHook;
-    }
-
-    bool GetHookOff () const
-    {
-        return hookOff_;
-    }
-
-    inline void SetHookOff(bool hookOff)
-    {
-        hookOff_ = hookOff;
-    }
 
     inline void SetLaunchWant(std::shared_ptr<Want> launchWant)
     {
@@ -932,11 +752,6 @@ public:
     inline void SetBackgroundDrivenFlag(bool isLastWantBackgroundDriven)
     {
         isLastWantBackgroundDriven_.store(isLastWantBackgroundDriven);
-    }
-
-    inline bool IsLastWantBackgroundDriven() const
-    {
-        return isLastWantBackgroundDriven_.load();
     }
 
     inline void SetOnNewWantSkipScenarios(int32_t scenarios)
@@ -1002,24 +817,27 @@ public:
 
     bool ReportAbilityConnectionRelations();
 
+    void ReportAbilityConnectionForResultTerminate();
+
     void SetPromotePriority(bool promotePriority);
 
     bool GetPromotePriority();
 
-    void PromotePriority();
-    
+    bool PromotePriority();
+
     std::string GetFirstCallerBundleName()
     {
         return firstCallerBundleName_;
     }
 
+    void SetAppRecoveryFlag(int flag);
+    int GetAppRecoveryFlag() const;
 protected:
-    sptr<Token> token_ = {};                               // used to interact with kit and wms
-    std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
-    AbilityState currentState_ = AbilityState::INITIAL;    // current life state
     Want want_ = {};                                       // want to start this ability
+    std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
+    sptr<Token> token_ = {};                               // used to interact with kit and wms
+    std::atomic<AbilityState> currentState_ = AbilityState::INITIAL;    // current life state
 
-private:
     /**
      * get the type of ability.
      *
@@ -1058,10 +876,6 @@ private:
 
     void NotifyMissionBindPid();
 
-    void DumpUIExtensionRootHostInfo(std::vector<std::string> &info) const;
-
-    void DumpUIExtensionPid(std::vector<std::string> &info, bool isUIExtension) const;
-
     void SetDebugAppByWaitingDebugFlag();
     void AfterLoaded();
 
@@ -1083,39 +897,22 @@ private:
     sptr<AbilityTransitionInfo> CreateAbilityTransitionInfo(const AbilityRequest &abilityRequest) const;
     sptr<AbilityTransitionInfo> CreateAbilityTransitionInfo(const std::shared_ptr<StartOptions> &startOptions,
         const std::shared_ptr<Want> &want, const AbilityRequest &abilityRequest);
-    std::shared_ptr<Global::Resource::ResourceManager> CreateResourceManager() const;
-    std::shared_ptr<Media::PixelMap> GetPixelMap(const uint32_t windowIconId,
-        std::shared_ptr<Global::Resource::ResourceManager> resourceMgr) const;
-
-    void AnimationTask(bool isRecent, const AbilityRequest &abilityRequest,
-        const std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<AbilityRecord> &callerAbility);
-    void NotifyAnimationFromStartingAbility(const std::shared_ptr<AbilityRecord> &callerAbility,
-        const AbilityRequest &abilityRequest) const;
-    void NotifyAnimationFromRecentTask(const std::shared_ptr<StartOptions> &startOptions,
-        const std::shared_ptr<Want> &want) const;
-    void NotifyAnimationFromTerminatingAbility(const std::shared_ptr<AbilityRecord> &callerAbility, bool needExit,
-        bool flag);
-
-    void StartingWindowTask(bool isRecent, bool isCold, const AbilityRequest &abilityRequest,
-        std::shared_ptr<StartOptions> &startOptions);
-    void StartingWindowColdTask(bool isRecent, const AbilityRequest &abilityRequest,
-        std::shared_ptr<StartOptions> &startOptions);
-    void PostCancelStartingWindowColdTask();
-    void StartingWindowHot(const std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<Want> &want,
-        const AbilityRequest &abilityRequest);
-    void StartingWindowHot();
-    void StartingWindowCold(const std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<Want> &want,
-        const AbilityRequest &abilityRequest);
-    void InitColdStartingWindowResource(const std::shared_ptr<Global::Resource::ResourceManager> &resourceMgr);
-    void GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor);
     void SetAbilityStateInner(AbilityState state);
 #endif
     void PostStartAbilityByCallTimeoutTask(bool isHalf);
     void CancelStartAbilityByCallTimeoutTask() const;
-    void SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType);
+    void SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType,
+        const AppExecFwk::AppStartReason startReason = AppExecFwk::AppStartReason::NONE);
     std::atomic<bool> isPreloadStart_ = false;           // is ability started via preload
 
+    struct UIAbilityProperty {
+        bool promotePriority = false;
+        int32_t byCallCallerSaUid = -1;
+        int32_t byCallCallerSaPid = -1;
+    };
     static std::atomic<int64_t> abilityRecordId;
+    std::atomic_bool isCallerSetProcess_ = false;       // new version
+    std::atomic_bool backgroundAbilityWindowDelayed_ = false;
     bool isReady_ = false;                            // is ability thread attached?
     bool isWindowStarted_ = false;                     // is window hotstart or coldstart?
     bool isWindowAttached_ = false;                   // Is window of this ability attached?
@@ -1139,20 +936,17 @@ private:
     bool minimizeReason_ = false;           // new version
     bool clearMissionFlag_ = false;
     bool keepAliveBundle_ = false;
-    bool isNeedBackToOtherMissionStack_ = false;
+    bool handledAbilityDied_ = false;
     bool lockedState_ = false;
     bool isAttachDebug_ = false;
     bool isAssertDebug_ = false;
     bool isAppAutoStartup_ = false;
-    bool isConnected = false;
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isLaunching_ = true;
     bool securityFlag_ = false;
     bool isHook_ = false;
-    bool hookOff_ = false;
     bool isPluginAbility_ = false;
-    std::atomic_bool isCallerSetProcess_ = false;       // new version
-    std::atomic_bool backgroundAbilityWindowDelayed_ = false;
+    bool isPrelaunch_ = false;
 
     int32_t uiExtensionAbilityId_ = 0;                // uiextension ability id
     int32_t uid_ = 0;
@@ -1172,98 +966,81 @@ private:
     int startId_ = 0;  // service(ability) start id
 
     AppExecFwk::AbilityInfo abilityInfo_ = {};             // the ability info get from BMS
-    std::weak_ptr<AbilityRecord> preAbilityRecord_ = {};   // who starts this ability record
-    std::weak_ptr<AbilityRecord> nextAbilityRecord_ = {};  // ability that started by this ability
-    int64_t startTime_ = 0;                           // records first time of ability start
-    int64_t restartTime_ = 0;                         // the time of last trying restart
-    sptr<IAbilityScheduler> scheduler_ = {};       // kit scheduler
-    sptr<IRemoteObject::DeathRecipient> schedulerDeathRecipient_ = {};  // scheduler binderDied Recipient
-
-    /**
-     * result_: ability starts with for-result mode will send result before being terminated.
-     * Its caller will receive results before active.
-     * Now we assume only one result generate when terminate.
-     */
-    std::shared_ptr<AbilityResult> result_ = {};
-
-    // service(ability) can be connected by multi-pages(abilities), so need to store this service's connections
-    mutable ffrt::mutex connRecordListMutex_;
-    std::list<std::shared_ptr<ConnectionRecord>> connRecordList_ = {};
-    // service(ability) onConnect() return proxy of service ability
-    sptr<IRemoteObject> connRemoteObject_ = {};
-
     // page(ability) can be started by multi-pages(abilities), so need to store this ability's caller
     std::list<std::shared_ptr<CallerRecord>> callerList_ = {};
-    mutable ffrt::mutex callerListLock_;
-
-    PacMap stateDatas_;             // ability saved ability state data
-    WindowConfig windowConfig_;
-    AppState appState_ = AppState::BEGIN;
-
-    std::shared_ptr<CallContainer> callContainer_ = nullptr;       // new version
-    std::string customProcessFlag_ = "";        // new version
-    std::string specifiedFlag_;
-    std::string uri_;
-
-    mutable ffrt::mutex dumpInfoLock_;
-    mutable ffrt::mutex dumpLock_;
-    mutable ffrt::mutex resultLock_;
-    mutable ffrt::mutex wantLock_;
-    mutable ffrt::condition_variable dumpCondition_;
-    mutable bool isDumpTimeout_ = false;
-    std::vector<std::string> dumpInfos_;
-    std::atomic<AbilityState> pendingState_ = AbilityState::INITIAL;    // pending life state
-    std::atomic<AbilityVisibilityState> abilityVisibilityState_ = AbilityVisibilityState::INITIAL;
-
-    // scene session
-    sptr<SessionInfo> sessionInfo_ = nullptr;
-    mutable ffrt::mutex sessionLock_;
     std::map<uint64_t, AbilityWindowState> abilityWindowStateMap_;
+    PacMap stateDatas_;             // ability saved ability state data
+    std::vector<std::string> dumpInfos_;
+    
+    sptr<IAbilityScheduler> scheduler_ = {};       // kit scheduler
+    sptr<IRemoteObject::DeathRecipient> schedulerDeathRecipient_ = {};  // scheduler binderDied Recipient
+    sptr<SessionInfo> sessionInfo_ = nullptr;
 
-#ifdef SUPPORT_SCREEN
-    bool isStartingWindow_ = false;
-    bool isCompleteFirstFrameDrawing_ = false;
-    bool coldStart_ = false;
-    bool isPrelaunch_ = false;
-    uint32_t bgColor_ = 0;
-    std::shared_ptr<Media::PixelMap> startingWindowBg_ = nullptr;
-#endif
-
-    std::weak_ptr<AbilityRecord> otherMissionStackAbilityRecord_; // who starts this ability record by SA
-
+    /**
+      * result_: ability starts with for-result mode will send result before being terminated.
+      * Its caller will receive results before active.
+      * Now we assume only one result generate when terminate.
+     */
+    std::shared_ptr<AbilityResult> result_ = {};
+    std::shared_ptr<CallContainer> callContainer_ = nullptr;       // new version
     std::shared_ptr<Want> connectWant_ = nullptr;
     std::shared_ptr<CallerAbilityInfo> saCallerInfo_ = nullptr;
-    LaunchDebugInfo launchDebugInfo_;
-    
-    std::string instanceKey_ = "";
-    std::string missionAffinity_ = "";
-
-    ffrt::mutex lock_;
-    ffrt::mutex connectWantLock_;
-    std::mutex collaborateWantLock_;
-
-    bool isKillForPermissionUpdate_ = false;
-
-    std::mutex isPrepareTerminateAbilityMutex_;
-    std::condition_variable isPrepareTerminateAbilityCv_;
-    std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
-    std::atomic_bool isPrepareTerminateAbilityDone_ = false;
-    bool isPrepareTerminate_ = false;
-
-    std::string killReason_ = "";
-    std::atomic_bool isKillPrecedeStart_ = false;
     std::shared_ptr<Want> launchWant_ = nullptr;
     std::shared_ptr<Want> lastWant_ = nullptr;
+    std::shared_ptr<UIAbilityProperty> uiAbilityProperty_ = nullptr;
+
+    LaunchDebugInfo launchDebugInfo_;
+    WindowConfig windowConfig_;
+
+    int64_t startTime_ = 0;                           // records first time of ability start
+    int64_t restartTime_ = 0;                         // the time of last trying restart
+    std::atomic<AbilityState> pendingState_ = AbilityState::INITIAL;    // pending life state
+    std::atomic<AbilityVisibilityState> abilityVisibilityState_ = AbilityVisibilityState::INITIAL;
+    std::atomic_bool isPrepareTerminateAbilityCalled_ = false;
+    std::atomic_bool isPrepareTerminateAbilityDone_ = false;
     std::atomic_bool isLastWantBackgroundDriven_ = false;
     std::atomic<int32_t> scenarios_ = 0;
     std::atomic<bool> isPreloaded_ = false;
     std::atomic<bool> isFrozenByPreload_ = false;
     std::atomic<bool> isAbilityConnectionReported_ = false;
-    struct UIAbilityProperty {
-        bool promotePriority = false;
-    };
-    std::shared_ptr<UIAbilityProperty> uiAbilityProperty_ = nullptr;
+
+    AppState appState_ = AppState::BEGIN;
+
+    std::string customProcessFlag_ = "";        // new version
+    std::string specifiedFlag_;
+    std::string uri_;
+    std::string instanceKey_ = "";
+    std::string missionAffinity_ = "";
+    std::string killReason_ = "";
     std::string firstCallerBundleName_ = "";
+
+    mutable ffrt::mutex callerListLock_;
+    mutable ffrt::mutex dumpInfoLock_;
+    mutable ffrt::mutex dumpLock_;
+    mutable ffrt::mutex resultLock_;
+    mutable ffrt::mutex wantLock_;
+    mutable ffrt::mutex sessionLock_;
+    mutable ffrt::condition_variable dumpCondition_;
+    ffrt::mutex lock_;
+    ffrt::mutex connectWantLock_;
+    std::mutex collaborateWantLock_;
+    std::mutex isPrepareTerminateAbilityMutex_;
+    std::condition_variable isPrepareTerminateAbilityCv_;
+
+    // Host-Plugin relationship management
+    mutable std::mutex pluginMutex_;
+    std::list<std::weak_ptr<AbilityRecord>> pluginAbilityList_;
+
+    bool isKillForPermissionUpdate_ = false;
+    mutable bool isDumpTimeout_ = false;
+    bool isPrepareTerminate_ = false;
+
+#ifdef SUPPORT_SCREEN
+    bool isStartingWindow_ = false;
+    bool isCompleteFirstFrameDrawing_ = false;
+    bool coldStart_ = false;
+    int appRecoveryFlag_ = 0xFFFF;
+#endif
 };
 }  // namespace AAFwk
 }  // namespace OHOS

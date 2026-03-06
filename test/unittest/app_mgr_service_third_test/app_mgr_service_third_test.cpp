@@ -125,58 +125,6 @@ HWTEST_F(AppMgrServiceThirdTest, GetRunningProcessesByBundleType_001, TestSize.L
 
 /*
  * Feature: AppMgrService
- * Function: JudgeSandboxByPid
- * SubFunction: NA
- * FunctionPoints: AppMgrService JudgeSandboxByPid
- * EnvConditions: NA
- * CaseDescription: Verify JudgeSandboxByPid
- */
-HWTEST_F(AppMgrServiceThirdTest, JudgeSandboxByPid_001, TestSize.Level1)
-{
-    auto appMgrService = std::make_shared<AppMgrService>();
-    ASSERT_NE(appMgrService, nullptr);
-    appMgrService->SetInnerService(nullptr);
-    pid_t pid = 1001;
-    bool isSandbox = false;
-    int32_t res = appMgrService->JudgeSandboxByPid(pid, isSandbox);
-    EXPECT_EQ(res, ERR_INVALID_OPERATION);
-
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    AAFwk::MyFlag::flag_ = 0;
-    appMgrService->taskHandler_ = taskHandler_;
-    appMgrService->SetInnerService(appMgrServiceInner);
-    appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    res = appMgrService->JudgeSandboxByPid(pid, isSandbox);
-    EXPECT_EQ(res, ERR_PERMISSION_DENIED);
-
-    AAFwk::MyFlag::flag_ = 1;
-    BundleInfo bundleInfo;
-    std::string appName = "test_appName";
-    std::string processName = "test_processName";
-    std::string bundleName = "test_bundleName";
-    ApplicationInfo applicationInfo;
-    applicationInfo.name = appName;
-    applicationInfo.bundleName = bundleName;
-    std::shared_ptr<ApplicationInfo> applicationInfo_ = std::make_shared<ApplicationInfo>(applicationInfo);
-    std::shared_ptr<AppRunningRecord> appRecord =
-        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
-    EXPECT_NE(appRecord, nullptr);
-    appRecord->SetAppIndex(2000);
-    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(static_cast<int32_t>(pid), appRecord);
-    appMgrService->SetInnerService(appMgrServiceInner);
-    appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    res = appMgrService->JudgeSandboxByPid(0, isSandbox);
-    EXPECT_EQ(res, ERR_OK);
-
-    appRecord->SetAppIndex(1000);
-    appMgrService->SetInnerService(appMgrServiceInner);
-    res = appMgrService->JudgeSandboxByPid(pid, isSandbox);
-    EXPECT_EQ(res, ERR_OK);
-}
-
-
-/*
- * Feature: AppMgrService
  * Function: IsTerminatingByPid
  * SubFunction: NA
  * FunctionPoints: AppMgrService IsTerminatingByPid
@@ -470,7 +418,9 @@ HWTEST_F(AppMgrServiceThirdTest, ShowHelp_001, TestSize.Level1)
         "-h                          help text for the tool\n"
         "--ffrt pid1[,pid2,pid3]     dump ffrt info\n"
         "--ipc pid ARG               ipc load statistic; pid must be specified or set to -a dump all processes. "
-        "ARG must be one of --start-stat | --stop-stat | --stat\n";
+        "ARG must be one of --start-stat | --stop-stat | --stat\n"
+        "--web pid1[,pid2,pid3] [ARG]    "
+        "dump arkweb info, ARG must be one of (--all | --nweb | ...)\n";
     int res = appMgrService->ShowHelp(dummyArgs, resultBuffer);
     EXPECT_EQ(resultBuffer, expectedOutput);
     EXPECT_EQ(res, ERR_OK);
@@ -530,6 +480,35 @@ HWTEST_F(AppMgrServiceThirdTest, KillProcessByPidForExit_001, TestSize.Level1)
     AAFwk::MyFlag::flag_ = 1;
     res = appMgrService->KillProcessByPidForExit(0, "");
     EXPECT_EQ(res, ERR_OK);
+}
+
+/*
+ * Feature: AppMgrService
+ * Function: SetProcessPrepareExit
+ * SubFunction: NA
+ * FunctionPoints: AppMgrService SetProcessPrepareExit
+ * EnvConditions: NA
+ * CaseDescription: Verify SetProcessPrepareExit
+ */
+HWTEST_F(AppMgrServiceThirdTest, SetProcessPrepareExit_001, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    appMgrService->SetInnerService(nullptr);
+    appMgrService->SetProcessPrepareExit(0);
+
+    auto mockAppMgrServiceInner = std::make_shared<MockAppMgrServiceInner>();
+    appMgrService->SetInnerService(mockAppMgrServiceInner);
+    appMgrService->taskHandler_ = taskHandler_;
+    appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, mockAppMgrServiceInner);
+    EXPECT_TRUE(appMgrService->IsReady());
+
+    EXPECT_CALL(*mockAppMgrServiceInner, IsFoundationCall).Times(1)
+        .WillOnce(Return(false));
+    appMgrService->SetProcessPrepareExit(0);
+
+    EXPECT_CALL(*mockAppMgrServiceInner, IsFoundationCall).Times(1)
+        .WillOnce(Return(true));
+    appMgrService->SetProcessPrepareExit(0);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

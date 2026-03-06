@@ -57,6 +57,9 @@ public:
         const AbilityInfo &abilityInfo, int64_t resSchedType, int32_t callerUid, int32_t callerPid);
     void ReportEventToRSS(const int32_t uid, const std::string &bundleName, const std::string &reason,
         const int32_t pid = -1, const int32_t callerPid = -1);
+    void ReportUIExtensionProcColdStartToRss(
+        int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName, const std::string& bundleName,
+        const std::string& abilityName, const std::string& moduleName, bool isPreloadUIExtension);
     void PromotePriorityToRSS(int32_t callerUid, int32_t callerPid, const std::string &targetBundleName,
         int32_t targetUid, int32_t targetPid);
     std::string GetThawReasonByAbilityType(const AbilityInfo &abilityInfo);
@@ -64,6 +67,9 @@ public:
     bool CheckShouldForceKillProcess(int32_t pid, const std::string& bundleName);
     void ReportLoadingEventToRss(LoadingStage stage, int32_t pid, int32_t uid,
         int64_t timeDuration = 0, int64_t abilityRecordId = -1);
+    void ReportLoadingEventToRss(LoadingStage stage, int32_t pid, int32_t uid,
+        int64_t timeDuration, int64_t abilityRecordId,
+        const std::unordered_map<std::string, std::string> &extraParams);
     std::unordered_set<std::string> GetNWebPreloadSet() const;
     void ReportAbilityIntentExemptionInfoToRSS(int32_t callerUid, int32_t callerPid);
     void ReportSubHealtyPerfInfoToRSS();

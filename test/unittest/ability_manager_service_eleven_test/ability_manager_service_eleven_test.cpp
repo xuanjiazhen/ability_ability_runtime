@@ -17,6 +17,8 @@
 #include <gtest/gtest.h>
 
 #include "ability_connect_manager.h"
+#include "ui_extension_ability_manager.h"
+#include "common_extension_manager.h"
 #include "ability_connection.h"
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
@@ -33,6 +35,7 @@
 #include "mock_permission_verification.h"
 #include "mock_scene_board_judgement.h"
 #include "mock_ability_connect_callback.h"
+#include "sender_info.h"
 #include "session/host/include/session.h"
 #include "ui_ability_lifecycle_manager.h"
 
@@ -100,7 +103,7 @@ private:
     std::shared_ptr<PendingWantKey> key_;
 };
 
-class MockIWantSender : public IWantSender {
+class MockIWantSender : public PendingWantRecord {
 public:
     virtual ~MockIWantSender() {};
 
@@ -229,6 +232,33 @@ HWTEST_F(AbilityManagerServiceElevenTest, RegisterOffListener_0001, TestSize.Lev
     EXPECT_NE(result, CHECK_PERMISSION_FAILED);
 
     GTEST_LOG_(INFO) << "RegisterOffListener_0001 end";
+}
+
+/*
+ * Feature: RegisterOnListener_0001
+ * Function: RegisterOnListener
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService RegisterOnListener
+ * EnvConditions: permission flag toggled
+ * CaseDescription: Expect CHECK_PERMISSION_FAILED without SACall flag yet success otherwise
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, RegisterOnListener_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RegisterOnListener_0001 start";
+
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    sptr<MockIRemoteOnListener> listener = new (std::nothrow) MockIRemoteOnListener();
+    ASSERT_NE(listener, nullptr);
+    MyFlag::flag_ = 0;
+    auto result = abilityMs->RegisterOnListener("test", listener);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = 1;
+    result = abilityMs->RegisterOnListener("test", listener);
+    EXPECT_NE(result, CHECK_PERMISSION_FAILED);
+    MyFlag::flag_ = 0;
+
+    GTEST_LOG_(INFO) << "RegisterOnListener_0001 end";
 }
 
 /*
@@ -398,6 +428,32 @@ HWTEST_F(AbilityManagerServiceElevenTest, GetWantSenderByUserId_0002, TestSize.L
 }
 
 /*
+ * Feature: SendLocalWantSender_0001
+ * Function: SendLocalWantSender
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService SendLocalWantSender
+ * EnvConditions: caller lacks local wantagent permission
+ * CaseDescription: Expect CHECK_PERMISSION_FAILED when triggering SendLocalWantSender without required permission
+ */
+HWTEST_F(AbilityManagerServiceElevenTest, SendLocalWantSender_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SendLocalWantSender_0001 start";
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_, nullptr);
+    abilityMs->subManagersHelper_->currentPendingWantManager_ = std::make_shared<PendingWantManager>(nullptr);
+    ASSERT_NE(abilityMs->subManagersHelper_->currentPendingWantManager_, nullptr);
+
+    SenderInfo senderInfo;
+    senderInfo.tokenId = 1;
+    MyFlag::flag_ = 0;
+    auto result = abilityMs->SendLocalWantSender(senderInfo);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    GTEST_LOG_(INFO) << "SendLocalWantSender_0001 end";
+}
+
+/*
  * Feature: GetWantSenderByUserId_0003
  * Function: GetWantSenderByUserId
  * SubFunction: NA
@@ -435,7 +491,7 @@ HWTEST_F(AbilityManagerServiceElevenTest, GetWantSenderByUserId_0003, TestSize.L
 }
 
 /*
- * Feature: GetWantSenderByUserId_0003
+ * Feature: GetWantSenderByUserId_0004
  * Function: GetWantSenderByUserId
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService GetWantSenderByUserId
@@ -552,7 +608,7 @@ HWTEST_F(AbilityManagerServiceElevenTest, CancelWantSender_0004, TestSize.Level1
         new (std::nothrow) MockPendingWantRecord(nullptr, 0, 0, nullptr, pendingKey);
     sender->SetIRemoteObjectFlags(recordWithKey);
     abilityMs->CancelWantSender(sender);
-    asObjectfunctionFrequency = 5;
+    asObjectfunctionFrequency = 6;
     EXPECT_EQ(sender->GetasObjectfunctionFrequency(), asObjectfunctionFrequency);
 
     GTEST_LOG_(INFO) << "CancelWantSender_0004 end";
@@ -1054,9 +1110,9 @@ HWTEST_F(AbilityManagerServiceElevenTest, AttachAbilityThread_0010, TestSize.Lev
         abilityRecordTest->abilityInfo_.type = AppExecFwk::AbilityType::EXTENSION;
         abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
         EXPECT_NE(abilityMs->subManagersHelper_, nullptr);
-        std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
+        std::shared_ptr<CommonExtensionManager> connectManager = std::make_shared<CommonExtensionManager>(0);
         EXPECT_NE(connectManager, nullptr);
-        abilityMs->subManagersHelper_->connectManagers_.emplace(0, connectManager);
+        abilityMs->subManagersHelper_->commonExtensionManagers_.emplace(0, connectManager);
         auto result = abilityMs->AttachAbilityThread(scheduler, token);
         EXPECT_NE(result, 0);
 

@@ -126,6 +126,7 @@ public:
     MOCK_METHOD2(IsProcessCacheSupported, int32_t(int32_t pid, bool &isSupported));
     MOCK_METHOD2(SetProcessCacheEnable, int32_t(int32_t pid, bool enable));
     MOCK_METHOD2(SetSupportedProcessCache, int32_t(int32_t pid, bool isSupport));
+    MOCK_METHOD2(LockProcessCache, int32_t(int32_t pid, bool isLock));
 #ifdef SUPPORT_CHILD_PROCESS
     MOCK_METHOD3(CreateNativeChildProcess, int32_t(const std::string &libName,
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request));
@@ -136,6 +137,7 @@ public:
     MOCK_METHOD1(RegisterKiaInterceptor, int32_t(const sptr<IKiaInterceptor> &interceptor));
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
     MOCK_METHOD2(QueryRunningSharedBundles, int32_t(pid_t pid, std::map<std::string, uint32_t> &sharedBundles));
+    MOCK_METHOD1(SetProcessPrepareExit, void(int32_t));
     virtual int StartUserTestProcess(
         const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)
     {
@@ -196,12 +198,6 @@ public:
     {
         data_ = data;
         return 0;
-    }
-
-    virtual int32_t JudgeSandboxByPid(pid_t pid, bool &isSandbox)
-    {
-        isSandbox = isSandbox_;
-        return judgeSandboxByPidRet_;
     }
 
     void KillApplicationImpl(const std::string& data)
@@ -289,10 +285,6 @@ private:
     Semaphore sem_;
     std::string data_;
     sptr<IAppStateCallback> callback_;
-
-public:
-    uint32_t judgeSandboxByPidRet_ = 0;
-    bool isSandbox_ = false;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

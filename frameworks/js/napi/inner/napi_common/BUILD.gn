@@ -29,12 +29,14 @@ ohos_shared_library("napi_common") {
     "${ability_runtime_innerkits_path}/runtime:runtime_public_config",
     "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits_public_config",
   ]
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   sources = [
     "napi_common_app_state_filter.cpp",
     "napi_common_configuration.cpp",
     "napi_common_execute_param.cpp",
     "napi_common_execute_result.cpp",
+    "napi_common_intent_info_filter.cpp",
     "napi_common_start_options.cpp",
     "napi_common_util.cpp",
     "napi_common_want.cpp",
@@ -83,6 +85,10 @@ ohos_shared_library("napi_common") {
     defines = [
       "SUPPORT_GRAPHICS",
       "SUPPORT_SCREEN",
+    ]
+    external_deps += [
+      "form_fwk:form_render_info",
+      "form_fwk:form_common_info",
     ]
     public_external_deps += [
       "form_fwk:form_manager",

@@ -29,8 +29,8 @@ using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
 
 namespace {
-const std::string VASSISTANT_BUNDLE_NAME = "com.huawei.hmos.vassistant";
-const std::string VASSISTANT_B2 = "com.huawei.hmos.vassistant.test";
+const std::string VASSISTANT_BUNDLE_NAME = "com.hmos.vassistant";
+const std::string VASSISTANT_B2 = "com.hmos.vassistant.test";
 constexpr size_t LOAD_TIMEOUT = 0;
 constexpr size_t ACTIVE_TIMEOUT = 1;
 constexpr size_t INACTIVE_TIMEOUT = 2;
@@ -54,7 +54,7 @@ public:
 
 protected:
     AbilityRequest abilityRequest_{};
-    std::shared_ptr<AbilityRecord> serviceRecord_{ nullptr };
+    std::shared_ptr<BaseExtensionRecord> serviceRecord_{ nullptr };
 
 private:
     std::shared_ptr<AbilityConnectManager> connectManager_;
@@ -103,42 +103,12 @@ void AbilityConnectManagerSecondTest::SetUp(void)
     std::string bundleName = "com.ix.hiservcie";
     std::string moduleName = "entry";
     abilityRequest_ = GenerateAbilityRequest(deviceName, abilityName, appName, bundleName, moduleName);
-    serviceRecord_ = AbilityRecord::CreateAbilityRecord(abilityRequest_);
+    serviceRecord_ = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest_);
 }
 
 void AbilityConnectManagerSecondTest::TearDown(void)
 {
     serviceRecord_ = nullptr;
-}
-
-/*
- * Feature: AbilityConnectManager
- * Function: PreloadUIExtensionAbilityInner
- */
-HWTEST_F(AbilityConnectManagerSecondTest, PreloadUIExtensionAbilityInner_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityInner_001 start");
-    std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
-    EXPECT_NE(connectManager, nullptr);
-    std::string hostBundleName = "hostBundleName";
-    int32_t hostPid = 1;
-
-    auto res = connectManager->PreloadUIExtensionAbilityInner(abilityRequest_, hostBundleName, hostPid);
-    EXPECT_EQ(res, ERR_WRONG_INTERFACE_CALL);
-
-    abilityRequest_.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SHARE;
-    res = connectManager->PreloadUIExtensionAbilityInner(abilityRequest_, hostBundleName, hostPid);
-    EXPECT_EQ(res, ERR_OK);
-
-    abilityRequest_.want.SetParam(Want::CREATE_APP_INSTANCE_KEY, true);
-    res = connectManager->PreloadUIExtensionAbilityInner(abilityRequest_, hostBundleName, hostPid);
-    EXPECT_EQ(res, ERR_INVALID_VALUE);
-
-    abilityRequest_.want.SetParam(Want::CREATE_APP_INSTANCE_KEY, false);
-    abilityRequest_.extensionType = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
-    res = connectManager->PreloadUIExtensionAbilityInner(abilityRequest_, hostBundleName, hostPid);
-    EXPECT_EQ(res, ERR_INVALID_VALUE);
-    TAG_LOGI(AAFwkTag::TEST, "PreloadUIExtensionAbilityInner_001 end");
 }
 
 /*
@@ -150,9 +120,10 @@ HWTEST_F(AbilityConnectManagerSecondTest, GetExtensionByIdFromTerminatingMap_001
     TAG_LOGI(AAFwkTag::TEST, "GetExtensionByIdFromTerminatingMap_001 start");
     std::shared_ptr<AbilityConnectManager> connectManager = std::make_shared<AbilityConnectManager>(0);
     EXPECT_NE(connectManager, nullptr);
-    int64_t abilityRecordId = 1;
+    int64_t abilityRecordId = -1;
 
-    std::shared_ptr<AbilityRecord> abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest_);
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(
+        abilityRequest_);
     connectManager->terminatingExtensionList_.push_back(nullptr);
     auto res = connectManager->GetExtensionByIdFromTerminatingMap(abilityRecordId);
     EXPECT_EQ(res, nullptr);
@@ -468,7 +439,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_ConnectRecordIsN
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 
@@ -504,7 +475,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_ConnectRecordIsL
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 
@@ -533,7 +504,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_ConnectRecordIsL
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 
@@ -565,7 +536,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_StartButNotActiv
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 
@@ -601,7 +572,7 @@ HWTEST_F(AbilityConnectManagerSecondTest, DisconnectRecordForce_StartButIsActive
     AbilityRequest req;
     req.want.SetElementName("com.example.bundle", "com.example.module", "MainAbility");
 
-    auto abilityRecord = AbilityRecord::CreateAbilityRecord(req);
+    auto abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(req);
     EXPECT_TRUE(abilityRecord);
     EXPECT_TRUE(abilityRecord->IsConnectListEmpty());
 

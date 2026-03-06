@@ -17,6 +17,7 @@
 
 #include "ability_auto_startup_data_manager.h"
 #include "ability_manager_service.h"
+#include "app_utils.h"
 #include "auto_startup_callback_proxy.h"
 #include "auto_startup_interface.h"
 #include "display_util.h"
@@ -30,9 +31,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AAFwk;
-namespace {
-constexpr char PRODUCT_APPBOOT_SETTING_ENABLED[] = "const.product.appboot.setting.enabled";
-} // namespace
 
 AbilityAutoStartupService::AbilityAutoStartupService() {}
 
@@ -234,7 +232,7 @@ int32_t AbilityAutoStartupService::QueryAllAutoStartupApplications(std::vector<A
 
 int32_t AbilityAutoStartupService::GetAutoStartupStatusForSelf(uint32_t callerTokenId, bool &isAutoStartEnabled)
 {
-    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+    if (!AAFwk::AppUtils::GetInstance().IsProductAppbootSettingEnabled()) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
         return ERR_CAPABILITY_NOT_SUPPORT;
     }
@@ -246,7 +244,7 @@ int32_t AbilityAutoStartupService::GetAutoStartupStatusForSelf(uint32_t callerTo
 int32_t AbilityAutoStartupService::QueryAllAutoStartupApplicationsWithoutPermission(
     std::vector<AutoStartupInfo> &infoList, int32_t userId)
 {
-    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+    if (!AAFwk::AppUtils::GetInstance().IsProductAppbootSettingEnabled()) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
         return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
     }
@@ -557,7 +555,7 @@ std::shared_ptr<AppExecFwk::BundleMgrClient> AbilityAutoStartupService::GetBundl
 
 int32_t AbilityAutoStartupService::CheckPermissionForSystem()
 {
-    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+    if (!AAFwk::AppUtils::GetInstance().IsProductAppbootSettingEnabled()) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
         return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
     }
@@ -578,7 +576,7 @@ int32_t AbilityAutoStartupService::CheckPermissionForSystem()
 
 int32_t AbilityAutoStartupService::CheckPermissionForSelf(const std::string &bundleName)
 {
-    if (!system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false)) {
+    if (!AAFwk::AppUtils::GetInstance().IsProductAppbootSettingEnabled()) {
         TAG_LOGE(AAFwkTag::AUTO_STARTUP, "Disabled config");
         return ERR_NOT_SUPPORTED_PRODUCT_TYPE;
     }
@@ -707,6 +705,41 @@ int32_t AbilityAutoStartupService::CheckPermissionForEDM()
         return CHECK_PERMISSION_FAILED;
     }
     return ERR_OK;
+}
+
+void AbilityAutoStartupService::AddHandledAutoStartupUsers(int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "AddhandledAutoStartupUsers userId:%{public}d", userId);
+    std::lock_guard<std::mutex> lock(autoStartUpMutex_);
+    for (int32_t user : handledAutoStartupUsers_) {
+        if (user == userId) {
+            TAG_LOGD(AAFwkTag::AUTO_STARTUP, "already has userId:%{public}d", userId);
+            return;
+        }
+    }
+    handledAutoStartupUsers_.emplace_back(userId);
+}
+
+void AbilityAutoStartupService::RemoveHandledAutoStartupUsers(int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "RemoveHandledAutoStartupUsers userId:%{public}d", userId);
+    std::lock_guard<std::mutex> lock(autoStartUpMutex_);
+    handledAutoStartupUsers_.erase(
+        std::remove(handledAutoStartupUsers_.begin(), handledAutoStartupUsers_.end(), userId),
+        handledAutoStartupUsers_.end());
+}
+
+bool AbilityAutoStartupService::FindHandledAutoStartupUsers(int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "FindHandledAutoStartupUsers userId:%{public}d", userId);
+    std::lock_guard<std::mutex> lock(autoStartUpMutex_);
+    for (int32_t user : handledAutoStartupUsers_) {
+        if (user == userId) {
+            TAG_LOGI(AAFwkTag::AUTO_STARTUP, "find userId:%{public}d", userId);
+            return true;
+        }
+    }
+    return false;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

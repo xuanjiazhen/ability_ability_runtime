@@ -40,16 +40,19 @@ ohos_shared_library("ani_common") {
     "${ability_runtime_services_path}/common/include",
   ]
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   public_configs = [ ":ani_common_public_config" ]
 
   sources = [
     "src/ani_common_ability_result.cpp",
     "src/ani_common_ability_state_data.cpp",
+    "src/ani_common_app_state_filter.cpp",
     "src/ani_common_cache_mgr.cpp",
     "src/ani_common_child_process_param.cpp",
     "src/ani_common_configuration.cpp",
     "src/ani_common_execute_param.cpp",
     "src/ani_common_execute_result.cpp",
+    "src/ani_common_intent_info_filter.cpp",
     "src/ani_common_start_options.cpp",
     "src/ani_common_util.cpp",
     "src/ani_common_want.cpp",
@@ -67,6 +70,9 @@ ohos_shared_library("ani_common") {
     "src/ets_free_install_observer.cpp",
     "src/ets_interop_ability_lifecycle_callback.cpp",
     "src/ets_interop_object.cpp",
+    "src/ets_system_configuration_updated_callback.cpp",
+    "src/js_interop_ability_lifecycle_callback.cpp",
+    "src/js_interop_object.cpp",
   ]
 
   cflags = []
@@ -111,6 +117,7 @@ ohos_shared_library("ani_common") {
     "resource_management:resourceManager_ani",
     "runtime_core:ani",
     "runtime_core:ani_helpers",
+    "window_manager:ani_window_animation_utils",
   ]
 
   innerapi_tags = [ "platformsdk" ]

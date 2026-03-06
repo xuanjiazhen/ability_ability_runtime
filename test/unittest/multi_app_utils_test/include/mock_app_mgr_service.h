@@ -119,6 +119,7 @@ public:
     MOCK_METHOD2(IsProcessCacheSupported, int32_t(int32_t pid, bool &isSupported));
     MOCK_METHOD2(SetProcessCacheEnable, int32_t(int32_t pid, bool enable));
     MOCK_METHOD2(SetSupportedProcessCache, int32_t(int32_t pid, bool isSupport));
+    MOCK_METHOD2(LockProcessCache, int32_t(int32_t pid, bool isLock));
 #ifdef SUPPORT_CHILD_PROCESS
     MOCK_METHOD3(CreateNativeChildProcess, int32_t(const std::string &libName,
         const sptr<IRemoteObject> &callback, const ChildProcessRequest &request));
@@ -187,11 +188,6 @@ public:
     int32_t CheckPermissionImpl([[maybe_unused]] const int32_t recordId, const std::string& data)
     {
         data_ = data;
-        return 0;
-    }
-
-    virtual int32_t JudgeSandboxByPid(pid_t pid, bool &isSandbox)
-    {
         return 0;
     }
 

@@ -36,6 +36,7 @@
 #include "session_info.h"
 #include "session_manager_lite.h"
 #include "startup_util.h"
+#include "start_params_by_SCB.h"
 #include "status_bar_delegate_interface.h"
 #include "scene_board/status_bar_delegate_manager.h"
 #include "server_constant.h"
@@ -1509,8 +1510,10 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, StartUIAbility_1200, TestSize.Level
 {
     auto mgr = std::make_unique<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
+    AbilityRuntime::StartParamsBySCB params;
+    params.isRestart = true;
     bool isColdStart = false;
-    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, nullptr, 0, true, isColdStart), ERR_INVALID_VALUE);
+    EXPECT_EQ(mgr->StartUIAbility(abilityRequest, nullptr, params, isColdStart), ERR_INVALID_VALUE);
 }
 
 /**
@@ -1688,6 +1691,78 @@ HWTEST_F(UIAbilityLifecycleManagerThirdTest, HandleAbilityRecordReused_005, Test
     EXPECT_EQ(mgr->HandleAbilityRecordReused(abilityRecord, sessionInfo, abilityRequest), nullptr);
 
     AppMgrUtil::appMgr_ = originAppMgr;
+}
+
+/**
+ * @tc.name: SetProcessPrepareExit_001
+ * @tc.desc: SetProcessPrepareExit
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SetProcessPrepareExit_001, TestSize.Level2)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto appMgr = sptr<AppExecFwk::MockAppMgrService>::MakeSptr();
+
+    auto originAppMgr = AppMgrUtil::appMgr_;
+    AppMgrUtil::appMgr_ = appMgr;
+    EXPECT_CALL(*appMgr, SetProcessPrepareExit).Times(1);
+    mgr->SetProcessPrepareExit(0, 1u, 1u, true);
+    EXPECT_CALL(*appMgr, SetProcessPrepareExit).Times(0);
+    mgr->SetProcessPrepareExit(0, 1u, 0u, true);
+    EXPECT_CALL(*appMgr, SetProcessPrepareExit).Times(0);
+    mgr->SetProcessPrepareExit(0, 0u, 0u, true);
+    EXPECT_CALL(*appMgr, SetProcessPrepareExit).Times(0);
+    mgr->SetProcessPrepareExit(0, 0u, 1u, true);
+    EXPECT_CALL(*appMgr, SetProcessPrepareExit).Times(0);
+    mgr->SetProcessPrepareExit(0, 0u, 0u, false);
+    EXPECT_CALL(*appMgr, SetProcessPrepareExit).Times(0);
+    mgr->SetProcessPrepareExit(0, 0u, 1u, false);
+    EXPECT_CALL(*appMgr, SetProcessPrepareExit).Times(0);
+    mgr->SetProcessPrepareExit(0, 1u, 1u, false);
+    AppMgrUtil::appMgr_ = originAppMgr;
+}
+
+/**
+ * @tc.name: SetLastExitReasonAsync_001
+ * @tc.desc: SetLastExitReasonAsync
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SetLastExitReasonAsync_001, TestSize.Level2)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    mgr->SetLastExitReasonAsync(nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    abilityRecord->exitReasonLoaded_ = false;
+    mgr->SetLastExitReasonAsync(abilityRecord);
+    EXPECT_TRUE(abilityRecord->exitReasonLoaded_);
+
+    abilityRecord->exitReasonLoaded_ = true;
+    mgr->SetLastExitReasonAsync(abilityRecord);
+    EXPECT_TRUE(abilityRecord->exitReasonLoaded_);
+}
+
+/**
+ * @tc.name: SyncLoadExitReasonTask_001
+ * @tc.desc: SyncLoadExitReasonTask
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(UIAbilityLifecycleManagerThirdTest, SyncLoadExitReasonTask_001, TestSize.Level2)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    mgr->exitReasonTasks_.clear();
+    mgr->SyncLoadExitReasonTask(0);
+
+    mgr->exitReasonTasks_.emplace(0, ffrt::task_handle());
+    mgr->SyncLoadExitReasonTask(0);
+
+    EXPECT_TRUE(mgr->exitReasonTasks_.empty());
 }
 }  // namespace AAFwk
 }  // namespace OHOS

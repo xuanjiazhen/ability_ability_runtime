@@ -215,6 +215,12 @@ enum class AbilityErrorCode {
     // The caller is not an atomic service.
     ERROR_CODE_CALLER_NOT_ATOMIC_SERVICE = 16000090,
 
+    // The specified agentId does not exist.
+    ERROR_CODE_AGENT_ID_NOT_EXIST = 35600001,
+
+    // Maximum connections from the same caller have been reached.
+    ERROR_CODE_MAX_CONNECTIONS_REACHED = 35600003,
+
     // invalid caller.
     ERROR_CODE_INVALID_CALLER = 16200001,
 
@@ -294,6 +300,8 @@ enum class AbilityErrorCode {
     ERROR_CODE_UIABILITY_IS_ALREADY_EXIST = 16000131,
 
     ERROR_CODE_MAIN_WINDOW_NOT_EXIST = 16000135,
+
+    ERROR_CODE_SELF_REDIRECTION_DISALLOWED = 16000136,
 
     // target bundle is not in u1
     ERROR_CODE_NO_U1 = 16000204,

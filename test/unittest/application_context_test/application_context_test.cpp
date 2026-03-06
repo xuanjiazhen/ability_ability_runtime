@@ -30,6 +30,7 @@
 #include "exit_reason.h"
 #include "configuration.h"
 #include "js_runtime.h"
+#include "js_system_configuration_updated_callback.h"
 using namespace testing::ext;
 
 
@@ -1226,17 +1227,17 @@ HWTEST_F(ApplicationContextTest, CreateSystemHspModuleResourceManager_0100, Test
 }
 
 /**
- * @tc.number: GetAllTempDir_0100
- * @tc.name: GetAllTempDir
- * @tc.desc: GetAllTempDir
+ * @tc.number: GetAllTempBase_0100
+ * @tc.name: GetAllTempBase
+ * @tc.desc: GetAllTempBase
  */
-HWTEST_F(ApplicationContextTest, GetAllTempDir_0100, TestSize.Level1)
+HWTEST_F(ApplicationContextTest, GetAllTempBase_0100, TestSize.Level1)
 {
-    GTEST_LOG_(INFO) << "GetAllTempDir_0100 start";
+    GTEST_LOG_(INFO) << "GetAllTempBase_0100 start";
     std::vector<std::string> tempPaths;
-    context_->GetAllTempDir(tempPaths);
+    context_->GetAllTempBase(tempPaths);
     EXPECT_NE(context_, nullptr);
-    GTEST_LOG_(INFO) << "GetAllTempDir_0100 end";
+    GTEST_LOG_(INFO) << "GetAllTempBase_0100 end";
 }
 
 /**
@@ -2039,6 +2040,84 @@ HWTEST_F(ApplicationContextTest, GetInteropCallbacks_0200, TestSize.Level1)
     context_->RegisterInteropAbilityLifecycleCallback(interopAbilityLifecycleCallback);
     EXPECT_FALSE(context_->GetInteropCallbacks().empty());
     GTEST_LOG_(INFO) << "GetInteropCallbacks_0200 end";
+}
+
+/**
+ * @tc.number: GetConfigUpdateReason_0100
+ * @tc.name: GetConfigUpdateReason
+ * @tc.desc: Create GetConfigUpdateReason default
+ */
+HWTEST_F(ApplicationContextTest, GetConfigUpdateReason_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetConfigUpdateReason_0100 start";
+    std::shared_ptr<ContextImpl> contextImpl = nullptr;
+    context_->AttachContextImpl(contextImpl);
+    auto ret = context_->GetConfigUpdateReason();
+    EXPECT_EQ(ret, ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT);
+    // not set config reason expect default.
+    context_->AttachContextImpl(mock_);
+    ret = context_->GetConfigUpdateReason();
+    EXPECT_EQ(ret, ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT);
+    GTEST_LOG_(INFO) << "GetConfigUpdateReason_0100 end";
+}
+
+/**
+ * @tc.number: GetConfigUpdateReason_0200
+ * @tc.name: GetConfigUpdateReason
+ * @tc.desc: Create GetConfigUpdateReason in WHITE_LIST
+ */
+HWTEST_F(ApplicationContextTest, GetConfigUpdateReason_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetConfigUpdateReason_0200 start";
+    std::shared_ptr<ContextImpl> contextImpl = nullptr;
+    context_->AttachContextImpl(contextImpl);
+    context_->SetConfigUpdateReason(ConfigUpdateReason::CONFIG_UPDATE_REASON_IN_WHITE_LIST);
+    auto ret = context_->GetConfigUpdateReason();
+    EXPECT_EQ(ret, ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT);
+
+    context_->AttachContextImpl(mock_);
+    context_->SetConfigUpdateReason(ConfigUpdateReason::CONFIG_UPDATE_REASON_IN_WHITE_LIST);
+    ret = context_->GetConfigUpdateReason();
+    EXPECT_EQ(ret, ConfigUpdateReason::CONFIG_UPDATE_REASON_IN_WHITE_LIST);
+    GTEST_LOG_(INFO) << "GetConfigUpdateReason_0200 end";
+}
+
+/**
+ * @tc.number: RegisterSystemConfigurationUpdatedCallback_0200
+ * @tc.name: RegisterSystemConfigurationUpdatedCallback
+ * @tc.desc: Register SystemConfigurationUpdatedCallback with valid callback
+ */
+HWTEST_F(ApplicationContextTest, RegisterSystemConfigurationUpdatedCallback_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RegisterSystemConfigurationUpdatedCallback_0200 start";
+    context_->systemConfigurationUpdatedCallbacks_.clear();
+    napi_env env = reinterpret_cast<napi_env>(0x1);
+    auto callback = std::make_shared<JsSystemConfigurationUpdatedCallback>(env);
+    std::weak_ptr<SystemConfigurationUpdatedCallback> weakCallback = callback;
+    context_->RegisterSystemConfigurationUpdatedCallback(weakCallback);
+    EXPECT_FALSE(context_->systemConfigurationUpdatedCallbacks_.empty());
+    EXPECT_EQ(context_->systemConfigurationUpdatedCallbacks_.size(), 1);
+    GTEST_LOG_(INFO) << "RegisterSystemConfigurationUpdatedCallback_0200 end";
+}
+
+/**
+ * @tc.number: RegisterSystemConfigurationUpdatedCallback_0300
+ * @tc.name: RegisterSystemConfigurationUpdatedCallback
+ * @tc.desc: Register multiple SystemConfigurationUpdatedCallbacks
+ */
+HWTEST_F(ApplicationContextTest, RegisterSystemConfigurationUpdatedCallback_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RegisterSystemConfigurationUpdatedCallback_0300 start";
+    context_->systemConfigurationUpdatedCallbacks_.clear();
+    napi_env env = reinterpret_cast<napi_env>(0x1);
+    auto callback1 = std::make_shared<JsSystemConfigurationUpdatedCallback>(env);
+    auto callback2 = std::make_shared<JsSystemConfigurationUpdatedCallback>(env);
+    std::weak_ptr<SystemConfigurationUpdatedCallback> weakCallback1 = callback1;
+    std::weak_ptr<SystemConfigurationUpdatedCallback> weakCallback2 = callback2;
+    context_->RegisterSystemConfigurationUpdatedCallback(weakCallback1);
+    context_->RegisterSystemConfigurationUpdatedCallback(weakCallback2);
+    EXPECT_EQ(context_->systemConfigurationUpdatedCallbacks_.size(), 2);
+    GTEST_LOG_(INFO) << "RegisterSystemConfigurationUpdatedCallback_0300 end";
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

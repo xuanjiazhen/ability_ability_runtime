@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <set>
 
 #define private public
 #define protected public
@@ -29,6 +30,7 @@
 #include "want_params.h"
 #undef private
 #undef protected
+#include "app_mgr_service_dump_error_code.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_param.h"
 #include "mock_ability_token.h"
@@ -44,7 +46,6 @@ constexpr int32_t RECORD_ID = 1;
 constexpr int32_t START_PROCESS_SPECIFY_ABILITY_EVENT_ID = 1;
 constexpr int32_t ADD_ABILITY_STAGE_INFO_EVENT_ID = 2;
 constexpr int32_t TERMINATE_ABILITY_SIZE = 0;
-constexpr const char* UIEXTENSION_ROOT_HOST_PID = "ability.want.params.uiExtensionRootHostPid";
 }
 class AppRunningRecordTest : public testing::Test {
 public:
@@ -389,6 +390,30 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsSupportMultiProcessDeviceFeatu
 }
 
 /**
+ * @tc.name: AppRunningRecord_IsLastAbilityByFlag_0100
+ * @tc.desc: Test IsLastAbilityByFlag works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastAbilityByFlag_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastAbilityByFlag_0100 start.");
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->isPrepareExit_ = false;
+    bool ret = appRecord->IsLastAbilityByFlag(nullptr, true);
+    EXPECT_FALSE(ret);
+    ret = appRecord->IsLastAbilityByFlag(nullptr, false);
+    EXPECT_FALSE(ret);
+
+    appRecord->isPrepareExit_ = true;
+    ret = appRecord->IsLastAbilityByFlag(nullptr, true);
+    EXPECT_FALSE(ret);
+    ret = appRecord->IsLastAbilityByFlag(nullptr, false);
+    EXPECT_FALSE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastAbilityByFlag_0100 end.");
+}
+
+/**
  * @tc.name: AppRunningRecord_SetStartupTaskData_0100
  * @tc.desc: Test SetStartupTaskData works.
  * @tc.type: FUNC
@@ -426,6 +451,43 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastAbilityRecord_0100, TestSi
     bool ret = appRecord->IsLastAbilityRecord(token);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastAbilityRecord_0100 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_IsLastAbilityRecord_0200
+ * @tc.desc: Test IsLastAbilityRecord works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastAbilityRecord_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastAbilityRecord_0200 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    ASSERT_NE(appRecord, nullptr);
+    sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
+    appRecord->specifiedAbilityRequest_ = std::make_shared<SpecifiedRequest>();
+    bool ret = appRecord->IsLastAbilityRecord(token);
+    EXPECT_FALSE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastAbilityRecord_0200 end.");
+}
+
+
+/**
+ * @tc.name: AppRunningRecord_IsLastAbilityRecord_0300
+ * @tc.desc: Test IsLastAbilityRecord works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastAbilityRecord_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastAbilityRecord_0300 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    ASSERT_NE(appRecord, nullptr);
+    sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
+    appRecord->specifiedAbilityRequest_ = nullptr;
+    bool ret = appRecord->IsLastAbilityRecord(token);
+    EXPECT_FALSE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastAbilityRecord_0300 end.");
 }
 
 /**
@@ -496,6 +558,42 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastPageAbilityRecord_0100, Te
     bool ret = appRecord->IsLastPageAbilityRecord(token);
     EXPECT_FALSE(ret);
     TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastPageAbilityRecord_0100 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_IsLastPageAbilityRecord_0200
+ * @tc.desc: Test IsLastPageAbilityRecord works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastPageAbilityRecord_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastPageAbilityRecord_0200 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    ASSERT_NE(appRecord, nullptr);
+    sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
+    appRecord->specifiedAbilityRequest_ = std::make_shared<SpecifiedRequest>();
+    bool ret = appRecord->IsLastPageAbilityRecord(token);
+    EXPECT_FALSE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastPageAbilityRecord_0200 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_IsLastPageAbilityRecord_0300
+ * @tc.desc: Test IsLastPageAbilityRecord works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastPageAbilityRecord_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastPageAbilityRecord_0300 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    ASSERT_NE(appRecord, nullptr);
+    sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
+    appRecord->specifiedAbilityRequest_ = nullptr;
+    bool ret = appRecord->IsLastPageAbilityRecord(token);
+    EXPECT_FALSE(ret);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_IsLastPageAbilityRecord_0300 end.");
 }
 
 /**
@@ -1310,220 +1408,6 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetPreForeground_0100, TestSize.
 }
 
 /**
- * @tc.name: AppRunningRecord_FillAbilityStateDataWithWant_0001
- * @tc.desc: Test FillAbilityStateDataWithWant works.
- * @tc.type: FUNC
- */
-HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_0001, TestSize.Level1)
-{
-    std::string callerAbilityName = "wantAbilityName";
-    std::string callerBundleName = "wantBundleName";
-    int32_t callerUid = 100;
-    int32_t callerPid = 101;
-    int32_t hostPid   = 102;
-    std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
-    ASSERT_NE(want, nullptr);
-    want->SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, callerAbilityName);
-    want->SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
-    want->SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
-    want->SetParam(Want::PARAM_RESV_CALLER_PID, callerPid);
-    want->SetParam(UIEXTENSION_ROOT_HOST_PID, hostPid);
-
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    sptr<IRemoteObject> token = nullptr;
-    auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
-    abilityRecord->SetWant(want);
-    ASSERT_NE(abilityRecord, nullptr);
-
-    std::string hostBundleName = "wantHostBundleName";
-    std::shared_ptr<ApplicationInfo> infoHost = std::make_shared<ApplicationInfo>();
-    infoHost->bundleName = hostBundleName;
-    int32_t recordIdHost = RECORD_ID + 1;
-    std::string processNameHost = "appRunningRecordProcessNameHost";
-    auto appRunningRecordHost = std::make_shared<AppRunningRecord>(infoHost, recordIdHost, processNameHost);
-    ASSERT_NE(appRunningRecordHost, nullptr);
-    appRunningRecordHost->priorityObject_->pid_ = hostPid;
-    std::shared_ptr<AppMgrServiceInner> appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    ASSERT_NE(appMgrServiceInner, nullptr);
-    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(recordIdHost, appRunningRecordHost);
-
-    std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
-    int32_t recordId = RECORD_ID;
-    std::string processName = "appRunningRecordProcessName";
-    auto appRunningRecord = std::make_shared<AppRunningRecord>(info, recordId, processName);
-    ASSERT_NE(appRunningRecord, nullptr);
-    std::weak_ptr<AppMgrServiceInner> inner = appMgrServiceInner;
-    appRunningRecord->SetAppMgrServiceInner(inner);
-
-    // exec func
-    AbilityStateData abilityStateData;
-    appRunningRecord->FillAbilityStateDataWithWant(abilityRecord, abilityStateData);
-
-    // check params
-    EXPECT_EQ(abilityStateData.callerAbilityName, callerAbilityName);
-    EXPECT_EQ(abilityStateData.callerBundleName, callerBundleName);
-    EXPECT_EQ(abilityStateData.callerUid, callerUid);
-    EXPECT_EQ(abilityStateData.callerPid, callerPid);
-    EXPECT_EQ(abilityStateData.hostPid, hostPid);
-    EXPECT_EQ(abilityStateData.hostBundleName, hostBundleName);
-}
-
-/**
- * @tc.name: AppRunningRecord_FillAbilityStateDataWithWant_0002
- * @tc.desc: Test FillAbilityStateDataWithWant works.
- * @tc.type: FUNC
- */
-HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_0002, TestSize.Level1)
-{
-    std::string callerAbilityName = "wantAbilityName";
-    std::string callerBundleName = "wantBundleName";
-    int32_t callerUid = 100;
-    int32_t callerPid = 101;
-    int32_t hostPid   = 102;
-    std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
-    ASSERT_NE(want, nullptr);
-    want->SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, callerAbilityName);
-    want->SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
-    want->SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
-    want->SetParam(Want::PARAM_RESV_CALLER_PID, callerPid);
-    want->SetParam(UIEXTENSION_ROOT_HOST_PID, hostPid);
-
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    sptr<IRemoteObject> token = nullptr;
-    auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
-    abilityRecord->SetWant(want);
-    ASSERT_NE(abilityRecord, nullptr);
-
-    std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
-    int32_t recordId = RECORD_ID;
-    std::string processName = "appRunningRecordProcessName";
-    auto appRunningRecord = std::make_shared<AppRunningRecord>(info, recordId, processName);
-    ASSERT_NE(appRunningRecord, nullptr);
-
-    // exec func
-    AbilityStateData abilityStateData;
-    appRunningRecord->FillAbilityStateDataWithWant(abilityRecord, abilityStateData);
-
-    // check params
-    EXPECT_EQ(abilityStateData.callerAbilityName, callerAbilityName);
-    EXPECT_EQ(abilityStateData.callerBundleName, callerBundleName);
-    EXPECT_EQ(abilityStateData.callerUid, callerUid);
-    EXPECT_EQ(abilityStateData.callerPid, callerPid);
-    EXPECT_EQ(abilityStateData.hostPid, hostPid);
-    EXPECT_EQ(abilityStateData.hostBundleName, "");
-}
-
-/**
- * @tc.name: AppRunningRecord_FillAbilityStateDataWithWant_0003
- * @tc.desc: Test FillAbilityStateDataWithWant works.
- * @tc.type: FUNC
- */
-HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_0003, TestSize.Level1)
-{
-    std::string callerAbilityName = "wantAbilityName";
-    std::string callerBundleName = "wantBundleName";
-    int32_t callerUid = 100;
-    int32_t callerPid = 101;
-    int32_t hostPid   = 102;
-    std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
-    ASSERT_NE(want, nullptr);
-    want->SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, callerAbilityName);
-    want->SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
-    want->SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
-    want->SetParam(Want::PARAM_RESV_CALLER_PID, callerPid);
-    want->SetParam(UIEXTENSION_ROOT_HOST_PID, hostPid);
-
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    sptr<IRemoteObject> token = nullptr;
-    auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
-    abilityRecord->SetWant(want);
-    ASSERT_NE(abilityRecord, nullptr);
-
-    std::string hostBundleName = "wantHostBundleName";
-    std::shared_ptr<ApplicationInfo> infoHost = std::make_shared<ApplicationInfo>();
-    infoHost->bundleName = hostBundleName;
-    int32_t recordIdHost = RECORD_ID + 1;
-    std::string processNameHost = "appRunningRecordProcessNameHost";
-    auto appRunningRecordHost = std::make_shared<AppRunningRecord>(infoHost, recordIdHost, processNameHost);
-    ASSERT_NE(appRunningRecordHost, nullptr);
-    std::shared_ptr<AppMgrServiceInner> appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    ASSERT_NE(appMgrServiceInner, nullptr);
-
-    std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
-    int32_t recordId = RECORD_ID;
-    std::string processName = "appRunningRecordProcessName";
-    auto appRunningRecord = std::make_shared<AppRunningRecord>(info, recordId, processName);
-    ASSERT_NE(appRunningRecord, nullptr);
-    std::weak_ptr<AppMgrServiceInner> inner = appMgrServiceInner;
-    appRunningRecord->SetAppMgrServiceInner(inner);
-
-    // exec func
-    AbilityStateData abilityStateData;
-    appRunningRecord->FillAbilityStateDataWithWant(abilityRecord, abilityStateData);
-
-    // check params
-    EXPECT_EQ(abilityStateData.callerAbilityName, callerAbilityName);
-    EXPECT_EQ(abilityStateData.callerBundleName, callerBundleName);
-    EXPECT_EQ(abilityStateData.callerUid, callerUid);
-    EXPECT_EQ(abilityStateData.callerPid, callerPid);
-    EXPECT_EQ(abilityStateData.hostPid, hostPid);
-    EXPECT_EQ(abilityStateData.hostBundleName, "");
-}
-
-/**
- * @tc.name: AppRunningRecord_FillAbilityStateDataWithWant_0004
- * @tc.desc: Test FillAbilityStateDataWithWant works.
- * @tc.type: FUNC
- */
-HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_0004, TestSize.Level1)
-{
-    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
-    sptr<IRemoteObject> token = nullptr;
-    auto abilityRecord = std::make_shared<AbilityRunningRecord>(abilityInfo, token, 0);
-    ASSERT_NE(abilityRecord, nullptr);
-
-    std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
-    int32_t recordId = RECORD_ID;
-    std::string processName = "appRunningRecordProcessName";
-    auto appRunningRecord = std::make_shared<AppRunningRecord>(info, recordId, processName);
-    ASSERT_NE(appRunningRecord, nullptr);
-
-    // exec func
-    AbilityStateData abilityStateData;
-    appRunningRecord->FillAbilityStateDataWithWant(abilityRecord, abilityStateData);
-
-    // check params
-    EXPECT_EQ(abilityStateData.callerAbilityName, "");
-    EXPECT_EQ(abilityStateData.callerBundleName, "");
-    EXPECT_EQ(abilityStateData.hostPid, 0);
-    EXPECT_EQ(abilityStateData.hostBundleName, "");
-}
-
-/**
- * @tc.name: AppRunningRecord_FillAbilityStateDataWithWant_0005
- * @tc.desc: Test FillAbilityStateDataWithWant works.
- * @tc.type: FUNC
- */
-HWTEST_F(AppRunningRecordTest, AppRunningRecord_FillAbilityStateDataWithWant_0005, TestSize.Level1)
-{
-    std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>();
-    int32_t recordId = RECORD_ID;
-    std::string processName = "appRunningRecordProcessName";
-    auto appRunningRecord = std::make_shared<AppRunningRecord>(info, recordId, processName);
-    ASSERT_NE(appRunningRecord, nullptr);
-
-    // exec func
-    AbilityStateData abilityStateData;
-    appRunningRecord->FillAbilityStateDataWithWant(nullptr, abilityStateData);
-
-    // check params
-    EXPECT_EQ(abilityStateData.callerAbilityName, "");
-    EXPECT_EQ(abilityStateData.callerBundleName, "");
-    EXPECT_EQ(abilityStateData.hostPid, 0);
-    EXPECT_EQ(abilityStateData.hostBundleName, "");
-}
-
-/**
  * @tc.name: AppRunningRecord_SetProcessType_0001
  * @tc.desc: Test SetProcessType works.
  * @tc.type: FUNC
@@ -1550,5 +1434,261 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetProcessType_0001, TestSize.Le
     EXPECT_EQ(normalType, ProcessType::NORMAL);
 }
 
+/**
+ * @tc.name: AppRunningRecord_DumpArkWeb_0100
+ * @tc.desc: Test DumpArkWeb works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_DumpArkWeb_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_DumpArkWeb_0100 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    appRecord->appLifeCycleDeal_ == nullptr;
+    std::string customArgs;
+    std::string result;
+    auto ret = appRecord->DumpArkWeb(customArgs, result);
+    EXPECT_EQ(ret, DumpErrorCode::ERR_INTERNAL_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_DumpArkWeb_0100 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_DumpArkWeb_0200
+ * @tc.desc: Test DumpArkWeb works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_DumpArkWeb_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_DumpArkWeb_0200 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    appRecord->SetApplicationClient(nullptr);
+    std::string customArgs;
+    std::string result;
+    auto ret = appRecord->DumpArkWeb(customArgs, result);
+    std::string result2;
+    auto lifeCycleRet = appRecord->appLifeCycleDeal_->DumpArkWeb(customArgs, result2);
+    EXPECT_EQ(ret, lifeCycleRet);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_DumpArkWeb_0200 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_ShouldSkipTimeout_0100
+ * @tc.desc: Test ShouldSkipTimeout works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_ShouldSkipTimeout_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_ShouldSkipTimeout_0100 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+    
+    appRecord->SetDebugApp(true);
+    appRecord->SetNativeDebug(false);
+    appRecord->SetAttachDebug(false, false);
+    auto ret = appRecord->ShouldSkipTimeout();
+    EXPECT_EQ(ret, true);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_ShouldSkipTimeout_0100 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_ShouldSkipTimeout_0200
+ * @tc.desc: Test ShouldSkipTimeout works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_ShouldSkipTimeout_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_ShouldSkipTimeout_0200 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+    
+    appRecord->SetDebugApp(false);
+    appRecord->SetNativeDebug(true);
+    appRecord->SetAttachDebug(false, false);
+    auto ret = appRecord->ShouldSkipTimeout();
+    EXPECT_EQ(ret, true);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_ShouldSkipTimeout_0200 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_ShouldSkipTimeout_0300
+ * @tc.desc: Test ShouldSkipTimeout works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_ShouldSkipTimeout_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_ShouldSkipTimeout_0300 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+    
+    appRecord->SetDebugApp(false);
+    appRecord->SetNativeDebug(false);
+    appRecord->SetAttachDebug(true, false);
+    auto ret = appRecord->ShouldSkipTimeout();
+    EXPECT_EQ(ret, true);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_ShouldSkipTimeout_0300 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_ShouldSkipTimeout_0400
+ * @tc.desc: Test ShouldSkipTimeout works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_ShouldSkipTimeout_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_ShouldSkipTimeout_0400 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+    
+    appRecord->SetDebugApp(false);
+    appRecord->SetNativeDebug(false);
+    appRecord->SetAttachDebug(false, false);
+    auto ret = appRecord->ShouldSkipTimeout();
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_ShouldSkipTimeout_0400 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_GetAppRunningUniqueId_0100
+ * @tc.desc: Test GetAppRunningUniqueId returns non-zero value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_GetAppRunningUniqueId_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GetAppRunningUniqueId_0100 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+    
+    uint64_t uniqueId = appRecord->GetAppRunningUniqueId();
+    EXPECT_NE(uniqueId, 0);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GetAppRunningUniqueId_0100 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_GetAppRunningUniqueId_0200
+ * @tc.desc: Test GetAppRunningUniqueId returns consistent value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_GetAppRunningUniqueId_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GetAppRunningUniqueId_0200 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+    
+    uint64_t firstCall = appRecord->GetAppRunningUniqueId();
+    uint64_t secondCall = appRecord->GetAppRunningUniqueId();
+    uint64_t thirdCall = appRecord->GetAppRunningUniqueId();
+    
+    EXPECT_EQ(firstCall, secondCall);
+    EXPECT_EQ(secondCall, thirdCall);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GetAppRunningUniqueId_0200 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_GenerateRunningUniqueId_Uniqueness_0100
+ * @tc.desc: Test generated unique IDs are unique.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_GenerateRunningUniqueId_Uniqueness_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GenerateRunningUniqueId_Uniqueness_0100 start.");
+    std::set<uint64_t> uniqueIds;
+    const int iterationCount = 100;
+    
+    for (int i = 0; i < iterationCount; i++) {
+        std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+        std::string processName;
+        auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+        ASSERT_NE(appRecord, nullptr);
+        
+        uint64_t uniqueId = appRecord->GetAppRunningUniqueId();
+        uniqueIds.insert(uniqueId);
+    }
+    
+    EXPECT_EQ(uniqueIds.size(), iterationCount);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GenerateRunningUniqueId_Uniqueness_0100 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_GetAppStartTime_Unchanged_0100
+ * @tc.desc: Test GetAppStartTime still works correctly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_GetAppStartTime_Unchanged_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GetAppStartTime_Unchanged_0100 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+    
+    int64_t startTime = appRecord->GetAppStartTime();
+    EXPECT_GT(startTime, 0);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_GetAppStartTime_Unchanged_0100 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_UniqueId_DifferentFromStartTime_0100
+ * @tc.desc: Test unique ID is different from start time.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_UniqueId_DifferentFromStartTime_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_UniqueId_DifferentFromStartTime_0100 start.");
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, processName);
+    ASSERT_NE(appRecord, nullptr);
+    
+    uint64_t uniqueId = appRecord->GetAppRunningUniqueId();
+    int64_t startTime = appRecord->GetAppStartTime();
+    
+    // Verify uniqueId is not accidentally equal to startTime
+    // If uniqueId <= INT64_MAX and equals startTime, it indicates a problem with implementation
+    EXPECT_TRUE(uniqueId > static_cast<uint64_t>(std::numeric_limits<int64_t>::max()) ||
+                static_cast<int64_t>(uniqueId) != startTime);
+    TAG_LOGI(AAFwkTag::TEST, "AppRunningRecord_UniqueId_DifferentFromStartTime_0100 end.");
+}
+
+/**
+ * @tc.name: AppRunningRecord_SetKillAppReason_0100
+ * @tc.desc: Test SetKillAppReason works.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_SetKillAppReason_0100, TestSize.Level1)
+{
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    ASSERT_NE(appInfo, nullptr);
+    int32_t recordId = RECORD_ID;
+    std::string processName;
+    auto appRunningRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    ASSERT_NE(appRunningRecord, nullptr);
+
+    appRunningRecord->SetKillId(1);
+    EXPECT_EQ(appRunningRecord->GetKillId(), 1);
+    std::string reason = "TestReason";
+    appRunningRecord->SetKillMsg(reason);
+    EXPECT_EQ(appRunningRecord->GetKillMsg(), reason);
+    appRunningRecord->SetInnerMsg(reason);
+    EXPECT_EQ(appRunningRecord->GetInnerMsg(), reason);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

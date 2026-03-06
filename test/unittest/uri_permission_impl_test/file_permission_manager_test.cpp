@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -56,7 +56,7 @@ HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_001, TestSize.L
     uint32_t callerTokenId = 0;
     uint32_t flag = 0;
     std::vector<PolicyInfo> pathPolicies;
-    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, pathPolicies, "");
+    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, "", pathPolicies);
     bool res = false;
     if (ret.empty()) {
         res = true;
@@ -88,7 +88,7 @@ HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_002, TestSize.L
     uint32_t callerTokenId = 1002;
     uint32_t flag = 0;
     std::vector<PolicyInfo> pathPolicies;
-    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, pathPolicies, "");
+    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, "", pathPolicies);
     EXPECT_FALSE(ret.empty());
 }
 
@@ -101,7 +101,7 @@ HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_002, TestSize.L
 HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_003, TestSize.Level1)
 {
     std::vector<Uri> uriVec;
-    Uri uri = Uri("file://docs/storage/Users/currentUser/appdata");
+    Uri uri = Uri("file://docs/storage/Users/currentUser/appdata/el2/base/");
     Uri uri1 = Uri("file://docs/storage/Users/currentUser/appdata/el2/base/demo");
     Uri uri2 = Uri("file://docs/storage/Users/currentUser/Download");
     Uri uri3 = Uri("file://docs/storage/Users/currentUser");
@@ -118,7 +118,7 @@ HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_003, TestSize.L
     MyFlag::permissionFileAccessManager_ = true;
     MyFlag::permissionSandboxAccessManager_ = true;
     std::vector<PolicyInfo> pathPolicies;
-    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, pathPolicies, "");
+    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, "", pathPolicies);
     EXPECT_EQ(ret.size(), uriVec.size());
     bool res = true;
     for (size_t i = 0; i < ret.size(); i++) {
@@ -139,13 +139,13 @@ HWTEST_F(FilePermissionManagerTest, CheckUriPersistentPermission_004, TestSize.L
 {
     std::vector<Uri> uriVec;
     Uri uri4 = Uri("file://docs/data/storage/el2/base/haps/entry/files/test_A.txt");
-    uriVec.emplace_back(uri);
+    uriVec.emplace_back(uri4);
     uint32_t callerTokenId = 1002;
     uint32_t flag = 0;
     MyFlag::permissionFileAccessManager_ = true;
     MyFlag::permissionSandboxAccessManager_ = true;
     std::vector<PolicyInfo> pathPolicies;
-    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, pathPolicies, "");
+    auto ret = FilePermissionManager::CheckUriPersistentPermission(uriVec, callerTokenId, flag, "", pathPolicies);
     EXPECT_FALSE(ret[0]);
 }
 
@@ -175,12 +175,11 @@ HWTEST_F(FilePermissionManagerTest, GetPathPolicyInfoFromUri_001, TestSize.Level
  */
 HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_001, TestSize.Level1)
 {
-    uint32_t callerTokenId = 0;
-    bool hasFileManagerPerm = false;
-    bool hasSandboxManagerPerm = false;
     std::string appDataPath = "/storage/Users/currentUser/appdata/test_A.txt";
-    bool ret = FilePermissionManager::CheckDocsUriPermission(callerTokenId, hasFileManagerPerm, hasSandboxManagerPerm,
-        appDataPath);
+    TokenIdPermission caller(0);
+    MyFlag::permissionFileAccessManager_ = false;
+    MyFlag::permissionSandboxAccessManager_ = false;
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, appDataPath);
     ASSERT_FALSE(ret);
 }
 
@@ -192,12 +191,11 @@ HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_001, TestSize.Level1)
  */
 HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_002, TestSize.Level1)
 {
-    uint32_t callerTokenId = 0;
-    bool hasFileManagerPerm = false;
-    bool hasSandboxManagerPerm = false;
+    TokenIdPermission caller(0);
+    MyFlag::permissionFileAccessManager_ = false;
+    MyFlag::permissionSandboxAccessManager_ = false;
     std::string appDataPath = "/storage/Users/currentUser/test/test_A.txt";
-    bool ret = FilePermissionManager::CheckDocsUriPermission(callerTokenId, hasFileManagerPerm, hasSandboxManagerPerm,
-        appDataPath);
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, appDataPath);
     ASSERT_FALSE(ret);
 }
 
@@ -209,13 +207,70 @@ HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_002, TestSize.Level1)
  */
 HWTEST_F(FilePermissionManagerTest, CheckDocsUriPermission_003, TestSize.Level1)
 {
-    uint32_t callerTokenId = 0;
-    bool hasFileManagerPerm = false;
-    bool hasSandboxManagerPerm = false;
+    TokenIdPermission caller(0);
+    MyFlag::permissionFileAccessManager_ = false;
+    MyFlag::permissionSandboxAccessManager_ = false;
     std::string appDataPath = "/test/Users/currentUser/test/test_A.txt";
-    bool ret = FilePermissionManager::CheckDocsUriPermission(callerTokenId, hasFileManagerPerm, hasSandboxManagerPerm,
-        appDataPath);
+    bool ret = FilePermissionManager::CheckDocsUriPermission(caller, appDataPath);
     ASSERT_FALSE(ret);
+}
+
+/*
+ * Feature: InitDlSymbol
+ * Function: InitDlSymbol
+ * SubFunction: NA
+ * FunctionPoints: InitDlSymbol
+ */
+HWTEST_F(FilePermissionManagerTest, InitDlSymbol_001, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    const char* soName = "test.z.so";
+    const char* funcName = "testFunc";
+    bool ret = wrapper.InitDlSymbol(soName, funcName);
+    ASSERT_FALSE(ret);
+}
+
+/*
+ * Feature: InitDlSymbol
+ * Function: InitDlSymbol
+ * SubFunction: NA
+ * FunctionPoints: InitDlSymbol
+ */
+HWTEST_F(FilePermissionManagerTest, InitDlSymbol_002, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    const char* soName = "libmission_list.z.so";
+    const char* funcName = "testFunc";
+    bool ret = wrapper.InitDlSymbol(soName, funcName);
+    ASSERT_FALSE(ret);
+}
+
+/*
+ * Feature: InitDlSymbol
+ * Function: InitDlSymbol
+ * SubFunction: NA
+ * FunctionPoints: InitDlSymbol
+ */
+HWTEST_F(FilePermissionManagerTest, InitDlSymbol_003, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    const char* soName = nullptr;
+    const char* funcName = "testFunc";
+    bool ret = wrapper.InitDlSymbol(soName, funcName);
+    ASSERT_FALSE(ret);
+}
+
+/*
+ * Feature: GetFunc
+ * Function: GetFunc
+ * SubFunction: NA
+ * FunctionPoints: GetFunc
+ */
+HWTEST_F(FilePermissionManagerTest, GetFunc_001, TestSize.Level1)
+{
+    DllWrapper wrapper;
+    auto ret = wrapper.GetFunc();
+    EXPECT_EQ(ret, nullptr);
 }
 
 }

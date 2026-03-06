@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -267,7 +267,7 @@ AppMgrResultCode AppMgrClient::KillProcessesByUserId(int32_t userId, bool isNeed
     }
     if (callback) {
         TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
-        callback->OnLogoutUserDone(userId, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
+        callback->OnUserCmdDone(userId, AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED);
     }
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
@@ -407,7 +407,7 @@ void AppMgrClient::NotifyUninstallOrUpgradeAppEnd(int32_t uid)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr");
+        TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
         return;
     }
     sptr<IAmsMgr> amsService = service->GetAmsMgr();
@@ -805,7 +805,7 @@ int AppMgrClient::FinishUserTest(const std::string &msg, const int64_t &resultCo
 }
 
 void AppMgrClient::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-    int32_t requestId)
+    int32_t requestId, const std::string &customProcess)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service == nullptr) {
@@ -815,7 +815,7 @@ void AppMgrClient::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecF
     if (amsService == nullptr) {
         return;
     }
-    amsService->StartSpecifiedAbility(want, abilityInfo, requestId);
+    amsService->StartSpecifiedAbility(want, abilityInfo, requestId, customProcess);
 }
 
 void AppMgrClient::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
@@ -997,6 +997,22 @@ int32_t AppMgrClient::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, 
         return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
     }
     return amsService->NotifyAppMgrRecordExitReason(pid, reason, exitMsg);
+}
+
+int32_t AppMgrClient::NotifyAppMgrRecordExitReasonCompability(
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "service is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    sptr<IAmsMgr> amsService = service->GetAmsMgr();
+    if (amsService == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "amsService is nullptr");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return amsService->NotifyAppMgrRecordExitReasonCompability(pid, killId, killMsg, innerMsg);
 }
 
 int32_t AppMgrClient::StartNativeProcessForDebugger(const AAFwk::Want &want)
@@ -1511,6 +1527,21 @@ int32_t AppMgrClient::SetProcessCacheEnable(int32_t pid, bool enable)
     return service->SetProcessCacheEnable(pid, enable);
 }
 
+int32_t AppMgrClient::LockProcessCache(int32_t pid, bool isLock)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "LockProcessCache called");
+    if (mgrHolder_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "mgrHolder_ is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_READY;
+    }
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service is nullptr.");
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->LockProcessCache(pid, isLock);
+}
+
 void AppMgrClient::SaveBrowserChannel(sptr<IRemoteObject> browser)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
@@ -1839,5 +1870,15 @@ int32_t AppMgrClient::KillChildProcessByPid(int32_t pid)
     }
     return service->KillChildProcessByPid(pid);
 }
+
+int32_t AppMgrClient::PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service == nullptr) {
+        return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
+    }
+    return service->PreloadExtension(want, appIndex, userId);
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,11 +111,12 @@ public:
      * ScheduleMemoryLevel, call ScheduleMemoryLevel() through proxy project,
      * Notifies the application of the current memory.
      *
-     * @param The memory level.
+     * @param Level, The memory level.
+     * @param isShellCall, A flag indicating whether it is invoked via the aa command.
      *
      * @return
      */
-    void ScheduleMemoryLevel(int32_t Level);
+    void ScheduleMemoryLevel(int32_t Level, bool isShellCall = false);
 
     /**
      * ScheduleHeapMemory, call ScheduleHeapMemory() through proxy project,
@@ -211,9 +212,11 @@ public:
      * UpdateConfiguration, ANotify application update system environment changes.
      *
      * @param config, System environment change parameters.
+     * @param reason, Identify config change scene.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t UpdateConfiguration(const Configuration &config);
+    int32_t UpdateConfiguration(const Configuration &config,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT);
 
     /**
      * @brief Notify application load patch.
@@ -296,6 +299,8 @@ public:
     void ScheduleCacheProcess();
 
     int DumpFfrt(std::string& result);
+
+    int32_t DumpArkWeb(const std::string &customArgs, std::string &result);
 
     /**
      * SetWatchdogBackgroundStatusRunning , call SetWatchdogBackgroundStatusRunning(bool status) through proxy project,

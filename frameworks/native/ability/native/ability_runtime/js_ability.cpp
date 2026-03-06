@@ -208,6 +208,7 @@ std::string JsAbility::GenerateSrcPath(std::shared_ptr<AbilityInfo> abilityInfo)
 void JsAbility::BindContext()
 {
     auto env = jsRuntime_.GetNapiEnv();
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value obj = jsAbilityObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         TAG_LOGE(AAFwkTag::ABILITY, "check type failed");
@@ -604,7 +605,7 @@ bool JsAbility::OnBackPress()
 bool JsAbility::OnPrepareTerminate()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::ABILITY, "call, ability: %{public}s", GetAbilityName().c_str());
+    TAG_LOGI(AAFwkTag::ABILITY, "prepare terminate call, ability: %{public}s", GetAbilityName().c_str());
     Ability::OnPrepareTerminate();
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
@@ -892,7 +893,9 @@ void JsAbility::OnConfigurationUpdated(const Configuration &configuration)
     napi_value napiConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, configuration);
     CallObjectMethod("onConfigurationUpdated", &napiConfiguration, 1);
     CallObjectMethod("onConfigurationUpdate", &napiConfiguration, 1);
-    JsAbilityContext::ConfigurationUpdated(env, shellContextRef_, fullConfig);
+    if (shellContextRef_ != nullptr) {
+        JsAbilityContext::ConfigurationUpdated(env, shellContextRef_->GetNapiValue(), fullConfig);
+    }
 }
 
 void JsAbility::OnMemoryLevel(int level)
@@ -924,7 +927,10 @@ void JsAbility::UpdateContextConfiguration()
     TAG_LOGD(AAFwkTag::ABILITY, "called");
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
-    JsAbilityContext::ConfigurationUpdated(env, shellContextRef_, GetAbilityContext()->GetConfiguration());
+    if (shellContextRef_ != nullptr) {
+        JsAbilityContext::ConfigurationUpdated(env, shellContextRef_->GetNapiValue(),
+            GetAbilityContext()->GetConfiguration());
+    }
 }
 
 void JsAbility::OnNewWant(const Want &want)

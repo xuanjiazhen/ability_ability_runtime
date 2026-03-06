@@ -24,15 +24,17 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+constexpr int32_t ERR_NULL_INTENT = -2;
 class InsightIntentDbCache : public std::enable_shared_from_this<InsightIntentDbCache> {
     DECLARE_DELAYED_SINGLETON(InsightIntentDbCache)
 public:
-    void InitInsightIntentCache(const int32_t userId);
-    void GetAllInsightIntentGenericInfo(std::vector<ExtractInsightIntentGenericInfo> &genericInfos);
-    void GetInsightIntentGenericInfoByName(const std::string &bundleName,
+    int32_t InitInsightIntentCache(const int32_t userId);
+    void GetAllInsightIntentGenericInfo(const int32_t userId,
         std::vector<ExtractInsightIntentGenericInfo> &genericInfos);
+    void GetInsightIntentGenericInfoByName(const std::string &bundleName, const int32_t userId,
+         std::vector<ExtractInsightIntentGenericInfo> &genericInfos);
     void GetInsightIntentGenericInfo(const std::string &bundleName, const std::string &moduleName,
-        const std::string &intentName, ExtractInsightIntentGenericInfo &genericInfos);
+        const std::string &intentName, const int32_t userId, ExtractInsightIntentGenericInfo &genericInfo);
     void GetAllInsightIntentInfo(const int32_t userId, std::vector<ExtractInsightIntentInfo> &infos,
         std::vector<InsightIntentInfo> &configInfos);
     void GetInsightIntentInfoByName(const std::string &bundleName, const int32_t userId,
@@ -46,15 +48,18 @@ public:
     void GetConfigInsightIntentInfo(const std::string &bundleName, const std::string &moduleName,
         const std::string &intentName, const int32_t userId, InsightIntentInfo &info);
     int32_t SaveInsightIntentTotalInfo(const std::string &bundleName, const std::string &moduleName,
-        const int32_t userId, ExtractInsightIntentProfileInfoVec profileInfos,
+        const int32_t userId, uint32_t versionCode, ExtractInsightIntentProfileInfoVec profileInfos,
         std::vector<InsightIntentInfo> configInfos);
     int32_t DeleteInsightIntentTotalInfo(const std::string &bundleName,
         const std::string &moduleName, const int32_t userId);
     int32_t DeleteInsightIntentByUserId(const int32_t userId);
+    bool HasInsightIntentByName(uint32_t versionCode, const std::string &bundleName, const int32_t userId);
+    void BackupRdb();
 private:
     int32_t userId_ = -1;
     mutable std::mutex genericInfosMutex_;
     std::map<std::string, std::vector<ExtractInsightIntentGenericInfo>> intentGenericInfos_;
+    std::map<std::string, std::string> bundleVersionMap_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

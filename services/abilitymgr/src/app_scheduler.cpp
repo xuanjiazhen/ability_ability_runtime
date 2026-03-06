@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -241,11 +241,12 @@ void AppScheduler::NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo
     callback->NotifyStartResidentProcess(bundleInfos);
 }
 
-void AppScheduler::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+void AppScheduler::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+    pid_t diedPid)
 {
     auto callback = callback_.lock();
     CHECK_POINTER(callback);
-    callback->NotifyStartKeepAliveProcess(bundleInfos);
+    callback->NotifyStartKeepAliveProcess(bundleInfos, diedPid);
 }
 
 void AppScheduler::OnAppRemoteDied(const std::vector<sptr<IRemoteObject>> &abilityTokens)
@@ -276,6 +277,13 @@ void AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
     auto callback = callback_.lock();
     CHECK_POINTER(callback);
     callback->NotifyAppPreCache(pid, userId);
+}
+
+void AppScheduler::RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName)
+{
+    auto callback = callback_.lock();
+    CHECK_POINTER(callback);
+    callback->RecordAppExitSignalReason(pid, uid, signal, bundleName);
 }
 
 int AppScheduler::KillApplication(const std::string &bundleName, bool clearPageStack, int32_t appIndex,
@@ -413,10 +421,10 @@ void AppScheduler::StartupResidentProcess(const std::vector<AppExecFwk::BundleIn
 }
 
 void AppScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-    int32_t requestId)
+    int32_t requestId, const std::string &customProcess)
 {
     CHECK_POINTER(appMgrClient_);
-    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->StartSpecifiedAbility(want, abilityInfo, requestId));
+    IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->StartSpecifiedAbility(want, abilityInfo, requestId, customProcess));
 }
 
 void StartSpecifiedAbilityResponse::OnAcceptWantResponse(
@@ -561,6 +569,19 @@ int32_t AppScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, 
         return ret;
     }
     return ERR_OK;
+}
+
+int32_t AppScheduler::NotifyAppMgrRecordExitReasonCompability(
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg)
+{
+    if (pid <= 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "pid is invalid");
+        return ERR_INVALID_VALUE;
+    }
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    auto ret = static_cast<int32_t>(IN_PROCESS_CALL(appMgrClient_->NotifyAppMgrRecordExitReasonCompability(
+        pid, killId, killMsg, innerMsg)));
+    return ret;
 }
 
 int32_t AppScheduler::GetBundleNameByPid(const int pid, std::string &bundleName, int32_t &uid)

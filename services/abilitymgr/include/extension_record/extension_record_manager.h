@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -22,7 +22,7 @@
 #include <set>
 #include <tuple>
 
-#include "ability_record.h"
+#include "base_extension_record.h"
 #include "extension_record.h"
 #include "preload_ui_extension_execute_callback_interface.h"
 #include "ui_extension/ui_extension_host_info.h"
@@ -94,7 +94,7 @@ public:
     bool IsPreloadExtensionRecord(const AAFwk::AbilityRequest &abilityRequest,
         const pid_t &hostPid, std::shared_ptr<ExtensionRecord> &extensionRecord, bool &isLoaded);
 
-    int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::AbilityRecord> abilityRecord);
+    int32_t AddPreloadUIExtensionRecord(const std::shared_ptr<AAFwk::BaseExtensionRecord> abilityRecord);
 
     void RemoveAllPreloadUIExtensionRecord(PreLoadUIExtensionMapKey &preLoadUIExtensionInfo);
 
@@ -106,9 +106,10 @@ public:
         int32_t extensionRecordId);
 
     int32_t GetOrCreateExtensionRecord(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName,
-        std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, bool &isLoaded);
+        std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord, bool &isLoaded);
 
-    std::shared_ptr<AAFwk::AbilityRecord> GetAbilityRecordBySessionInfo(const sptr<AAFwk::SessionInfo> &sessionInfo);
+    std::shared_ptr<AAFwk::BaseExtensionRecord> GetAbilityRecordBySessionInfo(
+        const sptr<AAFwk::SessionInfo> &sessionInfo);
 
     std::shared_ptr<AAFwk::AbilityRecord> GetUIExtensionRootHostInfo(const sptr<IRemoteObject> token);
 
@@ -140,14 +141,19 @@ public:
                                           const int32_t hostPid,
                                           int32_t &recordNum);
 
-    void HandlePreloadUIExtensionLoadedById(int32_t extensionRecordId);
-    void HandlePreloadUIExtensionDestroyedById(int32_t extensionRecordId);
+    void HandlePreloadUIExtensionLoaded(const std::shared_ptr<ExtensionRecord> &extensionRecord);
+    void HandlePreloadUIExtensionDestroyed(const std::shared_ptr<ExtensionRecord> &extensionRecord);
     void HandlePreloadUIExtensionSuccess(int32_t extensionRecordId, bool isPreloadedSuccess);
     int32_t ClearPreloadedUIExtensionAbility(int32_t extensionRecordId);
     int32_t ClearAllPreloadUIExtensionRecordForHost();
     void RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);
     void UnRegisterPreloadUIExtensionHostClient(
         int32_t key, const sptr<IRemoteObject::DeathRecipient> &deathRecipient);
+
+    // AgentUI extension launch limit management
+    int32_t CheckAgentUILaunchLimit(int32_t callerUid, const std::string &bundleName);
+    void AddAgentUILaunchRecord(int32_t callerUid, const std::string &bundleName, int32_t extensionAbilityId);
+    void RemoveAgentUILaunchRecord(int32_t callerUid, const std::string &bundleName, int32_t extensionAbilityId);
 
 private:
     inline std::shared_ptr<ExtensionRecord> GetExtensionRecordById(int32_t extensionRecordId);
@@ -164,6 +170,11 @@ private:
     PreLoadUIExtensionMapType preloadUIExtensionMap_;
     std::map<int32_t, sptr<IRemoteObject>> preloadUIExtensionHostClientCallerTokens_;
 
+    // AgentUI extension launch record management
+    // Structure: callerUid -> { bundleName -> [extensionAbilityId1, extensionAbilityId2, ...] }
+    std::map<int32_t, std::map<std::string, std::set<int32_t>>> agentUIExtensionRecords_;
+    std::mutex agentUIExtensionMutex_;
+
     void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);
     sptr<IRemoteObject> GetCachedFocusedCallerToken(int32_t extensionRecordId) const;
     sptr<IRemoteObject> GetRootCallerTokenLocked(
@@ -177,7 +188,8 @@ private:
 
     int32_t UpdateProcessName(const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &record);
     int32_t SetAbilityProcessName(const AAFwk::AbilityRequest &abilityRequest,
-        const std::shared_ptr<AAFwk::AbilityRecord> &abilityRecord, std::shared_ptr<ExtensionRecord> &extensionRecord);
+        const std::shared_ptr<AAFwk::BaseExtensionRecord> &abilityRecord,
+        std::shared_ptr<ExtensionRecord> &extensionRecord);
     void ConvertToUnloadExtensionRecords(std::vector<std::shared_ptr<ExtensionRecord>> &records,
         std::vector<std::shared_ptr<ExtensionRecord>> &recordsToUnload);
     bool IsHostSpecifiedProcessValid(const AAFwk::AbilityRequest &abilityRequest,

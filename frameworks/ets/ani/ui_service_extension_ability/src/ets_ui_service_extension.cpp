@@ -263,6 +263,7 @@ bool EtsUIServiceExtension::CallObjectMethod(bool withResult, const char *name, 
     if ((status = env->Object_CallMethod_Void_V(etsObj_->aniObj, method, args)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "status: %{public}d", status);
         etsRuntime_.HandleUncaughtError();
+        va_end(args);
         return false;
     }
     va_end(args);
@@ -297,7 +298,7 @@ void EtsUIServiceExtension::OnStart(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::UISERVC_EXT, "null aniWant");
         return;
     }
-    CallObjectMethod(false, "onCreate", "L@ohos/app/ability/Want/Want;:V", aniWant);
+    CallObjectMethod(false, "onCreate", "C{@ohos.app.ability.Want.Want}:", aniWant);
 }
 
 void EtsUIServiceExtension::OnStop()
@@ -373,7 +374,7 @@ sptr<IRemoteObject> EtsUIServiceExtension::OnConnect(const AAFwk::Want &want,
         return nullptr;
     }
     CallObjectMethod(false, "onConnect",
-        "L@ohos/app/ability/Want/Want;Lapplication/UIServiceHostProxy/UIServiceHostProxy;:V",
+        "C{@ohos.app.ability.Want.Want}C{application.UIServiceHostProxy.UIServiceHostProxy}:",
         aniWant, hostProxyObj);
 
     ani_ref hostProxyRef = nullptr;
@@ -448,7 +449,7 @@ void EtsUIServiceExtension::OnCommand(const AAFwk::Want &want, bool restart, int
     }
     // wrap startId
     ani_int aniStartId = static_cast<ani_int>(startId);
-    CallObjectMethod(false, "onRequest", "L@ohos/app/ability/Want/Want;I:V", aniWant, aniStartId);
+    CallObjectMethod(false, "onRequest", "C{@ohos.app.ability.Want.Want}i:", aniWant, aniStartId);
     CreateWindowIfNeeded();
 }
 
@@ -609,7 +610,7 @@ void EtsUIServiceExtension::ConfigurationUpdated()
         return;
     }
     CallObjectMethod(false, "onConfigurationUpdate",
-        "L@ohos/app/ability/Configuration/Configuration;:V", aniConfiguration);
+        "C{@ohos.app.ability.Configuration.Configuration}:", aniConfiguration);
     AbilityRuntime::EtsExtensionContext::ConfigurationUpdated(env, shellContextRef_, fullConfig);
 }
 
