@@ -1849,6 +1849,21 @@ ohos_prebuilt_etc("quick_fix_manager_abc_etc") {
   deps = [ ":quick_fix_manager_abc" ]
 }
 
+generate_static_abc("errormanager_abc") {
+  base_url = "./"
+  files = [ "./@ohos.app.ability.errorManager.ets" ]
+  is_boot_abc = "True"
+  device_dst_file = "/system/framework/errormanager_abc.abc"
+}
+
+ohos_prebuilt_etc("errormanager_abc_etc") {
+  source = "$target_out_dir/errormanager_abc.abc"
+  module_install_dir = "framework"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  deps = [ ":errormanager_abc" ]
+} 
+
 generate_static_abc("ability_runtime_startup_config_abc") {
   base_url = "./"
   files = [ "./@ohos.app.appstartup.StartupConfig.ets" ]
