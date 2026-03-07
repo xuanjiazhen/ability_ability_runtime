@@ -1792,13 +1792,17 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
                 options.hapModulePath[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
                 options.packageNameList[hapModuleInfo.moduleName] = hapModuleInfo.packageName;
-                if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::SHARED &&
-                    hapModuleInfo.moduleArkTSMode != AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+                options.aotCompileStatusMap[hapModuleInfo.moduleName] =
+                    static_cast<int32_t>(hapModuleInfo.aotCompileStatus);
+                if (hapModuleInfo.moduleArkTSMode == AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+                    continue;
+                }
+                TAG_LOGD(AAFwkTag::APPKIT, "staticHapModuleNameList: %{public}s", hapModuleInfo.moduleName.c_str());
+                options.staticHapModuleNameList.push_back(hapModuleInfo.moduleName);
+                if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::SHARED) {
                     TAG_LOGD(AAFwkTag::APPKIT, "appInnerHspPathList: %{public}s", hapModuleInfo.hapPath.c_str());
                     options.appInnerHspPathList.push_back(hapModuleInfo.hapPath);
                 }
-                options.aotCompileStatusMap[hapModuleInfo.moduleName] =
-                    static_cast<int32_t>(hapModuleInfo.aotCompileStatus);
             }
         }
         for (const auto &hsp : hspList) {
@@ -2146,7 +2150,7 @@ void MainThread::ProcessExit(const ProcessExitInfo& info)
     TAG_LOGE(AAFwkTag::APPKIT, "\n%{public}s is about to exit due to RuntimeError\nError type:%{public}s\n"
         "%{public}s", info.bundleName.c_str(), info.errorObjectName.c_str(), info.summary.c_str());
     AAFwk::ExitReasonCompability exitReason = { REASON_JS_ERROR, info.errorObjectName };
-    exitReason.killId = HiviewDFX::ProcessKillReason::REASON_JS_ERROR;
+    exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR;
     AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, getuid(), exitReason);
     _exit(JS_ERROR_EXIT);
 }

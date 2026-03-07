@@ -36,6 +36,7 @@
 #include "app_mgr_service.h"
 #include "app_mgr_event.h"
 #include "app_process_data.h"
+#include "app_recovery_mgr.h"
 #include "app_state_observer_manager.h"
 #include "app_utils.h"
 #include "appfreeze_manager.h"
@@ -118,7 +119,11 @@
 #ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
-#include "xcollie/process_kill_reason.h"
+#endif
+#ifdef APP_MGR_KILL_REASON_TAG
+#include "ability_manager_client.h"
+#include "ability_state.h"
+#include "exit_reason.h"
 #endif
 
 namespace OHOS {
@@ -265,6 +270,13 @@ constexpr const char* EVENT_KEY_BUNDLE_NAME = "BUNDLE_NAME";
 constexpr const char* EVENT_KEY_MESSAGE = "MSG";
 constexpr const char* EVENT_KEY_REASON = "REASON";
 constexpr const char* EVENT_KEY_FOREGROUND = "FOREGROUND";
+constexpr const char* EVENT_KEY_APP_RUNNING_UNIQUE_ID = "APP_RUNNING_UNIQUE_ID";
+constexpr const char* EVENT_KEY_VERSIONCODE = "VERSIONCODE";
+constexpr const char* EVENT_KEY_VERSIONNAME = "VERSIONNAME";
+constexpr const char* EVENT_KEY_INNER_MSG = "INNER_MSG";
+constexpr const char* EVENT_KEY_PROCESS_KILL_ID = "PROCESS_KILL_ID";
+constexpr const char* EVENT_KEY_ADJ = "ADJ";
+constexpr const char* EVENT_KEY_TIMESTAMP = "TIMESTAMP";
 
 // Developer mode param
 constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
@@ -337,9 +349,7 @@ constexpr int32_t MAX_EXTENSION_CHILD_PROCESS = 1;
 constexpr int32_t MAX_EXTENSION_CHILD_PROCESS_DEV_MODE = 3;
 
 // kill resaon
-constexpr int32_t INVALID_KILL_ID = -2;
-constexpr const char* INVALID_KILL_REASON = "InvalidKillId";
-constexpr int32_t PROCESS_KILL_PARAM = 9;
+constexpr int32_t PROCESS_KILL_PARAM = 14; // PROCESS_KILL params
 
 int32_t GetUserIdByUid(int32_t uid)
 {
@@ -2233,25 +2243,25 @@ bool AppMgrServiceInner::DoAllProcessExitCallback(std::list<SimpleProcessInfo> &
         }
         if (appMgrInner == nullptr) {
             TAG_LOGE(AAFwkTag::APPMGR, "appMgrInner nullptr");
-            callback->OnLogoutUserDone(userId, AAFwk::ERR_LOGOUT_USER_APP_MANAGER_NULL);
+            callback->OnUserCmdDone(userId, AAFwk::ERR_LOGOUT_USER_APP_MANAGER_NULL);
             return;
         }
         if (ProcessUtil::IsAllProcessKilled(processInfos)) {
             TAG_LOGI(AAFwkTag::APPMGR, "all process exit");
-            callback->OnLogoutUserDone(userId, ERR_OK);
+            callback->OnUserCmdDone(userId, ERR_OK);
             return;
         }
         int64_t currentTime = appMgrInner->SystemTimeMillisecond();
         if (currentTime - startTime > LOGOUT_USER_TIMEOUT_MILLISION_SECONDS) {
             TAG_LOGE(AAFwkTag::APPMGR, "kill process timeout");
-            callback->OnLogoutUserDone(userId, AAFwk::ERR_LOGOUT_USER_KILL_PROCESS_TIMEOUT);
+            callback->OnUserCmdDone(userId, AAFwk::ERR_LOGOUT_USER_KILL_PROCESS_TIMEOUT);
             return;
         }
         appMgrInner->DoAllProcessExitCallback(processInfos, userId, callback, startTime);
     };
     if (taskHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "taskHandler_ nullptr");
-        callback->OnLogoutUserDone(userId, AAFwk::ERR_LOGOUT_USER_TASK_HANDLE_NULL);
+        callback->OnUserCmdDone(userId, AAFwk::ERR_LOGOUT_USER_TASK_HANDLE_NULL);
         return false;
     }
     taskHandler_->SubmitTaskJust(checkProcessExistCallback, "DelayCheckProcessExit",
@@ -2267,7 +2277,7 @@ int32_t AppMgrServiceInner::WaitProcessesExitAndKill(std::list<SimpleProcessInfo
     if (WaitForRemoteProcessExit(processInfos, startTime)) {
         TAG_LOGI(AAFwkTag::APPMGR, "remote process exited successs");
         if (callback) {
-            callback->OnLogoutUserDone(userId, ERR_OK);
+            callback->OnUserCmdDone(userId, ERR_OK);
         }
         return result;
     }
@@ -3291,7 +3301,7 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         TAG_LOGE(AAFwkTag::APPMGR, "no appRecord");
         return;
     }
-    std::string appRunningUniqueId = std::to_string(appRecord->GetAppStartTime());
+    std::string appRunningUniqueId = std::to_string(appRecord->GetAppRunningUniqueId());
     AAFwk::EventInfo eventInfo;
     SetKilledEventInfo(appRecord, eventInfo);
     std::string newReason = appRecord->GetKillReason().empty() ? defaultReason : appRecord->GetKillReason();
@@ -3769,7 +3779,7 @@ void AppMgrServiceInner::KillProcessesByUserId(int32_t userId, bool isNeedSendAp
         std::list<SimpleProcessInfo> processInfos;
         if (!appRunningManager_->GetProcessInfosByUserId(userId, processInfos)) {
             TAG_LOGI(AAFwkTag::APPMGR, "process corresponding uId unstart");
-            callback->OnLogoutUserDone(userId, ERR_OK);
+            callback->OnUserCmdDone(userId, ERR_OK);
             if (isNeedSendAppSpawnMsg) {
                 TAG_LOGI(AAFwkTag::APPMGR, "developer mode, send uninstall debug hap messages");
                 SendAppSpawnUninstallDebugHapMsg(userId);
@@ -5110,40 +5120,38 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
         TAG_LOGE(AAFwkTag::APPMGR, "no appInfo");
         return;
     }
-    std::string versionCode = appInfo->versionName;
     int32_t killId = appRecord->GetKillId();
     std::string killMsg = appRecord->GetKillMsg();
     std::string innerMsg = appRecord->GetInnerMsg();
-    std::string killReason;
-    if (killId == INVALID_KILL_ID) {
-        killReason = INVALID_KILL_REASON;
-        killMsg += " " + std::string(INVALID_KILL_REASON) + ":" + std::to_string(killId);
-    } else if (killId < 0) {
-        killReason = AppExecFwk::AppfreezeManager::GetInstance()->GetExitKernelReason(appRecord->GetPid());
-    } else {
-        killReason = AppExecFwk::AppfreezeManager::GetInstance()->GetExitReasonByKillId(killId);
-    }
+    int32_t pid = appRecord->GetPid();
+    AppfreezeManager::ProcessKillInfo killInfo =
+        AppExecFwk::AppfreezeManager::GetInstance()->GetProcessKillReason(killId, pid, killMsg);
     bool foreground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
         appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
-    std::string appRunningUniqueId = std::to_string(appRecord->GetAppStartTime());
+    std::string appRunningUniqueId = std::to_string(appRecord->GetAppRunningUniqueId());
     AAFwk::EventInfo eventInfo;
     SetKilledEventInfo(appRecord, eventInfo);
     AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
     auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(PROCESS_KILL_PARAM);
-    hisyseventReport->InsertParam(EVENT_KEY_PID, eventInfo.pid);
+    hisyseventReport->InsertParam(EVENT_KEY_PID, pid);
     hisyseventReport->InsertParam(EVENT_KEY_UID, appRecord->GetUid());
     hisyseventReport->InsertParam(EVENT_KEY_PROCESS_NAME, eventInfo.processName);
     hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, appRecord->GetBundleName());
-    hisyseventReport->InsertParam(EVENT_KEY_MESSAGE, killMsg);
-    hisyseventReport->InsertParam(EVENT_KEY_REASON, killReason);
+    hisyseventReport->InsertParam(EVENT_KEY_MESSAGE, killInfo.killMsg);
+    hisyseventReport->InsertParam(EVENT_KEY_REASON, killInfo.killReason);
     hisyseventReport->InsertParam(EVENT_KEY_FOREGROUND, foreground);
-    hisyseventReport->InsertParam("APP_RUNNING_UNIQUE_ID", appRunningUniqueId);
-    hisyseventReport->InsertParam("VERSION", versionCode);
+    hisyseventReport->InsertParam(EVENT_KEY_APP_RUNNING_UNIQUE_ID, appRunningUniqueId);
+    hisyseventReport->InsertParam(EVENT_KEY_VERSIONCODE, std::to_string(appInfo->versionCode));
+    hisyseventReport->InsertParam(EVENT_KEY_VERSIONNAME, appInfo->versionName);
+    hisyseventReport->InsertParam(EVENT_KEY_INNER_MSG, innerMsg);
+    hisyseventReport->InsertParam(EVENT_KEY_PROCESS_KILL_ID, killId);
+    hisyseventReport->InsertParam(EVENT_KEY_ADJ, killInfo.adj);
+    hisyseventReport->InsertParam(EVENT_KEY_TIMESTAMP, killInfo.timestamp);
     int result = hisyseventReport->Report("FRAMEWORK", "PROCESS_KILL", HISYSEVENT_FAULT);
     TAG_LOGW(AAFwkTag::APPMGR, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], pid="
         "%{public}d, processName=%{public}s, msg=%{public}s, reason=%{public}s, FOREGROUND=%{public}d,"
-        " appRunningUniqueId=%{public}s", result, eventInfo.pid, eventInfo.processName.c_str(), killMsg.c_str(),
-        killReason.c_str(), foreground, appRunningUniqueId.c_str());
+        " appRunningUniqueId=%{public}s", result, pid, eventInfo.processName.c_str(), killInfo.killMsg.c_str(),
+        killInfo.killReason.c_str(), foreground, appRunningUniqueId.c_str());
 }
 
 void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool isRenderProcess, bool isChildProcess)
@@ -5177,6 +5185,7 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
     for (const auto &token : appRecord->GetAbilities()) {
         abilityTokens.emplace_back(token.first);
     }
+    HandleForegroundAbilityDied(abilityTokens,appRecord->GetState());
     {
         std::lock_guard lock(appStateCallbacksLock_);
         for (const auto &item : appStateCallbacks_) {
@@ -7743,9 +7752,9 @@ int AppMgrServiceInner::GetExceptionTimerId(const FaultData &faultData, const st
                 TAG_LOGI(AAFwkTag::APPMGR, "Ffrt Exception faultData: %{public}s,pid: %{public}d "
                     "will exit because"" %{public}s", bundleName.c_str(), pid,
                     innerService->FaultTypeToString(faultData.faultType).c_str());
-                std::string reason = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData) ?
-                    AppFreezeType::BG_FREEZE_WARNING : faultData.errorObject.name;
-                innerService->KillProcessByPid(pid, reason);
+#ifdef APP_MGR_KILL_REASON_TAG
+                innerService->RecordAppfreezeKillReason(pid, faultData);
+#endif
                 return;
             }
         };
@@ -7891,6 +7900,20 @@ bool AppMgrServiceInner::CheckAppFault(const std::shared_ptr<AppRunningRecord> &
     return false;
 }
 
+#ifdef APP_MGR_KILL_REASON_TAG
+void AppMgrServiceInner::RecordAppfreezeKillReason(int32_t pid, const FaultData &faultData)
+{
+    bool isInBackGround = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData);
+    std::string reason = isInBackGround ? AppFreezeType::BG_FREEZE_WARNING : faultData.errorObject.name;
+    AAFwk::ExitReasonCompability exitReason = { REASON_APP_FREEZE, "Reason:" + reason };
+    exitReason.killId =
+        AppExecFwk::AppfreezeManager::GetInstance()->GetFreezeExitReason(faultData.errorObject.name);
+    exitReason.killMsg = reason;
+    exitReason.innerMsg = reason;
+    AbilityManagerClient::GetInstance()->KillAppWithReason(pid, exitReason);
+}
+#endif
+
 int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleName, const FaultData &faultData,
     bool isNeedExit)
 {
@@ -7903,14 +7926,9 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
             uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
             AppExecFwk::AppfreezeManager::GetInstance()->RegisterAppKillTime(pid, now);
-            bool isInBackGround = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData);
-            std::string reason = isInBackGround ? AppFreezeType::BG_FREEZE_WARNING : faultData.errorObject.name;
-            int killId = -1;
-#ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
-            killId = HiviewDFX::ProcessKillReason::REASON_APP_FREEZE;
+#ifdef APP_MGR_KILL_REASON_TAG
+            innerService->RecordAppfreezeKillReason(pid, faultData);
 #endif
-            innerService->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
-            innerService->KillProcessByPid(pid, reason);
             return;
         };
         int32_t waitTime = AppExecFwk::AppfreezeManager::GetInstance()->IsBetaVersion() ?
@@ -7974,7 +7992,7 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
         transformedFaultData.timeoutMarkers = "notifyFault:" + transformedFaultData.errorObject.name +
             std::to_string(pid) + "-" + std::to_string(SystemTimeMillisecond());
     }
-    const int64_t timeout = 3000; // ipc tiomeout 3000ms
+    const int64_t timeout = 3000; // ipc timeout 3000ms
     if (faultData.faultType == FaultDataType::APP_FREEZE) {
         if (!AppExecFwk::AppfreezeManager::GetInstance()->IsHandleAppfreeze(bundleName) || record->IsDebugging()) {
             return ERR_OK;
@@ -11481,6 +11499,23 @@ void AppMgrServiceInner::CheckRenderAttachTimeout(std::shared_ptr<RenderRecord> 
         pid, elapsedMs);
     AppMgrEventUtil::SendRenderProcessStartFailedEvent(renderRecord,
         ProcessStartFailedReason::ATTACH_TIMEOUT, elapsedMs);
+}
+
+void AppMgrServiceInner::HandleForegroundAbilityDied(
+    const std::vector<sptr<IRemoteObject>>& abilityTokens,ApplicationState state)
+{
+    if (state != ApplicationState::APP_STATE_FOREGROUND) {
+        return;
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "Handling died abilities in foreground.");
+    for (const auto& token : abilityTokens) {
+        if (token == nullptr) {
+            continue;
+        }
+        AppRecoveryMgr::AppRecoveryMgr::GetInstance().HandleAppDied(token);
+        TAG_LOGI(AAFwkTag::APPMGR, "Notified AppRecoveryMgr for ability token: %{public}p",
+                  token.GetRefPtr());
+    }
 }
 } // namespace AppExecFwk
 }  // namespace OHOS
