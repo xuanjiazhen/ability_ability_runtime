@@ -23,6 +23,7 @@
 #include "ets_environment.h"
 #undef private
 
+#include "hap_module_info.h"
 #include "mock_ani_env.h"
 
 using namespace testing;
@@ -297,6 +298,7 @@ HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0200, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
+    info.aotCompileStatus = static_cast<int32_t>(AppExecFwk::AOTCompileStatus::NOT_COMPILED);
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
@@ -699,6 +701,7 @@ HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0300, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
+    info.aotCompileStatus = static_cast<int32_t>(AppExecFwk::AOTCompileStatus::NOT_COMPILED);
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
@@ -731,6 +734,7 @@ HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0400, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
+    info.aotCompileStatus = static_cast<int32_t>(AppExecFwk::AOTCompileStatus::NOT_COMPILED);
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
@@ -758,6 +762,7 @@ HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0500, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
+    info.aotCompileStatus = static_cast<int32_t>(AppExecFwk::AOTCompileStatus::NOT_COMPILED);
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
@@ -785,6 +790,7 @@ HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0600, TestSize.Level0)
 
     OHOS::AbilityRuntime::CommonHspBundleInfo info;
     info.versionCode = 0;
+    info.aotCompileStatus = static_cast<int32_t>(AppExecFwk::AOTCompileStatus::NOT_COMPILED);
     info.bundleName = "bundle";
     info.moduleName = "module";
     info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
