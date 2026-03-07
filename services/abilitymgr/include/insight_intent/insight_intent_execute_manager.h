@@ -36,12 +36,12 @@ enum class InsightIntentExecuteState {
 };
 
 struct InsightIntentExecuteRecord {
-    InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
-    uint64_t key = 0;
     sptr<IRemoteObject> callerToken = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient = nullptr;
+    uint64_t key = 0;
     std::string bundleName;
     std::string callerBundleName;
+    InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
 };
 
 class InsightIntentExecuteConnection : public AbilityConnectionStub {
@@ -78,7 +78,8 @@ public:
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, std::string callerBundleName = "",
         const bool ignoreAbilityName = false);
 
-    int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode, std::string callerBundleName = "");
+    int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId,
+        std::string callerBundleName = "");
 
     int32_t RemoveExecuteIntent(uint64_t intentId);
 
@@ -130,7 +131,7 @@ private:
         AbilityRuntime::ExtractInsightIntentInfo &info, Want &want);
     static int32_t UpdateEntryDecoratorParams(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param,
         AbilityRuntime::ExtractInsightIntentInfo &info, Want &want);
-    static int32_t UpdateEntryDecoratorParams(Want &want, AppExecFwk::ExecuteMode executeMode);
+    static int32_t UpdateEntryDecoratorParams(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId);
     static std::string GetMainElementName(const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param);
 
     void SendIntentReport(EventInfo &eventInfo, int32_t errCode);

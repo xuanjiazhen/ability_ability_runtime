@@ -39,9 +39,6 @@
 #endif
 
 namespace OHOS {
-namespace AppExecFwk {
-class Configuration;
-}
 namespace Ace {
 class UIContent;
 }
@@ -51,6 +48,7 @@ using RuntimeTask = std::function<void(int, const AAFwk::Want&, bool)>;
 using PermissionRequestTask = std::function<void(const std::vector<std::string>&, const std::vector<int>&)>;
 using RequestDialogResultTask = std::function<void(int32_t resultCode, const AAFwk::Want&)>;
 using AbilityConfigUpdateCallback = std::function<void(AppExecFwk::Configuration &config)>;
+using BindingObjectConfigUpdateCallback = std::function<void(std::shared_ptr<AppExecFwk::Configuration> config)>;
 class LocalCallContainer;
 constexpr int32_t DEFAULT_INVAL_VALUE = -1;
 class AbilityContext : public Context {
@@ -233,6 +231,7 @@ public:
     *
     * @param want Indicates the want containing information about the ability to connect
     * @param connectCallback Indicates the callback object when the target ability is connected.
+    * @param extensionType Indicates the extensionType about the ability to connect
     * @return True means success and false means failure
     */
     virtual ErrCode ConnectExtensionAbilityWithExtensionType(const AAFwk::Want& want,
@@ -401,6 +400,8 @@ public:
     virtual std::shared_ptr<AppExecFwk::Configuration> GetAbilityConfiguration() const = 0;
     virtual void SetAbilityConfiguration(const AppExecFwk::Configuration &config) = 0;
     virtual void SetAbilityColorMode(int32_t colorMode) = 0;
+    virtual void RegisterBindingObjectConfigUpdateCallback(BindingObjectConfigUpdateCallback callback) = 0;
+    virtual void NotifyBindingObjectConfigUpdate() = 0;
     virtual void SetAbilityResourceManager(std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr) = 0;
     virtual bool GetHookOff() = 0;
     virtual void SetHookOff(bool hookOff) = 0;

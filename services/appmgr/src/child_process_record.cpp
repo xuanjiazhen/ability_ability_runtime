@@ -60,7 +60,7 @@ bool ChildProcessRecord::IsNativeSpawnStarted() const
 std::shared_ptr<ChildProcessRecord> ChildProcessRecord::CreateChildProcessRecord(pid_t hostPid,
     const ChildProcessRequest &request, const std::shared_ptr<AppRunningRecord> hostRecord)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "hostPid: %{public}d, srcEntry: %{priavte}s,", hostPid, request.srcEntry.c_str());
+    TAG_LOGD(AAFwkTag::APPMGR, "hostPid: %{public}d, srcEntry: %{private}s,", hostPid, request.srcEntry.c_str());
     if (hostPid <= 0 || request.srcEntry.empty() || !hostRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "invalid parameter");
         return nullptr;
@@ -238,6 +238,16 @@ void ChildProcessRecord::SetEntryParams(const std::string &entryParams)
 std::string ChildProcessRecord::GetEntryParams() const
 {
     return entryParams_;
+}
+
+void ChildProcessRecord::SetAttachTimeoutStartTime(const std::chrono::system_clock::time_point &time)
+{
+    attachTimeoutStartTime_ = time;
+}
+
+std::chrono::system_clock::time_point ChildProcessRecord::GetAttachTimeoutStartTime() const
+{
+    return attachTimeoutStartTime_;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -121,11 +121,6 @@ public:
         return 0;
     }
 
-    virtual int32_t JudgeSandboxByPid(pid_t pid, bool& isSandbox)
-    {
-        return 0;
-    }
-
     virtual int32_t IsTerminatingByPid(pid_t pid, bool& isTerminating)
     {
         return 0;
@@ -146,7 +141,8 @@ public:
         return 0;
     }
 
-    virtual int32_t NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel>& procLevelMap)
+    virtual int32_t NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel>& procLevelMap,
+        bool isShellCall = false)
     {
         return 0;
     }
@@ -473,6 +469,11 @@ public:
     }
 
     virtual int32_t SetProcessCacheEnable(int32_t pid, bool enable)
+    {
+        return 0;
+    }
+
+    virtual int32_t LockProcessCache(int32_t pid, bool isLock)
     {
         return 0;
     }

@@ -87,6 +87,7 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
 {
     HandleAndLogIfNotJsError(obj);
     std::string errorMsg = GetNativeStrFromJsTaggedObj(obj, "message");
+    AppendExtraInfo(errorMsg);
     std::string errorName = GetNativeStrFromJsTaggedObj(obj, "name");
     std::string errorStack = GetNativeStrFromJsTaggedObj(obj, "stack");
     std::string summary = "Error name:" + errorName + "\n";
@@ -106,6 +107,17 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
         TAG_LOGE(AAFwkTag::JSENV, "errorStack is empty");
         return;
     }
+
+    AppendStackTrace(errorStack, summary);
+    AppendAsyncStack(obj, summary);
+
+    if (uncaughtTask_) {
+        uncaughtTask_(summary, errorObj, env_, obj);
+    }
+}
+
+void NapiUncaughtExceptionCallback::AppendStackTrace(const std::string& errorStack, std::string& summary)
+{
     if (errorStack.find(BACKTRACE) != std::string::npos) {
         summary += "Stacktrace:\n" + GetFuncNameAndBuildId(errorStack);
 #ifdef SUPPORT_GRAPHICS
@@ -128,8 +140,33 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
             summary += "HybridStack:\n" + stackTraceStr;
         }
     }
-    if (uncaughtTask_) {
-        uncaughtTask_(summary, errorObj);
+}
+
+void NapiUncaughtExceptionCallback::AppendAsyncStack(const napi_value& obj, std::string& summary)
+{
+    EcmaVM *vm = const_cast<EcmaVM *>(reinterpret_cast<NativeEngine *>(env_)->GetEcmaVm());
+    if (!panda::DFXJSNApi::GetEnableRuntimeAsyncStack(vm)) {
+        return;
+    }
+    std::string asyncStack = GetNativeStrFromJsTaggedObj(obj, "asyncStack");
+    std::ostringstream oss;
+    std::istringstream iss(asyncStack);
+    oss << "AsyncStack:\n";
+    std::string line;
+    while (std::getline(iss, line)) {
+        oss << "    " << line << "\n";
+    }
+    summary += oss.str();
+}
+
+void NapiUncaughtExceptionCallback::AppendExtraInfo(std::string& errorMsg)
+{
+    NativeEngine *engine = reinterpret_cast<NativeEngine*>(env_);
+    std::string jsonInfo;
+    uint32_t position = 0;
+    engine->GetJsonExtraInfoForCrash(env_, jsonInfo, position);
+    if (!jsonInfo.empty()) {
+        errorMsg.append(" at position ").append(std::to_string(position)).append(", ").append(jsonInfo);
     }
 }
 

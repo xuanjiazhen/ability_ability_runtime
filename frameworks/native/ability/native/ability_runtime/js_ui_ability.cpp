@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -24,6 +24,7 @@
 #include "ability_recovery.h"
 #include "ability_start_setting.h"
 #include "app_recovery.h"
+#include "bool_wrapper.h"
 #include "connection_manager.h"
 #include "context/application_context.h"
 #include "context/context.h"
@@ -48,9 +49,12 @@
 #include "scene_board_judgement.h"
 #endif
 #include "ohos_application.h"
+#include "madvise/madvise_utils.h"
 #include "napi_common_configuration.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
+#include "page_switch_log.h"
+#include "parameters.h"
 #include "string_wrapper.h"
 #include "system_ability_definition.h"
 #include "time_util.h"
@@ -72,6 +76,9 @@ constexpr const int32_t API12 = 12;
 constexpr const int32_t API_VERSION_MOD = 100;
 constexpr const int32_t PROMISE_CALLBACK_PARAM_NUM = 2;
 constexpr const int32_t CALL_BACK_ERROR = -1;
+#ifdef SUPPORT_GRAPHICS
+const int32_t CONTINUE_GET_CONTENT_FAILED = 29360200;
+#endif
 
 napi_value PromiseCallback(napi_env env, napi_callback_info info)
 {
@@ -200,6 +207,7 @@ void BindContext(napi_env env, std::unique_ptr<NativeReference> contextRef, JsRu
     const std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext)
 {
     CHECK_POINTER(contextRef);
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value contextObj = contextRef->GetNapiValue();
     if (!CheckTypeForNapiValue(env, contextObj, napi_object)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "get ability native object failed");
@@ -227,13 +235,45 @@ void BindContext(napi_env env, std::unique_ptr<NativeReference> contextRef, JsRu
         delete workContext;
     }
 }
+
+NativeReference *GetBindingContext(const std::weak_ptr<AbilityRuntime::AbilityContext> &abilityContextWeakPtr)
+{
+    auto abilityContext = abilityContextWeakPtr.lock();
+    if (abilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityContext");
+        return nullptr;
+    }
+    auto& bindingObject = abilityContext->GetBindingObject();
+    if (bindingObject == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null bindingObject");
+        return nullptr;
+    }
+    auto* ptr = bindingObject->Get<NativeReference>();
+    return ptr;
+}
+
+void UpdateAniContextConfig(napi_env env, const std::weak_ptr<AbilityRuntime::AbilityContext> &abilityContextWeakPtr,
+    std::shared_ptr<AppExecFwk::Configuration> config)
+{
+    if (env == nullptr || config == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "env or config is null");
+        return;
+    }
+
+    NativeReference *context = GetBindingContext(abilityContextWeakPtr);
+    if (context == nullptr) {
+        return;
+    }
+
+    JsAbilityContext::ConfigurationUpdated(env, context->GetNapiValue(), config);
+}
 } // namespace
 
 #define DISPATCH_ABILITY_INTEROP(type, applicationContext, jsRuntime, ability)                      \
     do {                                                                                            \
         if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {  \
             std::shared_ptr<InteropObject> interopObject =                                          \
-                InteropObjectInstance::CreateInteropObject(jsRuntime_, ability);                    \
+                InteropObjectInstance::CreateInteropObject(jsRuntime, ability);                     \
             applicationContext->Dispatch##type(interopObject);                                      \
         }                                                                                           \
     } while(0)
@@ -242,9 +282,9 @@ void BindContext(napi_env env, std::unique_ptr<NativeReference> contextRef, JsRu
     do {                                                                                            \
         if (applicationContext && !applicationContext->IsInteropAbilityLifecycleCallbackEmpty()) {  \
             std::shared_ptr<InteropObject> interopAbility =                                         \
-                InteropObjectInstance::CreateInteropObject(jsRuntime_, ability);                    \
+                InteropObjectInstance::CreateInteropObject(jsRuntime, ability);                     \
             std::shared_ptr<InteropObject> interopWindowStage =                                     \
-                InteropObjectInstance::CreateInteropObject(jsRuntime_, stage);                      \
+                InteropObjectInstance::CreateInteropObject(jsRuntime, stage);                       \
             applicationContext->Dispatch##type(interopAbility, interopWindowStage);                 \
         }                                                                                           \
     } while(0)
@@ -370,6 +410,11 @@ void JsUIAbility::CreateAndBindContext(const std::shared_ptr<AbilityRuntime::Abi
     }
 
     BindContext(env, std::move(contextRef), jsRuntime, abilityContext);
+    std::weak_ptr abilityContextWeakPtr = abilityContext;
+    abilityContext->RegisterBindingObjectConfigUpdateCallback(
+        [env, abilityContextWeakPtr](std::shared_ptr<AppExecFwk::Configuration> config) {
+            UpdateAniContextConfig(env, abilityContextWeakPtr, config);
+        });
 }
 
 void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
@@ -427,6 +472,7 @@ void JsUIAbility::SetAbilityContext(std::shared_ptr<AbilityInfo> abilityInfo,
 
 void JsUIAbility::CreateJSContext(napi_env env, napi_value &contextObj, int32_t screenMode)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     if (screenMode == AAFwk::IDLE_SCREEN_MODE) {
         contextObj = CreateJsAbilityContext(env, abilityContext_);
         CHECK_POINTER(contextObj);
@@ -487,6 +533,7 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
         applicationContext->DispatchOnAbilityWillCreate(ability);
     }
 
+    WriteLifecycleSwitchLog("onCreate");
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     CallObjectMethod("onCreate", argv, ArraySize(argv));
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
@@ -508,6 +555,18 @@ void JsUIAbility::HandleAbilityDelegatorStart()
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
         property->object_ = jsAbilityObj_;
         delegator->PostPerformStart(property);
+    }
+}
+
+void JsUIAbility::WriteLifecycleSwitchLog(const std::string lifecycleName)
+{
+    if (!OHOS::HiviewDFX::IsPageSwitchLoggable()) {
+        return;
+    }
+    std::string msg = lifecycleName + ", ModuleName: " + GetModuleName() + ", AbilityName: " + GetAbilityName();
+    auto ret = OHOS::HiviewDFX::WritePageSwitchStr(msg);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "write lifecycle switch log failed [%{public}d]", ret);
     }
 }
 
@@ -563,6 +622,7 @@ void JsUIAbility::OnStop()
         JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
         applicationContext->DispatchOnAbilityWillDestroy(ability);
     }
+    WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod("onDestroy");
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
@@ -591,6 +651,7 @@ void JsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackI
         JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
         applicationContext->DispatchOnAbilityWillDestroy(ability);
     }
+    WriteLifecycleSwitchLog("onDestroy");
     napi_value result = CallObjectMethod("onDestroy", nullptr, 0, true);
     if (!CheckPromise(result)) {
         OnStopCallback();
@@ -666,6 +727,7 @@ void JsUIAbility::OnSceneCreated()
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "onWindowStageCreate");
         std::string methodName = "OnSceneCreated";
         AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+        WriteLifecycleSwitchLog("onWindowStageCreate");
         CallObjectMethod("onWindowStageCreate", argv, ArraySize(argv));
         AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     }
@@ -752,6 +814,7 @@ void JsUIAbility::onSceneDestroyed()
     }
     HandleScope handleScope(jsRuntime_);
     UpdateJsWindowStage(nullptr);
+    WriteLifecycleSwitchLog("onWindowStageDestroy");
     CallObjectMethod("onWindowStageDestroy");
 
     if (scene_ != nullptr) {
@@ -824,6 +887,7 @@ void JsUIAbility::CallOnForegroundFunc(const Want &want)
         applicationContext->DispatchOnAbilityWillForeground(ability);
     }
 
+    WriteLifecycleSwitchLog("onForeground");
     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
     std::string methodName = "OnForeground";
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
@@ -859,6 +923,7 @@ void JsUIAbility::OnBackground()
     std::string methodName = "OnBackground";
     HandleScope handleScope(jsRuntime_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
+    WriteLifecycleSwitchLog("onBackground");
     CallObjectMethod("onBackground");
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::BACKGROUND, methodName);
 
@@ -881,6 +946,15 @@ void JsUIAbility::OnBackground()
     auto want = GetWant();
     if (want != nullptr) {
         HandleCollaboration(*want);
+    }
+    // Apply madvise optimization based on config file (only once per process)
+    static bool madviseApplied = false;
+    if (!madviseApplied && abilityInfo_ != nullptr) {
+        bool enableMadvise = OHOS::system::GetBoolParameter("persist.sys.abilityms.enable_madvise", false);
+        if (enableMadvise) {
+            MadviseUtil::MadviseWithConfigFile(abilityInfo_->bundleName.c_str());
+        }
+        madviseApplied = true;
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -1291,6 +1365,8 @@ void JsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
             TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
             return;
         }
+        std::static_pointer_cast<JsUIAbility>(ability)->AddLifecycleEventAfterJSCall(
+            FreezeUtil::TimeoutState::FOREGROUND, "IntentRepeat");
         ability->RequestFocus(want);
     };
     callback->Push(asyncCallback);
@@ -1303,7 +1379,8 @@ void JsUIAbility::ExecuteInsightIntentRepeateForeground(const Want &want,
             static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
         return;
     }
-
+    RegisterDelayResultCallback(executeParam);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentRepeat");
     ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executeInfo, std::move(callback));
     if (!ret) {
@@ -1336,6 +1413,8 @@ void JsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
             TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
             return;
         }
+        std::static_pointer_cast<JsUIAbility>(ability)->AddLifecycleEventAfterJSCall(
+            FreezeUtil::TimeoutState::FOREGROUND, "IntentForeground");
         ability->CallOnForegroundFunc(want);
     };
     callback->Push(asyncCallback);
@@ -1349,6 +1428,7 @@ void JsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
         return;
     }
     RegisterDelayResultCallback(executeParam);
+    AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, "IntentForeground");
     ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
         jsRuntime_, executeInfo, std::move(callback));
     if (!ret) {
@@ -1512,6 +1592,7 @@ void JsUIAbility::OnAbilityRequestFailure(const std::string &requestId, const Ap
     const std::string &message, int32_t resultCode)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "OnAbilityRequestFailure called");
+    HandleScope handle(jsRuntime_);
     UIAbility::OnAbilityRequestFailure(requestId, element, message, resultCode);
     auto abilityContext = GetAbilityContext();
     if (abilityContext == nullptr) {
@@ -1525,6 +1606,7 @@ void JsUIAbility::OnAbilityRequestSuccess(const std::string &requestId, const Ap
     const std::string &message)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "OnAbilityRequestSuccess called");
+    HandleScope handle(jsRuntime_);
     UIAbility::OnAbilityRequestSuccess(requestId, element, message);
     auto abilityContext = GetAbilityContext();
     if (abilityContext == nullptr) {
@@ -1570,6 +1652,8 @@ int32_t JsUIAbility::OnContinue(WantParams &wantParams, bool &isAsyncOnContinue,
     napi_status createStatus = napi_create_reference(env, jsWantParams, 1, &jsWantParamsRef);
     if (createStatus != napi_ok) {
         TAG_LOGE(AAFwkTag::UIABILITY, "napi_create_reference failed, %{public}d", createStatus);
+        AppExecFwk::AbilityTransactionCallbackInfo<int32_t>::Destroy(callbackInfo);
+        callbackInfo = nullptr;
         return AppExecFwk::ContinuationManagerStage::OnContinueResult::ON_CONTINUE_ERR;
     }
     ReleaseOnContinueAsset(env, result, jsWantParamsRef, callbackInfo);
@@ -1584,6 +1668,8 @@ int32_t JsUIAbility::OnContinue(WantParams &wantParams, bool &isAsyncOnContinue,
     callbackInfo->Push(asyncCallback);
     if (!CallPromise(result, callbackInfo)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "call promise failed");
+        AppExecFwk::AbilityTransactionCallbackInfo<int32_t>::Destroy(callbackInfo);
+        callbackInfo = nullptr;
         return OnContinueSyncCB(result, wantParams, jsWantParams);
     }
     isAsyncOnContinue = true;
@@ -1627,7 +1713,20 @@ int32_t JsUIAbility::OnContinueAsyncCB(napi_ref jsWantParamsRef, int32_t status,
         JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
         applicationContext->DispatchOnAbilityContinue(ability);
     }
-
+#ifdef SUPPORT_GRAPHICS
+    auto value = wantParams.GetParam(SUPPORT_CONTINUE_PAGE_STACK_PROPERTY_NAME);
+    AAFwk::IBoolean *ao = AAFwk::IBoolean::Query(value);
+    if (ao == nullptr || AAFwk::Boolean::Unbox(ao)) {
+        std::string pageStack = GetContentInfo();
+        if (pageStack.empty()) {
+            TAG_LOGE(AAFwkTag::CONTINUATION, "GetContentInfo failed");
+            status = CONTINUE_GET_CONTENT_FAILED;
+        } else {
+            TAG_LOGI(AAFwkTag::CONTINUATION, "pageStack: %{public}s", pageStack.c_str());
+            wantParams.SetParam(PAGE_STACK_PROPERTY_NAME, AAFwk::String::Box(pageStack));
+        }
+    }
+#endif
     Want want;
     want.SetParams(wantParams);
     want.AddFlags(want.FLAG_ABILITY_CONTINUATION);
@@ -1758,7 +1857,10 @@ void JsUIAbility::OnConfigurationUpdated(const Configuration &configuration)
     CallObjectMethod("onConfigurationUpdated", &napiConfiguration, 1);
     CallObjectMethod("onConfigurationUpdate", &napiConfiguration, 1);
     auto realConfigPtr = std::make_shared<Configuration>(realConfig);
-    JsAbilityContext::ConfigurationUpdated(env, shellContextRef_, realConfigPtr);
+    if (shellContextRef_ != nullptr) {
+        JsAbilityContext::ConfigurationUpdated(env, shellContextRef_->GetNapiValue(), realConfigPtr);
+    }
+    abilityContext_->NotifyBindingObjectConfigUpdate();
 }
 
 void JsUIAbility::OnMemoryLevel(int level)
@@ -1792,7 +1894,11 @@ void JsUIAbility::UpdateContextConfiguration()
     }
     HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
-    JsAbilityContext::ConfigurationUpdated(env, shellContextRef_, abilityContext_->GetConfiguration());
+    if (shellContextRef_ != nullptr) {
+        JsAbilityContext::ConfigurationUpdated(env, shellContextRef_->GetNapiValue(),
+            abilityContext_->GetConfiguration());
+    }
+    abilityContext_->NotifyBindingObjectConfigUpdate();
 }
 
 void JsUIAbility::RemoveShareRouterByBundleType(const Want &want)
@@ -1855,6 +1961,7 @@ void JsUIAbility::OnNewWant(const Want &want)
     };
     std::string methodName = "OnNewWant";
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
+    WriteLifecycleSwitchLog("onNewWant");
     CallObjectMethod("onNewWant", argv, ArraySize(argv));
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
 

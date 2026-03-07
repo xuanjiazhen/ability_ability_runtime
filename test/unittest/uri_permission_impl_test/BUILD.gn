@@ -31,6 +31,7 @@ ohos_unittest("uri_permission_impl_test") {
     "${ability_runtime_test_path}/mock/common/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include/",
     "${ability_runtime_test_path}/new_test/mock/security/sandbox_manager/",
+    "${ability_runtime_utils_path}/global/constant",
     "mock/include",
   ]
 
@@ -52,6 +53,7 @@ ohos_unittest("uri_permission_impl_test") {
     "mock/src/mock_permission_verification.cpp",
     "mock/src/mock_udmf_utils.cpp",
     "batch_uri_test.cpp",
+    "file_permission_manager_test.cpp",
     "uri_permission_impl_test.cpp",
   ]
 

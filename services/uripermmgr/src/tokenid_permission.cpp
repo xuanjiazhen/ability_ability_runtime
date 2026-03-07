@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "tokenid_permission.h"
 
 #include "permission_constants.h"
@@ -79,5 +80,45 @@ bool TokenIdPermission::VerifyWriteAudioPermission()
     }
     return haveWriteAudioPermission_;
 }
-} // OHOS
-} // AAFwk
+
+bool TokenIdPermission::VerifyRWDownloadPermission()
+{
+    if (!initRWDownloadPermission_) {
+        initRWDownloadPermission_ = true;
+        haveRWDownloadPermission_ = PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
+            tokenId_, PermissionConstants::PERMISSION_READ_WRITE_DOWNLOAD);
+    }
+    return haveRWDownloadPermission_;
+}
+
+bool TokenIdPermission::VerifyRWDeskTopPermission()
+{
+    if (!initRWDeskTopPermission_) {
+        initRWDeskTopPermission_ = true;
+        haveRWDeskTopPermission_ = PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
+            tokenId_, PermissionConstants::PERMISSION_READ_WRITE_DESKTOP);
+    }
+    return haveRWDeskTopPermission_;
+}
+
+bool TokenIdPermission::VerifyRWDocumentsPermission()
+{
+    if (!initRWDocumentsPermission_) {
+        initRWDocumentsPermission_ = true;
+        haveRWDocumentsPermission_ = PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
+            tokenId_, PermissionConstants::PERMISSION_READ_WRITE_DOCUMENTS);
+    }
+    return haveRWDocumentsPermission_;
+}
+
+bool TokenIdPermission::VerifySandboxAccessPermission()
+{
+    if (!initSandboxAccessPermission_) {
+        initSandboxAccessPermission_ = true;
+        haveSandboxAccessPermission_ = PermissionVerification::GetInstance()->VerifyPermissionByTokenId(
+            tokenId_, PermissionConstants::PERMISSION_SANDBOX_ACCESS_MANAGER);
+    }
+    return haveSandboxAccessPermission_;
+}
+}  // OHOS
+}  // AAFwk

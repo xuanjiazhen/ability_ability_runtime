@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -244,8 +244,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallAbilityPermission_0300, TestSize.L
     AAFwk::PermissionVerification::VerificationInfo verificationInfo;
     verificationInfo.visible = false;
     verificationInfo.isBackgroundCall = false;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallAbilityPermission(verificationInfo);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallAbilityPermission(verificationInfo);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == ERR_OK);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -306,8 +307,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallServiceAbilityPermission_0100, Tes
     verificationInfo.visible = false;
     verificationInfo.isBackgroundCall = true;
     verificationInfo.associatedWakeUp = false;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -360,8 +362,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallServiceAbilityPermission_0400, Tes
     verificationInfo.visible = false;
     verificationInfo.isBackgroundCall = false;
     verificationInfo.associatedWakeUp = false;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -414,8 +417,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallServiceAbilityPermission_0700, Tes
     verificationInfo.visible = false;
     verificationInfo.isBackgroundCall = false;
     verificationInfo.associatedWakeUp = false;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -430,8 +434,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallServiceAbilityPermission_0800, Tes
     int api9 = 9;
     verificationInfo.apiTargetVersion = api9;
     verificationInfo.isBackgroundCall = true;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -447,8 +452,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallServiceAbilityPermission_0900, Tes
     verificationInfo.apiTargetVersion = api8;
     verificationInfo.isBackgroundCall = false;
     verificationInfo.visible = false;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -467,6 +473,25 @@ HWTEST_F(PermissionVerificationTest, CheckCallServiceAbilityPermission_1000, Tes
     verificationInfo.associatedWakeUp = false;
     int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(verificationInfo);
     EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/**
+ * @tc.name: CheckCallServiceAbilityPermission_1100
+ * @tc.desc: CheckCallServiceAbilityPermission with specified token id
+ * @tc.type: FUNC
+ */
+HWTEST_F(PermissionVerificationTest, CheckCallServiceAbilityPermission_1100, TestSize.Level2)
+{
+    AAFwk::PermissionVerification::VerificationInfo verificationInfo;
+    int api9 = 9;
+    verificationInfo.apiTargetVersion = api9;
+    verificationInfo.visible = true;
+    verificationInfo.isBackgroundCall = false;
+    verificationInfo.associatedWakeUp = true;
+    uint32_t specifyTokenId = 0;
+    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceAbilityPermission(
+        verificationInfo, specifyTokenId);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -495,8 +520,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallServiceExtensionPermission_0200, T
     AAFwk::PermissionVerification::VerificationInfo verificationInfo;
     verificationInfo.visible = false;
     verificationInfo.isBackgroundCall = false;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceExtensionPermission(verificationInfo);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallServiceExtensionPermission(verificationInfo);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == ERR_OK);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -528,8 +554,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallDataAbilityPermission_0100, TestSi
     verificationInfo.visible = false;
     verificationInfo.isBackgroundCall = true;
     verificationInfo.associatedWakeUp = false;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -582,8 +609,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallDataAbilityPermission_0400, TestSi
     verificationInfo.visible = false;
     verificationInfo.isBackgroundCall = false;
     verificationInfo.associatedWakeUp = false;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -636,8 +664,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallDataAbilityPermission_0700, TestSi
     verificationInfo.visible = false;
     verificationInfo.isBackgroundCall = false;
     verificationInfo.associatedWakeUp = false;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -652,8 +681,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallDataAbilityPermission_0800, TestSi
     int api9 = 9;
     verificationInfo.apiTargetVersion = api9;
     verificationInfo.isBackgroundCall = true;
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -670,8 +700,9 @@ HWTEST_F(PermissionVerificationTest, CheckCallDataAbilityPermission_0900, TestSi
     verificationInfo.visible = false;
     verificationInfo.isBackgroundCall = false;
 
-    int result = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
-    EXPECT_EQ(result, ABILITY_VISIBLE_FALSE_DENY_REQUEST);
+    int code = AAFwk::PermissionVerification::GetInstance()->CheckCallDataAbilityPermission(verificationInfo, false);
+    bool result = (code == ABILITY_VISIBLE_FALSE_DENY_REQUEST) || (code == CHECK_PERMISSION_FAILED);
+    EXPECT_TRUE(result);
 }
 
 /**

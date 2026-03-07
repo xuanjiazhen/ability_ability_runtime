@@ -61,7 +61,8 @@ public:
      * @brief Notify abilityms start keep-alive process.
      * @param bundleInfos resident process bundle infos.
      */
-    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
+    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+        pid_t diedPid = INVALID_DIED_PID) override;
 
     /**
      * @brief Notify abilityms app process OnRemoteDied
@@ -93,6 +94,16 @@ public:
     virtual void OnCacheExitInfo(uint32_t accessTokenId, const RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
+
+    /**
+     * @brief Record the signal reason when an application process exits.
+     *
+     * @param pid Process ID of the exited application process.
+     * @param uid User ID of the exited application process.
+     * @param signal Signal number that caused the process to exit.
+     * @param bundleName Bundle name of the exited application.
+     */
+    virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) override;
 
 private:
     bool WriteInterfaceToken(MessageParcel &data);

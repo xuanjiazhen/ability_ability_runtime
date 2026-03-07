@@ -28,18 +28,18 @@ JSAbilityForegroundStateObserver::JSAbilityForegroundStateObserver(napi_env env)
 void JSAbilityForegroundStateObserver::CleanUp(void *data)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CleanUp");
-    auto observerInstance = reinterpret_cast<wptr<JSAbilityForegroundStateObserver> *>(data);
-    if (observerInstance == nullptr) {
+    auto foregroundStateObserver = reinterpret_cast<wptr<JSAbilityForegroundStateObserver>*>(data);
+    if (foregroundStateObserver == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
         return;
     }
-    auto observerRef = observerInstance->promote();
+    auto observerRef = foregroundStateObserver->promote();
     if (observerRef) {
         observerRef->RemoveAllJsObserverObject();
         observerRef->SetValid(false);
         observerRef->env_ = nullptr;
     }
-    delete observerInstance;
+    delete foregroundStateObserver;
 }
 
 void JSAbilityForegroundStateObserver::OnAbilityStateChanged(const AbilityStateData &abilityStateData)
@@ -67,6 +67,7 @@ void JSAbilityForegroundStateObserver::OnAbilityStateChanged(const AbilityStateD
 void JSAbilityForegroundStateObserver::HandleOnAbilityStateChanged(const AbilityStateData &abilityStateData)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    HandleScope handleScope(env_);
     for (auto &item : jsObserverObjectSet_) {
         if (item == nullptr) {
             continue;
@@ -81,6 +82,7 @@ void JSAbilityForegroundStateObserver::CallJsFunction(
     const napi_value &value, const char *methodName, const napi_value *argv, const size_t argc)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    HandleScope handleScope(env_);
     if (value == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null value");
         return;
@@ -156,6 +158,7 @@ void JSAbilityForegroundStateObserver::RemoveAllJsObserverObject()
 
 std::shared_ptr<NativeReference> JSAbilityForegroundStateObserver::GetObserverObject(const napi_value &jsObserverObject)
 {
+    HandleScope handleScope(env_);
     if (jsObserverObject == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
         return nullptr;

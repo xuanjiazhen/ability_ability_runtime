@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,7 +53,7 @@ public:
     {}
     void ScheduleLowMemory() override
     {}
-    void ScheduleMemoryLevel(const int) override
+    void ScheduleMemoryLevel(const int, bool) override
     {}
     void ScheduleHeapMemory(const int, OHOS::AppExecFwk::MallocInfo&) override
     {}
@@ -66,7 +66,8 @@ public:
     {}
     void ScheduleProfileChanged(const Profile&) override
     {}
-    void ScheduleConfigurationUpdated(const Configuration&) override
+    void ScheduleConfigurationUpdated(
+        const Configuration&, ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) override
     {}
     void ScheduleProcessSecurityExit() override
     {}
@@ -135,6 +136,11 @@ public:
     {}
 
     int32_t ScheduleDumpFfrt(std::string& result) override
+    {
+        return 0;
+    }
+
+    int32_t ScheduleDumpArkWeb(const std::string &customArgs, std::string &result) override
     {
         return 0;
     }

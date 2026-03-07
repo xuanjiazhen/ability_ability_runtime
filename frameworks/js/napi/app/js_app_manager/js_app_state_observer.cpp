@@ -20,6 +20,7 @@
 #include "napi/native_api.h"
 #include "napi/native_node_api.h"
 #include "napi_common_util.h"
+#include "ui_extension_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -89,7 +90,7 @@ void JSAppStateObserver::OnAbilityStateChanged(const AbilityStateData &abilitySt
         return;
     }
     if (abilityStateData.isInnerNotify) {
-        TAG_LOGE(AAFwkTag::APPMGR, "uiExt not notify");
+        TAG_LOGD(AAFwkTag::APPMGR, "inner notify");
         return;
     }
     wptr<JSAppStateObserver> jsObserver = this;
@@ -127,7 +128,8 @@ void JSAppStateObserver::OnExtensionStateChanged(const AbilityStateData &ability
         return;
     }
     AbilityStateData newAbilityStateData = abilityStateData;
-    if (abilityStateData.extensionAbilityType >= 0) {
+    if (AAFwk::UIExtensionWrapper::IsUIExtension(
+        static_cast<AppExecFwk::ExtensionAbilityType>(abilityStateData.extensionAbilityType))) {
         newAbilityStateData.abilityState = innerStateToState_[abilityStateData.abilityState];
     }
     wptr<JSAppStateObserver> jsObserver = this;

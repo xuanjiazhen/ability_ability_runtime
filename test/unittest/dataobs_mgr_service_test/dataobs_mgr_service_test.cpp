@@ -860,5 +860,141 @@ HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_ConstructObserverNod
     EXPECT_EQ(obsNode2.nodeId_, obsNode1.nodeId_ + 1);
     TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_ConstructObserverNode_0100 end");
 }
+
+/*
+ * Feature: DataObsMgrService with rdb uri
+ * Function: RegisterObserver
+ * SubFunction: NA
+ * FunctionPoints: DataObsMgrService RegisterObserver
+ * EnvConditions: NA
+ * CaseDescription: Verify that the DataObsMgrService RegisterObserver is normal.
+ */
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_RdbUriTest_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_DataObsMgrServiceTest_RdbUriTest_0100 start";
+    const int testVal = static_cast<int>(NO_ERROR);
+    const sptr<MockDataAbilityObserverStub> dataobsAbility(new (std::nothrow) MockDataAbilityObserverStub());
+    std::shared_ptr<Uri> uri =
+        std::make_shared<Uri>("rdb://device_id/com.domainname.dataability.persondata/person/10");
+    auto dataObsMgrServer = DelayedSingleton<DataObsMgrService>::GetInstance();
+
+    EXPECT_EQ(testVal, dataObsMgrServer->RegisterObserver(*uri, dataobsAbility));
+    EXPECT_EQ(testVal, dataObsMgrServer->UnregisterObserver(*uri, dataobsAbility));
+
+    testing::Mock::AllowLeak(dataobsAbility);
+    GTEST_LOG_(INFO) << "AaFwk_DataObsMgrServiceTest_RdbUriTest_0100 end";
+}
+
+/*
+ * Feature: DataObsMgrService with sharepreferences uri
+ * Function: RegisterObserver
+ * SubFunction: NA
+ * FunctionPoints: DataObsMgrService RegisterObserver
+ * EnvConditions: NA
+ * CaseDescription: Verify that the DataObsMgrService RegisterObserver is normal.
+ */
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_SharePreferencesUri_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_DataObsMgrServiceTest_SharePreferencesUri_0100 start";
+    const int testVal = static_cast<int>(NO_ERROR);
+    const sptr<MockDataAbilityObserverStub> dataobsAbility(new (std::nothrow) MockDataAbilityObserverStub());
+    std::shared_ptr<Uri> uri =
+        std::make_shared<Uri>("sharepreferences://device_id/com.domainname.dataability.persondata/person/10");
+    auto dataObsMgrServer = DelayedSingleton<DataObsMgrService>::GetInstance();
+
+    EXPECT_EQ(testVal, dataObsMgrServer->RegisterObserver(*uri, dataobsAbility));
+    EXPECT_EQ(testVal, dataObsMgrServer->UnregisterObserver(*uri, dataobsAbility));
+
+    testing::Mock::AllowLeak(dataobsAbility);
+    GTEST_LOG_(INFO) << "AaFwk_DataObsMgrServiceTest_SharePreferencesUri_0100 end";
+}
+
+/*
+ * Feature: DataObsMgrService with NotifyProcessObserver
+ * Function: GetFocusedWindowInfo
+ * SubFunction: NA
+ * FunctionPoints: DataObsMgrService GetFocusedWindowInfo
+ * EnvConditions: NA
+ * CaseDescription: Check whether the default window information is normal.
+ */
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_GetFocusedWindowInfo_0001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_DataObsMgrServiceTest_GetFocusedWindowInfo_0001 start";
+    auto dataObsMgrServer = DelayedSingleton<DataObsMgrService>::GetInstance();
+    DataObsMgrService::FocusedAppInfo appinfo = dataObsMgrServer->GetFocusedWindowInfo();
+    EXPECT_EQ(appinfo.top, 0);
+    EXPECT_EQ(appinfo.left, 0);
+    EXPECT_EQ(appinfo.height, 0);
+    EXPECT_EQ(appinfo.width, 0);
+    GTEST_LOG_(INFO) << "AaFwk_DataObsMgrServiceTest_GetFocusedWindowInfo_0001 end";
+}
+
+/**
+ * @tc.name: AaFwk_DataObsMgrServiceTest_RegisterObserver_0500
+ * @tc.desc: Test dataObsMgrServer RegisterObserver calling from process that possess TOKEN_NATIVE
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.precon:
+    1. process is equivalent to shell calling
+    2. uri is in allowed provider list
+ * @tc.step:
+    1. Define a test Uri and an observer
+    2. Get a DataObsMgrService instance
+    3. Call NotifyChange using DataObsMgrService
+ * @tc.expect:
+    1. NotifyChange return E_OK
+ */
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_RegisterObserver_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0500 start");
+    const int testVal = static_cast<int>(NO_ERROR);
+    const sptr<MockDataAbilityObserverStub> dataobsAbility(new (std::nothrow) MockDataAbilityObserverStub());
+    std::shared_ptr<Uri> uri =
+        std::make_shared<Uri>("datashare:///com.ohos.contactsdataability");
+    auto dataObsMgrServer = DelayedSingleton<DataObsMgrService>::GetInstance();
+
+    EXPECT_EQ(testVal, dataObsMgrServer->RegisterObserver(*uri, dataobsAbility, -1, DataObsOption(false, true)));
+
+    testing::Mock::AllowLeak(dataobsAbility);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0500 end");
+}
+
+/**
+ * @tc.name: AaFwk_DataObsMgrServiceTest_RegisterObserver_0510
+ * @tc.desc: Test RegisterObserver with system permission
+ * @tc.type: FUNC
+ * @tc.require:
+ * @tc.precon:
+    1. process is equivalent to a system ability
+    2. uri is in allowed provider list
+ * @tc.step:
+    1. Define a test Uri and an observer
+    2. Get a DataObsMgrService instance
+    3. Call RegisterObserver using DataObsMgrService
+ * @tc.expect:
+    1. RegisterObserver return E_OK
+ */
+HWTEST_F(DataObsMgrServiceTest, AaFwk_DataObsMgrServiceTest_RegisterObserver_0510, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0510 start");
+    const int testVal = static_cast<int>(NO_ERROR);
+    const sptr<MockDataAbilityObserverStub> dataobsAbility(new (std::nothrow) MockDataAbilityObserverStub());
+    std::shared_ptr<Uri> uri =
+        std::make_shared<Uri>("datashare:///com.ohos.contactsdataability");
+    auto dataObsMgrServer = DelayedSingleton<DataObsMgrService>::GetInstance();
+    auto originalToken = GetSelfTokenID();
+
+    // set token native
+    uint32_t tokenID = Security::AccessToken::DEFAULT_TOKEN_VERSION;
+    Security::AccessToken::AccessTokenIDInner *idInner =
+        reinterpret_cast<Security::AccessToken::AccessTokenIDInner *>(&tokenID);
+    idInner->type = Security::AccessToken::TOKEN_NATIVE;
+    SetSelfTokenID(tokenID);
+
+    EXPECT_EQ(testVal, dataObsMgrServer->RegisterObserver(*uri, dataobsAbility, -1, DataObsOption(false, true)));
+
+    SetSelfTokenID(originalToken);
+    TAG_LOGI(AAFwkTag::DBOBSMGR, "AaFwk_DataObsMgrServiceTest_RegisterObserver_0510 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

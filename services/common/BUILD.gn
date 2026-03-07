@@ -37,6 +37,8 @@ config("common_config") {
     "${ability_runtime_services_path}/quickfixmgr/*",
     "${ability_runtime_services_path}/uripermmgr/*",
     "${ability_runtime_test_path}/*",
+    "${ability_runtime_utils_path}/global/common/*",
+    "${agent_runtime_framework_path}/frameworks/js/napi/agent_manager/*",
     "${hiebpf_path}/*",
     "${power_manager_path}/utils/*",
     "${request_path}/common/*",
@@ -51,6 +53,29 @@ config("common_config") {
   }
 }
 
+config("optimize_config") {
+  cflags = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Oz",
+  ]
+  cflags_cc = [
+    "-flto=full",
+    "-fdata-sections",
+    "-ffunction-sections",
+    "-fstack-protector-strong",
+    "-D_FORTIFY_SOURCE=2",
+    "-Oz",
+  ]
+  ldflags = [
+    "-flto=full",
+    "-Wl",
+  ]
+}
+
 #build so
 ohos_shared_library("perm_verification") {
   branch_protector_ret = "pac_ret"
@@ -61,9 +86,7 @@ ohos_shared_library("perm_verification") {
 
   sources = [ "src/permission_verification.cpp" ]
 
-  deps = [
-    ":app_util",
-  ]
+  deps = [ ":app_util" ]
 
   external_deps = [
     "ability_base:want",
@@ -89,6 +112,7 @@ ohos_shared_library("perm_verification") {
 ohos_shared_library("task_handler_wrap") {
   branch_protector_ret = "pac_ret"
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   public_configs = [ ":common_config" ]
   include_dirs = [ "include" ]
 
@@ -108,9 +132,37 @@ ohos_shared_library("task_handler_wrap") {
   part_name = "ability_runtime"
 }
 
+ohos_shared_library("hisysevent_report") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    integer_overflow = true
+    ubsan = true
+    boundary_sanitize = true
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
+  include_dirs = [ "include" ]
+
+  sources = [
+    "src/hisysevent_report.cpp",
+  ]
+
+  external_deps = [
+    "hilog:libhilog",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
 ohos_shared_library("app_util") {
   branch_protector_ret = "pac_ret"
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   public_configs = [ ":common_config" ]
   include_dirs = [ "include" ]
 
@@ -119,11 +171,16 @@ ohos_shared_library("app_util") {
     "src/ability_manager_xcollie.cpp",
     "src/app_utils.cpp",
     "src/event_report.cpp",
+    "src/hitrace_chain_utils.cpp",
     "src/json_utils.cpp",
+    "src/rate_limiter.cpp",
     "src/record_cost_time_util.cpp",
     "src/res_sched_util.cpp",
-    "src/rate_limiter.cpp",
-    "src/hitrace_chain_utils.cpp",
+  ]
+
+  deps = [
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
+    ":hisysevent_report",
   ]
 
   external_deps = [
@@ -157,8 +214,8 @@ ohos_shared_library("app_util") {
     defines += [ "ABILITY_RUNTIME_MEDIA_LIBRARY_ENABLE" ]
   }
 
-  if (ability_runtime_forbidstart_enable) {
-    defines += [ "ABILITY_RUNTIME_FORBIDSTART_ENABLE" ]
+  if (ability_runtime_forbid_start_enabled) {
+    defines += [ "ABILITY_RUNTIME_FORBID_START_ENABLED" ]
   }
 
   subsystem_name = "ability"
@@ -186,7 +243,8 @@ ohos_shared_library("user_controller") {
 
   sources = [ "src/user_controller/user_controller.cpp" ]
 
-  deps = [ "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper", ]
+  deps =
+      [ "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper" ]
 
   external_deps = [
     "c_utils:utils",

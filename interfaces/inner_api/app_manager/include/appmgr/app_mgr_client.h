@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -496,7 +496,7 @@ public:
      * @param requestId request id to callback
      */
     virtual void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0);
+        int32_t requestId = 0, const std::string &customProcess = "");
 
     /**
      * Register response of start specified ability.
@@ -890,8 +890,8 @@ public:
     bool IsMemorySizeSufficient() const;
 
     /**
-     * whether or not requier a big memory
-     * @return Returens true is no big memory, others return false.
+     * whether or not require a big memory
+     * @return Return true if no big memory required, otherwise return false.
      */
     bool IsNoRequireBigMemory() const;
 
@@ -903,6 +903,17 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
+
+    /**
+     * Record process exit reason to appRunningRecord.
+     * @param pid Pid.
+     * @param killId Kill reason enum.
+     * @param killMsg Kill message.
+     * @param innerMsg Inner message.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t NotifyAppMgrRecordExitReasonCompability(
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg);
 
     /**
      * Preload application.
@@ -926,6 +937,8 @@ public:
     int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported);
 
     int32_t SetProcessCacheEnable(int32_t pid, bool enable);
+
+    int32_t LockProcessCache(int32_t pid, bool isLock);
 
     /**
      * set browser channel for caller
@@ -1065,6 +1078,16 @@ public:
     void AllowScbProcessMoveToBackground();
 
     int32_t KillChildProcessByPid(int32_t pid);
+
+    /**
+     * Preload extension process.
+     *
+     * @param want contains bundleName + abilityName.
+     * @param appIndex The index of application clone.
+     * @param userId Indicates the user identification.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
 
 private:
     void SetServiceManager(std::unique_ptr<AppServiceManager> serviceMgr);

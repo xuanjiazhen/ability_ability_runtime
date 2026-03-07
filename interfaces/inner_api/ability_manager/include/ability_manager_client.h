@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -152,10 +152,11 @@ public:
      *
      * @param want Ability want.
      * @param requestCode Ability request code.
+     * @param specifiedFullTokenId, The specified full token ID.
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StartAbility(const Want &want, int requestCode = DEFAULT_INVAL_VALUE,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0);
 
     /**
      * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
@@ -172,13 +173,15 @@ public:
      * @param want Ability want.
      * @param callerToken caller ability token.
      * @param requestCode Ability request code.
+     * @param specifiedFullTokenId, The specified full token ID.
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StartAbility(
         const Want &want,
         sptr<IRemoteObject> callerToken,
         int requestCode = DEFAULT_INVAL_VALUE,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0);
 
     /**
      * StartAbility by insight intent, send want to ability manager service.
@@ -434,13 +437,12 @@ public:
      * Start ui ability with want, send want to ability manager service.
      *
      * @param sessionInfo the session info of the ability to start.
+     * @param params start parameters.
      * @param isColdStart the session info of the ability is or not cold start.
-     * @param sceneFlag scene flag.
-     * @param isRestart whether kill old process and start the ability in new process.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0,
-        bool isRestart = false);
+    ErrCode StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart);
 
     /**
      * Stop extension ability with want, send want to ability manager service.
@@ -595,14 +597,27 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param loadTimeout, timeout multiply for ability loading stage, range 1-30, not work on asan
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId,
+        int32_t loadTimeout);
+
+    /**
+     * ConnectAbility, connect session with service ability.
+     *
+     * @param want, Special want for service type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
      * @param callerToken, caller ability token.
+     * @param specifiedFullTokenId, The specified full token ID.
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ConnectAbility(
         const Want &want,
         sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callerToken,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0);
     
     /**
      * ConnectAbilityWithExtensionType, connect session with specified extentionType ability.
@@ -650,10 +665,11 @@ public:
      * @param want, special want for the extension ability.
      * @param connect, callback used to notify caller the result of connecting or disconnecting.
      * @param userId, the extension runs in.
+     * @param loadTimeout, timeout multiply for ability loading stage, range 1-30, not work on asan
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ConnectExtensionAbility(const Want &want, sptr<IAbilityConnection> connect,
-        int32_t userId = DEFAULT_INVAL_VALUE);
+        int32_t userId = DEFAULT_INVAL_VALUE, int32_t loadTimeout = 0);
 
     /**
      * Connect ui extension ability.
@@ -967,10 +983,12 @@ public:
      *
      * @param want, Special want for service type's ability.
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
-     * @param isSilent, whether show window when start fail.
+     * @param isSilent, whether show window when start fail by interceptorExecuter.
+     * @param isVisible, whether show window when start fail by afterCheckExecuter.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect, bool isSilent = false);
+    ErrCode StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect, bool isSilent = false,
+        bool isVisible = false);
 
     /**
      * Start Ability, connect session with common ability.
@@ -979,13 +997,14 @@ public:
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
      * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
-     * @param isSilent, whether show window when start fail.
+     * @param isSilent, whether show window when start fail by interceptorExecuter.
      * @param promotePriority, whether to promote priority for sa.
+     * @param isVisible, whether show window when start fail by afterCheckExecuter.
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false,
-        bool promotePriority = false);
+        bool promotePriority = false, bool isVisible = false);
 
     /**
      * Start Ability, connect session with common ability.
@@ -995,21 +1014,23 @@ public:
      * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
      * @param errMsg Out parameter, indicates the failed reason.
-     * @param isSilent, whether show window when start fail.
+     * @param isSilent, whether show window when start fail by interceptorExecuter.
      * @param promotePriority, whether to promote priority for sa.
+     * @param isVisible, whether show window when start fail by afterCheckExecuter.
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t StartAbilityByCallWithErrMsg(const Want &want, sptr<IAbilityConnection> connect,
         sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent = false,
-        bool promotePriority = false);
+        bool promotePriority = false, bool isVisible = false);
 
     /**
      * Start Ability for prelaunch
      *
      * @param want, Special want for service type's ability.
+     * @param frameNum, Special frameNum for remove start window num.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartAbilityForPrelaunch(const Want &want);
+    ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum = 0);
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.
      *
@@ -1120,7 +1141,7 @@ public:
 
     ErrCode RegisterStatusBarDelegate(sptr<AbilityRuntime::IStatusBarDelegate> delegate);
 
-    ErrCode KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids);
+    ErrCode KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear = false);
 
     /**
      * kill the process with reason
@@ -1172,6 +1193,23 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode GetAutoStartupStatusForSelf(bool &isAutoStartEnabled);
+
+    /**
+     * @brief Manual start auto startup apps, EDM use only.
+     * @param userId Indicates which user's auto startup apps to be started.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ManualStartAutoStartupApps(int32_t userId);
+    
+    /**
+     * @brief Query the caller's Token ID for anco.
+     * @param userId Indicates the user ID.
+     * @param asCallerForAncoSessionId Indicates the anco session Id of cached information.
+     * @param callerTokenId Indicates the output caller Token ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
+        uint32_t &callerTokenId);
 
     /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
@@ -1274,7 +1312,7 @@ public:
      */
     ErrCode GetTopAbility(sptr<IRemoteObject> &token);
 
-    ErrCode CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused);
+    ErrCode CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId = 0);
 
     /**
      * DelegatorDoAbilityForeground, the delegator calls this interface to move the ability to the foreground.
@@ -1459,6 +1497,34 @@ public:
     ErrCode RecordProcessExitReason(int32_t pid, int32_t uid, const ExitReason &exitReason);
 
     /**
+     * kill app reason.
+     * @param pid The process id.
+     * @param exitReason The reason of kill app.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode KillAppWithReason(int32_t pid, const ExitReasonCompability &exitReason);
+
+    /**
+     * Force bundle exit and record exit reason.
+     * @param bundleName Bundle name of kill app.
+     * @param appIndex The app index of app clone.
+     * @param userId User ID.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode KillBundleWithReason(
+        const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason);
+
+    /**
+     * Record app exit reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason);
+
+    /**
      * Set rootSceneSession by SCB.
      *
      * @param rootSceneSession Indicates root scene session of SCB.
@@ -1469,17 +1535,19 @@ public:
      * Call UIAbility by SCB.
      *
      * @param sessionInfo the session info of the ability to be called.
+     * @param params start parameters.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    void CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart);
+    void CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params, bool &isColdStart);
 
     /**
      * Start specified ability by SCB.
      *
      * @param want Want information.
+     * @param params The parameters to start specified ability.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t StartSpecifiedAbilityBySCB(const Want &want);
+    int32_t StartSpecifiedAbilityBySCB(const Want &want, const StartSpecifiedAbilityParams &params);
 
     /**
      * Notify sandbox app the result of saving file.
@@ -1517,6 +1585,12 @@ public:
     ErrCode UnregisterIAbilityManagerCollaborator(int32_t type);
 
     /**
+     * @brief get ability manager collaborator.
+     * @return Returns object pointer on success, others on null.
+     */
+    sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator();
+
+    /**
      * @brief Register session handler.
      * @param object The handler.
      *
@@ -1537,12 +1611,6 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode UnregisterAppDebugListener(sptr<AppExecFwk::IAppDebugListener> listener);
-
-    /**
-     * @brief get ability manager collaborator.
-     * @return Returns object pointer on success, others on null.
-     */
-    sptr<IAbilityManagerCollaborator> GetAbilityManagerCollaborator();
 
     /**
      * @brief Attach app debug.
@@ -1885,7 +1953,8 @@ public:
      */
     ErrCode GetAllInsightIntentInfo(
         AbilityRuntime::GetInsightIntentFlag flag,
-        std::vector<InsightIntentInfoForQuery> &infos);
+        std::vector<InsightIntentInfoForQuery> &infos,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
      * Get specified bundleName insight intent infos.
@@ -1897,7 +1966,8 @@ public:
     ErrCode GetInsightIntentInfoByBundleName(
         AbilityRuntime::GetInsightIntentFlag flag,
         const std::string &bundleName,
-        std::vector<InsightIntentInfoForQuery> &infos);
+        std::vector<InsightIntentInfoForQuery> &infos,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     /**
      * Get specified intentName insight intent infos.
@@ -1913,7 +1983,8 @@ public:
         const std::string &bundleName,
         const std::string &moduleName,
         const std::string &intentName,
-        InsightIntentInfoForQuery &info);
+        InsightIntentInfoForQuery &info,
+        int32_t userId = DEFAULT_INVAL_VALUE);
 
     ErrCode UpdateKioskApplicationList(const std::vector<std::string> &appList);
 
@@ -2007,6 +2078,22 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE);
+
+    /**
+     * @brief Get list of applications launched before the first unlock.
+     * @param userId The User Id.
+     * @param userLockedBundleList List of applications launched before the first unlock.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetUserLockedBundleList(int32_t userId, std::unordered_set<std::string> &userLockedBundleList);
+
+    /**
+     * @brief UnRegister preload ui extension host client.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
 
 private:
     AbilityManagerClient();

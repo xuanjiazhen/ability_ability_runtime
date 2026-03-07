@@ -33,6 +33,7 @@ std::vector<std::shared_ptr<AbilityLifecycleCallback>> ApplicationContext::callb
 std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> ApplicationContext::interopCallbacks_;
 std::vector<std::shared_ptr<EnvironmentCallback>> ApplicationContext::envCallbacks_;
 std::vector<std::weak_ptr<ApplicationStateChangeCallback>> ApplicationContext::applicationStateCallback_;
+std::vector<std::weak_ptr<SystemConfigurationUpdatedCallback>> ApplicationContext::systemConfigurationUpdatedCallbacks_;
 
 std::shared_ptr<ApplicationContext> ApplicationContext::GetInstance()
 {
@@ -139,6 +140,13 @@ void ApplicationContext::RegisterApplicationStateChangeCallback(
 {
     std::lock_guard<std::recursive_mutex> lock(applicationStateCallbackLock_);
     applicationStateCallback_.push_back(applicationStateChangeCallback);
+}
+
+void ApplicationContext::RegisterSystemConfigurationUpdatedCallback(
+    const std::weak_ptr<SystemConfigurationUpdatedCallback> &callback)
+{
+    std::lock_guard lock(systemConfigurationUpdatedCallbackLock_);
+    systemConfigurationUpdatedCallbacks_.push_back(callback);
 }
 
 void ApplicationContext::DispatchOnAbilityCreate(const AbilityLifecycleCallbackArgs &ability)
@@ -535,6 +543,17 @@ void ApplicationContext::DispatchMemoryLevel(const int level)
     }
 }
 
+void ApplicationContext::NotifySystemConfigurationUpdated(const AppExecFwk::Configuration& configuration)
+{
+    std::lock_guard lock(systemConfigurationUpdatedCallbackLock_);
+    for (auto callback : systemConfigurationUpdatedCallbacks_) {
+        auto callbackSptr = callback.lock();
+        if (callbackSptr != nullptr) {
+            callbackSptr->NotifySystemConfigurationUpdated(configuration);
+        }
+    }
+}
+
 void ApplicationContext::NotifyApplicationForeground()
 {
     std::lock_guard<std::recursive_mutex> lock(applicationStateCallbackLock_);
@@ -808,13 +827,13 @@ bool ApplicationContext::IsModuleExist(const std::string &moduleName)
     return (contextImpl_ != nullptr) ? contextImpl_->IsModuleExist(moduleName) : false;
 }
 
-void ApplicationContext::GetAllTempDir(std::vector<std::string> &tempPaths)
+void ApplicationContext::GetAllTempBase(std::vector<std::string> &tempPaths)
 {
     if (contextImpl_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl");
         return;
     }
-    contextImpl_->GetAllTempDir(tempPaths);
+    contextImpl_->GetAllTempBase(tempPaths);
 }
 
 std::string ApplicationContext::GetFilesDir()
@@ -949,6 +968,22 @@ void ApplicationContext::SetLatestParameter(const AAFwk::Want &want)
         return;
     }
     contextImpl_->SetLatestParameter(want);
+}
+
+ConfigUpdateReason ApplicationContext::GetConfigUpdateReason()
+{
+    return (contextImpl_ != nullptr) ? contextImpl_->GetConfigUpdateReason() :
+        ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT;
+}
+
+void ApplicationContext::SetConfigUpdateReason(ConfigUpdateReason reason)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "config update scene:%{public}u", static_cast<uint8_t>(reason));
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl_");
+        return;
+    }
+    contextImpl_->SetConfigUpdateReason(reason);
 }
 
 sptr<IRemoteObject> ApplicationContext::GetToken()
@@ -1229,6 +1264,12 @@ std::string ApplicationContext::GetDataDir()
 std::shared_ptr<Context> ApplicationContext::CreateAreaModeContext(int areaMode)
 {
     return contextImpl_ ? contextImpl_->CreateAreaModeContext(areaMode) : nullptr;
+}
+
+std::shared_ptr<Context> ApplicationContext::CreateModuleOrPluginContext(const std::string &bundleName,
+    const std::string &moduleName)
+{
+    return contextImpl_ ? contextImpl_->CreateModuleOrPluginContext(bundleName, moduleName) : nullptr;
 }
 
 #ifdef SUPPORT_GRAPHICS

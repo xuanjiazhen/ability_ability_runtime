@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -135,7 +135,8 @@ void AppScheduler::NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyStartResidentProcess()");
 }
 
-void AppScheduler::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos)
+void AppScheduler::NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+    pid_t diedPid)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyStartKeepAliveProcess()");
 }
@@ -153,6 +154,11 @@ void AppScheduler::OnStartProcessFailed(const std::vector<sptr<IRemoteObject>> &
 void AppScheduler::NotifyAppPreCache(int32_t pid, int32_t userId)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::NotifyAppPreCache()");
+}
+
+void AppScheduler::RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::RecordAppExitSignalReason()");
 }
 
 void AppScheduler::UpdateAbilityState(const sptr<IRemoteObject>& token, const AppExecFwk::AbilityState state)
@@ -197,7 +203,8 @@ int32_t AppScheduler::VerifyKillProcessPermission(const std::string &bundleName)
     return ERR_OK;
 }
 
-void AppScheduler::StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t)
+void AppScheduler::StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t,
+    const std::string&)
 {}
 
 int AppScheduler::StartUserTest(
@@ -216,6 +223,12 @@ int AppScheduler::GetApplicationInfoByProcessID(const int pid, AppExecFwk::Appli
 }
 
 int32_t AppScheduler::NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg)
+{
+    return 0;
+}
+
+int32_t AppScheduler::NotifyAppMgrRecordExitReasonCompability(
+    int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg)
 {
     return 0;
 }

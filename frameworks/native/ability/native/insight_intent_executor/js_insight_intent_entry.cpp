@@ -150,6 +150,7 @@ std::unique_ptr<NativeReference> JsInsightIntentEntry::LoadJsCode(
         return std::unique_ptr<NativeReference>();
     }
 
+    HandleScope handleScope(runtime);
     std::string moduleName(executeParam->moduleName_);
     std::string hapPath(info.hapPath);
     std::string srcEntrance(executeParam->srcEntrance_);
@@ -186,20 +187,20 @@ std::unique_ptr<NativeReference> JsInsightIntentEntry::LoadJsCode(
     return std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
 }
 
-bool JsInsightIntentEntry::CallJsFunctionWithResultInner(
+napi_value JsInsightIntentEntry::CallJsFunctionWithResultInner(
     const char* funcName,
     size_t argc,
-    const napi_value* argv,
-    napi_value& result)
+    const napi_value* argv)
 {
     TAG_LOGD(AAFwkTag::INTENT, "call js function");
+    HandleEscape handleEscape(runtime_);
     auto* env = runtime_.GetNapiEnv();
     napi_value obj = jsObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, obj, napi_valuetype::napi_object)) {
         TAG_LOGE(AAFwkTag::INTENT, "call js function type error");
-        return false;
+        return nullptr;
     }
-    return JsInsightIntentUtils::CallJsFunctionWithResult(env, obj, funcName, argc, argv, result);
+    return handleEscape.Escape(JsInsightIntentUtils::CallJsFunctionWithResult(env, obj, funcName, argc, argv));
 }
 
 void JsInsightIntentEntry::ReplyFailedInner(InsightIntentInnerErr innerErr)
@@ -221,6 +222,7 @@ void JsInsightIntentEntry::ReplySucceededInner(std::shared_ptr<AppExecFwk::Insig
 bool JsInsightIntentEntry::HandleResultReturnedFromJsFunc(napi_value resultJs)
 {
     TAG_LOGD(AAFwkTag::INTENT, "handle result returned");
+    HandleScope handleScope(runtime_);
     auto* env = runtime_.GetNapiEnv();
     if (resultJs == nullptr) {
         return ExecuteIntentCheckError();
@@ -298,7 +300,8 @@ bool JsInsightIntentEntry::ExecuteInsightIntent(
     }
 
     napi_value result = nullptr;
-    if (!CallJsFunctionWithResultInner("onExecute", 0, nullptr, result)) {
+    result = CallJsFunctionWithResultInner("onExecute", 0, nullptr);
+    if (result == nullptr) {
         // error log has printed
         return ExecuteIntentCheckError();
     }
@@ -342,6 +345,7 @@ bool JsInsightIntentEntry::PrepareParametersUIAbilityForeground(napi_env env,
     }
 
     // assign ability pageloader
+    HandleScope handleScope(env);
     auto executorNapiVal = jsObj_->GetNapiValue();
     auto pageLoaderNapiVal = pageLoader->GetNapiValue();
     if (!CheckTypeForNapiValue(env, executorNapiVal, napi_object) ||
@@ -369,6 +373,7 @@ bool JsInsightIntentEntry::PrepareParametersUIAbilityBackground(napi_env env)
         TAG_LOGE(AAFwkTag::INTENT, "js object null");
         return false;
     }
+    AbilityRuntime::HandleScope handleScope(env);
 
     auto executorNapiVal = jsObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, executorNapiVal, napi_object)) {
@@ -395,6 +400,7 @@ bool JsInsightIntentEntry::PrepareParametersUIExtension(napi_env env,
         TAG_LOGE(AAFwkTag::INTENT, "page loader or object invalid");
         return false;
     }
+    AbilityRuntime::HandleScope handleScope(env);
 
     // assign ability pageloader
     auto executorNapiVal = jsObj_->GetNapiValue();
@@ -424,6 +430,7 @@ bool JsInsightIntentEntry::PrepareParametersServiceExtension(napi_env env)
         TAG_LOGE(AAFwkTag::INTENT, "js object null");
         return false;
     }
+    AbilityRuntime::HandleScope handleScope(env);
 
     auto executorNapiVal = jsObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, executorNapiVal, napi_object)) {

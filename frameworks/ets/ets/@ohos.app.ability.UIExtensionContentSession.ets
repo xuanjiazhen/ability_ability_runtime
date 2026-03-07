@@ -151,7 +151,7 @@ export default class UIExtensionContentSession {
     let p1 = taskpool.execute((): BusinessError<void> => {
       return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
     });
-    p1.then((e: NullishType) => {
+    p1.then((e: Any) => {
       let retError = e as BusinessError<void>;
       if (retError.code === 0) {
         callback(null, undefined);
@@ -169,7 +169,7 @@ export default class UIExtensionContentSession {
       let p1 = taskpool.execute((): BusinessError<void> => {
         return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
       });
-      p1.then((e: NullishType) => {
+      p1.then((e: Any) => {
         let retError = e as BusinessError<void>;
         if (retError.code === 0) {
           resolve(undefined);
@@ -281,8 +281,8 @@ export default class UIExtensionContentSession {
     let asyncCallback = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbilityAsCaller(want, asyncCallback, undefined);
-    }).catch((err: BusinessError): void => {
-      callback(err, undefined);
+    }).catch((err: Error): void => {
+      callback(err as BusinessError, undefined);
     });
   }
 
@@ -290,8 +290,8 @@ export default class UIExtensionContentSession {
     let asyncCallback = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbilityAsCaller(want, asyncCallback, options);
-    }).catch((err: BusinessError): void => {
-      callback(err, undefined);
+    }).catch((err: Error): void => {
+      callback(err  as BusinessError, undefined);
     });
   }
 

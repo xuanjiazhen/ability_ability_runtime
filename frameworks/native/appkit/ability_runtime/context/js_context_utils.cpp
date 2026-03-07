@@ -247,6 +247,7 @@ napi_value JsBaseContext::OnCreateModuleContext(napi_env env, NapiCallbackInfo& 
 
 napi_value JsBaseContext::CreateJsModuleContext(napi_env env, const std::shared_ptr<Context>& moduleContext)
 {
+    HandleEscape handleEscape(env);
     napi_value value = CreateJsBaseContext(env, moduleContext, true);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.Context", &value, 1);
     if (systemModule == nullptr) {
@@ -261,8 +262,13 @@ napi_value JsBaseContext::CreateJsModuleContext(napi_env env, const std::shared_
         return CreateJsUndefined(env);
     }
     auto workContext = new (std::nothrow) std::weak_ptr<Context>(moduleContext);
-    napi_coerce_to_native_binding_object(
+    auto status = napi_coerce_to_native_binding_object(
         env, object, DetachNewBaseContext, AttachBaseContext, workContext, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::APPKIT, "coerce context failed: %{public}d", status);
+        delete workContext;
+        return CreateJsUndefined(env);
+    }
     napi_add_detached_finalizer(env, object, DetachFinalizeBaseContext, nullptr);
     auto res = napi_wrap(env, object, workContext,
         [](napi_env, void *data, void *) {
@@ -275,7 +281,7 @@ napi_value JsBaseContext::CreateJsModuleContext(napi_env env, const std::shared_
         delete workContext;
         return CreateJsUndefined(env);
     }
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value JsBaseContext::CreateSystemHspModuleResourceManager(napi_env env, napi_callback_info info)
@@ -522,6 +528,7 @@ napi_value JsBaseContext::OnGetGroupDir(napi_env env, NapiCallbackInfo& info)
     };
     auto complete = [innerErrCode, path]
         (napi_env env, NapiAsyncTask& task, int32_t status) {
+        HandleScope handleScope(env);
         if (*innerErrCode == ERR_OK) {
             task.ResolveWithNoError(env, CreateJsValue(env, *path));
         } else {
@@ -639,6 +646,7 @@ napi_value JsBaseContext::OnCreateBundleContext(napi_env env, NapiCallbackInfo& 
 
 napi_value JsBaseContext::CreateJsBundleContext(napi_env env, const std::shared_ptr<Context>& bundleContext)
 {
+    HandleEscape handleEscape(env);
     napi_value value = CreateJsBaseContext(env, bundleContext, true);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.Context", &value, 1);
     if (systemModule == nullptr) {
@@ -667,7 +675,7 @@ napi_value JsBaseContext::CreateJsBundleContext(napi_env env, const std::shared_
         delete workContext;
         return CreateJsUndefined(env);
     }
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value JsBaseContext::OnGetApplicationContext(napi_env env, NapiCallbackInfo& info)
@@ -780,6 +788,7 @@ napi_value JsBaseContext::OnCreateDisplayContext(napi_env env, NapiCallbackInfo 
 
 napi_value JsBaseContext::CreateJsContext(napi_env env, const std::shared_ptr<Context> &context)
 {
+    HandleEscape handleEscape(env);
     napi_value value = CreateJsBaseContext(env, context, true);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.Context", &value, 1);
     if (systemModule == nullptr) {
@@ -813,12 +822,13 @@ napi_value JsBaseContext::CreateJsContext(napi_env env, const std::shared_ptr<Co
         delete workContext;
         return CreateJsUndefined(env);
     }
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value JsBaseContext::CreateJSApplicationContext(napi_env env,
     const std::shared_ptr<ApplicationContext> applicationContext)
 {
+    HandleEscape handleEscape(env);
     napi_value value = JsApplicationContextUtils::CreateJsApplicationContext(env);
     auto systemModule = JsRuntime::LoadSystemModuleByEngine(env, "application.ApplicationContext", &value, 1);
     if (systemModule == nullptr) {
@@ -853,7 +863,7 @@ napi_value JsBaseContext::CreateJSApplicationContext(napi_env env,
     ApplicationContextManager::GetApplicationContextManager()
         .AddGlobalObject(env, std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference*>(ref)));
     applicationContext->SetApplicationInfoUpdateFlag(false);
-    return object;
+    return handleEscape.Escape(object);
 }
 
 bool JsBaseContext::CheckCallerIsSystemApp()
@@ -869,6 +879,7 @@ bool JsBaseContext::CheckCallerIsSystemApp()
 napi_value AttachBaseContext(napi_env env, void* value, void* hint)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+    HandleEscape handleEscape(env);
     if (value == nullptr || env == nullptr) {
         TAG_LOGW(AAFwkTag::APPKIT, "invalid parameter");
         return nullptr;
@@ -905,12 +916,13 @@ napi_value AttachBaseContext(napi_env env, void* value, void* hint)
         delete workContext;
         return nullptr;
     }
-    return contextObj;
+    return handleEscape.Escape(contextObj);
 }
 
 napi_value AttachApplicationContext(napi_env env, void* value, void* hint)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+    HandleEscape handleEscape(env);
     if (value == nullptr || env == nullptr) {
         TAG_LOGW(AAFwkTag::APPKIT, "invalid parameter");
         return nullptr;
@@ -947,7 +959,7 @@ napi_value AttachApplicationContext(napi_env env, void* value, void* hint)
         delete workContext;
         return nullptr;
     }
-    return contextObj;
+    return handleEscape.Escape(contextObj);
 }
 
 void BindPropertyAndFunction(napi_env env, napi_value object, const char* moduleName)
@@ -980,6 +992,7 @@ void BindPropertyAndFunction(napi_env env, napi_value object, const char* module
 }
 napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, bool keepContext)
 {
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
     if (object == nullptr) {
@@ -1025,7 +1038,7 @@ napi_value CreateJsBaseContext(napi_env env, std::shared_ptr<Context> context, b
 
     const char *moduleName = "JsBaseContext";
     BindPropertyAndFunction(env, object, moduleName);
-    return object;
+    return handleEscape.Escape(object);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

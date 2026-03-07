@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -117,10 +117,10 @@ void AppSchedulerProxy::ScheduleLowMemory()
     }
 }
 
-void AppSchedulerProxy::ScheduleMemoryLevel(int32_t level)
+void AppSchedulerProxy::ScheduleMemoryLevel(int32_t level, bool isShellCall)
 {
     uint32_t operation = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_MEMORYLEVEL_APPLICATION_TRANSACTION);
-    ScheduleMemoryCommon(level, operation);
+    ScheduleMemoryCommon(level, operation, isShellCall);
 }
 
 void AppSchedulerProxy::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocInfo &mallocInfo)
@@ -202,11 +202,15 @@ void AppSchedulerProxy::ScheduleShrinkMemory(const int32_t level)
     ScheduleMemoryCommon(level, operation);
 }
 
-void AppSchedulerProxy::ScheduleMemoryCommon(const int32_t level, const uint32_t operation)
+void AppSchedulerProxy::ScheduleMemoryCommon(const int32_t level, const uint32_t operation, bool isShellCall)
 {
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC_WAKEUP_LATER);
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!isShellCall) {
+        option.SetFlags(MessageOption::TF_ASYNC_WAKEUP_LATER);
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "option: %{public}d", option.GetFlags());
     if (!WriteInterfaceToken(data)) {
         return;
     }
@@ -404,7 +408,7 @@ void AppSchedulerProxy::ScheduleProfileChanged(const Profile &profile)
     }
 }
 
-void AppSchedulerProxy::ScheduleConfigurationUpdated(const Configuration &config)
+void AppSchedulerProxy::ScheduleConfigurationUpdated(const Configuration &config, ConfigUpdateReason reason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     MessageParcel data;
@@ -415,6 +419,10 @@ void AppSchedulerProxy::ScheduleConfigurationUpdated(const Configuration &config
     }
     if (!data.WriteParcelable(&config)) {
         TAG_LOGD(AAFwkTag::APPMGR, "write profile failed");
+        return;
+    }
+    if (!data.WriteUint8(static_cast<uint8_t>(reason))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write flag failed.");
         return;
     }
     int32_t ret = SendTransactCmd(
@@ -842,6 +850,40 @@ int32_t AppSchedulerProxy::ScheduleDumpFfrt(std::string& result)
         result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
             .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
         TAG_LOGE(AAFwkTag::APPMGR, "Fail to read string of ScheduleDumpFfrt result");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return DumpErrorCode::ERR_OK;
+}
+
+int32_t AppSchedulerProxy::ScheduleDumpArkWeb(const std::string &customArgs, std::string& result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "ScheduleDumpArkWeb start");
+    uint32_t operation = static_cast<uint32_t>(IAppScheduler::Message::SCHEDULE_DUMP_ARKWEB);
+    MessageParcel data;
+    MessageParcel reply;
+    reply.SetMaxCapacity(MAX_CAPACITY);
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
+        TAG_LOGE(AAFwkTag::APPMGR, "WriteInterfaceToken failed");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    if (!data.WriteString(customArgs)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write customArgs failed");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    int32_t ret = SendTransactCmd(operation, data, reply, option);
+    if (ret != NO_ERROR) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
+        TAG_LOGE(AAFwkTag::APPMGR, "SendRequest failed, error code: %{public}d", ret);
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    if (!reply.ReadString(result)) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
+        TAG_LOGE(AAFwkTag::APPMGR, "read ScheduleDumpArkWeb result failed");
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return DumpErrorCode::ERR_OK;

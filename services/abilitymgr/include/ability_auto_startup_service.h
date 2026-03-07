@@ -16,11 +16,13 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_AUTO_STARTUP_SERVICE_H
 #define OHOS_ABILITY_RUNTIME_ABILITY_AUTO_STARTUP_SERVICE_H
 
+#include <functional>
 #include <map>
 #include <mutex>
 #include <vector>
 
 #include "auto_startup_info.h"
+#include "ability_record.h"
 #include "bundle_mgr_client.h"
 #include "bundle_mgr_helper.h"
 #include "iremote_object.h"
@@ -110,9 +112,10 @@ public:
      * @brief Set application auto start up state by EDM.
      * @param info The auto startup info, include bundle name, module name, ability name.
      * @param flag Indicate whether the application is prohibited from changing the auto start up state.
+     * @param isHiddenStart Indicate whether the application is hidden start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag);
+    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag, bool isHiddenStart = false);
 
     /**
      * @brief Cancel application auto start up state by EDM.
@@ -121,6 +124,12 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t CancelApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag);
+
+    void AddHandledAutoStartupUsers(int32_t userId);
+    void RemoveHandledAutoStartupUsers(int32_t userId);
+    bool FindHandledAutoStartupUsers(int32_t userId);
+    int32_t HiddenStartAutoStartupApp(AAFwk::Want &want, int32_t userId);
+    std::function<void()> CreateHiddenStartCheckTask(std::shared_ptr<AAFwk::AbilityRecord> abilityRecord);
 
     /**
      * @class ClientDeathRecipient
@@ -166,10 +175,12 @@ private:
     int32_t CheckPermissionForEDM();
     int32_t InnerApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool isSet, bool flag);
     int32_t GetAbilityInfo(const AutoStartupInfo &info, AutoStartupAbilityData &abilityData);
+    int32_t CheckHiddenStartConditions(bool isHiddenStart, const AutoStartupAbilityData &abilityData);
     void GetCallbackVector(std::vector<sptr<IRemoteObject>>& callbackVector);
 
     mutable std::mutex autoStartUpMutex_;
     mutable std::mutex deathRecipientsMutex_;
+    std::vector<int32_t> handledAutoStartupUsers_;
     std::vector<sptr<IRemoteObject>> callbackVector_;
     std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>> deathRecipients_;
     std::shared_ptr<AppExecFwk::BundleMgrClient> bundleMgrClient_;

@@ -32,6 +32,7 @@
 #include "mission_listener_interface.h"
 #include "mission_snapshot.h"
 #include "snapshot.h"
+#include "start_params_by_SCB.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -1348,7 +1349,8 @@ HWTEST_F(AbilityManagerClientBranchTest, StartAbilityByCall_002, TestSize.Level1
 HWTEST_F(AbilityManagerClientBranchTest, StartUIAbilityBySCB_001, TestSize.Level1)
 {
     bool isColdStart = false;
-    EXPECT_EQ(client_->StartUIAbilityBySCB(nullptr, isColdStart), ERR_INVALID_VALUE);
+    AbilityRuntime::StartParamsBySCB params;
+    EXPECT_EQ(client_->StartUIAbilityBySCB(nullptr, params, isColdStart), ERR_INVALID_VALUE);
 }
 
 /**
@@ -1360,7 +1362,8 @@ HWTEST_F(AbilityManagerClientBranchTest, StartUIAbilityBySCB_002, TestSize.Level
 {
     sptr<SessionInfo> sessionInfo(new SessionInfo());
     bool isColdStart = false;
-    EXPECT_EQ(client_->StartUIAbilityBySCB(sessionInfo, isColdStart), ERR_OK);
+    AbilityRuntime::StartParamsBySCB params;
+    EXPECT_EQ(client_->StartUIAbilityBySCB(sessionInfo, params, isColdStart), ERR_OK);
 }
 
 /**
@@ -1374,7 +1377,8 @@ HWTEST_F(AbilityManagerClientBranchTest, StartUIAbilityBySCB_003, TestSize.Level
     sptr<SessionInfo> sessionInfo(new SessionInfo());
     sessionInfo->sessionToken = new Rosen::Session(info);
     bool isColdStart = false;
-    EXPECT_EQ(client_->StartUIAbilityBySCB(sessionInfo, isColdStart), ERR_OK);
+    AbilityRuntime::StartParamsBySCB params;
+    EXPECT_EQ(client_->StartUIAbilityBySCB(sessionInfo, params, isColdStart), ERR_OK);
 }
 
 /**
@@ -1468,8 +1472,9 @@ HWTEST_F(AbilityManagerClientBranchTest, SetRootSceneSession_001, TestSize.Level
 HWTEST_F(AbilityManagerClientBranchTest, CallUIAbilityBySCB_001, TestSize.Level1)
 {
     sptr<SessionInfo> sessionInfo = new SessionInfo();
+    AbilityRuntime::StartParamsBySCB params;
     bool isColdStart = false;
-    AbilityManagerClient::GetInstance()->CallUIAbilityBySCB(sessionInfo, isColdStart);
+    AbilityManagerClient::GetInstance()->CallUIAbilityBySCB(sessionInfo, params, isColdStart);
     EXPECT_NE(sessionInfo, nullptr);
 }
 
@@ -1482,8 +1487,9 @@ HWTEST_F(AbilityManagerClientBranchTest, CallUIAbilityBySCB_002, TestSize.Level1
 {
     sptr<SessionInfo> sessionInfo = new SessionInfo();
     EXPECT_NE(sessionInfo, nullptr);
+    AbilityRuntime::StartParamsBySCB params;
     bool isColdStart = false;
-    AbilityManagerClient::GetInstance()->CallUIAbilityBySCB(sessionInfo, isColdStart);
+    AbilityManagerClient::GetInstance()->CallUIAbilityBySCB(sessionInfo, params, isColdStart);
     EXPECT_NE(sessionInfo, nullptr);
 }
 
@@ -1797,7 +1803,8 @@ HWTEST_F(AbilityManagerClientBranchTest, SetLockedState_0100, TestSize.Level1)
 HWTEST_F(AbilityManagerClientBranchTest, StartSpecifiedAbilityBySCB_0100, TestSize.Level1)
 {
     Want want;
-    client_->StartSpecifiedAbilityBySCB(want);
+    StartSpecifiedAbilityParams params;
+    client_->StartSpecifiedAbilityBySCB(want, params);
     EXPECT_TRUE(client_ != nullptr);
 }
 
@@ -2535,7 +2542,7 @@ HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_KillProcessWithPre
 {
     GTEST_LOG_(INFO) << "AbilityManagerClient_KillProcessWithPrepareTerminate_0100 start";
     std::vector<int32_t> pids;
-    client_->KillProcessWithPrepareTerminate(pids);
+    client_->KillProcessWithPrepareTerminate(pids, false);
     EXPECT_NE(client_, nullptr);
     GTEST_LOG_(INFO) << "AbilityManagerClient_KillProcessWithPrepareTerminate_0100 end";
 }
@@ -2771,7 +2778,7 @@ HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInCurrentProcess_0100
 HWTEST_F(AbilityManagerClientBranchTest, StartAbilityForPrelaunch_001, TestSize.Level1)
 {
     Want want;
-    EXPECT_EQ(client_->StartAbilityForPrelaunch(want), 0);
+    EXPECT_EQ(client_->StartAbilityForPrelaunch(want, 0), 0);
 }
 
 }  // namespace AAFwk

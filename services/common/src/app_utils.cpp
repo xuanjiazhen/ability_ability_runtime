@@ -83,9 +83,10 @@ constexpr const char* CONNECT_SUPPORT_CROSS_USER = "const.abilityms.connect_supp
 constexpr const char* SUPPORT_APP_SERVICE_EXTENSION = "const.abilityms.support_app_service";
 constexpr const char* PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED = "const.product.preload_application.setting.enabled";
 constexpr const char* FORBID_START = "persist.sys.abilityms.forbid_start";
-constexpr const char* RESTART_APP_WITH_WINDOW = "persist.sys.abilityms.restart_app_with_window";
 constexpr const char* ALLOW_DEBUG_PERMISSION = "persist.sys.abilityms.allow_debug_permission";
 constexpr const char* START_ABILITY_IN_CURRENT_PROCESS = "persist.sys.abilityms.start_ability_in_current_process";
+constexpr const char* RESTART_APP_WITH_WINDOW = "persist.sys.abilityms.restart_app_with_window";
+constexpr const char* PRODUCT_APPBOOT_SETTING_ENABLED = "const.product.appboot.setting.enabled";
 // Support prepare terminate
 constexpr int32_t PREPARE_TERMINATE_ENABLE_SIZE = 6;
 constexpr const char* PREPARE_TERMINATE_ENABLE_PARAMETER = "persist.sys.prepare_terminate";
@@ -96,6 +97,7 @@ constexpr const char* RESIDENT_WHITE_LIST_PATH = "etc/ability_runtime/resident_p
 constexpr const char* NORMAL_RESIDENT_APPS = "normal_resident_apps";
 constexpr const char* ON_NEW_PROCESS_ENABLE_LIST_PATH = "etc/ability_runtime/on_new_process_enable_list.json";
 constexpr const char* ON_NEW_PROCESS_ENABLE_LIST = "onNewProcessEnableList";
+constexpr const char* HYBRIDSPAWN_UNIFIED = "persist.appspawn.hybridspawn.unified";
 }
 
 AppUtils::~AppUtils() {}
@@ -107,7 +109,7 @@ AppUtils::AppUtils()
         isSceneBoard_ = true;
     }
 #endif // SUPPORT_GRAPHICS
-#ifdef ABILITY_RUNTIME_FORBIDSTART_ENABLE
+#ifdef ABILITY_RUNTIME_FORBID_START_ENABLED
     if (WatchParameter(FORBID_START, AppUtils::ForbidStartCallback, nullptr) != 0) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "want param failed: %{public}s", FORBID_START);
         isForbidStart_.isLoaded = false;
@@ -841,7 +843,7 @@ bool AppUtils::IsPreloadApplicationEnabled()
 
 bool AppUtils::IsForbidStart()
 {
-#ifndef ABILITY_RUNTIME_FORBIDSTART_ENABLE
+#ifndef ABILITY_RUNTIME_FORBID_START_ENABLED
     return false;
 #else
     if (!isForbidStart_.isLoaded) {
@@ -881,6 +883,16 @@ bool AppUtils::IsStartUIAbilityInCurrentProcess()
     return isStartUIAbilityInCurrentProcess_.value;
 }
 
+bool AppUtils::IsProductAppbootSettingEnabled()
+{
+    if (!isProductAppbootSettingEnabled_.isLoaded) {
+        isProductAppbootSettingEnabled_.value = system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false);
+        isProductAppbootSettingEnabled_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "ProductAppbootSettingEnabled: %{public}d", isProductAppbootSettingEnabled_.value);
+    return isProductAppbootSettingEnabled_.value;
+}
+
 void AppUtils::LoadAppTransferList()
 {
     nlohmann::json object;
@@ -916,6 +928,16 @@ bool AppUtils::InAppTransferList(const std::string &bundleName)
         }
     }
     return false;
+}
+
+bool AppUtils::IsHybridSpawnUnified()
+{
+    if (!isHybridSpawnUnified_.isLoaded) {
+        isHybridSpawnUnified_.value = system::GetBoolParameter(HYBRIDSPAWN_UNIFIED, false);
+        isHybridSpawnUnified_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsHybridSpawnUnified: %{public}d", isHybridSpawnUnified_.value);
+    return isHybridSpawnUnified_.value;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

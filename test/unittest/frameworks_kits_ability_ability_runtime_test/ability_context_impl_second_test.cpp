@@ -172,5 +172,116 @@ HWTEST_F(AbilityContextImplSecondTest, TransferRestartWSError_0100, Function | M
     EXPECT_EQ(AbilityContextImpl::TransferRestartWSError(srcCode), ERR_INVALID_VALUE);
 }
 #endif
+
+/**
+ * @tc.number: RegisterBindingObjectConfigUpdateCallback_0100
+ * @tc.name: RegisterBindingObjectConfigUpdateCallback
+ */
+HWTEST_F(AbilityContextImplSecondTest, RegisterBindingObjectConfigUpdateCallback_0100, Function | MediumTest | Level1)
+{
+    context_->RegisterBindingObjectConfigUpdateCallback(nullptr);
+    EXPECT_EQ(context_->bindingObjectConfigUpdateCallback_, nullptr);
+
+    context_->config_ = nullptr;
+    context_->NotifyBindingObjectConfigUpdate();
+    std::shared_ptr<Configuration> testConfig = std::make_shared<Configuration>();
+    context_->config_ = testConfig;
+    context_->NotifyBindingObjectConfigUpdate();
+
+    bool testFlag = false;
+    BindingObjectConfigUpdateCallback cb = [&testFlag, testConfig](std::shared_ptr<Configuration> config) -> void {
+        testFlag = true;
+        EXPECT_EQ(testConfig, config);
+    };
+    context_->RegisterBindingObjectConfigUpdateCallback(cb);
+    context_->NotifyBindingObjectConfigUpdate();
+    EXPECT_EQ(testFlag, true);
+}
+
+/**
+ * @tc.number: CreateModuleOrPluginContext_001
+ * @tc.name: CreateModuleOrPluginContext
+ * @tc.desc: Test CreateModuleOrPluginContext.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityContextImplSecondTest, CreateModuleOrPluginContext_001, Function | MediumTest | Level1)
+{
+    auto abilityContextImpl = std::make_shared<AbilityRuntime::AbilityContextImpl>();
+    std::string bundleName = "com.example.bundleName";
+    std::string moduleName = "moduleName";
+
+    auto context = abilityContextImpl->CreateModuleOrPluginContext(bundleName, moduleName);
+    EXPECT_EQ(context, nullptr);
+}
+
+/**
+ * @tc.number: CreateModuleOrPluginContext_002
+ * @tc.name: CreateModuleOrPluginContext
+ * @tc.desc: Test CreateModuleOrPluginContext.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityContextImplSecondTest, CreateModuleOrPluginContext_002, Function | MediumTest | Level1)
+{
+    auto abilityContextImpl = std::make_shared<AbilityRuntime::AbilityContextImpl>();
+    std::string bundleName = "";
+    std::string moduleName = "moduleName";
+
+    auto context = abilityContextImpl->CreateModuleOrPluginContext(bundleName, moduleName);
+    EXPECT_EQ(context, nullptr);
+}
+
+/**
+ * @tc.number: CreateModuleOrPluginContext_003
+ * @tc.name: CreateModuleOrPluginContext
+ * @tc.desc: Test CreateModuleOrPluginContext.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityContextImplSecondTest, CreateModuleOrPluginContext_003, Function | MediumTest | Level1)
+{
+    auto abilityContextImpl = std::make_shared<AbilityRuntime::AbilityContextImpl>();
+    std::string bundleName = "com.example.hostBundleName";
+    std::string moduleName = "";
+
+    auto context = abilityContextImpl->CreateModuleOrPluginContext(bundleName, moduleName);
+    EXPECT_EQ(context, nullptr);
+}
+
+/**
+ * @tc.number: CreateModuleOrPluginContext_004
+ * @tc.name: CreateModuleOrPluginContext
+ * @tc.desc: Test CreateModuleOrPluginContext.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityContextImplSecondTest, CreateModuleOrPluginContext_004, Function | MediumTest | Level1)
+{
+    auto abilityContextImpl = std::make_shared<AbilityRuntime::AbilityContextImpl>();
+    std::string bundleName = "";
+    std::string moduleName = "";
+
+    auto context = abilityContextImpl->CreateModuleOrPluginContext(bundleName, moduleName);
+    EXPECT_EQ(context, nullptr);
+}
+
+/**
+ * @tc.number: CreateModuleOrPluginContext_005
+ * @tc.name: CreateModuleOrPluginContext
+ * @tc.desc: Test CreateModuleOrPluginContext.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityContextImplSecondTest, CreateModuleOrPluginContext_005, Function | MediumTest | Level1)
+{
+    auto abilityContextImpl = std::make_shared<AbilityRuntime::AbilityContextImpl>();
+    std::string bundleName = "";
+    std::string moduleName = "";
+    abilityContextImpl->stageContext_ = nullptr;
+
+    auto context = abilityContextImpl->CreateModuleOrPluginContext(bundleName, moduleName);
+    EXPECT_EQ(context, nullptr);
+}
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -46,6 +46,7 @@ struct WorkItem  {
     std::string name;
     std::string message;
     std::string stack;
+    std::shared_ptr<std::atomic<int>> remainingCount;
 };
 struct GlobalObserverItem {
     napi_ref ref;
@@ -75,6 +76,9 @@ static std::once_flag registerCallbackFlag;
 static std::shared_ptr<JsLoopObserver> loopObserver_;
 static bool freezeCallbackRegistered = false;
 static bool isSetHandler = false;
+static std::mutex onErrorMtx;
+static std::condition_variable onErrorCv;
+constexpr int ON_ERROR_ASYNC_TIMEOUT = 2;
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
@@ -332,6 +336,46 @@ static void CallJsFunction(napi_env env, napi_value obj, const char *methodName,
     napi_call_function(env, obj, method, argc, argv, &callResult);
 }
 
+static bool NapiDoFunctionCallBack(WorkItem *newItem)
+{
+    napi_handle_scope scope_ = nullptr;
+    napi_status scopeStatus = napi_open_handle_scope(newItem->env, &scope_);
+    if (scopeStatus != napi_ok || scope_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "napi_open_handle_scope failed");
+        delete newItem;
+        newItem = nullptr;
+        return false;
+    }
+    napi_value global = nullptr;
+    if (napi_get_global(newItem->env, &global) != napi_ok) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
+        napi_close_handle_scope(newItem->env, scope_);
+        delete newItem;
+        newItem = nullptr;
+        return false;
+    }
+    size_t argc = ARGC_ONE;
+    napi_value args[] = {CreateGlobalObject(newItem->env, newItem)};
+    napi_value function = nullptr;
+    if (napi_get_reference_value(newItem->env, newItem->ref, &function) != napi_ok) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
+        napi_close_handle_scope(newItem->env, scope_);
+        delete newItem;
+        newItem = nullptr;
+        return false;
+    }
+    napi_value result = nullptr;
+    if (napi_call_function(newItem->env, global, function, argc, args, &result) != napi_ok) {
+        TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
+        napi_close_handle_scope(newItem->env, scope_);
+        delete newItem;
+        newItem = nullptr;
+        return false;
+    }
+    napi_close_handle_scope(newItem->env, scope_);
+    return true;
+}
+
 static void DoFunctionCallback(uv_work_t *reqwork, int status)
 {
     WorkItem *newItem = static_cast<WorkItem *>(reqwork->data);
@@ -339,61 +383,85 @@ static void DoFunctionCallback(uv_work_t *reqwork, int status)
         TAG_LOGI(AAFwkTag::JSNAPI, "Get WorkItem Failed");
         return;
     }
-    napi_value global = nullptr;
-    if (napi_get_global(newItem->env, &global) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
+    if (!NapiDoFunctionCallBack(newItem)) {
         return;
     }
-
-    size_t argc = ARGC_ONE;
-    napi_value args[] = {CreateGlobalObject(newItem->env, newItem)};
-
-    napi_value function = nullptr;
-    if (napi_get_reference_value(newItem->env, newItem->ref, &function) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
-        return;
-    }
-
-    napi_value result = nullptr;
-    if (napi_call_function(newItem->env, global, function, argc, args, &result) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
-        return;
+    if (newItem->remainingCount) {
+        int oldValue = newItem->remainingCount->fetch_sub(1, std::memory_order_acq_rel);
+        if (oldValue == 1) {
+            std::lock_guard<std::mutex> lock(onErrorMtx);
+            onErrorCv.notify_all();
+            TAG_LOGI(AAFwkTag::JSNAPI, "onError cv notify");
+        }
     }
     delete newItem;
     newItem = nullptr;
 }
+
+static void OnErrorWorkerWait(std::shared_ptr<std::atomic<int>>& remainingCount)
+{
+    if (remainingCount && remainingCount->load() > 0) {
+        std::unique_lock<std::mutex> onErrorLock(onErrorMtx);
+        if (onErrorCv.wait_for(onErrorLock, std::chrono::seconds(ON_ERROR_ASYNC_TIMEOUT)) == std::cv_status::timeout) {
+            TAG_LOGI(AAFwkTag::JSNAPI, "async onError callback has been extecting more than 2s");
+        } else {
+            TAG_LOGI(AAFwkTag::JSNAPI, "async onError callback has finished less than 2s");
+        }
+    }
+}
+
 static void DoCallbackInRegesterThread(napi_env env, WorkItem &info)
 {
-    std::lock_guard<std::mutex> lock(globalErrorMtx);
-    for (auto iter : globalObserverList) {
-        uv_loop_t *loop = nullptr;
-        if (napi_get_uv_event_loop(iter.env, &loop) != napi_ok) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "Get Loop Failed");
-            continue;
+    std::shared_ptr<std::atomic<int>> remainingCount = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(globalErrorMtx);
+        if (AppExecFwk::ApplicationDataManager::GetInstance().GetIsUncatchable() && !globalObserverList.empty()) {
+            remainingCount = std::make_shared<std::atomic<int>>(globalObserverList.size());
         }
-        WorkItem *item = new (std::nothrow) WorkItem();
-        if (item == nullptr) {
-            TAG_LOGI(AAFwkTag::JSNAPI, "new WorkItem Failed");
-            continue;
-        }
-        item->env = iter.env;
-        item->ref = iter.ref;
-        item->instanceName = info.instanceName;
-        item->instanceType = info.instanceType;
-        item->work.data = item;
-        item->name = info.name;
-        item->stack = info.stack;
-        item->message = info.message;
-        int ret = uv_queue_work(
-            loop, &item->work, [](uv_work_t *reqwork) {}, DoFunctionCallback);
-        if (ret != 0) {
-            if (item != nullptr) {
+
+        for (auto iter : globalObserverList) {
+            WorkItem *item = new (std::nothrow) WorkItem();
+            if (item == nullptr) {
+                TAG_LOGI(AAFwkTag::JSNAPI, "new WorkItem Failed");
+                continue;
+            }
+            item->env = iter.env;
+            item->ref = iter.ref;
+            item->instanceName = info.instanceName;
+            item->instanceType = info.instanceType;
+            item->work.data = item;
+            item->name = info.name;
+            item->stack = info.stack;
+            item->message = info.message;
+            item->remainingCount = remainingCount;
+
+            if (remainingCount && env == item->env) {
+                remainingCount->fetch_sub(1, std::memory_order_acq_rel);
+                if (NapiDoFunctionCallBack(item)) {
+                    delete item;
+                    item = nullptr;
+                    TAG_LOGI(AAFwkTag::JSNAPI, "Do uncatchable callback successfully with the same env");
+                }
+                continue;
+            }
+            uv_loop_t *loop = nullptr;
+            if (napi_get_uv_event_loop(iter.env, &loop) != napi_ok) {
+                delete item;
+                item = nullptr;
+                TAG_LOGI(AAFwkTag::JSNAPI, "Get Loop Failed");
+                continue;
+            }
+
+            int ret = uv_queue_work(loop, &item->work, [](uv_work_t *reqwork) {}, DoFunctionCallback);
+            if (ret != 0 && item != nullptr) {
                 delete item;
                 item = nullptr;
             }
         }
     }
+    OnErrorWorkerWait(remainingCount);
 }
+
 static void DoGlobalCallback(napi_env env, napi_value exception, std::string instanceName, uint32_t type)
 {
     {
@@ -496,14 +564,11 @@ static void DoWorkThreadCallback(napi_env env, napi_value exception)
         CallJsFunction(env, functionTemp.second->GetNapiValue(), "onException", args, argc);
     }
 }
+
 static bool ErrorManagerWorkerCallback(napi_env env, napi_value exception, std::string instanceName, uint32_t type)
 {
-    if (!AppExecFwk::ApplicationDataManager::GetInstance().GetIsUncatchable()) {
-        DoGlobalCallback(env, exception, instanceName, type);
-    } else {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Uncatchable exception, skip this step.");
-    }
     DoWorkThreadCallback(env, exception);
+    DoGlobalCallback(env, exception, instanceName, type);
     return true;
 }
 
@@ -539,13 +604,21 @@ static void DoErrorHandlerCallback(napi_env env, std::string name, std::string m
 static void FreezeCallback()
 {
     std::lock_guard<std::mutex> lock(freezeMtx);
+    napi_handle_scope scope_ = nullptr;
+    napi_status scopeStatus = napi_open_handle_scope(freezeObserver.env, &scope_);
+    if (scopeStatus != napi_ok || scope_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "napi_open_handle_scope failed");
+        return;
+    }
     if (!freezeObserver.ref) {
         TAG_LOGI(AAFwkTag::JSNAPI, "not register freeze callback");
+        napi_close_handle_scope(freezeObserver.env, scope_);
         return;
     }
     napi_value global = nullptr;
     if (napi_get_global(freezeObserver.env, &global) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
+        napi_close_handle_scope(freezeObserver.env, scope_);
         return;
     }
 
@@ -555,14 +628,17 @@ static void FreezeCallback()
     napi_value function = nullptr;
     if (napi_get_reference_value(freezeObserver.env, freezeObserver.ref, &function) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
+        napi_close_handle_scope(freezeObserver.env, scope_);
         return;
     }
 
     napi_value result = nullptr;
     if (napi_call_function(freezeObserver.env, global, function, argc, args, &result) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
+        napi_close_handle_scope(freezeObserver.env, scope_);
         return;
     }
+    napi_close_handle_scope(freezeObserver.env, scope_);
 }
 
 static bool ErrorManagerMainWorkerCallback(
@@ -577,11 +653,7 @@ static bool ErrorManagerMainWorkerCallback(
     item.stack = stack;
     item.instanceName = "";
     item.instanceType = 0;
-    if (!AppExecFwk::ApplicationDataManager::GetInstance().GetIsUncatchable()) {
-        DoCallbackInRegesterThread(env, item);
-    } else {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Uncatchable exception, skip this step.");
-    }
+    DoCallbackInRegesterThread(env, item);
     return true;
 }
 
@@ -1207,6 +1279,7 @@ private:
         }
         NapiAsyncTask::CompleteCallback complete = [observerId](napi_env env, NapiAsyncTask& task, int32_t status) {
             TAG_LOGI(AAFwkTag::JSNAPI, "complete called");
+            HandleScope handleScope(env);
             std::lock_guard<std::recursive_mutex> lock(errorMtx);
             if (!observerList.count(env) || observerId == -1) {
                 task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
@@ -1319,6 +1392,7 @@ private:
     {
         std::unique_ptr<NapiAsyncTask::CompleteCallback> complete = std::make_unique<NapiAsyncTask::CompleteCallback>
             ([number](napi_env env, NapiAsyncTask &task, int32_t status) {
+                HandleScope handleScope(env);
                 if (loopObserver_ == nullptr) {
                     TAG_LOGE(AAFwkTag::JSNAPI, "null loopObserver_");
                     return;
@@ -1423,6 +1497,30 @@ private:
 };
 } // namespace
 
+napi_value ErrorManagerInstanceTypeInit(napi_env env)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null env");
+        return nullptr;
+    }
+
+    napi_value objValue = nullptr;
+    if (napi_create_object(env, &objValue) != napi_ok) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "create obj failed");
+        return nullptr;
+    }
+
+    if (objValue == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null obj");
+        return nullptr;
+    }
+
+    napi_set_named_property(env, objValue, "MAIN", CreateJsValue(env, InstanceType::MAIN));
+    napi_set_named_property(env, objValue, "WORKER", CreateJsValue(env, InstanceType::WORKER));
+    napi_set_named_property(env, objValue, "TASKPOOL", CreateJsValue(env, InstanceType::TASKPOOL));
+    napi_set_named_property(env, objValue, "CUSTOM", CreateJsValue(env, InstanceType::CUSTOM));
+    return objValue;
+}
 napi_value JsErrorManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGI(AAFwkTag::JSNAPI, "called");
@@ -1449,6 +1547,8 @@ napi_value JsErrorManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "on", moduleName, JsErrorManager::On);
     BindNativeFunction(env, exportObj, "off", moduleName, JsErrorManager::Off);
     BindNativeFunction(env, exportObj, "setDefaultErrorHandler", moduleName, JsErrorManager::SetDefaultErrorHandler);
+
+    napi_set_named_property(env, exportObj, "InstanceType", ErrorManagerInstanceTypeInit(env));
     return CreateJsUndefined(env);
 }
 }  // namespace AbilityRuntime
