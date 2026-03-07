@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,6 +51,7 @@ const std::string JSON_KEY_PSS_VALUE = "pss_value";
 const std::string JSON_KEY_RSS_VALUE = "rss_value";
 const std::string JSON_KEY_PROSESS_STATE = "process_state";
 constexpr const char* PUT_TASK_NAME = "kvStorePtr_->Put";
+const std::string JSON_KEY_KILL_ID = "kill_id";
 } // namespace
 AppExitReasonDataManager::AppExitReasonDataManager() {}
 
@@ -112,7 +113,6 @@ int32_t AppExitReasonDataManager::SetAppExitReason(const std::string &bundleName
         TAG_LOGW(AAFwkTag::ABILITYMGR, "invalid value");
         return ERR_INVALID_VALUE;
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, tokenId: %{private}u", bundleName.c_str(), accessTokenId);
     std::string keyStr = std::to_string(accessTokenId);
     {
         std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
@@ -125,7 +125,7 @@ int32_t AppExitReasonDataManager::SetAppExitReason(const std::string &bundleName
     DistributedKv::Key key(keyStr);
     DistributedKv::Value value = ConvertAppExitReasonInfoToValue(abilityList, exitReason, processInfo, withKillMsg);
     PutAsync(key, value);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "set reason info: %{public}s", value.ToString().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, tokenId: %{private}u", bundleName.c_str(), accessTokenId);
     return ERR_OK;
 }
 
@@ -224,9 +224,9 @@ int32_t AppExitReasonDataManager::GetAppExitReason(const std::string &bundleName
                 UpdateAppExitReason(accessTokenId, abilityList, exitReason, processInfo, withKillMsg);
             }
             TAG_LOGD(AAFwkTag::ABILITYMGR, "current bundle name: %{public}s, tokenId:%{private}u, reason: %{public}d,"
-                "  exitMsg: %{public}s, abilityName:%{public}s isSetReason:%{public}d",
+                "  exitMsg: %{public}s, abilityName:%{public}s, isSetReason:%{public}d, killId:%{public}d",
                 bundleName.c_str(), accessTokenId, exitReason.reason, exitReason.exitMsg.c_str(),
-                abilityName.c_str(), isSetReason);
+                abilityName.c_str(), isSetReason, exitReason.killId);
             if (abilityList.empty()) {
                 InnerDeleteAppExitReason(accessTokenIdStr);
             }
@@ -255,6 +255,7 @@ void AppExitReasonDataManager::UpdateAppExitReason(uint32_t accessTokenId, const
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error: %{public}d", status);
     }
+    dbWriteCounter_.UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
 }
 
 int32_t AppExitReasonDataManager::RecordSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName)
@@ -294,7 +295,6 @@ int32_t AppExitReasonDataManager::RecordSignalReason(int32_t pid, int32_t uid, i
             return 0;
         }
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "key: %{public}s", std::to_string(accessTokenId).c_str());
     ret = SetAppExitReason(cacheInfo.bundleName, accessTokenId, cacheInfo.abilityNames, exitReason,
         cacheInfo.exitInfo, false);
     if (ret != 0) {
@@ -328,6 +328,7 @@ DistributedKv::Value AppExitReasonDataManager::ConvertAppExitReasonInfoToValue(
         { JSON_KEY_TIME_STAMP, nowMs.count() },
         { JSON_KEY_ABILITY_LIST, abilityList },
         { JSON_KEY_PROSESS_STATE, processInfo.state_ },
+        { JSON_KEY_KILL_ID, exitReason.killId }
     };
     DistributedKv::Value value(jsonObject.dump());
     return value;
@@ -387,6 +388,9 @@ void AppExitReasonDataManager::ConvertReasonFromValue(const nlohmann::json &json
     }
     if (jsonObject.contains(JSON_KEY_EXIT_MSG) && jsonObject[JSON_KEY_EXIT_MSG].is_string()) {
         exitReason.exitMsg = jsonObject.at(JSON_KEY_EXIT_MSG).get<std::string>();
+    }
+    if (jsonObject.contains(JSON_KEY_KILL_ID) && jsonObject[JSON_KEY_KILL_ID].is_number_integer()) {
+        exitReason.killId = jsonObject.at(JSON_KEY_KILL_ID).get<int32_t>();
     }
     if (jsonObject.contains(JSON_KEY_KILL_MSG) && jsonObject[JSON_KEY_KILL_MSG].is_string()) {
         auto killMsg = jsonObject.at(JSON_KEY_KILL_MSG).get<std::string>();
@@ -469,6 +473,7 @@ int32_t AppExitReasonDataManager::AddAbilityRecoverInfo(uint32_t accessTokenId,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "error : %{public}d", status);
         return ERR_INVALID_OPERATION;
     }
+    dbWriteCounter_.UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
     InnerAddSessionId(sessionId, accessTokenId);
     return ERR_OK;
 }
@@ -767,6 +772,7 @@ void AppExitReasonDataManager::UpdateAbilityRecoverInfo(uint32_t accessTokenId,
     if (status != DistributedKv::Status::SUCCESS) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed: %{public}d", status);
     }
+    dbWriteCounter_.UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
 }
 
 DistributedKv::Value AppExitReasonDataManager::ConvertAbilityRecoverInfoToValue(
@@ -864,6 +870,7 @@ void AppExitReasonDataManager::InnerAddSessionId(const int sessionId, uint32_t a
         TAG_LOGE(AAFwkTag::ABILITYMGR, "AddSessionId error : %{public}d", status);
         return;
     }
+    dbWriteCounter_.UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
 }
  
 void AppExitReasonDataManager::InnerDeleteSessionId(const int sessionId)
@@ -1017,6 +1024,7 @@ void AppExitReasonDataManager::PutAsync(const DistributedKv::Key &key, const Dis
         if (status != DistributedKv::Status::SUCCESS) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "insert error: %{public}d", status);
         }
+        pThis->dbWriteCounter_.UpdateWriteCount(APP_EXIT_REASON_STORAGE_DIR);
         }, ffrt::task_attr().name(PUT_TASK_NAME));
 }
 } // namespace AbilityRuntime

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -91,6 +91,14 @@ public:
      * @param configuration Indicates the updated configuration information.
      */
     void OnConfigurationUpdated(const Configuration &configuration) override;
+
+    int32_t OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnContinue,
+        const AppExecFwk::AbilityInfo &abilityInfo) override;
+    int32_t OnContinueAsyncCB(ani_ref aniWantParamsRef, int32_t status,
+        const AppExecFwk::AbilityInfo &abilityInfo) override;
+    bool OnContinueReturnPromise(ani_env* aniEnv, ani_ref aniWantParamRef, const AppExecFwk::AbilityInfo &abilityInfo);
+    bool CallObjectOnContinueMethod(ani_method method, ani_ref wantParamRef, int32_t& onContinueResult,
+        bool& isPromise);
 
     /**
      * @brief Update Contextconfiguration
@@ -341,6 +349,11 @@ private:
     void CreateEtsContext(int32_t screenMode);
     bool BindNativeMethods();
     void RemoveShareRouterByBundleType(const Want &want);
+    bool CheckSatisfyTargetAPIVersion(int32_t targetAPIVersion);
+    bool BackPressDefaultValue();
+    void WriteLifecycleSwitchLog(const std::string lifecycleName);
+    int32_t CallSaveState(ani_value args[], WantParams &wantParams, AppExecFwk::StateReason stateReason,
+        AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo);
 
     ETSRuntime &etsRuntime_;
     std::shared_ptr<AppExecFwk::ETSNativeReference> shellContextRef_;

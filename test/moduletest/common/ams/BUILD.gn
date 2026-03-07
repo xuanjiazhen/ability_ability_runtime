@@ -65,6 +65,7 @@ ohos_source_set("appmgr_mst_source") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "json:nlohmann_json_static",
+    "qos_manager:pi_mutex",
     "window_manager:libwsutils",
   ]
 

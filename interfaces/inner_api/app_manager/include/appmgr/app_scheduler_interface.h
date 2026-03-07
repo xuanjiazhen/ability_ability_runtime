@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -82,7 +82,7 @@ public:
      *
      * @return
      */
-    virtual void ScheduleMemoryLevel(int32_t level) = 0;
+    virtual void ScheduleMemoryLevel(int32_t level, bool isShellCall = false) = 0;
 
     /**
      * ScheduleHeapMemory, call ScheduleHeapMemory() through proxy project,
@@ -178,10 +178,12 @@ public:
      * ScheduleConfigurationUpdated, call ScheduleConfigurationUpdated() through proxy project,
      * Notify application to configuration update.
      *
-     * @param The configuration data.
+     * @param config, The configuration data.
+     * @param reason, The configuration update scene flag.
      * @return
      */
-    virtual void ScheduleConfigurationUpdated(const Configuration &config) = 0;
+    virtual void ScheduleConfigurationUpdated(const Configuration &config,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) = 0;
 
     /**
      * ScheduleProcessSecurityExit, call ScheduleProcessSecurityExit() through proxy project,
@@ -322,6 +324,17 @@ public:
     virtual int32_t ScheduleDumpFfrt(std::string& result) = 0;
 
     /**
+     * ScheduleDumpArkWeb, call ScheduleDumpArkWeb(std::string &customArgs, std::string& result) through proxy project,
+     * Start querying the application's arkWeb usage.
+     *
+     * @param customArgs, customArgs for dump.
+     * @param result, arkWeb dump result output.
+     *
+     * @return Returns 0 on success, error code on failure.
+     */
+    virtual int32_t ScheduleDumpArkWeb(const std::string &customArgs, std::string &result) = 0;
+
+    /**
      * SetWatchdogBackgroundStatus, call SetWatchdogBackgroundStatus(bool status) through proxy project,
      * Notify application to set watchdog background status.
      *
@@ -372,6 +385,7 @@ public:
         WATCHDOG_BACKGROUND_STATUS_TRANSACTION,
         SCHEDULE_CJHEAP_MEMORY_APPLICATION_TRANSACTION,
         ON_LOAD_ABILITY_FINISHED,
+        SCHEDULE_DUMP_ARKWEB,
     };
 };
 }  // namespace AppExecFwk

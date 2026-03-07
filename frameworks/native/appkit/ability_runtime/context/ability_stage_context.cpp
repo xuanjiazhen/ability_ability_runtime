@@ -18,7 +18,6 @@
 #include "context.h"
 #include "context_impl.h"
 #include "hilog_tag_wrapper.h"
-#include "resource_manager.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -462,6 +461,17 @@ std::shared_ptr<Context> AbilityStageContext::CreateAreaModeContext(int areaMode
     }
 
     return contextImpl_->CreateAreaModeContext(areaMode);
+}
+
+std::shared_ptr<Context> AbilityStageContext::CreateModuleOrPluginContext(const std::string &bundleName,
+    const std::string &moduleName)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid contextImpl");
+        return nullptr;
+    }
+
+    return contextImpl_->CreateModuleOrPluginContext(bundleName, moduleName);
 }
 
 #ifdef SUPPORT_GRAPHICS

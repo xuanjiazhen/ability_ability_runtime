@@ -81,6 +81,22 @@ HWTEST_F(AppMgrServiceSecondTest, NotifyPageHide_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: NotifyPageShow_0100
+ * @tc.desc: NotifyPageShow.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceSecondTest, NotifyPageShow_0100, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    sptr<OHOS::IRemoteObject> token = nullptr;
+    PageStateData pageStateData;
+    appMgrService->SetInnerService(nullptr);
+    int32_t res = appMgrService->NotifyPageShow(token, pageStateData);
+    EXPECT_EQ(res, ERR_INVALID_OPERATION);
+}
+
+/**
  * @tc.name: RegisterAppRunningStatusListener_0100
  * @tc.desc: RegisterAppRunningStatusListener.
  * @tc.type: FUNC
@@ -496,6 +512,48 @@ HWTEST_F(AppMgrServiceSecondTest, SetProcessCacheEnable_0200, TestSize.Level1)
     bool enable = false;
     auto ret = appMgrService->SetProcessCacheEnable(pid, enable);
     EXPECT_EQ(ret, AAFwk::ERR_NO_PERMISSION_CALLER);
+}
+
+/**
+ * @tc.name: LockProcessCache_001
+ * @tc.desc: LockProcessCache.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceSecondTest, LockProcessCache_001, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    appMgrService->appMgrServiceInner_ = nullptr;
+    int32_t pid = 1;
+    bool isLock = false;
+    auto ret = appMgrService->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER);
+}
+
+/**
+ * @tc.name: LockProcessCache_002
+ * @tc.desc: LockProcessCache.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceSecondTest, LockProcessCache_002, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    appMgrService->taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(Constants::APP_MGR_SERVICE_NAME);
+    appMgrService->appMgrServiceInner_ = std::make_shared<AppMgrServiceInner>();
+    appMgrService->eventHandler_ =
+        std::make_shared<AMSEventHandler>(appMgrService->taskHandler_, appMgrService->appMgrServiceInner_);
+    int32_t pid = 1;
+    bool isLock = false;
+    //无权限CheckSpecificSystemAbilityAccessPermission返回false
+    AAFwk::MyFlag::flag_ = 0;
+    auto ret = appMgrService->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, AAFwk::ERR_NO_PERMISSION_CALLER);
+
+    //有权限CheckSpecificSystemAbilityAccessPermission返回true
+    AAFwk::MyFlag::flag_ = 1;
+    ret = appMgrService->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -25,6 +25,7 @@ ability_runtime_abilitymgr_path = "${ability_runtime_services_path}/abilitymgr"
 ability_runtime_test_path = "${ability_runtime_path}/test"
 ability_runtime_utils_path = "${ability_runtime_path}/utils"
 ace_engine_path = "//foundation/arkui/ace_engine"
+agent_runtime_framework_path = "//foundation/ability/ability_runtime/agent_runtime_framework"
 arkui_path = "//foundation/arkui"
 previewer_path = "//ide/tools/previewer"
 simulator_path = "//foundation/ability/ability_runtime/frameworks/simulator"
@@ -121,7 +122,7 @@ declare_args() {
   ability_runtime_start_window_options_with_pixelmap = false
   ability_runtime_check_internet_permission = false
   ability_runtime_media_library_enable = true
-  ability_runtime_forbidstart_enable = false
+  ability_runtime_forbid_start_enabled = false
   ability_runtime_no_screen = false
   ability_runtime_hitrace_enable = true
   ability_runtime_hiperf_enable = true

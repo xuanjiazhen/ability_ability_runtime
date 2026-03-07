@@ -311,40 +311,6 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetResourceDir(cons
 AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetVersionCode(int64_t* versionCode);
 
 /**
- * @brief Obtain the launch parameter of starting UIAbility.
- *
- * @param buffer A pointer to a buffer that receives the launch parameter of starting UIAbility.
- * @param bufferSize The length of the buffer.
- * @param writeLength The string length actually written to the buffer,
- *                    when returning {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR}.
- * @return The error code.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the buffer or writeLength is null,
- *         or the buffer size is less than the minimum buffer size.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST} if the application context does not exist.
- * @since 21
- */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLaunchParameter(
-    char* buffer, const int32_t bufferSize, int32_t* writeLength);
-
-/**
- * @brief Obtain the latest parameter of starting UIAbility.
- *
- * @param buffer A pointer to a buffer that receives the latest parameter of starting UIAbility.
- * @param bufferSize The length of the buffer.
- * @param writeLength The string length actually written to the buffer,
- *                    when returning {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR}.
- * @return The error code.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the buffer or writeLength is null,
- *         or the buffer size is less than the minimum buffer size.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST} if the application context does not exist.
- * @since 21
- */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLatestParameter(
-    char* buffer, const int32_t bufferSize, int32_t* writeLength);
-
-/**
  * @brief Starts self UIAbility with start options and receives the process ID.
  *
  * @permission ohos.permission.NDK_START_SELF_UI_ABILITY
@@ -399,6 +365,55 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_StartSelfUIAbilityWithPidResult(Abili
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLogFileDir(
     char* buffer, const int32_t bufferSize, int32_t* writeLength);
+
+/**
+ * @brief Obtain the launch parameter of starting UIAbility.
+ *
+ * @param buffer A pointer to a buffer that receives the launch parameter of starting UIAbility.
+ * @param bufferSize The length of the buffer.
+ * @param writeLength The string length actually written to the buffer,
+ *                    when returning {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR}.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the buffer or writeLength is null,
+ *         or the buffer size is less than the minimum buffer size.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST} if the application context does not exist.
+ * @since 21
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLaunchParameter(
+    char* buffer, const int32_t bufferSize, int32_t* writeLength);
+
+/**
+ * @brief Obtain the latest parameter of starting UIAbility.
+ *
+ * @param buffer A pointer to a buffer that receives the latest parameter of starting UIAbility.
+ * @param bufferSize The length of the buffer.
+ * @param writeLength The string length actually written to the buffer,
+ *                    when returning {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR}.
+ * @return The error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the buffer or writeLength is null,
+ *         or the buffer size is less than the minimum buffer size.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST} if the application context does not exist.
+ * @since 21
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetLatestParameter(
+    char* buffer, const int32_t bufferSize, int32_t* writeLength);
+
+/**
+ * @brief Notify page changed.
+ *
+ * @param targetPageName The target page name.
+ * @param targetPageNameLength The target page name length.
+ * @param windowId The window identifier associated with the target page.
+ *
+ * @return Returns {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ * Returns {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if targetPageName is null or windowId is invalid.
+ * Returns {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs. such as connect system service failed.
+ * @since 23
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
+    const char* targetPageName, int32_t targetPageNameLength, int32_t windowId);
 
 #ifdef __cplusplus
 } // extern "C"

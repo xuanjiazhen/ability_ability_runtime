@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,9 +21,9 @@
 #include <memory>
 #include <queue>
 #include <unordered_map>
-#include "cpp/mutex.h"
 
 #include "ability_manager_constants.h"
+#include "ffrt.h"
 #include "isession_handler_interface.h"
 #include "ui_ability_record.h"
 
@@ -44,25 +44,25 @@ enum class SpecifiedProcessState: u_int8_t {
 };
 
 struct SpecifiedRequest {
-    bool preCreateProcessName = false;
-    bool isCold = false;
-    SpecifiedProcessState specifiedProcessState = SpecifiedProcessState::STATE_NONE;
     int32_t requestId = 0;
+    AbilityRequest abilityRequest;
     int32_t persistentId = 0;
     int32_t requestListId = -1;
     uint32_t sceneFlag = 0;
     uint32_t callingTokenId = 0;
-    AbilityRequest abilityRequest;
+    SpecifiedProcessState specifiedProcessState = SpecifiedProcessState::STATE_NONE;
+    bool isCold = false;
+    bool preCreateProcessName = false;
 
     SpecifiedRequest(int32_t requestId, AbilityRequest request) : requestId(requestId), abilityRequest(request) {}
 };
 
 struct AbilitiesRequest {
-    int32_t requestListId = -1;
     std::string requestKey;
     std::vector<std::pair<int32_t, sptr<SessionInfo>>> sessionInfoList;
-    uint32_t doneCount = 0;
     sptr<IRemoteObject> callerToken;
+    int32_t requestListId = -1;
+    uint32_t doneCount = 0;
 };
 
 class UIAbilityLifecycleManager : public std::enable_shared_from_this<UIAbilityLifecycleManager> {
@@ -73,17 +73,20 @@ public:
 
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
     void SignRestartProcess(int32_t pid);
+    ErrCode QueryCallerTokenIdForAnco(const std::string &asCallerForAncoSessionId, uint32_t &callerTokenId);
+    void UpdateTokenIdAndWantWithRealCallerInfo(AAFwk::Want &want, uint32_t &realCallerTokenId);
 
     /**
      * StartUIAbility with request.
      *
      * @param abilityRequest the request of the service ability to start.
      * @param sessionInfo the info of scene session
+     * @param params start parameters.
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, uint32_t sceneFlag,
-        bool isRestart, bool &isColdStart);
+    int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
+        AbilityRuntime::StartParamsBySCB &params, bool &isColdStart);
 
     /**
      * @brief execute after the ability schedule the lifecycle
@@ -205,15 +208,17 @@ public:
      * @param abilityRequest target ability request.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest);
+    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest, const int32_t frameNum);
 
     /**
      * Call UIAbility by SCB.
      *
      * @param sessionInfo the session info of the ability to be called.
+     * @param params start parameters.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart);
+    void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart);
 
     /**
      * OnAcceptWantResponse.
@@ -321,6 +326,14 @@ public:
         int32_t userId, const std::string &bundleName, const std::string &abilityName, const std::string &moduleName);
 
     /**
+     * Report grant uri permission event.
+     *
+     * @param abilityRequest ability request info.
+     * @param callScenario uri grant method.
+     */
+    void ReportGrantUriPermissionEvent(const AbilityRequest& abilityRequest, const std::string& callScenario);
+
+    /**
      * Triggered when app state changed.
      *
      * @param info appInfo on changed.
@@ -411,7 +424,7 @@ public:
      * @param pids List of process IDs to terminate
      * @return ERR_OK if successful, error code otherwise
      */
-    int32_t TryPrepareTerminateByPids(const std::vector<int32_t>& pids);
+    int32_t TryPrepareTerminateByPids(const std::vector<int32_t>& pids, bool clear);
 
     /**
      * @brief Change ability visibility
@@ -537,8 +550,10 @@ public:
      */
     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
 
-    ErrCode IsUIAbilityAlreadyExist(const std::string &abilityName, const std::string &specifiedFlag,
+    ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
+
+    void HandleUIAbilityDiedByPid(pid_t pid);
 
 private:
     /**
@@ -898,16 +913,20 @@ private:
      * @param callerAbility The caller ability
      * @return ERR_OK if successful, error code otherwise
      */
-    int32_t StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
+    int32_t StartAbilityBySpecified(const SpecifiedRequest &specifiedRequest,
         UIAbilityRecordPtr callerAbility);
     
-    int32_t StartAbilityBySpecified(const AbilityRequest &abilityRequest, int32_t requestId);
+    int32_t StartSpecifiedAbilityDirectlyWithFlag(const AbilityRequest &abilityRequest, int32_t requestId);
 
     /**
      * @brief Set last exit reason for ability
      * @param abilityRecord The ability record
      */
-    void SetLastExitReason(UIAbilityRecordPtr abilityRecord) const;
+    static void SetLastExitReason(UIAbilityRecordPtr abilityRecord);
+
+    void SetLastExitReasonAsync(UIAbilityRecordPtr abilityRecord);
+
+    void SyncLoadExitReasonTask(int32_t abilityRecordId);
 
     /**
      * @brief Set receiver info for ability
@@ -1106,11 +1125,11 @@ private:
      * @brief Handle cold start for specified ability
      * @param abilityRequest The ability request
      * @param sessionInfo The session info
-     * @param sceneFlag The scene flag
+     * @param params start parameters.
      * @return true if handled, false otherwise
      */
     bool HandleStartSpecifiedCold(const AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
-        uint32_t sceneFlag, bool isRestart);
+        AbilityRuntime::StartParamsBySCB &params);
 
     /**
      * @brief Handle cold accept want completion
@@ -1180,6 +1199,8 @@ private:
      * @return true if updated, false otherwise
      */
     bool UpdateSpecifiedFlag(UIAbilityRecordPtr abilityRequest, const std::string &flag);
+    void SetProcessPrepareExit(int32_t pid, size_t remainingTokensSize, size_t abilityToTerminateSize,
+        bool clear) const;
 
     /**
      * @brief Process cold start branch
@@ -1238,14 +1259,23 @@ private:
      */
     void RemoveInstanceKey(const AbilityRequest &abilityRequest) const;
     bool HandleRestartUIAbility(sptr<SessionInfo> sessionInfo);
-
+    void GetActiveAbilityListLocked(int32_t uid, int32_t pid, std::vector<std::string> &abilityList);
+    UIAbilityRecordPtr FindUIAbilityRecordByIdLocked(int64_t abilityRecordId);
+    
+    struct CallerInfo {
+        uint32_t callerTokenId = 0;
+        Want targetWant;
+    };
     int32_t userId_ = -1;
     mutable ffrt::mutex sessionLock_;
     std::unordered_map<int32_t, UIAbilityRecordPtr> sessionAbilityMap_;
     std::unordered_map<int32_t, UIAbilityRecordPtr> lowMemKillAbilityMap_;
     std::unordered_map<int32_t, UIAbilityRecordPtr> tmpAbilityMap_;
     std::unordered_map<UIAbilityRecordPtr, std::list<AbilityRequest>> callRequestCache_;
+    std::unordered_map<std::string, CallerInfo> callerInfoMap_;
     std::list<UIAbilityRecordPtr> terminateAbilityList_;
+    ffrt::mutex callerInfoMapLock_;
+    // if window reused, persistentId will be reused, keep previous record here until the ability is dead
     std::unordered_set<UIAbilityRecordPtr> reuseWindowRecords_;
     sptr<IRemoteObject> rootSceneSession_;
     sptr<ISessionHandler> handler_;
@@ -1279,6 +1309,9 @@ private:
     std::map<int32_t, std::shared_ptr<AbilitiesRequest>> abilitiesRequestMap_;
     std::mutex startingPidsMutex_;
     std::vector<pid_t> startingPids_;
+
+    std::mutex exitReasonTaskMutex_;
+    std::unordered_map<int32_t, ffrt::task_handle> exitReasonTasks_; // for sync querying exit-reason task
 };
 }  // namespace AAFwk
 }  // namespace OHOS

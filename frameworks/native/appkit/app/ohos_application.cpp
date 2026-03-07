@@ -263,13 +263,19 @@ void OHOSApplication::SetAbilityRecordMgr(const std::shared_ptr<AbilityRecordMgr
  * @brief Will be Called when the system configuration of the device changes.
  *
  * @param config Indicates the new Configuration object.
+ * @param reason Indicates the Configuration update scene flag.
  */
-void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntime::SetLevel level)
+void OHOSApplication::OnConfigurationUpdated(
+    Configuration config, AbilityRuntime::SetLevel level, ConfigUpdateReason reason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!abilityRecordMgr_ || !configuration_ || !abilityRuntimeContext_) {
         TAG_LOGD(AAFwkTag::APPKIT, "abilityRecordMgr_ or configuration_ or abilityRuntimeContext_ is null");
         return;
+    }
+
+    if (level == AbilityRuntime::SetLevel::System) {
+        abilityRuntimeContext_->NotifySystemConfigurationUpdated(config);
     }
     bool isUpdateAppColor = IsUpdateColorNeeded(config, level);
     bool isUpdateAppFontSize = isUpdateFontSize(config, level);
@@ -307,10 +313,10 @@ void OHOSApplication::OnConfigurationUpdated(Configuration config, AbilityRuntim
             abilityStage->OnConfigurationUpdated(config);
         }
     }
+    abilityRuntimeContext_->SetConfigUpdateReason(reason);
 #ifdef SUPPORT_GRAPHICS
     auto diffConfiguration = std::make_shared<AppExecFwk::Configuration>(config);
-    auto ignoreWindowContext = AbilityRuntime::ApplicationConfigurationManager::GetInstance().
-        GetIgnoreContext();
+    auto ignoreWindowContext = AbilityRuntime::ApplicationConfigurationManager::GetInstance().GetIgnoreContext();
     TAG_LOGI(AAFwkTag::APPKIT, "ignoreWindowContext size %{public}zu", ignoreWindowContext.size());
     Rosen::Window::UpdateConfigurationForAll(diffConfiguration, ignoreWindowContext);
 #endif
@@ -851,6 +857,7 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::GetAppContext() const
 const std::unique_ptr<AbilityRuntime::Runtime> &OHOSApplication::GetSpecifiedRuntime(
     const std::string &arkTSMode) const
 {
+    std::lock_guard<std::mutex> lock(runtimeMutex_);
     if (arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0 &&
         runtime_ != nullptr &&
         runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
@@ -1146,12 +1153,14 @@ bool OHOSApplication::isUpdateFontSize(Configuration &config, AbilityRuntime::Se
 
     auto preLevle = ApplicationConfigurationManager::GetInstance().GetFontSetLevel();
     if (level < preLevle) {
+        TAG_LOGW(AAFwkTag::APPKIT, "low level");
         config.RemoveItem(AAFwk::GlobalConfigurationKey::SYSTEM_FONT_SIZE_SCALE);
         return false;
     }
 
     std::string globalFontFollowSysteme = configuration_->GetItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE);
     if (level == preLevle && !globalFontFollowSysteme.empty()) {
+        TAG_LOGW(AAFwkTag::APPKIT, "same level");
         if (globalFontFollowSysteme.compare(ConfigurationInner::IS_APP_FONT_FOLLOW_SYSTEM) == 0) {
             return true;
         }
@@ -1160,6 +1169,7 @@ bool OHOSApplication::isUpdateFontSize(Configuration &config, AbilityRuntime::Se
     }
 
     // level > preLevle
+    TAG_LOGW(AAFwkTag::APPKIT, "high level");
     configuration_->RemoveItem(AAFwk::GlobalConfigurationKey::APP_FONT_SIZE_SCALE);
     ApplicationConfigurationManager::GetInstance().SetfontSetLevel(level);
     return true;
@@ -1274,8 +1284,11 @@ bool OHOSApplication::UpdateETSRuntime(AbilityRuntime::Runtime::Options &option)
         TAG_LOGE(AAFwkTag::APPKIT, "create etsRuntime failed");
         return false;
     }
-    etsRuntime->SetJsRuntime(runtime_);
-    runtime_ = std::move(etsRuntime);
+    {
+        std::lock_guard<std::mutex> lock(runtimeMutex_);
+        etsRuntime->SetJsRuntime(runtime_);
+        runtime_ = std::move(etsRuntime);
+    }
     return true;
 }
 
@@ -1326,15 +1339,5 @@ void OHOSApplication::GetAllUIAbilities(std::vector<std::shared_ptr<AbilityRunti
     }
 }
 #endif
-
-bool OHOSApplication::GetAppCloneIndex(int32_t &index)
-{
-    if (abilityRuntimeContext_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null abilityRuntimeContext_");
-        return false;
-    }
-    index = abilityRuntimeContext_->GetCurrentAppCloneIndex();
-    return true;
-}
 }  // namespace AppExecFwk
 }  // namespace OHOS

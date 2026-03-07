@@ -47,10 +47,7 @@ void UriPermissionManagerStubImplTest::SetUpTestCase() {}
 
 void UriPermissionManagerStubImplTest::TearDownTestCase() {}
 
-void UriPermissionManagerStubImplTest::SetUp()
-{
-    MyFlag::Init();
-}
+void UriPermissionManagerStubImplTest::SetUp() {}
 
 void UriPermissionManagerStubImplTest::TearDown() {}
 
@@ -63,7 +60,7 @@ void UriPermissionManagerStubImplTest::TearDown() {}
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_001, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-    MyFlag::isSAOrSystemAppCall_ = false;
+    MyFlag::isDFSCallRet_ = false;
     std::string uri = "uri";
     uint32_t flag = 1;
     uint32_t tokenId = 1;
@@ -82,6 +79,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_001, TestSi
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_002, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    MyFlag::isDFSCallRet_ = true;
     std::string uri = "uri";
     uint32_t flag = 0;
     uint32_t tokenId = 1;
@@ -100,7 +98,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_002, TestSi
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_VerifyUriPermission_003, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-    MyFlag::isSAOrSystemAppCall_ = true;
+    MyFlag::isDFSCallRet_ = true;
     MyFlag::isUriTypeValid_ = false;
     std::string uri = "uri";
     uint32_t flag = 1;
@@ -169,7 +167,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermission_001, TestSiz
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
     MyFlag::isSystemAppCall_ = true;
     Uri uri("uri");
-    unsigned int flag = 1;
+    uint32_t flag = 1;
     std::string targetBundleName = "targetBundleName";
     int32_t appIndex = 1;
     uint32_t initiatorTokenId = 1;
@@ -190,7 +188,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermission_002, TestSiz
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
     MyFlag::isSystemAppCall_ = false;
     Uri uri("file");
-    unsigned int flag = 1;
+    uint32_t flag = 1;
     std::string targetBundleName = "targetBundleName";
     int32_t appIndex = 1;
     uint32_t initiatorTokenId = 1;
@@ -208,16 +206,14 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermission_002, TestSiz
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermission_003, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-    MyFlag::isSAOrSystemAppCall_ = true;
     std::vector<std::string> uriVec;
-    unsigned int flag = 1;
+    uint32_t flag = 1;
     std::string targetBundleName = "targetBundleName";
     int32_t appIndex = 1;
     uint32_t initiatorTokenId = 1;
     int32_t funcResult = 1;
     auto result = upmsi->GrantUriPermission(uriVec, flag, targetBundleName, appIndex, initiatorTokenId, funcResult);
     EXPECT_EQ(result, ERR_OK);
-    EXPECT_EQ(funcResult, INNER_ERR);
 }
 
 /*
@@ -363,9 +359,11 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedInn
     MyFlag::isUriTypeValid_ = true;
     MyFlag::isDocsCloudUri_ = true;
     std::string bundleName = "bundleName";
+    FUDAppInfo callerInfo = { callerTokenId, "caller", "callerAlterName" };
     FUDAppInfo targetAppInfo = { targetTokenId, bundleName, targetAlterBundleName };
-    auto result = upmsi->GrantUriPermissionPrivilegedInner(uriVec, flag, callerTokenId, targetAppInfo,
-        hideSensitiveType);
+    std::vector<int32_t> permissionTypes(uriVec.size(), 0);
+    auto result = upmsi->GrantUriPermissionPrivilegedInner(uriVec, flag, callerInfo, targetAppInfo,
+        hideSensitiveType, permissionTypes);
     EXPECT_EQ(result, INNER_ERR);
 }
 
@@ -389,9 +387,11 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedInn
     MyFlag::isUriTypeValid_ = true;
     MyFlag::isDocsCloudUri_ = false;
     std::string bundleName = "bundleName";
+    FUDAppInfo callerInfo = { callerTokenId, "caller", "callerAlterName" };
     FUDAppInfo targetAppInfo = { targetTokenId, bundleName, targetAlterBundleName };
-    auto result = upmsi->GrantUriPermissionPrivilegedInner(uriVec, flag, callerTokenId, targetAppInfo,
-        hideSensitiveType);
+    std::vector<int32_t> permissionTypes(uriVec.size(), 0);
+    auto result = upmsi->GrantUriPermissionPrivilegedInner(uriVec, flag, callerInfo, targetAppInfo,
+        hideSensitiveType, permissionTypes);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -415,9 +415,11 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_GrantUriPermissionPrivilegedInn
     MyFlag::isUriTypeValid_ = true;
     MyFlag::isDocsCloudUri_ = false;
     std::string bundleName = "bundleName";
+    FUDAppInfo callerInfo = { callerTokenId, "caller", "callerAlterName" };
     FUDAppInfo targetAppInfo = { targetTokenId, bundleName, targetAlterBundleName };
-    auto result = upmsi->GrantUriPermissionPrivilegedInner(uriVec, flag, callerTokenId, targetAppInfo,
-        hideSensitiveType);
+    std::vector<int32_t> permissionTypes(uriVec.size(), 0);
+    auto result = upmsi->GrantUriPermissionPrivilegedInner(uriVec, flag, callerInfo, targetAppInfo,
+        hideSensitiveType, permissionTypes);
     EXPECT_EQ(result, INNER_ERR);
 }
 
@@ -465,7 +467,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_CheckUriAuthorization_002, Test
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeAllMapUriPermissions_001, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-    MyFlag::upmsUtilsBundleName_ = "callerAuthority";
+    MyFlag::bundleName_ = "callerAuthority";
     GrantInfo info = { 1, 1, 1 };
     upmsi->uriMap_.insert({ "uri://callerAuthority", { info } });
     uint32_t tokenId = 1;
@@ -482,7 +484,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeAllMapUriPermissions_001,
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeAllMapUriPermissions_002, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-    MyFlag::upmsUtilsBundleName_ = "bundleName";
+    MyFlag::bundleName_ = "bundleName";
     GrantInfo info = { 1, 1, 1 };
     upmsi->uriMap_.insert({ "uri://callerAuthority", { info } });
     uint32_t tokenId = 1;
@@ -500,7 +502,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeAllMapUriPermissions_002,
 HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RevokeUriPermissionManually_001, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-    MyFlag::isSAOrSystemAppCall_ = true;
+    MyFlag::isSystemAppCall_ = true;
     MyFlag::isUriTypeValid_ = true;
     MyFlag::getTokenIdByBundleNameStatus_ = -1;
     Uri uri("uri");

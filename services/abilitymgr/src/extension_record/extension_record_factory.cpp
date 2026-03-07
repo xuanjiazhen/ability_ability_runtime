@@ -17,7 +17,9 @@
 
 #include "ability_util.h"
 #include "app_utils.h"
+#include "base_extension_record.h"
 #include "multi_instance_utils.h"
+#include "startup_util.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -26,7 +28,7 @@ namespace {
 const std::map<AppExecFwk::ExtensionAbilityType, ExtensionRecordConfig> EXTENSION_RECORD_CONFIG_MAP = {
     { AppExecFwk::ExtensionAbilityType::EMBEDDED_UI,
       { PROCESS_MODE_BUNDLE, PROCESS_MODE_SUPPORT_DEFAULT | PROCESS_MODE_HOST_SPECIFIED |
-        PROCESS_MODE_HOST_INSTANCE | PROCESS_MODE_CUSTOM,
+        PROCESS_MODE_HOST_INSTANCE | PROCESS_MODE_CUSTOM | PROCESS_MODE_PLUGIN,
         PRE_CHECK_FLAG_CALLED_WITHIN_THE_BUNDLE | PRE_CHECK_FLAG_MULTIPLE_PROCESSES }},
     { AppExecFwk::ExtensionAbilityType::STATUS_BAR_VIEW,
       { PROCESS_MODE_BUNDLE, PROCESS_MODE_SUPPORT_DEFAULT | PROCESS_MODE_RUN_WITH_MAIN_PROCESS,
@@ -38,6 +40,11 @@ const std::map<AppExecFwk::ExtensionAbilityType, ExtensionRecordConfig> EXTENSIO
       { PROCESS_MODE_BUNDLE, PROCESS_MODE_SUPPORT_DEFAULT | PROCESS_MODE_RUN_WITH_MAIN_PROCESS,
         PRE_CHECK_FLAG_NONE }},
     { AppExecFwk::ExtensionAbilityType::LIVE_FORM, { PROCESS_MODE_BUNDLE, PROCESS_MODE_BUNDLE, PRE_CHECK_FLAG_NONE }},
+    { AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI,
+      { PROCESS_MODE_BUNDLE, PROCESS_MODE_SUPPORT_DEFAULT | PROCESS_MODE_RUN_WITH_MAIN_PROCESS,
+        PRE_CHECK_FLAG_NONE }},
+    { AppExecFwk::ExtensionAbilityType::AGENT_UI,
+      { PROCESS_MODE_AGENT_UI, PROCESS_MODE_AGENT_UI, PRE_CHECK_FLAG_NONE }},
 };
 
 uint32_t GetPreCheckFlag(ExtensionAbilityType type)
@@ -65,8 +72,13 @@ int32_t ExtensionRecordFactory::PreCheck(const AAFwk::AbilityRequest &abilityReq
     if (preCheckFlag == 0) {
         return ERR_OK;
     }
-    if (preCheckFlag & PRE_CHECK_FLAG_CALLED_WITHIN_THE_BUNDLE) {
+    if ((preCheckFlag & PRE_CHECK_FLAG_CALLED_WITHIN_THE_BUNDLE) &&
+        hostBundleName != AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
         if (hostBundleName != abilityRequest.abilityInfo.applicationName) {
+            if (abilityRequest.isTargetPlugin && abilityRequest.hostBundleName == hostBundleName &&
+                abilityRequest.abilityInfo.extensionAbilityType == ExtensionAbilityType::EMBEDDED_UI) {
+                return ERR_OK;
+            }
             TAG_LOGW(AAFwkTag::ABILITYMGR, "not called");
             return ERR_INVALID_VALUE;
         }
@@ -99,6 +111,12 @@ uint32_t ExtensionRecordFactory::GetExtensionProcessMode(
     auto iter = EXTENSION_RECORD_CONFIG_MAP.find(abilityRequest.extensionType);
     if (iter != EXTENSION_RECORD_CONFIG_MAP.end()) {
         config = iter->second;
+    }
+
+    if (config.processModeSupport & PROCESS_MODE_PLUGIN) {
+        if (AbilityRuntime::StartupUtil::IsStartPlugin(abilityRequest.want)) {
+            return PROCESS_MODE_PLUGIN;
+        }
     }
 
     // check host specified
@@ -138,7 +156,7 @@ uint32_t ExtensionRecordFactory::GetExtensionProcessMode(
 int32_t ExtensionRecordFactory::CreateRecord(
     const AAFwk::AbilityRequest &abilityRequest, std::shared_ptr<ExtensionRecord> &extensionRecord)
 {
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityRecord create failed");
         return ERR_NULL_OBJECT;

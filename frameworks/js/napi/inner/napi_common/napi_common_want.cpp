@@ -67,6 +67,7 @@ void InnerInitWantOptionsData(std::map<std::string, unsigned int> &flagMap)
 
 napi_value WrapElementName(napi_env env, const ElementName &elementName)
 {
+    HandleEscape handleEscape(env);
     napi_value jsObject = nullptr;
     NAPI_CALL(env, napi_create_object(env, &jsObject));
 
@@ -86,7 +87,7 @@ napi_value WrapElementName(napi_env env, const ElementName &elementName)
     NAPI_CALL(env, napi_create_string_utf8(env, elementName.GetModuleName().c_str(), NAPI_AUTO_LENGTH, &jsValue));
     NAPI_CALL(env, napi_set_named_property(env, jsObject, "moduleName", jsValue));
 
-    return jsObject;
+    return handleEscape.Escape(jsObject);
 }
 
 bool UnwrapElementName(napi_env env, napi_value param, ElementName &elementName)
@@ -121,7 +122,7 @@ bool InnerWrapWantParamsChar(
     if (ao == nullptr) {
         return false;
     }
-
+    AbilityRuntime::HandleScope handleScope(env);
     std::string natValue(static_cast<Char *>(ao)->ToString());
     napi_value jsValue = WrapStringToJS(env, natValue);
     if (jsValue == nullptr) {
@@ -140,7 +141,7 @@ bool InnerWrapWantParamsString(
     if (ao == nullptr) {
         return false;
     }
-
+    AbilityRuntime::HandleScope handleScope(env);
     std::string natValue = AAFwk::String::Unbox(ao);
     napi_value jsValue = WrapStringToJS(env, natValue);
     if (jsValue == nullptr) {
@@ -159,7 +160,7 @@ bool InnerWrapWantParamsBool(
     if (bo == nullptr) {
         return false;
     }
-
+    AbilityRuntime::HandleScope handleScope(env);
     bool natValue = AAFwk::Boolean::Unbox(bo);
     napi_value jsValue = WrapBoolToJS(env, natValue);
     if (jsValue == nullptr) {
@@ -173,6 +174,7 @@ bool InnerWrapWantParamsBool(
 bool InnerWrapWantParamsByte(
     napi_env env, napi_value jsObject, const std::string &key, const AAFwk::WantParams &wantParams)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     auto value = wantParams.GetParam(key);
     AAFwk::IByte *bo = AAFwk::IByte::Query(value);
     if (bo == nullptr) {
@@ -192,6 +194,7 @@ bool InnerWrapWantParamsByte(
 bool InnerWrapWantParamsShort(
     napi_env env, napi_value jsObject, const std::string &key, const AAFwk::WantParams &wantParams)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     auto value = wantParams.GetParam(key);
     AAFwk::IShort *ao = AAFwk::IShort::Query(value);
     if (ao == nullptr) {
@@ -211,6 +214,7 @@ bool InnerWrapWantParamsShort(
 bool InnerWrapWantParamsInt32(
     napi_env env, napi_value jsObject, const std::string &key, const AAFwk::WantParams &wantParams)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     auto value = wantParams.GetParam(key);
     AAFwk::IInteger *ao = AAFwk::IInteger::Query(value);
     if (ao == nullptr) {
@@ -230,6 +234,7 @@ bool InnerWrapWantParamsInt32(
 bool InnerWrapWantParamsInt64(
     napi_env env, napi_value jsObject, const std::string &key, const AAFwk::WantParams &wantParams)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     auto value = wantParams.GetParam(key);
     AAFwk::ILong *ao = AAFwk::ILong::Query(value);
     if (ao == nullptr) {
@@ -249,6 +254,7 @@ bool InnerWrapWantParamsInt64(
 bool InnerWrapWantParamsFloat(
     napi_env env, napi_value jsObject, const std::string &key, const AAFwk::WantParams &wantParams)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     auto value = wantParams.GetParam(key);
     AAFwk::IFloat *ao = AAFwk::IFloat::Query(value);
     if (ao == nullptr) {
@@ -269,6 +275,7 @@ bool InnerWrapWantParamsDouble(
     napi_env env, napi_value jsObject, const std::string &key, const AAFwk::WantParams &wantParams)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleScope handleScope(env);
     auto value = wantParams.GetParam(key);
     AAFwk::IDouble *ao = AAFwk::IDouble::Query(value);
     if (ao == nullptr) {
@@ -289,6 +296,7 @@ bool InnerWrapWantParamsWantParams(
     napi_env env, napi_value jsObject, const std::string &key, const AAFwk::WantParams &wantParams)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "key=%{public}s", key.c_str());
+    AbilityRuntime::HandleScope handleScope(env);
     auto value = wantParams.GetParam(key);
     AAFwk::IWantParams *o = AAFwk::IWantParams::Query(value);
     if (o == nullptr) {
@@ -345,7 +353,7 @@ bool InnerWrapWantParamsArrayChar(napi_env env, napi_value jsObject, const std::
             }
         }
     }
-
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value jsValue = WrapArrayStringToJS(env, natArray);
     if (jsValue != nullptr) {
         NAPI_CALL_BASE(env, napi_set_named_property(env, jsObject, key.c_str(), jsValue), false);
@@ -371,7 +379,7 @@ bool InnerWrapWantParamsArrayString(napi_env env, napi_value jsObject, const std
             }
         }
     }
-
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value jsValue = WrapArrayStringToJS(env, natArray);
     if (jsValue != nullptr) {
         NAPI_CALL_BASE(env, napi_set_named_property(env, jsObject, key.c_str(), jsValue), false);
@@ -382,6 +390,7 @@ bool InnerWrapWantParamsArrayString(napi_env env, napi_value jsObject, const std
 
 bool InnerWrapWantParamsArrayBool(napi_env env, napi_value jsObject, const std::string &key, sptr<AAFwk::IArray> &ao)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     long size = 0;
     if (ao->GetLength(size) != ERR_OK) {
         return false;
@@ -408,6 +417,7 @@ bool InnerWrapWantParamsArrayBool(napi_env env, napi_value jsObject, const std::
 
 bool InnerWrapWantParamsArrayShort(napi_env env, napi_value jsObject, const std::string &key, sptr<AAFwk::IArray> &ao)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     long size = 0;
     if (ao->GetLength(size) != ERR_OK) {
         return false;
@@ -433,6 +443,7 @@ bool InnerWrapWantParamsArrayShort(napi_env env, napi_value jsObject, const std:
 }
 bool InnerWrapWantParamsArrayByte(napi_env env, napi_value jsObject, const std::string &key, sptr<AAFwk::IArray> &ao)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     long size = 0;
     if (ao->GetLength(size) != ERR_OK) {
         return false;
@@ -460,6 +471,7 @@ bool InnerWrapWantParamsArrayByte(napi_env env, napi_value jsObject, const std::
 
 bool InnerWrapWantParamsArrayInt32(napi_env env, napi_value jsObject, const std::string &key, sptr<AAFwk::IArray> &ao)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     long size = 0;
     if (ao->GetLength(size) != ERR_OK) {
         return false;
@@ -486,6 +498,7 @@ bool InnerWrapWantParamsArrayInt32(napi_env env, napi_value jsObject, const std:
 
 bool InnerWrapWantParamsArrayInt64(napi_env env, napi_value jsObject, const std::string &key, sptr<AAFwk::IArray> &ao)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     long size = 0;
     if (ao->GetLength(size) != ERR_OK) {
         return false;
@@ -512,6 +525,7 @@ bool InnerWrapWantParamsArrayInt64(napi_env env, napi_value jsObject, const std:
 
 bool InnerWrapWantParamsArrayFloat(napi_env env, napi_value jsObject, const std::string &key, sptr<AAFwk::IArray> &ao)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     long size = 0;
     if (ao->GetLength(size) != ERR_OK) {
         return false;
@@ -538,6 +552,7 @@ bool InnerWrapWantParamsArrayFloat(napi_env env, napi_value jsObject, const std:
 
 napi_value WrapArrayWantParamsToJS(napi_env env, const std::vector<WantParams> &value)
 {
+    HandleEscape handleEscape(env);
     napi_value jsArray = nullptr;
     napi_value jsValue = nullptr;
     uint32_t index = 0;
@@ -551,11 +566,12 @@ napi_value WrapArrayWantParamsToJS(napi_env env, const std::vector<WantParams> &
             }
         }
     }
-    return jsArray;
+    return handleEscape.Escape(jsArray);
 }
 
 bool InnerWrapWantParamsArrayDouble(napi_env env, napi_value jsObject, const std::string &key, sptr<AAFwk::IArray> &ao)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     long size = 0;
     if (ao->GetLength(size) != ERR_OK) {
         return false;
@@ -583,6 +599,7 @@ bool InnerWrapWantParamsArrayDouble(napi_env env, napi_value jsObject, const std
 bool InnerWrapWantParamsArrayWantParams(napi_env env, napi_value jsObject,
     const std::string &key, sptr<AAFwk::IArray> &ao)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     long size = 0;
     if (ao->GetLength(size) != ERR_OK) {
         return false;
@@ -637,6 +654,7 @@ bool InnerWrapWantParamsArray(napi_env env, napi_value jsObject, const std::stri
 
 napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value jsObject = nullptr;
     NAPI_CALL(env, napi_create_object(env, &jsObject));
 
@@ -674,7 +692,7 @@ napi_value WrapWantParams(napi_env env, const AAFwk::WantParams &wantParams)
             InnerWrapWantParamsRemoteObject(env, jsObject, iter->first, wantParams);
         }
     }
-    return jsObject;
+    return handleEscape.Escape(jsObject);
 }
 
 bool InnerSetWantParamsArrayObject(napi_env env, const std::string &key,
@@ -1028,6 +1046,7 @@ bool HandleRemoteObject(napi_env env, napi_value param, std::string &strProName,
 
 napi_value InnerWrapWantOptions(napi_env env, const Want &want)
 {
+    HandleEscape handleEscape(env);
     napi_value jsObject = nullptr;
     std::map<std::string, unsigned int> flagMap;
     InnerInitWantOptionsData(flagMap);
@@ -1044,11 +1063,12 @@ napi_value InnerWrapWantOptions(napi_env env, const Want &want)
         }
     }
 
-    return jsObject;
+    return handleEscape.Escape(jsObject);
 }
 
 bool InnerUnwrapWantOptions(napi_env env, napi_value param, const char *propertyName, Want &want)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     napi_value jsValue = GetPropertyValueByPropertyName(env, param, propertyName, napi_object);
     if (jsValue == nullptr) {
         return false;
@@ -1073,6 +1093,7 @@ bool InnerUnwrapWantOptions(napi_env env, napi_value param, const char *property
 
 napi_value WrapWant(napi_env env, const Want &want)
 {
+    HandleEscape handleEscape(env);
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
 
@@ -1127,11 +1148,12 @@ napi_value WrapWant(napi_env env, const Want &want)
     jsValue = WrapArrayStringToJS(env, want.GetEntities());
     SetPropertyValueByPropertyName(env, jsObject, "entities", jsValue);
 
-    return jsObject;
+    return handleEscape.Escape(jsObject);
 }
 
 napi_value WrapWantParamsFD(napi_env env, const AAFwk::WantParams &wantParams)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value jsObject = nullptr;
     NAPI_CALL(env, napi_create_object(env, &jsObject));
     auto paramList = wantParams.GetParams();
@@ -1144,42 +1166,42 @@ napi_value WrapWantParamsFD(napi_env env, const AAFwk::WantParams &wantParams)
         auto value = wantParams.GetParam(it->first);
         AAFwk::IWantParams *o = AAFwk::IWantParams::Query(value);
         if (o == nullptr) {
-            return jsObject;
+            return handleEscape.Escape(jsObject);
         }
         AAFwk::WantParams wp = AAFwk::WantParamWrapper::Unbox(o);
         auto valueMap = wp.GetParams();
         if (valueMap.size() != PROPERTIES_SIZE) {
             TAG_LOGD(AAFwkTag::JSNAPI, "not fd");
-            return jsObject;
+            return handleEscape.Escape(jsObject);
         }
 
         //type
         auto typeIt = valueMap.find(TYPE_PROPERTY);
         if (typeIt == valueMap.end()) {
-            return jsObject;
+            return handleEscape.Escape(jsObject);
         }
         AAFwk::IString *strValue = AAFwk::IString::Query(typeIt->second);
         if (strValue == nullptr) {
-            return jsObject;
+            return handleEscape.Escape(jsObject);
         }
         std::string typeString = AAFwk::String::Unbox(strValue);
         if (typeString != FD) {
             TAG_LOGD(AAFwkTag::JSNAPI, "not fd");
-            return jsObject;
+            return handleEscape.Escape(jsObject);
         }
 
         // value
         auto valueIt = valueMap.find(VALUE_PROPERTY);
         if (valueIt == valueMap.end()) {
-            return jsObject;
+            return handleEscape.Escape(jsObject);
         }
         AAFwk::IInteger *intValue = AAFwk::IInteger::Query(valueIt->second);
         if (intValue == nullptr) {
-            return jsObject;
+            return handleEscape.Escape(jsObject);
         }
         fds.SetParam(it->first, intValue);
     }
-    return WrapWantParams(env, fds);
+    return handleEscape.Escape(WrapWantParams(env, fds));
 }
 
 bool UnwrapWant(napi_env env, napi_value param, Want &want)
@@ -1189,6 +1211,7 @@ bool UnwrapWant(napi_env env, napi_value param, Want &want)
 
 bool UnwrapWant(napi_env env, napi_value param, Want &want, const std::string &proNameNotFilter)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     if (!IsTypeForNapiValue(env, param, napi_object)) {
         TAG_LOGI(AAFwkTag::JSNAPI, "not napi_object");
         return false;
@@ -1239,6 +1262,7 @@ bool UnwrapWant(napi_env env, napi_value param, Want &want, const std::string &p
 
 napi_value WrapAbilityResult(napi_env env, const int &resultCode, const AAFwk::Want &want)
 {
+    HandleEscape handleEscape(env);
     napi_value jsObject = nullptr;
     napi_value jsValue = nullptr;
 
@@ -1251,7 +1275,7 @@ napi_value WrapAbilityResult(napi_env env, const int &resultCode, const AAFwk::W
     jsValue = WrapWant(env, want);
     SetPropertyValueByPropertyName(env, jsObject, "want", jsValue);
 
-    return jsObject;
+    return handleEscape.Escape(jsObject);
 }
 
 bool UnWrapAbilityResult(napi_env env, napi_value param, int &resultCode, AAFwk::Want &want)
@@ -1281,6 +1305,7 @@ bool UnWrapAbilityResult(napi_env env, napi_value param, int &resultCode, AAFwk:
 
 napi_value CreateJsWant(napi_env env, const Want &want)
 {
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
 
@@ -1294,11 +1319,12 @@ napi_value CreateJsWant(napi_env env, const Want &want)
     napi_set_named_property(env, object, "action", CreateJsValue(env, want.GetAction()));
     napi_set_named_property(env, object, "parameters", CreateJsWantParams(env, want.GetParams()));
     napi_set_named_property(env, object, "entities", CreateNativeArray(env, want.GetEntities()));
-    return object;
+    return handleEscape.Escape(object);
 }
 
 napi_value CreateJsWantParams(napi_env env, const AAFwk::WantParams &wantParams)
 {
+    HandleEscape handleEscape(env);
     napi_value object = nullptr;
     napi_create_object(env, &object);
 
@@ -1341,12 +1367,13 @@ napi_value CreateJsWantParams(napi_env env, const AAFwk::WantParams &wantParams)
             InnerWrapJsWantParamsWantParams(env, object, iter->first, wantParams);
         }
     }
-    return object;
+    return handleEscape.Escape(object);
 }
 
 bool InnerWrapJsWantParamsWantParams(
     napi_env env, napi_value object, const std::string &key, const AAFwk::WantParams &wantParams)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     auto value = wantParams.GetParam(key);
     AAFwk::IWantParams *o = AAFwk::IWantParams::Query(value);
     if (o != nullptr) {
@@ -1424,6 +1451,7 @@ bool InnerWrapWantParamsArray(napi_env env, napi_value object, const std::string
 template<class TBase, class T, class NativeT>
 bool InnerWrapJsWantParams(napi_env env, napi_value object, const std::string &key, const AAFwk::WantParams &wantParams)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     auto value = wantParams.GetParam(key);
     TBase *ao = TBase::Query(value);
     if (ao != nullptr) {

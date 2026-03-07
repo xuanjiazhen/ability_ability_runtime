@@ -1954,6 +1954,45 @@ HWTEST_F(AppMgrServiceInnerEighthTest, DumpFfrt_002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DumpArkWeb_001
+ * @tc.desc: test DumpArkWeb
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, DumpArkWeb_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpArkWeb_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = nullptr;
+
+    std::string customArgs;
+    std::string result;
+    std::vector<int32_t> pids;
+    auto ret = appMgrServiceInner->DumpArkWeb(pids, customArgs, result);
+    EXPECT_EQ(ret, DumpErrorCode::ERR_INTERNAL_ERROR);
+    TAG_LOGI(AAFwkTag::TEST, "DumpArkWeb_001 end");
+}
+
+/**
+ * @tc.name: DumpArkWeb_002
+ * @tc.desc: test DumpArkWeb
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, DumpArkWeb_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpArkWeb_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().dumpArkWeb_ = DumpErrorCode::ERR_OK;
+
+    std::string customArgs;
+    std::string result;
+    std::vector<int32_t> pids;
+    auto ret = appMgrServiceInner->DumpArkWeb(pids, customArgs, result);
+    EXPECT_EQ(ret, DumpErrorCode::ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "DumpArkWeb_002 end");
+}
+
+
+/**
  * @tc.name: IsFinalAppProcessByBundleName_001
  * @tc.desc: test IsFinalAppProcessByBundleName_001
  * @tc.type: FUNC
@@ -2328,6 +2367,122 @@ HWTEST_F(AppMgrServiceInnerEighthTest, SetSupportedProcessCache_004, TestSize.Le
     auto ret = appMgrServiceInner->SetSupportedProcessCache(pid, isSupport);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "SetSupportedProcessCache_004 end");
+}
+
+/**
+ * @tc.name: LockProcessCache_001
+ * @tc.desc: test LockProcessCache_001
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, LockProcessCache_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->appRunningManager_ = nullptr;
+
+    int32_t pid = 0;
+    bool isLock = false;
+    auto ret = appMgrServiceInner->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, ERR_NO_INIT);
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_001 end");
+}
+
+/**
+ * @tc.name: LockProcessCache_002
+ * @tc.desc: test LockProcessCache_002
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, LockProcessCache_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
+    
+    int32_t pid = 0;
+    bool isLock = false;
+    auto ret = appMgrServiceInner->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_002 end");
+}
+
+/**
+ * @tc.name: LockProcessCache_003
+ * @tc.desc: test LockProcessCache_003
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, LockProcessCache_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    DelayedSingleton<CacheProcessManager>::GetInstance()->maxProcCacheNum_ = 0;
+    DelayedSingleton<CacheProcessManager>::GetInstance()->warmStartProcesEnable_ = false;
+
+    int32_t pid = 0;
+    bool isLock = false;
+    auto ret = appMgrServiceInner->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_003 end");
+}
+
+/**
+ * @tc.name: LockProcessCache_004
+ * @tc.desc: test LockProcessCache_004
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, LockProcessCache_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    DelayedSingleton<CacheProcessManager>::GetInstance()->maxProcCacheNum_ = 1;
+    DelayedSingleton<CacheProcessManager>::GetInstance()->warmStartProcesEnable_ = true;
+
+    int32_t pid = 0;
+    bool isLock = false;
+    auto ret = appMgrServiceInner->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_004 end");
+}
+
+/**
+ * @tc.name: LockProcessCache_005
+ * @tc.desc: test LockProcessCache_005
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, LockProcessCache_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    DelayedSingleton<CacheProcessManager>::GetInstance()->maxProcCacheNum_ = 0;
+    DelayedSingleton<CacheProcessManager>::GetInstance()->warmStartProcesEnable_ = true;
+
+    int32_t pid = 0;
+    bool isLock = false;
+    auto ret = appMgrServiceInner->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_005 end");
+}
+
+/**
+ * @tc.name: LockProcessCache_006
+ * @tc.desc: test LockProcessCache_006
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, LockProcessCache_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    DelayedSingleton<CacheProcessManager>::GetInstance()->maxProcCacheNum_ = 1;
+    DelayedSingleton<CacheProcessManager>::GetInstance()->warmStartProcesEnable_ = false;
+
+    int32_t pid = 0;
+    bool isLock = false;
+    auto ret = appMgrServiceInner->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "LockProcessCache_006 end");
 }
 
 /**
@@ -3189,6 +3344,515 @@ HWTEST_F(AppMgrServiceInnerEighthTest, GenerateUid_0400, TestSize.Level1)
     EXPECT_EQ(res, true);
     EXPECT_EQ(uid, 20600003);
     TAG_LOGI(AAFwkTag::TEST, "GenerateUid_0400 end");
+}
+
+/**
+ * @tc.name: PreloadExtension_0100
+ * @tc.desc: Preload Application.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadExtension
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PreloadExtension_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0100 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "com.example.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    int32_t appIndex = 0;
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = false;
+
+    int32_t ret = appMgrServiceInner->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0100 end");
+}
+
+/**
+ * @tc.name: PreloadExtension_0200
+ * @tc.desc: Preload Application.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadExtension
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PreloadExtension_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0200 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "com.example.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    int32_t appIndex = 0;
+    int32_t userId = -1;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = true;
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 0;
+    AAFwk::MyStatus::GetInstance().isLogoutUser_ = true;
+
+    int32_t ret = appMgrServiceInner->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+
+    AAFwk::MyStatus::GetInstance().getCallingUid_ = 1;
+    ret = appMgrServiceInner->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0200 end");
+}
+
+/**
+ * @tc.name: PreloadExtension_0300
+ * @tc.desc: Preload Application.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadExtension
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PreloadExtension_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0300 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::string bundleName = "com.example.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    int32_t appIndex = 0;
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = true;
+    AAFwk::MyStatus::GetInstance().isLogoutUser_ = false;
+    appMgrServiceInner->appPreloader_ = nullptr;
+
+    int32_t ret = appMgrServiceInner->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0300 end");
+}
+
+/**
+ * @tc.name: PreloadExtension_0400
+ * @tc.desc: Preload Application.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadExtension
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PreloadExtension_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0400 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    ASSERT_NE(appMgrServiceInner->remoteClientManager_, nullptr);
+    ASSERT_NE(appMgrServiceInner->remoteClientManager_->GetBundleManagerHelper(), nullptr);
+    ASSERT_NE(appMgrServiceInner->appPreloader_, nullptr);
+
+    std::string bundleName = "com.example.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    int32_t appIndex = 0;
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = true;
+    AAFwk::MyStatus::GetInstance().isLogoutUser_ = false;
+    AAFwk::MyStatus::GetInstance().queryAbilityInfo_ = false;
+    AAFwk::MyStatus::GetInstance().queryExtensionAbilityInfos_ = false;
+
+    int32_t ret = appMgrServiceInner->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+
+    AAFwk::MyStatus::GetInstance().queryAbilityInfo_ = true;
+    AAFwk::MyStatus::GetInstance().getBundleInfo_ = false;
+
+    ret = appMgrServiceInner->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, AAFwk::GET_BUNDLE_INFO_FAILED);
+
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0400 end");
+}
+
+/**
+ * @tc.name: PreloadExtension_0500
+ * @tc.desc: Preload Application.
+ * @tc.type: FUNC
+ * @tc.Function: PreloadExtension
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PreloadExtension_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0500 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    ASSERT_NE(appMgrServiceInner->remoteClientManager_, nullptr);
+    ASSERT_NE(appMgrServiceInner->remoteClientManager_->GetBundleManagerHelper(), nullptr);
+
+    std::string bundleName = "com.example.hmos.inputmethod";
+    std::string abilityName = "InputService";
+    int32_t appIndex = 0;
+    int32_t userId = 100;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    AAFwk::MyStatus::GetInstance().verifyCallingPermission_ = true;
+    AAFwk::MyStatus::GetInstance().isLogoutUser_ = false;
+    AAFwk::MyStatus::GetInstance().queryAbilityInfo_ = true;
+    AAFwk::MyStatus::GetInstance().getBundleInfo_ = true;
+    AAFwk::MyStatus::GetInstance().getHapModuleInfo_ = true;
+    appMgrServiceInner->taskHandler_ = nullptr;
+
+    int32_t ret = appMgrServiceInner->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    appMgrServiceInner->taskHandler_ = AAFwk::TaskHandlerWrap::CreateConcurrentQueueHandler("example_queue", 1);
+    ret = appMgrServiceInner->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "PreloadExtension_0500 end");
+}
+
+/**
+ * @tc.name: PostPreloadAttachTimeoutTask_001
+ * @tc.desc: test PostPreloadAttachTimeoutTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostPreloadAttachTimeoutTask_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostPreloadAttachTimeoutTask_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    appRecord->SetDebugApp(true);
+    appMgrServiceInner->PostPreloadAttachTimeoutTask(appRecord);
+    auto ret = appRecord->GetPreloadAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_EQ(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostPreloadAttachTimeoutTask_001 end");
+}
+
+/**
+ * @tc.name: PostPreloadAttachTimeoutTask_002
+ * @tc.desc: test PostPreloadAttachTimeoutTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostPreloadAttachTimeoutTask_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostPreloadAttachTimeoutTask_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    appMgrServiceInner->PostPreloadAttachTimeoutTask(appRecord);
+    auto ret = appRecord->GetPreloadAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_EQ(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostPreloadAttachTimeoutTask_002 end");
+}
+
+/**
+ * @tc.name: PostPreloadAttachTimeoutTask_003
+ * @tc.desc: test PostPreloadAttachTimeoutTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostPreloadAttachTimeoutTask_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostPreloadAttachTimeoutTask_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->SetEventHandler(nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 1;
+    appMgrServiceInner->PostPreloadAttachTimeoutTask(appRecord);
+    auto ret = appRecord->GetPreloadAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_EQ(ret, 0);
+    AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "PostPreloadAttachTimeoutTask_003 end");
+}
+
+/**
+ * @tc.name: PostPreloadAttachTimeoutTask_004
+ * @tc.desc: test PostPreloadAttachTimeoutTask
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostPreloadAttachTimeoutTask_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostPreloadAttachTimeoutTask_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto taskHandler = AAFwk::TaskHandlerWrap::CreateQueueHandler("test_queueApplicationByRecord");
+    auto eventHandler = std::make_shared<AMSEventHandler>(taskHandler, appMgrServiceInner);
+    appMgrServiceInner->SetTaskHandler(taskHandler);
+    appMgrServiceInner->SetEventHandler(eventHandler);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 1;
+    appMgrServiceInner->PostPreloadAttachTimeoutTask(appRecord);
+    auto ret = appRecord->GetPreloadAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_NE(ret, 0);
+    AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "PostPreloadAttachTimeoutTask_004 end");
+}
+
+/**
+ * @tc.name: PostRenderAttachTimeoutTask_001
+ * @tc.desc: test PostRenderAttachTimeoutTask with debug mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostRenderAttachTimeoutTask_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostRenderAttachTimeoutTask_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    appRecord->SetDebugApp(true);
+
+    std::vector<std::string> protocols;
+    FdGuard ipcFd(-1);
+    FdGuard sharedFd(-1);
+    FdGuard crashFd(-1);
+    auto renderRecord = std::make_shared<RenderRecord>(0, "render_param",
+        std::move(ipcFd), std::move(sharedFd), std::move(crashFd), appRecord);
+    ASSERT_NE(renderRecord, nullptr);
+
+    appMgrServiceInner->PostRenderAttachTimeoutTask(renderRecord);
+    auto ret = renderRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_EQ(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostRenderAttachTimeoutTask_001 end");
+}
+
+/**
+ * @tc.name: PostRenderAttachTimeoutTask_002
+ * @tc.desc: test PostRenderAttachTimeoutTask with invalid pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostRenderAttachTimeoutTask_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostRenderAttachTimeoutTask_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    std::vector<std::string> protocols;
+    FdGuard ipcFd(-1);
+    FdGuard sharedFd(-1);
+    FdGuard crashFd(-1);
+    auto renderRecord = std::make_shared<RenderRecord>(0, "render_param",
+        std::move(ipcFd), std::move(sharedFd), std::move(crashFd), appRecord);
+    ASSERT_NE(renderRecord, nullptr);
+
+    appMgrServiceInner->PostRenderAttachTimeoutTask(renderRecord);
+    auto ret = renderRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_EQ(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostRenderAttachTimeoutTask_002 end");
+}
+
+/**
+ * @tc.name: PostRenderAttachTimeoutTask_003
+ * @tc.desc: test PostRenderAttachTimeoutTask with null eventHandler
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostRenderAttachTimeoutTask_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostRenderAttachTimeoutTask_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->SetEventHandler(nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    std::vector<std::string> protocols;
+    FdGuard ipcFd(-1);
+    FdGuard sharedFd(-1);
+    FdGuard crashFd(-1);
+    auto renderRecord = std::make_shared<RenderRecord>(0, "render_param",
+        std::move(ipcFd), std::move(sharedFd), std::move(crashFd), appRecord);
+    ASSERT_NE(renderRecord, nullptr);
+    renderRecord->SetPid(1);
+
+    appMgrServiceInner->PostRenderAttachTimeoutTask(renderRecord);
+    auto ret = renderRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_EQ(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostRenderAttachTimeoutTask_003 end");
+}
+
+/**
+ * @tc.name: PostRenderAttachTimeoutTask_004
+ * @tc.desc: test PostRenderAttachTimeoutTask with normal case
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostRenderAttachTimeoutTask_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostRenderAttachTimeoutTask_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto taskHandler = AAFwk::TaskHandlerWrap::CreateQueueHandler("test_queueRenderAttachTimeout");
+    auto eventHandler = std::make_shared<AMSEventHandler>(taskHandler, appMgrServiceInner);
+    appMgrServiceInner->SetTaskHandler(taskHandler);
+    appMgrServiceInner->SetEventHandler(eventHandler);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    std::vector<std::string> protocols;
+    FdGuard ipcFd(-1);
+    FdGuard sharedFd(-1);
+    FdGuard crashFd(-1);
+    auto renderRecord = std::make_shared<RenderRecord>(0, "render_param",
+        std::move(ipcFd), std::move(sharedFd), std::move(crashFd), appRecord);
+    ASSERT_NE(renderRecord, nullptr);
+    renderRecord->SetPid(1);
+
+    appMgrServiceInner->PostRenderAttachTimeoutTask(renderRecord);
+    auto ret = renderRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_NE(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostRenderAttachTimeoutTask_004 end");
+}
+
+/**
+ * @tc.name: PostChildProcessAttachTimeoutTask_001
+ * @tc.desc: test PostChildProcessAttachTimeoutTask with debug mode
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    appRecord->SetDebugApp(true);
+
+    ChildProcessRequest request;
+    auto childRecord = std::make_shared<ChildProcessRecord>(0, request, appRecord);
+    ASSERT_NE(childRecord, nullptr);
+
+    appMgrServiceInner->PostChildProcessAttachTimeoutTask(childRecord);
+    auto ret = childRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_EQ(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_001 end");
+}
+
+/**
+ * @tc.name: PostChildProcessAttachTimeoutTask_002
+ * @tc.desc: test PostChildProcessAttachTimeoutTask with invalid pid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    ChildProcessRequest request;
+    auto childRecord = std::make_shared<ChildProcessRecord>(0, request, appRecord);
+    ASSERT_NE(childRecord, nullptr);
+
+    appMgrServiceInner->PostChildProcessAttachTimeoutTask(childRecord);
+    auto ret = childRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_EQ(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_002 end");
+}
+
+/**
+ * @tc.name: PostChildProcessAttachTimeoutTask_003
+ * @tc.desc: test PostChildProcessAttachTimeoutTask with null eventHandler
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->SetEventHandler(nullptr);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    ChildProcessRequest request;
+    auto childRecord = std::make_shared<ChildProcessRecord>(0, request, appRecord);
+    ASSERT_NE(childRecord, nullptr);
+    childRecord->SetPid(1);
+
+    appMgrServiceInner->PostChildProcessAttachTimeoutTask(childRecord);
+    auto ret = childRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_EQ(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_003 end");
+}
+
+/**
+ * @tc.name: PostChildProcessAttachTimeoutTask_004
+ * @tc.desc: test PostChildProcessAttachTimeoutTask with normal case
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    auto taskHandler = AAFwk::TaskHandlerWrap::CreateQueueHandler("test_queueChildProcessAttachTimeout");
+    auto eventHandler = std::make_shared<AMSEventHandler>(taskHandler, appMgrServiceInner);
+    appMgrServiceInner->SetTaskHandler(taskHandler);
+    appMgrServiceInner->SetEventHandler(eventHandler);
+
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName;
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    ASSERT_NE(appRecord, nullptr);
+
+    ChildProcessRequest request;
+    auto childRecord = std::make_shared<ChildProcessRecord>(0, request, appRecord);
+    ASSERT_NE(childRecord, nullptr);
+    childRecord->SetPid(1);
+
+    appMgrServiceInner->PostChildProcessAttachTimeoutTask(childRecord);
+    auto ret = childRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
+    EXPECT_NE(ret, 0);
+    TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_004 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS
