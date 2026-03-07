@@ -302,6 +302,7 @@ private:
 
     void OnReleaseNotifyTask(const std::string &str)
     {
+        HandleScope handle(releaseCallBackEngine_);
         TAG_LOGD(AAFwkTag::DEFAULT, "begin");
         if (jsReleaseCallBackObj_ == nullptr) {
             TAG_LOGE(AAFwkTag::DEFAULT, "null jsReleaseObj");
@@ -337,6 +338,7 @@ private:
 
     void OnRemoteStateChangedNotifyTask(const std::string &str)
     {
+        HandleScope handle(releaseCallBackEngine_);
         TAG_LOGD(AAFwkTag::DEFAULT, "begin");
         if (jsRemoteStateChangedObj_ == nullptr) {
             TAG_LOGE(AAFwkTag::DEFAULT, "null jsRemoteStateChangedObj");
@@ -371,7 +373,7 @@ private:
         int32_t innerErrorCode = releaseCallFunc_(callerCallBackObj_);
         if (innerErrorCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::DEFAULT, "ReleaseAbility failed %{public}d", static_cast<int>(innerErrorCode));
-            ThrowError(env, innerErrorCode);
+            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
             return CreateJsUndefined(env);
         }
 

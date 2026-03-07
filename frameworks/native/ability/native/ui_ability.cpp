@@ -38,6 +38,9 @@
 #include "reverse_continuation_scheduler_primary_stage.h"
 #include "runtime.h"
 #include "resource_config_helper.h"
+#ifdef WITH_DLP
+#include "set_dlp_config.h"
+#endif // WITH_DLP
 #ifdef SUPPORT_GRAPHICS
 #include "wm_common.h"
 #endif
@@ -175,9 +178,11 @@ void UIAbility::AttachAbilityContext(const std::shared_ptr<AbilityRuntime::Abili
 {
     abilityContext_ = abilityContext;
     std::weak_ptr<UIAbility> abilityWptr = weak_from_this();
+    std::weak_ptr<AbilityRuntime::AbilityContext> abilityContextWptr = abilityContext_;
     abilityContext_->RegisterAbilityConfigUpdateCallback(
-        [abilityWptr, abilityContext = abilityContext_](AppExecFwk::Configuration &config) {
+        [abilityWptr, abilityContextWptr](AppExecFwk::Configuration &config) {
         std::shared_ptr<UIAbility> abilitySptr = abilityWptr.lock();
+        std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext = abilityContextWptr.lock();
         if (abilitySptr == nullptr || abilityContext == nullptr ||
             abilityContext->GetAbilityInfo() == nullptr) {
             TAG_LOGE(AAFwkTag::UIABILITY, "null abilitySptr or null abilityContext or null GetAbilityInfo");
@@ -244,6 +249,9 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     }
 
 #ifdef WITH_DLP
+    if (want.HasParameter(DLP_PARAMS_SECURITY_FLAG)) {
+        Security::DlpPermission::DlpSetConfig::SetDlpConfig(want);
+    }
     securityFlag_ = want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false);
     (const_cast<AAFwk::Want &>(want)).RemoveParam(DLP_PARAMS_SECURITY_FLAG);
 #endif // WITH_DLP
@@ -569,6 +577,13 @@ int32_t UIAbility::OnContinueAsyncCB(napi_ref jsWantParams, int32_t status,
     return ERR_OK;
 }
 
+int32_t UIAbility::OnContinueAsyncCB(ani_ref aniWantParamsRef, int32_t status,
+    const AppExecFwk::AbilityInfo &abilityInfo)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    return ERR_OK;
+}
+
 int32_t UIAbility::OnContinue(AAFwk::WantParams &wantParams, bool &isAsyncOnContinue,
     const AppExecFwk::AbilityInfo &abilityInfo)
 {
@@ -842,7 +857,7 @@ void UIAbility::OnForeground(const AAFwk::Want &want)
     } else {
         TAG_LOGE(AAFwkTag::UIABILITY, "null abilityInfo_");
     }
-    AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONFOREGROUND, HiSysEventType::BEHAVIOR, eventInfo);
+    AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONFOREGROUND, HISYSEVENT_BEHAVIOR, eventInfo);
 }
 
 void UIAbility::OnBackground()
@@ -881,7 +896,7 @@ void UIAbility::OnBackground()
     eventInfo.moduleName = abilityInfo_->moduleName;
     eventInfo.abilityName = abilityInfo_->name;
     eventInfo.bundleType = static_cast<int32_t>(abilityInfo_->applicationInfo.bundleType);
-    AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONBACKGROUND, HiSysEventType::BEHAVIOR, eventInfo);
+    AAFwk::EventReport::SendAbilityEvent(AAFwk::EventName::ABILITY_ONBACKGROUND, HISYSEVENT_BEHAVIOR, eventInfo);
 }
 
 void UIAbility::OnWillForeground()
@@ -925,6 +940,9 @@ void UIAbility::OnPrepareTerminate(AppExecFwk::AbilityTransactionCallbackInfo<bo
 const sptr<Rosen::Window> UIAbility::GetWindow()
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (scene_ != nullptr) {
+        return scene_->GetMainWindow();
+    }
     return nullptr;
 }
 

@@ -232,6 +232,116 @@ HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerInfoFromDialog_0002, TestSize.L
 }
 
 /**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerInfoFromDialog_0003
+ * @tc.desc: Test UpdateAsCallerInfoFromDialog with BROKER_UID and SHELL_ASSISTANT
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerInfoFromDialog_0003, TestSize.Level1)
+{
+    std::shared_ptr<UpdateCallerInfoUtil> updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    DialogSessionManager dialogSessionManager;
+    Want want;
+    const std::string TEST_DIALOG_SESSION_ID = "dialogSessionId";
+    std::string callerBundleName = "com.ohos.shell_assistant";
+    int32_t BROKER_UID = 5557;
+    want.SetParam(Want::PARAM_RESV_CALLER_UID, BROKER_UID);
+    want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
+    sptr<DialogSessionInfo> dilogSessionInfo = nullptr;
+    std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
+    EXPECT_NE(dialogCallerInfo, nullptr);
+    dialogCallerInfo->targetWant = want;
+
+    dialogSessionManager.SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, dilogSessionInfo, dialogCallerInfo);
+    auto callerInfo = dialogSessionManager.GetDialogCallerInfo(TEST_DIALOG_SESSION_ID);
+    EXPECT_NE(callerInfo, nullptr);
+
+    bool ret = updateCallerUtil->UpdateAsCallerInfoFromDialog(want);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerInfoFromDialog_0004
+ * @tc.desc: Test UpdateAsCallerInfoFromDialog with not BROKER_UID and SHELL_ASSISTANT
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerInfoFromDialog_0004, TestSize.Level1)
+{
+    std::shared_ptr<UpdateCallerInfoUtil> updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    DialogSessionManager dialogSessionManager;
+    Want want;
+    const std::string TEST_DIALOG_SESSION_ID = "dialogSessionId";
+    std::string callerBundleName = "com.ohos.shell_assistant";
+    want.SetParam(Want::PARAM_RESV_CALLER_UID, 1314);
+    want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
+    sptr<DialogSessionInfo> dilogSessionInfo = nullptr;
+    std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
+    EXPECT_NE(dialogCallerInfo, nullptr);
+    dialogCallerInfo->targetWant = want;
+
+    dialogSessionManager.SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, dilogSessionInfo, dialogCallerInfo);
+    auto callerInfo = dialogSessionManager.GetDialogCallerInfo(TEST_DIALOG_SESSION_ID);
+    EXPECT_NE(callerInfo, nullptr);
+
+    bool ret = updateCallerUtil->UpdateAsCallerInfoFromDialog(want);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerInfoFromDialog_0005
+ * @tc.desc: Test UpdateAsCallerInfoFromDialog with BROKER_UID and not SHELL_ASSISTANT
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerInfoFromDialog_0005, TestSize.Level1)
+{
+    std::shared_ptr<UpdateCallerInfoUtil> updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    DialogSessionManager dialogSessionManager;
+    Want want;
+    const std::string TEST_DIALOG_SESSION_ID = "dialogSessionId";
+    std::string callerBundleName = "com.ohos.test";
+    int32_t BROKER_UID = 5557;
+    want.SetParam(Want::PARAM_RESV_CALLER_UID, BROKER_UID);
+    want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
+    sptr<DialogSessionInfo> dilogSessionInfo = nullptr;
+    std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
+    EXPECT_NE(dialogCallerInfo, nullptr);
+    dialogCallerInfo->targetWant = want;
+
+    dialogSessionManager.SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, dilogSessionInfo, dialogCallerInfo);
+    auto callerInfo = dialogSessionManager.GetDialogCallerInfo(TEST_DIALOG_SESSION_ID);
+    EXPECT_NE(callerInfo, nullptr);
+
+    bool ret = updateCallerUtil->UpdateAsCallerInfoFromDialog(want);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerInfoFromDialog_0006
+ * @tc.desc: Test UpdateAsCallerInfoFromDialog with not BROKER_UID and not SHELL_ASSISTANT
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerInfoFromDialog_0006, TestSize.Level1)
+{
+    std::shared_ptr<UpdateCallerInfoUtil> updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    DialogSessionManager dialogSessionManager;
+    Want want;
+    const std::string TEST_DIALOG_SESSION_ID = "dialogSessionId";
+    std::string callerBundleName = "com.ohos.test";
+    want.SetParam(Want::PARAM_RESV_CALLER_UID, 1314);
+    want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, callerBundleName);
+    sptr<DialogSessionInfo> dilogSessionInfo = nullptr;
+    std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
+    EXPECT_NE(dialogCallerInfo, nullptr);
+    dialogCallerInfo->targetWant = want;
+
+    dialogSessionManager.SetDialogSessionInfo(TEST_DIALOG_SESSION_ID, dilogSessionInfo, dialogCallerInfo);
+    auto callerInfo = dialogSessionManager.GetDialogCallerInfo(TEST_DIALOG_SESSION_ID);
+    EXPECT_NE(callerInfo, nullptr);
+
+    bool ret = updateCallerUtil->UpdateAsCallerInfoFromDialog(want);
+    EXPECT_FALSE(ret);
+}
+
+/**
  * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerInfoFromToken_0001
  * @tc.desc: Test the state of UpdateAsCallerInfoFromToken
  * @tc.type: FUNC
@@ -342,6 +452,177 @@ HWTEST_F(UpdateCallerInfoUtilTest, UpdateDmsCallerInfo_0001, TestSize.Level1)
     callerToken = abilityRecord->GetToken();
     updateCallerUtil->UpdateDmsCallerInfo(want, callerToken);
     EXPECT_TRUE(want.HasParameter(OHOS::AAFwk::DMS_CALLER_BUNDLE_NAME));
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerInfo_0001
+ * @tc.desc: Test UpdateCallerInfo with valid callerToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerInfo_0001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    sptr<IRemoteObject> callerToken = MockToken(AbilityType::PAGE);
+
+    updateCallerUtil->UpdateCallerInfo(want, callerToken);
+    EXPECT_TRUE(want.HasParameter(Want::PARAM_RESV_CALLER_TOKEN));
+    EXPECT_TRUE(want.HasParameter(Want::PARAM_RESV_CALLER_UID));
+    EXPECT_TRUE(want.HasParameter(Want::PARAM_RESV_CALLER_PID));
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateSignatureInfo_0001
+ * @tc.desc: Test UpdateSignatureInfo with isRemote = false
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateSignatureInfo_0001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    std::string bundleName = "com.test.demo";
+
+    updateCallerUtil->UpdateSignatureInfo(bundleName, want);
+    EXPECT_TRUE(want.HasParameter(Want::PARAM_RESV_CALLER_APP_ID));
+    EXPECT_TRUE(want.HasParameter(Want::PARAM_RESV_CALLER_APP_IDENTIFIER));
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateSignatureInfo_0002
+ * @tc.desc: Test UpdateSignatureInfo with isRemote = true
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateSignatureInfo_0002, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    std::string bundleName = "com.test.demo";
+
+    updateCallerUtil->UpdateSignatureInfo(bundleName, want, true);
+    EXPECT_TRUE(want.HasParameter("ohos.dms.param.sourceCallerAppId"));
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerSourceInfo_0001
+ * @tc.desc: Test UpdateAsCallerSourceInfo with valid tokens
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerSourceInfo_0001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    sptr<IRemoteObject> asCallerSourceToken = MockToken(AbilityType::PAGE);
+    sptr<IRemoteObject> callerToken = MockToken(AbilityType::SERVICE);
+
+    updateCallerUtil->UpdateAsCallerSourceInfo(want, asCallerSourceToken, callerToken);
+    EXPECT_FALSE(want.HasParameter(Want::PARAM_RESV_CALLER_BUNDLE_NAME));
+    EXPECT_FALSE(want.HasParameter(Want::PARAM_RESV_CALLER_UID));
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateAsCallerSourceInfo_0002
+ * @tc.desc: Test UpdateAsCallerSourceInfo with null tokens
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateAsCallerSourceInfo_0002, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    sptr<IRemoteObject> asCallerSourceToken = nullptr;
+    sptr<IRemoteObject> callerToken = nullptr;
+
+    updateCallerUtil->UpdateAsCallerSourceInfo(want, asCallerSourceToken, callerToken);
+    EXPECT_FALSE(want.HasParameter(Want::PARAM_RESV_CALLER_ABILITY_NAME));
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerBundleName_0001
+ * @tc.desc: Test UpdateCallerBundleName with valid bundle name
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerBundleName_0001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    std::string testBundleName = "com.test.update.bundle";
+
+    updateCallerUtil->UpdateCallerBundleName(want, testBundleName);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME), testBundleName);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerBundleName_0002
+ * @tc.desc: Test UpdateCallerBundleName with empty bundle name
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerBundleName_0002, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    std::string emptyBundleName = "";
+
+    updateCallerUtil->UpdateCallerBundleName(want, emptyBundleName);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME), emptyBundleName);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerAbilityName_0001
+ * @tc.desc: Test UpdateCallerAbilityName with valid ability name
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerAbilityName_0001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    std::string testAbilityName = "TestAbility";
+
+    updateCallerUtil->UpdateCallerAbilityName(want, testAbilityName);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_ABILITY_NAME), testAbilityName);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerAbilityName_0002
+ * @tc.desc: Test UpdateCallerAbilityName with empty ability name
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerAbilityName_0002, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    std::string emptyAbilityName = "";
+
+    updateCallerUtil->UpdateCallerAbilityName(want, emptyAbilityName);
+    EXPECT_EQ(want.GetStringParam(Want::PARAM_RESV_CALLER_ABILITY_NAME), emptyAbilityName);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerAppCloneIndex_0001
+ * @tc.desc: Test UpdateCallerAppCloneIndex with valid index
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerAppCloneIndex_0001, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    int32_t testIndex = 100;
+
+    updateCallerUtil->UpdateCallerAppCloneIndex(want, testIndex);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, -1), testIndex);
+}
+
+/**
+ * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerAppCloneIndex_0002
+ * @tc.desc: Test UpdateCallerAppCloneIndex with 0 index
+ * @tc.type: FUNC
+ */
+HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerAppCloneIndex_0002, TestSize.Level1)
+{
+    auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
+    Want want;
+    int32_t zeroIndex = 0;
+
+    updateCallerUtil->UpdateCallerAppCloneIndex(want, zeroIndex);
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, -1), zeroIndex);
 }
 } // namespace AAFwk
 } // namespace OHOS

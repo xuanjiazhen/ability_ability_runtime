@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *CONTEXT_CLASS_NAME = "L@ohos/app/ability/InsightIntentContext/InsightIntentContext;";
+constexpr const char *CONTEXT_CLASS_NAME = "@ohos.app.ability.InsightIntentContext.InsightIntentContext";
 }
 void EtsInsightIntentContext::Finalizer(ani_env *env, void *data, void *hint)
 {
@@ -73,21 +73,25 @@ void EtsInsightIntentContext::SetReturnModeForUIAbilityForeground(ani_env *env,
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "get context failed.");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
     }
     auto nativeContext = context->GetNativeContext();
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "get context failed.");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
     }
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(nativeContext->GetExecuteMode());
     if (mode != InsightIntentExecuteMode::UIABILITY_FOREGROUND) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid execute mode");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
     }
     ani_int returnMode = 0;
     if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, aniMode, returnMode)) {
         TAG_LOGE(AAFwkTag::APPMGR, "param mode err");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
     }
     nativeContext->SetDelayReturnMode(static_cast<InsightIntentReturnMode>(returnMode));
 }
@@ -99,21 +103,25 @@ void EtsInsightIntentContext::SetReturnModeForUIExtensionAbility(ani_env *env, a
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "get context failed.");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
     }
     auto nativeContext = context->GetNativeContext();
     if (nativeContext == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "get context failed.");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
     }
     InsightIntentExecuteMode mode = static_cast<InsightIntentExecuteMode>(nativeContext->GetExecuteMode());
     if (mode != InsightIntentExecuteMode::UIEXTENSION_ABILITY) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid execute mode");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
     }
     ani_int returnMode = 0;
     if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(env, aniMode, returnMode)) {
         TAG_LOGE(AAFwkTag::APPMGR, "param mode err");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return;
     }
     nativeContext->SetDelayReturnMode(static_cast<InsightIntentReturnMode>(returnMode));
 }
@@ -218,7 +226,7 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> CreateEtsInsightIntentContext(an
             return std::unique_ptr<AppExecFwk::ETSNativeReference>();
         }
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return std::unique_ptr<AppExecFwk::ETSNativeReference>();
     }

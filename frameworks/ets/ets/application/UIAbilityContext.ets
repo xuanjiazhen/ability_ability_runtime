@@ -34,6 +34,7 @@ import UIServiceExtensionConnectCallback from 'application.UIServiceExtensionCon
 import dialogRequest from '@ohos.app.ability.dialogRequest';
 import image from '@ohos.multimedia.image';
 import { LocalStorage } from '@ohos.arkui.stateManagement';
+import AbilityConstant  from '@ohos.app.ability.AbilityConstant';
 
 class Cleaner {
   public ptr: long = 0;
@@ -109,7 +110,7 @@ export default class UIAbilityContext extends Context {
   private native nativeStartAbilityForResult(want: Want, startOptions: StartOptions,
     callback: AsyncCallbackWrapper<AbilityResult>): void;
 
-  private native nativeStartAbilityByCallSync(want: Want): Caller;
+  private native nativeStartAbilityByCallWithAccountSync(want: Want, accountId: int): Caller;
 
   private native nativeTerminateSelfSync(callback: AsyncCallbackWrapper<void>): void;
 
@@ -168,6 +169,8 @@ export default class UIAbilityContext extends Context {
 
   private native nativeSetMissionIcon(icon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
 
+  private native nativeSetMissionContinueState(state: AbilityConstant.ContinueState, callback: AsyncCallbackWrapper<void>): void;
+
   private native nativeRevokeDelegator(callback: AsyncCallbackWrapper<void>): void;
 
   private native nativeStartAppServiceExtensionAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
@@ -209,6 +212,8 @@ export default class UIAbilityContext extends Context {
 
   private native nativeStartAbilityForResultWithAccountCheck(): void;
   private native nativeSetMissionWindowIcon(windowIcon: image.PixelMap, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeSetOnNewWantSkipScenarios(scenarios: int, callback: AsyncCallbackWrapper<void>): void;
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
@@ -295,8 +300,12 @@ export default class UIAbilityContext extends Context {
   }
 
   startAbilityByCall(want: Want): Promise<Caller> {
+    return this.startAbilityByCallWithAccount(want, -1);
+  }
+
+  startAbilityByCallWithAccount(want: Want, accountId: int): Promise<Caller> {
     return taskpool.execute((): Caller => {
-      return this.nativeStartAbilityByCallSync(want);
+      return this.nativeStartAbilityByCallWithAccountSync(want, accountId);
     }) as Promise<Caller>;
   }
 
@@ -467,6 +476,24 @@ export default class UIAbilityContext extends Context {
     });
   }
 
+  setMissionContinueState(state: AbilityConstant.ContinueState): Promise<void> {
+    let p = new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let callback = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeSetMissionContinueState(state, callback);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+    return p;
+  }
+
   connectServiceExtensionAbility(want: Want, options: ConnectOptions): long {
     return this.nativeConnectServiceExtensionAbility(want, options);
   }
@@ -502,7 +529,7 @@ export default class UIAbilityContext extends Context {
     let p1 = taskpool.execute((): BusinessError => {
       return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
     });
-    p1.then((e: NullishType) => {
+    p1.then((e: Any) => {
       let retError = e as BusinessError;
       if (retError.code === 0) {
         callback(null, undefined);
@@ -554,7 +581,7 @@ hideAbility(): Promise<void> {
       let p1 = taskpool.execute((): BusinessError => {
         return this.nativeStartAbilityByTypeSync(type, wantParam, startCallback);
       });
-      p1.then((e: NullishType) => {
+      p1.then((e: Any) => {
         let retError = e as BusinessError;
         if (retError.code === 0) {
           resolve(undefined);
@@ -641,8 +668,8 @@ hideAbility(): Promise<void> {
     let syncCall = new AsyncCallbackWrapper<dialogRequest.RequestResult>(result);
     taskpool.execute((): void => {
       this.nativeRequestDialogService(want, syncCall);
-    }).catch((err: BusinessError): void => {
-      result(err, undefined);
+    }).catch((err: Error): void => {
+      result(err as BusinessError, undefined);
     });
   }
 
@@ -929,8 +956,8 @@ hideAbility(): Promise<void> {
     let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbilityWithAccountSync(want, accountId, asyncCall);
-    }).catch((err: BusinessError): void => {
-      callback(err, undefined);
+    }).catch((err: Error): void => {
+      callback(err as BusinessError, undefined);
     });
   }
 
@@ -938,8 +965,8 @@ hideAbility(): Promise<void> {
     let asyncCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbilityWithAccountSync(want, accountId, options, asyncCall);
-    }).catch((err: BusinessError): void => {
-      callback(err, undefined);
+    }).catch((err: Error): void => {
+      callback(err as BusinessError, undefined);
     });
   }
 
@@ -972,8 +999,8 @@ hideAbility(): Promise<void> {
     let asyncCallback = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbilityAsCaller(want, asyncCallback, undefined);
-    }).catch((err: BusinessError): void => {
-      callback(err, undefined);
+    }).catch((err: Error): void => {
+      callback(err as BusinessError, undefined);
     });
   }
 
@@ -981,8 +1008,8 @@ hideAbility(): Promise<void> {
     let asyncCallback = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartAbilityAsCaller(want, asyncCallback, options);
-    }).catch((err: BusinessError): void => {
-      callback(err, undefined);
+    }).catch((err: Error): void => {
+      callback(err as BusinessError, undefined);
     });
   }
 
@@ -1007,8 +1034,8 @@ hideAbility(): Promise<void> {
     let asyncCallback = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartRecentAbility(want, asyncCallback, undefined);
-    }).catch((err: BusinessError): void => {
-      callback(err, undefined);
+    }).catch((err: Error): void => {
+      callback(err as BusinessError, undefined);
     });
   }
 
@@ -1016,8 +1043,8 @@ hideAbility(): Promise<void> {
     let asyncCallback = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeStartRecentAbility(want, asyncCallback, options);
-    }).catch((err: BusinessError): void => {
-      callback(err, undefined);
+    }).catch((err: Error): void => {
+      callback(err as BusinessError, undefined);
     });
   }
 
@@ -1055,6 +1082,23 @@ hideAbility(): Promise<void> {
       });
       taskpool.execute(() => {
         this.nativeSetMissionWindowIcon(windowIcon, syncCall);
+      });
+    });
+  }
+
+  setOnNewWantSkipScenarios(scenarios: int): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let callback = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeSetOnNewWantSkipScenarios(scenarios, callback);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
       });
     });
   }

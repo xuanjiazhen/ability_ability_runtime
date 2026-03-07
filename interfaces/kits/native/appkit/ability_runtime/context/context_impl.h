@@ -25,7 +25,6 @@ namespace AppExecFwk {
 struct RunningProcessInfo;
 class BundleMgrHelper;
 class OverlayEventSubscriber;
-class Configuration;
 }
 namespace AAFwk {
 class Want;
@@ -97,7 +96,7 @@ public:
      *
      * @param tempPaths Return all temporary directories of the application.
      */
-    virtual void GetAllTempDir(std::vector<std::string> &tempPaths);
+    void GetAllTempBase(std::vector<std::string> &tempPaths);
 
     /**
      * @brief Obtains the directory for storing files for the application on the device's internal storage.
@@ -229,6 +228,9 @@ public:
 
     std::string GetBundleNameWithContext(std::shared_ptr<Context> inputContext = nullptr) const;
 
+    std::shared_ptr<Context> CreateModuleOrPluginContext(const std::string &bundleName,
+        const std::string &moduleName) override;
+
     /**
      * @brief Get file area
      *
@@ -332,6 +334,11 @@ public:
 
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfoWithContext(
         std::shared_ptr<Context> inputContext = nullptr) const;
+
+    void InitPluginExtensionInfo(const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo,
+        const std::string &hostBundleName);
+
+    std::shared_ptr<AppExecFwk::ExtensionAbilityInfo> GetPluginExtensionInfo();
 
     /**
      * @brief Set HapModuleInfo
@@ -441,6 +448,10 @@ public:
     void SetLatestParameter(const AAFwk::Want& want);
 
     std::string GetLatestParameter();
+
+    ConfigUpdateReason GetConfigUpdateReason() override;
+
+    void SetConfigUpdateReason(ConfigUpdateReason reason);
 
 #ifdef SUPPORT_SCREEN
     /**
@@ -564,6 +575,7 @@ private:
     void ShallowCopySelf(std::shared_ptr<ContextImpl> &contextImpl);
     bool UpdateDisplayConfiguration(std::shared_ptr<ContextImpl> &contextImpl, uint64_t displayId,
         float density, std::string direction);
+    std::string GetBaseDir(const std::string &area) const;
 #ifdef SUPPORT_GRAPHICS
     bool GetDisplayConfig(uint64_t displayId, float &density, std::string &directionStr);
 #endif
@@ -575,6 +587,7 @@ private:
     std::shared_ptr<Context> parentContext_ = nullptr;
     std::shared_ptr<Global::Resource::ResourceManager> resourceManager_ = nullptr;
     std::shared_ptr<AppExecFwk::HapModuleInfo> hapModuleInfo_ = nullptr;
+    std::shared_ptr<AppExecFwk::ExtensionAbilityInfo> pluginExtensionInfo_ = nullptr;
     std::shared_ptr<AppExecFwk::Configuration> config_ = nullptr;
     std::string currArea_ = "el2";
     std::vector<AppExecFwk::OverlayModuleInfo> overlayModuleInfos_;
@@ -597,6 +610,8 @@ private:
     std::shared_ptr<AAFwk::WantParams> launchParameter_ = nullptr;
     std::mutex latestParameterMutex_;
     std::shared_ptr<AAFwk::WantParams> latestParameter_ = nullptr;
+    std::mutex configUpdateReasonLock_;
+    ConfigUpdateReason configUpdateReason_ = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT;
 
 #ifdef SUPPORT_GRAPHICS
     static std::mutex getDisplayConfigCallbackMutex_;

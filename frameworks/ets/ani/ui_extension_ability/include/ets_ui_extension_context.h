@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -94,6 +94,8 @@ public:
         ani_object callback);
     static void WantCheck(ani_env *env, ani_object aniObj, ani_object wantObj);
     static void DisconnectUIServiceExtensionCheck(ani_env *env, ani_object aniObj, ani_object proxyObj);
+    static void StartUIAbilitiesInSplitWindowModeCheck(ani_env *env, ani_object aniObj,
+        ani_int primaryWindowId, ani_object wantObj);
     static void StartUIAbilitiesInSplitWindowMode(ani_env *env, ani_object aniObj,
         ani_int primaryWindowId, ani_object wantObj, ani_object callback);
     static void OpenLink(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
@@ -146,10 +148,22 @@ private:
         ani_object wantObj, ani_object callback);
     void OpenLinkInner(ani_env *env, ani_object aniObj, ani_string aniLink, ani_object myCallbackobj,
         ani_object optionsObj, ani_object callbackobj, bool haveOptionsParm, bool haveCallBackParm);
+    bool HandleAniLink(ani_env *env, ani_object myCallbackobj, ani_string aniLink,
+        std::string &link, AAFwk::Want &want);
+    void HandleOpenLinkOptions(ani_env *env, ani_object optionsObj,
+        AAFwk::OpenLinkOptions &openLinkOptions, AAFwk::Want &want);
     void CreateOpenLinkTask(ani_env *env, const ani_object callbackobj,
         std::shared_ptr<OHOS::AbilityRuntime::UIExtensionContext> context, AAFwk::Want &want, int &requestCode);
     void OpenAtomicServiceInner(ani_env *env, ani_object aniObj, AAFwk::Want &want, AAFwk::StartOptions &options,
         std::string appId, ani_object callbackobj);
+    void CreateOnAtomicRequestFailureResultCallback(ani_env *env, ani_ref refCompletionHandler,
+        OnAtomicRequestFailure &onRequestCallback, const char *callbackName);
+    void CreateOnAtomicRequestSuccessResultCallback(ani_env *env, ani_ref refCompletionHandler,
+        OnAtomicRequestSuccess &onRequestCallback, const char *callbackName);
+    void UnWrapCompletionHandlerForAtomicService(ani_env *env, ani_object param, AAFwk::StartOptions &options,
+        const std::string &appId);
+    void AddCompletionHandlerForOpenLink(ani_env *env, ani_ref refCompletionHandler, AAFwk::Want &want,
+        OnRequestResult &onRequestSucc, OnRequestResult &onRequestFail);
 
 #ifdef SUPPORT_SCREEN
     void InitDisplayId(AAFwk::Want &want);

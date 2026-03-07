@@ -35,7 +35,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 const char *UI_EXTENSION_CONTENT_SESSION_CLASS_NAME =
-    "L@ohos/app/ability/UIExtensionContentSession/UIExtensionContentSession;";
+    "@ohos.app.ability.UIExtensionContentSession.UIExtensionContentSession";
 } // namespace
 
 ani_object EtsUiExtensionContentSessionModule::NativeTransferStatic(ani_env *aniEnv, ani_object, ani_object input)
@@ -76,6 +76,10 @@ ani_object EtsUiExtensionContentSessionModule::NativeTransferStatic(ani_env *ani
     auto abilityResultListeners = std::make_shared<EtsAbilityResultListeners>();
     EtsUIExtensionContentSession *etsSession = new (std::nothrow) EtsUIExtensionContentSession(
         jsSession->GetSessionInfo(), jsSession->GetUIWindow(), weakContext, abilityResultListeners);
+    if (etsSession == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "create etsSession failed");
+        return nullptr;
+    }
 
     ani_object sessionObj = EtsUIExtensionContentSession::CreateEtsUIExtensionContentSession(aniEnv, etsSession);
     if (sessionObj == nullptr) {
@@ -200,9 +204,9 @@ void EtsUiExtensionContentSessionModuleInit(ani_env *aniEnv)
     }
 
     std::array nativeFuncs = {
-        ani_native_function { "nativeTransferStatic", "Lstd/interop/ESValue;:Lstd/core/Object;",
+        ani_native_function { "nativeTransferStatic", "C{std.interop.ESValue}:C{std.core.Object}",
             reinterpret_cast<void *>(EtsUiExtensionContentSessionModule::NativeTransferStatic) },
-        ani_native_function { "nativeTransferDynamic", "Lstd/core/Object;:Lstd/interop/ESValue;",
+        ani_native_function { "nativeTransferDynamic", "C{std.core.Object}:C{std.interop.ESValue}",
             reinterpret_cast<void *>(EtsUiExtensionContentSessionModule::NativeTransferDynamic) },
     };
     status = aniEnv->Class_BindStaticNativeMethods(uiExtSessionCls, nativeFuncs.data(), nativeFuncs.size());

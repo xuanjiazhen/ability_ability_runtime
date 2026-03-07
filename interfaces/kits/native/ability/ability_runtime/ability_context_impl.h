@@ -64,6 +64,8 @@ public:
     std::shared_ptr<AppExecFwk::Configuration> GetAbilityConfiguration() const override;
     void SetAbilityConfiguration(const AppExecFwk::Configuration &config) override;
     void SetAbilityColorMode(int32_t colorMode) override;
+    void RegisterBindingObjectConfigUpdateCallback(BindingObjectConfigUpdateCallback callback) override;
+    void NotifyBindingObjectConfigUpdate() override;
     std::shared_ptr<Context> CreateBundleContext(const std::string &bundleName) override;
     std::shared_ptr<Context> CreateModuleContext(const std::string &moduleName) override;
     std::shared_ptr<Context> CreateModuleContext(const std::string &bundleName, const std::string &moduleName) override;
@@ -72,6 +74,8 @@ public:
     int32_t CreateSystemHspModuleResourceManager(const std::string &bundleName,
         const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;
     std::shared_ptr<Context> CreateAreaModeContext(int areaMode) override;
+    std::shared_ptr<Context> CreateModuleOrPluginContext(const std::string &bundleName,
+        const std::string &moduleName) override;
 #ifdef SUPPORT_GRAPHICS
     std::shared_ptr<Context> CreateDisplayContext(uint64_t displayId) override;
 #endif
@@ -170,10 +174,7 @@ public:
      *
      * @return Returns the LocalCallContainer.
      */
-    std::shared_ptr<LocalCallContainer> GetLocalCallContainer() override
-    {
-        return localCallContainer_;
-    }
+    std::shared_ptr<LocalCallContainer> GetLocalCallContainer() override;
 
     void SetConfiguration(const std::shared_ptr<AppExecFwk::Configuration> &config) override;
 
@@ -421,6 +422,7 @@ private:
     std::unique_ptr<NativeReference> contentStorage_ = nullptr;
     void *etsContentStorage_ = nullptr;
     std::shared_ptr<AppExecFwk::Configuration> config_ = nullptr;
+    std::mutex callContainerMutex_;
     std::shared_ptr<LocalCallContainer> localCallContainer_ = nullptr;
     std::weak_ptr<AppExecFwk::IAbilityCallback> abilityCallback_;
     std::atomic<bool> isTerminating_ = false;
@@ -433,6 +435,7 @@ private:
     std::atomic<bool> restoreEnabled_ = false;
     std::shared_ptr<Global::Resource::ResourceManager> abilityResourceMgr_ = nullptr;
     AbilityConfigUpdateCallback abilityConfigUpdateCallback_ = nullptr;
+    BindingObjectConfigUpdateCallback bindingObjectConfigUpdateCallback_ = nullptr;
     std::shared_ptr<AppExecFwk::Configuration> abilityConfiguration_ = nullptr;
     bool isHook_ = false;
     bool hookOff_ = false;

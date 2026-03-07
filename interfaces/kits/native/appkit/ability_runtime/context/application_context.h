@@ -25,6 +25,7 @@
 #include "context_impl.h"
 #include "environment_callback.h"
 #include "interop_ability_lifecycle_callback.h"
+#include "system_configuration_updated_callback.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -81,6 +82,8 @@ public:
     void DispatchMemoryLevel(const int level);
     void NotifyApplicationForeground();
     void NotifyApplicationBackground();
+    void NotifySystemConfigurationUpdated(const AppExecFwk::Configuration& configuration);
+    void RegisterSystemConfigurationUpdatedCallback(const std::weak_ptr<SystemConfigurationUpdatedCallback> &Callback);
     void DispatchOnWillNewWant(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnNewWant(const AbilityLifecycleCallbackArgs &ability);
     void DispatchOnAbilityWillCreate(const AbilityLifecycleCallbackArgs &ability);
@@ -101,6 +104,8 @@ public:
     int32_t CreateSystemHspModuleResourceManager(const std::string &bundleName,
         const std::string &moduleName, std::shared_ptr<Global::Resource::ResourceManager> &resourceManager) override;
     std::shared_ptr<Context> CreateAreaModeContext(int areaMode) override;
+    std::shared_ptr<Context> CreateModuleOrPluginContext(const std::string &bundleName,
+        const std::string &moduleName) override;
 #ifdef SUPPORT_GRAPHICS
     std::shared_ptr<Context> CreateDisplayContext(uint64_t displayId) override;
 #endif
@@ -113,7 +118,7 @@ public:
     std::string GetTempDir() override;
     std::string GetResourceDir(const std::string &moduleName = "") override;
     bool IsModuleExist(const std::string &moduleName);
-    void GetAllTempDir(std::vector<std::string> &tempPaths);
+    void GetAllTempBase(std::vector<std::string> &tempPaths);
     std::string GetFilesDir() override;
     bool IsUpdatingConfigurations() override;
     bool PrintDrawnCompleted() override;
@@ -198,6 +203,8 @@ public:
     void SetLatestParameter(const AAFwk::Want &want);
     std::string GetLaunchParameter() const;
     std::string GetLatestParameter() const;
+    ConfigUpdateReason GetConfigUpdateReason() override;
+    void SetConfigUpdateReason(ConfigUpdateReason reason);
 
 protected:
     bool IsContext(size_t contextTypeId) override
@@ -214,6 +221,7 @@ private:
     static std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> interopCallbacks_;
     static std::vector<std::shared_ptr<EnvironmentCallback>> envCallbacks_;
     static std::vector<std::weak_ptr<ApplicationStateChangeCallback>> applicationStateCallback_;
+    static std::vector<std::weak_ptr<SystemConfigurationUpdatedCallback>> systemConfigurationUpdatedCallbacks_;
     std::recursive_mutex callbackLock_;
     std::mutex interopCallbackLock_;
     std::recursive_mutex envCallbacksLock_;
@@ -229,6 +237,7 @@ private:
     std::string instanceKey_;
     std::string dataDir_;
     std::mutex dataDirMutex_;
+    std::mutex systemConfigurationUpdatedCallbackLock_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

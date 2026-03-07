@@ -38,12 +38,12 @@ export function callback(cleaner: Cleaner): void {
 let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
-export class Context extends BaseContext {
+export default class Context extends BaseContext {
   static {
     loadLibraryWithPermissionCheck("context_ani_kit.z", "application.Context");
   }
-
   nativePtr: long = 0;
+  
   etsContextPtr: long = 0;
   private cleaner: Cleaner | null = null;
   filesDir: string = "";

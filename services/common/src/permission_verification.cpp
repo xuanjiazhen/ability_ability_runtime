@@ -284,13 +284,14 @@ int PermissionVerification::CheckCallDataAbilityPermission(const VerificationInf
     return ERR_OK;
 }
 
-int PermissionVerification::CheckCallServiceAbilityPermission(const VerificationInfo &verificationInfo) const
+int PermissionVerification::CheckCallServiceAbilityPermission(const VerificationInfo &verificationInfo,
+    uint32_t specifyTokenId) const
 {
     if (CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Allow fms to connect service ability");
         return ERR_OK;
     }
-    if ((verificationInfo.apiTargetVersion > API8 || IsShellCall()) &&
+    if ((verificationInfo.apiTargetVersion > API8 || IsShellCallByTokenId(specifyTokenId)) &&
         !JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "caller START_ABILITIES_FROM_BACKGROUND permission invalid");
         return CHECK_PERMISSION_FAILED;
@@ -407,9 +408,8 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
     bool isCallByShortcut) const
 {
     uint32_t specifyTokenId = verificationInfo.specifyTokenId;
-    bool isProcessInStatusBar = verificationInfo.isProcessInStatusBar;
-    TAG_LOGD(AAFwkTag::DEFAULT, "specifyTokenId: %{public}u, isCallByShortcut %{public}d,"
-        " isProcessInStatusBar: %{public}d", specifyTokenId, isCallByShortcut, isProcessInStatusBar);
+    TAG_LOGD(AAFwkTag::DEFAULT, "specifyTokenId: %{public}u, isCallByShortcut %{public}d",
+        specifyTokenId, isCallByShortcut);
     if (specifyTokenId == 0 &&
         SupportSystemAbilityPermission::IsSupportSaCallPermission()) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Support SA call");
@@ -421,7 +421,7 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
         TAG_LOGE(AAFwkTag::DEFAULT, "caller INVISIBLE permission invalid");
         return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
     }
-    if (!isProcessInStatusBar && !JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall)) {
+    if (!JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "caller START_ABILITIES_FROM_BACKGROUND permission invalid");
         return CHECK_PERMISSION_FAILED;
     }
@@ -436,6 +436,18 @@ bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPI() const
     }
     auto callerToken = IPCSkeleton::GetCallingFullTokenID();
     return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(callerToken);
+}
+
+bool PermissionVerification::JudgeCallerIsAllowedToUseSystemAPIByTokenId(uint64_t specifiedFullTokenId) const
+{
+    uint32_t specifyTokenId = static_cast<uint32_t>(specifiedFullTokenId);
+    if (IsSACallByTokenId(specifyTokenId) || IsShellCallByTokenId(specifyTokenId)) {
+        return true;
+    }
+    if (specifiedFullTokenId == 0) {
+        specifiedFullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    }
+    return Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(specifiedFullTokenId);
 }
 
 bool PermissionVerification::IsSystemAppCall() const
@@ -491,9 +503,10 @@ bool PermissionVerification::VerifyPrepareTerminatePermission(const int &tokenId
     return true;
 }
 
-bool PermissionVerification::VerifyShellStartExtensionType(int32_t type) const
+bool PermissionVerification::VerifyShellStartExtensionType(int32_t type, uint32_t specifyTokenId) const
 {
-    if (IsShellCall() && type >= SHELL_START_EXTENSION_FLOOR && type <= SHELL_START_EXTENSION_CEIL) {
+    if (IsShellCallByTokenId(specifyTokenId) && type >= SHELL_START_EXTENSION_FLOOR &&
+        type <= SHELL_START_EXTENSION_CEIL) {
         return true;
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "reject start");
@@ -527,10 +540,10 @@ bool PermissionVerification::VerifyPreStartAtomicServicePermission() const
 bool PermissionVerification::VerifyKillProcessDependedOnWebPermission() const
 {
     if (IsSACall() && VerifyCallingPermission(PermissionConstants::PERMISSION_KILL_PROCESS_DEPENDED_ON_WEB)) {
-        TAG_LOGD(AAFwkTag::APPMGR, "Permission granted");
+        TAG_LOGD(AAFwkTag::APPMGR, "Permission verification succeeded.");
         return true;
     }
-    TAG_LOGW(AAFwkTag::APPMGR, "Permission denied");
+    TAG_LOGW(AAFwkTag::APPMGR, "Permission verification failed");
     return false;
 }
 

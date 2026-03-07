@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -262,6 +262,9 @@ private:
     int32_t RecordAppExitReasonInner(MessageParcel &data, MessageParcel &reply);
     int32_t RecordProcessExitReasonInner(MessageParcel &data, MessageParcel &reply);
     int32_t RecordProcessExitReasonPlusInner(MessageParcel &data, MessageParcel &reply);
+    int32_t KillAppWithReasonInner(MessageParcel &data, MessageParcel &reply);
+    int32_t KillBundleWithReasonInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RecordAppWithReasonInner(MessageParcel &data, MessageParcel &reply);
     int32_t SetResidentProcessEnableInner(MessageParcel &data, MessageParcel &reply);
 
     int SetRootSceneSessionInner(MessageParcel &data, MessageParcel &reply);
@@ -286,6 +289,8 @@ private:
     int32_t CancelApplicationAutoStartupInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryAllAutoStartupApplicationsInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetAutoStartupStatusForSelfInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ManualStartAutoStartupAppsInner(MessageParcel &data, MessageParcel &reply);
+    int32_t QueryCallerTokenIdForAncoInner(MessageParcel &data, MessageParcel &reply);
 
     int PrepareTerminateAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int RegisterSessionHandlerInner(MessageParcel &data, MessageParcel &reply);
@@ -344,10 +349,10 @@ private:
     int32_t UnregisterHiddenStartObserverInner(MessageParcel &data, MessageParcel &reply);
     int32_t QueryPreLoadUIExtensionRecordInner(MessageParcel &data, MessageParcel &reply);
     int32_t RevokeDelegatorInner(MessageParcel &data, MessageParcel &reply);
-    int32_t StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetAllInsightIntentInfoInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetInsightIntentInfoByBundleNameInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetInsightIntentInfoByIntentNameInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartAbilityWithWaitInner(MessageParcel &data, MessageParcel &reply);
     int32_t RestartSelfAtomicServiceInner(MessageParcel &data, MessageParcel &reply);
     int32_t RegisterSAInterceptorInner(MessageParcel &data, MessageParcel &reply);
     int32_t SuspendExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
@@ -359,6 +364,7 @@ private:
     int32_t ClearAllPreloadUIExtensionAbilityInner(MessageParcel &data, MessageParcel &reply);
     int32_t RegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply);
     int32_t UnRegisterPreloadUIExtensionHostClientInner(MessageParcel &data, MessageParcel &reply);
+    int32_t SetAppRecoveryFlagInner(MessageParcel &data, MessageParcel &reply);
 
     int OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data,
         MessageParcel &reply, MessageOption &option);
@@ -422,6 +428,7 @@ private:
     int32_t GetKioskStatusInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSelfUIAbilityInCurrentProcessInner(MessageParcel &data, MessageParcel &reply);
     int32_t IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetUserLockedBundleListInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

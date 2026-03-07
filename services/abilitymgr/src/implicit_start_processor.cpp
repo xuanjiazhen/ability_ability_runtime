@@ -16,6 +16,7 @@
 
 #include "ability_manager_service.h"
 #include "ability_util.h"
+#include "app_scheduler.h"
 #include "app_utils.h"
 #include "dialog_session_manager.h"
 #include "ecological_rule/ability_ecological_rule_mgr_service.h"
@@ -56,7 +57,7 @@ const std::string APP_CLONE_INDEX = "ohos.extra.param.key.appCloneIndex";
 const std::string APP_LAUNCH_TRUSTLIST = "ohos.params.appLaunchTrustList";
 constexpr const char* SUPPORT_ACTION_START_SELECTOR = "persist.sys.ability.support.action_start_selector";
 
-void SendAbilityEvent(const EventName &eventName, HiSysEventType type, const EventInfo &eventInfo)
+void SendAbilityEvent(const EventName &eventName, HiSysEventEventType type, const EventInfo &eventInfo)
 {
     ffrt::submit([eventName, type, eventInfo]() {
         EventReport::SendAbilityEvent(eventName, type, eventInfo);
@@ -308,7 +309,8 @@ std::string ImplicitStartProcessor::MatchTypeAndUri(const AAFwk::Want &want)
         auto uri = want.GetUriString();
         auto suffixIndex = uri.rfind('.');
         if (suffixIndex == std::string::npos) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, uri: %{public}s", uri.c_str());
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, uri:%{public}s-%{private}s",
+                want.GetUri().GetScheme().c_str(), uri.c_str());
             return "";
         }
         type = uri.substr(suffixIndex);
@@ -316,7 +318,8 @@ std::string ImplicitStartProcessor::MatchTypeAndUri(const AAFwk::Want &want)
         if (Security::DlpPermission::DlpFileKits::IsDlpFileBySuffix(type)) {
             auto suffixDlpIndex = uri.rfind('.', suffixIndex - 1);
             if (suffixDlpIndex == std::string::npos) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, uri: %{public}s", uri.c_str());
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "failed, uri: %{public}s-%{private}s",
+                    want.GetUri().GetScheme().c_str(), uri.c_str());
                 return "";
             }
             type = uri.substr(suffixDlpIndex, suffixIndex - suffixDlpIndex);
@@ -523,6 +526,11 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
         ProcessLinkType(abilityInfos);
     }
 
+    if (auto ret = StartAbilityUtils::HandleSelfRedirection(request.isFromOpenLink, abilityInfos); ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "disallow self redirection");
+        return ret;
+    }
+
 #ifdef WITH_DLP
     if (request.want.GetBoolParam(AbilityUtil::DLP_PARAMS_SANDBOX, false)) {
         Security::DlpPermission::DlpFileKits::ConvertAbilityInfoWithSupportDlp(request.want, abilityInfos);
@@ -572,7 +580,7 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
             if (pos != std::string::npos) {
                 eventInfo.uri = eventInfo.uri.substr(0, pos);
             }
-            SendAbilityEvent(EventName::START_ABILITY_BY_APP_LINKING, HiSysEventType::BEHAVIOR, eventInfo);
+            SendAbilityEvent(EventName::START_ABILITY_BY_APP_LINKING, HISYSEVENT_BEHAVIOR, eventInfo);
         }
     }
 
@@ -608,6 +616,8 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAction(int32_t userId, Abili
         dialogAppInfo.visible = info.visible;
         dialogAppInfo.appIndex = info.applicationInfo.appIndex;
         dialogAppInfo.multiAppMode = info.applicationInfo.multiAppMode;
+        dialogAppInfo.codePath = info.applicationInfo.codePath;
+        dialogAppInfo.installSource = info.applicationInfo.installSource;
         dialogAppInfos.emplace_back(dialogAppInfo);
     }
     KioskManager::GetInstance().FilterDialogAppInfos(dialogAppInfos);
@@ -657,6 +667,8 @@ int ImplicitStartProcessor::GenerateAbilityRequestByAppIndexes(int32_t userId, A
         dialogAppInfo.visible = info.visible;
         dialogAppInfo.appIndex = info.applicationInfo.appIndex;
         dialogAppInfo.multiAppMode = info.applicationInfo.multiAppMode;
+        dialogAppInfo.codePath = info.applicationInfo.codePath;
+        dialogAppInfo.installSource = info.applicationInfo.installSource;
         dialogAppInfos.emplace_back(dialogAppInfo);
     }
     return ERR_OK;
@@ -727,6 +739,8 @@ int ImplicitStartProcessor::QueryBmsAppInfos(AbilityRequest &request, int32_t us
             dialogAppInfo.visible = abilityInfo.visible;
             dialogAppInfo.appIndex = abilityInfo.applicationInfo.appIndex;
             dialogAppInfo.multiAppMode = abilityInfo.applicationInfo.multiAppMode;
+            dialogAppInfo.codePath = abilityInfo.applicationInfo.codePath;
+            dialogAppInfo.installSource = abilityInfo.applicationInfo.installSource;
             dialogAppInfos.emplace_back(dialogAppInfo);
         }
     }
@@ -809,7 +823,7 @@ int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
     eventInfo.abilityName = want.GetElement().GetAbilityName();
 
     if (callType == AbilityCallType::INVALID_TYPE) {
-        SendAbilityEvent(EventName::START_ABILITY, HiSysEventType::BEHAVIOR, eventInfo);
+        SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
     }
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ability:%{public}s, bundle:%{public}s", eventInfo.abilityName.c_str(),
@@ -820,7 +834,7 @@ int ImplicitStartProcessor::CallStartAbilityInner(int32_t userId,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "CallStartAbilityInner failed: %{public}d", ret);
         if (callType == AbilityCallType::INVALID_TYPE) {
             eventInfo.errCode = ERR_DO_CLOSURE_CALLBACK_FAILED;
-            SendAbilityEvent(EventName::START_ABILITY_ERROR, HiSysEventType::FAULT, eventInfo);
+            SendAbilityEvent(EventName::START_ABILITY_ERROR, HISYSEVENT_FAULT, eventInfo);
         }
     }
     return ret;
@@ -979,6 +993,8 @@ void ImplicitStartProcessor::AddAbilityInfoToDialogInfos(const AddInfoParam &par
     dialogAppInfo.appIndex = param.info.appIndex;
     dialogAppInfo.multiAppMode = param.info.applicationInfo.multiAppMode;
     dialogAppInfo.isAppLink = (param.info.linkType == AppExecFwk::LinkType::APP_LINK);
+    dialogAppInfo.codePath = param.info.applicationInfo.codePath;
+    dialogAppInfo.installSource = param.info.applicationInfo.installSource;
     dialogAppInfos.emplace_back(dialogAppInfo);
 }
 

@@ -41,6 +41,7 @@ constexpr int32_t DMS_UID = 5522;
 constexpr int32_t LOW_MEMORY_KILL_WHILE_STARTING = 1111;
 constexpr int32_t DEFAULT_INVAL_VALUE = -1;
 constexpr int32_t PENG_LAI_UID = 7655;
+constexpr int32_t BROKER_UID = 5557;
 
 namespace OHOS {
 namespace AAFwk {
@@ -2818,7 +2819,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetAllInsightIntentInfo_001, TestS
     EXPECT_NE(abilityMs, nullptr);
     auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
     std::vector<InsightIntentInfoForQuery> infos;
-    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetAllInsightIntentInfo_001 end");
 }
@@ -2837,7 +2839,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetAllInsightIntentInfo_002, TestS
     auto flag = static_cast<GetInsightIntentFlag>(AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT |
                 AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
     std::vector<InsightIntentInfoForQuery> infos;
-    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetAllInsightIntentInfo_002 end");
 }
@@ -2856,7 +2859,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetAllInsightIntentInfo_003, TestS
     auto flag = static_cast<GetInsightIntentFlag>(AbilityRuntime::GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT |
                 AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
     std::vector<InsightIntentInfoForQuery> infos;
-    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetAllInsightIntentInfo_003 end");
 }
@@ -2874,7 +2878,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetAllInsightIntentInfo_004, TestS
     EXPECT_NE(abilityMs, nullptr);
     auto flag = AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO;
     std::vector<InsightIntentInfoForQuery> infos;
-    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetAllInsightIntentInfo(flag, infos, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetAllInsightIntentInfo_004 end");
 }
@@ -2893,7 +2898,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetInsightIntentInfoByBundleName_0
     auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
     std::string bundleName = "com.example.bundleName";
     std::vector<InsightIntentInfoForQuery> infos;
-    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetInsightIntentInfoByBundleName end");
 }
@@ -2913,7 +2919,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetInsightIntentInfoByBundleName_0
                 AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
     std::string bundleName = "com.example.bundleName";
     std::vector<InsightIntentInfoForQuery> infos;
-    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetInsightIntentInfoByBundleName_002 end");
 }
@@ -2933,7 +2940,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetInsightIntentInfoByBundleName_0
                 AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO);
     std::string bundleName = "com.example.bundleName";
     std::vector<InsightIntentInfoForQuery> infos;
-    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetInsightIntentInfoByBundleName_003 end");
 }
@@ -2952,7 +2960,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetInsightIntentInfoByBundleName_0
     auto flag = AbilityRuntime::GetInsightIntentFlag::GET_ENTITY_INFO;
     std::string bundleName = "com.example.bundleName";
     std::vector<InsightIntentInfoForQuery> infos;
-    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetInsightIntentInfoByBundleName(flag, bundleName, infos, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetInsightIntentInfoByBundleName_004 end");
 }
@@ -2973,7 +2982,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetInsightIntentInfoByIntentName_0
     std::string moduleName = "entry";
     std::string intentName = "test";
     InsightIntentInfoForQuery info;
-    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetInsightIntentInfoByIntentName_001 end");
 }
@@ -2995,7 +3005,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetInsightIntentInfoByIntentName_0
     std::string moduleName = "entry";
     std::string intentName = "test";
     InsightIntentInfoForQuery info;
-    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetInsightIntentInfoByIntentName_002 end");
 }
@@ -3017,7 +3028,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetInsightIntentInfoByIntentName_0
     std::string moduleName = "entry";
     std::string intentName = "test";
     InsightIntentInfoForQuery info;
-    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetInsightIntentInfoByIntentName_003 end");
 }
@@ -3038,7 +3050,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, GetInsightIntentInfoByIntentName_0
     std::string moduleName = "entry";
     std::string intentName = "test";
     InsightIntentInfoForQuery info;
-    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    int32_t userId = 1;
+    auto ret = abilityMs->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info, userId);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest GetInsightIntentInfoByIntentName_004 end");
 }
@@ -3168,6 +3181,78 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, RegisterSAInterceptor_002, TestSiz
     MyStatus::GetInstance().ipcGetCallingUid_ = PENG_LAI_UID;
     auto result = abilityManagerService->RegisterSAInterceptor(interceptor);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: ManualStartAutoStartupApps_001
+ * Function: ManualStartAutoStartupApps
+ * SubFunction: NA
+ * FunctionPoints: CHECK_PERMISSION_FAILED
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ManualStartAutoStartupApps_001, TestSize.Level1) {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ManualStartAutoStartupApps_001 start");
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().permPermission_ = 0;
+    int32_t userId = -1;
+    auto result = abilityManagerService->ManualStartAutoStartupApps(userId);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ManualStartAutoStartupApps_001 end");
+}
+
+/*
+ * Feature: ManualStartAutoStartupApps_002
+ * Function: ManualStartAutoStartupApps
+ * SubFunction: NA
+ * FunctionPoints: ERR_OK
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, ManualStartAutoStartupApps_002, TestSize.Level1) {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ManualStartAutoStartupApps_002 start");
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().permPermission_ = 1;
+    int32_t userId = -1;
+    auto result = abilityManagerService->ManualStartAutoStartupApps(userId);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest ManualStartAutoStartupApps_002 end");
+}
+
+/*
+ * Feature: QueryCallerTokenIdForAnco_001
+ * Function: QueryCallerTokenIdForAnco
+ * SubFunction: NA
+ * FunctionPoints: uiAbilityManager is null
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, QueryCallerTokenIdForAnco_001, TestSize.Level1) {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_001 start");
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = FOUNDATION_UID;
+    int32_t userId = 101;
+    std::string asCallerForAncoSessionId = "520";
+    uint32_t callerTokenId = 0;
+    auto result = abilityManagerService->QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId, callerTokenId);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_001 end");
+}
+
+/*
+ * Feature: QueryCallerTokenIdForAnco_002
+ * Function: QueryCallerTokenIdForAnco
+ * SubFunction: NA
+ * FunctionPoints: negative dialogSessionId
+ */
+HWTEST_F(AbilityManagerServiceThirteenthTest, QueryCallerTokenIdForAnco_002, TestSize.Level1) {
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_002 start");
+    auto abilityManagerService = std::make_shared<AbilityManagerService>();
+    EXPECT_NE(abilityManagerService, nullptr);
+    MyStatus::GetInstance().ipcGetCallingUid_ = BROKER_UID;
+    int32_t userId = -1;
+    std::string asCallerForAncoSessionId = "5201314";
+    uint32_t callerTokenId = 0;
+    auto result = abilityManagerService->QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId, callerTokenId);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirteenthTest QueryCallerTokenIdForAnco_002 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

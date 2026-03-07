@@ -42,6 +42,7 @@ void InsightIntentEventMgr::DeleteInsightIntent(const std::string &bundleName, c
         TAG_LOGI(AAFwkTag::INTENT, "update bundleName: %{public}s to no insight intent", bundleName.c_str());
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(
             bundleName, moduleName, userId);
+        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
     }
 
     return;
@@ -72,7 +73,13 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
             TAG_LOGE(AAFwkTag::INTENT, "get bundleMgrHelper instance failed");
             return;
         }
-
+        AppExecFwk::BundleInfo bundleInfo;
+        if (IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfoV9(bundleName,
+            static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_DEFAULT),
+            bundleInfo, userId)) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "get bundle info failed");
+            return;
+        }
         OHOS::SplitStr(moduleName, ",", moduleNameVec);
         for (std::string moduleNameLocal : moduleNameVec) { // Get json profile firstly
             ret = IN_PROCESS_CALL(bundleMgrHelper->GetJsonProfile(AppExecFwk::INTENT_PROFILE,
@@ -95,15 +102,10 @@ void InsightIntentEventMgr::UpdateInsightIntentEvent(const AppExecFwk::ElementNa
             }
 
             // save database
-            ret = DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
-                bundleName, moduleNameLocal, userId, infos, configIntentInfos);
-            if (ret != ERR_OK) {
-                TAG_LOGW(AAFwkTag::INTENT, "update intent info failed, bundleName: %{public}s", bundleName.c_str());
-                continue;
-            }
-
-            TAG_LOGI(AAFwkTag::INTENT, "update intent info success, bundleName: %{public}s", bundleName.c_str());
+            DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(
+                bundleName, moduleNameLocal, userId, bundleInfo.versionCode, infos, configIntentInfos);
         }
+        DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
     });
 }
 
@@ -137,7 +139,7 @@ void InsightIntentEventMgr::DeleteInsightIntentEvent(const AppExecFwk::ElementNa
             "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
         return;
     }
-
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
     TAG_LOGI(AAFwkTag::INTENT, "delete intent info success, bundleName: %{public}s, "
         "moduleName: %{public}s, userId: %{public}d", bundleName.c_str(), moduleName.c_str(), userId);
 }

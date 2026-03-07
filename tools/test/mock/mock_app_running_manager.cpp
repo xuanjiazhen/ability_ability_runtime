@@ -57,7 +57,7 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CreateAppRunningRecord(
 std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExist(const std::string &appName,
     const std::string &processName, const int uid, const BundleInfo &bundleInfo,
     const std::string &specifiedProcessFlag, bool *isProCache, const std::string &instanceKey,
-    const std::string &customProcessFlag, const bool notReuseCachedPorcess)
+    const std::string &customProcessFlag, const bool notReuseCachedPorcess, bool isFromPreload)
 {
     return nullptr;
 }
@@ -262,7 +262,7 @@ int32_t AppRunningManager::NotifyMemoryLevel(int32_t level)
     return ERR_OK;
 }
 
-int32_t AppRunningManager::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel> &procLevelMap)
+int32_t AppRunningManager::NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel> &procLevelMap, bool isShellCall)
 {
     return ERR_OK;
 }

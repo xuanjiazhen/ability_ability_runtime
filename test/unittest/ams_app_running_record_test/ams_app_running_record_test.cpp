@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -45,7 +45,7 @@
 #include "mock_system_ability_manager.h"
 #include "param.h"
 #include "refbase.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #include "window_visibility_info.h"
 
 using namespace testing::ext;
@@ -657,7 +657,7 @@ HWTEST_F(AmsAppRunningRecordTest, ScheduleProcessSecurityExit_001, TestSize.Leve
 HWTEST_F(AmsAppRunningRecordTest, ScheduleMemoryLevel_001, TestSize.Level1)
 {
     auto record = GetTestAppRunningRecord();
-    EXPECT_CALL(*mockAppSchedulerClient_, ScheduleMemoryLevel(_)).Times(1);
+    EXPECT_CALL(*mockAppSchedulerClient_, ScheduleMemoryLevel(_, _)).Times(1);
     record->ScheduleMemoryLevel(1);
 
     record->appLifeCycleDeal_ = nullptr;
@@ -1741,7 +1741,7 @@ HWTEST_F(AmsAppRunningRecordTest, RemoveModuleRecord_001, TestSize.Level1)
 HWTEST_F(AmsAppRunningRecordTest, UpdateConfiguration_001, TestSize.Level1)
 {
     auto testLanguge = std::string("ch-zh");
-    auto configUpdate = [testLanguge](const Configuration& config) {
+    auto configUpdate = [testLanguge](const Configuration& config, ConfigUpdateReason reason) {
         auto l = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE);
         EXPECT_TRUE(testLanguge == l);
     };
@@ -1749,7 +1749,7 @@ HWTEST_F(AmsAppRunningRecordTest, UpdateConfiguration_001, TestSize.Level1)
     Configuration config;
     config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, testLanguge);
     auto record = GetTestAppRunningRecord();
-    EXPECT_CALL(*mockAppSchedulerClient_, ScheduleConfigurationUpdated(_))
+    EXPECT_CALL(*mockAppSchedulerClient_, ScheduleConfigurationUpdated(_, _))
         .Times(1)
         .WillOnce(testing::Invoke(configUpdate));
 
@@ -1767,7 +1767,7 @@ HWTEST_F(AmsAppRunningRecordTest, UpdateConfiguration_001, TestSize.Level1)
 HWTEST_F(AmsAppRunningRecordTest, UpdateConfiguration_002, TestSize.Level1)
 {
     auto test = std::string("colour");
-    auto configUpdate = [test](const Configuration& config) {
+    auto configUpdate = [test](const Configuration& config, ConfigUpdateReason reason) {
         auto l = config.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE);
         EXPECT_TRUE(test == l);
     };
@@ -1775,7 +1775,7 @@ HWTEST_F(AmsAppRunningRecordTest, UpdateConfiguration_002, TestSize.Level1)
     Configuration config;
     config.AddItem(AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE, test);
     auto record = GetTestAppRunningRecord();
-    EXPECT_CALL(*mockAppSchedulerClient_, ScheduleConfigurationUpdated(_))
+    EXPECT_CALL(*mockAppSchedulerClient_, ScheduleConfigurationUpdated(_, _))
         .Times(1)
         .WillOnce(testing::Invoke(configUpdate));
 
@@ -2887,12 +2887,12 @@ HWTEST_F(AmsAppRunningRecordTest, IsUIExtension_001, TestSize.Level1)
         loadParam, appInfo, abilityInfo, GetTestProcessName(), bundleInfo, hapModuleInfo, nullptr);
 
     EXPECT_TRUE(record != nullptr);
-    EXPECT_EQ(AAFwk::UIExtensionUtils::IsUIExtension(record->extensionType_), false);
+    EXPECT_EQ(AAFwk::UIExtensionWrapper::IsUIExtension(record->extensionType_), false);
 
     auto otherRecord = service_->GetAppRunningRecordByAppRecordId(record->GetRecordId());
     EXPECT_TRUE(otherRecord != nullptr);
 
-    EXPECT_EQ(AAFwk::UIExtensionUtils::IsUIExtension(otherRecord->extensionType_), false);
+    EXPECT_EQ(AAFwk::UIExtensionWrapper::IsUIExtension(otherRecord->extensionType_), false);
 }
 
 /*
@@ -2925,12 +2925,12 @@ HWTEST_F(AmsAppRunningRecordTest, IsUIExtension_002, TestSize.Level1)
         loadParam, appInfo, abilityInfo, GetTestProcessName(), bundleInfo, hapModuleInfo, nullptr);
 
     EXPECT_TRUE(record != nullptr);
-    EXPECT_EQ(AAFwk::UIExtensionUtils::IsUIExtension(record->extensionType_), true);
+    EXPECT_EQ(AAFwk::UIExtensionWrapper::IsUIExtension(record->extensionType_), true);
 
     auto otherRecord = service_->GetAppRunningRecordByAppRecordId(record->GetRecordId());
     EXPECT_TRUE(otherRecord != nullptr);
 
-    EXPECT_EQ(AAFwk::UIExtensionUtils::IsUIExtension(otherRecord->extensionType_), true);
+    EXPECT_EQ(AAFwk::UIExtensionWrapper::IsUIExtension(otherRecord->extensionType_), true);
 }
 
 /*

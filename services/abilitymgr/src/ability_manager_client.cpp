@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -140,17 +140,20 @@ ErrCode AbilityManagerClient::ScheduleCommandAbilityWindowDone(
     return abms->ScheduleCommandAbilityWindowDone(token, sessionInfo, winCmd, abilityCmd);
 }
 
-ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, int32_t userId)
+ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, int32_t userId,
+    uint64_t specifiedFullTokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility %{public}s/%{public}s, userId:%{public}d, "
-        "appCloneIndex:%{public}d", want.GetElement().GetBundleName().c_str(),
-        want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
+        "appCloneIndex:%{public}d, requestCode:%{public}d, specifiedFullTokenId:%{public}" PRIu64 "",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(),
+        userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), requestCode,
+        specifiedFullTokenId);
 
     HandleDlpApp(const_cast<Want &>(want));
-    return abms->StartAbility(want, userId, requestCode);
+    return abms->StartAbility(want, userId, requestCode, specifiedFullTokenId);
 }
 
 ErrCode AbilityManagerClient::StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> observer)
@@ -166,16 +169,18 @@ ErrCode AbilityManagerClient::StartAbilityWithWait(Want &want, sptr<IAbilityStar
 }
 
 ErrCode AbilityManagerClient::StartAbility(
-    const Want &want, sptr<IRemoteObject> callerToken, int requestCode, int32_t userId)
+    const Want &want, sptr<IRemoteObject> callerToken, int requestCode, int32_t userId, uint64_t specifiedFullTokenId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
-        "appCloneIndex:%{public}d", want.GetElement().GetBundleName().c_str(),
-        want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
+        "appCloneIndex:%{public}d, requestCode:%{public}d, specifiedFullTokenId:%{public}" PRIu64 "",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(),
+        userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), requestCode,
+        specifiedFullTokenId);
     HandleDlpApp(const_cast<Want &>(want));
-    return abms->StartAbility(want, callerToken, userId, requestCode);
+    return abms->StartAbility(want, callerToken, userId, requestCode, specifiedFullTokenId);
 }
 
 ErrCode AbilityManagerClient::StartAbilityByInsightIntent(
@@ -197,8 +202,9 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, const AbilityStartS
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
-        "appCloneIndex:%{public}d", want.GetElement().GetBundleName().c_str(),
-        want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
+        "appCloneIndex:%{public}d, requestCode:%{public}d", want.GetElement().GetBundleName().c_str(),
+        want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
+        requestCode);
     HandleDlpApp(const_cast<Want &>(want));
     return abms->StartAbility(want, abilityStartSetting, callerToken, userId, requestCode);
 }
@@ -210,8 +216,9 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, const StartOptions 
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
-        "appCloneIndex:%{public}d", want.GetElement().GetBundleName().c_str(),
-        want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
+        "appCloneIndex:%{public}d, requestCode:%{public}d", want.GetElement().GetBundleName().c_str(),
+        want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
+        requestCode);
     HandleDlpApp(const_cast<Want &>(want));
     return abms->StartAbility(want, startOptions, callerToken, userId, requestCode);
 }
@@ -398,8 +405,8 @@ ErrCode AbilityManagerClient::StartUIExtensionAbility(sptr<SessionInfo> extensio
     return abms->StartUIExtensionAbility(extensionSessionInfo, userId);
 }
 
-ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
-    bool isRestart)
+ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
+    AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (sessionInfo == nullptr) {
@@ -409,10 +416,12 @@ ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, StartUIAbilityBySCB target: %{public}s/%{public}s, "
-        "persistentId: %{public}d, appIndex: %{public}d", sessionInfo->want.GetElement().GetBundleName().c_str(),
+        "persistentId: %{public}d, appIndex: %{public}d, pageConfigSize:%{public}zu, requestCode:%{public}d",
+        sessionInfo->want.GetElement().GetBundleName().c_str(),
         sessionInfo->want.GetElement().GetAbilityName().c_str(), sessionInfo->persistentId,
-        sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
-    return abms->StartUIAbilityBySCB(sessionInfo, isColdStart, sceneFlag, isRestart);
+        sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), params.pageConfig.size(),
+        sessionInfo->requestCode);
+    return abms->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
 }
 
 ErrCode AbilityManagerClient::StopExtensionAbility(const Want &want, sptr<IRemoteObject> callerToken,
@@ -568,23 +577,33 @@ ErrCode AbilityManagerClient::MinimizeUIAbilityBySCB(sptr<SessionInfo> sessionIn
 
 ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId)
 {
-    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto abms = GetAbilityManager();
-    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d",
-        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
-    return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::SERVICE, userId);
+    return ConnectAbility(want, connect, userId, 0);
 }
 
-ErrCode AbilityManagerClient::ConnectAbility(
-    const Want &want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId,
+    int32_t loadTimeout)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
-    return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId);
+    return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::SERVICE, userId,
+        false, 0, loadTimeout);
+}
+
+ErrCode AbilityManagerClient::ConnectAbility(
+    const Want &want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId,
+    uint64_t specifiedFullTokenId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d, "
+        "specifiedFullTokenId:%{public}" PRIu64 "", want.GetElement().GetBundleName().c_str(),
+        want.GetElement().GetAbilityName().c_str(), userId, specifiedFullTokenId);
+    return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId,
+        false, specifiedFullTokenId);
 }
 
 ErrCode AbilityManagerClient::ConnectAbilityWithExtensionType(
@@ -630,7 +649,7 @@ ErrCode AbilityManagerClient::ConnectDataShareExtensionAbility(const Want &want,
 }
 
 ErrCode AbilityManagerClient::ConnectExtensionAbility(const Want &want, sptr<IAbilityConnection> connect,
-    int32_t userId)
+    int32_t userId, int32_t loadTimeout)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
@@ -642,7 +661,8 @@ ErrCode AbilityManagerClient::ConnectExtensionAbility(const Want &want, sptr<IAb
 
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d.",
         want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), userId);
-    return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::UNSPECIFIED, userId);
+    return abms->ConnectAbilityCommon(want, connect, nullptr, AppExecFwk::ExtensionAbilityType::UNSPECIFIED, userId,
+        false, 0, loadTimeout);
 }
 
 ErrCode AbilityManagerClient::ConnectUIExtensionAbility(const Want &want, sptr<IAbilityConnection> connect,
@@ -1136,43 +1156,51 @@ ErrCode AbilityManagerClient::GetMissionIdByToken(sptr<IRemoteObject> token, int
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect, bool isSilent)
+ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect, bool isSilent,
+    bool isVisible)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ByCall, ability:%{public}s/%{public}s, isSilent:%{public}d",
-        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), isSilent);
-    return abms->StartAbilityByCall(want, connect, nullptr, DEFAULT_INVAL_VALUE, isSilent);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ByCall, ability:%{public}s/%{public}s, isSilent:%{public}d, isVisible:%{public}d",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), isSilent, isVisible);
+    return abms->StartAbilityByCall(want, connect, nullptr, DEFAULT_INVAL_VALUE, isSilent, isVisible);
 }
 
 ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect,
-    sptr<IRemoteObject> callToken, int32_t accountId, bool isSilent, bool promotePriority)
+    sptr<IRemoteObject> callToken, int32_t accountId, bool isSilent, bool promotePriority, bool isVisible)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ByCall, ability:%{public}s/%{public}s, userId:%{public}d, isSilent:%{public}d",
-        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), accountId, isSilent);
-    return abms->StartAbilityByCall(want, connect, callToken, accountId, isSilent, promotePriority);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ByCall, ability:%{public}s/%{public}s, userId:%{public}d, isSilent:%{public}d, "
+        "isVisible:%{public}d", want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(),
+        accountId, isSilent, isVisible);
+    return abms->StartAbilityByCall(want, connect, callToken, accountId, isSilent, promotePriority, isVisible);
 }
 
 ErrCode AbilityManagerClient::StartAbilityByCallWithErrMsg(const Want &want, sptr<IAbilityConnection> connect,
-    sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent, bool promotePriority)
+    sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent, bool promotePriority,
+    bool isVisible)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ByCall, ability:%{public}s/%{public}s, userId:%{public}d, isSilent:%{public}d",
-        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(), accountId, isSilent);
-    return abms->StartAbilityByCallWithErrMsg(want, connect, callToken, accountId, errMsg, isSilent, promotePriority);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ByCall, ability:%{public}s/%{public}s, userId:%{public}d, isSilent:%{public}d, "
+        "isVisible:%{public}d", want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(),
+        accountId, isSilent, isVisible);
+    return abms->StartAbilityByCallWithErrMsg(want, connect, callToken, accountId, errMsg, isSilent, promotePriority,
+        isVisible);
 }
 
-ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want)
+ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, ability:%{public}s/%{public}s",
         want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str());
-    return abms->StartAbilityForPrelaunch(want);
+    return abms->StartAbilityForPrelaunch(want, frameNum);
 }
 
 void AbilityManagerClient::CallRequestDone(sptr<IRemoteObject> token, sptr<IRemoteObject> callStub)
@@ -1370,11 +1398,12 @@ AppExecFwk::ElementName AbilityManagerClient::GetElementNameByToken(sptr<IRemote
     return abms->GetElementNameByToken(token, isNeedLocalDeviceId);
 }
 
-ErrCode AbilityManagerClient::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused)
+ErrCode AbilityManagerClient::CheckUIExtensionIsFocused(
+    uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->CheckUIExtensionIsFocused(uiExtensionTokenId, isFocused);
+    return abms->CheckUIExtensionIsFocused(uiExtensionTokenId, isFocused, displayId);
 }
 
 ErrCode AbilityManagerClient::DelegatorDoAbilityForeground(sptr<IRemoteObject> token)
@@ -1411,7 +1440,7 @@ ErrCode AbilityManagerClient::SetMissionContinueState(sptr<IRemoteObject> token,
     const AAFwk::ContinueState &state, sptr<IRemoteObject> sessionToken)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR,
-        "called state:%{public}d", state);
+        "called state: %{public}d", state);
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
         auto sceneSessionManager = SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
@@ -1766,6 +1795,29 @@ ErrCode AbilityManagerClient::RecordProcessExitReason(int32_t pid, int32_t uid, 
     return abms->RecordProcessExitReason(pid, uid, exitReason);
 }
 
+ErrCode AbilityManagerClient::KillAppWithReason(int32_t pid, const ExitReasonCompability &exitReason)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->KillAppWithReason(pid, exitReason);
+}
+
+ErrCode AbilityManagerClient::KillBundleWithReason(
+    const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->KillBundleWithReason(bundleName, userId, appIndex, exitReason);
+}
+
+ErrCode AbilityManagerClient::RecordAppWithReason(
+    const int32_t pid, const int32_t uid, const ExitReasonCompability &exitReason)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RecordAppWithReason(pid, uid, exitReason);
+}
+
 void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSession)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
@@ -1774,27 +1826,32 @@ void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSess
     abms->SetRootSceneSession(rootSceneSession);
 }
 
-void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart)
+void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+    bool &isColdStart)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN(abms);
     if (sessionInfo) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CallUIAbilityBySCB t:%{public}s/%{public}s",
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call,CallUIAbilityBySCB:%{public}s/%{public}s/%{public}d,flag:%{public}u, "
+            "pageConfigSize:%{public}zu",
             sessionInfo->want.GetElement().GetBundleName().c_str(),
-            sessionInfo->want.GetElement().GetAbilityName().c_str());
+            sessionInfo->want.GetElement().GetAbilityName().c_str(),
+            sessionInfo->want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
+            params.sceneFlag, params.pageConfig.size());
     }
 
-    abms->CallUIAbilityBySCB(sessionInfo, isColdStart);
+    abms->CallUIAbilityBySCB(sessionInfo, params, isColdStart);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "scb call, CallUIAbilityBySCB, isColdStart: %{public}d", isColdStart);
 }
 
-int32_t AbilityManagerClient::StartSpecifiedAbilityBySCB(const Want &want)
+int32_t AbilityManagerClient::StartSpecifiedAbilityBySCB(const Want &want, const StartSpecifiedAbilityParams &params)
 {
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, StartSpecifiedAbilityBySCB, target: %{public}s/%{public}s",
-        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
-    return abms->StartSpecifiedAbilityBySCB(want);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, StartSpecifiedAbilityBySCB, target: %{public}s/%{public}s, "
+        "persistentId:%{public}d, reason:%{public}d", want.GetElement().GetBundleName().c_str(),
+        want.GetElement().GetAbilityName().c_str(), params.persistentId, static_cast<int32_t>(params.specifiedReason));
+    return abms->StartSpecifiedAbilityBySCB(want, params);
 }
 
 ErrCode AbilityManagerClient::NotifySaveAsResult(const Want &want, int resultCode, int requestCode)
@@ -1848,12 +1905,12 @@ ErrCode AbilityManagerClient::RegisterStatusBarDelegate(sptr<AbilityRuntime::ISt
     return abms->RegisterStatusBarDelegate(delegate);
 }
 
-ErrCode AbilityManagerClient::KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids)
+ErrCode AbilityManagerClient::KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, KillProcessWithPrepareTerminate");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->KillProcessWithPrepareTerminate(pids);
+    return abms->KillProcessWithPrepareTerminate(pids, clear);
 }
 
 ErrCode AbilityManagerClient::KillProcessWithReason(int32_t pid, const ExitReason &reason)
@@ -1911,6 +1968,23 @@ ErrCode AbilityManagerClient::GetAutoStartupStatusForSelf(bool &isAutoStartEnabl
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->GetAutoStartupStatusForSelf(isAutoStartEnabled);
+}
+
+ErrCode AbilityManagerClient::ManualStartAutoStartupApps(int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "ManualStartAutoStartupApps called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->ManualStartAutoStartupApps(userId);
+}
+
+ErrCode AbilityManagerClient::QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
+    uint32_t &callerTokenId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "QueryCallerTokenIdForAnco called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->QueryCallerTokenIdForAnco(userId, asCallerForAncoSessionId, callerTokenId);
 }
 
 ErrCode AbilityManagerClient::PrepareTerminateAbilityBySCB(sptr<SessionInfo> sessionInfo,
@@ -2066,7 +2140,7 @@ int32_t AbilityManagerClient::RestartApp(const AAFwk::Want &want)
 int32_t AbilityManagerClient::OpenAtomicService(Want& want, const StartOptions &options,
     sptr<IRemoteObject> callerToken, int32_t requestCode, int32_t userId)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "openas:%{public}s", want.GetElement().GetBundleName().c_str());
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_INVALID_VALUE(abms);
     return abms->OpenAtomicService(want, options, callerToken, requestCode, userId);
@@ -2140,6 +2214,7 @@ ErrCode AbilityManagerClient::PreStartMission(const std::string& bundleName, con
     const std::string& abilityName, const std::string& startTime)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "PreStartMission:%{public}s", bundleName.c_str());
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->PreStartMission(bundleName, moduleName, abilityName, startTime);
@@ -2306,23 +2381,25 @@ ErrCode AbilityManagerClient::RevokeDelegator(sptr<IRemoteObject> token)
 
 ErrCode AbilityManagerClient::GetAllInsightIntentInfo(
     AbilityRuntime::GetInsightIntentFlag flag,
-    std::vector<InsightIntentInfoForQuery> &infos)
+    std::vector<InsightIntentInfoForQuery> &infos,
+    int32_t userId)
 {
     TAG_LOGD(AAFwkTag::INTENT, "call GetAllInsightIntentInfo");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->GetAllInsightIntentInfo(flag, infos);
+    return abms->GetAllInsightIntentInfo(flag, infos, userId);
 }
 
 ErrCode AbilityManagerClient::GetInsightIntentInfoByBundleName(
     AbilityRuntime::GetInsightIntentFlag flag,
     const std::string &bundleName,
-    std::vector<InsightIntentInfoForQuery> &infos)
+    std::vector<InsightIntentInfoForQuery> &infos,
+    int32_t userId)
 {
     TAG_LOGD(AAFwkTag::INTENT, "call GetInsightIntentInfoByBundleName");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    return abms->GetInsightIntentInfoByBundleName(flag, bundleName, infos, userId);
 }
 
 ErrCode AbilityManagerClient::GetInsightIntentInfoByIntentName(
@@ -2330,12 +2407,13 @@ ErrCode AbilityManagerClient::GetInsightIntentInfoByIntentName(
     const std::string &bundleName,
     const std::string &moduleName,
     const std::string &intentName,
-    InsightIntentInfoForQuery &info)
+    InsightIntentInfoForQuery &info,
+    int32_t userId)
 {
     TAG_LOGD(AAFwkTag::INTENT, "call GetInsightIntentInfoByIntentName");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    return abms->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info, userId);
 }
 
 ErrCode AbilityManagerClient::RestartSelfAtomicService(sptr<IRemoteObject> callerToken)
@@ -2372,7 +2450,6 @@ ErrCode AbilityManagerClient::ExitKioskMode(sptr<IRemoteObject> callerToken)
 
 ErrCode AbilityManagerClient::GetKioskStatus(AAFwk::KioskStatus &kioskStatus)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "get Kiosk info");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->GetKioskStatus(kioskStatus);
@@ -2477,6 +2554,28 @@ ErrCode AbilityManagerClient::UnRegisterPreloadUIExtensionHostClient(int32_t cal
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->UnRegisterPreloadUIExtensionHostClient(callerPid);
+}
+
+ErrCode AbilityManagerClient::GetUserLockedBundleList(int32_t userId,
+    std::unordered_set<std::string> &userLockedBundleList)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetUserLockedBundleList(userId, userLockedBundleList);
+}
+
+int32_t AbilityManagerClient::SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag)
+{
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "token is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    auto proxy = GetAbilityManager();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetAbilityManager proxy failed");
+        return ERR_INVALID_VALUE;
+    }
+    return proxy->SetAppRecoveryFlag(token, flag);
 }
 } // namespace AAFwk
 } // namespace OHOS

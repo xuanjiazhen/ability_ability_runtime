@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -45,6 +45,7 @@ ohos_unittest("ability_manager_service_sixth_test") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit/include",
     "${ability_runtime_test_path}/unittest/app_debug_listener_stub_test",
+    "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection/include",
     "mock/include",
   ]
 
@@ -53,8 +54,12 @@ ohos_unittest("ability_manager_service_sixth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/ability_manager_service.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_record/ability_record_utils.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/ability_record/ability_request.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/database_write_counter.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/preload_manager_service.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_ability_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/common_extension_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/report_data_partition_usage_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/utils/exit_reason_util.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/utils/request_id_util.cpp",
     "ability_manager_service_sixth_test.cpp",
     "mock/src/mock_my_flag.cpp",
@@ -87,12 +92,14 @@ ohos_unittest("ability_manager_service_sixth_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:auto_startup_callback",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
     "${ability_runtime_services_path}/abilitymgr:mission_list",
     "${ability_runtime_services_path}/abilitymgr:wantagent_manager",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hisysevent_report",
     "${ability_runtime_services_path}/common:task_handler_wrap",
     "${ability_runtime_services_path}/common:user_controller",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/aakit:aakit_mock",
@@ -240,8 +247,7 @@ ohos_unittest("ability_manager_service_sixth_test") {
     external_deps += [ "power_manager:powermgr_client" ]
   }
 
-  if (ability_runtime_graphics &&
-      ability_runtime_start_window_options_with_pixelmap) {
+  if (ability_runtime_graphics && ability_runtime_start_window_options_with_pixelmap) {
     defines += [ "START_WINDOW_OPTIONS_WITH_PIXELMAP" ]
     external_deps += [ "image_framework:image_native" ]
   }

@@ -16,18 +16,16 @@
 
 #include <sys/time.h>
 
-#include "ability_manager_client.h"
 #include "ability_state.h"
 #include "appfreeze_manager.h"
 #include "app_recovery.h"
 #include "backtrace_local.h"
-#include "exit_reason.h"
 #include "file_ex.h"
 #include "ffrt.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "hisysevent.h"
+#include "hisysevent_report.h"
 #include "js_runtime.h"
 #include "ohos_application.h"
 #include "parameter.h"
@@ -44,8 +42,6 @@ namespace {
 constexpr int32_t HALF_DURATION = 3000;
 constexpr int32_t HALF_INTERVAL = 300;
 const bool BETA_VERSION = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
-static constexpr const char *const IN_FOREGROUND = "Yes";
-static constexpr const char *const IN_BACKGROUND = "No";
 constexpr int32_t APPFREEZE_INNER_TASKWORKER_NUM = 1;
 static constexpr const char *const HEAP_TOTAL_SIZE = "HEAP_TOTAL_SIZE";
 static constexpr const char *const HEAP_OBJECT_SIZE = "HEAP_OBJECT_SIZE";
@@ -208,7 +204,7 @@ std::string AppfreezeInner::GetProcessLifeCycle()
             return "";
         }
         std::ostringstream oss;
-        oss << PROCESS_LIFETIME << COLON_SEPARATOR << std::to_string(procUpTime) << SECOND << COMMA_SEPARATOR;
+        oss << PROCESS_LIFETIME << COLON_SEPARATOR << std::to_string(procUpTime) << SECOND;
         return oss.str();
     }
     return "";
@@ -218,7 +214,7 @@ std::string AppfreezeInner::LogFormat(size_t totalSize, size_t objectSize)
 {
     std::ostringstream oss;
     oss << HEAP_TOTAL_SIZE << COLON_SEPARATOR << totalSize << COMMA_SEPARATOR <<
-        HEAP_OBJECT_SIZE << COLON_SEPARATOR << objectSize <<COMMA_SEPARATOR;
+        HEAP_OBJECT_SIZE << COLON_SEPARATOR << objectSize;
     return oss.str();
 }
 
@@ -264,7 +260,7 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
     faultData.errorObject.message += msgContent;
     faultData.isInForeground = GetAppInForeground();
     bool isInBackGround = AppExecFwk::AppfreezeManager::GetInstance()->CheckInBackGround(faultData);
-    faultData.faultType = isInBackGround ? FaultDataType::BACKGROUND_WARNING : FaultDataType::APP_FREEZE;
+    faultData.faultType = FaultDataType::APP_FREEZE;
     faultData.notifyApp = false;
     faultData.waitSaveState = false;
     faultData.forceExit = false;
@@ -274,21 +270,17 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
             faultData.processedId, faultData.dispatchedEventId);
     }
     int32_t pid = IPCSkeleton::GetCallingPid();
-    faultData.errorObject.stack = "\nDump tid stack start time: " +
-        AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
     std::string stack = "";
-    if (!HiviewDFX::GetBacktraceStringByTidWithMix(stack, pid, 0, true)) {
-        stack = "Failed to dump stacktrace for " + std::to_string(pid) + "\n" + stack;
-    }
-    faultData.errorObject.stack += stack + "\nDump tid stack end time: " +
+    std::string startTime = "\nDump main thread stack start time: " +
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
+    if (HiviewDFX::GetBacktraceStringByTidWithMix(stack, pid, 0, true)) {
+        faultData.errorObject.stack = startTime + stack + "\nDump main thread stack end time: " +
+            AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() + "\n";
+    }
     bool isExit = IsExitApp(faultData.errorObject.name) && faultData.needKillProcess;
     if (isExit) {
         faultData.forceExit = true;
         faultData.waitSaveState = AppRecovery::GetInstance().IsEnabled();
-        std::string reason = isInBackGround ? "Background warning" : faultData.errorObject.name;
-        AAFwk::ExitReason exitReason = {REASON_APP_FREEZE, "Kill Reason:" + reason};
-        AbilityManagerClient::GetInstance()->RecordAppExitReason(exitReason);
     }
     NotifyANR(faultData);
     if (isExit) {
@@ -307,14 +299,21 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
         faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
         faultData.procStatm = GetProcStatm(pid);
         if (BETA_VERSION) {
-            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "", "FAULT_TIME", faultTimeStr);
+            std::string packageName = "";
+            auto hisyseventReport = std::make_shared<HisyseventReport>(3);
+            hisyseventReport->InsertParam("PID", pid);
+            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
+            hisyseventReport->InsertParam("FAULT_TIME", faultTimeStr);
+            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
             faultData.errorObject.message += (ret == 0) ? "FREEZE_HALF_HIVIEW_LOG write success" : "";
         }
     } else {
         if (!BETA_VERSION) {
-            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "");
+            std::string packageName = "";
+            auto hisyseventReport = std::make_shared<HisyseventReport>(2);
+            hisyseventReport->InsertParam("PID", pid);
+            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
+            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
             TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:,"
                 " ret:%{public}d", pid, ret);
         }
@@ -334,6 +333,7 @@ void AppfreezeInner::AppfreezeHandleOverReportCount(bool isSixSecondEvent)
 void AppfreezeInner::EnableFreezeSample(FaultData& newFaultData)
 {
     std::string eventName = newFaultData.errorObject.name;
+    newFaultData.isInForeground = GetAppInForeground();
     if (eventName == AppFreezeType::THREAD_BLOCK_3S || eventName == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
         OHOS::HiviewDFX::Watchdog::GetInstance().StartSample(HALF_DURATION, HALF_INTERVAL);
         TAG_LOGI(AAFwkTag::APPDFR, "start to sample freeze stack, eventName:%{public}s", eventName.c_str());
@@ -345,8 +345,7 @@ void AppfreezeInner::EnableFreezeSample(FaultData& newFaultData)
         OHOS::HiviewDFX::Watchdog::GetInstance().GetSamplerResult(newFaultData.samplerStartTime,
             newFaultData.samplerFinishTime, newFaultData.samplerCount);
         TAG_LOGI(AAFwkTag::APPDFR, "stop to sample freeze stack, eventName:%{public}s freezeFile:%{public}s "
-            "foreGround:%{public}d enbleMainThreadSample:%{public}d.",
-            eventName.c_str(), newFaultData.appfreezeInfo.c_str(), newFaultData.isInForeground,
+            "enbleMainThreadSample:%{public}d.", eventName.c_str(), newFaultData.appfreezeInfo.c_str(),
             newFaultData.isEnableMainThreadSample);
     }
 }
@@ -412,7 +411,7 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
     int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
     GetMainHandlerDump(msgContent);
     TAG_LOGW(AAFwkTag::APPDFR, "get mainhandler dump, eventName:%{public}s, endTime:%{public}s, "
-        "interval:%{public}" PRId64 " ms", info.errorObject.name.c_str(),
+        "interval:%{public}lld ms", info.errorObject.name.c_str(),
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
         AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime);
 
@@ -446,6 +445,8 @@ int AppfreezeInner::AcquireStack(const FaultData& info, bool onlyMainThread)
         faultData.samplerFinishTime = it->samplerFinishTime;
         faultData.samplerCount = it->samplerCount;
         faultData.pid = it->pid;
+        faultData.applicationHeapInfo = it->applicationHeapInfo;
+        faultData.processLifeTime = it->processLifeTime;
         ChangeFaultDateInfo(faultData, msgContent);
     }
     return 0;
@@ -473,14 +474,21 @@ void AppfreezeInner::ThreadBlock(std::atomic_bool& isSixSecondEvent, uint64_t sc
 #endif
         faultData.procStatm = GetProcStatm(pid);
         if (BETA_VERSION) {
-            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "", "FAULT_TIME", faultTimeStr);
+            std::string packageName = "";
+            auto hisyseventReport = std::make_shared<HisyseventReport>(3);
+            hisyseventReport->InsertParam("PID", pid);
+            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
+            hisyseventReport->InsertParam("FAULT_TIME", faultTimeStr);
+            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
             faultData.errorObject.message += (ret == 0) ? "FREEZE_HALF_HIVIEW_LOG write success" : "";
         }
     } else {
         if (!BETA_VERSION) {
-            int32_t ret = HiSysEventWrite(HiviewDFX::HiSysEvent::Domain::AAFWK, "FREEZE_HALF_HIVIEW_LOG",
-                HiviewDFX::HiSysEvent::EventType::FAULT, "PID", pid, "PACKAGE_NAME", "");
+            std::string packageName = "";
+            auto hisyseventReport = std::make_shared<HisyseventReport>(2);
+            hisyseventReport->InsertParam("PID", pid);
+            hisyseventReport->InsertParam("PACKAGE_NAME", packageName);
+            int32_t ret = hisyseventReport->Report("AAFWK", "FREEZE_HALF_HIVIEW_LOG", HISYSEVENT_FAULT);
             TAG_LOGW(AAFwkTag::APPDFR, "hisysevent write FREEZE_HALF_HIVIEW_LOG, pid:%{public}d, packageName:,"
                 " ret:%{public}d", pid, ret);
         }
@@ -507,9 +515,10 @@ int AppfreezeInner::NotifyANR(const FaultData& faultData)
 
     int32_t pid = static_cast<int32_t>(getpid());
     TAG_LOGW(AAFwkTag::APPDFR, "NotifyAppFault:%{public}s, pid:%{public}d, bundleName:%{public}s "
-        "currentTime:%{public}s, processExit:%{public}d\n", faultData.errorObject.name.c_str(), pid,
+        "currentTime:%{public}s, processExit:%{public}d appfreezeInfo:%{public}s enbleMainThreadSample:%{public}d.",
+        faultData.errorObject.name.c_str(), pid,
         applicationInfo->bundleName.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
-        faultData.needKillProcess);
+        faultData.needKillProcess, faultData.appfreezeInfo.c_str(), faultData.isEnableMainThreadSample);
 
     int ret = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->NotifyAppFault(faultData);
     if (ret != 0) {

@@ -161,7 +161,7 @@ void AppLifeCycleDeal::ScheduleTrimMemory(int32_t timeLevel)
     appThread->ScheduleShrinkMemory(timeLevel);
 }
 
-void AppLifeCycleDeal::ScheduleMemoryLevel(int32_t Level)
+void AppLifeCycleDeal::ScheduleMemoryLevel(int32_t Level, bool isShellCall)
 {
     auto appThread = GetApplicationClient();
     if (!appThread) {
@@ -169,7 +169,7 @@ void AppLifeCycleDeal::ScheduleMemoryLevel(int32_t Level)
         return;
     }
 
-    appThread->ScheduleMemoryLevel(Level);
+    appThread->ScheduleMemoryLevel(Level, isShellCall);
 }
 
 void AppLifeCycleDeal::ScheduleHeapMemory(const int32_t pid, OHOS::AppExecFwk::MallocInfo &mallocInfo)
@@ -293,7 +293,7 @@ void AppLifeCycleDeal::ScheduleNewProcessRequest(const AAFwk::Want &want, const 
     appThread->ScheduleNewProcessRequest(want, moduleName);
 }
 
-int32_t AppLifeCycleDeal::UpdateConfiguration(const Configuration &config)
+int32_t AppLifeCycleDeal::UpdateConfiguration(const Configuration &config, ConfigUpdateReason reason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR, "call");
@@ -302,7 +302,7 @@ int32_t AppLifeCycleDeal::UpdateConfiguration(const Configuration &config)
         TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
         return ERR_INVALID_VALUE;
     }
-    appThread->ScheduleConfigurationUpdated(config);
+    appThread->ScheduleConfigurationUpdated(config, reason);
     return ERR_OK;
 }
 
@@ -454,6 +454,19 @@ int AppLifeCycleDeal::DumpFfrt(std::string& result)
         return DumpErrorCode::ERR_INTERNAL_ERROR;
     }
     return appThread->ScheduleDumpFfrt(result);
+}
+
+int32_t AppLifeCycleDeal::DumpArkWeb(const std::string &customArgs, std::string &result)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "DumpArkWeb called");
+    auto appThread = GetApplicationClient();
+    if (appThread == nullptr) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_INTERNAL, strlen(MSG_DUMP_FAIL_REASON_INTERNAL));
+        TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return appThread->ScheduleDumpArkWeb(customArgs, result);
 }
 
 void AppLifeCycleDeal::SetWatchdogBackgroundStatusRunning(bool status)
