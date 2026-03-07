@@ -21,8 +21,10 @@
 
 #include "application_context.h"
 #include "application_state_change_callback.h"
+#include "interop_ability_lifecycle_callback.h"
 #include "js_ability_auto_startup_callback.h"
 #include "js_ability_lifecycle_callback.h"
+#include "js_system_configuration_updated_callback.h"
 #include "native_engine/native_engine.h"
 #include "running_process_info.h"
 
@@ -52,6 +54,8 @@ public:
     static napi_value SetAutoStartup(napi_env env, napi_callback_info info);
     static napi_value CancelAutoStartup(napi_env env, napi_callback_info info);
     static napi_value IsAutoStartup(napi_env env, napi_callback_info info);
+    static napi_value RegisterSystemConfigurationUpdated(napi_env env, napi_callback_info info);
+    static napi_value UnRegisterSystemConfigurationUpdated(napi_env env, napi_callback_info info);
 
     napi_value OnRegisterAbilityLifecycleCallback(napi_env env, NapiCallbackInfo& info);
     napi_value OnUnregisterAbilityLifecycleCallback(napi_env env, NapiCallbackInfo& info);
@@ -63,6 +67,8 @@ public:
     napi_value OnOff(napi_env env, NapiCallbackInfo& info);
     napi_value OnOnAbilityLifecycle(napi_env env, NapiCallbackInfo& info, bool isSync);
     napi_value OnOffAbilityLifecycle(napi_env env, NapiCallbackInfo& info, int32_t callbackId);
+    napi_value OnOnInteropAbilityLifecycle(napi_env env, NapiCallbackInfo& info);
+    napi_value OnOffInteropAbilityLifecycle(napi_env env, NapiCallbackInfo& info);
     napi_value OnOffAbilityLifecycleEventSync(napi_env env, NapiCallbackInfo& info, int32_t callbackId);
     napi_value OnOnEnvironment(napi_env env, NapiCallbackInfo& info, bool isSync);
     napi_value OnOffEnvironment(napi_env env, NapiCallbackInfo& info, int32_t callbackId);
@@ -70,6 +76,8 @@ public:
         napi_env env, NapiCallbackInfo& info, int32_t callbackId);
     napi_value OnOnApplicationStateChange(napi_env env, NapiCallbackInfo& info);
     napi_value OnOffApplicationStateChange(napi_env env, NapiCallbackInfo& info);
+    napi_value OnSystemConfigurationUpdated(napi_env env, NapiCallbackInfo& info);
+    napi_value OffSystemConfigurationUpdated(napi_env env, NapiCallbackInfo& info);
 
     napi_value OnGetCacheDir(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetTempDir(napi_env env, NapiCallbackInfo& info);
@@ -148,10 +156,13 @@ private:
     static void BindNativeApplicationContextOne(napi_env env, napi_value object);
     static void BindNativeApplicationContextTwo(napi_env env, napi_value object);
     std::shared_ptr<JsAbilityLifecycleCallback> callback_;
+    std::shared_ptr<InteropAbilityLifecycleCallback> interopCallback_;
     std::shared_ptr<JsEnvironmentCallback> envCallback_;
     std::shared_ptr<JsApplicationStateChangeCallback> applicationStateCallback_;
     std::mutex applicationStateCallbackLock_;
     sptr<JsAbilityAutoStartupCallBack> jsAutoStartupCallback_;
+    std::shared_ptr<JsSystemConfigurationUpdatedCallback> systemConfigurationUpdatedCallback_;
+    std::mutex systemConfigurationUpdatedCallbackLock_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -66,11 +66,12 @@ public:
      *
      * @param abilityRequest the request of the service ability to start.
      * @param sessionInfo the info of scene session
+     * @param params start parameters.
      * @param isColdStart the session info of the ability is or not cold start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo, uint32_t sceneFlag,
-        bool isRestart, bool &isColdStart);
+    int StartUIAbility(AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
+        AbilityRuntime::StartParamsBySCB &params, bool &isColdStart);
 
     /**
      * @brief execute after the ability schedule the lifecycle
@@ -197,17 +198,20 @@ public:
      * resolve the call ipc of ability for prelaunch.
      *
      * @param abilityRequest target ability request.
+     * @param frameNum, Special frameNum for remove start window num.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest);
+    int PrelaunchAbilityLocked(const AbilityRequest &abilityRequest, const int32_t frameNum);
 
     /**
      * Call UIAbility by SCB.
      *
      * @param sessionInfo the session info of the ability to be called.
+     * @param params start parameters.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart);
+    void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart);
 
     /**
      * OnAcceptWantResponse.
@@ -355,7 +359,7 @@ public:
 
     bool IsSupportStatusBar();
 
-    int32_t TryPrepareTerminateByPids(const std::vector<int32_t>& pids);
+    int32_t TryPrepareTerminateByPids(const std::vector<int32_t>& pids, bool clear);
 
     int ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow);
 
@@ -393,9 +397,10 @@ public:
     void RecordPidKilling(pid_t pid, const std::string &reason, bool isKillPrecedeStart);
 
     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
-
-    ErrCode IsUIAbilityAlreadyExist(const std::string &abilityName, const std::string &specifiedFlag,
+    ErrCode QueryCallerTokenIdForAnco(const std::string &asCallerForAncoSessionId, uint32_t &callerTokenId);
+    ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
+    void HandleUIAbilityDiedByPid(pid_t pid);
 
 private:
     void AddStartingPid(pid_t pid);
@@ -454,7 +459,7 @@ private:
     int MoveAbilityToFront(const SpecifiedRequest &specifiedRequest,
         const std::shared_ptr<AbilityRecord> abilityRecord, std::shared_ptr<AbilityRecord> callerAbility);
     int SendSessionInfoToSCB(std::shared_ptr<AbilityRecord> &callerAbility, sptr<SessionInfo> &sessionInfo);
-    int StartAbilityBySpecifed(const SpecifiedRequest &specifiedRequest,
+    int StartAbilityBySpecified(const SpecifiedRequest &specifiedRequest,
         std::shared_ptr<AbilityRecord> callerAbility);
 
     void SetLastExitReason(std::shared_ptr<AbilityRecord> &abilityRecord) const;
@@ -505,7 +510,7 @@ private:
     std::shared_ptr<SpecifiedRequest> PopAndGetNextSpecified(int32_t requestId);
     bool IsSpecifiedModuleLoaded(const AbilityRequest &abilityRequest, bool isSpecifiedProcess, bool &isDebug);
     bool HandleStartSpecifiedCold(const AbilityRequest &abilityRequest, sptr<SessionInfo> sessionInfo,
-        uint32_t sceneFlag, bool isRestart);
+        AbilityRuntime::StartParamsBySCB &params);
     bool HandleColdAcceptWantDone(const AAFwk::Want &want, const std::string &flag,
         const SpecifiedRequest &specifiedRequest);
     void HandleLegacyAcceptWantDone(SpecifiedRequest &specifiedRequest,

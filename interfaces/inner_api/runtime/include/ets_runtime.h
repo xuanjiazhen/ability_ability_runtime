@@ -85,7 +85,7 @@ public:
     void AllowCrossThreadExecution() override {};
     void GetHeapPrepare() override {};
     void RegisterUncaughtExceptionHandler(const EtsEnv::ETSUncaughtExceptionInfo &uncaughtExceptionInfo);
-    ani_env *GetAniEnv();
+    ani_env *GetAniEnv() const;
     std::unique_ptr<AppExecFwk::ETSNativeReference> LoadModule(const std::string &moduleName,
         const std::string &modulePath, const std::string &hapPath, bool esmodule,
         bool useCommonChunk, const std::string &srcEntrance);
@@ -107,8 +107,10 @@ private:
     std::unique_ptr<AppExecFwk::ETSNativeReference> LoadEtsModule(const std::string &moduleName,
         const std::string &fileName, const std::string &hapPath, const std::string &srcEntrance);
     bool PostFork(const Options &options, std::unique_ptr<Runtime> &jsRuntime, bool isMove = true);
+    std::string GetAotPath(const Options &options);
     std::string HandleOhmUrlSrcEntry(const std::string &srcEntry);
     void HandleOhmUrlFileName(std::string &fileName);
+    static void PreloadLibrary();
     int32_t apiTargetVersion_ = 0;
     std::string codePath_;
     std::string moduleName_;

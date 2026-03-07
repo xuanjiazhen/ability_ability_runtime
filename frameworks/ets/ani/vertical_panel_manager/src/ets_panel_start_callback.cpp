@@ -32,7 +32,7 @@ constexpr const char *ERROR_MSG_INNER = "Inner error.";
 
 namespace {
 constexpr const char *ABILITY_START_CLASS_NAME =
-    "L@ohos/app/ability/verticalPanelManager/verticalPanelManager/PanelStartCallback;";
+    "@ohos.app.ability.verticalPanelManager.verticalPanelManager.PanelStartCallback";
 }
 
 EtsPanelStartCallback::~EtsPanelStartCallback()
@@ -143,6 +143,7 @@ void EtsPanelStartCallback::CallObjectMethod(const char *name, const char *signa
     va_start(args, signature);
     if ((status = env->Object_CallMethod_Void_V(reinterpret_cast<ani_object>(callback_), method, args)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::VERTICAL_PANEL, "Object_CallMethod name: %{public}s, status: %{public}d", name, status);
+        va_end(args);
         return;
     }
     va_end(args);

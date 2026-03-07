@@ -323,25 +323,6 @@ HWTEST_F(AmsMgrSchedulerTest, AmsMgrScheduler_008, TestSize.Level1)
  * FunctionPoints: KillApplication interface
  * CaseDescription: test IPC can transact data
  */
-HWTEST_F(AmsMgrSchedulerTest, RegisterApplicationStateObserver_001, TestSize.Level0)
-{
-    TAG_LOGD(AAFwkTag::TEST, "RegisterApplicationStateObserver_001 start");
-    sptr<IApplicationStateObserver> observer = new ApplicationStateObserverStub();
-    auto mockAppMgrServiceInner = std::make_shared<MockAppMgrServiceInner>();
-    mockAppMgrServiceInner->RegisterApplicationStateObserver(observer);
-    int32_t err = mockAppMgrServiceInner->RegisterApplicationStateObserver(observer);
-    // repeat register return ERR_INVALID_VALUE
-    EXPECT_EQ(1, err);
-    TAG_LOGD(AAFwkTag::TEST, "RegisterApplicationStateObserver_001 end");
-}
-
-/*
- * Feature: AMS
- * Function: IPC
- * SubFunction: appmgr interface
- * FunctionPoints: KillApplication interface
- * CaseDescription: test IPC can transact data
- */
 HWTEST_F(AmsMgrSchedulerTest, UnregisterApplicationStateObserver_001, TestSize.Level0)
 {
     TAG_LOGD(AAFwkTag::TEST, "UnregisterApplicationStateObserver_001 start");

@@ -375,12 +375,13 @@ ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& want, 
         TAG_LOGW(AAFwkTag::CONTEXT, "is hook and hook off, skip TerminateSession");
         return ERR_OK;
     }
-    auto sessionToken = GetSessionToken();
-    if (sessionToken == nullptr) {
-        TAG_LOGW(AAFwkTag::CONTEXT, "withResult null sessionToken");
-    }
 #ifdef SUPPORT_SCREEN
-    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken) {
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sessionToken = GetSessionToken();
+        if (sessionToken == nullptr) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "withResult null sessionToken");
+            return ERR_INVALID_VALUE;
+        }
         sptr<AAFwk::SessionInfo> info = sptr<AAFwk::SessionInfo>::MakeSptr();
         info->want = want;
         info->resultCode = resultCode;
@@ -398,7 +399,7 @@ ErrCode AbilityContextImpl::TerminateAbilityWithResult(const AAFwk::Want& want, 
     }
 #else
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, resultCode, &want);
-    TAG_LOGI(AAFwkTag::CONTEXT, "ret=%{public}d", err);
+    TAG_LOGI(AAFwkTag::CONTEXT, "TerminateAbilityWithResult. ret=%{public}d", err);
     return err;
 #endif
 }
@@ -589,6 +590,22 @@ void AbilityContextImpl::SetAbilityColorMode(int32_t colorMode)
     abilityConfigUpdateCallback_(config);
 }
 
+void AbilityContextImpl::RegisterBindingObjectConfigUpdateCallback(BindingObjectConfigUpdateCallback callback)
+{
+    bindingObjectConfigUpdateCallback_ = callback;
+}
+
+void AbilityContextImpl::NotifyBindingObjectConfigUpdate()
+{
+    if (config_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null config_");
+        return;
+    }
+    if (bindingObjectConfigUpdateCallback_) {
+        bindingObjectConfigUpdateCallback_(config_);
+    }
+}
+
 std::shared_ptr<Context> AbilityContextImpl::CreateBundleContext(const std::string& bundleName)
 {
     return stageContext_ ? stageContext_->CreateBundleContext(bundleName) : nullptr;
@@ -724,7 +741,7 @@ ErrCode AbilityContextImpl::TerminateSelf()
     AAFwk::Want resultWant;
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, -1, &resultWant);
     if (err != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
+        TAG_LOGE(AAFwkTag::CONTEXT, "AbilityContextImpl::TerminateSelf is failed %{public}d", err);
     }
     return err;
 #endif
@@ -773,37 +790,46 @@ ErrCode AbilityContextImpl::RestoreWindowStage(void *contentStorage)
     return ERR_OK;
 }
 
+std::shared_ptr<LocalCallContainer> AbilityContextImpl::GetLocalCallContainer()
+{
+    std::lock_guard lock(callContainerMutex_);
+    return localCallContainer_;
+}
+
 ErrCode AbilityContextImpl::StartAbilityByCall(
     const AAFwk::Want& want, const std::shared_ptr<CallerCallBack>& callback, int32_t accountId)
 {
-    if (localCallContainer_ == nullptr) {
-        localCallContainer_ = std::make_shared<LocalCallContainer>();
+    std::shared_ptr<LocalCallContainer> localCallContainer;
+    {
+        std::lock_guard lock(callContainerMutex_);
         if (localCallContainer_ == nullptr) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "null localCallContainer_");
-            return ERR_INVALID_VALUE;
+            localCallContainer_ = std::make_shared<LocalCallContainer>();
         }
+        localCallContainer = localCallContainer_;
     }
-    return localCallContainer_->StartAbilityByCallInner(want, callback, token_, accountId);
+    return localCallContainer->StartAbilityByCallInner(want, callback, token_, accountId);
 }
 
 ErrCode AbilityContextImpl::ReleaseCall(const std::shared_ptr<CallerCallBack>& callback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    if (localCallContainer_ == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null localCallContainer_");
+    auto localCallContainer = GetLocalCallContainer();
+    if (localCallContainer == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null localCallContainer");
         return ERR_INVALID_VALUE;
     }
-    return localCallContainer_->ReleaseCall(callback);
+    return localCallContainer->ReleaseCall(callback);
 }
 
 void AbilityContextImpl::ClearFailedCallConnection(const std::shared_ptr<CallerCallBack>& callback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
-    if (localCallContainer_ == nullptr) {
-        TAG_LOGE(AAFwkTag::CONTEXT, "null localCallContainer_");
+    auto localCallContainer = GetLocalCallContainer();
+    if (localCallContainer == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null localCallContainer");
         return;
     }
-    localCallContainer_->ClearFailedCallConnection(callback);
+    localCallContainer->ClearFailedCallConnection(callback);
 }
 
 void AbilityContextImpl::RegisterAbilityCallback(std::weak_ptr<AppExecFwk::IAbilityCallback> abilityCallback)
@@ -1338,6 +1364,12 @@ std::shared_ptr<AAFwk::Want> AbilityContextImpl::GetWant()
 std::shared_ptr<Context> AbilityContextImpl::CreateAreaModeContext(int areaMode)
 {
     return stageContext_ ? stageContext_->CreateAreaModeContext(areaMode) : nullptr;
+}
+
+std::shared_ptr<Context> AbilityContextImpl::CreateModuleOrPluginContext(const std::string &bundleName,
+    const std::string &moduleName)
+{
+    return stageContext_ ? stageContext_->CreateModuleOrPluginContext(bundleName, moduleName) : nullptr;
 }
 
 #ifdef SUPPORT_GRAPHICS

@@ -22,7 +22,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* APP_FOREGROUND_STATE_OBSERVER_CLASS_NAME =
-    "Lapplication/AppForegroundStateObserver/AppForegroundStateObserver;";
+    "application.AppForegroundStateObserver.AppForegroundStateObserver";
 }
 ETSAppForegroundStateObserver::ETSAppForegroundStateObserver(ani_vm *etsVm) : etsVm_(etsVm) {}
 
@@ -101,6 +101,7 @@ void ETSAppForegroundStateObserver::CallEtsFunction(ani_env* env, ani_object ets
     va_start(args, signature);
     if ((status = env->Object_CallMethod_Void_V(etsObserverObject, method, args)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "status: %{public}d", status);
+        va_end(args);
         return;
     }
     va_end(args);
@@ -183,6 +184,7 @@ ani_ref ETSAppForegroundStateObserver::GetObserverObject(const ani_object &obser
         TAG_LOGE(AAFwkTag::APPMGR, "null observer");
         return nullptr;
     }
+    std::lock_guard<std::mutex> lock(etsObserverObjectSetLock_);
     for (auto& item : etsObserverObjects_) {
         if (IsStrictEquals(item, observerObject)) {
             return item;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -114,7 +114,8 @@ ErrCode AbilityManagerClient::ScheduleCommandAbilityWindowDone(
     return abms->ScheduleCommandAbilityWindowDone(token, sessionInfo, winCmd, abilityCmd);
 }
 
-ErrCode AbilityManagerClient::StartAbility(const Want& want, int32_t userId, int requestCode)
+ErrCode AbilityManagerClient::StartAbility(const Want& want, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId)
 {
     if (g_remoteObject == nullptr) {
         return ABILITY_SERVICE_NOT_CONNECTED;
@@ -124,7 +125,7 @@ ErrCode AbilityManagerClient::StartAbility(const Want& want, int32_t userId, int
 }
 
 ErrCode AbilityManagerClient::StartAbility(
-    const Want& want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode)
+    const Want& want, sptr<IRemoteObject> callerToken, int32_t userId, int requestCode, uint64_t specifiedFullTokenId)
 {
     if (g_remoteObject == nullptr) {
         return ABILITY_SERVICE_NOT_CONNECTED;
@@ -134,7 +135,7 @@ ErrCode AbilityManagerClient::StartAbility(
 }
 
 ErrCode AbilityManagerClient::StartAbilityByCall(const Want& want, sptr<IAbilityConnection> connect,
-    sptr<IRemoteObject> callerToken, int32_t accountId, bool isSilent, bool promotePriority)
+    sptr<IRemoteObject> callerToken, int32_t accountId, bool isSilent, bool promotePriority, bool isVisible)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient::StartAbilityByCall start");
     if (g_remoteObject == nullptr) {
@@ -147,7 +148,7 @@ ErrCode AbilityManagerClient::StartAbilityByCall(const Want& want, sptr<IAbility
     return abms->StartAbilityByCall(want, connect, callerToken);
 }
 
-ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want& want)
+ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want& want, const int32_t frameNum)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient::StartAbilityForPrelaunch start");
     if (g_remoteObject == nullptr) {
@@ -157,7 +158,7 @@ ErrCode AbilityManagerClient::StartAbilityForPrelaunch(const Want& want)
     }
     sptr<IAbilityManager> abms = iface_cast<IAbilityManager>(g_remoteObject);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerClient::StartAbilityForPrelaunch end");
-    return abms->StartAbilityForPrelaunch(want);
+    return abms->StartAbilityForPrelaunch(want, frameNum);
 }
 
 ErrCode AbilityManagerClient::ReleaseCall(
@@ -187,8 +188,8 @@ ErrCode AbilityManagerClient::TerminateAbility(
     return abms->TerminateAbility(token, resultCode, resultWant);
 }
 
-ErrCode AbilityManagerClient::ConnectAbility(
-    const Want& want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+ErrCode AbilityManagerClient::ConnectAbility(const Want& want, sptr<IAbilityConnection> connect,
+    sptr<IRemoteObject> callerToken, int32_t userId, uint64_t specifiedFullTokenId)
 {
     if (g_remoteObject == nullptr) {
         g_remoteObject =

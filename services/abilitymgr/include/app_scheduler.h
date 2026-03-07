@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -73,14 +73,14 @@ struct AppData {
 };
 
 struct AppInfo {
-    std::vector<AppData> appData;
-    std::string processName;
-    AppState state;
-    pid_t pid = 0;
-    int32_t appIndex = 0;
     std::string instanceKey = "";
     std::string bundleName = "";
+    std::string processName;
+    std::vector<AppData> appData;
+    pid_t pid = 0;
     int32_t userId = -1;
+    int32_t appIndex = 0;
+    AppState state;
 };
 /**
  * @class AppStateCallback
@@ -113,7 +113,8 @@ public:
 
     virtual void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) {}
 
-    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) {}
+    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+        pid_t diedPid = AppExecFwk::INVALID_DIED_PID) {}
 
     /**
      * @brief Notify abilityms app process pre cache
@@ -145,6 +146,16 @@ public:
     virtual void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) {}
+
+    /**
+     * @brief Record the signal reason when an application process exits.
+     *
+     * @param pid Process ID of the exited application process.
+     * @param uid User ID of the exited application process.
+     * @param signal Signal number that caused the process to exit.
+     * @param bundleName Bundle name of the exited application.
+     */
+    virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) {}
 };
 
 class StartSpecifiedAbilityResponse : public AppExecFwk::StartSpecifiedAbilityResponseStub {
@@ -441,7 +452,7 @@ public:
      * @param requestId request id to callback
      */
     void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0);
+        int32_t requestId = 0, const std::string &customProcess = "");
 
     /**
      * @brief Get running process information.
@@ -541,6 +552,9 @@ public:
      */
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
 
+    virtual int32_t NotifyAppMgrRecordExitReasonCompability(
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg);
+
     /**
      * Set enable start process flag by userId
      * @param userId the user id.
@@ -623,8 +637,8 @@ public:
     virtual bool IsMemorySizeSufficient() const;
 
     /**
-     * whether or not requier a big memory
-     * @return Returens true is no big memory, others return false.
+     * whether or not require a big memory
+     * @return Return true is no big memory, others return false.
      */
     virtual bool IsNoRequireBigMemory() const;
 
@@ -711,7 +725,8 @@ protected:
      * @brief Notify abilityms start keep-alive process.
      * @param bundleInfos resident process bundle infos.
      */
-    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
+    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+        pid_t diedPid = AppExecFwk::INVALID_DIED_PID) override;
 
     /**
      * @brief Notify abilityms app process OnRemoteDied
@@ -726,13 +741,6 @@ protected:
     virtual void OnStartProcessFailed(const std::vector<sptr<IRemoteObject>> &abilityTokens) override;
 
     /**
-     * @brief Notify abilityms app process pre cache
-     * @param pid process pid.
-     * @param userId userId Designation User ID.
-     */
-    virtual void NotifyAppPreCache(int32_t pid, int32_t userId) override;
-
-    /**
      * @brief Notify abilityms exit info
      * @param accessTokenId accessTokenId.
      * @param exitInfo exit info before app died.
@@ -743,6 +751,23 @@ protected:
     virtual void OnCacheExitInfo(uint32_t accessTokenId, const AppExecFwk::RunningProcessInfo &exitInfo,
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
+
+    /**
+     * @brief Notify abilityms app process pre cache
+     * @param pid process pid.
+     * @param userId userId Designation User ID.
+     */
+    virtual void NotifyAppPreCache(int32_t pid, int32_t userId) override;
+
+    /**
+     * @brief Record the signal reason when an application process exits.
+     *
+     * @param pid Process ID of the exited application process.
+     * @param uid User ID of the exited application process.
+     * @param signal Signal number that caused the process to exit.
+     * @param bundleName Bundle name of the exited application.
+     */
+    virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) override;
 
 private:
     bool isInit_  {false};

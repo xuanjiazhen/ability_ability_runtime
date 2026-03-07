@@ -67,7 +67,8 @@ public:
      * @brief Notify abilityms start keep-alive process.
      * @param bundleInfos resident process bundle infos.
      */
-    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) override;
+    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+        pid_t diedPid = INVALID_DIED_PID) override;
 
     /**
      * @brief Notify abilityms app process OnRemoteDied
@@ -100,6 +101,16 @@ public:
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) override;
 
+    /**
+     * @brief Record the signal reason when an application process exits.
+     *
+     * @param pid Process ID of the exited application process.
+     * @param uid User ID of the exited application process.
+     * @param signal Signal number that caused the process to exit.
+     * @param bundleName Bundle name of the exited application.
+     */
+    virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) override;
+
 private:
     int32_t HandleOnAppStateChanged(MessageParcel &data, MessageParcel &reply);
     int32_t HandleOnAbilityRequestDone(MessageParcel &data, MessageParcel &reply);
@@ -108,8 +119,9 @@ private:
     int32_t HandleNotifyStartKeepAliveProcess(MessageParcel &data, MessageParcel &reply);
     int32_t HandleOnAppRemoteDied(MessageParcel &data, MessageParcel &reply);
     int32_t HandleOnStartProcessFailed(MessageParcel &data, MessageParcel &reply);
-    int32_t HandleNotifyAppPreCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleOnCacheExitInfo(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleNotifyAppPreCache(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleRecordAppExitSignalReason(MessageParcel &data, MessageParcel &reply);
 
     DISALLOW_COPY_AND_MOVE(AppStateCallbackHost);
 };

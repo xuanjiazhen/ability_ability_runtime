@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,7 +31,7 @@
 #include "in_process_call_wrapper.h"
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
 #endif // SUPPORT_UPMS
@@ -317,9 +317,9 @@ bool UriUtils::GrantShellUriPermission(const std::vector<std::string> &strUriVec
         }
         uriVec.emplace_back(uri);
     }
-    uint32_t callerTokendId = IPCSkeleton::GetCallingTokenID();
+    uint32_t callerTokenId = IPCSkeleton::GetCallingTokenID();
     auto ret = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().GrantUriPermissionPrivileged(
-        uriVec, flag, targetPkg, appIndex, callerTokendId));
+        uriVec, flag, targetPkg, appIndex, callerTokenId));
     if (ret != ERR_OK) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "grant uri to shell failed: %{public}d", ret);
     }
@@ -461,7 +461,7 @@ bool UriUtils::GrantUriPermissionInner(const std::vector<std::string> &uriVec,
         return false;
     }
     std::vector<int32_t> permissionTypes;
-    for (auto i = 0; i < checkResults.size(); i++) {
+    for (size_t i = 0; i < checkResults.size(); i++) {
         boolResults[i] = checkResults[i].result;
         if (checkResults[i].result) {
             permissionTypes.emplace_back(checkResults[i].permissionType);
@@ -496,6 +496,7 @@ void UriUtils::PublishFileOpenEvent(const Want &want, const GrantUriPermissionIn
             std::chrono::system_clock::now().time_since_epoch()).count();
         std::string currentTime = std::to_string(timeNow);
         msgWant.SetParam("viewTime", currentTime);
+        msgWant.SetParam("uid", grantInfo.callerUid);
         EventFwk::CommonEventData commonData{msgWant};
         EventFwk::CommonEventPublishInfo commonEventPublishInfo;
         std::vector<std::string> subscriberPermissions = {"ohos.permission.MANAGE_LOCAL_ACCOUNTS"};
@@ -532,7 +533,7 @@ bool UriUtils::GrantUriPermissionForServiceExtension(const AbilityRequest &abili
 bool UriUtils::GrantUriPermissionForUIOrServiceExtension(const AbilityRequest &abilityRequest)
 {
     auto extensionType = abilityRequest.abilityInfo.extensionAbilityType;
-    if (UIExtensionUtils::IsUIExtension(extensionType) || IsServiceExtensionType(extensionType)) {
+    if (UIExtensionWrapper::IsUIExtension(extensionType) || IsServiceExtensionType(extensionType)) {
         auto &abilityInfo = abilityRequest.abilityInfo;
         auto &want = const_cast<Want &>(abilityRequest.want);
         auto callerTokenId = abilityRequest.specifyTokenId > 0 ? abilityRequest.specifyTokenId :

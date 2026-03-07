@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -58,7 +58,7 @@
 #include "exit_resident_process_manager.h"
 #include "fault_data.h"
 #include "fd_guard.h"
-#include "hisysevent.h"
+#include "hisysevent_report.h"
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
@@ -793,7 +793,7 @@ public:
     void PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag = false);
 
     void OnAppStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, const ApplicationState state,
-        bool needNotifyApp, bool isFromWindowFocusChanged);
+        bool needNotifyApp, bool isFromWindowFocusChanged, bool isByCall);
 
     void OnAppStarted(const std::shared_ptr<AppRunningRecord> &appRecord);
 
@@ -927,7 +927,7 @@ public:
      * @param requestId request id to callback
      */
     void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0);
+        int32_t requestId = 0, const std::string &customProcess = "");
 
     /**
      * Start specified process.
@@ -996,6 +996,9 @@ public:
      */
     int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg);
 
+    int32_t NotifyAppMgrRecordExitReasonCompability(
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg);
+
     /**
      * Notify application status.
      *
@@ -1013,10 +1016,10 @@ public:
      * @param eventName Indicates the event defined by CommonEventSupport
      * @param want Want contains information of the event wish to notify.
      *
-     * @return Returns 0 if the event is normal, 1 if the event needs to be managed.
+     * @return Returns false if the event is normal, true if the event needs to be managed.
      */
-    int32_t NotifyAppStatusByCommonEventName(const std::string &bundleName, const std::string &eventName,
-        const Want &want);
+    bool IsSubscriberControlledAndNotifyAppStatusByCommonEventName(const std::string &bundleName,
+        const std::string &eventName, const Want &want);
 
     int32_t KillProcessByPid(const pid_t pid, const std::string& reason = "foundation",
         bool isKillPrecedeStart = false);
@@ -1353,7 +1356,7 @@ public:
     /**
      * Elevate the current process to be a candidate master process.
      *
-     * @param isInsertToHead Whether inset current process to the head of candidate master process list.
+     * @param isInsertToHead Whether insert current process to the head of candidate master process list.
      * @return Return ERR_OK if success, others fail.
      */
     int32_t PromoteCurrentToCandidateMasterProcess(bool isInsertToHead);
@@ -1485,6 +1488,8 @@ public:
 
     virtual int DumpFfrt(const std::vector<int32_t>& pids, std::string& result);
 
+    virtual int32_t DumpArkWeb(const std::vector<int32_t> &pids, const std::string &customArgs, std::string &result);
+
     /**
      * @brief set support process cache by self
      */
@@ -1501,6 +1506,8 @@ public:
     int32_t IsProcessCacheSupported(int32_t pid, bool &isSupported);
 
     int32_t SetProcessCacheEnable(int32_t pid, bool enable);
+
+    int32_t LockProcessCache(int32_t pid, bool isLock);
 
     void OnAppCacheStateChanged(const std::shared_ptr<AppRunningRecord> &appRecord, ApplicationState state);
 
@@ -1620,9 +1627,22 @@ public:
 
     void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId);
 
+    void SetProcessPrepareExit(int32_t pid);
+
     void AllowScbProcessMoveToBackground();
 
     int32_t KillChildProcessByPid(int32_t pid);
+
+    void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName);
+    /**
+     * Preload extension process.
+     *
+     * @param want contains bundleName + abilityName.
+     * @param appIndex The index of application clone.
+     * @param userId Indicates the user identification.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId);
 
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
@@ -1662,8 +1682,6 @@ private:
                         int32_t beginId, int32_t endId,
                         int32_t userId, int32_t &uid,
                         std::unordered_map<int32_t, int32_t> &lastIsolationIdMap);
-
-    bool GenerateRenderUid(int32_t &renderUid);
 
     /**
      * Build a process's name for service extension
@@ -1802,6 +1820,15 @@ private:
 
     void HandleStartSpecifiedProcessTimeout(std::shared_ptr<AppRunningRecord> appRecord);
 
+    // Attach timeout functions
+    void PostRenderAttachTimeoutTask(std::shared_ptr<RenderRecord> renderRecord);
+    void PostPreloadAttachTimeoutTask(std::shared_ptr<AppRunningRecord> appRecord);
+
+    void HandleRenderAttachTimeout(int64_t pid);
+    void HandlePreloadAttachTimeout(int64_t pid);
+
+    void CheckRenderAttachTimeout(std::shared_ptr<RenderRecord> renderRecord);
+
     void InitGlobalConfiguration();
 
     /**
@@ -1868,12 +1895,22 @@ private:
     int32_t StartChildProcessImpl(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
         const std::shared_ptr<AppRunningRecord> appRecord, pid_t &childPid, const ChildProcessArgs &args,
         const ChildProcessOptions &options);
+        
+    void PostChildProcessAttachTimeoutTask(std::shared_ptr<ChildProcessRecord> childRecord);
+
+    void HandleChildProcessAttachTimeout(int64_t pid);
+
+    void CheckChildProcessAttachTimeout(std::shared_ptr<ChildProcessRecord> childRecord);
 
     int32_t GetChildProcessInfo(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
         const std::shared_ptr<AppRunningRecord> appRecord, ChildProcessInfo &info);
 
     int32_t GetChildProcessInfoEx(const std::shared_ptr<ChildProcessRecord> childProcessRecord,
         const std::shared_ptr<AppRunningRecord> appRecord, ChildProcessInfo &info);
+
+    void RemoveRenderProcessIsolationUid(int32_t uid);
+
+    void OnRenderProcessDied(std::shared_ptr<RenderRecord> renderProcessRecord);
 
     void RemoveChildProcessIsolationUid(int32_t uid);
     
@@ -1896,7 +1933,17 @@ private:
     void AfterLoadAbility(std::shared_ptr<AppRunningRecord> appRecord, std::shared_ptr<AbilityInfo> abilityInfo,
         std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
 
+    static int32_t GetLoadTimeout(int32_t loadTimeout);
+
     void RemoveRenderRecordNoAttach(const std::shared_ptr<AppRunningRecord> &hostRecord, int32_t renderPid);
+
+    void HandleExistingAppRecordAfterFound(std::shared_ptr<AppRunningRecord> appRecord,
+        std::shared_ptr<AbilityInfo> abilityInfo, const HapModuleInfo &hapModuleInfo,
+        std::shared_ptr<AAFwk::Want> want, bool isProcCache,
+        const std::shared_ptr<AbilityRuntime::LoadParam> &loadParam);
+
+    void ReportUIExtensionProcColdStartToRss(const std::shared_ptr<AbilityInfo>& abilityInfo,
+        const std::shared_ptr<AAFwk::Want>& want, bool isPreloadUIExtension);
 
 private:
     /**
@@ -2103,10 +2150,14 @@ private:
     bool CheckAppFault(const std::shared_ptr<AppRunningRecord> &appRecord, const FaultData &faultData);
     int32_t KillFaultApp(int32_t pid, const std::string &bundleName, const FaultData &faultData,
         bool isNeedExit = false);
+#ifdef APP_MGR_KILL_REASON_TAG
+    void RecordAppfreezeKillReason(int32_t pid, const FaultData &faultData);
+#endif
     void AddUIExtensionLauncherItem(std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AppRunningRecord> appRecord,
         sptr<IRemoteObject> token);
     void NotifyStartResidentProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos);
-    void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos);
+    void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+        pid_t diedPid = INVALID_DIED_PID);
     void RemoveUIExtensionLauncherItem(std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
     bool IsSceneBoardCall();
     void CheckCleanAbilityByUserRequest(const std::shared_ptr<AppRunningRecord> &appRecord,
@@ -2144,12 +2195,12 @@ private:
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid, const int32_t callerUid);
     int32_t SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
-    void SendAbilityEvent(const std::shared_ptr<AbilityRunningRecord> &abilityRecord, const AbilityState &state);
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
     void GetKernelPermissions(uint32_t accessTokenId, JITPermissionsMap &permissionsMap);
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(std::shared_ptr<ApplicationInfo> appInfo,
         const std::string &processName, const BundleInfo &bundleInfo);
+
     void AddUIExtensionBindItem(
         std::shared_ptr<AAFwk::Want> want, std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
     void RemoveUIExtensionBindItem(std::shared_ptr<AppRunningRecord> appRecord, sptr<IRemoteObject> token);
@@ -2171,74 +2222,77 @@ private:
     void InsertUninstallOrUpgradeUidSet(int32_t uid);
     void RemoveUninstallOrUpgradeUidSet(int32_t uid);
     bool IsUninstallingOrUpgrading(int32_t uid);
-    bool isInitAppWaitingDebugListExecuted_ = false;
-    std::atomic<bool> sceneBoardAttachFlag_ = true;
-    std::atomic<int32_t> willKillPidsNum_ = 0;
-    int32_t lastRenderUid_ = Constants::START_UID_FOR_RENDER_PROCESS;
-    std::unordered_map<int32_t, int32_t> lastChildProcessIsolationIdMap_;
-    const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
-    std::vector<AppStateCallbackWithUserId> appStateCallbacks_;
+    void SendProcessKillEvent(std::shared_ptr<AppRunningRecord> appRecord);
+    void HandleForegroundAbilityDied(const std::vector<sptr<IRemoteObject>>& abilityTokens,
+        ApplicationState state);
+
     std::shared_ptr<RemoteClientManager> remoteClientManager_;
     std::shared_ptr<AppRunningManager> appRunningManager_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> rssTaskHandler_;
     std::shared_ptr<AMSEventHandler> eventHandler_;
-    ffrt::mutex userTestLock_;
-    ffrt::mutex appStateCallbacksLock_;
-    ffrt::mutex renderUidSetLock_;
-    ffrt::mutex childProcessIsolationUidSetLock_;
-    ffrt::mutex exceptionLock_;
-    ffrt::mutex browserHostLock_;
-    ffrt::mutex restartResidentTaskListMutex_;
-    sptr<IStartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
-    ffrt::mutex configurationObserverLock_;
-    std::vector<ConfigurationObserverWithUserId> configurationObservers_;
+    std::shared_ptr<AAFwk::TaskHandlerWrap> dfxTaskHandler_;
+    std::shared_ptr<AppDebugManager> appDebugManager_;
+    std::shared_ptr<AbilityRuntime::AppRunningStatusModule> appRunningStatusModule_;
+    std::shared_ptr<AdvancedSecurityModeManager> securityModeManager_;
+    std::shared_ptr<AppPreloader> appPreloader_;
+    std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
+    std::shared_ptr<AppExecFwk::AppMgrEventSubscriber> screenOffSubscriber_;
 
+    sptr<IStartSpecifiedAbilityResponse> startSpecifiedAbilityResponse_;
+    sptr<IAbilityDebugResponse> abilityDebugResponse_;
+    sptr<IKiaInterceptor> kiaInterceptor_;
 #ifdef SUPPORT_SCREEN
     sptr<WindowFocusChangedListener> focusListener_;
     sptr<WindowVisibilityChangedListener> windowVisibilityChangedListener_;
     sptr<WindowPidVisibilityChangedListener> windowPidVisibilityChangedListener_;
 #endif //SUPPORT_SCREEN
-    std::vector<std::shared_ptr<AppRunningRecord>> restartResidentTaskList_;
-    ffrt::mutex runningSharedBundleListMutex_;
+    std::atomic<bool> sceneBoardAttachFlag_ = true;
+    std::atomic<int32_t> willKillPidsNum_ = 0;
+    std::unordered_map<int32_t, int32_t> lastRenderProcessIsolationIdMap_;
+    std::unordered_map<int32_t, int32_t> lastChildProcessIsolationIdMap_;
+    mutable std::map<int64_t, std::string> killedProcessMap_;
     std::map<std::string, std::vector<BaseSharedBundleInfo>> runningSharedBundleList_;
     std::map<std::string, bool> waitingDebugBundleList_;
-    ffrt::mutex waitingDebugLock_;
-    std::unordered_set<int32_t> renderUidSet_;
+    std::map<int32_t, std::unordered_map<pid_t, int32_t>> uiExtensionBindReleations_;
+    std::unordered_set<int32_t> renderProcessIsolationUidSet_;
     std::unordered_set<int32_t> childProcessIsolationUidSet_;
+    std::unordered_set<int32_t> uninstallOrUpgradeUidSet_ {};
+    std::unordered_set<std::string> nwebPreloadSet_ {};
+
+    std::vector<AppStateCallbackWithUserId> appStateCallbacks_;
+    std::vector<ConfigurationObserverWithUserId> configurationObservers_;
+    std::vector<std::shared_ptr<AppRunningRecord>> restartResidentTaskList_;
+    std::vector<std::string> serviceExtensionWhiteList_;
+    std::vector<LoadAbilityTaskFunc> loadAbilityTaskFuncList_;
+
+    const std::string TASK_ON_CALLBACK_DIED = "OnCallbackDiedTask";
     std::string supportIsolationMode_ {"false"};
     std::string supportServiceExtMultiProcess_ {"false"};
-    sptr<IAbilityDebugResponse> abilityDebugResponse_;
-    std::shared_ptr<AppDebugManager> appDebugManager_;
+
+    ffrt::mutex userTestLock_;
+    ffrt::mutex appStateCallbacksLock_;
+    ffrt::mutex renderProcessIsolationUidSetLock_;
+    ffrt::mutex childProcessIsolationUidSetLock_;
+    ffrt::mutex exceptionLock_;
+    ffrt::mutex browserHostLock_;
+    ffrt::mutex restartResidentTaskListMutex_;
+    ffrt::mutex configurationObserverLock_;
+    ffrt::mutex runningSharedBundleListMutex_;
+    ffrt::mutex waitingDebugLock_;
     ffrt::mutex killedProcessMapLock_;
-    mutable std::map<int64_t, std::string> killedProcessMap_;
 #ifdef SUPPORT_CHILD_PROCESS
     ffrt::mutex startChildProcessLock_;
 #endif //SUPPORT_CHILD_PROCESS
-    std::vector<std::string> serviceExtensionWhiteList_;
-    std::shared_ptr<AbilityRuntime::AppRunningStatusModule> appRunningStatusModule_;
-    std::shared_ptr<AdvancedSecurityModeManager> securityModeManager_;
-    std::shared_ptr<AAFwk::TaskHandlerWrap> dfxTaskHandler_;
-    std::shared_ptr<AppPreloader> appPreloader_;
-
     std::mutex loadTaskListMutex_;
-    std::vector<LoadAbilityTaskFunc> loadAbilityTaskFuncList_;
     std::mutex kiaInterceptorMutex_;
-    sptr<IKiaInterceptor> kiaInterceptor_;
-    std::shared_ptr<MultiUserConfigurationMgr> multiUserConfigurationMgr_;
-    std::unordered_set<std::string> nwebPreloadSet_ {};
-    std::shared_ptr<AppExecFwk::AppMgrEventSubscriber> screenOffSubscriber_;
-
     std::mutex screenOffSubscriberMutex_;
     std::mutex childProcessRecordMapMutex_;
-
     std::mutex uiExtensionBindReleationsLock_;
-    std::map<int32_t, std::unordered_map<pid_t, int32_t>> uiExtensionBindReleations_;
-
-    std::shared_mutex startProcessLock_;
     ffrt::mutex uninstallOrUpgradeUidSetLock_;
-    std::unordered_set<int32_t> uninstallOrUpgradeUidSet_ {};
     ffrt::mutex exitMasterProcessRoleLock_;
+    std::shared_mutex startProcessLock_;
+    bool isInitAppWaitingDebugListExecuted_ = false;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

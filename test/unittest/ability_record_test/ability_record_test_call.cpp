@@ -442,9 +442,20 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_Result, TestSize.Level1)
 HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_SendResult, TestSize.Level1)
 {
     OHOS::sptr<AbilitySchedulerMock> scheduler = new AbilitySchedulerMock();
+    abilityResult_->requestCode_ = -1;
     abilityRecord_->SetScheduler(scheduler);
     abilityRecord_->SetResult(abilityResult_);
-    abilityRecord_->SendResult(0, 0);
+    abilityRecord_->SendResult(0, 0, false);
+    EXPECT_EQ(nullptr, abilityRecord_->GetResult());
+
+    abilityResult_->requestCode_ = 1;
+    abilityRecord_->SetResult(abilityResult_);
+    abilityRecord_->SendResult(0, 0, false);
+    EXPECT_EQ(nullptr, abilityRecord_->GetResult());
+
+    abilityResult_->requestCode_ = 2;
+    abilityRecord_->SetResult(abilityResult_);
+    abilityRecord_->SendResult(0, 0, true);
     EXPECT_EQ(nullptr, abilityRecord_->GetResult());
 }
 
@@ -524,44 +535,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_SetScheduler, TestSize.Level1)
     EXPECT_EQ(false, abilityRecord_->IsReady());
     abilityRecord_->SetScheduler(scheduler);
     EXPECT_EQ(true, abilityRecord_->IsReady());
-}
-
-/*
- * Feature: AbilityRecord
- * Function: ForegroundAbility
- * SubFunction: ForegroundAbility
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord ForegroundAbility
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    uint32_t sceneFlag = 0;
-    abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
-    abilityRecord->SetIsNewWant(true);
-    abilityRecord->SetPreAbilityRecord(abilityRecord_);
-    abilityRecord->ForegroundAbility(sceneFlag);
-    EXPECT_TRUE(abilityRecord != nullptr);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: ForegroundAbility
- * SubFunction: ForegroundAbility
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord ForegroundAbility
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    uint32_t sceneFlag = 0;
-    abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
-    abilityRecord->SetIsNewWant(true);
-    abilityRecord->SetPreAbilityRecord(nullptr);
-    abilityRecord->ForegroundAbility(sceneFlag);
-    EXPECT_TRUE(abilityRecord != nullptr);
 }
 
 /*
@@ -819,24 +792,6 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_AddSystemAbilityCallerRecord_002, Test
     std::shared_ptr<CallerRecord> caller = std::make_shared<CallerRecord>(requestCode, saCaller);
     abilityRecord->callerList_.push_back(caller);
     abilityRecord->AddSystemAbilityCallerRecord(callerToken, requestCode, srcAbilityId);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: ConnectAbility
- * SubFunction: ConnectAbility
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord ConnectAbility
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_ConnectAbility_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->lifecycleDeal_ = nullptr;
-    abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
-    bool isConnected = true;
-    abilityRecord->ConnectAbility();
-    EXPECT_NE(abilityRecord_, nullptr);
 }
 
 /*

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,19 +37,19 @@ enum class DialogAlign {
     RIGHT,
 };
 struct DialogPosition {
-    int32_t offsetX = 0;
-    int32_t offsetY = 0;
-    int32_t width = 0;
-    int32_t height = 0;
+    DialogAlign align = DialogAlign::CENTER;
     int32_t window_width = 0;
     int32_t window_height = 0;
     int32_t window_offsetX = 0;
     int32_t window_offsetY = 0;
+    int32_t width = 0;
+    int32_t height = 0;
     int32_t width_narrow = 0;
     int32_t height_narrow = 0;
+    int32_t offsetX = 0;
+    int32_t offsetY = 0;
     bool wideScreen = true;
     bool oversizeHeight = false;
-    DialogAlign align = DialogAlign::CENTER;
 };
 struct DialogAppInfo {
     int32_t abilityIconId = 0;
@@ -59,10 +59,12 @@ struct DialogAppInfo {
     std::string bundleName = {};
     std::string abilityName = {};
     std::string moduleName = {};
+    std::string codePath = "";
+    std::string installSource = "";
     bool visible = true;
     bool isAppLink = false;
-    int32_t appIndex = 0;
     AppExecFwk::MultiAppModeData multiAppMode;
+    int32_t appIndex = 0;
 };
 /**
  * @class SystemDialogScheduler

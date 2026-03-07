@@ -428,6 +428,7 @@ std::string JsAbilityStage::OnAcceptWant(const AAFwk::Want &want,
 bool JsAbilityStage::CallAcceptOrRequestSync(napi_env env, const AAFwk::Want &want, std::string &methodName,
     AppExecFwk::AbilityTransactionCallbackInfo<std::string> *callbackInfo) const
 {
+    HandleScope handleScope(env);
     napi_value obj = jsAbilityStageObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         TAG_LOGE(AAFwkTag::APPKIT, "get object failed");
@@ -463,6 +464,7 @@ bool JsAbilityStage::CallAcceptOrRequestAsync(napi_env env, const AAFwk::Want &w
         TAG_LOGE(AAFwkTag::APPKIT, "callbackInfo nullptr");
         return false;
     }
+    HandleScope handleScope(env);
     napi_value napiWant = OHOS::AppExecFwk::WrapWant(env, want);
     bool hasCaughtException = false;
     napi_value result = CallObjectMethod(methodName.c_str(), hasCaughtException, &napiWant, ARGC_ONE);
@@ -739,7 +741,7 @@ int32_t JsAbilityStage::RunAutoStartupTaskInner(const std::function<void()> &cal
         eventInfo.moduleName = moduleName;
         eventInfo.userId = startupManager->GetUid() / AppExecFwk::Constants::BASE_USER_RANGE;
         AAFwk::EventReport::SendAppStartupErrorEvent(
-            AAFwk::EventName::APP_STARTUP_ERROR, HiSysEventType::FAULT, eventInfo);
+            AAFwk::EventName::APP_STARTUP_ERROR, HISYSEVENT_FAULT, eventInfo);
     };
     startupTaskManager->SetTimeoutCallback(timeoutCallback);
     result = startupTaskManager->Run(runAutoStartupCallback);

@@ -24,8 +24,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* ABILITY_FOREGROUND_STATE_OBSERVER_CLASS_NAME =
-    "Lapplication/AbilityForegroundStateObserver/AbilityForegroundStateObserver;";
-constexpr const char *SIGNATURE_ABILITY_STATE_DATA = "Lapplication/AbilityStateData/AbilityStateData;:V";
+    "application.AbilityForegroundStateObserver.AbilityForegroundStateObserver";
+constexpr const char *SIGNATURE_ABILITY_STATE_DATA = "C{application.AbilityStateData.AbilityStateData}:";
 }
 
 ETSAbilityForegroundStateObserver::ETSAbilityForegroundStateObserver(ani_vm *etsVm) : etsVm_(etsVm) {}
@@ -77,6 +77,7 @@ void ETSAbilityForegroundStateObserver::CallEtsFunction(ani_env* env, ani_object
     va_start(args, signature);
     if ((status = env->Object_CallMethod_Void_V(etsObserverObject, method, args)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "status: %{public}d", status);
+        va_end(args);
         return;
     }
     va_end(args);

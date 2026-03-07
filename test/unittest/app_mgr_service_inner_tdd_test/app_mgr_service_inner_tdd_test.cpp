@@ -22,11 +22,13 @@
 #include "remote_client_manager.h"
 #undef private
 #include "app_scheduler.h"
+#include "app_utils.h"
 #include "app_mgr_event.h"
 #include "app_spawn_client.h"
 #include "event_handler.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "global_constant.h"
 #include "mock_ability_token.h"
 #include "mock_app_scheduler.h"
 #include "mock_bundle_manager.h"
@@ -863,6 +865,43 @@ HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_002, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SendProcessKillEvent_003
+ * @tc.desc: Test SendProcessKillEvent
+ * @tc.type: FUNC
+ * @tc.Function: SendProcessKillEvent
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SendProcessKillEvent_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    appMgrServiceInner->SendProcessKillEvent(nullptr);
+    BundleInfo bundleInfo;
+    std::string processName = "AppMgrServiceInnerTest";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
+    EXPECT_NE(appRecord, nullptr);
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    std::string reason = "test";
+    int pid = getpid();
+    int killId = 0;
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    killId = -1;
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    killId = -2;
+    appMgrServiceInner->NotifyAppMgrRecordExitReasonCompability(pid, killId, reason, reason);
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    killId = 1;
+    appMgrServiceInner->SendProcessKillEvent(appRecord);
+    TAG_LOGI(AAFwkTag::TEST, "SendProcessKillEvent_003 end");
+}
+
+/**
  * @tc.name: CheckIsolationMode_001
  * @tc.desc: CheckIsolationMode
  * @tc.type: FUNC
@@ -898,27 +937,6 @@ HWTEST_F(AppMgrServiceInnerTest, CheckIsolationMode_001, TestSize.Level1)
         EXPECT_FALSE(appMgrServiceInner->CheckIsolationMode(hapModuleInfo));
     }
     TAG_LOGI(AAFwkTag::TEST, "CheckIsolationMode_001 end");
-}
-
-/**
- * @tc.name: GenerateRenderUid_001
- * @tc.desc: Generate RenderUid
- * @tc.type: FUNC
- * @tc.Function: GenerateRenderUid
- * @tc.SubFunction: NA
- * @tc.EnvConditions: NA
- */
-HWTEST_F(AppMgrServiceInnerTest, GenerateRenderUid_001, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "GenerateRenderUid_001 start");
-    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    appMgrServiceInner->Init();
-    EXPECT_NE(appMgrServiceInner, nullptr);
-    int32_t renderUid = Constants::INVALID_UID;
-    EXPECT_TRUE(appMgrServiceInner->GenerateRenderUid(renderUid));
-    int32_t renderUid1 = Constants::INVALID_UID;
-    EXPECT_TRUE(appMgrServiceInner->GenerateRenderUid(renderUid1));
-    TAG_LOGI(AAFwkTag::TEST, "GenerateRenderUid_001 end");
 }
 
 /**
@@ -958,6 +976,31 @@ HWTEST_F(AppMgrServiceInnerTest, NotifyAppFaultBySA_001, TestSize.Level1)
     appMgrServiceInner->appRunningManager_ = nullptr;
     EXPECT_EQ(ERR_INVALID_VALUE, appMgrServiceInner->NotifyAppFaultBySA(faultData));
     TAG_LOGI(AAFwkTag::TEST, "NotifyAppFaultBySA_001 end");
+}
+
+/**
+ * @tc.name: SubmitDfxFaultTask_001
+ * @tc.desc: Verify that the SubmitDfxFaultTask interface calls normally
+ * @tc.type: FUNC
+ * @tc.Function: SubmitDfxFaultTask
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, SubmitDfxFaultTask_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SubmitDfxFaultTask start");
+    FaultData faultData;
+    std::string bundleName = "SubmitDfxFaultTask_001";
+    int32_t recordId = 100;
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    std::string processName = "SubmitDfxFaultTask_001";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, recordId, processName);
+    int32_t pid = getpid();
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    appMgrServiceInner->Init();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    appMgrServiceInner->SubmitDfxFaultTask(faultData, bundleName, appRecord, pid);
+    TAG_LOGI(AAFwkTag::TEST, "SubmitDfxFaultTask end");
 }
 
 /**
@@ -1501,6 +1544,40 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_005, TestSize.Level1)
     EXPECT_EQ(ret, 0);
 
     TAG_LOGI(AAFwkTag::TEST, "KillSubProcessBypid_005 end");
+}
+
+/**
+ * @tc.name: GetLoadTimeout
+ * @tc.desc: Get load timeout
+ * @tc.type: FUNC
+ * @tc.Function: GetLoadTimeout
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, GetLoadTimeout_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_001 start");
+    auto timeout = AppMgrServiceInner::GetLoadTimeout(12);
+    EXPECT_EQ(timeout, 12);
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_001 end");
+}
+
+/**
+ * @tc.name: GetLoadTimeout
+ * @tc.desc: Get load timeout
+ * @tc.type: FUNC
+ * @tc.Function: GetLoadTimeout
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerTest, GetLoadTimeout_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_002 start");
+    auto timeout = AppMgrServiceInner::GetLoadTimeout(0);
+    auto timeoutDefault = AbilityRuntime::GlobalConstant::GetLoadTimeOutBase() *
+        AAFwk::AppUtils::GetInstance().GetTimeoutUnitTimeRatio();
+    EXPECT_EQ(timeout, timeoutDefault);
+    TAG_LOGI(AAFwkTag::TEST, "GetLoadTimeout_002 end");
 }
 } // namespace AppExecFwk
 } // namespace OHOS

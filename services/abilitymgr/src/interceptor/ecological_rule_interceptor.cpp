@@ -41,6 +41,7 @@ ErrCode EcologicalRuleInterceptor::DoProcess(AbilityInterceptorParam param)
     if (param.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME) ==
         param.want.GetElement().GetBundleName()) {
         TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "same bundle");
+        StartAbilityUtils::ermsSupportBackToCallerFlag = true;
         return ERR_OK;
     }
     if (param.isTargetPlugin) {
@@ -89,6 +90,7 @@ bool EcologicalRuleInterceptor::DoProcess(Want &want, int32_t userId)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME) == want.GetElement().GetBundleName()) {
         TAG_LOGD(AAFwkTag::ECOLOGICAL_RULE, "same bundle");
+        StartAbilityUtils::ermsSupportBackToCallerFlag = true;
         return true;
     }
     std::string supportErms = OHOS::system::GetParameter(ABILITY_SUPPORT_ECOLOGICAL_RULEMGRSERVICE, "true");
@@ -146,13 +148,13 @@ ErrCode EcologicalRuleInterceptor::QueryAtomicServiceStartupRule(Want &want, spt
     want.SetElement(launchWant.GetElement());
 
     int32_t appIndex = 0;
-    StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(want, userId, appIndex, nullptr);
-    CHECK_POINTER_AND_RETURN_LOG(StartAbilityUtils::startAbilityInfo, INNER_ERR, "null startAbilityInfo");
-    CHECK_RET_RETURN_RET(StartAbilityUtils::startAbilityInfo->status, "Get targetApplicationInfo failed");
+    auto startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(want, userId, appIndex, nullptr);
+    CHECK_POINTER_AND_RETURN_LOG(startAbilityInfo, INNER_ERR, "null startAbilityInfo");
+    CHECK_RET_RETURN_RET(startAbilityInfo->status, "Get targetApplicationInfo failed");
 
     ErmsCallerInfo callerInfo;
     InitErmsCallerInfo(want, std::make_shared<AppExecFwk::AbilityInfo>(
-        StartAbilityUtils::startAbilityInfo->abilityInfo), callerInfo, userId);
+        startAbilityInfo->abilityInfo), callerInfo, userId);
 
     ExperienceRule _rule;
     auto ret = IN_PROCESS_CALL(AbilityEcologicalRuleMgrServiceClient::GetInstance()->QueryStartExperience(want,
