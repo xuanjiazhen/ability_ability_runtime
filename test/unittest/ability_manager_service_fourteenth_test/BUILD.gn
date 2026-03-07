@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -66,6 +66,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_services_path}/common/include",
     "${ability_runtime_utils_path}/global/constant",
     "${ability_runtime_utils_path}/server/constant",
+    "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection/include",
     "//prebuilts/jdk/jdk8/linux-x86/include",
     "//prebuilts/jdk/jdk8/linux-x86/include/linux",
   ]
@@ -107,6 +108,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/connection_record.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/connection_state_item.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/connection_state_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/database_write_counter.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/data_ability/data_ability_caller_recipient.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/data_ability/data_ability_record.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/deeplink_reserve/deeplink_reserve_config.cpp",
@@ -117,6 +119,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/ecological_rule/ability_ecological_rule_mgr_service_param.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/exit_info_data_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/extension_config.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/extension_record/base_extension_record.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/extension_record/extension_record.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/extension_record/extension_record_factory.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/extension_record/extension_record_manager.cpp",
@@ -186,6 +189,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/utils/app_mgr_util.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/utils/dms_util.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/utils/dump_utils.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/utils/exit_reason_util.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/utils/extension_permissions_util.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/utils/hidden_start_utils.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/utils/keep_alive_utils.cpp",
@@ -235,6 +239,8 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/kiosk_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/interceptor/kiosk_interceptor.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/preload_manager_service.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/ui_extension/ui_extension_ability_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/common_extension_manager.cpp",
     "../ability_manager_service_mock_test/mock/src/mock_udmf_utils.cpp",
   ]
 
@@ -257,10 +263,12 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:auto_startup_callback",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/abilitymgr:mission_list",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hisysevent_report",
     "${ability_runtime_services_path}/common:perm_verification",
     "${ability_runtime_services_path}/common:task_handler_wrap",
     "${ability_runtime_services_path}/common:user_controller",
@@ -278,6 +286,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "access_token:libnativetoken",
     "access_token:libtoken_setproc",
     "access_token:libtokenid_sdk",
+    "appspawn:appspawn_client",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "bundle_framework:libappexecfwk_common",
@@ -315,6 +324,10 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "window_manager:sms",
     "window_manager:window_animation_utils",
   ]
+
+  if (resource_schedule_service_enable) {
+    external_deps += [ "resource_schedule_service:ressched_client" ]
+  }
 
   if (ability_runtime_dsoftbus_enable) {
     external_deps += [ "dsoftbus:softbus_client" ]

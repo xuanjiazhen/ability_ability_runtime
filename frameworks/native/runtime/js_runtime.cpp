@@ -28,7 +28,6 @@
 #include <sys/epoll.h>
 #include <unistd.h>
 
-#include "file_ex.h"
 #include "accesstoken_kit.h"
 #include "config_policy_utils.h"
 #include "constants.h"
@@ -595,7 +594,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModuleByEngine(
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null env");
         return nullptr;
     }
-
+    HandleScope handleScope(env);
     napi_value globalObj = nullptr;
     napi_get_global(env, &globalObj);
     napi_value propertyValue = nullptr;
@@ -753,7 +752,7 @@ bool JsRuntime::Initialize(const Options& options)
             bundleName_ = options.bundleName;
             codePath_ = options.codePath;
             panda::JSNApi::SetSearchHapPathTracker(
-                vm, [options](const std::string moduleName, std::string &hapPath) -> bool {
+                vm, [options](const std::string moduleName, std::string& hapPath) -> bool {
                     if (options.hapModulePath.find(moduleName) == options.hapModulePath.end()) {
                         return false;
                     }
@@ -769,14 +768,12 @@ bool JsRuntime::Initialize(const Options& options)
             isModular = !panda::JSNApi::IsBundle(vm);
             std::vector<panda::HmsMap> systemKitsMap = GetSystemKitsMap(apiTargetVersion_);
             panda::JSNApi::SetHmsModuleList(vm, systemKitsMap);
-            std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
-            std::map<std::string, std::string> pkgAliasMap;
+            std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
             pkgContextInfoJsonStringMap_ = options.pkgContextInfoJsonStringMap;
             packageNameList_ = options.packageNameList;
             JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(
-                options.pkgContextInfoJsonStringMap, pkgContextInfoMap, pkgAliasMap);
-            panda::JSNApi::SetpkgContextInfoList(vm, pkgContextInfoMap);
-            panda::JSNApi::SetPkgAliasList(vm, pkgAliasMap);
+                options.pkgContextInfoJsonStringMap, pkgInfoMap);
+            panda::JSNApi::SetPkgContextInfoList(vm, pkgInfoMap);
             panda::JSNApi::SetPkgNameList(vm, options.packageNameList);
             panda::JSNApi::ModuleDeserialize(vm, options.versionCode);
         }
@@ -980,9 +977,9 @@ void JsRuntime::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator> op
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     CHECK_POINTER(jsEnv_);
-    jsEnv_->InitSourceMap(operatorObj);
     JsEnv::SourceMap::RegisterReadSourceMapCallback(JsRuntime::ReadSourceMapData);
     JsEnv::SourceMap::RegisterGetHapPathCallback(JsModuleReader::GetHapPathList);
+    jsEnv_->InitSourceMap(operatorObj);
 }
 
 void JsRuntime::InitSourceMap(const std::string hqfFilePath)
@@ -1023,6 +1020,7 @@ napi_value JsRuntime::LoadJsBundle(const std::string& path, const std::string& h
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     auto env = GetNapiEnv();
     CHECK_POINTER_AND_RETURN(env, nullptr);
+    HandleEscape handleEscape(env);
     napi_value globalObj = nullptr;
     napi_get_global(env, &globalObj);
     napi_value exports = nullptr;
@@ -1048,7 +1046,7 @@ napi_value JsRuntime::LoadJsBundle(const std::string& path, const std::string& h
         return nullptr;
     }
 
-    return exportObj;
+    return handleEscape.Escape(exportObj);
 }
 
 napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& hapPath, const std::string& srcEntrance)
@@ -1237,6 +1235,7 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm, false);
+    HandleScope handleScope(*this);
     std::string commonsPath = std::string(Constants::LOCAL_CODE_PATH) + "/" + moduleName_ + "/ets/commons.abc";
     std::string vendorsPath = std::string(Constants::LOCAL_CODE_PATH) + "/" + moduleName_ + "/ets/vendors.abc";
     if (hapPath.empty()) {
@@ -1359,6 +1358,11 @@ void JsRuntime::DumpHeapSnapshot(bool isPrivate)
 
 void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary)
 {
+    DumpHeapSnapshot(tid, isFullGC, isBinary, false);
+}
+
+void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary, bool isClearNodeIdCache)
+{
     auto vm = GetEcmaVm();
     CHECK_POINTER(vm);
     panda::ecmascript::DumpSnapShotOption dumpOption;
@@ -1372,6 +1376,7 @@ void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary)
     dumpOption.captureNumericValue = true;
     dumpOption.isFullGC = isFullGC;
     dumpOption.isSync = false;
+    dumpOption.isClearNodeIdCache = isClearNodeIdCache;
     DFXJSNApi::DumpHeapSnapshot(vm, dumpOption, tid);
 }
 
@@ -1826,12 +1831,10 @@ void JsRuntime::SetPkgContextInfoJson(std::string moduleName, std::string hapPat
         packageNameList_[moduleName] = packageName;
         auto vm = GetEcmaVm();
         CHECK_POINTER_AND_RETURN(vm,);
-        std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
-        std::map<std::string, std::string> pkgAliasMap;
+        std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
         JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(
-            pkgContextInfoJsonStringMap_, pkgContextInfoMap, pkgAliasMap);
-        panda::JSNApi::SetpkgContextInfoList(vm, pkgContextInfoMap);
-        panda::JSNApi::SetPkgAliasList(vm, pkgAliasMap);
+            pkgContextInfoJsonStringMap_, pkgInfoMap);
+        panda::JSNApi::SetPkgContextInfoList(vm, pkgInfoMap);
         panda::JSNApi::SetPkgNameList(vm, packageNameList_);
     }
 }
@@ -1845,11 +1848,9 @@ void JsRuntime::UpdatePkgContextInfoJson(const std::string& moduleName, const st
     packageNameList[moduleName] = packageName;
     auto vm = GetEcmaVm();
     CHECK_POINTER_AND_RETURN(vm,);
-    std::map<std::string, std::vector<std::vector<std::string>>> pkgContextInfoMap;
-    std::map<std::string, std::string> pkgAliasMap;
-    JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(pkgContextInfoJsonStringMap, pkgContextInfoMap, pkgAliasMap);
-    panda::JSNApi::UpdatePkgContextInfoList(vm, pkgContextInfoMap);
-    panda::JSNApi::UpdatePkgAliasList(vm, pkgAliasMap);
+    std::unordered_map<std::string, std::pair<std::unique_ptr<uint8_t[]>, size_t>> pkgInfoMap;
+    JsRuntimeLite::GetInstance().GetPkgContextInfoListMap(pkgContextInfoJsonStringMap, pkgInfoMap);
+    panda::JSNApi::UpdatePkgContextInfoList(vm, pkgInfoMap);
     panda::JSNApi::UpdatePkgNameList(vm, packageNameList);
 }
 

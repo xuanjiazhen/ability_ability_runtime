@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -28,9 +28,9 @@ class MockAbilityDelegatorStub : public AbilityManagerStub {
 public:
     MockAbilityDelegatorStub();
     int StartAbility(const Want& want, int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) override;
-    MOCK_METHOD4(StartAbility, int(const Want& want, const sptr<IRemoteObject>& callerToken,
-        int32_t userId, int requestCode));
+        int requestCode = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0) override;
+    MOCK_METHOD5(StartAbility, int(const Want& want, const sptr<IRemoteObject>& callerToken,
+        int32_t userId, int requestCode, uint64_t specifiedFullTokenId));
     MOCK_METHOD5(StartAbilityAsCaller, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         sptr<IRemoteObject> asCallerSourceToken, int32_t userId, int requestCode));
     MOCK_METHOD5(StartAbility, int(const Want& want, const AbilityStartSetting& abilityStartSetting,
@@ -137,8 +137,8 @@ public:
         const sptr<IRemoteMissionListener>& listener) override;
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
         const sptr<IRemoteObject>& callerToken, int32_t accountId = DEFAULT_INVAL_VALUE,
-        bool isSilent = false, bool promotePriority = false) override;
-    int StartAbilityForPrelaunch(const Want &want) override;
+        bool isSilent = false, bool promotePriority = false, bool isVisible = false) override;
+    int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
     void CallRequestDone(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& callStub) override;
     int ReleaseCall(const sptr<IAbilityConnection>& connect,
         const AppExecFwk::ElementName& element) override;
@@ -161,7 +161,7 @@ public:
     int DoAbilityBackground(const sptr<IRemoteObject>& token, uint32_t flag);
     int32_t GetMissionIdByToken(const sptr<IRemoteObject>& token);
     void GetAbilityTokenByCalleeObj(const sptr<IRemoteObject> &callStub, sptr<IRemoteObject> &token);
-    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag) override
+    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag, bool isHiddenStart = false) override
     {
         return 0;
     }
@@ -211,9 +211,10 @@ enum TESTCASE_BRANCH {
 class MockAbilityDelegatorStub2 : public AbilityManagerStub {
 public:
     MockAbilityDelegatorStub2();
-    int StartAbility(const Want& want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = -1) override;
-    MOCK_METHOD4(StartAbility, int(const Want& want, const sptr<IRemoteObject>& callerToken,
-        int32_t userId, int requestCode));
+    int StartAbility(const Want& want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = -1,
+        uint64_t specifiedFullTokenId = 0) override;
+    MOCK_METHOD5(StartAbility, int(const Want& want, const sptr<IRemoteObject>& callerToken,
+        int32_t userId, int requestCode, uint64_t specifiedFullTokenId));
     MOCK_METHOD5(StartAbilityAsCaller, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         sptr<IRemoteObject> asCallerSourceToken, int32_t userId, int requestCode));
     MOCK_METHOD5(StartAbility, int(const Want& want, const AbilityStartSetting& abilityStartSetting,
@@ -320,8 +321,8 @@ public:
         const sptr<IRemoteMissionListener>& listener) override;
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
         const sptr<IRemoteObject>& callerToken, int32_t accountId = DEFAULT_INVAL_VALUE,
-        bool isSilent = false, bool promotePriority = false) override;
-    int StartAbilityForPrelaunch(const Want &want) override;
+        bool isSilent = false, bool promotePriority = false, bool isVisible = false) override;
+    int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
     void CallRequestDone(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& callStub) override;
     virtual int32_t GetForegroundUIAbilities(std::vector<AppExecFwk::AbilityStateData> &list)
     {
@@ -349,7 +350,7 @@ public:
     int DoAbilityBackground(const sptr<IRemoteObject>& token, uint32_t flag);
     int32_t GetMissionIdByToken(const sptr<IRemoteObject>& token);
     void GetAbilityTokenByCalleeObj(const sptr<IRemoteObject> &callStub, sptr<IRemoteObject> &token);
-    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag) override
+    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag, bool isHiddenStart = false) override
     {
         return 0;
     }

@@ -25,6 +25,7 @@
 #include "ets_app_foreground_state_observer.h"
 #include "ets_app_manager_utils.h"
 #include "ets_app_state_observer.h"
+#include "ani_common_app_state_filter.h"
 #include "ets_error_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -41,33 +42,37 @@ namespace OHOS {
 namespace AppManagerEts {
 namespace {
 constexpr int32_t ERR_FAILURE = -1;
-constexpr const char* APP_MANAGER_SPACE_NAME = "L@ohos/app/ability/appManager/appManager;";
+constexpr const char* APP_MANAGER_SPACE_NAME = "@ohos.app.ability.appManager.appManager";
 constexpr const char* ON_OFF_TYPE = "applicationState";
 constexpr const char* ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE = "abilityFirstFrameState";
 constexpr const char* ON_OFF_TYPE_APP_FOREGROUND_STATE = "appForegroundState";
 
 constexpr const char *APPLICATION_STATE_WITH_BUNDLELIST_ON_SIGNATURE =
-    "Lstd/core/String;Lapplication/ApplicationStateObserver/ApplicationStateObserver;Lescompat/Array;:I";
+    "C{std.core.String}C{application.ApplicationStateObserver.ApplicationStateObserver}C{std.core.Array}:i";
+constexpr const char *APPLICATION_STATE_WITH_APP_STATE_FILTER_ON_SIGNATURE =
+    "C{std.core.String}C{application.ApplicationStateObserver.ApplicationStateObserver}"
+    "C{@ohos.app.ability.appManager.appManager.AppStateFilter}:i";
 constexpr const char *APPLICATION_STATE_ON_SIGNATURE =
-    "Lstd/core/String;Lapplication/ApplicationStateObserver/ApplicationStateObserver;:I";
-constexpr const char *APPLICATION_STATE_OFF_SIGNATURE = "Lstd/core/String;ILutils/AbilityUtils/AsyncCallbackWrapper;:V";
-static const char* ON_SIGNATURE_ABILITY_FIRST_FRAME_STATE
-    = "Lstd/core/String;Lapplication/AbilityFirstFrameStateObserver/AbilityFirstFrameStateObserver;Lstd/core/String;:V";
+    "C{std.core.String}C{application.ApplicationStateObserver.ApplicationStateObserver}:i";
+constexpr const char *APPLICATION_STATE_OFF_SIGNATURE =
+    "C{std.core.String}iC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+static const char* ON_SIGNATURE_ABILITY_FIRST_FRAME_STATE =
+    "C{std.core.String}C{application.AbilityFirstFrameStateObserver.AbilityFirstFrameStateObserver}C{std.core.String}:";
 static const char* ON_SIGNATURE_APP_FOREGROUND_STATE
-    = "Lstd/core/String;Lapplication/AppForegroundStateObserver/AppForegroundStateObserver;:V";
+    = "C{std.core.String}C{application.AppForegroundStateObserver.AppForegroundStateObserver}:";
 static const char *OFF_SIGNATURE_ABILITY_FIRST_FRAME_STATE
-    = "Lstd/core/String;Lapplication/AbilityFirstFrameStateObserver/AbilityFirstFrameStateObserver;:V";
+    = "C{std.core.String}C{application.AbilityFirstFrameStateObserver.AbilityFirstFrameStateObserver}:";
 static const char *OFF_SIGNATURE_APP_FOREGROUND_STATE
-    = "Lstd/core/String;Lapplication/AppForegroundStateObserver/AppForegroundStateObserver;:V";
-constexpr const char *BUNDLE_NAME_CHECK_SIG = "Lstd/core/String;:V";
-constexpr const char *CLEAR_UP_APPLICATION_DATA_SIG = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char *GET_KEEP_ALIVE_APP_SERVICE_EXTENSION_SIG = "Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
+    = "C{std.core.String}C{application.AppForegroundStateObserver.AppForegroundStateObserver}:";
+constexpr const char *BUNDLE_NAME_CHECK_SIG = "C{std.core.String}:";
+constexpr const char *CLEAR_UP_APPLICATION_DATA_SIG = "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *GET_KEEP_ALIVE_APP_SERVICE_EXTENSION_SIG = "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SET_KEEP_ALIVE_FOR_APP_SERVICE_EXTENSION_SIG =
-    "Lstd/core/String;ZLutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char *CLEAR_UP_APP_DATA_SIG = "Lutils/AbilityUtils/AsyncCallbackWrapper;"
-    "Lstd/core/String;Lstd/core/Int;:V";
-constexpr const char *TERMINATION_SIG = "ILutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char *IS_APP_RUNNING_SIG = "Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
+    "C{std.core.String}zC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *CLEAR_UP_APP_DATA_SIG = "C{utils.AbilityUtils.AsyncCallbackWrapper}"
+    "C{std.core.String}C{std.core.Int}:";
+constexpr const char *TERMINATION_SIG = "iC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *IS_APP_RUNNING_SIG = "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
 } // namespace
 
 class EtsAppManager final {
@@ -106,6 +111,8 @@ public:
     static ani_int OnOnApplicationStateWithBundleList(ani_env *env, ani_string type,
         ani_object observer, ani_object etsBundleNameList);
     static ani_int OnOnApplicationState(ani_env *env, ani_string type, ani_object observer);
+    static ani_int OnOnApplicationStateWithAppStateFilter(ani_env *env,
+        ani_string type, ani_object observer, ani_object etsAppStateFilter);
     static void OnOff(ani_env *env, ani_string type, ani_int etsObserverId, ani_object callback);
     static void OffApplicationStateCheck(ani_env *env, ani_int etsObserverId);
     static void OnOnAppForegroundState(ani_env *env, ani_string type, ani_object observer);
@@ -128,6 +135,8 @@ private:
     static sptr<AAFwk::IAbilityManager> GetAbilityManagerInstance();
     static bool CheckOnOnApplicationStateInnerParam(ani_env *env, ani_string type, ani_object observer,
         ani_object etsBundleNameList, std::vector<std::string> &bundleNameList);
+    static bool CheckOnOnApplicationStateWithAppStateFilterParam(ani_env *env, ani_string type,
+        ani_object observer, const ani_object &etsAppStateFilter, OHOS::AppExecFwk::AppStateFilter &appStateFilter);
     static ani_int OnOnApplicationStateInner(
         ani_env *env, ani_string type, ani_object observer, ani_object aniBundleNameList);
     static void KillProcessesByBundleNameInner(ani_env *env, ani_object callback, ani_string etsBundleName,
@@ -140,11 +149,13 @@ private:
     static int32_t serialNumber_;
     static sptr<AbilityRuntime::EtsAppStateObserver> appStateObserver_;
     static sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> observerForeground_;
+    static std::mutex appStateObserverLock_;
 };
 
 int32_t EtsAppManager::serialNumber_ = 0;
 sptr<AbilityRuntime::EtsAppStateObserver> EtsAppManager::appStateObserver_ = nullptr;
 sptr<OHOS::AbilityRuntime::ETSAppForegroundStateObserver> EtsAppManager::observerForeground_ = nullptr;
+std::mutex EtsAppManager::appStateObserverLock_;
 
 sptr<AppExecFwk::IAppMgr> EtsAppManager::GetAppManagerInstance()
 {
@@ -199,7 +210,7 @@ void EtsAppManager::PreloadApplication(ani_env *env, ani_object callback, ani_st
         return;
     }
     if (!isUndefined) {
-        if ((status = env->Object_CallMethodByName_Int(aniAppIndex, "intValue", nullptr, &appIndex)) != ANI_OK) {
+        if ((status = env->Object_CallMethodByName_Int(aniAppIndex, "toInt", nullptr, &appIndex)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::APPMGR, "Object_CallMethodByName_Int status : %{public}d", status);
             return;
         }
@@ -489,8 +500,17 @@ ani_int EtsAppManager::OnOnApplicationStateInner(ani_env *env, ani_string type, 
             static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
         return ANI_ERROR;
     }
-    if (appStateObserver_ == nullptr) {
-        appStateObserver_ = new (std::nothrow) AbilityRuntime::EtsAppStateObserver(aniVM);
+    {
+        std::lock_guard<std::mutex> lock(appStateObserverLock_);
+        if (appStateObserver_ == nullptr) {
+            appStateObserver_ = new (std::nothrow) AbilityRuntime::EtsAppStateObserver(aniVM);
+            if (appStateObserver_ == nullptr) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "create appStateObserver_ failed");
+                AbilityRuntime::EtsErrorUtil::ThrowError(env,
+                    static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+                return ANI_ERROR;
+            }
+        }
     }
     if (appStateObserver_->GetEtsObserverMapSize() == 0) {
         int32_t ret = appManager->RegisterApplicationStateObserver(appStateObserver_, bundleNameList);
@@ -521,6 +541,85 @@ ani_int EtsAppManager::OnOnApplicationState(ani_env *env, ani_string type, ani_o
     }
     env->GetUndefined(&undefined);
     return OnOnApplicationStateInner(env, type, observer, static_cast<ani_object>(undefined));
+}
+
+bool EtsAppManager::CheckOnOnApplicationStateWithAppStateFilterParam(ani_env *env, ani_string type,
+    ani_object observer, const ani_object &etsAppStateFilter, OHOS::AppExecFwk::AppStateFilter &appStateFilter)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "env null ptr");
+        return false;
+    }
+    std::string strType;
+    if (!AppExecFwk::GetStdString(env, type, strType) || strType != ON_OFF_TYPE) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetStdString failed");
+        AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(
+            env, "Parse param type failed, must be a string, value must be applicationState.");
+        return false;
+    }
+    ani_boolean isUndefined = false;
+    ani_status status = ANI_OK;
+    if ((status = env->Reference_IsUndefined(etsAppStateFilter, &isUndefined)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to check undefined status : %{public}d", status);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return false;
+    }
+    if (!isUndefined && !UnWrapAppStateFilter(env, etsAppStateFilter, appStateFilter)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetAppStateFilter failed");
+        AbilityRuntime::EtsErrorUtil::ThrowInvalidParamError(env, "Parse appStateFilter failed, value must be a "
+            "combination of values selected from enum FilterBundleType, FilterAppStateType, FilterProcessStateType "
+            "FilterAbilityStateType and FilterCallback.");
+        return false;
+    }
+    return true;
+}
+
+ani_int EtsAppManager::OnOnApplicationStateWithAppStateFilter(ani_env *env, ani_string type,
+    ani_object observer, ani_object etsAppStateFilter)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "OnOnApplicationStateWithAppStateFilter called");
+    OHOS::AppExecFwk::AppStateFilter appStateFilter = OHOS::AppExecFwk::AppStateFilter();
+    if (!CheckOnOnApplicationStateWithAppStateFilterParam(env, type, observer, etsAppStateFilter, appStateFilter)) {
+        return ANI_ERROR;
+    }
+    auto appManager = GetAppManagerInstance();
+    if (appManager == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appManager");
+        AbilityRuntime::EtsErrorUtil::ThrowError(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+        return ANI_ERROR;
+    }
+    ani_vm *aniVM = nullptr;
+    if (env->GetVM(&aniVM) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "get aniVM failed");
+        AbilityRuntime::EtsErrorUtil::ThrowError(env,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+        return ANI_ERROR;
+    }
+    {
+        std::lock_guard<std::mutex> lock(appStateObserverLock_);
+        if (appStateObserver_ == nullptr) {
+            appStateObserver_ = new (std::nothrow) AbilityRuntime::EtsAppStateObserver(aniVM);
+            if (appStateObserver_ == nullptr) {
+                TAG_LOGE(AAFwkTag::UI_EXT, "create appStateObserver_ failed");
+                AbilityRuntime::EtsErrorUtil::ThrowError(env,
+                    static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+                return ANI_ERROR;
+            }
+        }
+    }
+    std::vector<std::string> bundleNameList;
+    int32_t ret = appManager->RegisterApplicationStateObserverWithFilter(
+        appStateObserver_, bundleNameList, appStateFilter, true);
+    TAG_LOGD(AAFwkTag::APPMGR, "err:%{public}d", ret);
+    if (ret == ERR_OK) {
+        int32_t observerId = GetObserverId();
+        appStateObserver_->AddEtsObserverObject(env, observerId, observer);
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOnApplicationStateInner end");
+        return observerId;
+    }
+    AbilityRuntime::EtsErrorUtil::ThrowErrorByNativeErr(env, static_cast<int32_t>(ret));
+    return ANI_ERROR;
 }
 
 void EtsAppManager::OffApplicationStateCheck(ani_env *env, ani_int etsObserverId)
@@ -1662,9 +1761,11 @@ void EtsAppManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAppManager::OnOnApplicationStateWithBundleList)},
         ani_native_function {"nativeOn", APPLICATION_STATE_ON_SIGNATURE,
             reinterpret_cast<void *>(EtsAppManager::OnOnApplicationState)},
+        ani_native_function {"nativeOn", APPLICATION_STATE_WITH_APP_STATE_FILTER_ON_SIGNATURE,
+            reinterpret_cast<void *>(EtsAppManager::OnOnApplicationStateWithAppStateFilter)},
         ani_native_function {"nativeOff", APPLICATION_STATE_OFF_SIGNATURE,
             reinterpret_cast<void *>(EtsAppManager::OnOff)},
-        ani_native_function {"nativeOffApplicationStateCheck", "I:V",
+        ani_native_function {"nativeOffApplicationStateCheck", "i:",
             reinterpret_cast<void *>(EtsAppManager::OffApplicationStateCheck)},
         ani_native_function {"nativeGetAppMemorySize", nullptr,
             reinterpret_cast<void *>(EtsAppManager::GetAppMemorySize)},

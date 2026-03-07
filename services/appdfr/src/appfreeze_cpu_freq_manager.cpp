@@ -110,6 +110,7 @@ CpuDataProcessor AppfreezeCpuFreqManager::GetCpuDetailInfo(int32_t pid)
 {
     std::vector<std::vector<CpuFreqData>> cpuDetailInfo{};
     std::vector<TotalTime> totalTimeCpuLists{};
+
     for (int32_t i = 0; i < cpuCount_; ++i) {
         std::vector<CpuFreqData> datas{};
         TotalTime totalCpuTime{};
@@ -119,11 +120,11 @@ CpuDataProcessor AppfreezeCpuFreqManager::GetCpuDetailInfo(int32_t pid)
         }
     }
     CpuConsumeTime cpuConsumeTime = {
-        .optimalCpuTime = GetOptimalCpuTime(pid),
         .cpuFaultTime = AppfreezeUtil::GetMilliseconds(),
         .processCpuTime = GetProcessCpuTime(pid),
         .deviceRunTime = GetDeviceRuntime(),
         .cpuTime = GetAppCpuTime(pid),
+        .optimalCpuTime = GetOptimalCpuTime(pid),
     };
     CpuDataProcessor data(cpuDetailInfo, totalTimeCpuLists, cpuConsumeTime, pid);
     return data;
@@ -214,13 +215,13 @@ std::string AppfreezeCpuFreqManager::GetCpuInfoContent(const std::vector<TotalTi
     size_t warnCpuSize = warnCpuDetailInfo.size();
     if (warnTotalSize == 0 || warnTotalSize != warnCpuSize ||
         warnTotalSize != blockTotalTimeList.size() || warnCpuSize != blockCpuDetailInfo.size()) {
-        TAG_LOGE(AAFwkTag::APPDFR, "warning total size:%{public}zu, warning cpi size:%{public}zu",
+        TAG_LOGE(AAFwkTag::APPDFR, "warning total size:%{public}zu, warning cpu size:%{public}zu",
             warnTotalSize, warnCpuSize);
         return "";
     }
     std::stringstream ss;
     ss << "start time:" << AbilityRuntime::TimeUtil::DefaultCurrentTimeStr() << std::endl;
-    for (size_t i = 0; i < warnCpuDetailInfo.size(); ++i) {
+    for (size_t i = 0; i < warnCpuSize; ++i) {
         auto warnningData = warnCpuDetailInfo[i];
         auto blockData = blockCpuDetailInfo[i];
         if (warnningData.size() != blockData.size()) {
@@ -454,12 +455,12 @@ bool AppfreezeCpuFreqManager::IsContainHalfData(const std::string &key, CpuDataP
     std::lock_guard<ffrt::mutex> lock(freezeInfoMutex_);
     auto it = cpuInfoMap_.find(key);
     if (it == cpuInfoMap_.end()) {
-        TAG_LOGI(AAFwkTag::APPDFR, "Not find warning fault, pid: %{public}d", pid);
+        TAG_LOGI(AAFwkTag::APPDFR, "Not find warning fault, pid:%{public}d", pid);
         return false;
     }
     int warningPid = it->second.GetPid();
     if (warningPid != pid) {
-        TAG_LOGI(AAFwkTag::APPDFR, "Not find current pid:%{public}d, warning pid:%{public}d", pid, warningPid);
+        TAG_LOGI(AAFwkTag::APPDFR, "Not find current pid:%{public}d, warning pid:%{public}d.", pid, warningPid);
         return false;
     }
     cpuData = it->second;

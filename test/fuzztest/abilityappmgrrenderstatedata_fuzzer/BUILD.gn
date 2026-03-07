@@ -53,9 +53,9 @@ ohos_fuzztest("AbilityAppMgrRenderStateDataFuzzTest") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
-    "init:libbegetutil",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "qos_manager:pi_mutex",
     "window_manager:libwm",
   ]
 }

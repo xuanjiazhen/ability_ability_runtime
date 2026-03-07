@@ -85,6 +85,7 @@ napi_value JsStartupManager::OnRun(napi_env env, NapiCallbackInfo &info)
     napi_create_promise(env, &nativeDeferred, &promise);
     auto callback = std::make_shared<OnCompletedCallback>(
         [env, nativeDeferred](const std::shared_ptr<StartupTaskResult> &result) {
+            HandleScope handleScope(env);
             if (result == nullptr || result->GetResultCode() != ERR_OK) {
                 napi_value error = JsStartupConfig::BuildResult(env, result);
                 napi_reject_deferred(env, nativeDeferred, error);
@@ -107,7 +108,7 @@ napi_value JsStartupManager::OnRun(napi_env env, NapiCallbackInfo &info)
         eventInfo.appIndex = startupManager->GetAppIndex();
         eventInfo.userId = startupManager->GetUid() / AppExecFwk::Constants::BASE_USER_RANGE;
         AAFwk::EventReport::SendAppStartupErrorEvent(
-            AAFwk::EventName::APP_STARTUP_ERROR, HiSysEventType::FAULT, eventInfo);
+            AAFwk::EventName::APP_STARTUP_ERROR, HISYSEVENT_FAULT, eventInfo);
     };
     startupTaskManager->SetTimeoutCallback(timeoutCallback);
     result = startupTaskManager->Run(callback);

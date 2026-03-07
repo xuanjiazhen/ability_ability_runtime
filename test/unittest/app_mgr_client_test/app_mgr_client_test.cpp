@@ -1211,6 +1211,31 @@ HWTEST_F(AppMgrClientTest, PreloadApplication_001, TestSize.Level2)
 }
 
 /**
+ * @tc.name: AppMgrClient_PreloadExtension_001
+ * @tc.desc: verify preload extension permission
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_PreloadExtension_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+
+    auto result = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
+
+    std::string bundleName = "com.example.inputmethod";
+    std::string abilityName = "InputService";
+    int32_t userId = 100;
+    int32_t appIndex = 0;
+
+    AAFwk::Want want;
+    want.SetElementName(bundleName, abilityName);
+
+    int32_t ret = appMgrClient->PreloadExtension(want, appIndex, userId);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+}
+
+/**
  * @tc.name: AppMgrClient_UpdateConfiguration_001
  * @tc.desc: UpdateConfiguration.
  * @tc.type: FUNC
@@ -1610,6 +1635,39 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_SetProcessCacheEnable_002, TestSize.Leve
     int32_t pid = 1;
     bool enable = false;
     auto result = appMgrClient->SetProcessCacheEnable(pid, enable);
+    EXPECT_NE(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
+}
+
+/**
+ * @tc.name: AppMgrClient_LockProcessCache_001
+ * @tc.desc: LockProcessCache.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_LockProcessCache_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    ASSERT_NE(appMgrClient, nullptr);
+    int32_t pid = 1;
+    bool isLock = false;
+    appMgrClient->mgrHolder_ = nullptr;
+    auto ret = appMgrClient->LockProcessCache(pid, isLock);
+    EXPECT_EQ(ret, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
+}
+
+/**
+ * @tc.name: AppMgrClient_LockProcessCache_002
+ * @tc.desc: LockProcessCache.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_LockProcessCache_002, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    ASSERT_NE(appMgrClient, nullptr);
+    auto ret = appMgrClient->ConnectAppMgrService();
+    EXPECT_EQ(ret, AppMgrResultCode::RESULT_OK);
+    int32_t pid = 1;
+    bool isLock = false;
+    auto result = appMgrClient->LockProcessCache(pid, isLock);
     EXPECT_NE(result, AppMgrResultCode::ERROR_SERVICE_NOT_READY);
 }
 

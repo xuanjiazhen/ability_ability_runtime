@@ -76,6 +76,7 @@ ohos_fuzztest("AbilityChildProcessRecordFuzzTest") {
     "memory_utils:libmeminfo",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "qos_manager:pi_mutex",
     "window_manager:libwm",
     "window_manager:libwsutils",
   ]

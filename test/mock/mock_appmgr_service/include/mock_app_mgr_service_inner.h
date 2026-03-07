@@ -51,6 +51,7 @@ public:
     MOCK_METHOD3(GetAllRunningInstanceKeysByBundleName, int32_t(const std::string &bundleName,
         std::vector<std::string> &instanceKeys, int32_t userId));
     MOCK_METHOD1(GetAllRenderProcesses, int32_t(std::vector<RenderProcessInfo>&));
+    MOCK_METHOD3(PreloadExtension, int32_t(const AAFwk::Want&, int32_t, int32_t));
 #ifdef SUPPORT_CHILD_PROCESS
     MOCK_METHOD1(GetAllChildrenProcesses, int(std::vector<ChildProcessInfo>&));
 #endif // SUPPORT_CHILD_PROCESS
@@ -81,6 +82,8 @@ public:
     MOCK_METHOD2(DumpIpcStop, int(const int32_t pid, std::string& result));
     MOCK_METHOD2(DumpIpcStat, int(const int32_t pid, std::string& result));
     MOCK_METHOD2(DumpFfrt, int(const std::vector<int32_t>& pid, std::string& result));
+    MOCK_METHOD3(DumpArkWeb, int32_t(const std::vector<int32_t> &pids, const std::string &customArgs,
+        std::string &result));
     MOCK_METHOD1(RegisterKiaInterceptor, int32_t(const sptr<IKiaInterceptor> &interceptor));
     MOCK_METHOD2(CheckIsKiaProcess, int32_t(pid_t pid, bool &isKia));
     MOCK_METHOD1(NotifyProcMemoryLevel, int32_t(const std::map<pid_t, MemoryLevel> &procLevelMap));
@@ -91,8 +94,12 @@ public:
     MOCK_METHOD3(CheckPreloadAppRecordExist, bool(const std::string&, int32_t, int32_t));
     MOCK_CONST_METHOD0(IsFoundationCall, bool());
     MOCK_METHOD2(QueryRunningSharedBundles, int32_t(pid_t pid, std::map<std::string, uint32_t> &sharedBundles));
+    MOCK_METHOD2(NotifyPageShow, int32_t(const sptr<IRemoteObject> &token, const PageStateData &pageStateData));
+    MOCK_METHOD1(RegisterRenderStateObserver, int32_t(const sptr<IRenderStateObserver> &observer));
+    MOCK_METHOD2(RegisterApplicationStateObserver, int32_t(const sptr<IApplicationStateObserver> &observer,
+        const std::vector<std::string> &bundleNameList));
 
-    void StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t)
+    void StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t, const std::string&)
     {}
 
     void Post()

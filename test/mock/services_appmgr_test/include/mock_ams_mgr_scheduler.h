@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -50,13 +50,16 @@ public:
     MOCK_METHOD2(GetRunningProcessInfoByToken,
         void(const sptr<IRemoteObject>& token, OHOS::AppExecFwk::RunningProcessInfo& info));
     MOCK_METHOD1(SetAbilityForegroundingFlagToAppRecord, void(const pid_t pid));
-    MOCK_METHOD3(StartSpecifiedAbility, void(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t));
+    MOCK_METHOD4(StartSpecifiedAbility, void(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t,
+        const std::string&));
     MOCK_METHOD4(StartSpecifiedProcess, void(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t,
         const std::string&));
     MOCK_METHOD1(RegisterStartSpecifiedAbilityResponse, void(const sptr<IStartSpecifiedAbilityResponse>& response));
     MOCK_METHOD3(GetApplicationInfoByProcessID, int(const int pid, AppExecFwk::ApplicationInfo& application,
         bool& debug));
     MOCK_METHOD3(NotifyAppMgrRecordExitReason, int32_t(int32_t pid, int32_t reason, const std::string &exitMsg));
+    MOCK_METHOD4(NotifyAppMgrRecordExitReasonCompability, int32_t(int32_t pid, int32_t killId,
+        const std::string &killMsg, const std::string &innerMsg));
     MOCK_METHOD3(GetBundleNameByPid, int32_t(const int pid, std::string &bundleName, int32_t &uid));
     MOCK_METHOD1(RegisterAppDebugListener, int32_t(const sptr<IAppDebugListener> &listener));
     MOCK_METHOD1(UnregisterAppDebugListener, int32_t(const sptr<IAppDebugListener> &listener));

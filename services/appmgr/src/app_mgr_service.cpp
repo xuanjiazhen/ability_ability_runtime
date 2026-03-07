@@ -25,6 +25,7 @@
 #include "ability_manager_xcollie.h"
 #include "app_death_recipient.h"
 #include "app_mgr_constants.h"
+#include "app_utils.h"
 #include "application_state_filter.h"
 #include "datetime_ex.h"
 #include "fd_guard.h"
@@ -50,11 +51,14 @@ using AAFwk::FdGuard;
 constexpr const char* OPTION_KEY_HELP = "-h";
 constexpr const char* OPTION_KEY_DUMP_IPC = "--ipc";
 constexpr const char* OPTION_KEY_DUMP_FFRT = "--ffrt";
+constexpr const char* OPTION_KEY_DUMP_WEB = "--web";
 const int32_t HIDUMPER_SERVICE_UID = 1212;
 constexpr const int INDEX_PID = 1;
 constexpr const int INDEX_CMD = 2;
+constexpr const int INDEX_WEB_CUSTOM_ARGS = 2;
 constexpr const size_t VALID_DUMP_IPC_ARG_SIZE = 3;
 constexpr const size_t VALID_DUMP_FFRT_ARG_SIZE = 2;
+constexpr const size_t VALID_DUMP_WEB_ARG_SIZE = 2;
 constexpr const int MAX_DUMP_FFRT_PID_NUMBER = 3;
 constexpr const int BASE_TEN = 10;
 constexpr const char SIGN_TERMINAL = '\0';
@@ -82,7 +86,7 @@ constexpr const char* TASK_ATTACH_CHILD_PROCESS = "AttachChildProcessTask";
 constexpr const char* TASK_EXIT_CHILD_PROCESS_SAFELY = "ExitChildProcessSafelyTask";
 #endif // SUPPORT_CHILD_PROCESS
 constexpr const char* FOUNDATION_PROCESS = "foundation";
-constexpr const char* BS_PROCESS_NAME = "bgtaskmgr_service";
+constexpr const char* BS_PROCESS_NAME = "resource_schedule_service";
 constexpr int32_t USER_UID = 2000;
 constexpr const char* HIVIEW_PROCESS_NAME = "hiview";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
@@ -230,6 +234,20 @@ int32_t AppMgrService::PreloadApplication(const std::string &bundleName, int32_t
         return ERR_INVALID_OPERATION;
     }
     return appMgrServiceInner_->PreloadApplication(bundleName, userId, preloadMode, appIndex);
+}
+
+int32_t AppMgrService::PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "PreloadExtension called");
+    if (appIndex != 0) {
+        TAG_LOGE(AAFwkTag::APPMGR, "PreloadExtension failed, appIndex != 0.");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "PreloadExtension failed, appMgr not ready.");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->PreloadExtension(want, appIndex, userId);
 }
 
 void AppMgrService::PreloadModuleFinished(const int32_t recordId)
@@ -416,6 +434,10 @@ int32_t AppMgrService::GetAllRunningProcesses(std::vector<RunningProcessInfo> &i
 int32_t AppMgrService::GetRunningMultiAppInfoByBundleName(const std::string &bundleName,
     RunningMultiAppInfo &info)
 {
+    if (AAFwk::AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: GetRunningMultiAppInfoByBundleName");
+        return AAFwk::INNER_ERR;
+    }
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
@@ -476,28 +498,6 @@ int AppMgrService::GetAllChildrenProcesses(std::vector<ChildProcessInfo> &info)
     return appMgrServiceInner_->GetAllChildrenProcesses(info);
 #endif // SUPPORT_CHILD_PROCESS
     return ERR_INVALID_OPERATION;
-}
-
-int32_t AppMgrService::JudgeSandboxByPid(pid_t pid, bool &isSandbox)
-{
-    if (!IsReady()) {
-        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
-        return ERR_INVALID_OPERATION;
-    }
-    bool isCallingPermission =
-        AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS);
-    if (!isCallingPermission) {
-        TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return ERR_PERMISSION_DENIED;
-    }
-    auto appRunningRecord = appMgrServiceInner_->GetAppRunningRecordByPid(pid);
-    if (appRunningRecord && appRunningRecord->GetAppIndex() > AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-        isSandbox = true;
-        TAG_LOGD(AAFwkTag::APPMGR, "current app is a sandbox.");
-        return ERR_OK;
-    }
-    TAG_LOGD(AAFwkTag::APPMGR, "current app is not a sandbox.");
-    return ERR_OK;
 }
 
 int32_t AppMgrService::IsTerminatingByPid(pid_t pid, bool &isTerminating)
@@ -774,6 +774,9 @@ int AppMgrService::Dump(const std::vector<std::u16string>& args, std::string& re
     if (optionKey == OPTION_KEY_DUMP_FFRT) {
         return DumpFfrt(args, result);
     }
+    if (optionKey == OPTION_KEY_DUMP_WEB) {
+        return DumpArkWeb(args, result);
+    }
     result.append("error: unkown option.\n");
     TAG_LOGE(AAFwkTag::APPMGR, "option key %{public}s does not exist", optionKey.c_str());
     return DumpErrorCode::ERR_UNKNOWN_OPTION_ERROR;
@@ -788,7 +791,9 @@ int AppMgrService::ShowHelp(const std::vector<std::u16string>& args, std::string
         .append("dump ffrt info\n")
         .append("--ipc pid ARG               ")
         .append("ipc load statistic; pid must be specified or set to -a dump all processes. ARG must be one of "
-            "--start-stat | --stop-stat | --stat\n");
+            "--start-stat | --stop-stat | --stat\n")
+        .append("--web pid1[,pid2,pid3] [ARG]    ")
+        .append("dump arkweb info, ARG must be one of (--all | --nweb | ...)\n");
 
     return ERR_OK;
 }
@@ -852,6 +857,16 @@ int AppMgrService::DumpIpcWithPidInner(const AppMgrService::DumpIpcKey key,
 int AppMgrService::DumpFfrtInner(const std::string& pidsRaw, std::string& result)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
+    std::vector<int32_t> pids;
+    auto ret = DumpParsePids(pidsRaw, pids);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    return appMgrServiceInner_->DumpFfrt(pids, result);
+}
+
+int32_t AppMgrService::DumpParsePids(const std::string &pidsRaw, std::vector<int32_t> &pids)
+{
     std::vector<std::string> pidsStr;
     SplitStr(pidsRaw, ",", pidsStr);
     if (pidsStr.empty()) {
@@ -861,7 +876,6 @@ int AppMgrService::DumpFfrtInner(const std::string& pidsRaw, std::string& result
     if (pidsStr.size() > MAX_DUMP_FFRT_PID_NUMBER) {
         pidsStr.resize(MAX_DUMP_FFRT_PID_NUMBER);
     }
-    std::vector<int32_t> pids;
     for (const auto& pidStr : pidsStr) {
         int pid = -1;
         char* end = nullptr;
@@ -877,12 +891,11 @@ int AppMgrService::DumpFfrtInner(const std::string& pidsRaw, std::string& result
         TAG_LOGD(AAFwkTag::APPMGR, "valid pid:%{public}d", pid);
         pids.push_back(pid);
     }
-    TAG_LOGD(AAFwkTag::APPMGR, "number of valid pids:%{public}d", static_cast<int>(pids.size()));
     if (pids.empty()) {
         TAG_LOGE(AAFwkTag::APPMGR, "pids are empty");
         return DumpErrorCode::ERR_INVALID_PID_ERROR;
     }
-    return appMgrServiceInner_->DumpFfrt(pids, result);
+    return ERR_OK;
 }
 
 bool AppMgrService::GetDumpIpcKeyByOption(const std::string &option, DumpIpcKey &key)
@@ -995,6 +1008,41 @@ int AppMgrService::DumpIpcStat(const int32_t pid, std::string& result)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "called");
     return appMgrServiceInner_->DumpIpcStat(pid, result);
+}
+
+int32_t AppMgrService::DumpArkWeb(const std::vector<std::u16string> &args, std::string &result)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "DumpArkWeb start");
+    if (args.size() < VALID_DUMP_WEB_ARG_SIZE) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_INVALILD_NUM_ARGS, strlen(MSG_DUMP_FAIL_REASON_INVALILD_NUM_ARGS));
+        TAG_LOGE(AAFwkTag::APPMGR, "invalid number of arguments.");
+        return DumpErrorCode::ERR_INVALID_NUM_ARGS_ERROR;
+    }
+
+    auto isHidumperServiceCall = (IPCSkeleton::GetCallingUid() == HIDUMPER_SERVICE_UID);
+    if (!isHidumperServiceCall) {
+        result.append(MSG_DUMP_FAIL, strlen(MSG_DUMP_FAIL))
+            .append(MSG_DUMP_FAIL_REASON_PERMISSION_DENY, strlen(MSG_DUMP_FAIL_REASON_PERMISSION_DENY));
+        TAG_LOGE(AAFwkTag::APPMGR, "permission deny");
+        return DumpErrorCode::ERR_PERMISSION_DENY_ERROR;
+    }
+
+    std::string pidsRaw = Str16ToStr8(args[INDEX_PID]);
+    std::string customArgs;
+    if (args.size() > INDEX_WEB_CUSTOM_ARGS) {
+        customArgs = Str16ToStr8(args[INDEX_WEB_CUSTOM_ARGS]);
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "pids:%{public}s, customArgs:%{public}s", pidsRaw.c_str(), customArgs.c_str());
+    std::vector<int32_t> pids;
+    auto ret = DumpParsePids(pidsRaw, pids);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    if (appMgrServiceInner_ == nullptr) {
+        return DumpErrorCode::ERR_INTERNAL_ERROR;
+    }
+    return appMgrServiceInner_->DumpArkWeb(pids, customArgs, result);
 }
 
 void AppMgrService::ScheduleAcceptWantDone(const int32_t recordId, const AAFwk::Want &want, const std::string &flag)
@@ -1781,6 +1829,21 @@ int32_t AppMgrService::SetProcessCacheEnable(int32_t pid, bool enable)
     return appMgrServiceInner_->SetProcessCacheEnable(pid, enable);
 }
 
+int32_t AppMgrService::LockProcessCache(int32_t pid, bool isLock)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "lock process cache");
+    if (appMgrServiceInner_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appMgrServiceInner_ is nullptr");
+        return AAFwk::ERR_NULL_APP_MGR_SERVICE_INNER;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(
+        FOUNDATION_PROCESS)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "caller not foundation");
+        return AAFwk::ERR_NO_PERMISSION_CALLER;
+    }
+    return appMgrServiceInner_->LockProcessCache(pid, isLock);
+}
+
 void AppMgrService::SetAppAssertionPauseState(bool flag)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "call");
@@ -2080,6 +2143,20 @@ int32_t AppMgrService::KillChildProcessByPid(int32_t pid)
         return AAFwk::ERR_APP_MGR_SERVICE_NOT_READY;
     }
     return appMgrServiceInner_->KillChildProcessByPid(pid);
+}
+
+void AppMgrService::SetProcessPrepareExit(int32_t pid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Service not ready");
+        return;
+    }
+    if (!appMgrServiceInner_->IsFoundationCall()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not foundation call.");
+        return;
+    }
+    appMgrServiceInner_->SetProcessPrepareExit(pid);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

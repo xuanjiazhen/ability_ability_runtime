@@ -1,4 +1,4 @@
-# Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+# Copyright (c) 2022-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -17,7 +17,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 module_output_path = "ability_runtime/ability_runtime/app"
 
 ohos_unittest("AppRecoveryUnitTest") {
-  module_out_path = "ability_runtime/AppRecovery/app"
+  module_out_path = "ability_runtime/ability_runtime/app"
   cflags_cc = [ "-DUNITTEST" ]
   cflags = [ "-DUNITTEST" ]
   include_dirs = [
@@ -61,12 +61,15 @@ ohos_unittest("AppRecoveryUnitTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_callback_sdk",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "faultloggerd:libdfx_dumpcatcher",
     "form_fwk:fmskit_native",
     "form_fwk:form_manager",
+    "form_fwk:form_render_info",
+    "form_fwk:form_common_info",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
@@ -124,12 +127,15 @@ ohos_unittest("AbilityRecoveryUnitTest") {
     "access_token:libaccesstoken_sdk",
     "access_token:libtoken_callback_sdk",
     "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "faultloggerd:libdfx_dumpcatcher",
     "form_fwk:fmskit_native",
     "form_fwk:form_manager",
+    "form_fwk:form_render_info",
+    "form_fwk:form_common_info",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",

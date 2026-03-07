@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -53,7 +53,8 @@ public:
 
     int code_ = 0;
 
-    virtual int StartAbility(const Want& want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = -1)
+    virtual int StartAbility(
+        const Want& want, int32_t userId = DEFAULT_INVAL_VALUE, int requestCode = -1, uint64_t specifiedFullTokenId = 0)
     {
         return 0;
     }
@@ -263,8 +264,11 @@ public:
         return true;
     }
 
-    MOCK_METHOD4(StartAbility, int(const Want& want, const sptr<IRemoteObject>& callerToken,
-        int32_t userId, int requestCode));
+    int StartAbility(const Want& want, const sptr<IRemoteObject>& callerToken, int32_t userId, int requestCode,
+        uint64_t specifiedFullTokenId = 0)
+    {
+        return 0;
+    }
 
     MOCK_METHOD4(StartAbilityByInsightIntent, int32_t(const Want& want, const sptr<IRemoteObject>& callerToken,
         uint64_t intentId, int32_t userId));
@@ -321,12 +325,12 @@ public:
 
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
         const sptr<IRemoteObject>& callerToken, int32_t userId = DEFAULT_INVAL_VALUE, bool isSilent = false,
-        bool promotePriority = false) override
+        bool promotePriority = false, bool isVisible = false) override
     {
         return 0;
     }
 
-    int StartAbilityForPrelaunch(const Want &want) override
+    int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override
     {
         return 0;
     }
@@ -372,7 +376,7 @@ public:
         return 0;
     }
 
-    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag) override
+    int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag, bool isHiddenStart = false) override
     {
         return 0;
     }
@@ -416,12 +420,17 @@ public:
     MOCK_METHOD(AppExecFwk::ElementName, GetElementNameByToken,
         (sptr<IRemoteObject> token, bool isNeedLocalDeviceId), (override));
     MOCK_METHOD(int32_t, RecordProcessExitReason, (int32_t pid, int32_t uid, const ExitReason &exitReason), ());
+    MOCK_METHOD(int32_t, KillAppWithReason, (int32_t pid, const ExitReasonCompability &exitReason), ());
+    MOCK_METHOD(int32_t, KillBundleWithReason,
+        (const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason), ());
+    MOCK_METHOD(int32_t, RecordAppWithReason, (int32_t pid, int32_t uid, const ExitReasonCompability &exitReason), ());
 #ifdef SUPPORT_SCREEN
     MOCK_METHOD(int, SetMissionIcon, (const sptr<IRemoteObject> &token,
         const std::shared_ptr<OHOS::Media::PixelMap> &icon), (override));
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (const sptr<IRemoteObject> &abilityToken), (override));
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (int32_t sessionId), (override));
 #endif
+    MOCK_METHOD(int32_t, GetUserLockedBundleList, (int32_t, std::unordered_set<std::string> &), (override));
 };  // namespace AAFwk
 }   // namespace OHOS
 }

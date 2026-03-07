@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,6 +21,7 @@
 
 #include "ability_info.h"
 #include "extension_ability_info.h"
+#include "start_specified_ability_params.h"
 #include "want.h"
 
 namespace OHOS {
@@ -32,20 +33,21 @@ struct StartAbilityInfo {
     static std::shared_ptr<StartAbilityInfo> CreateCallerAbilityInfo(const sptr<IRemoteObject> &callerToken);
 
     static std::shared_ptr<StartAbilityInfo> CreateStartExtensionInfo(const Want &want, int32_t userId,
-        int32_t appIndex);
+        int32_t appIndex, const std::string &hostBundleName = "");
 
     static void FindExtensionInfo(const Want &want, int32_t flags, int32_t userId,
-        int32_t appIndex, std::shared_ptr<StartAbilityInfo> abilityInfo);
+        int32_t appIndex, std::shared_ptr<StartAbilityInfo> abilityInfo, const std::string &hostBundleName = "");
 
     std::string GetAppBundleName() const
     {
         return abilityInfo.applicationInfo.bundleName;
     }
 
-    int32_t status = ERR_OK;
     AppExecFwk::AbilityInfo abilityInfo;
-    AppExecFwk::ExtensionProcessMode extensionProcessMode = AppExecFwk::ExtensionProcessMode::UNDEFINED;
     std::string customProcess;
+    int32_t status = ERR_OK;
+    AppExecFwk::ExtensionProcessMode extensionProcessMode = AppExecFwk::ExtensionProcessMode::UNDEFINED;
+    bool isTargetPlugin = false;
 };
 
 struct StartAbilityUtils {
@@ -61,6 +63,9 @@ struct StartAbilityUtils {
     static void SetTargetCloneIndexInSameBundle(const Want &want, sptr<IRemoteObject> callerToken);
     static int32_t StartUIAbilitiesProcessAppIndex(Want &want,
         sptr<IRemoteObject> callerToken, int32_t &appIndex);
+    static int32_t HandleSelfRedirection(bool isFromOpenLink,
+        const std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+    static std::string GenerateAsCallerForAncoSessionId();
 
     static thread_local std::shared_ptr<StartAbilityInfo> startAbilityInfo;
     static thread_local std::shared_ptr<StartAbilityInfo> callerAbilityInfo;
@@ -70,6 +75,7 @@ struct StartAbilityUtils {
     static thread_local int32_t ermsResultCode;
     static thread_local bool isWantWithAppCloneIndex;
     static thread_local bool ermsSupportBackToCallerFlag;
+    static thread_local bool startSpecifiedBySCB;
 };
 
 struct StartAbilityInfoWrap {
@@ -82,9 +88,9 @@ struct StartAbilityInfoWrap {
 
 struct StartAbilityWrapParam {
     Want want;
-    sptr<IRemoteObject> callerToken;
-    int requestCode;
-    bool isPendingWantCaller;
+    sptr<IRemoteObject> callerToken = nullptr;
+    int requestCode = -1;
+    bool isPendingWantCaller = false;
     int32_t userId = -1;
     bool isStartAsCaller = false;
     uint32_t specifyTokenId = 0;
@@ -93,7 +99,13 @@ struct StartAbilityWrapParam {
     bool isUIAbilityOnly = false;
     bool isAppCloneSelector = false;
     bool hideFailureTipDialog = false;
+    bool isBySCB = false;
     bool isFreeInstallFromService = false;
+    bool removeInsightIntentFlag = false;
+    bool isFromOpenLink = false;
+    bool isServiceMatch = false;
+    uint64_t specifiedFullTokenId = 0;
+    std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
 };
 }
 }

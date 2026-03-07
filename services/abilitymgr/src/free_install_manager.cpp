@@ -24,9 +24,14 @@
 #include "insight_intent_utils.h"
 #include "ipc_capacity_wrap.h"
 #include "permission_constants.h"
+#include "start_ability_utils.h"
 #include "support_system_ability_permission.h"
 #include "utils/app_mgr_util.h"
 #include "uri_utils.h"
+#ifdef SUPPORT_SCREEN
+#include "scene_board_judgement.h"
+#include "window_manager.h"
+#endif // SUPPORT_SCREEN
 
 namespace OHOS {
 namespace AAFwk {
@@ -82,37 +87,40 @@ FreeInstallManager::FreeInstallManager()
 
 bool FreeInstallManager::IsTopAbility(sptr<IRemoteObject> callerToken)
 {
-    AppExecFwk::ElementName elementName = IN_PROCESS_CALL(
-        DelayedSingleton<AbilityManagerService>::GetInstance()->GetTopAbility());
-    if (elementName.GetBundleName().empty() || elementName.GetAbilityName().empty()) {
-        TAG_LOGE(AAFwkTag::FREE_INSTALL, "GetBundleName or GetAbilityName empty");
-        return false;
-    }
-
     auto caller = Token::GetAbilityRecordByToken(callerToken);
     if (caller == nullptr) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "null caller");
         return false;
     }
-
     auto type = caller->GetAbilityInfo().type;
     if (type == AppExecFwk::AbilityType::SERVICE || type == AppExecFwk::AbilityType::EXTENSION) {
-        TAG_LOGE(AAFwkTag::FREE_INSTALL, "service or extension");
+        TAG_LOGI(AAFwkTag::FREE_INSTALL, "service or extension");
         return true;
     }
-
-    AppExecFwk::ElementName callerElementName = caller->GetElementName();
-    std::string callerBundleName = callerElementName.GetBundleName();
-    std::string callerAbilityName = callerElementName.GetAbilityName();
-    std::string callerModuleName = callerElementName.GetModuleName();
-    return (elementName.GetBundleName() == callerBundleName && elementName.GetAbilityName() == callerAbilityName &&
-        elementName.GetModuleName() == callerModuleName);
+#ifdef SUPPORT_SCREEN
+    if (OHOS::Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        OHOS::Rosen::FocusChangeInfo focusChangeInfo;
+        OHOS::Rosen::WindowManager::GetInstance().GetFocusWindowInfoByAbilityToken(focusChangeInfo, callerToken);
+        return focusChangeInfo.abilityToken_ == callerToken;
+    } else {
+        auto wmsHandler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetWMSHandler();
+        if (!wmsHandler) {
+            TAG_LOGE(AAFwkTag::FREE_INSTALL, "wmsHandler null");
+            return false;
+        }
+        sptr<IRemoteObject> token;
+        wmsHandler->GetFocusWindow(token);
+        return token == callerToken;
+    }
+#endif
+    return false;
 }
 
 int FreeInstallManager::StartFreeInstall(const Want &want, int32_t userId, int requestCode,
     sptr<IRemoteObject> callerToken, std::shared_ptr<FreeInstallParams> param)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::FREE_INSTALL, "StartFreeInstall:%{public}s", want.GetElement().GetBundleName().c_str());
     if (!VerifyStartFreeInstallPermission(callerToken)) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "permission denied");
         return NOT_TOP_ABILITY;
@@ -128,7 +136,6 @@ int FreeInstallManager::StartFreeInstall(const Want &want, int32_t userId, int r
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, GET_ABILITY_SERVICE_FAILED);
     if (!PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)) {
-        TAG_LOGD(AAFwkTag::FREE_INSTALL, "not foundation call, callingUid=%{public}d", IPCSkeleton::GetCallingUid());
         info.want.SetParam(PARAM_FREEINSTALL_UID, IPCSkeleton::GetCallingUid());
     }
     int result = SetAppRunningState(info.want);
@@ -402,8 +409,15 @@ void FreeInstallManager::StartAbilityByFreeInstall(FreeInstallInfo &info, std::s
     }
     if (result == ERR_OK) {
         if (info.startOptions == nullptr) {
-            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityByFreeInstall(info.want,
-                info.callerToken, info.userId, info.requestCode, false, info.isFreeInstallFromService);
+            StartAbilityWrapParam param = {
+                .want = info.want,
+                .callerToken = info.callerToken,
+                .requestCode = info.requestCode,
+                .userId = info.userId,
+                .hideFailureTipDialog = false,
+                .isFreeInstallFromService = info.isFreeInstallFromService,
+            };
+            result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityByFreeInstall(param);
         } else {
             result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartUIAbilityForOptionWrap(info.want,
                 *info.startOptions, info.callerToken, false, info.userId, info.requestCode);
@@ -460,8 +474,16 @@ void FreeInstallManager::StartAbilityByConvertedWant(FreeInstallInfo &info, cons
         result = UpdateElementName(info.want, info.userId);
     }
     if (result == ERR_OK) {
-        result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithRemoveIntentFlag(info.want,
-            info.callerToken, info.userId, info.requestCode, true, false, info.isFreeInstallFromService);
+        StartAbilityWrapParam param = {
+            .want = info.want,
+            .callerToken = info.callerToken,
+            .requestCode = info.requestCode,
+            .userId = info.userId,
+            .hideFailureTipDialog = false,
+            .isFreeInstallFromService = info.isFreeInstallFromService,
+            .removeInsightIntentFlag = true,
+        };
+        result = DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityWithRemoveIntentFlag(param);
     }
     TAG_LOGD(AAFwkTag::FREE_INSTALL, "identity: %{public}s", identity.c_str());
     IPCSkeleton::SetCallingIdentity(identity);

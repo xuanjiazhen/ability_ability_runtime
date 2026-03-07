@@ -663,6 +663,7 @@ void JsEmbeddableUIAbilityContext::WrapJsUIAbilityContext(napi_env env,
         TAG_LOGE(AAFwkTag::UI_EXT, "null uiAbiContext");
         return;
     }
+    HandleScope handleScope(env);
     objValue = CreateJsBaseContext(env, uiAbiContext);
     std::unique_ptr<JsEmbeddableUIAbilityContext> jsContext = std::make_unique<JsEmbeddableUIAbilityContext>(
         uiAbiContext, nullptr, screenMode);
@@ -686,6 +687,7 @@ void JsEmbeddableUIAbilityContext::WrapJsUIExtensionContext(napi_env env,
         TAG_LOGE(AAFwkTag::UI_EXT, "null uiExtContext");
         return;
     }
+    HandleScope handleScope(env);
     objValue = CreateJsBaseContext(env, uiExtContext);
     std::unique_ptr<JsEmbeddableUIAbilityContext> jsContext = std::make_unique<JsEmbeddableUIAbilityContext>(
         nullptr, uiExtContext, screenMode);
@@ -706,6 +708,7 @@ napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi
     std::shared_ptr<AbilityContext> uiAbiContext, std::shared_ptr<UIExtensionContext> uiExtContext, int32_t screenMode)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    HandleEscape handleEscape(env);
     napi_value objValue = nullptr;
     if (screenMode == AAFwk::JUMP_SCREEN_MODE) {
         WrapJsUIAbilityContext(env, uiAbiContext, objValue, screenMode);
@@ -758,7 +761,7 @@ napi_value JsEmbeddableUIAbilityContext::CreateJsEmbeddableUIAbilityContext(napi
     BindNativeFunction(env, objValue, "setMissionIcon", moduleName, SetMissionIcon);
     BindNativeFunction(env, objValue, "moveAbilityToBackground", moduleName, MoveAbilityToBackground);
 #endif
-    return objValue;
+    return handleEscape.Escape(objValue);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

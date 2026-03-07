@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -264,7 +264,7 @@ void AppRunningRecord::ScheduleTrimMemory()
 {
 }
 
-void AppRunningRecord::ScheduleMemoryLevel(int32_t level)
+void AppRunningRecord::ScheduleMemoryLevel(int32_t level, bool isShellCall)
 {
 }
 
@@ -633,7 +633,7 @@ void AppRunningRecord::ResetNewProcessRequest()
     AAFwk::MyStatus::GetInstance().resetNewProcessRequestCall_++;
 }
 
-int32_t AppRunningRecord::UpdateConfiguration(const Configuration &config)
+int32_t AppRunningRecord::UpdateConfiguration(const Configuration &config, ConfigUpdateReason reason)
 {
     return 0;
 }
@@ -832,6 +832,11 @@ bool AppRunningRecord::GetFocusFlag() const
 int64_t AppRunningRecord::GetAppStartTime() const
 {
     return startTimeMillis_;
+}
+
+uint64_t AppRunningRecord::GetAppRunningUniqueId() const
+{
+    return appRunningUniqueId_;
 }
 
 void AppRunningRecord::SetRequestProcCode(int32_t requestProcCode)
@@ -1188,6 +1193,16 @@ bool AppRunningRecord::GetProcessCacheBlocked()
     return processCacheBlocked;
 }
 
+void AppRunningRecord::SetProcessCacheLocked(bool isLock)
+{
+    processCacheLocked_.store(isLock);
+}
+
+bool AppRunningRecord::GetProcessCacheLocked()
+{
+    return processCacheLocked_.load();
+}
+
 bool AppRunningRecord::IsAllAbilityReadyToCleanedByUserRequest()
 {
     return false;
@@ -1260,6 +1275,36 @@ void AppRunningRecord::SetIsUnSetPermission(bool isUnSetPermission)
 bool AppRunningRecord::IsUnSetPermission()
 {
     return isUnSetPermission_;
+}
+
+void AppRunningRecord::SetKillId(int32_t killId)
+{
+    killId_ = killId;
+}
+
+int32_t AppRunningRecord::GetKillId() const
+{
+    return killId_;
+}
+
+void AppRunningRecord::SetKillMsg(const std::string &killMsg)
+{
+    killMsg_ = killMsg;
+}
+
+std::string AppRunningRecord::GetKillMsg() const
+{
+    return killMsg_;
+}
+
+void AppRunningRecord::SetInnerMsg(const std::string &innerMsg)
+{
+    innerMsg_ = innerMsg;
+}
+
+std::string AppRunningRecord::GetInnerMsg() const
+{
+    return innerMsg_;
 }
 
 bool AppRunningRecord::GetNeedLimitPrio()

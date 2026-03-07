@@ -28,6 +28,7 @@ class EventRunner;
 } // namespace AppExecFwk
 namespace AbilityRuntime {
 struct CommonHspBundleInfo {
+    uint32_t versionCode;
     std::string bundleName;
     std::string moduleName;
     std::string hapPath;
@@ -61,6 +62,7 @@ public:
         std::vector<std::string> assetBasePathStr;
         std::shared_ptr<AppExecFwk::EventRunner> eventRunner = nullptr;
         std::map<std::string, std::string> hapModulePath;
+        std::vector<std::string> staticHapModuleNameList;
         std::vector<std::string> appInnerHspPathList;
         std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> commonHspBundleInfos;
         bool loadAce = true;
@@ -119,6 +121,7 @@ public:
     virtual void ForceFullGC() = 0;
     virtual void ForceFullGC(uint32_t tid) = 0;
     virtual void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) = 0;
+    virtual void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary, bool isClearNodeIdCache) {};
     virtual void AllowCrossThreadExecution() = 0;
     virtual void GetHeapPrepare() = 0;
     virtual void NotifyApplicationState(bool isBackground) = 0;

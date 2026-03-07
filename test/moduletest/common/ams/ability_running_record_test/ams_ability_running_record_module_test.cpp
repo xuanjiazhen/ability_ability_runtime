@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2023 Huawei Device Co., Ltd.
+* Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -92,7 +92,7 @@ public:
     {
         scheduled_ |= LOW_MEMORY_SCHEDULED;
     }
-    void ScheduleMemoryLevel(const int) override
+    void ScheduleMemoryLevel(const int, bool) override
     {
         scheduled_ |= MEMORY_LEVEL_SCHEDULED;
     }
@@ -119,7 +119,8 @@ public:
     {
         scheduled_ |= PROFILE_CHANGED_SCHEDULED;
     }
-    void ScheduleConfigurationUpdated(const Configuration& config)
+    void ScheduleConfigurationUpdated(
+        const Configuration& config, ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT)
     {
         scheduled_ |= SCHEDULE_CONFIGURATION_UPDATED;
     }
@@ -217,6 +218,12 @@ public:
     {
         return 0;
     }
+
+    int32_t ScheduleDumpArkWeb(const std::string &customArgs, std::string &result) override
+    {
+        return 0;
+    }
+
     void SetWatchdogBackgroundStatus(bool status) override
     {}
 

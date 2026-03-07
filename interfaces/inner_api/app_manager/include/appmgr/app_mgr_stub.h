@@ -131,7 +131,6 @@ private:
     int32_t HandleNotifyFault(MessageParcel &data, MessageParcel &reply);
     int32_t HandleNotifyFaultBySA(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetAppFreezeFilter(MessageParcel &data, MessageParcel &reply);
-    int32_t HandleJudgeSandboxByPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsTerminatingByPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetBundleNameByPid(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRunningProcessInfoByPid(MessageParcel &data, MessageParcel &reply);
@@ -170,6 +169,7 @@ private:
     int32_t HandleSetSupportedProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsProcessCacheSupported(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetProcessCacheEnable(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleLockProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSaveBrowserChannel(MessageParcel &data, MessageParcel &reply);
     int32_t HandleCheckCallingIsUserTestMode(MessageParcel &data, MessageParcel &reply);
 #ifdef SUPPORT_CHILD_PROCESS
@@ -209,6 +209,8 @@ private:
     int32_t HandleAllowScbProcessMoveToBackground(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillProcessByPidForExit(MessageParcel &data, MessageParcel &reply);
     int32_t HandleKillChildProcessByPid(MessageParcel &data, MessageParcel &reply);
+    int32_t HandlePreloadExtension(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleSetProcessPrepareExit(MessageParcel &data, MessageParcel &reply);
     DISALLOW_COPY_AND_MOVE(AppMgrStub);
 };
 }  // namespace AppExecFwk

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2022 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -59,14 +59,15 @@ enum class ErrorLifecycleState {
  * LifeCycleStateInfo is used to save information about ability life cycle state.
  */
 struct LifeCycleStateInfo : public Parcelable {
+    AbilityLifeCycleState state = AbilityLifeCycleState::ABILITY_STATE_INITIAL;
     bool isNewWant = false;
     int missionId = -1;
     uint32_t sceneFlag = 0;
     uint32_t sceneFlagBak = 0;
-    AbilityLifeCycleState state = AbilityLifeCycleState::ABILITY_STATE_INITIAL;
     std::shared_ptr<AbilityStartSetting> setting = nullptr;
     LaunchParam launchParam;
     CallerInfo caller;
+    std::string pageConfig;
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;

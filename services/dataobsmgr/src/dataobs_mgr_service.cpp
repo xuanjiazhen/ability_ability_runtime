@@ -21,6 +21,7 @@
 #include "ability_manager_interface.h"
 #include "ability_manager_proxy.h"
 #include "accesstoken_kit.h"
+#include "bundle_mgr_helper.h"
 #include "dataobs_mgr_errors.h"
 #include "data_share_permission.h"
 #include "datashare_log.h"
@@ -45,9 +46,12 @@
 namespace OHOS {
 namespace AAFwk {
 using namespace DataShare;
+using namespace Security::AccessToken;
+using namespace AppExecFwk;
 static constexpr const char *DIALOG_APP = "com.ohos.pasteboarddialog";
 static constexpr const char *PROGRESS_ABILITY = "PasteboardProgressAbility";
 static constexpr const char *PROMPT_TEXT = "PromptText_PasteBoard_Local";
+static const int32_t CACHE_SIZE_THRESHOLD = 20;
 static const int32_t DATA_MANAGER_SERVICE_UID = 3012;
 
 const bool REGISTER_RESULT =
@@ -176,6 +180,37 @@ bool DataObsMgrService::IsDataMgrService(uint32_t tokenId, int32_t uid)
         return false;
     }
     return true;
+}
+
+// Check wheather calling process has system permission, with some providers who allow calls from non-system app.
+// Existing function IsCallingPermissionValid checks based on an option passed from client, which is not reliable
+// in some situation. Try use this function for system permission checking instead.
+bool DataObsMgrService::IsSystemAppWithAllowedProvider(uint32_t callerTokenId, uint64_t fullTokenId,
+    const std::string &callingFunc, const Uri &uri, bool isExtension)
+{
+    if (DataShare::DataSharePermission::IsUriPathSegmentAllowed(uri)) {
+        // allowed provider
+        return true;
+    }
+    Security::AccessToken::ATokenTypeEnum tokenType =
+        Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerTokenId);
+    // Do not report system ability
+    if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_NATIVE ||
+        tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_SHELL) {
+        return true;
+    }
+
+    // Do not report system hap
+    if (IsSystemApp(callerTokenId, fullTokenId)) {
+        return true;
+    }
+    // mask uri using interval of 2
+    std::string uriAnis = CommonUtils::AlternateMask(uri.ToString(), 2);
+    std::string appendix = callingFunc + "isExtension:" + std::to_string(isExtension);
+    TAG_LOGE(AAFwkTag::DBOBSMGR, "normal app calling uri:%{public}s,"
+        "fullToken %{public}" PRId64, uriAnis.c_str(), fullTokenId);
+    DataShare::DataSharePermission::ReportExtensionFault(E_NOT_SYSTEM_APP, callerTokenId, uriAnis, appendix);
+    return false;
 }
 
 bool DataObsMgrService::IsCallingPermissionValid(DataObsOption &opt)
@@ -329,6 +364,22 @@ Status DataObsMgrService::VerifyDataSharePermissionInner(Uri &uri, bool isRead, 
     return SUCCESS;
 }
 
+int32_t DataObsMgrService::ConstructRegisterObserver(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
+    uint32_t token, int32_t userId, int32_t pid)
+{
+    auto [success, observerNode] = ConstructObserverNode(dataObserver, userId, token, pid);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::DBOBSMGR, "ConstructObserverNode fail, uri:%{public}s, userId:%{public}d",
+            CommonUtils::Anonymous(uri.ToString()).c_str(), userId);
+        return DATAOBS_INVALID_USERID;
+    }
+
+    if (const_cast<Uri &>(uri).GetScheme() == SHARE_PREFERENCES) {
+        return dataObsMgrInnerPref_->HandleRegisterObserver(uri, observerNode);
+    }
+    return dataObsMgrInner_->HandleRegisterObserver(uri, observerNode);
+}
+
 int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbilityObserver> dataObserver,
     int32_t userId, DataObsOption opt, bool isExtension)
 {
@@ -347,37 +398,31 @@ int32_t DataObsMgrService::RegisterObserverInner(const Uri &uri, sptr<IDataAbili
     }
     int32_t pid = isExtension ? opt.FirstCallerPid() : IPCSkeleton::GetCallingPid();
     uint32_t token = isExtension ? opt.FirstCallerTokenID() : callingToken;
-    Uri uriInner = uri;
     ObserverInfo info(callingToken, fullTokenId, opt.FirstCallerTokenID(), userId, isExtension);
     info.callingUserId = callingUserId;
     info.errMsg = __FUNCTION__;
     info.pid = pid;
-    int status;
+    Uri uriInner = uri;
     bool isDataShareUri = DataSharePermission::IsDataShareUri(uriInner);
+    // If callling through DataShare, then uri must be datashare-style valid.
     if (opt.IsDataShare() && !isDataShareUri) {
         LOG_ERROR("uri invalid, uri:%{public}s", CommonUtils::Anonymous(uri.ToString()).c_str());
         return DATAOBS_INVALID_URI;
     }
-    bool checkPermission = opt.IsDataShare() || isDataShareUri;
-    if (checkPermission) {
+    int status;
+    if (opt.IsDataShare() || isDataShareUri) {
+        // when calling from provider, check origininal caller's token not provider's token
+        auto firstFullTokenId = isExtension ? opt.FirstCallerFullTokenID() : fullTokenId;
+        // check for fault report purpose
+        if (!IsSystemAppWithAllowedProvider(token, firstFullTokenId, __FUNCTION__, uri, isExtension)) {
+            return DATAOBS_NOT_SYSTEM_APP;
+        }
         status = VerifyDataSharePermission(uriInner, true, info);
         if (status != 0) {
             return status;
         }
     }
-    auto [success, observerNode] = ConstructObserverNode(dataObserver, userId, token, pid);
-    if (!success) {
-        TAG_LOGE(AAFwkTag::DBOBSMGR, "ConstructObserverNode fail, uri:%{public}s, userId:%{public}d",
-            CommonUtils::Anonymous(uri.ToString()).c_str(), userId);
-        return DATAOBS_INVALID_USERID;
-    }
-
-    if (const_cast<Uri &>(uri).GetScheme() == SHARE_PREFERENCES) {
-        status = dataObsMgrInnerPref_->HandleRegisterObserver(uri, observerNode);
-    } else {
-        status = dataObsMgrInner_->HandleRegisterObserver(uri, observerNode);
-    }
-
+    status = ConstructRegisterObserver(uri, dataObserver, token, userId, pid);
     if (status != NO_ERROR) {
         LOG_ERROR("register failed:%{public}d,uri:%{public}s", status, CommonUtils::Anonymous(uri.ToString()).c_str());
         return status;
@@ -410,6 +455,7 @@ int DataObsMgrService::UnregisterObserver(const Uri &uri, sptr<IDataAbilityObser
     }
 
     auto tokenId = IPCSkeleton::GetCallingTokenID();
+    int32_t callingUserId = GetCallingUserId(tokenId);
     auto [success, observerNode] = ConstructObserverNode(dataObserver, userId, tokenId, 0);
     if (!success) {
         TAG_LOGE(AAFwkTag::DBOBSMGR, "ConstructObserverNode fail, uri:%{public}s, userId:%{public}d",
@@ -474,11 +520,12 @@ bool DataObsMgrService::IsTaskOverLimit()
 void DataObsMgrService::SubmitNotifyChangeTask(Uri &uri, int32_t userId, std::string readPermission, ObserverInfo &info)
 {
     ChangeInfo changeInfo = { ChangeInfo::ChangeType::OTHER, { uri } };
-    handler_->SubmitTask([this, uri, changeInfo, userId, readPermission, isSilentUri = info.isSilentUri]() {
+    handler_->SubmitTask([this, uri, changeInfo, userId, readPermission,
+        isSilentUri = info.isSilentUri, tokenId = info.tokenId]() {
         if (const_cast<Uri &>(uri).GetScheme() == SHARE_PREFERENCES) {
-            dataObsMgrInnerPref_->HandleNotifyChange(uri, userId);
+            dataObsMgrInnerPref_->HandleNotifyChange(uri, userId, tokenId);
         } else {
-            dataObsMgrInner_->HandleNotifyChange(uri, userId, readPermission, isSilentUri);
+            dataObsMgrInner_->HandleNotifyChange(uri, userId, readPermission, isSilentUri, tokenId);
             std::vector<NotifyInfo> verifyInfo = {NotifyInfo(uri, readPermission, isSilentUri)};
             dataObsMgrInnerExt_->HandleNotifyChange(changeInfo, userId, verifyInfo);
         }
@@ -514,12 +561,19 @@ int32_t DataObsMgrService::NotifyChangeInner(Uri &uri, int32_t userId, DataObsOp
     bool checkPermission = opt.IsDataShare() || isDataShareUri;
     int32_t ret;
     if (uid != DATA_MANAGER_SERVICE_UID && checkPermission) {
+        // when calling from provider, check origininal caller's token not provider's token
+        auto firstTokenID = isExtension ? opt.FirstCallerTokenID() : tokenId;
+        auto firstFullTokenId = isExtension ? opt.FirstCallerFullTokenID() : fullTokenId;
+        // check for fault report purpose
+        if (!IsSystemAppWithAllowedProvider(firstTokenID, firstFullTokenId, __FUNCTION__, uri, isExtension)) {
+            return DATAOBS_NOT_SYSTEM_APP;
+        }
         ret = VerifyDataSharePermission(uri, false, info);
         if (ret != 0) {
             return ret;
         }
     }
-    
+    Uri uriStr = uri;
     std::string readPermission = DataSharePermission::NO_PERMISSION;
     if (checkPermission) {
         std::tie(ret, readPermission) = GetUriPermission(uri, true, info);
@@ -560,10 +614,18 @@ Status DataObsMgrService::RegisterObserverExt(const Uri &uri, sptr<IDataAbilityO
         return DATAOBS_INVALID_USERID;
     }
     Uri uriInner = uri;
-    if (opt.IsDataShare() && !DataSharePermission::IsDataShareUri(uriInner)) {
+    bool isDataShareUri = DataSharePermission::IsDataShareUri(uriInner);
+    if (opt.IsDataShare() && !isDataShareUri) {
         LOG_ERROR("uri invalid, uri:%{public}s", CommonUtils::Anonymous(uri.ToString()).c_str());
         return DATAOBS_INVALID_URI;
     }
+    if (opt.IsDataShare() || isDataShareUri) {
+        // check for fault report purpose
+        if (!IsSystemAppWithAllowedProvider(tokenId, IPCSkeleton::GetCallingFullTokenID(), __FUNCTION__, uri, false)) {
+            return DATAOBS_NOT_SYSTEM_APP;
+        }
+    }
+
     ObserverInfo info(tokenId, 0, 0, userId, false);
     info.errMsg = __FUNCTION__;
     info.pid = IPCSkeleton::GetCallingPid();
@@ -643,8 +705,9 @@ std::pair<Status, std::vector<NotifyInfo>> DataObsMgrService::MakeNotifyInfos(Ch
     bool isDataShare = opt.IsDataShare();
     std::vector<NotifyInfo> notifyInfo;
     Status status = SUCCESS;
+    uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
     // datashare remove permission denied uri
-    changes.uris_.remove_if([this, &notifyInfo, tokenId, userId, isDataShare, &status](Uri &uri) {
+    changes.uris_.remove_if([this, &notifyInfo, tokenId, userId, isDataShare, &status, fullTokenId](Uri &uri) {
         bool isDataShareUri = DataSharePermission::IsDataShareUri(uri);
         if (isDataShare && !isDataShareUri) {
             LOG_ERROR("uri invalid, uri:%{public}s", CommonUtils::Anonymous(uri.ToString()).c_str());
@@ -653,6 +716,10 @@ std::pair<Status, std::vector<NotifyInfo>> DataObsMgrService::MakeNotifyInfos(Ch
         if (!isDataShare && !isDataShareUri) {
             notifyInfo.push_back(NotifyInfo(DataSharePermission::NO_PERMISSION, false));
             return false;
+        }
+        // check for fault report purpose
+        if (!IsSystemAppWithAllowedProvider(tokenId, fullTokenId, __FUNCTION__, uri, false)) {
+            return true;
         }
         ObserverInfo info(tokenId, 0, tokenId, userId, false);
         info.errMsg = "NotifyChangeExt";
@@ -716,7 +783,7 @@ Status DataObsMgrService::NotifyChangeExt(const ChangeInfo &changeInfo, DataObsO
         int32_t count = 0;
         for (auto &uri : changes.uris_) {
             dataObsMgrInner_->HandleNotifyChange(uri, userId, info[count].readPermission,
-                info[count].isSilentUri);
+                info[count].isSilentUri, tokenId);
             count++;
         }
         delete [] static_cast<uint8_t *>(changes.data_);
@@ -726,16 +793,35 @@ Status DataObsMgrService::NotifyChangeExt(const ChangeInfo &changeInfo, DataObsO
     return SUCCESS;
 }
 
-void DataObsMgrService::GetFocusedAppInfo(int32_t &windowId, sptr<IRemoteObject> &abilityToken) const
+DataObsMgrService::FocusedAppInfo DataObsMgrService::GetFocusedWindowInfo() const
 {
     Rosen::FocusChangeInfo info;
+    DataObsMgrService::FocusedAppInfo appInfo = { 0 };
+    std::vector<sptr<Rosen::WindowVisibilityInfo>> windowVisibilityInfos;
+    Rosen::WMError result = Rosen::WMError::WM_OK;
 #ifdef SCENE_BOARD_ENABLE
     Rosen::WindowManagerLite::GetInstance().GetFocusWindowInfo(info);
+    result = Rosen::WindowManagerLite::GetInstance().GetVisibilityWindowInfo(windowVisibilityInfos);
 #else
     Rosen::WindowManager::GetInstance().GetFocusWindowInfo(info);
+    result = Rosen::WindowManager::GetInstance().GetVisibilityWindowInfo(windowVisibilityInfos);
 #endif
-    windowId = info.windowId_;
-    abilityToken = info.abilityToken_;
+    if (result == Rosen::WMError::WM_OK) {
+        for (const auto& windowInfo : windowVisibilityInfos) {
+            if (windowInfo == nullptr) {
+                continue;
+            }
+            if (windowInfo->windowId_ == static_cast<uint32_t>(info.windowId_)) {
+                appInfo.left = windowInfo->rect_.posX_;
+                appInfo.top = windowInfo->rect_.posY_;
+                appInfo.width = windowInfo->rect_.width_;
+                appInfo.height = windowInfo->rect_.height_;
+                break;
+            }
+        }
+    }
+    appInfo.abilityToken = info.abilityToken_;
+    return appInfo;
 }
 
 sptr<IRemoteObject> DataObsMgrService::GetAbilityManagerService() const
@@ -766,9 +852,7 @@ Status DataObsMgrService::NotifyProcessObserver(const std::string &key, const sp
     }
     auto abilityManager = iface_cast<IAbilityManager>(remote);
 
-    int32_t windowId;
-    sptr<IRemoteObject> callerToken;
-    GetFocusedAppInfo(windowId, callerToken);
+    FocusedAppInfo appInfo = GetFocusedWindowInfo();
 
     Want want;
     want.SetElementName(DIALOG_APP, PROGRESS_ABILITY);
@@ -777,12 +861,15 @@ Status DataObsMgrService::NotifyProcessObserver(const std::string &key, const sp
     want.SetParam("remoteDeviceName", std::string());
     want.SetParam("progressKey", key);
     want.SetParam("isRemote", false);
-    want.SetParam("windowId", windowId);
     want.SetParam("ipcCallback", observer);
-    if (callerToken != nullptr) {
-        want.SetParam("tokenKey", callerToken);
+    want.SetParam("rectLeft", appInfo.left);
+    want.SetParam("rectTop", appInfo.top);
+    want.SetParam("rectWidth", static_cast<int32_t>(appInfo.width));
+    want.SetParam("rectHeight", static_cast<int32_t>(appInfo.height));
+    if (appInfo.abilityToken != nullptr) {
+        want.SetParam("tokenKey", appInfo.abilityToken);
     } else {
-        TAG_LOGW(AAFwkTag::DBOBSMGR, "CallerToken is nullptr.");
+        TAG_LOGW(AAFwkTag::DBOBSMGR, "abilityToken is nullptr.");
     }
 
     int32_t status = IN_PROCESS_CALL(abilityManager->StartAbility(want));
