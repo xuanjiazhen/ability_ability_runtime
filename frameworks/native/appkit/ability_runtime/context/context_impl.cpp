@@ -17,6 +17,7 @@
 
 #include <cerrno>
 #include <regex>
+#include <charconv>
 
 #include "ability_manager_client.h"
 #include "app_mgr_client.h"
@@ -98,6 +99,26 @@ const int AREA3 = 3;
 const int AREA4 = 4;
 constexpr int32_t FOUNDATION_UID = 5523;
 
+bool StringToUint32(const std::string& str, uint32_t& outVal)
+{
+    if (str.empty()) {
+        return false;
+    }
+
+    uint32_t val = 0;
+    const auto [ptr, ec] = std::from_chars(
+        str.data(),
+        str.data() + str.size(),
+        val,
+        10);
+
+    if (ec == std::errc{} && ptr == str.data() + str.size()) {
+        outVal = val;
+        return true;
+    }
+    return false;
+}
+
 ContextImpl::ContextImpl()
 {
     subThreadObject_ = std::make_unique<BindableSubThread>();
@@ -105,6 +126,7 @@ ContextImpl::ContextImpl()
 
 ContextImpl::~ContextImpl()
 {
+    TAG_LOGD(AAFwkTag::APPKIT, "~ContextImpl");
     UnsubscribeToOverlayEvents();
 }
 
@@ -346,34 +368,18 @@ std::string ContextImpl::GetResourceDir(const std::string &moduleName)
     return constructAndCheckDir(hapModuleInfoPtr->moduleName);
 }
 
-void ContextImpl::GetAllTempDir(std::vector<std::string> &tempPaths)
+void ContextImpl::GetAllTempBase(std::vector<std::string> &tempPaths)
 {
-    // Application temp dir
-    auto appTemp = GetTempDir();
-    if (OHOS::FileExists(appTemp)) {
-        tempPaths.push_back(appTemp);
-    }
-    // Module dir
     if (applicationInfo_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null applicationInfo");
         return;
     }
-
-    std::string baseDir;
-    if (IsCreateBySystemApp()) {
-        baseDir = CONTEXT_DATA_APP + currArea_ + CONTEXT_FILE_SEPARATOR + std::to_string(GetCurrentAccountId()) +
-            CONTEXT_FILE_SEPARATOR + CONTEXT_BASE + CONTEXT_FILE_SEPARATOR + GetBundleName();
-    } else {
-        baseDir = CONTEXT_DATA_STORAGE + currArea_ + CONTEXT_FILE_SEPARATOR + CONTEXT_BASE;
-    }
-    for (const auto &moduleItem: applicationInfo_->moduleInfos) {
-        auto moudleTemp = baseDir + CONTEXT_HAPS + CONTEXT_FILE_SEPARATOR + moduleItem.moduleName + CONTEXT_TEMP;
-        if (!OHOS::FileExists(moudleTemp)) {
-            TAG_LOGW(AAFwkTag::APPKIT, "module [%{public}s] temp path not exist,path: %{public}s",
-                moduleItem.moduleName.c_str(), moudleTemp.c_str());
-            continue;
+    for (const auto &area : CONTEXT_ELS) {
+        auto baseDir = GetBaseDir(area);
+        tempPaths.push_back(baseDir);
+        for (const auto &moduleItem: applicationInfo_->moduleInfos) {
+            tempPaths.push_back(baseDir + CONTEXT_HAPS + CONTEXT_FILE_SEPARATOR + moduleItem.moduleName);
         }
-        tempPaths.push_back(moudleTemp);
     }
 }
 
@@ -808,12 +814,17 @@ std::string ContextImpl::GetProcessName()
 
 std::string ContextImpl::GetBaseDir() const
 {
+    return GetBaseDir(currArea_);
+}
+
+std::string ContextImpl::GetBaseDir(const std::string &area) const
+{
     std::string baseDir;
     if (IsCreateBySystemApp()) {
-        baseDir = CONTEXT_DATA_APP + currArea_ + CONTEXT_FILE_SEPARATOR + std::to_string(GetCurrentAccountId()) +
+        baseDir = CONTEXT_DATA_APP + area + CONTEXT_FILE_SEPARATOR + std::to_string(GetCurrentAccountId()) +
             CONTEXT_FILE_SEPARATOR + CONTEXT_BASE + CONTEXT_FILE_SEPARATOR + GetBundleName();
     } else {
-        baseDir = CONTEXT_DATA_STORAGE + currArea_ + CONTEXT_FILE_SEPARATOR + CONTEXT_BASE;
+        baseDir = CONTEXT_DATA_STORAGE + area + CONTEXT_FILE_SEPARATOR + CONTEXT_BASE;
     }
     if (parentContext_ != nullptr && !isPlugin_) {
         baseDir = baseDir + CONTEXT_HAPS + CONTEXT_FILE_SEPARATOR +
@@ -1217,11 +1228,19 @@ void ContextImpl::UpdateResConfig(std::shared_ptr<Global::Resource::ResourceMana
     if (config_) {
         std::string mcc = config_->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MCC);
         std::string mnc = config_->GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MNC);
-        try {
-            resConfig->SetMcc(static_cast<uint32_t>(std::stoi(mcc)));
-            resConfig->SetMnc(static_cast<uint32_t>(std::stoi(mnc)));
-        } catch (...) {
-            TAG_LOGD(AAFwkTag::APPKIT, "Set mcc,mnc failed mcc:%{public}s mnc:%{public}s", mcc.c_str(), mnc.c_str());
+        uint32_t mcc_val = 0;
+        uint32_t mnc_val = 0;
+        bool mcc_ok = StringToUint32(mcc, mcc_val);
+        bool mnc_ok = StringToUint32(mnc, mnc_val);
+        if (mcc_ok) {
+            resConfig->SetMcc(mcc_val);
+        } else {
+            TAG_LOGD(AAFwkTag::APPKIT, "Set mcc failed mcc:%{public}s", mcc.c_str());
+        }
+        if (mnc_ok) {
+            resConfig->SetMnc(mnc_val);
+        } else {
+            TAG_LOGD(AAFwkTag::APPKIT, "Set mnc failed mnc:%{public}s", mnc.c_str());
         }
     }
     resourceManager->UpdateResConfig(*resConfig);
@@ -1344,6 +1363,39 @@ void ContextImpl::InitPluginHapModuleInfo(const std::shared_ptr<AppExecFwk::Abil
         abilityInfo->moduleName, accountId, *hapModuleInfo_) != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "GetPluginHapModuleInfo false");
     }
+}
+
+void ContextImpl::InitPluginExtensionInfo(const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo,
+    const std::string &hostBundleName)
+{
+    if (pluginExtensionInfo_ == nullptr || abilityInfo == nullptr || hostBundleName.empty()) {
+        return;
+    }
+    int errCode = GetBundleManager();
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed, errCode: %{public}d", errCode);
+        return;
+    }
+    int accountId = GetCurrentAccountId();
+    if (accountId == 0) {
+        accountId = GetCurrentActiveAccountId();
+    }
+    AAFwk::Want want;
+    AppExecFwk::ElementName element("", abilityInfo->bundleName, abilityInfo->name, abilityInfo->moduleName);
+    want.SetElement(element);
+    pluginExtensionInfo_ = std::make_shared<AppExecFwk::ExtensionAbilityInfo>();
+    if (bundleMgr_->GetPluginExtensionInfo(hostBundleName, want, accountId, *pluginExtensionInfo_) != ERR_OK) {
+        pluginExtensionInfo_ = nullptr;
+        TAG_LOGE(AAFwkTag::APPKIT, "GetPluginExtensionInfo false");
+    }
+}
+
+std::shared_ptr<AppExecFwk::ExtensionAbilityInfo> ContextImpl::GetPluginExtensionInfo()
+{
+    if (pluginExtensionInfo_ == nullptr) {
+        TAG_LOGD(AAFwkTag::APPKIT, "pluginExtensionInfo_ is nullptr");
+    }
+    return pluginExtensionInfo_;
 }
 
 void ContextImpl::InitHapModuleInfo(const AppExecFwk::HapModuleInfo &hapModuleInfo)
@@ -1704,6 +1756,7 @@ void ContextImpl::ShallowCopySelf(std::shared_ptr<ContextImpl> &contextImpl)
     contextImpl->config_ = config_;
     contextImpl->currArea_ = currArea_;
     contextImpl->overlayModuleInfos_ = overlayModuleInfos_;
+    contextImpl->pluginExtensionInfo_ = pluginExtensionInfo_;
     {
         std::lock_guard<std::mutex> lock(checkedDirSetLock_);
         contextImpl->checkedDirSet_ = checkedDirSet_;
@@ -1859,6 +1912,18 @@ std::string ContextImpl::GetLatestParameter()
     return "";
 }
 
+void ContextImpl::SetConfigUpdateReason(ConfigUpdateReason reason)
+{
+    std::lock_guard<std::mutex> lock(configUpdateReasonLock_);
+    configUpdateReason_ = reason;
+}
+
+ConfigUpdateReason ContextImpl::GetConfigUpdateReason()
+{
+    std::lock_guard<std::mutex> lock(configUpdateReasonLock_);
+    return configUpdateReason_;
+}
+
 #ifdef SUPPORT_GRAPHICS
 std::shared_ptr<Context> ContextImpl::CreateDisplayContext(uint64_t displayId)
 {
@@ -1950,6 +2015,26 @@ std::shared_ptr<Context> ContextImpl::CreateTargetPluginContext(const std::strin
     }
 
     return WrapContext(pluginBundleName, moduleName, inputContext, pluginBundleInfo, hostBundName);
+}
+
+std::shared_ptr<Context> ContextImpl::CreateModuleOrPluginContext(const std::string &bundleName,
+    const std::string &moduleName)
+{
+    if (bundleName.empty() || moduleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "input params is null");
+        return nullptr;
+    }
+
+    std::shared_ptr<Context> currentContext = shared_from_this();
+    std::shared_ptr<Context> appContext = CreateModuleContext(bundleName, moduleName, currentContext);
+    if (appContext == nullptr) {
+        auto appInfo = GetApplicationInfo();
+        if (appInfo && appInfo->hasPlugin) {
+            appContext = CreatePluginContext(bundleName, moduleName, currentContext);
+        }
+    }
+
+    return appContext;
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

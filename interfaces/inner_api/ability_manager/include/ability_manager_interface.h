@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -51,6 +51,8 @@
 #include "sa_interceptor_interface.h"
 #include "sender_info.h"
 #include "start_options.h"
+#include "start_params_by_SCB.h"
+#include "start_specified_ability_params.h"
 #include "user_callback.h"
 #include "system_memory_attr.h"
 #include "ui_extension/ui_extension_ability_connect_info.h"
@@ -150,12 +152,14 @@ public:
      * @param want, the want of the ability to start.
      * @param userId, Designation User ID.
      * @param requestCode, Ability request code.
+     * @param specifiedFullTokenId, The specified full token ID.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbility(
         const Want &want,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) = 0;
+        int requestCode = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0) = 0;
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -164,13 +168,15 @@ public:
      * @param callerToken, caller ability token.
      * @param userId, Designation User ID.
      * @param requestCode, Ability request code.
+     * @param specifiedFullTokenId, The specified full token ID.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbility(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE) = 0;
+        int requestCode = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0) = 0;
 
     /**
      * StartAbilityWithSpecifyTokenId with want and specialId, send want to ability manager service.
@@ -490,13 +496,12 @@ public:
      * Start ui ability with want, send want to ability manager service.
      *
      * @param sessionInfo the session info of the ability to start.
+     * @param params start parameters.
      * @param isColdStart the session info of the ability is or not cold start.
-     * @param sceneFlag scene flag.
-     * @param isRestart whether kill old process and start the ability in new process.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag = 0,
-        bool isRestart = false)
+    virtual int StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart)
     {
         return 0;
     }
@@ -719,6 +724,8 @@ public:
      * @param callerToken, caller ability token.
      * @param extensionType, type of the extension.
      * @param userId, the service user ID.
+     * @param specifiedFullTokenId, The specified full token ID.
+     * @param loadTimeout, timeout multiply for ability loading stage, range 1-30, not work on asan.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t ConnectAbilityCommon(
@@ -727,7 +734,9 @@ public:
         const sptr<IRemoteObject> &callerToken,
         AppExecFwk::ExtensionAbilityType extensionType,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        bool isQueryExtensionOnly = false)
+        bool isQueryExtensionOnly = false,
+        uint64_t specifiedFullTokenId = 0,
+        int32_t loadTimeout = 0)
     {
         return 0;
     }
@@ -1113,13 +1122,14 @@ public:
      * @param connect, Callback used to notify caller the result of connecting or disconnecting.
      * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
-     * @param isSilent, whether show window when start fail.
+     * @param isSilent, whether show window when start fail by interceptorExecuter.
      * @param promotePriority, whether to promote priority for sa.
+     * @param isVisible, whether show window when start fail by afterCheckExecuter.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE, bool isSilent = false,
-        bool promotePriority = false) = 0;
+        bool promotePriority = false, bool isVisible = false) = 0;
 
     /**
      * Start Ability, connect session with common ability.
@@ -1129,13 +1139,14 @@ public:
      * @param callerToken Indicates the caller's identity
      * @param accountId Indicates the account to start.
      * @param errMsg Out parameter, indicates the failed reason.
-     * @param isSilent, whether show window when start fail.
+     * @param isSilent, whether show window when start fail by interceptorExecuter.
      * @param promotePriority, whether to promote priority for sa.
+     * @param isVisible, whether show window when start fail by afterCheckExecuter.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg, bool isSilent = false,
-        bool promotePriority = false)
+        bool promotePriority = false, bool isVisible = false)
     {
         return 0;
     };
@@ -1144,9 +1155,10 @@ public:
      * Start Ability for prelaunch
      *
      * @param want, Special want for service type's ability.
+     * @param frameNum, Special frameNum for remove start window num.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int StartAbilityForPrelaunch(const Want &want)
+    virtual int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
     {
         return 0;
     };
@@ -1400,7 +1412,7 @@ public:
      */
     virtual int GetTopAbility(sptr<IRemoteObject> &token) = 0;
 
-    virtual int CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused)
+    virtual int CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused, uint64_t displayId = 0)
     {
         return 0;
     }
@@ -1583,6 +1595,31 @@ public:
     }
 
     /**
+     * Force app exit and record exit reason.
+     * @param pid The process id.
+     * @param exitReason The reason of kill app.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillAppWithReason(const int32_t pid, const ExitReasonCompability &exitReasonCompability)
+    {
+        return 0;
+    }
+
+    /**
+     * Force bundle exit and record exit reason.
+     * @param bundleName Bundle name of kill app.
+     * @param appIndex The app index of app clone.
+     * @param userId User ID.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t KillBundleWithReason(
+        const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason)
+    {
+        return 0;
+    }
+
+    /**
      * Record app exit reason.
      * @param exitReason The reason of app exit.
      * @return Returns ERR_OK on success, others on failure.
@@ -1599,6 +1636,18 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t RecordProcessExitReason(const int32_t pid, const ExitReason &exitReason)
+    {
+        return 0;
+    }
+
+    /**
+     * Record app exit reason.
+     * @param pid The process id.
+     * @param uid The process uid.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason)
     {
         return 0;
     }
@@ -1626,17 +1675,20 @@ public:
      * Call UIAbility by SCB.
      *
      * @param sessionInfo the session info of the ability to be called.
+     * @param params start parameters.
      * @param isColdStart the session of the ability is or not cold start.
      */
-    virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isColdStart) {}
+    virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+        bool &isColdStart) {}
 
     /**
      * Start specified ability by SCB.
      *
      * @param want Want information.
+     * @param params The parameters to start specified ability.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t StartSpecifiedAbilityBySCB(const Want &want)
+    virtual int32_t StartSpecifiedAbilityBySCB(const Want &want, const StartSpecifiedAbilityParams &params)
     {
         return 0;
     }
@@ -1699,7 +1751,7 @@ public:
         return 0;
     }
 
-    virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids)
+    virtual int32_t KillProcessWithPrepareTerminate(const std::vector<int32_t> &pids, bool clear)
     {
         return 0;
     }
@@ -1777,6 +1829,29 @@ public:
     }
 
     /**
+     * @brief Manual start auto startup apps, EDM use only.
+     * @param userId Indicates which user's auto startup apps to be started.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ManualStartAutoStartupApps(int32_t userId)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief Query the caller's Token ID for anco.
+     * @param userId Indicates the user ID.
+     * @param asCallerForAncoSessionId Indicates the anco session Id of cached information.
+     * @param callerTokenId Indicates the output caller Token ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode QueryCallerTokenIdForAnco(int32_t userId, const std::string &asCallerForAncoSessionId,
+        uint32_t &callerTokenId)
+    {
+        return ERR_OK;
+    }
+
+    /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
      *
      * @param sessionInfo the session info of the ability to start.
@@ -1851,9 +1926,11 @@ public:
      * @brief Set application auto start up state by EDM.
      * @param info The auto startup info, include bundle name, module name, ability name.
      * @param flag Indicate whether the application is prohibited from changing the auto start up state.
+     * @param isHiddenStart Indicate whether the application is hidden start.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag) = 0;
+    virtual int32_t SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag,
+        bool isHiddenStart = false) = 0;
 
     /**
      * @brief Cancel application auto start up state by EDM.
@@ -2291,18 +2368,6 @@ public:
     }
 
     /**
-     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
-     *
-     * @param want Ability want.
-     * @param observer ability foreground notify observer for aa tool.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer)
-    {
-        return 0;
-    }
-
-    /**
      * Get all insight intent infos.
      * @param flag, the get type.
      * @param infos, the insight intent infos.
@@ -2310,7 +2375,8 @@ public:
      */
     virtual int32_t GetAllInsightIntentInfo(
         AbilityRuntime::GetInsightIntentFlag flag,
-        std::vector<InsightIntentInfoForQuery> &infos)
+        std::vector<InsightIntentInfoForQuery> &infos,
+        int32_t userId = DEFAULT_INVAL_VALUE)
     {
         return 0;
     }
@@ -2325,7 +2391,8 @@ public:
     virtual int32_t GetInsightIntentInfoByBundleName(
         AbilityRuntime::GetInsightIntentFlag flag,
         const std::string &bundleName,
-        std::vector<InsightIntentInfoForQuery> &infos)
+        std::vector<InsightIntentInfoForQuery> &infos,
+        int32_t userId = DEFAULT_INVAL_VALUE)
     {
         return 0;
     }
@@ -2344,12 +2411,46 @@ public:
         const std::string &bundleName,
         const std::string &moduleName,
         const std::string &intentName,
-        InsightIntentInfoForQuery &info)
+        InsightIntentInfoForQuery &info,
+        int32_t userId = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+
+    /**
+     * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
+     *
+     * @param want Ability want.
+     * @param observer ability foreground notify observer for aa tool.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer)
+    {
+        return 0;
+    }
+
+    /**
+     * Set keep-alive flag for app service extension under u1 user.
+     * @param bundleName Bundle name.
+     * @param flag Keep-alive flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetAppServiceExtensionKeepAlive(const std::string &bundleName, bool flag)
     {
         return 0;
     }
 
     virtual int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList)
+    {
+        return 0;
+    }
+
+    /**
+     * Get keep-alive app service extensions.
+     * @param list List of Keep-alive information.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list)
     {
         return 0;
     }
@@ -2375,27 +2476,6 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t RegisterSAInterceptor(sptr<AbilityRuntime::ISAInterceptor> interceptor)
-    {
-        return 0;
-    }
-
-    /**
-     * Set keep-alive flag for app service extension under u1 user.
-     * @param bundleName Bundle name.
-     * @param flag Keep-alive flag.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t SetAppServiceExtensionKeepAlive(const std::string &bundleName, bool flag)
-    {
-        return 0;
-    }
-
-    /**
-     * Get keep-alive app service extensions.
-     * @param list List of Keep-alive information.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual int32_t QueryKeepAliveAppServiceExtensions(std::vector<KeepAliveInfo> &list)
     {
         return 0;
     }
@@ -2495,6 +2575,29 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief Get list of applications launched before the first unlock.
+     * @param userId The User Id.
+     * @param userLockedBundleList List of applications launched before the first unlock.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode GetUserLockedBundleList(int32_t userId, std::unordered_set<std::string> &userLockedBundleList)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Set app recovery galg.
+     * @param token Caller ability token.
+     * @param flag App recovery flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag)
     {
         return 0;
     }

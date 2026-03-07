@@ -29,10 +29,12 @@ using namespace OHOS::AppExecFwk;
 namespace OHOS {
 namespace {
 constexpr size_t STRING_MAX_LENGTH = 128;
+constexpr size_t U32_AT_SIZE = 4;
 }
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
 {
     int32_t userId;
+    int32_t userId2;
     std::string bundleName;
     std::string moduleName;
     std::string intentName;
@@ -44,26 +46,38 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
     std::vector<ExtractInsightIntentInfo> intentInfos;
     std::vector<InsightIntentInfo> configIntentInfos;
     std::vector<InsightIntentInfo> configInfos;
+    InsightIntentInfo info2;
     FuzzedDataProvider fdp(data, size);
     userId = fdp.ConsumeIntegral<int32_t>();
     bundleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     moduleName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
     intentName = fdp.ConsumeRandomLengthString(STRING_MAX_LENGTH);
+    uint32_t versionCode = fdp.ConsumeIntegralInRange<int32_t>(0, U32_AT_SIZE);
     profileInfos.insightIntents.push_back(info);
     AbilityFuzzUtil::GetRandomExtractInsightIntentGenericInfo(fdp, genericInfo);
     AbilityFuzzUtil::GetRandomExtractInsightIntentInfo(fdp, intentInfo);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->InitInsightIntentCache(userId);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->SaveInsightIntentTotalInfo(bundleName, moduleName,
-        userId, profileInfos, configIntentInfos);
+        userId, versionCode, profileInfos, configIntentInfos);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentTotalInfo(bundleName, moduleName,
         userId);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->DeleteInsightIntentByUserId(userId);
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentGenericInfo(genericInfos);
-    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfoByName(bundleName, genericInfos);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentGenericInfo(userId, genericInfos);
+    DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfoByName(bundleName, userId,
+        genericInfos);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentGenericInfo(bundleName, moduleName,
-        intentName, genericInfo);
+        intentName, userId, genericInfo);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetAllInsightIntentInfo(userId, intentInfos, configInfos);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfoByName(bundleName, userId, intentInfos);
+    auto insightIntentDbCache = DelayedSingleton<InsightIntentDbCache>::GetInstance();
+    userId2 = fdp.ConsumeIntegral<int32_t>();
+    insightIntentDbCache->InitInsightIntentCache(userId2);
+    insightIntentDbCache->GetInsightIntentInfoByName(bundleName, userId, intentInfos);
+    insightIntentDbCache->GetAllInsightIntentInfo(userId, intentInfos, configInfos);
+    insightIntentDbCache->GetAllInsightIntentGenericInfo(userId, genericInfos);
+    insightIntentDbCache->GetAllConfigInsightIntentInfo(userId, configInfos);
+    insightIntentDbCache->GetConfigInsightIntentInfo(bundleName, moduleName, intentName, userId, info2);
+    insightIntentDbCache->GetConfigInsightIntentInfoByName(bundleName, userId, configInfos);
     DelayedSingleton<InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(bundleName, moduleName,
         intentName, userId, intentInfo);
     return true;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -31,6 +31,62 @@ public:
     static std::shared_ptr<UIAbilityRecord> CreateAbilityRecord(const AbilityRequest &abilityRequest);
 
     AbilityRecordType GetAbilityRecordType() override;
+
+    inline void SetExitReasonLoaded()
+    {
+        exitReasonLoaded_ = true;
+    }
+    inline bool IsExitReasonLoaded() const
+    {
+        return exitReasonLoaded_;
+    }
+
+    inline void SetIsKillPrecedeStart(bool isKillPrecedeStart)
+    {
+        isKillPrecedeStart_.store(isKillPrecedeStart);
+    }
+    inline bool IsKillPrecedeStart()
+    {
+        return isKillPrecedeStart_.load();
+    }
+
+    inline bool GetPrelaunchFlag() const
+    {
+        return isPrelaunch_;
+    }
+    inline void SetPrelaunchFlag(bool isPrelaunch)
+    {
+        isPrelaunch_ = isPrelaunch;
+    }
+
+    void ScheduleCollaborate(const Want &want);
+
+    inline bool IsHook () const
+    {
+        return isHook_;
+    }
+    inline void SetIsHook(bool isHook)
+    {
+        isHook_ = isHook;
+    }
+
+    inline bool GetHookOff () const
+    {
+        return hookOff_;
+    }
+    inline void SetHookOff(bool hookOff)
+    {
+        hookOff_ = hookOff;
+    }
+
+    inline bool IsLastWantBackgroundDriven() const
+    {
+        return isLastWantBackgroundDriven_.load();
+    }
+private:
+    bool exitReasonLoaded_ = false;
+    bool hookOff_ = false;
+    std::atomic_bool isKillPrecedeStart_ = false;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

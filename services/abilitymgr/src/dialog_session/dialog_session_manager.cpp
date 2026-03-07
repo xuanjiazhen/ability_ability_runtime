@@ -77,10 +77,10 @@ void DialogSessionManager::SetStartupSessionInfo(const std::string &dialogSessio
 }
 
 void DialogSessionManager::SetDialogSessionInfo(const std::string &dialogSessionId,
-    sptr<DialogSessionInfo> &dilogSessionInfo, std::shared_ptr<DialogCallerInfo> &dialogCallerInfo)
+    sptr<DialogSessionInfo> &dialogSessionInfo, std::shared_ptr<DialogCallerInfo> &dialogCallerInfo)
 {
     std::lock_guard<ffrt::mutex> guard(dialogSessionRecordLock_);
-    dialogSessionInfoMap_[dialogSessionId] = dilogSessionInfo;
+    dialogSessionInfoMap_[dialogSessionId] = dialogSessionInfo;
     dialogCallerInfoMap_[dialogSessionId] = dialogCallerInfo;
 }
 
@@ -186,6 +186,8 @@ void DialogSessionManager::GenerateCallerAbilityInfo(AbilityRequest &abilityRequ
         callerAbilityInfo.visible = callerRecord->GetAbilityInfo().visible;
         callerAbilityInfo.appIndex = callerRecord->GetApplicationInfo().appIndex;
         callerAbilityInfo.multiAppMode = callerRecord->GetApplicationInfo().multiAppMode;
+        callerAbilityInfo.codePath = callerRecord->GetApplicationInfo().codePath;
+        callerAbilityInfo.installSource = callerRecord->GetApplicationInfo().installSource;
     }
 }
 
@@ -204,6 +206,8 @@ void DialogSessionManager::GenerateSelectorTargetAbilityInfos(std::vector<Dialog
         targetDialogAbilityInfo.visible = dialogAppInfo.visible;
         targetDialogAbilityInfo.appIndex = dialogAppInfo.appIndex;
         targetDialogAbilityInfo.multiAppMode = dialogAppInfo.multiAppMode;
+        targetDialogAbilityInfo.codePath = dialogAppInfo.codePath;
+        targetDialogAbilityInfo.installSource = dialogAppInfo.installSource;
         targetAbilityInfos.emplace_back(targetDialogAbilityInfo);
     }
 }
@@ -222,6 +226,8 @@ void DialogSessionManager::GenerateJumpTargetAbilityInfos(AbilityRequest &abilit
     targetDialogAbilityInfo.visible = abilityRequest.abilityInfo.visible;
     targetDialogAbilityInfo.appIndex = abilityRequest.abilityInfo.applicationInfo.appIndex;
     targetDialogAbilityInfo.multiAppMode = abilityRequest.abilityInfo.applicationInfo.multiAppMode;
+    targetDialogAbilityInfo.codePath = abilityRequest.abilityInfo.applicationInfo.codePath;
+    targetDialogAbilityInfo.installSource = abilityRequest.abilityInfo.applicationInfo.installSource;
     targetAbilityInfos.emplace_back(targetDialogAbilityInfo);
 }
 
@@ -406,6 +412,12 @@ int DialogSessionManager::CreateImplicitSelectorModalDialog(AbilityRequest &abil
             TAG_LOGD(AAFwkTag::ABILITYMGR, "in trustlist: %{public}s", str.c_str());
         }
     }
+    if (abilityRequest.want.HasParameter("show_default_appselect")) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "show_default_appselect: %{public}d",
+            abilityRequest.want.GetIntParam("show_default_appselect", -1));
+        sessionWant.SetParam("show_default_appselect",
+            abilityRequest.want.GetIntParam("show_default_appselect", -1));
+    }
 
     std::string dialogSessionId = GenerateDialogSessionRecordCommon(abilityRequest, userId, sessionWant.GetParams(),
         dialogAppInfos, SelectorType::IMPLICIT_START_SELECTOR, needGrantUriPermission);
@@ -470,7 +482,7 @@ int DialogSessionManager::CreateModalDialogCommon(const Want &replaceWant, sptr<
             return ERR_INVALID_VALUE;
         }
         ret = static_cast<int32_t>(IN_PROCESS_CALL(sceneSessionManager->IsFocusWindowParent(callerToken, isParent)));
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "isParent = %{pubilc}d, ret = %{pubilc}d", isParent, ret);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "isParent = %{public}d, ret = %{public}d", isParent, ret);
     } else {
         auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
         if (!abilityMgr) {

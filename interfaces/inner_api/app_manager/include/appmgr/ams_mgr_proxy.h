@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -224,6 +224,17 @@ public:
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg) override;
 
     /**
+     * Record process exit reason to appRunningRecord.
+     * @param pid Pid.
+     * @param killId Kill reason enum.
+     * @param killMsg Kill message.
+     * @param innerMsg Inner message.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t NotifyAppMgrRecordExitReasonCompability(
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg) override;
+
+    /**
      * Ability attach timeout. If start ability encounter failure, attach timeout to terminate.
      *
      * @param token Ability identify.
@@ -270,7 +281,8 @@ public:
      * @param requestId request id to callback
      */
     virtual void StartSpecifiedAbility(
-        const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId = 0) override;
+        const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo, int32_t requestId = 0,
+        const std::string &customProcess = "") override;
 
     /**
      * Register response of start specified ability.

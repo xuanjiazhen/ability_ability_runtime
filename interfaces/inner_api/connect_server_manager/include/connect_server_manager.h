@@ -75,6 +75,7 @@ private:
     static std::mutex sendInstanceMessageCallbackMutex_;
     std::atomic<bool> isConnected_ = false;
     std::unordered_map<int32_t, std::pair<std::string, int32_t>> instanceMap_;
+    std::unordered_map<int, std::pair<void*, const DebuggerPostTask>> g_debuggerInfo;
     std::vector<ServerConnectCallback> connectServerCallbacks_;
 
     std::vector<AddInstanceCallBack> addInstanceCallbacks_;
@@ -83,6 +84,7 @@ private:
     ConnectServerManager(ConnectServerManager&&) = delete;
     ConnectServerManager& operator=(const ConnectServerManager&) = delete;
     ConnectServerManager& operator=(ConnectServerManager&&) = delete;
+
     void SendInstanceMessageCallback(const int32_t instanceId);
     void AddInstanceCallback(const int32_t instanceId);
 };

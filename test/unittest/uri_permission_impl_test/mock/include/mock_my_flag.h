@@ -69,10 +69,11 @@ public:
         permissionReadWriteDesktop_ = false;
         permissionReadWriteDocuments_ = false;
         permissionSandboxAccessManager_ = false;
-        IsSystempAppCall_ = false;
+        IsSystemAppCall_ = false;
         getTokenIdByBundleNameStatus_ = 0;
         isSAOrSystemAppCall_ = false;
         isSystemAppCall_ = false;
+        isPrivilegedSACall_ = false;
         isUriTypeValid_ = false;
         isDocsCloudUri_ = false;
         permissionGrantUriPermissionAsCaller_ = false;
@@ -92,6 +93,8 @@ public:
         fudUtilsGenerateFUDAppInfoRet_ = true;
         tokenInfos = {};
         isUdmfOrPasteboardCallRet_ = false;
+        isDFSCallRet_ = false;
+        isSandboxAppRet_ = false;
     }
 
     static int flag_;
@@ -108,12 +111,13 @@ public:
     static bool permissionReadWriteDesktop_;
     static bool permissionReadWriteDocuments_;
     static bool permissionSandboxAccessManager_;
-    static bool IsSystempAppCall_;
+    static bool IsSystemAppCall_;
     static bool permissionFileAccessPersist_;
     static bool permissionGrantUriPermissionAsCaller_;
     static bool isSAOrSystemAppCall_;
     static bool isUriTypeValid_;
     static bool isSystemAppCall_;
+    static bool isPrivilegedSACall_;
     static bool isDocsCloudUri_;
     static int32_t getTokenIdByBundleNameStatus_;
     static int32_t processUdmfKeyRet_;
@@ -133,6 +137,8 @@ public:
     static std::string bundleName_;
     static TokenInfoMap tokenInfos;
     static bool isUdmfOrPasteboardCallRet_;
+    static bool isDFSCallRet_;
+    static bool isSandboxAppRet_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

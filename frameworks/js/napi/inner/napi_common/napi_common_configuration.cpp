@@ -18,6 +18,8 @@
 #include "configuration_convertor.h"
 #include "hilog_tag_wrapper.h"
 #include "napi_common_util.h"
+#include <cstdlib>
+#include <cerrno>
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -26,6 +28,35 @@ constexpr double FONT_SIZE_MIN_SCALE = 0.0;
 constexpr double FONT_SIZE_MAX_SCALE = 3.2;
 constexpr double FONT_WEIGHT_MIN_SCALE = 0.0;
 constexpr double FONT_WEIGHT_MAX_SCALE = 1.25;
+
+bool IsValidValue(const char* end, const std::string& str)
+{
+    if (!end) {
+        return false;
+    }
+
+    if (end == str.c_str() || errno == ERANGE || *end != '\0') {
+        return false;
+    }
+    return true;
+}
+
+bool ConvertToDouble(const std::string& str, double& outValue)
+{
+    if (str.empty()) {
+        TAG_LOGW(AAFwkTag::JSNAPI, "ConvertToDouble failed str is null");
+        return false;
+    }
+    char* end = nullptr;
+    errno = 0;
+    double value = std::strtod(str.c_str(), &end);
+    if (!IsValidValue(end, str)) {
+        TAG_LOGW(AAFwkTag::JSNAPI, "ConvertToDouble failed for: %{public}s", str.c_str());
+        return false;
+    }
+    outValue = value;
+    return true;
+}
 }
 
 EXTERN_C_START
@@ -33,6 +64,7 @@ EXTERN_C_START
 bool InnerWrapConfigurationString(
     napi_env env, napi_value jsObject, const std::string &key, const std::string &value)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     if (!value.empty()) {
         TAG_LOGI(AAFwkTag::JSNAPI, "key=%{public}s, value=%{private}s", key.c_str(), value.c_str());
         napi_value jsValue = WrapStringToJS(env, value);
@@ -47,6 +79,7 @@ bool InnerWrapConfigurationString(
 napi_value WrapConfiguration(napi_env env, const AppExecFwk::Configuration &configuration)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called, config size %{public}d", static_cast<int>(configuration.GetItemSize()));
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value jsObject = nullptr;
     NAPI_CALL(env, napi_create_object(env, &jsObject));
 
@@ -82,11 +115,15 @@ napi_value WrapConfiguration(napi_env env, const AppExecFwk::Configuration &conf
     SetPropertyValueByPropertyName(env, jsObject, "fontId", jsValue);
 
     std::string fontSizeScale = configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_FONT_SIZE_SCALE);
-    jsValue = WrapDoubleToJS(env, fontSizeScale != "" ? std::stod(fontSizeScale) : 1.0);
+    double fontSizeScaleValue = 1.0;
+    ConvertToDouble(fontSizeScale, fontSizeScaleValue);
+    jsValue = WrapDoubleToJS(env, fontSizeScaleValue);
     SetPropertyValueByPropertyName(env, jsObject, "fontSizeScale", jsValue);
 
     std::string fontWeightScale = configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_FONT_WEIGHT_SCALE);
-    jsValue = WrapDoubleToJS(env, fontWeightScale != "" ? std::stod(fontWeightScale) : 1.0);
+    double fontWeightScaleValue = 1.0;
+    ConvertToDouble(fontWeightScale, fontWeightScaleValue);
+    jsValue = WrapDoubleToJS(env, fontWeightScaleValue);
     SetPropertyValueByPropertyName(env, jsObject, "fontWeightScale", jsValue);
 
     jsValue = WrapStringToJS(env, configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MCC));
@@ -95,7 +132,7 @@ napi_value WrapConfiguration(napi_env env, const AppExecFwk::Configuration &conf
     jsValue = WrapStringToJS(env, configuration.GetItem(AAFwk::GlobalConfigurationKey::SYSTEM_MNC));
     SetPropertyValueByPropertyName(env, jsObject, "mnc", jsValue);
 
-    return jsObject;
+    return handleEscape.Escape(jsObject);
 }
 
 bool UnwrapConfiguration(napi_env env, napi_value param, Configuration &config)

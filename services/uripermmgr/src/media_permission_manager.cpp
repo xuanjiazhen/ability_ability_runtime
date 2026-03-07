@@ -27,11 +27,11 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 #include "want.h"
- 
+
 namespace OHOS {
 namespace AAFwk {
- 
-MediaPermissionManager& MediaPermissionManager::GetInstance()
+
+MediaPermissionManager &MediaPermissionManager::GetInstance()
 {
     static MediaPermissionManager mediaPermissionManager;
     return mediaPermissionManager;
@@ -39,33 +39,33 @@ MediaPermissionManager& MediaPermissionManager::GetInstance()
 
 MediaPermissionManager::MediaPermissionManager() {}
 
-Media::MediaLibraryExtendManager *MediaPermissionManager::GetMediaLibraryManager()
+Media::MediaPermissionHelper *MediaPermissionManager::GetMediaPermissionHelper()
 {
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "GetMediaLibraryExtendManager.");
-    auto mediaLibraryManager = Media::MediaLibraryExtendManager::GetMediaLibraryExtendManager();
-    if (mediaLibraryManager == nullptr) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "GetMediaLibraryExtendManager failed.");
-        return mediaLibraryManager;
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "GetMediaPermissionHelper.");
+    auto mediaPermissionHelper = Media::MediaPermissionHelper::GetMediaPermissionHelper();
+    if (mediaPermissionHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "GetMediaPermissionHelper failed.");
+        return mediaPermissionHelper;
     }
-    mediaLibraryManager->InitMediaLibraryExtendManager();
-    return mediaLibraryManager;
+    mediaPermissionHelper->InitMediaPermissionHelper();
+    return mediaPermissionHelper;
 }
 
 std::vector<bool> MediaPermissionManager::CheckUriPermission(const std::vector<std::string> &uriVec,
-    uint32_t callerTokenId, uint32_t flag)
+                                                             uint32_t callerTokenId, uint32_t flag)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "uris:%{public}zu, callerTokenId:%{public}u, flag:%{public}u",
-        uriVec.size(), callerTokenId, flag);
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "uris:%{public}zu, callerTokenId:%{public}u, flag:%{public}u", uriVec.size(),
+             callerTokenId, flag);
     std::vector<bool> results = std::vector<bool>(uriVec.size(), false);
     flag &= (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
-    auto mediaLibraryManager = GetMediaLibraryManager();
-    if (mediaLibraryManager == nullptr) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "GetMediaLibraryManager failed.");
+    auto mediaPermissionHelper = GetMediaPermissionHelper();
+    if (mediaPermissionHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "GetMediaPermissionHelper failed.");
         return results;
     }
     std::vector<uint32_t> flags(uriVec.size(), flag);
-    auto ret = IN_PROCESS_CALL(mediaLibraryManager->CheckPhotoUriPermission(callerTokenId, uriVec, results, flags));
+    auto ret = IN_PROCESS_CALL(mediaPermissionHelper->CheckPhotoUriPermission(callerTokenId, uriVec, results, flags));
     TAG_LOGD(AAFwkTag::URIPERMMGR, "CheckPhotoUriPermission finished.");
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Check photo uri permission failed, ret is %{public}d", ret);
@@ -81,22 +81,23 @@ std::vector<bool> MediaPermissionManager::CheckUriPermission(const std::vector<s
 }
 
 int32_t MediaPermissionManager::GrantUriPermission(const std::vector<std::string> &uris, uint32_t flag,
-    uint32_t callerTokenId, uint32_t targetTokenId, int32_t hideSensitiveType)
+                                                   uint32_t callerTokenId, uint32_t targetTokenId,
+                                                   int32_t hideSensitiveType)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     flag &= (Want::FLAG_AUTH_READ_URI_PERMISSION | Want::FLAG_AUTH_WRITE_URI_PERMISSION);
     auto photoPermissionType = FlagToFileOpenMode(flag);
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "uris: %{public}zu, flag: %{public}u, photoPermissionType: %{public}d",
-        uris.size(), flag, static_cast<int>(photoPermissionType));
-    auto mediaLibraryManager = GetMediaLibraryManager();
-    if (mediaLibraryManager == nullptr) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "GetMediaLibraryManager failed.");
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "uris:%{public}zu, flag:%{public}u, perType:%{public}d, senType:%{public}d",
+             uris.size(), flag, static_cast<int>(photoPermissionType), hideSensitiveType);
+    auto mediaPermissionHelper = GetMediaPermissionHelper();
+    if (mediaPermissionHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "GetMediaPermissionHelper failed.");
         return INNER_ERR;
     }
     auto mediahideSensitiveType = ConvertHideSensitiveType(hideSensitiveType);
     std::vector<Media::PhotoPermissionType> photoPermissionTypes(uris.size(), photoPermissionType);
-    auto ret = IN_PROCESS_CALL(mediaLibraryManager->GrantPhotoUriPermission(callerTokenId, targetTokenId, uris,
-        photoPermissionTypes, mediahideSensitiveType));
+    auto ret = IN_PROCESS_CALL(mediaPermissionHelper->GrantPhotoUriPermission(
+        callerTokenId, targetTokenId, uris, photoPermissionTypes, mediahideSensitiveType));
     TAG_LOGD(AAFwkTag::URIPERMMGR, "GrantPhotoUriPermission finished.");
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Grant photo uri permission failed, ret is %{public}d", ret);
@@ -123,23 +124,23 @@ Media::HideSensitiveType MediaPermissionManager::ConvertHideSensitiveType(int32_
 }
 
 int32_t MediaPermissionManager::RevokeUriPermission(uint32_t callerTokenId, uint32_t targetTokenId,
-    const std::string &uri)
+                                                    const std::string &uri)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGI(AAFwkTag::URIPERMMGR, "called, %{private}u, %{private}u, %{private}s",
-        callerTokenId, targetTokenId, uri.c_str());
-    std::vector<std::string> uris = { uri };
-    auto mediaLibraryManager = GetMediaLibraryManager();
-    if (mediaLibraryManager == nullptr) {
-        TAG_LOGE(AAFwkTag::URIPERMMGR, "GetMediaLibraryManager failed.");
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "called, %{private}u, %{private}u, %{private}s", callerTokenId, targetTokenId,
+             uri.c_str());
+    std::vector<std::string> uris = {uri};
+    auto mediaPermissionHelper = GetMediaPermissionHelper();
+    if (mediaPermissionHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "GetMediaPermissionHelper failed.");
         return INNER_ERR;
     }
-    auto ret = IN_PROCESS_CALL(mediaLibraryManager->CancelPhotoUriPermission(callerTokenId, targetTokenId, uris));
+    auto ret = IN_PROCESS_CALL(mediaPermissionHelper->CancelPhotoUriPermission(callerTokenId, targetTokenId, uris));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "Revoke media uri permission failed, ret:%{public}d", ret);
         return ret;
     }
     return ERR_OK;
 }
-} // OHOS
-} // AAFwk
+}  // OHOS
+}  // AAFwk

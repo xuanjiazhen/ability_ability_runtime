@@ -34,6 +34,7 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
+    std::shared_ptr<AmsResidentProcessRdb> amsResidentProcessRdb_;
 };
 
 void AbilityResidentProcessRdbTest::SetUpTestCase() {}
@@ -56,6 +57,17 @@ HWTEST_F(AbilityResidentProcessRdbTest, Init_001, TestSize.Level1) {
 
 /*
  * Feature: AbilityResidentProcessRdb
+ * Function: Init
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb Init
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, Init_002, TestSize.Level1) {
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().Init(), Rdb_OK);
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().Init(), Rdb_OK);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
  * Function: VerifyConfigurationPermissions
  * SubFunction: NA
  * FunctionPoints: AbilityResidentProcessRdb VerifyConfigurationPermissions
@@ -63,6 +75,12 @@ HWTEST_F(AbilityResidentProcessRdbTest, Init_001, TestSize.Level1) {
 HWTEST_F(AbilityResidentProcessRdbTest, VerifyConfigurationPermissions_001, TestSize.Level1) {
     EXPECT_EQ(AmsResidentProcessRdb::GetInstance().VerifyConfigurationPermissions(
         "test.com", "test.com"), Rdb_OK);
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().VerifyConfigurationPermissions(
+        "", "test.com"), Rdb_Parameter_Err);
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().VerifyConfigurationPermissions(
+        "", ""), Rdb_Parameter_Err);
+    EXPECT_EQ(AmsResidentProcessRdb::GetInstance().VerifyConfigurationPermissions(
+        "com.target.bundle", "com.caller.bundle"), Rdb_Search_Record_Err);
 }
 
 /*
@@ -76,6 +94,58 @@ HWTEST_F(AbilityResidentProcessRdbTest, GetResidentProcessEnable_001, TestSize.L
     EXPECT_NE(AmsResidentProcessRdb::GetInstance().GetResidentProcessEnable(
         "test.com", enable), Rdb_OK);
     EXPECT_EQ(enable, false);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: UpdateResidentProcessEnable
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb UpdateResidentProcessEnable_001
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, UpdateResidentProcessEnable_001, TestSize.Level1) {
+    std::string emptyBundleName = "";
+    bool enable = true;
+    int32_t result = amsResidentProcessRdb_->UpdateResidentProcessEnable(emptyBundleName, enable);
+    EXPECT_EQ(result, Rdb_Parameter_Err);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: UpdateResidentProcessEnable
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb UpdateResidentProcessEnable_002
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, UpdateResidentProcessEnable_002, TestSize.Level1) {
+    AmsResidentProcessRdb amsRdb;
+    std::string emptyBundleName = "test.com";
+    bool enable = true;
+    int32_t result = amsRdb.UpdateResidentProcessEnable(emptyBundleName, enable);
+    EXPECT_EQ(result, Rdb_Parameter_Err);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: RemoveData
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb RemoveData_001
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, RemoveData_001, TestSize.Level1) {
+    std::string emptyBundleName = "";
+    int32_t result = amsResidentProcessRdb_->RemoveData(emptyBundleName);
+    EXPECT_EQ(result, Rdb_Parameter_Err);
+}
+
+/*
+ * Feature: AbilityResidentProcessRdb
+ * Function: RemoveData
+ * SubFunction: NA
+ * FunctionPoints: AbilityResidentProcessRdb RemoveData_002
+ */
+HWTEST_F(AbilityResidentProcessRdbTest, RemoveData_002, TestSize.Level1) {
+    AmsResidentProcessRdb amsRdb;
+    std::string emptyBundleName = "test.com";
+    int32_t result = amsRdb.RemoveData(emptyBundleName);
+    EXPECT_EQ(result, Rdb_Parameter_Err);
 }
 } // namespace AAFwk
 } // namespace OHOS

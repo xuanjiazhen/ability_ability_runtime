@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* ABILITY_FIRST_FRAME_STATE_OBSERVER_CLASS_NAME =
-    "Lapplication/AbilityFirstFrameStateObserver/AbilityFirstFrameStateObserver;";
+    "application.AbilityFirstFrameStateObserver.AbilityFirstFrameStateObserver";
 }
 ETSAbilityFirstFrameStateObserver::ETSAbilityFirstFrameStateObserver(ani_vm *vm) : etsVm_(vm) {}
 
@@ -89,6 +89,7 @@ void ETSAbilityFirstFrameStateObserver::CallEtsFunction(ani_env* env, ani_object
     va_start(args, signature);
     if ((status = env->Object_CallMethod_Void_V(etsObserverObject, method, args)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "status: %{public}d", status);
+        va_end(args);
         return;
     }
     va_end(args);

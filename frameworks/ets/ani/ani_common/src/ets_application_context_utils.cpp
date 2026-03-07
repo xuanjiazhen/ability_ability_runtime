@@ -32,9 +32,9 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 static std::once_flag g_bindNativeMethodsFlag;
-constexpr const char* ETS_APPLICATION_CONTEXT_CLASS_NAME = "Lapplication/ApplicationContext/ApplicationContext;";
-constexpr const char* CLEANER_CLASS = "Lapplication/ApplicationContext/Cleaner;";
-constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "Lapplication/EventHub/EventHub;";
+constexpr const char* ETS_APPLICATION_CONTEXT_CLASS_NAME = "application.ApplicationContext.ApplicationContext";
+constexpr const char* CLEANER_CLASS = "application.ApplicationContext.Cleaner";
+constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "application.EventHub.EventHub";
 constexpr double FOUNT_SIZE = 0.0;
 constexpr int32_t ERROR_ID = -1;
 constexpr double ERROR_CODE_NULL_ENV = -1;
@@ -43,7 +43,7 @@ constexpr double ERROR_CODE_NULL_CONTEXT = -3;
 constexpr double ERROR_CODE_INVALID_PARAM = -4;
 const std::string TYPE_ABILITY_LIFECYCLE = "abilityLifecycle";
 #ifdef SUPPORT_SCREEN
-constexpr const char* CLASSNAME_ARRAY = "Lescompat/Array;";
+constexpr const char* CLASSNAME_ARRAY = "std.core.Array";
 #endif
 }
 
@@ -157,6 +157,68 @@ void EtsApplicationContextUtils::OnNativeOnApplicationStateChangeSync(ani_env *e
     applicationStateCallback_ = std::make_shared<EtsApplicationStateChangeCallback>(aniVM);
     applicationStateCallback_->Register(callback);
     applicationContext->RegisterApplicationStateChangeCallback(applicationStateCallback_);
+}
+
+void EtsApplicationContextUtils::OnNativeSystemConfigurationUpdatedSync(
+    ani_env *env, ani_object aniObj, ani_object callback)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    ani_boolean isUndefined = true;
+    env->Reference_IsUndefined(callback, &isUndefined);
+    if (isUndefined) {
+        TAG_LOGE(AAFwkTag::APPKIT, "callback undefine");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return;
+    }
+    auto applicationContext = applicationContext_.lock();
+    if (applicationContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "nativeContext is null");
+        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return;
+    }
+    if (systemConfigurationUpdatedCallback_ != nullptr) {
+        systemConfigurationUpdatedCallback_->Register(callback);
+        return;
+    }
+    ani_vm *aniVM = nullptr;
+    if (env->GetVM(&aniVM) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "get aniVM failed");
+        return;
+    }
+    systemConfigurationUpdatedCallback_ = std::make_shared<EtsSystemConfigurationUpdatedCallback>(aniVM);
+    systemConfigurationUpdatedCallback_->Register(callback);
+    applicationContext->RegisterSystemConfigurationUpdatedCallback(systemConfigurationUpdatedCallback_);
+}
+
+void EtsApplicationContextUtils::OffNativeSystemConfigurationUpdatedSync(
+    ani_env *env, ani_object aniObj, ani_object callback)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null env");
+        return;
+    }
+    if (systemConfigurationUpdatedCallback_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null applicationStateCallback_");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "invalid paramter.");
+        return;
+    }
+    ani_boolean isUndefined = true;
+    env->Reference_IsUndefined(callback, &isUndefined);
+    if (isUndefined) {
+        systemConfigurationUpdatedCallback_->UnRegister();
+    } else if (!systemConfigurationUpdatedCallback_->UnRegister(callback)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "call UnRegister failed");
+        EtsErrorUtil::ThrowInvalidParamError(
+            env, "Parse param call UnRegister failed, invalid paramter.");
+        return;
+    }
+    if (systemConfigurationUpdatedCallback_->IsEmpty()) {
+        systemConfigurationUpdatedCallback_.reset();
+    }
 }
 
 void EtsApplicationContextUtils::OnNativeOffApplicationStateChangeSync(ani_env *env, ani_object aniObj,
@@ -280,6 +342,11 @@ void EtsApplicationContextUtils::OnGetAllWindowStages(ani_env *env, ani_object a
     }
     applicationContext->GetAllUIAbilities(uiAbility);
     ani_object windowStages = CreateWindowStageArray(env, uiAbility);
+    if (windowStages == nullptr) {
+        AppExecFwk::AsyncCallback(
+            env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), emptyArray);
+        return;
+    }
     AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), windowStages);
 #else
     AppExecFwk::AsyncCallback(
@@ -317,7 +384,7 @@ ani_object EtsApplicationContextUtils::CreateWindowStageArray(
     }
 
     ani_method arrayCtor;
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "find ctor failed status: %{public}d", status);
         return nullptr;
@@ -342,7 +409,7 @@ ani_object EtsApplicationContextUtils::CreateWindowStageArray(
     }
     ani_size index = 0;
     for (auto &windowStage : windowStageArray) {
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, windowStage);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, windowStage);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::APPKIT, "Object_CallMethodByName_Void failed status: %{public}d", status);
             continue;
@@ -380,7 +447,7 @@ void EtsApplicationContextUtils::RegisterInteropAbilityLifecycleCallback(ani_env
     }
     std::lock_guard<std::mutex> lock(g_interopAbilityLifecycleCallbackLock);
     if (interopAbilityLifecycleCallback_ != nullptr) {
-        auto result = interopAbilityLifecycleCallback_->Register(callback);
+        auto result = interopAbilityLifecycleCallback_->Register((void *)callback);
         if (result < 0) {
             TAG_LOGE(AAFwkTag::APPKIT, "register failed: %{public}d", result);
             EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
@@ -389,7 +456,7 @@ void EtsApplicationContextUtils::RegisterInteropAbilityLifecycleCallback(ani_env
     }
 
     interopAbilityLifecycleCallback_ = std::make_shared<EtsInteropAbilityLifecycleCallback>(env);
-    auto result = interopAbilityLifecycleCallback_->Register(callback);
+    auto result = interopAbilityLifecycleCallback_->Register((void *)callback);
     if (result < 0) {
         TAG_LOGE(AAFwkTag::APPKIT, "register failed: %{public}d", result);
         EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
@@ -435,7 +502,7 @@ void EtsApplicationContextUtils::UnregisterInteropAbilityLifecycleCallback(ani_e
     env->Reference_IsUndefined(callback, &isUndefined);
     if (isUndefined) {
         interopAbilityLifecycleCallback_->Unregister();
-    } else if (!interopAbilityLifecycleCallback_->Unregister(callback)) {
+    } else if (!interopAbilityLifecycleCallback_->Unregister((void *)callback)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Unregister failed");
         EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
         return;
@@ -1007,6 +1074,30 @@ void EtsApplicationContextUtils::NativeOnApplicationStateChangeSync(ani_env *env
     etsContext->OnNativeOnApplicationStateChangeSync(env, aniObj, callback);
 }
 
+void EtsApplicationContextUtils::NativeOnSystemConfigurationUpdatedSync(
+    ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "wlh NativeOnSystemConfigurationUpdatedSync Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OnNativeSystemConfigurationUpdatedSync(env, aniObj, callback);
+}
+
+void EtsApplicationContextUtils::NativeOffSystemConfigurationUpdatedSync(
+    ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "wlh NativeOffSystemConfigurationUpdatedSync Call");
+    auto etsContext = GeApplicationContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null etsContext");
+        return;
+    }
+    etsContext->OffNativeSystemConfigurationUpdatedSync(env, aniObj, callback);
+}
+
 void EtsApplicationContextUtils::NativeOffApplicationStateChangeSync(ani_env *env, ani_object aniObj,
     ani_object callback)
 {
@@ -1087,7 +1178,7 @@ ani_object EtsApplicationContextUtils::SetApplicationContext(ani_env *aniEnv,
         return nullptr;
     }
     ani_method method {};
-    if ((status = aniEnv->Class_FindMethod(cls, "<ctor>", "J:V", &method)) != ANI_OK) {
+    if ((status = aniEnv->Class_FindMethod(cls, "<ctor>", "l:", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         return nullptr;
     }
@@ -1132,65 +1223,71 @@ void EtsApplicationContextUtils::BindApplicationContextFunc(ani_env *aniEnv)
     }
     std::call_once(g_bindNativeMethodsFlag, [&status, aniEnv, contextClass]() {
         std::array applicationContextFunctions = {
-            ani_native_function {"setSupportedProcessCacheSync", "Z:V",
+            ani_native_function {"setSupportedProcessCacheSync", "z:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetSupportedProcessCacheSync)},
-            ani_native_function {"nativekillAllProcessesSync", "ZLutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            ani_native_function {"nativekillAllProcessesSync", "zC{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::killAllProcesses)},
             ani_native_function {"nativepreloadUIExtensionAbilitySync",
-                "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::PreloadUIExtensionAbility)},
             ani_native_function {"nativeOnLifecycleCallbackSync",
-                "Lstd/core/String;L@ohos/app/ability/AbilityLifecycleCallback/AbilityLifecycleCallback;:I",
+                "C{std.core.String}C{@ohos.app.ability.AbilityLifecycleCallback.AbilityLifecycleCallback}:i",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOnLifecycleCallbackSync)},
             ani_native_function {"nativeOffLifecycleCallbackSync",
-                "Lstd/core/String;ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                "C{std.core.String}iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffLifecycleCallbackSync)},
-            ani_native_function {"nativeOffAbilityLifecycleCheck", ":V",
+            ani_native_function {"nativeOffAbilityLifecycleCheck", ":",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffAbilityLifecycleCheck)},
             ani_native_function {"nativegetRunningProcessInformation",
-                "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetRunningProcessInformation)},
             ani_native_function {"nativeclearUpApplicationData",
-                "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::ClearUpApplicationData)},
-            ani_native_function {"nativesetLanguage", "Lstd/core/String;:V",
+            ani_native_function {"nativesetLanguage", "C{std.core.String}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetLanguage)},
-            ani_native_function {"nativesetFontSizeScale", "D:V",
+            ani_native_function {"nativesetFontSizeScale", "d:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetFontSizeScale)},
             ani_native_function {"nativesetColorMode",
-                "L@ohos/app/ability/ConfigurationConstant/ConfigurationConstant/ColorMode;:V",
+                "C{@ohos.app.ability.ConfigurationConstant.ConfigurationConstant.ColorMode}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetColorMode)},
-            ani_native_function {"nativesetFont", "Lstd/core/String;:V",
+            ani_native_function {"nativesetFont", "C{std.core.String}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetFont)},
-            ani_native_function {"nativerestartApp", "L@ohos/app/ability/Want/Want;:V",
+            ani_native_function {"nativerestartApp", "C{@ohos.app.ability.Want.Want}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::RestartApp)},
             ani_native_function {"nativeOnEnvironmentSync",
-                "L@ohos/app/ability/EnvironmentCallback/EnvironmentCallback;:I",
+                "C{@ohos.app.ability.EnvironmentCallback.EnvironmentCallback}:i",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOnEnvironmentSync)},
-            ani_native_function {"nativeOffEnvironmentSync", "ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            ani_native_function {"nativeOffEnvironmentSync", "iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffEnvironmentSync)},
-            ani_native_function {"nativeOffEnvironmentCheck", ":V",
+            ani_native_function {"nativeOffEnvironmentCheck", ":",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffEnvironmentCheck)},
             ani_native_function {"nativeOnApplicationStateChangeSync",
-                "L@ohos/app/ability/ApplicationStateChangeCallback/ApplicationStateChangeCallback;:V",
+                "C{@ohos.app.ability.ApplicationStateChangeCallback.ApplicationStateChangeCallback}:",
                 reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOnApplicationStateChangeSync)},
             ani_native_function {"nativeOffApplicationStateChangeSync",
-                "L@ohos/app/ability/ApplicationStateChangeCallback/ApplicationStateChangeCallback;:V",
+                "C{@ohos.app.ability.ApplicationStateChangeCallback.ApplicationStateChangeCallback}:",
                 reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOffApplicationStateChangeSync)},
-            ani_native_function {"nativeGetAllRunningInstanceKeys", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            ani_native_function {"nativeGetAllRunningInstanceKeys", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetAllRunningInstanceKeys)},
-            ani_native_function {"nativeGetAllWindowStages", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            ani_native_function {"nativeGetAllWindowStages", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetAllWindowStages)},
-            ani_native_function{"nativegetCurrentInstanceKey", ":Lstd/core/String;",
+            ani_native_function{"nativegetCurrentInstanceKey", ":C{std.core.String}",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetCurrentInstanceKey)},
-            ani_native_function {"nativegetCurrentAppCloneIndex", ":I",
+            ani_native_function {"nativegetCurrentAppCloneIndex", ":i",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetCurrentAppCloneIndex)},
             ani_native_function {"nativeOnInteropLifecycleCallbackSync",
-                "L@ohos/app/ability/InteropAbilityLifecycleCallback/InteropAbilityLifecycleCallback;:V",
+                "C{@ohos.app.ability.InteropAbilityLifecycleCallback.InteropAbilityLifecycleCallback}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOnInteropLifecycleCallbackSync)},
             ani_native_function {"nativeOffInteropLifecycleCallbackSync",
-                "L@ohos/app/ability/InteropAbilityLifecycleCallback/InteropAbilityLifecycleCallback;:V",
+                "C{@ohos.app.ability.InteropAbilityLifecycleCallback.InteropAbilityLifecycleCallback}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffInteropLifecycleCallbackSync)},
+            ani_native_function {"nativeOnSystemConfigurationUpdatedSync",
+                "C{@ohos.app.ability.systemConfiguration.systemConfiguration.UpdatedCallback}:",
+                reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOnSystemConfigurationUpdatedSync)},
+            ani_native_function {"nativeOffSystemConfigurationUpdatedSync",
+                "C{@ohos.app.ability.systemConfiguration.systemConfiguration.UpdatedCallback}:",
+                reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOffSystemConfigurationUpdatedSync)},
         };
         if ((status = aniEnv->Class_BindNativeMethods(contextClass, applicationContextFunctions.data(),
             applicationContextFunctions.size())) != ANI_OK) {

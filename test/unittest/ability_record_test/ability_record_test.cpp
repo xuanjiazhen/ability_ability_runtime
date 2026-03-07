@@ -36,7 +36,7 @@
 #include "process_options.h"
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #include "int_wrapper.h"
 #include "uri_utils.h"
 #ifdef SUPPORT_GRAPHICS
@@ -61,7 +61,7 @@ const std::string DEBUG_APP = "debugApp";
 #ifdef WITH_DLP
 const std::string DLP_BUNDLE_NAME = "com.ohos.dlpmanager";
 #endif // WITH_DLP
-const std::string SHELL_ASSISTANT_BUNDLENAME = "com.huawei.shell_assistant";
+const std::string SHELL_ASSISTANT_BUNDLENAME = "com.shell_assistant";
 const std::string SHOW_ON_LOCK_SCREEN = "ShowOnLockScreen";
 const std::string URI_PERMISSION_TABLE_NAME = "uri_permission";
 constexpr const char* UIEXTENSION_LAUNCH_TIMESTAMP_HIGH = "ohos.ability.params.uiExtensionLaunchTimestampHigh";
@@ -75,6 +75,7 @@ public:
     void TearDown();
     std::shared_ptr<AbilityRecord> GetAbilityRecord();
     AbilityRequest CreateValidAbilityRequest();
+    std::shared_ptr<AbilityRecord> CreateAbilityRecord();
 
     std::shared_ptr<AbilityRecord> abilityRecord_{ nullptr };
     std::shared_ptr<AbilityResult> abilityResult_{ nullptr };
@@ -126,6 +127,11 @@ AbilityRequest AbilityRecordTest::CreateValidAbilityRequest()
     return request;
 }
 
+std::shared_ptr<AbilityRecord> AbilityRecordTest::CreateAbilityRecord()
+{
+    return AbilityRecord::CreateAbilityRecord(CreateValidAbilityRequest());
+}
+
 bool IsTestAbilityExist(const std::string& data)
 {
     return std::string::npos != data.find("previous ability app name [NULL]");
@@ -140,31 +146,6 @@ bool IsTestAbilityExist2(const std::string& data)
 {
     return std::string::npos != data.find("test_next_app");
 }
-
-class MockWMSHandler : public IWindowManagerServiceHandler {
-public:
-    virtual void NotifyWindowTransition(sptr<AbilityTransitionInfo> fromInfo, sptr<AbilityTransitionInfo> toInfo,
-        bool& animaEnabled)
-    {}
-
-    virtual int32_t GetFocusWindow(sptr<IRemoteObject>& abilityToken)
-    {
-        return 0;
-    }
-
-    virtual void StartingWindow(sptr<AbilityTransitionInfo> info,
-        std::shared_ptr<Media::PixelMap> pixelMap, uint32_t bgColor) {}
-
-    virtual void StartingWindow(sptr<AbilityTransitionInfo> info, std::shared_ptr<Media::PixelMap> pixelMap) {}
-
-    virtual void CancelStartingWindow(sptr<IRemoteObject> abilityToken)
-    {}
-
-    virtual sptr<IRemoteObject> AsObject()
-    {
-        return nullptr;
-    }
-};
 
 /*
  * Feature: AbilityRecord
@@ -250,48 +231,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_SetGetToken, TestSize.Level1)
  * Feature: AbilityRecord
  * Function: create AbilityRecord
  * SubFunction: NA
- * FunctionPoints: SetAbilityState GetAbilityState
- * EnvConditions: NA
- * CaseDescription: SetAbilityState GetAbilityState UT.
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_GetAbilityState, TestSize.Level1)
-{
-    abilityRecord_->SetAbilityForegroundingFlag();
-    abilityRecord_->SetAbilityState(AbilityState::BACKGROUND);
-    EXPECT_FALSE(abilityRecord_->GetAbilityForegroundingFlag());
-
-    abilityRecord_->SetAbilityForegroundingFlag();
-    abilityRecord_->SetAbilityState(AbilityState::FOREGROUND);
-    EXPECT_TRUE(abilityRecord_->GetAbilityForegroundingFlag());
-}
-
-/*
- * Feature: AbilityRecord
- * Function: create AbilityRecord
- * SubFunction: NA
- * FunctionPoints: SetPreAbilityRecord SetNextAbilityRecord GetPreAbilityRecord GetNextAbilityRecord
- * EnvConditions: NA
- * CaseDescription: SetPreAbilityRecord SetNextAbilityRecord GetPreAbilityRecord GetNextAbilityRecord UT.
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_SetGetPreNextAbilityReocrd, TestSize.Level1)
-{
-    OHOS::AppExecFwk::AbilityInfo abilityInfo;
-    OHOS::AppExecFwk::ApplicationInfo applicationInfo;
-    Want want;
-    std::shared_ptr<AbilityRecord> preAbilityRecord =
-        std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
-    std::shared_ptr<AbilityRecord> nextAbilityRecord =
-        std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
-    abilityRecord_->SetPreAbilityRecord(preAbilityRecord);
-    abilityRecord_->SetNextAbilityRecord(nextAbilityRecord);
-    EXPECT_EQ(abilityRecord_->GetPreAbilityRecord().get(), preAbilityRecord.get());
-    EXPECT_EQ(abilityRecord_->GetNextAbilityRecord().get(), nextAbilityRecord.get());
-}
-
-/*
- * Feature: AbilityRecord
- * Function: create AbilityRecord
- * SubFunction: NA
  * FunctionPoints: IsReady
  * EnvConditions: NA
  * CaseDescription: IsReady UT.
@@ -323,63 +262,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_IsLauncherAbility, TestSize.Level1)
         std::make_unique<AbilityRecord>(launcherWant, abilityInfo, applicationInfo);
     launcherAbilityRecord->Init(AbilityRequest());
     EXPECT_EQ(false, launcherAbilityRecord->IsLauncherAbility());
-}
-
-/*
- * Feature: AbilityRecord
- * Function: Add connection record to ability record' list
- * SubFunction: NA
- * FunctionPoints: AddConnectRecordToList
- * EnvConditions: NA
- * CaseDescription: AddConnectRecordToList UT.
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_AddConnectRecordToList, TestSize.Level1)
-{
-    // test1 for input param is null
-    abilityRecord_->AddConnectRecordToList(nullptr);
-    auto connList = abilityRecord_->GetConnectRecordList();
-    EXPECT_EQ(0, static_cast<int>(connList.size()));
-
-    // test2 for adding new connection record to empty list
-    OHOS::sptr<IAbilityConnection> callback1 = new AbilityConnectCallback();
-    auto newConnRecord1 =
-        ConnectionRecord::CreateConnectionRecord(abilityRecord_->GetToken(), abilityRecord_, callback1, nullptr);
-    abilityRecord_->AddConnectRecordToList(newConnRecord1);
-    connList = abilityRecord_->GetConnectRecordList();
-    EXPECT_EQ(1, static_cast<int>(connList.size()));
-
-    // test3 for adding new connection record to non-empty list
-    OHOS::sptr<IAbilityConnection> callback2 = new AbilityConnectCallback();
-    auto newConnRecord2 =
-        ConnectionRecord::CreateConnectionRecord(abilityRecord_->GetToken(), abilityRecord_, callback2, nullptr);
-    abilityRecord_->AddConnectRecordToList(newConnRecord2);
-    connList = abilityRecord_->GetConnectRecordList();
-    EXPECT_EQ(2, static_cast<int>(connList.size()));
-
-    // test4 for adding old connection record to non-empty list
-    abilityRecord_->AddConnectRecordToList(newConnRecord2);
-    connList = abilityRecord_->GetConnectRecordList();
-    EXPECT_EQ(2, static_cast<int>(connList.size()));
-
-    // test5 for delete nullptr from list
-    abilityRecord_->RemoveConnectRecordFromList(nullptr);
-    connList = abilityRecord_->GetConnectRecordList();
-    EXPECT_EQ(2, static_cast<int>(connList.size()));
-
-    // test6 for delete no-match member from list
-    auto newConnRecord3 =
-        ConnectionRecord::CreateConnectionRecord(abilityRecord_->GetToken(), abilityRecord_, callback2, nullptr);
-    abilityRecord_->RemoveConnectRecordFromList(newConnRecord3);
-    connList = abilityRecord_->GetConnectRecordList();
-    EXPECT_EQ(2, static_cast<int>(connList.size()));
-
-    // test7 for delete match member from list
-    abilityRecord_->RemoveConnectRecordFromList(newConnRecord2);
-    connList = abilityRecord_->GetConnectRecordList();
-    EXPECT_EQ(1, static_cast<int>(connList.size()));
-
-    // test8 for get ability unknown type
-    EXPECT_EQ(OHOS::AppExecFwk::AbilityType::UNKNOWN, abilityRecord_->GetAbilityInfo().type);
 }
 
 /*
@@ -448,35 +330,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_Dump, TestSize.Level1)
     info.push_back(std::string("0"));
     abilityRecord_->Dump(info);
     EXPECT_EQ(std::find_if(info.begin(), info.end(), IsTestAbilityExist) != info.end(), true);
-    Want wantPre;
-    std::string entity = Want::ENTITY_HOME;
-    wantPre.AddEntity(entity);
-
-    std::string testAppName = "test_pre_app";
-    OHOS::AppExecFwk::AbilityInfo abilityInfoPre;
-    abilityInfoPre.applicationName = testAppName;
-    OHOS::AppExecFwk::ApplicationInfo appinfoPre;
-    appinfoPre.name = testAppName;
-
-    auto preAbilityRecord = std::make_shared<AbilityRecord>(wantPre, abilityInfoPre, appinfoPre);
-    abilityRecord_->SetPreAbilityRecord(nullptr);
-    abilityRecord_->Dump(info);
-    abilityRecord_->SetPreAbilityRecord(preAbilityRecord);
-    abilityRecord_->Dump(info);
-
-    Want wantNext;
-    std::string entityNext = Want::ENTITY_HOME;
-    wantNext.AddEntity(entityNext);
-    std::string testAppNameNext = "test_next_app";
-    OHOS::AppExecFwk::AbilityInfo abilityInfoNext;
-    abilityInfoNext.applicationName = testAppNameNext;
-    OHOS::AppExecFwk::ApplicationInfo appinfoNext;
-    appinfoNext.name = testAppNameNext;
-    auto nextAbilityRecord = std::make_shared<AbilityRecord>(wantNext, abilityInfoNext, appinfoNext);
-    abilityRecord_->SetNextAbilityRecord(nullptr);
-    abilityRecord_->Dump(info);
-    abilityRecord_->SetNextAbilityRecord(nextAbilityRecord);
-    abilityRecord_->Dump(info);
 }  // namespace AAFwk
 
 /*
@@ -572,21 +425,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_GetAbilityTypeString, TestSize.Level
     recordData = std::make_shared<AbilityRecord>(wantData, abilityData, appInfoData);
     recordData->GetAbilityTypeString(typeStr);
     EXPECT_EQ(typeStr, "DATA");
-}
-
-/*
- * Feature: AbilityRecord
- * Function: SetConnRemoteObject GetConnRemoteObject
- * SubFunction: SetConnRemoteObject GetConnRemoteObject
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify SetConnRemoteObject GetConnRemoteObject UT
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ConnRemoteObject, TestSize.Level1)
-{
-    OHOS::sptr<OHOS::IRemoteObject> remote;
-    abilityRecord_->SetConnRemoteObject(remote);
-    EXPECT_EQ(remote, abilityRecord_->GetConnRemoteObject());
 }
 
 /*
@@ -881,63 +719,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ProcessForegroundAbility_003, TestSi
     EXPECT_TRUE(abilityRecord != nullptr);
 }
 
-/*
- * Feature: AbilityRecord
- * Function: GetLabel
- * SubFunction: GetLabel
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord GetLabel
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_GetLabel_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->abilityInfo_.applicationInfo.label = "label";
-    abilityRecord->abilityInfo_.resourcePath = "resource";
-    std::string res = abilityRecord->GetLabel();
-    EXPECT_EQ(res, "label");
-}
-
 #ifdef SUPPORT_GRAPHICS
-/*
- * Feature: AbilityRecord
- * Function: ProcessForegroundAbility
- * SubFunction: ProcessForegroundAbility
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord ProcessForegroundAbility
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ProcessForegroundAbility_004, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::shared_ptr<AbilityRecord> callerAbility = GetAbilityRecord();
-    uint32_t sceneFlag = 0;
-    abilityRecord->currentState_ = AbilityState::FOREGROUND;
-    abilityRecord->ProcessForegroundAbility(callerAbility, sceneFlag);
-    EXPECT_TRUE(abilityRecord != nullptr);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: ProcessForegroundAbility
- * SubFunction: ProcessForegroundAbility
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord ProcessForegroundAbility
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ProcessForegroundAbility_008, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    bool isRecent = false;
-    AbilityRequest abilityRequest;
-    std::shared_ptr<StartOptions> startOptions = nullptr ;
-    std::shared_ptr<AbilityRecord> callerAbility;
-    uint32_t sceneFlag = 1;
-    abilityRecord->isReady_ = false;
-    abilityRecord->ProcessForegroundAbility(isRecent, abilityRequest, startOptions, callerAbility, sceneFlag);
-    EXPECT_TRUE(abilityRecord != nullptr);
-}
-
 /*
  * Feature: AbilityRecord
  * Function: GetWantFromMission
@@ -979,25 +761,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_GetWantFromMission_002, TestSize.Lev
 
 /*
  * Feature: AbilityRecord
- * Function: AnimationTask
- * SubFunction: AnimationTask
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord AnimationTask
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_AnimationTask_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    EXPECT_NE(abilityRecord, nullptr);
-    bool isRecent = true;
-    AbilityRequest abilityRequest;
-    std::shared_ptr<StartOptions> startOptions = nullptr ;
-    std::shared_ptr<AbilityRecord> callerAbility;
-    abilityRecord->AnimationTask(isRecent, abilityRequest, startOptions, callerAbility);
-}
-
-/*
- * Feature: AbilityRecord
  * Function: SetShowWhenLocked
  * SubFunction: SetShowWhenLocked
  * FunctionPoints: NA
@@ -1018,42 +781,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_SetShowWhenLocked_001, TestSize.Leve
     abilityInfo.metaData.customizeData.push_back(data2);
     info->isShowWhenLocked_ = false;
     abilityRecord->SetShowWhenLocked(abilityInfo, info);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: NotifyAnimationFromStartingAbility
- * SubFunction: NotifyAnimationFromStartingAbility
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord NotifyAnimationFromStartingAbility
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_NotifyAnimationFromStartingAbility_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    EXPECT_NE(abilityRecord, nullptr);
-    std::shared_ptr<AbilityRecord> callerAbility = nullptr;
-    AbilityRequest abilityRequest;
-    abilityRecord->NotifyAnimationFromStartingAbility(callerAbility, abilityRequest);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: StartingWindowTask
- * SubFunction: StartingWindowTask
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord StartingWindowTask
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_StartingWindowTask_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    EXPECT_NE(abilityRecord, nullptr);
-    bool isRecent = true;
-    AbilityRequest abilityRequest;
-    std::shared_ptr<StartOptions> startOptions = std::make_shared<StartOptions>();
-    abilityRecord->StartingWindowTask(isRecent, true, abilityRequest, startOptions);
-    abilityRecord->StartingWindowTask(isRecent, false, abilityRequest, startOptions);
 }
 
 /*
@@ -1223,111 +950,6 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_CreateAbilityTransitionInfo_006, Tes
     AbilityRequest abilityRequest;
     abilityRecord->CreateAbilityTransitionInfo(startOptions, want, abilityRequest);
 }
-
-/*
- * Feature: AbilityRecord
- * Function: CreateResourceManager
- * SubFunction: CreateResourceManager
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord CreateResourceManager
- */
-HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_CreateResourceManager_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    system::SetParameter(COMPRESS_PROPERTY, "1");
-    abilityRecord->abilityInfo_.hapPath = "path";
-    auto res = abilityRecord->CreateResourceManager();
-    EXPECT_EQ(res, nullptr);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: GetPixelMap
- * SubFunction: GetPixelMap
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord GetPixelMap
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_GetPixelMap_001, TestSize.Level1)
-{
-    EXPECT_EQ(abilityRecord_->GetPixelMap(1, nullptr), nullptr);
-    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr(Global::Resource::CreateResourceManager());
-    EXPECT_EQ(abilityRecord_->GetPixelMap(1, resourceMgr), nullptr);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: GetPixelMap
- * SubFunction: GetPixelMap
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord GetPixelMap
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_GetPixelMap_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr(Global::Resource::CreateResourceManager());
-    system::SetParameter(COMPRESS_PROPERTY, "1");
-    abilityRecord->abilityInfo_.hapPath = "path";
-    auto res = abilityRecord->GetPixelMap(1, resourceMgr);
-    EXPECT_EQ(res, nullptr);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: StartingWindowHot
- * SubFunction: StartingWindowHot
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord StartingWindowHot
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_StartingWindowHot_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    EXPECT_NE(abilityRecord, nullptr);
-    std::shared_ptr<StartOptions> startOptions = std::make_shared<StartOptions>();
-    std::shared_ptr<Want> want = std::make_shared<Want>();
-    AbilityRequest abilityRequest;
-    abilityRecord->StartingWindowHot(startOptions, want, abilityRequest);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: GetColdStartingWindowResource
- * SubFunction: GetColdStartingWindowResource
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord GetColdStartingWindowResource
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_GetColdStartingWindowResource_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    EXPECT_NE(abilityRecord, nullptr);
-    std::shared_ptr<Media::PixelMap> bg;
-    uint32_t bgColor = 0;
-    abilityRecord->startingWindowBg_ = std::make_shared<Media::PixelMap>();
-    abilityRecord->GetColdStartingWindowResource(bg, bgColor);
-    abilityRecord->startingWindowBg_ = nullptr;
-    abilityRecord->GetColdStartingWindowResource(bg, bgColor);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: InitColdStartingWindowResource
- * SubFunction: InitColdStartingWindowResource
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord InitColdStartingWindowResource
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_InitColdStartingWindowResource_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    EXPECT_NE(abilityRecord, nullptr);
-    std::shared_ptr<Global::Resource::ResourceManager> resourceMgr(Global::Resource::CreateResourceManager());
-    abilityRecord->InitColdStartingWindowResource(nullptr);
-    abilityRecord->InitColdStartingWindowResource(resourceMgr);
-}
 #endif
 
 /*
@@ -1343,86 +965,6 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_SetPendingState_001, TestSize.Level1)
     abilityRecord_->SetPendingState(OHOS::AAFwk::AbilityState::FOREGROUND);
     EXPECT_EQ(abilityRecord_->GetPendingState(), OHOS::AAFwk::AbilityState::FOREGROUND);
 }
-
-#ifdef SUPPORT_GRAPHICS
-/*
- * Feature: AbilityRecord
- * Function: PostCancelStartingWindowHotTask
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: PostCancelStartingWindowHotTask
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_PostCancelStartingWindowHotTask_001, TestSize.Level1)
-{
-    AppExecFwk::AbilityInfo abilityInfo;
-    AppExecFwk::ApplicationInfo applicationInfo;
-
-    Want debugWant;
-    debugWant.SetParam(DEBUG_APP, true);
-    AbilityRecord debugAbilityRecord(debugWant, abilityInfo, applicationInfo, 0);
-    debugAbilityRecord.PostCancelStartingWindowHotTask();
-    EXPECT_TRUE(debugAbilityRecord.GetWant().GetBoolParam(DEBUG_APP, false));
-
-    Want noDebugWant;
-    noDebugWant.SetParam(DEBUG_APP, false);
-    AbilityRecord noDebugAbilityRecord(noDebugWant, abilityInfo, applicationInfo, 0);
-    noDebugAbilityRecord.PostCancelStartingWindowHotTask();
-    EXPECT_FALSE(noDebugAbilityRecord.GetWant().GetBoolParam(DEBUG_APP, false));
-}
-
-/*
- * Feature: AbilityRecord
- * Function: PostCancelStartingWindowColdTask
- * SubFunction: PostCancelStartingWindowColdTask
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: PostCancelStartingWindowColdTask
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_PostCancelStartingWindowColdTask_001, TestSize.Level1)
-{
-    AppExecFwk::AbilityInfo abilityInfo;
-    AppExecFwk::ApplicationInfo applicationInfo;
-
-    Want debugWant;
-    debugWant.SetParam(DEBUG_APP, true);
-    AbilityRecord debugAbilityRecord(debugWant, abilityInfo, applicationInfo, 0);
-    debugAbilityRecord.PostCancelStartingWindowColdTask();
-    EXPECT_TRUE(debugAbilityRecord.GetWant().GetBoolParam(DEBUG_APP, false));
-
-    Want noDebugWant;
-    noDebugWant.SetParam(DEBUG_APP, false);
-    AbilityRecord noDebugAbilityRecord(noDebugWant, abilityInfo, applicationInfo, 0);
-    noDebugAbilityRecord.PostCancelStartingWindowColdTask();
-    EXPECT_FALSE(noDebugAbilityRecord.GetWant().GetBoolParam(DEBUG_APP, false));
-}
-
-/*
- * Feature: AbilityRecord
- * Function: CreateResourceManager
- * SubFunction: CreateResourceManager
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: CreateResourceManager
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_CreateResourceManager_001, TestSize.Level1)
-{
-    Want want;
-    AppExecFwk::AbilityInfo abilityInfo;
-    AppExecFwk::ApplicationInfo applicationInfo;
-    AbilityRecord abilityRecord(want, abilityInfo, applicationInfo, 0);
-    EXPECT_TRUE(abilityRecord.CreateResourceManager() == nullptr);
-
-    abilityInfo.hapPath = "abc";
-    EXPECT_TRUE(abilityRecord.CreateResourceManager() == nullptr);
-
-    abilityInfo.resourcePath = "abc";
-    abilityInfo.hapPath = "";
-    EXPECT_TRUE(abilityRecord.CreateResourceManager() == nullptr);
-
-    abilityInfo.hapPath = "abc";
-    EXPECT_TRUE(abilityRecord.CreateResourceManager() == nullptr);
-}
-#endif
 
 /*
  * Feature: AbilityRecord
@@ -1476,40 +1018,6 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_SetScheduler_003, TestSize.Level1)
     abilityRecord->scheduler_ = new AbilityScheduler();
     abilityRecord->schedulerDeathRecipient_ = nullptr;
     abilityRecord->SetScheduler(scheduler);
-    EXPECT_TRUE(abilityRecord != nullptr);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: Activate
- * SubFunction: Activate
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord Activate
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_Activate_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->SetIsNewWant(true);
-    abilityRecord->SetPreAbilityRecord(abilityRecord_);
-    abilityRecord->Activate();
-    EXPECT_TRUE(abilityRecord != nullptr);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: Activate
- * SubFunction: Activate
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord Activate
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_Activate_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->SetIsNewWant(true);
-    abilityRecord->SetPreAbilityRecord(nullptr);
-    abilityRecord->Activate();
     EXPECT_TRUE(abilityRecord != nullptr);
 }
 
@@ -1636,30 +1144,6 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_AddSystemAbilityCallerRecord_001, Test
 
 /*
  * Feature: AbilityRecord
- * Function: GetConnectingRecordList
- * SubFunction: GetConnectingRecordList
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord GetConnectingRecordList
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_GetConnectingRecordList_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    EXPECT_NE(abilityRecord, nullptr);
-    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
-    std::shared_ptr<ConnectionRecord> connection1 =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
-    std::shared_ptr<ConnectionRecord> connection2 =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
-    connection1->SetConnectState(ConnectionState::CONNECTING);
-    connection2->SetConnectState(ConnectionState::CONNECTED);
-    abilityRecord->connRecordList_.push_back(connection1);
-    abilityRecord->connRecordList_.push_back(connection2);
-    abilityRecord->GetConnectingRecordList();
-}
-
-/*
- * Feature: AbilityRecord
  * Function: DumpAbilityState
  * SubFunction: DumpAbilityState
  * FunctionPoints: NA
@@ -1692,30 +1176,6 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_SetStartTime_001, TestSize.Level1)
     EXPECT_NE(abilityRecord, nullptr);
     abilityRecord->startTime_ = 1;
     abilityRecord->SetStartTime();
-}
-
-/*
- * Feature: AbilityRecord
- * Function: DumpService
- * SubFunction: DumpService
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord DumpService
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_DumpService_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    EXPECT_NE(abilityRecord, nullptr);
-    std::vector<std::string> info;
-    std::vector<std::string> params;
-    bool isClient = false;
-    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
-    std::shared_ptr<ConnectionRecord> connection =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
-    abilityRecord->isLauncherRoot_ = true;
-    abilityRecord->connRecordList_.push_back(nullptr);
-    abilityRecord->connRecordList_.push_back(connection);
-    abilityRecord->DumpService(info, params, isClient);
 }
 
 /*
@@ -2104,7 +1564,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetRecoveryInfo_001, TestSize.Level1)
 HWTEST_F(AbilityRecordTest, IsUIExtension_001, TestSize.Level1)
 {
     abilityRecord_->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI;
-    EXPECT_EQ(UIExtensionUtils::IsUIExtension(abilityRecord_->abilityInfo_.extensionAbilityType), true);
+    EXPECT_EQ(UIExtensionWrapper::IsUIExtension(abilityRecord_->abilityInfo_.extensionAbilityType), true);
 }
 
 /*
@@ -2257,23 +1717,6 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_GetAbilityVisibilityState_001, TestSiz
     EXPECT_EQ(AbilityVisibilityState::INITIAL, abilityRecord_->GetAbilityVisibilityState());
     abilityRecord_->SetAbilityVisibilityState(AbilityVisibilityState::FOREGROUND_HIDE);
     EXPECT_EQ(AbilityVisibilityState::FOREGROUND_HIDE, abilityRecord_->GetAbilityVisibilityState());
-}
-
-/*
- * Feature: AbilityRecord
- * Function: Activate
- * SubFunction: Activate
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord Activate
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_Activate_003, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->SetIsNewWant(true);
-    abilityRecord->SetPreAbilityRecord(abilityRecord);
-    abilityRecord->Activate();
-    EXPECT_NE(abilityRecord_, nullptr);
 }
 
 /*
@@ -2613,24 +2056,6 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_ForegroundAbility_002, TestSize.Level1
     abilityRecord->SetIsNewWant(isNewWant);
     abilityRecord->ForegroundUIExtensionAbility(sceneFlag);
     EXPECT_NE(abilityRecord_, nullptr);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: PostUIExtensionAbilityTimeoutTask
- * SubFunction: PostUIExtensionAbilityTimeoutTask
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord PostUIExtensionAbilityTimeoutTask
- */
-HWTEST_F(AbilityRecordTest, AbilityRecord_PostUIExtensionAbilityTimeoutTask_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    ASSERT_NE(abilityRecord, nullptr);
-    abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::LOAD_TIMEOUT_MSG);
-    abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
-    abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::BACKGROUND_TIMEOUT_MSG);
-    EXPECT_TRUE(abilityRecord != nullptr);
 }
 
 /*
@@ -3394,6 +2819,7 @@ HWTEST_F(AbilityRecordTest, AbilityRecord_ConnectionReported_001, TestSize.Level
  */
 HWTEST_F(AbilityRecordTest, ReportAbilityConnectionRelations_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ReportAbilityConnectionRelations_001 start";
     EXPECT_NE(abilityRecord_, nullptr);
     abilityRecord_->abilityInfo_.type = AbilityType::DATA;
     abilityRecord_->abilityInfo_.applicationInfo.name = "app";
@@ -3447,6 +2873,7 @@ HWTEST_F(AbilityRecordTest, ReportAbilityConnectionRelations_001, TestSize.Level
     auto callerRecord_4 = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
     abilityRecord_->callerList_.push_back(callerRecord_4);
     EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
+    GTEST_LOG_(INFO) << "ReportAbilityConnectionRelations_001 end";
 }
 
 /*
@@ -3459,6 +2886,7 @@ HWTEST_F(AbilityRecordTest, ReportAbilityConnectionRelations_001, TestSize.Level
  */
 HWTEST_F(AbilityRecordTest, ReportAbilityConnectionRelations_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ReportAbilityConnectionRelations_002 start";
     EXPECT_NE(abilityRecord_, nullptr);
     abilityRecord_->abilityInfo_.type = AbilityType::DATA;
     abilityRecord_->abilityInfo_.applicationInfo.name = "app";
@@ -3485,6 +2913,39 @@ HWTEST_F(AbilityRecordTest, ReportAbilityConnectionRelations_002, TestSize.Level
     auto callerRecord_6 = std::make_shared<CallerRecord>(requestCode, callerAbilityRecord);
     abilityRecord_->callerList_.push_back(callerRecord_6);
     EXPECT_EQ(abilityRecord_->ReportAbilityConnectionRelations(), false);
+    GTEST_LOG_(INFO) << "ReportAbilityConnectionRelations_002 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: ReportAbilityConnectionForResultTerminate
+ * SubFunction: ReportAbilityConnectionForResultTerminate
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord ReportAbilityConnectionForResultTerminate
+ */
+HWTEST_F(AbilityRecordTest, ReportAbilityConnectionForResultTerminate_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ReportAbilityConnectionForResultTerminate_001 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    int32_t requestCode = 0;
+    std::set<int32_t> requestCodeSetWithForResult = {-1, 1, 2, 3};
+    std::set<int32_t> requestCodeSetNoForResult = {-1, -1, -1, -1};
+    std::shared_ptr<AbilityRecord> caller = GetAbilityRecord();
+    auto callerRecord = std::make_shared<CallerRecord>(requestCode, caller);
+    // callerRecord1 nullptr
+    abilityRecord_->callerList_.push_back(nullptr);
+    // callerRecord2 without forResult
+    auto callerRecord2 = std::make_shared<CallerRecord>(requestCode, caller);
+    callerRecord2->SetRequestCodeSet(requestCodeSetNoForResult);
+    abilityRecord_->callerList_.push_back(callerRecord2);
+    // callerRecord3 with forResult
+    auto callerRecord3 = std::make_shared<CallerRecord>(requestCode, caller);
+    callerRecord3->SetRequestCodeSet(requestCodeSetWithForResult);
+    abilityRecord_->callerList_.push_back(callerRecord3);
+
+    abilityRecord_->ReportAbilityConnectionForResultTerminate();
+    GTEST_LOG_(INFO) << "ReportAbilityConnectionForResultTerminate_001 end";
 }
 
 /*
@@ -3503,11 +2964,16 @@ HWTEST_F(AbilityRecordTest, SetPromotePriority_001, TestSize.Level1)
     abilityRecord_->SetPromotePriority(true);
     EXPECT_NE(abilityRecord_->uiAbilityProperty_, nullptr);
     EXPECT_TRUE(abilityRecord_->uiAbilityProperty_->promotePriority);
+    EXPECT_TRUE(abilityRecord_->uiAbilityProperty_->byCallCallerSaUid >= 0);
+    EXPECT_TRUE(abilityRecord_->uiAbilityProperty_->byCallCallerSaPid >= 0);
 
     abilityRecord_->uiAbilityProperty_ = nullptr;
     abilityRecord_->SetPromotePriority(false);
-    EXPECT_NE(abilityRecord_->uiAbilityProperty_, nullptr);
-    EXPECT_FALSE(abilityRecord_->uiAbilityProperty_->promotePriority);
+    EXPECT_EQ(abilityRecord_->uiAbilityProperty_, nullptr);
+
+    abilityRecord_->uiAbilityProperty_ = std::make_shared<AbilityRecord::UIAbilityProperty>();
+    abilityRecord_->SetPromotePriority(false);
+    EXPECT_EQ(abilityRecord_->uiAbilityProperty_, nullptr);
     GTEST_LOG_(INFO) << "SetPromotePriority_001 end";
 }
 
@@ -3555,16 +3021,51 @@ HWTEST_F(AbilityRecordTest, PromotePriority_001, TestSize.Level1)
 
     abilityRecord_->uiAbilityProperty_ = std::make_shared<AbilityRecord::UIAbilityProperty>();
     abilityRecord_->uiAbilityProperty_->promotePriority = true;
+    abilityRecord_->uiAbilityProperty_->byCallCallerSaUid = 300000;
+    abilityRecord_->uiAbilityProperty_->byCallCallerSaPid = 1000;
     abilityRecord_->pid_ = 1000;
     EXPECT_TRUE(abilityRecord_->GetPromotePriority());
 
-    abilityRecord_->callerList_.clear();
-    auto callerInfo = std::make_shared<CallerRecord>(100, abilityRecord_);
-    abilityRecord_->callerList_.emplace_back(callerInfo);
-    EXPECT_NE(abilityRecord_->GetCallerInfo(), nullptr);
-
-    abilityRecord_->PromotePriority();
+    EXPECT_TRUE(abilityRecord_->PromotePriority());
     GTEST_LOG_(INFO) << "PromotePriority_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: PromotePriority
+ * SubFunction: PromotePriority
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord PromotePriority
+ */
+HWTEST_F(AbilityRecordTest, PromotePriority_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "PromotePriority_002 start";
+    EXPECT_NE(abilityRecord_, nullptr);
+    abilityRecord_->isStartedByCall_ = false;
+    EXPECT_FALSE(abilityRecord_->IsStartedByCall());
+    EXPECT_FALSE(abilityRecord_->PromotePriority());
+
+    abilityRecord_->isStartedByCall_ = true;
+    EXPECT_TRUE(abilityRecord_->IsStartedByCall());
+    abilityRecord_->uiAbilityProperty_.reset();
+    EXPECT_FALSE(abilityRecord_->PromotePriority());
+
+    abilityRecord_->uiAbilityProperty_ = std::make_shared<AbilityRecord::UIAbilityProperty>();
+    abilityRecord_->uiAbilityProperty_->promotePriority = false;
+    EXPECT_FALSE(abilityRecord_->PromotePriority());
+
+    abilityRecord_->uiAbilityProperty_->promotePriority = true;
+    abilityRecord_->pid_ = 0;
+    EXPECT_FALSE(abilityRecord_->PromotePriority());
+
+    abilityRecord_->uiAbilityProperty_->byCallCallerSaUid = 300000;
+    abilityRecord_->uiAbilityProperty_->byCallCallerSaPid = 1000;
+    abilityRecord_->pid_ = 1000;
+    EXPECT_TRUE(abilityRecord_->GetPromotePriority());
+
+    EXPECT_TRUE(abilityRecord_->PromotePriority());
+    GTEST_LOG_(INFO) << "PromotePriority_002 end";
 }
 
 /*
@@ -3583,6 +3084,300 @@ HWTEST_F(AbilityRecordTest, GetFirstCallerBundleName_001, TestSize.Level1)
     abilityRecord_->firstCallerBundleName_ = callerBundleName;
     EXPECT_EQ(abilityRecord_->GetFirstCallerBundleName(), callerBundleName);
     GTEST_LOG_(INFO) << "GetFirstCallerBundleName_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: Host-Plugin relationship management
+ * SubFunction: AddPluginAbility, RemovePluginAbility, GetPluginAbilities
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AddPluginAbility adds plugin to host's list
+ */
+HWTEST_F(AbilityRecordTest, AddPluginAbility_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AddPluginAbility_001 start";
+    auto hostRecord = GetAbilityRecord();
+    auto pluginRecord = GetAbilityRecord();
+
+    // Add plugin to host
+    hostRecord->AddPluginAbility(pluginRecord);
+
+    // Verify plugin is in host's list
+    auto plugins = hostRecord->GetPluginAbilities();
+    EXPECT_EQ(plugins.size(), 1u);
+    EXPECT_EQ(plugins[0], pluginRecord);
+
+    GTEST_LOG_(INFO) << "AddPluginAbility_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: Host-Plugin relationship management
+ * SubFunction: AddPluginAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AddPluginAbility does not add duplicate plugin
+ */
+HWTEST_F(AbilityRecordTest, AddPluginAbility_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AddPluginAbility_002 start";
+    auto hostRecord = GetAbilityRecord();
+    auto pluginRecord = GetAbilityRecord();
+
+    // Add same plugin twice
+    hostRecord->AddPluginAbility(pluginRecord);
+    hostRecord->AddPluginAbility(pluginRecord);
+
+    // Verify plugin is only added once
+    auto plugins = hostRecord->GetPluginAbilities();
+    EXPECT_EQ(plugins.size(), 1u);
+
+    GTEST_LOG_(INFO) << "AddPluginAbility_002 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: Host-Plugin relationship management
+ * SubFunction: AddPluginAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AddPluginAbility handles null plugin gracefully
+ */
+HWTEST_F(AbilityRecordTest, AddPluginAbility_003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AddPluginAbility_003 start";
+    auto hostRecord = GetAbilityRecord();
+
+    // Try to add null plugin
+    hostRecord->AddPluginAbility(nullptr);
+
+    // Verify no crash and empty list
+    auto plugins = hostRecord->GetPluginAbilities();
+    EXPECT_EQ(plugins.size(), 0u);
+
+    GTEST_LOG_(INFO) << "AddPluginAbility_003 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: Host-Plugin relationship management
+ * SubFunction: RemovePluginAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify RemovePluginAbility removes plugin from host's list
+ */
+HWTEST_F(AbilityRecordTest, RemovePluginAbility_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RemovePluginAbility_001 start";
+    auto hostRecord = GetAbilityRecord();
+    auto pluginRecord = GetAbilityRecord();
+    auto pluginRecord2 = GetAbilityRecord();
+
+    // Add plugin to host
+    hostRecord->AddPluginAbility(pluginRecord);
+    EXPECT_EQ(hostRecord->GetPluginAbilities().size(), 1u);
+
+    // Remove plugin from host
+    hostRecord->RemovePluginAbility(pluginRecord);
+
+    // Verify plugin is removed
+    EXPECT_EQ(hostRecord->GetPluginAbilities().size(), 0u);
+
+    // Add plugin to host
+    hostRecord->AddPluginAbility(pluginRecord2);
+    EXPECT_EQ(hostRecord->GetPluginAbilities().size(), 1u);
+
+    hostRecord->RemovePluginAbility(pluginRecord);
+    EXPECT_EQ(hostRecord->GetPluginAbilities().size(), 1u);
+
+    GTEST_LOG_(INFO) << "RemovePluginAbility_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: Host-Plugin relationship management
+ * SubFunction: GetPluginAbilities
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify GetPluginAbilities returns only active plugins
+ */
+HWTEST_F(AbilityRecordTest, GetPluginAbilities_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPluginAbilities_001 start";
+    auto hostRecord = GetAbilityRecord();
+    auto pluginRecord1 = GetAbilityRecord();
+    auto pluginRecord2 = GetAbilityRecord();
+
+    // Add plugins to host
+    hostRecord->AddPluginAbility(pluginRecord1);
+    hostRecord->AddPluginAbility(pluginRecord2);
+
+    // Set one plugin to TERMINATING state
+    pluginRecord2->SetAbilityState(AbilityState::TERMINATING);
+
+    // GetPluginAbilities should only return active plugins
+    auto plugins = hostRecord->GetPluginAbilities();
+    EXPECT_EQ(plugins.size(), 1u);
+    EXPECT_EQ(plugins[0], pluginRecord1);
+
+    GTEST_LOG_(INFO) << "GetPluginAbilities_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: Host-Plugin relationship management
+ * SubFunction: GetPluginAbilities
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify GetPluginAbilities cleans up expired weak_ptr
+ */
+HWTEST_F(AbilityRecordTest, GetPluginAbilities_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPluginAbilities_002 start";
+    auto hostRecord = GetAbilityRecord();
+
+    // Create plugin and add to host
+    {
+        auto pluginRecord = GetAbilityRecord();
+        hostRecord->AddPluginAbility(pluginRecord);
+    }
+    // pluginRecord is destroyed here, weak_ptr should expire
+
+    // GetPluginAbilities should clean up expired weak_ptr
+    auto plugins = hostRecord->GetPluginAbilities();
+    EXPECT_EQ(plugins.size(), 0u);
+
+    GTEST_LOG_(INFO) << "GetPluginAbilities_002 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: Host-Plugin relationship management
+ * SubFunction: ClearPluginAbilities
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify ClearPluginAbilities clears all plugins
+ */
+HWTEST_F(AbilityRecordTest, ClearPluginAbilities_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ClearPluginAbilities_001 start";
+    auto hostRecord = GetAbilityRecord();
+    auto pluginRecord1 = GetAbilityRecord();
+    auto pluginRecord2 = GetAbilityRecord();
+
+    // Add plugins to host
+    hostRecord->AddPluginAbility(pluginRecord1);
+    hostRecord->AddPluginAbility(pluginRecord2);
+    EXPECT_EQ(hostRecord->GetPluginAbilities().size(), 2u);
+
+    // Clear all plugins
+    hostRecord->ClearPluginAbilities();
+
+    // Verify all plugins are cleared
+    auto plugins = hostRecord->GetPluginAbilities();
+    EXPECT_EQ(plugins.size(), 0u);
+
+    GTEST_LOG_(INFO) << "ClearPluginAbilities_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: InitPluginAbility
+ * SubFunction: InitPluginAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify InitPluginAbility establishes host-plugin relationship
+ */
+HWTEST_F(AbilityRecordTest, InitPluginAbility_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "InitPluginAbility_001 start";
+    auto hostRecord = CreateAbilityRecord();
+    auto pluginRecord = GetAbilityRecord();
+
+    // Create ability request with plugin flag and callerToken
+    AbilityRequest request;
+    request.want.SetParam(AAFwk::Want::DESTINATION_PLUGIN_ABILITY, true);
+    request.callerToken = hostRecord->GetToken();
+
+    // Initialize plugin ability
+    pluginRecord->InitPluginAbility(request);
+
+    // Verify plugin is marked as plugin
+    EXPECT_TRUE(pluginRecord->IsPluginAbility());
+
+    auto plugins = hostRecord->GetPluginAbilities();
+    EXPECT_EQ(plugins.size(), 1u);
+    EXPECT_EQ(plugins[0], pluginRecord);
+
+    GTEST_LOG_(INFO) << "InitPluginAbility_001 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: InitPluginAbility
+ * SubFunction: InitPluginAbility
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify InitPluginAbility does nothing for non-plugin ability
+ */
+HWTEST_F(AbilityRecordTest, InitPluginAbility_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "InitPluginAbility_002 start";
+    auto normalRecord = GetAbilityRecord();
+
+    EXPECT_NE(normalRecord, nullptr);
+
+    // Create ability request without plugin flag
+    AbilityRequest request;
+
+    // Initialize normal ability
+    normalRecord->InitPluginAbility(request);
+
+    // Verify not marked as plugin
+    EXPECT_FALSE(normalRecord->IsPluginAbility());
+
+    request.want.SetParam(AAFwk::Want::DESTINATION_PLUGIN_ABILITY, true);
+    normalRecord->InitPluginAbility(request);
+    EXPECT_TRUE(normalRecord->IsPluginAbility());
+
+    GTEST_LOG_(INFO) << "InitPluginAbility_002 end";
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: PluginCompleteTerminate
+ * SubFunction: PluginCompleteTerminate
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify PluginCompleteTerminate
+ */
+HWTEST_F(AbilityRecordTest, PluginCompleteTerminate_001, TestSize.Level1)
+{
+    auto hostRecord = CreateAbilityRecord();
+    auto pluginRecord = GetAbilityRecord();
+
+    // Create ability request with plugin flag and callerToken
+    AbilityRequest request;
+    request.callerToken = hostRecord->GetToken();
+    pluginRecord->InitPluginAbility(request);
+    EXPECT_FALSE(pluginRecord->IsPluginAbility());
+    pluginRecord->PluginCompleteTerminate();
+
+    request.want.SetParam(AAFwk::Want::DESTINATION_PLUGIN_ABILITY, true);
+    pluginRecord->InitPluginAbility(request);
+    // Verify plugin is marked as plugin
+    EXPECT_TRUE(pluginRecord->IsPluginAbility());
+    pluginRecord->PluginCompleteTerminate();
+
+    auto plugins = hostRecord->GetPluginAbilities();
+    EXPECT_EQ(plugins.size(), 1u);
+    EXPECT_EQ(plugins[0], pluginRecord);
+
+    pluginRecord->AddCallerRecord(request.callerToken, 0, request.want);
+    pluginRecord->PluginCompleteTerminate();
+    plugins = hostRecord->GetPluginAbilities();
+    EXPECT_TRUE(plugins.empty());
 }
 }  // namespace AAFwk
 }  // namespace OHOS

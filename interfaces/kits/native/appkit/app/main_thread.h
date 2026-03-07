@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -55,7 +55,8 @@ class Runtime;
 namespace OHOS {
 namespace JsEnv {
 struct ErrorObject;
-using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject)>;
+using UncatchableTask = std::function<void(std::string summary, const JsEnv::ErrorObject errorObject, napi_env env,
+    napi_value exception)>;
 }  // namespace JsEnv
 namespace EtsEnv {
 struct ETSUncaughtExceptionInfo;
@@ -79,6 +80,16 @@ struct RuntimeUpdateParam {
     AbilityRuntime::Runtime::Options option;
     UncatchableTaskInfo uncatchableTaskInfo;
     std::string hapPath;
+};
+struct ProcessExitInfo {
+    std::string bundleName;
+    std::string errorObjectName;
+    std::string summary;
+    std::string appRunningId;
+    std::string processName;
+    int32_t pid;
+    bool foreground;
+    bool isUncatchable;
 };
 class ContextDeal;
 struct ModuleTestRunner;
@@ -192,7 +203,7 @@ public:
      *
      * @param level Indicates the memory trim level, which shows the current memory usage status.
      */
-    void ScheduleMemoryLevel(const int level) override;
+    void ScheduleMemoryLevel(const int level, bool isShellCall = false) override;
 
     /**
      *
@@ -279,7 +290,8 @@ public:
      * @param config The updated config.
      *
      */
-    void ScheduleConfigurationUpdated(const Configuration &config) override;
+    void ScheduleConfigurationUpdated(const Configuration &config,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT) override;
 
     /**
      *
@@ -391,6 +403,8 @@ public:
      */
     int32_t ScheduleDumpFfrt(std::string& result) override;
 
+    int32_t ScheduleDumpArkWeb(const std::string &customArgs, std::string &result) override;
+
     /**
      *
      * @brief Set watchdog background status of application.
@@ -458,6 +472,15 @@ private:
      */
     void InitUncatchableTask(JsEnv::UncatchableTask &uncatchableTask, const UncatchableTaskInfo &uncatchableTaskInfo,
         bool isUncatchable = false);
+
+    /**
+    *
+    * @brief Handle process exit.
+    *
+    * @param processExitInfo The info of the process exit info.
+    *
+    */
+    static void ProcessExit(const ProcessExitInfo& info);
 
     /**
      *
@@ -539,9 +562,11 @@ private:
      * @brief send the new config to the application.
      *
      * @param config The updated config.
+     * @param reason The updated configuration scene flag.
      *
      */
-    void HandleConfigurationUpdated(const Configuration &config);
+    void HandleConfigurationUpdated(const Configuration &config,
+        ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT);
 
     /**
      *
@@ -637,20 +662,7 @@ private:
     bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
         const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion);
 
-    /**
-     * @brief Set current process extension type
-     *
-     * @param abilityRecord current running ability record
-     */
-    void SetProcessExtensionType(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);
-
-    /**
-     * @brief Add Extension block item
-     *
-     * @param extensionName extension name
-     * @param type extension type
-     */
-    void AddExtensionBlockItem(const std::string &extensionName, int32_t type);
+    void LoadExtensionBlockList(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);
 
     /**
      * @brief Update runtime module checker
@@ -687,6 +699,9 @@ private:
     void HandleCacheProcess();
 
     bool IsBgWorkingThread(const AbilityInfo &info);
+
+    void DoUpdatePluginInfoInstalled(std::vector<AppExecFwk::PluginBundleInfo> &pluginBundleInfos,
+        const std::vector<std::string> &pluginModuleNames);
 
     void HandleUpdatePluginInfoInstalled(const ApplicationInfo &pluginAppInfo, const std::string &moduleName);
 
@@ -754,7 +769,6 @@ private:
     bool isPluginNamespaceInherited_ = false;
     std::string pluginDefaultNamespaceLdDictionary_ = "";
     RuntimeUpdateParam runtimeUpdateParam_;
-    std::vector<OHOS::AppExecFwk::HapModuleInfo> hapList_;
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
     Rosen::RSSurfaceNode::SharedPtr preloadSurfaceNode_ = nullptr;
     std::shared_ptr<NWeb::NWeb> preloadNWeb_ = nullptr;
@@ -830,7 +844,6 @@ private:
         AppExecFwk::ModuleTestRunner &tsTestRunner);
     bool CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);
     void SleepCleanKill();
-    bool CheckHapPathLoaded(const HapModuleInfo &hapModuleInfo);
 
     std::vector<std::string> fileEntries_;
     std::vector<std::string> nativeFileEntries_;

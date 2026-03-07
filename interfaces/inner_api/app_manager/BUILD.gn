@@ -45,6 +45,7 @@ ohos_shared_library("app_manager") {
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/appkit/dfr",
+    "${ability_runtime_path}/utils/global/common/include",
     "${ability_runtime_path}/utils/global/time/include",
     "${ability_runtime_services_path}/appdfr/include",
     "${ability_runtime_services_path}/appmgr/include",
@@ -53,9 +54,10 @@ ohos_shared_library("app_manager") {
   ]
 
   sources = [
-    "${ability_runtime_services_path}/appdfr/src/appfreeze_event_report.cpp",
     "${ability_runtime_services_path}/appdfr/src/appfreeze_cpu_freq_manager.cpp",
+    "${ability_runtime_services_path}/appdfr/src/appfreeze_event_report.cpp",
     "${ability_runtime_services_path}/appdfr/src/appfreeze_manager.cpp",
+    "${ability_runtime_services_path}/appdfr/src/app_recovery_mgr.cpp",
     "${ability_runtime_services_path}/appdfr/src/appfreeze_util.cpp",
     "${ability_runtime_services_path}/appdfr/src/cpu_data_processor.cpp",
     "${ability_runtime_services_path}/appdfr/src/cpu_sys_config.cpp",
@@ -70,13 +72,13 @@ ohos_shared_library("app_manager") {
     "src/appmgr/ability_state_data.cpp",
     "src/appmgr/ams_mgr_proxy.cpp",
     "src/appmgr/ams_mgr_stub.cpp",
+    "src/appmgr/app_cjheap_mem_info.cpp",
     "src/appmgr/app_debug_info.cpp",
     "src/appmgr/app_debug_listener_proxy.cpp",
     "src/appmgr/app_debug_listener_stub.cpp",
     "src/appmgr/app_foreground_state_observer_proxy.cpp",
     "src/appmgr/app_foreground_state_observer_stub.cpp",
     "src/appmgr/app_jsheap_mem_info.cpp",
-    "src/appmgr/app_cjheap_mem_info.cpp",
     "src/appmgr/app_launch_data.cpp",
     "src/appmgr/app_malloc_info.cpp",
     "src/appmgr/app_mgr_client.cpp",
@@ -114,6 +116,7 @@ ohos_shared_library("app_manager") {
     "src/appmgr/page_state_data.cpp",
     "src/appmgr/preload_process_data.cpp",
     "src/appmgr/priority_object.cpp",
+    "src/appmgr/process_bind_data.cpp",
     "src/appmgr/process_data.cpp",
     "src/appmgr/process_info.cpp",
     "src/appmgr/process_memory_state.cpp",
@@ -131,13 +134,14 @@ ohos_shared_library("app_manager") {
     "src/appmgr/start_specified_ability_response_proxy.cpp",
     "src/appmgr/start_specified_ability_response_stub.cpp",
     "src/appmgr/system_memory_attr.cpp",
-    "src/appmgr/process_bind_data.cpp",
   ]
 
   public_configs = [
     ":appmgr_core_config",
     ":appmgr_sdk_config",
   ]
+
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   defines = [ "AMS_LOG_TAG = \"AppexecfwkCore\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001306" ]
@@ -146,9 +150,11 @@ ohos_shared_library("app_manager") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_path}/utils/server/startup:startup_util",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:hisysevent_report",
   ]
 
   external_deps = [
@@ -156,8 +162,11 @@ ohos_shared_library("app_manager") {
     "faultloggerd:libdfx_dumpcatcher",
     "faultloggerd:libfaultloggerd",
     "ffrt:libffrt",
+    "hicollie:libhicollie",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "eventhandler:libeventhandler",
+    "ability_base:session_info",
     "hitrace:hitrace_meter",
     "hitrace:libhitracechain",
     "init:libbegetutil",
@@ -210,10 +219,14 @@ ohos_shared_library("app_state_data") {
 
   include_dirs = [
     "include/appmgr",
+    "${ability_runtime_path}/utils/global/common/include",
     "${ability_runtime_services_path}/common/include",
   ]
 
-  sources = [ "src/appmgr/app_state_data.cpp" ]
+  sources = [ 
+    "src/appmgr/app_state_data.cpp",
+    "${ability_runtime_path}/utils/global/common/src/ui_extension_wrapper.cpp"
+  ]
 
   defines = [ "AMS_LOG_TAG = \"AppexecfwkCore\"" ]
   defines += [ "AMS_LOG_DOMAIN = 0xD001306" ]

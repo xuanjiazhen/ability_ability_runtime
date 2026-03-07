@@ -28,7 +28,7 @@ bool FUDUtils::SendShareUnPrivilegeUriEvent(uint32_t callerTokenId, uint32_t tar
 }
 
 bool FUDUtils::SendSystemAppGrantUriPermissionEvent(uint32_t callerTokenId, uint32_t targetTokenId,
-    const std::vector<std::string> &uriVec, const std::vector<bool> &resVec)
+    const std::vector<std::string> &uriVec, const std::vector<CheckResult> &resVec)
 {
     return true;
 }
@@ -51,6 +51,11 @@ bool FUDUtils::IsSAOrSystemAppCall()
 bool FUDUtils::IsSystemAppCall()
 {
     return MyFlag::isSystemAppCall_;
+}
+
+bool FUDUtils::IsPrivilegedSACall()
+{
+    return MyFlag::isPrivilegedSACall_;
 }
 
 bool FUDUtils::GetBundleApiTargetVersion(const std::string &bundleName, int32_t &targetApiVersion)
@@ -115,9 +120,19 @@ bool FUDUtils::IsUdmfOrPasteboardCall()
     return MyFlag::isUdmfOrPasteboardCallRet_;
 }
 
-bool FUDUtils::SendAutoPersistEvent(uint32_t callerTokenId, uint32_t targetTokenId)
+bool FUDUtils::IsDFSCall()
 {
-    return true;
+    return MyFlag::isDFSCallRet_;
+}
+
+bool FUDUtils::IsSandboxApp(uint32_t tokenId)
+{
+    return MyFlag::isSandboxAppRet_;
+}
+
+bool FUDUtils::IsBrokerCaller()
+{
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

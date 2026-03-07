@@ -289,6 +289,12 @@ public:
     {
         return nullptr;
     }
+
+    virtual std::shared_ptr<Context> CreateModuleOrPluginContext(const std::string &bundleName,
+        const std::string &moduleName)
+    {
+        return nullptr;
+    }
     virtual std::shared_ptr<Context> CreateDisplayContext(uint64_t displayId)
     {
         return nullptr;
@@ -387,7 +393,7 @@ public:
     {
         return ERR_OK;
     }
-    virtual ErrCode StartAbilityForPrelaunch(const Want &want)
+    virtual ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
     {
         return ERR_OK;
     }
@@ -607,6 +613,14 @@ public:
     virtual ErrCode RestartAppWithWindow(const AAFwk::Want &want)
     {
         return 0;
+    }
+
+    void RegisterBindingObjectConfigUpdateCallback(BindingObjectConfigUpdateCallback callback) override
+    {
+    }
+
+    void NotifyBindingObjectConfigUpdate() override
+    {
     }
 private:
     std::unique_ptr<NativeReference> mockContentStorage_ = nullptr;

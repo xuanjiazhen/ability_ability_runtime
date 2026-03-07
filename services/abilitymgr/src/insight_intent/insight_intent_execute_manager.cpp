@@ -63,10 +63,10 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     const bool ignoreAbilityName)
 {
     int32_t result = CheckCallerPermission();
-    if (result != ERR_OK) {
+    if (result != ERR_OK && (param == nullptr || !param->isServiceMatch_)) {
         return result;
     }
-    if (callerToken == nullptr) {
+    if (callerToken == nullptr && (param == nullptr || !param->isServiceMatch_)) {
         TAG_LOGE(AAFwkTag::INTENT, "null callerToken");
         return ERR_INVALID_VALUE;
     }
@@ -89,7 +89,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     return ERR_OK;
 }
 
-int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode executeMode,
+int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode executeMode, int32_t userId,
     std::string callerBundleName)
 {
     auto uriVec = want.GetStringArrayParam(AbilityConfig::PARAMS_STREAM);
@@ -118,7 +118,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
         elementName, intentName, executeMode, srcEntry, &arkTSMode);
     if (ret != ERR_OK || srcEntry.empty()) {
         TAG_LOGW(AAFwkTag::INTENT, "empty srcEntry");
-        if (UpdateEntryDecoratorParams(want, executeMode) != ERR_OK) {
+        if (UpdateEntryDecoratorParams(want, executeMode, userId) != ERR_OK) {
             return ERR_INVALID_VALUE;
         }
     }
@@ -131,11 +131,13 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
     return ERR_OK;
 }
 
-int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, ExecuteMode executeMode)
+int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, ExecuteMode executeMode, int32_t userId)
 {
     std::string intentName = want.GetStringParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME);
     ExtractInsightIntentInfo info;
-    const int32_t userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    if (userId == DEFAULT_INVAL_VALUE) {
+        userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    }
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
         want.GetBundle(), want.GetModuleName(), intentName, userId, info);
     if (info.genericInfo.decoratorType != AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY) {
@@ -437,7 +439,10 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateDecoratorParams(
 {
     // ExtractInsightIntentGenericInfo don't satisfy for now
     ExtractInsightIntentInfo info;
-    const int32_t userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    int32_t userId = param->userId_;
+    if (userId == DEFAULT_INVAL_VALUE) {
+        userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    }
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
         param->bundleName_, param->moduleName_, param->insightIntentName_, userId, info);
 
@@ -502,20 +507,20 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     std::string srcEntry;
     std::string arkTSMode;
     auto ret = AbilityRuntime::InsightIntentUtils::GetSrcEntry(want.GetElement(), param->insightIntentName_,
-        static_cast<AppExecFwk::ExecuteMode>(param->executeMode_), srcEntry, &arkTSMode);
+        static_cast<AppExecFwk::ExecuteMode>(param->executeMode_), srcEntry, &arkTSMode, param->userId_);
     if (!arkTSMode.empty()) {
         want.SetParam(INSIGHT_INTENT_ARKTS_MODE, arkTSMode);
     }
     if (!srcEntry.empty()) {
         want.SetParam(INSIGHT_INTENT_SRC_ENTRY, srcEntry);
     } else if (decoratorInfo.decoratorType == "" && ret == ERR_INSIGHT_INTENT_GET_PROFILE_FAILED &&
-        param->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND) {
+        param->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND && !param->isServiceMatch_) {
         TAG_LOGI(AAFwkTag::INTENT, "insight intent srcEntry invalid, try free install ondemand");
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count());
         want.SetParam(Want::PARAM_RESV_START_TIME, startTime);
         want.AddFlags(Want::FLAG_INSTALL_ON_DEMAND);
-    } else if (decoratorInfo.decoratorType == "") {
+    } else if (decoratorInfo.decoratorType == "" && !param->isServiceMatch_) {
         // decoratorType is empty indicate no decorator
         TAG_LOGE(AAFwkTag::INTENT, "insight intent srcEntry invalid");
         return ERR_INVALID_VALUE;
@@ -624,7 +629,7 @@ std::map<int32_t, int64_t> InsightIntentExecuteManager::GetAllIntentExemptionInf
 void InsightIntentExecuteManager::SendIntentReport(EventInfo &eventInfo, int32_t errCode)
 {
     eventInfo.errCode = errCode;
-    EventReport::SendExecuteIntentEvent(EventName::EXECUTE_INSIGHT_INTENT_ERROR, HiSysEventType::FAULT, eventInfo);
+    EventReport::SendExecuteIntentEvent(EventName::EXECUTE_INSIGHT_INTENT_ERROR, HISYSEVENT_FAULT, eventInfo);
 }
 
 void InsightIntentExecuteManager::OnInsightAppDied(const std::string &bundleName)

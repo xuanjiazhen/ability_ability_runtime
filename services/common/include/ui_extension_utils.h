@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,7 @@ inline std::unordered_set<AppExecFwk::ExtensionAbilityType> GetUiExtensionSet()
     return std::unordered_set<AppExecFwk::ExtensionAbilityType> {
         AppExecFwk::ExtensionAbilityType::SHARE,
         AppExecFwk::ExtensionAbilityType::ACTION,
+        AppExecFwk::ExtensionAbilityType::AGENT_UI,
         AppExecFwk::ExtensionAbilityType::EMBEDDED_UI,
         AppExecFwk::ExtensionAbilityType::INSIGHT_INTENT_UI,
         AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD,
@@ -69,7 +70,8 @@ inline std::unordered_set<AppExecFwk::ExtensionAbilityType> GetUiExtensionSet()
         AppExecFwk::ExtensionAbilityType::FORM_EDIT,
         AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE,
         AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED,
-        AppExecFwk::ExtensionAbilityType::LIVE_FORM
+        AppExecFwk::ExtensionAbilityType::LIVE_FORM,
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_CASHIER
     };
 }
 
@@ -109,7 +111,8 @@ inline bool IsSystemUIExtension(const AppExecFwk::ExtensionAbilityType type)
         AppExecFwk::ExtensionAbilityType::SYS_VISUAL,
         AppExecFwk::ExtensionAbilityType::RECENT_PHOTO,
         AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE,
-        AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED
+        AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED,
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_CASHIER
     };
     return systemUiExtensionSet.find(type) != systemUiExtensionSet.end();
 }
@@ -140,7 +143,8 @@ inline bool IsPublicForEmbedded(const AppExecFwk::ExtensionAbilityType type)
         AppExecFwk::ExtensionAbilityType::SYSPICKER_MEDIACONTROL,
         AppExecFwk::ExtensionAbilityType::SYS_VISUAL,
         AppExecFwk::ExtensionAbilityType::AUTO_FILL_SMART,
-        AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD
+        AppExecFwk::ExtensionAbilityType::AUTO_FILL_PASSWORD,
+        AppExecFwk::ExtensionAbilityType::EMBEDDED_CASHIER
     };
     return publicForEmbeddedSet.find(type) != publicForEmbeddedSet.end();
 }
@@ -153,15 +157,6 @@ inline bool IsPublicForConstrainedEmbedded(const AppExecFwk::ExtensionAbilityTyp
         AppExecFwk::ExtensionAbilityType::RECENT_PHOTO
     };
     return publicForConstrainedEmbeddedSet.find(type) != publicForConstrainedEmbeddedSet.end();
-}
-
-inline bool IsOnlyForModal(const AppExecFwk::ExtensionAbilityType type)
-{
-    const std::unordered_set<AppExecFwk::ExtensionAbilityType> onlyForMoadalSet = {
-        AppExecFwk::ExtensionAbilityType::AWC_WEBPAGE,
-        AppExecFwk::ExtensionAbilityType::AWC_NEWSFEED
-    };
-    return onlyForMoadalSet.find(type) != onlyForMoadalSet.end();
 }
 
 inline bool IsEnterpriseAdmin(const AppExecFwk::ExtensionAbilityType type)
@@ -182,6 +177,11 @@ inline bool IsProcessUdkeyExtension(const AppExecFwk::ExtensionAbilityType type)
         AppExecFwk::ExtensionAbilityType::SYSPICKER_FILEPICKER
     };
     return processUdkeyExtensionSet.find(type) != processUdkeyExtensionSet.end();
+}
+
+inline bool IsAgentUIExtension(const AppExecFwk::ExtensionAbilityType type)
+{
+    return type == AppExecFwk::ExtensionAbilityType::AGENT_UI;
 }
 } // namespace UIExtensionUtils
 } // namespace AAFwk

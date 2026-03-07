@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -111,7 +111,6 @@ public:
      *
      * @param userId, the user id.
      * @param isNeedSendAppSpawnMsg, true send appSpawn message otherwise not send.
-     * @param callback, callback function for logout user.
      * @return
      */
     virtual void KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg = false,
@@ -265,7 +264,7 @@ public:
      * @param requestId request id to callback
      */
     virtual void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0) = 0;
+        int32_t requestId = 0, const std::string &customProcess = "") = 0;
 
     /**
      * Register response of start specified ability.
@@ -310,6 +309,17 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t NotifyAppMgrRecordExitReason(int32_t pid, int32_t reason, const std::string &exitMsg) = 0;
+
+    /**
+     * Record process exit reason to appRunningRecord.
+     * @param pid Pid.
+     * @param killId Kill reason enum.
+     * @param killMsg Kill message.
+     * @param innerMsg Inner message.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t NotifyAppMgrRecordExitReasonCompability(
+        int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg) = 0;
 
     /**
      * Set enable start process flag by userId
@@ -441,7 +451,7 @@ public:
     virtual bool IsMemorySizeSufficient() = 0;
 
     /**
-     * whether or not requier a big memory
+     * whether or not require a big memory
      * @return Returens true is no big memory, others return false.
      */
     virtual bool IsNoRequireBigMemory() { return true; }
@@ -582,6 +592,7 @@ public:
         SET_KEEP_ALIVE_APP_SERVICE,
         KILL_PROCESSES_IN_BATCH,
         PREPARE_TERMINATE_APP,
+        KILL_PROCESSES_BY_USERID_WITH_CALLBACK,
         IS_NO_REQUIRE_BIG_MEMORY,
         NOTIFY_UNINSTALL_OR_UPGRADE_APP,
         NOTIFY_UNINSTALL_OR_UPGRADE_APP_END,
@@ -590,6 +601,7 @@ public:
         CHECK_PRELOAD_APP_RECORD_EXIST,
         VERIFY_KILL_PROCESS_PERMISSION,
         NOTIFY_LOAD_ABILITY_FINISHED,
+        NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY,
         // Add enumeration values above
         END
     };

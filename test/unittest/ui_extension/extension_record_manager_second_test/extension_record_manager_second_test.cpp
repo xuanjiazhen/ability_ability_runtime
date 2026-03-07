@@ -83,7 +83,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, RemovePreloadUIExtensionRecord_0100, 
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     v_ExtensionRecord.push_back(extRecord);
@@ -107,7 +107,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetRootCallerTokenLocked_0100, TestSi
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     EXPECT_EQ(extRecordMgr->GetRootCallerTokenLocked(extensionRecordId, abilityRecord), nullptr);
 
     std::shared_ptr<ExtensionRecord> extRecord = nullptr;
@@ -150,7 +150,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetUIExtensionSessionInfo_0100, TestS
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     token = abilityRecord->GetToken();
     EXPECT_EQ(extRecordMgr->GetUIExtensionSessionInfo(token, uiExtensionSessionInfo), ERR_INVALID_VALUE);
 
@@ -183,7 +183,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, CreateExtensionRecord_0100, TestSize.
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SHARE;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     extensionRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     EXPECT_EQ(extRecordMgr->CreateExtensionRecord(
         abilityRequest, hostBundleName, extensionRecord, extensionRecordId), ERR_OK);
@@ -231,7 +231,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, RemovePreloadUIExtensionRecordById_01
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     extRecord->extensionRecordId_ = 0;
@@ -322,7 +322,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, RemovePreloadUIExtensionRecordById_03
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     auto extensionRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     extensionRecord->extensionRecordId_ = extensionRecordId;
@@ -360,7 +360,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, RemovePreloadUIExtensionRecordById_04
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     auto extensionRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     extensionRecord->extensionRecordId_ = extensionRecordId;
@@ -401,7 +401,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, RemovePreloadUIExtensionRecordById_05
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     auto extensionRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     extensionRecord->extensionRecordId_ = extensionRecordId;
@@ -455,7 +455,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetRootCallerTokenLocked_0200, TestSi
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     extRecordMgr->extensionRecords_.clear();
 
@@ -510,7 +510,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetExtensionRecordById_0100, TestSize
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
 
     auto extensionRecord = std::make_shared<ExtensionRecord>(abilityRecord);
@@ -540,7 +540,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetExtensionRecordById_0200, TestSize
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     auto extensionRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     extensionRecord->extensionRecordId_ = extensionRecordId;
@@ -567,7 +567,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetExtensionRecordById_0300, TestSize
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     auto extensionRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     extensionRecord->extensionRecordId_ = extensionRecordId;
@@ -680,7 +680,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, QueryPreLoadUIExtensionRecord_0400, T
     abilityRequest.appInfo.bundleName = "com.example.unittest";
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     ASSERT_NE(abilityRecord, nullptr);
     auto extensionRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     extRecordMgr->preloadUIExtensionMap_ = {
@@ -712,7 +712,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetOrCreateExtensionRecordInner_0100,
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     abilityRequest.abilityInfo.extensionAbilityType = static_cast<AppExecFwk::ExtensionAbilityType>(1000);
 
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
 
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
@@ -744,7 +744,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetOrCreateExtensionRecordInner_0200,
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
     abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::STATUS_BAR_VIEW;
     abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::STATUS_BAR_VIEW;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
 
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
@@ -771,7 +771,7 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetHostBundleNameForExtensionId_0200,
     abilityRequest.appInfo.bundleName = bundleName;
     abilityRequest.abilityInfo.name = "MainAbility";
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
-    auto abilityRecord = AAFwk::AbilityRecord::CreateAbilityRecord(abilityRequest);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
     std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
     
     auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
@@ -782,5 +782,315 @@ HWTEST_F(ExtensionRecordManagerSecondTest, GetHostBundleNameForExtensionId_0200,
     EXPECT_EQ(extRecordMgr->GetHostPidForExtensionId(extensionRecordId, hostPid), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
+
+/**
+ * @tc.name: IsHostSpecifiedProcessValid_SceneBoard_0100
+ * @tc.desc: Test IsHostSpecifiedProcessValid with SceneBoard caller.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, IsHostSpecifiedProcessValid_SceneBoard_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+
+    std::string process = "testProcess";
+    abilityRecord->SetProcessName(process);
+    abilityRecord->SetAppIndex(1);
+
+    // Create caller record as SceneBoard
+    AAFwk::AbilityRequest callerRequest;
+    callerRequest.appInfo.bundleName = "com.ohos.sceneboard";
+    callerRequest.abilityInfo.name = "SceneBoardAbility";
+    auto callerAbilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(callerRequest);
+    sptr<IRemoteObject> callerToken = callerAbilityRecord->GetToken();
+    abilityRequest.callerToken = callerToken;
+
+    // Set different appIndex
+    abilityRequest.want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 2);
+
+    extRecordMgr->extensionRecords_[1] = extRecord;
+
+    bool result = extRecordMgr->IsHostSpecifiedProcessValid(abilityRequest, extRecord, process);
+    EXPECT_FALSE(result);
+
+    // Set matching appIndex
+    abilityRequest.want.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 1);
+    result = extRecordMgr->IsHostSpecifiedProcessValid(abilityRequest, extRecord, process);
+    EXPECT_TRUE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: UpdateProcessName_NullRecord_0100
+ * @tc.desc: Test UpdateProcessName with null record.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, UpdateProcessName_NullRecord_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "testBundleName";
+    abilityRequest.abilityInfo.name = "testInfoName";
+
+    std::shared_ptr<ExtensionRecord> extRecord = nullptr;
+    auto result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: UpdateProcessName_0400
+ * @tc.desc: Test UpdateProcessName with moduleProcess set.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, UpdateProcessName_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.bundleName = "testBundleName";
+    abilityRequest.abilityInfo.name = "testInfoName";
+    abilityRequest.moduleProcess = "testModuleProcess";
+
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    std::shared_ptr<ExtensionRecord> extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+
+    auto result = extRecordMgr->UpdateProcessName(abilityRequest, extRecord);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetProcessName(), "testModuleProcess");
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GetCallerTokenList_0200
+ * @tc.desc: Test GetCallerTokenList.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, GetCallerTokenList_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.loop";
+    abilityRequest.abilityInfo.name = "LoopAbility";
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    int32_t recordId = 400;
+    abilityRecord->SetUIExtensionAbilityId(recordId);
+
+    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>::MakeSptr();
+    sessionInfo->callerToken = abilityRecord->GetToken();
+    abilityRecord->SetSessionInfo(sessionInfo);
+
+    auto callerAbilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    callerAbilityRecord->SetUIExtensionAbilityId(recordId);
+
+    std::list<sptr<IRemoteObject>> callerList;
+    extRecordMgr->GetCallerTokenList(abilityRecord, callerList);
+
+    EXPECT_EQ(callerList.empty(), true);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GetOrCreateExtensionRecordInner_0300
+ * @tc.desc: Test GetOrCreateExtensionRecordInner.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, GetOrCreateExtensionRecordInner_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.test.reuse";
+    abilityRequest.abilityInfo.name = "ReuseAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+    int32_t reuseId = 500;
+    extRecord->hostBundleName_ = "com.test.reuse";
+    extRecordMgr->AddExtensionRecord(reuseId, extRecord);
+
+    std::string hostBundleName = "com.test.reuse";
+    std::shared_ptr<ExtensionRecord> outExtRecord;
+    bool isLoaded = false;
+    int32_t ret = extRecordMgr->GetOrCreateExtensionRecordInner(abilityRequest, hostBundleName, outExtRecord, isLoaded);
+
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: ClearAllPreloadUIExtensionRecordForHost_0100
+ * @tc.desc: Test ClearAllPreloadUIExtensionRecordForHost.
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, ClearAllPreloadUIExtensionRecordForHost_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    int32_t hostPid = IPCSkeleton::GetCallingPid();
+    ExtensionRecordManager::PreLoadUIExtensionMapKey mapKey("TestAbility", "com.test.clear", "entry", hostPid);
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(AAFwk::AbilityRequest());
+    auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+    std::vector<std::shared_ptr<ExtensionRecord>> records = {extRecord};
+    extRecordMgr->preloadUIExtensionMap_[mapKey] = records;
+
+    int32_t ret = extRecordMgr->ClearAllPreloadUIExtensionRecordForHost();
+    EXPECT_EQ(ret, ERR_OK);
+
+    EXPECT_EQ(extRecordMgr->preloadUIExtensionMap_.count(mapKey), 0);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: SetAbilityProcessName_0100
+ * @tc.desc: Test SetAbilityProcessName with isolationProcess true
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, SetAbilityProcessName_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.example.test";
+    abilityRequest.abilityInfo.name = "TestAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::EMBEDDED_UI;
+    abilityRequest.abilityInfo.isolationProcess = true;
+
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+    ASSERT_NE(extRecord, nullptr);
+
+    int32_t ret = extRecordMgr->SetAbilityProcessName(abilityRequest, abilityRecord, extRecord);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: SetAbilityProcessName_0200
+ * @tc.desc: Test SetAbilityProcessName with isolationProcess false (call UpdateProcessName)
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, SetAbilityProcessName_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    AAFwk::AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "com.example.test";
+    abilityRequest.abilityInfo.name = "TestAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SHARE;
+    abilityRequest.abilityInfo.isolationProcess = false;
+
+    auto abilityRecord = AAFwk::BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    auto extRecord = std::make_shared<ExtensionRecord>(abilityRecord);
+    ASSERT_NE(extRecord, nullptr);
+
+    int32_t ret = extRecordMgr->SetAbilityProcessName(abilityRequest, abilityRecord, extRecord);
+    EXPECT_EQ(ret, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: StartAbility_0100
+ * @tc.desc: Test StartAbility return value
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, StartAbility_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    AAFwk::AbilityRequest abilityRequest;
+    int32_t ret = extRecordMgr->StartAbility(abilityRequest);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: LoadTimeout_0200
+ * @tc.desc: Test LoadTimeout with invalid record id
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, LoadTimeout_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    extRecordMgr->LoadTimeout(9999);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: BackgroundTimeout_0100
+ * @tc.desc: Test BackgroundTimeout with valid UIExtensionRecord
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, BackgroundTimeout_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    extRecordMgr->BackgroundTimeout(9999);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: TerminateTimeout_0100
+ * @tc.desc: Test TerminateTimeout with valid UIExtensionRecord
+ * @tc.type: FUNC
+ * @tc.require: issue
+ */
+HWTEST_F(ExtensionRecordManagerSecondTest, TerminateTimeout_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    auto extRecordMgr = std::make_shared<ExtensionRecordManager>(0);
+    ASSERT_NE(extRecordMgr, nullptr);
+
+    extRecordMgr->TerminateTimeout(9999);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS

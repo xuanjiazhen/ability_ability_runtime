@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -913,6 +913,26 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartAbilityByCall_003, Te
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
     EXPECT_EQ(proxy_->StartAbilityByCall(want, connect, callerToken, -1, true), ERR_OK);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_CALL_ABILITY), mock_->code_);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityByCall
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartAbilityByCall
+ * EnvConditions: NA
+ * CaseDescription: Verify the function StartAbilityByCall is normal flow.
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartAbilityByCall_004, TestSize.Level1)
+{
+    Want want;
+    sptr<IRemoteObject> callerToken = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    sptr<IAbilityConnection> connect = new AbilityConnectCallback();
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    EXPECT_EQ(proxy_->StartAbilityByCall(want, connect, callerToken, -1, true, false, true), ERR_OK);
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::START_CALL_ABILITY), mock_->code_);
 }
 
@@ -1841,6 +1861,25 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetExtensionRunningInfos_0
 
 /*
  * Feature: AbilityManagerService
+ * Function: NotifyFrozenProcessByRSS
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService NotifyFrozenProcessByRSS
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of NotifyFrozenProcessByRSS
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_NotifyFrozenProcessByRSS_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    std::vector<int32_t> pidList;
+    int32_t uid = 1;
+    proxy_->NotifyFrozenProcessByRSS(pidList, uid);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::NOTIFY_FROZEN_PROCESS_BY_RSS), mock_->code_);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: GetProcessRunningInfos
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService GetProcessRunningInfos
@@ -2435,6 +2474,48 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_ForceExitApp_001, TestSize
 
 /*
  * Feature: AbilityManagerService
+ * Function: KillAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillAppWithReason
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of KillAppWithReason
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_KillAppWithReason_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    int32_t pid = 0;
+    ExitReasonCompability exitReason = { REASON_JS_ERROR, "Js Error." };
+    auto res = proxy_->KillAppWithReason(pid, exitReason);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::KILL_APP_WITH_REASON), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: KillBundleWithReason
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService KillBundleWithReason
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of KillBundleWithReason
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_KillBundleWithReason_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    std::string bundleName = "test";
+    int32_t userId = 0;
+    int32_t appIndex = 0;
+    ExitReasonCompability exitReason = { REASON_JS_ERROR, "Js Error." };
+    auto res = proxy_->KillBundleWithReason(bundleName, userId, appIndex, exitReason);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::KILL_BUNDLE_WITH_REASON), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: RecordAppExitReason
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService RecordAppExitReason
@@ -2449,6 +2530,27 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RecordAppExitReason_001, T
     ExitReason exitReason = { REASON_JS_ERROR, "Js Error." };
     auto res = proxy_->RecordAppExitReason(exitReason);
     EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::RECORD_APP_EXIT_REASON), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RecordAppWithReason
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService RecordAppWithReason
+ * EnvConditions: NA
+ * CaseDescription: Verify the normal process of RecordAppWithReason
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RecordAppWithReason_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+    int32_t pid = 0;
+    int32_t uid = 0;
+    ExitReasonCompability exitReason = { REASON_JS_ERROR, "Js Error." };
+    auto res = proxy_->RecordAppWithReason(pid, uid, exitReason);
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::RECORD_APP_WITH_REASON), mock_->code_);
     EXPECT_EQ(res, NO_ERROR);
 }
 
@@ -2581,7 +2683,8 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSpecifiedAbilityBySCB
 {
     proxy_ = std::make_shared<AbilityManagerProxy>(nullptr);
     Want want;
-    proxy_->StartSpecifiedAbilityBySCB(want);
+    StartSpecifiedAbilityParams params;
+    proxy_->StartSpecifiedAbilityBySCB(want, params);
     EXPECT_TRUE(proxy_ != nullptr);
 }
 
@@ -2599,7 +2702,8 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSpecifiedAbilityBySCB
     EXPECT_TRUE(proxy_ != nullptr);
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _)).Times(1).WillOnce(Return(NO_ERROR));
     Want want;
-    proxy_->StartSpecifiedAbilityBySCB(want);
+    StartSpecifiedAbilityParams params;
+    proxy_->StartSpecifiedAbilityBySCB(want, params);
 }
 
 /*
@@ -3067,7 +3171,8 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetAllInsightIntentInfo_00
         .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
     auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
     std::vector<InsightIntentInfoForQuery> infos;
-    auto res = proxy_->GetAllInsightIntentInfo(flag, infos);
+    int32_t userId = 1;
+    auto res = proxy_->GetAllInsightIntentInfo(flag, infos, userId);
     EXPECT_EQ(res, NO_ERROR);
 }
 
@@ -3087,7 +3192,8 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetInsightIntentInfoByBund
     auto flag = AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT;
     std::string bundleName = "com.example.bundleName";
     std::vector<InsightIntentInfoForQuery> infos;
-    auto res = proxy_->GetInsightIntentInfoByBundleName(flag, bundleName, infos);
+    int32_t userId = 1;
+    auto res = proxy_->GetInsightIntentInfoByBundleName(flag, bundleName, infos, userId);
     EXPECT_EQ(res, NO_ERROR);
 }
 
@@ -3109,7 +3215,8 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetInsightIntentInfoByInte
     std::string moduleName = "entry";
     std::string intentName = "test";
     InsightIntentInfoForQuery info;
-    auto res = proxy_->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info);
+    int32_t userId = 1;
+    auto res = proxy_->GetInsightIntentInfoByIntentName(flag, bundleName, moduleName, intentName, info, userId);
     EXPECT_EQ(res, NO_ERROR);
 }
 

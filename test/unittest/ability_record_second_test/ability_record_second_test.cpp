@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -86,44 +86,6 @@ std::shared_ptr<AbilityRecord> AbilityRecordSecondTest::GetAbilityRecord()
     return std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
 }
 
-class MockWMSHandler : public IWindowManagerServiceHandler {
-public:
-    virtual void NotifyWindowTransition(sptr<AbilityTransitionInfo> fromInfo, sptr<AbilityTransitionInfo> toInfo,
-        bool& animaEnabled)
-    {}
-
-    virtual int32_t GetFocusWindow(sptr<IRemoteObject>& abilityToken)
-    {
-        return 0;
-    }
-
-    virtual void StartingWindow(sptr<AbilityTransitionInfo> info,
-        std::shared_ptr<Media::PixelMap> pixelMap, uint32_t bgColor) {}
-
-    virtual void StartingWindow(sptr<AbilityTransitionInfo> info, std::shared_ptr<Media::PixelMap> pixelMap) {}
-
-    virtual void CancelStartingWindow(sptr<IRemoteObject> abilityToken)
-    {}
-
-    virtual void NotifyAnimationAbilityDied(sptr<AbilityTransitionInfo> info)
-    {}
-
-    virtual int32_t MoveMissionsToForeground(const std::vector<int32_t>& missionIds, int32_t topMissionId)
-    {
-        return 0;
-    }
-
-    virtual int32_t MoveMissionsToBackground(const std::vector<int32_t>& missionIds, std::vector<int32_t>& result)
-    {
-        return 0;
-    }
-
-    virtual sptr<IRemoteObject> AsObject()
-    {
-        return nullptr;
-    }
-};
-
 /*
 * Feature: AbilityRecord
 * Function: IsSystemAbilityCall
@@ -151,38 +113,6 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_IsSystemAbilityCall_001, TestSiz
     instanceKey = abilityRecord->IsSystemAbilityCall(callerToken, callingTokenId);
     EXPECT_EQ(instanceKey, false);
     TAG_LOGE(AAFwkTag::TEST, "AbilityRecord_IsSystemAbilityCall_001 end.");
-}
-
-/*
-* Feature: AbilityRecord
-* Function: GetInProgressRecordCount
-* SubFunction: NA
-*/
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_GetInProgressRecordCount_001, TestSize.Level1)
-{
-    TAG_LOGE(AAFwkTag::TEST, "AbilityRecord_GetInProgressRecordCount_001 start.");
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::shared_ptr<ConnectionRecord> connections = nullptr;
-    abilityRecord->connRecordList_.push_back(connections);
-    auto res = abilityRecord->GetInProgressRecordCount();
-    EXPECT_EQ(res, 0);
-    abilityRecord->connRecordList_.clear();
-    OHOS::sptr<IAbilityConnection> callback = new AbilityConnectCallback();
-    std::shared_ptr<ConnectionRecord> connection1 =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
-        connection1->SetConnectState(ConnectionState::CONNECTING);
-    std::shared_ptr<ConnectionRecord> connection2 =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
-        connection2->SetConnectState(ConnectionState::CONNECTED);
-    std::shared_ptr<ConnectionRecord> connection3 =
-        std::make_shared<ConnectionRecord>(abilityRecord->GetToken(), abilityRecord, callback, nullptr);
-        connection3->SetConnectState(ConnectionState::DISCONNECTING);
-    abilityRecord->connRecordList_.push_back(connection1);
-    abilityRecord->connRecordList_.push_back(connection2);
-    abilityRecord->connRecordList_.push_back(connection3);
-    res = abilityRecord->GetInProgressRecordCount();
-    EXPECT_EQ(res, 2);
-    TAG_LOGE(AAFwkTag::TEST, "AbilityRecord_GetInProgressRecordCount_001 end.");
 }
 
 /*
@@ -365,47 +295,6 @@ HWTEST_F(AbilityRecordSecondTest, AaFwk_AbilityMS_Terminate, TestSize.Level1)
 
 /*
  * Feature: AbilityRecord
- * Function: DisconnectAbility
- * SubFunction: DisconnectAbility
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord DisconnectAbility
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DisconnectAbility_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
-    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
-    abilityRecord->connRecordList_.clear();
-    abilityRecord->isConnected = true;
-    abilityRecord->DisconnectAbility();
-    EXPECT_FALSE(abilityRecord->isConnected);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: DisconnectAbilityWithWant
- * SubFunction: DisconnectAbilityWithWant
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord DisconnectAbilityWithWant
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DisconnectAbilityWithWant_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    abilityRecord->abilityInfo_.name = "test";
-    abilityRecord->lifecycleDeal_ = std::make_unique<LifecycleDeal>();
-    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
-    abilityRecord->connRecordList_.clear();
-    abilityRecord->isConnected = true;
-
-    Want want;
-    abilityRecord->DisconnectAbilityWithWant(want);
-    EXPECT_FALSE(abilityRecord->isConnected);
-}
-
-/*
- * Feature: AbilityRecord
  * Function: RemoveSpecifiedWantParam
  * SubFunction: RemoveSpecifiedWantParam
  * FunctionPoints: NA
@@ -439,24 +328,6 @@ HWTEST_F(AbilityRecordSecondTest, AaFwk_AbilityMS_Dump, TestSize.Level1)
 
 /*
  * Feature: AbilityRecord
- * Function: DumpUIExtensionRootHostInfo
- * SubFunction: DumpUIExtensionRootHostInfo
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify DumpUIExtensionRootHostInfo
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpUIExtensionRootHostInfo_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::vector<std::string> info;
-    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSDIALOG_COMMON;
-    abilityRecord->token_ = nullptr;
-    abilityRecord->DumpUIExtensionRootHostInfo(info);
-    EXPECT_TRUE(info.size() ==  0);
-}
-
-/*
- * Feature: AbilityRecord
  * Function: DumpAbilityState
  * SubFunction: DumpAbilityState
  * FunctionPoints: NA
@@ -472,68 +343,6 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpAbilityState_001, TestSize.L
     abilityRecord->missionAffinity_ = "missionAffinity";
     abilityRecord->DumpAbilityState(info, isClient, params);
     EXPECT_FALSE(abilityRecord->GetMissionAffinity().empty());
-}
-
-/*
- * Feature: AbilityRecord
- * Function: DumpService
- * SubFunction: DumpService
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord DumpService
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpService_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::vector<std::string> info;
-    std::vector<std::string> params;
-    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::HMS_ACCOUNT;
-    abilityRecord->scheduler_ = nullptr;
-    abilityRecord->isReady_ = false;
-    abilityRecord->isLauncherRoot_ = false;
-    abilityRecord->token_ = nullptr;
-    abilityRecord->connRecordList_.clear();
-    abilityRecord->DumpService(info, params, false);
-    EXPECT_TRUE(info.size() == 8);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: DumpService
- * SubFunction: DumpService
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord DumpService
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpService_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::vector<std::string> info;
-    std::vector<std::string> params;
-    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::UI_SERVICE;
-    abilityRecord->scheduler_ = nullptr;
-    abilityRecord->isReady_ = false;
-    abilityRecord->isLauncherRoot_ = false;
-    abilityRecord->token_ = nullptr;
-    abilityRecord->connRecordList_.clear();
-    abilityRecord->DumpService(info, params, false);
-    EXPECT_TRUE(info.size() == 9);
-}
-
-/*
- * Feature: AbilityRecord
- * Function: DumpUIExtensionPid
- * SubFunction: DumpUIExtensionPid
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify AbilityRecord DumpUIExtensionPid
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpUIExtensionPid_001, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::vector<std::string> info;
-    abilityRecord->DumpUIExtensionPid(info, true);
-    EXPECT_TRUE(info.size() == 1);
 }
 
 /*
@@ -933,24 +742,6 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetAbilityWindowState_003, TestS
 
 /*
  * Feature: AbilityRecord
- * Function: DumpUIExtensionRootHostInfo
- * SubFunction: DumpUIExtensionRootHostInfo
- * FunctionPoints: NA
- * EnvConditions: NA
- * CaseDescription: Verify DumpUIExtensionRootHostInfo
- */
-HWTEST_F(AbilityRecordSecondTest, AbilityRecord_DumpUIExtensionRootHostInfo_002, TestSize.Level1)
-{
-    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
-    std::vector<std::string> info;
-    abilityRecord->abilityInfo_.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SYSDIALOG_COMMON;
-    abilityRecord->token_ = sptr<Token>::MakeSptr(abilityRecord);
-    abilityRecord->DumpUIExtensionRootHostInfo(info);
-    EXPECT_TRUE(info.size() ==  0);
-}
-
-/*
- * Feature: AbilityRecord
  * Function: SetAbilityWindowState
  * SubFunction: SetAbilityWindowState
  * FunctionPoints: NA
@@ -1158,6 +949,215 @@ HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetDebugUIExtension_002, TestSiz
     EXPECT_TRUE(abilityRecord->want_.HasParameter(DEBUG_APP));
     EXPECT_TRUE(abilityRecord->launchDebugInfo_.isDebugAppSet);
     EXPECT_TRUE(abilityRecord->launchDebugInfo_.debugApp);
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant when isLaunching is true for PAGE ability
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_004, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->abilityInfo_.type = AppExecFwk::AbilityType::PAGE;
+    abilityRecord->isLaunching_ = true;
+    abilityRecord->want_.SetParam("testParam", std::string("testValue"));
+
+    Want want;
+    want.SetParam("newParam", std::string("newValue"));
+    abilityRecord->SetWant(want);
+
+    // Want should not change when launching PAGE ability (early return)
+    EXPECT_TRUE(abilityRecord->want_.HasParameter("testParam"));
+    EXPECT_FALSE(abilityRecord->want_.HasParameter("newParam"));
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant sets DEBUG_APP when isDebugAppSet is true
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_005, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->isLaunching_ = false;
+    abilityRecord->launchDebugInfo_.isDebugAppSet = true;
+    abilityRecord->launchDebugInfo_.debugApp = true;
+
+    Want want;
+    abilityRecord->SetWant(want);
+    EXPECT_TRUE(abilityRecord->want_.HasParameter(DEBUG_APP));
+    EXPECT_TRUE(abilityRecord->want_.GetBoolParam(DEBUG_APP, false));
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant removes DEBUG_APP when isDebugAppSet is false
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_006, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->isLaunching_ = false;
+    abilityRecord->launchDebugInfo_.isDebugAppSet = false;
+    abilityRecord->want_.SetParam(DEBUG_APP, true);
+
+    Want want;
+    abilityRecord->SetWant(want);
+    EXPECT_FALSE(abilityRecord->want_.HasParameter(DEBUG_APP));
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant removes NATIVE_DEBUG when isNativeDebugSet is false
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_007, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->isLaunching_ = false;
+    abilityRecord->launchDebugInfo_.isNativeDebugSet = false;
+    abilityRecord->want_.SetParam(TEST_NATIVE_DEBUG, true);
+
+    Want want;
+    abilityRecord->SetWant(want);
+    EXPECT_FALSE(abilityRecord->want_.HasParameter(TEST_NATIVE_DEBUG));
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant removes PERF_CMD when isPerfCmdSet is false
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_008, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->isLaunching_ = false;
+    abilityRecord->launchDebugInfo_.isPerfCmdSet = false;
+    abilityRecord->want_.SetParam(TEST_PERF_CMD, std::string("testCmd"));
+
+    Want want;
+    abilityRecord->SetWant(want);
+    EXPECT_FALSE(abilityRecord->want_.HasParameter(TEST_PERF_CMD));
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant removes AGENTEXTENSIONHOSTPROXY_KEY
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_009, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->isLaunching_ = false;
+    Want want;
+    want.SetParam("ohos.agentruntime.params.AgentExtensionHostProxy", true);
+    abilityRecord->SetWant(want);
+    EXPECT_FALSE(abilityRecord->want_.HasParameter("ohos.agentruntime.params.AgentExtensionHostProxy"));
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant does not set multiThread when it was false
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_010, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->isLaunching_ = false;
+    abilityRecord->want_.SetParam(TEST_MULTI_THREAD, false);
+
+    Want want;
+    abilityRecord->SetWant(want);
+    EXPECT_FALSE(abilityRecord->want_.GetBoolParam(TEST_MULTI_THREAD, false));
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant does not set errorInfoEnhance when it was false
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_011, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->isLaunching_ = false;
+    abilityRecord->want_.SetParam(TEST_ERROR_INFO_ENHANCE, false);
+
+    Want want;
+    abilityRecord->SetWant(want);
+    EXPECT_TRUE(abilityRecord->want_.GetBoolParam(TEST_ERROR_INFO_ENHANCE, true));
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant works for non-PAGE ability type
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_012, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->abilityInfo_.type = AppExecFwk::AbilityType::SERVICE;
+    abilityRecord->isLaunching_ = true;
+    abilityRecord->want_.SetParam("oldParam", std::string("oldValue"));
+
+    Want want;
+    want.SetParam("newParam", std::string("newValue"));
+    abilityRecord->SetWant(want);
+
+    // Want should be updated for non-PAGE ability even when isLaunching is true
+    EXPECT_FALSE(abilityRecord->want_.HasParameter("oldParam"));
+    EXPECT_TRUE(abilityRecord->want_.HasParameter("newParam"));
+}
+
+/*
+ * Feature: AbilityRecord
+ * Function: SetWant
+ * SubFunction: SetWant
+ * FunctionPoints: NA
+ * EnvConditions: NA
+ * CaseDescription: Verify AbilityRecord SetWant updates want when PAGE ability but isLaunching is false
+ */
+HWTEST_F(AbilityRecordSecondTest, AbilityRecord_SetWant_013, TestSize.Level1)
+{
+    std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
+    abilityRecord->abilityInfo_.type = AppExecFwk::AbilityType::PAGE;
+    abilityRecord->isLaunching_ = false;
+    abilityRecord->want_.SetParam("oldParam", std::string("oldValue"));
+
+    Want want;
+    want.SetParam("newParam", std::string("newValue"));
+    abilityRecord->SetWant(want);
+
+    // Want should be updated for PAGE ability when isLaunching is false
+    EXPECT_FALSE(abilityRecord->want_.HasParameter("oldParam"));
+    EXPECT_TRUE(abilityRecord->want_.HasParameter("newParam"));
 }
 }  // namespace AAFwk
 }  // namespace OHOS

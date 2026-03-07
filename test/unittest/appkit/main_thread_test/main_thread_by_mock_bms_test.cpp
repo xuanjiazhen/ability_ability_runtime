@@ -46,9 +46,11 @@ public:
     void SetUp() override;
     void TearDown() override;
     void MockBundleInstaller();
+    void MockBundleManagerForLaunch(const BundleInfo &bundleInfo);
     sptr<MainThread> mainThread_ = nullptr;
     sptr<ISystemAbilityManager> iSystemAbilityMgr_ = nullptr;
     sptr<AppExecFwk::MockSystemAbilityManager> mockSystemAbility_ = nullptr;
+    sptr<OHOS::MockBundleManagerService> mockBundleMgrService_ = nullptr;
 };
 
 void MainThreadByMockBmsTest::SetUpTestCase() {}
@@ -71,6 +73,7 @@ void MainThreadByMockBmsTest::TearDown()
 {
     mainThread_->applicationForDump_.reset();
     SystemAbilityManagerClient::GetInstance().systemAbilityManager_ = iSystemAbilityMgr_;
+    mockBundleMgrService_ = nullptr;
 }
 
 void MainThreadByMockBmsTest::MockBundleInstaller()
@@ -85,6 +88,29 @@ void MainThreadByMockBmsTest::MockBundleInstaller()
         }
     };
     EXPECT_CALL(*mockBundleMgr, GetBundleInstaller()).WillOnce(testing::Invoke(mockGetBundleInstaller));
+    EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
+        .WillRepeatedly(testing::Invoke(mockGetSystemAbility));
+}
+
+void MainThreadByMockBmsTest::MockBundleManagerForLaunch(const BundleInfo &bundleInfo)
+{
+    mockBundleMgrService_ = new (std::nothrow) OHOS::MockBundleManagerService();
+    ASSERT_NE(mockBundleMgrService_, nullptr);
+
+    EXPECT_CALL(*mockBundleMgrService_, GetBundleInfoForSelf(testing::_, testing::_))
+        .WillOnce(testing::Invoke([bundleInfo](int32_t, BundleInfo &outInfo) {
+            outInfo = bundleInfo;
+            return ERR_OK;
+        }));
+    EXPECT_CALL(*mockBundleMgrService_, GetBaseSharedBundleInfos(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(ERR_OK));
+
+    auto mockGetSystemAbility = [bms = mockBundleMgrService_, saMgr = iSystemAbilityMgr_](int32_t systemAbilityId) {
+        if (systemAbilityId == BUNDLE_MGR_SERVICE_SYS_ABILITY_ID || systemAbilityId == APP_MGR_SERVICE_ID) {
+            return bms->AsObject();
+        }
+        return saMgr->GetSystemAbility(systemAbilityId);
+    };
     EXPECT_CALL(*mockSystemAbility_, GetSystemAbility(testing::_))
         .WillRepeatedly(testing::Invoke(mockGetSystemAbility));
 }
@@ -115,6 +141,80 @@ HWTEST_F(MainThreadByMockBmsTest, SetNativeLibPath_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AppInnerHspPathList_0100
+ * @tc.desc: Verify appInnerHspPathList is filled for SHARED static modules.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadByMockBmsTest, AppInnerHspPathList_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    Configuration config;
+    AppLaunchData launchData;
+    ProcessInfo processInfo("test_static_hsp", 9999);
+    ApplicationInfo appInfo;
+    appInfo.name = "MainAbility";
+    appInfo.bundleName = "com.ohos.staticmodule";
+    launchData.SetApplicationInfo(appInfo);
+    launchData.SetProcessInfo(processInfo);
+
+    BundleInfo bundleInfo;
+    bundleInfo.name = appInfo.bundleName;
+    bundleInfo.applicationInfo = appInfo;
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.moduleName = "test_moduleName";
+    hapModuleInfo.hapPath = "/data/test_moduleName.hap";
+    hapModuleInfo.moduleArkTSMode = "static";
+    hapModuleInfo.moduleType = ModuleType::SHARED;
+    bundleInfo.hapModuleInfos.emplace_back(hapModuleInfo);
+
+    MockBundleManagerForLaunch(bundleInfo);
+    mainThread_->HandleLaunchApplication(launchData, config);
+    ASSERT_NE(mainThread_->application_, nullptr);
+    const auto &innerHsp = mainThread_->runtimeUpdateParam_.option.appInnerHspPathList;
+    EXPECT_EQ(innerHsp.size(), 1);
+    EXPECT_EQ(innerHsp[0], "/data/test_moduleName.hap");
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: StaticHapModule_0100
+ * @tc.desc: Verify staticHapModuleNameList is filled when hapModuleInfos is available.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadByMockBmsTest, StaticHapModule_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    Configuration config;
+    AppLaunchData launchData;
+    ProcessInfo processInfo("test_static_module", 9999);
+    ApplicationInfo appInfo;
+    appInfo.name = "MainAbility";
+    appInfo.bundleName = "com.ohos.staticmodule";
+    launchData.SetApplicationInfo(appInfo);
+    launchData.SetProcessInfo(processInfo);
+
+    BundleInfo bundleInfo;
+    bundleInfo.name = appInfo.bundleName;
+    bundleInfo.applicationInfo = appInfo;
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.moduleName = "test_moduleName";
+    hapModuleInfo.hapPath = "/data/test_moduleName.hap";
+    hapModuleInfo.moduleArkTSMode = "static";
+    hapModuleInfo.moduleType = ModuleType::ENTRY;
+    bundleInfo.hapModuleInfos.emplace_back(hapModuleInfo);
+
+    MockBundleManagerForLaunch(bundleInfo);
+    mainThread_->HandleLaunchApplication(launchData, config);
+    ASSERT_NE(mainThread_->application_, nullptr);
+    const auto &modules = mainThread_->runtimeUpdateParam_.option.staticHapModuleNameList;
+    EXPECT_EQ(modules.size(), 1);
+    EXPECT_EQ(modules[0], "test_moduleName");
+    const auto &innerHsp = mainThread_->runtimeUpdateParam_.option.appInnerHspPathList;
+    EXPECT_TRUE(innerHsp.empty());
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
  * @tc.name: GetOverlayModuleInfos_0100
  * @tc.desc: Get overlay paths form mock bms.
  * @tc.type: FUNC
@@ -138,6 +238,54 @@ HWTEST_F(MainThreadByMockBmsTest, GetOverlayModuleInfos_0100, TestSize.Level1)
     int result = mainThread_->GetOverlayModuleInfos(bundleName, moduleName, overlayModuleInfos);
     EXPECT_TRUE(result == 0);
     EXPECT_TRUE(overlayModuleInfos.size() == 1);
+}
+
+/**
+ * @tc.name: DoUpdatePluginInfoInstalled_0100
+ * @tc.desc: test DoUpdatePluginInfoInstalled with null applicationInfo_.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MainThreadByMockBmsTest, DoUpdatePluginInfoInstalled_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    EXPECT_TRUE(mainThread_ != nullptr);
+
+    std::vector<AppExecFwk::PluginBundleInfo> pluginBundleInfos;
+    std::vector<std::string> pluginModuleNames;
+
+    // Set applicationInfo_ to null
+    mainThread_->applicationInfo_ = nullptr;
+    mainThread_->application_ = std::make_shared<OhosApplication>();
+
+    // Call DoUpdatePluginInfoInstalled (should return early)
+    mainThread_->DoUpdatePluginInfoInstalled(pluginBundleInfos, pluginModuleNames);
+    EXPECT_TRUE(mainThread_->applicationInfo_ == nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: DoUpdatePluginInfoInstalled_0200
+ * @tc.desc: test DoUpdatePluginInfoInstalled with null application_.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(MainThreadByMockBmsTest, DoUpdatePluginInfoInstalled_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    EXPECT_TRUE(mainThread_ != nullptr);
+
+    std::vector<AppExecFwk::PluginBundleInfo> pluginBundleInfos;
+    std::vector<std::string> pluginModuleNames;
+
+    mainThread_->applicationInfo_ = std::make_shared<ApplicationInfo>();
+    mainThread_->application_ = nullptr;
+
+    mainThread_->DoUpdatePluginInfoInstalled(pluginBundleInfos, pluginModuleNames);
+    EXPECT_TRUE(mainThread_->application_ == nullptr);
+
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

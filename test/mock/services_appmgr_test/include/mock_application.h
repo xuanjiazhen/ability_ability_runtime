@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -29,14 +29,14 @@ public:
     MOCK_METHOD1(ScheduleTerminateApplication, void(bool));
     MOCK_METHOD1(ScheduleShrinkMemory, void(const int));
     MOCK_METHOD0(ScheduleLowMemory, void());
-    MOCK_METHOD1(ScheduleMemoryLevel, void(int32_t level));
+    MOCK_METHOD2(ScheduleMemoryLevel, void(int32_t level, bool isShellCall));
     MOCK_METHOD2(ScheduleHeapMemory, void(const int32_t pid, OHOS::AppExecFwk::MallocInfo &mallocInfo));
     MOCK_METHOD2(ScheduleLaunchApplication, void(const AppLaunchData&, const Configuration& config));
     MOCK_METHOD4(ScheduleLaunchAbility, void(const AbilityInfo&, const sptr<IRemoteObject>&,
         const std::shared_ptr<AAFwk::Want>&, int32_t));
     MOCK_METHOD2(ScheduleCleanAbility, void(const sptr<IRemoteObject>&, bool));
     MOCK_METHOD1(ScheduleProfileChanged, void(const Profile&));
-    MOCK_METHOD1(ScheduleConfigurationUpdated, void(const Configuration&));
+    MOCK_METHOD2(ScheduleConfigurationUpdated, void(const Configuration&, ConfigUpdateReason));
     MOCK_METHOD0(ScheduleProcessSecurityExit, void());
     MOCK_METHOD1(ScheduleAbilityStage, void(const HapModuleInfo&));
     MOCK_METHOD2(ScheduleUpdateApplicationInfoInstalled, void(const ApplicationInfo&, const std::string&));
@@ -63,6 +63,7 @@ public:
     MOCK_METHOD1(ScheduleJsHeapMemory, void(OHOS::AppExecFwk::JsHeapDumpInfo &info));
     MOCK_METHOD1(ScheduleCjHeapMemory, void(OHOS::AppExecFwk::CjHeapDumpInfo &info));
     MOCK_METHOD1(ScheduleDumpFfrt, int32_t(std::string& result));
+    MOCK_METHOD2(ScheduleDumpArkWeb, int32_t(const std::string &customArgs, std::string &result));
     MOCK_METHOD1(SetWatchdogBackgroundStatus, void(bool status));
     MOCK_METHOD0(ScheduleClearPageStack, void());
     MOCK_METHOD0(ScheduleCacheProcess, void());

@@ -23,6 +23,8 @@
 #include "ets_environment.h"
 #undef private
 
+#include "mock_ani_env.h"
+
 using namespace testing;
 using namespace testing::ext;
 using namespace testing::mt;
@@ -165,13 +167,11 @@ HWTEST_F(EtsEnvironmentTest, RegisterUncaughtExceptionHandler_0100, TestSize.Lev
 HWTEST_F(EtsEnvironmentTest, GetAniEnv_0100, TestSize.Level0)
 {
     auto etsEnv = std::make_shared<ETSEnvironment>();
-    ETSEnvironment::VMEntry vMEntryOld = etsEnv->vmEntry_;
-    ETSEnvironment::VMEntry vmEntry;
-    vmEntry.aniEnv_ = nullptr;
-    etsEnv->vmEntry_ = vmEntry;
+    ASSERT_NE(etsEnv, nullptr);
+    etsEnv->vmEntry_.aniVm_ = nullptr;
+    etsEnv->vmEntry_.aniEnv_ = nullptr;
     auto result = etsEnv->GetAniEnv();
     EXPECT_EQ(result, nullptr);
-    etsEnv->vmEntry_ = vMEntryOld;
 }
 
 /**
@@ -284,6 +284,165 @@ HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0100, TestSize.Level0)
 }
 
 /**
+ * @tc.name: LoadAbcLinker_0200
+ * @tc.desc: Test LoadAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0200, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+
+    OHOS::AbilityRuntime::CommonHspBundleInfo info;
+    info.versionCode = 0;
+    info.bundleName = "bundle";
+    info.moduleName = "module";
+    info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
+    info.moduleArkTSMode = "";
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->commonHspBundleInfos_.push_back(info);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().callMethodStatus = ANI_ERROR;
+
+    ani_class cls = nullptr;
+    ani_object obj = nullptr;
+    bool result = etsEnv->LoadAbcLinker(mockEnv.GetEnv(), "testModule", cls, obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: LoadAbcLinker_0300
+ * @tc.desc: Test LoadAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0300, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().stringNewStatus = ANI_ERROR;
+
+    ani_class cls = nullptr;
+    ani_object obj = nullptr;
+    bool result = etsEnv->LoadAbcLinker(mockEnv.GetEnv(), "testModule", cls, obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: LoadAbcLinker_0400
+ * @tc.desc: Test LoadAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0400, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.emplace("testModule", true);
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = false;
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().findClassStatus = ANI_ERROR;
+
+    ani_class cls = nullptr;
+    ani_object obj = nullptr;
+    bool result = etsEnv->LoadAbcLinker(mockEnv.GetEnv(), "testModule", cls, obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: LoadAbcLinker_0500
+ * @tc.desc: Test LoadAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0500, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.emplace("testModule", true);
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = false;
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().classCallStaticMethodStatus = ANI_ERROR;
+
+    ani_class cls = nullptr;
+    ani_object obj = nullptr;
+    bool result = etsEnv->LoadAbcLinker(mockEnv.GetEnv(), "testModule", cls, obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: LoadAbcLinker_0600
+ * @tc.desc: Test LoadAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0600, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.emplace("testModule", true);
+    etsEnv->vmEntry_.isSetDefaultInteropLinker_ = true;
+
+    MockAniEnv mockEnv;
+
+    ani_class cls = nullptr;
+    ani_object obj = nullptr;
+    bool result = etsEnv->LoadAbcLinker(mockEnv.GetEnv(), "testModule", cls, obj);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: LoadAbcLinker_0700
+ * @tc.desc: Test LoadAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0700, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    etsEnv->vmEntry_.abcLinkerClass_ = nullptr;
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+
+    MockAniEnv mockEnv;
+
+    ani_class cls = nullptr;
+    ani_object obj = nullptr;
+    bool result = etsEnv->LoadAbcLinker(mockEnv.GetEnv(), "testModule", cls, obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: LoadAbcLinker_0800
+ * @tc.desc: Test LoadAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, LoadAbcLinker_0800, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    etsEnv->vmEntry_.abcLinkerClass_ = reinterpret_cast<ani_class>(0x123);
+    etsEnv->vmEntry_.abcLinkerRef_ = nullptr;
+
+    MockAniEnv mockEnv;
+
+    ani_class cls = nullptr;
+    ani_object obj = nullptr;
+    bool result = etsEnv->LoadAbcLinker(mockEnv.GetEnv(), "testModule", cls, obj);
+    EXPECT_FALSE(result);
+}
+
+/**
  * @tc.name: PreloadModule_0100
  * @tc.desc: PreloadModule returns false when env is nullptr.
  * @tc.type: FUNC
@@ -321,7 +480,7 @@ HWTEST_F(EtsEnvironmentTest, FinishPreload_0100, TestSize.Level0)
 {
     auto etsEnv = std::make_shared<ETSEnvironment>();
     ASSERT_NE(etsEnv, nullptr);
-    auto result = etsEnv->FinishPreload();
+    auto result = etsEnv->FinishPreload(nullptr);
     EXPECT_FALSE(result);
 }
 
@@ -337,10 +496,108 @@ HWTEST_F(EtsEnvironmentTest, PostFork_0100, TestSize.Level0)
     void *napiEnv = nullptr;
     std::string aotPath = "aotPath";
     std::vector<std::string> appInnerHspPathList;
+    std::vector<std::string> staticHapModuleNameList;
     std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> commonHspBundleInfos;
     std::shared_ptr<OHOS::AppExecFwk::EventRunner> eventRunner;
-    auto result = etsEnv->PostFork(napiEnv, aotPath, appInnerHspPathList, commonHspBundleInfos, eventRunner);
+    auto result = etsEnv->PostFork(
+        napiEnv, aotPath, appInnerHspPathList, staticHapModuleNameList, commonHspBundleInfos, eventRunner);
     EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: RegisterProfilePaths_0100
+ * @tc.desc: Verify RegisterProfilePaths returns true for empty module list.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, RegisterProfilePaths_0100, TestSize.Level1)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    std::vector<std::string> staticHapModuleNameList;
+    auto result = etsEnv->RegisterProfilePaths(staticHapModuleNameList);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: RegisterProfilePaths_0200
+ * @tc.desc: Verify RegisterProfilePaths ignores empty module names.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, RegisterProfilePaths_0200, TestSize.Level1)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    std::vector<std::string> staticHapModuleNameList = {""};
+    auto result = etsEnv->RegisterProfilePaths(staticHapModuleNameList);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: RegisterProfilePaths_0300
+ * @tc.desc: Verify RegisterProfilePaths attempts registration for non-empty modules.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, RegisterProfilePaths_0300, TestSize.Level1)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    std::vector<std::string> staticHapModuleNameList = {"entry"};
+    auto result = etsEnv->RegisterProfilePaths(staticHapModuleNameList);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: BuildProfilePathInfos_0100
+ * @tc.desc: Verify profile path mapping for static modules.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, BuildProfilePathInfos_0100, TestSize.Level1)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    std::vector<std::string> moduleNames = {"entry", "feature", ""};
+    auto infos = etsEnv->BuildProfilePathInfos(moduleNames);
+    ASSERT_EQ(infos.size(), 2);
+
+    const std::string entryAbc = "/data/storage/el1/bundle/entry/ets/modules_static.abc";
+    const std::string entryProfile = "/data/storage/ark-profile/entry.ap";
+    const std::string featureAbc = "/data/storage/el1/bundle/feature/ets/modules_static.abc";
+    const std::string featureProfile = "/data/storage/ark-profile/feature.ap";
+
+    auto findInfo = [&infos](const std::string &abc) -> const ETSEnvironment::ProfilePathInfo * {
+        for (const auto &it : infos) {
+            if (it.abcPath == abc) {
+                return &it;
+            }
+        }
+        return nullptr;
+    };
+
+    auto entryInfo = findInfo(entryAbc);
+    ASSERT_NE(entryInfo, nullptr);
+    EXPECT_EQ(entryInfo->curProfilePath, entryProfile);
+    EXPECT_TRUE(entryInfo->baselineProfilePath.empty());
+
+    auto featureInfo = findInfo(featureAbc);
+    ASSERT_NE(featureInfo, nullptr);
+    EXPECT_EQ(featureInfo->curProfilePath, featureProfile);
+    EXPECT_TRUE(featureInfo->baselineProfilePath.empty());
+}
+
+/**
+ * @tc.name: BuildProfilePathInfos_0200
+ * @tc.desc: Verify empty module list returns empty profile mapping.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, BuildProfilePathInfos_0200, TestSize.Level1)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    std::vector<std::string> moduleNames;
+    auto infos = etsEnv->BuildProfilePathInfos(moduleNames);
+    EXPECT_TRUE(infos.empty());
 }
 
 /**
@@ -395,5 +652,485 @@ HWTEST_F(EtsEnvironmentTest, ParseHdcRegisterOption_0100, TestSize.Level2)
     int result5 = etsEnv->ParseHdcRegisterOption(option5);
     ASSERT_EQ(result5, 456);
 }
-} // namespace StsEnv
+
+/**
+ * @tc.name: SetHspAbcFiles_0100
+ * @tc.desc: Test SetHspAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    ani_env *env = nullptr;
+    ani_object obj = nullptr;
+    auto result = etsEnv->SetHspAbcFiles(env, obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetHspAbcFiles_0200
+ * @tc.desc: Test SetHspAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0200, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->appInnerHspPathList_.clear();
+
+    MockAniEnv mockEnv;
+    ani_object mockObj = reinterpret_cast<ani_object>(0x1);
+    auto result = etsEnv->SetHspAbcFiles(mockEnv.GetEnv(), mockObj);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: SetHspAbcFiles_0300
+ * @tc.desc: Test SetHspAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0300, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    OHOS::AbilityRuntime::CommonHspBundleInfo info;
+    info.versionCode = 0;
+    info.bundleName = "bundle";
+    info.moduleName = "module";
+    info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
+    info.moduleArkTSMode = "";
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->commonHspBundleInfos_.push_back(info);
+    etsEnv->appInnerHspPathList_.clear();
+
+    const auto paths = etsEnv->GetHspPathList();
+    etsEnv->vmEntry_.abcCacheMap_.clear();
+    for (const auto &path : paths) {
+        etsEnv->vmEntry_.abcCacheMap_.emplace(path, true);
+    }
+
+    MockAniEnv mockEnv;
+    ani_object mockObj = reinterpret_cast<ani_object>(0x1);
+    auto result = etsEnv->SetHspAbcFiles(mockEnv.GetEnv(), mockObj);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: SetHspAbcFiles_0400
+ * @tc.desc: Test SetHspAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0400, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    OHOS::AbilityRuntime::CommonHspBundleInfo info;
+    info.versionCode = 0;
+    info.bundleName = "bundle";
+    info.moduleName = "module";
+    info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
+    info.moduleArkTSMode = "";
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->commonHspBundleInfos_.push_back(info);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().getUndefinedStatus = ANI_ERROR;
+
+    ani_object mockObj = reinterpret_cast<ani_object>(0x1);
+    auto result = etsEnv->SetHspAbcFiles(mockEnv.GetEnv(), mockObj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetHspAbcFiles_0500
+ * @tc.desc: Test SetHspAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0500, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    OHOS::AbilityRuntime::CommonHspBundleInfo info;
+    info.versionCode = 0;
+    info.bundleName = "bundle";
+    info.moduleName = "module";
+    info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
+    info.moduleArkTSMode = "";
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->commonHspBundleInfos_.push_back(info);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().callMethodStatus = ANI_ERROR;
+
+    ani_object mockObj = reinterpret_cast<ani_object>(0x1);
+    auto result = etsEnv->SetHspAbcFiles(mockEnv.GetEnv(), mockObj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: SetHspAbcFiles_0600
+ * @tc.desc: Test SetHspAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0600, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    OHOS::AbilityRuntime::CommonHspBundleInfo info;
+    info.versionCode = 0;
+    info.bundleName = "bundle";
+    info.moduleName = "module";
+    info.hapPath = "/data/app/el1/bundle/public/hsp/test.hsp";
+    info.moduleArkTSMode = "";
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->commonHspBundleInfos_.push_back(info);
+
+    MockAniEnv mockEnv;
+
+    ani_object mockObj = reinterpret_cast<ani_object>(0x1);
+    auto result = etsEnv->SetHspAbcFiles(mockEnv.GetEnv(), mockObj);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: InitAbcLinker_0100
+ * @tc.desc: Test InitAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    ani_env *env = nullptr;
+    auto result = etsEnv->InitAbcLinker(env);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitAbcLinker_0200
+ * @tc.desc: Test InitAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0200, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().findClassStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitAbcLinker_0300
+ * @tc.desc: Test InitAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0300, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().getUndefinedStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitAbcLinker_0400
+ * @tc.desc: Test InitAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0400, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().arrayNewStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitAbcLinker_0500
+ * @tc.desc: Test InitAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0500, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().classFindMethodStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitAbcLinker_0600
+ * @tc.desc: Test InitAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0600, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().objectNewStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitAbcLinker_0700
+ * @tc.desc: Test InitAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0700, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().globalRefCreateStatus = ANI_ERROR;
+
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: InitAbcLinker_0800
+ * @tc.desc: Test InitAbcLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, InitAbcLinker_0800, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    auto result = etsEnv->InitAbcLinker(mockEnv.GetEnv());
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: AddAbcFiles_0100
+ * @tc.desc: Test AddAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, AddAbcFiles_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+    ani_env *env = nullptr;
+    std::string obj = "";
+    auto result = etsEnv->AddAbcFiles(env, obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: AddAbcFiles_0300
+ * @tc.desc: Test AddAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, AddAbcFiles_0300, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().stringNewStatus = ANI_ERROR;
+
+    std::string obj;
+    auto result = etsEnv->AddAbcFiles(mockEnv.GetEnv(), obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: AddAbcFiles_0400
+ * @tc.desc: Test AddAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, AddAbcFiles_0400, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().getUndefinedStatus = ANI_ERROR;
+
+    std::string obj;
+    auto result = etsEnv->AddAbcFiles(mockEnv.GetEnv(), obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: AddAbcFiles_0500
+ * @tc.desc: Test AddAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, AddAbcFiles_0500, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().arrayNewStatus = ANI_ERROR;
+
+    std::string obj;
+    auto result = etsEnv->AddAbcFiles(mockEnv.GetEnv(), obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: AddAbcFiles_0600
+ * @tc.desc: Test AddAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, AddAbcFiles_0600, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().arraySetStatus = ANI_ERROR;
+
+    std::string obj;
+    auto result = etsEnv->AddAbcFiles(mockEnv.GetEnv(), obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: AddAbcFiles_0700
+ * @tc.desc: Test AddAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, AddAbcFiles_0700, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().callMethodStatus = ANI_ERROR;
+
+    std::string obj;
+    auto result = etsEnv->AddAbcFiles(mockEnv.GetEnv(), obj);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: AddAbcFiles_0800
+ * @tc.desc: Test AddAbcFiles.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, AddAbcFiles_0800, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    std::string obj;
+    auto result = etsEnv->AddAbcFiles(mockEnv.GetEnv(), obj);
+    EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: Destructor_0100
+ * @tc.desc: Test Destructor.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, Destructor_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    etsEnv->vmEntry_.aniVm_ = nullptr;
+    etsEnv->vmEntry_.aniEnv_ = nullptr;
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+
+    auto before = etsEnv->vmEntry_.abcLinkerRef_;
+    etsEnv.reset();
+
+    EXPECT_NE(before, nullptr);
+}
+
+/**
+ * @tc.name: CreateRuntimeLinker_0100
+ * @tc.desc: Test CreateRuntimeLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, CreateRuntimeLinker_0100, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().classFindMethodStatus = ANI_ERROR;
+
+    ani_class cls = reinterpret_cast<ani_class>(0x1);
+    ani_ref undefinedRef = reinterpret_cast<ani_ref>(0x2);
+    ani_array refArray = reinterpret_cast<ani_array>(0x3);
+
+    auto obj = etsEnv->CreateRuntimeLinker(mockEnv.GetEnv(), cls, undefinedRef, refArray);
+    EXPECT_EQ(obj, nullptr);
+}
+
+/**
+ * @tc.name: CreateRuntimeLinker_0200
+ * @tc.desc: Test CreateRuntimeLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, CreateRuntimeLinker_0200, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().objectNewStatus = ANI_ERROR;
+
+    ani_class cls = reinterpret_cast<ani_class>(0x1);
+    ani_ref undefinedRef = reinterpret_cast<ani_ref>(0x2);
+    ani_array refArray = reinterpret_cast<ani_array>(0x3);
+
+    auto obj = etsEnv->CreateRuntimeLinker(mockEnv.GetEnv(), cls, undefinedRef, refArray);
+    EXPECT_EQ(obj, nullptr);
+}
+
+/**
+ * @tc.name: CreateRuntimeLinker_0300
+ * @tc.desc: Test CreateRuntimeLinker.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, CreateRuntimeLinker_0300, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    MockAniEnv mockEnv;
+
+    ani_class cls = reinterpret_cast<ani_class>(0x1);
+    ani_ref undefinedRef = reinterpret_cast<ani_ref>(0x2);
+    ani_array refArray = reinterpret_cast<ani_array>(0x3);
+
+    auto obj = etsEnv->CreateRuntimeLinker(mockEnv.GetEnv(), cls, undefinedRef, refArray);
+    EXPECT_NE(obj, nullptr);
+}
+} // namespace EtsEnv
 } // namespace OHOS
