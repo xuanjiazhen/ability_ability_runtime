@@ -794,7 +794,7 @@ static napi_value CreateDetailInfoObject(napi_env env, AppExecFwk::LeakType leak
 
 static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
 {
-    TAG_LOGI(AAFwkTag::JSNAPI, "xyyy ObserverFunc start");
+    TAG_LOGD(AAFwkTag::JSNAPI, "ObserverFunc start");
     std::lock_guard<std::mutex> lock(defaultLeakMtx);
     if (!defaultLeakObserver.ref) {
         TAG_LOGI(AAFwkTag::JSNAPI, " xyyy not register ObserverFunc callback");
@@ -807,8 +807,7 @@ static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
         TAG_LOGI(AAFwkTag::JSNAPI, "xyyy Get Global Failed");
         return false;
     }
-    TAG_LOGI(AAFwkTag::JSNAPI, "xyyy obj.leakType:%{public}d", obj.leakType);
-    TAG_LOGI(AAFwkTag::JSNAPI, "xyyy obj.leakSize:%{public}ld", obj.leakSize);
+    TAG_LOGI(AAFwkTag::JSNAPI, "xyyy obj.leakType:%{public}d,  %{public}ld", obj.leakType, obj.leakSize);
     // 4. 构造JS层回调函数的入参：将Native层的LeakObject转换为JS可识别的值
     size_t argc = ARGC_TWO;
     napi_value args[ARGC_THREE];
@@ -833,10 +832,9 @@ static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
     napi_value result = nullptr;
     if (napi_call_function(defaultLeakObserver.env, global, function, argc, args, &result) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "xyyy Do Callback Failed");
-        // napi_close_handle_scope(freezeObserver.env, scope_);
         return false;
     }
-    TAG_LOGI(AAFwkTag::JSNAPI, "xyyy ObserverFunc end");
+    TAG_LOGD(AAFwkTag::JSNAPI, "xyyy ObserverFunc end");
     return true;
 }
 
@@ -1036,14 +1034,11 @@ private:
     napi_value OnSetDefaultLeakObserver(napi_env env, const size_t argc, napi_value *argv)
     {
         TAG_LOGE(AAFwkTag::JSNAPI, "xyyy OnSetDefaultLeakObserver start");
-        // 校验参数个数（0个或1个）
         if (argc != ARGC_ZERO && argc != ARGC_ONE) {
             TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc: %zu", argc);
             ThrowInvalidNumParametersError(env);
             return CreateJsUndefined(env);
         }
-
-        // 调用实际处理函数
         return argc == ARGC_ONE ?
         OnOnSetDefaultLeakObserver(env, argv[INDEX_ZERO]) : OnOnSetDefaultLeakObserver(env, nullptr);
 
