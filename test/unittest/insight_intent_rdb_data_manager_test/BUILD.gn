@@ -37,7 +37,7 @@ ohos_unittest("insight_intent_rdb_data_manager_test") {
     "insight_intent_rdb_data_manager_test.cpp"
   ]
 
-  deps = [ "${ability_runtime_abilitymgr_path}/abilitymgr:abilityms_static" ]
+  deps = [ "${ability_runtime_services_path}/abilitymgr:abilityms_static" ]
 
   external_deps = [
     "ability_base:want",

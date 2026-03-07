@@ -38,7 +38,7 @@ ohos_unittest("insight_intent_db_cache_test") {
     "mock_insight_intent_rdb_storage_mgr.cpp",
   ]
 
-  deps = [ "${ability_runtime_abilitymgr_path}/abilitymgr:abilityms_static" ]
+  deps = [ "${ability_runtime_services_path}/abilitymgr:abilityms_static" ]
 
   external_deps = [
     "ability_base:want",

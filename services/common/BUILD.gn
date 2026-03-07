@@ -138,6 +138,11 @@ ohos_shared_library("perm_verification") {
 
 ohos_static_library("perm_verification_static") {
   branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
 
   configs = [ "${ability_runtime_services_path}/common:tdd_config" ]
   public_configs = [ ":common_config" ]
@@ -192,6 +197,11 @@ ohos_shared_library("task_handler_wrap") {
 
 ohos_static_library("task_handler_wrap_static") {
   branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
 
   configs = [ "${ability_runtime_services_path}/common:tdd_config" ]
   public_configs = [ ":common_config" ]
@@ -333,6 +343,11 @@ ohos_shared_library("app_util") {
 
 ohos_static_library("app_util_static") {
   branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+  }
 
   configs = [ "${ability_runtime_services_path}/common:tdd_config" ]
   public_configs = [ ":common_config" ]

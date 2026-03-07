@@ -33,11 +33,11 @@ ohos_unittest("auto_startup_info_test") {
   configs = []
 
   deps = [
-    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:auto_startup_callback",
+    "${ability_runtime_services_path}/abilitymgr:abilityms_static",
     "${ability_runtime_services_path}/common:perm_verification_static",
   ]
 
