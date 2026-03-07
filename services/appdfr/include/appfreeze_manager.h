@@ -88,6 +88,14 @@ public:
         std::string killMsg;
         int adj = 0;
         int64_t timestamp = 0;
+        int killId = -1;
+        int64_t eventParamFirst;
+        int64_t eventParamSecond;
+        int64_t eventParamThird;
+        int64_t eventParamFourth;
+        int64_t eventParamFifth;
+        int64_t eventParamSixth;
+        int64_t eventParamSeventh;
     };
 
     AppfreezeManager();

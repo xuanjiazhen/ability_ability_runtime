@@ -767,6 +767,8 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetProcessKillReason_Test001
     EXPECT_EQ(killInfo.killReason, "APP_INPUT_BLOCK");
     killId = -1;
     appfreezeManager->GetProcessKillReason(killId, pid, killMsg);
+    killId = 0;
+    appfreezeManager->GetProcessKillReason(killId, pid, killMsg);
 }
 
 /**
@@ -783,6 +785,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetExitKernelReason_Test001,
         .killMsg = "",
         .adj = 0,
         .timestamp = 0,
+        .killId = -1,
     };
     appfreezeManager->GetExitKernelReason(pid, killInfo);
     pid = 0;
