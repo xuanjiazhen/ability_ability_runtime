@@ -69,6 +69,11 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsChildProcessManager, OnStartNativeChildProcess);
     }
 
+    static napi_value IsChildProcessSupported(napi_env env, napi_callback_info info)
+    {
+        GET_CB_INFO_AND_CALL(env, info, JsChildProcessManager, OnIsChildProcessSupported);
+    }
+
 private:
     napi_value OnStartChildProcess(napi_env env, size_t argc, napi_value* argv)
     {
@@ -246,6 +251,19 @@ private:
         return result;
     }
 
+    napi_value OnIsChildProcessSupported(napi_env env, size_t argc, napi_value* argv)
+    {
+        TAG_LOGI(AAFwkTag::PROCESSMGR, "called");
+        if (argc > 0) {
+            TAG_LOGE(AAFwkTag::PROCESSMGR, "invalid argc, expected 0");
+            ThrowInvalidParamError(env, "Invalid number of parameters, expected 0.");
+            return CreateJsUndefined(env);
+        }
+        bool isSupported = ChildProcessManager::GetInstance().IsChildProcessSupported();
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "result:%{public}d", isSupported);
+        return CreateJsValue(env, isSupported);
+    }
+
     bool ParseArgsAndOptions(const napi_env &env, napi_value* argv, size_t argc, AppExecFwk::ChildProcessArgs &args,
         AppExecFwk::ChildProcessOptions &options)
     {
@@ -317,6 +335,8 @@ napi_value JsChildProcessManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "startArkChildProcess", moduleName, JsChildProcessManager::StartArkChildProcess);
     BindNativeFunction(env, exportObj, "startNativeChildProcess", moduleName,
         JsChildProcessManager::StartNativeChildProcess);
+    BindNativeFunction(env, exportObj, "isChildProcessSupported", moduleName,
+        JsChildProcessManager::IsChildProcessSupported);
     return CreateJsUndefined(env);
 }
 }  // namespace AbilityRuntime
