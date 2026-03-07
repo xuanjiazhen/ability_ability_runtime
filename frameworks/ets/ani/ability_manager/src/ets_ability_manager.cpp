@@ -31,6 +31,7 @@
 #include "ani_common_want.h"
 #include "ani_enum_convert.h"
 #include "app_mgr_interface.h"
+#include "app_utils.h"
 #include "application_context.h"
 #include "ets_ability_foreground_state_observer.h"
 #include "ets_ability_manager_utils.h"
@@ -49,18 +50,22 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *ETS_ABILITY_MANAGER_NAMESPACE = "L@ohos/app/ability/abilityManager/abilityManager;";
-constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_ARRAY = ":Lescompat/Array;";
-constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK = "Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_VOID = ":V";
+constexpr const char *ETS_ABILITY_MANAGER_NAMESPACE = "@ohos.app.ability.abilityManager.abilityManager";
+constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_ARRAY = ":C{std.core.Array}";
+constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK = "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_VOID = ":";
 constexpr const char *ON_OFF_TYPE_ABILITY_FOREGROUND_STATE = "abilityForegroundState";
 constexpr const char *ON_OFF_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE = "C{std.core.Function1}:";
 constexpr const char *PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE =
-    "L@ohos/app/ability/Want/Want;Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE = "ILutils/AbilityUtils/AsyncCallbackWrapper;:V";
-constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITIES_SIGNATURE = "Lutils/AbilityUtils/AsyncCallbackWrapper;:V";
+    "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE = "iC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITIES_SIGNATURE = "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *NOTIFY_SAVE_AS_RESULT_SIGNATURE =
+    "C{ability.abilityResult.AbilityResult}iC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *NOTIFY_SAVE_AS_RESULT_CHECK_SIGNATURE = "C{ability.abilityResult.AbilityResult}:";
 constexpr int32_t ERR_FAILURE = -1;
 const std::string MAX_UINT64_VALUE = "18446744073709551615";
+std::shared_ptr<AppExecFwk::EventHandler> mainHandler_ = nullptr;
 
 sptr<AAFwk::AcquireShareDataCallbackStub> CreateShareDataCallbackStub(
     ani_env *env, ani_ref callbackRef)
@@ -79,8 +84,10 @@ sptr<AAFwk::AcquireShareDataCallbackStub> CreateShareDataCallbackStub(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null shareDataCallbackStub");
         return nullptr;
     }
-    auto handler = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
-    shareDataCallbackStub->SetHandler(handler);
+    if (mainHandler_ == nullptr) {
+        mainHandler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::GetMainEventRunner());
+    }
+    shareDataCallbackStub->SetHandler(mainHandler_);
     AAFwk::ShareRuntimeTask task =
         [aniVM, callbackRef](int32_t resultCode, const AAFwk::WantParams &wantParam) {
             ani_env *env = nullptr;
@@ -120,6 +127,7 @@ public:
     static void CheckSystemApp(ani_env *env);
     static void GetTopAbilityCheck(ani_env *env);
     static void GetAbilityRunningInfos(ani_env *env, ani_object callback);
+    static ani_boolean IsEmbeddedUIExtensionSupported(ani_env *env);
     static void IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj, ani_string aniAppId, ani_object callbackObj);
     static void IsEmbeddedOpenAllowedCheck(ani_env *env, ani_object contextObj);
     static void NativeOn(ani_env *env, ani_string aniType, ani_object aniObserver);
@@ -144,6 +152,9 @@ public:
     static void NativeClearPreloadedUIExtensionAbility(ani_env *env, ani_int preloadId, ani_object callback);
     static void NativeClearPreloadedUIExtensionAbilities(ani_env *env, ani_object callback);
     static void CheckPreloadUIExtensionAbilityPermission(ani_env *env);
+    static void nativeNotifySaveAsResult(ani_env *env, ani_object aniParameter,
+        ani_int requestCode, ani_object callback);
+    static void nativeNotifySaveAsResultCheck(ani_env *env, ani_object aniParameter);
 
 private:
     static sptr<AppExecFwk::IAbilityManager> GetAbilityManagerInstance();
@@ -351,6 +362,17 @@ void EtsAbilityManager::IsEmbeddedOpenAllowedCheck(ani_env *env, ani_object cont
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null UIAbilityContext");
         EtsErrorUtil::ThrowInvalidParamError(env, "Parse param context failed, must be UIAbilityContext.");
     }
+}
+
+ani_boolean EtsAbilityManager::IsEmbeddedUIExtensionSupported(ani_env *env)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "IsEmbeddedUIExtensionSupported");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return ANI_FALSE;
+    }
+    bool result = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
+    return result ? ANI_TRUE : ANI_FALSE;
 }
 
 void EtsAbilityManager::IsEmbeddedOpenAllowed(ani_env *env, ani_object contextObj,
@@ -1034,6 +1056,46 @@ void EtsAbilityManager::NativeClearPreloadedUIExtensionAbilities(ani_env *env, a
     }
 }
 
+void EtsAbilityManager::nativeNotifySaveAsResultCheck(ani_env *env, ani_object aniParameter)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NotifySaveAsResultCheck");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    AppExecFwk::Want want;
+    int resultCode = ERR_OK;
+    if (!AppExecFwk::UnWrapAbilityResult(env, aniParameter, resultCode, want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "unwrap abilityResult failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param parameter failed, must be a AbilityResult.");
+        return;
+    }
+}
+
+void EtsAbilityManager::nativeNotifySaveAsResult(
+    ani_env *env, ani_object aniParameter, ani_int requestCode, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "call NotifySaveAsResult");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
+        return;
+    }
+    AppExecFwk::Want want;
+    int resultCode = ERR_OK;
+    if (!AppExecFwk::UnWrapAbilityResult(env, aniParameter, resultCode, want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "unwrap abilityResult failed");
+        return;
+    }
+    ErrCode errorCode = AAFwk::AbilityManagerClient::GetInstance()->
+        NotifySaveAsResult(want, resultCode, static_cast<int32_t>(requestCode));
+    if (errorCode != ERR_OK) {
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errorCode)), nullptr);
+        return;
+    }
+    AppExecFwk::AsyncCallback(env, callback, nullptr, nullptr);
+}
+
 void EtsAbilityManagerRegistryInit(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call EtsAbilityManagerRegistryInit");
@@ -1057,28 +1119,30 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::GetForegroundUIAbilities)
         },
         ani_native_function {
-            "getForegroundUIAbilitiesCallback", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            "getForegroundUIAbilitiesCallback", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::GetForegroundUIAbilitiesCallBack)
         },
         ani_native_function { "nativeGetTopAbility", ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK,
             reinterpret_cast<void *>(EtsAbilityManager::GetTopAbility) },
         ani_native_function { "nativeCheckSystemApp", ETS_ABILITY_MANAGER_SIGNATURE_VOID,
             reinterpret_cast<void *>(EtsAbilityManager::CheckSystemApp) },
-        ani_native_function { "nativeGetTopAbilityCheck", ":V",
+        ani_native_function { "nativeGetTopAbilityCheck", ":",
             reinterpret_cast<void *>(EtsAbilityManager::GetTopAbilityCheck) },
-        ani_native_function { "nativeGetAbilityRunningInfos", "Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+        ani_native_function { "nativeGetAbilityRunningInfos", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::GetAbilityRunningInfos) },
-        ani_native_function { "nativeGetExtensionRunningInfos", "ILutils/AbilityUtils/AsyncCallbackWrapper;:V",
+        ani_native_function { "nativeGetExtensionRunningInfos", "iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::GetExtensionRunningInfos) },
+        ani_native_function { "nativeIsEmbeddedUIExtensionSupported", ":z",
+            reinterpret_cast<void *>(EtsAbilityManager::IsEmbeddedUIExtensionSupported) },
         ani_native_function { "nativeIsEmbeddedOpenAllowed",
-            "Lapplication/Context/Context;Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            "C{application.Context.Context}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::IsEmbeddedOpenAllowed) },
-        ani_native_function { "nativeIsEmbeddedOpenAllowedCheck", "Lapplication/Context/Context;:V",
+        ani_native_function { "nativeIsEmbeddedOpenAllowedCheck", "C{application.Context.Context}:",
             reinterpret_cast<void *>(EtsAbilityManager::IsEmbeddedOpenAllowedCheck) },
         ani_native_function { "nativeQueryAtomicServiceStartupRule",
-            "Lapplication/Context/Context;Lstd/core/String;Lutils/AbilityUtils/AsyncCallbackWrapper;:V",
+            "C{application.Context.Context}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::QueryAtomicServiceStartupRule) },
-        ani_native_function { "nativeQueryAtomicServiceStartupRuleCheck", "Lapplication/Context/Context;:V",
+        ani_native_function { "nativeQueryAtomicServiceStartupRuleCheck", "C{application.Context.Context}:",
             reinterpret_cast<void *>(EtsAbilityManager::QueryAtomicServiceStartupRuleCheck) },
         ani_native_function { "nativeOn", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOn) },
         ani_native_function { "nativeOff", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOff) },
@@ -1115,6 +1179,10 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::NativeClearPreloadedUIExtensionAbilities) },
         ani_native_function { "nativeCheckPreloadUIExtensionAbilityPermission", ETS_ABILITY_MANAGER_SIGNATURE_VOID,
             reinterpret_cast<void *>(EtsAbilityManager::CheckPreloadUIExtensionAbilityPermission) },
+        ani_native_function { "nativeNotifySaveAsResult", NOTIFY_SAVE_AS_RESULT_SIGNATURE,
+            reinterpret_cast<void *>(EtsAbilityManager::nativeNotifySaveAsResult) },
+        ani_native_function { "nativeNotifySaveAsResultCheck", NOTIFY_SAVE_AS_RESULT_CHECK_SIGNATURE,
+            reinterpret_cast<void *>(EtsAbilityManager::nativeNotifySaveAsResultCheck) },
     };
     status = env->Namespace_BindNativeFunctions(ns, methods.data(), methods.size());
     if (status != ANI_OK) {

@@ -26,10 +26,13 @@
 #include "process_options.h"
 #include "session_info.h"
 #include "start_options.h"
+#include "start_specified_ability_params.h"
 #include "want.h"
+#include "ui_extension/ui_extension_ability_connect_info.h"
 
 namespace OHOS {
 namespace AAFwk {
+using UIExtensionAbilityConnectInfo = AbilityRuntime::UIExtensionAbilityConnectInfo;
 /**
  * @class AbilityRequest
  * Wrap parameters of starting ability.
@@ -49,29 +52,19 @@ enum CollaboratorType {
 };
 
 struct AbilityRequest {
-    bool isStartInSplitMode = false;
-    bool restart = false;
-    bool startRecent = false;
-    bool uriReservedFlag = false;
-    bool isFromIcon = false;
-    bool isShellCall = false;
-    // ERMS embedded atomic service
-    bool isQueryERMS = false;
-    bool isEmbeddedAllowed = false;
-    bool callSpecifiedFlagTimeout = false;
-    bool hideStartWindow = false;
-    int32_t primaryWindowId = -1;
-    int32_t restartCount = -1;
-    int32_t uid = 0;
-    int32_t collaboratorType = CollaboratorType::DEFAULT_TYPE;
-    int32_t callerTokenRecordId = -1;
-    int32_t userId = -1;
-    uint32_t callerAccessTokenId = 0;
-    uint32_t specifyTokenId = 0;
-    int callerUid = -1;         // call ability
-    int requestCode = -1;
-    AbilityCallType callType = AbilityCallType::INVALID_TYPE;           // call ability
-    int64_t restartTime = 0;
+    Want want;
+    AppExecFwk::AbilityInfo abilityInfo;
+    AppExecFwk::ApplicationInfo appInfo;
+    StartOptions startOptions;
+    std::vector<AppExecFwk::SupportWindowMode> supportWindowModes;
+    std::string specifiedFlag;
+    std::string customProcess;
+    std::string moduleProcess;
+    std::string reservedBundleName;
+    std::string appId;
+    std::string startTime;
+    std::string hostBundleName;
+
     sptr<IRemoteObject> callerToken = nullptr;          // call ability
     sptr<IRemoteObject> asCallerSourceToken = nullptr;          // call ability
     sptr<IAbilityConnection> connect = nullptr;
@@ -80,20 +73,42 @@ struct AbilityRequest {
     std::shared_ptr<AbilityStartSetting> startSetting = nullptr;
     std::shared_ptr<ProcessOptions> processOptions = nullptr;
     std::shared_ptr<StartWindowOption> startWindowOption = nullptr;
-    std::vector<AppExecFwk::SupportWindowMode> supportWindowModes;
+    std::shared_ptr<StartSpecifiedAbilityParams> startSpecifiedParams = nullptr;
+    sptr<UIExtensionAbilityConnectInfo> uiExtensionAbilityConnectInfo = nullptr;
+
+    int64_t restartTime = 0;
+    uint64_t specifiedFullTokenId = 0;
+
+    int32_t primaryWindowId = -1;
+    int32_t restartCount = -1;
+    int32_t uid = 0;
+    int32_t collaboratorType = CollaboratorType::DEFAULT_TYPE;
+    int32_t callerTokenRecordId = -1;
+    int32_t userId = -1;
+    int32_t loadExtensionTimeout = 0; // only for connectAbility
+    uint32_t callerAccessTokenId = 0;
+    uint32_t specifyTokenId = 0;
+    int callerUid = -1;         // call ability
+    int requestCode = -1;
+    AbilityCallType callType = AbilityCallType::INVALID_TYPE;           // call ability
     AppExecFwk::ExtensionAbilityType extensionType = AppExecFwk::ExtensionAbilityType::UNSPECIFIED;
     AppExecFwk::ExtensionProcessMode extensionProcessMode = AppExecFwk::ExtensionProcessMode::UNDEFINED;
-    std::string specifiedFlag;
-    std::string customProcess;
-    std::string reservedBundleName;
-    std::string appId;
-    std::string startTime;
-    Want want;
-    AppExecFwk::AbilityInfo abilityInfo;
-    AppExecFwk::ApplicationInfo appInfo;
-    StartOptions startOptions;
+
+    bool isStartInSplitMode = false;
+    bool restart = false;
+    bool startRecent = false;
+    bool uriReservedFlag = false;
+    bool isFromIcon = false;
+    bool isShellCall = false;
+    bool isTargetPlugin = false;
+    // ERMS embedded atomic service
+    bool isQueryERMS = false;
+    bool isEmbeddedAllowed = false;
+    bool callSpecifiedFlagTimeout = false;
+    bool hideStartWindow = false;
     bool hideFailureTipDialog = false;
     bool promotePriority = false;
+    bool isFromOpenLink = false;
     std::pair<bool, LaunchReason> IsContinuation() const;
 
     bool IsAcquireShareData() const

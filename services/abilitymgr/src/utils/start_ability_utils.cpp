@@ -15,8 +15,10 @@
 
 #include "start_ability_utils.h"
 
+#include <random>
 #include "ability_record.h"
 #include "ability_util.h"
+#include "app_scheduler.h"
 #include "app_utils.h"
 #include "global_constant.h"
 #include "hitrace_meter.h"
@@ -37,6 +39,7 @@ thread_local bool StartAbilityUtils::skipErms = false;
 thread_local int32_t StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE;
 thread_local bool StartAbilityUtils::isWantWithAppCloneIndex = false;
 thread_local bool StartAbilityUtils::ermsSupportBackToCallerFlag = false;
+thread_local bool StartAbilityUtils::startSpecifiedBySCB = false;
 
 bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex)
 {
@@ -161,9 +164,10 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
     StartAbilityUtils::callerAbilityInfo = StartAbilityInfo::CreateCallerAbilityInfo(callerToken);
 
     StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE;
+    StartAbilityUtils::ermsSupportBackToCallerFlag = false;
     StartAbilityUtils::isWantWithAppCloneIndex = false;
-    if (want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY) && appIndex >= 0 &&
-        appIndex < AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+    if ((want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY) && appIndex >= 0 &&
+        appIndex < AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) || StartAbilityUtils::startSpecifiedBySCB) {
         StartAbilityUtils::isWantWithAppCloneIndex = true;
     }
 }
@@ -176,6 +180,7 @@ StartAbilityInfoWrap::StartAbilityInfoWrap()
     StartAbilityUtils::skipErms = false;
     StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE;
     StartAbilityUtils::isWantWithAppCloneIndex = false;
+    StartAbilityUtils::ermsSupportBackToCallerFlag = false;
 }
 
 StartAbilityInfoWrap::~StartAbilityInfoWrap()
@@ -187,6 +192,7 @@ StartAbilityInfoWrap::~StartAbilityInfoWrap()
     StartAbilityUtils::skipErms = false;
     StartAbilityUtils::ermsResultCode = ERMS_ISALLOW_RESULTCODE;
     StartAbilityUtils::isWantWithAppCloneIndex = false;
+    StartAbilityUtils::ermsSupportBackToCallerFlag = false;
 }
 
 void StartAbilityInfoWrap::SetStartAbilityInfo(const AppExecFwk::AbilityInfo& abilityInfo)
@@ -231,6 +237,7 @@ std::shared_ptr<StartAbilityInfo> QueryAbilityInfo(const Want &want, int32_t use
                 TAG_LOGW(AAFwkTag::ABILITYMGR, "GetPluginAbilityInfo failed %{public}d", pluginRet);
                 request->status = RESOLVE_ABILITY_ERR;
             }
+            request->isTargetPlugin = true;
         } else {
             IN_PROCESS_CALL_WITHOUT_RET(bms->QueryAbilityInfo(want, abilityInfoFlag, userId, request->abilityInfo));
         }
@@ -257,7 +264,12 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
     request->customProcess = request->abilityInfo.process;
     if (appIndex > 0 && appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
         if (request->abilityInfo.name.empty() || request->abilityInfo.bundleName.empty()) {
-            FindExtensionInfo(want, abilityInfoFlag, userId, appIndex, request);
+            std::string hostBundleName = "";
+            auto caller = Token::GetAbilityRecordByToken(callerToken);
+            if (caller) {
+                hostBundleName = caller->GetAbilityInfo().bundleName;
+            }
+            FindExtensionInfo(want, abilityInfoFlag, userId, appIndex, request, hostBundleName);
         }
         return request;
     }
@@ -292,7 +304,7 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartAbilityInfo(const
 }
 
 std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartExtensionInfo(const Want &want, int32_t userId,
-    int32_t appIndex)
+    int32_t appIndex, const std::string &hostBundleName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto bms = AbilityUtil::GetBundleManagerHelper();
@@ -301,13 +313,19 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartExtensionInfo(con
         static_cast<uint32_t>(AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_SKILL);
     auto abilityInfo = std::make_shared<StartAbilityInfo>();
     if (appIndex > 0 && appIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
-        FindExtensionInfo(want, abilityInfoFlag, userId, appIndex, abilityInfo);
+        FindExtensionInfo(want, abilityInfoFlag, userId, appIndex, abilityInfo, hostBundleName);
         return abilityInfo;
     }
 
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
     if (appIndex == 0) {
-        IN_PROCESS_CALL_WITHOUT_RET(bms->QueryExtensionAbilityInfos(want, abilityInfoFlag, userId, extensionInfos));
+        if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+            AppExecFwk::ExtensionAbilityInfo pluginExtensionInfo;
+            IN_PROCESS_CALL_WITHOUT_RET(bms->GetPluginExtensionInfo(hostBundleName, want, userId, pluginExtensionInfo));
+            extensionInfos.push_back(pluginExtensionInfo);
+        } else {
+            IN_PROCESS_CALL_WITHOUT_RET(bms->QueryExtensionAbilityInfos(want, abilityInfoFlag, userId, extensionInfos));
+        }
     } else {
         IN_PROCESS_CALL_WITHOUT_RET(bms->GetSandboxExtAbilityInfos(want, appIndex,
             abilityInfoFlag, userId, extensionInfos));
@@ -326,6 +344,7 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartExtensionInfo(con
     }
     abilityInfo->extensionProcessMode = extensionInfo.extensionProcessMode;
     abilityInfo->customProcess = extensionInfo.customProcess;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "extensionInfo customProcess: %{public}s", abilityInfo->customProcess.c_str());
     // For compatibility translates to AbilityInfo
     AbilityRuntime::StartupUtil::InitAbilityInfoFromExtension(extensionInfo, abilityInfo->abilityInfo);
 
@@ -333,21 +352,26 @@ std::shared_ptr<StartAbilityInfo> StartAbilityInfo::CreateStartExtensionInfo(con
 }
 
 void StartAbilityInfo::FindExtensionInfo(const Want &want, int32_t flags, int32_t userId,
-    int32_t appIndex, std::shared_ptr<StartAbilityInfo> abilityInfo)
+    int32_t appIndex, std::shared_ptr<StartAbilityInfo> abilityInfo, const std::string &hostBundleName)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_POINTER_LOG(abilityInfo, "abilityInfo is invalid.");
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_LOG(bms, "bms is invalid.");
     AppExecFwk::ExtensionAbilityInfo extensionInfo;
-    IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneExtensionAbilityInfoWithAppIndex(want.GetElement(),
-        flags, appIndex, extensionInfo, userId));
+    if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
+        IN_PROCESS_CALL_WITHOUT_RET(bms->GetPluginExtensionInfo(hostBundleName, want, userId, extensionInfo));
+    } else {
+        IN_PROCESS_CALL_WITHOUT_RET(bms->QueryCloneExtensionAbilityInfoWithAppIndex(want.GetElement(),
+            flags, appIndex, extensionInfo, userId));
+    }
     if (extensionInfo.bundleName.empty() || extensionInfo.name.empty()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "extensionInfo empty");
         abilityInfo->status = RESOLVE_ABILITY_ERR;
         return;
     }
     abilityInfo->customProcess = extensionInfo.customProcess;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "extensionInfo customProcess: %{public}s", abilityInfo->customProcess.c_str());
     if (AbilityRuntime::StartupUtil::IsSupportAppClone(extensionInfo.type)) {
         abilityInfo->extensionProcessMode = extensionInfo.extensionProcessMode;
         // For compatibility translates to AbilityInfo
@@ -417,6 +441,37 @@ int32_t StartAbilityUtils::StartUIAbilitiesProcessAppIndex(Want &want,
         return ERR_APP_CLONE_INDEX_INVALID;
     }
     return ERR_OK;
+}
+
+int32_t StartAbilityUtils::HandleSelfRedirection(bool isFromOpenLink,
+    const std::vector<AppExecFwk::AbilityInfo> &abilityInfos)
+{
+    if (!isFromOpenLink || abilityInfos.empty() || abilityInfos.size() > 1) {
+        return ERR_OK;
+    }
+    const AppExecFwk::AbilityInfo &abilityInfo = abilityInfos[0];
+    if (abilityInfo.allowSelfRedirect || abilityInfo.linkType != AppExecFwk::LinkType::APP_LINK) {
+        return ERR_OK;
+    }
+    AppExecFwk::RunningProcessInfo processInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(
+        IPCSkeleton::GetCallingPid(), processInfo);
+    if (processInfo.uid_ != abilityInfo.applicationInfo.uid) {
+        return ERR_OK;
+    }
+    return ERR_SELF_REDIRECTION_DISALLOWED;
+}
+
+std::string StartAbilityUtils::GenerateAsCallerForAncoSessionId()
+{
+    auto timestamp = std::chrono::system_clock::now().time_since_epoch();
+    auto time = std::chrono::duration_cast<std::chrono::seconds>(timestamp).count();
+    std::random_device seed;
+    std::mt19937 rng(seed());
+    std::uniform_int_distribution<int> uni(0, INT_MAX);
+    int randomDigit = uni(rng);
+    std::string asCallerForAncoSessionId = std::to_string(time) + "_" + std::to_string(randomDigit);
+    return asCallerForAncoSessionId;
 }
 }
 }

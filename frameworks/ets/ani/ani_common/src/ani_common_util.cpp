@@ -26,16 +26,16 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-constexpr const char* CLASSNAME_DOUBLE = "Lstd/core/Double;";
-constexpr const char* CLASSNAME_BOOL = "Lstd/core/Boolean;";
-constexpr const char* CLASSNAME_ARRAY = "Lescompat/Array;";
-constexpr const char* CLASSNAME_LONG = "Lstd/core/Long;";
-constexpr const char* CLASSNAME_INT = "Lstd/core/Int;";
-constexpr const char* CLASSNAME_ASYNC_CALLBACK_WRAPPER = "Lutils/AbilityUtils/AsyncCallbackWrapper;";
-constexpr const char* SET_OBJECT_VOID_SIGNATURE = "ILstd/core/Object;:V";
-constexpr const char* CLASSNAME_INNER = "Lapplication/ProcessInformation/ProcessInformationInner;";
-constexpr const char* ENUMNAME_PROCESS = "L@ohos/app/ability/appManager/appManager/ProcessState;";
-constexpr const char* ENUMNAME_BUNDLE = "L@ohos/bundle/bundleManager/bundleManager/BundleType;";
+constexpr const char* CLASSNAME_DOUBLE = "std.core.Double";
+constexpr const char* CLASSNAME_BOOL = "std.core.Boolean";
+constexpr const char* CLASSNAME_ARRAY = "std.core.Array";
+constexpr const char* CLASSNAME_LONG = "std.core.Long";
+constexpr const char* CLASSNAME_INT = "std.core.Int";
+constexpr const char* CLASSNAME_ASYNC_CALLBACK_WRAPPER = "utils.AbilityUtils.AsyncCallbackWrapper";
+constexpr const char* SET_OBJECT_VOID_SIGNATURE = "iY:";
+constexpr const char* CLASSNAME_INNER = "application.ProcessInformation.ProcessInformationInner";
+constexpr const char* ENUMNAME_PROCESS = "@ohos.app.ability.appManager.appManager.ProcessState";
+constexpr const char* ENUMNAME_BUNDLE = "@ohos.bundle.bundleManager.bundleManager.BundleType";
 }
 
 bool GetFieldDoubleByName(ani_env *env, ani_object object, const char *name, double &value)
@@ -61,7 +61,7 @@ bool GetFieldDoubleByName(ani_env *env, ani_object object, const char *name, dou
     }
     ani_double aniValue = 0.0;
     if ((status = env->Object_CallMethodByName_Double(
-        reinterpret_cast<ani_object>(field), "doubleValue", nullptr, &aniValue)) != ANI_OK) {
+        reinterpret_cast<ani_object>(field), "toDouble", nullptr, &aniValue)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -116,7 +116,7 @@ bool GetFieldBoolByName(ani_env *env, ani_object object, const char *name, bool 
     }
     ani_boolean aniValue = ANI_FALSE;
     if ((status = env->Object_CallMethodByName_Boolean(
-        reinterpret_cast<ani_object>(field), "unboxed", nullptr, &aniValue)) != ANI_OK) {
+        reinterpret_cast<ani_object>(field), "toBoolean", nullptr, &aniValue)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -219,7 +219,7 @@ bool GetFieldIntByName(ani_env *env, ani_object object, const char *name, int32_
     }
     ani_int aniInt = 0;
     if ((status = env->Object_CallMethodByName_Int(
-        reinterpret_cast<ani_object>(field), "intValue", nullptr, &aniInt)) != ANI_OK) {
+        reinterpret_cast<ani_object>(field), "toInt", nullptr, &aniInt)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -274,7 +274,7 @@ bool GetFieldLongByName(ani_env *env, ani_object object, const char *name, int64
     }
     ani_long aniLong = 0;
     if ((status = env->Object_CallMethodByName_Long(
-        reinterpret_cast<ani_object>(field), "longValue", nullptr, &aniLong)) != ANI_OK) {
+        reinterpret_cast<ani_object>(field), "toLong", nullptr, &aniLong)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -336,7 +336,7 @@ bool GetFieldStringArrayByName(ani_env *env, ani_object object, const char *name
     for (int i = 0; i < static_cast<int>(length); i++) {
         ani_ref stringEntryRef;
         status = env->Object_CallMethodByName_Ref(reinterpret_cast<ani_object>(arrayObj),
-            "$_get", "I:Lstd/core/Object;", &stringEntryRef, (ani_int)i);
+            "$_get", "i:Y", &stringEntryRef, (ani_int)i);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::ANI, "status: %{public}d, index: %{public}d", status, i);
             return false;
@@ -371,7 +371,7 @@ bool SetFieldArrayStringByName(ani_env *env, ani_class cls, ani_object object, c
         return false;
     }
     ani_method arrayCtor = nullptr;
-    if ((status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -386,7 +386,7 @@ bool SetFieldArrayStringByName(ani_env *env, ani_class cls, ani_object object, c
             TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
             return false;
         }
-        if ((status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V",
+        if ((status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:",
             i, str)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
             return false;
@@ -490,7 +490,7 @@ ani_object CreateDouble(ani_env *env, ani_double value)
         return nullptr;
     }
     ani_method ctor = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "D:V", &ctor)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "d:", &ctor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return nullptr;
     }
@@ -515,7 +515,7 @@ ani_object CreateBoolean(ani_env *env, ani_boolean value)
         return nullptr;
     }
     ani_method ctor = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "Z:V", &ctor)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "z:", &ctor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return nullptr;
     }
@@ -551,7 +551,7 @@ ani_object CreateLong(ani_env *env, ani_long value)
         return nullptr;
     }
     ani_method method = nullptr;
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "J:V", &method)) != ANI_OK || method == nullptr) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "l:", &method)) != ANI_OK || method == nullptr) {
         TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod status: %{public}d, or null method", status);
         return nullptr;
     }
@@ -571,6 +571,40 @@ bool AsyncCallback(ani_env *env, ani_object call, ani_object error, ani_object r
     }
     ani_class clsCall = nullptr;
     ani_status status = env->FindClass(CLASSNAME_ASYNC_CALLBACK_WRAPPER, &clsCall);
+    if (status!= ANI_OK || clsCall == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "FindClass status: %{public}d, or null clsCall", status);
+        return false;
+    }
+    ani_method method = nullptr;
+    if ((status = env->Class_FindMethod(clsCall, "invoke", nullptr, &method)) != ANI_OK || method == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod status: %{public}d, or null method", status);
+        return false;
+    }
+    if (error == nullptr) {
+        ani_ref nullRef = nullptr;
+        env->GetNull(&nullRef);
+        error = reinterpret_cast<ani_object>(nullRef);
+    }
+    if (result == nullptr) {
+        ani_ref undefinedRef = nullptr;
+        env->GetUndefined(&undefinedRef);
+        result = reinterpret_cast<ani_object>(undefinedRef);
+    }
+    if ((status = env->Object_CallMethod_Void(call, method, error, result)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "Object_CallMethod_Void status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+bool AsyncCallback(ani_env *env, const char *signature, ani_object call, ani_object error, ani_object result)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return false;
+    }
+    ani_class clsCall = nullptr;
+    ani_status status = env->FindClass(signature, &clsCall);
     if (status!= ANI_OK || clsCall == nullptr) {
         TAG_LOGE(AAFwkTag::ANI, "FindClass status: %{public}d, or null clsCall", status);
         return false;
@@ -621,7 +655,7 @@ bool GetDoubleOrUndefined(ani_env *env, ani_object param, const char *name, ani_
         return false;
     }
     if ((status = env->Object_CallMethodByName_Double(
-        reinterpret_cast<ani_object>(obj), "doubleValue", nullptr, &value)) != ANI_OK) {
+        reinterpret_cast<ani_object>(obj), "toDouble", nullptr, &value)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status : %{public}d", status);
         return false;
     }
@@ -686,7 +720,7 @@ ani_object CreateInt(ani_env *env, ani_int value)
         return nullptr;
     }
     ani_method ctor;
-    if ((status = env->Class_FindMethod(cls, "<ctor>", "I:V", &ctor)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", "i:", &ctor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod status : %{public}d", status);
         return nullptr;
     }
@@ -761,7 +795,7 @@ bool WrapArrayString(ani_env *env, ani_object &arrayObj, const std::vector<std::
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -808,7 +842,7 @@ bool UnwrapArrayString(ani_env *env, const ani_object &arrayObj, std::vector<std
     ani_ref ref;
     ani_size idx;
     for (idx = 0; idx < size; idx++) {
-        if ((status = env->Array_Get_Ref(reinterpret_cast<ani_array_ref>(arrayObj), idx, &ref)) != ANI_OK) {
+        if ((status = env->Array_Get(reinterpret_cast<ani_array>(arrayObj), idx, &ref)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::ANI, "status: %{public}d, index: %{public}zu", status, idx);
             return false;
         }
@@ -896,7 +930,7 @@ ani_object WrapProcessInformation(ani_env *env, const AppExecFwk::RunningProcess
         TAG_LOGE(AAFwkTag::ANI, "null cls");
         return nullptr;
     }
-    if ((status = env->Class_FindMethod(cls, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(cls, "<ctor>", ":", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "find ctor failed status: %{public}d", status);
         return nullptr;
     }
@@ -932,7 +966,7 @@ ani_object CreateRunningProcessInfoArray(ani_env *env, std::vector<AppExecFwk::R
     }
 
     ani_method arrayCtor;
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "find ctor failed status: %{public}d", status);
         return nullptr;
@@ -951,7 +985,7 @@ ani_object CreateRunningProcessInfoArray(ani_env *env, std::vector<AppExecFwk::R
             TAG_LOGW(AAFwkTag::ANI, "null aniInfo");
             break;
         }
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", index, aniInfo);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniInfo);
         if (status != ANI_OK) {
             TAG_LOGW(AAFwkTag::ANI, "Object_CallMethodByName_Void failed status: %{public}d", status);
             break;
@@ -975,7 +1009,7 @@ ani_object CreateEmptyArray(ani_env *env)
         return nullptr;
     }
     ani_method arrayCtor;
-    status = env->Class_FindMethod(arrayCls, "<ctor>", ":V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", ":", &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "find ctor failed status: %{public}d", status);
         return nullptr;
@@ -1076,7 +1110,7 @@ bool GetStringArrayProperty(ani_env *env, ani_object param, const char *name, st
     for (int i = 0; i < static_cast<int>(length); i++) {
         ani_ref stringEntryRef;
         status = env->Object_CallMethodByName_Ref(reinterpret_cast<ani_object>(arrayObj),
-            "$_get", "I:Lstd/core/Object;", &stringEntryRef, (ani_int)i);
+            "$_get", "i:Y", &stringEntryRef, (ani_int)i);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::ANI, "status: %{public}d, index: %{public}d", status, i);
             return false;
@@ -1109,7 +1143,7 @@ bool GetDoublePropertyObject(ani_env *env, ani_object param, const char *name, d
         return false;
     }
     if ((status = env->Object_CallMethodByName_Double(
-        reinterpret_cast<ani_object>(obj), "doubleValue", nullptr, &value)) != ANI_OK) {
+        reinterpret_cast<ani_object>(obj), "toDouble", nullptr, &value)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -1130,7 +1164,7 @@ bool GetLongPropertyObject(ani_env *env, ani_object param, const char *name, ani
         return false;
     }
     if ((status = env->Object_CallMethodByName_Long(
-        reinterpret_cast<ani_object>(obj), "longValue", nullptr, &value)) != ANI_OK) {
+        reinterpret_cast<ani_object>(obj), "toLong", nullptr, &value)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -1151,7 +1185,7 @@ bool GetIntPropertyObject(ani_env *env, ani_object param, const char *name, ani_
         return false;
     }
     if ((status = env->Object_CallMethodByName_Int(
-        reinterpret_cast<ani_object>(obj), "intValue", nullptr, &value)) != ANI_OK) {
+        reinterpret_cast<ani_object>(obj), "toInt", nullptr, &value)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -1228,7 +1262,7 @@ bool GetBooleanPropertyObject(ani_env *env, ani_object param, const char *name, 
     }
     ani_boolean aniValue = ANI_FALSE;
     if ((status = env->Object_CallMethodByName_Boolean(
-        reinterpret_cast<ani_object>(obj), "unboxed", nullptr, &aniValue)) != ANI_OK) {
+        reinterpret_cast<ani_object>(obj), "toBoolean", nullptr, &aniValue)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
     }
@@ -1326,7 +1360,7 @@ bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, co
         return false;
     }
 
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -1346,7 +1380,7 @@ bool SetStringArrayProperty(ani_env *env, ani_object param, const char *name, co
             return false;
         }
 
-        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", i, string);
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", i, string);
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
             return false;
@@ -1492,7 +1526,7 @@ ani_object WrapLocale(ani_env *env, const std::string &locale)
     }
     ani_class localClass = nullptr;
     ani_status status = ANI_ERROR;
-    if ((status = env->FindClass("Lstd/core/Intl/Locale;", &localClass)) != ANI_OK) {
+    if ((status = env->FindClass("std.core.Intl.Locale", &localClass)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "Find class failed, status: %{public}d", status);
         return nullptr;
     }
@@ -1530,14 +1564,14 @@ ani_object CreateIntAniArray(ani_env *env, const std::vector<int32_t> &dataArry)
         return nullptr;
     }
 
-    status = env->FindClass("Lescompat/Array;", &arrayCls);
+    status = env->FindClass("std.core.Array", &arrayCls);
     if (status != ANI_OK || arrayCls == nullptr) {
         TAG_LOGE(AAFwkTag::ANI, "FindClass failed, status : %{public}d", status);
         return nullptr;
     }
 
     ani_method arrayCtor = nullptr;
-    status = env->Class_FindMethod(arrayCls, "<ctor>", "I:V", &arrayCtor);
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
     if (status != ANI_OK || arrayCtor == nullptr) {
         TAG_LOGE(AAFwkTag::ANI, "Class_FindMethod failed, status : %{public}d", status);
         return nullptr;
@@ -1557,7 +1591,7 @@ ani_object CreateIntAniArray(ani_env *env, const std::vector<int32_t> &dataArry)
             return nullptr;
         }
         ani_status status =
-            env->Object_CallMethodByName_Void(arrayObj, "$_set", "ILstd/core/Object;:V", i, intObj);
+            env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", i, intObj);
         if (status != ANI_OK) {
             TAG_LOGE(
                 AAFwkTag::ANI, "Object_CallMethodByName_Void failed, status : %{public}d", status);

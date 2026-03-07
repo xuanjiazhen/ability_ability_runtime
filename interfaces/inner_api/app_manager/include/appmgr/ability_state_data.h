@@ -52,7 +52,7 @@ struct AbilityStateData : public Parcelable {
     bool isFocused = false;
     bool isAtomicService = false;
     int32_t uid = 0;
-    int32_t callerUid = 0;
+    int32_t callerUid = -1;
     int32_t callerPid = 0;
     int32_t abilityRecordId = 0;
     int32_t appCloneIndex = -1;
@@ -69,8 +69,6 @@ struct AbilityStateData : public Parcelable {
     std::string callerAbilityName;
     bool isInnerNotify = false;
     int32_t preloadMode = -1;
-    int32_t hostPid = 0;
-    std::string hostBundleName;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

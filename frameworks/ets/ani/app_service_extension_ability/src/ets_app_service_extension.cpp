@@ -38,11 +38,11 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 namespace {
 constexpr const char *APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
-    "Lapplication/AppServiceExtensionContext/AppServiceExtensionContext;";
-constexpr const char *ON_CREATE_SIGNATURE = "L@ohos/app/ability/Want/Want;:V";
-constexpr const char *VOID_SIGNATURE = ":V";
-constexpr const char *ON_REQUEST_SIGNATURE = "L@ohos/app/ability/Want/Want;I:V";
-constexpr const char *ON_CONFIGURATION_UPDATE_SIGNATURE = "L@ohos/app/ability/Configuration/Configuration;:V";
+    "application.AppServiceExtensionContext.AppServiceExtensionContext";
+constexpr const char *ON_CREATE_SIGNATURE = "C{@ohos.app.ability.Want.Want}:";
+constexpr const char *VOID_SIGNATURE = ":";
+constexpr const char *ON_REQUEST_SIGNATURE = "C{@ohos.app.ability.Want.Want}i:";
+constexpr const char *ON_CONFIGURATION_UPDATE_SIGNATURE = "C{@ohos.app.ability.Configuration.Configuration}:";
 } // namespace
 
 EtsAppServiceExtension* EtsAppServiceExtension::Create(const std::unique_ptr<Runtime>& runtime)
@@ -208,6 +208,7 @@ ani_ref EtsAppServiceExtension::CallObjectMethod(bool withResult, const char *na
         va_start(args, signature);
         if ((status = env->Object_CallMethod_Ref_V(etsObj_->aniObj, method, &res, args)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "status : %{public}d", status);
+            va_end(args);
             return nullptr;
         }
         va_end(args);

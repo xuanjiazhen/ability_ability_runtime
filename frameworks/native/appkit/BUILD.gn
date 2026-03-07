@@ -102,6 +102,7 @@ ohos_shared_library("appkit_native") {
   configs = [
     ":appkit_config",
     ":appkit_exception_config",
+    "${ability_runtime_services_path}/common:optimize_config",
   ]
 
   public_configs = [ ":appkit_public_config" ]
@@ -120,6 +121,7 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_native_path}/appkit/app/application_impl.cpp",
     "${ability_runtime_native_path}/appkit/app/assert_fault_callback.cpp",
     "${ability_runtime_native_path}/appkit/app/assert_fault_task_thread.cpp",
+    "${ability_runtime_native_path}/appkit/app/dump_arkweb_helper.cpp",
     "${ability_runtime_native_path}/appkit/app/dump_ffrt_helper.cpp",
     "${ability_runtime_native_path}/appkit/app/dump_ipc_helper.cpp",
     "${ability_runtime_native_path}/appkit/app/dump_runtime_helper.cpp",
@@ -182,6 +184,8 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
     "${ability_runtime_path}/utils/global/freeze:freeze_util",
     "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_path}/utils/global/common:runtime_utils",
+    "${ability_runtime_services_path}/common:hisysevent_report",
     "${ability_runtime_services_path}/common:task_handler_wrap",
   ]
 
@@ -373,7 +377,7 @@ ohos_shared_library("ability_stage_ani") {
     "${ability_runtime_path}/frameworks/ets/ani/enum_convert",
   ]
 
-  configs = []
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   public_configs = [ ":appkit_public_config" ]
 
@@ -461,7 +465,10 @@ ohos_shared_library("app_context") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
   ]
 
-  configs = [ ":appkit_config" ]
+  configs = [
+    ":appkit_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   public_configs = [ ":appkit_public_config" ]
 
@@ -474,6 +481,7 @@ ohos_shared_library("app_context") {
     "${ability_runtime_native_path}/appkit/ability_runtime/context/environment_callback.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/context/interop_object_instance.cpp",
     "${ability_runtime_native_path}/appkit/ability_runtime/context/js_ability_lifecycle_callback.cpp",
+    "${ability_runtime_native_path}/appkit/ability_runtime/context/js_system_configuration_updated_callback.cpp",
     "${ability_runtime_native_path}/appkit/app/overlay_event_subscriber.cpp",
     "${ability_runtime_native_path}/appkit/app/sys_mgr_client.cpp",
   ]
@@ -533,7 +541,10 @@ ohos_shared_library("app_context_utils") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
   ]
 
-  configs = [ ":appkit_config" ]
+  configs = [
+    ":appkit_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   public_configs = [ ":appkit_public_config" ]
 
@@ -603,7 +614,10 @@ ohos_shared_library("appkit_delegator") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
   ]
 
-  configs = [ ":appkit_config" ]
+  configs = [
+    ":appkit_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   public_configs = [ ":appkit_public_config" ]
 
@@ -696,7 +710,10 @@ ohos_shared_library("test_runner_ani") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
   ]
 
-  configs = [ ":appkit_config" ]
+  configs = [
+    ":appkit_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   public_configs = [ ":appkit_public_config" ]
 
@@ -759,7 +776,10 @@ ohos_shared_library("appkit_manager_helper") {
     "${ability_runtime_utils_path}/global/constant",
   ]
 
-  configs = [ ":appkit_config" ]
+  configs = [
+    ":appkit_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
 
   sources = [ "${ability_runtime_native_path}/appkit/ability_bundle_manager_helper/bundle_mgr_helper.cpp" ]
 

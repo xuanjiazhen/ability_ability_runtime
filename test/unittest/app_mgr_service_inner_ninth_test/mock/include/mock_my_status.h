@@ -80,6 +80,7 @@ public:
     int dumpIpcStop_ = ERR_OK;
     int dumpIpcStat_ = ERR_OK;
     int dumpFfrt_ = ERR_OK;
+    int32_t dumpArkWeb_ = ERR_OK;
     int32_t getAllAppRunningRecordCount_ = 0;
     pid_t handleUserRequestCleanPid_ = 0;
     pid_t handleUserRequestCleanUid_ = 0;
@@ -223,6 +224,7 @@ public:
     bool notifyAppPreCacheCalled_ = false;
     bool notifyStartResidentProcessCalled_ = false;
     bool notifyStartKeepAliveProcessCalled_ = false;
+    bool recordAppExitSignalReasonCall_ = false;
     int getCallingUidCalledTimes_ = 0;
     int getAppRunningRecordMapCall_ = 0;
     bool setKeepAliveEnableStateCalled_ = false;
@@ -290,6 +292,7 @@ public:
         notifyAppPreCacheCalled_ = false;
         notifyStartResidentProcessCalled_ = false;
         notifyStartKeepAliveProcessCalled_ = false;
+        recordAppExitSignalReasonCall_ = false;
         getCallingUidCalledTimes_ = 0;
         getAppRunningRecordMapCall_ = 0;
         setKeepAliveEnableStateCalled_ = false;

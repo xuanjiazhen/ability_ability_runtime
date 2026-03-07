@@ -45,19 +45,22 @@ ohos_shared_library("uri_permission_mgr") {
   }
   branch_protector_ret = "pac_ret"
 
-  configs = [ "${ability_runtime_services_path}/common:common_config" ]
+  configs = [
+    "${ability_runtime_services_path}/common:common_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
   public_configs = [ ":uripermkit_public_config" ]
 
-  sources = []
+  sources = [
+    "src/uri_permission_load_callback.cpp",
+    "src/uri_permission_manager_client.cpp",
+    "src/uri_permission_raw_data.cpp",
+  ]
   output_values = get_target_outputs(":uri_permission_manager_interface")
   sources += filter_include(output_values, [ "*_proxy.cpp" ])
   sources += filter_include(output_values, [ "*_stub.cpp" ])
 
-  deps = [
-    ":uri_permission_manager_interface",
-    "${ability_runtime_services_path}/common:app_util",
-  ]
-
+  deps = [ ":uri_permission_manager_interface" ]
   external_deps = [
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
@@ -66,12 +69,6 @@ ohos_shared_library("uri_permission_mgr") {
     "ipc:ipc_core",
     "samgr:samgr_proxy",
     "storage_service:storage_manager_sa_proxy",
-  ]
-
-  sources += [
-    "src/uri_permission_load_callback.cpp",
-    "src/uri_permission_manager_client.cpp",
-    "src/uri_permission_raw_data.cpp",
   ]
 
   if (ability_runtime_feature_sandboxmanager) {

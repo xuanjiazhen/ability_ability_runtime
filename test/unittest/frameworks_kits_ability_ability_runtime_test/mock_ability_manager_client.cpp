@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,6 +17,7 @@
 #define protected public
 #include "ability_manager_client.h"
 #include "mock_my_flag.h"
+#include "start_params_by_SCB.h"
 #undef private
 #undef protected
 
@@ -85,13 +86,14 @@ ErrCode AbilityManagerClient::ScheduleCommandAbilityWindowDone(
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::StartAbility(const Want &want, int requestCode, int32_t userId)
+ErrCode AbilityManagerClient::StartAbility(
+    const Want &want, int requestCode, int32_t userId, uint64_t specifiedFullTokenId)
 {
     return MyFlag::GetInstance()->GetStartAbility();
 }
 
 ErrCode AbilityManagerClient::StartAbility(
-    const Want &want, sptr<IRemoteObject> callerToken, int requestCode, int32_t userId)
+    const Want &want, sptr<IRemoteObject> callerToken, int requestCode, int32_t userId, uint64_t specifiedFullTokenId)
 {
     return MyFlag::GetInstance()->GetStartAbility();
 }
@@ -196,8 +198,8 @@ ErrCode AbilityManagerClient::StartUIExtensionAbility(sptr<SessionInfo> extensio
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart, uint32_t sceneFlag,
-    bool isRestart)
+ErrCode AbilityManagerClient::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo,
+    AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     return ERR_OK;
 }
@@ -276,8 +278,14 @@ ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConn
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::ConnectAbility(
-    const Want &want, sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConnection> connect, int32_t userId,
+    int32_t loadTimeout)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::ConnectAbility(const Want &want, sptr<IAbilityConnection> connect,
+    sptr<IRemoteObject> callerToken, int32_t userId, uint64_t specifiedFullTokenId)
 {
     return ERR_OK;
 }
@@ -295,7 +303,7 @@ ErrCode AbilityManagerClient::ConnectDataShareExtensionAbility(const Want &want,
 }
 
 ErrCode AbilityManagerClient::ConnectExtensionAbility(const Want &want, sptr<IAbilityConnection> connect,
-    int32_t userId)
+    int32_t userId, int32_t loadTimeout)
 {
     return ERR_OK;
 }
@@ -489,24 +497,26 @@ ErrCode AbilityManagerClient::GetMissionIdByToken(sptr<IRemoteObject> token, int
     return MyFlag::GetInstance()->GetMissionIdByToken();
 }
 
-ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect, bool isSilent)
+ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect, bool isSilent,
+    bool isVisible)
 {
     return ERR_OK;
 }
 
 ErrCode AbilityManagerClient::StartAbilityByCall(const Want &want, sptr<IAbilityConnection> connect,
-    sptr<IRemoteObject> callToken, int32_t accountId, bool isSilent, bool promotePriority)
+    sptr<IRemoteObject> callToken, int32_t accountId, bool isSilent, bool promotePriority, bool isVisible)
 {
     return ERR_OK;
 }
 
-ErrCode StartAbilityForPrelaunch(const Want &want)
+ErrCode StartAbilityForPrelaunch(const Want &want, const int32_t frameNum)
 {
     return ERR_OK;
 }
 
 ErrCode AbilityManagerClient::StartAbilityByCallWithErrMsg(const Want &want, sptr<IAbilityConnection> connect,
-    sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent, bool promotePriority)
+    sptr<IRemoteObject> callToken, int32_t accountId, std::string &errMsg, bool isSilent, bool promotePriority,
+    bool isVisible)
 {
     return ERR_OK;
 }
@@ -620,7 +630,8 @@ AppExecFwk::ElementName AbilityManagerClient::GetElementNameByToken(sptr<IRemote
     return {};
 }
 
-ErrCode AbilityManagerClient::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused)
+ErrCode AbilityManagerClient::CheckUIExtensionIsFocused(uint32_t uiExtensionTokenId, bool& isFocused,
+    uint64_t displayId)
 {
     return ERR_OK;
 }
@@ -794,13 +805,30 @@ ErrCode AbilityManagerClient::RecordProcessExitReason(int32_t pid, int32_t uid, 
     return ERR_OK;
 }
 
+ErrCode AbilityManagerClient::KillAppWithReason(int32_t pid, const ExitReasonCompability &exitReason)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::KillBundleWithReason(
+    const std::string &bundleName, int32_t userId, int32_t appIndex, const ExitReasonCompability &exitReason)
+{
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerClient::RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason)
+{
+    return ERR_OK;
+}
+
 void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSession)
 {}
 
-void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, bool &isColdStart)
+void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+    bool &isColdStart)
 {}
 
-int32_t AbilityManagerClient::StartSpecifiedAbilityBySCB(const Want &want)
+int32_t AbilityManagerClient::StartSpecifiedAbilityBySCB(const Want &want, const StartSpecifiedAbilityParams &params)
 {
     return 0;
 }
@@ -831,7 +859,7 @@ ErrCode AbilityManagerClient::RegisterStatusBarDelegate(sptr<AbilityRuntime::ISt
     return ERR_OK;
 }
 
-ErrCode AbilityManagerClient::KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids)
+ErrCode AbilityManagerClient::KillProcessWithPrepareTerminate(const std::vector<int32_t>& pids, bool clear)
 {
     return ERR_OK;
 }
@@ -1088,6 +1116,11 @@ ErrCode AbilityManagerClient::QueryPreLoadUIExtensionRecord(const AppExecFwk::El
 }
 
 ErrCode AbilityManagerClient::RevokeDelegator(sptr<IRemoteObject> token)
+{
+    return ERR_OK;
+}
+
+ErrCode GetUserLockedBundleList(int32_t userId, std::unordered_set<std::string> &userLockedBundleList)
 {
     return ERR_OK;
 }

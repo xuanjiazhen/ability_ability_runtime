@@ -15,6 +15,7 @@
 
 #include "ability_window_configuration.h"
 #include "hilog_tag_wrapper.h"
+#include "js_runtime_utils.h"
 #include "launch_param.h"
 #include "mission_info.h"
 #include "napi/native_api.h"
@@ -43,6 +44,7 @@ const std::string REASON_MESSAGE_DESKTOP_SHORTCUT = "ReasonMessage_DesktopShortc
 
 static napi_status SetEnumItem(napi_env env, napi_value object, const char* name, int32_t value)
 {
+    AbilityRuntime::HandleScope handleScope(env);
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
     napi_status status;
     napi_value itemName;
@@ -59,17 +61,19 @@ static napi_status SetEnumItem(napi_env env, napi_value object, const char* name
 
 static napi_value InitReasonMessageDesktopShortcut(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value reasonMessage = nullptr;
     if (napi_create_string_utf8(env, REASON_MESSAGE_DESKTOP_SHORTCUT.c_str(), REASON_MESSAGE_DESKTOP_SHORTCUT.length(),
         &reasonMessage) != napi_ok) {
         return nullptr;
     }
-    return reasonMessage;
+    return handleEscape.Escape(reasonMessage);
 }
 
 static napi_value InitLaunchReasonObject(napi_env env)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
 
@@ -84,12 +88,13 @@ static napi_value InitLaunchReasonObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, object, "PREPARE_CONTINUATION", LAUNCHREASON_PREPARE_CONTINUATION));
     NAPI_CALL(env, SetEnumItem(env, object, "PRELOAD", LAUNCHREASON_PRELOAD));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value InitLastExitReasonObject(napi_env env)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
 
@@ -105,12 +110,13 @@ static napi_value InitLastExitReasonObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, object, "USER_REQUEST", LASTEXITREASON_USER_REQUEST));
     NAPI_CALL(env, SetEnumItem(env, object, "SIGNAL", LASTEXITREASON_SIGNAL));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value InitOnContinueResultObject(napi_env env)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
 
@@ -118,23 +124,25 @@ static napi_value InitOnContinueResultObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, object, "REJECT", ONCONTINUE_REJECT));
     NAPI_CALL(env, SetEnumItem(env, object, "MISMATCH", ONCONTINUE_MISMATCH));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value InitContinueStateObject(napi_env env)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
 
     NAPI_CALL(env, SetEnumItem(env, object, "ACTIVE", AAFwk::ContinueState::CONTINUESTATE_ACTIVE));
     NAPI_CALL(env, SetEnumItem(env, object, "INACTIVE", AAFwk::ContinueState::CONTINUESTATE_INACTIVE));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value InitWindowModeObject(napi_env env)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
 
@@ -144,13 +152,14 @@ static napi_value InitWindowModeObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, object, "WINDOW_MODE_SPLIT_SECONDARY", MULTI_WINDOW_DISPLAY_SECONDARY));
     NAPI_CALL(env, SetEnumItem(env, object, "WINDOW_MODE_FLOATING", MULTI_WINDOW_DISPLAY_FLOATING));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 // AbilityConstant.OnSaveResult
 static napi_value InitOnSaveResultEnum(napi_env env)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
     NAPI_CALL(env, SetEnumItem(env, object, "ALL_AGREE", AppExecFwk::ALL_AGREE));
@@ -160,24 +169,26 @@ static napi_value InitOnSaveResultEnum(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, object, "RECOVERY_REJECT", AppExecFwk::RECOVERY_REJECT));
     NAPI_CALL(env, SetEnumItem(env, object, "ALL_REJECT", AppExecFwk::ALL_REJECT));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 // AbilityConstant.StateType
 static napi_value InitStateTypeEnum(napi_env env)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
     NAPI_CALL(env, SetEnumItem(env, object, "CONTINUATION", AppExecFwk::CONTINUATION));
     NAPI_CALL(env, SetEnumItem(env, object, "APP_RECOVERY", AppExecFwk::APP_RECOVERY));
 
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value InitMemoryLevelObject(napi_env env)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
 
@@ -196,23 +207,13 @@ static napi_value InitMemoryLevelObject(napi_env env)
     NAPI_CALL(env, SetEnumItem(env, object, "MEMORY_LEVEL_BACKGROUND_CRITICAL",
         static_cast<int>(MemoryLevel::MEMORY_LEVEL_BACKGROUND_CRITICAL)));
 
-    return object;
-}
-
-// AbilityConstant.CollaborateResult
-static napi_value InitCollaborateResultEnum(napi_env env)
-{
-    TAG_LOGD(AAFwkTag::JSNAPI, "called");
-    napi_value object;
-    NAPI_CALL(env, napi_create_object(env, &object));
-    NAPI_CALL(env, SetEnumItem(env, object, "ACCEPT", CollaborateResult::ACCEPT));
-    NAPI_CALL(env, SetEnumItem(env, object, "REJECT", CollaborateResult::REJECT));
-    return object;
+    return handleEscape.Escape(object);
 }
 
 static napi_value InitAbilityStagePrepareTerminationObject(napi_env env)
 {
     TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value object;
     NAPI_CALL(env, napi_create_object(env, &object));
 
@@ -220,7 +221,19 @@ static napi_value InitAbilityStagePrepareTerminationObject(napi_env env)
         static_cast<int32_t>(AppExecFwk::PrepareTermination::TERMINATE_IMMEDIATELY)));
     NAPI_CALL(env, SetEnumItem(env, object, "CANCEL",
         static_cast<int32_t>(AppExecFwk::PrepareTermination::CANCEL)));
-    return object;
+    return handleEscape.Escape(object);
+}
+
+// AbilityConstant.CollaborateResult
+static napi_value InitCollaborateResultEnum(napi_env env)
+{
+    TAG_LOGD(AAFwkTag::JSNAPI, "called");
+    AbilityRuntime::HandleEscape handleEscape(env);
+    napi_value object;
+    NAPI_CALL(env, napi_create_object(env, &object));
+    NAPI_CALL(env, SetEnumItem(env, object, "ACCEPT", CollaborateResult::ACCEPT));
+    NAPI_CALL(env, SetEnumItem(env, object, "REJECT", CollaborateResult::REJECT));
+    return handleEscape.Escape(object);
 }
 
 /*
@@ -228,6 +241,7 @@ static napi_value InitAbilityStagePrepareTerminationObject(napi_env env)
  */
 static napi_value AbilityConstantInit(napi_env env, napi_value exports)
 {
+    AbilityRuntime::HandleEscape handleEscape(env);
     napi_value reasonMessageDesktopShortcut = InitReasonMessageDesktopShortcut(env);
     if (reasonMessageDesktopShortcut == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null reasonMessageDesktopShortcut");
@@ -282,15 +296,15 @@ static napi_value AbilityConstantInit(napi_env env, napi_value exports)
         return nullptr;
     }
 
-    napi_value collaborateResult = InitCollaborateResultEnum(env);
-    if (collaborateResult == nullptr) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "null collaborateResult");
-        return nullptr;
-    }
-
     napi_value prepareTermination = InitAbilityStagePrepareTerminationObject(env);
     if (prepareTermination == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "null prepareTermination");
+        return nullptr;
+    }
+
+    napi_value collaborateResult = InitCollaborateResultEnum(env);
+    if (collaborateResult == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "null collaborateResult");
         return nullptr;
     }
 
@@ -303,8 +317,8 @@ static napi_value AbilityConstantInit(napi_env env, napi_value exports)
         DECLARE_NAPI_PROPERTY("MemoryLevel", memoryLevel),
         DECLARE_NAPI_PROPERTY("OnSaveResult", saveResult),
         DECLARE_NAPI_PROPERTY("StateType", stateType),
-        DECLARE_NAPI_PROPERTY("CollaborateResult", collaborateResult),
         DECLARE_NAPI_PROPERTY("PrepareTermination", prepareTermination),
+        DECLARE_NAPI_PROPERTY("CollaborateResult", collaborateResult),
         DECLARE_NAPI_PROPERTY("REASON_MESSAGE_DESKTOP_SHORTCUT", reasonMessageDesktopShortcut),
     };
     napi_status status = napi_define_properties(env, exports, sizeof(exportObjs) / sizeof(exportObjs[0]), exportObjs);
@@ -313,7 +327,7 @@ static napi_value AbilityConstantInit(napi_env env, napi_value exports)
         return nullptr;
     }
 
-    return exports;
+    return handleEscape.Escape(exports);
 }
 
 /*

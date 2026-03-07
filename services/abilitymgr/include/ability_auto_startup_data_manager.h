@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "auto_startup_info.h"
+#include "database_write_counter.h"
 #include "distributed_kv_data_manager.h"
 #include "nlohmann/json.hpp"
 #include "singleton.h"
@@ -50,18 +51,21 @@ public:
     /**
      * @brief Updates the auto-startup data for the specified application.
      * @param info The auto-startup information to be updated.
+     * @param originKey The key of the existing auto-startup data to be updated.
      * @param isAutoStartup Indicates whether the application should auto-startup.
      * @param isEdmForce Indicates whether the update is forced by EDM.
      * @return Returns 0 on success, non-zero on failure.
      */
-    int32_t UpdateAutoStartupData(const AutoStartupInfo &info, bool isAutoStartup, bool isEdmForce);
+    int32_t UpdateAutoStartupData(const AutoStartupInfo &info,
+        DistributedKv::Key &originKey, bool isAutoStartup, bool isEdmForce);
 
     /**
      * @brief Deletes the auto-startup data for the specified application.
      * @param info The auto-startup information to identify the data to be deleted.
+     * @param originKey The key of the auto-startup data to be deleted.
      * @return Returns 0 on success, non-zero on failure.
      */
-    int32_t DeleteAutoStartupData(const AutoStartupInfo &info);
+    int32_t DeleteAutoStartupData(const AutoStartupInfo &info, DistributedKv::Key &originKey);
 
     /**
      * @brief Deletes auto-startup data for the specified bundle.
@@ -75,9 +79,10 @@ public:
     /**
      * @brief Queries the auto-startup status for the specified application.
      * @param info The auto-startup information to identify the application.
+     * @param originKey Output parameter that receives the key of the found auto-startup data.
      * @return Returns the auto-startup status.
      */
-    AutoStartupStatus QueryAutoStartupData(const AutoStartupInfo &info);
+    AutoStartupStatus QueryAutoStartupData(const AutoStartupInfo &info, DistributedKv::Key &originKey);
 
     /**
      * @brief Queries all auto-startup applications for the specified user.
@@ -207,6 +212,7 @@ private:
     DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<DistributedKv::SingleKvStore> kvStorePtr_;
     mutable std::mutex kvStorePtrMutex_;
+    DatabaseWriteCounter dbWriteCounter_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

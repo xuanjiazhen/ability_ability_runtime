@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+/**
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -19,15 +19,15 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-constexpr const char* CLASSNAME_DOUBLE = "Lstd/core/Double;";
-constexpr const char* CLASSNAME_INT = "Lstd/core/Int;";
-constexpr const char* CLASSNAME_BOOL = "Lstd/core/Boolean;";
-constexpr const char* CLASSNAME_STRING = "Lstd/core/String;";
-constexpr const char* CLASSNAME_ARRAY = "Lescompat/Array;";
+constexpr const char* CLASSNAME_DOUBLE = "std.core.Double";
+constexpr const char* CLASSNAME_INT = "std.core.Int";
+constexpr const char* CLASSNAME_BOOL = "std.core.Boolean";
+constexpr const char* CLASSNAME_STRING = "std.core.String";
+constexpr const char* CLASSNAME_ARRAY = "std.core.Array";
 void PutDouble(AppExecFwk::PacMap &pacMap, ani_env* env, std::string keyStr, ani_object aniValue)
 {
     ani_double value = 0;
-    ani_status status = env->Object_CallMethodByName_Double(aniValue, "doubleValue", nullptr, &value);
+    ani_status status = env->Object_CallMethodByName_Double(aniValue, "toDouble", nullptr, &value);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FA, "Object_CallMethodByName_Double status: %{public}d", status);
         return;
@@ -38,7 +38,7 @@ void PutDouble(AppExecFwk::PacMap &pacMap, ani_env* env, std::string keyStr, ani
 void PutInt(AppExecFwk::PacMap &pacMap, ani_env* env, std::string keyStr, ani_object aniValue)
 {
     ani_int value = 0;
-    ani_status status = env->Object_CallMethodByName_Int(aniValue, "unboxed", nullptr, &value);
+    ani_status status = env->Object_CallMethodByName_Int(aniValue, "toInt", nullptr, &value);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FA, "Object_CallMethodByName_Int status: %{public}d", status);
         return;
@@ -167,15 +167,15 @@ void AnalysisPacMap(AppExecFwk::PacMap &pacMap, ani_env* env, const ani_object &
             return;
         }
         ani_ref aniKey = nullptr;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 0, &aniKey);
+        status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(keyValue), "$0", &aniKey);
         if (ANI_OK != status) {
-            TAG_LOGE(AAFwkTag::FA, "Failed to get key Item status: %{public}d", status);
+            TAG_LOGE(AAFwkTag::FA, "Failed to get tuple Item status: %{public}d", status);
             return;
         }
         ani_ref aniVal = nullptr;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 1, &aniVal);
+        status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(keyValue), "$1", &aniVal);
         if (ANI_OK != status) {
-            TAG_LOGE(AAFwkTag::FA, "Failed to get key Item status: %{public}d", status);
+            TAG_LOGE(AAFwkTag::FA, "Failed to get tuple Item status: %{public}d", status);
             return;
         }
         std::string mapKey = "";

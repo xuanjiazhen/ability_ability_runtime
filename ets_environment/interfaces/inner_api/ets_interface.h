@@ -47,9 +47,10 @@ struct ETSEnvFuncs {
         void *&obj, void *&ref) = nullptr;
     void (*SetAppLibPath)(const std::map<std::string, std::string> &abcPathsToBundleModuleNameMap,
         std::function<bool(const std::string &bundleModuleName, std::string &namespaceName)> &cb) = nullptr;
-    void (*FinishPreload)() = nullptr;
+    void (*FinishPreload)(napi_env jsEnv) = nullptr;
     void (*PostFork)(void *napiEnv, const std::string &aotPath,
         const std::vector<std::string> &appInnerHspPathList,
+        const std::vector<std::string> &staticHapModuleNameList,
         const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
         const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner) = nullptr;
     void (*PreloadSystemClass)(const char *className) = nullptr;

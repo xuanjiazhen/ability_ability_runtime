@@ -88,7 +88,8 @@ public:
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordIsExist(const std::string &appName,
         const std::string &processName, const int uid, const BundleInfo &bundleInfo,
         const std::string &specifiedProcessFlag = "", bool *isProCache = nullptr, const std::string &instanceKey = "",
-        const std::string &customProcessFlag = "", const bool notReuseCachedPorcess = false);
+        const std::string &customProcessFlag = "", const bool notReuseCachedPorcess = false,
+        bool isFromPreload = false);
 
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForSpecifiedProcess(
         int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag);
@@ -138,7 +139,7 @@ public:
      * @return, Return true if matches.
      */
     static bool CheckAppProcessNameIsSame(const std::shared_ptr<AppRunningRecord> &appRecord,
-        const std::string &processName);
+        const std::string &processName, bool isFromPreload = false);
 
     /**
      * CheckAppRunningRecordIsExistByUid, check app exist when concurrent.
@@ -278,7 +279,7 @@ public:
      * @param  procLevelMap , <pid_t, MemoryLevel>.
      * @return Returns ERR_OK on success, others on failure.
      */
-    int32_t NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel> &procLevelMap);
+    int32_t NotifyProcMemoryLevel(const std::map<pid_t, MemoryLevel> &procLevelMap, bool isShellCall = false);
 
     /*
     * Get the application's memory allocation info.
@@ -425,6 +426,8 @@ public:
 
     int DumpFfrt(const std::vector<int32_t>& pids, std::string& result);
 
+    int32_t DumpArkWeb(const std::vector<int32_t> &pids, const std::string &customArgs, std::string &result);
+
     bool IsAppProcessesAllCached(const std::string &bundleName, int32_t uid,
         const std::set<std::shared_ptr<AppRunningRecord>> &cachedSet);
 
@@ -447,7 +450,6 @@ public:
     
     int32_t AssignRunningProcessInfoByAppRecord(
         std::shared_ptr<AppRunningRecord> appRecord, AppExecFwk::RunningProcessInfo &info) const;
-
     void HandleChildRelation(
         std::shared_ptr<ChildProcessRecord> childRecord, std::shared_ptr<AppRunningRecord> appRecord);
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForUIExtension(
@@ -458,8 +460,10 @@ private:
     bool isCollaboratorReserveType(const std::shared_ptr<AppRunningRecord> &appRecord);
     void NotifyAppPreCache(const std::shared_ptr<AppRunningRecord>& appRecord,
         const std::shared_ptr<AppMgrServiceInner>& appMgrServiceInner);
-    void ExecuteConfigurationTask(const BackgroundAppInfo& info, const int32_t userId);
-    bool UpdateConfiguration(std::shared_ptr<AppRunningRecord> &appRecord, Rosen::ConfigMode configMode);
+    void ExecuteConfigurationTask(const BackgroundAppInfo& info,
+        const int32_t userId, ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT);
+    bool UpdateConfiguration(std::shared_ptr<AppRunningRecord> &appRecord,
+        Rosen::ConfigMode configMode, ConfigUpdateReason reason = ConfigUpdateReason::CONFIG_UPDATE_REASON_DEFAULT);
     bool IsSameAbilityType(
         const std::shared_ptr<AppRunningRecord> &appRecord, const AppExecFwk::AbilityInfo &abilityInfo);
 private:

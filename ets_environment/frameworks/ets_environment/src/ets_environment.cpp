@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -30,7 +30,7 @@
 #include "file_path_utils.h"
 #include "runtime.h"
 #include "ets/runtime/ets_namespace_manager.h"
-
+#include "ark_vm_api.h"
 #include "ets_ani_expo.h"
 #include "tooling/inspector/debugger_arkapi.h"
 #ifdef LIKELY
@@ -60,6 +60,10 @@ const char BOOT_PATH[] = "/system/framework/bootpath.json";
 const char BACKTRACE[] = "=====================Backtrace========================";
 static const std::string DEBUGGER = "@Debugger";
 static const std::string SYS_HSP_FILE_PATH_PREFIX = "/system/app/";
+constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
+constexpr char SANDBOX_ARK_PROFILE_PATH[] = "/data/storage/ark-profile/";
+constexpr char ARK_PROFILE_SUFFIX[] = ".ap";
+constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
 
 
 using CreateVMETSRuntimeType = ani_status (*)(const ani_options *options, uint32_t version, ani_vm **result);
@@ -69,11 +73,12 @@ using DebuggerPostTask = std::function<void(std::function<void()> &&)>;
 const char ETS_SDK_NSNAME[] = "ets_sdk";
 const char ETS_SYS_NSNAME[] = "ets_system";
 
-constexpr const char* CLASSNAME_STRING = "Lstd/core/String;";
-constexpr const char* CLASSNAME_LINKER = "Lstd/core/AbcRuntimeLinker;";
-constexpr const char* CLASSNAME_COROUTINE = "std.core.Coroutine";
+constexpr const char* CLASSNAME_LINKER = "std.core.AbcRuntimeLinker";
+constexpr const int32_t ARG_ZERO = 0;
+constexpr const int32_t ARG_ONE = 1;
 } // namespace
 
+static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs);
 ETSRuntimeAPI ETSEnvironment::lazyApis_ {};
 std::unique_ptr<ETSEnvironment> instance_ = nullptr;
 
@@ -83,6 +88,15 @@ std::unique_ptr<ETSEnvironment> &ETSEnvironment::GetInstance()
         instance_ = std::make_unique<ETSEnvironment>();
     }
     return instance_;
+}
+
+ETSEnvironment::~ETSEnvironment()
+{
+    auto env = GetAniEnv();
+    if (env != nullptr && vmEntry_.abcLinkerRef_ != nullptr) {
+        env->GlobalReference_Delete(vmEntry_.abcLinkerRef_);
+        vmEntry_.abcLinkerRef_ = nullptr;
+    }
 }
 
 bool ETSEnvironment::LoadBootPathFile(std::string &bootfiles)
@@ -247,6 +261,7 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
     std::string bootString = "--ext:--boot-panda-files=" + bootfiles;
     options.push_back(ani_option { bootString.data(), nullptr });
     options.push_back(ani_option { "--ext:--compiler-enable-jit=false", nullptr });
+    options.push_back(ani_option { "--ext:--verification-mode=ahead-of-time", nullptr });
     options.push_back(ani_option { "--ext:--log-level=info", nullptr });
     options.push_back(ani_option { "--ext:taskpool-support-interop=true", nullptr });
     std::string interpreerMode = "--ext:--interpreter-type=cpp";
@@ -267,6 +282,11 @@ bool ETSEnvironment::Initialize(const std::shared_ptr<AppExecFwk::EventRunner> e
     }
     if ((status = vmEntry_.aniVm_->GetEnv(ANI_VERSION_1, &vmEntry_.aniEnv_)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetEnv failed %{public}d", status);
+        return false;
+    }
+
+    if (!InitAbcLinker(vmEntry_.aniEnv_)) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "InitAbcLinker failed");
         return false;
     }
     return true;
@@ -413,18 +433,56 @@ bool ETSEnvironment::PreloadModule(const std::string &modulePath)
     return true;
 }
 
-bool ETSEnvironment::LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj)
+bool ETSEnvironment::InitAbcLinker(ani_env *env)
 {
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "InitAbcLinker begin");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
         return false;
     }
+
     ani_status status = ANI_ERROR;
-    ani_class stringCls = nullptr;
-    if ((status = env->FindClass(CLASSNAME_STRING, &stringCls)) != ANI_OK) {
+    if ((status = env->FindClass(CLASSNAME_LINKER, &vmEntry_.abcLinkerClass_)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass failed, status: %{public}d", status);
         return false;
     }
+
+    ani_ref undefinedRef = nullptr;
+    if ((status = env->GetUndefined(&undefinedRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed, status: %{public}d", status);
+        return false;
+    }
+
+    ani_array refArray = nullptr;
+    if ((status = env->Array_New(ARG_ZERO, undefinedRef, &refArray)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_New_Ref failed, status: %{public}d", status);
+        return false;
+    }
+
+    ani_object abcObj = CreateRuntimeLinker(env, vmEntry_.abcLinkerClass_, undefinedRef, refArray);
+    if (abcObj == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "CreateRuntimeLinker failed");
+        return false;
+    }
+
+    if ((status = env->GlobalReference_Create(abcObj, &vmEntry_.abcLinkerRef_)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GlobalReference_Create failed, status: %{public}d", status);
+        return false;
+    }
+
+    return true;
+}
+
+bool ETSEnvironment::AddAbcFiles(ani_env *env, const std::string &modulePath)
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "AddAbcFiles begin");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
+        return false;
+    }
+
+    ani_status status = ANI_ERROR;
+
     ani_string modulePathAni = nullptr;
     if ((status = env->String_NewUTF8(modulePath.c_str(), modulePath.size(), &modulePathAni)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_NewUTF8 failed, status: %{public}d", status);
@@ -435,35 +493,65 @@ bool ETSEnvironment::LoadAbcLinker(ani_env *env, const std::string &modulePath, 
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed, status: %{public}d", status);
         return false;
     }
-    ani_array_ref refArray = nullptr;
-    if ((status = env->Array_New_Ref(stringCls, 1, undefinedRef, &refArray)) != ANI_OK) {
+    ani_array refArray = nullptr;
+    if ((status = env->Array_New(ARG_ONE, undefinedRef, &refArray)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_New_Ref failed, status: %{public}d", status);
         return false;
     }
-    if ((status = env->Array_Set_Ref(refArray, 0, modulePathAni)) != ANI_OK) {
+    if ((status = env->Array_Set(refArray, ARG_ZERO, modulePathAni)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_Set_Ref failed, status: %{public}d", status);
         return false;
     }
-    if ((status = env->FindClass(CLASSNAME_LINKER, &abcCls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass failed, status: %{public}d", status);
+    if ((status = env->Object_CallMethodByName_Void(static_cast<ani_object>(vmEntry_.abcLinkerRef_),
+        "addAbcFiles", "C{std.core.Array}:", refArray)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethodByName_Void failed, status: %{public}d", status);
         return false;
     }
 
-    abcObj = CreateRuntimeLinker(env, abcCls, undefinedRef, refArray);
-    if (abcObj == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "CreateRuntimeLinker failed");
+    return true;
+}
+
+bool ETSEnvironment::LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj)
+{
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "LoadAbcLinker begin");
+    if (env == nullptr || vmEntry_.abcLinkerClass_ == nullptr || vmEntry_.abcLinkerRef_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "env or linker is null");
         return false;
     }
 
-    ani_class contextCls{};
-    if ((status = env->FindClass("std.interop.InteropContext", &contextCls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "InteropContext failed, status: %{public}d", status);
+    ani_status status = ANI_ERROR;
+    if (!SetHspAbcFiles(env, static_cast<ani_object>(vmEntry_.abcLinkerRef_))) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "SetHspAbcFiles failed");
         return false;
     }
-    if ((status = env->Class_CallStaticMethodByName_Void(
-        contextCls, "setDefaultInteropLinker", "C{std.core.RuntimeLinker}:", abcObj)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "setDefaultInteropLinker failed, status: %{public}d", status);
-        return false;
+
+    {
+        std::lock_guard<std::mutex> lock(vmEntry_.abcCacheMutex_);
+        auto iterator = vmEntry_.abcCacheMap_.find(modulePath);
+        if (iterator == vmEntry_.abcCacheMap_.end()) {
+            if (!AddAbcFiles(env, modulePath)) {
+                TAG_LOGE(AAFwkTag::ETSRUNTIME, "AddAbcFiles failed");
+                return false;
+            }
+            vmEntry_.abcCacheMap_.emplace(modulePath, true);
+        }
+    }
+
+    abcObj = static_cast<ani_object>(vmEntry_.abcLinkerRef_);
+    abcCls = vmEntry_.abcLinkerClass_;
+
+    if (!vmEntry_.isSetDefaultInteropLinker_) {
+        ani_class contextCls = nullptr;
+        if ((status = env->FindClass("std.interop.InteropContext", &contextCls)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "InteropContext failed, status: %{public}d", status);
+            return false;
+        }
+        if ((status = env->Class_CallStaticMethodByName_Void(
+            contextCls, "setDefaultInteropLinker", "C{std.core.RuntimeLinker}:", abcObj)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ETSRUNTIME, "setDefaultInteropLinker failed, status: %{public}d", status);
+            return false;
+        }
+        vmEntry_.isSetDefaultInteropLinker_ = true;
     }
 
     return true;
@@ -502,7 +590,7 @@ bool ETSEnvironment::LoadModule(const std::string &modulePath, const std::string
     }
     clsAni = static_cast<ani_class>(clsRef);
     ani_method method = nullptr;
-    if ((status = env->Class_FindMethod(clsAni, "<ctor>", ":V", &method)) != ANI_OK) {
+    if ((status = env->Class_FindMethod(clsAni, "<ctor>", ":", &method)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod failed, status: %{public}d", status);
         return false;
     }
@@ -522,18 +610,18 @@ bool ETSEnvironment::LoadModule(const std::string &modulePath, const std::string
     return true;
 }
 
-bool ETSEnvironment::FinishPreload() {
+bool ETSEnvironment::FinishPreload(napi_env jsEnv) {
     ani_env *env = GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed: ANI env nullptr");
         return false;
     }
-    ark::ets::ETSAni::Prefork(env);
+    ark::ets::ETSAni::Prefork(env, reinterpret_cast<void *>(jsEnv));
     return true;
 }
 
 bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
-    const std::vector<std::string> &appInnerHspPathList,
+    const std::vector<std::string> &appInnerHspPathList, const std::vector<std::string> &staticHapModuleNameList,
     const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
     const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner)
 {
@@ -542,7 +630,7 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
     std::vector<ani_option> options;
     std::string aotPathString = "";
     if (!aotPath.empty()) {
-        aotPathString = "--ext:--aot-file=" + aotPath;
+        aotPathString = "--ext:--aot-files=" + aotPath;
         options.push_back(ani_option { aotPathString.data(), nullptr });
         options.push_back(ani_option { "--ext:--enable-an", nullptr });
         TAG_LOGD(AAFwkTag::ETSRUNTIME, "aotPathString: %{public}s", aotPathString.c_str());
@@ -556,13 +644,64 @@ bool ETSEnvironment::PostFork(void *napiEnv, const std::string &aotPath,
         return false;
     }
     ark::ets::ETSAni::Postfork(env, options);
-    
+
     appInnerHspPathList_ = appInnerHspPathList;
     commonHspBundleInfos_ = commonHspBundleInfos;
 
-    PostCoroutineScheduleTask();
+    RegisterProfilePaths(staticHapModuleNameList);
+    ARKVM_RegisterExternalScheduler(PostTaskWrapper);
 
     return true;
+}
+
+bool ETSEnvironment::RegisterProfilePaths(const std::vector<std::string> &staticHapModuleNameList)
+{
+    auto profileInfos = BuildProfilePathInfos(staticHapModuleNameList);
+    if (profileInfos.empty()) {
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "RegisterProfilePaths: no modules to register profile paths");
+        return true;
+    }
+
+    std::vector<arkvm_profile_path_info> infos;
+    infos.reserve(profileInfos.size());
+    for (auto &profileInfo : profileInfos) {
+        infos.push_back(arkvm_profile_path_info {
+            profileInfo.abcPath.c_str(),
+            profileInfo.curProfilePath.c_str(),
+            profileInfo.baselineProfilePath.empty() ? nullptr : profileInfo.baselineProfilePath.c_str(),
+        });
+    }
+
+    arkvm_status status = ARKVM_RegisterProfilePaths(infos.data(), infos.size());
+    if (status != ARKVM_OK) {
+        if (status == ARKVM_PARTIAL_SUCCESS) {
+            TAG_LOGW(AAFwkTag::ETSRUNTIME, "RegisterProfilePaths: partial success, status: %{public}d", status);
+            return true;
+        }
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "RegisterProfilePaths: failed, status: %{public}d", status);
+        return false;
+    }
+    return true;
+}
+
+std::vector<ETSEnvironment::ProfilePathInfo> ETSEnvironment::BuildProfilePathInfos(
+    const std::vector<std::string> &staticHapModuleNameList)
+{
+    // Build abc -> profile path mapping for Hap and Inner Hsp.
+    // profile path: <sandbox_path>/<moduleName>.ap
+    std::vector<ProfilePathInfo> profileInfos;
+    profileInfos.reserve(staticHapModuleNameList.size());
+    for (const auto &moduleName : staticHapModuleNameList) {
+        if (moduleName.empty()) {
+            TAG_LOGW(AAFwkTag::ETSRUNTIME, "RegisterProfilePaths: skip empty moduleName");
+            continue;
+        }
+        std::string abcPath = std::string(BUNDLE_INSTALL_PATH) + moduleName + MERGE_ABC_PATH;
+        std::string curProfilePath =
+            std::string(SANDBOX_ARK_PROFILE_PATH) + moduleName + ARK_PROFILE_SUFFIX;
+        profileInfos.push_back({std::move(abcPath), std::move(curProfilePath), {}});
+    }
+    return profileInfos;
 }
 
 bool ETSEnvironment::PreloadSystemClass(const char *className)
@@ -613,14 +752,15 @@ ETSEnvFuncs *ETSEnvironment::RegisterFuncs()
             std::function<bool(const std::string &bundleModuleName, std::string &namespaceName)> &cb) {
             ark::ets::EtsNamespaceManager::SetAppLibPaths(abcPathsToBundleModuleNameMap, cb);
         },
-        .FinishPreload = []() {
-            ETSEnvironment::GetInstance()->FinishPreload();
+        .FinishPreload = [](napi_env jsEnv) {
+            ETSEnvironment::GetInstance()->FinishPreload(jsEnv);
         },
         .PostFork = [](void *napiEnv, const std::string &aotPath, const std::vector<std::string> &appInnerHspPathList,
+            const std::vector<std::string> &staticHapModuleNameList,
             const std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> &commonHspBundleInfos,
             const std::shared_ptr<OHOS::AppExecFwk::EventRunner> &eventRunner) {
             ETSEnvironment::GetInstance()->PostFork(
-                napiEnv, aotPath, appInnerHspPathList, commonHspBundleInfos, eventRunner);
+                napiEnv, aotPath, appInnerHspPathList, staticHapModuleNameList, commonHspBundleInfos, eventRunner);
         },
         .PreloadSystemClass = [](const char *className) {
             ETSEnvironment::GetInstance()->PreloadSystemClass(className);
@@ -743,18 +883,13 @@ void ETSEnvironment::BroadcastAndConnect(const std::string& bundleName, int sock
 }
 
 bool ETSEnvironment::ConvertHspPathToAniArray(ani_env *aniEnv, const std::vector<std::string> &hapPathInfos,
-    ani_array_ref &refArray)
+    ani_array &refArray)
 {
     if (aniEnv == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
         return false;
     }
     ani_status status = ANI_ERROR;
-    ani_class stringCls = nullptr;
-    if ((status = aniEnv->FindClass(CLASSNAME_STRING, &stringCls)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass Lstd/core/String Failed, status: %{public}d", status);
-        return false;
-    }
 
     ani_ref undefined_ref;
     if ((status = aniEnv->GetUndefined(&undefined_ref)) != ANI_OK) {
@@ -762,7 +897,7 @@ bool ETSEnvironment::ConvertHspPathToAniArray(ani_env *aniEnv, const std::vector
         return false;
     }
 
-    if ((status = aniEnv->Array_New_Ref(stringCls, hapPathInfos.size(), undefined_ref, &refArray)) != ANI_OK) {
+    if ((status = aniEnv->Array_New(hapPathInfos.size(), undefined_ref, &refArray)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_New_Ref Failed, status: %{public}d", status);
         return false;
     }
@@ -774,7 +909,7 @@ bool ETSEnvironment::ConvertHspPathToAniArray(ani_env *aniEnv, const std::vector
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_NewUTF8 modulePath Failed, status: %{public}d", status);
             return false;
         }
-        if ((status = aniEnv->Array_Set_Ref(refArray, index, ani_str)) != ANI_OK) {
+        if ((status = aniEnv->Array_Set(refArray, index, ani_str)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_Set_Ref Failed, status: %{public}d", status);
             return false;
         }
@@ -817,121 +952,78 @@ std::vector<std::string> ETSEnvironment::GetHspPathList()
     return hspPathList;
 }
 
-bool ETSEnvironment::GetHspAbcRuntimeLinker(ani_array_ref &refHspLinkerArray, ani_class cls)
+bool ETSEnvironment::SetHspAbcFiles(ani_env *env, ani_object abcObj)
 {
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "SetHspAbcFiles begin");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
+        return false;
+    }
     const auto &hspPathList = GetHspPathList();
     if (hspPathList.empty()) {
         return true;
     }
-    ani_env *aniEnv = GetAniEnv();
-    if (aniEnv == nullptr) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetAniEnv failed");
-        return false;
+    std::vector<std::string> hspPathListAdd;
+    {
+        std::lock_guard<std::mutex> lock(vmEntry_.abcCacheMutex_);
+        for (const auto &hspPath : hspPathList) {
+            if (vmEntry_.abcCacheMap_.find(hspPath) == vmEntry_.abcCacheMap_.end()) {
+                hspPathListAdd.emplace_back(hspPath);
+            }
+        }
     }
+    if (hspPathListAdd.empty()) {
+        return true;
+    }
+
     ani_status status = ANI_ERROR;
-    ani_method method = nullptr;
-    if ((status = aniEnv->Class_FindMethod(cls, "<ctor>", "Lstd/core/RuntimeLinker;Lescompat/Array;:V",
-        &method)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed, status: %{public}d", status);
-        return false;
-    }
-
-    ani_ref undefined_ref;
-    if ((status = aniEnv->GetUndefined(&undefined_ref)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed, status: %{public}d", status);
-        return false;
-    }
-
-    ani_array_ref str_refArray;
-    if (ConvertHspPathToAniArray(aniEnv, hspPathList, str_refArray) == false) {
+    ani_array strRefArray = nullptr;
+    if (ConvertHspPathToAniArray(env, hspPathListAdd, strRefArray) == false) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "ConvertHspPathToAniArray failed");
         return false;
     }
 
-    ani_object object = nullptr;
-    if ((status = aniEnv->Object_New(cls, method, &object, undefined_ref, str_refArray)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New AbcRuntimeLinker failed, status: %{public}d", status);
+    if ((status = env->Object_CallMethodByName_Void(abcObj,
+        "addAbcFiles", "C{std.core.Array}:", strRefArray)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethodByName_Void failed, status: %{public}d", status);
         return false;
     }
 
-    if ((status = aniEnv->Array_New_Ref(cls, 1, undefined_ref, &refHspLinkerArray)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_New_Ref Failed, status: %{public}d", status);
-        return false;
-    }
-    if ((status = aniEnv->Array_Set_Ref(refHspLinkerArray, 0, object)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_Set_Ref Failed, status: %{public}d", status);
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(vmEntry_.abcCacheMutex_);
+        for (auto &hspPath : hspPathListAdd) {
+            vmEntry_.abcCacheMap_.emplace(hspPath, true);
+        }
     }
     return true;
 }
 
 ani_object ETSEnvironment::CreateRuntimeLinker(
-    ani_env *aniEnv, ani_class cls, ani_ref undefined_ref, ani_array_ref& refArray)
+    ani_env *aniEnv, ani_class cls, ani_ref undefinedRef, ani_array &refArray)
 {
-    ani_object object = nullptr;
-    ani_array_ref refHspLinkerArray = nullptr;
-    GetHspAbcRuntimeLinker(refHspLinkerArray, cls);
+    TAG_LOGD(AAFwkTag::ETSRUNTIME, "CreateRuntimeLinker begin");
     ani_status status = ANI_ERROR;
-
-    if (refHspLinkerArray == nullptr) {
-        ani_method runtimeLinkerCtorMethod = nullptr;
-        if ((status = aniEnv->Class_FindMethod(
-            cls, "<ctor>", "Lstd/core/RuntimeLinker;Lescompat/Array;:V", &runtimeLinkerCtorMethod)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed, status: %{public}d", status);
-            return nullptr;
-        }
-        if ((status = aniEnv->Object_New(cls, runtimeLinkerCtorMethod, &object, undefined_ref, refArray)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New runtimeLinkerCtorMethod failed, status: %{public}d", status);
-            HandleUncaughtError();
-            return nullptr;
-        }
-    } else {
-        ani_method runtimeLinkerCtorMethodEx = nullptr;
-        if ((status = aniEnv->Class_FindMethod(cls,
-            "<ctor>",
-            "Lstd/core/RuntimeLinker;Lescompat/Array;[Lstd/core/RuntimeLinker;:V",
-            &runtimeLinkerCtorMethodEx)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed, status: %{public}d", status);
-            return nullptr;
-        }
-        if ((status = aniEnv->Object_New(cls, runtimeLinkerCtorMethodEx, &object, undefined_ref, refArray,
-            refHspLinkerArray)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New runtimeLinkerCtorMethodEx failed, status: %{public}d", status);
-            HandleUncaughtError();
-            return nullptr;
-        }
+    ani_object object = nullptr;
+    ani_method runtimeLinkerCtorMethod = nullptr;
+    if ((status = aniEnv->Class_FindMethod(
+        cls, "<ctor>", "C{std.core.RuntimeLinker}C{std.core.Array}:", &runtimeLinkerCtorMethod)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed, status: %{public}d", status);
+        return nullptr;
+    }
+    if ((status = aniEnv->Object_New(cls, runtimeLinkerCtorMethod, &object, undefinedRef, refArray)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_New runtimeLinkerCtorMethod failed, status: %{public}d", status);
+        HandleUncaughtError();
+        return nullptr;
     }
 
     return object;
 }
 
-static void ScheduleCoroutine(ani_env *aniEnv)
+static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs)
 {
-    ani_class cls = nullptr;
-    if (aniEnv->FindClass(CLASSNAME_COROUTINE, &cls) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "FindClass std.core.Coroutine Failed");
-        return;
-    }
-    ani_static_method schedule {};
-    if (aniEnv->Class_FindStaticMethod(cls, "Schedule", ":", &schedule) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindStaticMethod Schedule failed");
-        return;
-    }
-    if (aniEnv->Class_CallStaticMethod_Void(cls, schedule) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_CallStaticMethod_Void Schedule failed");
-        return;
-    }
+    ETSEnvironment::GetInstance()->PostTask([task, data]() { task(data); }, taskName, delayMs);
 }
 
-void ETSEnvironment::PostCoroutineScheduleTask()
-{
-    auto scheduleTask = []() {
-        auto &etsEnv = GetInstance();
-        ScheduleCoroutine(etsEnv->GetAniEnv());
-        etsEnv->PostCoroutineScheduleTask();
-    };
-    PostTask(scheduleTask, "ScheduleCoroutine", 1);
-}
 
 } // namespace EtsEnv
 } // namespace OHOS
