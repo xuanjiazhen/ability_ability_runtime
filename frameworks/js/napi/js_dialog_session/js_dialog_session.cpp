@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -84,6 +84,7 @@ private:
     napi_value OnSendDialogResult(napi_env env, NapiCallbackInfo& info)
     {
         TAG_LOGD(AAFwkTag::DIALOG, "argc:%{public}d", static_cast<int32_t>(info.argc));
+        HandleEscape handleEscape(env);
         if (info.argc < ARGC_THREE) {
             TAG_LOGE(AAFwkTag::DIALOG, "invalid argc");
             ThrowTooFewParametersError(env);
@@ -110,6 +111,7 @@ private:
         NapiAsyncTask::CompleteCallback complete =
             [dialogSessionId, want, isAllow](napi_env env, NapiAsyncTask &task, int32_t status) {
 #ifdef SUPPORT_SCREEN
+            HandleScope handleScope(env);
             auto errorcode = AbilityManagerClient::GetInstance()->SendDialogResult(want, dialogSessionId, isAllow);
             if (errorcode) {
                 task.Reject(env, CreateJsError(env, errorcode, "Send dialog result failed"));
@@ -122,7 +124,7 @@ private:
         napi_value result = nullptr;
         NapiAsyncTask::Schedule("JsDialogSession::OnSendDialogResult",
             env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
-        return result;
+        return handleEscape.Escape(result);
     }
 };
 

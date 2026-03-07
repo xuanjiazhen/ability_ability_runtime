@@ -18,7 +18,7 @@
 #include <string>
 
 #include "ability_info.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #include "hilog_tag_wrapper.h"
 #include "mock_my_status.h"
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
@@ -46,6 +46,12 @@ void ResSchedUtil::ReportAbilityAssociatedStartInfoToRSS(
 }
 
 void ResSchedUtil::ReportPreloadApplicationToRSS(const std::shared_ptr<AbilityInfo>& abilityInfo, int32_t preloadMode)
+{
+}
+
+void ResSchedUtil::ReportUIExtensionProcColdStartToRss(
+    int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName, const std::string& bundleName,
+    const std::string& abilityName, const std::string& moduleName, bool isPreloadUIExtension)
 {
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -25,6 +25,7 @@
 #include "ability_manager_service.h"
 #include "insight_intent_execute_manager.h"
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
+#include "user_controller/user_controller.h"
 #include "utils/modal_system_dialog_util.h"
 #undef private
 #undef protected
@@ -32,6 +33,8 @@
 #include "mock_ability_token.h"
 #include "ability_bundle_event_callback.h"
 #include "session/host/include/session.h"
+#include "start_ability_utils.h"
+#include "start_params_by_SCB.h"
 #include "system_ability_definition.h"
 #include "ability_util.h"
 
@@ -46,6 +49,7 @@ constexpr const char* DEBUG_APP = "debugApp";
 constexpr const char* START_ABILITY_TYPE = "ABILITY_INNER_START_WITH_ACCOUNT";
 
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr int32_t TEST_VALID_USER_ID = 100;
 
 namespace OHOS {
 namespace AAFwk {
@@ -355,6 +359,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartExtensionAbilityInner_004, TestSi
         isImplicit, isDlp);
     EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
 
+    want.SetElementName("test.bundleName", "test.abilityName");
     abilityMs-> implicitStartProcessor_ = std::make_shared<ImplicitStartProcessor>();
     result = abilityMs->StartExtensionAbilityInner(want, callerToken, userId, extensionType, checkSystemCaller,
         isImplicit, isDlp);
@@ -392,10 +397,11 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_003, TestSize.Leve
     sptr<SessionInfo> sessionInfo(new SessionInfo());
     sessionInfo->sessionToken = new Rosen::Session(info);
     bool isColdStart = true;
-    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart, 0, false);
+    AbilityRuntime::StartParamsBySCB params;
+    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
     EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
     abilityMs->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    result = abilityMs->StartUIAbilityBySCB(sessionInfo, isColdStart, 0, false);
+    result = abilityMs->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
     EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
 }
 
@@ -448,11 +454,11 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityForOptionInner_001, TestSi
     result = abilityMs->StartAbilityForOptionInner(want, startOptions, callerToken, false, userId, requestCode,
         isStartAsCaller, specifyTokenId, isImplicit);
     EXPECT_EQ(result, ERR_IMPLICIT_START_ABILITY_FAIL);
-
+    want.SetElementName("test.bundleName", "test.abilityName");
     abilityMs-> implicitStartProcessor_ = std::make_shared<ImplicitStartProcessor>();
     result = abilityMs->StartAbilityForOptionInner(want, startOptions, callerToken, false, userId, requestCode,
        isStartAsCaller, specifyTokenId, isImplicit);
-    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_NE(result, ERR_INVALID_VALUE);
 }
 
 
@@ -588,7 +594,14 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityWithRemoveIntentFlag_003, 
     int32_t userId{0};
     int requestCode{0};
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    auto ret = abilityMs_->StartAbilityWithRemoveIntentFlag(want, callerToken, userId, requestCode, true);
+    StartAbilityWrapParam param = {
+        .want = want,
+        .callerToken = callerToken,
+        .requestCode = requestCode,
+        .userId = userId,
+        .removeInsightIntentFlag = true,
+    };
+    auto ret = abilityMs_->StartAbilityWithRemoveIntentFlag(param);
     EXPECT_EQ(ret, ERR_INVALID_CALLER);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityWithRemoveIntentFlag_003 end");
 }
@@ -608,17 +621,23 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartAbilityByFreeInstall_001, TestSiz
     want.SetParam(START_ABILITY_TYPE, true);
     auto callerToken = MockToken(AbilityType::PAGE);
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    auto ret = abilityMs_->StartAbilityByFreeInstall(want, callerToken, userId, requestCode);
+    StartAbilityWrapParam param = {
+        .want = want,
+        .callerToken = callerToken,
+        .requestCode = requestCode,
+        .userId = userId,
+    };
+    auto ret = abilityMs_->StartAbilityByFreeInstall(param);
     EXPECT_EQ(ret, ERR_INVALID_CALLER);
 
-    want.SetParam(START_ABILITY_TYPE, false);
-    want.AddFlags(Want::FLAG_ABILITY_CONTINUATION);
-    auto ret1 = abilityMs_->StartAbilityByFreeInstall(want, callerToken, userId, requestCode);
+    param.want.SetParam(START_ABILITY_TYPE, false);
+    param.want.AddFlags(Want::FLAG_ABILITY_CONTINUATION);
+    auto ret1 = abilityMs_->StartAbilityByFreeInstall(param);
     EXPECT_EQ(ret1, ERR_INVALID_CONTINUATION_FLAG);
 
-    want.SetParam(START_ABILITY_TYPE, false);
-    want.RemoveFlags(Want::FLAG_ABILITY_CONTINUATION);
-    auto ret2 = abilityMs_->StartAbilityByFreeInstall(want, callerToken, userId, requestCode);
+    param.want.SetParam(START_ABILITY_TYPE, false);
+    param.want.RemoveFlags(Want::FLAG_ABILITY_CONTINUATION);
+    auto ret2 = abilityMs_->StartAbilityByFreeInstall(param);
     EXPECT_EQ(ret2, ERR_INVALID_CALLER);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartAbilityByFreeInstall_001 end");
 }
@@ -943,9 +962,12 @@ HWTEST_F(AbilityManagerServiceFourthTest, CheckAbilityCallPermission_001, TestSi
     AbilityRequest abilityRequest;
     AppExecFwk::AbilityInfo abilityInfo;
     uint32_t specifyTokenId{0};
+    MyFlag::errCode_ = ERR_INVALID_MISSION_ID;
+    MyFlag::flag_ = 0;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     auto ret = abilityMs_->CheckAbilityCallPermission(abilityRequest, abilityInfo, specifyTokenId, false);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    MyFlag::flag_ = 1;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest CheckAbilityCallPermission_001 end");
 }
 
@@ -978,12 +1000,14 @@ HWTEST_F(AbilityManagerServiceFourthTest, CheckCallPermission_001, TestSize.Leve
         callerBundleName, false);
     EXPECT_EQ(ret1, ERR_WRONG_INTERFACE_CALL);
 
+    MyFlag::flag_ = 0;
     abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
     auto ret2 = abilityMs_->CheckCallPermission(
         want, abilityInfo, abilityRequest, isForegroundToRestartApp, isSendDialogResult, specifyTokenId,
         callerBundleName, false);
     EXPECT_EQ(ret2, ERR_INVALID_VALUE);
 
+    MyFlag::flag_ = 1;
     abilityInfo.type = AppExecFwk::AbilityType::UNKNOWN;
     constexpr int32_t BROKER_UID = 5557;
     IPCSkeleton::SetCallingUid(BROKER_UID);
@@ -1237,7 +1261,8 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_001, TestSize.Leve
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_001 start");
     bool isColdStart;
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
-    auto ret = abilityMs_->StartUIAbilityBySCB(nullptr, isColdStart, 0, false);
+    AbilityRuntime::StartParamsBySCB params;
+    auto ret = abilityMs_->StartUIAbilityBySCB(nullptr, params, isColdStart);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_001 end");
 }
@@ -1323,6 +1348,9 @@ HWTEST_F(AbilityManagerServiceFourthTest, OnRemoveSystemAbility_001, TestSize.Le
     abilityMs_->OnRemoveSystemAbility(systemAbilityId, deviceId);
 
     systemAbilityId = WINDOW_MANAGER_SERVICE_ID;
+    abilityMs_->OnRemoveSystemAbility(systemAbilityId, deviceId);
+
+    systemAbilityId = RENDER_SERVICE;
     abilityMs_->OnRemoveSystemAbility(systemAbilityId, deviceId);
     EXPECT_TRUE(abilityMs_ != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest OnRemoveSystemAbility_001 end");
@@ -1614,6 +1642,73 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIExtensionAbilityTset_001, TestS
     EXPECT_EQ(abilityManagerService->StartUIExtensionAbility(extensionSessionInfoTest, 1), ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIExtensionAbilityTset_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetUserLockedBundleList
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetUserLockedBundleList
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, GetUserLockedBundleList_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest GetUserLockedBundleList_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    AbilityRuntime::UserController::GetInstance().userLockedBundleMap_.clear();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    auto userId = TEST_VALID_USER_ID;
+    std::unordered_set<std::string> userLockedBundleList;
+    auto result = abilityMs->GetUserLockedBundleList(userId, userLockedBundleList);
+    EXPECT_EQ(result, ERR_OK);
+    AbilityRuntime::UserController::GetInstance().userLockedBundleMap_[TEST_VALID_USER_ID].insert("com.ohos.test");
+    result = abilityMs->GetUserLockedBundleList(userId, userLockedBundleList);
+    EXPECT_EQ(result, ERR_OK);
+    IPCSkeleton::SetCallingUid(0);
+    result = abilityMs->GetUserLockedBundleList(userId, userLockedBundleList);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest GetUserLockedBundleList_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: AddToUserLockedBundleList
+ * SubFunction: NA
+ * FunctionPoints: UserController AddToUserLockedBundleList
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, AddToUserLockedBundleList_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest AddToUserLockedBundleList_001 start");
+    std::string bundleName = "";
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    AbilityRuntime::UserController::GetInstance().userLockedBundleMap_.clear();
+    AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(bundleName, userId);
+    EXPECT_TRUE(AbilityRuntime::UserController::GetInstance().userLockedBundleMap_.empty());
+
+    bundleName = "com.ohos.test";
+    AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(bundleName, userId);
+    EXPECT_TRUE(AbilityRuntime::UserController::GetInstance().userLockedBundleMap_.empty());
+
+    userId = U0_USER_ID;
+    AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(bundleName, userId);
+    EXPECT_TRUE(AbilityRuntime::UserController::GetInstance().userLockedBundleMap_.empty());
+
+    userId = U1_USER_ID;
+    AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(bundleName, userId);
+    EXPECT_TRUE(AbilityRuntime::UserController::GetInstance().userLockedBundleMap_.empty());
+
+    userId = TEST_VALID_USER_ID;
+    AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(bundleName, userId);
+    EXPECT_TRUE(AbilityRuntime::UserController::GetInstance().userLockedBundleMap_.empty());
+
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(userId,
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+    AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(bundleName, userId);
+    EXPECT_FALSE(AbilityRuntime::UserController::GetInstance().userLockedBundleMap_.empty());
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(userId,
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockedBundleListByUserId(userId);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest AddToUserLockedBundleList_001 end");
 }
 } // namespace AAFwk
 } // namespace OHOS

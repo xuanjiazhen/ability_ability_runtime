@@ -21,12 +21,15 @@
 #include "process_options.h"
 #include "start_window_option.h"
 #include "parcel.h"
+#include "ani_window_animation_utils.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
 constexpr const char *APP_LINKING_ONLY = "appLinkingOnly";
 constexpr const char *HIDE_FAILURE_TIP_DIALOG = "hideFailureTipDialog";
+constexpr const char *COMPLETION_HANDLER = "completionHandler";
+constexpr int32_t ARGC_TWO = 2;
 }
 
 bool UnwrapStartOptionsWithProcessOption(ani_env* env, ani_object param, AAFwk::StartOptions &startOptions)
@@ -108,6 +111,15 @@ void UnwrapStartOptionsWindowOptions(ani_env *env, ani_object param, AAFwk::Star
         startOptions.SetMaxWindowHeight(maxWindowHeight);
         startOptions.maxWindowHeightUsed_ = true;
     }
+
+    ani_ref windowEtsObject = nullptr;
+    if (GetFieldRefByName(env, param, "windowCreateParams", windowEtsObject)) {
+        Rosen::WindowCreateParams windowCreateParams;
+        if (Rosen::ConvertWindowCreateParamsFromAniValue(
+            env, static_cast<ani_object>(windowEtsObject), windowCreateParams)) {
+            startOptions.windowCreateParams_ = std::make_shared<Rosen::WindowCreateParams>(windowCreateParams);
+        }
+    }
 }
 
 bool SetSupportWindowModes(ani_env *env, ani_object param, AAFwk::StartOptions &startOptions)
@@ -115,7 +127,7 @@ bool SetSupportWindowModes(ani_env *env, ani_object param, AAFwk::StartOptions &
     ani_ref supportWindowModesRef = nullptr;
     ani_boolean hasValue = true;
     if (GetPropertyRef(env, param, "supportWindowModes", supportWindowModesRef, hasValue) && !hasValue) {
-        ani_array_ref supportWindowModesArr = reinterpret_cast<ani_array_ref>(supportWindowModesRef);
+        ani_array supportWindowModesArr = reinterpret_cast<ani_array>(supportWindowModesRef);
         ani_size supportWindowModesLen = 0;
         if (env->Array_GetLength(supportWindowModesArr, &supportWindowModesLen) != ANI_OK) {
             TAG_LOGE(AAFwkTag::ANI, "Array_GetLength failed");
@@ -124,7 +136,7 @@ bool SetSupportWindowModes(ani_env *env, ani_object param, AAFwk::StartOptions &
         for (size_t i = 0; i < supportWindowModesLen; ++i) {
             ani_ref supportWindowModeRef = nullptr;
             int32_t supportWindowMode = 0;
-            if (env->Array_Get_Ref(supportWindowModesArr, i, &supportWindowModeRef) != ANI_OK) {
+            if (env->Array_Get(supportWindowModesArr, i, &supportWindowModeRef) != ANI_OK) {
                 TAG_LOGE(AAFwkTag::ANI, "Array_Get_Ref failed");
                 return false;
             }
@@ -359,6 +371,86 @@ void UnWrapOpenLinkOptions(
         AppExecFwk::GetBooleanPropertyObject(env, optionsObj, HIDE_FAILURE_TIP_DIALOG, hideFailureTipDialog);
         openLinkOptions.SetHideFailureTipDialog(hideFailureTipDialog);
     }
+}
+
+bool UnwrapOpenLinkCompletionHandler(ani_env *env, ani_object param, ani_ref refCompletionHandler,
+    AbilityRuntime::OnRequestResult &onRequestSucc, AbilityRuntime::OnRequestResult &onRequestFail)
+{
+    TAG_LOGD(AAFwkTag::ANI, "UnwrapOpenLinkCompletionHandler called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "env null");
+        return false;
+    }
+    ani_status status = ANI_ERROR;
+    ani_ref completionHandler = nullptr;
+    if ((status = env->Object_GetPropertyByName_Ref(param, COMPLETION_HANDLER, &completionHandler)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::ANI, "Object_GetPropertyByName_Ref failed: %{public}d", status);
+        return false;
+    }
+    if (!AppExecFwk::IsValidProperty(env, completionHandler)) {
+        TAG_LOGD(AAFwkTag::ANI, "no completionHandler");
+        return false;
+    }
+    if (env->GlobalReference_Create(completionHandler, &refCompletionHandler) != ANI_OK ||
+        !refCompletionHandler) {
+        TAG_LOGE(AAFwkTag::ANI, "Failed to create global ref for completionHandler");
+        return false;
+    }
+    CreateOnRequestResultCallback(env, refCompletionHandler, "onRequestSuccess", onRequestSucc);
+    CreateOnRequestResultCallback(env, refCompletionHandler, "onRequestFailure", onRequestFail);
+    return true;
+}
+
+void CreateOnRequestResultCallback(ani_env *env, ani_ref refCompletionHandler,
+    const char *callbackName, AbilityRuntime::OnRequestResult &onRequestCallback)
+{
+    TAG_LOGD(AAFwkTag::ANI, "CreateOnRequestResultCallback called");
+    ani_vm *etsVm = nullptr;
+    ani_status status = ANI_ERROR;
+    if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "GetVM failed, status: %{public}d", status);
+        env->GlobalReference_Delete(refCompletionHandler);
+        return;
+    }
+    onRequestCallback = [etsVm, refCompletionHandler, callbackName](const AppExecFwk::ElementName &element,
+        const std::string &message) {
+        ani_status status = ANI_ERROR;
+        ani_env *env = nullptr;
+        if ((status = etsVm->GetEnv(ANI_VERSION_1, &env)) != ANI_OK || env == nullptr) {
+            TAG_LOGE(AAFwkTag::ANI, "GetEnv failed or env is null, status: %{public}d", status);
+            return;
+        }
+        ani_object elementObj = WrapElementName(env, element);
+        if (!elementObj) {
+            return HandleCreateCallbackFailure(env, refCompletionHandler, "WrapElementName failed");
+        }
+        ani_string messageStr = nullptr;
+        if (env->String_NewUTF8(message.c_str(), message.size(), &messageStr) != ANI_OK || !messageStr) {
+            return HandleCreateCallbackFailure(env, refCompletionHandler, "String_NewUTF8 failed");
+        }
+        ani_ref funRef;
+        if ((status = env->Object_GetFieldByName_Ref(reinterpret_cast<ani_object>(refCompletionHandler),
+            callbackName, &funRef)) != ANI_OK) {
+            return HandleCreateCallbackFailure(env, refCompletionHandler, "Object_GetFieldByName_Ref failed");
+        }
+        if (!AppExecFwk::IsValidProperty(env, funRef)) {
+            return HandleCreateCallbackFailure(env, refCompletionHandler, "IsValidProperty failed");
+        }
+        ani_ref result = nullptr;
+        std::vector<ani_ref> argv = { elementObj, messageStr };
+        if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_TWO, argv.data(),
+            &result)) != ANI_OK) {
+            return HandleCreateCallbackFailure(env, refCompletionHandler, "FunctionalObject_Call failed");
+        }
+        env->GlobalReference_Delete(refCompletionHandler);
+    };
+}
+
+void HandleCreateCallbackFailure(ani_env *env, ani_ref refCompletionHandler, const char *message)
+{
+    TAG_LOGE(AAFwkTag::ANI, "%{public}s", message);
+    env->GlobalReference_Delete(refCompletionHandler);
+    return;
 }
 } // namespace AppExecFwk
 } // namespace OHOS

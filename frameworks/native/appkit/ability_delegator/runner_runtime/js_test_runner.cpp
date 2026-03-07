@@ -104,6 +104,7 @@ JsTestRunner::~JsTestRunner() = default;
 
 bool JsTestRunner::Initialize()
 {
+    HandleScope handleScope(jsRuntime_);
     if (isFaJsModel_) {
         if (!jsRuntime_.RunScript("/system/etc/strip.native.min.abc", "")) {
             TAG_LOGE(AAFwkTag::DELEGATOR, "runScript err");
@@ -158,9 +159,17 @@ void JsTestRunner::Run()
     CallObjectMethod("onRun");
 }
 
+void JsTestRunner::Stop()
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "Enter");
+    TestRunner::Stop();
+    CallObjectMethod("onStop");
+}
+
 void JsTestRunner::CallObjectMethod(const char *name, napi_value const *argv, size_t argc)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "callJsMethod(%{public}s)", name);
+    HandleScope handleScope(jsRuntime_);
     auto env = jsRuntime_.GetNapiEnv();
     if (isFaJsModel_) {
         napi_value global = nullptr;
@@ -195,7 +204,6 @@ void JsTestRunner::CallObjectMethod(const char *name, napi_value const *argv, si
         return;
     }
 
-    HandleScope handleScope(jsRuntime_);
     napi_value obj = jsTestRunnerObj_->GetNapiValue();
     if (!CheckTypeForNapiValue(env, obj, napi_object)) {
         TAG_LOGE(AAFwkTag::DELEGATOR, "get TestRunner object failed");

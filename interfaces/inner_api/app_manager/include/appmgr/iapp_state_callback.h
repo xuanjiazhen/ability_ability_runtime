@@ -32,6 +32,9 @@ namespace AppExecFwk {
 
 namespace OHOS {
 namespace AppExecFwk {
+namespace {
+constexpr pid_t INVALID_DIED_PID = -1;
+}
 class IAppStateCallback : public IRemoteBroker {
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.appexecfwk.AppStateCallback");
@@ -68,7 +71,8 @@ public:
      * @brief Notify abilityms start keep-alive process.
      * @param bundleInfos resident process bundle infos.
      */
-    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos) {}
+    virtual void NotifyStartKeepAliveProcess(std::vector<AppExecFwk::BundleInfo> &bundleInfos,
+        pid_t diedPid = INVALID_DIED_PID) {}
 
     /**
      * @brief Notify abilityms app process OnRemoteDied
@@ -101,6 +105,16 @@ public:
         const std::string &bundleName, const std::vector<std::string> &abilityNames,
         const std::vector<std::string> &uiExtensionNames) {}
 
+    /**
+     * @brief Record the signal reason when an application process exits.
+     *
+     * @param pid Process ID of the exited application process.
+     * @param uid User ID of the exited application process.
+     * @param signal Signal number that caused the process to exit.
+     * @param bundleName Bundle name of the exited application.
+     */
+    virtual void RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t signal, std::string &bundleName) {}
+
     enum class Message {
         TRANSACT_ON_APP_STATE_CHANGED = 0,
         TRANSACT_ON_ABILITY_REQUEST_DONE,
@@ -111,6 +125,7 @@ public:
         TRANSACT_ON_NOTIFY_START_KEEP_ALIVE_PROCESS,
         TRANSACT_ON_START_PROCESS_FAILED,
         TRANSACT_ON_CACHE_EXIT_INFO,
+        TRANSACT_ON_RECORD_APP_EXIT_SIGNAL_REASON,
     };
 };
 }  // namespace AppExecFwk

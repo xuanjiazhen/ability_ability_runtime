@@ -18,7 +18,7 @@
 #include <string>
 
 #include "ability_info.h"
-#include "ui_extension_utils.h"
+#include "ui_extension_wrapper.h"
 #include "hilog_tag_wrapper.h"
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
 #include "res_sched_client.h"
@@ -114,6 +114,26 @@ void ResSchedUtil::ReportPreloadApplicationToRSS(const std::shared_ptr<AbilityIn
 #endif
 }
 
+void ResSchedUtil::ReportUIExtensionProcColdStartToRss(
+    int32_t extensionAbilityType, int hostPid, const std::string& hostBundleName, const std::string& bundleName,
+    const std::string& abilityName, const std::string& moduleName, bool isPreloadUIExtension)
+{
+#ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
+    uint32_t resType = ResourceSchedule::ResType::RES_TYPE_START_UIEXTENSION_PROC;
+    std::unordered_map<std::string, std::string> payload {
+        {"extensionAbilityType", std::to_string(extensionAbilityType)},
+        {"hostPid", std::to_string(hostPid)},
+        {"hostBundleName", hostBundleName},
+        {"bundleName", bundleName},
+        {"abilityName", abilityName},
+        {"moduleName", moduleName},
+        {"isPreloadUIExtension", std::to_string(isPreloadUIExtension)},
+    };
+    TAG_LOGD(AAFwkTag::DEFAULT, "resType:%{public}u, call", resType);
+    ResourceSchedule::ResSchedClient::GetInstance().ReportData(resType, 0, payload);
+#endif
+}
+
 std::string ResSchedUtil::GetThawReasonByAbilityType(const AbilityInfo &abilityInfo)
 {
     std::string reason;
@@ -123,7 +143,7 @@ std::string ResSchedUtil::GetThawReasonByAbilityType(const AbilityInfo &abilityI
                abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::SERVICE) {
         reason = "THAW_BY_START_SERVICE_EXTENSION";
     } else if (abilityInfo.type == AppExecFwk::AbilityType::EXTENSION &&
-               AAFwk::UIExtensionUtils::IsUIExtension(abilityInfo.extensionAbilityType)) {
+               AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo.extensionAbilityType)) {
         reason = "THAW_BY_START_UI_EXTENSION";
     } else {
         reason = "THAW_BY_START_NOT_PAGE_ABILITY";
@@ -167,7 +187,7 @@ void ResSchedUtil::ReportEventToRSS(const int32_t uid, const std::string &bundle
 void ResSchedUtil::PromotePriorityToRSS(int32_t callerUid, int32_t callerPid, const std::string &targetBundleName,
     int32_t targetUid, int32_t targetPid)
 {
-    TAG_LOGD(AAFwkTag::DEFAULT, "PromotePriorityToRSS---%{public}d_%{public}d_%{public}s_%{public}d_%{public}d",
+    TAG_LOGI(AAFwkTag::DEFAULT, "PromotePriorityToRSS---%{public}d_%{public}d_%{public}s_%{public}d_%{public}d",
         callerUid, callerPid, targetBundleName.c_str(), targetUid, targetPid);
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     uint32_t resType = ResourceSchedule::ResType::RES_TYPE_SA_PULL_APP_IDENTIFIER;
@@ -239,6 +259,13 @@ bool ResSchedUtil::CheckShouldForceKillProcess(int32_t pid, const std::string& b
 void ResSchedUtil::ReportLoadingEventToRss(LoadingStage stage, int32_t pid, int32_t uid,
     int64_t timeDuration, int64_t abilityRecordId)
 {
+    ReportLoadingEventToRss(stage, pid, uid, timeDuration, abilityRecordId, {});
+}
+
+void ResSchedUtil::ReportLoadingEventToRss(LoadingStage stage, int32_t pid, int32_t uid,
+    int64_t timeDuration, int64_t abilityRecordId,
+    const std::unordered_map<std::string, std::string> &extraParams)
+{
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     uint32_t resType = ResourceSchedule::ResType::RES_TYPE_KEY_PERF_SCENE;
     std::unordered_map<std::string, std::string> eventParams {
@@ -252,6 +279,7 @@ void ResSchedUtil::ReportLoadingEventToRss(LoadingStage stage, int32_t pid, int3
     if (abilityRecordId > 0) {
         eventParams.emplace("abilityRecordId", std::to_string(abilityRecordId));
     }
+    eventParams.insert(extraParams.begin(), extraParams.end());
 
     int64_t type = static_cast<int64_t>(stage);
     TAG_LOGD(AAFwkTag::DEFAULT, "call");

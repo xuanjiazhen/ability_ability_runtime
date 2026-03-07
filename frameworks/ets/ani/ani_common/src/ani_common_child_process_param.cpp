@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+/**
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -17,12 +17,13 @@
 
 #include "ani_common_util.h"
 #include "hilog_tag_wrapper.h"
+#include <string>
 
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-constexpr const char* CLASSNAME_CHILDPROCESSARGS = "L@ohos/app/ability/ChildProcessArgs/ChildProcessArgsImpl;";
-constexpr const char* RECORD_CLASS_NAME = "Lescompat/Record;";
+constexpr const char* CLASSNAME_CHILDPROCESSARGS = "@ohos.app.ability.ChildProcessArgs.ChildProcessArgsImpl";
+constexpr const char* RECORD_CLASS_NAME = "std.core.Record";
 }
 
 bool SetFds(ani_env* env, ani_object object, std::map<std::string, int32_t> &fds)
@@ -39,7 +40,7 @@ bool SetFds(ani_env* env, ani_object object, std::map<std::string, int32_t> &fds
         return false;
     }
     ani_method objectMethod = nullptr;
-    status = env->Class_FindMethod(recordCls, "<ctor>", ":V", &objectMethod);
+    status = env->Class_FindMethod(recordCls, "<ctor>", ":", &objectMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "Class_FindMethod constructor failed: %{public}d", status);
         return false;
@@ -52,7 +53,7 @@ bool SetFds(ani_env* env, ani_object object, std::map<std::string, int32_t> &fds
     }
     ani_method recordSetMethod = nullptr;
     status = env->Class_FindMethod(recordCls, "$_set",
-        "X{C{std.core.Numeric}C{std.core.String}C{std.core.BaseEnum}}C{std.core.Object}:", &recordSetMethod);
+        "X{C{std.core.Numeric}C{std.core.String}C{std.core.BaseEnum}}Y:", &recordSetMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "Class_FindMethod failed status: %{public}d", status);
         return false;
@@ -88,7 +89,7 @@ bool GetFds(ani_env* env, ani_string aniKey, ani_object aniValue, std::map<std::
         return false;
     }
     ani_int value;
-    ani_status status = env->Object_CallMethodByName_Int(aniValue, "intValue", nullptr, &value);
+    ani_status status = env->Object_CallMethodByName_Int(aniValue, "toInt", nullptr, &value);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "Object_CallMethodByName_Int failed status: %{public}d", status);
         return false;
@@ -156,15 +157,15 @@ bool UnwrapChildProcessFds(ani_env* env, ani_object object, std::map<std::string
             TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get key value status: %{public}d", status);
             return false;
         }
-        ani_ref aniKey;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 0, &aniKey);
+        ani_ref aniKey = nullptr;
+        status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(keyValue), "$0", &aniKey);
         if (ANI_OK != status) {
             TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get key Item status: %{public}d", status);
             errorMsg = "The type of args.fds must be Record<string, int>.";
             return false;
         }
-        ani_ref aniVal;
-        status = env->TupleValue_GetItem_Ref(static_cast<ani_tuple_value>(keyValue), 1, &aniVal);
+        ani_ref aniVal = nullptr;
+        status = env->Object_GetFieldByName_Ref(static_cast<ani_object>(keyValue), "$1", &aniVal);
         if (ANI_OK != status) {
             TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to get key Item status: %{public}d", status);
             errorMsg = "The type of args.fds must be Record<string, int>.";
@@ -191,7 +192,7 @@ ani_object WrapChildProcessArgs(ani_env* env, ChildProcessArgs &args)
         return nullptr;
     }
     ani_method method = nullptr;
-    status = env->Class_FindMethod(className, "<ctor>", ":V", &method);
+    status = env->Class_FindMethod(className, "<ctor>", ":", &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "find method failed status: %{public}d", status);
         return nullptr;
@@ -219,29 +220,27 @@ bool UnwrapChildProcessOptions(ani_env* env, ani_object object, ChildProcessOpti
         TAG_LOGE(AAFwkTag::PROCESSMGR, "env null");
         return false;
     }
-    ani_ref propRef = nullptr;
-    ani_status status = env->Object_GetPropertyByName_Ref(object, "isolationMode", &propRef);
-    if (status != ANI_OK || propRef == nullptr) {
-        options.isolationMode = false;
-        return true;
-    }
-    ani_boolean isUndefined = false;
-    status = env->Reference_IsUndefined(propRef, &isUndefined);
-    if (status != ANI_OK) {
-        TAG_LOGE(AAFwkTag::PROCESSMGR, "Failed to check undefined for 'isolationMode', status: %{public}d", status);
+    ani_status status = ANI_ERROR;
+    ani_ref isolationModeRef = nullptr;
+    ani_boolean isolationModeValue = ANI_FALSE;
+    if (GetRefProperty(env, object, "isolationMode", isolationModeRef) &&
+        (status = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(isolationModeRef),
+        "valueOf", ":z", &isolationModeValue)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "parameter error");
+        errorMsg = "Parameter error. The type of options.isolationMode must be boolean.";
         return false;
     }
-    if (isUndefined) {
-        options.isolationMode = false;
-        return true;
-    }
-    ani_boolean flag = false;
-    status = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(propRef), "valueOf", ":Z", &flag);
-    if (status != ANI_OK) {
-        errorMsg = "Failed to get boolean value for isolationMode.";
+    options.isolationMode = static_cast<bool>(isolationModeValue);
+    ani_ref isolationUidRef = nullptr;
+    ani_boolean isolationUidValue = ANI_FALSE;
+    if (GetRefProperty(env, object, "isolationUid", isolationUidRef) &&
+        (status = env->Object_CallMethodByName_Boolean(reinterpret_cast<ani_object>(isolationUidRef),
+        "valueOf", ":z", &isolationUidValue)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::PROCESSMGR, "parameter error");
+        errorMsg = "Parameter error. The type of options.isolationUid must be boolean.";
         return false;
     }
-    options.isolationMode = flag;
+    options.isolationUid = static_cast<bool>(isolationUidValue);
     return true;
 }
 } // namespace AppExecFwk

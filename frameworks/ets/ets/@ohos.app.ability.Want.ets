@@ -17,7 +17,7 @@ import hilog from '@ohos.hilog'
 import rpc from '@ohos.rpc';
 import { RecordData } from '@ohos.base';
 
-type valueType = NullishType;
+type valueType = Any;
 const DOMAIN_ID = 0xD001300;
 const TAG = 'RecordSerializeTool';
 const int32Max: number = Math.pow(2, 31) - 1;
@@ -43,6 +43,11 @@ class RecordWriter {
   private buffer = new StringBuilder();
   private store = new Set<Object>();
   private wantParams: NativeWantParams | null = null;
+  private static readonly GETTER_PREFIX = '<get>'
+
+  private static asFixedArray<E>(obj: object): FixedArray<E> {
+    return obj as FixedArray<E>
+  }
 
   constructor(wantParams: long) {
     this.wantParams = new NativeWantParams(wantParams);
@@ -62,7 +67,7 @@ class RecordWriter {
     }
   }
 
-  private writeObject(obj: NullishType): void {
+  private writeObject(obj: Any): void {
     if (obj === null) {
       this.buffer.append('null');
     } else if (obj === undefined) {
@@ -75,26 +80,35 @@ class RecordWriter {
       this.writeArray(obj as Object as Array<valueType>);
     } else if (obj instanceof Record) {
       this.writeRecord(obj as Object as Record<string, valueType>);
-    } else {
-      const objType = Type.of(obj);
-      if (objType instanceof ArrayType) {
-        this.writeBuildArray(obj as Object, reflect.Value.of(obj) as ArrayValue);
-      } else {
-        this.buffer.append('null');
+    } else if (obj instanceof Object) {
+      const objCls = Class.of(obj);
+      if (objCls.isFixedArray()) {
+        this.writeBuildArray(RecordWriter.asFixedArray(obj));
       }
+    } else {
+        this.buffer.append('null');
     }
   }
 
   private tupleToArray(tuple: Tuple): Array<valueType> {
     let arr: Array<valueType> = [];
 
-    const objType = Type.of(tuple as Object) as ClassType;
-    const writableFields = this.getWritableFields(objType, reflect.Value.of(tuple as Object) as ClassValue);
+    const obj = tuple as Object;
+    const objClass = Class.of(obj);
+    const writableFields = this.getWritableFields(objClass, obj);
     for (let fieldIdx = 0; fieldIdx < writableFields.length; fieldIdx++) {
-        const fieldValue = writableFields[fieldIdx][1].getData();
-        arr.push(fieldValue);
+      const fieldValue = writableFields[fieldIdx][1];
+      arr.push(fieldValue);
     }
     return arr;
+  }
+
+  private isClassType(cls: Class): boolean {
+    return (!cls.isEnum()
+             && !cls.isInterface()
+             && !cls.isFixedArray()
+             && !cls.isUnion()
+             && !cls.isPrimitive())
   }
 
   private writeObjectToNative(key: string, obj: Any, wantParams?: NativeWantParams | null): boolean {
@@ -131,24 +145,31 @@ class RecordWriter {
           localWantParams?.setParam(key, newWantParams);
        }
       return true;
+    } else if (this.isRemoteProxyFormat(obj)) { // consistent with napi behavior
+      hilog.debug(DOMAIN_ID, TAG, `key: %{public}s, value is rpc.RemoteProxy type`, JSON.stringify(key));
+      let newWantParams = new NativeWantParams();
+       if (this.writeRemoteProxyToNative(obj as Object as Record<string, valueType>, newWantParams) === true) {
+          localWantParams?.setParam(key, newWantParams);
+       }
+      return true;
     } else if (obj instanceof Record) {
       let newWantParams = new NativeWantParams();
       this.writeRecordToNative(obj as Object as Record<string, valueType>, newWantParams);
       localWantParams?.setParam(key, newWantParams);
       return true;
     } else {
-      const objType = Type.of(obj);
-      if (objType instanceof ClassType) {
+      const objCls = Class.of(obj as Object);
+      if (this.isClassType(objCls)) {
         // enum value are string
         if (typeof obj === 'string') {
-          hilog.debug(DOMAIN_ID, TAG, `key: %{public}s,  value is ClassType string`, key);
+          hilog.debug(DOMAIN_ID, TAG, `key: %{public}s,  value is Class string`, key);
           let value: string = String(obj as Object);
           localWantParams?.setParam(key, value);
           return true;
         }
         // enum value are number
         if (typeof obj === 'number') {
-          hilog.debug(DOMAIN_ID, TAG, `key: %{public}s,  value is ClassType number`, key);
+          hilog.debug(DOMAIN_ID, TAG, `key: %{public}s,  value is Class number`, key);
           let value: string = String(obj as Object);
           let num: number = Number(value);
           if (Number.isInteger(num)) {
@@ -163,7 +184,7 @@ class RecordWriter {
           return true;
         }
         let newWantParams = new NativeWantParams();
-        this.writeClassValueToNative(obj as Object, objType as ClassType, newWantParams);
+        this.writeClassValueToNative(obj as Object, objCls, newWantParams);
         localWantParams?.setParam(key, newWantParams);
         return true;
       } else {
@@ -186,28 +207,28 @@ class RecordWriter {
 
   private writeValueType(obj: Object): boolean {
     if (obj instanceof Boolean) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Byte) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Char) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Short) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Int) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Long) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Float) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof Double) {
-      this.buffer.append(JSON.stringify(obj.unboxed()));
+      this.buffer.append(JSON.stringify(obj));
       return true;
     } else if (obj instanceof BigInt) {
       this.buffer.append(JSON.stringify(obj));
@@ -219,37 +240,37 @@ class RecordWriter {
 
   private writeValueTypeToNative(wantParams: NativeWantParams | null, key: string, obj: Object): boolean {
     if (obj instanceof Boolean) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Byte) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Char) {
-      wantParams?.setParam(key, Char.toByte(obj).unboxed());
+      wantParams?.setParam(key, Char.toByte(obj));
       return true;
     } else if (obj instanceof Short) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Int) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Long) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Float) {
-      wantParams?.setParam(key, obj.unboxed());
+      wantParams?.setParam(key, obj);
       return true;
     } else if (obj instanceof Double) {
       // consistent with napi behavior
       if (key === VALUE_PROPERTY) {
-        let value: double = obj.unboxed();
+        let value: double = obj;
         if (Number.isInteger(value) && value >= int32Min && value <= int32Max) {
           wantParams?.setParam(key, value as int);
         } else {
           wantParams?.setParam(key, value as double);
         }
       } else {
-        wantParams?.setParam(key, obj.unboxed());
+        wantParams?.setParam(key, obj);
       }
       return true;
     } else if (obj instanceof BigInt) {
@@ -287,14 +308,14 @@ class RecordWriter {
           complexArray.doubleList.push(Number(num));
         });
         complexArray.intList = [];
-        complexArray.doubleList.push((element as number).unboxed());
+        complexArray.doubleList.push((element as number));
       } else {
-        complexArray.intList.push((element as int).unboxed());
+        complexArray.intList.push((element as int));
       }
     } else if (element instanceof Long) {
       hilog.debug(DOMAIN_ID, TAG, `array value type Long`);
       // consistent with napi behavior
-      const doubleValue = Number(element.unboxed());
+      const doubleValue = Number(element);
       if (complexArray.intList.length > 0) {
         complexArray.intList.forEach(num => {
           complexArray.doubleList.push(Number(num));
@@ -310,11 +331,11 @@ class RecordWriter {
         });
         complexArray.intList = [];
       }
-      complexArray.doubleList.push((element as number).unboxed());
+      complexArray.doubleList.push((element as number));
     } else {
-      const objType = Type.of(element);
+      const objCls = Class.of(element as Object);
       // enum value are number
-      if (objType instanceof ClassType) {
+      if (this.isClassType(objCls)) {
         let value: string = String(element as Object);
         let enumNum: number = Number(value);
         if (Number.isInteger(enumNum) && enumNum >= int32Min && enumNum <= int32Max) {
@@ -358,15 +379,15 @@ class RecordWriter {
           if (element instanceof String) {
             complexArray.stringList.push(element as string);
           } else {
-            const objType = Type.of(element);
-            if (objType instanceof ClassType) {
+            const objCls = Class.of(element as Object);
+            if (this.isClassType(objCls)) {
               let value: string = String(element as Object);
               complexArray.stringList.push(value as string);
             }
           }
           break;
         case 'boolean':
-          complexArray.boolList.push((element as Boolean).unboxed());
+          complexArray.boolList.push((element as Boolean));
           break;
         case 'number':
           try {
@@ -405,10 +426,10 @@ class RecordWriter {
       hilog.debug(DOMAIN_ID, TAG, `array object element type Record`);
       this.writeRecordToNative(obj as Object as Record<string, valueType>, wantParams);
     } else {
-      const objType = Type.of(obj);
-      if (objType instanceof ClassType) {
+      const objCls = Class.of(obj);
+      if (this.isClassType(objCls)) {
         hilog.debug(DOMAIN_ID, TAG, `array object element type class`);
-        this.writeClassValueToNative(obj, objType as ClassType, wantParams);
+        this.writeClassValueToNative(obj, objCls, wantParams);
       } else {
         hilog.error(DOMAIN_ID, TAG, `array member object type invalid`);
         return false;
@@ -432,7 +453,7 @@ class RecordWriter {
       let newWantParams: NativeWantParams;
       for (let i = 0; i < complexArray.objectList.length; i++) {
         newWantParams = new NativeWantParams();
-        if (this.handleArrayObject(complexArray.objectList[i] as object, newWantParams)!= true) {
+        if (this.handleArrayObject(complexArray.objectList[i] as object, newWantParams) != true) {
           hilog.error(DOMAIN_ID, TAG, `parse array member failed, index: %{public}d`, i);
         }
         wantParamsArray.push(newWantParams);
@@ -453,13 +474,13 @@ class RecordWriter {
     }
   }
 
-  private writeBuildArray(arr: Object, arrayValue: ArrayValue): void {
+  private writeBuildArray<E>(array: FixedArray<E>): void {
     this.buffer.append('[');
-    const length = arrayValue.getLength() as int;
-    this.checkReferencesCycle(arr);
-    this.store.add(arr);
+    const length = array.length;
+    this.checkReferencesCycle(array);
+    this.store.add(array);
     for (let idx = 0; idx < length; idx++) {
-      let member = arrayValue.getElement(idx).getData();
+      let member = array[idx];
       if (member == null) {
         this.buffer.append('null');
       } else {
@@ -469,7 +490,7 @@ class RecordWriter {
         this.buffer.append(',');
       }
     }
-    this.store.delete(arr);
+    this.store.delete(array);
     this.buffer.append(']');
   }
 
@@ -534,6 +555,46 @@ class RecordWriter {
     return true;
   }
 
+  private isRemoteProxyFormat(obj: valueType): boolean {
+    if (!(obj instanceof Record)) {
+      return false;
+    }
+    let hasType = false;
+    let hasValue = false;
+    let typeValue: valueType = undefined;
+    let valueValue: valueType = undefined;
+    let count = 0;
+    let rec: Record<string, valueType> = obj as Object as Record<string, valueType>;
+    for (let key of rec.keys()) {
+      if (rec[key] === undefined || rec[key] === null) {
+        return false;
+      }
+      if (key === TYPE_PROPERTY) {
+        hasType = true;
+        typeValue = rec[key];
+      } else if (key === VALUE_PROPERTY) {
+        hasValue = true;
+        valueValue = rec[key];
+      }
+      count++;
+    }
+
+    if (count !== PROPERTIES_SIZE) {
+      return false;
+    }
+    if (!hasType || !hasValue) {
+      return false;
+    }
+    if (typeof typeValue !== 'string' || typeValue !== REMOTE_OBJECT) {
+      return false;
+    }
+    if (!(valueValue instanceof rpc.RemoteProxy)) {
+      return false;
+    }
+
+    return true;
+  }
+
   private writeRemoteObjectToNative(obj: Record<string, valueType>, wantParams: NativeWantParams | null): boolean {
     for (let key of obj.keys()) {
       if (key === TYPE_PROPERTY) {
@@ -541,6 +602,20 @@ class RecordWriter {
       } else if (key === VALUE_PROPERTY) {
         if (wantParams === null || wantParams.setParam(VALUE_PROPERTY, obj[key] as rpc.RemoteObject) != true) {
           hilog.error(DOMAIN_ID, TAG, `write RemoteObject to native failed`);
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  private writeRemoteProxyToNative(obj: Record<string, valueType>, wantParams: NativeWantParams | null): boolean {
+    for (let key of obj.keys()) {
+      if (key === TYPE_PROPERTY) {
+        wantParams?.setParam(TYPE_PROPERTY, REMOTE_OBJECT);
+      } else if (key === VALUE_PROPERTY) {
+        if (wantParams === null || wantParams.setParam(VALUE_PROPERTY, obj[key] as rpc.RemoteProxy) != true) {
+          hilog.error(DOMAIN_ID, TAG, `write RemoteProxy to native failed`);
           return false;
         }
       }
@@ -568,8 +643,8 @@ class RecordWriter {
     return isSuccess;
   }
 
-  private writeClassValueToNative(obj: Object, objType: ClassType, wantParams: NativeWantParams): boolean {
-    const writableFields = this.getWritableFields(objType, reflect.Value.of(obj) as ClassValue);
+  private writeClassValueToNative(obj: Object, objCls: Class, wantParams: NativeWantParams): boolean {
+    const writableFields = this.getWritableFields(objCls, obj);
 
     let isSuccess = false;
     if (writableFields.length > 0) {
@@ -587,26 +662,26 @@ class RecordWriter {
       return false;
     }
 
-    const fieldValType = Type.of(fieldVal);
-    if (fieldValType instanceof LambdaType) {
+    const fieldValType = Class.ofAny(fieldVal);
+    if (fieldValType instanceof Function) {
       return false;
     }
 
     return this.writeObjectToNative(fieldName, fieldVal, wantParams);
   }
 
-  private writeClassFields(writableFields: Array<[Field, reflect.Value]>, wantParams: NativeWantParams): boolean {
-    const FIELD_TYPE = 0
+  private writeClassFields(writableFields: Array<[string, Any]>, wantParams: NativeWantParams): boolean {
+    const FIELD_NAME = 0
     const FIELD_VALUE = 1
 
     let isSuccess = false;
     for (let fieldIdx = 0; fieldIdx < writableFields.length; fieldIdx++) {
       const fieldTypeValuePair = writableFields[fieldIdx];
 
-      const objField = fieldTypeValuePair[0] as Field;
-      const objFieldValue = fieldTypeValuePair[1] as reflect.Value;
+      const objFieldName = fieldTypeValuePair[FIELD_NAME];
+      const objFieldValue = fieldTypeValuePair[FIELD_VALUE];
 
-      if (this.writeField(objField.getName(), objFieldValue.getData(), wantParams) == true) {
+      if (this.writeField(objFieldName, objFieldValue, wantParams) == true) {
         isSuccess= true;
       }
     }
@@ -614,28 +689,49 @@ class RecordWriter {
     return isSuccess;
   }
 
-  private findKeyIndex(field: Field, fields: Array<[Field, reflect.Value]>): number {
-    return fields.findIndex((value, index, array) => {return value[0].getName() == field.getName()});
+  private findKeyIndex(fieldName: string, fields: Array<[string, Any]>): number {
+    return fields.findIndex((writableField) => writableField[0]  == fieldName);
   }
 
-  private getWritableFields(classType: ClassType, classValue: ClassValue): Array<[Field, reflect.Value]> {
-    const writableFields = new Array<[Field, reflect.Value]>();
+  private addWritableProperty(cls: Class, obj: object, propName: string, writableFields: Array<[string, Any]>): void {
+      const getterName = RecordWriter.GETTER_PREFIX + propName
+      const getter = cls.getInstanceMethod(getterName)
+      if (getter === undefined) {
+          return
+      }
+
+      const propVal = getter.invoke(obj)
+
+      const propNameValuePair: [string, Any] = [propName, propVal]
+      writableFields.push(propNameValuePair)
+  }
+
+  private addWritableProperties(cls: Class, obj: object, writableFields: Array<[string, Any]>): void {
+      for (const method of cls.getInstanceMethods()) {
+          const methodName = method.getName()
+          if (methodName.startsWith(RecordWriter.GETTER_PREFIX)) {
+              const propName = methodName.substring(RecordWriter.GETTER_PREFIX.length)
+              const propValue = method.invoke(obj)
+              const fieldNameValuePair: [string, Any] = [propName, propValue]
+              writableFields.push(fieldNameValuePair)
+          }
+      }
+  }
+
+  private getWritableFields(cls: Class, obj: object): Array<[string, Any]> {
+    const writableFields = new Array<[string, Any]>();
     let fieldRename : string | undefined = undefined;
 
-    const fieldsCount = classValue.getFieldsNum();
-    for (let fieldIdx = 0; fieldIdx < fieldsCount; fieldIdx++) {
-      const field = classType.getField(fieldIdx);
-      if (field.isStatic()) {
-        continue;
-      }
-      const index: int = this.findKeyIndex(field, writableFields).toInt();
-      const fieldValue = classValue.getField(fieldIdx);
-
-      const fieldTypeValuePair: [Field, reflect.Value] = [field, fieldValue];
+    for (const field of cls.getInstanceFields()) {
+      const index: int = this.findKeyIndex(field.getName(), writableFields).toInt();
+      const fieldNameValuePair: [string, Any] = [field.getName(), field.getValue(obj)];
       if (fieldRename != undefined || index == -1) {
-        writableFields.push(fieldTypeValuePair);
+        writableFields.push(fieldNameValuePair);
       } else {
-        writableFields[index] = fieldTypeValuePair;
+        writableFields[index] = fieldNameValuePair;
+      }
+      if (reflect.isLiteralInitializedInterface(obj)) {
+        this.addWritableProperties(cls, obj, writableFields)
       }
     }
 
@@ -673,7 +769,7 @@ export class RecordSerializeTool {
   }
 
   public static parse(text: string): Record<string, valueType> {
-    let jsonValue = JSONParser.parse(text);
+    let jsonValue = JSON.parseJsonElement(text);
     let res = RecordSerializeTool.jsonValue2Object(jsonValue);
     if (!(res instanceof Record)) {
       throw new TypeError('RecordSerializeTool parse only used for Record');
@@ -681,37 +777,35 @@ export class RecordSerializeTool {
     return res as Record<string, valueType>;
   }
 
-  private static jsonValue2Object(value: JSONValue): string | number | boolean | null |
-  Array<valueType> | Record<string, valueType> {
-    if (value instanceof JSONString) {
-      return value.value;
-    } else if (value instanceof JSONNumber) {
-      return new Double(value.value);
-    } else if (value instanceof JSONTrue) {
+  private static jsonValue2Object(value: jsonx.JsonElement): string | number | boolean | null |
+    Array<valueType> | Record<string, valueType> {
+    let vType = value.jsonType;
+    if (vType === jsonx.JsonType.JsonString) {
+      return value.asString();
+    } else if (vType === jsonx.JsonType.JsonNumber) {
+      return value.asDouble();
+    } else if (vType === jsonx.JsonType.JsonTrue) {
       return new Boolean(true);
-    } else if (value instanceof JSONFalse) {
+    } else if (vType === jsonx.JsonType.JsonFalse) {
       return new Boolean(false);
-    } else if (value instanceof JSONNull) {
+    } else if (vType === jsonx.JsonType.JsonNull) {
       return null;
-    } else if (value instanceof JSONArray) {
-      let obj = value as JSONArray;
-      let values = obj.values;
+    } else if (vType === jsonx.JsonType.JsonArray) {
+      let values: Array<jsonx.JsonElement> = value.asArray();
       let result: Array<valueType> = new Array<valueType>();
       for (let i: int = 0; i < values.length; i++) {
         result.push(RecordSerializeTool.jsonValue2Object(values[i]));
       }
       return result;
-    } else if (value instanceof JSONObject) {
-      let obj = value as JSONObject;
-      let keys: Array<JSONString> = obj.keys_;
-      let values: Array<JSONValue> = obj.values;
+    } else if (vType === jsonx.JsonType.JsonObject) {
+      let iterVal: IterableIterator<[string, jsonx.JsonElement]> = value.$_iterator();
       let result: Record<string, valueType> = new Record<string, valueType>();
-      for (let i: int = 0; i < keys.length; i++) {
-        result[keys[i].value] = RecordSerializeTool.jsonValue2Object(values[i]);
+      for (let t of iterVal) {
+        result[t[0]] = RecordSerializeTool.jsonValue2Object(t[1]);
       }
       return result;
     } else {
-      throw new TypeError('unknown JSONValue');
+      throw new TypeError('unknown JSONElement type');
     }
   }
 }
@@ -772,6 +866,8 @@ class NativeWantParams {
 
   private static native nativeSetRemoteObjectParam(
     nativeWantParams: long, key: string, value: rpc.RemoteObject): boolean;
+  private static native nativeSetRemoteProxyParam(
+    nativeWantParams: long, key: string, value: rpc.RemoteProxy): boolean;
 
   private registerCleaner(nativeWantParams: long): void {
     this.cleaner = new NativeWantParamsCleaner(nativeWantParams);
@@ -884,6 +980,14 @@ class NativeWantParams {
       return false;
     }
     return NativeWantParams.nativeSetRemoteObjectParam(this.nativeWantParams, key, value);
+  }
+
+  public setParam(key: string, value: rpc.RemoteProxy): boolean {
+    if (this.nativeWantParams == 0) {
+      hilog.error(DOMAIN_ID, TAG, `nativeWantParams null`);
+      return false;
+    }
+    return NativeWantParams.nativeSetRemoteProxyParam(this.nativeWantParams, key, value);
   }
 }
 

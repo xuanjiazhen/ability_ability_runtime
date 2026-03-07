@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -62,12 +62,17 @@ public:
     }
 
     virtual int32_t NotifyMtpMounted(const std::string &id, const std::string &path,
-    const std::string &desc, const std::string &uuid) override
+ 	    const std::string &desc, const std::string &uuid, const std::string &fstype) override
     {
         return E_OK;
     }
 
-    virtual int32_t NotifyMtpUnmounted(const std::string &id, const std::string &path, const bool isBadRemove) override
+    virtual int32_t NotifyMtpUnmounted(const std::string &id, const bool isBadRemove) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t IsUsbFuseByType(const std::string &fsType, bool &enabled) override
     {
         return E_OK;
     }
@@ -105,6 +110,26 @@ public:
     }
 
     virtual int32_t GetFreeSize(int64_t &freeSize) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetTotalInodes(int64_t &totalInodes) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetFreeInodes(int64_t &freeInodes) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetCurrentBundleInodes(int64_t &curInodes) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetSystemDataSize(int64_t &otherUidSizeSum) override
     {
         return E_OK;
     }
@@ -210,11 +235,6 @@ public:
     }
 
     virtual int32_t QueryUsbIsInUse(const std::string &diskPath, bool &isInUse)
-    {
-        return E_OK;
-    }
-
-    virtual int32_t DeleteUserKeys(uint32_t userId) override
     {
         return E_OK;
     }
@@ -348,11 +368,6 @@ public:
         return E_OK;
     }
 
-    virtual int32_t UpdateMemoryPara(int32_t size, int32_t &oldSize) override
-    {
-        return E_OK;
-    }
-
     virtual int32_t MountMediaFuse(int32_t userId, int32_t &devFd) override
     {
         return E_OK;
@@ -400,6 +415,11 @@ public:
         return E_OK;
     }
 
+    virtual int32_t UpdateUserPublicDirPolicy(uint32_t userId) override
+    {
+        return E_OK;
+    }
+
     virtual int32_t RegisterUeceActivationCallback(const sptr<IUeceActivationCallback> &ueceCallback) override
     {
         return E_OK;
@@ -410,17 +430,7 @@ public:
         return E_OK;
     }
 
-    virtual int32_t UpdateUserPublicDirPolicy(uint32_t userId) override
-    {
-        return E_OK;
-    }
-
     virtual int32_t CreateUserDir(const std::string &path, mode_t mode, uid_t uid, gid_t gid) override
-    {
-        return E_OK;
-    }
-
-    virtual int32_t DeleteUserDir(const std::string &path) override
     {
         return E_OK;
     }
@@ -430,17 +440,62 @@ public:
         return E_OK;
     }
 
-    virtual int32_t SetExtBundleStats(uint32_t userId, const std::string &businessName, uint64_t businessSize) override
-    {
-        return E_OK;
-    }
-
-    virtual int32_t GetExtBundleStats(uint32_t userId, const std::string &businessName, uint64_t &businessSize) override
-    {
-        return E_OK;
-    }
-
     virtual int32_t EraseAllUserEncryptedKeys() override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t SetExtBundleStats(uint32_t userId, const ExtBundleStats &stats) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetExtBundleStats(uint32_t userId, ExtBundleStats &stats) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetAllExtBundleStats(uint32_t userId, std::vector<ExtBundleStats> &statsVec) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t ListUserdataDirInfo(std::vector<UserdataDirInfo> &scanDirs) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t NotifyCreateBundleDataDirWithEl(uint32_t userId, uint8_t elx) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t QueryActiveOsAccountIds(std::vector<int32_t> &ids) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t IsOsAccountExists(unsigned int userId, bool &isOsAccountExists) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t ClearSecondMountPoint(uint32_t userId, const std::string &bundleName) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t Encrypt(const std::string &volumeId, const std::string &password) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetCryptProgressById(const std::string &volumeId, int32_t &progress) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t NotifyEncryptVolumeStateChanged(const VolumeInfoStr &volumeInfoStr) override
     {
         return E_OK;
     }
