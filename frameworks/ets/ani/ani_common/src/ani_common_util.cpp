@@ -909,6 +909,11 @@ bool SetProcessInformation(ani_env *env, ani_object object, const AppExecFwk::Ru
         TAG_LOGE(AAFwkTag::ANI, "appCloneIndex failed status:%{public}d", status);
         return false;
     }
+    if (((status = env->Object_SetPropertyByName_Ref(
+        object, "isPreload", CreateInt(env, processInfo.isPreload))) != ANI_OK)) {
+        TAG_LOGE(AAFwkTag::ANI, "isPreload failed status:%{public}d", status);
+        return false;
+    }
     return true;
 }
 
