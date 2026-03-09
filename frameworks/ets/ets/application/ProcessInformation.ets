@@ -25,6 +25,7 @@ export interface ProcessInformation {
     state: appManager.ProcessState;
     bundleType: bundleManager.BundleType;
     appCloneIndex?: int;
+    isPreload?: boolean;
 }
 
 export default class ProcessInformationInner implements ProcessInformation {
