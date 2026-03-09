@@ -115,7 +115,8 @@
             "webview",
             "window_manager",
             "zlib",
-            "hiperf"
+            "hiperf",
+            "sms_mms"
   ],
           "third_party": [
             "libjpeg-turbo"
