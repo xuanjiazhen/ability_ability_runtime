@@ -102,6 +102,11 @@ private:
         size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId);
     void StartResidentProcessWithMainElementPerBundleHap(const AppExecFwk::HapModuleInfo &hapModuleInfo,
         const std::string &processName, size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId);
+    void StartResidentMemoryDefragTask(const std::string &bundleName, const std::string &abilityName, int32_t userId);
+    void RegisterScreenStateCallback();
+    void OnScreenStateChanged(bool isScreenOn);
+    void ExecutePendingDeepCopyTasks();
+
 
     std::mutex residentAbilityInfoMutex_;
     std::list<ResidentAbilityInfo> residentAbilityInfos_;
@@ -110,6 +115,11 @@ private:
     std::mutex failedResidentAbilityInfoMutex_;
     std::list<ResidentAbilityInfo> failedResidentAbilityInfos_;
     std::atomic_bool unlockedAfterBoot_ = false;
+
+    std::mutex pendingDeepCopyTasksMutex_;
+    std::list<ResidentAbilityInfo> pendingDeepCopyTasks_;
+    std::atomic_bool isFirstScreenOffOccurred_ = false;
+
 };
 }  // namespace AAFwk
 }  // namespace OHOS
