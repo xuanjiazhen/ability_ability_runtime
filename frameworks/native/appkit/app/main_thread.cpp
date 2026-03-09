@@ -1905,6 +1905,14 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
                 InitUncatchableTask(uncatchableTask, uncatchableTaskInfo, true);
                 (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).RegisterUncatchableExceptionHandler(
                     uncatchableTask);
+
+                auto eventRuner = mainHandler_->GetEventRunner();
+                auto env = (static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNapiEnv();
+                if (eventRuner != nullptr && env != nullptr) {
+                    eventRuner->EventSetEnvToHandler(env);
+                } else {
+                    TAG_LOGE(AAFwkTag::APPKIT, "transfer env to eventRunner error");
+                }
             }
 #ifdef CJ_FRONTEND
         } else {
