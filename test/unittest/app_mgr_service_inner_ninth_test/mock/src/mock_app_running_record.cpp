@@ -1058,6 +1058,16 @@ PreloadMode AppRunningRecord::GetPreloadMode()
     return preloadMode_;
 }
 
+void AppRunningRecord::SetUIExtensionPreloadState(bool isPreload)
+{
+    isUIExtensionPreload_ = isPreload;
+}
+
+bool AppRunningRecord::GetUIExtensionPreloadState() const
+{
+    return isUIExtensionPreload_;
+}
+
 void AppRunningRecord::SetPreloadModuleName(const std::string& preloadModuleName)
 {
     preloadModuleName_ = preloadModuleName;
