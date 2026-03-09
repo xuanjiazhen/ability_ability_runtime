@@ -504,6 +504,14 @@ Ability_NativeChildProcess_ErrCode OH_Ability_UnregisterNativeChildProcessExitCa
  */
 Ability_NativeChildProcess_ErrCode OH_Ability_KillChildProcess(int32_t pid);
 
+/**
+ * @brief Checks whether the caller is allowed to create child processes on this device.
+ *
+ * @return true if the caller is allowed to create child processes, false otherwise.
+ * @since 26.0.0
+ */
+bool OhAbilityIsChildProcessSupported();
+
 #ifdef __cplusplus
 } // extern "C"
 #endif
