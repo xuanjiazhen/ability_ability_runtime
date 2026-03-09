@@ -34,8 +34,11 @@
 #include "system_ability_definition.h"
 #include "test_observer.h"
 #include "app_mem_info.h"
+#include "sms_service_manager_client.h"
+#include "string_utils.h"
 
 using namespace OHOS::AppExecFwk;
+using namespace OHOS::Telephony;
 
 namespace OHOS {
 namespace AAFwk {
@@ -263,6 +266,9 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"add-sms", [this]() { return this->RunAsAddSmsCommand(); }},
+        {"query-sms", [this]() { return this->RunAsQuerySmsCommand(); }},
+        {"query-rdb", [this]() { return this->RunAsQueryRdbCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -2844,5 +2850,332 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     return result;
 }
 #endif
+
+ErrCode AbilityManagerShellCommand::RunAsAddSmsCommand()
+{
+    ErrCode result = OHOS::ERR_OK;
+    std::string slotIdStr;
+    std::string smsc;
+    std::string pdu;
+    std::string statusStr;
+
+    int option = -1;
+    while (true) {
+        option = getopt_long(argc_, argv_, "hs:m:p:t:", nullptr, nullptr);
+        if (option == -1) {
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -h'");
+                resultReceiver_ = HELP_MSG_ADD_SMS;
+                return OHOS::ERR_OK;
+            }
+            case 's': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -s' slotId");
+                slotIdStr = optarg;
+                break;
+            }
+            case 'm': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -m' smsc");
+                smsc = optarg;
+                break;
+            }
+            case 'p': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -p' pdu");
+                pdu = optarg;
+                break;
+            }
+            case 't': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -t' status");
+                statusStr = optarg;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms' option unknown");
+                resultReceiver_.append(unknownOptionMsg);
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    if (slotIdStr.empty() || smsc.empty() || pdu.empty() || statusStr.empty()) {
+        resultReceiver_ = HELP_MSG_ADD_SMS;
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    int32_t slotId = std::stoi(slotIdStr);
+    int32_t status = std::stoi(statusStr);
+
+    auto smsClient = SmsServiceManagerClient::GetInstance();
+    if (!smsClient) {
+        resultReceiver_ = "error: failed to get sms service client\n";
+        return OHOS::ERR_NO_INIT;
+    }
+
+    std::u16string smscU16 = StringUtils::ToUtf16(smsc);
+    std::u16string pduU16 = StringUtils::ToUtf16(pdu);
+
+    int32_t ret = smsClient->AddSimMessage(slotId, smscU16, pduU16,
+        static_cast<ISmsServiceInterface::SimMessageStatus>(status));
+
+    if (ret == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "add sms successfully");
+        resultReceiver_ = "add sms successfully\n";
+        result = OHOS::ERR_OK;
+    } else {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "add sms failed, ret: %{public}d", ret);
+        resultReceiver_ = "error: failed to add sms\n";
+        result = OHOS::ERR_INVALID_VALUE;
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsQuerySmsCommand()
+{
+    ErrCode result = OHOS::ERR_OK;
+    std::string slotIdStr;
+
+    int option = -1;
+    while (true) {
+        option = getopt_long(argc_, argv_, "hs:", nullptr, nullptr);
+        if (option == -1) {
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-sms -h'");
+                resultReceiver_ = HELP_MSG_QUERY_SMS;
+                return OHOS::ERR_OK;
+            }
+            case 's': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-sms -s' slotId");
+                slotIdStr = optarg;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-sms' option unknown");
+                resultReceiver_.append(unknownOptionMsg);
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    if (slotIdStr.empty()) {
+        resultReceiver_ = HELP_MSG_QUERY_SMS;
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    int32_t slotId = std::stoi(slotIdStr);
+
+    auto smsClient = SmsServiceManagerClient::GetInstance();
+    if (!smsClient) {
+        resultReceiver_ = "error: failed to get sms service client\n";
+        return OHOS::ERR_NO_INIT;
+    }
+
+    std::vector<ShortMessage> messages;
+    int32_t ret = smsClient->GetAllSimMessages(slotId, messages);
+
+    if (ret == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "query sms successfully, count: %{public}zu", messages.size());
+        resultReceiver_ = "query sms successfully:\n";
+
+        for (size_t i = 0; i < messages.size(); i++) {
+            resultReceiver_ += "Message " + std::to_string(i) + ":\n";
+            resultReceiver_ += "  PDU: " + OHOS::Str16ToStr8(messages[i].pdu) + "\n";
+            resultReceiver_ += "  Status: " + std::to_string(static_cast<int>(messages[i].status)) + "\n";
+            resultReceiver_ += "  Index: " + std::to_string(messages[i].index) + "\n\n";
+        }
+
+        result = OHOS::ERR_OK;
+    } else {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "query sms failed, ret: %{public}d", ret);
+        resultReceiver_ = "error: failed to query sms\n";
+        result = OHOS::ERR_INVALID_VALUE;
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsQueryRdbCommand()
+{
+    ErrCode result = OHOS::ERR_OK;
+    std::string databasePath;
+    std::string tableName;
+
+    int option = -1;
+    while (true) {
+        option = getopt_long(argc_, argv_, "hd:t:", nullptr, nullptr);
+        if (option == -1) {
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb -h'");
+                resultReceiver_ = HELP_MSG_QUERY_RDB;
+                return OHOS::ERR_OK;
+            }
+            case 'd': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb -d' databasePath");
+                databasePath = optarg;
+                break;
+            }
+            case 't': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb -t' tableName");
+                tableName = optarg;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb' option unknown");
+                resultReceiver_.append(unknownOptionMsg);
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    if (databasePath.empty()) {
+        databasePath = "/data/storage/el2/base/haps/form_store/form.db";
+        TAG_LOGI(AAFwkTag::AA_TOOL, "using default database path: %{public}s", databasePath.c_str());
+    }
+
+    resultReceiver_ = "Querying RDB database: " + databasePath + "\n";
+
+    if (!tableName.empty()) {
+        resultReceiver_ += "Table: " + tableName + "\n";
+        resultReceiver_ += "-------------------\n";
+        result = QueryRdbTableData(databasePath, tableName);
+    } else {
+        resultReceiver_ += "Tables in database:\n";
+        resultReceiver_ += "-------------------\n";
+        result = ListRdbTables(databasePath);
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::QueryRdbTableData(const std::string& databasePath, const std::string& tableName)
+{
+    ErrCode result = OHOS::ERR_OK;
+
+    NativeRdb::RdbStoreConfig rdbStoreConfig(databasePath);
+    rdbStoreConfig.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    rdbStoreConfig.SetAllowRebuild(true);
+
+    std::shared_ptr<NativeRdb::RdbStore> rdbStore = NativeRdb::RdbHelper::GetRdbStore(
+        rdbStoreConfig, 1, nullptr);
+    if (!rdbStore) {
+        resultReceiver_ += "error: failed to open database\n";
+        return OHOS::ERR_NO_INIT;
+    }
+
+    NativeRdb::RdbCursor rdbCursor = rdbStore->QuerySql("SELECT * FROM " + tableName);
+    if (!rdbCursor.IsValid()) {
+        resultReceiver_ += "error: failed to query table data\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    int columnCount = rdbCursor.GetColumnCount();
+    std::vector<std::string> columnNames = rdbCursor.GetColumnNames();
+
+    // Print column names
+    for (int i = 0; i < columnCount; i++) {
+        resultReceiver_ += columnNames[i];
+        if (i < columnCount - 1) {
+            resultReceiver_ += " | ";
+        }
+    }
+    resultReceiver_ += "\n";
+
+    // Print separator
+    for (int i = 0; i < columnCount; i++) {
+        resultReceiver_ += "----";
+        if (i < columnCount - 1) {
+            resultReceiver_ += "-+-";
+        }
+    }
+    resultReceiver_ += "\n";
+
+    // Print rows
+    int rowCount = 0;
+    while (rdbCursor.GoToNextRow() == NativeRdb::E_OK) {
+        rowCount++;
+        for (int i = 0; i < columnCount; i++) {
+            std::string value = rdbCursor.GetString(i);
+            resultReceiver_ += (value.empty() ? "NULL" : value);
+            if (i < columnCount - 1) {
+                resultReceiver_ += " | ";
+            }
+        }
+        resultReceiver_ += "\n";
+    }
+
+    resultReceiver_ += "\nTotal rows: " + std::to_string(rowCount) + "\n";
+
+    rdbCursor.Close();
+    rdbStore->Close();
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::ListRdbTables(const std::string& databasePath)
+{
+    ErrCode result = OHOS::ERR_OK;
+
+    NativeRdb::RdbStoreConfig rdbStoreConfig(databasePath);
+    rdbStoreConfig.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    rdbStoreConfig.SetAllowRebuild(true);
+
+    std::shared_ptr<NativeRdb::RdbStore> rdbStore = NativeRdb::RdbHelper::GetRdbStore(
+        rdbStoreConfig, 1, nullptr);
+    if (!rdbStore) {
+        resultReceiver_ += "error: failed to open database\n";
+        return OHOS::ERR_NO_INIT;
+    }
+
+    NativeRdb::RdbCursor rdbCursor = rdbStore->QuerySql("SELECT name FROM sqlite_master WHERE type='table'");
+    if (!rdbCursor.IsValid()) {
+        resultReceiver_ += "error: failed to query tables\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    bool hasTables = false;
+    while (rdbCursor.GoToNextRow() == NativeRdb::E_OK) {
+        hasTables = true;
+        std::string tableName = rdbCursor.GetString(0);
+        resultReceiver_ += tableName + "\n";
+    }
+
+    if (!hasTables) {
+        resultReceiver_ += "No tables found in database.\n";
+    }
+
+    rdbCursor.Close();
+    rdbStore->Close();
+
+    return result;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
