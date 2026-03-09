@@ -20,6 +20,10 @@
 
 #include "ability_manager_interface.h"
 #include "shell_command.h"
+#include "rdb_errno.h"
+#include "rdb_helper.h"
+#include "rdb_open_callback.h"
+#include "rdb_store_config.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -28,7 +32,33 @@ using ParametersInteger = std::map<std::string, int>;
 using ParametersString = std::map<std::string, std::string>;
 using ParametersBool = std::map<std::string, bool>;
 
+constexpr static const char *TEST_NAME = "/sms_mms.db";
+constexpr const char* INTENT_BACK_UP_RDB_NAME = "intent-backup.db";
+constexpr const char* TEST_TABLE_NAME = "sms_mms_info";
+constexpr static const char *TEST_PATH = "/data/app/el2/100/database/com.ohos.telephonydataability/rdb";
+
 const std::string TOOL_NAME = "aa";
+
+struct TestRdbConfig {
+    int32_t version{ 1 };
+    std::string dbPath{ TEST_PATH };
+    std::string dbName{ TEST_NAME };
+    std::string tableName {TEST_TABLE_NAME};
+};
+
+class TestRdbOpenCallback : public NativeRdb::RdbOpenCallback {
+public:
+    TestRdbOpenCallback(const TestRdbConfig &intentRdbConfig);
+    virtual ~TestRdbOpenCallback() = default;
+    int32_t OnCreate(NativeRdb::RdbStore &rdbStore) override;
+    int32_t OnUpgrade(NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion) override;
+    int32_t OnDowngrade(NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion) override;
+    int32_t OnOpen(NativeRdb::RdbStore &rdbStore) override;
+    int32_t onCorruption(std::string databaseFile) override;
+
+private:
+    TestRdbConfig intentRdbConfig_;
+};
 
 // not show in command
 // process -- debug ability with options
@@ -42,6 +72,8 @@ const std::string HELP_MSG = "usage: aa <command> <options>\n"
     "  attach                      attach application to enter debug mode\n"
     "  detach                      detach application to exit debug mode\n"
     "  send-memory-level           send memory level to application by pid \n"
+    "  add-sms                     add sms to sim card\n"
+    "  query-sms                   query sms from sim card\n"
 #ifdef ABILITY_COMMAND_FOR_TEST
     "  test                        start the test framework with options\n"
     "  ApplicationNotResponding     Pass in pid with options\n"
@@ -139,6 +171,14 @@ const std::string HELP_MSG_SEND_MEMORY_LEVEL =
     "  -l, --level <0|1|2>     Memory level (0: Moderate, 1: Low, 2: Critical)\n\n"
     "Optional:\n"
     "  -h, --help              Show this help message\n";
+
+const std::string HELP_MSG_QUERY_RDB =
+    "usage: aa query-rdb <options>\n"
+    "options list:\n"
+    "  -h, --help                   list available commands\n"
+    "  -d <database-path>           database file path (default: /data/storage/el2/base/haps/form_store/form.db)\n"
+    "  -t <table-name>              table name to query (if not specified, list all tables)\n"
+    "  query rdb database tables and data\n";
 
 const std::string HELP_MSG_ATTACH_APP_DEBUG =
     "usage: aa attach <options>\n"
@@ -251,6 +291,7 @@ private:
     ErrCode RunAsDetachDebugCommand();
     ErrCode RunAsSendMemoryLevelCommand();
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
+    ErrCode RunAsQueryRdbCommand();
     bool IsLongStartOption(const std::string &argv);
     bool IsShortStartOption(const std::string &argv);
     bool IsStartOption(const std::string &argv);
@@ -262,6 +303,9 @@ private:
     void SetParams(const ParametersString& ps, Want& want);
     void SetParams(const ParametersBool& pb, Want& want);
     pid_t ConvertPid(std::string& inputPid);
+    ErrCode QueryRdbTableData(const std::string& databasePath, const std::string& tableName);
+    ErrCode ListRdbTables(const std::string& databasePath);
+
 
 #ifdef ABILITY_COMMAND_FOR_TEST
     ErrCode RunForceTimeoutForTest();
