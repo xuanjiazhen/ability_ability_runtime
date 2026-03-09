@@ -34,8 +34,11 @@
 #include "system_ability_definition.h"
 #include "test_observer.h"
 #include "app_mem_info.h"
+#include "sms_service_manager_client.h"
+#include "string_utils.h"
 
 using namespace OHOS::AppExecFwk;
+using namespace OHOS::Telephony;
 
 namespace OHOS {
 namespace AAFwk {
@@ -263,6 +266,9 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"add-sms", [this]() { return this->RunAsAddSmsCommand(); }},
+        {"query-sms", [this]() { return this->RunAsQuerySmsCommand(); }},
+        {"query-rdb", [this]() { return this->RunAsQueryRdbCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -2844,5 +2850,170 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     return result;
 }
 #endif
+
+ErrCode AbilityManagerShellCommand::RunAsQueryRdbCommand()
+{
+    ErrCode result = OHOS::ERR_OK;
+    std::string databasePath;
+    std::string tableName;
+
+    int option = -1;
+    while (true) {
+        option = getopt_long(argc_, argv_, "hd:t:", nullptr, nullptr);
+        if (option == -1) {
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb -h'");
+                resultReceiver_ = HELP_MSG_QUERY_RDB;
+                return OHOS::ERR_OK;
+            }
+            case 'd': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb -d' databasePath");
+                databasePath = optarg;
+                break;
+            }
+            case 't': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb -t' tableName");
+                tableName = optarg;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb' option unknown");
+                resultReceiver_.append(unknownOptionMsg);
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    if (databasePath.empty()) {
+        databasePath = "/data/storage/el2/base/haps/form_store/form.db";
+        TAG_LOGI(AAFwkTag::AA_TOOL, "using default database path: %{public}s", databasePath.c_str());
+    }
+
+    resultReceiver_ = "Querying RDB database: " + databasePath + "\n";
+
+    if (!tableName.empty()) {
+        resultReceiver_ += "Table: " + tableName + "\n";
+        resultReceiver_ += "-------------------\n";
+        result = QueryRdbTableData(databasePath, tableName);
+    } else {
+        resultReceiver_ += "Tables in database:\n";
+        resultReceiver_ += "-------------------\n";
+        result = ListRdbTables(databasePath);
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::QueryRdbTableData(const std::string& databasePath, const std::string& tableName)
+{
+    ErrCode result = OHOS::ERR_OK;
+
+    NativeRdb::RdbStoreConfig rdbStoreConfig(databasePath);
+    rdbStoreConfig.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    rdbStoreConfig.SetAllowRebuild(true);
+
+    std::shared_ptr<NativeRdb::RdbStore> rdbStore = NativeRdb::RdbHelper::GetRdbStore(
+        rdbStoreConfig, 1, nullptr);
+    if (!rdbStore) {
+        resultReceiver_ += "error: failed to open database\n";
+        return OHOS::ERR_NO_INIT;
+    }
+
+    NativeRdb::RdbCursor rdbCursor = rdbStore->QuerySql("SELECT * FROM " + tableName);
+    if (!rdbCursor.IsValid()) {
+        resultReceiver_ += "error: failed to query table data\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    int columnCount = rdbCursor.GetColumnCount();
+    std::vector<std::string> columnNames = rdbCursor.GetColumnNames();
+
+    // Print column names
+    for (int i = 0; i < columnCount; i++) {
+        resultReceiver_ += columnNames[i];
+        if (i < columnCount - 1) {
+            resultReceiver_ += " | ";
+        }
+    }
+    resultReceiver_ += "\n";
+
+    // Print separator
+    for (int i = 0; i < columnCount; i++) {
+        resultReceiver_ += "----";
+        if (i < columnCount - 1) {
+            resultReceiver_ += "-+-";
+        }
+    }
+    resultReceiver_ += "\n";
+
+    // Print rows
+    int rowCount = 0;
+    while (rdbCursor.GoToNextRow() == NativeRdb::E_OK) {
+        rowCount++;
+        for (int i = 0; i < columnCount; i++) {
+            std::string value = rdbCursor.GetString(i);
+            resultReceiver_ += (value.empty() ? "NULL" : value);
+            if (i < columnCount - 1) {
+                resultReceiver_ += " | ";
+            }
+        }
+        resultReceiver_ += "\n";
+    }
+
+    resultReceiver_ += "\nTotal rows: " + std::to_string(rowCount) + "\n";
+
+    rdbCursor.Close();
+    rdbStore->Close();
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::ListRdbTables(const std::string& databasePath)
+{
+    ErrCode result = OHOS::ERR_OK;
+
+    NativeRdb::RdbStoreConfig rdbStoreConfig(databasePath);
+    rdbStoreConfig.SetSecurityLevel(NativeRdb::SecurityLevel::S1);
+    rdbStoreConfig.SetAllowRebuild(true);
+
+    std::shared_ptr<NativeRdb::RdbStore> rdbStore = NativeRdb::RdbHelper::GetRdbStore(
+        rdbStoreConfig, 1, nullptr);
+    if (!rdbStore) {
+        resultReceiver_ += "error: failed to open database\n";
+        return OHOS::ERR_NO_INIT;
+    }
+
+    NativeRdb::RdbCursor rdbCursor = rdbStore->QuerySql("SELECT name FROM sqlite_master WHERE type='table'");
+    if (!rdbCursor.IsValid()) {
+        resultReceiver_ += "error: failed to query tables\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    bool hasTables = false;
+    while (rdbCursor.GoToNextRow() == NativeRdb::E_OK) {
+        hasTables = true;
+        std::string tableName = rdbCursor.GetString(0);
+        resultReceiver_ += tableName + "\n";
+    }
+
+    if (!hasTables) {
+        resultReceiver_ += "No tables found in database.\n";
+    }
+
+    rdbCursor.Close();
+    rdbStore->Close();
+
+    return result;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

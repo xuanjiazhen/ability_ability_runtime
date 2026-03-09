@@ -42,6 +42,8 @@ const std::string HELP_MSG = "usage: aa <command> <options>\n"
     "  attach                      attach application to enter debug mode\n"
     "  detach                      detach application to exit debug mode\n"
     "  send-memory-level           send memory level to application by pid \n"
+    "  add-sms                     add sms to sim card\n"
+    "  query-sms                   query sms from sim card\n"
 #ifdef ABILITY_COMMAND_FOR_TEST
     "  test                        start the test framework with options\n"
     "  ApplicationNotResponding     Pass in pid with options\n"
@@ -139,6 +141,31 @@ const std::string HELP_MSG_SEND_MEMORY_LEVEL =
     "  -l, --level <0|1|2>     Memory level (0: Moderate, 1: Low, 2: Critical)\n\n"
     "Optional:\n"
     "  -h, --help              Show this help message\n";
+
+const std::string HELP_MSG_ADD_SMS =
+    "usage: aa add-sms <options>\n"
+    "options list:\n"
+    "  -h, --help                   list available commands\n"
+    "  -s <slot-id>                 indicates the card slot index number\n"
+    "  -m <smsc>                    indicates the short message service center\n"
+    "  -p <pdu>                     indicates the protocol data unit of message\n"
+    "  -t <status>                  indicates the status of sim message (0-3)\n"
+    "  add sms to sim card\n";
+
+const std::string HELP_MSG_QUERY_SMS =
+    "usage: aa query-sms <options>\n"
+    "options list:\n"
+    "  -h, --help                   list available commands\n"
+    "  -s <slot-id>                 indicates the card slot index number\n"
+    "  query sms from sim card\n";
+
+const std::string HELP_MSG_QUERY_RDB =
+    "usage: aa query-rdb <options>\n"
+    "options list:\n"
+    "  -h, --help                   list available commands\n"
+    "  -d <database-path>           database file path (default: /data/storage/el2/base/haps/form_store/form.db)\n"
+    "  -t <table-name>              table name to query (if not specified, list all tables)\n"
+    "  query rdb database tables and data\n";
 
 const std::string HELP_MSG_ATTACH_APP_DEBUG =
     "usage: aa attach <options>\n"
@@ -251,6 +278,7 @@ private:
     ErrCode RunAsDetachDebugCommand();
     ErrCode RunAsSendMemoryLevelCommand();
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
+    ErrCode RunAsQueryRdbCommand();
     bool IsLongStartOption(const std::string &argv);
     bool IsShortStartOption(const std::string &argv);
     bool IsStartOption(const std::string &argv);
