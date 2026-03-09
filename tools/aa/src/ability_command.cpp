@@ -34,8 +34,11 @@
 #include "system_ability_definition.h"
 #include "test_observer.h"
 #include "app_mem_info.h"
+#include "sms_service_manager_client.h"
+#include "string_utils.h"
 
 using namespace OHOS::AppExecFwk;
+using namespace OHOS::Telephony;
 
 namespace OHOS {
 namespace AAFwk {
@@ -263,6 +266,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"query-rdb", [this]() { return this->RunAsQueryRdbCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -2844,5 +2848,143 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     return result;
 }
 #endif
+
+ErrCode AbilityManagerShellCommand::RunAsQueryRdbCommand()
+{
+    ErrCode result = OHOS::ERR_OK;
+    std::string databasePath = "/data/app/el2/100/database/com.ohos.telephonydataability/rdb/sms_mms.db";
+    std::string tableName;
+
+    int option = -1;
+    while (true) {
+        option = getopt_long(argc_, argv_, "hd:t:", nullptr, nullptr);
+        if (option == -1) {
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb -h'");
+                resultReceiver_ = HELP_MSG_QUERY_RDB;
+                return OHOS::ERR_OK;
+            }
+            case 't': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb -t' tableName");
+                tableName = optarg;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-rdb' option unknown");
+                resultReceiver_.append(unknownOptionMsg);
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    resultReceiver_ = "Querying RDB database: " + databasePath + "\n";
+
+    if (!tableName.empty()) {
+        resultReceiver_ += "Table: " + tableName + "\n";
+        resultReceiver_ += "-------------------\n";
+        result = QueryRdbTableData(databasePath, tableName);
+    } else {
+        resultReceiver_ += "Tables in database:\n";
+        resultReceiver_ += "-------------------\n";
+        result = ListRdbTables(databasePath);
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::QueryRdbTableData(const std::string& databasePath, const std::string& tableName)
+{
+    ErrCode result = OHOS::ERR_OK;
+
+    NativeRdb::RdbStoreConfig rdbStoreConfig(databasePath);
+    rdbStoreConfig.SetSecurityLevel(NativeRdb::SecurityLevel::S2);
+    rdbStoreConfig.SetAllowRebuild(true);
+
+    TestRdbConfig testRdbConfig;
+    TestRdbOpenCallback testRdbOpenCallback(testRdbConfig);
+    int32_t errCode = NativeRdb::E_OK;
+    std::shared_ptr<NativeRdb::RdbStore> rdbStore = NativeRdb::RdbHelper::GetRdbStore(
+        rdbStoreConfig, 1, testRdbOpenCallback, errCode);
+    if (!rdbStore) {
+        resultReceiver_ += "error: failed to open database\n";
+        return OHOS::ERR_NO_INIT;
+    }
+
+    NativeRdb::AbsRdbPredicates absRdbPredicates(tableName);
+    auto absSharedResultSet = rdbStore->QueryByStep(absRdbPredicates, std::vector<std::string>());
+    if (absSharedResultSet == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "absSharedResultSet failed");
+        return false;
+    }
+
+    if (absSharedResultSet->GoToFirstRow() == NativeRdb::E_OK) {
+        do {
+            std::string key;
+            if (absSharedResultSet->GetString(11, key) != NativeRdb::E_OK) {
+                TAG_LOGE(AAFwkTag::INTENT, "GetString key failed");
+                return false;
+            }
+            resultReceiver_ += "Content: " + key + "\n";
+        } while (absSharedResultSet->GoToNextRow() == NativeRdb::E_OK);
+    }
+
+    absSharedResultSet->Close();
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::ListRdbTables(const std::string& databasePath)
+{
+    ErrCode result = OHOS::ERR_OK;
+
+    return result;
+}
+
+TestRdbOpenCallback::TestRdbOpenCallback(const TestRdbConfig &intentRdbConfig)\
+    : intentRdbConfig_(intentRdbConfig) {}
+
+int32_t TestRdbOpenCallback::OnCreate(NativeRdb::RdbStore &rdbStore)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "OnCreate");
+    return NativeRdb::E_OK;
+}
+
+int32_t TestRdbOpenCallback::OnUpgrade(
+    NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "OnUpgrade currentVersion: %{public}d, targetVersion: %{public}d",
+        currentVersion, targetVersion);
+    return NativeRdb::E_OK;
+}
+
+int32_t TestRdbOpenCallback::OnDowngrade(
+    NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "OnDowngrade currentVersion: %{public}d, targetVersion: %{public}d",
+        currentVersion, targetVersion);
+    return NativeRdb::E_OK;
+}
+
+int32_t TestRdbOpenCallback::OnOpen(NativeRdb::RdbStore &rdbStore)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "OnOpen");
+    return NativeRdb::E_OK;
+}
+
+int32_t TestRdbOpenCallback::onCorruption(std::string databaseFile)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "onCorruption");
+    return NativeRdb::E_OK;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
