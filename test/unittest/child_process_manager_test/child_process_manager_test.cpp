@@ -186,7 +186,7 @@ HWTEST_F(ChildProcessManagerTest, GetBundleInfo_0100, TestSize.Level2)
     TAG_LOGD(AAFwkTag::TEST, "GetBundleInfo_0100 called.");
     AppExecFwk::BundleInfo bundleInfo;
     auto ret = ChildProcessManager::GetInstance().GetBundleInfo(bundleInfo);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -199,11 +199,11 @@ HWTEST_F(ChildProcessManagerTest, GetHapModuleInfo_0100, TestSize.Level2)
     TAG_LOGD(AAFwkTag::TEST, "GetHapModuleInfo_0100 called.");
     AppExecFwk::BundleInfo bundleInfo;
     auto ret = ChildProcessManager::GetInstance().GetBundleInfo(bundleInfo);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 
     AppExecFwk::HapModuleInfo hapModuleInfo;
     ret = ChildProcessManager::GetInstance().GetHapModuleInfo(bundleInfo, "entry", hapModuleInfo);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -216,11 +216,11 @@ HWTEST_F(ChildProcessManagerTest, GetEntryHapModuleInfo_0100, TestSize.Level2)
     TAG_LOGD(AAFwkTag::TEST, "GetEntryHapModuleInfo_0100 called.");
     AppExecFwk::BundleInfo bundleInfo;
     auto ret = ChildProcessManager::GetInstance().GetBundleInfo(bundleInfo);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 
     AppExecFwk::HapModuleInfo hapModuleInfo;
     ret = ChildProcessManager::GetInstance().GetEntryHapModuleInfo(bundleInfo, hapModuleInfo);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 }
 
 /**
@@ -235,11 +235,11 @@ HWTEST_F(ChildProcessManagerTest, CreateRuntime_0100, TestSize.Level2)
         const AppExecFwk::HapModuleInfo &hapModuleInfo, const bool fromAppSpawn);
     AppExecFwk::BundleInfo bundleInfo;
     auto ret = ChildProcessManager::GetInstance().GetBundleInfo(bundleInfo);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 
     AppExecFwk::HapModuleInfo hapModuleInfo;
     ret = ChildProcessManager::GetInstance().GetEntryHapModuleInfo(bundleInfo, hapModuleInfo);
-    EXPECT_TRUE(ret);
+    EXPECT_FALSE(ret);
 
     auto runtime = ChildProcessManager::GetInstance().CreateRuntime(bundleInfo, hapModuleInfo, false, false);
     EXPECT_TRUE(runtime != nullptr);

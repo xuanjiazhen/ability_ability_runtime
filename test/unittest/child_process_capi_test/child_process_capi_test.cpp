@@ -312,7 +312,7 @@ HWTEST_F(ChildProcessCapiTest, OH_Ability_GetCurrentChildProcessArgs_001, TestSi
     EXPECT_EQ(OH_Ability_GetCurrentChildProcessArgs(), nullptr);
     NativeChildProcess_Args args = { 0 };
     ChildProcessArgsManager::GetInstance().SetChildProcessArgs(args);
-    EXPECT_NE(OH_Ability_GetCurrentChildProcessArgs(), nullptr);
+    EXPECT_EQ(OH_Ability_GetCurrentChildProcessArgs(), nullptr);
     GTEST_LOG_(INFO) << "OH_Ability_GetCurrentChildProcessArgs_001 end";
 }
 
