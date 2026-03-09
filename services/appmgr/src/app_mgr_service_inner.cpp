@@ -228,6 +228,7 @@ constexpr const char* NATIVE_DEBUG = "nativeDebug";
 constexpr const char* DEBUG_FROM = "ohos.param.debugFrom";
 constexpr const char* SERVICE_EXTENSION = ":ServiceExtension";
 constexpr const char* KEEP_ALIVE = ":KeepAlive";
+constexpr const char* AGENT_UI_PROCESS_SUFFIX = ":agent";
 constexpr const char* PARAM_SPECIFIED_PROCESS_FLAG = "ohoSpecifiedProcessFlag";
 constexpr const char* TSAN_FLAG_NAME = "tsanEnabled";
 constexpr const char* HWASAN_FLAG_NAME = "hwasanEnabled";
@@ -339,6 +340,14 @@ constexpr const char* NATIVESPAWN_STARTED = "startup.service.ctl.nativespawn.pid
 constexpr int32_t PC_MAX_CHILD_PROCESS_NUM = 50;
 constexpr int32_t USER100 = 100;
 const std::string LARGE_SCREEN = "large_screen";
+constexpr size_t AGENT_UI_PROCESS_SUFFIX_LEN = 6;
+
+bool IsValidAgentUIProcessName(const std::string &processName)
+{
+    return processName.size() >= AGENT_UI_PROCESS_SUFFIX_LEN &&
+        processName.compare(processName.size() - AGENT_UI_PROCESS_SUFFIX_LEN,
+            AGENT_UI_PROCESS_SUFFIX_LEN, AGENT_UI_PROCESS_SUFFIX) == 0;
+}
 
 // runtime language arkts version
 const std::string CODE_LANGUAGE_ARKTS_1_2 = "static";
@@ -1167,6 +1176,20 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     }
     if (appRecord && abilityInfo->type == AppExecFwk::AbilityType::PAGE) {
         NotifyMemMgrPriorityChanged(appRecord);
+    }
+
+    if (AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityInfo->extensionAbilityType)) {
+        if (!IsValidAgentUIProcessName(processName)) {
+            TAG_LOGE(AAFwkTag::APPMGR, "agentUI processName invalid: %{public}s", processName.c_str());
+            NotifyStartProcessFailed(loadParam->token);
+            return;
+        }
+        if (appRecord == nullptr) {
+            TAG_LOGE(AAFwkTag::APPMGR, "agentUI process does not exist, deny cold start: %{public}s",
+                processName.c_str());
+            NotifyStartProcessFailed(loadParam->token);
+            return;
+        }
     }
 
     if (!appRecord) {
