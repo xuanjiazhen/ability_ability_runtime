@@ -21,7 +21,6 @@
 
 namespace OHOS {
 namespace AAFwk {
-
 /**
  * @enum LaunchMode
  * Launch mode of modular object extension.
@@ -35,7 +34,7 @@ enum class LaunchMode : int32_t {
  * @enum ProcessMode
  * Process mode of modular object extension.
  */
-enum class ProcessMode : int32_t {
+enum class ModularProcessMode : int32_t {
     BUNDLE = 0,          // All modular object extensions under the same bundle share a single process.
     TYPE = 1,            // Modular object extensions with the same name share a single process.
     INSTANCE = 2,        // Each modular object extension instance is a process.
@@ -61,7 +60,7 @@ struct ModularObjectExtensionInfo : public Parcelable {
     std::string abilityName;       // Ability name
     int32_t appIndex = 0;          // App index
     LaunchMode launchMode = LaunchMode::IN_PROCESS;      // Launch mode
-    ProcessMode processMode = ProcessMode::BUNDLE;       // Process mode
+    ModularProcessMode processMode = ModularProcessMode::BUNDLE;       // Process mode
     ThreadMode threadMode = ThreadMode::BUNDLE;          // Thread mode
     bool isSelfDisabled = false;    // Whether disabled by the self application
     bool isSystemDisabled = false;  // Whether disabled by system application
@@ -100,8 +99,6 @@ struct ModularObjectExtensionInfo : public Parcelable {
      */
     static ModularObjectExtensionInfo *Unmarshalling(Parcel &parcel);
 };
-
 } // namespace AAFwk
 } // namespace OHOS
-
 #endif // OHOS_ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_INFO_H
