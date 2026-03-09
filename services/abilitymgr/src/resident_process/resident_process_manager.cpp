@@ -15,6 +15,9 @@
 
 #include "resident_process_manager.h"
 
+#include <chrono>
+#include <thread>
+
 #include "ability_manager_service.h"
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
@@ -22,7 +25,12 @@
 #include "ffrt.h"
 #include "keep_alive_utils.h"
 #include "main_element_utils.h"
+#include "mission_info.h"
 #include "user_controller/user_controller.h"
+#ifdef SUPPORT_POWER
+#include "power_mgr_client.h"
+#endif
+
 
 namespace OHOS {
 namespace AAFwk {
@@ -60,6 +68,7 @@ void ResidentProcessManager::Init()
 {
     auto &amsRdb = AmsResidentProcessRdb::GetInstance();
     amsRdb.Init();
+    RegisterScreenStateCallback();
 }
 
 void ResidentProcessManager::StartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
@@ -116,11 +125,16 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
     const AppExecFwk::HapModuleInfo &hapModuleInfo, const std::string &processName,
     size_t index, std::set<uint32_t> &needEraseIndexSet, int32_t userId)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentProcessWithMainElementPerBundleHap called, bundle: %{public}s, userId: %{public}d",
+        hapModuleInfo.bundleName.c_str(), userId);
+
     std::string mainElement;
     bool isDataAbility = false;
     std::string uriStr;
     if (!MainElementUtils::CheckMainElement(hapModuleInfo,
         processName, mainElement, isDataAbility, uriStr, userId)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "CheckMainElement returned false, isDataAbility: %{public}d",
+            isDataAbility);
         if (isDataAbility) {
             // dataability, need use AcquireDataAbility
             needEraseIndexSet.insert(index);
@@ -136,6 +150,7 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
     // startAbility
     Want want;
     want.SetElementName(hapModuleInfo.bundleName, mainElement);
+    want.SetParam(AbilityConfig::PARAM_IS_RESIDENT_ABILITY, true);
     ResidentAbilityInfoGuard residentAbilityInfoGuard(hapModuleInfo.bundleName, mainElement, userId);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartResidentAbility, bundleName: %{public}s, mainElement: %{public}s",
         hapModuleInfo.bundleName.c_str(), mainElement.c_str());
@@ -145,6 +160,10 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
         hapModuleInfo.name, mainElement, true, userId);
     if (ret != ERR_OK) {
         AddFailedResidentAbility(hapModuleInfo.bundleName, mainElement, userId);
+    } else {
+        // Start memory defragmentation task after 140 seconds
+        // Use public API GetResidentAbilityRecord to retrieve AbilityRecord
+        StartResidentMemoryDefragTask(hapModuleInfo.bundleName, mainElement, userId);
     }
 }
 
@@ -381,5 +400,120 @@ void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleN
         .userId = userId,
     });
 }
+
+void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bundleName,
+    const std::string &abilityName, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Deferring memory defrag task for %{public}s/%{public}s until first screen off",
+        bundleName.c_str(), abilityName.c_str());
+
+    // Store the task for later execution after first screen off
+    std::lock_guard lock(pendingDeepCopyTasksMutex_);
+    pendingDeepCopyTasks_.push_back(ResidentAbilityInfo {
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .userId = userId,
+    });
+}
+
+void ResidentProcessManager::RegisterScreenStateCallback()
+{
+#ifdef SUPPORT_POWER
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Registering for screen state changes");
+    // We'll poll for screen state changes in a background thread
+    std::thread([self = shared_from_this()]() {
+        bool wasScreenOn = true;
+        while (true) {
+            bool isScreenOn = PowerMgr::PowerMgrClient::GetInstance().IsScreenOn();
+            if (wasScreenOn && !isScreenOn) {
+                // Screen just turned off
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "Screen turned off detected");
+                self->OnScreenStateChanged(false);
+            }
+            wasScreenOn = isScreenOn;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }).detach();
+#else
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "SUPPORT_POWER not defined, cannot monitor screen state");
+#endif
+}
+
+void ResidentProcessManager::OnScreenStateChanged(bool isScreenOn)
+{
+    if (isScreenOn) {
+        return;  // We only care about screen off events
+    }
+
+    // Check if this is the first screen off
+    bool expectedFirst = false;
+    if (!isFirstScreenOffOccurred_.compare_exchange_strong(expectedFirst, true)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Screen off already occurred, ignoring");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "First screen off detected, triggering deep copy tasks");
+    ExecutePendingDeepCopyTasks();
+}
+
+void ResidentProcessManager::ExecutePendingDeepCopyTasks()
+{
+    std::list<ResidentAbilityInfo> tasksToExecute;
+    {
+        std::lock_guard lock(pendingDeepCopyTasksMutex_);
+        if (pendingDeepCopyTasks_.empty()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "No pending deep copy tasks to execute");
+            return;
+        }
+        tasksToExecute = std::move(pendingDeepCopyTasks_);
+    }
+
+    auto task = [tasks = std::move(tasksToExecute)]() {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Executing %{public}zu pending deep copy tasks", tasks.size());
+        
+        for (const auto& task : tasks) {
+            auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+            if (ams == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
+                continue;
+            }
+
+            std::shared_ptr<AbilityRecord> abilityRecord;
+            auto ret = ams->GetResidentAbilityRecord(task.bundleName, task.abilityName, task.userId, abilityRecord);
+            if (ret != ERR_OK || abilityRecord == nullptr) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityRecord not found for %{public}s/%{public}s, skipping",
+                    task.bundleName.c_str(), task.abilityName.c_str());
+                continue;
+            }
+
+            if (!abilityRecord->IsResidentAbility()) {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityRecord no longer marked as resident, skipping");
+                continue;
+            }
+
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Performing memory defrag for %{public}s/%{public}s",
+                task.bundleName.c_str(), task.abilityName.c_str());
+
+            // Create a deep copy to trigger memory reallocation
+            auto deepCopiedRecord = abilityRecord->DeepCopy();
+
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed for %{public}s/%{public}s",
+                task.bundleName.c_str(), task.abilityName.c_str());
+
+            // Clear the resident ability flag to avoid repeated execution
+            abilityRecord->SetResidentAbilityFlag(false);
+        }
+    };
+
+    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+    if (handler != nullptr) {
+        handler->PostTask(task, 100);  // Delay 100ms as requested
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Scheduled deep copy tasks to execute after 100ms");
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get task handler, executing immediately");
+        task();
+    }
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

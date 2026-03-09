@@ -52,9 +52,7 @@
 #include "param.h"
 #include "permission_constants.h"
 #include "process_options.h"
-#include "session_info.h"
 #include "uri_utils.h"
-#include "user_controller/user_controller.h"
 #include "utils/state_utils.h"
 #ifdef SUPPORT_GRAPHICS
 #include "image_source.h"
@@ -113,6 +111,7 @@ const int32_t SHELL_ASSISTANT_DIETYPE = 0;
 std::atomic<int64_t> AbilityRecord::abilityRecordId = 0;
 const int32_t DEFAULT_USER_ID = 0;
 const int32_t SEND_RESULT_CANCELED = -1;
+const int32_t DEFAULT_REQUEST_CODE = -1;
 const int VECTOR_SIZE = 2;
 const int LOAD_TIMEOUT_ASANENABLED = 150;
 const int TERMINATE_TIMEOUT_ASANENABLED = 150;
@@ -212,8 +211,9 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
         TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityRequest.callType is CALL_REQUEST_TYPE.");
         SetStartedByCall(true);
     }
-    // Initialize plugin ability relationship
-    InitPluginAbility(abilityRequest);
+    if (AbilityRuntime::StartupUtil::IsStartPlugin(abilityRequest.want)) {
+        isPluginAbility_ = true;
+    }
     collaboratorType_ = abilityRequest.collaboratorType;
     missionAffinity_ = abilityRequest.want.GetStringParam(PARAM_MISSION_AFFINITY_KEY);
 
@@ -222,6 +222,14 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         keepAliveBundle_ = true;
+    }
+
+    // Check if this is a resident ability for memory optimization
+    bool isResident = abilityRequest.want.GetBoolParam(AbilityConfig::PARAM_IS_RESIDENT_ABILITY, false);
+    if (isResident) {
+        isResidentAbility_ = true;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Marked as resident ability for memory optimization: %{public}s/%{public}s",
+            abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str());
     }
 }
 
@@ -329,9 +337,6 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     want_.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
     if (DelayedSingleton<AppScheduler>::GetInstance()->IsAttachDebug(abilityInfo_.bundleName)) {
         SetAttachDebug(true);
-    }
-    if (result == ERR_OK) {
-        AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(abilityInfo_.bundleName, userId);
     }
     return result;
 }
@@ -449,9 +454,6 @@ void AbilityRecord::ProcessForegroundAbility(uint32_t tokenId, const ForegroundO
         bool isNotifyCollaborator = !options.targetGrantBundleName.empty();
         if (isNotifyCollaborator) {
             targetBundleName = options.targetGrantBundleName;
-        }
-        if (options.callerTypeForAnco == static_cast<int32_t>(CallerTypeForAnco::QUERY)) {
-            tokenId = options.realCallerTokenId;
         }
         GrantUriPermission(want_, targetBundleName, false, tokenId, isNotifyCollaborator);
     }
@@ -843,10 +845,6 @@ int AbilityRecord::TerminateAbility()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "TerminateAbility:%{public}s", abilityInfo_.name.c_str());
-
-    // Notify all startAbilityByCall callers that this ability is terminating
-    NotifyCallersOnTerminate();
-
 #ifdef WITH_DLP
     HandleDlpClosed();
 #endif // WITH_DLP
@@ -1317,6 +1315,10 @@ void AbilityRecord::SendResultByBackToCaller(const std::shared_ptr<AbilityResult
     CHECK_POINTER(scheduler_);
     CHECK_POINTER(result);
     scheduler_->SendResult(result->requestCode_, result->resultCode_, result->resultWant_);
+    if (GetCallerInfo() != nullptr) {
+        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(
+            GetCallerInfo()->callerPid, GetPid(), GetAbilityRecordId());
+    }
 }
 
 void AbilityRecord::SendSandboxSavefileResult(const Want &want, int resultCode, int requestCode)
@@ -1410,7 +1412,7 @@ void AbilityRecord::SaveResultToCallers(const int resultCode, const Want *result
 {
     auto callerRecordList = GetCallerRecordList();
     if (callerRecordList.empty()) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "callerRecordList is empty");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "callerRecordList empty");
         return;
     }
     auto latestCaller = callerRecordList.back();
@@ -1545,26 +1547,16 @@ void AbilityRecord::RemoveCallerRequestCode(std::shared_ptr<AbilityRecord> calle
         TAG_LOGI(AAFwkTag::ABILITYMGR, "null record");
         return;
     }
-    bool removePidConnection = false;
-    {
-        std::lock_guard guard(callerListLock_);
-        for (auto it = callerList_.begin(); it != callerList_.end(); it++) {
-            if ((*it) != nullptr && (*it)->GetCaller() == callerAbilityRecord) {
-                (*it)->RemoveHistoryRequestCode(requestCode);
-                if (!(*it)->HasForResultRequestCode()) {
-                    removePidConnection = true;
-                }
-                if ((*it)->GetRequestCodeSet().empty()) {
-                    callerList_.erase(it);
-                    TAG_LOGI(AAFwkTag::ABILITYMGR, "remove callerRecord");
-                }
-                break;
+    std::lock_guard guard(callerListLock_);
+    for (auto it = callerList_.begin(); it != callerList_.end(); it++) {
+        if ((*it)->GetCaller() == callerAbilityRecord) {
+            (*it)->RemoveHistoryRequestCode(requestCode);
+            if ((*it)->GetRequestCodeSet().empty()) {
+                callerList_.erase(it);
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "remove callerRecord");
             }
+            return;
         }
-    }
-    if (removePidConnection) {
-        DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->AbilityRemovePidConnection(
-            callerAbilityRecord->GetPid(), GetPid(), GetAbilityRecordId());
     }
 }
 
@@ -1863,11 +1855,8 @@ void AbilityRecord::RemoveAbilityDeathRecipient() const
 
 void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "OnSchedulerDied called");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     std::lock_guard<ffrt::mutex> guard(lock_);
-    if (IsAbilityDiedHandled()) {
-        return;
-    }
     CHECK_POINTER(scheduler_);
 
     auto object = remote.promote();
@@ -1915,35 +1904,13 @@ void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
     NotifyRemoveShellProcess(CollaboratorType::OTHERS_TYPE);
 }
 
-bool AbilityRecord::IsAbilityDiedHandled()
-{
-    if (handledAbilityDied_) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "abilityDied already handled");
-        return handledAbilityDied_;
-    }
-    handledAbilityDied_ = true;
-    return false;
-}
-
-void AbilityRecord::OnProcessDied(bool isKeepAliveDied)
+void AbilityRecord::OnProcessDied()
 {
     CancelPrepareTerminate();
     std::lock_guard<ffrt::mutex> guard(lock_);
-    if (!IsSceneBoard() && scheduler_ != nullptr && !isKeepAliveDied) {
+    if (!IsSceneBoard() && scheduler_ != nullptr && !isKeepAliveDied_) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "OnProcessDied: '%{public}s', attached.", abilityInfo_.name.c_str());
         return;
-    }
-    if (IsAbilityDiedHandled()) {
-        return;
-    }
-    if (scheduler_ != nullptr && schedulerDeathRecipient_ != nullptr) {
-        auto schedulerObject = scheduler_->AsObject();
-        if (schedulerObject != nullptr) {
-            schedulerObject->RemoveDeathRecipient(schedulerDeathRecipient_);
-        }
-    }
-    if (lifecycleDeal_ != nullptr) {
-        lifecycleDeal_->SetScheduler(nullptr);
     }
     isWindowAttached_ = false;
 
@@ -2617,22 +2584,6 @@ bool AbilityRecord::IsNeedToCallRequest() const
     return callContainer_->IsNeedToCallRequest();
 }
 
-void AbilityRecord::NotifyCallersOnTerminate()
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Notify callers on terminate: %{public}s",
-        abilityInfo_.name.c_str());
-
-    if (callContainer_ == nullptr) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "callContainer_ is null, no callers to notify");
-        return;
-    }
-
-    AppExecFwk::ElementName element(abilityInfo_.deviceId, abilityInfo_.bundleName,
-        abilityInfo_.name, abilityInfo_.moduleName);
-
-    callContainer_->NotifyAllCallDisconnect(element);
-}
-
 void AbilityRecord::ContinueAbility(const std::string& deviceId, uint32_t versionCode)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "ContinueAbility");
@@ -2738,12 +2689,11 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     grantInfo.callerTokenId = callerTokenId;
     grantInfo.collaboratorType = collaboratorType_;
     grantInfo.isSandboxApp = isSandboxApp;
-    grantInfo.appIndex = appIndex_;
     grantInfo.targetBundleName = targetBundleName;
+    grantInfo.appIndex = appIndex_;
     grantInfo.userId = GetOwnerMissionUserId();
     grantInfo.flag = want.GetFlags();
     grantInfo.isNotifyCollaborator = isNotifyCollaborator;
-    grantInfo.callerUid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
     if (!isNotifyCollaborator) {
         grantInfo.targetAbilityName = abilityInfo_.name;
     }
@@ -3032,11 +2982,6 @@ bool AbilityRecord::GetRestartAppFlag() const
     return isRestartApp_;
 }
 
-void AbilityRecord::SetSpecifyTokenId(uint32_t specifyTokenId)
-{
-    specifyTokenId_ = specifyTokenId;
-}
-
 void AbilityRecord::SetKillForPermissionUpdateFlag(bool isKillForPermissionUpdate)
 {
     isKillForPermissionUpdate_ = isKillForPermissionUpdate;
@@ -3063,6 +3008,11 @@ void AbilityRecord::UpdateUIExtensionInfo(const WantParams &wantParams)
         want_.RemoveParam(UIEXTENSION_ROOT_HOST_PID);
     }
     want_.SetParam(UIEXTENSION_ROOT_HOST_PID, wantParams.GetIntParam(UIEXTENSION_ROOT_HOST_PID, -1));
+}
+
+void AbilityRecord::SetSpecifyTokenId(uint32_t specifyTokenId)
+{
+    specifyTokenId_ = specifyTokenId;
 }
 
 void AbilityRecord::SetDebugAppByWaitingDebugFlag()
@@ -3142,6 +3092,22 @@ void AbilityRecord::SetDebugUIExtension()
     launchDebugInfo_.debugApp = true;
 }
 
+void AbilityRecord::NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
+    const std::string &message, int32_t resultCode)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    nlohmann::json jsonObject = nlohmann::json {
+        { JSON_KEY_ERR_MSG, message },
+    };
+    lifecycleDeal_->NotifyAbilityRequestFailure(requestId, element, jsonObject.dump(), resultCode);
+}
+
+void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
+{
+    CHECK_POINTER(lifecycleDeal_);
+    lifecycleDeal_->NotifyAbilityRequestSuccess(requestId, element);
+}
+
 void AbilityRecord::NotifyAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode)
 {
     CHECK_POINTER(lifecycleDeal_);
@@ -3180,22 +3146,6 @@ void AbilityRecord::UpdateUIExtensionBindInfo(const WantParams &wantParams)
         want_.RemoveParam(UIEXTENSION_HOST_BUNDLENAME);
     }
     want_.SetParam(UIEXTENSION_HOST_BUNDLENAME, wantParams.GetStringParam(UIEXTENSION_HOST_BUNDLENAME));
-}
-
-void AbilityRecord::NotifyAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
-    const std::string &message, int32_t resultCode)
-{
-    CHECK_POINTER(lifecycleDeal_);
-    nlohmann::json jsonObject = nlohmann::json {
-        { JSON_KEY_ERR_MSG, message },
-    };
-    lifecycleDeal_->NotifyAbilityRequestFailure(requestId, element, jsonObject.dump(), resultCode);
-}
-
-void AbilityRecord::NotifyAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element)
-{
-    CHECK_POINTER(lifecycleDeal_);
-    lifecycleDeal_->NotifyAbilityRequestSuccess(requestId, element);
 }
 
 void AbilityRecord::SendAppStartupTypeEvent(const AppExecFwk::AppStartType startType,
@@ -3341,108 +3291,157 @@ bool AbilityRecord::PromotePriority()
     return false;
 }
 
-void AbilityRecord::AddPluginAbility(std::shared_ptr<AbilityRecord> pluginAbility)
+std::shared_ptr<AbilityRecord> AbilityRecord::DeepCopy() const
 {
-    if (!pluginAbility) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "pluginAbility is null");
-        return;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Starting deep copy for AbilityRecord: %{public}s/%{public}s",
+        abilityInfo_.bundleName.c_str(), abilityInfo_.name.c_str());
+
+    // Create a new AbilityRecord with the same core parameters
+    auto newRecord = std::make_shared<AbilityRecord>(want_, abilityInfo_, abilityInfo_.applicationInfo, requestCode_);
+
+    // Copy basic type members
+    newRecord->isReady_ = isReady_;
+    newRecord->isWindowStarted_ = isWindowStarted_;
+    newRecord->isWindowAttached_ = isWindowAttached_;
+    newRecord->isLauncherAbility_ = isLauncherAbility_;
+    newRecord->isLoading_ = isLoading_;
+    newRecord->isTerminating_ = isTerminating_;
+    newRecord->isCreateByConnect_ = isCreateByConnect_;
+    newRecord->isUninstall_ = isUninstall_;
+    newRecord->isLauncherRoot_ = isLauncherRoot_;
+    newRecord->isSwitchingPause_ = isSwitchingPause_;
+    newRecord->isAbilityForegrounding_ = isAbilityForegrounding_;
+    newRecord->isRestarting_ = isRestarting_;
+    newRecord->isStartedByCall_ = isStartedByCall_;
+    newRecord->isStartToBackground_ = isStartToBackground_;
+    newRecord->isStartToForeground_ = isStartToForeground_;
+    newRecord->minimizeReason_ = minimizeReason_;
+    newRecord->clearMissionFlag_ = clearMissionFlag_;
+    newRecord->keepAliveBundle_ = keepAliveBundle_;
+    newRecord->isKeepAliveDied_ = isKeepAliveDied_;
+    newRecord->lockedState_ = lockedState_;
+    newRecord->isAttachDebug_ = isAttachDebug_;
+    newRecord->isAssertDebug_ = isAssertDebug_;
+    newRecord->isAppAutoStartup_ = isAppAutoStartup_;
+    newRecord->isRestartApp_ = isRestartApp_;
+    newRecord->isLaunching_ = isLaunching_;
+    newRecord->securityFlag_ = securityFlag_;
+    newRecord->isPluginAbility_ = isPluginAbility_;
+    newRecord->isPrelaunch_ = isPrelaunch_;
+    newRecord->isHook_ = isHook_;
+    newRecord->isResidentAbility_ = false;  // Reset resident flag on the copy
+    newRecord->isKillForPermissionUpdate_ = isKillForPermissionUpdate_;
+    newRecord->isPrepareTerminate_ = isPrepareTerminate_;
+
+#ifdef SUPPORT_SCREEN
+    newRecord->isStartingWindow_ = isStartingWindow_;
+    newRecord->isCompleteFirstFrameDrawing_ = isCompleteFirstFrameDrawing_;
+    newRecord->coldStart_ = coldStart_;
+#endif
+
+    // Copy atomic variables (by value)
+    newRecord->isPreloadStart_ = isPreloadStart_.load();
+    newRecord->currentState_ = currentState_.load();
+    newRecord->pendingState_ = pendingState_.load();
+    newRecord->abilityVisibilityState_ = abilityVisibilityState_.load();
+    newRecord->isCallerSetProcess_ = isCallerSetProcess_.load();
+    newRecord->backgroundAbilityWindowDelayed_ = backgroundAbilityWindowDelayed_.load();
+    newRecord->isPrepareTerminateAbilityCalled_ = isPrepareTerminateAbilityCalled_.load();
+    newRecord->isPrepareTerminateAbilityDone_ = isPrepareTerminateAbilityDone_.load();
+    newRecord->isLastWantBackgroundDriven_ = isLastWantBackgroundDriven_.load();
+    newRecord->scenarios_ = scenarios_.load();
+    newRecord->isPreloaded_ = isPreloaded_.load();
+    newRecord->isFrozenByPreload_ = isFrozenByPreload_.load();
+    newRecord->isAbilityConnectionReported_ = isAbilityConnectionReported_.load();
+
+    // Copy integer members
+    newRecord->uiExtensionAbilityId_ = uiExtensionAbilityId_;
+    newRecord->uid_ = uid_;
+    newRecord->pid_ = pid_;
+    newRecord->missionId_ = missionId_;
+    newRecord->ownerMissionUserId_ = ownerMissionUserId_;
+    newRecord->extensionProcessMode_ = extensionProcessMode_;
+    newRecord->appIndex_ = appIndex_;
+    newRecord->restartCount_ = restartCount_;
+    newRecord->restartMax_ = restartMax_;
+    newRecord->collaboratorType_ = collaboratorType_;
+    newRecord->callerAccessTokenId_ = callerAccessTokenId_;
+    newRecord->specifyTokenId_ = specifyTokenId_;
+    newRecord->recordId_ = recordId_;
+    newRecord->startId_ = startId_;
+    newRecord->startTime_ = startTime_;
+    newRecord->restartTime_ = restartTime_;
+
+    // Copy string members
+    newRecord->customProcessFlag_ = customProcessFlag_;
+    newRecord->specifiedFlag_ = specifiedFlag_;
+    newRecord->uri_ = uri_;
+    newRecord->instanceKey_ = instanceKey_;
+    newRecord->missionAffinity_ = missionAffinity_;
+    newRecord->killReason_ = killReason_;
+    newRecord->firstCallerBundleName_ = firstCallerBundleName_;
+
+    // Copy shared pointers (deep copy the pointed objects if they exist)
+    if (result_ != nullptr) {
+        newRecord->result_ = std::make_shared<AbilityResult>(*result_);
+    }
+    if (connectWant_ != nullptr) {
+        newRecord->connectWant_ = std::make_shared<Want>(*connectWant_);
+    }
+    if (saCallerInfo_ != nullptr) {
+        newRecord->saCallerInfo_ = std::make_shared<CallerAbilityInfo>(*saCallerInfo_);
+    }
+    if (launchWant_ != nullptr) {
+        newRecord->launchWant_ = std::make_shared<Want>(*launchWant_);
+    }
+    if (lastWant_ != nullptr) {
+        newRecord->lastWant_ = std::make_shared<Want>(*lastWant_);
+    }
+    if (uiAbilityProperty_ != nullptr) {
+        newRecord->uiAbilityProperty_ = std::make_shared<UIAbilityProperty>(*uiAbilityProperty_);
     }
 
-    std::lock_guard<std::mutex> lock(pluginMutex_);
-
-    // Check if already exists
-    for (const auto weakPlugin : pluginAbilityList_) {
-        auto plugin = weakPlugin.lock();
-        if (plugin == pluginAbility) {
-            TAG_LOGW(AAFwkTag::ABILITYMGR, "Plugin %{public}s already exists in list",
-                plugin->GetAbilityInfo().name.c_str());
-            return;
+    // Copy containers (deep copy)
+    {
+        std::lock_guard<ffrt::mutex> lock(callerListLock_);
+        for (const auto& caller : callerList_) {
+            if (caller != nullptr) {
+                // Create a new CallerRecord with copied values
+                auto newCaller = std::make_shared<CallerRecord>();
+                newCaller->SetRequestCodeSet(caller->GetRequestCodeSet());
+                // Note: caller_, saCaller_, and callerInfo_ are weak/shared pointers
+                // We copy them as-is (shallow copy) since they represent runtime connections
+                // that should not be duplicated
+                newRecord->callerList_.push_back(newCaller);
+            }
         }
     }
 
-    pluginAbilityList_.push_back(pluginAbility);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Add plugin: %{public}s to host: %{public}s",
-        pluginAbility->GetAbilityInfo().name.c_str(), abilityInfo_.name.c_str());
-}
+    // Copy value types
+    newRecord->stateDatas_ = stateDatas_;
+    newRecord->windowConfig_ = windowConfig_;
+    newRecord->appState_ = appState_;
+    newRecord->launchDebugInfo_ = launchDebugInfo_;
 
-void AbilityRecord::RemovePluginAbility(std::shared_ptr<AbilityRecord> pluginAbility)
-{
-    std::lock_guard<std::mutex> lock(pluginMutex_);
+    // Copy ability window state map
+    newRecord->abilityWindowStateMap_ = abilityWindowStateMap_;
 
-    for (auto it = pluginAbilityList_.begin(); it != pluginAbilityList_.end(); ++it) {
-        auto plugin = it->lock();
-        if (plugin == pluginAbility) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "Remove plugin success");
-            pluginAbilityList_.erase(it);
-            break;
-        }
-    }
-}
+    // Copy dump info
+    newRecord->dumpInfos_ = dumpInfos_;
+    newRecord->isDumpTimeout_ = isDumpTimeout_;
 
-std::vector<std::shared_ptr<AbilityRecord>> AbilityRecord::GetPluginAbilities() const
-{
-    std::vector<std::shared_ptr<AbilityRecord>> validPlugins;
-    std::lock_guard<std::mutex> lock(pluginMutex_);
-    for (const auto weakPlugin : pluginAbilityList_) {
-        auto plugin = weakPlugin.lock();
-        if (plugin && plugin->GetAbilityState() != AbilityState::TERMINATING) {
-            validPlugins.push_back(plugin);
-        }
-    }
+    // Note: The following members are NOT copied as they represent runtime state or system resources:
+    // - token_, scheduler_, schedulerDeathRecipient_ (Binder objects)
+    // - lifecycleDeal_ (unique_ptr, manages lifecycle)
+    // - sessionInfo_ (session-specific)
+    // - callContainer_ (may have complex state)
+    // - All mutex and condition_variable objects (cannot be copied)
+    // - DeathRecipient callbacks
 
-    return validPlugins;
-}
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed for AbilityRecord: %{public}s/%{public}s",
+        abilityInfo_.bundleName.c_str(), abilityInfo_.name.c_str());
 
-void AbilityRecord::ClearPluginAbilities()
-{
-    std::lock_guard<std::mutex> lock(pluginMutex_);
-    pluginAbilityList_.clear();
-}
-
-void AbilityRecord::InitPluginAbility(const AbilityRequest &abilityRequest)
-{
-    if (!AbilityRuntime::StartupUtil::IsStartPlugin(abilityRequest.want)) {
-        return;
-    }
-
-    isPluginAbility_ = true;
-
-    auto hostAbility = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
-    if (hostAbility == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "Plugin %{public}s: cannot find host by callerToken",
-            abilityInfo_.name.c_str());
-        return;
-    }
-
-    hostAbility->AddPluginAbility(shared_from_this());
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Plugin initialized: host=%{public}s, plugin=%{public}s",
-        hostAbility->GetAbilityInfo().name.c_str(), abilityInfo_.name.c_str());
-}
-
-void AbilityRecord::PluginCompleteTerminate()
-{
-    if (!IsPluginAbility()) {
-        return;
-    }
-    auto hostAbility = GetCallerRecord();
-    if (hostAbility) {
-        hostAbility->RemovePluginAbility(shared_from_this());
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Plugin %{public}s removed from host %{public}s",
-            GetAbilityInfo().name.c_str(),
-            hostAbility->GetAbilityInfo().name.c_str());
-    }
-}
-
-void AbilityRecord::SetAppRecoveryFlag(int flag)
-{
-    TAG_LOGE(AAFwkTag::ABILITYMGR, "SetAppRecoveryFlag:%{public}d", flag);
-    appRecoveryFlag_ = flag;
-}
-
-int AbilityRecord::GetAppRecoveryFlag() const
-{
-    return appRecoveryFlag_;
+    return newRecord;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
