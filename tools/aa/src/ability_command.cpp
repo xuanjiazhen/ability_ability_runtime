@@ -34,8 +34,10 @@
 #include "system_ability_definition.h"
 #include "test_observer.h"
 #include "app_mem_info.h"
+#include "sms_service_manager_client.h"
 
 using namespace OHOS::AppExecFwk;
+using namespace OHOS::Telephony;
 
 namespace OHOS {
 namespace AAFwk {
@@ -263,6 +265,8 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"add-sms", [this]() { return this->RunAsAddSmsCommand(); }},
+        {"query-sms", [this]() { return this->RunAsQuerySmsCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -2841,6 +2845,168 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     faultData.faultType = CovertFaultType(faultType);
     faultData.pid = ConvertPid(pid);
     DelayedSingleton<AppMgrClient>::GetInstance()->NotifyAppFaultBySA(faultData);
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsAddSmsCommand()
+{
+    ErrCode result = OHOS::ERR_OK;
+    std::string slotIdStr;
+    std::string smsc;
+    std::string pdu;
+    std::string statusStr;
+
+    int option = -1;
+    while (true) {
+        option = getopt_long(argc_, argv_, "hs:m:p:t:", nullptr, nullptr);
+        if (option == -1) {
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -h'");
+                resultReceiver_ = HELP_MSG_ADD_SMS;
+                return OHOS::ERR_OK;
+            }
+            case 's': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -s' slotId");
+                slotIdStr = optarg;
+                break;
+            }
+            case 'm': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -m' smsc");
+                smsc = optarg;
+                break;
+            }
+            case 'p': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -p' pdu");
+                pdu = optarg;
+                break;
+            }
+            case 't': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms -t' status");
+                statusStr = optarg;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa add-sms' option unknown");
+                resultReceiver_.append(unknownOptionMsg);
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    if (slotIdStr.empty() || smsc.empty() || pdu.empty() || statusStr.empty()) {
+        resultReceiver_ = HELP_MSG_ADD_SMS;
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    int32_t slotId = std::stoi(slotIdStr);
+    int32_t status = std::stoi(statusStr);
+
+    auto smsClient = SmsServiceManagerClient::GetInstance();
+    if (!smsClient) {
+        resultReceiver_ = "error: failed to get sms service client\n";
+        return OHOS::ERR_NO_INIT;
+    }
+
+    std::u16string smscU16 = OHOS::Str8ToStr16(smsc);
+    std::u16string pduU16 = OHOS::Str8ToStr16(pdu);
+
+    int32_t ret = smsClient->AddSimMessage(slotId, smscU16, pduU16,
+        static_cast<ISmsServiceInterface::SimMessageStatus>(status));
+
+    if (ret == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "add sms successfully");
+        resultReceiver_ = "add sms successfully\n";
+        result = OHOS::ERR_OK;
+    } else {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "add sms failed, ret: %{public}d", ret);
+        resultReceiver_ = "error: failed to add sms\n";
+        result = OHOS::ERR_INVALID_VALUE;
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsQuerySmsCommand()
+{
+    ErrCode result = OHOS::ERR_OK;
+    std::string slotIdStr;
+
+    int option = -1;
+    while (true) {
+        option = getopt_long(argc_, argv_, "hs:", nullptr, nullptr);
+        if (option == -1) {
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-sms -h'");
+                resultReceiver_ = HELP_MSG_QUERY_SMS;
+                return OHOS::ERR_OK;
+            }
+            case 's': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-sms -s' slotId");
+                slotIdStr = optarg;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa query-sms' option unknown");
+                resultReceiver_.append(unknownOptionMsg);
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+    }
+
+    if (slotIdStr.empty()) {
+        resultReceiver_ = HELP_MSG_QUERY_SMS;
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    int32_t slotId = std::stoi(slotIdStr);
+
+    auto smsClient = SmsServiceManagerClient::GetInstance();
+    if (!smsClient) {
+        resultReceiver_ = "error: failed to get sms service client\n";
+        return OHOS::ERR_NO_INIT;
+    }
+
+    std::vector<ShortMessage> messages;
+    int32_t ret = smsClient->GetAllSimMessages(slotId, messages);
+
+    if (ret == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "query sms successfully, count: %{public}zu", messages.size());
+        resultReceiver_ = "query sms successfully:\n";
+
+        for (size_t i = 0; i < messages.size(); i++) {
+            resultReceiver_ += "Message " + std::to_string(i) + ":\n";
+            resultReceiver_ += "  PDU: " + OHOS::Str16ToStr8(messages[i].pdu) + "\n";
+            resultReceiver_ += "  Status: " + std::to_string(static_cast<int>(messages[i].status)) + "\n";
+            resultReceiver_ += "  Index: " + std::to_string(messages[i].index) + "\n\n";
+        }
+
+        result = OHOS::ERR_OK;
+    } else {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "query sms failed, ret: %{public}d", ret);
+        resultReceiver_ = "error: failed to query sms\n";
+        result = OHOS::ERR_INVALID_VALUE;
+    }
+
     return result;
 }
 #endif
