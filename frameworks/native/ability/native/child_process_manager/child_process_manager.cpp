@@ -574,5 +574,35 @@ ChildProcessManagerErrorCode ChildProcessManager::KillChildProcessByPid(int32_t 
     }
     return ChildProcessManagerErrorCode::ERR_OK;
 }
+
+bool ChildProcessManager::IsChildProcessSupported()
+{
+    if (AAFwk::AppUtils::GetInstance().IsMultiProcessModel()) {
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessModel enabled, support child process");
+        return true;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    bool hasBundleInfo = GetBundleInfo(bundleInfo);
+    if (!hasBundleInfo) {
+        TAG_LOGW(AAFwkTag::PROCESSMGR, "Failed to get bundle info");
+    }
+    if (hasBundleInfo) {
+        std::string appIdentifier = bundleInfo.signatureInfo.appIdentifier;
+        if (!appIdentifier.empty() &&
+            AAFwk::AppUtils::GetInstance().IsAllowNativeChildProcess(appIdentifier)) {
+            TAG_LOGD(AAFwkTag::PROCESSMGR, "App %{public}s in whitelist, support child process",
+                appIdentifier.c_str());
+            return true;
+        }
+    }
+    if (AAFwk::AppUtils::GetInstance().AllowChildProcessInMultiProcessFeatureApp()) {
+        if (hasBundleInfo && IsMultiProcessFeatureApp(bundleInfo)) {
+            TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessFeatureApp with large_screen, support child process");
+            return true;
+        }
+    }
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "Child process not supported for current app");
+    return false;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
