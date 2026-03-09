@@ -485,6 +485,35 @@ HWTEST_F(AppMgrServiceInnerTest, HandleExistingAppRecordAfterFound_003, TestSize
 }
 
 /**
+ * @tc.name: HandleExistingAppRecordAfterFound_004
+ * @tc.desc: test HandleExistingAppRecordAfterFound resets UIExtension preload state
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AppMgrServiceInnerTest, HandleExistingAppRecordAfterFound_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "HandleExistingAppRecordAfterFound_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
+    EXPECT_NE(appRecord, nullptr);
+    appRecord->SetUIExtensionPreloadState(true);
+    EXPECT_TRUE(appRecord->GetUIExtensionPreloadState());
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+    auto want = std::make_shared<AAFwk::Want>();
+    HapModuleInfo hapModuleInfo;
+    appMgrServiceInner->HandleExistingAppRecordAfterFound(appRecord, abilityInfo_, hapModuleInfo,
+        want, false, loadParamPtr);
+    EXPECT_FALSE(appRecord->GetUIExtensionPreloadState());
+    TAG_LOGI(AAFwkTag::TEST, "HandleExistingAppRecordAfterFound_004 end");
+}
+
+/**
  * @tc.name: PreStartNWebSpawnProcess_002
  * @tc.desc: prestart nwebspawn process.
  * @tc.type: FUNC
@@ -530,6 +559,36 @@ HWTEST_F(AppMgrServiceInnerTest, LoadAbility_001, TestSize.Level0)
 
     appMgrServiceInner2->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
     TAG_LOGI(AAFwkTag::TEST, "LoadAbility_001 end");
+}
+
+/**
+ * @tc.name: LoadAbility_002
+ * @tc.desc: test LoadAbility with isPreloadUIExtension flag set to true
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AppMgrServiceInnerTest, LoadAbility_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "LoadAbility_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    BundleInfo bundleInfo;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord = 
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(
+            applicationInfo_, processName, bundleInfo, "");
+    EXPECT_NE(appRecord, nullptr);
+    appRecord->SetUIExtensionPreloadState(false);
+    EXPECT_FALSE(appRecord->GetUIExtensionPreloadState());
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.token = token;
+    loadParam.isPreloadUIExtension = false;
+    auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+    appMgrServiceInner->remoteClientManager_->SetBundleManagerHelper(nullptr);
+    appMgrServiceInner->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
+    EXPECT_FALSE(appRecord->GetUIExtensionPreloadState());
+    TAG_LOGI(AAFwkTag::TEST, "LoadAbility_002 end");
 }
 
 /**
@@ -949,6 +1008,32 @@ HWTEST_F(AppMgrServiceInnerTest, ApplicationForegrounded_003, TestSize.Level1)
 
     appMgrServiceInner->ApplicationForegrounded(--recordId_);
     TAG_LOGI(AAFwkTag::TEST, "ApplicationForegrounded_003 end");
+}
+
+/**
+ * @tc.name: ApplicationForegrounded_004
+ * @tc.desc: test ApplicationForegrounded resets UIExtension preload state
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AppMgrServiceInnerTest, ApplicationForegrounded_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ApplicationForegrounded_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord = 
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
+    EXPECT_NE(appRecord, nullptr);
+    appRecord->SetUIExtensionPreloadState(true);
+    EXPECT_TRUE(appRecord->GetUIExtensionPreloadState());
+    appRecord->SetApplicationScheduleState(ApplicationScheduleState::SCHEDULE_FOREGROUNDING);
+    appRecord->SetApplicationPendingState(ApplicationPendingState::FOREGROUNDING);
+    appRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
+    appMgrServiceInner->ApplicationForegrounded(appRecord->GetRecordId());
+    EXPECT_FALSE(appRecord->GetUIExtensionPreloadState());
+    TAG_LOGI(AAFwkTag::TEST, "ApplicationForegrounded_004 end");
 }
 
 /**
@@ -1411,6 +1496,56 @@ HWTEST_F(AppMgrServiceInnerTest, ProcessExist_001, TestSize.Level1)
     EXPECT_FALSE(result);
 
     TAG_LOGI(AAFwkTag::TEST, "ProcessExist_001 end");
+}
+
+/**
+ * @tc.name: GetRunningProcess_001
+ * @tc.desc: test GetRunningProcess sets isPreload when UIExtension preload state is true
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AppMgrServiceInnerTest, GetRunningProcess_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetRunningProcess_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
+    EXPECT_NE(appRecord, nullptr);
+    appRecord->SetUIExtensionPreloadState(true);
+    EXPECT_TRUE(appRecord->GetUIExtensionPreloadState());
+    appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
+    RunningProcessInfo info;
+    appMgrServiceInner->GetRunningProcess(appRecord, info);
+    EXPECT_TRUE(info.isPreload);
+    TAG_LOGI(AAFwkTag::TEST, "GetRunningProcess_001 end");
+}
+
+/**
+ * @tc.name: GetRunningProcess_002
+ * @tc.desc: test GetRunningProcess sets isPreload to false when UIExtension preload state is false
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AppMgrServiceInnerTest, GetRunningProcess_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetRunningProcess_002 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord = 
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
+    EXPECT_NE(appRecord, nullptr);
+    appRecord->SetUIExtensionPreloadState(false);
+    EXPECT_FALSE(appRecord->GetUIExtensionPreloadState());
+    appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
+    RunningProcessInfo info;
+    appMgrServiceInner->GetRunningProcess(appRecord, info);
+    EXPECT_FALSE(info.isPreload);
+    TAG_LOGI(AAFwkTag::TEST, "GetRunningProcess_002 end");
 }
 
 /**

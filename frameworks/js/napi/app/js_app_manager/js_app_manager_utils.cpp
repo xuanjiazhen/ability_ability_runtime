@@ -162,6 +162,7 @@ napi_value CreateJsRunningProcessInfo(napi_env env, const RunningProcessInfo &in
     if (info.appCloneIndex != -1) {
         napi_set_named_property(env, object, "appCloneIndex", CreateJsValue(env, info.appCloneIndex));
     }
+    napi_set_named_property(env, object, "isPreload", CreateJsValue(env, info.isPreload));
     return handleEscape.Escape(object);
 }
 

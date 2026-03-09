@@ -944,6 +944,7 @@ napi_value JsApplicationContextUtils::OnGetRunningProcessInformation(napi_env en
             if (processInfo->appCloneIndex != -1) {
                 napi_set_named_property(env, object, "appCloneIndex", CreateJsValue(env, processInfo->appCloneIndex));
             }
+            napi_set_named_property(env, object, "isPreload", CreateJsValue(env, processInfo->isPreload));
             napi_value array = nullptr;
             napi_create_array_with_length(env, 1, &array);
             if (array == nullptr) {

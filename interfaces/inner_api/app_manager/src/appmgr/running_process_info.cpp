@@ -50,6 +50,7 @@ bool RunningProcessInfo::ReadFromParcel(Parcel &parcel)
     isDebugApp = parcel.ReadBool();
     isExiting = parcel.ReadBool();
     isPreForeground = parcel.ReadBool();
+    isPreload = parcel.ReadBool();
     int32_t bundleTypeData;
     READ_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, bundleTypeData);
     bundleType = static_cast<int32_t>(bundleTypeData);
@@ -107,6 +108,7 @@ bool RunningProcessInfo::Marshalling(Parcel &parcel) const
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isDebugApp);
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isExiting);
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isPreForeground);
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Bool, parcel, isPreload);
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, static_cast<int32_t>(bundleType));
     if (!parcel.WriteStringVector(bundleNames)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write bundleNames failed.");
