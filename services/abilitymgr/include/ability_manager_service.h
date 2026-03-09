@@ -60,6 +60,7 @@
 #include "iremote_object.h"
 #include "kiosk_manager.h"
 #include "mission_list_manager_interface.h"
+#include "modular_object_event_mgr.h"
 #include "parameter.h"
 #include "pending_want_manager.h"
 #include "permission_verification.h"
@@ -3306,6 +3307,8 @@ private:
     std::list<std::string> exportWhiteList_;
 
     std::shared_ptr<AbilityRuntime::InsightIntentEventMgr> insightIntentEventMgr_;
+
+    std::shared_ptr<AbilityRuntime::ModularObjectExtensionEventMgr> modularObjectExtensionEventMgr_;
 
     bool ShouldPreventStartAbility(const AbilityRequest &abilityRequest);
 

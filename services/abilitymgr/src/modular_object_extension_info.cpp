@@ -17,7 +17,6 @@
 
 namespace OHOS {
 namespace AAFwk {
-
 bool ModularObjectExtensionInfo::ReadFromParcel(Parcel &parcel)
 {
     bundleName = parcel.ReadString();
@@ -25,7 +24,7 @@ bool ModularObjectExtensionInfo::ReadFromParcel(Parcel &parcel)
     abilityName = parcel.ReadString();
     appIndex = parcel.ReadInt32();
     launchMode = static_cast<LaunchMode>(parcel.ReadInt32());
-    processMode = static_cast<ProcessMode>(parcel.ReadInt32());
+    processMode = static_cast<ModularProcessMode>(parcel.ReadInt32());
     threadMode = static_cast<ThreadMode>(parcel.ReadInt32());
     isSelfDisabled = parcel.ReadBool();
     isSystemDisabled = parcel.ReadBool();
@@ -76,6 +75,5 @@ ModularObjectExtensionInfo *ModularObjectExtensionInfo::Unmarshalling(Parcel &pa
     }
     return info;
 }
-
 } // namespace AAFwk
 } // namespace OHOS
