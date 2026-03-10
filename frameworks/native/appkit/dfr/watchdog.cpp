@@ -58,17 +58,17 @@ static constexpr const char* const CHECK_BACKGROUND_THREAD[] = {
     "com.ohos.sceneboard"
 };
 
-inline float GetTimeOutRatioFloat() {
+float GetTimeOutRatioFloat() {
     static const float defaultValue = 1.0f;
     static const float configFloatValue = []() -> float {
         const int buffLen = 128;
         char paramOutBuf[buffLen] = {0};
 
         if (!GetParameter(
-                "const.sys.dfx.appfreeze.timeout_unit_time_ratio",
-                "1",
-                paramOutBuf,
-                buffLen)) {
+			"const.sys.dfx.appfreeze.timeout_unit_time_ratio",
+            "1",
+            paramOutBuf,
+            buffLen)) {
             return defaultValue;
         }
 
