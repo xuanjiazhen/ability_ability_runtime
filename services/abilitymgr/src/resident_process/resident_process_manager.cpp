@@ -19,7 +19,6 @@
 #include <thread>
 
 #include "ability_manager_service.h"
-#include "ability_resident_process_rdb.h"
 #include "ability_util.h"
 #include "app_utils.h"
 #include "ffrt.h"
@@ -471,64 +470,19 @@ void ResidentProcessManager::ExecutePendingDeepCopyTasks()
     auto task = [tasks = std::move(tasksToExecute)]() {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Executing %{public}zu pending deep copy tasks", tasks.size());
         
-        for (const auto& task : tasks) {
-            auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
-            if (ams == nullptr) {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
-                continue;
-            }
+        auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+        if (ams == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
+            return;
+        }
 
-            // Get service map through public API GetServiceMapByUserId
-            AbilityConnectManager::ServiceMapType serviceMap;
-            int32_t ret = ams->GetServiceMapByUserId(serviceMap, task.userId);
+        for (const auto& taskInfo : tasks) {
+            // Use the public API to perform deep copy
+            int32_t ret = ams->PerformResidentDeepCopy(taskInfo.bundleName, taskInfo.abilityName, taskInfo.userId);
             if (ret != ERR_OK) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "Failed to get service map for userId %{public}d, skipping",
-                    task.userId);
-                continue;
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to perform deep copy for %{public}s/%{public}s, ret=%{public}d",
+                    taskInfo.bundleName.c_str(), taskInfo.abilityName.c_str(), ret);
             }
-
-            // Create ElementName from bundleName and abilityName to build service key
-            AppExecFwk::ElementName elementName("", task.bundleName, task.abilityName);
-            std::string targetServiceKey = elementName.GetURI();
-
-            // Search for matching extension record in service map
-            std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
-            for (const auto& [serviceKey, extensionRecord] : serviceMap) {
-                if (extensionRecord == nullptr) {
-                    continue;
-                }
-                // Check if the serviceKey contains both bundleName and abilityName
-                if (serviceKey.find(task.bundleName) != std::string::npos &&
-                    serviceKey.find(task.abilityName) != std::string::npos) {
-                    abilityRecord = std::static_pointer_cast<AbilityRecord>(extensionRecord);
-                    TAG_LOGI(AAFwkTag::ABILITYMGR, "Found ServiceExtension for %{public}s/%{public}s",
-                        task.bundleName.c_str(), task.abilityName.c_str());
-                    break;
-                }
-            }
-
-            if (abilityRecord == nullptr) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "ServiceExtension not found for %{public}s/%{public}s, skipping",
-                    task.bundleName.c_str(), task.abilityName.c_str());
-                continue;
-            }
-
-            if (!abilityRecord->IsResidentAbility()) {
-                TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityRecord no longer marked as resident, skipping");
-                continue;
-            }
-
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "Performing memory defrag for %{public}s/%{public}s",
-                task.bundleName.c_str(), task.abilityName.c_str());
-
-            // Create a deep copy to trigger memory reallocation
-            auto deepCopiedRecord = abilityRecord->DeepCopy();
-
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed for %{public}s/%{public}s",
-                task.bundleName.c_str(), task.abilityName.c_str());
-
-            // Clear the resident ability flag to avoid repeated execution
-            abilityRecord->SetResidentAbilityFlag(false);
         }
     };
 
@@ -541,6 +495,7 @@ void ResidentProcessManager::ExecutePendingDeepCopyTasks()
         task();
     }
 }
+
 
 }  // namespace AAFwk
 }  // namespace OHOS

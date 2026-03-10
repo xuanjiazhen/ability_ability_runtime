@@ -16879,5 +16879,64 @@ void AbilityManagerService::HandleAppDiedForRecovery(const sptr<IRemoteObject>& 
         AppRecoveryMgr::AppRecoveryMgr::GetInstance().RemoveOnRemoteDieCallback(remote);
     }
 }
+
+int32_t AbilityManagerService::PerformResidentDeepCopy(
+    const std::string &bundleName, const std::string &abilityName, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "PerformResidentDeepCopy for %{public}s/%{public}s, userId:%{public}d",
+        bundleName.c_str(), abilityName.c_str(), userId);
+    
+    // Get the AbilityConnectManager for this user
+    auto connectManager = GetConnectManagerByUserId(userId, AppExecFwk::ExtensionAbilityType::SERVICE);
+    if (connectManager == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to get connect manager for userId %{public}d", userId);
+        return ERR_NULL_OBJECT;
+    }
+    
+    // Get the service map
+    auto serviceMap = connectManager->GetServiceMap();
+    
+    // Search for matching extension record in service map
+    std::shared_ptr<AbilityRecord> abilityRecord = nullptr;
+    for (const auto& [serviceKey, extensionRecord] : serviceMap) {
+        if (extensionRecord == nullptr) {
+            continue;
+        }
+        // Check if the serviceKey contains both bundleName and abilityName
+        if (serviceKey.find(bundleName) != std::string::npos &&
+            serviceKey.find(abilityName) != std::string::npos) {
+            abilityRecord = std::static_pointer_cast<AbilityRecord>(extensionRecord);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Found ServiceExtension for %{public}s/%{public}s",
+                bundleName.c_str(), abilityName.c_str());
+            break;
+        }
+    }
+    
+    if (abilityRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "ServiceExtension not found for %{public}s/%{public}s",
+            bundleName.c_str(), abilityName.c_str());
+        return ERR_ABILITY_RUNTIME_EXTERNAL_NO_SUCH_ABILITY_NAME;
+    }
+    
+    if (!abilityRecord->IsResidentAbility()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityRecord no longer marked as resident, skipping");
+        return ERR_OK;
+    }
+    
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Performing memory defrag (deep copy) for %{public}s/%{public}s",
+        bundleName.c_str(), abilityName.c_str());
+    
+    // Create a deep copy to trigger memory reallocation
+    auto deepCopiedRecord = abilityRecord->DeepCopy();
+    
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed for %{public}s/%{public}s",
+        bundleName.c_str(), abilityName.c_str());
+    
+    // Clear the resident ability flag to avoid repeated execution
+    abilityRecord->SetResidentAbilityFlag(false);
+    
+    return ERR_OK;
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
