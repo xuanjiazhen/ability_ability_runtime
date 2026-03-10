@@ -5199,6 +5199,7 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
     for (const auto &token : appRecord->GetAbilities()) {
         abilityTokens.emplace_back(token.first);
     }
+    CacheExitInfo(appRecord);
     HandleForegroundAbilityDied(abilityTokens,appRecord->GetState());
     {
         std::lock_guard lock(appStateCallbacksLock_);
