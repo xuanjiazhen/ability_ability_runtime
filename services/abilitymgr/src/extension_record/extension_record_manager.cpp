@@ -1187,46 +1187,33 @@ void ExtensionRecordManager::AddAgentUILaunchRecord(int32_t callerUid, const std
     int32_t extensionAbilityId)
 {
     std::lock_guard<std::mutex> lock(agentUIExtensionMutex_);
-    auto callerIt = agentUIExtensionRecords_.find(callerUid);
-    if (callerIt == agentUIExtensionRecords_.end()) {
-        auto& bundleMap = agentUIExtensionRecords_[callerUid];
-        auto& extensionSet = bundleMap[bundleName];
-        extensionSet.insert(extensionAbilityId);
-        TAG_LOGI(AAFwkTag::ABILITYMGR,
-            "agentUI added, callerUid:%{public}d, bundle:%{public}s, id:%{public}d, count:%{public}zu",
-            callerUid, bundleName.c_str(), extensionAbilityId, extensionSet.size());
-        return;
-    }
-    auto& bundleMap = callerIt->second;
-    auto bundleIt = bundleMap.find(bundleName);
-    if (bundleIt == bundleMap.end()) {
-        auto& extensionSet = bundleMap[bundleName];
-        extensionSet.insert(extensionAbilityId);
-        TAG_LOGI(AAFwkTag::ABILITYMGR,
-            "agentUI added, callerUid:%{public}d, bundle:%{public}s, id:%{public}d, count:%{public}zu",
-            callerUid, bundleName.c_str(), extensionAbilityId, extensionSet.size());
-        return;
-    }
-    auto& extensionSet = bundleIt->second;
-    if (extensionSet.find(extensionAbilityId) == extensionSet.end()) {
-        extensionSet.insert(extensionAbilityId);
+    auto &extensionSet = agentUIExtensionRecords_[callerUid][bundleName];
+    if (extensionSet.insert(extensionAbilityId).second) {
+        agentUIRecordOwners_[extensionAbilityId] = { callerUid, bundleName };
         TAG_LOGI(AAFwkTag::ABILITYMGR,
             "agentUI added, callerUid:%{public}d, bundle:%{public}s, id:%{public}d, count:%{public}zu",
             callerUid, bundleName.c_str(), extensionAbilityId, extensionSet.size());
     }
 }
 
-void ExtensionRecordManager::RemoveAgentUILaunchRecord(int32_t callerUid, const std::string &bundleName,
-    int32_t extensionAbilityId)
+void ExtensionRecordManager::RemoveAgentUILaunchRecord(int32_t extensionAbilityId)
 {
     std::lock_guard<std::mutex> lock(agentUIExtensionMutex_);
+    auto ownerIt = agentUIRecordOwners_.find(extensionAbilityId);
+    if (ownerIt == agentUIRecordOwners_.end()) {
+        return;
+    }
+    int32_t callerUid = ownerIt->second.first;
+    const std::string &bundleName = ownerIt->second.second;
     auto callerIt = agentUIExtensionRecords_.find(callerUid);
     if (callerIt == agentUIExtensionRecords_.end()) {
+        agentUIRecordOwners_.erase(ownerIt);
         return;
     }
     auto& bundleMap = callerIt->second;
     auto bundleIt = bundleMap.find(bundleName);
     if (bundleIt == bundleMap.end()) {
+        agentUIRecordOwners_.erase(ownerIt);
         return;
     }
     auto& extensionSet = bundleIt->second;
@@ -1243,6 +1230,7 @@ void ExtensionRecordManager::RemoveAgentUILaunchRecord(int32_t callerUid, const 
     if (bundleMap.empty()) {
         agentUIExtensionRecords_.erase(callerIt);
     }
+    agentUIRecordOwners_.erase(ownerIt);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

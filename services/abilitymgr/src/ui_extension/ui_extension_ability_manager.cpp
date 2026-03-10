@@ -800,6 +800,17 @@ bool UIExtensionAbilityManager::CheckUIExtensionAbilitySessionExist(
     return false;
 }
 
+void UIExtensionAbilityManager::RollbackAgentUILaunchRecord(
+    const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
+{
+    CHECK_POINTER(abilityRecord);
+    CHECK_POINTER(uiExtensionAbilityRecordMgr_);
+    if (!UIExtensionWrapper::IsAgentUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+        return;
+    }
+    uiExtensionAbilityRecordMgr_->RemoveAgentUILaunchRecord(abilityRecord->GetUIExtensionAbilityId());
+}
+
 void UIExtensionAbilityManager::RemoveUIExtensionAbilityRecord(
     const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
@@ -810,8 +821,6 @@ void UIExtensionAbilityManager::RemoveUIExtensionAbilityRecord(
     }
     if (UIExtensionWrapper::IsAgentUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         uiExtensionAbilityRecordMgr_->RemoveAgentUILaunchRecord(
-            IPCSkeleton::GetCallingUid(),
-            abilityRecord->GetAbilityInfo().bundleName,
             abilityRecord->GetUIExtensionAbilityId());
     }
     uiExtensionAbilityRecordMgr_->RemoveExtensionRecord(abilityRecord->GetUIExtensionAbilityId());
@@ -1079,6 +1088,7 @@ int UIExtensionAbilityManager::TerminateAbilityLocked(const sptr<IRemoteObject> 
 
 void UIExtensionAbilityManager::HandleStartTimeoutTaskInner(const std::shared_ptr<BaseExtensionRecord> &abilityRecord)
 {
+    CHECK_POINTER(abilityRecord);
     if (UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "consume session timeout, Uri: %{public}s/%{public}s",
             abilityRecord->GetElementName().GetBundleName().c_str(),
@@ -1086,6 +1096,7 @@ void UIExtensionAbilityManager::HandleStartTimeoutTaskInner(const std::shared_pt
         LoadTimeout(abilityRecord);
     }
     AbilityConnectManager::HandleStartTimeoutTaskInner(abilityRecord);
+    RollbackAgentUILaunchRecord(abilityRecord);
 }
 
 void UIExtensionAbilityManager::HandleForegroundTimeoutTaskInner(

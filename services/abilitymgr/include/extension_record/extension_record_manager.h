@@ -175,6 +175,7 @@ private:
     // AgentUI extension launch record management
     // Structure: callerUid -> { bundleName -> [extensionAbilityId1, extensionAbilityId2, ...] }
     std::map<int32_t, std::map<std::string, std::set<int32_t>>> agentUIExtensionRecords_;
+    std::map<int32_t, std::pair<int32_t, std::string>> agentUIRecordOwners_;
     std::mutex agentUIExtensionMutex_;
 
     void SetCachedFocusedCallerToken(int32_t extensionRecordId, sptr<IRemoteObject> &focusedCallerToken);

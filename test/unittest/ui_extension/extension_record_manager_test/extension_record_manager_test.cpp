@@ -1591,7 +1591,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0100, TestSize.Le
     int32_t extensionAbilityId = 100;
 
     // Remove from empty map, should not crash
-    extRecordMgr->RemoveAgentUILaunchRecord(callerUid, bundleName, extensionAbilityId);
+    extRecordMgr->RemoveAgentUILaunchRecord(extensionAbilityId);
 
     // Map should still be empty
     EXPECT_EQ(extRecordMgr->agentUIExtensionRecords_.size(), 0);
@@ -1619,7 +1619,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0200, TestSize.Le
     extRecordMgr->AddAgentUILaunchRecord(callerUid, bundleName1, extensionAbilityId);
 
     // Remove from bundle2 (not exists), should not crash
-    extRecordMgr->RemoveAgentUILaunchRecord(callerUid, bundleName2, extensionAbilityId);
+    extRecordMgr->RemoveAgentUILaunchRecord(extensionAbilityId);
 
     // bundle1 record should still exist
     EXPECT_EQ(extRecordMgr->agentUIExtensionRecords_[callerUid][bundleName1].size(), 1);
@@ -1647,7 +1647,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0300, TestSize.Le
     EXPECT_EQ(extRecordMgr->agentUIExtensionRecords_[callerUid][bundleName].size(), 1);
 
     // Remove record
-    extRecordMgr->RemoveAgentUILaunchRecord(callerUid, bundleName, extensionAbilityId);
+    extRecordMgr->RemoveAgentUILaunchRecord(extensionAbilityId);
 
     // Record should be removed, and map entries should be cleaned up
     EXPECT_EQ(extRecordMgr->agentUIExtensionRecords_.count(callerUid), 0);
@@ -1676,7 +1676,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0400, TestSize.Le
     EXPECT_EQ(extRecordMgr->agentUIExtensionRecords_[callerUid][bundleName].size(), 3);
 
     // Remove one record
-    extRecordMgr->RemoveAgentUILaunchRecord(callerUid, bundleName, 2);
+    extRecordMgr->RemoveAgentUILaunchRecord(2);
     EXPECT_EQ(extRecordMgr->agentUIExtensionRecords_[callerUid][bundleName].size(), 2);
 
     // Verify the correct record was removed
@@ -1707,7 +1707,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0500, TestSize.Le
     extRecordMgr->AddAgentUILaunchRecord(callerUid, bundleName, extensionAbilityId);
 
     // Remove non-existent extensionAbilityId
-    extRecordMgr->RemoveAgentUILaunchRecord(callerUid, bundleName, 999);
+    extRecordMgr->RemoveAgentUILaunchRecord(999);
 
     // Original record should still exist
     EXPECT_EQ(extRecordMgr->agentUIExtensionRecords_[callerUid][bundleName].size(), 1);
