@@ -23,6 +23,7 @@ group("ams_common_target") {
   ]
 }
 
+
 config("common_config") {
   visibility = [ ":*" ]
   visibility += [
