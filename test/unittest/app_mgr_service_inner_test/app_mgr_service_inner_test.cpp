@@ -533,6 +533,58 @@ HWTEST_F(AppMgrServiceInnerTest, LoadAbility_001, TestSize.Level0)
 }
 
 /**
+ * @tc.name: LoadAbility_AgentUIStartDenied_001
+ * @tc.desc: deny AgentUI start when target process has no agent extension ability.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, LoadAbility_AgentUIStartDenied_001, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    ASSERT_NE(bundleMgrHelper, nullptr);
+    auto mockBundleMgr = sptr<MockBundleManagerService>::MakeSptr();
+    ASSERT_NE(mockBundleMgr, nullptr);
+    bundleMgrHelper->bundleMgr_ = mockBundleMgr;
+    appMgrServiceInner->SetBundleManagerHelper(bundleMgrHelper);
+
+    applicationInfo_->uid = 0;
+    abilityInfo_->applicationInfo.uid = applicationInfo_->uid;
+    abilityInfo_->extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT_UI;
+    abilityInfo_->process = "com.ix.hiservcie:agent";
+
+    BundleInfo bundleInfo;
+    bundleInfo.appId = "com.ix.hiservcie_code123";
+    bundleInfo.applicationInfo = *applicationInfo_;
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.process = abilityInfo_->process;
+
+    EXPECT_CALL(*mockBundleMgr, GetBundleInfoV9(testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<2>(bundleInfo), Return(ERR_OK)));
+    EXPECT_CALL(*mockBundleMgr, GetHapModuleInfo(testing::_, testing::_, testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<2>(hapModuleInfo), Return(true)));
+
+    sptr<TestAppStateCallback> callback = new (std::nothrow) TestAppStateCallback();
+    ASSERT_NE(callback, nullptr);
+    appMgrServiceInner->RegisterAppStateCallback(callback);
+
+    auto token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    ASSERT_NE(token, nullptr);
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.token = token;
+    auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+
+    auto beforeSize = appMgrServiceInner->appRunningManager_->GetAppRunningRecordMap().size();
+    appMgrServiceInner->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
+
+    EXPECT_EQ(appMgrServiceInner->appRunningManager_->GetAppRunningRecordMap().size(), beforeSize);
+    EXPECT_EQ(callback->startProcessFailedCount_, 1);
+    ASSERT_EQ(callback->failedAbilityTokens_.size(), 1);
+    EXPECT_EQ(callback->failedAbilityTokens_.front(), token);
+}
+
+/**
  * @tc.name: CheckLoadAbilityConditions_001
  * @tc.desc: check load ability conditions.
  * @tc.type: FUNC
