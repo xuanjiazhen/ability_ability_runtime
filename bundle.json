@@ -461,7 +461,7 @@
               "header_files": [
                 "extension.h",
                 "extension_base.h",
-                "extension_module_loader.h"
+                "extension_module_loader.h",
               ]
             },
             "name": "//foundation/ability/ability_runtime/frameworks/native/ability/native:extensionkit_native"
