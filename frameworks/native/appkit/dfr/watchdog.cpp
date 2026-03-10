@@ -65,7 +65,7 @@ float GetTimeOutRatioFloat() {
         char paramOutBuf[buffLen] = {0};
 
         if (!GetParameter(
-			"const.sys.dfx.appfreeze.timeout_unit_time_ratio",
+            "const.sys.dfx.appfreeze.timeout_unit_time_ratio",
             "1",
             paramOutBuf,
             buffLen)) {
