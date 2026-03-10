@@ -270,6 +270,7 @@ void Watchdog::Timer()
 
 void Watchdog::ReportEvent()
 {
+    TAG_LOGD(AAFwkTag::APPDFR, "ReportEvent");
     if (isBgWorkingThread_) {
         TAG_LOGD(AAFwkTag::APPDFR, "Thread is working in the background, do not report this time");
         return;
