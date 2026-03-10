@@ -152,6 +152,7 @@ ohos_unittest("ability_manager_service_third_test") {
     "window_manager:scene_session",
     "window_manager:session_manager_lite",
     "window_manager:sms",
+    "netmanager_ext:net_vpn_manager_if",
   ]
   if (ability_runtime_dsoftbus_enable) {
     external_deps += [ "dsoftbus:softbus_client" ]
