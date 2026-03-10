@@ -305,7 +305,7 @@ void Watchdog::Timer()
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
     if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
 #else
-        if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (GetCheckIntervalTime() / RESET_RATIO)) {
+    if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (GetCheckIntervalTime() / RESET_RATIO)) {
 #endif
         lastWatchTime_ = now;
     }
