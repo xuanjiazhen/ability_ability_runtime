@@ -58,6 +58,49 @@ static constexpr const char* const CHECK_BACKGROUND_THREAD[] = {
     "com.ohos.sceneboard"
 };
 
+float GetTimeOutRatioFloat() {
+    static const float defaultValue = 1.0f;
+    static const float configFloatValue = []() -> float {
+        const int buffLen = 128;
+        char paramOutBuf[buffLen] = {0};
+
+        if (!GetParameter(
+			"const.sys.dfx.appfreeze.timeout_unit_time_ratio",
+            "1",
+            paramOutBuf,
+            buffLen)) {
+            return defaultValue;
+        }
+
+        std::string_view str(paramOutBuf);
+        if (str.empty()) {
+            return defaultValue;
+        }
+
+        errno = 0;
+        char* endPtr = nullptr;
+        float ratio = std::strtof(str.data(), &endPtr);
+
+        if (endPtr != str.data() + str.size()) {
+            return defaultValue;
+        }
+
+        if (errno == ERANGE || ratio <= 0.0f) {
+            return defaultValue;
+        }
+
+        return ratio;
+    }();
+
+    return configFloatValue;
+}
+
+uint64_t GetCheckIntervalTime()
+{
+    uint64_t checkIntervalTime = static_cast<uint64_t>(CHECK_INTERVAL_TIME * GetTimeOutRatioFloat());
+    return checkIntervalTime;
+}
+
 Watchdog::Watchdog()
 {}
 
@@ -86,7 +129,7 @@ void Watchdog::Init(const std::shared_ptr<EventHandler> mainHandler)
         WEARABLE_CHECK_INTERVAL_TIME, INI_TIMER_FIRST_SECOND);
 #else
     OHOS::HiviewDFX::Watchdog::GetInstance().RunPeriodicalTask("AppkitWatchdog", watchdogTask,
-        CHECK_INTERVAL_TIME, INI_TIMER_FIRST_SECOND);
+        GetCheckIntervalTime(), INI_TIMER_FIRST_SECOND);
 #endif
     SetMainThreadSample();
 }
@@ -262,7 +305,7 @@ void Watchdog::Timer()
 #ifdef APP_NO_RESPONSE_DIALOG_WEARABLE
     if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
 #else
-    if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (CHECK_INTERVAL_TIME / RESET_RATIO)) {
+    if ((now - lastWatchTime_) < 0 || (now - lastWatchTime_) >= (GetCheckIntervalTime() / RESET_RATIO)) {
 #endif
         lastWatchTime_ = now;
     }
@@ -280,8 +323,8 @@ void Watchdog::ReportEvent()
     if ((now - lastWatchTime_) > (RESET_RATIO * WEARABLE_CHECK_INTERVAL_TIME) ||
         (now - lastWatchTime_) < (WEARABLE_CHECK_INTERVAL_TIME / RESET_RATIO)) {
 #else
-    if ((now - lastWatchTime_) > (RESET_RATIO * CHECK_INTERVAL_TIME) ||
-        (now - lastWatchTime_) < (CHECK_INTERVAL_TIME / RESET_RATIO)) {
+    if ((now - lastWatchTime_) > (RESET_RATIO * GetCheckIntervalTime()) ||
+        (now - lastWatchTime_) < (GetCheckIntervalTime() / RESET_RATIO)) {
 #endif
         TAG_LOGI(AAFwkTag::APPDFR,
             "Thread may be blocked, not report time. currTime: %{public}llu, lastTime: %{public}llu",
