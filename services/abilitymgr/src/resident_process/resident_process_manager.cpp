@@ -19,6 +19,7 @@
 #include <thread>
 
 #include "ability_manager_service.h"
+#include "ability_resident_process_rdb.h"
 #include "ability_util.h"
 #include "app_utils.h"
 #include "ffrt.h"
