@@ -110,6 +110,16 @@ private:
     std::mutex failedResidentAbilityInfoMutex_;
     std::list<ResidentAbilityInfo> failedResidentAbilityInfos_;
     std::atomic_bool unlockedAfterBoot_ = false;
+
+    void StartResidentMemoryDefragTask(const std::string &bundleName, const std::string &abilityName, int32_t userId);
+    void RegisterScreenStateCallback();
+    void OnScreenStateChanged(bool isScreenOn);
+    void ExecutePendingDeepCopyTasks();
+
+    std::mutex pendingDeepCopyTasksMutex_;
+    std::list<ResidentAbilityInfo> pendingDeepCopyTasks_;
+    std::atomic_bool isFirstScreenOffOccurred_ = false;
+
 };
 }  // namespace AAFwk
 }  // namespace OHOS

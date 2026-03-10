@@ -2529,6 +2529,17 @@ public:
      */
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex) override;
 
+    /**
+     * Perform memory deep copy for resident ServiceExtension.
+     * This is used for memory defragmentation of resident processes.
+     * @param bundleName Bundle name.
+     * @param abilityName Ability name.
+     * @param userId User ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t PerformResidentDeepCopy(const std::string &bundleName, const std::string &abilityName, int32_t userId);
+
+
     int StartAbilityWithRemoveIntentFlag(const StartAbilityWrapParam &param);
     
     // MSG 0 - 20 represents timeout message

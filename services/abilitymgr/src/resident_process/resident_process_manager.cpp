@@ -380,6 +380,105 @@ void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleN
         .abilityName = abilityName,
         .userId = userId,
     });
+
+void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bundleName,
+    const std::string &abilityName, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Deferring memory defrag task for %{public}s/%{public}s until first screen off",
+        bundleName.c_str(), abilityName.c_str());
+
+    // Store the task for later execution after first screen off
+    std::lock_guard lock(pendingDeepCopyTasksMutex_);
+    pendingDeepCopyTasks_.push_back(ResidentAbilityInfo {
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .userId = userId,
+    });
+}
+
+void ResidentProcessManager::RegisterScreenStateCallback()
+{
+#ifdef SUPPORT_POWER
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Registering for screen state changes");
+    // We'll poll for screen state changes in a background thread
+    std::thread([self = shared_from_this()]() {
+        bool wasScreenOn = true;
+        while (true) {
+            bool isScreenOn = PowerMgr::PowerMgrClient::GetInstance().IsScreenOn();
+            if (wasScreenOn && !isScreenOn) {
+                // Screen just turned off
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "Screen turned off detected");
+                self->OnScreenStateChanged(false);
+            }
+            wasScreenOn = isScreenOn;
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        }
+    }).detach();
+#else
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "SUPPORT_POWER not defined, cannot monitor screen state");
+#endif
+}
+
+void ResidentProcessManager::OnScreenStateChanged(bool isScreenOn)
+{
+    if (isScreenOn) {
+        return;  // We only care about screen off events
+    }
+
+    // Check if this is the first screen off
+    bool expectedFirst = false;
+    if (!isFirstScreenOffOccurred_.compare_exchange_strong(expectedFirst, true)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Screen off already occurred, ignoring");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "First screen off detected, triggering deep copy tasks");
+    ExecutePendingDeepCopyTasks();
+}
+
+void ResidentProcessManager::ExecutePendingDeepCopyTasks()
+{
+    std::list<ResidentAbilityInfo> tasksToExecute;
+    {
+        std::lock_guard lock(pendingDeepCopyTasksMutex_);
+        if (pendingDeepCopyTasks_.empty()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "No pending deep copy tasks to execute");
+            return;
+        }
+        tasksToExecute = std::move(pendingDeepCopyTasks_);\n    }
+
+    auto task = [tasks = std::move(tasksToExecute)]() {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Executing %{public}zu pending deep copy tasks", tasks.size());
+        
+        auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+        if (ams == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
+            return;
+        }
+
+        for (const auto& taskInfo : tasks) {
+            // Use the public API to perform deep copy
+            int32_t ret = ams->PerformResidentDeepCopy(taskInfo.bundleName, taskInfo.abilityName, taskInfo.userId);
+            if (ret != ERR_OK) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to perform deep copy for %{public}s/%{public}s, ret=%{public}d",
+                    taskInfo.bundleName.c_str(), taskInfo.abilityName.c_str(), ret);
+            }
+        }
+    };
+
+    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
+    if (handler != nullptr) {
+        handler->SubmitTask(task, 100);  // Delay 100ms as requested
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Scheduled deep copy tasks to execute after 100ms");
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get task handler, executing immediately");
+        task();
+    }
+}
+
+}  // namespace AAFwk
+}  // namespace OHOS
+
 }
 }  // namespace AAFwk
 }  // namespace OHOS
