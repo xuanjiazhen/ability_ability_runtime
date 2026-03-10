@@ -14,6 +14,10 @@
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
+config("agentmanager_ani_public_config") {
+  include_dirs = [ "include" ]
+}
+
 ohos_shared_library("agentmanager_ani") {
   branch_protector_ret = "pac_ret"
   sanitize = {
@@ -24,7 +28,7 @@ ohos_shared_library("agentmanager_ani") {
   }
 
   include_dirs = [
-    "./include",
+    "include",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
@@ -33,6 +37,8 @@ ohos_shared_library("agentmanager_ani") {
     "${agent_runtime_framework_path}/frameworks/ets/ani/agent_extension_ability/include/connection",
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection/include",
   ]
+
+  public_configs = [ ":agentmanager_ani_public_config" ]
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
