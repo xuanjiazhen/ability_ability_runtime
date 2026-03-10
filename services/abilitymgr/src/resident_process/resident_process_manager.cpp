@@ -478,32 +478,30 @@ void ResidentProcessManager::ExecutePendingDeepCopyTasks()
                 continue;
             }
 
-            // Get MissionListManager to retrieve AbilityRecord
-            auto missionListMgr = ams->GetMissionListManagerByUserId(task.userId);
-            if (missionListMgr == nullptr) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "MissionListManager not found for userId %{public}d, skipping",
+            // Create service key from bundleName and abilityName for ServiceExtension lookup
+            AppExecFwk::ElementName elementName("", task.bundleName, task.abilityName);
+            std::string serviceKey = elementName.GetURI();
+            
+            // Get AbilityConnectManager for ServiceExtension-based resident processes
+            auto connectMgr = ams->GetConnectManagerByUserId(
+                task.userId, AppExecFwk::ExtensionAbilityType::SERVICE);
+            if (connectMgr == nullptr) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityConnectManager not found for userId %{public}d, skipping",
                     task.userId);
                 continue;
             }
-
-            // Create ElementName from bundleName and abilityName
-            AppExecFwk::ElementName elementName("", task.bundleName, task.abilityName);
-            auto abilityRecords = missionListMgr->GetAbilityRecordsByName(elementName);
-            if (abilityRecords.empty()) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityRecord not found for %{public}s/%{public}s, skipping",
+            
+            auto extensionRecord = connectMgr->GetServiceRecordByElementName(serviceKey);
+            if (extensionRecord == nullptr) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "ServiceExtension not found for %{public}s/%{public}s, skipping",
                     task.bundleName.c_str(), task.abilityName.c_str());
                 continue;
             }
-
-            // Use the first matching AbilityRecord
-            auto abilityRecord = abilityRecords[0];
-            if (abilityRecord == nullptr) {
-                TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityRecord is null, skipping");
-                continue;
-            }
+            
+            auto abilityRecord = std::static_pointer_cast<AbilityRecord>(extensionRecord);
 
             if (!abilityRecord->IsResidentAbility()) {
-                TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityRecord no longer marked as resident, skipping");
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityRecord no longer marked as resident, skipping");
                 continue;
             }
 
