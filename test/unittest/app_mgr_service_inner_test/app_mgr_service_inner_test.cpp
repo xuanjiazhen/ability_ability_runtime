@@ -22,6 +22,7 @@
 #undef private
 #include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
+#include "app_state_callback_host.h"
 #include "app_scheduler.h"
 #include "appspawn_util.h"
 #include "app_spawn_client.h"
@@ -31,6 +32,7 @@
 #include "mock_ability_token.h"
 #include "mock_app_scheduler.h"
 #include "mock_app_utils.h"
+#include "mock_bundle_manager_service.h"
 #include "mock_bundle_manager.h"
 #include "mock_configuration_observer.h"
 #include "mock_iapp_state_callback.h"
@@ -73,6 +75,25 @@ constexpr int32_t APP_DEBUG_INFO_UID = 0;
 constexpr const char* PERMISSION_PROTECT_SCREEN_LOCK_DATA_TEST = "ohos.permission.PROTECT_SCREEN_LOCK_DATA";
 constexpr int32_t FUN_TEST_PID = 0;
 }
+
+class TestAppStateCallback : public AppStateCallbackHost {
+public:
+    void OnAppStateChanged(const AppProcessData &appProcessData) override
+    {}
+
+    void OnAbilityRequestDone(const sptr<IRemoteObject> &token, const AbilityState state) override
+    {}
+
+    void OnStartProcessFailed(const std::vector<sptr<IRemoteObject>> &abilityTokens) override
+    {
+        startProcessFailedCount_++;
+        failedAbilityTokens_ = abilityTokens;
+    }
+
+    int32_t startProcessFailedCount_ = 0;
+    std::vector<sptr<IRemoteObject>> failedAbilityTokens_;
+};
+
 static int recordId_ = 0;
 class AppMgrServiceInnerTest : public testing::Test {
 public:
@@ -530,6 +551,58 @@ HWTEST_F(AppMgrServiceInnerTest, LoadAbility_001, TestSize.Level0)
 
     appMgrServiceInner2->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
     TAG_LOGI(AAFwkTag::TEST, "LoadAbility_001 end");
+}
+
+/**
+ * @tc.name: LoadAbility_AgentUIStartDenied_001
+ * @tc.desc: deny AgentUI start when target process has no agent extension ability.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, LoadAbility_AgentUIStartDenied_001, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    auto bundleMgrHelper = DelayedSingleton<BundleMgrHelper>::GetInstance();
+    ASSERT_NE(bundleMgrHelper, nullptr);
+    auto mockBundleMgr = sptr<MockBundleManagerService>::MakeSptr();
+    ASSERT_NE(mockBundleMgr, nullptr);
+    bundleMgrHelper->bundleMgr_ = mockBundleMgr;
+    appMgrServiceInner->SetBundleManagerHelper(bundleMgrHelper);
+
+    applicationInfo_->uid = 0;
+    abilityInfo_->applicationInfo.uid = applicationInfo_->uid;
+    abilityInfo_->extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT_UI;
+    abilityInfo_->process = "com.ix.hiservcie:agent";
+
+    BundleInfo bundleInfo;
+    bundleInfo.appId = "com.ix.hiservcie_code123";
+    bundleInfo.applicationInfo = *applicationInfo_;
+    HapModuleInfo hapModuleInfo;
+    hapModuleInfo.process = abilityInfo_->process;
+
+    EXPECT_CALL(*mockBundleMgr, GetBundleInfoV9(testing::_, testing::_, testing::_, testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<2>(bundleInfo), Return(ERR_OK)));
+    EXPECT_CALL(*mockBundleMgr, GetHapModuleInfo(testing::_, testing::_, testing::_))
+        .WillRepeatedly(DoAll(SetArgReferee<2>(hapModuleInfo), Return(true)));
+
+    sptr<TestAppStateCallback> callback = new (std::nothrow) TestAppStateCallback();
+    ASSERT_NE(callback, nullptr);
+    appMgrServiceInner->RegisterAppStateCallback(callback);
+
+    auto token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    ASSERT_NE(token, nullptr);
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.token = token;
+    auto loadParamPtr = std::make_shared<AbilityRuntime::LoadParam>(loadParam);
+
+    auto beforeSize = appMgrServiceInner->appRunningManager_->GetAppRunningRecordMap().size();
+    appMgrServiceInner->LoadAbility(abilityInfo_, applicationInfo_, nullptr, loadParamPtr);
+
+    EXPECT_EQ(appMgrServiceInner->appRunningManager_->GetAppRunningRecordMap().size(), beforeSize);
+    EXPECT_EQ(callback->startProcessFailedCount_, 1);
+    ASSERT_EQ(callback->failedAbilityTokens_.size(), 1);
+    EXPECT_EQ(callback->failedAbilityTokens_.front(), token);
 }
 
 /**
