@@ -804,6 +804,11 @@ std::pair<std::string, std::string> AppfreezeManager::CatchJsonStacktrace(int pi
     std::string msg;
     int timeout = 3000;
     int tid = 0;
+
+    if (faultType == AppFreezeType::LIFECYCLE_HALF_TIMEOUT || faultType == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING
+        || faultType == AppFreezeType::THREAD_BLOCK_3S || faultType == AppFreezeType::BUSSINESS_THREAD_BLOCK_3S) {
+        timeout = 5000;  // HALF Timeout CatchStack time set 5s
+    }
     std::pair<int, std::string> dumpResult = dumplog.DumpCatchWithTimeout(pid, msg, timeout, tid, true);
     if (dumpResult.first == DUMP_STACK_FAILED) {
         TAG_LOGI(AAFwkTag::APPDFR, "appfreeze catch json stacktrace failed, %{public}s", dumpResult.second.c_str());
