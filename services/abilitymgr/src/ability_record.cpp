@@ -112,6 +112,7 @@ constexpr const char* HIDDEN_START_AUTOSTARTUP = "hiddenStartAutoStartup";
 const int32_t SHELL_ASSISTANT_DIETYPE = 0;
 std::atomic<int64_t> AbilityRecord::abilityRecordId = 0;
 const int32_t DEFAULT_USER_ID = 0;
+const int32_t SEND_RESULT_CANCELED = -1;
 const int VECTOR_SIZE = 2;
 const int LOAD_TIMEOUT_ASANENABLED = 150;
 const int TERMINATE_TIMEOUT_ASANENABLED = 150;
