@@ -23,6 +23,7 @@
 #include "ability_manager_interface.h"
 #include "ability_scheduler_interface.h"
 #include "auto_startup_info.h"
+#include "caller_info.h"
 #include "iremote_object.h"
 #include "mission_info.h"
 #include "system_memory_attr.h"
@@ -618,6 +619,22 @@ public:
         sptr<IRemoteObject> callerToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
         uint64_t specifiedFullTokenId = 0);
+
+    /**
+     * ConnectAbilitySA, connect session with service ability.
+     *
+     * @param want, Special want for service type's ability.
+     * @param connect, Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken, caller ability token.
+     * @param indirectCallerInfo, Indirect caller information containing the process ID (callerPid) and user ID (callerUid).
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ConnectAbilitySA(
+        const Want &want,
+        sptr<IAbilityConnection> connect,
+        sptr<IRemoteObject> callerToken,
+        int32_t userId = DEFAULT_INVAL_VALUE,
+        IndirectCallerInfo indirectCallerInfo = IndirectCallerInfo());
     
     /**
      * ConnectAbilityWithExtensionType, connect session with specified extentionType ability.
