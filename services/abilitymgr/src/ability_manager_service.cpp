@@ -16879,5 +16879,56 @@ void AbilityManagerService::HandleAppDiedForRecovery(const sptr<IRemoteObject>& 
         AppRecoveryMgr::AppRecoveryMgr::GetInstance().RemoveOnRemoteDieCallback(remote);
     }
 }
+
+int32_t AbilityManagerService::PerformResidentDeepCopy(
+    const std::string &bundleName, const std::string &abilityName, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "PerformResidentDeepCopy called for %{public}s/%{public}s, userId=%{public}d",
+        bundleName.c_str(), abilityName.c_str(), userId);
+    
+    if (bundleName.empty() || abilityName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Invalid bundleName or abilityName");
+        return ERR_INVALID_VALUE;
+    }
+    
+    auto connectManagers = subManagersHelper_->GetConnectManagers();
+    for (const auto& connectManager : connectManagers) {
+        if (connectManager == nullptr) {
+            continue;
+        }
+        
+        // Get the service map from the connect manager
+        // We need to access serviceMap_ which is protected, so we use the public API
+        AbilityRequest request;
+        request.want.SetElementName(bundleName, abilityName);
+        
+        auto extensionRecord = connectManager->GetServiceRecordByAbilityRequest(request);
+        if (extensionRecord == nullptr) {
+            continue;
+        }
+        
+        // Try to cast to AbilityRecord
+        auto abilityRecord = std::dynamic_pointer_cast<AbilityRecord>(extensionRecord);
+        if (abilityRecord == nullptr) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Extension record is not an AbilityRecord");
+            continue;
+        }
+        
+        // Check if this is the resident ability we're looking for
+        if (abilityRecord->IsResidentAbility()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Found resident ability, performing deep copy");
+            auto copiedRecord = abilityRecord->DeepCopy();
+            if (copiedRecord != nullptr) {
+                abilityRecord->SetResidentAbilityFlag(false);
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed successfully");
+                return ERR_OK;
+            }
+        }
+    }
+    
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "Resident ability not found or deep copy failed");
+    return ERR_NULL_OBJECT;
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

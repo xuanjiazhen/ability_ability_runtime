@@ -3451,5 +3451,27 @@ int AbilityRecord::GetAppRecoveryFlag() const
 {
     return appRecoveryFlag_;
 }
+
+std::shared_ptr<AbilityRecord> AbilityRecord::DeepCopy() const
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DeepCopy called for %{public}s", GetAbilityInfo().name.c_str());
+    
+    // Create a new AbilityRecord with the same want, abilityInfo, and applicationInfo
+    auto copy = std::make_shared<AbilityRecord>(want_, abilityInfo_, applicationInfo_, requestCode_);
+    
+    // Copy essential state
+    copy->SetAbilityState(currentState_.load());
+    copy->SetUid(uid_);
+    copy->SetPid(pid_);
+    copy->SetProcessName(processName_);
+    copy->isResidentAbility_ = isResidentAbility_;
+    
+    // The purpose of DeepCopy is to trigger memory defragmentation
+    // by forcing allocation of new memory for the ability record data
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DeepCopy completed for %{public}s", GetAbilityInfo().name.c_str());
+    
+    return copy;
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

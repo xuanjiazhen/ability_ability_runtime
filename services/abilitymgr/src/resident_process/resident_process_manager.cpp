@@ -380,6 +380,7 @@ void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleN
         .abilityName = abilityName,
         .userId = userId,
     });
+}
 
 void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bundleName,
     const std::string &abilityName, int32_t userId)
@@ -445,7 +446,8 @@ void ResidentProcessManager::ExecutePendingDeepCopyTasks()
             TAG_LOGI(AAFwkTag::ABILITYMGR, "No pending deep copy tasks to execute");
             return;
         }
-        tasksToExecute = std::move(pendingDeepCopyTasks_);\n    }
+        tasksToExecute = std::move(pendingDeepCopyTasks_);
+    }
 
     auto task = [tasks = std::move(tasksToExecute)]() {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Executing %{public}zu pending deep copy tasks", tasks.size());
@@ -476,9 +478,5 @@ void ResidentProcessManager::ExecutePendingDeepCopyTasks()
     }
 }
 
-}  // namespace AAFwk
-}  // namespace OHOS
-
-}
 }  // namespace AAFwk
 }  // namespace OHOS

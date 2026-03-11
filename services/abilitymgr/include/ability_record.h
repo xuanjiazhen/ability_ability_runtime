@@ -600,6 +600,10 @@ public:
 
     bool CanRestartResident();
 
+    bool IsResidentAbility() const { return isResidentAbility_; }
+    void SetResidentAbilityFlag(bool flag) { isResidentAbility_ = flag; }
+    std::shared_ptr<AbilityRecord> DeepCopy() const;
+
     inline int64_t GetAbilityRecordId() const
     {
         return recordId_;
@@ -952,6 +956,7 @@ protected:
     bool isHook_ = false;
     bool isPluginAbility_ = false;
     bool isPrelaunch_ = false;
+    bool isResidentAbility_ = false;
 
     int32_t uiExtensionAbilityId_ = 0;                // uiextension ability id
     int32_t uid_ = 0;

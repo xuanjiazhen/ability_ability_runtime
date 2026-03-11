@@ -117,6 +117,17 @@ public:
     friend class UIAbilityLifecycleManager;
     static std::shared_ptr<AbilityManagerService> GetPubInstance();
 
+    /**
+     * Perform deep copy for resident ability to trigger memory defragmentation.
+     *
+     * @param bundleName The bundle name of the resident ability.
+     * @param abilityName The ability name of the resident ability.
+     * @param userId The user ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t PerformResidentDeepCopy(const std::string &bundleName, const std::string &abilityName, int32_t userId);
+
+
     void OnStart() override;
     void OnStop() override;
 

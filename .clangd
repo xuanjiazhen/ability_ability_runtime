@@ -1,0 +1,55 @@
+# Clangd 配置文件 - OpenHarmony ability_runtime
+# 放置在项目根目录：C:\Users\zhanghaozheng\GitCode\foundation\ability\ability_runtime\.clangd
+
+CompileFlags:
+  Add:
+    # C++ 标准
+    - "-std=c++17"
+    
+    # 常用宏定义
+    - "-DNDEBUG"
+    - "-DOHOS_BUILD"
+    
+    # 系统头文件路径（根据实际安装路径调整）
+    - "-IC:/OpenHarmony/prebuilts/clang/ohos/windows-x86_64/llvm/lib/clang/15.0.4/include"
+    
+    # 项目头文件路径
+    - "-I./interfaces/inner_api/include"
+    - "-I./services/abilitymgr/include"
+    - "-I./services/appmgr/include"
+    - "-I./frameworks/native/include"
+    
+  Remove:
+    # 移除可能导致错误的编译选项
+    - "-Werror"
+    - "-fno-rtti"
+
+Diagnostics:
+  # 严格检查未使用的头文件
+  UnusedIncludes: Strict
+  
+  # 严格检查缺失的头文件
+  MissingIncludes: Strict
+  
+  # 启用 Clang-Tidy 静态分析
+  ClangTidy:
+    Add:
+      - "modernize-*"
+      - "bugprone-*"
+      - "performance-*"
+      - "readability-identifier-naming"
+    Remove:
+      - "modernize-use-trailing-return-type"
+
+# 索引配置
+Index:
+  Background: Build
+  StandardLibrary: Yes
+
+# 补全配置
+Completion:
+  AllScopes: Yes
+
+# 悬停提示配置
+Hover:
+  ShowAKA: Yes
