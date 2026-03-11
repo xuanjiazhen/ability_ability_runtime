@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git revert HEAD~1 HEAD services/abilitymgr/BUILD.gn)",
+      "Bash(git revert:*)",
+      "Bash(g ' {} ;)",
+      "WebFetch(domain:gitcode.com)",
+      "Bash(git fetch:*)",
+      "Bash(xargs sed:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(git pull:*)",
+      "Bash(for lib in abilityms wantagent mission_list quickfixms:*)",
+      "Bash(do echo \"=== $lib ===\")",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(git checkout:*)",
+      "Bash(git cherry-pick:*)"
+    ]
+  }
+}
