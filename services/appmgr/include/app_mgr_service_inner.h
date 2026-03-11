@@ -1685,9 +1685,11 @@ private:
 
     /**
      * Build a process's name for service extension
+     * @param extensionProcessMode Process mode for extension, default to UNDEFINED which uses abilityInfo's value
      */
     void MakeServiceExtProcessName(const std::shared_ptr<AbilityInfo> &abilityInfo,
-        const std::shared_ptr<ApplicationInfo> &appInfo, std::string &processName) const;
+        const std::shared_ptr<ApplicationInfo> &appInfo, std::string &processName,
+        uint32_t extensionProcessMode = static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::UNDEFINED)) const;
 
     /**
      * Build a process's name for the info given
