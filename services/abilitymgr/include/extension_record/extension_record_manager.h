@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <set>
+#include <tuple>
 #include <vector>
 
 #include "base_extension_record.h"
@@ -173,7 +174,7 @@ private:
     std::map<int32_t, sptr<IRemoteObject>> preloadUIExtensionHostClientCallerTokens_;
 
     struct AgentUIExtensionRecords {
-        int32_t callerRecordId;
+        int32_t callerUid;
         std::string targetBundle;
         std::vector<int32_t> targetRecordIds;
     };

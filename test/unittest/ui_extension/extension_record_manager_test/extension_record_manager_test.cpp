@@ -1548,7 +1548,7 @@ HWTEST_F(ExtensionRecordManagerTest, AddAgentUILaunchRecord_0200, TestSize.Level
     auto callerIt = std::find_if(extRecordMgr->agentUIExtensionRecords_.begin(),
         extRecordMgr->agentUIExtensionRecords_.end(),
         [callerUid, &bundleName](const auto &record) {
-            return record.callerRecordId == callerUid && record.targetBundle == bundleName;
+            return record.callerUid == callerUid && record.targetBundle == bundleName;
         });
     ASSERT_NE(callerIt, extRecordMgr->agentUIExtensionRecords_.end());
     EXPECT_EQ(callerIt->targetRecordIds.size(), 3);
@@ -1579,7 +1579,7 @@ HWTEST_F(ExtensionRecordManagerTest, AddAgentUILaunchRecord_0300, TestSize.Level
     auto callerIt = std::find_if(extRecordMgr->agentUIExtensionRecords_.begin(),
         extRecordMgr->agentUIExtensionRecords_.end(),
         [callerUid, &bundleName](const auto &record) {
-            return record.callerRecordId == callerUid && record.targetBundle == bundleName;
+            return record.callerUid == callerUid && record.targetBundle == bundleName;
         });
     ASSERT_NE(callerIt, extRecordMgr->agentUIExtensionRecords_.end());
     EXPECT_EQ(callerIt->targetRecordIds.size(), 1);
@@ -1637,7 +1637,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0200, TestSize.Le
     auto callerIt = std::find_if(extRecordMgr->agentUIExtensionRecords_.begin(),
         extRecordMgr->agentUIExtensionRecords_.end(),
         [callerUid, &bundleName1](const auto &record) {
-            return record.callerRecordId == callerUid && record.targetBundle == bundleName1;
+            return record.callerUid == callerUid && record.targetBundle == bundleName1;
         });
     ASSERT_NE(callerIt, extRecordMgr->agentUIExtensionRecords_.end());
     EXPECT_EQ(callerIt->targetRecordIds.size(), 1);
@@ -1666,7 +1666,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0300, TestSize.Le
     auto bundle1It = std::find_if(extRecordMgr->agentUIExtensionRecords_.begin(),
         extRecordMgr->agentUIExtensionRecords_.end(),
         [callerUid, &bundleName, extensionAbilityId](const auto &record) {
-            return record.callerRecordId == callerUid && record.targetBundle == bundleName &&
+            return record.callerUid == callerUid && record.targetBundle == bundleName &&
                 record.targetRecordIds.size() == 1 && record.targetRecordIds[0] == extensionAbilityId;
         });
     EXPECT_NE(bundle1It, extRecordMgr->agentUIExtensionRecords_.end());
@@ -1677,7 +1677,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0300, TestSize.Le
     auto recordIt = std::find_if(extRecordMgr->agentUIExtensionRecords_.begin(),
         extRecordMgr->agentUIExtensionRecords_.end(),
         [callerUid, &bundleName, extensionAbilityId](const auto &record) {
-            return record.callerRecordId == callerUid && record.targetBundle == bundleName &&
+            return record.callerUid == callerUid && record.targetBundle == bundleName &&
                 record.targetRecordIds.size() == 1 && record.targetRecordIds[0] == extensionAbilityId;
         });
     EXPECT_NE(recordIt, extRecordMgr->agentUIExtensionRecords_.end());
@@ -1709,7 +1709,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0400, TestSize.Le
     auto callerIt = std::find_if(extRecordMgr->agentUIExtensionRecords_.begin(),
         extRecordMgr->agentUIExtensionRecords_.end(),
         [callerUid, &bundleName](const auto &record) {
-            return record.callerRecordId == callerUid && record.targetBundle == bundleName;
+            return record.callerUid == callerUid && record.targetBundle == bundleName;
         });
     ASSERT_NE(callerIt, extRecordMgr->agentUIExtensionRecords_.end());
     EXPECT_EQ(callerIt->targetRecordIds.size(), 3);
@@ -1719,7 +1719,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0400, TestSize.Le
     callerIt = std::find_if(extRecordMgr->agentUIExtensionRecords_.begin(),
         extRecordMgr->agentUIExtensionRecords_.end(),
         [callerUid, &bundleName](const auto &record) {
-            return record.callerRecordId == callerUid && record.targetBundle == bundleName;
+            return record.callerUid == callerUid && record.targetBundle == bundleName;
         });
     ASSERT_NE(callerIt, extRecordMgr->agentUIExtensionRecords_.end());
     EXPECT_EQ(callerIt->targetRecordIds.size(), 2);
@@ -1760,7 +1760,7 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0500, TestSize.Le
     auto remainIt = std::find_if(extRecordMgr->agentUIExtensionRecords_.begin(),
         extRecordMgr->agentUIExtensionRecords_.end(),
         [callerUid, &bundleName, extensionAbilityId](const auto &record) {
-            return record.callerRecordId == callerUid && record.targetBundle == bundleName &&
+            return record.callerUid == callerUid && record.targetBundle == bundleName &&
                 record.targetRecordIds.size() == 1 && record.targetRecordIds[0] == extensionAbilityId;
         });
     EXPECT_NE(remainIt, extRecordMgr->agentUIExtensionRecords_.end());
