@@ -22,6 +22,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "iservice_registry.h"
+#include "permission_verification.h"
 #ifdef SUPPORT_SCREEN
 #include "scene_board_judgement.h"
 #include "session_manager_lite.h"
@@ -604,6 +605,23 @@ ErrCode AbilityManagerClient::ConnectAbility(
         want.GetElement().GetAbilityName().c_str(), userId, specifiedFullTokenId);
     return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId,
         false, specifiedFullTokenId);
+}
+
+ErrCode AbilityManagerClient::ConnectAbilitySA(const Want &want, sptr<IAbilityConnection> connect,
+    sptr<IRemoteObject> callerToken, int32_t userId, IndirectCallerInfo indirectCallerInfo)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "not sa call");
+        return CHECK_PERMISSION_FAILED;
+    }
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "name:%{public}s %{public}s, userId:%{public}d, callerPid:%{public}d, "
+        "callerUid:%{public}d", want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str(),
+        userId, indirectCallerInfo.callerPid, indirectCallerInfo.callerUid);
+    return abms->ConnectAbilityCommon(want, connect, callerToken, AppExecFwk::ExtensionAbilityType::SERVICE, userId,
+        false, 0, 0, indirectCallerInfo);
 }
 
 ErrCode AbilityManagerClient::ConnectAbilityWithExtensionType(
