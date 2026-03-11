@@ -19,6 +19,8 @@
 #include "ability_command.h"
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
+#include "hilog_tag_wrapper.h"
+
 #ifdef A11Y_ENABLE
 #include "accessibility_ability_command.h"
 #endif // A11Y_ENABLE
@@ -53,12 +55,13 @@ int main(int argc, char* argv[])
     if (argc > 1) {
         operation = argv[1];
     }
-
+    TAG_LOGI(AAFwkTag::AA_TOOL, "CCR1 start");
     if (strstr(argv[0], "aa") != nullptr) {
         CommandTimer commandTimer("ability::aa_command", COMMAND_TIME_OUT, operation);
         OHOS::AAFwk::AbilityManagerShellCommand cmd(argc, argv);
         std::cout << cmd.ExecCommand();
     }
+    TAG_LOGI(AAFwkTag::AA_TOOL, "CCR2 start");
     fflush(stdout);
     _exit(0);
 }

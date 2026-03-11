@@ -59,6 +59,7 @@ ohos_static_library("tools_aa_source_set") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
   ]
 
   external_deps = [
@@ -94,7 +95,10 @@ ohos_executable("aa") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = [ ":tools_aa_source_set" ]
+  deps = [
+    ":tools_aa_source_set",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager"
+  ]
 
   external_deps = [
     "ability_base:base",
