@@ -49,3 +49,4 @@ bool DoSomethingInterestingWithMyAPI(FuzzedDataProvider *fdp)
 
 /* Fuzzer entry point */
 
+
