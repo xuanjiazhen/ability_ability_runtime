@@ -154,25 +154,46 @@ void JsFreeInstallObserver::HandleOnInstallFinished(const std::string &bundleNam
 void JsFreeInstallObserver::HandleOnInstallFinishedByUrl(const std::string &startTime, const std::string& url,
     int32_t resultCode)
 {
-    TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "HandleOnInstallFinishedByUrl, startTime:%{public}s, url:%{public}s, resultCode:%{public}d",
+             startTime.c_str(), url.c_str(), resultCode);
+    DumpObservers();
     std::vector<napi_deferred> promises;
     std::vector<std::shared_ptr<NativeReference>> callbacks;
     {
         std::unique_lock<std::mutex> lock(jsObserverObjectListLock_);
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "jsObserverObjectList_ size:%{public}zu", jsObserverObjectList_.size());
+        int32_t matchCount = 0;
+        int32_t skipCount = 0;
+        int32_t index = 0;
         for (auto it = jsObserverObjectList_.begin(); it != jsObserverObjectList_.end();) {
+            TAG_LOGD(AAFwkTag::FREE_INSTALL, "Checking observer[%{public}d]: startTime:%{public}s, url:%{public}s, callback:%{public}p, deferred:%{public}p, isAbilityResult:%{public}d",
+                     index++, it->startTime.c_str(), it->url.c_str(), it->callback.get(), it->deferred, it->isAbilityResult);
             if ((it->startTime != startTime) || (it->url != url)) {
+                TAG_LOGD(AAFwkTag::FREE_INSTALL, "Skip observer[%{public}zu], startTime match:%{public}d, url match:%{public}d",
+                         std::distance(jsObserverObjectList_.begin(), it),
+                         it->startTime == startTime, it->url == url);
+                skipCount++;
                 it++;
                 continue;
             }
             if (it->callback == nullptr && it->deferred == nullptr) {
+                TAG_LOGD(AAFwkTag::FREE_INSTALL, "Skip observer[%{public}zu]: both callback and deferred are null",
+                         std::distance(jsObserverObjectList_.begin(), it));
+                skipCount++;
                 it++;
                 continue;
             }
             if (it->isAbilityResult && (resultCode == ERR_OK ||
                 resultCode == AAFwk::ATOMIC_SERVICE_MINIMIZED)) {
+                TAG_LOGD(AAFwkTag::FREE_INSTALL, "Skip observer[%{public}zu]: isAbilityResult:%{public}d, resultCode:%{public}d, ERR_OK:%{public}d",
+                         std::distance(jsObserverObjectList_.begin(), it), it->isAbilityResult, resultCode, ERR_OK);
+                skipCount++;
                 it++;
                 continue;
             }
+            TAG_LOGD(AAFwkTag::FREE_INSTALL, "Found matching observer[%{public}zu], deferred:%{public}p, callback:%{public}p",
+                     std::distance(jsObserverObjectList_.begin(), it), it->deferred, it->callback.get());
+            matchCount++;
             if (it->deferred != nullptr) {
                 promises.emplace_back(it->deferred);
             } else {
@@ -180,13 +201,18 @@ void JsFreeInstallObserver::HandleOnInstallFinishedByUrl(const std::string &star
             }
             it = jsObserverObjectList_.erase(it);
         }
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "After search: matches:%{public}d, skipped:%{public}d, promises:%{public}zu, callbacks:%{public}zu",
+                 matchCount, skipCount, promises.size(), callbacks.size());
     }
 
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "Calling %zu promises and %zu callbacks", promises.size(), callbacks.size());
     for (const napi_deferred& promise : promises) {
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "Calling CallPromise, promise:%{public}p, resultCode:%{public}d", promise, resultCode);
         CallPromise(promise, resultCode);
         FinishAsyncTrace(HITRACE_TAG_ABILITY_MANAGER, "StartFreeInstall", atoi(startTime.c_str()));
     }
     for (auto callback : callbacks) {
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "Calling CallCallback, callback:%{public}p, resultCode:%{public}d", callback.get(), resultCode);
         CallCallback(callback, resultCode);
         FinishAsyncTrace(HITRACE_TAG_ABILITY_MANAGER, "StartFreeInstall", atoi(startTime.c_str()));
     }
@@ -278,12 +304,15 @@ void JsFreeInstallObserver::AddJsObserverObject(const std::string &bundleName, c
 void JsFreeInstallObserver::AddJsObserverObject(const std::string &startTime, const std::string &url,
     napi_value jsObserverObject, napi_value* result, bool isAbilityResult)
 {
-    TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "AddJsObserverObject, startTime:%{public}s, url:%{public}s, isAbilityResult:%{public}d",
+             startTime.c_str(), url.c_str(), isAbilityResult);
     {
         std::unique_lock<std::mutex> lock(jsObserverObjectListLock_);
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "jsObserverObjectList_ size before add:%{public}zu", jsObserverObjectList_.size());
         for (auto it = jsObserverObjectList_.begin(); it != jsObserverObjectList_.end(); ++it) {
             if (it->startTime == startTime && it->url == url) {
-                TAG_LOGW(AAFwkTag::FREE_INSTALL, "add jsObject");
+                TAG_LOGW(AAFwkTag::FREE_INSTALL, "Duplicate observer found, skipping add. startTime:%{public}s, url:%{public}s",
+                         startTime.c_str(), url.c_str());
                 return;
             }
         }
@@ -294,29 +323,48 @@ void JsFreeInstallObserver::AddJsObserverObject(const std::string &startTime, co
     object.startTime = startTime;
     object.url = url;
     AddJsObserverCommon(object, jsObserverObject, result, isAbilityResult);
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "AddJsObserverObject completed");
 }
 
 void JsFreeInstallObserver::AddJsObserverCommon(JsFreeInstallObserverObject &object,
     napi_value jsObserverObject, napi_value* result, bool isAbilityResult)
 {
-    TAG_LOGD(AAFwkTag::FREE_INSTALL, "call");
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "AddJsObserverCommon, startTime:%{public}s, url:%{public}s, bundleName:%{public}s, abilityName:%{public}s, isAbilityResult:%{public}d",
+             object.startTime.c_str(), object.url.c_str(), object.bundleName.c_str(), object.abilityName.c_str(), isAbilityResult);
     object.isAbilityResult = isAbilityResult;
     napi_valuetype type = napi_undefined;
     napi_typeof(env_, jsObserverObject, &type);
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "jsObserverObject type:%{public}d (function:%{public}d)", type, napi_function);
     if (jsObserverObject == nullptr || type != napi_function) {
         napi_deferred deferred;
         napi_create_promise(env_, &deferred, result);
         object.deferred = deferred;
         object.callback = nullptr;
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "Created promise, deferred:%{public}p", deferred);
     } else {
         napi_ref ref = nullptr;
         napi_get_undefined(env_, result);
         napi_create_reference(env_, jsObserverObject, 1, &ref);
         object.deferred = nullptr;
         object.callback = std::shared_ptr<NativeReference>(reinterpret_cast<NativeReference *>(ref));
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "Created callback reference");
     }
     std::unique_lock<std::mutex> lock(jsObserverObjectListLock_);
     jsObserverObjectList_.emplace_back(object);
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "Added observer to list, total size:%{public}zu", jsObserverObjectList_.size());
+    DumpObservers();
+}
+
+void JsFreeInstallObserver::DumpObservers()
+{
+    std::unique_lock<std::mutex> lock(jsObserverObjectListLock_);
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "Dumping all observers, total:%{public}zu", jsObserverObjectList_.size());
+    int32_t index = 0;
+    for (const auto& observer : jsObserverObjectList_) {
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "Observer[%{public}d]: startTime=%{public}s, url=%{public}s, abilityName=%{public}s, bundleName=%{public}s, callback=%{public}p, deferred=%{public}p, isAbilityResult=%{public}d",
+                 index++, observer.startTime.c_str(), observer.url.c_str(), observer.abilityName.c_str(),
+                 observer.bundleName.c_str(), observer.callback.get(), observer.deferred, observer.isAbilityResult);
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

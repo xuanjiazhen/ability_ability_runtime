@@ -425,27 +425,35 @@ napi_value JsUIExtensionContext::OnOpenLinkInner(napi_env env, const AAFwk::Want
     AddFreeInstallObserver(env, want, nullptr, &result, false, true);
     NapiAsyncTask::CompleteCallback complete = [want, innerErrorCode, requestCode, startTime, url, weak = context_,
         observer = freeInstallObserver_](napi_env env, NapiAsyncTask& task, int32_t status) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "CompleteCallback called, innerErrorCode:%{public}d, observer:%{public}p, startTime:%{public}s, url:%{public}s",
+                 *innerErrorCode, observer.get(), startTime.c_str(), url.c_str());
         if (*innerErrorCode == 0) {
-            TAG_LOGI(AAFwkTag::UI_EXT, "OpenLink succeeded");
+            TAG_LOGI(AAFwkTag::UI_EXT, "OpenLink succeeded, skip calling observer");
             return;
         }
+        TAG_LOGI(AAFwkTag::UI_EXT, "OpenLink failed with error:%{public}d, will call observer", *innerErrorCode);
         auto context = weak.lock();
         if (context == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null context");
             return;
         }
+        TAG_LOGI(AAFwkTag::UI_EXT, "Context locked, observer:%{public}p", observer.get());
         if (observer != nullptr) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "Observer not null, calling OnInstallFinishedByUrl");
             if (*innerErrorCode == AAFwk::ERR_OPEN_LINK_START_ABILITY_DEFAULT_OK) {
                 TAG_LOGI(AAFwkTag::UI_EXT, "start ability by default succeeded");
                 observer->OnInstallFinishedByUrl(startTime, url, ERR_OK);
                 return;
             }
+            TAG_LOGI(AAFwkTag::UI_EXT, "Calling OnInstallFinishedByUrl with errorCode:%{public}d", *innerErrorCode);
             observer->OnInstallFinishedByUrl(startTime, url, *innerErrorCode);
             nlohmann::json jsonObject = nlohmann::json {
                 { JSON_KEY_ERR_MSG, "Failed to call openLink" },
             };
             std::string requestId = want.GetStringParam(KEY_REQUEST_ID);
             context->OnOpenLinkRequestFailure(requestId, want.GetElement(), jsonObject.dump());
+        } else {
+            TAG_LOGW(AAFwkTag::UI_EXT, "observer is null, skip calling OnInstallFinishedByUrl");
         }
         context->RemoveResultCallbackTask(requestCode);
     };
@@ -1252,9 +1260,11 @@ void JsUIExtensionContext::AddFreeInstallObserver(napi_env env, const AAFwk::Wan
     napi_value *result, bool isAbilityResult, bool isOpenLink)
 {
     // adapter free install async return install and start result
-    TAG_LOGD(AAFwkTag::UI_EXT, "called");
+    TAG_LOGD(AAFwkTag::UI_EXT, "called, isOpenLink:%{public}d", isOpenLink);
     int ret = 0;
+    TAG_LOGD(AAFwkTag::UI_EXT, "freeInstallObserver_:%{public}p", freeInstallObserver_.get());
     if (freeInstallObserver_ == nullptr) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "Creating new JsFreeInstallObserver");
         freeInstallObserver_ = new JsFreeInstallObserver(env);
         auto context = context_.lock();
         if (!context) {
@@ -1262,12 +1272,14 @@ void JsUIExtensionContext::AddFreeInstallObserver(napi_env env, const AAFwk::Wan
             return;
         }
         ret = context->AddFreeInstallObserver(freeInstallObserver_);
+        TAG_LOGI(AAFwkTag::UI_EXT, "AddFreeInstallObserver returned:%{public}d", ret);
     }
 
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "addFreeInstallObserver error");
+        TAG_LOGE(AAFwkTag::UI_EXT, "addFreeInstallObserver error, ret:%{public}d", ret);
     }
     std::string startTime = want.GetStringParam(Want::PARAM_RESV_START_TIME);
+    TAG_LOGI(AAFwkTag::UI_EXT, "startTime:%{public}s", startTime.c_str());
     if (!isOpenLink) {
         TAG_LOGI(AAFwkTag::UI_EXT, "addJsObserver");
         std::string bundleName = want.GetElement().GetBundleName();
@@ -1277,6 +1289,7 @@ void JsUIExtensionContext::AddFreeInstallObserver(napi_env env, const AAFwk::Wan
         return;
     }
     std::string url = want.GetUriString();
+    TAG_LOGI(AAFwkTag::UI_EXT, "Calling AddJsObserverObject for openLink, url:%{public}s", url.c_str());
     freeInstallObserver_->AddJsObserverObject(startTime, url, callback, result, isAbilityResult);
 }
 

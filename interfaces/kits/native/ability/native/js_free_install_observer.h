@@ -169,6 +169,9 @@ private:
      */
     void AddJsObserverCommon(JsFreeInstallObserverObject &object,
         napi_value jsObserverObject, napi_value* result, bool isAbilityResult);
+
+    void DumpObservers();
+
     napi_env env_;
     std::mutex jsObserverObjectListLock_;
     std::vector<JsFreeInstallObserverObject> jsObserverObjectList_;

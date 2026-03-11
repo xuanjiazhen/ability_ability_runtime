@@ -118,20 +118,43 @@ void EtsFreeInstallObserver::HandleOnInstallFinished(
 void EtsFreeInstallObserver::HandleOnInstallFinishedByUrl(
     const std::string &startTime, const std::string &url, int32_t resultCode)
 {
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "HandleOnInstallFinishedByUrl, startTime:%{public}s, url:%{public}s, resultCode:%{public}d",
+             startTime.c_str(), url.c_str(), resultCode);
     std::vector<ani_object> callbacks;
     {
         std::unique_lock<std::mutex> lock(etsObserverObjectListLock_);
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "etsObserverObjectList_ size before find:%{public}zu", etsObserverObjectList_.size());
+        int32_t matchCount = 0;
+        int32_t skipCount = 0;
         for (auto it = etsObserverObjectList_.begin(); it != etsObserverObjectList_.end();) {
+            TAG_LOGD(AAFwkTag::FREE_INSTALL, "Checking observer[%{public}zu]: startTime:%{public}s, url:%{public}s, callback:%{public}p",
+                     std::distance(etsObserverObjectList_.begin(), it),
+                     it->startTime.c_str(), it->url.c_str(), it->callback);
             if ((it->startTime != startTime) || (it->url != url) || (it->callback == nullptr)) {
+                TAG_LOGD(AAFwkTag::FREE_INSTALL, "Skip observer[%{public}zu], startTime match:%{public}d, url match:%{public}d, callback:%{public}p",
+                         std::distance(etsObserverObjectList_.begin(), it),
+                         it->startTime == startTime, it->url == url, it->callback);
+                skipCount++;
                 it++;
                 continue;
             }
+            TAG_LOGD(AAFwkTag::FREE_INSTALL, "Found matching observer[%{public}zu], callback:%{public}p",
+                     std::distance(etsObserverObjectList_.begin(), it), it->callback);
             callbacks.emplace_back(it->callback);
+            matchCount++;
             it = etsObserverObjectList_.erase(it);
         }
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "etsObserverObjectList_ size after find:%{public}zu, callbacks size:%{public}zu, matches:%{public}d, skipped:%{public}d",
+                 etsObserverObjectList_.size(), callbacks.size(), matchCount, skipCount);
+    }
+
+    if (callbacks.empty()) {
+        TAG_LOGW(AAFwkTag::FREE_INSTALL, "No callbacks found for install finished, startTime:%{public}s, url:%{public}s",
+                 startTime.c_str(), url.c_str());
     }
 
     for (auto& callback : callbacks) {
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "Calling callback for install finished, callback:%{public}p", callback);
         CallCallback(callback, resultCode);
         FinishAsyncTrace(HITRACE_TAG_ABILITY_MANAGER, "StartFreeInstall", atoi(startTime.c_str()));
     }
@@ -139,7 +162,7 @@ void EtsFreeInstallObserver::HandleOnInstallFinishedByUrl(
 
 void EtsFreeInstallObserver::CallCallback(ani_object callback, int32_t resultCode)
 {
-    TAG_LOGD(AAFwkTag::FREE_INSTALL, "CallCallback");
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "CallCallback, callback:%{public}p, resultCode:%{public}d", callback, resultCode);
     if (callback == nullptr) {
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "null callback");
         return;
@@ -161,10 +184,13 @@ void EtsFreeInstallObserver::CallCallback(ani_object callback, int32_t resultCod
             return;
         }
     }
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "Creating error object, resultCode:%{public}d", resultCode);
     ani_object aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
     if (resultCode != ERR_OK) {
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "Creating error by native error, errorCode:%{public}d", resultCode);
         aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, resultCode);
     }
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "Calling AsyncCallback, aniObject:%{public}p", aniObject);
     AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
     env->GlobalReference_Delete(callback);
     if (attachFlag && (status = etsVm_->DetachCurrentThread()) != ANI_OK) {
@@ -222,15 +248,18 @@ void EtsFreeInstallObserver::AddEtsObserverObject(ani_env *env, const std::strin
 void EtsFreeInstallObserver::AddEtsObserverObject(
     ani_env *env, const std::string &startTime, const std::string &url, ani_object callback, bool isAbilityResult)
 {
-    TAG_LOGD(AAFwkTag::FREE_INSTALL, "AddEtsObserverObject");
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "AddEtsObserverObject, startTime:%{public}s, url:%{public}s, callback:%{public}p, isAbilityResult:%{public}d",
+             startTime.c_str(), url.c_str(), callback, isAbilityResult);
     {
         std::unique_lock<std::mutex> lock(etsObserverObjectListLock_);
         for (auto it = etsObserverObjectList_.begin(); it != etsObserverObjectList_.end(); ++it) {
             if (it->startTime == startTime && it->url == url) {
-                TAG_LOGW(AAFwkTag::FREE_INSTALL, "add etsObject");
+                TAG_LOGW(AAFwkTag::FREE_INSTALL, "Duplicate observer found, skipping add. startTime:%{public}s, url:%{public}s",
+                         startTime.c_str(), url.c_str());
                 return;
             }
         }
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "etsObserverObjectList_ size before add:%{public}zu", etsObserverObjectList_.size());
     }
     StartAsyncTrace(HITRACE_TAG_ABILITY_MANAGER, "StartFreeInstall", atoi(startTime.c_str()));
     EtsFreeInstallObserverObject object;
@@ -243,7 +272,8 @@ void EtsFreeInstallObserver::AddEtsObserverObject(
 void EtsFreeInstallObserver::AddEtsObserverCommon(
     ani_env *env, EtsFreeInstallObserverObject &object, ani_object callback)
 {
-    TAG_LOGD(AAFwkTag::FREE_INSTALL, "AddEtsObserverCommon");
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "AddEtsObserverCommon, callback:%{public}p, object.url:%{public}s, object.startTime:%{public}s",
+             callback, object.url.c_str(), object.startTime.c_str());
     std::unique_lock<std::mutex> lock(etsObserverObjectListLock_);
     ani_ref global = nullptr;
     ani_status status = ANI_ERROR;
@@ -253,6 +283,19 @@ void EtsFreeInstallObserver::AddEtsObserverCommon(
     }
     object.callback = reinterpret_cast<ani_object>(global);
     etsObserverObjectList_.emplace_back(object);
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "Added observer successfully, etsObserverObjectList_ size:%{public}zu",
+             etsObserverObjectList_.size());
+}
+void EtsFreeInstallObserver::DumpObservers()
+{
+    std::unique_lock<std::mutex> lock(etsObserverObjectListLock_);
+    TAG_LOGD(AAFwkTag::FREE_INSTALL, "Dumping all observers, total:%{public}zu", etsObserverObjectList_.size());
+    int32_t index = 0;
+    for (const auto& observer : etsObserverObjectList_) {
+        TAG_LOGD(AAFwkTag::FREE_INSTALL, "Observer[%{public}d]: startTime=%{public}s, url=%{public}s, abilityName=%{public}s, bundleName=%{public}s, callback=%{public}p, isAbilityResult=%{public}d",
+                 index++, observer.startTime.c_str(), observer.url.c_str(), observer.abilityName.c_str(),
+                 observer.bundleName.c_str(), observer.callback, observer.isAbilityResult);
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
