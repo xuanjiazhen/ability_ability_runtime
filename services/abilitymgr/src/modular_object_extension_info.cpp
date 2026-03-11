@@ -15,6 +15,21 @@
 
 #include "modular_object_extension_info.h"
 
+#include "nlohmann/json.hpp"
+#include "json_util.h"
+
+namespace {
+constexpr const char *JSON_KEY_BUNDLE_NAME = "bundleName";
+constexpr const char *JSON_KEY_MODULE_NAME = "moduleName";
+constexpr const char *JSON_KEY_ABILITY_NAME = "abilityName";
+constexpr const char *JSON_KEY_APP_INDEX = "appIndex";
+constexpr const char *JSON_KEY_LAUNCH_MODE = "launchMode";
+constexpr const char *JSON_KEY_PROCESS_MODE = "processMode";
+constexpr const char *JSON_KEY_THREAD_MODE = "threadMode";
+constexpr const char *JSON_KEY_IS_SELF_DISABLED = "isSelfDisabled";
+constexpr const char *JSON_KEY_IS_SYSTEM_DISABLED = "isSystemDisabled";
+}
+
 namespace OHOS {
 namespace AAFwk {
 bool ModularObjectExtensionInfo::ReadFromParcel(Parcel &parcel)
@@ -58,6 +73,65 @@ bool ModularObjectExtensionInfo::Marshalling(Parcel &parcel) const
         return false;
     }
     if (!parcel.WriteBool(isSystemDisabled)) {
+        return false;
+    }
+    return true;
+}
+
+std::string ModularObjectExtensionInfo::ToJsonString() const
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        {JSON_KEY_BUNDLE_NAME, bundleName},
+        {JSON_KEY_MODULE_NAME, moduleName},
+        {JSON_KEY_ABILITY_NAME, abilityName},
+        {JSON_KEY_APP_INDEX, appIndex},
+        {JSON_KEY_LAUNCH_MODE, static_cast<int32_t>(launchMode)},
+        {JSON_KEY_PROCESS_MODE, static_cast<int32_t>(processMode)},
+        {JSON_KEY_THREAD_MODE, static_cast<int32_t>(threadMode)},
+        {JSON_KEY_IS_SELF_DISABLED, isSelfDisabled},
+        {JSON_KEY_IS_SYSTEM_DISABLED, isSystemDisabled},
+    };
+    return jsonObject.dump();
+}
+
+bool ModularObjectExtensionInfo::FromJsonString(const std::string &jsonString)
+{
+    nlohmann::json jsonObject = nlohmann::json::parse(jsonString, nullptr, false);
+    if (jsonObject.is_discarded() || !jsonObject.is_object()) {
+        return false;
+    }
+
+    int32_t parseResult = ERR_OK;
+    const auto &jsonObjectEnd = jsonObject.end();
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(
+        jsonObject, jsonObjectEnd, JSON_KEY_BUNDLE_NAME, bundleName, false, parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(
+        jsonObject, jsonObjectEnd, JSON_KEY_MODULE_NAME, moduleName, false, parseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(
+        jsonObject, jsonObjectEnd, JSON_KEY_ABILITY_NAME, abilityName, false, parseResult);
+    AppExecFwk::GetValueIfFindKey<int32_t>(
+        jsonObject, jsonObjectEnd, JSON_KEY_APP_INDEX, appIndex, AppExecFwk::JsonType::NUMBER,
+        false, parseResult, AppExecFwk::ArrayType::NOT_ARRAY);
+    AppExecFwk::BMSJsonUtil::GetBoolValueIfFindKey(
+        jsonObject, jsonObjectEnd, JSON_KEY_IS_SELF_DISABLED, isSelfDisabled, false, parseResult);
+    AppExecFwk::BMSJsonUtil::GetBoolValueIfFindKey(
+        jsonObject, jsonObjectEnd, JSON_KEY_IS_SYSTEM_DISABLED, isSystemDisabled, false, parseResult);
+
+    int32_t enumValue = 0;
+    AppExecFwk::GetValueIfFindKey<int32_t>(
+        jsonObject, jsonObjectEnd, JSON_KEY_LAUNCH_MODE, enumValue, AppExecFwk::JsonType::NUMBER,
+        false, parseResult, AppExecFwk::ArrayType::NOT_ARRAY);
+    launchMode = static_cast<LaunchMode>(enumValue);
+    AppExecFwk::GetValueIfFindKey<int32_t>(
+        jsonObject, jsonObjectEnd, JSON_KEY_PROCESS_MODE, enumValue, AppExecFwk::JsonType::NUMBER,
+        false, parseResult, AppExecFwk::ArrayType::NOT_ARRAY);
+    processMode = static_cast<ModularProcessMode>(enumValue);
+    AppExecFwk::GetValueIfFindKey<int32_t>(
+        jsonObject, jsonObjectEnd, JSON_KEY_THREAD_MODE, enumValue, AppExecFwk::JsonType::NUMBER,
+        false, parseResult, AppExecFwk::ArrayType::NOT_ARRAY);
+    threadMode = static_cast<ThreadMode>(enumValue);
+
+    if (parseResult != ERR_OK) {
         return false;
     }
     return true;

@@ -20,7 +20,7 @@
 #include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
-//#include "modular_object_db_cache.h"
+#include "modular_object_db_cache.h"
 #include "os_account_manager_wrapper.h"
 #include "want.h"
 
@@ -110,7 +110,7 @@ void ModularObjectEventReceiver::HandleBundleInstall(const EventFwk::CommonEvent
     int32_t appIndex = data.GetWant().GetIntParam(KEY_APP_INDEX, 0);
 
     ffrt::submit([self = shared_from_this(), bundleName, userId, appIndex]() {
-        self->UpdateModularObjectExtensionInfo(bundleName, userId, appIndex);
+        self->InsertModularObjectExtensionInfo(bundleName, userId, appIndex);
     });
 }
 
@@ -154,25 +154,37 @@ void ModularObjectEventReceiver::HandleBundleChanged(const EventFwk::CommonEvent
     });
 }
 
-void ModularObjectEventReceiver::UpdateModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt UpdateModularObjectExtensionInfo enter");
-    AAFwk::ModularObjectExtensionInfo info;
-    if(GetModularObjectExtensionInfo(bundleName, userId, appIndex, info)) {
-        // db cache
-    }
-}
-
-void ModularObjectEventReceiver::RemoveModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex)
+void ModularObjectEventReceiver::InsertModularObjectExtensionInfo(
+    const std::string &bundleName, int32_t userId, int32_t appIndex)
 {
     AAFwk::ModularObjectExtensionInfo info;
-    if(GetModularObjectExtensionInfo(bundleName, userId, appIndex, info)) {
-        // db cache
+    if(!GetModularObjectExtensionInfo(bundleName, userId, appIndex, info)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get info failed, bundle: %{public}s", bundleName.c_str());
     }
+    std::string key = bundleName + std::to_string(userId) + std::to_string(appIndex);
+    DelayedSingleton<ModularObjectExtensionDbCache>::GetInstance()->InsertData(key, info);
 }
 
-bool ModularObjectEventReceiver::GetModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex,
-    AAFwk::ModularObjectExtensionInfo &info)
+void ModularObjectEventReceiver::UpdateModularObjectExtensionInfo(
+    const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    AAFwk::ModularObjectExtensionInfo info;
+    if(!GetModularObjectExtensionInfo(bundleName, userId, appIndex, info)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get info failed, bundle: %{public}s", bundleName.c_str());
+    }
+    std::string key = bundleName + std::to_string(userId) + std::to_string(appIndex);
+    DelayedSingleton<ModularObjectExtensionDbCache>::GetInstance()->UpdateData(key, info);
+}
+
+void ModularObjectEventReceiver::RemoveModularObjectExtensionInfo(
+    const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    std::string key = bundleName + std::to_string(userId) + std::to_string(appIndex);
+    DelayedSingleton<ModularObjectExtensionDbCache>::GetInstance()->DeleteData(key);
+}
+
+bool ModularObjectEventReceiver::GetModularObjectExtensionInfo(
+    const std::string &bundleName, int32_t userId, int32_t appIndex, AAFwk::ModularObjectExtensionInfo &info)
 {
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
