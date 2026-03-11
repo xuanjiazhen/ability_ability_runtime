@@ -46,7 +46,8 @@ private:
 
     // Helper methods
     void LoadModularObjectExtensionInfos();
-    void UpdateModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex = 0);
+    void InsertModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex = -1);
+    void UpdateModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex = -1);
     void RemoveModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex = -1);
     bool GetModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex,
         AAFwk::ModularObjectExtensionInfo &info);

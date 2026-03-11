@@ -92,6 +92,21 @@ struct ModularObjectExtensionInfo : public Parcelable {
     bool Marshalling(Parcel &parcel) const override;
 
     /**
+     * @brief Convert this object to a JSON string.
+     *
+     * @return JSON string representation of this object.
+     */
+    std::string ToJsonString() const;
+
+    /**
+     * @brief Parse this object from a JSON string.
+     *
+     * @param jsonString JSON string to parse.
+     * @return true if successful, false otherwise.
+     */
+    bool FromJsonString(const std::string &jsonString);
+
+    /**
      * @brief Unmarshall a ModularObjectExtensionInfo object from a Parcel.
      *
      * @param parcel The parcel to read from.
