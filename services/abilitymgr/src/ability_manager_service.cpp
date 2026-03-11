@@ -8766,6 +8766,40 @@ std::shared_ptr<AbilityConnectManager> AbilityManagerService::GetConnectManagerB
     return connectManager;
 }
 
+int32_t AbilityManagerService::GetResidentAbilityRecord(const std::string &bundleName,
+    const std::string &abilityName, int32_t userId, std::shared_ptr<AbilityRecord> &abilityRecord)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "GetResidentAbilityRecord: %{public}s/%{public}s, userId: %{public}d",
+        bundleName.c_str(), abilityName.c_str(), userId);
+
+    // Get the connect manager for ServiceExtension type
+    auto connectManager = GetConnectManagerByUserId(userId, AppExecFwk::ExtensionAbilityType::SERVICE);
+    if (connectManager == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "ConnectManager not found for userId: %{public}d", userId);
+        return ERR_ABILITY_RUNTIME_EXTERNAL_NO_SUCH_ABILITY_NAME;
+    }
+
+    // Get the service ability record from connect manager
+    auto serviceAbility = connectManager->GetAbilityRecord();
+    if (serviceAbility == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Service ability record not found");
+        return ERR_ABILITY_RUNTIME_EXTERNAL_NO_SUCH_ABILITY_NAME;
+    }
+
+    // Check if bundle name and ability name match
+    const auto& abilityInfo = serviceAbility->GetAbilityInfo();
+    if (abilityInfo.bundleName != bundleName || abilityInfo.name != abilityName) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "Ability info mismatch: expected %{public}s/%{public}s, got %{public}s/%{public}s",
+            bundleName.c_str(), abilityName.c_str(),
+            abilityInfo.bundleName.c_str(), abilityInfo.name.c_str());
+        return ERR_ABILITY_RUNTIME_EXTERNAL_NO_SUCH_ABILITY_NAME;
+    }
+
+    abilityRecord = serviceAbility;
+    return ERR_OK;
+}
+
 std::shared_ptr<PendingWantManager> AbilityManagerService::GetCurrentPendingWantManager()
 {
     CHECK_POINTER_AND_RETURN(subManagersHelper_, nullptr);

@@ -2853,6 +2853,18 @@ private:
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(
         const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionAbilityType type);
 
+    /**
+     * Get resident ability record by bundle name, ability name, and user ID.
+     *
+     * @param bundleName Bundle name of the resident ability.
+     * @param abilityName Ability name of the resident ability.
+     * @param userId User ID.
+     * @param abilityRecord Output parameter for the found ability record.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetResidentAbilityRecord(const std::string &bundleName, const std::string &abilityName,
+        int32_t userId, std::shared_ptr<AbilityRecord> &abilityRecord);
+
     std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> GetUIExtensionAbilityManagers();
     std::shared_ptr<UIExtensionAbilityManager> GetCurrentUIExtensionAbilityManager();
     std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByUserId(int32_t userId);

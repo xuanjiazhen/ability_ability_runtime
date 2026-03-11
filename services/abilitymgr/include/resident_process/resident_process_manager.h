@@ -16,12 +16,41 @@
 #ifndef OHOS_ABILITY_RUNTIME_RESIDENT_PROCESS_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_RESIDENT_PROCESS_MANAGER_H
 
+#include <atomic>
+#include <functional>
 #include <list>
+#include <memory>
 #include <mutex>
 
+#include "ability_manager_service.h"
 #include "app_scheduler.h"
 #include "bundle_info.h"
+#include "common_event_data.h"
+#include "common_event_subscribe_info.h"
+#include "common_event_subscriber.h"
+#include "common_event_support.h"
 #include "singleton.h"
+
+namespace OHOS {
+namespace AAFwk {
+class ResidentScreenOffEventSubscriber : public EventFwk::CommonEventSubscriber {
+public:
+    explicit ResidentScreenOffEventSubscriber(
+        const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
+        const std::function<void()> &screenOffCallback)
+        : EventFwk::CommonEventSubscriber(subscribeInfo), screenOffCallback_(screenOffCallback)
+    {}
+
+    ~ResidentScreenOffEventSubscriber() override = default;
+
+    void OnReceiveEvent(const EventFwk::CommonEventData &data) override;
+
+private:
+    std::function<void()> screenOffCallback_;
+};
+
+}  // namespace AAFwk
+}  // namespace OHOS
 
 namespace OHOS {
 namespace AAFwk {
@@ -96,6 +125,10 @@ public:
     bool GetResidentBundleInfosForUser(std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId);
     void StartFailedResidentAbilities();
 private:
+    void StartResidentMemoryDefragTask(const std::string &bundleName, const std::string &abilityName, int32_t userId);
+    void RegisterScreenStateCallback();
+    void OnScreenStateChanged(bool isScreenOn);
+    void ExecutePendingDeepCopyTasks();
     void UpdateResidentProcessesStatus(const std::string &bundleName, bool localEnable, bool updateEnable);
     void AddFailedResidentAbility(const std::string &bundleName, const std::string &abilityName, int32_t userId);
     void StartResidentProcessWithMainElementPerBundle(const AppExecFwk::BundleInfo &bundleInfo,
@@ -110,6 +143,13 @@ private:
     std::mutex failedResidentAbilityInfoMutex_;
     std::list<ResidentAbilityInfo> failedResidentAbilityInfos_;
     std::atomic_bool unlockedAfterBoot_ = false;
+
+    std::mutex pendingDeepCopyTasksMutex_;
+    std::list<ResidentAbilityInfo> pendingDeepCopyTasks_;
+    std::atomic_bool isFirstScreenOffOccurred_ = false;
+    std::atomic_bool isScreenOn_ = true;
+
+    std::shared_ptr<ResidentScreenOffEventSubscriber> screenOffSubscriber_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

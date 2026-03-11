@@ -836,6 +836,25 @@ public:
 
     void SetAppRecoveryFlag(int flag);
     int GetAppRecoveryFlag() const;
+
+    /**
+     * Deep copy the AbilityRecord to trigger memory defragmentation.
+     * This creates a copy of the ability record with properly copied members.
+     *
+     * @return A deep copied shared_ptr to AbilityRecord.
+     */
+    std::shared_ptr<AbilityRecord> DeepCopy() const;
+
+    /**
+     * Check if this ability is a resident ability.
+     *
+     * @return true if this is a resident ability, false otherwise.
+     */
+    bool IsResidentAbility() const
+    {
+        return keepAliveBundle_;
+    }
+
 protected:
     Want want_ = {};                                       // want to start this ability
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life

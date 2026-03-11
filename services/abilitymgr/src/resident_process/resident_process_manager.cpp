@@ -19,7 +19,10 @@
 #include "ability_resident_process_rdb.h"
 #include "ability_util.h"
 #include "app_utils.h"
+#include "common_event_manager.h"
+#include "common_event_support.h"
 #include "ffrt.h"
+#include "hilog_tag_wrapper.h"
 #include "keep_alive_utils.h"
 #include "main_element_utils.h"
 #include "user_controller/user_controller.h"
@@ -60,6 +63,7 @@ void ResidentProcessManager::Init()
 {
     auto &amsRdb = AmsResidentProcessRdb::GetInstance();
     amsRdb.Init();
+    RegisterScreenStateCallback();
 }
 
 void ResidentProcessManager::StartResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos)
@@ -145,6 +149,9 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundleHap(
         hapModuleInfo.name, mainElement, true, userId);
     if (ret != ERR_OK) {
         AddFailedResidentAbility(hapModuleInfo.bundleName, mainElement, userId);
+    } else {
+        // Schedule memory defrag task after successful start
+        StartResidentMemoryDefragTask(hapModuleInfo.bundleName, mainElement, userId);
     }
 }
 
@@ -380,6 +387,124 @@ void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleN
         .abilityName = abilityName,
         .userId = userId,
     });
+}
+
+void ResidentScreenOffEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
+{
+    const AAFwk::Want &want = data.GetWant();
+    std::string action = want.GetAction();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
+    if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_OFF) {
+        if (screenOffCallback_ != nullptr) {
+            screenOffCallback_();
+        }
+    }
+}
+
+void ResidentProcessManager::StartResidentMemoryDefragTask(const std::string &bundleName,
+    const std::string &abilityName, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Deferring memory defrag task for %{public}s/%{public}s until first screen off",
+        bundleName.c_str(), abilityName.c_str());
+
+    // Store the task for later execution after first screen off
+    std::lock_guard<std::mutex> lock(pendingDeepCopyTasksMutex_);
+    pendingDeepCopyTasks_.push_back(ResidentAbilityInfo {
+        .bundleName = bundleName,
+        .abilityName = abilityName,
+        .userId = userId,
+    });
+}
+
+void ResidentProcessManager::RegisterScreenStateCallback()
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Registering for screen state changes");
+
+    // Subscribe to COMMON_EVENT_SCREEN_OFF event
+    EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_OFF);
+    EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
+    subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
+
+    auto screenOffCallback = [self = shared_from_this()]() {
+        self->OnScreenStateChanged(false);
+    };
+    screenOffSubscriber_ = std::make_shared<ResidentScreenOffEventSubscriber>(subscribeInfo, screenOffCallback);
+
+    bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(screenOffSubscriber_);
+    if (!subResult) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to subscribe to screen off event");
+    } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Successfully subscribed to screen off event");
+    }
+}
+
+void ResidentProcessManager::OnScreenStateChanged(bool isScreenOn)
+{
+    if (isScreenOn) {
+        return;  // We only care about screen off events
+    }
+
+    // Check if this is the first screen off
+    bool expectedFirst = false;
+    if (!isFirstScreenOffOccurred_.compare_exchange_strong(expectedFirst, true)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Screen off already occurred, ignoring");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "First screen off detected, will execute deep copy after 5200ms");
+
+    // Schedule deep copy tasks to execute after 5200ms
+    ffrt::submit([self = shared_from_this()]() {
+        self->ExecutePendingDeepCopyTasks();
+    }, 5200);
+}
+
+void ResidentProcessManager::ExecutePendingDeepCopyTasks()
+{
+    std::list<ResidentAbilityInfo> tasksToExecute;
+    {
+        std::lock_guard<std::mutex> lock(pendingDeepCopyTasksMutex_);
+        if (pendingDeepCopyTasks_.empty()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "No pending deep copy tasks to execute");
+            return;
+        }
+        tasksToExecute = std::move(pendingDeepCopyTasks_);
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Executing %{public}zu pending deep copy tasks", tasksToExecute.size());
+
+    for (const auto& task : tasksToExecute) {
+        auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
+        if (ams == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
+            continue;
+        }
+
+        std::shared_ptr<AbilityRecord> abilityRecord;
+        auto ret = ams->GetResidentAbilityRecord(task.bundleName, task.abilityName, task.userId, abilityRecord);
+        if (ret != ERR_OK || abilityRecord == nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityRecord not found for %{public}s/%{public}s, skipping",
+                task.bundleName.c_str(), task.abilityName.c_str());
+            continue;
+        }
+
+        if (!abilityRecord->IsResidentAbility()) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "AbilityRecord no longer marked as resident, skipping");
+            continue;
+        }
+
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Performing memory defrag for %{public}s/%{public}s",
+            task.bundleName.c_str(), task.abilityName.c_str());
+
+        // Create a deep copy to trigger memory reallocation
+        auto deepCopiedRecord = abilityRecord->DeepCopy();
+
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed for %{public}s/%{public}s",
+            task.bundleName.c_str(), task.abilityName.c_str());
+
+        // The deep copy is discarded after creation (only purpose is to trigger memory defrag)
+    }
 }
 }  // namespace AAFwk
 }  // namespace OHOS
