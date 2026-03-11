@@ -29,6 +29,7 @@ class EventRunner;
 namespace AbilityRuntime {
 struct CommonHspBundleInfo {
     uint32_t versionCode;
+    int32_t aotCompileStatus;
     std::string bundleName;
     std::string moduleName;
     std::string hapPath;
@@ -62,6 +63,7 @@ public:
         std::vector<std::string> assetBasePathStr;
         std::shared_ptr<AppExecFwk::EventRunner> eventRunner = nullptr;
         std::map<std::string, std::string> hapModulePath;
+        std::vector<std::string> staticHapModuleNameList;
         std::vector<std::string> appInnerHspPathList;
         std::vector<OHOS::AbilityRuntime::CommonHspBundleInfo> commonHspBundleInfos;
         bool loadAce = true;
@@ -75,6 +77,7 @@ public:
         bool isMultiThread = false;
         bool isErrorInfoEnhance = false;
         bool allowArkTsLargeHeap = false;
+        bool baseLineProfile = false;
         int32_t uid = -1;
         // ArkTsCard start
         bool isUnique = false;

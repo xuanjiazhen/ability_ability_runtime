@@ -137,6 +137,7 @@ std::weak_ptr<OHOSApplication> MainThread::applicationForDump_;
 std::shared_ptr<MainThread::MainHandler> MainThread::mainHandler_ = nullptr;
 const std::string PERFCMD_PROFILE = "profile";
 const std::string PERFCMD_DUMPHEAP = "dumpheap";
+const std::string BASE_LINE_PERFCMD = "baseLineProfile";
 namespace {
 #ifdef APP_USE_ARM
 constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib/libformrender.z.so";
@@ -1792,24 +1793,34 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
                 options.hapModulePath[hapModuleInfo.moduleName] = hapModuleInfo.hapPath;
                 options.packageNameList[hapModuleInfo.moduleName] = hapModuleInfo.packageName;
-                if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::SHARED &&
-                    hapModuleInfo.moduleArkTSMode != AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+                options.aotCompileStatusMap[hapModuleInfo.moduleName] =
+                    static_cast<int32_t>(hapModuleInfo.aotCompileStatus);
+                if (hapModuleInfo.moduleArkTSMode == AppExecFwk::Constants::ARKTS_MODE_DYNAMIC) {
+                    continue;
+                }
+                TAG_LOGD(AAFwkTag::APPKIT, "staticHapModuleNameList: %{public}s", hapModuleInfo.moduleName.c_str());
+                options.staticHapModuleNameList.push_back(hapModuleInfo.moduleName);
+                if (hapModuleInfo.moduleType == AppExecFwk::ModuleType::SHARED) {
                     TAG_LOGD(AAFwkTag::APPKIT, "appInnerHspPathList: %{public}s", hapModuleInfo.hapPath.c_str());
                     options.appInnerHspPathList.push_back(hapModuleInfo.hapPath);
                 }
-                options.aotCompileStatusMap[hapModuleInfo.moduleName] =
-                    static_cast<int32_t>(hapModuleInfo.aotCompileStatus);
             }
         }
         for (const auto &hsp : hspList) {
-            options.commonHspBundleInfos.push_back({hsp.versionCode, hsp.bundleName, hsp.moduleName,
-                                                    hsp.hapPath, hsp.moduleArkTSMode});
+            options.commonHspBundleInfos.push_back({hsp.versionCode,
+                                                    static_cast<int32_t>(hsp.aotCompileStatus),
+                                                    hsp.bundleName, hsp.moduleName, hsp.hapPath, hsp.moduleArkTSMode});
         }
         options.enableWarmStartupSmartGC =
             (appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRE_MAKE ||
              appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE);
         TAG_LOGI(AAFwkTag::APPKIT, "SmartGC: process is start. enable warm startup SmartGC: %{public}d",
             static_cast<int32_t>(options.enableWarmStartupSmartGC));
+        auto perfCmd = appLaunchData.GetPerfCmd();
+        auto findPos = perfCmd.find(BASE_LINE_PERFCMD);
+        if (findPos != std::string::npos && (appLaunchData.GetDebugFromLocal() || isDeveloperMode_)) {
+            options.baseLineProfile = true;
+        }
         auto runtime = AbilityRuntime::Runtime::Create(options);
         if (!runtime) {
             TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
@@ -1828,7 +1839,6 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             };
             runtime->SetDeviceDisconnectCallback(cb);
         }
-        auto perfCmd = appLaunchData.GetPerfCmd();
         int32_t pid = -1;
         std::string processName = "";
         if (processInfo_ != nullptr) {
@@ -1854,7 +1864,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         debugOption.bundleName = appInfo.bundleName;
         runtime->SetDebugOption(debugOption);
         if (perfCmd.find(PERFCMD_PROFILE) != std::string::npos ||
-            perfCmd.find(PERFCMD_DUMPHEAP) != std::string::npos) {
+            perfCmd.find(PERFCMD_DUMPHEAP) != std::string::npos ||
+            options.baseLineProfile) {
             TAG_LOGD(AAFwkTag::APPKIT, "perfCmd is %{public}s", perfCmd.c_str());
             runtime->StartProfiler(debugOption);
         } else {
@@ -2146,8 +2157,12 @@ void MainThread::ProcessExit(const ProcessExitInfo& info)
     TAG_LOGE(AAFwkTag::APPKIT, "\n%{public}s is about to exit due to RuntimeError\nError type:%{public}s\n"
         "%{public}s", info.bundleName.c_str(), info.errorObjectName.c_str(), info.summary.c_str());
     AAFwk::ExitReasonCompability exitReason = { REASON_JS_ERROR, info.errorObjectName };
-    exitReason.killId = HiviewDFX::ProcessKillReason::REASON_JS_ERROR;
-    AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, getuid(), exitReason);
+    exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_JS_ERROR;
+    auto result = AbilityManagerClient::GetInstance()->RecordAppWithReason(info.pid, getuid(), exitReason);
+
+    TAG_LOGW(AAFwkTag::APPKIT, "Record result=%{public}d, send event [FRAMEWORK,PROCESS_KILL,JS_ERROR],"
+        " pid=%{public}d, processName=%{public}s, msg=%{public}s, foreground=%{public}d, isUncatchable=%{public}d",
+        result, info.pid, info.processName.c_str(), KILL_REASON, info.foreground, info.isUncatchable);
     _exit(JS_ERROR_EXIT);
 }
 

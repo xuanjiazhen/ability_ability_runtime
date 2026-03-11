@@ -114,6 +114,21 @@ public:
         return E_OK;
     }
 
+    virtual int32_t GetTotalInodes(int64_t &totalInodes) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetFreeInodes(int64_t &freeInodes) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetCurrentBundleInodes(int64_t &curInodes) override
+    {
+        return E_OK;
+    }
+
     virtual int32_t GetSystemDataSize(int64_t &otherUidSizeSum) override
     {
         return E_OK;
@@ -466,6 +481,21 @@ public:
     }
 
     virtual int32_t ClearSecondMountPoint(uint32_t userId, const std::string &bundleName) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t Encrypt(const std::string &volumeId, const std::string &password) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetCryptProgressById(const std::string &volumeId, int32_t &progress) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t NotifyEncryptVolumeStateChanged(const VolumeInfoStr &volumeInfoStr) override
     {
         return E_OK;
     }
