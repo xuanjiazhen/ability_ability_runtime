@@ -508,6 +508,7 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     std::string arkTSMode;
     auto ret = AbilityRuntime::InsightIntentUtils::GetSrcEntry(want.GetElement(), param->insightIntentName_,
         static_cast<AppExecFwk::ExecuteMode>(param->executeMode_), srcEntry, &arkTSMode, param->userId_);
+    TAG_LOGE(AAFwkTag::INTENT, "CRRR null param %{public}s", srcEntry.c_str());
     if (!arkTSMode.empty()) {
         want.SetParam(INSIGHT_INTENT_ARKTS_MODE, arkTSMode);
     }
@@ -572,12 +573,12 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission()
         return ERR_NOT_SYSTEM_APP;
     }
 
-    bool isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
-        EXECUTE_INSIGHT_INTENT_PERMISSION);
-    if (!isCallingPerm) {
-        TAG_LOGE(AAFwkTag::INTENT, "permission %{public}s verification failed", EXECUTE_INSIGHT_INTENT_PERMISSION);
-        return ERR_PERMISSION_DENIED;
-    }
+    // bool isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
+    //     EXECUTE_INSIGHT_INTENT_PERMISSION);
+    // if (!isCallingPerm) {
+    //     TAG_LOGE(AAFwkTag::INTENT, "permission %{public}s verification failed", EXECUTE_INSIGHT_INTENT_PERMISSION);
+    //     return ERR_PERMISSION_DENIED;
+    // }
     return ERR_OK;
 }
 

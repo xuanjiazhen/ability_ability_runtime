@@ -1,0 +1,592 @@
+diff --git a/frameworks/js/napi/insight_intent/insight_intent_driver/js_insight_intent_driver.cpp b/frameworks/js/napi/insight_intent/insight_intent_driver/js_insight_intent_driver.cpp
+index cf6c729b4..6afbcec2b 100644
+--- a/frameworks/js/napi/insight_intent/insight_intent_driver/js_insight_intent_driver.cpp
++++ b/frameworks/js/napi/insight_intent/insight_intent_driver/js_insight_intent_driver.cpp
+@@ -267,6 +267,8 @@ private:
+         }
+         auto client = std::make_shared<JsInsightIntentExecuteCallbackClient>(env, nativeDeferred, callbackRef);
+         uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(client);
++        TAG_LOGI(AAFwkTag::INTENT, "CRRR on execute new ");
++        // uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(nullptr);
+         if (IsServiceMatch(param) && NeedStartByContext(param)) {
+             return HandleServiceMatch(env, info, param);
+         }
+diff --git a/frameworks/native/ability/native/insight_intent_executor/js_insight_intent_executor.cpp b/frameworks/native/ability/native/insight_intent_executor/js_insight_intent_executor.cpp
+index 675046a58..4920c98ba 100644
+--- a/frameworks/native/ability/native/insight_intent_executor/js_insight_intent_executor.cpp
++++ b/frameworks/native/ability/native/insight_intent_executor/js_insight_intent_executor.cpp
+@@ -185,6 +185,7 @@ std::unique_ptr<NativeReference> JsInsightIntentExecutor::LoadJsCode(
+ 
+     std::string moduleName(executeParam->moduleName_);
+     std::string srcPath(executeParam->moduleName_ + "/" + info.srcEntry);
++    TAG_LOGI(AAFwkTag::INTENT, "crrr open srcName called %{public}s, %{public}s", executeParam->moduleName_.c_str(), info.srcEntry.c_str());
+     auto pos = srcPath.rfind('.');
+     if (pos == std::string::npos) {
+         return nullptr;
+@@ -216,6 +217,7 @@ napi_value JsInsightIntentExecutor::CallJsFunctionWithResult(
+         TAG_LOGE(AAFwkTag::INTENT, "null method");
+         return nullptr;
+     }
++    TAG_LOGI(AAFwkTag::INTENT, "CRRR js CallJsEunctionWith Result called");
+     napi_call_function(
+         env,
+         obj,
+@@ -223,6 +225,7 @@ napi_value JsInsightIntentExecutor::CallJsFunctionWithResult(
+         argc,
+         argv,
+         &result);
++    TAG_LOGI(AAFwkTag::INTENT, "CRRR js CallJsEunctionWith Result end");
+     return handleEscape.Escape(result);
+ }
+ 
+diff --git a/frameworks/native/ability/native/insight_intent_executor/js_insight_intent_utils.cpp b/frameworks/native/ability/native/insight_intent_executor/js_insight_intent_utils.cpp
+index cfd7757b8..dd86ad3c1 100644
+--- a/frameworks/native/ability/native/insight_intent_executor/js_insight_intent_utils.cpp
++++ b/frameworks/native/ability/native/insight_intent_executor/js_insight_intent_utils.cpp
+@@ -38,8 +38,9 @@ napi_value JsInsightIntentUtils::CallJsFunctionWithResult(
+         TAG_LOGE(AAFwkTag::INTENT, "null method");
+         return nullptr;
+     }
+-
++    TAG_LOGI(AAFwkTag::INTENT, "CRRR call js function");
+     auto status = napi_call_function(env, obj, method, argc, argv, &result);
++    TAG_LOGI(AAFwkTag::INTENT, "CRRR call js function end");
+     if (status != napi_ok) {
+         TAG_LOGE(AAFwkTag::INTENT, "napi call function failed %{public}d", status);
+         return nullptr;
+diff --git a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp
+index 5719db226..ab658b6ec 100755
+--- a/services/abilitymgr/src/ability_manager_service.cpp
++++ b/services/abilitymgr/src/ability_manager_service.cpp
+@@ -13367,7 +13367,11 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
+     }
+ 
+     Want want;
++    paramPtr->insightIntentParam_->DumpInfo(0);
++    TAG_LOGI(AAFwkTag::INTENT, "CRRR intentParam String: %{public}s", paramPtr->insightIntentParam_->ToString().c_str());
+     ret = InsightIntentExecuteManager::GenerateWant(paramPtr, infos, want);
++    want.DumpInfo(0);
++    TAG_LOGI(AAFwkTag::INTENT, "CRRR want String: %{public}s", want.ToString().c_str());
+     if (ret != ERR_OK) {
+         return ret;
+     }
+diff --git a/services/abilitymgr/src/insight_intent/insight_intent_execute_manager.cpp b/services/abilitymgr/src/insight_intent/insight_intent_execute_manager.cpp
+index 9c9458870..9e7f8249d 100644
+--- a/services/abilitymgr/src/insight_intent/insight_intent_execute_manager.cpp
++++ b/services/abilitymgr/src/insight_intent/insight_intent_execute_manager.cpp
+@@ -507,6 +507,7 @@ int32_t InsightIntentExecuteManager::GenerateWant(
+     std::string arkTSMode;
+     auto ret = AbilityRuntime::InsightIntentUtils::GetSrcEntry(want.GetElement(), param->insightIntentName_,
+         static_cast<AppExecFwk::ExecuteMode>(param->executeMode_), srcEntry, &arkTSMode, param->userId_);
++    TAG_LOGE(AAFwkTag::INTENT, "CRRR null param %{public}s", srcEntry.c_str());
+     if (!arkTSMode.empty()) {
+         want.SetParam(INSIGHT_INTENT_ARKTS_MODE, arkTSMode);
+     }
+diff --git a/tools/aa/include/ability_command.h b/tools/aa/include/ability_command.h
+index b2913473a..50c0f1cef 100644
+--- a/tools/aa/include/ability_command.h
++++ b/tools/aa/include/ability_command.h
+@@ -246,7 +246,11 @@ public:
+     void CheckStartAbilityResult(ErrCode& result);
+     bool IsTestCommandIntegrity(const std::map<std::string, std::string>& params);
+     ErrCode StartUserTest(const std::map<std::string, std::string>& params);
+-
++    WantParams BuildWantParamsExample();
++    WantParams BuildQQMusicWantParams();
++    WantParams BuildAmapNavigateWantParams();
++    WantParams BuildCalendarWantParams(long time, std::string name);
++    long ConvertTomorrowHourToTimestamp(int time);
+ private:
+     ErrCode CreateCommandMap() override;
+     ErrCode init() override;
+diff --git a/tools/aa/src/ability_command.cpp b/tools/aa/src/ability_command.cpp
+index c76313064..b4b09fdbf 100644
+--- a/tools/aa/src/ability_command.cpp
++++ b/tools/aa/src/ability_command.cpp
+@@ -13,7 +13,12 @@
+  * limitations under the License.
+  */
+ #include "ability_command.h"
+-
++#include "want_params.h"
++#include "want_params_wrapper.h"
++#include "string_wrapper.h"
++#include "int_wrapper.h"
++#include "bool_wrapper.h"
++#include "array_wrapper.h"
+ #include <charconv>
+ #include <csignal>
+ #include <cstdlib>
+@@ -35,6 +40,7 @@
+ #include "test_observer.h"
+ #include "app_mem_info.h"
+ #include "insight_intent_host_client.h"
++#include "js_runtime_utils.h"
+ 
+ using namespace OHOS::AppExecFwk;
+ 
+@@ -231,7 +237,7 @@ constexpr struct option LONG_OPTIONS_ATTACH[] = {
+     {nullptr, 0, nullptr, 0},
+ };
+ const std::string SHORT_OPTIONS_SEND_MEMORY_LEVEL = "hvb:e:a:i:";
+-const std::string SHORT_OPTIONS_EXECUTE_INTENT = "hb:m:a:i:e:d:u:f:";
++const std::string SHORT_OPTIONS_EXECUTE_INTENT = "hb:m:a:i:e:d:u:f:t:n";
+ constexpr struct option LONG_OPTIONS_EXECUTE_INTENT[] = {
+ {"help", no_argument, nullptr, 'h'},
+ {"bundle", required_argument, nullptr, 'b'},
+@@ -264,6 +270,342 @@ AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) :
+     }
+ }
+ 
++WantParams AbilityManagerShellCommand::BuildAmapNavigateWantParams()
++{
++    WantParams wantParams;
++
++    // 1. 设置基础参数
++    // ohos.insightIntent.decoratorType (Integer, value: 0)
++    wantParams.SetParam("ohos.insightIntent.decoratorType", Integer::Box(0));
++    
++    // ohos.insightIntent.executeParam.id (String, value: "33")
++    wantParams.SetParam("ohos.insightIntent.executeParam.id", String::Box("33"));
++    
++    // ohos.insightIntent.executeParam.mode (Integer, value: 0)
++    wantParams.SetParam("ohos.insightIntent.executeParam.mode", Integer::Box(0));
++    
++    // ohos.insightIntent.srcEntry
++    wantParams.SetParam("ohos.insightIntent.srcEntry",  String::Box("./ets/intents/IntentExecutorImpl.ets"));
++    
++    // ohos.insightIntent.executeParam.name (String, value: "StartNavigate")
++    wantParams.SetParam("ohos.insightIntent.executeParam.name", String::Box("StartNavigate"));
++
++    // 2. 构建嵌套的 executeParam 核心参数（导航参数）
++    WantParams executeParam;
++
++    // 2.1 构建目标位置参数 dstLocation
++    WantParams dstLocation;
++    dstLocation.SetParam("address", String::Box("中国浙江省杭州市西湖区"));
++    dstLocation.SetParam("latitude", String::Box("30.2596093"));
++    dstLocation.SetParam("locationName", String::Box("西湖区"));
++    dstLocation.SetParam("locationSystem", String::Box("GCJ02"));  // 高德坐标系
++    dstLocation.SetParam("longitude", String::Box("120.1302597"));
++    dstLocation.SetParam("poiId", String::Box("720831254820959106"));
++
++    // 2.2 将 dstLocation 嵌套到 executeParam
++    executeParam.SetParam("dstLocation", WantParamWrapper::Box(dstLocation));
++
++    // 2.3 设置出行类型（驾车）
++    executeParam.SetParam("trafficType", String::Box("Drive"));
++
++    // 3. 将 executeParam 嵌套到主 WantParams
++    wantParams.SetParam("ohos.insightIntent.executeParam.param", WantParamWrapper::Box(executeParam));
++
++    // 输出调试信息
++    std::cout << "Amap Navigate WantParams constructed successfully!" << std::endl;
++    std::cout << "Total params count: " << wantParams.Size() << std::endl;
++    std::cout << "String representation: " << wantParams.ToString() << std::endl;
++
++    return executeParam;
++}
++
++WantParams AbilityManagerShellCommand::BuildCalendarWantParams(long time, std::string name) {
++    WantParams executeParam;
++    executeParam.SetParam("dtEnd", String::Box(""));                // 结束时间（空值）
++    executeParam.SetParam("dtStart", String::Box(std::to_string(time))); // 开始时间戳（毫秒级）
++    executeParam.SetParam("repeatType", String::Box(""));           // 重复类型（空值）
++    executeParam.SetParam("timeZone", String::Box("Asia/Shanghai"));// 时区
++    executeParam.SetParam("title", String::Box(name));
++    return executeParam;
++}
++
++WantParams AbilityManagerShellCommand::BuildQQMusicWantParams()
++{
++    WantParams wantParams;
++
++    // 1. 设置基础参数
++    // ohos.insightIntent.decoratorType (Integer, value: 0)
++    wantParams.SetParam("ohos.insightIntent.decoratorType", Integer::Box(0));
++    
++    // ohos.insightIntent.executeParam.id (String, value: "1")
++    wantParams.SetParam("ohos.insightIntent.executeParam.id", String::Box("1"));
++    
++    // ohos.insightIntent.executeParam.mode (Integer, value: 1)
++    wantParams.SetParam("ohos.insightIntent.executeParam.mode", Integer::Box(1));
++    
++    // ohos.insightIntent.srcEntry
++    wantParams.SetParam("ohos.insightIntent.srcEntry",  String::Box("./ets/entryability/InsightIntentExecutorImpl.ets"));
++    
++    // ohos.insightIntent.executeParam.name (String, value: "PlayMusic")
++    wantParams.SetParam("ohos.insightIntent.executeParam.name", String::Box("PlayMusic"));
++
++    // 2. 构建嵌套的 executeParam 核心参数
++    WantParams executeParam;
++
++    // 2.1 设置 callerName
++    executeParam.SetParam("callerName", String::Box("HiVoice"));
++
++    // 2.2 设置 customParams (嵌套的 WantParams)
++    WantParams customParams;
++    WantParams cdrSessionParam;
++    cdrSessionParam.SetParam("cdrSessionID", String::Box("2673b0c3-2633-4183-b7a5-0cf077114ec12_xiaoyi_directBox"));
++    executeParam.SetParam("customParams", WantParamWrapper::Box(cdrSessionParam));
++
++    // 2.3 构建歌曲列表数组（包含15首歌曲）
++    std::vector<sptr<IInterface>> itemsArray;
++
++    // 歌曲1: 茶花开了，该回家了
++    WantParams song1;
++    song1.SetParam("entityGroupId", String::Box(""));
++    song1.SetParam("entityId", String::Box("002I9S2s4Tqxlv"));
++    song1.SetParam("entityName", String::Box("茶花开了，该回家了"));
++    song1.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song1.SetParam("releaseDate", String::Box("2024年12月31日"));
++    itemsArray.push_back(WantParamWrapper::Box(song1));
++
++    // 歌曲2: 天边的牧歌 (呼伦贝尔的云我俩的根)
++    WantParams song2;
++    song2.SetParam("entityGroupId", String::Box(""));
++    song2.SetParam("entityId", String::Box("003w2mM62AusXL"));
++    song2.SetParam("entityName", String::Box("天边的牧歌 (呼伦贝尔的云我俩的根)"));
++    song2.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song2.SetParam("releaseDate", String::Box("2026年02月05日"));
++    itemsArray.push_back(WantParamWrapper::Box(song2));
++
++    // 歌曲3: Never Let Go
++    WantParams song3;
++    song3.SetParam("entityGroupId", String::Box(""));
++    song3.SetParam("entityId", String::Box("002ygoQz19wfOV"));
++    song3.SetParam("entityName", String::Box("Never Let Go"));
++    song3.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song3.SetParam("releaseDate", String::Box("2026年01月12日"));
++    itemsArray.push_back(WantParamWrapper::Box(song3));
++
++    // 歌曲4: 天赋
++    WantParams song4;
++    song4.SetParam("entityGroupId", String::Box(""));
++    song4.SetParam("entityId", String::Box("001jzwcD208snK"));
++    song4.SetParam("entityName", String::Box("天赋"));
++    song4.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song4.SetParam("releaseDate", String::Box("2016年11月11日"));
++    itemsArray.push_back(WantParamWrapper::Box(song4));
++
++    // 歌曲5: 锁(R&B版)
++    WantParams song5;
++    song5.SetParam("entityGroupId", String::Box(""));
++    song5.SetParam("entityId", String::Box("000zclI80sSS9t"));
++    song5.SetParam("entityName", String::Box("锁(R&B版)"));
++    song5.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song5.SetParam("releaseDate", String::Box("2026年01月29日"));
++    itemsArray.push_back(WantParamWrapper::Box(song5));
++
++    // 歌曲6: 我怀念的
++    WantParams song6;
++    song6.SetParam("entityGroupId", String::Box(""));
++    song6.SetParam("entityId", String::Box("000BO3xy4fd8BJ"));
++    song6.SetParam("entityName", String::Box("我怀念的"));
++    song6.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song6.SetParam("releaseDate", String::Box("2007年03月22日"));
++    itemsArray.push_back(WantParamWrapper::Box(song6));
++
++    // 歌曲7: 你我经历的一刻
++    WantParams song7;
++    song7.SetParam("entityGroupId", String::Box(""));
++    song7.SetParam("entityId", String::Box("000WyNdT0v8xbC"));
++    song7.SetParam("entityName", String::Box("你我经历的一刻"));
++    song7.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song7.SetParam("releaseDate", String::Box("2026年02月16日"));
++    itemsArray.push_back(WantParamWrapper::Box(song7));
++
++    // 歌曲8: 祝福你
++    WantParams song8;
++    song8.SetParam("entityGroupId", String::Box(""));
++    song8.SetParam("entityId", String::Box("002kIvwD1wqJUA"));
++    song8.SetParam("entityName", String::Box("祝福你"));
++    song8.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song8.SetParam("releaseDate", String::Box("2023年01月06日"));
++    itemsArray.push_back(WantParamWrapper::Box(song8));
++
++    // 歌曲9: 寂寞寂寞不好
++    WantParams song9;
++    song9.SetParam("entityGroupId", String::Box(""));
++    song9.SetParam("entityId", String::Box("0004jeEe4XTtjU"));
++    song9.SetParam("entityName", String::Box("寂寞寂寞不好"));
++    song9.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song9.SetParam("releaseDate", String::Box("2019年03月28日"));
++    itemsArray.push_back(WantParamWrapper::Box(song9));
++
++    // 歌曲10: 爱错
++    WantParams song10;
++    song10.SetParam("entityGroupId", String::Box(""));
++    song10.SetParam("entityId", String::Box("002eYKfg1goJpm"));
++    song10.SetParam("entityName", String::Box("爱错"));
++    song10.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song10.SetParam("releaseDate", String::Box("2007年01月24日"));
++    itemsArray.push_back(WantParamWrapper::Box(song10));
++
++    // 歌曲11: 没预报的雨
++    WantParams song11;
++    song11.SetParam("entityGroupId", String::Box(""));
++    song11.SetParam("entityId", String::Box("004bprvQ0COytX"));
++    song11.SetParam("entityName", String::Box("没预报的雨"));
++    song11.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song11.SetParam("releaseDate", String::Box("2026年01月24日"));
++    itemsArray.push_back(WantParamWrapper::Box(song11));
++
++    // 歌曲12: 陌路莫回
++    WantParams song12;
++    song12.SetParam("entityGroupId", String::Box(""));
++    song12.SetParam("entityId", String::Box("000Hyo1W3XODYb"));
++    song12.SetParam("entityName", String::Box("陌路莫回"));
++    song12.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song12.SetParam("releaseDate", String::Box("2026年03月04日"));
++    itemsArray.push_back(WantParamWrapper::Box(song12));
++
++    // 歌曲13: 今生啊 多相见 (女版)
++    WantParams song13;
++    song13.SetParam("entityGroupId", String::Box(""));
++    song13.SetParam("entityId", String::Box("003tjMFG0oaeNq"));
++    song13.SetParam("entityName", String::Box("今生啊 多相见 (女版)"));
++    song13.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song13.SetParam("releaseDate", String::Box("2026年02月07日"));
++    itemsArray.push_back(WantParamWrapper::Box(song13));
++
++    // 歌曲14: 布拉格广场 (JOLIN Version)
++    WantParams song14;
++    song14.SetParam("entityGroupId", String::Box(""));
++    song14.SetParam("entityId", String::Box("0024ZQKl0R3X5B"));
++    song14.SetParam("entityName", String::Box("布拉格广场 (JOLIN Version)"));
++    song14.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song14.SetParam("releaseDate", String::Box("2026年02月25日"));
++    itemsArray.push_back(WantParamWrapper::Box(song14));
++
++    // 歌曲15: 天下第一最最棒
++    WantParams song15;
++    song15.SetParam("entityGroupId", String::Box(""));
++    song15.SetParam("entityId", String::Box("002BvLYU1GJiaJ"));
++    song15.SetParam("entityName", String::Box("天下第一最最棒"));
++    song15.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song15.SetParam("releaseDate", String::Box("2026年03月04日"));
++    itemsArray.push_back(WantParamWrapper::Box(song15));
++
++    // 2.4 设置播放相关参数
++    executeParam.SetParam("launchMode", String::Box(""));
++    executeParam.SetParam("musicBundleName", String::Box(""));
++    executeParam.SetParam("playMode", String::Box(""));
++    executeParam.SetParam("playStrategy", String::Box("1"));
++    executeParam.SetParam("playbackQueue", String::Box("1"));
++    executeParam.SetParam("senario", String::Box("Music"));
++
++    // 2.5 创建数组对象并添加到 executeParam
++    sptr<IArray> items = new (std::nothrow) Array(itemsArray.size(), g_IID_IWantParams);
++    if (items != nullptr) {
++        for (size_t i = 0; i < itemsArray.size(); i++) {
++            items->Set(i, itemsArray[i]);
++        }
++        executeParam.SetParam("items", items);
++    }
++
++    // 3. 将 executeParam 嵌套到主 WantParams
++    wantParams.SetParam("ohos.insightIntent.executeParam.param", WantParamWrapper::Box(executeParam));
++
++    // 输出调试信息
++    std::cout << "QQMusic WantParams constructed successfully!" << std::endl;
++    std::cout << "Total params count: " << wantParams.Size() << std::endl;
++    std::cout << "String representation: " << wantParams.ToString() << std::endl;
++
++    return executeParam;
++}
++
++
++WantParams AbilityManagerShellCommand::BuildWantParamsExample()
++{
++    WantParams wantParams;
++
++    // 1. 设置 ohos.insightIntent.decoratorType (Integer, value: 0)
++    wantParams.SetParam("ohos.insightIntent.decoratorType", Integer::Box(0));
++
++    // 2. 设置 ohos.insightIntent.executeParam.id (String, value: "2")
++    wantParams.SetParam("ohos.insightIntent.executeParam.id", String::Box("2"));
++
++    // 3. 设置 ohos.insightIntent.executeParam.mode (Integer, value: 1)
++    wantParams.SetParam("ohos.insightIntent.executeParam.mode", Integer::Box(1));
++
++    wantParams.SetParam("ohos.insightIntent.srcEntry",  String::Box("./ets/intelligent/IntelligentExecutor.ets"));
++    // 4. 设置 ohos.insightIntent.executeParam.name (String, value: "PlayMusic")
++    wantParams.SetParam("ohos.insightIntent.executeParam.name", String::Box("PlayMusic"));
++
++    // 5. 设置 ohos.insightIntent.executeParam.param (嵌套的 WantParams)
++    WantParams executeParam;
++
++    // 5.1 设置 callerName
++    executeParam.SetParam("callerName", String::Box("HiVoice"));
++
++    // 5.2 设置 customParams (嵌套的 WantParams)
++    WantParams customParams;
++    WantParams cdrSessionParam;
++    cdrSessionParam.SetParam("cdrSessionID", String::Box("71fa8e96-66fd-4cca-bbd6-4ada4fc51c834_xiaoyi_directBox"));
++    executeParam.SetParam("customParams", WantParamWrapper::Box(cdrSessionParam));
++
++    // 5.3 设置 items (数组，包含多个 WantParams)
++    std::vector<sptr<IInterface>> itemsArray;
++
++    // 创建第一个歌曲项
++    WantParams song1;
++    song1.SetParam("entityGroupId", String::Box(""));
++    song1.SetParam("entityId", String::Box("1106832"));
++    song1.SetParam("entityName", String::Box("青花瓷"));
++    song1.SetParam("isVeracityRecallSong", Boolean::Box(true));
++    song1.SetParam("releaseDate", String::Box("2007年11月01日"));
++    song1.SetParam("singerName", String::Box("周杰伦"));
++    itemsArray.push_back(WantParamWrapper::Box(song1));
++
++    // 创建第二个歌曲项
++    WantParams song2;
++    song2.SetParam("entityGroupId", String::Box(""));
++    song2.SetParam("entityId", String::Box("61233589"));
++    song2.SetParam("entityName", String::Box("最伟大的作品"));
++    song2.SetParam("releaseDate", String::Box("2022年07月08日"));
++    song2.SetParam("singerName", String::Box("周杰伦"));
++    itemsArray.push_back(WantParamWrapper::Box(song2));
++
++    // 创建第三个歌曲项
++    WantParams song3;
++    song3.SetParam("entityGroupId", String::Box(""));
++    song3.SetParam("entityId", String::Box("1066775"));
++    song3.SetParam("entityName", String::Box("夜曲"));
++    song3.SetParam("releaseDate", String::Box("2005年10月31日"));
++    song3.SetParam("singerName", String::Box("周杰伦"));
++    itemsArray.push_back(WantParamWrapper::Box(song3));
++
++    // 创建数组对象
++    sptr<IArray> items = new (std::nothrow) Array(itemsArray.size(), g_IID_IWantParams);
++    if (items != nullptr) {
++        for (size_t i = 0; i < itemsArray.size(); i++) {
++            items->Set(i, itemsArray[i]);
++        }
++        executeParam.SetParam("items", items);
++    }
++
++    // 将 executeParam 添加到主 WantParams
++    wantParams.SetParam("ohos.insightIntent.executeParam.param", WantParamWrapper::Box(executeParam));
++
++    // 输出 WantParams 的字符串表示
++    std::cout << "WantParams constructed successfully!" << std::endl;
++    std::cout << "Size: " << wantParams.Size() << std::endl;
++    std::cout << "String representation: " << wantParams.ToString() << std::endl;
++    return wantParams;
++}
+ ErrCode AbilityManagerShellCommand::CreateCommandMap()
+ {
+     commandMap_ = {
+@@ -1142,10 +1484,13 @@ ErrCode AbilityManagerShellCommand::RunAsExecuteIntentCommand()
+     std::string moduleName;
+     std::string abilityName;
+     std::string insightIntentName;
++    std::string name;
+     int32_t executeMode = -1;
+     int32_t displayId = INVALID_DISPLAY_ID;
+     int32_t userId = DEFAULT_INVAL_VALUE;
+     int32_t flags = 0;
++    long time;
++
+     
+     int option = -1;
+     int counter = 0;
+@@ -1233,6 +1578,30 @@ ErrCode AbilityManagerShellCommand::RunAsExecuteIntentCommand()
+                 TAG_LOGI(AAFwkTag::AA_TOOL, "insightIntentName: %{public}s", insightIntentName.c_str());
+                 break;
+             }
++            // case 't': {
++            //     if (optarg == nullptr) {
++            //         TAG_LOGE(AAFwkTag::AA_TOOL, "bundle name is null");
++            //         resultReceiver_.append("error: option -b requires a value.\n");
++            //         result = OHOS::ERR_INVALID_VALUE;
++            //         break;
++            //     }
++            //     auto res = std::from_chars(optarg, optarg + strlen(optarg), flags);
++            //     int temp = atol(res);
++            //     time = ConvertTomorrowHourToTimestamp(temp);
++            //     // TAG_LOGI(AAFwkTag::AA_TOOL, "time: %{public}s", time.c_str());
++            //     break;
++            // }
++            // case 'n': {
++            //     if (optarg == nullptr) {
++            //         TAG_LOGE(AAFwkTag::AA_TOOL, "name is null");
++            //         resultReceiver_.append("error: option -n requires a value.\n");
++            //         result = OHOS::ERR_INVALID_VALUE;
++            //         break;
++            //     }
++            //     name = optarg;
++            //     TAG_LOGI(AAFwkTag::AA_TOOL, "name: %{public}s", name.c_str());
++            //     break;
++            // }
+             case 'e': {
+                 if (optarg == nullptr) {
+                     TAG_LOGE(AAFwkTag::AA_TOOL, "execute mode is null");
+@@ -1335,13 +1704,30 @@ ErrCode AbilityManagerShellCommand::RunAsExecuteIntentCommand()
+             param.displayId_ = displayId;
+             param.userId_ = userId;
+             param.flags_ = flags;
+-            param.insightIntentParam_ = std::make_shared<WantParams>();
++            if (insightIntentName == "PlayMusic") {
++                param.insightIntentParam_ = std::make_shared<WantParams>(BuildWantParamsExample());
++            } else if (bundleName == "com.tencent.hm.qqmusic"){
++                param.insightIntentParam_ = std::make_shared<WantParams>(BuildQQMusicWantParams());
++                param.insightIntentParam_->SetParam("ohos.insightIntent.srcEntry", String::Box("./ets/entryability/InsightIntentExecutorImpl.ets"));
++            } else if (bundleName == "com.amap.hmapp") {
++                param.insightIntentParam_ = std::make_shared<WantParams>(BuildAmapNavigateWantParams());
++                param.insightIntentParam_->SetParam("ohos.insightIntent.srcEntry", String::Box("./ets/intents/InsightIntentExecutorImpl.ets"));
++            } else if (bundleName == "com.huawei.hmos.calendardata"){
++                time = "1773226800000";
++                name = "会议";
++                param.insightIntentParam_ = std::make_shared<WantParams>(BuildCalendarWantParams(time, name));
++                param.insightIntentParam_->SetParam("ohos.insightIntent.srcEntry", String::Box("./ets/insightintents/IntentExecutorImpl.ets"));
++            } else {
++                param.insightIntentParam_ = std::make_shared<WantParams>();
++                param.insightIntentParam_->SetParam("ohos.insightIntent.srcEntry", String::Box("./ets/insightintents/ViewLogisticsImpl.ets"));
++            }
+             
+             TAG_LOGI(AAFwkTag::AA_TOOL, "Executing insight intent: bundle=%{public}s, module=%{public}s, "
+                 "ability=%{public}s, intent=%{public}s, mode=%{public}d",
+                 bundleName.c_str(), moduleName.c_str(), abilityName.c_str(), 
+                 insightIntentName.c_str(), executeMode);
+             
++
+             uint64_t key = AbilityRuntime::InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(nullptr);
+             
+             auto err = AbilityManagerClient::GetInstance()->ExecuteIntent(key, AbilityRuntime::InsightIntentHostClient::GetInstance(), param);
+@@ -1360,6 +1746,35 @@ ErrCode AbilityManagerShellCommand::RunAsExecuteIntentCommand()
+     return result;
+ }
+ 
++long AbilityManagerShellCommand::ConvertTomorrowHourToTimestamp(int hour) {
++    // 1. 参数合法性校验
++    if (hour < 0 || hour > 23) {
++        std::cerr << "错误：小时参数必须是 0-23 之间的整数！" << std::endl;
++        return -1;
++    }
++
++    // 2. 获取当前系统时间（秒级）
++    auto now = std::chrono::system_clock::now();
++    time_t nowSec = std::chrono::system_clock::to_time_t(now);
++    tm localTime = *localtime(&nowSec);  // 转为本地时间（上海时区）
++
++    // 3. 调整为明天的指定小时（0分0秒）
++    localTime.tm_mday += 1;  // 日期 +1 → 明天
++    localTime.tm_hour = hour; // 设置指定小时
++    localTime.tm_min = 0;     // 分钟置0
++    localTime.tm_sec = 0;     // 秒置0
++
++    // 4. 转换为秒级时间戳，再转为毫秒级（long long 避免溢出）
++    time_t tomorrowSec = mktime(&localTime);
++    if (tomorrowSec == -1) {
++        std::cerr << "错误：日期转换失败（如月末日期+1超出当月天数）！" << std::endl;
++        return -1;
++    }
++    long long msTimestamp = (long long)tomorrowSec * 1000;
++
++    return msTimestamp;
++}
++
+ bool AbilityManagerShellCommand::MatchOrderString(const std::regex &regexScript, const std::string &orderCmd)
+ {
+     TAG_LOGD(AAFwkTag::AA_TOOL, "orderCmd: %{public}s", orderCmd.c_str());
