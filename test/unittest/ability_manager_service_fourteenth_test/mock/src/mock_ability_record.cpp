@@ -386,7 +386,7 @@ void AbilityRecord::RemoveLoadTimeoutTask()
 {
 }
 
-std::shared_ptr<AbilityRecord> DeepCopy() const override
+std::shared_ptr<AbilityRecord> DeepCopy() const
 {
     return std::make_shared<AbilityRecord>(want_, abilityInfo_, abilityInfo_.applicationInfo, requestCode_);
 }

@@ -25,12 +25,7 @@
 #include "ability_manager_service.h"
 #include "app_scheduler.h"
 #include "app_scheduler_proxy.h"
-#include "app_scheduler_stub.h"
 #include "bundle_info.h"
-#include "common_event_data.h"
-#include "common_event_subscribe_info.h"
-#include "common_event_subscriber.h"
-#include "common_event_support.h"
 #include "singleton.h"
 
 namespace OHOS {
