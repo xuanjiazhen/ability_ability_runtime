@@ -1410,8 +1410,7 @@ bool AppMgrServiceInner::CheckLoadAbilityConditions(const sptr<IRemoteObject> &t
 }
 
 void AppMgrServiceInner::MakeServiceExtProcessName(const std::shared_ptr<AbilityInfo> &abilityInfo,
-    const std::shared_ptr<ApplicationInfo> &appInfo, std::string &processName,
-    uint32_t extensionProcessMode) const
+    const std::shared_ptr<ApplicationInfo> &appInfo, std::string &processName) const
 {
     if (abilityInfo == nullptr || appInfo == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null ability or app info");
@@ -1419,22 +1418,6 @@ void AppMgrServiceInner::MakeServiceExtProcessName(const std::shared_ptr<Ability
     }
 
     if (supportServiceExtMultiProcess_.compare("true") != 0) {
-        return;
-    }
-
-    // Determine the effective process mode: use parameter if provided, otherwise fallback to abilityInfo
-    uint32_t effectiveMode = extensionProcessMode;
-    if (effectiveMode == static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::UNDEFINED)) {
-        effectiveMode = static_cast<uint32_t>(abilityInfo->extensionProcessMode);
-    }
-
-    // Check for TYPE mode to generate independent process name: bundleName:abilityName
-    if (processName == appInfo->bundleName &&
-        abilityInfo->extensionAbilityType == ExtensionAbilityType::APP_SERVICE &&
-        effectiveMode == static_cast<uint32_t>(AppExecFwk::ExtensionProcessMode::TYPE)) {
-        processName = appInfo->bundleName + ":" + abilityInfo->name;
-        TAG_LOGI(AAFwkTag::APPMGR,
-            "APP_SERVICE TYPE mode, processName: %{public}s", processName.c_str());
         return;
     }
 

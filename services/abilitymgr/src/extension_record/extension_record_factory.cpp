@@ -45,9 +45,6 @@ const std::map<AppExecFwk::ExtensionAbilityType, ExtensionRecordConfig> EXTENSIO
         PRE_CHECK_FLAG_NONE }},
     { AppExecFwk::ExtensionAbilityType::AGENT_UI,
       { PROCESS_MODE_AGENT_UI, PROCESS_MODE_AGENT_UI, PRE_CHECK_FLAG_NONE }},
-    { AppExecFwk::ExtensionAbilityType::APP_SERVICE,
-      { PROCESS_MODE_BUNDLE, PROCESS_MODE_SUPPORT_DEFAULT,
-        PRE_CHECK_FLAG_NONE }},
 };
 
 uint32_t GetPreCheckFlag(ExtensionAbilityType type)
