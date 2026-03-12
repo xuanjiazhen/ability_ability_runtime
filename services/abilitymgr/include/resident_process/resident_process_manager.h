@@ -147,7 +147,6 @@ private:
     std::mutex pendingDeepCopyTasksMutex_;
     std::list<ResidentAbilityInfo> pendingDeepCopyTasks_;
     std::atomic_bool isFirstScreenOffOccurred_ = false;
-    std::atomic_bool isScreenOn_ = true;
 
     std::shared_ptr<ResidentScreenOffEventSubscriber> screenOffSubscriber_;
 };

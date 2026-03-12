@@ -8780,24 +8780,16 @@ int32_t AbilityManagerService::GetResidentAbilityRecord(const std::string &bundl
     }
 
     // Get the service ability record from connect manager
-    auto serviceAbility = connectManager->GetAbilityRecord();
-    if (serviceAbility == nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "Service ability record not found");
-        return ERR_INVALID_VALUE;
-    }
-
-    // Check if bundle name and ability name match
-    const auto& abilityInfo = serviceAbility->GetAbilityInfo();
-    if (abilityInfo.bundleName != bundleName || abilityInfo.name != abilityName) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR,
-            "Ability info mismatch: expected %{public}s/%{public}s, got %{public}s/%{public}s",
-            bundleName.c_str(), abilityName.c_str(),
-            abilityInfo.bundleName.c_str(), abilityInfo.name.c_str());
-        return ERR_INVALID_VALUE;
-    }
-
-    abilityRecord = serviceAbility;
-    return ERR_OK;
+    auto serviceMap = connectManager->GetServiceMap();
+    for (auto it = serviceMap.begin(); it != serviceMap.end(); ++it) {
+        auto extensionRecord = it->second;
+        if (extensionRecord && bundleName == extensionRecord->GetAbilityInfo().bundleName &&
+            extensionRecord->GetAbilityInfo().name == abilityName) {
+            abilityRecord = extensionRecord;
+            return ERR_OK;
+        }
+    };
+    return ERR_INVALID_VALUE;
 }
 
 std::shared_ptr<PendingWantManager> AbilityManagerService::GetCurrentPendingWantManager()

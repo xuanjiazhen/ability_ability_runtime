@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H
 
 #include <memory>
+#include "ability_record_mock_helper.h"
 
 #include "ability_info.h"
 #include "iremote_object.h"
@@ -56,6 +57,8 @@ public:
     const AppExecFwk::AbilityInfo &GetAbilityInfo() const;
 
     int32_t CreateModalUIExtension(const Want &want);
+
+    ENABLE_DEFAULT_DEEP_COPY()
 
 public:
     AppExecFwk::AbilityInfo abilityInfo;
