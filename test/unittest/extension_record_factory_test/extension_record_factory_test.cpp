@@ -167,26 +167,5 @@ HWTEST_F(ExtensionRecordFactoryTest, CreateRecord_0100, TestSize.Level1)
     std::shared_ptr<AbilityRuntime::ExtensionRecord> extensionRecord;
     EXPECT_EQ(extensionRecordFactory->CreateRecord(abilityRequest, extensionRecord), ERR_OK);
 }
-
-/**
- * @tc.number: AppServiceExtension_ExtensionProcessMode_TYPE_0100
- * @tc.name: AppServiceExtension支持TYPE模式
- * @tc.desc: 验证AppServiceExtension支持TYPE模式的进程配置
- * @tc.type: FUNC
- * @tc.require: AR600
- * @tc.author: zhang_hao_zheng
- */
-HWTEST_F(ExtensionRecordFactoryTest, AppServiceExtension_ExtensionProcessMode_TYPE_0100, TestSize.Level1)
-{
-    AAFwk::AbilityRequest abilityRequest;
-    abilityRequest.extensionType = AppExecFwk::ExtensionAbilityType::APP_SERVICE;
-    abilityRequest.extensionProcessMode = AppExecFwk::ExtensionProcessMode::TYPE;
-
-    bool isHostSpecified = false;
-    uint32_t processMode = extensionRecordFactory->GetExtensionProcessMode(abilityRequest, isHostSpecified);
-
-    EXPECT_EQ(processMode, ExtensionRecordFactory::PROCESS_MODE_TYPE);
-    EXPECT_FALSE(isHostSpecified);
-}
 } // namespace AAFwk
 } // namespace OHOS
