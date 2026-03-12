@@ -190,13 +190,13 @@ HWTEST_F(ApplicationDataManagerTest,
  * @tc.desc: Test whether IsUncatchable are called normally.
  */
 HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_IsUncatchable_001, Function | MediumTest | Level1)
- {	 
-     GTEST_LOG_(INFO) << "ApplicationDataManager_IsUncatchable_001 start";	 
-     ApplicationDataManager::GetInstance().SetIsUncatchable(true);	 
-     EXPECT_TRUE(ApplicationDataManager::GetInstance().GetIsUncatchable());	 
-     ApplicationDataManager::GetInstance().SetIsUncatchable(false);	 
-     EXPECT_TRUE(!ApplicationDataManager::GetInstance().GetIsUncatchable());	 
-     GTEST_LOG_(INFO) << "ApplicationDataManager_IsUncatchable_001 end";	 
+{
+    GTEST_LOG_(INFO) << "ApplicationDataManager_IsUncatchable_001 start";
+    ApplicationDataManager::GetInstance().SetIsUncatchable(true);
+    EXPECT_TRUE(ApplicationDataManager::GetInstance().GetIsUncatchable());
+    ApplicationDataManager::GetInstance().SetIsUncatchable(false);
+    EXPECT_TRUE(!ApplicationDataManager::GetInstance().GetIsUncatchable());
+    GTEST_LOG_(INFO) << "ApplicationDataManager_IsUncatchable_001 end";
 }
 
 /**
