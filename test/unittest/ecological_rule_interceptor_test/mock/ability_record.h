@@ -59,12 +59,6 @@ public:
      */
     const AppExecFwk::AbilityInfo &GetAbilityInfo() const;
 
-    std::shared_ptr<AbilityRecord> DeepCopy() const override
-    {
-        auto copy = std::make_shared<AbilityRecord>();
-        return copy;
-    }
-
 public:
     static AppExecFwk::AbilityInfo abilityInfo;
 };

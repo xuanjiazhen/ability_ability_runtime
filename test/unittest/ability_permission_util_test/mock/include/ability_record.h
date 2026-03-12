@@ -67,17 +67,6 @@ public:
 
     int32_t GetUid() const;
 
-    std::shared_ptr<AbilityRecord> DeepCopy() const override
-    {
-        auto copy = std::make_shared<AbilityRecord>();
-        copy->abilityInfo = abilityInfo;
-        copy->appInfo = appInfo;
-        copy->instanceKey = instanceKey;
-        copy->isTerminating = isTerminating;
-        copy->uid_ = uid_;
-        return copy;
-    }
-
 public:
     AppExecFwk::AbilityInfo abilityInfo;
     AppExecFwk::ApplicationInfo appInfo;

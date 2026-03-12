@@ -57,13 +57,6 @@ public:
 
     int32_t CreateModalUIExtension(const Want &want);
 
-    std::shared_ptr<AbilityRecord> DeepCopy() const override
-    {
-        auto copy = std::make_shared<AbilityRecord>();
-        copy->abilityInfo = abilityInfo;
-        return copy;
-    }
-
 public:
     AppExecFwk::AbilityInfo abilityInfo;
 };
