@@ -21,7 +21,6 @@
 #include <mutex>
 #include <string>
 #include <gmock/gmock.h>
-#include "ability_record_mock_helper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -60,7 +59,11 @@ public:
     virtual void Init(const AbilityRequest &abilityRequest);
     virtual AbilityRecordType GetAbilityRecordType();
 
-    ENABLE_DEFAULT_DEEP_COPY()
+    std::shared_ptr<AbilityRecord> DeepCopy() const override
+    {
+        return std::make_shared<AbilityRecord>(want_, abilityInfo_, abilityInfo_.applicationInfo, requestCode_);
+    }
+
 protected:
     bool isPrelaunch_ = false;
     bool isHook_ = false;

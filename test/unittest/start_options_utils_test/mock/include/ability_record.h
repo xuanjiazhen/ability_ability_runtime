@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H
 
 #include <memory>
-#include "ability_record_mock_helper.h"
 
 #include "ability_info.h"
 
@@ -40,7 +39,12 @@ public:
      */
     const AppExecFwk::AbilityInfo &GetAbilityInfo() const;
 
-    ENABLE_DEFAULT_DEEP_COPY()
+    std::shared_ptr<AbilityRecord> DeepCopy() const override
+    {
+        auto copy = std::make_shared<AbilityRecord>();
+        copy->abilityInfo = abilityInfo;
+        return copy;
+    }
 
 public:
     AppExecFwk::AbilityInfo abilityInfo;
