@@ -403,6 +403,8 @@ public:
         const InsightIntentExecuteResult &result));
     MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         uint32_t specifyTokenId, int32_t userId, int requestCode));
+    MOCK_METHOD4(StartAbilityByOEExt, int32_t(const Want& want, const sptr<IRemoteObject>& callerToken,
+        int32_t hostPid, const std::string& specifiedFlag));
 
     MOCK_METHOD(int, StartAbility, (const Want &want, const AbilityStartSetting &abilityStartSetting,
         const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode), (override));
