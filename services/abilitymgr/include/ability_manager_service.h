@@ -2530,6 +2530,18 @@ public:
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex) override;
 
     int StartAbilityWithRemoveIntentFlag(const StartAbilityWrapParam &param);
+
+    /**
+     * Get resident ability record by bundle name, ability name, and user ID.
+     *
+     * @param bundleName Bundle name of the resident ability.
+     * @param abilityName Ability name of the resident ability.
+     * @param userId User ID.
+     * @param abilityRecord Output parameter for the found ability record.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetResidentAbilityRecord(const std::string &bundleName, const std::string &abilityName,
+        int32_t userId, std::shared_ptr<AbilityRecord> &abilityRecord);
     
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
@@ -2852,18 +2864,6 @@ private:
         int32_t userId, const AppExecFwk::ExtensionAbilityType type);
     std::shared_ptr<AbilityConnectManager> GetConnectManagerByToken(
         const sptr<IRemoteObject> &token, const AppExecFwk::ExtensionAbilityType type);
-
-    /**
-     * Get resident ability record by bundle name, ability name, and user ID.
-     *
-     * @param bundleName Bundle name of the resident ability.
-     * @param abilityName Ability name of the resident ability.
-     * @param userId User ID.
-     * @param abilityRecord Output parameter for the found ability record.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    int32_t GetResidentAbilityRecord(const std::string &bundleName, const std::string &abilityName,
-        int32_t userId, std::shared_ptr<AbilityRecord> &abilityRecord);
 
     std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> GetUIExtensionAbilityManagers();
     std::shared_ptr<UIExtensionAbilityManager> GetCurrentUIExtensionAbilityManager();

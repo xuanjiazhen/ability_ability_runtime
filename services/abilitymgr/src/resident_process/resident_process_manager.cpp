@@ -455,9 +455,10 @@ void ResidentProcessManager::OnScreenStateChanged(bool isScreenOn)
     TAG_LOGI(AAFwkTag::ABILITYMGR, "First screen off detected, will execute deep copy after 5200ms");
 
     // Schedule deep copy tasks to execute after 5200ms
-    ffrt::submit([self = shared_from_this()]() {
+    auto task = [self = shared_from_this()] {
         self->ExecutePendingDeepCopyTasks();
-    }, 5200);
+    };
+    std::thread(task).detach();
 }
 
 void ResidentProcessManager::ExecutePendingDeepCopyTasks()
