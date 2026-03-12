@@ -21,6 +21,7 @@
 #include <mutex>
 #include <string>
 #include <gmock/gmock.h>
+#include "ability_record_mock_helper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -58,6 +59,8 @@ public:
 
     virtual void Init(const AbilityRequest &abilityRequest);
     virtual AbilityRecordType GetAbilityRecordType();
+
+    ENABLE_DEFAULT_DEEP_COPY()
 protected:
     bool isPrelaunch_ = false;
     bool isHook_ = false;

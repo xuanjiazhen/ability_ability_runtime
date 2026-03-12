@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H
 
 #include <memory>
+#include "ability_record_mock_helper.h"
 
 #include "ability_info.h"
 #include "ability_token_stub.h"
@@ -66,6 +67,8 @@ public:
     const AppExecFwk::ApplicationInfo &GetApplicationInfo() const;
 
     int32_t GetUid() const;
+
+    ENABLE_DEFAULT_DEEP_COPY()
 
 public:
     AppExecFwk::AbilityInfo abilityInfo;
