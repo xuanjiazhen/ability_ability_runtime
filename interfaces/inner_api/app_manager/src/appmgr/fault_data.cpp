@@ -547,7 +547,7 @@ bool AppFaultDataBySA::Marshalling(Parcel &parcel) const
         "AppStatus [%{public}d] write int32 failed.", appStatus
     );
 
-    return WriteContent(parcel);
+    return WriteLeakContent(parcel);
 }
 
 bool AppFaultDataBySA::WriteErrorObject(Parcel &parcel) const
