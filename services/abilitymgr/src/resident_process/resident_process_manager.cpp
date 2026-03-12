@@ -389,14 +389,18 @@ void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleN
     });
 }
 
-void ResidentScreenOffEventSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
+void ResidentScreenStateSubscriber::OnReceiveEvent(const EventFwk::CommonEventData &data)
 {
     const AAFwk::Want &want = data.GetWant();
     std::string action = want.GetAction();
     TAG_LOGD(AAFwkTag::ABILITYMGR, "The action: %{public}s.", action.c_str());
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_OFF) {
-        if (screenOffCallback_ != nullptr) {
-            screenOffCallback_();
+        if (screenStateCallback_ != nullptr) {
+            screenStateCallback_(false);
+        }
+    } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_ON) {
+        if (screenStateCallback_ != nullptr) {
+            screenStateCallback_(true);
         }
     }
 }
@@ -420,45 +424,47 @@ void ResidentProcessManager::RegisterScreenStateCallback()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Registering for screen state changes");
 
-    // Subscribe to COMMON_EVENT_SCREEN_OFF event
+    // Subscribe to both screen on and off events
     EventFwk::MatchingSkills matchingSkills;
+    matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_ON);
     matchingSkills.AddEvent(EventFwk::CommonEventSupport::COMMON_EVENT_SCREEN_OFF);
     EventFwk::CommonEventSubscribeInfo subscribeInfo(matchingSkills);
     subscribeInfo.SetThreadMode(EventFwk::CommonEventSubscribeInfo::COMMON);
 
-    auto screenOffCallback = [self = shared_from_this()]() {
-        self->OnScreenStateChanged(false);
+    auto screenStateChangedCallback = [self = shared_from_this()](bool isScreenOn) {
+        self->OnScreenStateChanged(isScreenOn);
     };
-    screenOffSubscriber_ = std::make_shared<ResidentScreenOffEventSubscriber>(subscribeInfo, screenOffCallback);
+    screenOffSubscriber_ = std::make_shared<ResidentScreenStateSubscriber>(subscribeInfo, screenStateChangedCallback);
 
     bool subResult = EventFwk::CommonEventManager::SubscribeCommonEvent(screenOffSubscriber_);
     if (!subResult) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to subscribe to screen off event");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to subscribe to screen state events");
     } else {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Successfully subscribed to screen off event");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Successfully subscribed to screen state events");
     }
 }
 
 void ResidentProcessManager::OnScreenStateChanged(bool isScreenOn)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Screen state changed: %{public}d", isScreenOn);
+    isScreenOn_.store(isScreenOn);
+
     if (isScreenOn) {
-        return;  // We only care about screen off events
+        return;  // Screen turned on, execution will check screen state in ExecutePendingDeepCopyTasks
     }
 
+    // Screen turned off
     // Check if this is the first screen off
     bool expectedFirst = false;
     if (!isFirstScreenOffOccurred_.compare_exchange_strong(expectedFirst, true)) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Screen off already occurred, ignoring");
-        return;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "First screen off detected, will execute deep copy after 5200ms");
+
+        // Schedule deep copy tasks to execute after 5200ms
+        auto task = [self = shared_from_this()]() {
+            self->ExecutePendingDeepCopyTasks();
+        };
+        std::thread(task).detach();
     }
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "First screen off detected, will execute deep copy after 5200ms");
-
-    // Schedule deep copy tasks to execute after 5200ms
-    auto task = [self = shared_from_this()]() {
-        self->ExecutePendingDeepCopyTasks();
-    };
-    std::thread(task).detach();
 }
 
 void ResidentProcessManager::ExecutePendingDeepCopyTasks()
@@ -476,7 +482,19 @@ void ResidentProcessManager::ExecutePendingDeepCopyTasks()
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Executing %{public}zu pending deep copy tasks", tasksToExecute.size());
 
+    // Reset processed count at the start of execution
+    processedTaskCount_.store(0);
+
     for (const auto& task : tasksToExecute) {
+        // Check screen state after each task
+        if (isScreenOn_.load()) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR,
+                "Screen turned on during execution, stopping after %{public}zu tasks",
+                processedTaskCount_.load());
+            screenStateChangedDuringExecution_.store(true);
+            return;
+        }
+
         auto ams = DelayedSingleton<AbilityManagerService>::GetInstance();
         if (ams == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get AbilityManagerService instance");
@@ -505,8 +523,13 @@ void ResidentProcessManager::ExecutePendingDeepCopyTasks()
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy completed for %{public}s/%{public}s",
             task.bundleName.c_str(), task.abilityName.c_str());
 
-        // The deep copy is discarded after creation (only purpose is to trigger memory defrag)
+        // Update processed count
+        processedTaskCount_.fetch_add(1);
     }
+
+    // All tasks completed or interrupted
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Deep copy execution completed, processed %{public}zu tasks",
+        processedTaskCount_.load());
 }
 }  // namespace AAFwk
 }  // namespace OHOS

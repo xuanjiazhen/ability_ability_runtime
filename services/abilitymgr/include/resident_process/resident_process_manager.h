@@ -24,6 +24,8 @@
 
 #include "ability_manager_service.h"
 #include "app_scheduler.h"
+#include "app_scheduler_proxy.h"
+#include "app_scheduler_stub.h"
 #include "bundle_info.h"
 #include "common_event_data.h"
 #include "common_event_subscribe_info.h"
@@ -33,20 +35,20 @@
 
 namespace OHOS {
 namespace AAFwk {
-class ResidentScreenOffEventSubscriber : public EventFwk::CommonEventSubscriber {
+class ResidentScreenStateSubscriber : public EventFwk::CommonEventSubscriber {
 public:
-    explicit ResidentScreenOffEventSubscriber(
+    explicit ResidentScreenStateSubscriber(
         const EventFwk::CommonEventSubscribeInfo &subscribeInfo,
-        const std::function<void()> &screenOffCallback)
-        : EventFwk::CommonEventSubscriber(subscribeInfo), screenOffCallback_(screenOffCallback)
+        const std::function<void(bool)> &screenStateCallback)
+        : EventFwk::CommonEventSubscriber(subscribeInfo), screenStateCallback_(screenStateCallback)
     {}
 
-    ~ResidentScreenOffEventSubscriber() override = default;
+    ~ResidentScreenStateSubscriber() override = default;
 
     void OnReceiveEvent(const EventFwk::CommonEventData &data) override;
 
 private:
-    std::function<void()> screenOffCallback_;
+    std::function<void(bool)> screenStateCallback_;
 };
 
 }  // namespace AAFwk
@@ -148,7 +150,12 @@ private:
     std::list<ResidentAbilityInfo> pendingDeepCopyTasks_;
     std::atomic_bool isFirstScreenOffOccurred_ = false;
 
-    std::shared_ptr<ResidentScreenOffEventSubscriber> screenOffSubscriber_;
+    // Track screen state for interrupting deep copy tasks
+    std::atomic<bool> isScreenOn_{true};
+    std::atomic<bool> screenStateChangedDuringExecution_{false};
+    std::atomic<size_t> processedTaskCount_{0};
+
+    std::shared_ptr<ResidentScreenStateSubscriber> screenOffSubscriber_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
