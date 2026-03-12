@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License"),
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -27,6 +27,7 @@ export default namespace autoStartupManager {
   export native function autoStartupInfoCheck(info: AutoStartupInfo): void;
   export native function nativeCancelApplicationAutoStartup(info: AutoStartupInfo, callback: AsyncCallbackWrapper<void>): void;
   export native function nativeQueryAllAutoStartupApplications(callback: AsyncCallbackWrapper<Array<AutoStartupInfo>>): void;
+  export native function nativeGetAutoStartupStatusForSelf(callback: AsyncCallbackWrapper<boolean>): void;
   export native function nativeCheckCallerIsSystemApp(): void;
 
   export function onSystemAutoStartup(callback: AutoStartupCallback): void {
@@ -109,6 +110,26 @@ export default namespace autoStartupManager {
       });
       taskpool.execute((): void => {
         autoStartupManager.nativeQueryAllAutoStartupApplications(myCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+    return p;
+  }
+
+  export function getAutoStartupStatusForSelf(): Promise<boolean> {
+    let p = new Promise<boolean>((resolve: (data: boolean) => void,
+      reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null,
+        data: boolean | undefined) => {
+        if (err == null || err.code == 0) {
+          resolve(data as boolean);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        autoStartupManager.nativeGetAutoStartupStatusForSelf(myCall);
       }).catch((err: Error): void => {
         reject(err as BusinessError);
       });

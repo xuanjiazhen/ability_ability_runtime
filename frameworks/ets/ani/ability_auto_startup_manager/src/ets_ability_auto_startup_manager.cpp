@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -68,6 +68,11 @@ void EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications(
     ani_env *env, ani_object callback)
 {
     GetInstance().OnQueryAllAutoStartupApplications(env, callback);
+}
+
+void EtsAbilityAutoStartupManager::GetAutoStartupStatusForSelf(ani_env *env, ani_object callback)
+{
+    GetInstance().OnGetAutoStartupStatusForSelf(env, callback);
 }
 
 void EtsAbilityAutoStartupManager::AutoStartupInfoCheck(
@@ -252,6 +257,21 @@ void EtsAbilityAutoStartupManager::OnQueryAllAutoStartupApplications(ani_env *en
         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), result);
 }
 
+void EtsAbilityAutoStartupManager::OnGetAutoStartupStatusForSelf(ani_env *env, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called GetAutoStartupStatusForSelf");
+    bool isAutoStartEnabled = false;
+    auto ret = AbilityManagerClient::GetInstance()->GetAutoStartupStatusForSelf(isAutoStartEnabled);
+    if (ret != ERR_OK) {
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
+        return;
+    }
+    ani_object result = AppExecFwk::CreateBoolean(env, isAutoStartEnabled);
+    AppExecFwk::AsyncCallback(env, callback,
+        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), result);
+}
+
 void EtsAbilityAutoStartupManager::OnNativeCheckCallerIsSystemApp(ani_env *env)
 {
     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called NativeCheckCallerIsSystemApp");
@@ -298,6 +318,9 @@ void EtsAbilityAutoStartupManagerInit(ani_env *env)
         ani_native_function {"nativeQueryAllAutoStartupApplications",
             "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications)},
+        ani_native_function {"nativeGetAutoStartupStatusForSelf",
+            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            reinterpret_cast<void *>(EtsAbilityAutoStartupManager::GetAutoStartupStatusForSelf)},
         ani_native_function {"nativeCheckCallerIsSystemApp", ":",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::NativeCheckCallerIsSystemApp)},
     };
