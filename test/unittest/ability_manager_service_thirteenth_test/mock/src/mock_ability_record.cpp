@@ -390,6 +390,11 @@ void AbilityRecord::RemoveLoadTimeoutTask()
 {
 }
 
+std::shared_ptr<AbilityRecord> DeepCopy() const override
+{
+    return std::make_shared<AbilityRecord>(want_, abilityInfo_, abilityInfo_.applicationInfo, requestCode_);
+}
+
 #ifdef SUPPORT_SCREEN
 void AbilityRecord::SetAbilityTransitionInfo(sptr<AbilityTransitionInfo>& info) const
 {

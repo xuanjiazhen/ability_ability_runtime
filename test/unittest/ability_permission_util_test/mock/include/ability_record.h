@@ -17,7 +17,6 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H
 
 #include <memory>
-#include "ability_record_mock_helper.h"
 
 #include "ability_info.h"
 #include "ability_token_stub.h"
@@ -68,7 +67,16 @@ public:
 
     int32_t GetUid() const;
 
-    ENABLE_DEFAULT_DEEP_COPY()
+    std::shared_ptr<AbilityRecord> DeepCopy() const override
+    {
+        auto copy = std::make_shared<AbilityRecord>();
+        copy->abilityInfo = abilityInfo;
+        copy->appInfo = appInfo;
+        copy->instanceKey = instanceKey;
+        copy->isTerminating = isTerminating;
+        copy->uid_ = uid_;
+        return copy;
+    }
 
 public:
     AppExecFwk::AbilityInfo abilityInfo;
