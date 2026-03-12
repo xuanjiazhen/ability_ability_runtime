@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_APPLICATION_DATA_MANAGER_H
 
 #include <string>
+#include <mutex>
 #include "napi/native_api.h"
 
 #include "ierror_observer.h"
@@ -25,6 +26,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 class ApplicationDataManager {
+using LeakObserverFunction = std::function<bool(const LeakObject &obj)>;
 public:
     struct ExceptionParams {
         napi_env env;
@@ -48,6 +50,8 @@ public:
     void SetIsUncatchable(bool isUncatchable);
     bool GetIsUncatchable();
     static bool NotifyUncaughtException(const ExceptionParams &params, const AppExecFwk::ErrorObject &errorObj);
+    bool NotifyLeakObject(const LeakObject &leakObj);
+    void SetLeakObserver(LeakObserverFunction leakCallback);
 private:
     ApplicationDataManager();
     ~ApplicationDataManager();
@@ -55,6 +59,8 @@ private:
     DISALLOW_COPY_AND_MOVE(ApplicationDataManager);
     std::shared_ptr<IErrorObserver> errorObserver_;
     std::atomic_bool isUncatchable_;
+    LeakObserverFunction leakObserver_ = nullptr;
+    std::mutex leakObserverMutex_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
