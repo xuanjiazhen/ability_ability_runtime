@@ -861,9 +861,9 @@ public:
         GET_CB_INFO_AND_CALL(env, info, JsErrorManager, OnOff);
     }
 
-    static napi_value SetDefaultLeakObserver(napi_env env, napi_callback_info info)
+    static napi_value SetDefaultResourceUsageObserver(napi_env env, napi_callback_info info)
     {
-        GET_CB_INFO_AND_CALL(env, info, JsErrorManager, OnSetDefaultLeakObserver);
+        GET_CB_INFO_AND_CALL(env, info, JsErrorManager, OnSetDefaultResourceUsageObserver);
     }
 
     napi_value SetRejectionCallback(napi_env env) const
@@ -969,10 +969,10 @@ private:
         return object;
     }
 
-    napi_value OnOnSetDefaultLeakObserver(napi_env env, napi_value function)
+    napi_value OnOnSetDefaultResourceUsageObserver(napi_env env, napi_value function)
     {
         if (!AppExecFwk::EventRunner::IsAppMainThread()) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "setDefaultLeakObserver must be called in main thread");
+            TAG_LOGE(AAFwkTag::JSNAPI, "SetDefaultResourceUsageObserver must be called in main thread");
             ThrowError(env, AbilityErrorCode::ERROR_CODE_MAIN_THREAD);
             return CreateJsUndefined(env);
         }
@@ -1022,7 +1022,7 @@ private:
         OnOnSetDefaultErrorHandler(env, argv[INDEX_ZERO]) : OnOnSetDefaultErrorHandler(env, nullptr);
     }
 
-    napi_value OnSetDefaultLeakObserver(napi_env env, const size_t argc, napi_value *argv)
+    napi_value OnSetDefaultResourceUsageObserver(napi_env env, const size_t argc, napi_value *argv)
     {
         if (argc != ARGC_ZERO && argc != ARGC_ONE) {
             TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc: %zu", argc);
@@ -1030,7 +1030,7 @@ private:
             return CreateJsUndefined(env);
         }
         return argc == ARGC_ONE ?
-        OnOnSetDefaultLeakObserver(env, argv[INDEX_ZERO]) : OnOnSetDefaultLeakObserver(env, nullptr);
+        OnOnSetDefaultResourceUsageObserver(env, argv[INDEX_ZERO]) : OnOnSetDefaultResourceUsageObserver(env, nullptr);
 
     }
 
@@ -1711,11 +1711,12 @@ napi_value JsErrorManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "on", moduleName, JsErrorManager::On);
     BindNativeFunction(env, exportObj, "off", moduleName, JsErrorManager::Off);
     BindNativeFunction(env, exportObj, "setDefaultErrorHandler", moduleName, JsErrorManager::SetDefaultErrorHandler);
-    BindNativeFunction(env, exportObj, "setDefaultLeakObserver", moduleName, JsErrorManager::SetDefaultLeakObserver);
+    BindNativeFunction(env, exportObj, "setDefaultResourceUsageObserver", moduleName,
+        JsErrorManager::SetDefaultResourceUsageObserver);
     AppExecFwk::ApplicationDataManager::GetInstance().SetLeakObserver(LeakObserverFunc);
 
     napi_set_named_property(env, exportObj, "InstanceType", ErrorManagerInstanceTypeInit(env));
-    napi_set_named_property(env, exportObj, "LeakType", ErrorManagerLeakTypeInit(env));
+    napi_set_named_property(env, exportObj, "ResourceType", ErrorManagerLeakTypeInit(env));
     return CreateJsUndefined(env);
 }
 }  // namespace AbilityRuntime
