@@ -812,9 +812,9 @@ static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
     args[1] = CreateJsValue(defaultLeakObserver.env, static_cast<int64_t>(obj.leakSize));
  
     if (obj.leakType == AppExecFwk::LeakType::PSS_MEMORY) {
-        args[2] = CreateDetailInfoObject(defaultLeakObserver.env, obj.leakType, obj.detailInfo);
-        if (!args[2]) {
-            napi_get_undefined(defaultLeakObserver.env, &args[2]);
+        args[ARGC_TWO] = CreateDetailInfoObject(defaultLeakObserver.env, obj.leakType, obj.detailInfo);
+        if (!args[ARGC_TWO]) {
+            napi_get_undefined(defaultLeakObserver.env, &args[ARGC_TWO]);
         }
         argc = ARGC_THREE;
     }
@@ -1003,7 +1003,7 @@ private:
         }
         defaultLeakObserver.env = env;
         if (!isSetLeakObserver) {
-            isSetLeakObserver= true;
+            isSetLeakObserver = true;
             TAG_LOGI(AAFwkTag::JSNAPI, "change isSetHandler state successfully");
         }
         return oldObserverFunc;
