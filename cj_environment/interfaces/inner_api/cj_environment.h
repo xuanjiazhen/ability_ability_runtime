@@ -62,6 +62,7 @@ public:
     void RegisterCJUncaughtExceptionHandler(const CJUncaughtExceptionInfo& handle);
     bool RegisterCangjieCallback();
     void RegisterEventHandlerCallbacks();
+    void RegisterHiSysEventReport();
     int InitCJRuntime();
     bool IsUISchedulerStarted()
     {

@@ -19,6 +19,7 @@ config("cj_rt_public_config") {
   include_dirs = [
     "include",
     "${ability_runtime_path}/cj_environment/interfaces/inner_api",
+    "${ability_runtime_services_path}/common/include",
   ]
   defines = cj_config.common_defines
 
@@ -53,12 +54,20 @@ ohos_shared_library("cj_environment") {
     debug = false
   }
 
-  sources = [ "src/cj_environment.cpp" ]
+  sources = [
+    "src/cj_environment.cpp",
+    "${ability_runtime_services_path}/common/src/hisysevent_report.cpp",
+  ]
 
   defines = []
 
   external_deps = [
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
+  ]
+
+  deps = [
+    "${ability_runtime_services_path}/common:hisysevent_report",
   ]
 
   if (current_os == "ohos") {
