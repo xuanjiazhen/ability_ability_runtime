@@ -15,12 +15,14 @@
 
 #include "cj_environment.h"
 
+#include <unistd.h>
 #include <string>
 #include <sstream>
 #include <mutex>
 #include <charconv>
 #include "cj_hilog.h"
 #include "cj_invoker.h"
+#include "cj_envsetup.h"
 #ifdef __OHOS__
 #include <dlfcn.h>
 #endif
@@ -32,6 +34,9 @@
 #ifdef WITH_EVENT_HANDLER
 #include "event_handler.h"
 #endif
+#include "hisysevent.h"
+#include "hilog_tag_wrapper.h"
+#include "hisysevent_report.h"
 
 #ifdef APP_USE_ARM64
 #define APP_LIB_NAME "arm64"
@@ -75,6 +80,7 @@ const char REGISTER_ARKVM_SYMBOL_NAME[] = "RegisterArkVMInRuntime";
 const char REGISTER_STACKINFO_CALLBACKS_NAME[] = "RegisterStackInfoCallbacks";
 const char DUMP_HEAP_SNAPSHOT_NAME[] = "CJ_MRT_DumpHeapSnapshot";
 const char FORCE_FULL_GC_NAME[] = "CJ_MRT_ForceFullGC";
+const char REGISTER_HISYSEVENTREPORT[] = "RegisterHiSysEventReport";
 
 using InitCJRuntimeType = int(*)(const struct RuntimeParam*);;
 using InitUISchedulerType = void*(*)();
@@ -86,6 +92,7 @@ using RegisterArkVMType = void(*)(unsigned long long);
 using RegisterStackInfoType = void(*)(UpdateStackInfoFuncType);
 using DumpHeapSnapshotType = void(*)(int);
 using ForceFullGCType = void(*)();
+using RegisterHiSysEventReport = void(*)(const char*, const char*, size_t, size_t, size_t);
 
 #ifdef __OHOS__
 const char REGISTER_UNCAUGHT_EXCEPTION_NAME[] = "RegisterUncaughtExceptionHandler";
@@ -182,6 +189,17 @@ bool LoadSymbolInitCJLibrary(void* handle, CJRuntimeAPI& apis)
     return true;
 }
 
+bool LoadSymbolRegisterHiSysEventReport(void* handle, CJRuntimeAPI& apis)
+{
+    auto symbol = DynamicFindSymbol(handle, REGISTER_HISYSEVENTREPORT);
+    if (symbol == nullptr) {
+        LOGE("runtime api not found: %{public}s", REGISTER_HISYSEVENTREPORT);
+        return true;
+    }
+    apis.RegisterHiSysEventReport = reinterpret_cast<OHOS::CJRuntimeAPI::RegisterHiSysEventReportPtr>(symbol);
+    return true;
+}
+
 bool LoadSymbolRegisterEventHandlerCallbacks(void* handle, CJRuntimeAPI& apis)
 {
     auto symbol = DynamicFindSymbol(handle, REGISTER_EVENTHANDLER_CALLBACKS_NAME);
@@ -266,6 +284,20 @@ bool PostTaskWrapper(void* func)
 bool HasHigherPriorityTaskWrapper()
 {
     return CJEnvironment::GetInstance()->HasHigherPriorityTask();
+}
+
+void CJHiSysEventReport(const char* domain, const char* event, size_t hiSysEventType, size_t limitSize, size_t activeMemory)
+{
+    auto hisyseventReport = std::make_shared<OHOS::AAFwk::HisyseventReport>(10);
+    hisyseventReport->InsertParam("PID", std::to_string(getpid()));
+    hisyseventReport->InsertParam("TID", std::to_string(gettid()));
+    hisyseventReport->InsertParam("LIMIT_SIZE", std::to_string(limitSize));
+    hisyseventReport->InsertParam("ACTIVE_MEMORY", std::to_string(activeMemory));
+    int32_t ret = hisyseventReport->Report(domain, event, static_cast<HiSysEventEventType>(hiSysEventType));
+    LOGE("HiSysEventReport Finish, ret code:%{public}d", ret);
+    if (ret != 0) {
+        LOGE("HiSysEventReport Failed!");
+    }
 }
 
 CJEnvironment* instance_ = nullptr;
@@ -423,7 +455,8 @@ bool CJEnvironment::LoadRuntimeApis()
         !LoadSymbolRegisterStackInfoCallbacks(dso, *lazyApis_) ||
         !LoadSymbolRegisterArkVM(dso, *lazyApis_) ||
         !LoadSymbolDumpHeapSnapshot(dso, *lazyApis_) ||
-        !LoadSymbolForceFullGC(dso, *lazyApis_)) {
+        !LoadSymbolForceFullGC(dso, *lazyApis_) ||
+        !LoadSymbolRegisterHiSysEventReport(dso, *lazyApis_)) {
         LOGE("load symbol failed");
         DynamicFreeLibrary(dso);
         return false;
@@ -469,6 +502,15 @@ void CJEnvironment::RegisterEventHandlerCallbacks()
         return;
     }
     lazyApis_->RegisterEventHandlerCallbacks(PostTaskWrapper, HasHigherPriorityTaskWrapper);
+}
+
+void CJEnvironment::RegisterHiSysEventReport()
+{
+    if (!lazyApis_ || !lazyApis_->RegisterHiSysEventReport){
+        LOGE("api RegisterHiSysEventReport is null.");
+        return;
+    }
+    lazyApis_->RegisterHiSysEventReport(CJHiSysEventReport);
 }
 
 void CJEnvironment::DumpCjHeap(int fd)
@@ -695,6 +737,7 @@ bool CJEnvironment::StartRuntime()
         return false;
     }
     RegisterEventHandlerCallbacks();
+    RegisterHiSysEventReport();
     isRuntimeStarted_ = true;
     return true;
 }
