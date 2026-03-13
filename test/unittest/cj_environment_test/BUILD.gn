@@ -30,12 +30,14 @@ ohos_unittest("cj_environment_other_test") {
     "${ability_runtime_path}/cj_environment/interfaces/inner_api",
     "${ability_runtime_path}/cj_environment/frameworks/cj_environment/include",
     "${ability_runtime_native_path}/runtime",
+    "${ability_runtime_services_path}/commin/include",
   ]
 
   sources = [
     "${ability_runtime_path}/cj_environment/frameworks/cj_environment/src/cj_environment.cpp",
     "${ability_runtime_path}/cj_environment/frameworks/cj_environment/src/dynamic_loader_ohos.cpp",
     "cj_environment_test.cpp",
+    "${ability_runtime_services_path}/common/src/hisysevent_report.cpp",
   ]
   cflags = []
   if (target_cpu == "arm") {
@@ -52,6 +54,7 @@ ohos_unittest("cj_environment_other_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "${ability_runtime_services_path}/common:hisysevent_report",
   ]
 
   external_deps = [
@@ -71,6 +74,7 @@ ohos_unittest("cj_environment_other_test") {
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
+    "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
