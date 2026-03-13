@@ -67,7 +67,7 @@ static std::set<GlobalObserverItem> globalPromiseList;
 static std::map<napi_env, std::vector<std::pair<int32_t, std::shared_ptr<NativeReference>>>> observerList;
 static GlobalObserverItem freezeObserver;
 static GlobalObserverItem defaultHandler;
-static GlobalObserverItem defaultLeakObserver;
+static GlobalObserverItem g_defaultLeakObserver;
 static std::mutex defaultLeakMtx;
 static std::mutex defaultHandlerMtx;
 static std::mutex globalErrorMtx;
@@ -78,7 +78,7 @@ static std::once_flag registerCallbackFlag;
 static std::shared_ptr<JsLoopObserver> loopObserver_;
 static bool freezeCallbackRegistered = false;
 static bool isSetHandler = false;
-static bool isSetLeakObserver = false;
+static bool g_isSetLeakObserver = false;
 static std::mutex onErrorMtx;
 static std::condition_variable onErrorCv;
 constexpr int ON_ERROR_ASYNC_TIMEOUT = 2;
@@ -795,37 +795,37 @@ static napi_value CreateDetailInfoObject(napi_env env, AppExecFwk::LeakType leak
 static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
 {
     std::lock_guard<std::mutex> lock(defaultLeakMtx);
-    if (!defaultLeakObserver.ref) {
+    if (!g_defaultLeakObserver.ref) {
         TAG_LOGI(AAFwkTag::JSNAPI, "not register ObserverFunc callback");
         return false;
     }
  
     napi_value global = nullptr;
-    if (napi_get_global(defaultLeakObserver.env, &global) != napi_ok) {
+    if (napi_get_global(g_defaultLeakObserver.env, &global) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
         return false;
     }
  
     size_t argc = ARGC_TWO;
     napi_value args[ARGC_THREE];
-    args[0] = CreateJsValue(defaultLeakObserver.env, obj.leakType);
-    args[1] = CreateJsValue(defaultLeakObserver.env, static_cast<int64_t>(obj.leakSize));
+    args[0] = CreateJsValue(g_defaultLeakObserver.env, obj.leakType);
+    args[1] = CreateJsValue(g_defaultLeakObserver.env, static_cast<int64_t>(obj.leakSize));
  
     if (obj.leakType == AppExecFwk::LeakType::PSS_MEMORY) {
-        args[ARGC_TWO] = CreateDetailInfoObject(defaultLeakObserver.env, obj.leakType, obj.detailInfo);
+        args[ARGC_TWO] = CreateDetailInfoObject(g_defaultLeakObserver.env, obj.leakType, obj.detailInfo);
         if (!args[ARGC_TWO]) {
-            napi_get_undefined(defaultLeakObserver.env, &args[ARGC_TWO]);
+            napi_get_undefined(g_defaultLeakObserver.env, &args[ARGC_TWO]);
         }
         argc = ARGC_THREE;
     }
 
     napi_value function = nullptr;
-    if (napi_get_reference_value(defaultLeakObserver.env, defaultLeakObserver.ref, &function) != napi_ok) {
+    if (napi_get_reference_value(g_defaultLeakObserver.env, g_defaultLeakObserver.ref, &function) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
         return false;
     }
     napi_value result = nullptr;
-    if (napi_call_function(defaultLeakObserver.env, global, function, argc, args, &result) != napi_ok) {
+    if (napi_call_function(g_defaultLeakObserver.env, global, function, argc, args, &result) != napi_ok) {
         TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
         return false;
     }
@@ -985,25 +985,25 @@ private:
         std::lock_guard<std::mutex> lock(defaultLeakMtx);
         napi_value oldObserverFunc = nullptr;
 
-        if (defaultLeakObserver.ref == nullptr) {
+        if (g_defaultLeakObserver.ref == nullptr) {
             oldObserverFunc = nullptr;
-        } else if (napi_get_reference_value(env, defaultLeakObserver.ref, &oldObserverFunc) != napi_ok) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "Get old defaultLeakObserver Failed");
+        } else if (napi_get_reference_value(env, g_defaultLeakObserver.ref, &oldObserverFunc) != napi_ok) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "Get old g_defaultLeakObserver Failed");
         }
 
-        if (defaultLeakObserver.ref) {
-            napi_delete_reference(env, defaultLeakObserver.ref);
-            defaultLeakObserver.ref = nullptr;
+        if (g_defaultLeakObserver.ref) {
+            napi_delete_reference(env, g_defaultLeakObserver.ref);
+            g_defaultLeakObserver.ref = nullptr;
         }
 
         if (function) {
-            NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &defaultLeakObserver.ref));
+            NAPI_CALL(env, napi_create_reference(env, function, INITITAL_REFCOUNT_ONE, &g_defaultLeakObserver.ref));
         } else {
-            defaultLeakObserver.ref = nullptr;
+            g_defaultLeakObserver.ref = nullptr;
         }
-        defaultLeakObserver.env = env;
-        if (!isSetLeakObserver) {
-            isSetLeakObserver = true;
+        g_defaultLeakObserver.env = env;
+        if (!g_isSetLeakObserver) {
+            g_isSetLeakObserver = true;
             TAG_LOGI(AAFwkTag::JSNAPI, "change isSetHandler state successfully");
         }
         return oldObserverFunc;
