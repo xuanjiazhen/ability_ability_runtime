@@ -151,7 +151,8 @@ bool FaultData::WriteLeakContent(Parcel &parcel) const
     );
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.leakSize),
-        "LeakObject leakSize [%{public}" PRIu64 "] write uint64 failed.", static_cast<uint64_t>(leakObject.leakSize)
+        "LeakObject leakSize [%{public}" PRIu64 "] write uint64 failed.",
+        static_cast<uint64_t>(leakObject.leakSize)
     );
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.detailInfo.arktsSize),
@@ -429,7 +430,8 @@ bool AppFaultDataBySA::WriteLeakContent(Parcel &parcel) const
     );
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.leakSize),
-        "LeakObject leakSize [%{public}" PRIu64 "] write uint64 failed.", static_cast<uint64_t>(leakObject.leakSize)
+        "LeakObject leakSize [%{public}" PRIu64 "] write uint64 failed.",
+        static_cast<uint64_t>(leakObject.leakSize)
     );
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.detailInfo.arktsSize),
