@@ -1031,7 +1031,6 @@ private:
         }
         return argc == ARGC_ONE ?
         OnOnSetDefaultResourceUsageObserver(env, argv[INDEX_ZERO]) : OnOnSetDefaultResourceUsageObserver(env, nullptr);
-
     }
 
     napi_value OnOn(napi_env env, const size_t argc, napi_value* argv)

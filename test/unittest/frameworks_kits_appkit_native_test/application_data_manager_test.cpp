@@ -227,7 +227,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyLeakObject_001
 /**
  * @tc.number: ApplicationDataManager_NotifyLeakObject_002
  * @tc.name: ApplicationDataManager NotifyLeakObject WithObserver
- * @tc.desc: Test whether NotifyLeakObject executes callback normally and returns correct result when leak observer is set.
+ * @tc.desc: Test whether NotifyLeakObject executes callback normally
  */
 HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyLeakObject_002, Function | MediumTest | Level1)
 {
@@ -246,7 +246,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyLeakObject_002
     };
     bool callbackExecuted = false;
     const bool expectedCallbackResult = true;
-    auto testCallback = [&](const LeakObject &obj) -> bool {
+    auto testCallback = [&callbackExecuted, expectedCallbackResult](const LeakObject &obj) -> bool {
         callbackExecuted = true;
         EXPECT_EQ(obj.leakType, LeakType::ION_MEMORY);
         EXPECT_EQ(obj.leakSize, 2048 * 1024);

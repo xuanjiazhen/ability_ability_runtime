@@ -3784,7 +3784,7 @@ void MainThread::NotifyAppFault(const FaultData &faultData)
         };
 
         if (faultData.faultType == FaultDataType::RESOURCE_CONTROL) {
-            ApplicationDataManager::GetInstance().NotifyLeakObject(leakObj); 
+            ApplicationDataManager::GetInstance().NotifyLeakObject(leakObj);
         } else {
             ApplicationDataManager::GetInstance().NotifyExceptionObject(faultErrorObj);
         }

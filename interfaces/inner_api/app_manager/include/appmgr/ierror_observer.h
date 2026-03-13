@@ -27,12 +27,12 @@ struct ErrorObject {
 };
 
 enum class LeakType {
-    PSS_MEMORY = 1, 
+    PSS_MEMORY = 1,
     ION_MEMORY = 2,
     ASHMEM_MEMORY = 3,
     GPU_MEMORY = 4,
     FD = 5,
-    THREAD =6,
+    THREAD = 6,
 };
 
 struct LeakDetailInfo {
