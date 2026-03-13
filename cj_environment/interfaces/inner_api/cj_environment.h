@@ -62,6 +62,7 @@ public:
     void RegisterCJUncaughtExceptionHandler(const CJUncaughtExceptionInfo& handle);
     bool RegisterCangjieCallback();
     void RegisterEventHandlerCallbacks();
+    void RegisterOOMHandler(const CJOOMInfo& handle);
     int InitCJRuntime();
     bool IsUISchedulerStarted()
     {
@@ -133,6 +134,7 @@ private:
     bool isUISchedulerStarted_{false};
     void* uiScheduler_ {nullptr};
     NSMode nsMode_ {NSMode::SINK};
+    CJOOMInfo CJOOMhandler;
 };
 
 }
