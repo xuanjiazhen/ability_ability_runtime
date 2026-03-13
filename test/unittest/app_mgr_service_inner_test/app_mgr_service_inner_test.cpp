@@ -4285,6 +4285,25 @@ HWTEST_F(AppMgrServiceInnerTest, BuildStartFlags_004, TestSize.Level2)
 }
 
 /**
+ * @tc.name: BuildStartFlags_005
+ * @tc.desc: build start flags.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, BuildStartFlags_005, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "BuildStartFlags_005 start");
+    AAFwk::Want want;
+    AbilityInfo abilityInfo;
+    abilityInfo.applicationInfo.appProvisionType = AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG;
+    uint64_t result = AppspawnUtil::BuildStartFlags(want, abilityInfo);
+    uint64_t flag = 0x0;
+    uint64_t baseFlag = 1;
+    flag = flag | (baseFlag << APP_FLAGS_DEBUG_SIGN);
+    EXPECT_EQ(result, flag);
+    TAG_LOGI(AAFwkTag::TEST, "BuildStartFlags_005 end");
+}
+
+/**
  * @tc.name: RegisterFocusListener_001
  * @tc.desc: register focus listener.
  * @tc.type: FUNC
