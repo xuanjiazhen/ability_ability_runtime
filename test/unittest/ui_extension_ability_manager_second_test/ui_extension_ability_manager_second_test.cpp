@@ -1635,7 +1635,7 @@ HWTEST_F(UIExtensionAbilityManagerSecondTest, HandleExtensionAbilityRemove_001, 
     EXPECT_NE(abilityRecord, nullptr);
 
     Rosen::SessionInfo info;
-    sptr<SessionInfo> sessionInfo = sptr<SessionInfo>(new SessionInfo());
+    sptr<SessionInfo> sessionInfo = sptr(new (std::nothrow) SessionInfo());
     sessionInfo->persistentId = 1;
     sessionInfo->sessionToken = sptr<Rosen::Session>(new Rosen::Session(info));
     abilityRecord->sessionInfo_ = sessionInfo;
