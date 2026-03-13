@@ -185,6 +185,7 @@ int32_t StartupManager::BuildAutoAppStartupTaskManager(std::shared_ptr<AAFwk::Wa
     TAG_LOGD(AAFwkTag::STARTUP, "autoStartupTasksManager build, id: %{public}u, tasks num: %{public}zu",
         startupTaskManagerId, autoStartupTasks.size());
     startupTaskManager = std::make_shared<StartupTaskManager>(startupTaskManagerId, autoStartupTasks);
+    startupTaskManager->SetPreAbilityStageLoad(preAbilityStageLoad);
     startupTaskManager->SetConfig(startupConfig);
     startupTaskManagerMap_.emplace(startupTaskManagerId, startupTaskManager);
     startupTaskManagerId++;

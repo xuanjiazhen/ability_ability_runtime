@@ -81,7 +81,7 @@ int32_t StartupTaskManager::Prepare()
         TAG_LOGW(AAFwkTag::STARTUP, "no tasks");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
-    dispatcher_ = std::make_shared<StartupTaskDispatcher>(tasks_, startupSortResult);
+    dispatcher_ = std::make_shared<StartupTaskDispatcher>(tasks_, startupSortResult, preAbilityStageLoad_);
     return ERR_OK;
 }
 
@@ -216,6 +216,11 @@ void StartupTaskManager::SetTimeoutCallback(const std::function<void()>& callbac
 uint32_t StartupTaskManager::GetStartupTaskManagerId() const
 {
     return startupTaskManagerId_;
+}
+
+void StartupTaskManager::SetPreAbilityStageLoad(bool preAbilityStageLoad)
+{
+    preAbilityStageLoad_ = preAbilityStageLoad;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

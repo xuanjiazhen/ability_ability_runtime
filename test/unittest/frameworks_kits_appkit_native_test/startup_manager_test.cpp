@@ -1634,5 +1634,28 @@ HWTEST_F(StartupManagerTest, StopAutoPreloadSoTask_0100, Function | MediumTest |
     startupManager->autoPreloadSoTaskManager_ = autoPreloadSoTaskManagerBak;
     startupManager->autoPreloadSystemSoTaskManager_ = autoPreloadSystemSoTaskManagerBak;
 }
+
+/**
+ * @tc.name: SetPreAbilityStageLoad_0100
+ * @tc.type: FUNC
+ * @tc.Function: SetPreAbilityStageLoad
+ */
+HWTEST_F(StartupManagerTest, SetPreAbilityStageLoad_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "StartupManagerTest SetPreAbilityStageLoad_0100 start";
+    uint32_t startupTaskManagerId = 1;
+    std::map<std::string, std::shared_ptr<StartupTask>> tasks;
+    std::shared_ptr<StartupTaskManager> startupTaskManager =
+        std::make_shared<StartupTaskManager>(startupTaskManagerId, tasks);
+    ASSERT_NE(startupTaskManager, nullptr);
+
+    EXPECT_EQ(startupTaskManager->preAbilityStageLoad_, false);
+    startupTaskManager->SetPreAbilityStageLoad(true);
+    EXPECT_EQ(startupTaskManager->preAbilityStageLoad_, true);
+
+    startupTaskManager->SetPreAbilityStageLoad(false);
+    EXPECT_EQ(startupTaskManager->preAbilityStageLoad_, false);
+    GTEST_LOG_(INFO) << "StartupManagerTest SetPreAbilityStageLoad_0100 end";
+}
 }
 }

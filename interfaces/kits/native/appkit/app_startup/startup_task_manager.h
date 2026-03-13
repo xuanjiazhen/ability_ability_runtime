@@ -58,6 +58,8 @@ public:
 
     uint32_t GetStartupTaskManagerId() const;
 
+    void SetPreAbilityStageLoad(bool preAbilityStageLoad);
+
 private:
     uint32_t startupTaskManagerId_ = 0;
     std::shared_ptr<StartupConfig> config_;
@@ -65,6 +67,7 @@ private:
     std::map<std::string, std::shared_ptr<StartupTask>> tasks_;
     std::shared_ptr<AppExecFwk::EventHandler> mainHandler_;
     std::function<void()> timeoutCallback_ = nullptr;
+    std::atomic<bool> preAbilityStageLoad_ = false;
 
     void CallListenerOnCompleted(int32_t result, const std::string &resultMessage = "");
     void AddAsyncTimeoutTimer();

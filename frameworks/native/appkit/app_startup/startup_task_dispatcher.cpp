@@ -22,7 +22,8 @@
 namespace OHOS {
 namespace AbilityRuntime {
 StartupTaskDispatcher::StartupTaskDispatcher(const std::map<std::string, std::shared_ptr<StartupTask>> &tasks,
-    const std::shared_ptr<StartupSortResult> &sortResult) : tasks_(tasks), sortResult_(sortResult)
+    const std::shared_ptr<StartupSortResult> &sortResult, bool preAbilityStageLoad) : tasks_(tasks),
+    sortResult_(sortResult), preAbilityStageLoad_(preAbilityStageLoad)
 {}
 
 StartupTaskDispatcher::~StartupTaskDispatcher()
@@ -51,6 +52,13 @@ int32_t StartupTaskDispatcher::Run(const std::shared_ptr<OnCompletedCallback> &c
     completedCallback_ = completedCallback;
     mainThreadAwaitCallback_ = mainThreadAwaitCallback;
 
+    if (preAbilityStageLoad_) {
+        int32_t result = RunZeroDequeTasks(false);
+        if (result != ERR_OK) {
+            return result;
+        }
+    }
+
     if (mainThreadAwaitCount_ == 0) {
         TAG_LOGD(AAFwkTag::STARTUP, "no main thread await task");
         if (mainThreadAwaitCallback_ != nullptr) {
@@ -59,6 +67,15 @@ int32_t StartupTaskDispatcher::Run(const std::shared_ptr<OnCompletedCallback> &c
         }
     }
 
+    int32_t result = RunZeroDequeTasks(true);
+    if (result != ERR_OK) {
+        return result;
+    }
+    return ERR_OK;
+}
+
+int32_t StartupTaskDispatcher::RunZeroDequeTasks(bool mainThreadAwait)
+{
     for (auto &iter : sortResult_->zeroDequeResult_) {
         auto findResult = tasks_.find(iter);
         if (findResult == tasks_.end()) {
@@ -68,6 +85,13 @@ int32_t StartupTaskDispatcher::Run(const std::shared_ptr<OnCompletedCallback> &c
         if (findResult->second == nullptr) {
             TAG_LOGE(AAFwkTag::STARTUP, "startup task %{public}s null", iter.c_str());
             return ERR_STARTUP_INTERNAL_ERROR;
+        }
+        if (mainThreadAwait) {
+            if (preAbilityStageLoad_ && !findResult->second->GetWaitOnMainThread()) {
+                continue;
+            }
+        } else if (findResult->second->GetWaitOnMainThread()) {
+            continue;
         }
         if (isTimeoutStopped_) {
             TAG_LOGD(AAFwkTag::STARTUP, "startup task dispatch timeout, stop running %{public}s", iter.c_str());
