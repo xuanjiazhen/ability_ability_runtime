@@ -187,6 +187,7 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
     SetAppIndex(appIndex);
     SetSecurityFlag(abilityRequest.want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
     SetCallerAccessTokenId(abilityRequest.callerAccessTokenId);
+    SetExtensionProcessMode(abilityRequest.extensionProcessMode);
     if (abilityRequest.processOptions != nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "isPreloadStart:%{public}d", abilityRequest.processOptions->isPreloadStart);
         SetPreloadStart(abilityRequest.processOptions->isPreloadStart);
@@ -224,6 +225,15 @@ void AbilityRecord::Init(const AbilityRequest &abilityRequest)
         DelayedSingleton<ResidentProcessManager>::GetInstance()->IsResidentAbility(
             abilityRequest.abilityInfo.bundleName, abilityRequest.abilityInfo.name, userId)) {
         keepAliveBundle_ = true;
+    }
+
+    // Set process name based on extensionProcessMode for TYPE mode
+    if (abilityRequest.extensionProcessMode == AppExecFwk::ExtensionProcessMode::TYPE) {
+        std::string processName = abilityInfo_.bundleName + ":" + abilityInfo_.name;
+        if (appIndex_ > 0) {
+            processName += ":" + std::to_string(appIndex_);
+        }
+        SetProcessName(processName);
     }
 }
 
