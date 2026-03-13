@@ -55,7 +55,7 @@ Status DistributedKvDataManager::CloseKvStore(const AppId &appId, std::shared_pt
 }
 
 Status DistributedKvDataManager::DeleteKvStore(const AppId &appId, const StoreId &storeId, const std::string &path,
-    const Options &options, int32_t subUser)
+    int32_t subUser, const Options &options)
 {
     if (subUser) {
         return Status::INVALID_ARGUMENT;
