@@ -15,12 +15,14 @@
 
 #include "cj_environment.h"
 
+#include <unistd.h>
 #include <string>
 #include <sstream>
 #include <mutex>
 #include <charconv>
 #include "cj_hilog.h"
 #include "cj_invoker.h"
+#include "cj_envsetup.h"
 #ifdef __OHOS__
 #include <dlfcn.h>
 #endif
@@ -75,6 +77,7 @@ const char REGISTER_ARKVM_SYMBOL_NAME[] = "RegisterArkVMInRuntime";
 const char REGISTER_STACKINFO_CALLBACKS_NAME[] = "RegisterStackInfoCallbacks";
 const char DUMP_HEAP_SNAPSHOT_NAME[] = "CJ_MRT_DumpHeapSnapshot";
 const char FORCE_FULL_GC_NAME[] = "CJ_MRT_ForceFullGC";
+const char REGISTER_EVENT_HANDLER_NAME[] = "RegisterEventHandler";
 
 using InitCJRuntimeType = int(*)(const struct RuntimeParam*);;
 using InitUISchedulerType = void*(*)();
@@ -86,6 +89,7 @@ using RegisterArkVMType = void(*)(unsigned long long);
 using RegisterStackInfoType = void(*)(UpdateStackInfoFuncType);
 using DumpHeapSnapshotType = void(*)(int);
 using ForceFullGCType = void(*)();
+using RegisterEventReportType = void(*)(const CJEventReportInfo& handle);
 
 #ifdef __OHOS__
 const char REGISTER_UNCAUGHT_EXCEPTION_NAME[] = "RegisterUncaughtExceptionHandler";
@@ -179,6 +183,17 @@ bool LoadSymbolInitCJLibrary(void* handle, CJRuntimeAPI& apis)
         return false;
     }
     apis.InitCJLibrary = reinterpret_cast<InitCJLibraryType>(symbol);
+    return true;
+}
+
+bool LoadSymbolRegisterEventHandler(void* handle, CJRuntimeAPI& apis)
+{
+    auto symbol = DynamicFindSymbol(handle, REGISTER_EVENT_HANDLER_NAME);
+    if (symbol == nullptr) {
+        LOGE("runtime api not found: %{public}s", REGISTER_EVENT_HANDLER_NAME);
+        return true;
+    }
+    apis.RegisterEventHandler = reinterpret_cast<RegisterEventReportType>(symbol);
     return true;
 }
 
@@ -423,7 +438,8 @@ bool CJEnvironment::LoadRuntimeApis()
         !LoadSymbolRegisterStackInfoCallbacks(dso, *lazyApis_) ||
         !LoadSymbolRegisterArkVM(dso, *lazyApis_) ||
         !LoadSymbolDumpHeapSnapshot(dso, *lazyApis_) ||
-        !LoadSymbolForceFullGC(dso, *lazyApis_)) {
+        !LoadSymbolForceFullGC(dso, *lazyApis_) ||
+        !LoadSymbolRegisterEventHandler(dso, *lazyApis_)) {
         LOGE("load symbol failed");
         DynamicFreeLibrary(dso);
         return false;
@@ -469,6 +485,15 @@ void CJEnvironment::RegisterEventHandlerCallbacks()
         return;
     }
     lazyApis_->RegisterEventHandlerCallbacks(PostTaskWrapper, HasHigherPriorityTaskWrapper);
+}
+
+void CJEnvironment::RegisterEventHandler(const CJEventReportInfo& handle)
+{
+    if (!lazyApis_ || !lazyApis_->RegisterEventHandler) {
+        LOGE("api RegisterEventHandler is null.");
+        return;
+    }
+    lazyApis_->RegisterEventHandler(handle);
 }
 
 void CJEnvironment::DumpCjHeap(int fd)
@@ -980,7 +1005,10 @@ CJEnvMethods* CJEnvironment::CreateEnvMethods()
         },
         .forceFullGC = []() {
             CJEnvironment::GC();
-        }
+        },
+        .registerEventHandler = [](const CJEventReportInfo& handle) {
+            return CJEnvironment::GetInstance()->RegisterEventHandler(handle);
+        },
     };
     return &gCJEnvMethods;
 }
