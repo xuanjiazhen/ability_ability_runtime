@@ -33,6 +33,12 @@ struct CJUncaughtExceptionInfo {
     std::function<void(const char* summary, const CJErrorObject errorObj)> uncaughtTask;
 };
 
+struct CJOOMInfo {    
+    const char* hapPath;
+    std::function<void(const char* domain, const char* event, size_t hiSysEventType,
+            size_t limitSize, size_t activeMemory)> oomInfoTask;
+};
+
 enum SanitizerKind {
     NONE,
     ASAN,
@@ -60,6 +66,7 @@ struct CJEnvMethods {
     void (*setAppVersion)(std::string& version) = nullptr;
     void (*dumpHeapSnapshot) (int fd) = nullptr;
     void (*forceFullGC) () = nullptr;
+    void (*registerOOMHandler)(const CJOOMInfo& oomInfo) = nullptr;
 };
 
 class CJEnv {

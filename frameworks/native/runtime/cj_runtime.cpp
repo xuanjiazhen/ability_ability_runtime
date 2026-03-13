@@ -123,6 +123,16 @@ void CJRuntime::RegisterUncaughtExceptionHandler(const CJUncaughtExceptionInfo& 
     cjEnv->registerCJUncaughtExceptionHandler(uncaughtExceptionInfo);
 }
 
+void CJRuntime::RegisterOOMHandler(const CJOOMInfo& oomInfo)
+{
+    auto cjEnv = OHOS::CJEnv::LoadInstance();
+    if (cjEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::CJRUNTIME, "null cjEnv");
+        return;
+    }
+    cjEnv->registerOOMHandler(oomInfo);
+}
+
 bool CJRuntime::IsCJAbility(const std::string& info)
 {
     // in cj application, the srcEntry format should be packageName.AbilityClassName.
