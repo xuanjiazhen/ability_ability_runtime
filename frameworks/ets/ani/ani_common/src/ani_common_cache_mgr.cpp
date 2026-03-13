@@ -108,6 +108,7 @@ bool AniCommonCacheMgr::GetCachedClassAndMethod(ani_env *env, const std::string 
         }
         methodIter->second = method;
     }
+    method = methodIter->second;
     return true;
 }
 
