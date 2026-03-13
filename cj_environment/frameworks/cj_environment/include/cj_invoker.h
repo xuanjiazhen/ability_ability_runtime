@@ -41,6 +41,9 @@ struct CJRuntimeAPI {
     void (*RegisterStackInfoCallbacks)(UpdateStackInfoFuncType) = nullptr;
     void (*DumpHeapSnapshot)(int fd) = nullptr;
     void (*ForceFullGC)() = nullptr;
+    using CJHiSysEventReportPtr = void(*)(const char*, const char*, size_t, size_t, size_t);
+    using RegisterHiSysEventReportPtr = void(*)(CJHiSysEventReportPtr);
+    RegisterHiSysEventReportPtr RegisterHiSysEventReport = nullptr;
 };
 }
 
