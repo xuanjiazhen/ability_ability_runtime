@@ -423,7 +423,7 @@ AppFaultDataBySA *AppFaultDataBySA::Unmarshalling(Parcel &parcel)
     return info;
 }
 
-bool AppFaultDataBySA::WriteLeakContent(Parcel &parcel) const
+bool FaultData::WriteLeakContent(Parcel &parcel) const
 {
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteInt32(static_cast<int32_t>(leakObject.leakType)),
         "LeakObject leakType [%{public}d] write int32 failed.", static_cast<int32_t>(leakObject.leakType)
@@ -431,7 +431,7 @@ bool AppFaultDataBySA::WriteLeakContent(Parcel &parcel) const
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.leakSize),
         "LeakObject leakSize [%{public}" PRIu64 "] write uint64 failed.",
-        static_cast<uint64_t>(leakObject.leakSize)
+         static_cast<uint64_t>(leakObject.leakSize)
     );
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.detailInfo.arktsSize),
