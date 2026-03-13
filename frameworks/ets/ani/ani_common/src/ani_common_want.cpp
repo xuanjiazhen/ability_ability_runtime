@@ -40,7 +40,6 @@ namespace AppExecFwk {
 using namespace OHOS::AbilityRuntime;
 namespace {
 constexpr const char *ABILITY_WANT_CLASS_NAME = "@ohos.app.ability.Want.Want";
-constexpr const char *TOOL_CLASS_NAME = "@ohos.app.ability.Want.RecordSerializeTool";
 constexpr const char *INNER_CLASS_NAME = "ability.abilityResult.AbilityResultInner";
 constexpr const char *ELEMENTNAME_CLASS_NAME = "bundleManager.ElementNameInner.ElementNameInner";
 constexpr const char *RECORD_SET_NAME =
