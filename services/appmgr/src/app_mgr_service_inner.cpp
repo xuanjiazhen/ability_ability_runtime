@@ -334,7 +334,7 @@ constexpr int32_t ATTACH_TIMEOUT_SUB_REASON_TIMEOUT = 0;
 
 constexpr int32_t MAX_SPECIFIED_PROCESS_NAME_LENGTH = 255;
 
-constexpr int32_t NWEB_PRELOAD_DELAY = 3000000;
+constexpr int32_t NWEB_PRELOAD_DELAY = 10000000;
 constexpr uint64_t DEFAULT_DISPLAY_ID = 0;
 
 constexpr const char* APP_INSTANCE_KEY_0 = "app_instance_0";
@@ -1175,6 +1175,13 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     }
     if (appRecord && abilityInfo->type == AppExecFwk::AbilityType::PAGE) {
         NotifyMemMgrPriorityChanged(appRecord);
+    }
+
+    if (AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityInfo->extensionAbilityType) &&
+        (appRecord == nullptr || !appRecord->HasAgentExtensionAbility())) {
+        TAG_LOGE(AAFwkTag::APPMGR, "agentUI start denied, agentExtension process not found");
+        NotifyStartProcessFailed(loadParam->token);
+        return;
     }
 
     if (!appRecord) {
@@ -2179,6 +2186,24 @@ int32_t AppMgrServiceInner::ForceKillApplication(const std::string &bundleName,
     return ForceKillApplicationInner(bundleName, userId, appIndex);
 }
 
+int32_t AppMgrServiceInner::KillApplicationWithUserId(const std::string &bundleName,
+    const int userId, const int appIndex)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "KillApplicationWithUserId");
+    if (appRunningManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return ERR_NO_INIT;
+    }
+
+    auto result = VerifyKillProcessPermission(bundleName);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "permission verification fail");
+        return result;
+    }
+
+    return KillApplicationWithUserIdInner(bundleName, userId, appIndex);
+}
+
 int32_t AppMgrServiceInner::ForceKillApplicationInner(const std::string &bundleName,
     const int userId, const int appIndex)
 {
@@ -2203,6 +2228,33 @@ int32_t AppMgrServiceInner::ForceKillApplicationInner(const std::string &bundleN
         if (result < 0) {
             TAG_LOGE(AAFwkTag::APPMGR,
                 "forceKillApplicationByBundleName fail for bundleName:%{public}s pid:%{public}d",
+                bundleName.c_str(), *iter);
+            return result;
+        }
+    }
+    return result;
+}
+
+int32_t AppMgrServiceInner::KillApplicationWithUserIdInner(const std::string &bundleName,
+    const int userId, const int appIndex)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+
+    std::list<pid_t> pids;
+    int32_t newUserId = userId;
+    if (userId == DEFAULT_INVAL_VALUE) {
+        newUserId = GetUserIdByUid(IPCSkeleton::GetCallingUid());
+    }
+    int32_t result = ERR_OK;
+    if (!appRunningManager_->GetPidsByBundleNameUserIdAndAppIndex(bundleName, newUserId, appIndex, pids)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "unstart");
+        return result;
+    }
+    for (auto iter = pids.begin(); iter != pids.end(); ++iter) {
+        result = KillProcessByPid(*iter, "KillApplicationWithUserId");
+        if (result < 0) {
+            TAG_LOGE(AAFwkTag::APPMGR,
+                "KillApplicationWithUserId fail for bundleName:%{public}s pid:%{public}d",
                 bundleName.c_str(), *iter);
             return result;
         }
@@ -5200,6 +5252,7 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
         abilityTokens.emplace_back(token.first);
     }
     HandleForegroundAbilityDied(abilityTokens,appRecord->GetState());
+    CacheExitInfo(appRecord);
     {
         std::lock_guard lock(appStateCallbacksLock_);
         for (const auto &item : appStateCallbacks_) {
@@ -5210,14 +5263,13 @@ void AppMgrServiceInner::OnRemoteDied(const wptr<IRemoteObject> &remote, bool is
     }
     ClearData(appRecord);
 
+    auto userId = appRecord->GetUserId();
     if (appRecord->IsStartSpecifiedAbility() && startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(appRecord->GetSpecifiedRequestId(),
-            appRecord->GetUserId());
+        startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(appRecord->GetSpecifiedRequestId(), userId);
     }
     appRecord->ResetSpecifiedRequest();
     if (appRecord->IsNewProcessRequest() && startSpecifiedAbilityResponse_) {
-        startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(appRecord->GetNewProcessRequestId(),
-            appRecord->GetUserId());
+        startSpecifiedAbilityResponse_->OnStartSpecifiedFailed(appRecord->GetNewProcessRequestId(), userId);
     }
     appRecord->ResetNewProcessRequest();
 }
