@@ -207,6 +207,8 @@ const char* PRELOAD_APP_STARTUP = "PreloadAppStartup";
 const int32_t TYPE_RESERVE = 1;
 const int32_t TYPE_OTHERS = 2;
 constexpr int32_t FOUNDATION_UID = 5523;
+constexpr char EVENT_KEY_LIMITSIZE[] = "LIMITSIZE";
+constexpr char EVENT_KEY_ACTIVE_MEMORY[] = "ACTIVE_MEMORY";
 
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
 const std::string NWEB_SURFACE_NODE_NAME = "nwebPreloadSurface";
@@ -1432,6 +1434,33 @@ CJUncaughtExceptionInfo MainThread::CreateCjExceptionInfo(const std::string &bun
         };
     return uncaughtExceptionInfo;
 }
+
+CJOOMInfo MainThread::CreateCjOOMInfo(const std::string &bundleName,
+    uint32_t versionCode, const std::string &hapPath)
+{
+    CJOOMInfo oomInfo;
+    wptr<MainThread> weak_this = this;
+    oomInfo.hapPath = hapPath.c_str();
+    std::string processName = processInfo_ != nullptr ? processInfo_->GetProcessName() : "unknown";
+    oomInfo.oomInfoTask = [weak_this, bundleName, versionCode, processName](const char* domain, const char* event,
+        size_t hiSysEventType, size_t limitSize, size_t activeMemory) 
+        {
+            auto shared_this = weak_this.promote();
+            if (shared_this == nullptr) {
+            return;
+            }
+            time_t timet;
+            time(&timet);
+            auto hisyseventReport = std::make_shared<HisyseventReport>(10);
+            hisyseventReport->InsertParam("PID", std::to_string(getpid()));
+            hisyseventReport->InsertParam("TID", std::to_string(gettid()));
+            hisyseventReport->InsertParam("PROCESS_NAME", processName);
+            hisyseventReport->InsertParam("LIMIT_SIZE", std::to_string(limitSize));
+            hisyseventReport->InsertParam("ACTIVE_MEMORY", std::to_string(activeMemory));
+            int32_t ret = hisyseventReport->Report(domain, event, static_cast<HiSysEventEventType>(hiSysEventType));
+        };
+    return oomInfo;
+}
 #endif
 
 bool MainThread::GetBundleAndHspListForUpdateRuntime(BundleInfo &bundleInfo, std::string bundleName, HspList &hspList)
@@ -1911,6 +1940,8 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         } else {
             auto expectionInfo = CreateCjExceptionInfo(bundleName, versionCode, hapPath);
             (static_cast<AbilityRuntime::CJRuntime&>(*runtime)).RegisterUncaughtExceptionHandler(expectionInfo);
+            auto oomInfo = CreateCjOOMInfo(bundleName, versionCode, hapPath);
+            (static_cast<AbilityRuntime::CJRuntime&>(*runtime)).RegisterOOMHandler(oomInfo);
         }
 #endif
         wptr<MainThread> weak = this;

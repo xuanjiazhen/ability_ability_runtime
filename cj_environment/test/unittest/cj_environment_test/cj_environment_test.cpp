@@ -46,6 +46,8 @@ void CjEnvironmentTest::TearDown() {}
 
 void RegisterCJUncaughtExceptionHandlerTest(const CJUncaughtExceptionInfo &handle) {}
 
+void RegisterOOMHandlerTest(const CJOOMInfo &handle) {}
+
 /**
  * @tc.name: CJEnvironment_GetInstance_0001
  * @tc.desc: JsRuntime test for UpdatePkgContextInfoJson.
@@ -383,4 +385,48 @@ HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitCJAppNS_0100, TestSize.Level2)
     cJEnvironment.InitCJAppNS(appPath);
     EXPECT_EQ(CJEnvironment::GetInstance(), nullptr);
 }
+
+/**
+ * @tc.name: CJEnvironment_StartRuntime1_0001
+ * @tc.desc: JsRuntime test for StartRuntime.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CJEnvironment_StartRuntime1_0100, TestSize.Level1)
+{
+    CJEnvironment cJEnvironment(CJEnvironment::NSMode::APP);
+    CJOOMInfo handle;
+    handle.hapPath = "/test1/";
+    handle.oomInfoTask = [](const char* domain, const char* event, size_t hiSysEventType,
+        size_t limitSize, size_t activeMemory) {};
+    CJRuntimeAPI api;
+    api.RegisterOOMHandler = RegisterOOMHandlerTest;
+    CJRuntimeAPI* lazyApis_ = new CJRuntimeAPI(api);
+    cJEnvironment.SetLazyApis(lazyApis_);
+    cJEnvironment.RegisterOOMHandler(handle);
+
+    bool ret = cJEnvironment.StartRuntime();
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CJEnvironment_RegisterOOMHandler_0001
+ * @tc.desc: JsRuntime test for RegisterOOMHandler.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CJEnvironment_RegisterOOMHandler_0100, TestSize.Level1)
+{
+    CJEnvironment cJEnvironment(CJEnvironment::NSMode::APP);
+    CJOOMInfo handle;
+    handle.hapPath = "/test1/";
+    handle.oomInfoTask = [](const char* domain, const char* event, size_t hiSysEventType,
+        size_t limitSize, size_t activeMemory) {};
+    CJRuntimeAPI api;
+    api.RegisterOOMHandler = RegisterOOMHandlerTest;
+    CJRuntimeAPI* lazyApis_ = new CJRuntimeAPI(api);
+    cJEnvironment.SetLazyApis(lazyApis_);
+    cJEnvironment.RegisterOOMHandler(handle);
+
+    EXPECT_NE(cJEnvironment.lazyApis_->RegisterCJOOMHandler, nullptr);
+}
+
 } // namespace OHOS
