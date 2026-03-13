@@ -150,5 +150,38 @@ HWTEST_F(CjRuntimeTest, CjRuntimeRegisterCangjieCallback_001, TestSize.Level2)
     bool ret = CJRuntime::RegisterCangjieCallback();
     EXPECT_TRUE(ret == fileExists);
 }
+
+/**
+ * @tc.name: CJRuntime_RegisterOOMHandler_001
+ * @tc.desc: CjRuntime test for RegisterOOMHandler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjRuntimeTest, RegisterOOMHandler_001, TestSize.Level1)
+{
+    auto instance = std::make_unique<CJRuntime>();
+    CJEventReportInfo info;
+    info.hapPath = "/data/storage/el2/base/test";
+    handle.reportInfoTask = [](const char* domain, const char* event, size_t hiSysEventType,
+        const std::map<std::string, std::string>& params) {};
+    if (instance) {
+        instance->RegisterEventHandler(info);
+    }
+    EXPECT_NE(instance, nullptr);
+}
+
+/**
+ * @tc.name: CJRuntime_RegisterOOMHandler_002
+ * @tc.desc: CjRuntime test for RegisterOOMHandler
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjRuntimeTest, RegisterOOMHandler_002, TestSize.Level1)
+{
+    auto instance = std::make_unique<CJRuntime>();
+    CJEventReportInfo info;
+    instance->RegisterEventHandler(info);
+
+    EXPECT_NE(instance, nullptr);
+}
+
 }  // namespace Runtime
 }  // namespace OHOS
