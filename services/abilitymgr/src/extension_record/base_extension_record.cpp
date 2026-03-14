@@ -45,6 +45,7 @@ std::shared_ptr<BaseExtensionRecord> BaseExtensionRecord::CreateBaseExtensionRec
         abilityRequest.extensionProcessMode == AppExecFwk::ExtensionProcessMode::TYPE) {
         std::string processName = abilityRequest.abilityInfo.bundleName + ":" + abilityRequest.abilityInfo.name;
         abilityRecord->SetProcessName(processName);
+        abilityRecord->SetCustomProcessFlag(processName);
     }
     return abilityRecord;
 }
