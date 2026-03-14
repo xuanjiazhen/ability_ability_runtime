@@ -18,6 +18,7 @@
 #include <utility>
 
 #include "ability_util.h"
+#include "exit_reason.h"
 #include "ffrt.h"
 #include "ipc_skeleton.h"
 #include "keep_alive_utils.h"
@@ -171,6 +172,12 @@ void KeepAliveProcessManager::AfterStartKeepAliveApp(const std::string &bundleNa
         }
         TAG_LOGE(AAFwkTag::KEEP_ALIVE, "timeout, status bar not created, unsetting keep-alive");
         KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleName, userId, false, true, true);
+
+        ExitReasonCompability exitReasonCompability(
+            HiviewDFX::ProcessKillReason::KillEventId::REASON_NOT_ATTACHED_TO_STATUS_BAR);
+        DelayedSingleton<AbilityManagerService>::GetInstance()->RecordAppWithReason(NO_PID, applicationInfo.uid,
+            exitReasonCompability);
+
         (void)DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->KillApplication(bundleName);
     };
 

@@ -80,7 +80,7 @@ static constexpr const char *const PARENT_SPAN_ID = "parent_span_id: ";
 static constexpr const char *const TRACE_FLAG = "trace_flag: ";
 static constexpr const char *const DEV_SYSLOAD = "/dev/sysload";
 // kill resaon
-constexpr int32_t INVALID_KILL_ID = -2;
+constexpr int32_t INVALID_KILL_ID = -2;////?????
 constexpr const char* INVALID_KILL_REASON = "InvalidKillId";
 
 static constexpr int SYSLOAD_GET_KILL_INFO_MAGIC = 0xE5AC02;

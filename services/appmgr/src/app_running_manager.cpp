@@ -17,6 +17,7 @@
 
 #include "app_mgr_service_inner.h"
 #include "datetime_ex.h"
+#include "exit_reason.h"
 #include "iremote_object.h"
 
 #include "appexecfwk_errors.h"
@@ -759,6 +760,10 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::OnRemoteDied(const wptr<IRe
             TAG_LOGI(AAFwkTag::APPMGR, "pname: %{public}s, pid: %{public}d", appRecord->GetProcessName().c_str(),
                 priorityObject->GetPid());
             if (appMgrServiceInner != nullptr) {
+                ExitReasonCompability exitReasonCompability(
+                    HiviewDFX::ProcessKillReason::KillEventId::REASON_ON_REMOTE_DIED);
+                auto abilityMgrClient = AbilityManagerClient::GetInstance()->
+                    RecordAppWithReason(priorityObject->GetPid(), appRecord->GetUid(), exitReasonCompability);
                 appMgrServiceInner->KillProcessByPid(priorityObject->GetPid(), "OnRemoteDied");
             }
             AbilityRuntime::FreezeUtil::GetInstance().DeleteAppLifecycleEvent(priorityObject->GetPid());

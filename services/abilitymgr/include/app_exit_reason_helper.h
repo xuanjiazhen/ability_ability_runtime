@@ -34,6 +34,16 @@ struct RecordExitReasonParams {
     AppExecFwk::RunningProcessInfo processInfo;
     bool fromKillWithReason = false;
 };
+
+struct AppReasonInfo {
+    int32_t userId = -1;
+    std::string bundleName = "";
+    int32_t appIndex = -1;
+
+    AppReasonInfo() = default;
+    AppReasonInfo(int32_t userId, const std::string &bundleName, int32_t appIndex)
+        : userId(userId), bundleName(bundleName), appIndex(appIndex) {}
+};
 class AppExitReasonHelper {
 public:
     explicit AppExitReasonHelper(std::shared_ptr<SubManagersHelper> subManagersHelper);
@@ -55,6 +65,10 @@ public:
     int32_t AddBundleExitReason(const std::string &bundleName, int32_t userId, int32_t appIndex,
         const ExitReasonCompability &exitReason);
     int32_t RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason);
+    void RecordAppsWithReasonByUserId(int32_t userId, const ExitReasonCompability &exitReason,
+        const std::vector<AppExecFwk::RunningProcessInfo> &processInfoList);
+    int32_t RecordAppExitReasonFull(const std::string &bundleName, int32_t uid, int32_t appIndex,
+        int32_t pid, const ExitReasonCompability &exitReasonCompability);
     void RecordInvalidKillId(int32_t pid, const ExitReasonCompability &params,
         const std::string &bundleName = "", int32_t userId = 0);
 
@@ -70,6 +84,16 @@ private:
     void GetRunningProcessInfo(int32_t pid, int32_t userId, const std::string &bundleName,
         AppExecFwk::RunningProcessInfo &processInfo);
     int32_t AddProcessExitReason(const RecordExitReasonParams &params);
+
+    int32_t ValidateAndPrepareExitReason(const ExitReasonCompability &exitReasonCompability,
+        ExitReason &finalExitReason);
+    void NotifyAppExitReasons(int32_t pid, const ExitReasonCompability &exitReasonCompability,
+        const ExitReason &finalExitReason);
+    int32_t RecordAppWithReasonInner(const AppReasonInfo &appInfo, const ExitReasonCompability &exitReasonCompability,
+        const AppExecFwk::RunningProcessInfo &processInfo, const std::vector<std::string> &abilityList);
+    int32_t RecordAppWithReasonByAccessTokenId(uint32_t accessTokenId,
+        const ExitReasonCompability &exitReasonCompability,
+        const std::vector<AppExecFwk::RunningProcessInfo> &processInfoList);
 
     std::shared_ptr<SubManagersHelper> subManagersHelper_;
 };
