@@ -44,6 +44,7 @@ struct ExitReasonCompability : public Parcelable {
     ExitReasonCompability() = default;
     ExitReasonCompability(const Reason reason, const std::string &exitMsg);
     ExitReasonCompability(const Reason &reason, int32_t subReason, const std::string &exitMsg);
+    ExitReasonCompability(const ExitReason &exitReason);
 
     Reason reason = Reason::REASON_UNKNOWN;
     std::string exitMsg = "";

@@ -55,6 +55,8 @@ public:
     int32_t AddBundleExitReason(const std::string &bundleName, int32_t userId, int32_t appIndex,
         const ExitReasonCompability &exitReason);
     int32_t RecordAppWithReason(int32_t pid, int32_t uid, const ExitReasonCompability &exitReason);
+    int32_t RecordAppExitReasonFull(const std::string &bundleName, int32_t uid, int32_t appIndex,
+        int32_t pid, const ExitReasonCompability &exitReasonCompability);
     void RecordInvalidKillId(int32_t pid, const ExitReasonCompability &params,
         const std::string &bundleName = "", int32_t userId = 0);
 
@@ -70,6 +72,11 @@ private:
     void GetRunningProcessInfo(int32_t pid, int32_t userId, const std::string &bundleName,
         AppExecFwk::RunningProcessInfo &processInfo);
     int32_t AddProcessExitReason(const RecordExitReasonParams &params);
+
+    int32_t ValidateAndPrepareExitReason(const ExitReasonCompability &exitReasonCompability,
+        ExitReason &finalExitReason);
+    void NotifyAppExitReasons(int32_t pid, const ExitReasonCompability &exitReasonCompability,
+        const ExitReason &finalExitReason);
 
     std::shared_ptr<SubManagersHelper> subManagersHelper_;
 };

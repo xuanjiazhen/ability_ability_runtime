@@ -3380,7 +3380,8 @@ int32_t AbilityManagerService::ForceExitApp(const int32_t pid, const ExitReason 
     int32_t appIndex = application.appIndex;
 
     CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
-    appExitReasonHelper_->RecordAppExitReason(bundleName, uid, appIndex, exitReason);
+    ExitReasonCompability exitReasonCompability(exitReason);
+    appExitReasonHelper_->RecordAppExitReasonFull(bundleName, uid, appIndex, NO_PID, exitReasonCompability);
 
     return DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(bundleName, false, appIndex);
 }
@@ -5032,6 +5033,7 @@ int AbilityManagerService::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionI
     if (isUserRequestedExit) {
         CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
         AAFwk::ExitReason exitReason = { REASON_NORMAL, "User Request" };
+        exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESTART;
         appExitReasonHelper_->RecordUIAbilityExitReason(abilityRecord->GetPid(), abilityRecord->GetAbilityInfo().name,
             exitReason);
     }
@@ -8450,13 +8452,11 @@ int32_t AbilityManagerService::UninstallAppInner(const std::string &bundleName, 
 
     auto userId = uid / BASE_USER_RANGE;
     if (isUpgrade) {
-        CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
-        AAFwk::ExitReason exitReason = { REASON_UPGRADE, exitMsg };
-        appExitReasonHelper_->RecordAppExitReason(bundleName, uid, appIndex, exitReason);
-        IN_PROCESS_CALL_WITHOUT_RET(
-            KeepAliveProcessManager::GetInstance().SaveKeepAliveAppRestartAfterUpgrade(bundleName, uid));
-        IN_PROCESS_CALL_WITHOUT_RET(
-            KeepAliveProcessManager::GetInstance().SaveAppSeriviceRestartAfterUpgrade(bundleName, uid));
+        int32_t ret = HandleAppUpgradeProcess(bundleName, uid, appIndex, NO_PID, exitMsg);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "HandleAppUpgradeProcess failed: %{public}d", ret);
+            return ret;
+        }
     } else {
         IN_PROCESS_CALL_WITHOUT_RET(
             KeepAliveProcessManager::GetInstance().SetApplicationKeepAlive(bundleName, userId, false, true, false));
@@ -8488,6 +8488,30 @@ int32_t AbilityManagerService::UninstallAppInner(const std::string &bundleName, 
         DelayedSingleton<AbilityRuntime::AppExitReasonDataManager>::GetInstance()->DeleteAppExitReason(bundleName, uid,
             appIndex);
     }
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::HandleAppUpgradeProcess(const std::string &bundleName, const int32_t uid, int32_t appIndex,
+    int32_t pid, const std::string &exitMsg)
+{
+    CHECK_POINTER_AND_RETURN_LOG(appExitReasonHelper_, ERR_NULL_OBJECT);
+
+    int32_t killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESTART;
+    std::string killReason = HiviewDFX::ProcessKillReason::GetKillReason(killId);
+    AAFwk::ExitReasonCompability exitReason = {REASON_JS_ERROR, "Kill Reason:" + killReason};
+    exitReason.killId = killId;
+
+    AAFwk::ExitReasonCompability exitReasonCompability = { REASON_UPGRADE, exitMsg };
+    exitReasonCompability.killId = killId;
+    int32_t ret = appExitReasonHelper_->RecordAppExitReasonFull(bundleName, uid, appIndex, pid, exitReasonCompability);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "RecordAppExitReasonFull failed: %{public}d", ret);
+        return ret;
+    }
+    IN_PROCESS_CALL_WITHOUT_RET(
+        KeepAliveProcessManager::GetInstance().SaveKeepAliveAppRestartAfterUpgrade(bundleName, uid));
+    IN_PROCESS_CALL_WITHOUT_RET(
+        KeepAliveProcessManager::GetInstance().SaveAppSeriviceRestartAfterUpgrade(bundleName, uid));
     return ERR_OK;
 }
 
@@ -15568,6 +15592,7 @@ int32_t AbilityManagerService::CleanUIAbilityBySCB(const sptr<SessionInfo> &sess
     if (isUserRequestedExit) {
         CHECK_POINTER_AND_RETURN(appExitReasonHelper_, ERR_NULL_OBJECT);
         AAFwk::ExitReason exitReason = { REASON_NORMAL, "User Request" };
+        exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_RESTART;
         appExitReasonHelper_->RecordUIAbilityExitReason(abilityRecord->GetPid(), abilityRecord->GetAbilityInfo().name,
             exitReason);
     }
