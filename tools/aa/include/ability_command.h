@@ -43,6 +43,8 @@ const std::string HELP_MSG = "usage: aa <command> <options>\n"
     "  attach                      attach application to enter debug mode\n"
     "  detach                      detach application to exit debug mode\n"
     "  send-memory-level           send memory level to application by pid \n"
+    "  execute-intent              execute insight intent with options\n"
+    "  get-all-insight-intent      get all insight intent info\n"
 #ifdef ABILITY_COMMAND_FOR_TEST
     "  test                        start the test framework with options\n"
     "  ApplicationNotResponding     Pass in pid with options\n"
@@ -181,6 +183,19 @@ const std::string HELP_MSG_EXECUTE_INTENT =
     "                                                - Timestamp: '1773226800000' (milliseconds)\n"
     "  [-t, --title <title>]                       event title (optional)\n";
 
+const std::string HELP_MSG_GET_ALL_INSIGHT_INTENT =
+    "usage: aa get-all-insight-intent <options>\n"
+    "options list:\n"
+    "  -h, --help                                  list available commands\n"
+    "  -f, --flag <flag>                           get type flag (required)\n"
+    "                                              Values:\n"
+    "                                                1 - GET_FULL_INSIGHT_INTENT\n"
+    "                                                2 - GET_SUMMARY_INSIGHT_INTENT\n"
+    "                                                4 - GET_ENTITY_INFO\n"
+    "                                                5 - GET_FULL_INSIGHT_INTENT_ENTITY\n"
+    "                                                6 - GET_SUMMARY_INSIGHT_INTENT_ENTITY\n"
+    "  [-u, --user-id <id>]                       user id (optional)\n";
+
 const std::string HELP_MSG_FORCE_STOP = "usage: aa force-stop <bundle-name> [-p pid] [-r kill-reason]\n";
 const std::string HELP_MSG_BLOCK_ABILITY = "usage: aa block-ability <abilityrecordid>\n";
 const std::string HELP_MSG_FORCE_TIMEOUT =
@@ -275,6 +290,7 @@ private:
     ErrCode RunAsDetachDebugCommand();
     ErrCode RunAsSendMemoryLevelCommand();
     ErrCode RunAsExecuteIntentCommand();
+    ErrCode RunAsGetAllInsightIntentCommand();
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
     bool IsLongStartOption(const std::string &argv);
     bool IsShortStartOption(const std::string &argv);

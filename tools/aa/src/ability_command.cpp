@@ -36,10 +36,13 @@
 #include "bool_wrapper.h"
 #include "parameters.h"
 #include "sa_mgr_client.h"
+#include "system_ability.h"
 #include "system_ability_definition.h"
 #include "test_observer.h"
 #include "app_mem_info.h"
 #include "insight_intent_host_client.h"
+#include "insight_intent_info_for_query.h"
+#include "insight_intent_constant.h"
 #include "js_runtime_utils.h"
 
 using namespace OHOS::AppExecFwk;
@@ -277,6 +280,13 @@ constexpr struct option LONG_OPTIONS_SEND_MEMORY_LEVEL[] = {
     {"pid", required_argument, nullptr, 'p' },
     {"level", required_argument, nullptr, 'l' },
     {nullptr, 0, nullptr, 0 },
+};
+
+constexpr struct option LONG_OPTIONS_GET_ALL_INSIGHT_INTENT[] = {
+    {"help", no_argument, nullptr, 'h'},
+    {"flag", required_argument, nullptr, 'f'},
+    {"user-id", required_argument, nullptr, 'u'},
+    {nullptr, 0, nullptr, 0},
 };
 }  // namespace
 
@@ -642,6 +652,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
         {"execute-intent", [this]() { return this->RunAsExecuteIntentCommand(); }},
+        {"get-all-insight-intent", [this]() { return this->RunAsGetAllInsightIntentCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -1496,6 +1507,139 @@ ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, s
     return OHOS::ERR_OK;
 }
 
+ErrCode AbilityManagerShellCommand::RunAsGetAllInsightIntentCommand()
+{
+    TAG_LOGI(AAFwkTag::AA_TOOL, "get-all-insight-intent command called");
+
+    int32_t flag = -1;
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    int option = -1;
+    int counter = 0;
+    ErrCode result = OHOS::ERR_OK;
+
+    const std::string SHORT_OPTIONS_GET_ALL_INSIGHT_INTENT = "hf:u:";
+
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_GET_ALL_INSIGHT_INTENT.c_str(), LONG_OPTIONS_GET_ALL_INSIGHT_INTENT, nullptr);
+
+        TAG_LOGI(AAFwkTag::AA_TOOL, "option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+        
+        if (optind < 0 || optind > argc_) {
+            resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+                resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+            }
+            break;
+        }
+
+        if (option == '?') {
+            std::string unknownOption = "";
+            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa get-all-insight-intent' option unknown");
+            resultReceiver_.append(unknownOptionMsg);
+            resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+            result = OHOS::ERR_INVALID_VALUE;
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            case 'f': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "flag is null");
+                    resultReceiver_.append("error: option -f requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                auto res = std::from_chars(optarg, optarg + strlen(optarg), flag);
+                if (res.ec != std::errc() || res.ptr != optarg + strlen(optarg)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid flag: %{public}s", optarg);
+                    resultReceiver_.append("error: invalid flag value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                TAG_LOGI(AAFwkTag::AA_TOOL, "flag: %{public}d", flag);
+                break;
+            }
+            case 'u': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "user id is null");
+                    resultReceiver_.append("error: option -u requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                auto res = std::from_chars(optarg, optarg + strlen(optarg), userId);
+                if (res.ec != std::errc() || res.ptr != optarg + strlen(optarg)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid user id: %{public}s", optarg);
+                    resultReceiver_.append("error: invalid user id value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                TAG_LOGI(AAFwkTag::AA_TOOL, "userId: %{public}d", userId);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        
+        if (result != OHOS::ERR_OK) {
+            break;
+        }
+    }
+    
+    if (result == OHOS::ERR_OK) {
+        if (flag < 0) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "missing required parameter flag");
+            resultReceiver_.append("error: missing required parameter -f.\n");
+            resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+            result = OHOS::ERR_INVALID_VALUE;
+        } else {
+            std::vector<AbilityRuntime::InsightIntentInfoForQuery> infos;
+            TAG_LOGI(AAFwkTag::AA_TOOL, "Getting all insight intent info with flag: %{public}d, userId: %{public}d",
+                flag, userId);
+            
+            auto err = AbilityManagerClient::GetInstance()->GetAllInsightIntentInfo(
+                static_cast<AbilityRuntime::GetInsightIntentFlag>(flag), infos, userId);
+            
+            if (err == OHOS::ERR_OK) {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "get all insight intent info successfully, count: %{public}zu", infos.size());
+                resultReceiver_.append("get all insight intent info successfully.\n");
+                resultReceiver_.append("Total count: " + std::to_string(infos.size()) + "\n");
+                
+                for (size_t i = 0; i < infos.size(); i++) {
+                    resultReceiver_.append("\n--- Insight Intent " + std::to_string(i + 1) + " ---\n");
+                    resultReceiver_.append("BundleName: " + infos[i].bundleName + "\n");
+                    resultReceiver_.append("ModuleName: " + infos[i].moduleName + "\n");
+                    resultReceiver_.append("IntentName: " + infos[i].intentName + "\n");
+                    resultReceiver_.append("DisplayName: " + infos[i].displayName + "\n");
+                    resultReceiver_.append("Domain: " + infos[i].domain + "\n");
+                    resultReceiver_.append("IntentVersion: " + infos[i].intentVersion + "\n");
+                    resultReceiver_.append("IntentType: " + infos[i].intentType + "\n");
+                }
+            } else {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "get all insight intent info failed: %{public}d", err);
+                resultReceiver_.append("error: failed to get all insight intent info.\n");
+                resultReceiver_.append(GetMessageFromCode(err));
+                result = err;
+            }
+        }
+    }
+    
+    return result;
+}
+
 ErrCode AbilityManagerShellCommand::RunAsExecuteIntentCommand()
 {
     TAG_LOGI(AAFwkTag::AA_TOOL, "execute-intent command called");
@@ -1615,7 +1759,6 @@ ErrCode AbilityManagerShellCommand::RunAsExecuteIntentCommand()
                 }
                 
                 startTime = parsed.timestampMs;
-                TAG_LOGI(AAFwkTag::AA_TOOL, "startTime: %{public}lld", startTime);
                 break;
             }
             case 't': {
@@ -3627,6 +3770,8 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     DelayedSingleton<AppMgrClient>::GetInstance()->NotifyAppFaultBySA(faultData);
     return result;
 }
+
+
 #endif
 }  // namespace AAFwk
 }  // namespace OHOS
