@@ -487,6 +487,8 @@ void UriUtils::PublishFileOpenEvent(const Want &want, const GrantUriPermissionIn
     if (!uriStr.empty() && wangUri.GetScheme() == "file") {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability record:%{private}s,ability:%{public}s_%{public}s,userId:%{public}d",
             uriStr.c_str(), grantInfo.targetBundleName.c_str(), grantInfo.targetAbilityName.c_str(), grantInfo.userId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt uid: %{public}d, callerUid: %{public}d",
+            grantInfo.uid, grantInfo.callerUid);
         Want msgWant;
         msgWant.SetAction("file.event.OPEN_TIME");
         msgWant.SetParam("uri", uriStr);
@@ -496,7 +498,8 @@ void UriUtils::PublishFileOpenEvent(const Want &want, const GrantUriPermissionIn
             std::chrono::system_clock::now().time_since_epoch()).count();
         std::string currentTime = std::to_string(timeNow);
         msgWant.SetParam("viewTime", currentTime);
-        msgWant.SetParam("uid", grantInfo.callerUid);
+        msgWant.SetParam("uid", grantInfo.uid);
+        msgWant.SetParam("callerUid", grantInfo.callerUid);
         EventFwk::CommonEventData commonData{msgWant};
         EventFwk::CommonEventPublishInfo commonEventPublishInfo;
         std::vector<std::string> subscriberPermissions = {"ohos.permission.MANAGE_LOCAL_ACCOUNTS"};
