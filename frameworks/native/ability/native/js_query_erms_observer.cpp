@@ -15,7 +15,6 @@
 
 #include "js_query_erms_observer.h"
 
-#include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "js_error_utils.h"
@@ -25,6 +24,11 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+
+// Error codes (original from ability_manager_errors.h)
+constexpr int32_t ERR_CAPABILITY_NOT_SUPPORT = 2097230;
+constexpr int32_t INNER_ERR = 2097167;
+
 JsQueryERMSObserver::JsQueryERMSObserver(napi_env env) : env_(env) {}
 
 JsQueryERMSObserver::~JsQueryERMSObserver() = default;
@@ -42,11 +46,11 @@ void JsQueryERMSObserver::OnQueryFinished(const std::string &appId, const std::s
                 TAG_LOGE(AAFwkTag::QUERY_ERMS, "null jsObserverSptr");
                 return;
             }
-            if (resultCode == AAFwk::ERR_CAPABILITY_NOT_SUPPORT || resultCode == ERR_OK) {
+            if (resultCode == ERR_CAPABILITY_NOT_SUPPORT || resultCode == ERR_OK) {
                 jsObserverSptr->HandleOnQueryFinished(appId, startTime, rule, resultCode);
                 return;
             }
-            jsObserverSptr->HandleOnQueryFinished(appId, startTime, rule, AAFwk::INNER_ERR);
+            jsObserverSptr->HandleOnQueryFinished(appId, startTime, rule, INNER_ERR);
     });
     napi_ref callback = nullptr;
     std::unique_ptr<NapiAsyncTask::ExecuteCallback> execute = nullptr;

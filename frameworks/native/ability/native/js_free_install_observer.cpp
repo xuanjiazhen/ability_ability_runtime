@@ -15,7 +15,6 @@
 
 #include "js_free_install_observer.h"
 
-#include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "js_error_utils.h"
@@ -25,6 +24,10 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+
+// Atomic service minimized error code (from DMS)
+constexpr int32_t ATOMIC_SERVICE_MINIMIZED = 29360206;
+
 JsFreeInstallObserver::JsFreeInstallObserver(napi_env env) : env_(env) {}
 
 JsFreeInstallObserver::~JsFreeInstallObserver() = default;
@@ -184,7 +187,7 @@ void JsFreeInstallObserver::HandleOnInstallFinishedByUrl(const std::string &star
                 continue;
             }
             if (it->isAbilityResult && (resultCode == ERR_OK ||
-                resultCode == AAFwk::ATOMIC_SERVICE_MINIMIZED)) {
+                resultCode == ATOMIC_SERVICE_MINIMIZED)) {
                 TAG_LOGD(AAFwkTag::FREE_INSTALL, "Skip observer[%{public}zu]: isAbilityResult:%{public}d, resultCode:%{public}d, ERR_OK:%{public}d",
                          std::distance(jsObserverObjectList_.begin(), it), it->isAbilityResult, resultCode, ERR_OK);
                 skipCount++;
@@ -227,7 +230,7 @@ void JsFreeInstallObserver::CallCallback(std::shared_ptr<NativeReference> callba
         return;
     }
     napi_value value;
-    if (resultCode == ERR_OK || resultCode == AAFwk::ATOMIC_SERVICE_MINIMIZED) {
+    if (resultCode == ERR_OK || resultCode == ATOMIC_SERVICE_MINIMIZED) {
         value = CreateJsUndefined(env_);
     } else {
         value = CreateJsError(env_, GetJsErrorCodeByNativeError(resultCode));
@@ -260,7 +263,7 @@ void JsFreeInstallObserver::CallPromise(napi_deferred deferred, int32_t resultCo
         TAG_LOGE(AAFwkTag::FREE_INSTALL, "null deferred");
         return;
     }
-    if (resultCode == ERR_OK || resultCode == AAFwk::ATOMIC_SERVICE_MINIMIZED) {
+    if (resultCode == ERR_OK || resultCode == ATOMIC_SERVICE_MINIMIZED) {
         napi_value value = CreateJsUndefined(env_);
         napi_resolve_deferred(env_, deferred, value);
     } else {
