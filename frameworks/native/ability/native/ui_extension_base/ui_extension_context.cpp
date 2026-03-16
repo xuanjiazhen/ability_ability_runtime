@@ -15,6 +15,10 @@
 
 #include "ui_extension_context.h"
 
+#include <atomic>
+#include <chrono>
+#include <thread>
+
 #include "ability_business_error.h"
 #include "ability_manager_client.h"
 #include "bool_wrapper.h"
@@ -33,6 +37,15 @@ int UIExtensionContext::ILLEGAL_REQUEST_CODE(-1);
 constexpr const char* REQUEST_COMPONENT_TERMINATE_KEY = "ohos.param.key.requestComponentTerminate";
 constexpr const char* UIEXTENSION_TARGET_TYPE_KEY = "ability.want.params.uiExtensionTargetType";
 constexpr const char* FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
+constexpr int32_t TERMINATE_SELF_ANIMATION_TIMEOUT_MS = 2000;
+
+namespace {
+bool IsEmbeddableStart(int32_t screenMode)
+{
+    return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
+        screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
+}
+}
 
 ErrCode UIExtensionContext::StartAbility(const AAFwk::Want &want) const
 {
@@ -95,12 +108,68 @@ ErrCode UIExtensionContext::StartUIServiceExtension(const AAFwk::Want& want, int
 ErrCode UIExtensionContext::TerminateSelf()
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "begin");
+    
+    if (IsEmbeddableStart(screenMode_) && terminateSelfWithAnimationCallback_ != nullptr) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "Embedded mode with animation callback, calling callback");
+        
+        auto cancelled = std::make_shared<std::atomic<bool>>(false);
+        terminateSelfTimerCancelled_ = cancelled;
+        
+        auto token = token_;
+        std::thread([token, cancelled]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(TERMINATE_SELF_ANIMATION_TIMEOUT_MS));
+            if (!cancelled->load()) {
+                TAG_LOGI(AAFwkTag::UI_EXT, "Animation timeout, force terminate");
+                AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token, -1, nullptr);
+            } else {
+                TAG_LOGI(AAFwkTag::UI_EXT, "Animation completed, timeout task cancelled");
+            }
+        }).detach();
+        
+        terminateSelfWithAnimationCallback_();
+        
+        if (!cancelled->load()) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "Animation completed within timeout, cancel timeout task");
+            cancelled->store(true);
+            terminateSelfTimerCancelled_ = nullptr;
+            return TerminateSelfInner();
+        }
+        TAG_LOGI(AAFwkTag::UI_EXT, "Already terminated by timeout task");
+        return ERR_OK;
+    }
+    
+    return TerminateSelfInner();
+}
+
+ErrCode UIExtensionContext::TerminateSelfInner()
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelfInner begin");
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token_, -1, nullptr);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "ret = %{public}d", err);
     }
-    TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelf end");
+    TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelfInner end");
     return err;
+}
+
+ErrCode UIExtensionContext::RegisterTerminateSelfWithAnimationCallback(
+    TerminateSelfWithAnimationCallback &&callback)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "RegisterTerminateSelfWithAnimationCallback called");
+    
+    if (!IsEmbeddableStart(screenMode_)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Not embedded mode, registration not allowed");
+        return ERR_INVALID_OPERATION;
+    }
+    
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Callback is null");
+        return ERR_INVALID_VALUE;
+    }
+    
+    terminateSelfWithAnimationCallback_ = std::move(callback);
+    TAG_LOGI(AAFwkTag::UI_EXT, "RegisterTerminateSelfWithAnimationCallback success");
+    return ERR_OK;
 }
 
 ErrCode UIExtensionContext::ConnectAbility(
