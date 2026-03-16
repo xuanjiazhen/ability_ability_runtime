@@ -1854,8 +1854,13 @@ int AbilityManagerStub::ConnectAbilityWithTypeInner(MessageParcel &data, Message
     bool isQueryExtensionOnly = data.ReadBool();
     uint64_t specifiedFullTokenId = data.ReadUint64();
     int32_t loadTimeout = data.ReadInt32();
+    std::unique_ptr<IndirectCallerInfo> indirectCallerInfo(data.ReadParcelable<IndirectCallerInfo>());
+    if (indirectCallerInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "indirectCallerInfo null");
+        return ERR_INVALID_VALUE;
+    }
     int32_t result = ConnectAbilityCommon(*want, callback, token, extensionType, userId, isQueryExtensionOnly,
-        specifiedFullTokenId, loadTimeout);
+        specifiedFullTokenId, loadTimeout, *indirectCallerInfo);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
