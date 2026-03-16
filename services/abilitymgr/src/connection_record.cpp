@@ -394,8 +394,16 @@ void ConnectionRecord::Dump(std::vector<std::string> &info) const
                       ConvertConnectionState(GetConnectState()));
 }
 
-void ConnectionRecord::AttachCallerInfo()
+void ConnectionRecord::AttachCallerInfo(std::shared_ptr<IndirectCallerInfo> indirectCallerInfo)
 {
+    if (indirectCallerInfo != nullptr) {
+        callerTokenId_ = indirectCallerInfo->tokenId;
+        callerUid_ = indirectCallerInfo->callerUid;
+        callerPid_ = indirectCallerInfo->callerPid;
+        callerName_ = ConnectionStateManager::GetProcessNameByPid(callerPid_);
+        return;
+    }
+    
     callerTokenId_ = IPCSkeleton::GetCallingTokenID(); // tokenId identifies the real caller
     auto targetRecord = Token::GetAbilityRecordByToken(callerToken_);
     if (targetRecord) {
