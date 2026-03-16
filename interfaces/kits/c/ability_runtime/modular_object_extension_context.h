@@ -45,6 +45,9 @@
 extern "C" {
 #endif
 
+struct AbilityBase_Want;
+typedef struct AbilityBase_Want AbilityBase_Want;
+
 /**
  * @brief Define the OH_AbilityRuntime_ModularObject_ExtensionContext structure type.
  *

@@ -19,8 +19,8 @@
 #include <memory>
 
 #include "ability_runtime/modular_object_extension_ability.h"
-#include "native_extension/extension_ability_impl.h"
-#include "native_extension/modular_object_extension_context_impl.h"
+#include "extension_ability_impl.h"
+#include "modular_object_extension_context_impl.h"
 
 #ifdef __cplusplus
 extern "C" {

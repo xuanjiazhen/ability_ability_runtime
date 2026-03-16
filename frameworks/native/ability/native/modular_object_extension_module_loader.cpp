@@ -18,7 +18,7 @@
 #include <string>
 
 #include "modular_object_extension.h"
-#include "native_extension/modular_object_extension_common.h"
+#include "modular_object_extension_common.h"
 
 namespace OHOS::AbilityRuntime {
 ModularObjectExtensionModuleLoader::ModularObjectExtensionModuleLoader() = default;

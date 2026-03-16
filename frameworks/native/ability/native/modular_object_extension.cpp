@@ -18,9 +18,9 @@
 #include <new>
 
 #include "hilog_tag_wrapper.h"
-#include "native_extension/modular_object_extension_ability_impl.h"
-#include "native_extension/modular_object_extension_common.h"
-#include "native_extension/modular_object_extension_context_impl.h"
+#include "modular_object_extension_ability_impl.h"
+#include "modular_object_extension_common.h"
+#include "modular_object_extension_context_impl.h"
 #include "native_runtime.h"
 #include "securec.h"
 #include "want_manager.h"

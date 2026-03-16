@@ -46,6 +46,12 @@
 extern "C" {
 #endif
 
+struct AbilityBase_Want;
+typedef struct AbilityBase_Want AbilityBase_Want;
+
+struct AbilityBase_Element;
+typedef struct AbilityBase_Element AbilityBase_Element;
+
 /**
  * @brief Define the OH_AbilityRuntime_ConnectOptions structure type.
  *

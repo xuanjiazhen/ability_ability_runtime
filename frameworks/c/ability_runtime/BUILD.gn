@@ -41,6 +41,7 @@ ohos_shared_library("ability_runtime") {
   include_dirs = [
     "include",
     "${ability_runtime_path}/interfaces/inner_api/",
+    "${ability_runtime_path}/interfaces/inner_api/native_extension",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime/",
   ]
@@ -86,6 +87,7 @@ ohos_shared_library("ability_runtime") {
     "image_framework:pixelmap",
     "ipc:ipc_capi",
     "ipc:ipc_core",
+    "ipc:ipc_napi",
     "napi:ace_napi",
     "samgr:samgr_proxy",
   ]
@@ -94,6 +96,7 @@ ohos_shared_library("ability_runtime") {
     external_deps += [
       "graphic_2d:color_manager",
       "image_framework:image",
+      "window_manager:libwm",
       "window_manager:window_animation_utils",
     ]
     defines = [

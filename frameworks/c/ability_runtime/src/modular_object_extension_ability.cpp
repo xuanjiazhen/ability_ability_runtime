@@ -16,8 +16,8 @@
 #include "modular_object_extension_ability.h"
 
 #include "hilog_tag_wrapper.h"
-#include "native_extension/modular_object_extension_ability_impl.h"
-#include "native_extension/modular_object_extension_common.h"
+#include "modular_object_extension_ability_impl.h"
+#include "modular_object_extension_common.h"
 
 namespace {
 using OHOS::AbilityRuntime::GetModularObjectExtensionType;

@@ -16,7 +16,7 @@
 #ifndef ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_CONTEXT_IMPL_H
 #define ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_CONTEXT_IMPL_H
 
-#include "native_extension/context_impl.h"
+#include "context_impl.h"
 
 #ifdef __cplusplus
 extern "C" {

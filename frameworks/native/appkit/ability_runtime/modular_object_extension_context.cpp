@@ -18,7 +18,7 @@
 #include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
-#include "native_extension/modular_object_extension_common.h"
+#include "modular_object_extension_common.h"
 
 namespace OHOS {
 namespace AbilityRuntime {

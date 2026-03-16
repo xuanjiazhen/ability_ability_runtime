@@ -3751,10 +3751,13 @@ ohos_shared_library("modular_object_extension") {
   defines += [ "AMS_LOG_DOMAIN = 0xD001300" ]
   include_dirs = [
     "${ability_runtime_path}/interfaces/inner_api/",
+    "${ability_runtime_path}/interfaces/inner_api/native_extension",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
     "${ability_runtime_path}/interfaces/inner_api/runtime/include",
+    "${ability_runtime_ndk_path}",
+    "${ability_runtime_ndk_path}/ability_runtime",
   ]
 
   sources = [
@@ -3775,6 +3778,7 @@ ohos_shared_library("modular_object_extension") {
   ]
 
   external_deps = [
+    "ability_base:ability_base_want",
     "ability_base:configuration",
     "ability_base:want",
     "c_utils:utils",
@@ -3806,13 +3810,17 @@ ohos_shared_library("modular_object_extension_module") {
 
   include_dirs = [
     "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
+    "${ability_runtime_path}/interfaces/inner_api/native_extension",
     "${ability_runtime_path}/interfaces/inner_api/runtime/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_ndk_path}",
+    "${ability_runtime_ndk_path}/ability_runtime",
   ]
 
   sources = [ "${ability_runtime_native_path}/ability/native/modular_object_extension_module_loader.cpp" ]
 
   configs = [ ":ability_config" ]
+  public_configs = [ ":ability_public_config"]
 
   deps = [
     ":modular_object_extension",

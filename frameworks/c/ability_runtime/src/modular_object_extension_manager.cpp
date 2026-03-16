@@ -28,8 +28,8 @@
 #include "connection_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_inner_object.h"
-#include "native_extension/context_impl.h"
-#include "native_extension/modular_object_extension_common.h"
+#include "context_impl.h"
+#include "modular_object_extension_common.h"
 #include "securec.h"
 #include "want_manager.h"
 #include "want_utils.h"
@@ -39,15 +39,6 @@ using namespace OHOS::AAFwk;
 using namespace OHOS::AbilityRuntime;
 
 namespace {
-struct OH_AbilityRuntime_ModularObject_ExtensionInfo {
-    OH_AbilityRuntime_LaunchMode launchMode = OH_AbilityRuntime_LaunchMode_InProccess;
-    OH_AbilityRuntime_ProcessMode processMode = OH_AbilityRuntime_ProcessMode_Bundle;
-    OH_AbilityRuntime_ThreadMode threadMode = OH_AbilityRuntime_ThreadMode_Bundle;
-    AbilityBase_Element element {};
-    bool isSelfDisabled = false;
-    bool isSystemDisabled = false;
-};
-
 struct MoeConnectionRecord {
     sptr<IRemoteObject> token;
     Want want;
@@ -229,7 +220,8 @@ public:
             NotifyFailed(state, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
             return;
         }
-        OHIPCRemoteProxy *proxy = CreateIPCRemoteProxy(remoteObject);
+        sptr<IRemoteObject> remoteObjectCopy = remoteObject;
+        OHIPCRemoteProxy *proxy = CreateIPCRemoteProxy(remoteObjectCopy);
         if (proxy == nullptr) {
             DestroyElement(cElement);
             NotifyFailed(state, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
@@ -277,6 +269,15 @@ private:
     std::weak_ptr<OH_AbilityRuntime_ConnectOptionsState> state_;
 };
 } // namespace
+
+struct OH_AbilityRuntime_ModularObject_ExtensionInfo {
+    OH_AbilityRuntime_LaunchMode launchMode = OH_AbilityRuntime_LaunchMode_InProccess;
+    OH_AbilityRuntime_ProcessMode processMode = OH_AbilityRuntime_ProcessMode_Bundle;
+    OH_AbilityRuntime_ThreadMode threadMode = OH_AbilityRuntime_ThreadMode_Bundle;
+    AbilityBase_Element element {};
+    bool isSelfDisabled = false;
+    bool isSystemDisabled = false;
+};
 
 #ifdef __cplusplus
 extern "C" {

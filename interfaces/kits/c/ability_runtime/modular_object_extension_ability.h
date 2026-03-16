@@ -38,6 +38,7 @@
 
 #include "ability_runtime_common.h"
 #include "extension_ability.h"
+#include "ipc_cparcel.h"
 #include "modular_object_extension_context.h"
 #include "want.h"
 
