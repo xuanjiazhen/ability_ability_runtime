@@ -1291,6 +1291,8 @@ private:
      */
     uint64_t GenerateRunningId();
 
+    bool HasNoPageAndAllExtensionsSameType();
+
     bool IsWindowIdsEmpty();
 
     std::map<std::string, std::shared_ptr<ApplicationInfo>> appInfos_;
