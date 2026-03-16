@@ -391,32 +391,8 @@ AppFaultDataBySA *AppFaultDataBySA::Unmarshalling(Parcel &parcel)
 bool AppFaultDataBySA::WriteLeakContent(Parcel &parcel) const
 {
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteInt32(static_cast<int32_t>(leakObject.leakType)),
-        "LeakObject leakType [%{public}d] write int32 failed.", static_cast<int32_t>(leakObject.leakType)
-    );
-
-    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.detailInfo.nativeSize),
-        "LeakDetailInfo nativeSize [%{public}" PRIu64 "] write uint64 failed.",
-        static_cast<uint64_t>(leakObject.detailInfo.nativeSize)
-    );
-
-    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.detailInfo.ionSize),
-        "LeakDetailInfo ionSize [%{public}" PRIu64 "] write uint64 failed.",
-        static_cast<uint64_t>(leakObject.detailInfo.ionSize)
-    );
-
-    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.detailInfo.gpuSize),
-        "LeakDetailInfo gpuSize [%{public}" PRIu64 "] write uint64 failed.",
-        static_cast<uint64_t>(leakObject.detailInfo.gpuSize)
-    );
-
-    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.detailInfo.ashmemSize),
-        "LeakDetailInfo ashmemSize [%{public}" PRIu64 "] write uint64 failed.",
-        static_cast<uint64_t>(leakObject.detailInfo.ashmemSize)
-    );
-
-    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(leakObject.detailInfo.otherSize),
-        "LeakDetailInfo otherSize [%{public}" PRIu64 "] write uint64 failed.",
-        static_cast<uint64_t>(leakObject.detailInfo.otherSize)
+        "LeakObject leakType [%{public}d] write int32 failed.",
+        static_cast<int32_t>(leakObject.leakType)
     );
     return true;
 }
