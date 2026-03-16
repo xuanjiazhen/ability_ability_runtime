@@ -276,9 +276,10 @@ ohos_shared_library("mission_info") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
   ]
+
+  # 条件定义 SUPPORT_SCREEN，不链接 image_native
   if (ability_runtime_graphics) {
-    external_deps += [ "image_framework:image_native" ]
-    public_external_deps += [ "graphic_2d:color_manager" ]
+    defines = [ "SUPPORT_SCREEN" ]
   }
 
   cflags_cc = []
