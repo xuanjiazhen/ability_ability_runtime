@@ -1006,7 +1006,7 @@ void MainThread::HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info
         TAG_LOGE(AAFwkTag::APPKIT, "null app");
         return;
     }
-    auto helper = std::make_shared<DumpRuntimeHelper>(app);
+    auto helper = std::make_shared<DumpRuntimeHelper>(app, applicationInfo_);
     helper->DumpJsHeap(info);
 }
 
@@ -1495,8 +1495,7 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
         faultData.faultType = FaultDataType::JS_ERROR;
         faultData.errorObject = appExecErrorObj;
         DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->NotifyAppFault(faultData);
-        if (ApplicationDataManager::GetInstance().NotifyETSUnhandledException(summary) &&
-            ApplicationDataManager::GetInstance().NotifyETSExceptionObject(appExecErrorObj)) {
+        if (ApplicationDataManager::GetInstance().NotifyETSErrorObject(appExecErrorObj)) {
             return;
         }
         TAG_LOGE(AAFwkTag::APPKIT, "\n%{public}s is about to exit due to RuntimeError\nError "

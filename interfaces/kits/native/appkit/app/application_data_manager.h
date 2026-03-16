@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+typedef void (*EtsErrorCallback)(const AppExecFwk::ErrorObject &errorObj);
 class ApplicationDataManager {
 using LeakObserverFunction = std::function<bool(const LeakObject &obj)>;
 public:
@@ -52,6 +53,9 @@ public:
     static bool NotifyUncaughtException(const ExceptionParams &params, const AppExecFwk::ErrorObject &errorObj);
     bool NotifyLeakObject(const LeakObject &leakObj);
     void SetLeakObserver(LeakObserverFunction leakCallback);
+    void SetErrorHandlerCallback(EtsErrorCallback errorCallback);
+    bool NotifyETSErrorObject(const AppExecFwk::ErrorObject &errorObj);
+
 private:
     ApplicationDataManager();
     ~ApplicationDataManager();
@@ -60,7 +64,7 @@ private:
     std::shared_ptr<IErrorObserver> errorObserver_;
     std::atomic_bool isUncatchable_;
     LeakObserverFunction leakObserver_ = nullptr;
-    std::mutex leakObserverMutex_;
+    EtsErrorCallback errorCallback_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

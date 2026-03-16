@@ -3443,9 +3443,24 @@ int32_t AbilityManagerService::KillBundleWithReason(
         appExitReasonHelper_->RecordInvalidKillId(NO_PID, exitReason, bundleName, userId);
         return ERR_INVALID_VALUE;
     }
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, KILL_PROCESS_FAILED);
+    AppExecFwk::BundleInfo bundleInfo;
+    if (IN_PROCESS_CALL(bms->GetCloneBundleInfoExt(bundleName,
+        static_cast<uint32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION),
+        appIndex, userId, bundleInfo)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "get bundle info when kill process failed");
+        return GET_BUNDLE_INFO_FAILED;
+    }
+    KeepAliveType type;
+    if (KeepAliveUtils::IsKeepAliveBundle(bundleInfo, userId, type)
+        && DelayedSingleton<AppScheduler>::GetInstance()->IsMemorySizeSufficient()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no kill alive process");
+        return KILL_PROCESS_KEEP_ALIVE;
+    }
     appExitReasonHelper_->AddBundleExitReason(bundleName, userId, appIndex, exitReason);
 
-    return DelayedSingleton<AppScheduler>::GetInstance()->KillApplication(bundleName, false, appIndex);
+    return DelayedSingleton<AppScheduler>::GetInstance()->KillApplicationWithUserId(bundleName, userId, appIndex);
 }
 
 int32_t AbilityManagerService::RecordAppWithReason(
@@ -16846,17 +16861,17 @@ void AbilityManagerService::SetAppDeathRecipient(const sptr<IRemoteObject> &toke
     const auto &abilityInfo = abilityRecord->GetAbilityInfo();
     int32_t pid = abilityRecord->GetPid();
     int32_t uid = abilityRecord->GetUid();
-    auto callback = [this,abilityInfo,pid,uid](const sptr<IRemoteObject>& remote) {
-        this->HandleAppDiedForRecovery(remote,abilityInfo,pid,uid);
+    int32_t userId = abilityRecord->GetOwnerMissionUserId();
+    auto callback = [this,abilityInfo,pid,uid,userId](const sptr<IRemoteObject>& remote) {
+        this->HandleAppDiedForRecovery(remote,abilityInfo,pid,uid,userId);
     };
     
     AppRecoveryMgr::AppRecoveryMgr::GetInstance().SetOnRemoteDieCallback(token, callback);
 }
  
 void AbilityManagerService::HandleAppDiedForRecovery(const sptr<IRemoteObject>& remote,
-                              const AbilityInfo& abilityInfo,
-                              int32_t pid,
-                              int32_t uid)
+                              const AbilityInfo& abilityInfo, int32_t pid,
+                              int32_t uid, int32_t userId)
 {
     if (remote == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "remote is null, cannot recover app");
@@ -16878,7 +16893,7 @@ void AbilityManagerService::HandleAppDiedForRecovery(const sptr<IRemoteObject>& 
     auto accessTokenId = abilityInfo.applicationInfo.accessTokenId;
     AAFwk::ExitReason exitReason = {AAFwk::REASON_JS_ERROR, "Js Error."};
     auto result = DelayedSingleton<AppExitReasonDataManager>::GetInstance()->GetAppExitReason(abilityInfo.bundleName, accessTokenId,
-        abilityInfo.name, isSetReason, exitReason, processInfo, stamp, withKillMsg);
+        abilityInfo.name, isSetReason, exitReason, processInfo, stamp, withKillMsg, false);
     if(exitReason.reason!= AAFwk::REASON_CPP_CRASH) {
         TAG_LOGI(AAFwkTag::APPMGR, "app exit reason is not REASON_CPP_CRASH");
         return;
@@ -16899,8 +16914,8 @@ void AbilityManagerService::HandleAppDiedForRecovery(const sptr<IRemoteObject>& 
         AAFwk::Want *newWant=new AAFwk::Want();
         newWant->SetElementName(abilityInfo.bundleName, abilityInfo.name);
         newWant->SetParam(AAFwk::Want::PARAM_ABILITY_RECOVERY_RESTART, true);
-        StartAbility(*newWant,MAIN_USER_ID);
-        TAG_LOGW(AAFwkTag::ABILITYMGR,"now is %{public}lld,timestamp is %{public}lld",static_cast<long long>(now),static_cast<long long>(stamp));
+        StartAbility(*newWant,userId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR,"CPP_CRASH recovery. bundleName is %{public}s",abilityInfo.bundleName.c_str());
     }
     if (remote != nullptr) {
         AppRecoveryMgr::AppRecoveryMgr::GetInstance().RemoveOnRemoteDieCallback(remote);
