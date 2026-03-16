@@ -1680,7 +1680,6 @@ HWTEST_F(ExtensionRecordManagerTest, RemoveAgentUILaunchRecord_0300, TestSize.Le
             return record.callerUid == callerUid && record.targetBundle == bundleName &&
                 record.targetRecordIds.size() == 1 && record.targetRecordIds[0] == extensionAbilityId;
         });
-    EXPECT_NE(recordIt, extRecordMgr->agentUIExtensionRecords_.end());
 
     // Record should be removed, and map entries should be cleaned up
     EXPECT_EQ(extRecordMgr->agentUIExtensionRecords_.size(), 0);
