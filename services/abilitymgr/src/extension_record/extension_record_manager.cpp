@@ -1203,13 +1203,15 @@ void ExtensionRecordManager::AddAgentUILaunchRecord(int32_t callerUid, const std
 void ExtensionRecordManager::RemoveAgentUILaunchRecord(const std::string &bundleName, int32_t extensionAbilityId)
 {
     std::lock_guard<std::mutex> lock(agentUIExtensionMutex_);
-    for (auto recordIt = agentUIExtensionRecords_.begin(); recordIt != agentUIExtensionRecords_.end(); ++recordIt) {
+    for (auto recordIt = agentUIExtensionRecords_.begin(); recordIt != agentUIExtensionRecords_.end();) {
         if (recordIt->targetBundle != bundleName) {
+            ++recordIt;
             continue;
         }
         auto targetIt = std::find(recordIt->targetRecordIds.begin(),
             recordIt->targetRecordIds.end(), extensionAbilityId);
         if (targetIt == recordIt->targetRecordIds.end()) {
+            ++recordIt;
             continue;
         }
         recordIt->targetRecordIds.erase(targetIt);
@@ -1217,9 +1219,10 @@ void ExtensionRecordManager::RemoveAgentUILaunchRecord(const std::string &bundle
             "agentUI removed, callerUid:%{public}d, bundle:%{public}s, id:%{public}d, count:%{public}zu",
             recordIt->callerUid, bundleName.c_str(), extensionAbilityId, recordIt->targetRecordIds.size());
         if (recordIt->targetRecordIds.empty()) {
-            agentUIExtensionRecords_.erase(recordIt);
+            recordIt = agentUIExtensionRecords_.erase(recordIt);
+        } else {
+            ++recordIt;
         }
-        return;
     }
 }
 } // namespace AbilityRuntime
