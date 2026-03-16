@@ -201,8 +201,13 @@ void AppScheduler::GetRunningProcessInfoByToken(const sptr<IRemoteObject>& token
 
 void AppScheduler::GetRunningProcessInfoByPid(const pid_t pid, OHOS::AppExecFwk::RunningProcessInfo& info) const
 {
-    info.isAbilityForegrounding = true;
-    info.isFocused = true;
+    if (pid == 654321) {
+        info.isAbilityForegrounding = false;
+        info.isFocused = false;
+    } else {
+        info.isAbilityForegrounding = true;
+        info.isFocused = true;
+    }
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::GetRunningProcessInfoByPid()");
 }
 
