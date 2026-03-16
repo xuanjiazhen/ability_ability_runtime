@@ -22,6 +22,7 @@
 #include "app_utils.h"
 #include "render_record.h"
 #include "app_mgr_service_inner.h"
+#include "app_state_observer_manager.h"
 #include "error_msg_util.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
@@ -1128,6 +1129,11 @@ void AppRunningRecord::TerminateAbility(const sptr<IRemoteObject> &token, const 
             abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_TERMINATED), true, false);
     }
     moduleRecord->TerminateAbility(shared_from_this(), token, isForce);
+
+    if (GetProcessType() == ProcessType::NORMAL && HasNoPageAndAllExtensionsSameType()) {
+        SetProcessType(ProcessType::EXTENSION);
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessTypeChanged(shared_from_this());
+    }
 }
 
 void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
@@ -2207,6 +2213,34 @@ uint64_t AppRunningRecord::GenerateRunningId()
     thread_local std::mt19937_64 engine(std::random_device{}());
     thread_local std::uniform_int_distribution<uint64_t> dist;
     return dist(engine);
+}
+
+bool AppRunningRecord::HasNoPageAndAllExtensionsSameType()
+{
+    auto abilities = GetAbilities();
+    std::unordered_set<int32_t> extensionTypes;
+
+    for (const auto &item : abilities) {
+        const auto &ability = item.second;
+        if (!ability) {
+            continue;
+        }
+        auto abilityInfo = ability->GetAbilityInfo();
+        if (!abilityInfo) {
+            continue;
+        }
+
+        if (abilityInfo->type == AbilityType::PAGE) {
+            return false;
+        }
+
+        extensionTypes.insert(abilityInfo->extensionAbilityType);
+        if (extensionTypes.size() >= 2) {
+            return false;
+        }
+    }
+
+    return extensionTypes.size() == 1;
 }
 
 void AppRunningRecord::SetRequestProcCode(int32_t requestProcCode)
