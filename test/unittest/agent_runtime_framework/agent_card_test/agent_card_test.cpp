@@ -1910,6 +1910,26 @@ HWTEST_F(AgentCardTest, SkillFromJson_033, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SkillFromJson_034
+ * @tc.desc: Test FromJson keeps non-JSON extension strings when length is valid
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, SkillFromJson_034, TestSize.Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "id", "test" },
+        { "name", "test" },
+        { "description", "test" },
+        { "tags", nlohmann::json::array({ "test" }) },
+        { "extension", "plain-extension" },
+    };
+    AgentSkill skill;
+    EXPECT_TRUE(AgentSkill::FromJson(jsonObject, skill));
+    EXPECT_EQ(skill.extension, "plain-extension");
+}
+
+/**
 * @tc.name  : Marshalling_ShouldReturnTrue_WhenAllParcelWriteOperationsSucceed
 * @tc.number: AgentCard_Marshalling_001
 * @tc.desc  : Test that Marshalling returns true when all parcel write operations succeed.
@@ -3128,6 +3148,37 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_030, TestSize.Level1)
 }
 
 /**
+ * @tc.name: AgentCardFromJson_044
+ * @tc.desc: Test FromJson keeps non-JSON extension strings when length is valid
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, AgentCardFromJson_044, TestSize.Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "agentId", "1" },
+        { "name", "test" },
+        { "category", "productivity" },
+        { "description", "test description" },
+        { "version", "1.0" },
+        { "defaultInputModes", nlohmann::json::array({ "text" }) },
+        { "defaultOutputModes", nlohmann::json::array({ "text" }) },
+        { "skills", nlohmann::json::array({
+            nlohmann::json {
+                { "id", "test" },
+                { "name", "test" },
+                { "description", "test" },
+                { "tags", nlohmann::json::array({ "test" }) }
+            }
+        })},
+        { "extension", "plain-extension" },
+    };
+    AgentCard agentCard;
+    EXPECT_TRUE(AgentCard::FromJson(jsonObject, agentCard));
+    EXPECT_EQ(agentCard.extension, "plain-extension");
+}
+
+/**
  * @tc.name: AgentCardFromJson_041
  * @tc.desc: Test FromJson succeeds with valid iconUrl field (length 1-512)
  * @tc.type: FUNC
@@ -3645,6 +3696,23 @@ HWTEST_F(AgentCardTest, CapabilitiesFromJson_010, TestSize.Level1)
     };
     AgentCapabilities capabilities = AgentCapabilities::FromJson(jsonObject);
     EXPECT_TRUE(capabilities.extension.empty());
+}
+
+/**
+ * @tc.name: CapabilitiesFromJson_011
+ * @tc.desc: Test Capabilities FromJson keeps non-JSON extension strings when length is valid
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, CapabilitiesFromJson_011, TestSize.Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "streaming", true },
+        { "extension", "plain-extension" },
+    };
+    AgentCapabilities capabilities = AgentCapabilities::FromJson(jsonObject);
+    EXPECT_TRUE(capabilities.streaming);
+    EXPECT_EQ(capabilities.extension, "plain-extension");
 }
 } // namespace AgentRuntime
 } // namespace OHOS
