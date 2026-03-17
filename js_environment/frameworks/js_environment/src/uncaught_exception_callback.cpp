@@ -18,6 +18,7 @@
 #include <dlfcn.h>
 #include <string>
 #include <sstream>
+#include <cstring>
 
 #include "dfx_symbols.h"
 #include "elf_factory.h"
@@ -110,6 +111,7 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
 
     AppendStackTrace(errorStack, summary);
     AppendAsyncStack(obj, summary);
+    AppendModuleStack(obj, summary);
 
     if (uncaughtTask_) {
         uncaughtTask_(summary, errorObj, env_, obj);
@@ -157,6 +159,24 @@ void NapiUncaughtExceptionCallback::AppendAsyncStack(const napi_value& obj, std:
         oss << "    " << line << "\n";
     }
     summary += oss.str();
+}
+
+void NapiUncaughtExceptionCallback::AppendModuleStack(const napi_value& obj, std::string& summary)
+{
+    std::string moduleStack = GetNativeStrFromJsTaggedObj(obj, "moduleStack");
+    if (moduleStack.empty()) {
+        TAG_LOGD(AAFwkTag::JSENV, "Module stack is empty");
+        return;
+    }
+    
+    summary += "ModuleStack:\n";
+    std::istringstream iss(moduleStack);
+    std::string line;
+    while (std::getline(iss, line)) {
+        summary += "    " + line + "\n";
+    }
+    
+    TAG_LOGD(AAFwkTag::JSENV, "AppendModuleStack success, moduleStack: %s", moduleStack.c_str());
 }
 
 void NapiUncaughtExceptionCallback::AppendExtraInfo(std::string& errorMsg)
