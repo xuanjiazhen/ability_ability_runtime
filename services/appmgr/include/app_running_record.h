@@ -1292,6 +1292,7 @@ private:
     uint64_t GenerateRunningId();
 
     bool IsWindowIdsEmpty();
+    bool IsLastAgentExtensionAbility(const sptr<IRemoteObject> &token);
 
     std::map<std::string, std::shared_ptr<ApplicationInfo>> appInfos_;
     std::map<std::string, std::vector<std::shared_ptr<ModuleRunningRecord>>> hapModules_;
