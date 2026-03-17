@@ -22,6 +22,7 @@
 #include "app_utils.h"
 #include "render_record.h"
 #include "app_mgr_service_inner.h"
+#include "app_state_observer_manager.h"
 #include "error_msg_util.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
@@ -51,6 +52,7 @@ constexpr int64_t MICROSECONDS = 1000000;    // MICROSECONDS mean 10^6 millias s
 constexpr int32_t MAX_RESTART_COUNT = 3;
 constexpr int32_t RESTART_INTERVAL_TIME = 120000;
 constexpr int32_t HALF_TIMEOUT = 2;
+constexpr size_t MAX_EXTENSION_TYPES = 2;
 constexpr const char* LAUNCHER_NAME = "com.ohos.sceneboard";
 constexpr const char *EVENT_KEY_VERSION_NAME = "VERSION_NAME";
 constexpr const char *EVENT_KEY_VERSION_CODE = "VERSION_CODE";
@@ -1128,6 +1130,11 @@ void AppRunningRecord::TerminateAbility(const sptr<IRemoteObject> &token, const 
             abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_TERMINATED), true, false);
     }
     moduleRecord->TerminateAbility(shared_from_this(), token, isForce);
+
+    if (GetProcessType() == ProcessType::NORMAL && HasNoPageAndAllExtensionsSameType()) {
+        SetProcessType(ProcessType::EXTENSION);
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessTypeChanged(shared_from_this());
+    }
 }
 
 void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
@@ -2207,6 +2214,34 @@ uint64_t AppRunningRecord::GenerateRunningId()
     thread_local std::mt19937_64 engine(std::random_device{}());
     thread_local std::uniform_int_distribution<uint64_t> dist;
     return dist(engine);
+}
+
+bool AppRunningRecord::HasNoPageAndAllExtensionsSameType()
+{
+    auto abilities = GetAbilities();
+    std::unordered_set<ExtensionAbilityType> extensionTypes;
+
+    for (const auto &item : abilities) {
+        const auto &ability = item.second;
+        if (!ability) {
+            continue;
+        }
+        auto abilityInfo = ability->GetAbilityInfo();
+        if (!abilityInfo) {
+            continue;
+        }
+
+        if (abilityInfo->type == AbilityType::PAGE) {
+            return false;
+        }
+
+        extensionTypes.insert(abilityInfo->extensionAbilityType);
+        if (extensionTypes.size() >= MAX_EXTENSION_TYPES) {
+            return false;
+        }
+    }
+
+    return extensionTypes.size() == 1;
 }
 
 void AppRunningRecord::SetRequestProcCode(int32_t requestProcCode)

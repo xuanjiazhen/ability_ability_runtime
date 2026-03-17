@@ -67,5 +67,43 @@ bool CallerInfo::Marshalling(Parcel &parcel) const
     }
     return true;
 }
+
+bool IndirectCallerInfo::ReadFromParcel(Parcel &parcel)
+{
+    tokenId = parcel.ReadUint32();
+    callerUid = parcel.ReadInt32();
+    callerPid = parcel.ReadInt32();
+    return true;
+}
+
+IndirectCallerInfo *IndirectCallerInfo::Unmarshalling(Parcel &parcel)
+{
+    IndirectCallerInfo *info = new (std::nothrow) IndirectCallerInfo();
+    if (info && !info->ReadFromParcel(parcel)) {
+        delete info;
+        info = nullptr;
+    }
+    return info;
+}
+
+bool IndirectCallerInfo::Marshalling(Parcel &parcel) const
+{
+    // write tokenId
+    if (!parcel.WriteUint32(tokenId)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Failed to write tokenId");
+        return false;
+    }
+    // write callerUid
+    if (!parcel.WriteInt32(callerUid)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Failed to write callerUid");
+        return false;
+    }
+    // write callerPid
+    if (!parcel.WriteInt32(callerPid)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Failed to write callerPid");
+        return false;
+    }
+    return true;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
