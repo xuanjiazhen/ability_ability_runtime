@@ -29,6 +29,7 @@
 #include "perf_profile.h"
 #include "permission_constants.h"
 #include "permission_verification.h"
+#include "xcollie/process_kill_reason.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -306,6 +307,9 @@ int32_t AmsMgrScheduler::KillProcessWithAccount(
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
     }
+    amsMgrServiceInner_->RecordAppWithReasonByUserId(accountId,
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_KILL_PROCESS_WITH_ACCOUNT);
+
     return amsMgrServiceInner_->KillApplicationByUserId(bundleName, appIndex, accountId, clearPageStack,
         "KillProcessWithAccount");
 }
