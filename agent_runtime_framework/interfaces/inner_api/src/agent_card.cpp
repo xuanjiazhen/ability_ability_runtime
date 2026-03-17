@@ -37,6 +37,16 @@ constexpr uint32_t LENGTH_512 = 512;
 constexpr uint32_t LENGTH_1024 = 1024;
 constexpr uint32_t LENGTH_5120 = 5120;
 
+namespace {
+constexpr int32_t AGENT_CARD_TYPE_MIN = static_cast<int32_t>(AgentCardType::APP);
+constexpr int32_t AGENT_CARD_TYPE_MAX = static_cast<int32_t>(AgentCardType::ATOMIC_SERVICE);
+
+bool IsValidAgentCardType(int32_t type)
+{
+    return type >= AGENT_CARD_TYPE_MIN && type <= AGENT_CARD_TYPE_MAX;
+}
+}
+
 bool AgentProvider::ReadFromParcel(Parcel &parcel)
 {
     organization = parcel.ReadString();
@@ -480,6 +490,15 @@ bool AgentCard::ReadFromParcel(Parcel &parcel)
     iconUrl = parcel.ReadString();
     extension = parcel.ReadString();
     appInfo.reset(parcel.ReadParcelable<AgentAppInfo>());
+    if (parcel.GetReadableBytes() == 0) {
+        return true;
+    }
+    int32_t typeValue = parcel.ReadInt32();
+    if (!IsValidAgentCardType(typeValue)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "read invalid type");
+        return false;
+    }
+    type = static_cast<AgentCardType>(typeValue);
     return true;
 }
 
@@ -547,6 +566,10 @@ bool AgentCard::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::SER_ROUTER, "write appInfo failed");
         return false;
     }
+    if (!parcel.WriteInt32(static_cast<int32_t>(type))) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "write type failed");
+        return false;
+    }
     return true;
 }
 
@@ -565,6 +588,7 @@ nlohmann::json AgentCard::ToJson() const
 {
     nlohmann::json jsonObject = nlohmann::json {
         { "agentId", agentId },
+        { "type", static_cast<int32_t>(type) },
         { "name", name },
         { "description", description },
         { "version", version},
@@ -624,6 +648,18 @@ bool AgentCard::FromJson(nlohmann::json jsonObject, AgentCard &agentCard)
     if (agentCard.agentId.length() > LENGTH_64 || agentCard.agentId.length() == 0) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "agentId is long than 64 or empty");
         return false;
+    }
+    if (jsonObject.contains("type")) {
+        if (!jsonObject["type"].is_number_integer()) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "type is invalid");
+            return false;
+        }
+        int32_t typeValue = jsonObject["type"];
+        if (!IsValidAgentCardType(typeValue)) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "type is out of range");
+            return false;
+        }
+        agentCard.type = static_cast<AgentCardType>(typeValue);
     }
     if (!jsonObject.contains("name") || !jsonObject["name"].is_string()) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "FromJson failed, name not exist");
