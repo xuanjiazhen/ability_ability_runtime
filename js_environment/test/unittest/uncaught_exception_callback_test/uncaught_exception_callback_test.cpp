@@ -441,5 +441,87 @@ HWTEST_F(NapiUncaughtExceptionCallbackTest, GetCurrentUIStackInfo_0100, TestSize
     GTEST_LOG_(INFO) << "GetCurrentUIStackInfo_0100 end";
 }
 #endif // SUPPORT_GRAPHICS
-} // namespace AppExecFwk
-} // namespace OHOS
+
+
+/**
+ * @tc.name: AppendModuleStack_LargerThan64KB_0100
+ * @tc.desc: Test AppendModuleStack with moduleImportStack larger than 64KB.
+ * @tc.type: FUNC
+ */
+HWTEST_F(NapiUncaughtExceptionCallbackTest, AppendModuleStack_LargerThan64KB_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppendModuleStack_LargerThan64KB_0100 start";
+
+    AbilityRuntime::Runtime::Options options;
+    options.preload = false;
+    auto jsRuntime = AbilityRuntime::JsRuntime::Create(options);
+    ASSERT_NE(jsRuntime, nullptr);
+    auto env = jsRuntime->GetNapiEnv();
+    EXPECT_NE(env, nullptr);
+
+    // Create a moduleImportStack larger than 64KB
+    // Each line is about 42 bytes, so we need about 1600 lines to exceed 64KB
+    const int NUM_LINES = 1600;
+    std::string largeModuleStack;
+    for (int i = 0; i < NUM_LINES; i++) {
+        largeModuleStack += "Module_" + std::to_string(i) + " at /path/to/module_" + std::to_string(i) + ".js:10:5\n";
+    }
+
+    // Verify the stack is larger than 64KB
+    ASSERT_GT(largeModuleStack.size(), 64 * 1024);
+
+    // Create error object with large moduleImportStack
+    napi_value errorObj = nullptr;
+    napi_create_object(env, &errorObj);
+    ASSERT_NE(errorObj, nullptr);
+
+    napi_value moduleImportStackValue = nullptr;
+    napi_create_string_utf8(env, largeModuleStack.c_str(), largeModuleStack.length(), &moduleImportStackValue);
+    ASSERT_NE(moduleImportStackValue, nullptr);
+    napi_set_named_property(env, errorObj, "moduleImportStack", moduleImportStackValue);
+
+    std::string errorMsg = "Test error message";
+    std::string errorName = "TestError";
+    std::string errorStack = "Error: Test error\n    at test.js:10:5";
+
+    napi_value messageValue = nullptr;
+    napi_value nameValue = nullptr;
+    napi_value stackValue = nullptr;
+    napi_create_string_utf8(env, errorMsg.c_str(), errorMsg.length(), &messageValue);
+    napi_create_string_utf8(env, errorName.c_str(), errorName.length(), &nameValue);
+    napi_create_string_utf8(env, errorStack.c_str(), errorStack.length(), &stackValue);
+
+    napi_set_named_property(env, errorObj, "message", messageValue);
+    napi_set_named_property(env, errorObj, "name", nameValue);
+    napi_set_named_property(env, errorObj, "stack", stackValue);
+
+    // Create callback and invoke with the error object
+    std::string capturedSummary;
+    auto task = [&capturedSummary](std::string summary, const JsEnv::ErrorObject errorObj, napi_env env,
+        napi_value exception) {
+        capturedSummary = summary;
+    };
+    NapiUncaughtExceptionCallback callback(task, nullptr, env);
+    callback(errorObj);
+    ASSERT_FALSE(capturedSummary.empty());
+    int missingLines = 0;
+    int foundLines = 0;
+    for (int i = 0; i < NUM_LINES; i++) {
+        std::string moduleLine = "Module_" + std::to_string(i) + " at /path/to/module_" + std::to_string(i) + ".js:10:5";
+        if (capturedSummary.find(moduleLine) == std::string::npos) {
+            missingLines++;
+        } else {
+            foundLines++;
+        }
+    }
+    EXPECT_EQ(missingLines, 0) << "Expected all module lines to be present in summary, but "
+                                << missingLines << " lines were missing";
+    EXPECT_EQ(foundLines, NUM_LINES) << "Expected " << NUM_LINES << " lines in summary, but found "
+                                     << foundLines;
+
+    EXPECT_GE(capturedSummary.size(), largeModuleStack.size());
+
+    GTEST_LOG_(INFO) << "AppendModuleStack_LargerThan64KB_0100 end";
+}
+}
+}
