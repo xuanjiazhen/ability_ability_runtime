@@ -273,6 +273,7 @@ void AbilityDelegator::OnRun()
         return;
     }
 
+
     TAG_LOGD(AAFwkTag::DELEGATOR, "call js onRun()");
     testRunner_->Run();
 }
@@ -671,7 +672,7 @@ std::shared_ptr<BaseDelegatorAbilityProperty> AbilityDelegator::FindPropertyByTo
     return {};
 }
 
-std::shared_ptr<BaseDelegatorAbilityProperty> AbilityDelegator::FindPropertyByName(const std::string &name)
+std::shared_ptr<BaseDelegatorAbilityProperty> AbilityDelegator::FindPropertyByName(cR std::string &name)
 {
     TAG_LOGI(AAFwkTag::DELEGATOR, "find property by %{public}s", name.c_str());
 
@@ -709,21 +710,38 @@ void AbilityDelegator::FinishUserTest(const std::string &msg, const int64_t resu
         TAG_LOGE(AAFwkTag::DELEGATOR, "invalid args");
         return;
     }
-
-    if (testRunner_) {
-        testRunner_->Stop();
+    
+    if (!delegatorThread_) {
+        delegatorThread_ = std::make_unique<DelegatorThread>(true);
+        if (!delegatorThread_) {
+            TAG_LOGE(AAFwkTag::DELEGATOR, "create delegatorThread failed");
+            return;
+        }
     }
-
+    
     auto realMsg(msg);
     if (realMsg.length() > INFORMATION_MAX_LENGTH) {
         TAG_LOGW(AAFwkTag::DELEGATOR, "too long message");
         realMsg.resize(INFORMATION_MAX_LENGTH);
     }
 
-    const auto &bundleName = delegatorArgs->GetTestBundleName();
-    auto err = AAFwk::AbilityManagerClient::GetInstance()->FinishUserTest(realMsg, resultCode, bundleName);
-    if (err) {
-        TAG_LOGE(AAFwkTag::DELEGATOR, "call FinishUserTest failed: %{public}d", err);
+    auto runTask = [this, realMsg, resultCode, delegatorArgs]() {
+        if (!testRunner_) {
+            TAG_LOGW(AAFwkTag::DELEGATOR, "invalid TestRunner");
+            return;
+        }
+
+        TAG_LOGI(AAFwkTag::DELEGATOR, "call js onStop()");
+        testRunner_->Stop();
+        
+        const auto &bundleName = delegatorArgs->GetTestBundleName();
+        auto err = AAFwk::AbilityManagerClient::GetInstance()->FinishUserTest(realMsg, resultCode, bundleName);
+        if (err) {
+            TAG_LOGE(AAFwkTag::DELEGATOR, "call FinishUserTest failed: %{public}d", err);
+        }
+    };
+    if (!delegatorThread_->Run(runTask)) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "run task on delegatorThread failed");
     }
 }
 
