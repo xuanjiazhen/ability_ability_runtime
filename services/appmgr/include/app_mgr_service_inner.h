@@ -413,6 +413,9 @@ public:
      */
     virtual int32_t KillApplicationByUserId(const std::string &bundleName, int32_t appCloneIndex, int userId,
         const bool clearPageStack = false, const std::string& reason = "KillApplicationByUserId");
+    
+    virtual void RecordAppWithReason(int32_t pid, int32_t uid, int32_t killId);
+    virtual void RecordAppWithReasonByUserId(int32_t userId, int32_t killId);
 
     /**
      * update process rss and pss value.
