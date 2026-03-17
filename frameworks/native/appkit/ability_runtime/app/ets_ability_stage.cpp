@@ -52,15 +52,15 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* CALLBACK_SUCCESS = "success";
-constexpr const char* ABILITY_STAGE_CLASS_NAME = "@ohos.app.ability.AbilityStage.AbilityStage";
-constexpr const char* ABILITY_STAGE_SYNC_METHOD_NAME = "C{@ohos.app.ability.Want.Want}:C{std.core.String}";
-constexpr const char* ABILITY_STAGE_ASYNC_METHOD_NAME = "C{@ohos.app.ability.Want.Want}:z";
+constexpr const char* ABILITY_STAGE_CLASS_NAME = "@ohos:app.ability.AbilityStage.AbilityStage";
+constexpr const char* ABILITY_STAGE_SYNC_METHOD_NAME = "C{@ohos:app.ability.Want.Want}:C{std:core.String}";
+constexpr const char* ABILITY_STAGE_ASYNC_METHOD_NAME = "C{@ohos:app.ability.Want.Want}:z";
 constexpr const char* MEMORY_LEVEL_ENUM_NAME =
-    "@ohos.app.ability.AbilityConstant.AbilityConstant.MemoryLevel";
+    "@ohos:app.ability.AbilityConstant.AbilityConstant.MemoryLevel";
 constexpr const char *PREPARE_TERMINATION_CLASS_NAME =
-    ":C{@ohos.app.ability.AbilityConstant.AbilityConstant.PrepareTermination}";
+    ":C{@ohos:app.ability.AbilityConstant.AbilityConstant.PrepareTermination}";
 constexpr const char *PREPARE_TERMINATION_PROMISE_CALLBACK_METHOD_NAME =
-    "C{@ohos.app.ability.AbilityConstant.AbilityConstant.PrepareTermination}:";
+    "C{@ohos:app.ability.AbilityConstant.AbilityConstant.PrepareTermination}:";
 
 void OnPrepareTerminatePromiseCallback(ani_env* env, ani_object aniObj, ani_object dataObj)
 {
@@ -372,7 +372,7 @@ void ETSAbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration &co
         TAG_LOGE(AAFwkTag::APPKIT, "null configObj");
         return;
     }
-    CallObjectMethod(false, "onConfigurationUpdate", "C{@ohos.app.ability.Configuration.Configuration}:", configObj);
+    CallObjectMethod(false, "onConfigurationUpdate", "C{@ohos:app.ability.Configuration.Configuration}:", configObj);
 }
 
 void ETSAbilityStage::OnMemoryLevel(int32_t level)
@@ -389,7 +389,7 @@ void ETSAbilityStage::OnMemoryLevel(int32_t level)
     OHOS::AAFwk::AniEnumConvertUtil::EnumConvert_NativeToEts(env,
         MEMORY_LEVEL_ENUM_NAME, level, memoryLevelItem);
 
-    CallObjectMethod(false, "onMemoryLevel", "C{@ohos.app.ability.AbilityConstant.AbilityConstant.MemoryLevel}:",
+    CallObjectMethod(false, "onMemoryLevel", "C{@ohos:app.ability.AbilityConstant.AbilityConstant.MemoryLevel}:",
         memoryLevelItem);
     TAG_LOGD(AAFwkTag::APPKIT, "end");
 }
@@ -594,10 +594,10 @@ bool ETSAbilityStage::BindNativeMethods()
     }
     std::array functions = {
         ani_native_function{
-            "nativeOnAcceptWantCallback", "C{std.core.String}:",
+            "nativeOnAcceptWantCallback", "C{std:core.String}:",
             reinterpret_cast<void *>(ETSAbilityStage::OnAcceptWantCallback)},
         ani_native_function{
-            "nativeOnNewProcessRequestCallback", "C{std.core.String}:",
+            "nativeOnNewProcessRequestCallback", "C{std:core.String}:",
             reinterpret_cast<void *>(ETSAbilityStage::OnNewProcessRequestCallback)},
         ani_native_function{"nativeOnPrepareTerminatePromiseCallback",
             PREPARE_TERMINATION_PROMISE_CALLBACK_METHOD_NAME,

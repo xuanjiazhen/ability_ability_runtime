@@ -46,7 +46,7 @@ ani_object RequestInfo::WrapRequestInfo(ani_env *env, RequestInfo *request)
     }
 
     ani_class cls {};
-    ani_status status = env->FindClass("@ohos.app.ability.dialogRequest.dialogRequest.RequestInfoInner", &cls);
+    ani_status status = env->FindClass("@ohos:app.ability.dialogRequest.dialogRequest.RequestInfoInner", &cls);
     if (status != ANI_OK || cls == nullptr) {
         TAG_LOGE(AAFwkTag::DIALOG, "FindClass failed: %{public}d", status);
         return nullptr;
@@ -119,7 +119,7 @@ ani_object RequestInfo::CreateEtsWindowRect(
         TAG_LOGE(AAFwkTag::DIALOG, "null env");
         return nullptr;
     }
-    if ((status = env->FindClass("@ohos.app.ability.dialogRequest.dialogRequest.WindowRectInner", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("@ohos:app.ability.dialogRequest.dialogRequest.WindowRectInner", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::DIALOG, "FindClass failed status : %{public}d", status);
         return nullptr;
     }
@@ -155,7 +155,7 @@ std::shared_ptr<RequestInfo> RequestInfo::UnwrapRequestInfo(ani_env *env, ani_ob
     }
 
     ani_class cls;
-    ani_status status = env->FindClass("@ohos.app.ability.dialogRequest.RequestInfoInner", &cls);
+    ani_status status = env->FindClass("@ohos:app.ability.dialogRequest.RequestInfoInner", &cls);
     if (status != ANI_OK || cls == nullptr) {
         TAG_LOGE(AAFwkTag::DIALOG, "FindClass failed: %{public}d", status);
         return nullptr;

@@ -31,7 +31,7 @@ using namespace OHOS::AAFwk;
 namespace {
 constexpr int32_t INVALID_PARAM = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
 constexpr const char *ETS_AUTO_STARTUP_MANAGER_NAMESPACE =
-    "@ohos.app.ability.autoStartupManager.autoStartupManager";
+    "@ohos:app.ability.autoStartupManager.autoStartupManager";
 constexpr const char *ON_OFF_TYPE_SYSTEM = "systemAutoStartup";
 } // namespace
 
@@ -311,22 +311,22 @@ void EtsAbilityAutoStartupManagerInit(ani_env *env)
     }
     std::array methods = {
         ani_native_function {"nativeOnApplicationAutoStartupStateChangeSync",
-            "C{std.core.String}C{application.AutoStartupCallback.AutoStartupCallback}:",
+            "C{std:core.String}C{application:AutoStartupCallback.AutoStartupCallback}:",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::RegisterAutoStartupCallback)},
         ani_native_function {"nativeOffApplicationAutoStartupStateChangeSync",
-            "C{std.core.String}C{application.AutoStartupCallback.AutoStartupCallback}:",
+            "C{std:core.String}C{application:AutoStartupCallback.AutoStartupCallback}:",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::UnregisterAutoStartupCallback)},
         ani_native_function {"nativeSetApplicationAutoStartup",
-            "C{application.AutoStartupInfo.AutoStartupInfo}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{application:AutoStartupInfo.AutoStartupInfo}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::SetApplicationAutoStartup)},
         ani_native_function {"autoStartupInfoCheck",
-            "C{application.AutoStartupInfo.AutoStartupInfo}:",
+            "C{application:AutoStartupInfo.AutoStartupInfo}:",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::AutoStartupInfoCheck)},
         ani_native_function {"nativeCancelApplicationAutoStartup",
-            "C{application.AutoStartupInfo.AutoStartupInfo}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{application:AutoStartupInfo.AutoStartupInfo}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::CancelApplicationAutoStartup)},
         ani_native_function {"nativeQueryAllAutoStartupApplications",
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications)},
         ani_native_function {"nativeGetAutoStartupStatusForSelf", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::GetAutoStartupStatusForSelf)},

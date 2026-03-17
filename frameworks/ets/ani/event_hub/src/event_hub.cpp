@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "application.EventHub.EventHub";
+constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "application:EventHub.EventHub";
 }
  
 std::shared_ptr<Context> EventHub::GetContext(ani_env *env, ani_object aniObj)
@@ -93,7 +93,7 @@ ani_object EventHub::GetDynamicContextEventHub(ani_env *aniEnv, ani_object aniOb
         return nullptr;
     }
     ani_class contextCls = nullptr;
-    auto status = aniEnv->FindClass("application.Context.Context", &contextCls);
+    auto status = aniEnv->FindClass("application:Context.Context", &contextCls);
     if (status != ANI_OK || contextCls == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "status: %{public}d", status);
         return nullptr;
@@ -197,7 +197,7 @@ void EventHub::InitAniEventHub(ani_env *aniEnv)
         return;
     }
     std::array contextFunctions = {
-        ani_native_function {"getDynamicContextEventHub", ":C{std.interop.ESValue}",
+        ani_native_function {"getDynamicContextEventHub", ":C{std:interop.ESValue}",
             reinterpret_cast<void *>(GetDynamicContextEventHub)},
     };
     aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),

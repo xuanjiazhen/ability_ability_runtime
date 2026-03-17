@@ -27,8 +27,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* AUTO_FILL_EXTENSION_CONTEXT_CLASS_NAME =
-    "application.AutoFillExtensionContext.AutoFillExtensionContext";
-constexpr const char* CLEANER_CLASS = "application.AutoFillExtensionContext.Cleaner";
+    "application:AutoFillExtensionContext.AutoFillExtensionContext";
+constexpr const char* CLEANER_CLASS = "application:AutoFillExtensionContext.Cleaner";
 }
 
 ani_object EtsAutoFillExtensionContext::SetEtsAutoFillExtensionContext(ani_env *env,
@@ -179,7 +179,7 @@ ani_object EtsAutoFillExtensionContext::CreateEtsAutoFillExtensionContext(ani_en
     }
     std::array functions = {
         ani_native_function { "nativeReloadInModal",
-            "C{application.CustomData.CustomData}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{application:CustomData.CustomData}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(EtsAutoFillExtensionContext::ReloadInModal) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK

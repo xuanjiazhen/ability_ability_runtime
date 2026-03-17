@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace ChildProcessManagerEts {
 namespace {
-constexpr const char* CHILD_PROCESS_MANAGER_NAME_SPACE = "@ohos.app.ability.childProcessManager.childProcessManager";
+constexpr const char* CHILD_PROCESS_MANAGER_NAME_SPACE = "@ohos:app.ability.childProcessManager.childProcessManager";
 enum {
     MODE_SELF_FORK = 0,
     MODE_APP_SPAWN_FORK = 1,
@@ -494,37 +494,37 @@ void EtsChildProcessManagerInit(ani_env *env)
     }
     std::array kitFunctions = {
         ani_native_function {"nativeStartChildProcess",
-            "C{std.core.String}C{@ohos.app.ability.childProcessManager.childProcessManager.StartMode}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{@ohos:app.ability.childProcessManager.childProcessManager.StartMode}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsChildProcessManager::StartChildProcess)},
         ani_native_function {"nativeStartArkChildProcess",
-            "C{std.core.String}C{@ohos.app.ability.ChildProcessArgs.ChildProcessArgs}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{@ohos:app.ability.ChildProcessArgs.ChildProcessArgs}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsChildProcessManager::StartArkChildProcess)},
         ani_native_function {"nativeStartArkChildProcess",
-            "C{std.core.String}C{@ohos.app.ability.ChildProcessArgs.ChildProcessArgs}"
-            "C{@ohos.app.ability.ChildProcessOptions.ChildProcessOptions}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{@ohos:app.ability.ChildProcessArgs.ChildProcessArgs}"
+            "C{@ohos:app.ability.ChildProcessOptions.ChildProcessOptions}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsChildProcessManager::StartArkChildProcessWithOptions)},
         ani_native_function {"nativeStartNativeChildProcess",
-            "C{std.core.String}C{@ohos.app.ability.ChildProcessArgs.ChildProcessArgs}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{@ohos:app.ability.ChildProcessArgs.ChildProcessArgs}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsChildProcessManager::StartNativeChildProcess)},
         ani_native_function {"nativeStartNativeChildProcess",
-            "C{std.core.String}C{@ohos.app.ability.ChildProcessArgs.ChildProcessArgs}"
-            "C{@ohos.app.ability.ChildProcessOptions.ChildProcessOptions}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{@ohos:app.ability.ChildProcessArgs.ChildProcessArgs}"
+            "C{@ohos:app.ability.ChildProcessOptions.ChildProcessOptions}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsChildProcessManager::StartNativeChildProcessWithOptions)},
         ani_native_function {"nativeStartChildProcessCheck",
-            "C{std.core.String}C{@ohos.app.ability.childProcessManager.childProcessManager.StartMode}:",
+            "C{std:core.String}C{@ohos:app.ability.childProcessManager.childProcessManager.StartMode}:",
             reinterpret_cast<void *>(EtsChildProcessManager::StartChildProcessCheck)},
         ani_native_function {"nativeStartArkChildProcessCheck",
-            "C{std.core.String}C{@ohos.app.ability.ChildProcessArgs.ChildProcessArgs}"
-            "C{@ohos.app.ability.ChildProcessOptions.ChildProcessOptions}:",
+            "C{std:core.String}C{@ohos:app.ability.ChildProcessArgs.ChildProcessArgs}"
+            "C{@ohos:app.ability.ChildProcessOptions.ChildProcessOptions}:",
             reinterpret_cast<void *>(EtsChildProcessManager::StartArkChildProcessCheck)},
         ani_native_function {"nativeStartNativeChildProcessCheck",
-            "C{std.core.String}C{@ohos.app.ability.ChildProcessArgs.ChildProcessArgs}"
-            "C{@ohos.app.ability.ChildProcessOptions.ChildProcessOptions}:",
+            "C{std:core.String}C{@ohos:app.ability.ChildProcessArgs.ChildProcessArgs}"
+            "C{@ohos:app.ability.ChildProcessOptions.ChildProcessOptions}:",
             reinterpret_cast<void *>(EtsChildProcessManager::StartNativeChildProcessCheck)}
     };
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());

@@ -38,11 +38,11 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 namespace {
 constexpr const char *APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
-    "application.AppServiceExtensionContext.AppServiceExtensionContext";
-constexpr const char *ON_CREATE_SIGNATURE = "C{@ohos.app.ability.Want.Want}:";
+    "application:AppServiceExtensionContext.AppServiceExtensionContext";
+constexpr const char *ON_CREATE_SIGNATURE = "C{@ohos:app.ability.Want.Want}:";
 constexpr const char *VOID_SIGNATURE = ":";
-constexpr const char *ON_REQUEST_SIGNATURE = "C{@ohos.app.ability.Want.Want}i:";
-constexpr const char *ON_CONFIGURATION_UPDATE_SIGNATURE = "C{@ohos.app.ability.Configuration.Configuration}:";
+constexpr const char *ON_REQUEST_SIGNATURE = "C{@ohos:app.ability.Want.Want}i:";
+constexpr const char *ON_CONFIGURATION_UPDATE_SIGNATURE = "C{@ohos:app.ability.Configuration.Configuration}:";
 } // namespace
 
 EtsAppServiceExtension* EtsAppServiceExtension::Create(const std::unique_ptr<Runtime>& runtime)

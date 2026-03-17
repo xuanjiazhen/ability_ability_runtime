@@ -35,8 +35,8 @@ static std::recursive_mutex g_agentConnectsLock_;
 static int64_t g_agentSerialNumber = 0;
 
 constexpr const char *SIGNATURE_AGENT_EXTENSION_CALLBACK =
-    "application.AgentExtensionConnectCallback.AgentExtensionConnectCallback";
-constexpr const char *SIGNATURE_ON_DATA_AND_AUTH = "C{std.core.String}:";
+    "application:AgentExtensionConnectCallback.AgentExtensionConnectCallback";
+constexpr const char *SIGNATURE_ON_DATA_AND_AUTH = "C{std:core.String}:";
 constexpr const char *SIGNATURE_VOID = ":";
 } // namespace
 

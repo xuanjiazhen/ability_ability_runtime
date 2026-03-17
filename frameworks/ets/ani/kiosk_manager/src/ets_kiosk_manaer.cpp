@@ -28,15 +28,15 @@ namespace OHOS {
 namespace AbilityRuntime {
 using AbilityManagerClient = AAFwk::AbilityManagerClient;
 
-constexpr const char* KIOSK_STATUS_CLASS_NAME = "application.KioskStatus.KioskStatusInner";
-constexpr const char* KIOSK_MANAGER_CLASS_NAME = "@ohos.app.ability.kioskManager.kioskManager";
+constexpr const char* KIOSK_STATUS_CLASS_NAME = "application:KioskStatus.KioskStatusInner";
+constexpr const char* KIOSK_MANAGER_CLASS_NAME = "@ohos:app.ability.kioskManager.kioskManager";
 constexpr const char* KIOSK_MANAGER_KIOSK_BUNDLE_NAME = "kioskBundleName";
 constexpr const char* KIOSK_MANAGER_IS_KIOSK_MODE = "isKioskMode";
 constexpr const char* KIOSK_MANAGER_KIOSK_BUNDLE_UID = "kioskBundleUid";
 constexpr const char* SIGNATURE_UIABILITY_CALLBACK =
-    "C{application.UIAbilityContext.UIAbilityContext}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char* SIGNATURE_UIABILITY = "C{application.UIAbilityContext.UIAbilityContext}:";
-constexpr const char* SIGNATURE_CALLBACK = "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{application:UIAbilityContext.UIAbilityContext}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char* SIGNATURE_UIABILITY = "C{application:UIAbilityContext.UIAbilityContext}:";
+constexpr const char* SIGNATURE_CALLBACK = "C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 
 void EnterKioskModeSyncCheck(ani_env *env, ani_object contextObj)
 {

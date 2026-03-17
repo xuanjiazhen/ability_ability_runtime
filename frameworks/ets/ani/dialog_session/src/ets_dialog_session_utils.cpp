@@ -24,14 +24,14 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-constexpr const char* CLASSNAME_INT = "std.core.Int";
+constexpr const char* CLASSNAME_INT = "std:core.Int";
 constexpr const char* CLASSNAME_BUNDLEMANAGER_MULTIAPPMODE_TYPE =
-    "@ohos.bundle.bundleManager.bundleManager.MultiAppModeType";
+    "@ohos:bundle.bundleManager.bundleManager.MultiAppModeType";
 constexpr const char* CLASSNAME_DIALOG_ABILITY_INFO =
-    "@ohos.app.ability.dialogSession.dialogSession.DialogAbilityInfoInner";
+    "@ohos:app.ability.dialogSession.dialogSession.DialogAbilityInfoInner";
 constexpr const char* CLASSNAME_DIALOG_SESSION_INFO =
-    "@ohos.app.ability.dialogSession.dialogSession.DialogSessionInfoInner";
-constexpr const char* CLASSNAME_MULTIAPPMODE = "bundleManager.ApplicationInfoInner.MultiAppModeInner";
+    "@ohos:app.ability.dialogSession.dialogSession.DialogSessionInfoInner";
+constexpr const char* CLASSNAME_MULTIAPPMODE = "bundleManager:ApplicationInfoInner.MultiAppModeInner";
 ani_object WrapArrayDialogAbilityInfoToEts(ani_env *env, const std::vector<DialogAbilityInfo> &value)
 {
     ani_object etsValue = nullptr;

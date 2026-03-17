@@ -26,8 +26,8 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *SAVE_REQUEST_CALL_BACK_CLASS_NAME = "application.AutoFillRequest.SaveRequestCallbackInner";
-constexpr const char *CLEANER_CLASS = "application.AutoFillRequest.Cleaner";
+constexpr const char *SAVE_REQUEST_CALL_BACK_CLASS_NAME = "application:AutoFillRequest.SaveRequestCallbackInner";
+constexpr const char *CLEANER_CLASS = "application:AutoFillRequest.Cleaner";
 }
 
 EtsSaveRequestCallback::EtsSaveRequestCallback(

@@ -50,10 +50,10 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char* UIEXTENSION_CLASS_NAME = "@ohos.app.ability.UIExtensionAbility.UIExtensionAbility";
-constexpr const char *UIEXT_ONCREATE_SIGNATURE = "C{@ohos.app.ability.AbilityConstant.AbilityConstant.LaunchParam}:";
+constexpr const char* UIEXTENSION_CLASS_NAME = "@ohos:app.ability.UIExtensionAbility.UIExtensionAbility";
+constexpr const char *UIEXT_ONCREATE_SIGNATURE = "C{@ohos:app.ability.AbilityConstant.AbilityConstant.LaunchParam}:";
 constexpr const char *UIEXT_ONSESSIONDESTROY_SIGNATURE =
-    "C{@ohos.app.ability.UIExtensionContentSession.UIExtensionContentSession}:";
+    "C{@ohos:app.ability.UIExtensionContentSession.UIExtensionContentSession}:";
 std::mutex g_mtxWindowMapRecord;
 std::mutex g_mtxSeesionRecord;
 std::mutex g_mtxForegroundWindowsRecord;

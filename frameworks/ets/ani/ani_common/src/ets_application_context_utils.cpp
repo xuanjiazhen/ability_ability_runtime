@@ -32,9 +32,9 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 static std::once_flag g_bindNativeMethodsFlag;
-constexpr const char* ETS_APPLICATION_CONTEXT_CLASS_NAME = "application.ApplicationContext.ApplicationContext";
-constexpr const char* CLEANER_CLASS = "application.ApplicationContext.Cleaner";
-constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "application.EventHub.EventHub";
+constexpr const char* ETS_APPLICATION_CONTEXT_CLASS_NAME = "application:ApplicationContext.ApplicationContext";
+constexpr const char* CLEANER_CLASS = "application:ApplicationContext.Cleaner";
+constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "application:EventHub.EventHub";
 constexpr double FOUNT_SIZE = 0.0;
 constexpr int32_t ERROR_ID = -1;
 constexpr double ERROR_CODE_NULL_ENV = -1;
@@ -43,7 +43,7 @@ constexpr double ERROR_CODE_NULL_CONTEXT = -3;
 constexpr double ERROR_CODE_INVALID_PARAM = -4;
 const std::string TYPE_ABILITY_LIFECYCLE = "abilityLifecycle";
 #ifdef SUPPORT_SCREEN
-constexpr const char* CLASSNAME_ARRAY = "std.core.Array";
+constexpr const char* CLASSNAME_ARRAY = "std:core.Array";
 #endif
 }
 
@@ -1225,68 +1225,68 @@ void EtsApplicationContextUtils::BindApplicationContextFunc(ani_env *aniEnv)
         std::array applicationContextFunctions = {
             ani_native_function {"setSupportedProcessCacheSync", "z:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetSupportedProcessCacheSync)},
-            ani_native_function {"nativekillAllProcessesSync", "zC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function {"nativekillAllProcessesSync", "zC{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::killAllProcesses)},
             ani_native_function {"nativepreloadUIExtensionAbilitySync",
-                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::PreloadUIExtensionAbility)},
             ani_native_function {"nativeOnLifecycleCallbackSync",
-                "C{std.core.String}C{@ohos.app.ability.AbilityLifecycleCallback.AbilityLifecycleCallback}:i",
+                "C{std:core.String}C{@ohos:app.ability.AbilityLifecycleCallback.AbilityLifecycleCallback}:i",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOnLifecycleCallbackSync)},
             ani_native_function {"nativeOffLifecycleCallbackSync",
-                "C{std.core.String}iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{std:core.String}iC{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffLifecycleCallbackSync)},
             ani_native_function {"nativeOffAbilityLifecycleCheck", ":",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffAbilityLifecycleCheck)},
             ani_native_function {"nativegetRunningProcessInformation",
-                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetRunningProcessInformation)},
             ani_native_function {"nativeclearUpApplicationData",
-                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::ClearUpApplicationData)},
-            ani_native_function {"nativesetLanguage", "C{std.core.String}:",
+            ani_native_function {"nativesetLanguage", "C{std:core.String}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetLanguage)},
             ani_native_function {"nativesetFontSizeScale", "d:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetFontSizeScale)},
             ani_native_function {"nativesetColorMode",
-                "C{@ohos.app.ability.ConfigurationConstant.ConfigurationConstant.ColorMode}:",
+                "C{@ohos:app.ability.ConfigurationConstant.ConfigurationConstant.ColorMode}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetColorMode)},
-            ani_native_function {"nativesetFont", "C{std.core.String}:",
+            ani_native_function {"nativesetFont", "C{std:core.String}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::SetFont)},
-            ani_native_function {"nativerestartApp", "C{@ohos.app.ability.Want.Want}:",
+            ani_native_function {"nativerestartApp", "C{@ohos:app.ability.Want.Want}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::RestartApp)},
             ani_native_function {"nativeOnEnvironmentSync",
-                "C{@ohos.app.ability.EnvironmentCallback.EnvironmentCallback}:i",
+                "C{@ohos:app.ability.EnvironmentCallback.EnvironmentCallback}:i",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOnEnvironmentSync)},
-            ani_native_function {"nativeOffEnvironmentSync", "iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function {"nativeOffEnvironmentSync", "iC{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffEnvironmentSync)},
             ani_native_function {"nativeOffEnvironmentCheck", ":",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffEnvironmentCheck)},
             ani_native_function {"nativeOnApplicationStateChangeSync",
-                "C{@ohos.app.ability.ApplicationStateChangeCallback.ApplicationStateChangeCallback}:",
+                "C{@ohos:app.ability.ApplicationStateChangeCallback.ApplicationStateChangeCallback}:",
                 reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOnApplicationStateChangeSync)},
             ani_native_function {"nativeOffApplicationStateChangeSync",
-                "C{@ohos.app.ability.ApplicationStateChangeCallback.ApplicationStateChangeCallback}:",
+                "C{@ohos:app.ability.ApplicationStateChangeCallback.ApplicationStateChangeCallback}:",
                 reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOffApplicationStateChangeSync)},
-            ani_native_function {"nativeGetAllRunningInstanceKeys", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function {"nativeGetAllRunningInstanceKeys", "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetAllRunningInstanceKeys)},
-            ani_native_function {"nativeGetAllWindowStages", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function {"nativeGetAllWindowStages", "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetAllWindowStages)},
-            ani_native_function{"nativegetCurrentInstanceKey", ":C{std.core.String}",
+            ani_native_function{"nativegetCurrentInstanceKey", ":C{std:core.String}",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetCurrentInstanceKey)},
             ani_native_function {"nativegetCurrentAppCloneIndex", ":i",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::GetCurrentAppCloneIndex)},
             ani_native_function {"nativeOnInteropLifecycleCallbackSync",
-                "C{@ohos.app.ability.InteropAbilityLifecycleCallback.InteropAbilityLifecycleCallback}:",
+                "C{@ohos:app.ability.InteropAbilityLifecycleCallback.InteropAbilityLifecycleCallback}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOnInteropLifecycleCallbackSync)},
             ani_native_function {"nativeOffInteropLifecycleCallbackSync",
-                "C{@ohos.app.ability.InteropAbilityLifecycleCallback.InteropAbilityLifecycleCallback}:",
+                "C{@ohos:app.ability.InteropAbilityLifecycleCallback.InteropAbilityLifecycleCallback}:",
                 reinterpret_cast<void *>(EtsApplicationContextUtils::NativeOffInteropLifecycleCallbackSync)},
             ani_native_function {"nativeOnSystemConfigurationUpdatedSync",
-                "C{@ohos.app.ability.systemConfiguration.systemConfiguration.UpdatedCallback}:",
+                "C{@ohos:app.ability.systemConfiguration.systemConfiguration.UpdatedCallback}:",
                 reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOnSystemConfigurationUpdatedSync)},
             ani_native_function {"nativeOffSystemConfigurationUpdatedSync",
-                "C{@ohos.app.ability.systemConfiguration.systemConfiguration.UpdatedCallback}:",
+                "C{@ohos:app.ability.systemConfiguration.systemConfiguration.UpdatedCallback}:",
                 reinterpret_cast<void*>(EtsApplicationContextUtils::NativeOffSystemConfigurationUpdatedSync)},
         };
         if ((status = aniEnv->Class_BindNativeMethods(contextClass, applicationContextFunctions.data(),

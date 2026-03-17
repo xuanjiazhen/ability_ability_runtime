@@ -73,7 +73,7 @@ using DebuggerPostTask = std::function<void(std::function<void()> &&)>;
 const char ETS_SDK_NSNAME[] = "ets_sdk";
 const char ETS_SYS_NSNAME[] = "ets_system";
 
-constexpr const char* CLASSNAME_LINKER = "std.core.AbcRuntimeLinker";
+constexpr const char* CLASSNAME_LINKER = "std:core.AbcRuntimeLinker";
 constexpr const int32_t ARG_ZERO = 0;
 constexpr const int32_t ARG_ONE = 1;
 } // namespace
@@ -519,7 +519,7 @@ bool ETSEnvironment::AddAbcFiles(ani_env *env, const std::string &modulePath)
         return false;
     }
     if ((status = env->Object_CallMethodByName_Void(static_cast<ani_object>(vmEntry_.abcLinkerRef_),
-        "addAbcFiles", "C{std.core.Array}:", refArray)) != ANI_OK) {
+        "addAbcFiles", "C{std:core.Array}:", refArray)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethodByName_Void failed, status: %{public}d", status);
         return false;
     }
@@ -558,12 +558,12 @@ bool ETSEnvironment::LoadAbcLinker(ani_env *env, const std::string &modulePath, 
 
     if (!vmEntry_.isSetDefaultInteropLinker_) {
         ani_class contextCls = nullptr;
-        if ((status = env->FindClass("std.interop.InteropContext", &contextCls)) != ANI_OK) {
+        if ((status = env->FindClass("std:interop.InteropContext", &contextCls)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "InteropContext failed, status: %{public}d", status);
             return false;
         }
         if ((status = env->Class_CallStaticMethodByName_Void(
-            contextCls, "setDefaultInteropLinker", "C{std.core.RuntimeLinker}:", abcObj)) != ANI_OK) {
+            contextCls, "setDefaultInteropLinker", "C{std:core.RuntimeLinker}:", abcObj)) != ANI_OK) {
             TAG_LOGE(AAFwkTag::ETSRUNTIME, "setDefaultInteropLinker failed, status: %{public}d", status);
             return false;
         }
@@ -1006,7 +1006,7 @@ bool ETSEnvironment::SetHspAbcFiles(ani_env *env, ani_object abcObj)
     }
 
     if ((status = env->Object_CallMethodByName_Void(abcObj,
-        "addAbcFiles", "C{std.core.Array}:", strRefArray)) != ANI_OK) {
+        "addAbcFiles", "C{std:core.Array}:", strRefArray)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethodByName_Void failed, status: %{public}d", status);
         return false;
     }
@@ -1028,7 +1028,7 @@ ani_object ETSEnvironment::CreateRuntimeLinker(
     ani_object object = nullptr;
     ani_method runtimeLinkerCtorMethod = nullptr;
     if ((status = aniEnv->Class_FindMethod(
-        cls, "<ctor>", "C{std.core.RuntimeLinker}C{std.core.Array}:", &runtimeLinkerCtorMethod)) != ANI_OK) {
+        cls, "<ctor>", "C{std:core.RuntimeLinker}C{std:core.Array}:", &runtimeLinkerCtorMethod)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Class_FindMethod ctor failed, status: %{public}d", status);
         return nullptr;
     }

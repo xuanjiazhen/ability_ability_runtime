@@ -23,15 +23,15 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-constexpr const char *CLASSNAME_BOOLEAN = "std.core.Boolean";
-constexpr const char *CLASSNAME_SHORT = "std.core.Short";
-constexpr const char *CLASSNAME_INT = "std.core.Int";
-constexpr const char *CLASSNAME_LONG = "std.core.Long";
-constexpr const char *CLASSNAME_FLOAT = "std.core.Float";
-constexpr const char *CLASSNAME_DOUBLE = "std.core.Double";
-constexpr const char *CLASSNAME_STRING = "std.core.String";
-constexpr const char *CLASSNAME_RECORD = "std.core.Record";
-constexpr const char *TOOL_CLASS_NAME = "@ohos.app.ability.Want.RecordSerializeTool";
+constexpr const char *CLASSNAME_BOOLEAN = "std:core.Boolean";
+constexpr const char *CLASSNAME_SHORT = "std:core.Short";
+constexpr const char *CLASSNAME_INT = "std:core.Int";
+constexpr const char *CLASSNAME_LONG = "std:core.Long";
+constexpr const char *CLASSNAME_FLOAT = "std:core.Float";
+constexpr const char *CLASSNAME_DOUBLE = "std:core.Double";
+constexpr const char *CLASSNAME_STRING = "std:core.String";
+constexpr const char *CLASSNAME_RECORD = "std:core.Record";
+constexpr const char *TOOL_CLASS_NAME = "@ohos:app.ability.Want.RecordSerializeTool";
 
 using AniCommonMethodCacheKey = std::pair<const char *, const char *>;
 

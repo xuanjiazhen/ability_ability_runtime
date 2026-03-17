@@ -50,19 +50,19 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *ETS_ABILITY_MANAGER_NAMESPACE = "@ohos.app.ability.abilityManager.abilityManager";
-constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_ARRAY = ":C{std.core.Array}";
-constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK = "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *ETS_ABILITY_MANAGER_NAMESPACE = "@ohos:app.ability.abilityManager.abilityManager";
+constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_ARRAY = ":C{std:core.Array}";
+constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK = "C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *ETS_ABILITY_MANAGER_SIGNATURE_VOID = ":";
 constexpr const char *ON_OFF_TYPE_ABILITY_FOREGROUND_STATE = "abilityForegroundState";
-constexpr const char *ON_OFF_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE = "C{std.core.Function1}:";
+constexpr const char *ON_OFF_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE = "C{std:core.Function1}:";
 constexpr const char *PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE =
-    "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE = "iC{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITIES_SIGNATURE = "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITY_SIGNATURE = "iC{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *CLEAR_PRELOAD_UI_EXTENSION_ABILITIES_SIGNATURE = "C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *NOTIFY_SAVE_AS_RESULT_SIGNATURE =
-    "C{ability.abilityResult.AbilityResult}iC{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *NOTIFY_SAVE_AS_RESULT_CHECK_SIGNATURE = "C{ability.abilityResult.AbilityResult}:";
+    "C{ability:abilityResult.AbilityResult}iC{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *NOTIFY_SAVE_AS_RESULT_CHECK_SIGNATURE = "C{ability:abilityResult.AbilityResult}:";
 constexpr int32_t ERR_FAILURE = -1;
 const std::string MAX_UINT64_VALUE = "18446744073709551615";
 std::shared_ptr<AppExecFwk::EventHandler> mainHandler_ = nullptr;
@@ -1119,7 +1119,7 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::GetForegroundUIAbilities)
         },
         ani_native_function {
-            "getForegroundUIAbilitiesCallback", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "getForegroundUIAbilitiesCallback", "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::GetForegroundUIAbilitiesCallBack)
         },
         ani_native_function { "nativeGetTopAbility", ETS_ABILITY_MANAGER_SIGNATURE_CALLBACK,
@@ -1128,21 +1128,21 @@ void EtsAbilityManagerRegistryInit(ani_env *env)
             reinterpret_cast<void *>(EtsAbilityManager::CheckSystemApp) },
         ani_native_function { "nativeGetTopAbilityCheck", ":",
             reinterpret_cast<void *>(EtsAbilityManager::GetTopAbilityCheck) },
-        ani_native_function { "nativeGetAbilityRunningInfos", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+        ani_native_function { "nativeGetAbilityRunningInfos", "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::GetAbilityRunningInfos) },
-        ani_native_function { "nativeGetExtensionRunningInfos", "iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+        ani_native_function { "nativeGetExtensionRunningInfos", "iC{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::GetExtensionRunningInfos) },
         ani_native_function { "nativeIsEmbeddedUIExtensionSupported", ":z",
             reinterpret_cast<void *>(EtsAbilityManager::IsEmbeddedUIExtensionSupported) },
         ani_native_function { "nativeIsEmbeddedOpenAllowed",
-            "C{application.Context.Context}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{application:Context.Context}C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::IsEmbeddedOpenAllowed) },
-        ani_native_function { "nativeIsEmbeddedOpenAllowedCheck", "C{application.Context.Context}:",
+        ani_native_function { "nativeIsEmbeddedOpenAllowedCheck", "C{application:Context.Context}:",
             reinterpret_cast<void *>(EtsAbilityManager::IsEmbeddedOpenAllowedCheck) },
         ani_native_function { "nativeQueryAtomicServiceStartupRule",
-            "C{application.Context.Context}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{application:Context.Context}C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAbilityManager::QueryAtomicServiceStartupRule) },
-        ani_native_function { "nativeQueryAtomicServiceStartupRuleCheck", "C{application.Context.Context}:",
+        ani_native_function { "nativeQueryAtomicServiceStartupRuleCheck", "C{application:Context.Context}:",
             reinterpret_cast<void *>(EtsAbilityManager::QueryAtomicServiceStartupRuleCheck) },
         ani_native_function { "nativeOn", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOn) },
         ani_native_function { "nativeOff", nullptr, reinterpret_cast<void *>(EtsAbilityManager::NativeOff) },

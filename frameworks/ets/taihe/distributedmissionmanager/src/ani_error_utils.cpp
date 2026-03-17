@@ -22,7 +22,7 @@ namespace ani_errorutils {
 using namespace OHOS::AAFwk;
 
 constexpr int32_t ERR_INVALID_VALUE = -1;
-constexpr char CLASS_NAME_BUSINESSERROR[] = "@ohos.base.BusinessError";
+constexpr char CLASS_NAME_BUSINESSERROR[] = "@ohos:base.BusinessError";
 
 int32_t ErrorCodeReturn(int32_t code)
 {

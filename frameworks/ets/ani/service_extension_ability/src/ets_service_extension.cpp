@@ -50,18 +50,18 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 namespace {
 constexpr const int ANI_ALREADY_BINDED = 8;
-constexpr const char *CLASSNAME_SERVICE_ABILITY = "@ohos.app.ability.ServiceExtensionAbility.ServiceExtensionAbility";
+constexpr const char *CLASSNAME_SERVICE_ABILITY = "@ohos:app.ability.ServiceExtensionAbility.ServiceExtensionAbility";
 constexpr const char *SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
-    "application.ServiceExtensionContext.ServiceExtensionContext";
-constexpr const char *NATIVE_ONCONNECT_CALLBACK_SIGNATURE = "C{@ohos.rpc.rpc.RemoteObject}:z";
-constexpr const char *ON_CREATE_SIGNATURE = "C{@ohos.app.ability.Want.Want}:";
+    "application:ServiceExtensionContext.ServiceExtensionContext";
+constexpr const char *NATIVE_ONCONNECT_CALLBACK_SIGNATURE = "C{@ohos:rpc.rpc.RemoteObject}:z";
+constexpr const char *ON_CREATE_SIGNATURE = "C{@ohos:app.ability.Want.Want}:";
 constexpr const char *VOID_SIGNATURE = ":";
 constexpr const char *CHECK_PROMISE_SIGNATURE = "Y:z";
-constexpr const char *CALL_PROMISE_SIGNATURE = "C{std.core.Promise}:z";
-constexpr const char *ON_DISCONNECT_SIGNATURE = "C{@ohos.app.ability.Want.Want}:z";
-constexpr const char *ON_REQUEST_SIGNATURE = "C{@ohos.app.ability.Want.Want}i:";
-constexpr const char *ON_CONFIGURATION_UPDATE_SIGNATURE = "C{@ohos.app.ability.Configuration.Configuration}:";
-constexpr const char *ON_DUMP_SIGNATURE = "C{std.core.Array}:C{std.core.Array}";
+constexpr const char *CALL_PROMISE_SIGNATURE = "C{std:core.Promise}:z";
+constexpr const char *ON_DISCONNECT_SIGNATURE = "C{@ohos:app.ability.Want.Want}:z";
+constexpr const char *ON_REQUEST_SIGNATURE = "C{@ohos:app.ability.Want.Want}i:";
+constexpr const char *ON_CONFIGURATION_UPDATE_SIGNATURE = "C{@ohos:app.ability.Configuration.Configuration}:";
+constexpr const char *ON_DUMP_SIGNATURE = "C{std:core.Array}:C{std:core.Array}";
 
 void DisconnectPromiseCallback(ani_env *env, ani_object aniObj)
 {

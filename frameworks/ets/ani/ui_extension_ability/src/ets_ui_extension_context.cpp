@@ -38,38 +38,38 @@ namespace {
 static std::mutex g_connectsMutex;
 int32_t g_serialNumber = 0;
 static std::map<EtsUIExtensionConnectionKey, sptr<EtsUIExtensionConnection>, Etskey_compare> g_connects;
-const char *UI_EXTENSION_CONTEXT_CLASS_NAME = "application.UIExtensionContext.UIExtensionContext";
-const char *UI_EXTENSION_CONTEXT_CLEANER_CLASS_NAME = "application.UIExtensionContext.Cleaner";
+const char *UI_EXTENSION_CONTEXT_CLASS_NAME = "application:UIExtensionContext.UIExtensionContext";
+const char *UI_EXTENSION_CONTEXT_CLEANER_CLASS_NAME = "application:UIExtensionContext.Cleaner";
 constexpr const char* UISERVICEHOSTPROXY_KEY = "ohos.ability.params.UIServiceHostProxy";
 constexpr const int FAILED_CODE = -1;
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
-    "C{@ohos.app.ability.Want.Want}C{ability.connectOptions.ConnectOptions}:l";
-constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}C{ability:connectOptions.ConnectOptions}:l";
+constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_CONNECT_UI_SERVICE_EXTENSION =
-    "C{@ohos.app.ability.Want.Want}C{application.UIServiceExtensionConnectCallback.UIServiceExtensionConnectCallback}"
-    "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}C{application:UIServiceExtensionConnectCallback.UIServiceExtensionConnectCallback}"
+    "C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_START_UI_SERVICE_EXTENSION =
-    "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION =
-    "C{application.UIServiceProxy.UIServiceProxy}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *SIGNATURE_WANT_CHK = "C{@ohos.app.ability.Want.Want}:";
-constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK = "C{application.UIServiceProxy.UIServiceProxy}:";
+    "C{application:UIServiceProxy.UIServiceProxy}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *SIGNATURE_WANT_CHK = "C{@ohos:app.ability.Want.Want}:";
+constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK = "C{application:UIServiceProxy.UIServiceProxy}:";
 constexpr const char *SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE_CHECK =
-    "iC{@ohos.app.ability.Want.Want}:";
+    "iC{@ohos:app.ability.Want.Want}:";
 constexpr const char *SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE =
-    "iC{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "iC{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
 constexpr int32_t ARGC_THREE = 3;
 constexpr int32_t ARGC_FOUR = 4;
-constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}"
-    "C{@ohos.app.ability.AtomicServiceOptions.AtomicServiceOptions}:";
-constexpr const char *SIGNATURE_OPEN_LINK = "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}"
-    "C{@ohos.app.ability.OpenLinkOptions.OpenLinkOptions}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}"
+    "C{@ohos:app.ability.AtomicServiceOptions.AtomicServiceOptions}:";
+constexpr const char *SIGNATURE_OPEN_LINK = "C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}"
+    "C{@ohos:app.ability.OpenLinkOptions.OpenLinkOptions}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 constexpr const char *COMPLETION_HANDLER_FAILURE_CODE =
-    "@ohos.app.ability.CompletionHandlerForAtomicService.FailureCode";
+    "@ohos:app.ability.CompletionHandlerForAtomicService.FailureCode";
 constexpr const char* JSON_KEY_ERR_MSG = "errMsg";
 constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 constexpr const char* UI_EXTENSION_CONTEXT_TRANSFER_ROOT_HOST_TOKEN = "ohos.ability.params.transferRootHostToken";
@@ -1774,10 +1774,10 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
         ani_native_function { "terminateSelfWithResultSync", nullptr,
             reinterpret_cast<ani_int*>(EtsUIExtensionContext::TerminateSelfWithResultSync) },
         ani_native_function { "nativeStartAbility",
-            "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsUIExtensionContext::StartAbility) },
-        ani_native_function { "nativeStartAbility", "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability."
-            "StartOptions.StartOptions}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+        ani_native_function { "nativeStartAbility", "C{@ohos:app.ability.Want.Want}C{@ohos:app.ability."
+            "StartOptions.StartOptions}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsUIExtensionContext::StartAbilityWithOption) },
         ani_native_function { "nativeConnectServiceExtensionAbilityWithRootHostToken",
             SIGNATURE_CONNECT_SERVICE_EXTENSION,
@@ -1787,29 +1787,29 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
         ani_native_function { "nativeDisconnectServiceExtensionAbilitySync", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
             reinterpret_cast<void *>(EtsUIExtensionContext::DisconnectServiceExtensionAbility) },
         ani_native_function { "nativeStartAbilityForResult",
-            "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(EtsUIExtensionContext::StartAbilityForResult) },
         ani_native_function { "nativeStartAbilityForResult",
-            "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}C{utils.AbilityUtils."
+            "C{@ohos:app.ability.Want.Want}C{@ohos:app.ability.StartOptions.StartOptions}C{utils:AbilityUtils."
             "AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(EtsUIExtensionContext::StartAbilityForResultWithOptions) },
         ani_native_function { "nativeStartServiceExtensionAbilityWithAccount",
-            "C{@ohos.app.ability.Want.Want}iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{@ohos:app.ability.Want.Want}iC{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(EtsUIExtensionContext::StartServiceExtensionAbilityWithAccount) },
         ani_native_function { "nativeStartAbilityForResultAsCaller",
-            "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}C{@ohos.app."
+            "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}C{@ohos:app."
             "ability.StartOptions.StartOptions}:",
             reinterpret_cast<void*>(EtsUIExtensionContext::StartAbilityForResultAsCaller) },
         ani_native_function { "nativeStartServiceExtensionAbility",
-            "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(EtsUIExtensionContext::StartServiceExtensionAbility) },
         ani_native_function { "nativeSetHostPageOverlayForbidden", "z:",
             reinterpret_cast<void*>(EtsUIExtensionContext::SetHostPageOverlayForbidden) },
         ani_native_function{"setColorMode",
-            "C{@ohos.app.ability.ConfigurationConstant.ConfigurationConstant.ColorMode}:",
+            "C{@ohos:app.ability.ConfigurationConstant.ConfigurationConstant.ColorMode}:",
             reinterpret_cast<void *>(EtsUIExtensionContext::SetColorMode)},
         ani_native_function{"nativeReportDrawnCompleted",
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(EtsUIExtensionContext::ReportDrawnCompleted)},
         ani_native_function{"nativeConnectUIServiceExtensionAbility", SIGNATURE_CONNECT_UI_SERVICE_EXTENSION,
             reinterpret_cast<void*>(EtsUIExtensionContext::ConnectUIServiceExtension)},
@@ -1822,7 +1822,7 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
         ani_native_function{"nativeDisconnectUIServiceExtensionCheck", SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK,
             reinterpret_cast<void*>(EtsUIExtensionContext::DisconnectUIServiceExtensionCheck)},
         ani_native_function {"nativeStartUIAbilities",
-            "C{std.core.Array}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.Array}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsUIExtensionContext::StartUIAbilities)},
         ani_native_function{"nativeStartUIAbilitiesInSplitWindowModeCheck",
             SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE_CHECK,
@@ -1836,7 +1836,7 @@ ani_object CreateEtsUIExtensionContext(ani_env *env, std::shared_ptr<OHOS::Abili
             reinterpret_cast<void *>(EtsUIExtensionContext::OpenAtomicServiceCheck) },
         ani_native_function { "nativeOpenLinkSync", SIGNATURE_OPEN_LINK,
             reinterpret_cast<void *>(EtsUIExtensionContext::OpenLink) },
-        ani_native_function { "nativeOpenLinkCheck", "C{std.core.String}:",
+        ani_native_function { "nativeOpenLinkCheck", "C{std:core.String}:",
             reinterpret_cast<void *>(EtsUIExtensionContext::OpenLinkCheck) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK

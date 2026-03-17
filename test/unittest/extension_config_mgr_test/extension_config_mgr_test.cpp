@@ -434,7 +434,7 @@ HWTEST_F(ExtensionConfigMgrTest, CheckEtsModuleLoadable_ShouldReturnFalse_WhenFi
     mgr.LoadExtensionBlockList(BLOCK_LIST_ITEM_DRIVER_EXTENSION, EXTENSION_TYPE_DRIVER);
     mgr.extensionType_ = EXTENSION_TYPE_DRIVER;
     mgr.GenerateExtensionEtsBlocklists();
-    EXPECT_FALSE(mgr.CheckEtsModuleLoadable("@ohos.abilityAccessCtrl.abilityAccessCtrl", "@ohos.abilityAccessCtrl"));
+    EXPECT_FALSE(mgr.CheckEtsModuleLoadable("@ohos.abilityAccessCtrl.abilityAccessCtrl", "@ohos:abilityAccessCtrl"));
 }
 
 /**

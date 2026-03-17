@@ -41,9 +41,9 @@ std::mutex g_mtxStageMonitorRecord;
 std::mutex g_mutexAbilityRecord;
 
 namespace {
-constexpr const char* CONTEXT_CLASS_NAME = "application.Context.Context";
-constexpr const char* SHELL_CMD_RESULT_CLASS_NAME = "application.shellCmdResult.ShellCmdResultImpl";
-constexpr const char* ABILITY_STAGE_CLASS_NAME = "@ohos.app.ability.AbilityStage.AbilityStage";
+constexpr const char* CONTEXT_CLASS_NAME = "application:Context.Context";
+constexpr const char* SHELL_CMD_RESULT_CLASS_NAME = "application:shellCmdResult.ShellCmdResultImpl";
+constexpr const char* ABILITY_STAGE_CLASS_NAME = "@ohos:app.ability.AbilityStage.AbilityStage";
 constexpr int COMMON_FAILED = 16000100;
 constexpr ani_double INVALID_LIFECYCLE_STATE = -1;
 }

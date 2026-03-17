@@ -27,11 +27,11 @@ namespace quickFixManager {
 namespace {
 
 constexpr const int32_t ERR_OK = 0;
-constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
+constexpr const char *CLASSNAME_ARRAY = "std:core.Array";
 constexpr const char *QUICK_FIX_INFO_CLASS_NAME =
-    "@ohos.app.ability.quickFixManager.quickFixManager.ApplicationQuickFixInfoImpl";
+    "@ohos:app.ability.quickFixManager.quickFixManager.ApplicationQuickFixInfoImpl";
 constexpr const char *HAP_MODULE_QUICK_FIX_INFO_IMPL_CLASS_NAME =
-    "@ohos.app.ability.quickFixManager.quickFixManager.HapModuleQuickFixInfoImpl";
+    "@ohos:app.ability.quickFixManager.quickFixManager.HapModuleQuickFixInfoImpl";
 
 ani_object WrapHapModuleQuickFixInfo(ani_env *env, const AppExecFwk::HqfInfo &hqfInfo)
 {
@@ -351,7 +351,7 @@ void EtsQuickFixManagerInit(ani_env *env)
         return;
     }
     ani_namespace ns;
-    const char* targetNamespace = "@ohos.app.ability.quickFixManager.quickFixManager";
+    const char* targetNamespace = "@ohos:app.ability.quickFixManager.quickFixManager";
     if (env->FindNamespace(targetNamespace, &ns) != ANI_OK) {
         TAG_LOGE(AAFwkTag::QUICKFIX, "FindNamespace failed");
     }
@@ -362,17 +362,17 @@ void EtsQuickFixManagerInit(ani_env *env)
     std::array functions = {
         ani_native_function {
             "applyQuickFixSync",
-            "C{std.core.Array}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.Array}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(applyQuickFixSync)
         },
         ani_native_function {
             "revokeQuickFixSync",
-            "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(revokeQuickFixSync)
         },
         ani_native_function {
             "getApplicationQuickFixInfoSync",
-            "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(getApplicationQuickFixInfoSync)
         },
     };

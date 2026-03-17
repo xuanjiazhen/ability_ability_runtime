@@ -24,13 +24,13 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* APPLICATION_ENVIROMENT_CALLBACK =
-    "@ohos.app.ability.EnvironmentCallback.EnvironmentCallbackInner";
+    "@ohos:app.ability.EnvironmentCallback.EnvironmentCallbackInner";
 constexpr const char* APPLICATION_MEMORYLEVEL =
-    "C{@ohos.app.ability.AbilityConstant.AbilityConstant.MemoryLevel}:";
+    "C{@ohos:app.ability.AbilityConstant.AbilityConstant.MemoryLevel}:";
 constexpr const char* APPLICATION_MEMORYLEVEL_ENUM =
-    "@ohos.app.ability.AbilityConstant.AbilityConstant.MemoryLevel";
+    "@ohos:app.ability.AbilityConstant.AbilityConstant.MemoryLevel";
 constexpr const char* APPLICATION_CONFIGURATION =
-    "C{@ohos.app.ability.Configuration.Configuration}:";
+    "C{@ohos:app.ability.Configuration.Configuration}:";
 }
 EtsEnviromentCallback::EtsEnviromentCallback(ani_vm *etsVm) : etsVm_(etsVm) {}
 

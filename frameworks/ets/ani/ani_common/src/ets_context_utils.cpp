@@ -35,10 +35,10 @@ namespace AbilityRuntime {
 namespace ContextUtil {
 namespace {
 static std::once_flag g_bindNativeMethodsFlag;
-constexpr const char* CONTEXT_CLASS_NAME = "application.Context.Context";
-constexpr const char* AREA_MODE_ENUM_NAME = "@ohos.app.ability.contextConstant.contextConstant.AreaMode";
-constexpr const char* CLEANER_CLASS = "application.Context.Cleaner";
-constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "application.EventHub.EventHub";
+constexpr const char* CONTEXT_CLASS_NAME = "application:Context.Context";
+constexpr const char* AREA_MODE_ENUM_NAME = "@ohos:app.ability.contextConstant.contextConstant.AreaMode";
+constexpr const char* CLEANER_CLASS = "application:Context.Cleaner";
+constexpr const char* ETS_EVENT_HUB_CLASS_NAME = "application:EventHub.EventHub";
 
 
 void BindContextDirInner(ani_env *aniEnv, ani_object contextObj, std::shared_ptr<Context> context)
@@ -274,7 +274,7 @@ void BindNativeFunction(ani_env *aniEnv)
     ani_status status = ANI_ERROR;
     std::call_once(g_bindNativeMethodsFlag, [&status, aniEnv, contextCls]() {
         std::array contextFunctions = {
-            ani_native_function {"getApplicationContextSync", ":C{application.ApplicationContext.ApplicationContext}",
+            ani_native_function {"getApplicationContextSync", ":C{application:ApplicationContext.ApplicationContext}",
                 reinterpret_cast<void *>(ContextUtil::GetApplicationContextSync)},
             ani_native_function {"switchArea", nullptr,
                 reinterpret_cast<void *>(ContextUtil::SwitchArea)},
@@ -282,18 +282,18 @@ void BindNativeFunction(ani_env *aniEnv)
                 reinterpret_cast<void *>(ContextUtil::GetArea)},
             ani_native_function {"getLogFileDir", nullptr,
                 reinterpret_cast<void *>(ContextUtil::GetLogFileDir)},
-            ani_native_function {"createModuleResourceManagerSync", "C{std.core.String}C{std.core.String}"
-                ":C{@ohos.resourceManager.resourceManager.ResourceManager}",
+            ani_native_function {"createModuleResourceManagerSync", "C{std:core.String}C{std:core.String}"
+                ":C{@ohos:resourceManager.resourceManager.ResourceManager}",
                 reinterpret_cast<void *>(ContextUtil::CreateModuleResourceManagerSync)},
             ani_native_function {"nativeGetGroupDir", nullptr,
                 reinterpret_cast<void *>(ContextUtil::NativeGetGroupDir)},
-            ani_native_function {"nativeCreateDisplayContext", "l:C{application.Context.Context}",
+            ani_native_function {"nativeCreateDisplayContext", "l:C{application:Context.Context}",
                 reinterpret_cast<void *>(ContextUtil::NativeCreateDisplayContext)},
             ani_native_function {"nativeCreateAreaModeContext",
-                "C{@ohos.app.ability.contextConstant.contextConstant.AreaMode}:C{application.Context.Context}",
+                "C{@ohos:app.ability.contextConstant.contextConstant.AreaMode}:C{application:Context.Context}",
                 reinterpret_cast<void *>(ContextUtil::NativeCreateAreaModeContext)},
-            ani_native_function {"nativeCreateSystemHspModuleResourceManager", "C{std.core.String}C{std.core.String}"
-                ":C{@ohos.resourceManager.resourceManager.ResourceManager}",
+            ani_native_function {"nativeCreateSystemHspModuleResourceManager", "C{std:core.String}C{std:core.String}"
+                ":C{@ohos:resourceManager.resourceManager.ResourceManager}",
                 reinterpret_cast<void *>(ContextUtil::NativeCreateSystemHspModuleResourceManager)},
         };
         status = aniEnv->Class_BindNativeMethods(contextCls, contextFunctions.data(),
