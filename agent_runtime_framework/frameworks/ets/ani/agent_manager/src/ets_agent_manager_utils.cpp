@@ -31,6 +31,40 @@ constexpr const char *AGENT_APP_INFO_IMPL_CLASS_NAME = "application.AgentCard.Ag
 constexpr const char *AGENT_CAPABILITIES_IMPL_CLASS_NAME = "application.AgentCard.AgentCapabilitiesImpl";
 constexpr const char *AGENT_SKILL_IMPL_CLASS_NAME = "application.AgentCard.AgentSkillImpl";
 constexpr const char *AGENT_CARD_IMPL_CLASS_NAME = "application.AgentCard.AgentCardImpl";
+
+bool IsValidAgentCardTypeValue(int32_t type)
+{
+    return type >= static_cast<int32_t>(AgentCardType::APP) &&
+        type <= static_cast<int32_t>(AgentCardType::ATOMIC_SERVICE);
+}
+
+bool ParseAgentSkillArray(ani_env *env, ani_object arrayObj, std::vector<std::shared_ptr<AgentSkill>> &skills)
+{
+    if (env == nullptr || arrayObj == nullptr) {
+        return false;
+    }
+    ani_int length = 0;
+    ani_status status = env->Object_GetPropertyByName_Int(arrayObj, "length", &length);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "get length failed: %{public}d", status);
+        return false;
+    }
+
+    for (ani_int i = 0; i < length; ++i) {
+        ani_ref skillRef = nullptr;
+        status = env->Object_CallMethodByName_Ref(arrayObj, "$_get", "i:Y", &skillRef, i);
+        if (status != ANI_OK || skillRef == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "get skill failed: %{public}d", status);
+            return false;
+        }
+        auto skill = std::make_shared<AgentSkill>();
+        if (!ParseEtsAgentSkill(env, reinterpret_cast<ani_object>(skillRef), *skill)) {
+            return false;
+        }
+        skills.emplace_back(skill);
+    }
+    return true;
+}
 }  // namespace
 
 ani_object CreateEtsAgentProvider(ani_env *env, const AgentProvider &provider)
@@ -329,6 +363,11 @@ ani_object CreateEtsAgentCard(ani_env *env, const AgentCard &card)
         TAG_LOGE(AAFwkTag::SER_ROUTER, "failed status:%{public}d", status);
         return nullptr;
     }
+    status = env->Object_SetPropertyByName_Ref(object, "type", AppExecFwk::CreateInt(env, static_cast<ani_int>(card.type)));
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "set type failed: %{public}d", status);
+        return nullptr;
+    }
     status = env->Object_SetPropertyByName_Ref(object, "version", GetAniString(env, card.version));
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "failed status:%{public}d", status);
@@ -445,6 +484,178 @@ ani_object CreateEtsAgentCardArray(ani_env *env, const std::vector<AgentCard> &c
         index++;
     }
     return arrayObj;
+}
+
+bool ParseEtsAgentProvider(ani_env *env, ani_object object, AgentProvider &provider)
+{
+    if (env == nullptr || object == nullptr) {
+        return false;
+    }
+    return AppExecFwk::GetStringProperty(env, object, "organization", provider.organization) &&
+        !provider.organization.empty() &&
+        AppExecFwk::GetStringProperty(env, object, "url", provider.url) &&
+        !provider.url.empty();
+}
+
+bool ParseEtsAgentCapabilities(ani_env *env, ani_object object, AgentCapabilities &capabilities)
+{
+    if (env == nullptr || object == nullptr) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "streaming") &&
+        !AppExecFwk::GetBooleanPropertyObject(env, object, "streaming", capabilities.streaming)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "pushNotifications") &&
+        !AppExecFwk::GetBooleanPropertyObject(env, object, "pushNotifications", capabilities.pushNotifications)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "stateTransitionHistory") &&
+        !AppExecFwk::GetBooleanPropertyObject(
+            env, object, "stateTransitionHistory", capabilities.stateTransitionHistory)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "extendedAgentCard") &&
+        !AppExecFwk::GetBooleanPropertyObject(env, object, "extendedAgentCard", capabilities.extendedAgentCard)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "extension") &&
+        !AppExecFwk::GetStringProperty(env, object, "extension", capabilities.extension)) {
+        return false;
+    }
+    return true;
+}
+
+bool ParseEtsAgentAppInfo(ani_env *env, ani_object object, AgentAppInfo &appInfo)
+{
+    if (env == nullptr || object == nullptr) {
+        return false;
+    }
+    if (!AppExecFwk::GetStringProperty(env, object, "bundleName", appInfo.bundleName) || appInfo.bundleName.empty()) {
+        return false;
+    }
+    if (!AppExecFwk::GetStringProperty(env, object, "abilityName", appInfo.abilityName) ||
+        appInfo.abilityName.empty()) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "moduleName") &&
+        !AppExecFwk::GetStringProperty(env, object, "moduleName", appInfo.moduleName)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "deviceTypes") &&
+        !AppExecFwk::GetStringArrayProperty(env, object, "deviceTypes", appInfo.deviceTypes)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "minAppVersion") &&
+        !AppExecFwk::GetStringProperty(env, object, "minAppVersion", appInfo.minAppVersion)) {
+        return false;
+    }
+    return true;
+}
+
+bool ParseEtsAgentSkill(ani_env *env, ani_object object, AgentSkill &skill)
+{
+    if (env == nullptr || object == nullptr) {
+        return false;
+    }
+    if (!AppExecFwk::GetStringProperty(env, object, "id", skill.id) || skill.id.empty() ||
+        !AppExecFwk::GetStringProperty(env, object, "name", skill.name) || skill.name.empty() ||
+        !AppExecFwk::GetStringProperty(env, object, "description", skill.description) || skill.description.empty() ||
+        !AppExecFwk::GetStringArrayProperty(env, object, "tags", skill.tags)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "examples") &&
+        !AppExecFwk::GetStringArrayProperty(env, object, "examples", skill.examples)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "inputModes") &&
+        !AppExecFwk::GetStringArrayProperty(env, object, "inputModes", skill.inputModes)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "outputModes") &&
+        !AppExecFwk::GetStringArrayProperty(env, object, "outputModes", skill.outputModes)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "extension") &&
+        !AppExecFwk::GetStringProperty(env, object, "extension", skill.extension)) {
+        return false;
+    }
+    return true;
+}
+
+bool ParseEtsAgentCard(ani_env *env, ani_object object, AgentCard &card)
+{
+    if (env == nullptr || object == nullptr) {
+        return false;
+    }
+    if (!AppExecFwk::GetStringProperty(env, object, "agentId", card.agentId) || card.agentId.empty() ||
+        !AppExecFwk::GetStringProperty(env, object, "name", card.name) || card.name.empty() ||
+        !AppExecFwk::GetStringProperty(env, object, "description", card.description) || card.description.empty() ||
+        !AppExecFwk::GetStringProperty(env, object, "version", card.version) || card.version.empty() ||
+        !AppExecFwk::GetStringArrayProperty(env, object, "defaultInputModes", card.defaultInputModes) ||
+        !AppExecFwk::GetStringArrayProperty(env, object, "defaultOutputModes", card.defaultOutputModes) ||
+        !AppExecFwk::GetStringProperty(env, object, "category", card.category) || card.category.empty()) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "type")) {
+        int32_t typeValue = static_cast<int32_t>(AgentCardType::APP);
+        if (!AppExecFwk::GetIntPropertyValue(env, object, "type", typeValue) || !IsValidAgentCardTypeValue(typeValue)) {
+            return false;
+        }
+        card.type = static_cast<AgentCardType>(typeValue);
+    }
+
+    ani_ref ref = nullptr;
+    if (!AppExecFwk::GetRefProperty(env, object, "skills", ref) || ref == nullptr ||
+        !ParseAgentSkillArray(env, reinterpret_cast<ani_object>(ref), card.skills)) {
+        return false;
+    }
+
+    if (AppExecFwk::IsExistsProperty(env, object, "provider")) {
+        ref = nullptr;
+        if (!AppExecFwk::GetRefProperty(env, object, "provider", ref) || ref == nullptr) {
+            return false;
+        }
+        auto provider = std::make_shared<AgentProvider>();
+        if (!ParseEtsAgentProvider(env, reinterpret_cast<ani_object>(ref), *provider)) {
+            return false;
+        }
+        card.provider = provider;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "capabilities")) {
+        ref = nullptr;
+        if (!AppExecFwk::GetRefProperty(env, object, "capabilities", ref) || ref == nullptr) {
+            return false;
+        }
+        auto capabilities = std::make_shared<AgentCapabilities>();
+        if (!ParseEtsAgentCapabilities(env, reinterpret_cast<ani_object>(ref), *capabilities)) {
+            return false;
+        }
+        card.capabilities = capabilities;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "documentationUrl") &&
+        !AppExecFwk::GetStringProperty(env, object, "documentationUrl", card.documentationUrl)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "iconUrl") &&
+        !AppExecFwk::GetStringProperty(env, object, "iconUrl", card.iconUrl)) {
+        return false;
+    }
+    if (AppExecFwk::IsExistsProperty(env, object, "extension") &&
+        !AppExecFwk::GetStringProperty(env, object, "extension", card.extension)) {
+        return false;
+    }
+
+    ref = nullptr;
+    if (!AppExecFwk::GetRefProperty(env, object, "appInfo", ref) || ref == nullptr) {
+        return false;
+    }
+    auto appInfo = std::make_shared<AgentAppInfo>();
+    if (!ParseEtsAgentAppInfo(env, reinterpret_cast<ani_object>(ref), *appInfo)) {
+        return false;
+    }
+    card.appInfo = appInfo;
+    return true;
 }
 } // namespace AgentManagerEts
 } // namespace OHOS
