@@ -29,11 +29,14 @@
 #include "native_lib_util.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
+#include "parameters.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::AbilityBase::Constants;
 using OHOS::AbilityRuntime::ChildProcessManager;
+constexpr const char* PLUGIN_DEFAULT_NAMESPACE_LDDICTIONARY =
+    "persist.sys.abilityms.plugin_default_namespace_lddictionary";
 ChildMainThread::ChildMainThread()
 {
     processArgs_ = std::make_shared<ChildProcessArgs>();
@@ -117,6 +120,7 @@ void ChildMainThread::SetFds(const std::map<std::string, int32_t> &fds)
 bool ChildMainThread::Init(const std::shared_ptr<EventRunner> &runner, const ChildProcessInfo &processInfo)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGI(AAFwkTag::APPKIT, "testTag Init called");
     if (runner == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runner");
         return false;
@@ -130,6 +134,17 @@ bool ChildMainThread::Init(const std::shared_ptr<EventRunner> &runner, const Chi
         return false;
     }
     InitNativeLib(*bundleInfo_, processInfo.hspList);
+    TAG_LOGI(AAFwkTag::APPKIT, "testTag type:%{public}d", processInfo_->childProcessType);
+    if (!IsEtsAPP(*processInfo_)) {
+        TAG_LOGI(AAFwkTag::APPKIT, "testTag IsEtsAPP false");
+        auto lddictionaries = ParsePluginDefaultNamespaceLdDictionary();
+        if (!lddictionaries.empty()) {
+            AbilityRuntime::JsRuntime::CreatePluginDefaultNamespace(lddictionaries);
+        }
+    } else {
+        TAG_LOGI(AAFwkTag::APPKIT, "testTag IsEtsAPP true");
+    }
+    
     return true;
 }
 
@@ -449,6 +464,25 @@ void ChildMainThread::GetNativeLibPath(const BundleInfo &bundleInfo, const HspLi
 void ChildMainThread::OnLoadAbilityFinished(uint64_t callbackId, int32_t pid)
 {
     LoadAbilityCallbackManager::GetInstance().OnLoadAbilityFinished(callbackId, pid);
+}
+
+std::string ChildMainThread::ParsePluginDefaultNamespaceLdDictionary()
+{
+    pluginDefaultNamespaceLdDictionary_ = system::GetParameter(PLUGIN_DEFAULT_NAMESPACE_LDDICTIONARY, "");
+    TAG_LOGD(AAFwkTag::APPKIT, "plugin_default_namespace_lddictionary: %{public}s",
+        pluginDefaultNamespaceLdDictionary_.c_str());
+    TAG_LOGI(AAFwkTag::APPKIT, "testTag plugin_default_namespace_lddictionary: %{public}s",
+        pluginDefaultNamespaceLdDictionary_.c_str());
+    return pluginDefaultNamespaceLdDictionary_;
+}
+
+bool ChildMainThread::IsEtsAPP(const ChildProcessInfo &processInfo)
+{
+    if (processInfo.bundleInfo == nullptr) {
+        return false;
+    }
+    return processInfo.bundleInfo->applicationInfo.arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 ||
+        processInfo.bundleInfo->applicationInfo.arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
