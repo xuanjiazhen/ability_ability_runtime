@@ -99,16 +99,19 @@ ani_status unbox<ani_int>(ani_env *env, ani_object obj, ani_int *result)
 {
     if (g_intCls == nullptr) {
         ani_class intCls {};
-        auto status = env->FindClass("std.core.Integer", &intCls);
+        auto status = env->FindClass("std.core.Int", &intCls);
         if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ANI, "testTag status1: %{public}d", status);
             return status;
         }
         status = env->GlobalReference_Create(intCls, &g_intCls);
         if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ANI, "testTag status2: %{public}d", status);
             return status;
         }
         status = env->Class_FindMethod(intCls, "toInt", ":i", &unboxInt);
         if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::ANI, "testTag status3: %{public}d", status);
             return status;
         }
     }
@@ -469,6 +472,7 @@ ani_boolean EtsWantParams::NativeSetArrayDoubleParam(ani_env *env, ani_object, a
 bool EtsWantParams::SetArrayInt(ani_env *env, const std::string &key, ani_object value,
     AAFwk::WantParams &wantParams)
 {
+    TAG_LOGI(AAFwkTag::WANT, "testTag SetArrayInt call");
     ani_boolean isUndefined = true;
     ani_status status = env->Reference_IsUndefined(value, &isUndefined);
     if (status != ANI_OK) {
@@ -495,12 +499,12 @@ bool EtsWantParams::SetArrayInt(ani_env *env, const std::string &key, ani_object
         ani_int intValue {};
         status = env->Array_Get(array, i, &intRef);
         if (status != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ANI, "Array_Get failed, status: %{public}d", status);
+            TAG_LOGE(AAFwkTag::ANI, "testTag Array_Get failed, status: %{public}d", status);
             return false;
         }
         status = unbox(env, static_cast<ani_object>(intRef), &intValue);
         if (status != ANI_OK) {
-            TAG_LOGE(AAFwkTag::ANI, "Unbox failed, status: %{public}d", status);
+            TAG_LOGE(AAFwkTag::ANI, "testTag Unbox failed, status: %{public}d", status);
             return false;
         }
         nativeArray[i] = intValue;
@@ -518,6 +522,7 @@ ani_boolean EtsWantParams::NativeSetArrayIntParam(ani_env *env, ani_object, ani_
     ani_string key, ani_object value)
 {
     TAG_LOGD(AAFwkTag::WANT, "call");
+    TAG_LOGI(AAFwkTag::WANT, "testTag NativeSetArrayIntParam call");
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::WANT, "null env");
         return false;
