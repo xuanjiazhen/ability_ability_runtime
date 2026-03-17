@@ -41,7 +41,6 @@
 #include "hitrace_meter.h"
 #include "procinfo.h"
 #ifdef SUPPORT_CHILD_PROCESS
-#include "child_main_thread.h"
 #include "child_process_manager.h"
 #endif // SUPPORT_CHILD_PROCESS
 #include "configuration_convertor.h"
@@ -3212,14 +3211,6 @@ void MainThread::Start()
     }
 
     thread->RemoveAppMgrDeathRecipient();
-}
-
-void MainThread::StartChild(const std::map<std::string, int32_t> &fds)
-{
-#ifdef SUPPORT_CHILD_PROCESS
-    TAG_LOGI(AAFwkTag::APPKIT, "MainThread StartChild, fds size:%{public}zu", fds.size());
-    ChildMainThread::Start(fds);
-#endif  // SUPPORT_CHILD_PROCESS
 }
 
 void MainThread::PreloadExtensionPlugin()
