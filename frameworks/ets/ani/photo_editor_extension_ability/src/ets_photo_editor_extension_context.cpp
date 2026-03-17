@@ -38,9 +38,9 @@ constexpr const char *ERR_MSG_PARAMS_ERROR = "Params error";
 constexpr const char *ERR_MSG_INTERNAL_ERROR = "Internal error";
 
 constexpr const char* PHOTO_EDITOR_EXTENSION_CONTEXT_CLASS_NAME =
-    "application.PhotoEditorExtensionContext.PhotoEditorExtensionContext";
+    "application:PhotoEditorExtensionContext.PhotoEditorExtensionContext";
 
-constexpr const char* CLEANER_CLASS_NAME =  "application.PhotoEditorExtensionContext.Cleaner";
+constexpr const char* CLEANER_CLASS_NAME =  "application:PhotoEditorExtensionContext.Cleaner";
 
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {

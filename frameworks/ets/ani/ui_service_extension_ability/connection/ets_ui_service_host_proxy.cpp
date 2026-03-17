@@ -29,7 +29,7 @@ namespace OHOS {
 namespace AAFwk {
 using namespace AbilityRuntime;
 
-constexpr const char *UI_SERVICE_HOST_PROXY_CLASS_NAME = "application.UIServiceHostProxy.UIServiceHostProxyImpl";
+constexpr const char *UI_SERVICE_HOST_PROXY_CLASS_NAME = "application:UIServiceHostProxy.UIServiceHostProxyImpl";
 
 ani_object EtsUIServiceHostProxy::CreateEtsUIServiceHostProxy(ani_env *env, const sptr<IRemoteObject> &impl)
 {

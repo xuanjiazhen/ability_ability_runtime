@@ -37,7 +37,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char *INSIGHT_INTENT_CONTEXT_CLASS_NAME =
-    "@ohos.app.ability.InsightIntentContext.InsightIntentContext";
+    "@ohos:app.ability.InsightIntentContext.InsightIntentContext";
 } // namespace
 
 ani_object EtsInsightIntentContextModule::NativeTransferStatic(
@@ -339,9 +339,9 @@ void EtsInsightIntentContextModuleInit(ani_env *aniEnv)
     }
 
     std::array nativeFuncs = {
-        ani_native_function { "nativeTransferStatic", "C{std.interop.ESValue}C{std.core.String}:C{std.core.Object}",
+        ani_native_function { "nativeTransferStatic", "C{std:interop.ESValue}C{std:core.String}:C{std:core.Object}",
             reinterpret_cast<void *>(EtsInsightIntentContextModule::NativeTransferStatic) },
-        ani_native_function { "nativeTransferDynamic", "C{std.core.Object}:C{std.interop.ESValue}",
+        ani_native_function { "nativeTransferDynamic", "C{std:core.Object}:C{std:interop.ESValue}",
             reinterpret_cast<void *>(EtsInsightIntentContextModule::NativeTransferDynamic) },
     };
     status = aniEnv->Class_BindStaticNativeMethods(insightIntentContextCls, nativeFuncs.data(), nativeFuncs.size());

@@ -24,7 +24,7 @@
 #include "res_common.h"
 
 namespace {
-constexpr const char *COLOR_MODE_ENUM_NAME = "@ohos.app.ability.ConfigurationConstant.ConfigurationConstant.ColorMode";
+constexpr const char *COLOR_MODE_ENUM_NAME = "@ohos:app.ability.ConfigurationConstant.ConfigurationConstant.ColorMode";
 
 bool IsValidValue(const char *end, const std::string &str)
 {

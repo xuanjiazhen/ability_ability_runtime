@@ -32,9 +32,9 @@ constexpr const char* ERROR_MSG_INNER = "Inner error.";
 #endif // SUPPORT_SCREEN
 
 namespace {
-constexpr const char *ABILITY_START_CLASS_NAME = "application.AbilityStartCallback.AbilityStartCallback";
+constexpr const char *ABILITY_START_CLASS_NAME = "application:AbilityStartCallback.AbilityStartCallback";
 constexpr const char *ABILITY_START_FAILURE_CODE_ENUM_NAME =
-    "@ohos.app.ability.CompletionHandlerForAbilityStartCallback.AbilityStartFailureCode";
+    "@ohos:app.ability.CompletionHandlerForAbilityStartCallback.AbilityStartFailureCode";
 }
 
 EtsUIExtensionCallback::~EtsUIExtensionCallback()

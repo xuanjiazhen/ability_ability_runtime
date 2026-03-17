@@ -43,16 +43,16 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *ETS_CONTEXT_CLASS_NAME = "application.Context.Context";
+constexpr const char *ETS_CONTEXT_CLASS_NAME = "application:Context.Context";
 
 std::string GetClassNameByContextType(const std::string &contextType)
 {
     std::string className;
     static const std::unordered_map<std::string, std::string> mapping = {
-        {"Context", "application.Context.Context"},
-        {"ApplicationContext", "application.ApplicationContext.ApplicationContext"},
-        {"AbilityStageContext", "application.AbilityStageContext.AbilityStageContext"},
-        {"UIAbilityContext", "application.UIAbilityContext.UIAbilityContext"}
+        {"Context", "application:Context.Context"},
+        {"ApplicationContext", "application:ApplicationContext.ApplicationContext"},
+        {"AbilityStageContext", "application:AbilityStageContext.AbilityStageContext"},
+        {"UIAbilityContext", "application:UIAbilityContext.UIAbilityContext"}
     };
     auto it = mapping.find(contextType);
     if (it != mapping.end()) {
@@ -433,9 +433,9 @@ void EtsContextModuleInit(ani_env *aniEnv)
     }
 
     std::array nativeFuncs = {
-        ani_native_function { "nativeTransferStatic", "C{std.interop.ESValue}C{std.core.String}:C{std.core.Object}",
+        ani_native_function { "nativeTransferStatic", "C{std:interop.ESValue}C{std:core.String}:C{std:core.Object}",
             reinterpret_cast<void*>(EtsContextModule::NativeTransferStatic) },
-        ani_native_function { "nativeTransferDynamic", "C{std.core.Object}:C{std.interop.ESValue}",
+        ani_native_function { "nativeTransferDynamic", "C{std:core.Object}:C{std:interop.ESValue}",
             reinterpret_cast<void*>(EtsContextModule::NativeTransferDynamic) },
     };
     status = aniEnv->Class_BindStaticNativeMethods(contextCls, nativeFuncs.data(), nativeFuncs.size());
@@ -448,7 +448,7 @@ void EtsContextModuleInit(ani_env *aniEnv)
         [](ani_env *aniEnv, std::shared_ptr<Context> context) -> ani_object {
             ani_class cls {};
             ani_status status = ANI_ERROR;
-            if ((status = aniEnv->FindClass("application.Context.Context", &cls)) != ANI_OK) {
+            if ((status = aniEnv->FindClass("application:Context.Context", &cls)) != ANI_OK) {
                 TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
                 return nullptr;
             }

@@ -67,17 +67,17 @@ const std::string METHOD_NAME = "WindowScene::GoForeground";
 #ifdef SUPPORT_SCREEN
 constexpr int32_t BASE_DISPLAY_ID_NUM(10);
 #endif
-constexpr const char *UI_ABILITY_CLASS_NAME = "@ohos.app.ability.UIAbility.UIAbility";
+constexpr const char *UI_ABILITY_CLASS_NAME = "@ohos:app.ability.UIAbility.UIAbility";
 constexpr const char *UI_ABILITY_SIGNATURE_VOID = ":";
-constexpr const char *MEMORY_LEVEL_ENUM_NAME = "@ohos.app.ability.AbilityConstant.AbilityConstant.MemoryLevel";
-constexpr const char *ON_SAVE_RESULT_ENUM_NAME = "@ohos.app.ability.AbilityConstant.AbilityConstant.OnSaveResult";
+constexpr const char *MEMORY_LEVEL_ENUM_NAME = "@ohos:app.ability.AbilityConstant.AbilityConstant.MemoryLevel";
+constexpr const char *ON_SAVE_RESULT_ENUM_NAME = "@ohos:app.ability.AbilityConstant.AbilityConstant.OnSaveResult";
 constexpr int32_t ON_SAVESTATE_INDEX_ONE = 1;
 constexpr const int32_t CALL_BACK_ERROR = -1;
-constexpr const char *ON_SHARE_SIGNATURE = "C{std.core.Record}:";
+constexpr const char *ON_SHARE_SIGNATURE = "C{std:core.Record}:";
 constexpr const char *ON_COLLABORATE =
-    "C{std.core.Record}:C{@ohos.app.ability.AbilityConstant.AbilityConstant.CollaborateResult}";
+    "C{std:core.Record}:C{@ohos:app.ability.AbilityConstant.AbilityConstant.CollaborateResult}";
 constexpr const char *ON_SAVE_STATE_CALLBACK =
-    "C{std.core.Record}C{@ohos.app.ability.AbilityConstant.AbilityConstant.OnSaveResult}i:";
+    "C{std:core.Record}C{@ohos:app.ability.AbilityConstant.AbilityConstant.OnSaveResult}i:";
 constexpr const int32_t API12 = 12;
 constexpr int32_t API_VERSION_MOD = 1000;
 

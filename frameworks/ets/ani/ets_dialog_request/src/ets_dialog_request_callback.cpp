@@ -107,7 +107,7 @@ ani_object CreateEtsDialogRequestCallback(ani_env *env, const sptr<IDialogReques
     ani_method method = nullptr;
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("@ohos.app.ability.dialogRequest.dialogRequest.RequestCallbackInner", &cls);
+    status = env->FindClass("@ohos:app.ability.dialogRequest.dialogRequest.RequestCallbackInner", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::DIALOG, "FindClass failed, status = %{public}d", status);
         return nullptr;

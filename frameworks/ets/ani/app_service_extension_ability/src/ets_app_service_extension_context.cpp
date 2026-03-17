@@ -37,15 +37,15 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *CONTEXT_CLASS_NAME = "application.AppServiceExtensionContext.AppServiceExtensionContext";
+constexpr const char *CONTEXT_CLASS_NAME = "application:AppServiceExtensionContext.AppServiceExtensionContext";
 constexpr const char *APP_SERVICE_EXTENSION_CONTEXT_CLASS_NAME =
-"application.AppServiceExtensionContext.AppServiceExtensionContext";
+"application:AppServiceExtensionContext.AppServiceExtensionContext";
 static std::mutex g_connectsMutex;
 static std::recursive_mutex g_connectsLock;
 static std::map<EtsConnectionKey, sptr<ETSAppServiceExtensionConnection>, EtsKeyCompare> g_connects;
 static int64_t g_serialNumber = 0;
 constexpr const int FAILED_CODE = -1;
-constexpr const char *CLEANER_CLASS_NAME = "application.AppServiceExtensionContext.Cleaner";
+constexpr const char *CLEANER_CLASS_NAME = "application:AppServiceExtensionContext.Cleaner";
 constexpr const int ANI_ALREADY_BINDED = 8;
 }
 
@@ -53,20 +53,20 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
     ani_status status = ANI_ERROR;
     std::array functions = {
-        ani_native_function { "nativeTerminateSelf", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+        ani_native_function { "nativeTerminateSelf", "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAppServiceExtensionContext::TerminateSelf) },
         ani_native_function { "nativeStartAbility",
-            "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAppServiceExtensionContext::StartAbility) },
         ani_native_function { "nativeStartAbility",
-            "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{@ohos:app.ability.Want.Want}C{@ohos:app.ability.StartOptions.StartOptions}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAppServiceExtensionContext::StartAbilityWithOption) },
         ani_native_function { "nativeConnectServiceExtensionAbility",
-            "C{@ohos.app.ability.Want.Want}C{ability.connectOptions.ConnectOptions}:l",
+            "C{@ohos:app.ability.Want.Want}C{ability:connectOptions.ConnectOptions}:l",
             reinterpret_cast<void *>(EtsAppServiceExtensionContext::ConnectServiceExtensionAbility) },
         ani_native_function { "nativeDisconnectServiceExtensionAbility",
-            "lC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "lC{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAppServiceExtensionContext::DisconnectServiceExtensionAbility) },
     };
     if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK

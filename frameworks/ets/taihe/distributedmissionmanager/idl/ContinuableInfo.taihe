@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-@!namespace("application.ContinuableInfo")
+@!namespace("application:ContinuableInfo")
 
 struct ContinuableInfo {
   srcDeviceId: String;

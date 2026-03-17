@@ -22,8 +22,8 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-constexpr const char* CLASSNAME_CHILDPROCESSARGS = "@ohos.app.ability.ChildProcessArgs.ChildProcessArgsImpl";
-constexpr const char* RECORD_CLASS_NAME = "std.core.Record";
+constexpr const char* CLASSNAME_CHILDPROCESSARGS = "@ohos:app.ability.ChildProcessArgs.ChildProcessArgsImpl";
+constexpr const char* RECORD_CLASS_NAME = "std:core.Record";
 }
 
 bool SetFds(ani_env* env, ani_object object, std::map<std::string, int32_t> &fds)
@@ -53,7 +53,7 @@ bool SetFds(ani_env* env, ani_object object, std::map<std::string, int32_t> &fds
     }
     ani_method recordSetMethod = nullptr;
     status = env->Class_FindMethod(recordCls, "$_set",
-        "X{C{std.core.Numeric}C{std.core.String}C{std.core.BaseEnum}}Y:", &recordSetMethod);
+        "X{C{std:core.Numeric}C{std:core.String}C{std:core.BaseEnum}}Y:", &recordSetMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "Class_FindMethod failed status: %{public}d", status);
         return false;

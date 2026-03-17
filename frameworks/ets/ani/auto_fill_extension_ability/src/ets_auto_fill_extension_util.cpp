@@ -24,15 +24,15 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *FILL_REQUEST_CLASS_NAME = "application.AutoFillRequest.FillRequestInner";
-constexpr const char *SAVE_REQUEST_CLASS_NAME = "application.AutoFillRequest.SaveRequestInner";
-constexpr const char *UPDATE_REQUEST_CLASS_NAME = "application.AutoFillRequest.UpdateRequestInner";
-constexpr const char *VIEW_DATA_CLASS_NAME = "application.ViewData.ViewDataImpl";
-constexpr const char *ARRAY_CLASS_NAME = "std.core.Array";
-constexpr const char *PAGE_NODE_INFO_CLASS_NAME = "application.PageNodeInfo.PageNodeInfoImpl";
-constexpr const char *AUTO_FILL_RECT_CLASS_NAME = "application.AutoFillRect.AutoFillRectImpl";
-constexpr const char *CUSTOM_DATA_CLASS_NAME = "application.CustomData.CustomDataInner";
-constexpr const char *AUTO_FILL_TYPE_ENUM_NAME = "application.AutoFillType.AutoFillType";
+constexpr const char *FILL_REQUEST_CLASS_NAME = "application:AutoFillRequest.FillRequestInner";
+constexpr const char *SAVE_REQUEST_CLASS_NAME = "application:AutoFillRequest.SaveRequestInner";
+constexpr const char *UPDATE_REQUEST_CLASS_NAME = "application:AutoFillRequest.UpdateRequestInner";
+constexpr const char *VIEW_DATA_CLASS_NAME = "application:ViewData.ViewDataImpl";
+constexpr const char *ARRAY_CLASS_NAME = "std:core.Array";
+constexpr const char *PAGE_NODE_INFO_CLASS_NAME = "application:PageNodeInfo.PageNodeInfoImpl";
+constexpr const char *AUTO_FILL_RECT_CLASS_NAME = "application:AutoFillRect.AutoFillRectImpl";
+constexpr const char *CUSTOM_DATA_CLASS_NAME = "application:CustomData.CustomDataInner";
+constexpr const char *AUTO_FILL_TYPE_ENUM_NAME = "application:AutoFillType.AutoFillType";
 constexpr const char *VIEW_DATA_BUNDLE_NAME = "bundleName";
 constexpr const char *VIEW_DATA_MODULE_NAME = "moduleName";
 constexpr const char *VIEW_DATA_ABILITY_NAME = "abilityName";
@@ -68,7 +68,7 @@ constexpr const char *RECT_HEIGHT = "height";
 constexpr uint32_t PAGE_NODE_COUNT_MAX = 100;
 constexpr const char *WANT_PARAMS_AUTO_FILL_TRIGGER_TYPE_KEY = "ability.want.params.AutoFillTriggerType";
 constexpr const char *TRIGGER_TYPE = "triggerType";
-constexpr const char *AUTO_FILL_TRIGGER_TYPE_ENUM_NAME = "application.AutoFillTriggerType.AutoFillTriggerType";
+constexpr const char *AUTO_FILL_TRIGGER_TYPE_ENUM_NAME = "application:AutoFillTriggerType.AutoFillTriggerType";
 } // namespace
 
 ani_object EtsAutoFillExtensionUtil::WrapFillRequest(ani_env *env, const AAFwk::Want &want)

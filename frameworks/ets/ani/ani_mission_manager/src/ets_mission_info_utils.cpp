@@ -26,7 +26,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 
 namespace {
-constexpr const char* ETS_MISSION_INFO_NAME = "application.MissionInfo.MissionInfoInner";
+constexpr const char* ETS_MISSION_INFO_NAME = "application:MissionInfo.MissionInfoInner";
 constexpr const char* KEY_MISSION_ID = "missionId";
 constexpr const char* KEY_RUNNING_STATE = "runningState";
 constexpr const char* KEY_LOCKED_STATE = "lockedState";
@@ -37,7 +37,7 @@ constexpr const char* KEY_CONTINUABLE = "continuable";
 constexpr const char* KEY_ABILITY_STATE = "abilityState";
 constexpr const char* KEY_UNCLEARABLE = "unclearable";
 constexpr const char* KEY_WANT = "want";
-constexpr const char *WANT_CLASS_NAME = "@ohos.app.ability.Want.Want";
+constexpr const char *WANT_CLASS_NAME = "@ohos:app.ability.Want.Want";
 constexpr const char *SET_OBJECT_VOID_SIGNATURE = "iY:";
 }
 
@@ -191,7 +191,7 @@ ani_object CreateEtsMissionInfos(ani_env *env, const std::vector<AAFwk::MissionI
     }
     ani_class arrayCls = nullptr;
     ani_status status = ANI_ERROR;
-    status = env->FindClass("std.core.Array", &arrayCls);
+    status = env->FindClass("std:core.Array", &arrayCls);
     if (status != ANI_OK || arrayCls == nullptr) {
         TAG_LOGE(AAFwkTag::MISSION, "FindClass failed, status : %{public}d", status);
         return nullptr;

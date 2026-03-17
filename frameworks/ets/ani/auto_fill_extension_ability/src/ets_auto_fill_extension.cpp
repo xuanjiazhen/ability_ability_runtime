@@ -46,17 +46,17 @@ constexpr static char WANT_PARAMS_AUTO_FILL_EVENT_KEY[] = "ability.want.params.A
 constexpr const char *WANT_PARAMS_CUSTOM_DATA = "ohos.ability.params.customData";
 constexpr const char *WANT_PARAMS_AUTO_FILL_POPUP_WINDOW_KEY = "ohos.ability.params.popupWindow";
 constexpr const char *AUTO_FILL_EXTENSION_CLASS_NAME =
-    "@ohos.app.ability.AutoFillExtensionAbility.AutoFillExtensionAbility";
-constexpr const char *ON_REQUEST_METHOD_NAME = "C{@ohos.app.ability.Want.Want}i:";
+    "@ohos:app.ability.AutoFillExtensionAbility.AutoFillExtensionAbility";
+constexpr const char *ON_REQUEST_METHOD_NAME = "C{@ohos:app.ability.Want.Want}i:";
 constexpr const char *ON_SESSION_DESTROY_METHOD_NAME =
-    "C{@ohos.app.ability.UIExtensionContentSession.UIExtensionContentSession}:";
+    "C{@ohos:app.ability.UIExtensionContentSession.UIExtensionContentSession}:";
 constexpr const char *ON_SAVE_REQUEST_METHOD_NAME =
-    "C{@ohos.app.ability.UIExtensionContentSession.UIExtensionContentSession}"
-    "C{application.AutoFillRequest.SaveRequest}C{application.AutoFillRequest.SaveRequestCallback}:";
+    "C{@ohos:app.ability.UIExtensionContentSession.UIExtensionContentSession}"
+    "C{application:AutoFillRequest.SaveRequest}C{application:AutoFillRequest.SaveRequestCallback}:";
 constexpr const char *ON_FILL_REQUEST_METHOD_NAME =
-    "C{@ohos.app.ability.UIExtensionContentSession.UIExtensionContentSession}"
-    "C{application.AutoFillRequest.FillRequest}C{application.AutoFillRequest.FillRequestCallback}:";
-constexpr const char *ON_UPDATE_REQUEST_METHOD_NAME = "C{application.AutoFillRequest.UpdateRequest}:";
+    "C{@ohos:app.ability.UIExtensionContentSession.UIExtensionContentSession}"
+    "C{application:AutoFillRequest.FillRequest}C{application:AutoFillRequest.FillRequestCallback}:";
+constexpr const char *ON_UPDATE_REQUEST_METHOD_NAME = "C{application:AutoFillRequest.UpdateRequest}:";
 }
 
 EtsAutoFillExtension *EtsAutoFillExtension::Create(const std::unique_ptr<Runtime> &runtime)

@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-@!namespace("application.MissionDeviceInfo")
+@!namespace("application:MissionDeviceInfo")
 
 struct MissionDeviceInfo {
   deviceId: String;

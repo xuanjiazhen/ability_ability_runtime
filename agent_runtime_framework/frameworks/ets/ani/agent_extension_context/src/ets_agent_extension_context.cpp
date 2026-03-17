@@ -28,7 +28,7 @@ namespace OHOS {
 namespace AgentRuntime {
 
 namespace {
-constexpr const char *CONTEXT_CLASS_NAME = "application.AgentExtensionContext.AgentExtensionContext";
+constexpr const char *CONTEXT_CLASS_NAME = "application:AgentExtensionContext.AgentExtensionContext";
 }
 
 void EtsAgentExtensionContext::Finalizer(ani_env *env, void *data, void *hint)

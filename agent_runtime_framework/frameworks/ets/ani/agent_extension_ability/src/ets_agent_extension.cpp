@@ -45,13 +45,13 @@ using namespace OHOS::AbilityRuntime;
 using namespace OHOS::AppExecFwk;
 
 namespace {
-constexpr const char *ON_CREATE_SIGNATURE = "C{@ohos.app.ability.Want.Want}:";
-constexpr const char *ON_DATA_SIGNATURE = "C{application.AgentHostProxy.AgentHostProxy}C{std.core.String}:";
-constexpr const char *ON_AUTH_SIGNATURE = "C{application.AgentHostProxy.AgentHostProxy}C{std.core.String}:";
+constexpr const char *ON_CREATE_SIGNATURE = "C{@ohos:app.ability.Want.Want}:";
+constexpr const char *ON_DATA_SIGNATURE = "C{application:AgentHostProxy.AgentHostProxy}C{std:core.String}:";
+constexpr const char *ON_AUTH_SIGNATURE = "C{application:AgentHostProxy.AgentHostProxy}C{std:core.String}:";
 constexpr const char *ON_CONNECT_SIGNATURE =
-    "C{@ohos.app.ability.Want.Want}C{application.AgentHostProxy.AgentHostProxy}:";
+    "C{@ohos:app.ability.Want.Want}C{application:AgentHostProxy.AgentHostProxy}:";
 constexpr const char *ON_DISCONNECT_SIGNATURE =
-    "C{@ohos.app.ability.Want.Want}C{application.AgentHostProxy.AgentHostProxy}:";
+    "C{@ohos:app.ability.Want.Want}C{application:AgentHostProxy.AgentHostProxy}:";
 constexpr const char *VOID_SIGNATURE = ":";
 } // namespace
 

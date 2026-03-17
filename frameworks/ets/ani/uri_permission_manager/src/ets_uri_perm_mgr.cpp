@@ -43,7 +43,7 @@ ani_object CreateDouble(ani_env *env, int32_t res)
     if (env == nullptr) {
         return nullptr;
     }
-    static const char *className = "std.core.Double";
+    static const char *className = "std:core.Double";
     ani_class cls;
     if (ANI_OK != env->FindClass(className, &cls)) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "create double error");
@@ -227,7 +227,7 @@ void EtsUriPermissionManagerInit(ani_env *env)
         return;
     }
     ani_namespace ns;
-    const char* targetNamespace = "@ohos.application.uriPermissionManager.uriPermissionManager";
+    const char* targetNamespace = "@ohos:application.uriPermissionManager.uriPermissionManager";
     if (env->FindNamespace(targetNamespace, &ns) != ANI_OK) {
         TAG_LOGE(AAFwkTag::URIPERMMGR, "FindNamespace failed");
     }
@@ -238,14 +238,14 @@ void EtsUriPermissionManagerInit(ani_env *env)
     std::array functions = {
         ani_native_function {
             "grantUriPermissionCallbackSync",
-            "C{std.core.String}C{@ohos.app.ability.wantConstant.wantConstant.Flags}C{std.core.String}i"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{@ohos:app.ability.wantConstant.wantConstant.Flags}C{std:core.String}i"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(grantUriPermissionCallbackSync)
         },
         ani_native_function {
             "revokeUriPermissionCallbackSync",
-            "C{std.core.String}C{std.core.String}i"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{std:core.String}i"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void*>(revokeUriPermissionCallbackSync)
         },
         ani_native_function {

@@ -26,9 +26,9 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *SIGNATURE_UIABILITY = "C{@ohos.app.ability.UIAbility.UIAbility}:";
+constexpr const char *SIGNATURE_UIABILITY = "C{@ohos:app.ability.UIAbility.UIAbility}:";
 constexpr const char *SIGNATURE_UIABILITY_WINDOW_STAGE =
-    "C{@ohos.app.ability.UIAbility.UIAbility}C{@ohos.window.window.WindowStage}:";
+    "C{@ohos:app.ability.UIAbility.UIAbility}C{@ohos:window.window.WindowStage}:";
 constexpr const int32_t ERROR_CODE_NULL_ENV = -1;
 constexpr const int32_t ERROR_CODE_NULL_CALLBACK = -2;
 constexpr const int32_t ERROR_CODE_NULL_REF = -3;
