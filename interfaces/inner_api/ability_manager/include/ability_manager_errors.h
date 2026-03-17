@@ -1113,6 +1113,15 @@ enum {
     // Result (2099213) for agent card id does not exist.
     ERR_INVALID_AGENT_CARD_ID = 2099213,
 
+    // Result (2099214) for agent card version is older than stored version.
+    ERR_AGENT_CARD_VERSION_TOO_OLD = 2099214,
+
+    // Result (2099215) for invalid agent card version.
+    ERR_INVALID_AGENT_CARD_VERSION = 2099215,
+
+    // Result (2099216) for duplicate register of an existing agent card.
+    ERR_AGENT_CARD_DUPLICATE_REGISTER = 2099216,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */
