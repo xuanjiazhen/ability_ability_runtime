@@ -556,6 +556,7 @@ HWTEST_F(AgentCardTest, AgentCardMarshalling_001, TestSize.Level1)
 {
     AgentCard agentCard;
     agentCard.agentId = "1";
+    agentCard.type = AgentCardType::WORKFLOW;
     agentCard.name = "test1";
     agentCard.description = "test1";
     std::shared_ptr<AgentProvider> provider = std::make_shared<AgentProvider>();
@@ -1919,6 +1920,7 @@ HWTEST_F(AgentCardTest, AgentCard_Marshalling_001, TestSize.Level1)
     Parcel parcelMock;
     auto agentCard = std::make_shared<AgentCard>();
     agentCard->agentId = "1";
+    agentCard->type = AgentCardType::WORKFLOW;
     agentCard->name = "ExampleName";
     agentCard->description = "ExampleDescription";
     agentCard->category = "ExampleCategory";
@@ -3495,6 +3497,59 @@ HWTEST_F(AgentCardTest, AgentCardFromJson_043, TestSize.Level1)
     AgentCard agentCard;
     EXPECT_TRUE(AgentCard::FromJson(jsonObject, agentCard));
     EXPECT_EQ(agentCard.appInfo->deviceTypes.size(), 2);
+}
+
+/**
+ * @tc.name: AgentCardFromJson_044
+ * @tc.desc: Test AgentCard FromJson defaults type to APP when absent
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, AgentCardFromJson_044, TestSize.Level1)
+{
+    nlohmann::json jsonObject = nlohmann::json {
+        { "agentId", "1" },
+        { "name", "test" },
+        { "description", "test description" },
+        { "version", "1.0" },
+        { "category", "productivity" },
+        { "defaultInputModes", nlohmann::json::array({ "text" }) },
+        { "defaultOutputModes", nlohmann::json::array({ "text" }) },
+        { "skills", nlohmann::json::array({
+            nlohmann::json {
+                { "id", "test" },
+                { "name", "test" },
+                { "description", "test" },
+                { "tags", nlohmann::json::array({ "test" }) }
+            }
+        })},
+    };
+    AgentCard agentCard;
+    EXPECT_TRUE(AgentCard::FromJson(jsonObject, agentCard));
+    EXPECT_EQ(agentCard.type, AgentCardType::APP);
+}
+
+/**
+ * @tc.name: AgentCardToJson_002
+ * @tc.desc: Test AgentCard ToJson includes type
+ * @tc.type: FUNC
+ * @tc.require: AR000H1N32
+ */
+HWTEST_F(AgentCardTest, AgentCardToJson_002, TestSize.Level1)
+{
+    AgentCard agentCard;
+    agentCard.agentId = "1";
+    agentCard.type = AgentCardType::WORKFLOW;
+    agentCard.name = "test";
+    agentCard.description = "test description";
+    agentCard.version = "1.0";
+    agentCard.category = "productivity";
+    agentCard.defaultInputModes = { "text" };
+    agentCard.defaultOutputModes = { "text" };
+
+    nlohmann::json jsonObject = agentCard.ToJson();
+    EXPECT_TRUE(jsonObject.contains("type"));
+    EXPECT_EQ(jsonObject["type"], static_cast<int32_t>(AgentCardType::WORKFLOW));
 }
 
 /**
