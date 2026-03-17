@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "ability_business_error.h"
+#include "ability_manager_errors.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -70,6 +71,12 @@ HWTEST_F(AbilityBusinessErrorTest, GetJsErrorCodeByNativeError_0100, TestSize.Le
 
     result = GetJsErrorCodeByNativeError(-1000);
     EXPECT_TRUE(result == AbilityErrorCode::ERROR_CODE_INNER);
+
+    result = GetJsErrorCodeByNativeError(OHOS::AAFwk::ERR_INVALID_AGENT_CARD_VERSION);
+    EXPECT_TRUE(result == AbilityErrorCode::ERROR_CODE_AGENT_CARD_VERSION_INVALID);
+
+    result = GetJsErrorCodeByNativeError(OHOS::AAFwk::ERR_AGENT_CARD_DUPLICATE_REGISTER);
+    EXPECT_TRUE(result == AbilityErrorCode::ERROR_CODE_AGENT_CARD_DUPLICATE_REGISTER);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
