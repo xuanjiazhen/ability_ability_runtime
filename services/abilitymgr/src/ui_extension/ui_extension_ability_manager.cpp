@@ -1175,6 +1175,10 @@ void UIExtensionAbilityManager::HandleAbilityDiedTaskInner(const std::shared_ptr
     if (IsUIExtensionAbility(abilityRecord)) {
         HandleUIExtensionDied(abilityRecord);
     }
+    if (UIExtensionWrapper::IsAgentUIExtension(abilityRecord->GetAbilityInfo().extensionAbilityType)) {
+        uiExtensionAbilityRecordMgr_->RemoveAgentUILaunchRecord(
+            abilityRecord->GetAbilityInfo().bundleName, abilityRecord->GetUIExtensionAbilityId());
+    }
     bool isRemove = HandleExtensionAbilityRemove(abilityRecord);
     HandleAfterServiceRemoved(abilityRecord, isRemove);
 }
