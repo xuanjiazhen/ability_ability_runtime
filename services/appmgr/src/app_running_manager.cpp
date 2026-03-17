@@ -976,6 +976,10 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         };
 
     auto isLastAbility = appRecord->IsLastAbilityByFlag(token, clearMissionFlag);
+    auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
+    bool shouldKillLastAgentProcess = abilityRecord != nullptr && abilityRecord->GetAbilityInfo() != nullptr &&
+        abilityRecord->GetAbilityInfo()->extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT &&
+        isLastAbility;
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         appRecord->TerminateAbility(token, true);
@@ -985,13 +989,14 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
 #endif //SUPPORT_SCREEN
     auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
-    TAG_LOGI(AAFwkTag::PROCESSMGR, "terminate isLast:%{public}d,keepAlive:%{public}d", isLastAbility, isKeepAliveApp);
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "terminate isLast:%{public}d,killLastAgent:%{public}d,keepAlive:%{public}d",
+        isLastAbility, shouldKillLastAgentProcess, isKeepAliveApp);
     if (isLastAbility && !isKeepAliveApp && !isLauncherApp) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
-        if (cacheProcMgr != nullptr) {
+        if (!shouldKillLastAgentProcess && cacheProcMgr != nullptr) {
             cacheProcMgr->CheckAndSetProcessCacheEnable(appRecord);
         }
-        if (cacheProcMgr != nullptr && cacheProcMgr->IsAppShouldCache(appRecord)) {
+        if (!shouldKillLastAgentProcess && cacheProcMgr != nullptr && cacheProcMgr->IsAppShouldCache(appRecord)) {
             cacheProcMgr->PenddingCacheProcess(appRecord);
             TAG_LOGI(AAFwkTag::APPMGR, "app %{public}s is not terminate app",
                 appRecord->GetBundleName().c_str());
@@ -1002,7 +1007,8 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         }
         TAG_LOGI(AAFwkTag::PROCESSMGR, "Terminate last:%{public}s.", appRecord->GetName().c_str());
         appRecord->SetTerminating();
-        if ((clearMissionFlag || appRecord->IsPrepareExit()) && appMgrServiceInner != nullptr) {
+        if ((clearMissionFlag || appRecord->IsPrepareExit() || shouldKillLastAgentProcess) &&
+            appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
                 AMSEventHandler::DELAY_KILL_EXTENSION_PROCESS_TIMEOUT : AMSEventHandler::DELAY_KILL_PROCESS_TIMEOUT;
             std::string taskName = std::string("DELAY_KILL_PROCESS_") + std::to_string(appRecord->GetRecordId());
