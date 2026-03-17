@@ -300,8 +300,6 @@ public:
      */
     static void Start();
 
-    static void StartChild(const std::map<std::string, int32_t> &fds);
-
     /**
      *
      * @brief Preload extensions in appspawn.
