@@ -302,6 +302,7 @@ class RecordWriter {
 
   private unwrapArrayElementNumber(element: valueType, complexArray: ComplexArrayData): void {
     if (element instanceof Int) {
+      console.log('testTag unwrapArrayElementNumber type Int');
       hilog.debug(DOMAIN_ID, TAG, `array value type Int`);
       if (complexArray.doubleList.length > 0) {
         complexArray.intList.forEach(num => {
@@ -313,6 +314,7 @@ class RecordWriter {
         complexArray.intList.push((element as int));
       }
     } else if (element instanceof Long) {
+      console.log('testTag unwrapArrayElementNumber type Long');
       hilog.debug(DOMAIN_ID, TAG, `array value type Long`);
       // consistent with napi behavior
       const doubleValue = Number(element);
@@ -324,6 +326,7 @@ class RecordWriter {
       }
       complexArray.doubleList.push(doubleValue);
     } else if (element instanceof Double) {
+      console.log('testTag unwrapArrayElementNumber type Double');
       hilog.debug(DOMAIN_ID, TAG, `array value type Double`);
       if (complexArray.intList.length > 0) {
         complexArray.intList.forEach(num => {
@@ -339,6 +342,7 @@ class RecordWriter {
         let value: string = String(element as Object);
         let enumNum: number = Number(value);
         if (Number.isInteger(enumNum) && enumNum >= int32Min && enumNum <= int32Max) {
+          console.log('testTag unwrapArrayElementNumber type Class Int');
           hilog.debug(DOMAIN_ID, TAG, `array value type Class Int`);
           if (complexArray.doubleList.length > 0) {
             complexArray.intList.forEach(num => {
@@ -350,6 +354,7 @@ class RecordWriter {
             complexArray.intList.push(enumNum as int);
           }
         } else {
+          console.log('testTag unwrapArrayElementNumber type Class Double');
           hilog.debug(DOMAIN_ID, TAG, `array value type Class double`);
           if (complexArray.intList.length > 0) {
             complexArray.intList.forEach(num => {
@@ -367,12 +372,14 @@ class RecordWriter {
     const length = arr.length as int;
     this.checkReferencesCycle(arr);
     this.store.add(arr);
+    console.log(`testTag unuwrap array start`);
     for (let idx = 0; idx < length; idx++) {
       const element = arr[idx];
       if (element === null || element === undefined) {
         continue;
       }
       const valueType = typeof element;
+      console.log(`testTag array value type: ${valueType}`);
       hilog.debug(DOMAIN_ID, TAG, `array value type: %{public}s`, valueType);
       switch (valueType) {
         case 'string':
@@ -390,6 +397,9 @@ class RecordWriter {
           complexArray.boolList.push((element as Boolean));
           break;
         case 'number':
+        case 'int':
+        case 'long':
+        case 'float':
           try {
             this.unwrapArrayElementNumber(element, complexArray);
           } catch (err) {
@@ -463,6 +473,7 @@ class RecordWriter {
       hilog.debug(DOMAIN_ID, TAG, `array %{public}s stringList size: %{public}d`, key, complexArray.stringList.length);
       wantParams?.SetArrayStringParam(key, complexArray.stringList);
     } else if (complexArray.intList.length > 0) {
+      console.log(`testTag array %{public}s intList size: %{public}d`, key, complexArray.intList.length);
       hilog.debug(DOMAIN_ID, TAG, `array %{public}s intList size: %{public}d`, key, complexArray.intList.length);
       wantParams?.SetArrayIntParam(key, complexArray.intList);
     } else if (complexArray.boolList.length > 0) {
