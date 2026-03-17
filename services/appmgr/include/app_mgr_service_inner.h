@@ -2133,6 +2133,8 @@ private:
      */
     void NotifyAppAttachFailed(std::shared_ptr<AppRunningRecord> appRecord);
 
+    void NotifyTerminateAbility(const sptr<IRemoteObject> token);
+
     void NotifyLoadAbilityFailed(sptr<IRemoteObject> token);
 
     void NotifyStartProcessFailed(sptr<IRemoteObject> token);
