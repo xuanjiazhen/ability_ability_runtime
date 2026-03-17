@@ -1,0 +1,58 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_TYPES_H
+#define ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_TYPES_H
+
+#include <memory>
+#include "context_impl.h"
+#include "extension_ability_info.h"
+#include "extension_ability_impl.h"
+#include "modular_object_extension_ability.h"
+
+namespace OHOS {
+namespace AbilityRuntime {
+constexpr int32_t MODULAR_OBJECT_EXTENSION_TYPE = 37;
+constexpr const char MODULAR_OBJECT_EXTENSION_NAME[] = "ModularObjectExtensionAbility";
+constexpr const char MODULAR_OBJECT_EXTENSION_TYPE_NAME[] = "modularObjectExtension";
+
+// todo remove
+inline AppExecFwk::ExtensionAbilityType GetModularObjectExtensionType()
+{
+    return static_cast<AppExecFwk::ExtensionAbilityType>(MODULAR_OBJECT_EXTENSION_TYPE);
+}
+} // namespace AbilityRuntime
+} // namespace OHOS
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+struct OH_AbilityRuntime_ModularObject_ExtensionContext : public AbilityRuntime_Context {
+};
+
+struct OH_AbilityRuntime_ModularObject_ExtensionInstance : public AbilityRuntime_ExtensionInstance {
+    std::shared_ptr<OH_AbilityRuntime_ModularObject_ExtensionContext> context;
+    OH_AbilityRuntime_MoeAbility_OnCreateFunc onCreateFunc = nullptr;
+    OH_AbilityRuntime_MoeAbility_OnDestroyFunc onDestroyFunc = nullptr;
+    OH_AbilityRuntime_MoeAbility_OnConnectFunc onConnectFunc = nullptr;
+    OH_AbilityRuntime_MoeAbility_OnDisconnectFunc onDisconnectFunc = nullptr;
+};
+
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
+#endif // ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_TYPES_H
