@@ -782,12 +782,11 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     }
 
     TAG_LOGI(AAFwkTag::AA_TOOL, "pid %{public}d, reason %{public}s", pid, inputReason.c_str());
-    if (pid != 0 && reason != Reason::REASON_UNKNOWN) {
-        ExitReason exitReason = {reason, "aa force-stop"};
-        if (AbilityManagerClient::GetInstance()->RecordProcessExitReason(pid, exitReason) != ERR_OK) {
-            TAG_LOGE(AAFwkTag::AA_TOOL, "bundle %{public}s record reason %{public}d failed",
-                bundleName.c_str(), reason);
-        }
+    ExitReason exitReason = {reason, "aa force-stop"};
+    exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP;
+    if (AbilityManagerClient::GetInstance()->RecordProcessExitReason(pid, exitReason) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "bundle %{public}s record reason %{public}d failed",
+            bundleName.c_str(), reason);
     }
 
     ErrCode result = OHOS::ERR_OK;

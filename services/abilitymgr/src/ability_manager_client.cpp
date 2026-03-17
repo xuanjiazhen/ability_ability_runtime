@@ -298,6 +298,13 @@ ErrCode AbilityManagerClient::StartUIAbilities(const std::vector<AAFwk::Want> &w
     return abms->StartUIAbilities(wantList, requestKey, callerToken);
 }
 
+ErrCode AbilityManagerClient::RecordAppWithReasonByUserId(int32_t userId, const ExitReasonCompability &exitReason)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->RecordAppWithReasonByUserId(userId, exitReason);
+}
+
 ErrCode AbilityManagerClient::StartAbilityByUIContentSession(const Want &want, const StartOptions &startOptions,
     sptr<IRemoteObject> callerToken, sptr<AAFwk::SessionInfo> sessionInfo,
     int requestCode, int32_t userId)

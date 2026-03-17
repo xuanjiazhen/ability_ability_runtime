@@ -117,6 +117,7 @@
 #include "modal_system_app_freeze_uiextension.h"
 #endif
 #ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
+#include "xcollie/process_kill_reason.h"
 #include "xcollie/xcollie.h"
 #include "xcollie/xcollie_define.h"
 #endif
@@ -327,6 +328,7 @@ constexpr int32_t NETSYS_SOCKET_GROUPID = 1097;
 
 constexpr int32_t SHADER_CACHE_GROUPID = 3099;
 constexpr int32_t DEFAULT_INVAL_VALUE = -1;
+constexpr int32_t INVALID_KILL_ID = -1;
 constexpr int32_t NO_ABILITY_RECORD_ID = -1;
 constexpr int32_t EXIT_REASON_UNKNOWN = 0;
 constexpr int32_t PROCESS_START_FAILED_SUB_REASON_UNKNOWN = 0;
@@ -2607,6 +2609,18 @@ int32_t AppMgrServiceInner::KillApplicationByBundleName(
     return result;
 }
 
+void AppMgrServiceInner::RecordAppWithReason(int32_t pid, int32_t uid, int32_t killId)
+{
+    AAFwk::ExitReasonCompability exitReasonCompability(killId);
+    AbilityManagerClient::GetInstance()->RecordAppWithReason(pid, uid, exitReasonCompability);
+}
+
+void AppMgrServiceInner::RecordAppWithReasonByUserId(int32_t userId, int32_t killId)
+{
+    AAFwk::ExitReasonCompability exitReasonCompability(killId);
+    AbilityManagerClient::GetInstance()->RecordAppWithReasonByUserId(userId, exitReasonCompability);
+}
+
 int32_t AppMgrServiceInner::KillApplicationByUserId(
     const std::string &bundleName, int32_t appCloneIndex, const int userId,
     const bool clearPageStack, const std::string& reason)
@@ -3363,6 +3377,8 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     std::string appRunningUniqueId = std::to_string(appRecord->GetAppRunningUniqueId());
     AAFwk::EventInfo eventInfo;
     SetKilledEventInfo(appRecord, eventInfo);
+    int32_t killId = appRecord->GetKillId() == INVALID_KILL_ID ?
+        HiviewDFX::ProcessKillReason::KillEventId::REASON_APP_EXIT : appRecord->GetKillId();
     std::string newReason = appRecord->GetKillReason().empty() ? defaultReason : appRecord->GetKillReason();
     bool foreground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
         appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
@@ -3374,11 +3390,12 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     hisyseventReport->InsertParam(EVENT_KEY_REASON, newReason);
     hisyseventReport->InsertParam(EVENT_KEY_FOREGROUND, foreground);
     hisyseventReport->InsertParam("APP_RUNNING_UNIQUE_ID", appRunningUniqueId);
+    hisyseventReport->InsertParam(EVENT_KEY_PROCESS_KILL_ID, killId);
     int result = hisyseventReport->Report("FRAMEWORK", "PROCESS_KILL", HISYSEVENT_FAULT);
     TAG_LOGW(AAFwkTag::APPMGR, "hisysevent write result=%{public}d, send event [FRAMEWORK,PROCESS_KILL], pid="
         "%{public}d, processName=%{public}s, msg=%{public}s, reason=%{public}s, FOREGROUND=%{public}d,"
-        " appRunningUniqueId=%{public}s", result, eventInfo.pid, eventInfo.processName.c_str(), newReason.c_str(),
-        newReason.c_str(), foreground, appRunningUniqueId.c_str());
+        " appRunningUniqueId=%{public}s, killId=%{public}d", result, eventInfo.pid, eventInfo.processName.c_str(),
+        newReason.c_str(), newReason.c_str(), foreground, appRunningUniqueId.c_str(), killId);
 }
 
 int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::string& reason,
