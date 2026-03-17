@@ -976,6 +976,13 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         };
 
     auto isLastAbility = appRecord->IsLastAbilityByFlag(token, clearMissionFlag);
+    auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
+    std::shared_ptr<AbilityInfo> abilityInfo = nullptr;
+    if (abilityRecord != nullptr) {
+        abilityInfo = abilityRecord->GetAbilityInfo();
+    }
+    bool shouldKillLastAgentProcess = isLastAbility && abilityInfo != nullptr &&
+        abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT;
 #ifdef SUPPORT_SCREEN
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
         appRecord->TerminateAbility(token, true);
@@ -985,7 +992,8 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
 #endif //SUPPORT_SCREEN
     auto isLauncherApp = appRecord->GetApplicationInfo()->isLauncherApp;
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
-    TAG_LOGI(AAFwkTag::PROCESSMGR, "terminate isLast:%{public}d,keepAlive:%{public}d", isLastAbility, isKeepAliveApp);
+    TAG_LOGI(AAFwkTag::PROCESSMGR, "terminate isLast:%{public}d,killLastAgent:%{public}d,keepAlive:%{public}d",
+        isLastAbility, shouldKillLastAgentProcess, isKeepAliveApp);
     if (isLastAbility && !isKeepAliveApp && !isLauncherApp) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr) {
@@ -1002,6 +1010,21 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         }
         TAG_LOGI(AAFwkTag::PROCESSMGR, "Terminate last:%{public}s.", appRecord->GetName().c_str());
         appRecord->SetTerminating();
+        if (shouldKillLastAgentProcess && appMgrServiceInner != nullptr) {
+            auto abilitiesMap = appRecord->GetAbilities();
+            for (const auto &item : abilitiesMap) {
+                auto currentAbilityRecord = item.second;
+                if (currentAbilityRecord == nullptr || currentAbilityRecord->GetAbilityInfo() == nullptr) {
+                    continue;
+                }
+                if (currentAbilityRecord->GetAbilityInfo()->extensionAbilityType ==
+                    AppExecFwk::ExtensionAbilityType::AGENT_UI) {
+                    const sptr<IRemoteObject> currentToken = item.first;
+                    appMgrServiceInner->NotifyTerminateAbility(currentToken);
+                }
+            }
+            return;
+        }
         if ((clearMissionFlag || appRecord->IsPrepareExit()) && appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
                 AMSEventHandler::DELAY_KILL_EXTENSION_PROCESS_TIMEOUT : AMSEventHandler::DELAY_KILL_PROCESS_TIMEOUT;
