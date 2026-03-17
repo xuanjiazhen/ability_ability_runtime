@@ -315,6 +315,7 @@ int32_t ExtensionRecordManager::UpdateProcessName(const AAFwk::AbilityRequest &a
         case PROCESS_MODE_AGENT_UI: {
             std::string process = abilityRequest.abilityInfo.bundleName
                     + SEPARATOR + AGENT_EXTENSION_TYPE;
+            appendAppIndex(process);
             abilityRecord->SetProcessName(process);
             break;
         }

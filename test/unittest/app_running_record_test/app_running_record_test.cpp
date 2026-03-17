@@ -464,6 +464,107 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastAbilityByFlag_0100, TestSi
 }
 
 /**
+ * @tc.name: AppRunningRecord_IsLastAbilityByFlag_0200
+ * @tc.desc: Returns true when token is the last agent ability in process.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastAbilityByFlag_0200, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.bundle";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.test.process");
+    ASSERT_NE(appRecord, nullptr);
+
+    auto agentModuleRecord = std::make_shared<ModuleRunningRecord>(appInfo, nullptr);
+    auto serviceModuleRecord = std::make_shared<ModuleRunningRecord>(appInfo, nullptr);
+    ASSERT_NE(agentModuleRecord, nullptr);
+    ASSERT_NE(serviceModuleRecord, nullptr);
+
+    auto agentAbilityInfo = std::make_shared<AbilityInfo>();
+    agentAbilityInfo->type = AbilityType::EXTENSION;
+    agentAbilityInfo->extensionAbilityType = ExtensionAbilityType::AGENT;
+    sptr<IRemoteObject> agentToken = new (std::nothrow) MockAbilityToken();
+    ASSERT_NE(agentToken, nullptr);
+    ASSERT_NE(agentModuleRecord->AddAbility(agentToken, agentAbilityInfo, nullptr, RECORD_ID), nullptr);
+
+    auto serviceAbilityInfo = std::make_shared<AbilityInfo>();
+    serviceAbilityInfo->type = AbilityType::EXTENSION;
+    serviceAbilityInfo->extensionAbilityType = ExtensionAbilityType::SERVICE;
+    sptr<IRemoteObject> serviceToken = new (std::nothrow) MockAbilityToken();
+    ASSERT_NE(serviceToken, nullptr);
+    ASSERT_NE(serviceModuleRecord->AddAbility(serviceToken, serviceAbilityInfo, nullptr, RECORD_ID), nullptr);
+
+    appRecord->hapModules_[appInfo->bundleName].emplace_back(agentModuleRecord);
+    appRecord->hapModules_[appInfo->bundleName].emplace_back(serviceModuleRecord);
+
+    EXPECT_TRUE(appRecord->IsLastAbilityByFlag(agentToken, false));
+}
+
+/**
+ * @tc.name: AppRunningRecord_IsLastAbilityByFlag_0300
+ * @tc.desc: Returns false when process contains more than one agent ability.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastAbilityByFlag_0300, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.bundle";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.test.process");
+    ASSERT_NE(appRecord, nullptr);
+
+    auto firstModuleRecord = std::make_shared<ModuleRunningRecord>(appInfo, nullptr);
+    auto secondModuleRecord = std::make_shared<ModuleRunningRecord>(appInfo, nullptr);
+    ASSERT_NE(firstModuleRecord, nullptr);
+    ASSERT_NE(secondModuleRecord, nullptr);
+
+    auto firstAgentAbilityInfo = std::make_shared<AbilityInfo>();
+    firstAgentAbilityInfo->type = AbilityType::EXTENSION;
+    firstAgentAbilityInfo->extensionAbilityType = ExtensionAbilityType::AGENT;
+    sptr<IRemoteObject> firstAgentToken = new (std::nothrow) MockAbilityToken();
+    ASSERT_NE(firstAgentToken, nullptr);
+    ASSERT_NE(firstModuleRecord->AddAbility(firstAgentToken, firstAgentAbilityInfo, nullptr, RECORD_ID), nullptr);
+
+    auto secondAgentAbilityInfo = std::make_shared<AbilityInfo>();
+    secondAgentAbilityInfo->type = AbilityType::EXTENSION;
+    secondAgentAbilityInfo->extensionAbilityType = ExtensionAbilityType::AGENT;
+    sptr<IRemoteObject> secondAgentToken = new (std::nothrow) MockAbilityToken();
+    ASSERT_NE(secondAgentToken, nullptr);
+    ASSERT_NE(secondModuleRecord->AddAbility(secondAgentToken, secondAgentAbilityInfo, nullptr, RECORD_ID), nullptr);
+
+    appRecord->hapModules_[appInfo->bundleName].emplace_back(firstModuleRecord);
+    appRecord->hapModules_[appInfo->bundleName].emplace_back(secondModuleRecord);
+
+    EXPECT_FALSE(appRecord->IsLastAbilityByFlag(firstAgentToken, false));
+}
+
+/**
+ * @tc.name: AppRunningRecord_IsLastAbilityByFlag_0400
+ * @tc.desc: clearMissionFlag uses page ability path instead of agent extension path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsLastAbilityByFlag_0400, TestSize.Level1)
+{
+    auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.test.bundle";
+    auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.test.process");
+    ASSERT_NE(appRecord, nullptr);
+
+    auto moduleRecord = std::make_shared<ModuleRunningRecord>(appInfo, nullptr);
+    ASSERT_NE(moduleRecord, nullptr);
+
+    auto agentAbilityInfo = std::make_shared<AbilityInfo>();
+    agentAbilityInfo->type = AbilityType::EXTENSION;
+    agentAbilityInfo->extensionAbilityType = ExtensionAbilityType::AGENT;
+    sptr<IRemoteObject> agentToken = new (std::nothrow) MockAbilityToken();
+    ASSERT_NE(agentToken, nullptr);
+    ASSERT_NE(moduleRecord->AddAbility(agentToken, agentAbilityInfo, nullptr, RECORD_ID), nullptr);
+
+    appRecord->hapModules_[appInfo->bundleName].emplace_back(moduleRecord);
+
+    EXPECT_FALSE(appRecord->IsLastAbilityByFlag(agentToken, true));
+}
+
+/**
  * @tc.name: AppRunningRecord_SetStartupTaskData_0100
  * @tc.desc: Test SetStartupTaskData works.
  * @tc.type: FUNC
