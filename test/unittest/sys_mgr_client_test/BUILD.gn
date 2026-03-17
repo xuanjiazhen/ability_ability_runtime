@@ -37,6 +37,7 @@ ohos_unittest("sys_mgr_client_test") {
   }
 
   deps = [
+    "${ability_runtime_native_path}/ability/native:ability_observer_ipc",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_services_path}/abilitymgr:abilityms",
   ]
