@@ -3219,7 +3219,7 @@ void MainThread::StartChild(const std::map<std::string, int32_t> &fds)
 #ifdef SUPPORT_CHILD_PROCESS
     TAG_LOGI(AAFwkTag::APPKIT, "MainThread StartChild, fds size:%{public}zu", fds.size());
     ChildMainThread::Start(fds);
-#endif  // SUPPORT_CHILD_PROCESS
+#endif  // SUPPORT_CHILD_PROCESS 
 }
 
 void MainThread::PreloadExtensionPlugin()
