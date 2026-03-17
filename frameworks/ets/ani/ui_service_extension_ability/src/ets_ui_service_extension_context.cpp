@@ -44,19 +44,19 @@ constexpr int32_t ERROR_CODE_ONE = 1;
 constexpr int32_t ERROR_CODE_TWO = 2;
 constexpr int32_t INVALID_PARAM = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
 constexpr const char *UI_SERVICE_CONTEXT_CLASS_NAME =
-    "application.UIServiceExtensionContext.UIServiceExtensionContext";
-const char *UI_SERVICE_EXTENSION_CONTEXT_CLEANER_CLASS_NAME = "application.UIServiceExtensionContext.Cleaner";
-constexpr const char *SIGNATURE_START_ABILITY = "C{utils.AbilityUtils.AsyncCallbackWrapper}"
-    "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}:";
-constexpr const char *SIGNATURE_START_ABILITY_CHK = "C{@ohos.app.ability.Want.Want}"
-    "C{@ohos.app.ability.StartOptions.StartOptions}:";
-constexpr const char *SIGNATURE_TERMINATE_SELF = "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE = "C{std.core.String}C{std.core.Record}"
-    "C{application.AbilityStartCallback.AbilityStartCallback}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE_CHK = "C{std.core.String}C{std.core.Record}:";
+    "application:UIServiceExtensionContext.UIServiceExtensionContext";
+const char *UI_SERVICE_EXTENSION_CONTEXT_CLEANER_CLASS_NAME = "application:UIServiceExtensionContext.Cleaner";
+constexpr const char *SIGNATURE_START_ABILITY = "C{utils:AbilityUtils.AsyncCallbackWrapper}"
+    "C{@ohos:app.ability.Want.Want}C{@ohos:app.ability.StartOptions.StartOptions}:";
+constexpr const char *SIGNATURE_START_ABILITY_CHK = "C{@ohos:app.ability.Want.Want}"
+    "C{@ohos:app.ability.StartOptions.StartOptions}:";
+constexpr const char *SIGNATURE_TERMINATE_SELF = "C{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE = "C{std:core.String}C{std:core.Record}"
+    "C{application:AbilityStartCallback.AbilityStartCallback}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE_CHK = "C{std:core.String}C{std:core.Record}:";
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
-    "C{@ohos.app.ability.Want.Want}C{ability.connectOptions.ConnectOptions}:l";
-constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}C{ability:connectOptions.ConnectOptions}:l";
+constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
 

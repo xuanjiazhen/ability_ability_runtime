@@ -32,8 +32,8 @@
 
 namespace OHOS::AppExecFwk {
 namespace {
-constexpr const char *ETS_NATIVE_WANT_PARAMS_CLASS_NAME = "@ohos.app.ability.Want.NativeWantParams";
-constexpr const char *ETS_NATIVE_WANT_PARAMS_CLEANER_CLASS_NAME = "@ohos.app.ability.Want.NativeWantParamsCleaner";
+constexpr const char *ETS_NATIVE_WANT_PARAMS_CLASS_NAME = "@ohos:app.ability.Want.NativeWantParams";
+constexpr const char *ETS_NATIVE_WANT_PARAMS_CLEANER_CLASS_NAME = "@ohos:app.ability.Want.NativeWantParamsCleaner";
 } // namespace
 
 ani_ref g_booleanCls {};
@@ -57,7 +57,7 @@ ani_status unbox<ani_double>(ani_env *env, ani_object obj, ani_double *result)
 {
     if (g_doubleCls == nullptr) {
         ani_class doubleCls {};
-        auto status = env->FindClass("std.core.Double", &doubleCls);
+        auto status = env->FindClass("std:core.Double", &doubleCls);
         if (status != ANI_OK) {
             return status;
         }
@@ -78,7 +78,7 @@ ani_status unbox<ani_boolean>(ani_env *env, ani_object obj, ani_boolean *result)
 {
     if (g_booleanCls == nullptr) {
         ani_class booleanCls {};
-        auto status = env->FindClass("std.core.Boolean", &booleanCls);
+        auto status = env->FindClass("std:core.Boolean", &booleanCls);
         if (status != ANI_OK) {
             return status;
         }
@@ -99,7 +99,7 @@ ani_status unbox<ani_int>(ani_env *env, ani_object obj, ani_int *result)
 {
     if (g_intCls == nullptr) {
         ani_class intCls {};
-        auto status = env->FindClass("std.core.Integer", &intCls);
+        auto status = env->FindClass("std:core.Integer", &intCls);
         if (status != ANI_OK) {
             return status;
         }
@@ -120,7 +120,7 @@ ani_status unbox<ani_long>(ani_env *env, ani_object obj, ani_long *result)
 {
     if (g_longCls == nullptr) {
         ani_class longCls {};
-        auto status = env->FindClass("std.core.Long", &longCls);
+        auto status = env->FindClass("std:core.Long", &longCls);
         if (status != ANI_OK) {
             return status;
         }
@@ -852,59 +852,59 @@ ani_status BindNativeFunctions(ani_env *aniEnv)
             reinterpret_cast<void *>(EtsWantParams::NativeCreate)
         },
         ani_native_function{
-            "nativeSetStringParam", "lC{std.core.String}C{std.core.String}:z",
+            "nativeSetStringParam", "lC{std:core.String}C{std:core.String}:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetStringParam)
         },
         ani_native_function{
-            "nativeSetDoubleParam", "lC{std.core.String}d:z",
+            "nativeSetDoubleParam", "lC{std:core.String}d:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetDoubleParam)
         },
         ani_native_function{
-            "nativeSetIntParam", "lC{std.core.String}i:z",
+            "nativeSetIntParam", "lC{std:core.String}i:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetIntParam)
         },
         ani_native_function{
-            "nativeSetLongParam", "lC{std.core.String}l:z",
+            "nativeSetLongParam", "lC{std:core.String}l:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetLongParam)
         },
         ani_native_function{
-            "nativeSetBooleanParam", "lC{std.core.String}z:z",
+            "nativeSetBooleanParam", "lC{std:core.String}z:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetBooleanParam)
         },
         ani_native_function{
-            "nativeSetWantParams", "lC{std.core.String}l:z",
+            "nativeSetWantParams", "lC{std:core.String}l:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetWantParams)
         },
         ani_native_function{
-            "nativeSetArrayStringParam", "lC{std.core.String}C{std.core.Array}:z",
+            "nativeSetArrayStringParam", "lC{std:core.String}C{std:core.Array}:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetArrayStringParam)
         },
         ani_native_function{
-            "nativeSetArrayDoubleParam", "lC{std.core.String}C{std.core.Array}:z",
+            "nativeSetArrayDoubleParam", "lC{std:core.String}C{std:core.Array}:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetArrayDoubleParam)
         },
         ani_native_function{
-            "nativeSetArrayIntParam", "lC{std.core.String}C{std.core.Array}:z",
+            "nativeSetArrayIntParam", "lC{std:core.String}C{std:core.Array}:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetArrayIntParam)
         },
         ani_native_function{
-            "nativeSetArrayLongParam", "lC{std.core.String}C{std.core.Array}:z",
+            "nativeSetArrayLongParam", "lC{std:core.String}C{std:core.Array}:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetArrayLongParam)
         },
         ani_native_function{
-            "nativeSetArrayBooleanParam", "lC{std.core.String}C{std.core.Array}:z",
+            "nativeSetArrayBooleanParam", "lC{std:core.String}C{std:core.Array}:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetArrayBooleanParam)
         },
         ani_native_function{
-            "nativeSetArrayWantParams", "lC{std.core.String}C{std.core.Array}:z",
+            "nativeSetArrayWantParams", "lC{std:core.String}C{std:core.Array}:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetArrayWantParams)
         },
         ani_native_function{
-            "nativeSetRemoteObjectParam", "lC{std.core.String}C{@ohos.rpc.rpc.RemoteObject}:z",
+            "nativeSetRemoteObjectParam", "lC{std:core.String}C{@ohos:rpc.rpc.RemoteObject}:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetRemoteObjectParam)
         },
         ani_native_function{
-            "nativeSetRemoteProxyParam", "lC{std.core.String}C{@ohos.rpc.rpc.RemoteProxy}:z",
+            "nativeSetRemoteProxyParam", "lC{std:core.String}C{@ohos:rpc.rpc.RemoteProxy}:z",
             reinterpret_cast<void *>(EtsWantParams::NativeSetRemoteProxyParam)
         },
     };

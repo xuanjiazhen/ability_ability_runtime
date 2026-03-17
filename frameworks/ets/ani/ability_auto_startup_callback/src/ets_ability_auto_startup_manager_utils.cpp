@@ -22,8 +22,8 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
-constexpr const char *SIGNATURE_AUTO_STARTUP_INFO = "application.AutoStartupInfo.AutoStartupInfoInner";
+constexpr const char *CLASSNAME_ARRAY = "std:core.Array";
+constexpr const char *SIGNATURE_AUTO_STARTUP_INFO = "application:AutoStartupInfo.AutoStartupInfoInner";
 }
 bool UnwrapAutoStartupInfo(ani_env *env, ani_object param, AutoStartupInfo &info)
 {

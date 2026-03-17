@@ -34,9 +34,9 @@ namespace {
 constexpr int32_t ERR_NOT_OK = -1;
 constexpr int32_t BUSINESS_ERROR_CODE_OK = 0;
 constexpr int32_t PARAMETER_ERROR = -1;
-constexpr const char* COMPLETE_DATA_IMPL_CLASS_NAME = "@ohos.app.ability.wantAgent.wantAgent.CompleteDataImpl";
-constexpr const char* WANT_AGENT_NAMESPACE = "@ohos.app.ability.wantAgent.wantAgent";
-constexpr const char* CLEANER_CLASS = "@ohos.app.ability.wantAgent.wantAgent.Cleaner";
+constexpr const char* COMPLETE_DATA_IMPL_CLASS_NAME = "@ohos:app.ability.wantAgent.wantAgent.CompleteDataImpl";
+constexpr const char* WANT_AGENT_NAMESPACE = "@ohos:app.ability.wantAgent.wantAgent";
+constexpr const char* CLEANER_CLASS = "@ohos:app.ability.wantAgent.wantAgent.Cleaner";
 } // namespace
 
 TriggerCompleteCallBack::TriggerCompleteCallBack()
@@ -974,7 +974,7 @@ ani_status BindNativeFunctions(ani_env *env)
             reinterpret_cast<void *>(EtsWantAgent::CreateLocalWantAgent) },
         ani_native_function { "nativeIsLocalWantAgent", nullptr,
             reinterpret_cast<void *>(EtsWantAgent::IsLocalWantAgent) },
-        ani_native_function { "nativeTriggerCheck", "C{std.core.Object}C{wantAgent.triggerInfo.TriggerInfo}:",
+        ani_native_function { "nativeTriggerCheck", "C{std:core.Object}C{wantAgent:triggerInfo.TriggerInfo}:",
             reinterpret_cast<void *>(EtsWantAgent::TriggerCheck) },
         ani_native_function { "nativeTriggerAsync", nullptr, reinterpret_cast<void *>(EtsWantAgent::TriggerAsync) },
     };

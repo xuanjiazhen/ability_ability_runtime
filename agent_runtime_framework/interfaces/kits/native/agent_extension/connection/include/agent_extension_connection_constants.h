@@ -34,7 +34,7 @@ constexpr const char *AGENTID_KEY = "ohos.agentruntime.params.AgentId";
  * Signature for agent async callback wrapper.
  * Used to identify the AsyncCallbackWrapper class in utils.AgentUtils.
  */
-constexpr const char *SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER = "utils.AgentUtils.AsyncCallbackWrapper";
+constexpr const char *SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER = "utils:AgentUtils.AsyncCallbackWrapper";
 
 } // namespace AgentRuntime
 } // namespace OHOS

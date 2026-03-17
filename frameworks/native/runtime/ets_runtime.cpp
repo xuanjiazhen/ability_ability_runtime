@@ -399,12 +399,12 @@ void ETSRuntime::ForceFullGC(uint32_t tid)
     }
     ani_status status = ANI_ERROR;
     ani_namespace imageNameSpace;
-    if ((status = env->FindNamespace("std.core.GC", &imageNameSpace)) != ANI_OK) {
+    if ((status = env->FindNamespace("std:core.GC", &imageNameSpace)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindNamespace failed, status: %{public}d", status);
         return;
     }
     ani_enum aniEnumInt {};
-    if ((status = env->FindEnum("std.core.GC.Cause", &aniEnumInt)) != ANI_OK) {
+    if ((status = env->FindEnum("std:core.GC.Cause", &aniEnumInt)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindEnum failed, status: %{public}d", status);
         return;
     }
@@ -414,7 +414,7 @@ void ETSRuntime::ForceFullGC(uint32_t tid)
         return;
     }
     ani_function gcFunc {};
-    if ((status = env->Namespace_FindFunction(imageNameSpace, "startGC", "E{std.core.GC.Cause}C{std.core.Boolean}:l",
+    if ((status = env->Namespace_FindFunction(imageNameSpace, "startGC", "C{std:core.GC.Cause}C{std:core.Boolean}:l",
         &gcFunc)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "Namespace_FindFunction failed, status: %{public}d", status);
         return;
@@ -422,7 +422,7 @@ void ETSRuntime::ForceFullGC(uint32_t tid)
     ani_long implPtr;
     ani_boolean inPlaceMode = true;
     ani_class boolClass {};
-    if ((status = env->FindClass("std.core.Boolean", &boolClass)) != ANI_OK) {
+    if ((status = env->FindClass("std:core.Boolean", &boolClass)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "bool FindClass failed, status: %{public}d", status);
         return;
     }
@@ -451,7 +451,7 @@ void ETSRuntime::XGC()
     }
     ani_status status = ANI_ERROR;
     ani_class cls {};
-    if ((status = env->FindClass("std.interop.js.JSRuntime", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("std:interop.js.JSRuntime", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::APPKIT, "FindClass failed, status: %{public}d", status);
         return;
     }

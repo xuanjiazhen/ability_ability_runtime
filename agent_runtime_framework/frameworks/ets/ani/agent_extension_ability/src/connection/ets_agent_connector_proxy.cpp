@@ -23,7 +23,7 @@
 namespace OHOS {
 namespace AgentRuntime {
 
-constexpr const char *CLASS_NAME_AGENT_CONNECTOR_PROXY_IMPL = "application.AgentHostProxy.AgentHostProxyImpl";
+constexpr const char *CLASS_NAME_AGENT_CONNECTOR_PROXY_IMPL = "application:AgentHostProxy.AgentHostProxyImpl";
 
 ani_object EtsAgentConnectorProxy::CreateEtsAgentConnectorProxy(
     ani_env *env, const sptr<IRemoteObject> &connectorProxy)
@@ -66,9 +66,9 @@ ani_object EtsAgentConnectorProxy::CreateEtsAgentConnectorProxy(
     }
 
     std::array functions = {
-        ani_native_function {"nativeSendData", "C{std.core.String}:",
+        ani_native_function {"nativeSendData", "C{std:core.String}:",
             reinterpret_cast<void *>(EtsAgentConnectorProxy::SendData)},
-        ani_native_function {"nativeAuthorize", "C{std.core.String}:",
+        ani_native_function {"nativeAuthorize", "C{std:core.String}:",
             reinterpret_cast<void *>(EtsAgentConnectorProxy::Authorize)},
     };
 

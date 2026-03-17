@@ -34,15 +34,15 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* FORM_BINDING_DATA_CLASS_NAME =
-    "@ohos.app.form.formBindingData.formBindingData.FormBindingDataInner";
-constexpr const char* RECORD_CLASS_NAME = "std.core.Record";
-constexpr const char *FORM_LOCATION_STATE_ENUM_NAME = "@ohos.app.form.formInfo.formInfo.FormLocation";
+    "@ohos:app.form.formBindingData.formBindingData.FormBindingDataInner";
+constexpr const char* RECORD_CLASS_NAME = "std:core.Record";
+constexpr const char *FORM_LOCATION_STATE_ENUM_NAME = "@ohos:app.form.formInfo.formInfo.FormLocation";
 constexpr const char *FORM_LOCATION_CHANGED_STATE_NAME =
-    "C{std.core.String}C{@ohos.app.form.formInfo.formInfo.FormLocation}:";
-constexpr const char *FORM_DIMENSION_ENUM_NAME = "@ohos.app.form.formInfo.formInfo.FormDimension";
+    "C{std:core.String}C{@ohos:app.form.formInfo.formInfo.FormLocation}:";
+constexpr const char *FORM_DIMENSION_ENUM_NAME = "@ohos:app.form.formInfo.formInfo.FormDimension";
 constexpr const char *FORM_SIZE_CHANGED_NAME =
-    "C{std.core.String}C{@ohos.app.form.formInfo.formInfo.FormDimension}C{@ohos.app.form.formInfo.formInfo.Rect}:";
-constexpr const char* FORM_RECT_NAME = "@ohos.app.form.formInfo.formInfo.RectInner";
+    "C{std:core.String}C{@ohos:app.form.formInfo.formInfo.FormDimension}C{@ohos:app.form.formInfo.formInfo.Rect}:";
+constexpr const char* FORM_RECT_NAME = "@ohos:app.form.formInfo.formInfo.RectInner";
 }
 
 extern "C" __attribute__((visibility("default"))) FormExtension *OHOS_ABILITY_ETSFormExtension(
@@ -341,7 +341,7 @@ bool ETSFormExtension::CallNativeFormMethod(ani_env *env, ani_object aniWant, an
 
     ani_method function;
     if ((status = env->Class_FindMethod(etsAbilityObj_->aniCls, "onAddForm",
-        "C{@ohos.app.ability.Want.Want}:C{@ohos.app.form.formBindingData.formBindingData.FormBindingData}",
+        "C{@ohos:app.ability.Want.Want}:C{@ohos:app.form.formBindingData.formBindingData.FormBindingData}",
         &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status: %{public}d", status);
         return false;
@@ -369,7 +369,7 @@ bool ETSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
     }
 
     ani_method data{};
-    status = env->Class_FindMethod(cls, "<get>data", nullptr, &data);
+    status = env->Class_FindMethod(cls, "%%get-data", nullptr, &data);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod data status: %{public}d", status);
         return false;
@@ -386,7 +386,7 @@ bool ETSFormExtension::ExtractFormData(ani_env *env, ani_ref nativeResult, AppEx
     formData = AppExecFwk::FormProviderData(dataStr);
 
     ani_method proxies;
-    status = env->Class_FindMethod(cls, "<get>proxies", nullptr, &proxies);
+    status = env->Class_FindMethod(cls, "%%get-proxies", nullptr, &proxies);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod proxies status: %{public}d", status);
         return true;
@@ -441,7 +441,7 @@ void ETSFormExtension::OnDestroy(const int64_t formId)
     }
 
     ani_method function;
-    if ((status = env->Class_FindMethod(etsAbilityObj_->aniCls, "onRemoveForm", "C{std.core.String}:", &function))) {
+    if ((status = env->Class_FindMethod(etsAbilityObj_->aniCls, "onRemoveForm", "C{std:core.String}:", &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
         return;
     }
@@ -476,7 +476,7 @@ void ETSFormExtension::OnEvent(const int64_t formId, const std::string &message)
     }
     ani_method function;
     if ((status = env->Class_FindMethod(
-        etsAbilityObj_->aniCls, "onFormEvent", "C{std.core.String}C{std.core.String}:", &function))) {
+        etsAbilityObj_->aniCls, "onFormEvent", "C{std:core.String}C{std:core.String}:", &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
         return;
     }
@@ -509,7 +509,7 @@ void ETSFormExtension::OnUpdate(const int64_t formId, const AAFwk::WantParams &w
 
     ani_method function;
     if ((status = env->Class_FindMethod(
-        etsAbilityObj_->aniCls, "onUpdateForm", "C{std.core.String}C{std.core.Record}:", &function))) {
+        etsAbilityObj_->aniCls, "onUpdateForm", "C{std:core.String}C{std:core.Record}:", &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
         return;
     }
@@ -540,7 +540,7 @@ void ETSFormExtension::OnCastToNormal(const int64_t formId)
 
     ani_method function;
     if ((status = env->Class_FindMethod(
-        etsAbilityObj_->aniCls, "onCastToNormalForm", "C{std.core.String}:", &function))) {
+        etsAbilityObj_->aniCls, "onCastToNormalForm", "C{std:core.String}:", &function))) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status : %{public}d", status);
         return;
     }
@@ -565,7 +565,7 @@ void ETSFormExtension::OnVisibilityChange(const std::map<int64_t, int32_t> &form
 
     ani_method function;
     ani_status status =
-        env->Class_FindMethod(etsAbilityObj_->aniCls, "onChangeFormVisibility", "C{std.core.Record}:", &function);
+        env->Class_FindMethod(etsAbilityObj_->aniCls, "onChangeFormVisibility", "C{std:core.Record}:", &function);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod status: %{public}d", status);
         return;
@@ -606,7 +606,7 @@ bool ETSFormExtension::CreateAndFillRecordObject(ani_env *env, const std::map<in
     }
     ani_method recordSetMethod;
     status = env->Class_FindMethod(recordCls, "$_set",
-        "X{C{std.core.Numeric}C{std.core.String}C{std.core.BaseEnum}}Y:",
+        "X{C{std:core.Numeric}C{std:core.String}C{std:core.BaseEnum}}Y:",
         &recordSetMethod);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod set failed: %{public}d", status);
@@ -620,7 +620,7 @@ bool ETSFormExtension::CreateAndFillRecordObject(ani_env *env, const std::map<in
             TAG_LOGE(AAFwkTag::FORM_EXT, "String_NewUTF8 key failed status : %{public}d", status);
             return false;
         }
-        static const char *className = "std.core.Int";
+        static const char *className = "std:core.Int";
         ani_class persion_cls;
         if (ANI_OK != env->FindClass(className, &persion_cls)) {
             TAG_LOGE(AAFwkTag::FORM_EXT, "FindClass failed status: %{public}d", status);
@@ -785,7 +785,7 @@ void ETSFormExtension::OnConfigurationUpdated(const AppExecFwk::Configuration &c
     ani_object aniConfiguration = OHOS::AppExecFwk::WrapConfiguration(env, *fullConfig);
     ani_method method = nullptr;
     ani_status status = env->Class_FindMethod(etsAbilityObj_->aniCls,
-        "onConfigurationUpdate", "C{@ohos.app.ability.Configuration.Configuration}:", &method);
+        "onConfigurationUpdate", "C{@ohos:app.ability.Configuration.Configuration}:", &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::FORM_EXT, "Class_FindMethod failed, status: %{public}d", status);
         return;

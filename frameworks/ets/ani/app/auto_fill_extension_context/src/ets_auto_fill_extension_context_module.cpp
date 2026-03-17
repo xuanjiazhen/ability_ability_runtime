@@ -38,7 +38,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char *ETS_AUTO_FILL_EXTENSION_CONTEXT_CLASS_NAME =
-    "application.AutoFillExtensionContext.AutoFillExtensionContext";
+    "application:AutoFillExtensionContext.AutoFillExtensionContext";
 } // namespace
 
 ani_object EtsAutoFillExtensionContextModule::NativeTransferStatic(ani_env *aniEnv, ani_object, ani_object input,
@@ -437,9 +437,9 @@ void EtsAutoFillExtensionContextModuleInit(ani_env *aniEnv)
     }
 
     std::array nativeFuncs = {
-        ani_native_function { "nativeTransferStatic", "C{std.interop.ESValue}C{std.core.String}:C{std.core.Object}",
+        ani_native_function { "nativeTransferStatic", "C{std:interop.ESValue}C{std:core.String}:C{std:core.Object}",
             reinterpret_cast<void*>(EtsAutoFillExtensionContextModule::NativeTransferStatic) },
-        ani_native_function { "nativeTransferDynamic", "C{std.core.Object}:C{std.interop.ESValue}",
+        ani_native_function { "nativeTransferDynamic", "C{std:core.Object}:C{std:interop.ESValue}",
             reinterpret_cast<void*>(EtsAutoFillExtensionContextModule::NativeTransferDynamic) },
     };
     status = aniEnv->Class_BindStaticNativeMethods(autoFillExtensionContextCls, nativeFuncs.data(),

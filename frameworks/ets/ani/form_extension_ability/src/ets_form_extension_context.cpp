@@ -31,14 +31,14 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr ani_long ERROR_LONG_VALUE = -1;
-constexpr const char *FORM_EXTENSION_CONTEXT_CLASS_NAME = "application.FormExtensionContext.FormExtensionContext";
-constexpr const char *CLEANER_CLASS_NAME = "application.FormExtensionContext.Cleaner";
+constexpr const char *FORM_EXTENSION_CONTEXT_CLASS_NAME = "application:FormExtensionContext.FormExtensionContext";
+constexpr const char *CLEANER_CLASS_NAME = "application:FormExtensionContext.Cleaner";
 constexpr const char *SIGNATURE_START_ABILITY_FORM_EXTENSION =
-    "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_CONNECT_FORM_EXTENSION =
-    "C{@ohos.app.ability.Want.Want}C{ability.connectOptions.ConnectOptions}:l";
-constexpr const char *SIGNATURE_DISCONNECT_FORM_EXTENSION = "lC{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *SIGNATURE_CHECK_WANT = "C{@ohos.app.ability.Want.Want}:";
+    "C{@ohos:app.ability.Want.Want}C{ability:connectOptions.ConnectOptions}:l";
+constexpr const char *SIGNATURE_DISCONNECT_FORM_EXTENSION = "lC{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *SIGNATURE_CHECK_WANT = "C{@ohos:app.ability.Want.Want}:";
 constexpr const char *SIGNATURE_CHECK_CONNECTION = ":";
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;

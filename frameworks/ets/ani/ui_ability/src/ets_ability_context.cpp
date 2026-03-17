@@ -60,51 +60,51 @@ constexpr int32_t BASE_REQUEST_CODE_NUM = 10;\
 constexpr const int FAILED_CODE = -1;
 static std::mutex g_connectsMutex;
 static std::map<EtsConnectionKey, sptr<ETSAbilityConnection>, EtsKeyCompare> g_connects;
-constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "application.UIAbilityContext.UIAbilityContext";
-constexpr const char* CLEANER_CLASS = "application.UIAbilityContext.Cleaner";
+constexpr const char* UI_ABILITY_CONTEXT_CLASS_NAME = "application:UIAbilityContext.UIAbilityContext";
+constexpr const char* CLEANER_CLASS = "application:UIAbilityContext.Cleaner";
 const std::string APP_LINKING_ONLY = "appLinkingOnly";
 const std::string JSON_KEY_ERR_MSG = "errMsg";
-constexpr const char* SIGNATURE_OPEN_LINK = "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}"
-    "C{@ohos.app.ability.OpenLinkOptions.OpenLinkOptions}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char* SIGNATURE_OPEN_LINK = "C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}"
+    "C{@ohos:app.ability.OpenLinkOptions.OpenLinkOptions}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
-    "C{@ohos.app.ability.Want.Want}C{ability.connectOptions.ConnectOptions}:l";
-constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}"
-    "C{@ohos.app.ability.AtomicServiceOptions.AtomicServiceOptions}:";
+    "C{@ohos:app.ability.Want.Want}C{ability:connectOptions.ConnectOptions}:l";
+constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *SIGNATURE_OPEN_ATOMIC_SERVICE = "C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}"
+    "C{@ohos:app.ability.AtomicServiceOptions.AtomicServiceOptions}:";
 const std::string ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 constexpr const char *SIGNATURE_START_ABILITY_BY_TYPE =
-    "C{std.core.String}C{std.core.Record}C{application.AbilityStartCallback.AbilityStartCallback}:C{@ohos.base."
+    "C{std:core.String}C{std:core.Record}C{application:AbilityStartCallback.AbilityStartCallback}:C{@ohos:base."
     "BusinessError}";
 constexpr const char *SIGNATURE_CONNECT_UI_SERVICE_EXTENSION =
-    "C{@ohos.app.ability.Want.Want}C{application.UIServiceExtensionConnectCallback.UIServiceExtensionConnectCallback}"
-    "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}C{application:UIServiceExtensionConnectCallback.UIServiceExtensionConnectCallback}"
+    "C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_START_UI_SERVICE_EXTENSION =
-    "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION =
-    "C{application.UIServiceProxy.UIServiceProxy}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *SIGNATURE_WANT_CHK = "C{@ohos.app.ability.Want.Want}:";
-constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK = "C{application.UIServiceProxy.UIServiceProxy}:";
+    "C{application:UIServiceProxy.UIServiceProxy}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *SIGNATURE_WANT_CHK = "C{@ohos:app.ability.Want.Want}:";
+constexpr const char *SIGNATURE_DISCONNECT_UI_SERVICE_EXTENSION_CHK = "C{application:UIServiceProxy.UIServiceProxy}:";
 constexpr const char* UI_SERVICE_HOSTPROXY_KEY = "ohos.ability.params.UIServiceHostProxy";
 constexpr const char *REQUEST_RESULT_INNER_CLASS_NAME =
-    "@ohos.app.ability.dialogRequest.dialogRequest.RequestResultInner";
-constexpr const char *RESULT_ENUM_NAME = "@ohos.app.ability.dialogRequest.dialogRequest.ResultCode";
+    "@ohos:app.ability.dialogRequest.dialogRequest.RequestResultInner";
+constexpr const char *RESULT_ENUM_NAME = "@ohos:app.ability.dialogRequest.dialogRequest.ResultCode";
 constexpr const char *SIGNATURE_REQUEST_DIALOG_SERVICE =
-    "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_START_ABILITY_WITH_ACCOUNT =
-    "C{@ohos.app.ability.Want.Want}iC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+    "C{@ohos:app.ability.Want.Want}iC{utils:AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char *SIGNATURE_START_ABILITY_WITH_ACCOUNT_OPTIONS =
-    "C{@ohos.app.ability.Want.Want}iC{@ohos.app.ability.StartOptions.StartOptions}"
-    "C{utils.AbilityUtils.AsyncCallbackWrapper}:";
-constexpr const char *SIGNATURE_START_ABILITY_AS_CALLER = "C{@ohos.app.ability.Want.Want}"
-    "C{utils.AbilityUtils.AsyncCallbackWrapper}C{@ohos.app.ability.StartOptions.StartOptions}:";
-constexpr const char *SIGNATURE_START_RECENT_ABILITY = "C{@ohos.app.ability.Want.Want}"
-    "C{utils.AbilityUtils.AsyncCallbackWrapper}C{@ohos.app.ability.StartOptions.StartOptions}:";
+    "C{@ohos:app.ability.Want.Want}iC{@ohos:app.ability.StartOptions.StartOptions}"
+    "C{utils:AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *SIGNATURE_START_ABILITY_AS_CALLER = "C{@ohos:app.ability.Want.Want}"
+    "C{utils:AbilityUtils.AsyncCallbackWrapper}C{@ohos:app.ability.StartOptions.StartOptions}:";
+constexpr const char *SIGNATURE_START_RECENT_ABILITY = "C{@ohos:app.ability.Want.Want}"
+    "C{utils:AbilityUtils.AsyncCallbackWrapper}C{@ohos:app.ability.StartOptions.StartOptions}:";
 constexpr const char *COMPLETION_HANDLER_FAILURE_CODE =
-    "@ohos.app.ability.CompletionHandlerForAtomicService.FailureCode";
+    "@ohos:app.ability.CompletionHandlerForAtomicService.FailureCode";
 constexpr int32_t ARGC_ONE = 1;
 constexpr int32_t ARGC_TWO = 2;
 constexpr int32_t ARGC_THREE = 3;
-constexpr const char* SIGNATURE_RESTORE_WINDOW_STAGE = "C{arkui.stateManagement.storage.localStorage.LocalStorage}:";
+constexpr const char* SIGNATURE_RESTORE_WINDOW_STAGE = "C{arkui:stateManagement.storage.localStorage.LocalStorage}:";
 constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
 
 int64_t RequestCodeFromStringToInt64(const std::string &requestCode)
@@ -2963,58 +2963,58 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
     std::call_once(g_bindNativeMethodsFlag, [&status, env, cls]() {
         std::array functions = {
             ani_native_function { "nativeStartAbilitySync",
-                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbility) },
             ani_native_function { "nativeStartAbilitySync",
-                "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}C{utils.AbilityUtils."
+                "C{@ohos:app.ability.Want.Want}C{@ohos:app.ability.StartOptions.StartOptions}C{utils:AbilityUtils."
                 "AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityWithOptions) },
             ani_native_function { "nativeStartAbilitySyncCheck",
-                "C{@ohos.app.ability.StartOptions.StartOptions}:",
+                "C{@ohos:app.ability.StartOptions.StartOptions}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilitySyncCheck) },
             ani_native_function { "nativeStartAbilityForResult",
-                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityForResult) },
             ani_native_function { "nativeStartAbilityForResult",
-                "C{@ohos.app.ability.Want.Want}C{@ohos.app.ability.StartOptions.StartOptions}C{utils.AbilityUtils."
+                "C{@ohos:app.ability.Want.Want}C{@ohos:app.ability.StartOptions.StartOptions}C{utils:AbilityUtils."
                 "AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityForResultWithOptions) },
-            ani_native_function { "nativeTerminateSelfSync", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function { "nativeTerminateSelfSync", "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::TerminateSelf) },
             ani_native_function { "nativeTerminateSelfWithResult",
-                "C{ability.abilityResult.AbilityResult}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{ability:abilityResult.AbilityResult}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::TerminateSelfWithResult) },
             ani_native_function { "nativeStartAbilityByCallWithAccountSync",
-                "C{@ohos.app.ability.Want.Want}i:C{@ohos.app.ability.UIAbility.Caller}",
+                "C{@ohos:app.ability.Want.Want}i:C{@ohos:app.ability.UIAbility.Caller}",
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityByCallWithAccount) },
-            ani_native_function { "nativeReportDrawnCompletedSync", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function { "nativeReportDrawnCompletedSync", "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<ani_int *>(EtsAbilityContext::ReportDrawnCompleted) },
             ani_native_function { "nativeStartServiceExtensionAbility",
-                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::StartServiceExtensionAbility) },
             ani_native_function { "nativeOpenLink", SIGNATURE_OPEN_LINK,
                 reinterpret_cast<void*>(EtsAbilityContext::OpenLink) },
-            ani_native_function { "nativeOpenLinkCheck", "C{std.core.String}:",
+            ani_native_function { "nativeOpenLinkCheck", "C{std:core.String}:",
                 reinterpret_cast<void *>(EtsAbilityContext::OpenLinkCheck) },
             ani_native_function { "nativeIsTerminating", ":z",
                 reinterpret_cast<void*>(EtsAbilityContext::IsTerminating) },
-            ani_native_function { "nativeMoveAbilityToBackground", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function { "nativeMoveAbilityToBackground", "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::MoveAbilityToBackground) },
             ani_native_function { "nativeRequestModalUIExtension",
-                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::RequestModalUIExtension) },
             ani_native_function { "nativeBackToCallerAbilityWithResult",
-                "C{ability.abilityResult.AbilityResult}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{ability:abilityResult.AbilityResult}C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::BackToCallerAbilityWithResult) },
             ani_native_function { "nativeSetMissionLabel",
-                "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::SetMissionLabel) },
             ani_native_function { "nativeConnectServiceExtensionAbility", SIGNATURE_CONNECT_SERVICE_EXTENSION,
                 reinterpret_cast<void *>(EtsAbilityContext::ConnectServiceExtensionAbility) },
             ani_native_function { "nativeDisconnectServiceExtensionAbility", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
                 reinterpret_cast<void *>(EtsAbilityContext::DisconnectServiceExtensionAbility) },
             ani_native_function {"nativeSetColorMode",
-                "C{@ohos.app.ability.ConfigurationConstant.ConfigurationConstant.ColorMode}:",
+                "C{@ohos:app.ability.ConfigurationConstant.ConfigurationConstant.ColorMode}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetColorMode)},
             ani_native_function { "nativeStartAbilityByTypeSync", SIGNATURE_START_ABILITY_BY_TYPE,
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityByType) },
@@ -3036,37 +3036,37 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeRequestDialogService", SIGNATURE_REQUEST_DIALOG_SERVICE,
                 reinterpret_cast<void*>(EtsAbilityContext::RequestDialogService) },
             ani_native_function { "nativeStartSelfUIAbilityInCurrentProcessSync",
-                "C{@ohos.app.ability.Want.Want}C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}C{std:core.String}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartSelfUIAbilityInCurrentProcess) },
             ani_native_function { "nativeStartSelfUIAbilityInCurrentProcessSync",
-                "C{@ohos.app.ability.Want.Want}C{std.core.String}C{@ohos.app.ability.StartOptions.StartOptions}C{utils."
+                "C{@ohos:app.ability.Want.Want}C{std:core.String}C{@ohos:app.ability.StartOptions.StartOptions}C{utils:"
                 "AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartSelfUIAbilityInCurrentProcessWithOptions) },
             ani_native_function { "nativeOnSetRestoreEnabled", "z:",
                 reinterpret_cast<void*>(EtsAbilityContext::NativeOnSetRestoreEnabled) },
             ani_native_function { "nativeConnectServiceExtensionAbilityWithAccount",
-                "C{@ohos.app.ability.Want.Want}iC{ability.connectOptions.ConnectOptions}:l",
+                "C{@ohos:app.ability.Want.Want}iC{ability:connectOptions.ConnectOptions}:l",
                 reinterpret_cast<void*>(EtsAbilityContext::ConnectServiceExtensionAbilityWithAccount) },
             ani_native_function { "nativeStopServiceExtensionAbilityWithAccount",
-                "C{@ohos.app.ability.Want.Want}iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}iC{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::StopServiceExtensionAbilityWithAccount) },
             ani_native_function { "nativeStopServiceExtensionAbility",
-                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::StopServiceExtensionAbility) },
             ani_native_function { "nativeStartServiceExtensionAbilityWithAccount",
-                "C{@ohos.app.ability.Want.Want}iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}iC{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::StartServiceExtensionAbilityWithAccount) },
-            ani_native_function { "nativeChangeAbilityVisibility", "zC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function { "nativeChangeAbilityVisibility", "zC{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::NativeChangeAbilityVisibility) },
             ani_native_function { "nativeConnectAppServiceExtensionAbility", SIGNATURE_CONNECT_SERVICE_EXTENSION,
                 reinterpret_cast<void *>(EtsAbilityContext::ConnectAppServiceExtensionAbility) },
             ani_native_function { "nativeDisconnectAppServiceExtensionAbility", SIGNATURE_DISCONNECT_SERVICE_EXTENSION,
                 reinterpret_cast<void *>(EtsAbilityContext::DisconnectAppServiceExtensionAbility) },
             ani_native_function { "nativeStartAppServiceExtensionAbility",
-                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StartAppServiceExtensionAbility) },
             ani_native_function { "nativeStopAppServiceExtensionAbility",
-                "C{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::StopAppServiceExtensionAbility) },
             ani_native_function { "nativeStartAbilityWithAccountSync", SIGNATURE_START_ABILITY_WITH_ACCOUNT,
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityWithAccount) },
@@ -3074,31 +3074,31 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityWithAccountAndOptions) },
 #ifdef SUPPORT_GRAPHICS
             ani_native_function { "nativeSetAbilityInstanceInfo",
-                "C{std.core.String}C{@ohos.multimedia.image.image.PixelMap}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{std:core.String}C{@ohos:multimedia.image.image.PixelMap}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetAbilityInstanceInfo) },
             ani_native_function { "nativeSetAbilityInstanceInfoCheck",
-                "C{std.core.String}C{@ohos.multimedia.image.image.PixelMap}:",
+                "C{std:core.String}C{@ohos:multimedia.image.image.PixelMap}:",
                 reinterpret_cast<void *>(EtsAbilityContext::SetAbilityInstanceInfoCheck) },
             ani_native_function { "nativeSetMissionIcon",
-                "C{@ohos.multimedia.image.image.PixelMap}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:multimedia.image.image.PixelMap}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetMissionIcon) },
-            ani_native_function { "nativeSetMissionIconCheck", "C{@ohos.multimedia.image.image.PixelMap}:",
+            ani_native_function { "nativeSetMissionIconCheck", "C{@ohos:multimedia.image.image.PixelMap}:",
                 reinterpret_cast<void *>(EtsAbilityContext::SetMissionIconCheck) },
 #endif
-            ani_native_function { "nativeRevokeDelegator", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            ani_native_function { "nativeRevokeDelegator", "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void *>(EtsAbilityContext::RevokeDelegator) },
             ani_native_function { "nativeStartAbilityForResultWithAccount",
-                "C{@ohos.app.ability.Want.Want}iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}iC{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccount) },
             ani_native_function { "nativeStartAbilityForResultWithAccountCheck", ":",
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityForResultWithAccountCheck) },
             ani_native_function { "nativeStartAbilityForResultWithAccountVoid",
-                "C{@ohos.app.ability.Want.Want}iC{@ohos.app.ability.StartOptions.StartOptions}"
-                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}iC{@ohos:app.ability.StartOptions.StartOptions}"
+                "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccountVoid) },
             ani_native_function { "nativeStartAbilityForResultWithAccountResult",
-                "C{@ohos.app.ability.Want.Want}iC{@ohos.app.ability.StartOptions.StartOptions}"
-                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.Want.Want}iC{@ohos:app.ability.StartOptions.StartOptions}"
+                "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::StartAbilityForResultWithAccountResult) },
             ani_native_function { "nativeRestoreWindowStage", SIGNATURE_RESTORE_WINDOW_STAGE,
                 reinterpret_cast<void *>(EtsAbilityContext::RestoreWindowStage) },
@@ -3106,17 +3106,17 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void *>(EtsAbilityContext::StartAbilityAsCaller) },
             ani_native_function { "nativeStartRecentAbility", SIGNATURE_START_RECENT_ABILITY,
                 reinterpret_cast<void *>(EtsAbilityContext::StartRecentAbility) },
-            ani_native_function { "nativeRestartAppSync", "C{@ohos.app.ability.Want.Want}:",
+            ani_native_function { "nativeRestartAppSync", "C{@ohos:app.ability.Want.Want}:",
                 reinterpret_cast<void*>(EtsAbilityContext::RestartAppWithWindow) },
             ani_native_function { "nativeSetMissionWindowIcon",
-                "C{@ohos.multimedia.image.image.PixelMap}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:multimedia.image.image.PixelMap}C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetMissionWindowIcon) },
             ani_native_function { "nativeSetMissionContinueState",
-                "C{@ohos.app.ability.AbilityConstant.AbilityConstant.ContinueState}"
-                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "C{@ohos:app.ability.AbilityConstant.AbilityConstant.ContinueState}"
+                "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetMissionContinueState) },
             ani_native_function { "nativeSetOnNewWantSkipScenarios",
-                "iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                "iC{utils:AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetOnNewWantSkipScenarios) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {

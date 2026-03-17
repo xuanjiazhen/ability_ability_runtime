@@ -25,12 +25,12 @@ using namespace OHOS::AgentRuntime;
 namespace OHOS {
 namespace AgentManagerEts {
 namespace {
-constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
-constexpr const char *AGENT_PROVIDER_IMPL_CLASS_NAME = "application.AgentCard.AgentProviderImpl";
-constexpr const char *AGENT_APP_INFO_IMPL_CLASS_NAME = "application.AgentCard.AgentAppInfoImpl";
-constexpr const char *AGENT_CAPABILITIES_IMPL_CLASS_NAME = "application.AgentCard.AgentCapabilitiesImpl";
-constexpr const char *AGENT_SKILL_IMPL_CLASS_NAME = "application.AgentCard.AgentSkillImpl";
-constexpr const char *AGENT_CARD_IMPL_CLASS_NAME = "application.AgentCard.AgentCardImpl";
+constexpr const char *CLASSNAME_ARRAY = "std:core.Array";
+constexpr const char *AGENT_PROVIDER_IMPL_CLASS_NAME = "application:AgentCard.AgentProviderImpl";
+constexpr const char *AGENT_APP_INFO_IMPL_CLASS_NAME = "application:AgentCard.AgentAppInfoImpl";
+constexpr const char *AGENT_CAPABILITIES_IMPL_CLASS_NAME = "application:AgentCard.AgentCapabilitiesImpl";
+constexpr const char *AGENT_SKILL_IMPL_CLASS_NAME = "application:AgentCard.AgentSkillImpl";
+constexpr const char *AGENT_CARD_IMPL_CLASS_NAME = "application:AgentCard.AgentCardImpl";
 }  // namespace
 
 ani_object CreateEtsAgentProvider(ani_env *env, const AgentProvider &provider)

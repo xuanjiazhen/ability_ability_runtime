@@ -163,7 +163,7 @@ static void EtsAppRecoveryInit(ani_env *env)
     }
 
     ani_namespace ns;
-    status = env->FindNamespace("@ohos.app.ability.appRecovery.appRecovery", &ns);
+    status = env->FindNamespace("@ohos:app.ability.appRecovery.appRecovery", &ns);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::RECOVERY, "FindNamespace appRecovery failed status: %{public}d", status);
         return;

@@ -35,8 +35,8 @@ using namespace OHOS::AppExecFwk;
 namespace OHOS {
 namespace AgentManagerEts {
 namespace {
-constexpr const char* AGENT_MANAGER_SPACE_NAME = "@ohos.app.agent.agentManager.agentManager";
-constexpr const char* SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER = "utils.AgentUtils.AsyncCallbackWrapper";
+constexpr const char* AGENT_MANAGER_SPACE_NAME = "@ohos:app.agent.agentManager.agentManager";
+constexpr const char* SIGNATURE_AGENT_ASYNC_CALLBACK_WRAPPER = "utils:AgentUtils.AsyncCallbackWrapper";
 
 bool CheckConnectAlreadyExist(ani_env *env, AAFwk::Want &want,
     ani_object callback, ani_object asyncCallback)
@@ -345,21 +345,21 @@ void EtsAgentManagerRegistryInit(ani_env *env)
     }
     std::array kitFunctions = {
         ani_native_function{ "nativeGetAllAgentCards",
-            "C{utils.AgentUtils.AsyncCallbackWrapper}:",
+            "C{utils:AgentUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAgentManager::GetAllAgentCards) },
         ani_native_function{ "nativeGetAgentCardsByBundleName",
-            "C{std.core.String}C{utils.AgentUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{utils:AgentUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAgentManager::GetAgentCardsByBundleName) },
         ani_native_function{ "nativeGetAgentCardByAgentId",
-            "C{std.core.String}C{std.core.String}C{utils.AgentUtils.AsyncCallbackWrapper}:",
+            "C{std:core.String}C{std:core.String}C{utils:AgentUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAgentManager::GetAgentCardByAgentId) },
         ani_native_function{ "nativeConnectAgentExtensionAbility",
-            "C{@ohos.app.ability.Want.Want}C{std.core.String}"
-            "C{application.AgentExtensionConnectCallback.AgentExtensionConnectCallback}"
-            "C{utils.AgentUtils.AsyncCallbackWrapper}:",
+            "C{@ohos:app.ability.Want.Want}C{std:core.String}"
+            "C{application:AgentExtensionConnectCallback.AgentExtensionConnectCallback}"
+            "C{utils:AgentUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAgentManager::ConnectAgentExtensionAbility) },
         ani_native_function{ "nativeDisconnectAgentExtensionAbility",
-            "C{application.AgentProxy.AgentProxy}C{utils.AgentUtils.AsyncCallbackWrapper}:",
+            "C{application:AgentProxy.AgentProxy}C{utils:AgentUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsAgentManager::DisconnectAgentExtensionAbility) },
 	};
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());

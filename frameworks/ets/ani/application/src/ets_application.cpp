@@ -33,9 +33,9 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* PERMISSION_GET_BUNDLE_INFO = "ohos.permission.GET_BUNDLE_INFO_PRIVILEGED";
-constexpr const char* CONTEXT_CLASS_NAME = "application.Context.Context";
-constexpr const char* APPLICATION_SPACE_NAME = "@ohos.app.ability.application.application";
-constexpr const char* APP_PRELOAD_TYPE_NAME = "@ohos.app.ability.application.application.AppPreloadType";
+constexpr const char* CONTEXT_CLASS_NAME = "application:Context.Context";
+constexpr const char* APPLICATION_SPACE_NAME = "@ohos:app.ability.application.application";
+constexpr const char* APP_PRELOAD_TYPE_NAME = "@ohos:app.ability.application.application.AppPreloadType";
 }
 
 void EtsApplication::DemoteCurrentFromCandidateMasterProcess(ani_env *env, ani_object callback)
@@ -660,78 +660,78 @@ void ApplicationInit(ani_env *env)
     std::array methods = {
         ani_native_function {
             "nativeCreateModuleContext",
-            "C{application.Context.Context}C{std.core.String}C{std.core.String}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{application:Context.Context}C{std:core.String}C{std:core.String}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::CreateModuleContext)
         },
         ani_native_function {
             "nativeCreateModuleContextCheck",
-            "C{application.Context.Context}C{std.core.String}C{std.core.String}:",
+            "C{application:Context.Context}C{std:core.String}C{std:core.String}:",
             reinterpret_cast<void *>(EtsApplication::CreateModuleContextCheck)
         },
         ani_native_function {
             "nativeCreateBundleContext",
-            "C{application.Context.Context}C{std.core.String}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{application:Context.Context}C{std:core.String}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::CreateBundleContext)
         },
         ani_native_function {
             "nativeCreateBundleContextCheck",
-            "C{application.Context.Context}C{std.core.String}:",
+            "C{application:Context.Context}C{std:core.String}:",
             reinterpret_cast<void *>(EtsApplication::CreateBundleContextCheck)
         },
         ani_native_function {
             "nativeCreatePluginModuleContext",
-            "C{application.Context.Context}C{std.core.String}C{std.core.String}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{application:Context.Context}C{std:core.String}C{std:core.String}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::CreatePluginModuleContext)
         },
         ani_native_function {
             "nativeCreatePluginModuleContextCheck",
-            "C{application.Context.Context}C{std.core.String}C{std.core.String}:",
+            "C{application:Context.Context}C{std:core.String}C{std:core.String}:",
             reinterpret_cast<void *>(EtsApplication::CreatePluginModuleContextCheck)
         },
         ani_native_function {
             "nativeGetApplicationContext",
-            ":C{application.ApplicationContext.ApplicationContext}",
+            ":C{application:ApplicationContext.ApplicationContext}",
             reinterpret_cast<void *>(EtsApplication::GetApplicationContext)
         },
         ani_native_function {
             "nativeDemoteCurrentFromCandidateMasterProcess",
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::DemoteCurrentFromCandidateMasterProcess)
         },
         ani_native_function {
             "nativePromoteCurrentToCandidateMasterProcess",
-            "zC{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "zC{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::PromoteCurrentToCandidateMasterProcess)
         },
         ani_native_function {
             "nativeGetApplicationContextInstance",
-            ":C{application.ApplicationContext.ApplicationContext}",
+            ":C{application:ApplicationContext.ApplicationContext}",
             reinterpret_cast<void *>(EtsApplication::GetApplicationContextInstance)
         },
         ani_native_function {
             "nativeGetAppPreloadType",
-            ":C{@ohos.app.ability.application.application.AppPreloadType}",
+            ":C{@ohos:app.ability.application.application.AppPreloadType}",
             reinterpret_cast<void *>(EtsApplication::GetAppPreloadType)
         },
         ani_native_function {
             "nativeExitMasterProcessRole",
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::ExitMasterProcessRole)
         },
         ani_native_function {
             "nativeCreatePluginModuleContextForHostBundle",
-            "C{application.Context.Context}C{std.core.String}"
-            "C{std.core.String}C{std.core.String}"
-            "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+            "C{application:Context.Context}C{std:core.String}"
+            "C{std:core.String}C{std:core.String}"
+            "C{utils:AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsApplication::CreatePluginModuleContextForHostBundle)
         },
         ani_native_function {
             "nativeCreatePluginModuleContextForHostBundleCheck",
-            "C{application.Context.Context}C{std.core.String}"
-            "C{std.core.String}C{std.core.String}:",
+            "C{application:Context.Context}C{std:core.String}"
+            "C{std:core.String}C{std:core.String}:",
             reinterpret_cast<void *>(EtsApplication::CreatePluginModuleContextForHostBundleCheck)
         },
     };

@@ -26,20 +26,20 @@
 namespace OHOS {
 namespace AppManagerEts {
 namespace {
-constexpr const char *DATA_CLASS_NAME = "application.AppStateData.AppStateData";
-constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
-constexpr const char *INFO_INNER_CLASS_NAME = "application.RunningMultiAppInfo.RunningMultiAppInfoInner";
+constexpr const char *DATA_CLASS_NAME = "application:AppStateData.AppStateData";
+constexpr const char *CLASSNAME_ARRAY = "std:core.Array";
+constexpr const char *INFO_INNER_CLASS_NAME = "application:RunningMultiAppInfo.RunningMultiAppInfoInner";
 constexpr const char *INSTANCE_INNER_CLASS_NAME =
-    "application.RunningMultiInstanceInfo.RunningMultiInstanceInfoInner";
-constexpr const char *CLONE_INNER_CLASS_NAME = "application.RunningAppClone.RunningAppCloneInner";
-constexpr const char *PROCESS_DATA_CLASS_NAME = "application.ProcessData.ProcessData";
-constexpr const char *MULTI_APP_MODE_ENUM_NAME = "application.MultiAppMode.MultiAppMode";
-constexpr const char *KEEP_ALIVE_APP_TYPE_ENUM_NAME = "@ohos.app.ability.appManager.appManager.KeepAliveAppType";
-constexpr const char *KEEP_ALIVE_APP_SETTER_ENUM_NAME = "@ohos.app.ability.appManager.appManager.KeepAliveSetter";
+    "application:RunningMultiInstanceInfo.RunningMultiInstanceInfoInner";
+constexpr const char *CLONE_INNER_CLASS_NAME = "application:RunningAppClone.RunningAppCloneInner";
+constexpr const char *PROCESS_DATA_CLASS_NAME = "application:ProcessData.ProcessData";
+constexpr const char *MULTI_APP_MODE_ENUM_NAME = "application:MultiAppMode.MultiAppMode";
+constexpr const char *KEEP_ALIVE_APP_TYPE_ENUM_NAME = "@ohos:app.ability.appManager.appManager.KeepAliveAppType";
+constexpr const char *KEEP_ALIVE_APP_SETTER_ENUM_NAME = "@ohos:app.ability.appManager.appManager.KeepAliveSetter";
 constexpr const char *KEEP_ALIVE_BUNDLE_INFO_INNER_CLASS_NAME =
-    "@ohos.app.ability.appManager.appManager.KeepAliveBundleInfoInner";
+    "@ohos:app.ability.appManager.appManager.KeepAliveBundleInfoInner";
 constexpr const char *ABILITY_FIRST_FRAME_STATE_DATA_CLASS_NAME =
-    "application.AbilityFirstFrameStateData.AbilityFirstFrameStateDataInner";
+    "application:AbilityFirstFrameStateData.AbilityFirstFrameStateDataInner";
 }  // namespace
 
 ani_object WrapAppStateData(ani_env *env, const AppExecFwk::AppStateData &appStateData)

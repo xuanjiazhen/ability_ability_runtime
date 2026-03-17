@@ -21,14 +21,14 @@
 
 namespace OHOS {
 namespace AbilityManagerEts {
-constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
+constexpr const char *CLASSNAME_ARRAY = "std:core.Array";
 constexpr const char *SET_OBJECT_VOID_SIGNATURE = "iY:";
-constexpr const char *CLASSNAME_ABILITY_RRUNNINGINFO = "application.AbilityRunningInfo.AbilityRunningInfoImpl";
-constexpr const char *ABILITY_STATE_ENUM_NAME = "@ohos.app.ability.abilityManager.abilityManager.AbilityState";
-constexpr const char *CLASSNAME_EXTENSION_RUNNINGINFO = "application.ExtensionRunningInfo.ExtensionRunningInfoInner";
+constexpr const char *CLASSNAME_ABILITY_RRUNNINGINFO = "application:AbilityRunningInfo.AbilityRunningInfoImpl";
+constexpr const char *ABILITY_STATE_ENUM_NAME = "@ohos:app.ability.abilityManager.abilityManager.AbilityState";
+constexpr const char *CLASSNAME_EXTENSION_RUNNINGINFO = "application:ExtensionRunningInfo.ExtensionRunningInfoInner";
 constexpr const char *EXTENSION_ABILITY_TYPE_ENUM_NAME
-    = "@ohos.bundle.bundleManager.bundleManager.ExtensionAbilityType";
-constexpr const char *ELEMENTNAME_CLASS_NAME = "bundleManager.ElementNameInner.ElementNameInner";
+    = "@ohos:bundle.bundleManager.bundleManager.ExtensionAbilityType";
+constexpr const char *ELEMENTNAME_CLASS_NAME = "bundleManager:ElementNameInner.ElementNameInner";
 
 bool WrapAbilityRunningInfoArray(
     ani_env *env, ani_object &arrayObj, const std::vector<AAFwk::AbilityRunningInfo> &infos)
@@ -394,7 +394,7 @@ ani_object WrapAbilityStateData(ani_env *env, const AbilityStateData &abilitySta
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null env");
         return nullptr;
     }
-    if ((status = env->FindClass("application.AbilityStateData.AbilityStateData", &cls)) != ANI_OK) {
+    if ((status = env->FindClass("application:AbilityStateData.AbilityStateData", &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "find class failed status : %{public}d", status);
         return nullptr;
     }

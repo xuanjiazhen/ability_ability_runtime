@@ -23,12 +23,12 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *CLASSNAME_LAUNCHPARAM = "@ohos.app.ability.AbilityConstant.LaunchParamImpl";
-constexpr const char *CLASSNAME_LAUNCHREASON = "@ohos.app.ability.AbilityConstant.AbilityConstant.LaunchReason";
-constexpr const char *CLASSNAME_LAST_EXITREASION = "@ohos.app.ability.AbilityConstant.AbilityConstant.LastExitReason";
+constexpr const char *CLASSNAME_LAUNCHPARAM = "@ohos:app.ability.AbilityConstant.LaunchParamImpl";
+constexpr const char *CLASSNAME_LAUNCHREASON = "@ohos:app.ability.AbilityConstant.AbilityConstant.LaunchReason";
+constexpr const char *CLASSNAME_LAST_EXITREASION = "@ohos:app.ability.AbilityConstant.AbilityConstant.LastExitReason";
 constexpr const char* LAST_EXIT_DETAIL_INFO_IMPL_CLASS_NAME =
-    "@ohos.app.ability.AbilityConstant.LastExitDetailInfoImpl";
-constexpr const char* ENUMNAME_PROCESS = "@ohos.app.ability.appManager.appManager.ProcessState";
+    "@ohos:app.ability.AbilityConstant.LastExitDetailInfoImpl";
+constexpr const char* ENUMNAME_PROCESS = "@ohos:app.ability.appManager.appManager.ProcessState";
 EtsAppProcessState ConvertToEtsAppProcessState(AppExecFwk::AppProcessState appProcessState, bool isFocused)
 {
     EtsAppProcessState processState;

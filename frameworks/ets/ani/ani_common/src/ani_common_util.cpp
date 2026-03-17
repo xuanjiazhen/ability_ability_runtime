@@ -26,16 +26,16 @@
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-constexpr const char* CLASSNAME_DOUBLE = "std.core.Double";
-constexpr const char* CLASSNAME_BOOL = "std.core.Boolean";
-constexpr const char* CLASSNAME_ARRAY = "std.core.Array";
-constexpr const char* CLASSNAME_LONG = "std.core.Long";
-constexpr const char* CLASSNAME_INT = "std.core.Int";
-constexpr const char* CLASSNAME_ASYNC_CALLBACK_WRAPPER = "utils.AbilityUtils.AsyncCallbackWrapper";
+constexpr const char* CLASSNAME_DOUBLE = "std:core.Double";
+constexpr const char* CLASSNAME_BOOL = "std:core.Boolean";
+constexpr const char* CLASSNAME_ARRAY = "std:core.Array";
+constexpr const char* CLASSNAME_LONG = "std:core.Long";
+constexpr const char* CLASSNAME_INT = "std:core.Int";
+constexpr const char* CLASSNAME_ASYNC_CALLBACK_WRAPPER = "utils:AbilityUtils.AsyncCallbackWrapper";
 constexpr const char* SET_OBJECT_VOID_SIGNATURE = "iY:";
-constexpr const char* CLASSNAME_INNER = "application.ProcessInformation.ProcessInformationInner";
-constexpr const char* ENUMNAME_PROCESS = "@ohos.app.ability.appManager.appManager.ProcessState";
-constexpr const char* ENUMNAME_BUNDLE = "@ohos.bundle.bundleManager.bundleManager.BundleType";
+constexpr const char* CLASSNAME_INNER = "application:ProcessInformation.ProcessInformationInner";
+constexpr const char* ENUMNAME_PROCESS = "@ohos:app.ability.appManager.appManager.ProcessState";
+constexpr const char* ENUMNAME_BUNDLE = "@ohos:bundle.bundleManager.bundleManager.BundleType";
 }
 
 bool GetFieldDoubleByName(ani_env *env, ani_object object, const char *name, double &value)
@@ -1526,13 +1526,13 @@ ani_object WrapLocale(ani_env *env, const std::string &locale)
     }
     ani_class localClass = nullptr;
     ani_status status = ANI_ERROR;
-    if ((status = env->FindClass("std.core.Intl.Locale", &localClass)) != ANI_OK) {
+    if ((status = env->FindClass("std:core.Intl.Locale", &localClass)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "Find class failed, status: %{public}d", status);
         return nullptr;
     }
     ani_method localCtor = nullptr;
     if ((status = env->Class_FindMethod(localClass, "<ctor>",
-        "X{C{std.core.Intl.Locale}C{std.core.String}}C{std.core.Intl.LocaleOptions}:", &localCtor)) != ANI_OK) {
+        "X{C{std:core.Intl.Locale}C{std:core.String}}C{std:core.Intl.LocaleOptions}:", &localCtor)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "Find Locale constructor failed, status: %{public}d", status);
         return nullptr;
     }
@@ -1564,7 +1564,7 @@ ani_object CreateIntAniArray(ani_env *env, const std::vector<int32_t> &dataArry)
         return nullptr;
     }
 
-    status = env->FindClass("std.core.Array", &arrayCls);
+    status = env->FindClass("std:core.Array", &arrayCls);
     if (status != ANI_OK || arrayCls == nullptr) {
         TAG_LOGE(AAFwkTag::ANI, "FindClass failed, status : %{public}d", status);
         return nullptr;

@@ -39,11 +39,11 @@ namespace OHOS {
 namespace AppExecFwk {
 using namespace OHOS::AbilityRuntime;
 namespace {
-constexpr const char *ABILITY_WANT_CLASS_NAME = "@ohos.app.ability.Want.Want";
-constexpr const char *INNER_CLASS_NAME = "ability.abilityResult.AbilityResultInner";
-constexpr const char *ELEMENTNAME_CLASS_NAME = "bundleManager.ElementNameInner.ElementNameInner";
+constexpr const char *ABILITY_WANT_CLASS_NAME = "@ohos:app.ability.Want.Want";
+constexpr const char *INNER_CLASS_NAME = "ability:abilityResult.AbilityResultInner";
+constexpr const char *ELEMENTNAME_CLASS_NAME = "bundleManager:ElementNameInner.ElementNameInner";
 constexpr const char *RECORD_SET_NAME =
-    "X{C{std.core.Numeric}C{std.core.String}C{std.core.BaseEnum}}Y:";
+    "X{C{std:core.Numeric}C{std:core.String}C{std:core.BaseEnum}}Y:";
 const int PROPERTIES_SIZE = 2;
 
 bool InnerWrapWantParams(ani_env *env, ani_class wantCls, ani_object wantObject, const AAFwk::WantParams &wantParams)
@@ -180,7 +180,7 @@ bool InnerCreateByteObject(ani_env *env, ani_byte value, ani_object &object)
 {
     ani_class cls = nullptr;
     ani_method ctorMethod = nullptr;
-    ani_status status = env->FindClass("std.core.Byte", &cls);
+    ani_status status = env->FindClass("std:core.Byte", &cls);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "FindClass failed status: %{public}d", status);
         return false;
@@ -1278,7 +1278,7 @@ bool CreateArrayFromJson(ani_env *env, const nlohmann::json &jsonArray, ani_obje
     }
 
     ani_class arrayCls = nullptr;
-    ani_status status = env->FindClass("std.core.Array", &arrayCls);
+    ani_status status = env->FindClass("std:core.Array", &arrayCls);
     if (status != ANI_OK || arrayCls == nullptr) {
         TAG_LOGE(AAFwkTag::ANI, "failed to find array class, status: %{public}d", status);
         return false;
@@ -1492,7 +1492,7 @@ bool GetAbilityResultClass(ani_env *env, ani_class &cls)
 bool GetResultCode(ani_env *env, ani_object param, ani_class cls, int &resultCode)
 {
     ani_method method = nullptr;
-    ani_status status = env->Class_FindMethod(cls, "<get>resultCode", nullptr, &method);
+    ani_status status = env->Class_FindMethod(cls, "%%get-resultCode", nullptr, &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;
@@ -1510,7 +1510,7 @@ bool GetResultCode(ani_env *env, ani_object param, ani_class cls, int &resultCod
 bool GetWantReference(ani_env *env, ani_object param, ani_class cls, ani_ref &wantRef)
 {
     ani_method method {};
-    ani_status status = env->Class_FindMethod(cls, "<get>want", nullptr, &method);
+    ani_status status = env->Class_FindMethod(cls, "%%get-want", nullptr, &method);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::ANI, "status: %{public}d", status);
         return false;

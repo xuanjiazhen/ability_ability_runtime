@@ -33,7 +33,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr char CLASS_NAME_BUSINESSERROR[] = "@ohos.base.BusinessError";
+constexpr char CLASS_NAME_BUSINESSERROR[] = "@ohos:base.BusinessError";
 
 struct ObserverItem {
     ani_ref ref;
@@ -373,7 +373,7 @@ static void EtsErrorManagerInit(ani_env *env)
     }
 
     ani_namespace ns;
-    status = env->FindNamespace("@ohos.app.ability.errorManager.errorManager", &ns);
+    status = env->FindNamespace("@ohos:app.ability.errorManager.errorManager", &ns);
     if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::RECOVERY, "FindNamespace errorManager failed status: %{public}d", status);
         return;

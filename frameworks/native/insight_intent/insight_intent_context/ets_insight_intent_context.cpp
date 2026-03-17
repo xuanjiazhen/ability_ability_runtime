@@ -26,7 +26,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char *CONTEXT_CLASS_NAME = "@ohos.app.ability.InsightIntentContext.InsightIntentContext";
+constexpr const char *CONTEXT_CLASS_NAME = "@ohos:app.ability.InsightIntentContext.InsightIntentContext";
 }
 void EtsInsightIntentContext::Finalizer(ani_env *env, void *data, void *hint)
 {

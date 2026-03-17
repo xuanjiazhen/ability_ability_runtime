@@ -38,7 +38,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
         return ANI_ERROR;
     }
     ani_class contextClass = nullptr;
-    static const char *contextClassName = "application.Context.Context";
+    static const char *contextClassName = "application:Context.Context";
     if (ANI_OK != env->FindClass(contextClassName, &contextClass)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Not found class %{public}s.", contextClassName);
         return ANI_NOT_FOUND;
@@ -53,7 +53,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     };
 
     ani_class extensionContextClass = nullptr;
-    static const char *extensionContextClassName = "application.ExtensionContext.ExtensionContext";
+    static const char *extensionContextClassName = "application:ExtensionContext.ExtensionContext";
     if (ANI_OK != env->FindClass(extensionContextClassName, &extensionContextClass)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Not found class %{public}s.", extensionContextClassName);
         return ANI_NOT_FOUND;
@@ -68,7 +68,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     };
 
     ani_class uiAbilityClass = nullptr;
-    static const char *uiAbilityClassName = "application.UIAbilityContext.UIAbilityContext";
+    static const char *uiAbilityClassName = "application:UIAbilityContext.UIAbilityContext";
     if (ANI_OK != env->FindClass(uiAbilityClassName, &uiAbilityClass)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Not found class %{public}s.", uiAbilityClassName);
         return ANI_NOT_FOUND;
@@ -83,7 +83,7 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     };
     
     ani_class abilityStageContextClass = nullptr;
-    static const char *abilityStageContextClassName = "application.AbilityStageContext.AbilityStageContext";
+    static const char *abilityStageContextClassName = "application:AbilityStageContext.AbilityStageContext";
     if (ANI_OK != env->FindClass(abilityStageContextClassName, &abilityStageContextClass)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Not found class %{public}s.", abilityStageContextClassName);
         return ANI_NOT_FOUND;

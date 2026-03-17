@@ -27,16 +27,16 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char* CLASSNAME_ARRAY = "std.core.Array";
+constexpr const char* CLASSNAME_ARRAY = "std:core.Array";
 constexpr const char* EXECUTE_MODE_FOR_CONFIGURATION =
-    "@ohos.app.ability.insightIntentDriver.insightIntentDriver.ExecuteModeForConfiguration";
-constexpr const char* EXECUTE_MODE = "@ohos.app.ability.insightIntent.insightIntent.ExecuteMode";
+    "@ohos:app.ability.insightIntentDriver.insightIntentDriver.ExecuteModeForConfiguration";
+constexpr const char* EXECUTE_MODE = "@ohos:app.ability.insightIntent.insightIntent.ExecuteMode";
 constexpr const char* SERVICE_EXTENSION_INTENT_INFO_INNER =
-    "@ohos.app.ability.insightIntentDriver.insightIntentDriver.ServiceExtensionIntentInfoInner";
+    "@ohos:app.ability.insightIntentDriver.insightIntentDriver.ServiceExtensionIntentInfoInner";
 constexpr const char* SUB_INTENT_INFO_FOR_CONFIGURATION_INNER =
-    "@ohos.app.ability.insightIntentDriver.insightIntentDriver.SubIntentInfoForConfigurationInner";
+    "@ohos:app.ability.insightIntentDriver.insightIntentDriver.SubIntentInfoForConfigurationInner";
 constexpr const char* UIEXTENSION_INTENT_INFO_INNER =
-    "@ohos.app.ability.insightIntentDriver.insightIntentDriver.UIExtensionIntentInfoInner";
+    "@ohos:app.ability.insightIntentDriver.insightIntentDriver.UIExtensionIntentInfoInner";
 }
 ani_object CreateEtsEntityInfoForArray(ani_env *env, const std::vector<EntityInfoForQuery> &infos)
 {
@@ -91,7 +91,7 @@ ani_object CreateEtsEntityInfo(ani_env *env, const EntityInfoForQuery &info)
     ani_method ctor = nullptr;
     ani_object objValue = {};
 
-    if ((status = env->FindClass("@ohos.app.ability.insightIntentDriver.insightIntentDriver.EntityInfoInner",
+    if ((status = env->FindClass("@ohos:app.ability.insightIntentDriver.insightIntentDriver.EntityInfoInner",
         &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return nullptr;
@@ -126,7 +126,7 @@ ani_object CreateEtsLinkInfoForQuery(ani_env *env, const LinkInfoForQuery &info)
     ani_method ctor = nullptr;
     ani_object objValue = {};
 
-    if ((status = env->FindClass("@ohos.app.ability.insightIntentDriver.insightIntentDriver.LinkIntentInfoInner",
+    if ((status = env->FindClass("@ohos:app.ability.insightIntentDriver.insightIntentDriver.LinkIntentInfoInner",
         &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return nullptr;
@@ -156,7 +156,7 @@ ani_object CreateEtsPageInfoForQuery(ani_env *env, const PageInfoForQuery &info)
     ani_method ctor = nullptr;
     ani_object objValue = {};
 
-    if ((status = env->FindClass("@ohos.app.ability.insightIntentDriver.insightIntentDriver.PageIntentInfoInner",
+    if ((status = env->FindClass("@ohos:app.ability.insightIntentDriver.insightIntentDriver.PageIntentInfoInner",
         &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return nullptr;
@@ -190,7 +190,7 @@ ani_object CreateEtsEntryInfoForQuery(ani_env *env, const EntryInfoForQuery &inf
     ani_method ctor = nullptr;
     ani_object objValue = {};
 
-    if ((status = env->FindClass("@ohos.app.ability.insightIntentDriver.insightIntentDriver.EntryIntentInfoInner",
+    if ((status = env->FindClass("@ohos:app.ability.insightIntentDriver.insightIntentDriver.EntryIntentInfoInner",
         &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return nullptr;
@@ -222,7 +222,7 @@ ani_object CreateEtsUiAbilityInfoForQuery(ani_env *env, const UIAbilityIntentInf
     ani_method ctor = nullptr;
     ani_object objValue = {};
 
-    if ((status = env->FindClass("@ohos.app.ability.insightIntentDriver.insightIntentDriver.UIAbilityIntentInfoInner",
+    if ((status = env->FindClass("@ohos:app.ability.insightIntentDriver.insightIntentDriver.UIAbilityIntentInfoInner",
         &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return nullptr;
@@ -367,7 +367,7 @@ ani_object CreateEtsFormIntentInfoForQuery(ani_env *env, const FormIntentInfoFor
     ani_method ctor = nullptr;
     ani_object objValue = {};
 
-    if ((status = env->FindClass("@ohos.app.ability.insightIntentDriver.insightIntentDriver.FormIntentInfoInner",
+    if ((status = env->FindClass("@ohos:app.ability.insightIntentDriver.insightIntentDriver.FormIntentInfoInner",
         &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return nullptr;
@@ -401,7 +401,7 @@ ani_object CreateEtsFunctionInfoForQuery(ani_env *env, const FunctionInfoForQuer
     ani_method ctor = nullptr;
     ani_object objValue = {};
 
-    if ((status = env->FindClass("@ohos.app.ability.insightIntentDriver.insightIntentDriver.FunctionIntentInfoInner",
+    if ((status = env->FindClass("@ohos:app.ability.insightIntentDriver.insightIntentDriver.FunctionIntentInfoInner",
         &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return nullptr;
@@ -430,7 +430,7 @@ ani_object CreateEtsFormInfoForQuery(ani_env *env, const FormInfoForQuery &info)
     ani_method ctor = nullptr;
     ani_object objValue = {};
 
-    if ((status = env->FindClass("@ohos.app.ability.insightIntentDriver.insightIntentDriver.FormIntentInfoInner",
+    if ((status = env->FindClass("@ohos:app.ability.insightIntentDriver.insightIntentDriver.FormIntentInfoInner",
         &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return nullptr;
@@ -454,7 +454,7 @@ bool CreateEmptyRecordObject(ani_env *env, ani_object &recordObject)
     ani_class recordCls = nullptr;
     ani_method recordCtorMethod = nullptr;
     AppExecFwk::AniCommonMethodCacheKey recordCtor = std::make_pair("<ctor>", ":");
-    if (!AppExecFwk::AniCommonCacheMgr::GetCachedClassAndMethod(env, "std.core.Record", recordCtor,
+    if (!AppExecFwk::AniCommonCacheMgr::GetCachedClassAndMethod(env, "std:core.Record", recordCtor,
         recordCls, recordCtorMethod)) {
         return false;
     }
@@ -637,7 +637,7 @@ ani_object CreateEtsInsightIntentInfoForQuery(ani_env *env, const InsightIntentI
     ani_method ctor = nullptr;
     ani_object objValue = {};
 
-    if ((status = env->FindClass("@ohos.app.ability.insightIntentDriver.insightIntentDriver.InsightIntentInfoInner",
+    if ((status = env->FindClass("@ohos:app.ability.insightIntentDriver.insightIntentDriver.InsightIntentInfoInner",
         &cls)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "status: %{public}d", status);
         return nullptr;

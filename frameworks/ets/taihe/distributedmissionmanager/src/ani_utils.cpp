@@ -22,7 +22,7 @@ ani_status AniCreateInt(ani_env* env, int32_t value, ani_object& result)
 {
     ani_status state;
     ani_class intClass;
-    if ((state = env->FindClass("std.core.Int", &intClass)) != ANI_OK) {
+    if ((state = env->FindClass("std:core.Int", &intClass)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::MISSION, "FindClass std/core/Int failed, %{public}d", state);
         return state;
     }

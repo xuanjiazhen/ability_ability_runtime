@@ -24,12 +24,12 @@ namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 namespace {
 constexpr const char* BUSINESS_AIBILITY_INFO_INNER_CLASS_NAME =
-    "application.BusinessAbilityInfo.BusinessAbilityInfoInner";
+    "application:BusinessAbilityInfo.BusinessAbilityInfoInner";
 constexpr const char* BUSINESS_TYPE_ENUM_NAME =
-    "@ohos.app.businessAbilityRouter.businessAbilityRouter.BusinessType";
+    "@ohos:app.businessAbilityRouter.businessAbilityRouter.BusinessType";
 constexpr const char* CLASSNAME_APPLICATIONINFO =
-    "bundleManager.ApplicationInfoInner.ApplicationInfoInner";
-constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
+    "bundleManager:ApplicationInfoInner.ApplicationInfoInner";
+constexpr const char *CLASSNAME_ARRAY = "std:core.Array";
 }
 
 bool UnwrapBusinessAbilityFilter(ani_env *env, ani_object param, BusinessAbilityFilter &filter)
