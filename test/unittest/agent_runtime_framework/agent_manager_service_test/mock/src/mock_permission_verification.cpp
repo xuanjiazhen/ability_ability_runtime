@@ -22,6 +22,7 @@ namespace AgentRuntime {
 bool MyFlag::retVerifyCallingPermission = true;
 bool MyFlag::retVerifyConnectAgentPermission = true;
 bool MyFlag::retVerifyGetAgentCardPermission = true;
+bool MyFlag::retVerifyModifyAgentCardPermission = true;
 }
 
 namespace AAFwk {
@@ -33,6 +34,9 @@ bool PermissionVerification::VerifyCallingPermission(const std::string &permissi
     }
     if (permissionName == PermissionConstants::PERMISSION_GET_AGENT_CARD) {
         return AgentRuntime::MyFlag::retVerifyGetAgentCardPermission;
+    }
+    if (permissionName == PermissionConstants::PERMISSION_MODIFY_AGENT_CARD) {
+        return AgentRuntime::MyFlag::retVerifyModifyAgentCardPermission;
     }
     return AgentRuntime::MyFlag::retVerifyCallingPermission;
 }
