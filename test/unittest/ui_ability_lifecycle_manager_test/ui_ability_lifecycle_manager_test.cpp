@@ -2792,6 +2792,27 @@ HWTEST_F(UIAbilityLifecycleManagerTest, IsStartSpecifiedProcessRequest_007, Test
 }
 
 /**
+ * @tc.name: UIAbilityLifecycleManager_IsStartSpecifiedProcessRequest_008
+ * @tc.desc: IsStartSpecifiedProcessRequest, test ok
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, IsStartSpecifiedProcessRequest_008, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = true;
+    AppUtils::GetInstance().isStartSpecifiedProcess_.value = true;
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.isolationProcess = true;
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityRequest.abilityInfo.isStageBasedModel = true;
+    abilityRequest.isStartByOEExt = true;
+    auto ret = uiAbilityLifecycleManager->IsStartSpecifiedProcessRequest(abilityRequest);
+    AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = false;
+    AppUtils::GetInstance().isStartSpecifiedProcess_.value = false;
+    EXPECT_FALSE(ret);
+}
+
+/**
  * @tc.name: UIAbilityLifecycleManager_MoveAbilityToFront_0100
  * @tc.desc: MoveAbilityToFront
  * @tc.type: FUNC
@@ -6914,6 +6935,18 @@ HWTEST_F(UIAbilityLifecycleManagerTest, IsHookModule_0004, TestSize.Level1)
     request.abilityInfo.bundleName = "com.example.bundle";
     request.abilityInfo.moduleName = "hook_module";
     bool result = mgr->IsHookModule(request);
+    EXPECT_FALSE(result);
+}
+
+/**
+ * @tc.name: IsHookModule_0004
+ * @tc.desc: All conditions met, should return true if QueryAbilityInfo returns true
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, IsHookModule_0004, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    AbilityRequest request;
+    request.isStartByOEExt = true;
     EXPECT_FALSE(result);
 }
 
