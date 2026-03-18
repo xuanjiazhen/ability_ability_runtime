@@ -574,5 +574,100 @@ ChildProcessManagerErrorCode ChildProcessManager::KillChildProcessByPid(int32_t 
     }
     return ChildProcessManagerErrorCode::ERR_OK;
 }
+
+bool ChildProcessManager::IsArkChildProcessSupported()
+{
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
+    if (AAFwk::AppUtils::GetInstance().IsMultiProcessModel()) {
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessModel enabled, support ark child process");
+        return true;
+    }
+
+    AppExecFwk::BundleInfo bundleInfo;
+    bool hasBundleInfo = GetBundleInfo(bundleInfo);
+    if (!hasBundleInfo) {
+        TAG_LOGW(AAFwkTag::PROCESSMGR, "Failed to get bundle info");
+    }
+
+    if (AAFwk::AppUtils::GetInstance().AllowChildProcessInMultiProcessFeatureApp()) {
+        if (hasBundleInfo && IsMultiProcessFeatureApp(bundleInfo)) {
+            TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessFeatureApp with large_screen, support ark child process");
+            return true;
+        }
+    }
+
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "Ark child process not supported for current app");
+    return false;
+}
+
+bool ChildProcessManager::IsNativeChildProcessSupported()
+{
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
+    if (AAFwk::AppUtils::GetInstance().IsMultiProcessModel()) {
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessModel enabled, support native child process");
+        return true;
+    }
+
+    AppExecFwk::BundleInfo bundleInfo;
+    bool hasBundleInfo = GetBundleInfo(bundleInfo);
+    if (!hasBundleInfo) {
+        TAG_LOGW(AAFwkTag::PROCESSMGR, "Failed to get bundle info");
+    }
+
+    if (AAFwk::AppUtils::GetInstance().AllowChildProcessInMultiProcessFeatureApp()) {
+        if (hasBundleInfo && IsMultiProcessFeatureApp(bundleInfo)) {
+            TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessFeatureApp with large_screen, support native child process");
+            return true;
+        }
+    }
+
+    if (hasBundleInfo) {
+        std::string appIdentifier = bundleInfo.signatureInfo.appIdentifier;
+        if (!appIdentifier.empty() && AAFwk::AppUtils::GetInstance().IsAllowNativeChildProcess(appIdentifier)) {
+            TAG_LOGD(AAFwkTag::PROCESSMGR, "App %{public}s in whitelist, support native child process",
+                appIdentifier.c_str());
+            return true;
+        }
+    }
+
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "Native child process not supported for current app");
+    return false;
+}
+
+bool ChildProcessManager::IsCreateNativeChildProcessSupported()
+{
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
+    if (AAFwk::AppUtils::GetInstance().IsMultiProcessModel() &&
+        AAFwk::AppUtils::GetInstance().IsSupportNativeChildProcess()) {
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessModel and StartNativeChildProcess enabled,
+            support create native child process");
+        return true;
+    }
+
+    AppExecFwk::BundleInfo bundleInfo;
+    bool hasBundleInfo = GetBundleInfo(bundleInfo);
+    if (!hasBundleInfo) {
+        TAG_LOGW(AAFwkTag::PROCESSMGR, "Failed to get bundle info");
+    }
+
+    if (AAFwk::AppUtils::GetInstance().AllowChildProcessInMultiProcessFeatureApp()) {
+        if (hasBundleInfo && IsMultiProcessFeatureApp(bundleInfo)) {
+            TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessFeatureApp with large_screen,
+                support create native child process");
+            return true;
+        }
+    }
+
+    if (hasBundleInfo) {
+        std::string appIdentifier = bundleInfo.signatureInfo.appIdentifier;
+        if (!appIdentifier.empty() && AAFwk::AppUtils::GetInstance().IsAllowNativeChildProcess(appIdentifier)) {
+            TAG_LOGD(AAFwkTag::PROCESSMGR, "App %{public}s in whitelist, support create native child process",
+                appIdentifier.c_str());
+            return true;
+        }
+    }
+    TAG_LOGD(AAFwkTag::PROCESSMGR, "Create native child process not supported for current app");
+    return false;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
