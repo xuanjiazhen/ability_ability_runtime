@@ -692,6 +692,28 @@ void MainThread::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
 
 /**
  *
+ * @brief application triggerGC and dump memory.
+ *
+ * @param info, pid, tid, needGC, needSnapshot.
+ */
+void MainThread::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    wptr<MainThread> weak = this;
+    auto task = [weak, info, &dumpResult]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            return;
+        }
+        appThread->HandleMem(info, dumpResult);
+    };
+    if (!mainHandler_->PostTask(task, "MainThread:HandleMem")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask HandleMem failed");
+    }
+}
+
+/**
+ *
  * @brief Schedule the application process exit safely.
  *
  */
@@ -1043,6 +1065,38 @@ void MainThread::HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info
     } catch (...) {
         TAG_LOGE(AAFwkTag::APPKIT, "DumpCjHeap failed: unknown exception");
         return;
+    }
+}
+
+void MainThread::HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
+        return;
+    }
+    auto app = applicationForDump_.lock();
+    if (app == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null app");
+        return;
+    }
+    std::shared_ptr<DumpRuntimeHelper> helper;
+    try {
+        helper = std::make_shared<DumpRuntimeHelper>(app);
+    } catch (const std::bad_alloc& e) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create DumpRuntimeHelper: %s", e.what());
+        return;
+    } catch (const std::exception& e) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create DumpRuntimeHelper: %s", e.what());
+        return;
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to create DumpRuntimeHelper: unknown exception");
+        return;
+    }
+    try {
+        helper->DumpMem(info, dumpResult);
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to DumpMem: unknown exception");
     }
 }
 

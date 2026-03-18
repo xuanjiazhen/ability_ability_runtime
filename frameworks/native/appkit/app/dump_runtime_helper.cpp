@@ -309,6 +309,22 @@ void DumpRuntimeHelper::DumpCjHeap(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 #endif
 }
 
+void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "dump type: %{public}d", static_cast<uint32_t>(info.dumpType));
+    if (info.dumpType == MemDumpType::NATIVE) {
+        if (info.needLeakobj) {
+            TAG_LOGI(AAFwkTag::APPKIT, "dump native need leakobj");
+            dumpResult = "dump native need leakobj";
+        } else {
+            TAG_LOGI(AAFwkTag::APPKIT, "dump native no need leakobj");
+            dumpResult = "dump native no need leakobj";
+        }
+    }
+}
+    }
+}
+
 void DumpRuntimeHelper::GetCheckList(const std::unique_ptr<AbilityRuntime::Runtime> &runtime, std::string &checkList)
 {
     if (runtime->GetLanguage() != AbilityRuntime::Runtime::Language::JS) {
