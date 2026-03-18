@@ -267,6 +267,15 @@ public:
     virtual int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info) override;
 
     /**
+     * DumpMem, call DumpMem() through proxy project.
+     * triggerGC and dump application's memory info.
+     *
+     * @param info, pid tid needGc needSnapshot
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info) override;
+
+    /**
      * Notify that the ability stage has been updated
      * @param recordId, the app record.
      */

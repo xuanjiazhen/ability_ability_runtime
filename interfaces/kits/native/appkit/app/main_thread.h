@@ -232,6 +232,14 @@ public:
 
     /**
      *
+     * @brief triggerGC and dump application's memory info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot.
+     */
+    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info) override;
+
+    /**
+     *
      * @brief Low the memory which used by application.
      *
      */
@@ -429,6 +437,8 @@ private:
     void HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
     void HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
+
+    void HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info);
 
     void HandleSchedulePrepareTerminate(const std::string &moduleName);
 
