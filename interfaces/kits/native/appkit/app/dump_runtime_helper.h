@@ -18,6 +18,7 @@
 
 #include "app_jsheap_mem_info.h"
 #include "app_cjheap_mem_info.h"
+#include "app_mem_dump_info.h"
 #include "napi_common_want.h"
 #include "ohos_application.h"
 #include "runtime.h"
@@ -33,6 +34,7 @@ public:
     void SetAppFreezeFilterCallback();
     void DumpJsHeap(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
     void DumpCjHeap(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
+    void DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
 private:
     std::shared_ptr<OHOSApplication> application_ = nullptr;
     std::shared_ptr<ApplicationInfo> appInfo_ = nullptr;
