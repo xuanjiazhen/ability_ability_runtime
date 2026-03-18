@@ -232,6 +232,14 @@ public:
 
     /**
      *
+     * @brief triggerGC and dump application's memory info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot.
+     */
+    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info) override;
+
+    /**
+     *
      * @brief Low the memory which used by application.
      *
      */

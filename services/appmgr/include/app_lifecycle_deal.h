@@ -25,6 +25,7 @@
 #include "app_malloc_info.h"
 #include "app_jsheap_mem_info.h"
 #include "app_cjheap_mem_info.h"
+#include "app_mem_dump_info.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -148,6 +149,16 @@ public:
      * @return
      */
     void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
+
+    /**
+     * ScheduleMem, call ScheduleMem() through proxy project,
+     * triggerGC and dump application's memory info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot
+     *
+     * @return
+     */
+    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info);
 
     /**
      * LowMemoryWarning, call ScheduleLowMemory() through proxy project,

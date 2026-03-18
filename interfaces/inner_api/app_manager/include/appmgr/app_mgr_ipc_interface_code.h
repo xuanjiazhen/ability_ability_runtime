@@ -147,6 +147,7 @@ enum class AppMgrInterfaceCode {
     PRELOAD_EXTENSION = 122,
     LOCK_PROCESS_CACHE = 123,
     SET_PROCESS_PREPARE_EXIT = 124,
+    DUMP_MEM_PROCESS = 125,
 };
 } // AppExecFwk
 } // OHOS
