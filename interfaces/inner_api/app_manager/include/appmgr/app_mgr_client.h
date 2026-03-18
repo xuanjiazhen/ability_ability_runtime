@@ -376,6 +376,15 @@ public:
     virtual AppMgrResultCode DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
+     * DumpMem, call DumpMem() through proxy project.
+     * triggerGC and dump application's memory info.
+     *
+     * @param info, pid tid needGc needSnapshot
+     * @return ERR_OK ,return back success, others fail.
+     */
+    virtual AppMgrResultCode DumpMem(OHOS::AppExecFwk::MemDumpInfo &info);
+
+    /**
      * GetConfiguration
      *
      * @param info to retrieve configuration data.
