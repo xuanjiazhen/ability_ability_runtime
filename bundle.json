@@ -540,7 +540,11 @@
               "header_files": [
                 "ability_runtime_common.h",
                 "application_context.h",
+                "connect_options.h",
                 "context_constant.h",
+                "modular_object_extension_ability.h",
+                "modular_object_extension_context.h",
+                "modular_object_extension_manager.h",
                 "start_options.h"
               ]
             },
