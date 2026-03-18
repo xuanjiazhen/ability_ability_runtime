@@ -1,0 +1,126 @@
+diff --git a/frameworks/ets/ani/ability_auto_startup_manager/include/ets_ability_auto_startup_manager.h b/frameworks/ets/ani/ability_auto_startup_manager/include/ets_ability_auto_startup_manager.h
+index 9ad588e0131fb84333f812cdbeb3cf1e18beb9b5..3bb2bff4ea49093f2ab8acb0b28f41a2fb11d3cd 100644
+--- a/frameworks/ets/ani/ability_auto_startup_manager/include/ets_ability_auto_startup_manager.h
++++ b/frameworks/ets/ani/ability_auto_startup_manager/include/ets_ability_auto_startup_manager.h
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+@@ -30,6 +30,7 @@ public:
+     static void SetApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback);
+     static void CancelApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback);
+     static void QueryAllAutoStartupApplications(ani_env *env, ani_object callback);
++    static void GetAutoStartupStatusForSelf(ani_env *env, ani_object callback);
+     static void AutoStartupInfoCheck(ani_env *env, ani_object info);
+     static void NativeCheckCallerIsSystemApp(ani_env *env);
+ 
+@@ -39,6 +40,7 @@ private:
+     void OnSetApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback);
+     void OnCancelApplicationAutoStartup(ani_env *env, ani_object info, ani_object callback);
+     void OnQueryAllAutoStartupApplications(ani_env *env, ani_object callback);
++    void OnGetAutoStartupStatusForSelf(ani_env *env, ani_object callback);
+     void OnAutoStartupInfoCheck(ani_env *env, ani_object info);
+     void OnNativeCheckCallerIsSystemApp(ani_env *env);
+ 
+diff --git a/frameworks/ets/ani/ability_auto_startup_manager/src/ets_ability_auto_startup_manager.cpp b/frameworks/ets/ani/ability_auto_startup_manager/src/ets_ability_auto_startup_manager.cpp
+index 129f573de447130af1f9c26b024add2a5b4ea0f5..c4627c3d942cf7bca0b12f04d0e2f20ce0fb91c7 100644
+--- a/frameworks/ets/ani/ability_auto_startup_manager/src/ets_ability_auto_startup_manager.cpp
++++ b/frameworks/ets/ani/ability_auto_startup_manager/src/ets_ability_auto_startup_manager.cpp
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+@@ -70,6 +70,11 @@ void EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications(
+     GetInstance().OnQueryAllAutoStartupApplications(env, callback);
+ }
+ 
++void EtsAbilityAutoStartupManager::GetAutoStartupStatusForSelf(ani_env *env, ani_object callback)
++{
++    GetInstance().OnGetAutoStartupStatusForSelf(env, callback);
++}
++
+ void EtsAbilityAutoStartupManager::AutoStartupInfoCheck(
+     ani_env *env, ani_object info)
+ {
+@@ -252,6 +257,21 @@ void EtsAbilityAutoStartupManager::OnQueryAllAutoStartupApplications(ani_env *en
+         EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), result);
+ }
+ 
++void EtsAbilityAutoStartupManager::OnGetAutoStartupStatusForSelf(ani_env *env, ani_object callback)
++{
++    TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called GetAutoStartupStatusForSelf");
++    bool isAutoStartEnabled = false;
++    auto ret = AbilityManagerClient::GetInstance()->GetAutoStartupStatusForSelf(isAutoStartEnabled);
++    if (ret != ERR_OK) {
++        AppExecFwk::AsyncCallback(env, callback,
++            EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret)), nullptr);
++        return;
++    }
++    ani_object result = AppExecFwk::CreateBoolean(env, isAutoStartEnabled);
++    AppExecFwk::AsyncCallback(env, callback,
++        EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK), result);
++}
++
+ void EtsAbilityAutoStartupManager::OnNativeCheckCallerIsSystemApp(ani_env *env)
+ {
+     TAG_LOGD(AAFwkTag::AUTO_STARTUP, "called NativeCheckCallerIsSystemApp");
+@@ -298,6 +318,8 @@ void EtsAbilityAutoStartupManagerInit(ani_env *env)
+         ani_native_function {"nativeQueryAllAutoStartupApplications",
+             "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications)},
++        ani_native_function {"nativeGetAutoStartupStatusForSelf", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
++            reinterpret_cast<void *>(EtsAbilityAutoStartupManager::GetAutoStartupStatusForSelf)},
+         ani_native_function {"nativeCheckCallerIsSystemApp", ":",
+             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::NativeCheckCallerIsSystemApp)},
+     };
+diff --git a/frameworks/ets/ets/@ohos.app.ability.autoStartupManager.ets b/frameworks/ets/ets/@ohos.app.ability.autoStartupManager.ets
+index 563a52cdca2c03b93b37b936e4984ed1daceb126..afc31c18ce2a02e4facbe9d433a1849d77f1ff0c 100644
+--- a/frameworks/ets/ets/@ohos.app.ability.autoStartupManager.ets
++++ b/frameworks/ets/ets/@ohos.app.ability.autoStartupManager.ets
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+  * Licensed under the Apache License, Version 2.0 (the "License"),
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+@@ -27,6 +27,7 @@ export default namespace autoStartupManager {
+   export native function autoStartupInfoCheck(info: AutoStartupInfo): void;
+   export native function nativeCancelApplicationAutoStartup(info: AutoStartupInfo, callback: AsyncCallbackWrapper<void>): void;
+   export native function nativeQueryAllAutoStartupApplications(callback: AsyncCallbackWrapper<Array<AutoStartupInfo>>): void;
++  export native function nativeGetAutoStartupStatusForSelf(callback: AsyncCallbackWrapper<boolean>): void;
+   export native function nativeCheckCallerIsSystemApp(): void;
+ 
+   export function onSystemAutoStartup(callback: AutoStartupCallback): void {
+@@ -115,4 +116,24 @@ export default namespace autoStartupManager {
+     });
+     return p;
+   }
++
++  export function getAutoStartupStatusForSelf(): Promise<boolean> {
++    let p = new Promise<boolean>((resolve: (data: boolean) => void,
++      reject: (err: BusinessError) => void): void => {
++      let myCall = new AsyncCallbackWrapper<boolean>((err: BusinessError | null,
++        data: boolean | undefined) => {
++        if (err == null || err.code == 0) {
++          resolve(data as boolean);
++        } else {
++          reject(err);
++        }
++      });
++      taskpool.execute((): void => {
++        autoStartupManager.nativeGetAutoStartupStatusForSelf(myCall);
++      }).catch((err: Error): void => {
++        reject(err as BusinessError);
++      });
++    });
++    return p;
++  }
+ }
+\ No newline at end of file

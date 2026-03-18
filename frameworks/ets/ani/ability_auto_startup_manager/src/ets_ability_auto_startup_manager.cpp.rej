@@ -1,0 +1,29 @@
+diff a/frameworks/ets/ani/ability_auto_startup_manager/src/ets_ability_auto_startup_manager.cpp b/frameworks/ets/ani/ability_auto_startup_manager/src/ets_ability_auto_startup_manager.cpp	(rejected hunks)
+@@ -1,5 +1,5 @@
+ /*
+- * Copyright (c) 2025 Huawei Device Co., Ltd.
++ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+  * Licensed under the Apache License, Version 2.0 (the "License");
+  * you may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at
+@@ -70,6 +70,11 @@ void EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications(
+     GetInstance().OnQueryAllAutoStartupApplications(env, callback);
+ }
+ 
++void EtsAbilityAutoStartupManager::GetAutoStartupStatusForSelf(ani_env *env, ani_object callback)
++{
++    GetInstance().OnGetAutoStartupStatusForSelf(env, callback);
++}
++
+ void EtsAbilityAutoStartupManager::AutoStartupInfoCheck(
+     ani_env *env, ani_object info)
+ {
+@@ -298,6 +318,8 @@ void EtsAbilityAutoStartupManagerInit(ani_env *env)
+         ani_native_function {"nativeQueryAllAutoStartupApplications",
+             "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::QueryAllAutoStartupApplications)},
++        ani_native_function {"nativeGetAutoStartupStatusForSelf", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
++            reinterpret_cast<void *>(EtsAbilityAutoStartupManager::GetAutoStartupStatusForSelf)},
+         ani_native_function {"nativeCheckCallerIsSystemApp", ":",
+             reinterpret_cast<void *>(EtsAbilityAutoStartupManager::NativeCheckCallerIsSystemApp)},
+     };
