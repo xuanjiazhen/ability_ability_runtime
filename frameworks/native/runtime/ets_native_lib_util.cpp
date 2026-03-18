@@ -50,9 +50,19 @@ void GetEtsHapSoPath(const HapModuleInfo &hapInfo, AppLibPathMap &appLibPaths, b
     }
 
     libPath += (libPath.back() == '/') ? hapInfo.nativeLibraryPath : "/" + hapInfo.nativeLibraryPath;
-    TAG_LOGD(
-        AAFwkTag::APPKIT, "appLibPathKey: %{private}s, lib path: %{private}s", appLibPathKey.c_str(), libPath.c_str());
-    appLibPaths[appLibPathKey].emplace_back(libPath);
+    
+    if (!hapInfo.nativeLibrarySubDirs.empty()) {
+        for (const auto& subDir : hapInfo.nativeLibrarySubDirs) {
+            std::string subLibPath = libPath + "/" + subDir;
+            TAG_LOGD(AAFwkTag::APPKIT, "appLibPathKey: %{private}s, lib path: %{private}s", 
+                appLibPathKey.c_str(), subLibPath.c_str());
+            appLibPaths[appLibPathKey].emplace_back(subLibPath);
+        }
+    } else {
+        TAG_LOGD(
+            AAFwkTag::APPKIT, "appLibPathKey: %{private}s, lib path: %{private}s", appLibPathKey.c_str(), libPath.c_str());
+        appLibPaths[appLibPathKey].emplace_back(libPath);
+    }
 
     std::string appLibAbcPathKey = APP_ABC_LIB_PATH_KEY_PREFIX + hapInfo.moduleName + APP_ABC_LIB_PATH_KEY_SUFFIX;
     abcPathsToBundleModuleNameMap[appLibAbcPathKey] = appLibPathKey;

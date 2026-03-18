@@ -3023,5 +3023,59 @@ HWTEST_F(MainThreadTest, GetPluginNativeLibPath_0500, TestSize.Level1)
     EXPECT_EQ(appLibPaths["pluginBundleName/validModule"][0],
         "/data/storage/el1/bundle/+plugins/libs/arm");
 }
+
+/**
+ * @tc.name: GetNativeLibPath_0900
+ * @tc.desc: Get native library path with subdirectories.
+ * @tc.type: FUNC
+ * @tc.require: issueI7KMGU
+ */
+HWTEST_F(MainThreadTest, GetNativeLibPath_0900, TestSize.Level1)
+{
+    BundleInfo bundleInfo;
+    HspList hspList;
+    AppLibPathMap appLibPaths;
+
+    HapModuleInfo hapModuleInfo1;
+    hapModuleInfo1.bundleName = "com.example.app";
+    hapModuleInfo1.moduleName = "entry";
+    hapModuleInfo1.nativeLibraryPath = "libs";
+    hapModuleInfo1.nativeLibrarySubDirs = {"ark64-v8a", "arm64-v8a"};
+    hapModuleInfo1.isLibIsolated = false;
+    hapModuleInfo1.compressNativeLibs = true;
+    bundleInfo.hapModuleInfos.emplace_back(hapModuleInfo1);
+
+    mainThread_->GetNativeLibPath(bundleInfo, hspList, appLibPaths);
+    ASSERT_EQ(appLibPaths.size(), size_t(1));
+    ASSERT_EQ(appLibPaths["com.example.app/entry"].size(), size_t(2));
+    EXPECT_EQ(appLibPaths["com.example.app/entry"][0], "/data/storage/el1/bundle/libs/ark64-v8a");
+    EXPECT_EQ(appLibPaths["com.example.app/entry"][1], "/data/storage/el1/bundle/libs/arm64-v8a");
+}
+
+/**
+ * @tc.name: GetNativeLibPath_1000
+ * @tc.desc: Get native library path with empty subdirectories (backward compatibility).
+ * @tc.type: FUNC
+ * @tc.require: issueI7KMGU
+ */
+HWTEST_F(MainThreadTest, GetNativeLibPath_1000, TestSize.Level1)
+{
+    BundleInfo bundleInfo;
+    HspList hspList;
+    AppLibPathMap appLibPaths;
+
+    HapModuleInfo hapModuleInfo1;
+    hapModuleInfo1.bundleName = "com.example.app";
+    hapModuleInfo1.moduleName = "entry";
+    hapModuleInfo1.nativeLibraryPath = "libs";
+    hapModuleInfo1.nativeLibrarySubDirs = {};
+    hapModuleInfo1.isLibIsolated = false;
+    hapModuleInfo1.compressNativeLibs = true;
+    bundleInfo.hapModuleInfos.emplace_back(hapModuleInfo1);
+
+    mainThread_->GetNativeLibPath(bundleInfo, hspList, appLibPaths);
+    ASSERT_EQ(appLibPaths.size(), size_t(1));
+    ASSERT_EQ(appLibPaths["com.example.app/entry"].size(), size_t(1));
+    EXPECT_EQ(appLibPaths["com.example.app/entry"][0], "/data/storage/el1/bundle/libs");
 } // namespace AppExecFwk
 } // namespace OHOS

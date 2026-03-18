@@ -141,5 +141,53 @@ HWTEST_F(NativeLibUtilTest, GetPatchNativeLibPath_0400, TestSize.Level1)
     AppExecFwk::GetPatchNativeLibPath(hapInfo, patchNativeLibraryPath, appLibPaths);
     EXPECT_EQ(appLibPaths.empty(), false);
 }
+
+/**
+ * @tc.number: GetHapSoPath_0500
+ * @tc.name: GetHapSoPath with subdirectories
+ * @tc.desc: Test GetHapSoPath with nativeLibrarySubDirs.
+ */
+HWTEST_F(NativeLibUtilTest, GetHapSoPath_0500, TestSize.Level1)
+{
+    AppExecFwk::HapModuleInfo hapInfo;
+    AppLibPathMap appLibPaths;
+    bool isPreInstallApp = true;
+    
+    hapInfo.bundleName = "com.example.app";
+    hapInfo.moduleName = "entry";
+    hapInfo.hapPath = "/data/test/NativeLibUtilTest.hap";
+    hapInfo.nativeLibraryPath = "libs";
+    hapInfo.nativeLibrarySubDirs = {"ark64-v8a", "arm64-v8a"};
+    hapInfo.compressNativeLibs = true;
+    
+    AppExecFwk::GetHapSoPath(hapInfo, appLibPaths, isPreInstallApp);
+    EXPECT_EQ(appLibPaths.empty(), false);
+    EXPECT_EQ(appLibPaths["com.example.app/entry"].size(), size_t(2));
+    EXPECT_EQ(appLibPaths["com.example.app/entry"][0], "/data/storage/el1/bundle/libs/ark64-v8a");
+    EXPECT_EQ(appLibPaths["com.example.app/entry"][1], "/data/storage/el1/bundle/libs/arm64-v8a");
+}
+
+/**
+ * @tc.number: GetHapSoPath_0600
+ * @tc.name: GetHapSoPath with empty subdirectories
+ * @tc.desc: Test GetHapSoPath with empty nativeLibrarySubDirs (backward compatibility).
+ */
+HWTEST_F(NativeLibUtilTest, GetHapSoPath_0600, TestSize.Level1)
+{
+    AppExecFwk::HapModuleInfo hapInfo;
+    AppLibPathMap appLibPaths;
+    bool isPreInstallApp = true;
+    
+    hapInfo.bundleName = "com.example.app";
+    hapInfo.moduleName = "entry";
+    hapInfo.hapPath = "/data/test/NativeLibUtilTest.hap";
+    hapInfo.nativeLibraryPath = "libs";
+    hapInfo.nativeLibrarySubDirs = {};
+    hapInfo.compressNativeLibs = true;
+    
+    AppExecFwk::GetHapSoPath(hapInfo, appLibPaths, isPreInstallApp);
+    EXPECT_EQ(appLibPaths.empty(), false);
+    EXPECT_EQ(appLibPaths["com.example.app/entry"].size(), size_t(1));
+    EXPECT_EQ(appLibPaths["com.example.app/entry"][0], "/data/storage/el1/bundle/libs");
 } // namespace AbilityRuntime
 } // namespace OHOS

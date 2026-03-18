@@ -125,6 +125,7 @@ struct HapModuleInfo {
     int supportedModes = 0;
     bool isLibIsolated = false;
     std::string nativeLibraryPath;
+    std::vector<std::string> nativeLibrarySubDirs;
     std::string cpuAbi;
     bool compressNativeLibs = true;
 

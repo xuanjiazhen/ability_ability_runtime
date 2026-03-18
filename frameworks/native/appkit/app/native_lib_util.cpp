@@ -46,9 +46,19 @@ void GetHapSoPath(const HapModuleInfo &hapInfo, AppLibPathMap &appLibPaths, bool
     }
 
     libPath += (libPath.back() == '/') ? hapInfo.nativeLibraryPath : "/" + hapInfo.nativeLibraryPath;
-    TAG_LOGD(
-        AAFwkTag::APPKIT, "appLibPathKey: %{private}s, lib path: %{private}s", appLibPathKey.c_str(), libPath.c_str());
-    appLibPaths[appLibPathKey].emplace_back(libPath);
+    
+    if (!hapInfo.nativeLibrarySubDirs.empty()) {
+        for (const auto& subDir : hapInfo.nativeLibrarySubDirs) {
+            std::string subLibPath = libPath + "/" + subDir;
+            TAG_LOGD(AAFwkTag::APPKIT, "appLibPathKey: %{private}s, lib path: %{private}s", 
+                appLibPathKey.c_str(), subLibPath.c_str());
+            appLibPaths[appLibPathKey].emplace_back(subLibPath);
+        }
+    } else {
+        TAG_LOGD(
+            AAFwkTag::APPKIT, "appLibPathKey: %{private}s, lib path: %{private}s", appLibPathKey.c_str(), libPath.c_str());
+        appLibPaths[appLibPathKey].emplace_back(libPath);
+    }
 }
 
 void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &appLibPaths, bool isPreInstallApp)
