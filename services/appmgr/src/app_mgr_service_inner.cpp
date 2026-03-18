@@ -10566,8 +10566,7 @@ int32_t AppMgrServiceInner::CreateNativeChildProcess(const pid_t hostPid, const 
     }
 
     if (!AAFwk::AppUtils::GetInstance().IsSupportNativeChildProcess() &&
-        !AllowNativeChildProcess(CHILD_PROCESS_TYPE_NATIVE, appRecord->GetAppIdentifier()) &&
-        !AllowChildProcessInMultiProcessFeatureApp(appRecord)) {
+        !AllowNativeChildProcess(CHILD_PROCESS_TYPE_NATIVE, appRecord->GetAppIdentifier())) {
         TAG_LOGE(AAFwkTag::APPMGR, "unSupport native child process");
         return AAFwk::ERR_NOT_SUPPORT_NATIVE_CHILD_PROCESS;
     }
