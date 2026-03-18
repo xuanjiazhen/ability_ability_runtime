@@ -25,8 +25,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 constexpr int32_t MODULAR_OBJECT_EXTENSION_TYPE = 37;
-constexpr const char MODULAR_OBJECT_EXTENSION_NAME[] = "ModularObjectExtensionAbility";
-constexpr const char MODULAR_OBJECT_EXTENSION_TYPE_NAME[] = "modularObjectExtension";
 
 // todo remove
 inline AppExecFwk::ExtensionAbilityType GetModularObjectExtensionType()

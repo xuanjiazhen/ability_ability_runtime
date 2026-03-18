@@ -29,9 +29,8 @@ namespace {
 constexpr char PATH_SEPARATOR = '/';
 }
 
-ModularObjectExtension* ModularObjectExtension::Create(const std::unique_ptr<Runtime> &runtime)
+ModularObjectExtension* ModularObjectExtension::Create()
 {
-    (void)runtime;
     return new ModularObjectExtension();
 }
 

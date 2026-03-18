@@ -19,7 +19,6 @@
 #include "extension_base.h"
 #include "modular_object_extension_context_impl.h"
 #include "modular_object_extension_types.h"
-#include "runtime.h"
 
 
 #ifdef __cplusplus
@@ -54,7 +53,7 @@ public:
         std::shared_ptr<AbilityHandler> &handler,
         const sptr<IRemoteObject> &token) override;
 
-    static ModularObjectExtension* Create(const std::unique_ptr<Runtime> &runtime);
+    static ModularObjectExtension* Create();
 
     void OnStart(const AAFwk::Want &want) override;
 
