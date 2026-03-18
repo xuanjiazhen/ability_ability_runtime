@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 
-#include "ability_runtime/modular_object_extension_context.h"
+#include "modular_object_extension_context.h"
 
 #include "ability_business_error_utils.h"
 #include "ability_manager_client.h"

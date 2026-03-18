@@ -40,9 +40,8 @@ ohos_shared_library("ability_runtime") {
 
   include_dirs = [
     "include",
-    "${ability_runtime_path}/interfaces/inner_api/",
-    "${ability_runtime_path}/interfaces/inner_api/native_extension",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/",
+    "${ability_runtime_path}/interfaces/inner_api",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
   ]
 
   configs = [

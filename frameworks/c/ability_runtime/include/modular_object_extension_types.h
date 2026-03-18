@@ -17,10 +17,10 @@
 #define ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_TYPES_H
 
 #include <memory>
-#include "context_impl.h"
 #include "extension_ability_info.h"
-#include "extension_ability_impl.h"
 #include "modular_object_extension_ability.h"
+#include "native_extension/context_impl.h"
+#include "native_extension/extension_ability_impl.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
