@@ -19,6 +19,9 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+constexpr char CLASS_NAME_BUSINESSERROR[] = "@ohos.base.BusinessError";
+}
 bool IsRefUndefined(ani_env *env, ani_ref ref)
 {
     ani_boolean isUndefined = ANI_FALSE;
@@ -51,6 +54,88 @@ ani_env* GetAniEnv(ani_vm *vm)
         return nullptr;
     }
     return env;
+}
+
+ani_object CreateErrorObject(ani_env *env, const std::string &name, const std::string &message,
+    const std::string &stack)
+{
+    ani_object error {};
+    if (env == nullptr) {
+        return error;
+    }
+    ani_class cls {};
+    if (env->FindClass(CLASS_NAME_BUSINESSERROR, &cls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "find class %{public}s failed", CLASS_NAME_BUSINESSERROR);
+        return error;
+    }
+    ani_method ctor {};
+    if (env->Class_FindMethod(cls, "<ctor>", ":", &ctor) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "find method BusinessError constructor failed");
+        return error;
+    }
+    if (env->Object_New(cls, ctor, &error) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "new object %{public}s failed", CLASS_NAME_BUSINESSERROR);
+        return error;
+    }
+    ani_string messageRef {};
+    std::string message = errorObj.message;
+    if (env->String_NewUTF8(message.c_str(), message.size(), &messageRef) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "new message string failed");
+        return error;
+    }
+    if (env->Object_SetPropertyByName_Ref(error, "message", static_cast<ani_ref>(messageRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "set property BusinessError.message failed");
+        return error;
+    }
+    return error;
+}
+
+ani_object CreateErrorObject(ani_env *env, const std::string &name, const std::string &message, const std::string &stack)
+{
+    ani_object error = nullptr;
+    if (env == nullptr) {
+        return error;
+    }
+    ani_class cls {};
+    if (env->FindClass(CLASS_NAME_BUSINESSERROR, &cls) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "find class %{public}s failed", CLASS_NAME_BUSINESSERROR);
+        return error;
+    }
+    ani_method ctor {};
+    if (env->Class_FindMethod(cls, "<ctor>", ":", &ctor) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "find method BusinessError constructor failed");
+        return error;
+    }
+    if (env->Object_New(cls, ctor, &error) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "new object %{public}s failed", CLASS_NAME_BUSINESSERROR);
+        return error;
+    }
+    if (!SetPropertyByName(env, error, errorObj.name, "name") ||
+        !SetPropertyByName(env, error, errorObj.message, "message") ||
+        !SetPropertyByName(env, error, errorObj.stack, "stack")) {
+        return nullptr;
+    }
+    return error;
+}
+
+bool SetPropertyByName(ani_env *env, ani_object &error, const std::string &value, const char *name)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "null env");
+        return false;
+    }
+    ani_status status = ANI_ERROR;
+    ani_string valueRef {};
+    if ((status = env->String_NewUTF8(value.c_str(), value.size(), &valueRef)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "new value:%{public}s string failed, status:%{public}d",
+            value.c_str(), status);
+        return false;
+    }
+    if ((status = env->Object_SetPropertyByName_Ref(error, name, static_cast<ani_ref>(valueRef))) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::RECOVERY, "set property:%{public}s failed, status:%{public}d", name, status);
+        return false;
+    }
+    return true;
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
