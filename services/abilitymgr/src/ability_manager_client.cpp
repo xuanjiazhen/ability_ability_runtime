@@ -1031,6 +1031,22 @@ ErrCode AbilityManagerClient::GetMissionInfo(const std::string& deviceId, int32_
     return abms->GetMissionInfo(deviceId, missionId, missionInfo);
 }
 
+ErrCode AbilityManagerClient::GetMissionInfo(int32_t windowId, Rosen::WindowIdentityInfo &windowInfo)
+{
+
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+#ifdef SUPPORT_SCREEN
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sceneSessionManager = SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        CHECK_POINTER_RETURN_INVALID_VALUE(sceneSessionManager);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, GetMissionInfo");
+        auto err = sceneSessionManager->GetWindowIdentityInfo(windowId, windowInfo);
+        return static_cast<int>(err);
+    }
+#endif //SUPPORT_SCREEN
+    return ERR_NOT_SUPPORT_SCREEN;
+}
+
 ErrCode AbilityManagerClient::CleanMission(int32_t missionId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

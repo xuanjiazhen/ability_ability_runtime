@@ -1113,6 +1113,11 @@ enum {
     // Result (2099213) for agent card id does not exist.
     ERR_INVALID_AGENT_CARD_ID = 2099213,
 
+    /** 
+     * Result (2099214) Not support screen.
+     */
+    ERR_NOT_SUPPORT_SCREEN = 2099214,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */

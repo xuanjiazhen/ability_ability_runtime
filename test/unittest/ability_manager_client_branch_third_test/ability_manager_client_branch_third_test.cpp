@@ -1249,5 +1249,35 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, PreloadApplication_0100, TestSize.
     auto result = client_->PreloadApplication(bundleName, userId, appIndex);
     EXPECT_EQ(result, ERR_OK);
 }
+
+/**
+ * @tc.name: AbilityManagerClient_GetMissionInfo_0400
+ * @tc.desc: GetMissionInfo_0400
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0400, TestSize.Level1)
+{
+    NormalTestBoardDisable();
+    int32_t windowId = 0;
+    Rosen::WindowIdentityInfo windowInfo;
+    auto result = client_->GetMissionInfo(windowId, windowInfo);
+    EXPECT_EQ(result, ERR_NOT_SUPPORT_SCREEN);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_GetMissionInfo_0500
+ * @tc.desc: GetMissionInfo_0500
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0500, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    int32_t windowId = 0;
+    Rosen::WindowIdentityInfo windowInfo;
+    EXPECT_CALL(*mockSceneSessionManagerLite_, GetWindowIdentityInfo(_, _))
+        .Times(1).WillOnce(Return(WMError::WM_OK));
+    auto result = client_->GetMissionInfo(windowId, windowInfo);
+    EXPECT_EQ(result, ERR_OK);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
