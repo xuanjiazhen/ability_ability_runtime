@@ -33,8 +33,6 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr char CLASS_NAME_BUSINESSERROR[] = "@ohos.base.BusinessError";
-
 struct ObserverItem {
     ani_ref ref;
     ani_vm* vm;
@@ -51,7 +49,6 @@ static bool g_freezeCallbackRegistered = false;
 
 static std::set<ani_ref> g_unhandledRejectionObservers;
 static std::mutex g_unhandledRejectionMtx;
-static ani_vm* g_unhandledRejectionVm = nullptr;
 } // namespace
 
 class ErrorManagerAni final {
@@ -75,50 +72,13 @@ public:
         g_unhandledRejectionObservers.clear();
     }
 
-    static ani_object CreateErrorObject(ani_env *env, const AppExecFwk::ErrorObject &errorObj)
-    {
-        ani_object error {};
-        if (env == nullptr) {
-            return error;
-        }
-        ani_class cls {};
-        if (env->FindClass(CLASS_NAME_BUSINESSERROR, &cls) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "find class %{public}s failed", CLASS_NAME_BUSINESSERROR);
-            return error;
-        }
-        ani_method ctor {};
-        if (env->Class_FindMethod(cls, "<ctor>", ":", &ctor) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "find method BusinessError constructor failed");
-            return error;
-        }
-        if (env->Object_New(cls, ctor, &error) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "new object %{public}s failed", CLASS_NAME_BUSINESSERROR);
-            return error;
-        }
-        ani_string messageRef {};
-        std::string message = errorObj.message;
-        if (env->String_NewUTF8(message.c_str(), message.size(), &messageRef) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "new message string failed");
-            return error;
-        }
-        if (env->Object_SetPropertyByName_Ref(error, "message", static_cast<ani_ref>(messageRef)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "set property BusinessError.message failed");
-            return error;
-        }
-        return error;
-    }
-
     static void DoErrorCallback(const AppExecFwk::ErrorObject &errorObj)
     {
-        if (g_defaultHandler.vm == nullptr) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "null vm");
-            return;
-        }
-        if (g_defaultHandler.ref == nullptr) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "null defaultHandler ref");
-            return;
-        }
         std::lock_guard<std::mutex> lock(g_defaultHandlerMtx);
+        if (g_defaultHandler.vm == nullptr || g_defaultHandler.ref == nullptr) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "null vm or defaultHandler ref.");
+            return;
+        }
         ani_env *env = nullptr;
         bool isAttachThread = false;
         env = AppExecFwk::AttachAniEnv(g_defaultHandler.vm, isAttachThread);
@@ -126,31 +86,39 @@ public:
             TAG_LOGE(AAFwkTag::RECOVERY, "null env");
             return;
         }
-        TAG_LOGW(AAFwkTag::RECOVERY, "Error name: %{public}s, message: %{public}s", errorObj.name.c_str(),
-            errorObj.message.c_str());
-        TAG_LOGW(AAFwkTag::RECOVERY, "Error stack: %{public}s", errorObj.stack.c_str());
+        ani_object error = CreateErrorObject(env, errorObj.name, errorObj.message, errorObj.stack);
+        if (error == nullptr) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "null error param");
+            return;
+        }
+        std::vector<ani_ref> args = {error};
+        ani_ref result = nullptr;
+        ani_status status = env->FunctionalObject_Call(
+            reinterpret_cast<ani_fn_object>(g_defaultHandler.ref), args.size(), args.data(), &result);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::RECOVERY, "failed to call default handler function, status: %{public}d", status);
+        }
         AppExecFwk::DetachAniEnv(g_defaultHandler.vm, isAttachThread);
     }
 
-    static void NotifyUnhandledRejectionHandler(ani_object promise, ani_object reason)
+    static void NotifyUnhandledRejectionHandler(ani_env *env, ani_object reason, ani_object promise)
     {
         std::lock_guard<std::mutex> lock(g_unhandledRejectionMtx);
-        ani_env *env = nullptr;
-        bool isAttachThread = false;
-        env = AppExecFwk::AttachAniEnv(g_unhandledRejectionVm, isAttachThread);
-        if (env == nullptr) {
-            TAG_LOGE(AAFwkTag::RECOVERY, "null env");
-            return;
-        }
         for (auto& iter : g_unhandledRejectionObservers) {
             ani_object callback = static_cast<ani_object>(iter);
-            if (!ValidateFunction(env, callback)) {
+            if (!ValidateFunction(env, callback) || !ValidateFunction(env, promise) ||
+                !ValidateFunction(env, reason)) {
+                TAG_LOGW(AAFwkTag::RECOVERY, "UnhandledRejection callback, promise or reason invalid.");
                 return;
             }
-            TAG_LOGW(AAFwkTag::RECOVERY, "UnhandledRejection callback execute success.");
+            std::vector<ani_ref> args = {reason, promise};
+            ani_ref result = nullptr;
+            ani_status status = env->FunctionalObject_Call(
+                reinterpret_cast<ani_fn_object>(callback), args.size(), args.data(), &result);
+            if (status != ANI_OK) {
+                TAG_LOGE(AAFwkTag::RECOVERY, "failed to call unhandled function, status: %{public}d", status);
+            }
         }
-        AppExecFwk::DetachAniEnv(g_unhandledRejectionVm, isAttachThread);
-        return;
     }
 
     static ani_object SetDefaultErrorHandler(ani_env *env, ani_object function)
@@ -166,17 +134,32 @@ public:
         }
         std::lock_guard<std::mutex> lock(g_defaultHandlerMtx);
         if (g_defaultHandler.ref) {
-            result = static_cast<ani_object>(g_defaultHandler.ref);
+            ani_wref weakRef;
+            auto status = env->WeakReference_Create(g_defaultHandler.ref, &weakRef);
+            if (status != ANI_OK) {
+                TAG_LOGE(AAFwkTag::RECOVERY, "create weakref failed, status: %{public}d", status);
+                return result;
+            }
             env->GlobalReference_Delete(g_defaultHandler.ref);
             g_defaultHandler.ref = nullptr;
+            ani_boolean released = ANI_FALSE;
+            ani_ref weakResult = nullptr;
+            status = env->WeakReference_GetReference(weakRef, &released, &weakResult);
+            if (status != ANI_OK) {
+                TAG_LOGE(AAFwkTag::RECOVERY, "create weakref failed, status: %{public}d", status);
+                return result;
+            }
+            result = static_cast<ani_object>(weakResult);
         }
+        ani_ref objectRef = nullptr;
         if (function) {
-            auto status = env->GlobalReference_Create(function, &g_defaultHandler.ref);
+            auto status = env->GlobalReference_Create(function, &objectRef);
             if (status != ANI_OK) {
                 TAG_LOGE(AAFwkTag::RECOVERY, "create defaultHandler function failed.");
                 return result;
             }
         }
+        g_defaultHandler.ref = objectRef;
         g_defaultHandler.vm = GetAniVm(env);
         return result;
     }
@@ -310,7 +293,6 @@ public:
                 return result;
             }
         }
-        g_unhandledRejectionVm = GetAniVm(env);
         g_unhandledRejectionObservers.insert(ref);
         return result;
     }
