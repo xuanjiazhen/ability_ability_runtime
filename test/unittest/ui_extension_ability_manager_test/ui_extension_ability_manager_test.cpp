@@ -3428,5 +3428,66 @@ HWTEST_F(UIExtensionAbilityManagerTest, CheckAbilityStateForDisconnect_001, Test
     EXPECT_EQ(connectManager->CheckAbilityStateForDisconnect(abilityRecord2), INVALID_CONNECTION_STATE);
 }
 
+/**
+ * @tc.name: RollbackAgentUILaunchRecord_0100
+ * @tc.desc: Test RollbackAgentUILaunchRecord for non-AgentUIExtension type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, RollbackAgentUILaunchRecord_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RollbackAgentUILaunchRecord_0100 start");
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    // Create a non-AgentUIExtension ability request
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::UI;
+    abilityRequest.abilityInfo.bundleName = "com.test.ui";
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    // Should return early without crash for non-AgentUIExtension
+    connectManager->RollbackAgentUILaunchRecord(abilityRecord);
+
+    TAG_LOGI(AAFwkTag::TEST, "RollbackAgentUILaunchRecord_0100 end");
+}
+
+/**
+ * @tc.name: RollbackAgentUILaunchRecord_0200
+ * @tc.desc: Test RollbackAgentUILaunchRecord for AgentUIExtension type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIExtensionAbilityManagerTest, RollbackAgentUILaunchRecord_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RollbackAgentUILaunchRecord_0200 start");
+    std::shared_ptr<UIExtensionAbilityManager> connectManager = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    int32_t callerUid = 1000;
+    std::string bundleName = "com.test.agentui";
+    int32_t extensionAbilityId = 1;
+
+    // Add a record first
+    connectManager->uiExtensionAbilityRecordMgr_->AddAgentUILaunchRecord(callerUid, bundleName, extensionAbilityId);
+    auto ret = connectManager->uiExtensionAbilityRecordMgr_->CheckAgentUILaunchLimit(callerUid, bundleName);
+    EXPECT_EQ(ret, ERR_OK);
+
+    // Create an AgentUIExtension ability request
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = ExtensionAbilityType::AGENT_UI;
+    abilityRequest.abilityInfo.bundleName = bundleName;
+    std::shared_ptr<BaseExtensionRecord> abilityRecord = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->extensionRecordId_ = extensionAbilityId;
+
+    // Rollback should remove the record
+    connectManager->RollbackAgentUILaunchRecord(abilityRecord);
+
+    // Verify record is removed
+    EXPECT_TRUE(connectManager->uiExtensionAbilityRecordMgr_->agentUIExtensionRecords_.empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "RollbackAgentUILaunchRecord_0200 end");
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
