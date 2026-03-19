@@ -121,7 +121,7 @@ int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bund
         TAG_LOGE(AAFwkTag::STARTUP, "failed to create handler");
         return ERR_STARTUP_INTERNAL_ERROR;
     }
-
+    preloadHandler_->SetCurrentEventPriority(40);
     if (preloadHapModuleInfo.name != preloadModuleName) {
         TAG_LOGD(AAFwkTag::STARTUP, "preload module name: %{public}s", preloadModuleName.c_str());
         return ERR_OK;
