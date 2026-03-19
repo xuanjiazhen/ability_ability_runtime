@@ -32,6 +32,9 @@
 #include "ihidden_start_observer.h"
 
 namespace OHOS {
+namespace Rosen {
+struct WindowIdentityInfo;
+}
 namespace AAFwk {
 class Snapshot;
 class ISnapshotHandler;
@@ -916,6 +919,15 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode GetMissionInfo(const std::string &deviceId, int32_t missionId, MissionInfo &missionInfo);
+
+    /**
+     * @brief Get window info by window id.
+     * @param windowId Window id.
+     * @param windowInfo Window info.
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode GetWindowIdentityInfo(int32_t windowId, Rosen::WindowIdentityInfo &windowInfo);
 
     /**
      * @brief Get the Mission Snapshot Info object

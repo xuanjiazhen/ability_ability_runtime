@@ -140,6 +140,7 @@ public:
         MainWindowInfo& windowInfo), (override));
     MOCK_METHOD(void, GetAllGroupInfo, ((std::unordered_map<DisplayId, DisplayGroupId> &),
         (std::vector<sptr<FocusChangeInfo>> &)), (override));
+    MOCK_METHOD(WMError, GetWindowIdentityInfo, (int32_t windowId, Rosen::WindowIdentityInfo &windowInfo), (override));
 };
 } // namespace OHOS::Rosen
 #endif // MOCK_SCENE_SESSION_MANAGER_LITE_H
