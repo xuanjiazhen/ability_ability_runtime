@@ -265,6 +265,9 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
     faultData.waitSaveState = false;
     faultData.forceExit = false;
     GetApplicationInfo(faultData);
+    if (faultData.errorObject.name == AppFreezeType::LIFECYCLE_TIMEOUT) {
+        faultData.reportLifecycleToFreeze = GetReportLifeCycleAsAppfreeze();
+    }
     if (faultData.errorObject.name == AppFreezeType::APP_INPUT_BLOCK) {
         MMI::InputManager::GetInstance()->GetLastEventIds(faultData.markedId,
             faultData.processedId, faultData.dispatchedEventId);
@@ -556,6 +559,16 @@ void AppfreezeInner::SetMainThreadSample(bool isEnableMainThreadSample)
 bool AppfreezeInner::GetMainThreadSample()
 {
     return isEnableMainThreadSample_;
+}
+
+void AppfreezeInner::SetReportLifeCycleAsAppfreeze(bool reportLifecycleToFreeze)
+{
+    reportLifecycleToFreeze_ = reportLifecycleToFreeze;
+}
+
+bool AppfreezeInner::GetReportLifeCycleAsAppfreeze()
+{
+    return reportLifecycleToFreeze_;
 }
 
 void AppfreezeInner::SetAppfreezeApplication(const std::shared_ptr<OHOSApplication> &application)
