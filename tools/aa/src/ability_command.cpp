@@ -25,6 +25,8 @@
 #include <getopt.h>
 #include <iostream>
 #include <regex>
+#include <fstream>
+#include <nlohmann/json.hpp>
 #include "ability_manager_client.h"
 #include "ability_start_with_wait_observer.h"
 #include "ability_start_with_wait_observer_utils.h"
@@ -301,53 +303,102 @@ AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) :
     }
 }
 
-WantParams AbilityManagerShellCommand::BuildAmapNavigateWantParams(const std::string& destination)
+std::shared_ptr<WantParams> AbilityManagerShellCommand::ParseInsightIntentParam(const std::string& paramStr)
 {
-    WantParams wantParams;
+    if (paramStr.empty()) {
+        return nullptr;
+    }
 
-    // 1. 设置基础参数
-    // ohos.insightIntent.decoratorType (Integer, value: 0)
-    wantParams.SetParam("ohos.insightIntent.decoratorType", Integer::Box(0));
-    
-    // ohos.insightIntent.executeParam.id (String, value: "33")
-    wantParams.SetParam("ohos.insightIntent.executeParam.id", String::Box("33"));
-    
-    // ohos.insightIntent.executeParam.mode (Integer, value: 0)
-    wantParams.SetParam("ohos.insightIntent.executeParam.mode", Integer::Box(0));
-    
-    // ohos.insightIntent.srcEntry
-    wantParams.SetParam("ohos.insightIntent.srcEntry",  String::Box("./ets/intents/IntentExecutorImpl.ets"));
-    
-    // ohos.insightIntent.executeParam.name (String, value: "StartNavigate")
-    wantParams.SetParam("ohos.insightIntent.executeParam.name", String::Box("StartNavigate"));
+    TAG_LOGI(AAFwkTag::AA_TOOL, "Parsing insight intent param: %{public}s", paramStr.c_str());
 
-    // 2. 构建嵌套的 executeParam 核心参数（导航参数）
-    WantParams executeParam;
+    std::shared_ptr<WantParams> wantParams = std::make_shared<WantParams>();
 
-    // 2.1 构建目标位置参数 dstLocation
-    WantParams dstLocation;
-    dstLocation.SetParam("address", String::Box(destination.empty() ? "中国浙江省杭州市西湖区" : destination));
-    dstLocation.SetParam("latitude", String::Box("30.2596093"));
-    dstLocation.SetParam("locationName", String::Box(destination.empty() ? "西湖区" : destination));
-    dstLocation.SetParam("locationSystem", String::Box("GCJ02"));  // 高德坐标系
-    dstLocation.SetParam("longitude", String::Box("120.1302597"));
-    dstLocation.SetParam("poiId", String::Box("720831254820959106"));
+    try {
+        if (paramStr.front() == '{' && paramStr.back() == '}') {
+            TAG_LOGI(AAFwkTag::AA_TOOL, "Detected JSON format");
+            size_t pos = 0;
+            auto json = nlohmann::json::parse(paramStr);
 
-    // 2.2 将 dstLocation 嵌套到 executeParam
-    executeParam.SetParam("dstLocation", WantParamWrapper::Box(dstLocation));
+            if (json.contains("ohos.insightIntent.executeParam.param")) {
+                auto executeParamJson = json["ohos.insightIntent.executeParam.param"];
+                WantParams executeParam;
+                ParseWantParamsFromJson(executeParamJson, executeParam);
+                wantParams->SetParam("ohos.insightIntent.executeParam.param", WantParamWrapper::Box(executeParam));
+            }
 
-    // 2.3 设置出行类型（驾车）
-    executeParam.SetParam("trafficType", String::Box("Drive"));
+            if (json.contains("ohos.insightIntent.decoratorType")) {
+                wantParams->SetParam("ohos.insightIntent.decoratorType", Integer::Box(json["ohos.insightIntent.decoratorType"].get<int>()));
+            }
 
-    // 3. 将 executeParam 嵌套到主 WantParams
-    wantParams.SetParam("ohos.insightIntent.executeParam.param", WantParamWrapper::Box(executeParam));
+            if (json.contains("ohos.insightIntent.executeParam.id")) {
+                wantParams->SetParam("ohos.insightIntent.executeParam.id", String::Box(json["ohos.insightIntent.executeParam.id"].get<std::string>()));
+            }
 
-    // 输出调试信息
-    std::cout << "Amap Navigate WantParams constructed successfully!" << std::endl;
-    std::cout << "Total params count: " << wantParams.Size() << std::endl;
-    std::cout << "String representation: " << wantParams.ToString() << std::endl;
+            if (json.contains("ohos.insightIntent.executeParam.mode")) {
+                wantParams->SetParam("ohos.insightIntent.executeParam.mode", Integer::Box(json["ohos.insightIntent.executeParam.mode"].get<int>()));
+            }
+
+            if (json.contains("ohos.insightIntent.executeParam.name")) {
+                wantParams->SetParam("ohos.insightIntent.executeParam.name", String::Box(json["ohos.insightIntent.executeParam.name"].get<std::string>()));
+            }
+
+            if (json.contains("ohos.insightIntent.srcEntry")) {
+                wantParams->SetParam("ohos.insightIntent.srcEntry", String::Box(json["ohos.insightIntent.srcEntry"].get<std::string>()));
+            }
+
+            TAG_LOGI(AAFwkTag::AA_TOOL, "JSON parsed successfully, params count: %{public}zu", wantParams->Size());
+       ());
+    } catch (const nlohmann::json::exception& e) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "JSON parse error: %{public}s", e.what());
+        return nullptr;
+    }
+
+    if (wantParams->Size() == 0) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "No valid params parsed from JSON");
+        return nullptr;
+    }
 
     return wantParams;
+}
+
+void AbilityManagerShellCommand::ParseWantParamsFromJson(const nlohmann::json& json, WantParams& wantParams)
+{
+    for (auto it = json.begin(); it != json.end(); ++it) {
+        auto key = it.key();
+        auto value = it.value();
+
+        if (value.is_string()) {
+            wantParams.SetParam(key, String::Box(value.get<std::string>()));
+        } else if (value.is_number_integer()) {
+            wantParams.SetParam(key, Integer::Box(value.get<int>()));
+        } else if (value.is_number_float()) {
+            wantParams.SetParam(key, Integer::Box(static_cast<int>(value.get<double>())));
+        } else if (value.is_boolean()) {
+            wantParams.SetParam(key, Boolean::Box(value.get<bool>()));
+        } else if (value.is_object()) {
+            WantParams nestedParams;
+            ParseWantParamsFromJson(value, nestedParams);
+            wantParams.SetParam(key, WantParamWrapper::Box(nestedParams));
+        } else if (value.is_array()) {
+            std::vector<sptr<IInterface>> arrayItems;
+            for (auto arrayIt = value.begin(); arrayIt != value.end(); ++arrayIt) {
+                if (arrayIt->is_string()) {
+                    arrayItems.push_back(String::Box(arrayIt->get<std::string>()));
+                } else if (arrayIt->is_object()) {
+                    WantParams nestedItem;
+                    ParseWantParamsFromJson(*arrayIt, nestedItem);
+                    arrayItems.push_back(WantParamWrapper::Box(nestedItem));
+                }
+            }
+            sptr<IArray> array = new (std::nothrow) Array(arrayItems.size(), g_IID_IWantParams);
+            if (array != nullptr) {
+                for (size_t i = 0; i < arrayItems.size(); i++) {
+                    array->Set(i, arrayItems[i]);
+                }
+            }
+            wantParams.SetParam(key, array);
+        }
+    }
 }
 
 WantParams AbilityManagerShellCommand::BuildCalendarWantParams(int64_t startTime, const std::string& title) {
@@ -1857,21 +1908,33 @@ ErrCode AbilityManagerShellCommand::RunAsExecuteIntentCommand()
             param.displayId_ = displayId;
             param.userId_ = userId;
             param.flags_ = flags;
-            if (insightIntentName == "PlayMusic") {
-                param.insightIntentParam_ = std::make_shared<WantParams>(BuildWantParamsExample());
-            } else if (bundleName == "com.tencent.hm.qqmusic"){
-                param.insightIntentParam_ = std::make_shared<WantParams>(BuildQQMusicWantParams());
-                param.insightIntentParam_->SetParam("ohos.insightIntent.srcEntry", String::Box("./ets/entryability/InsightIntentExecutorImpl.ets"));
-            } else if (bundleName == "com.amap.hmapp") {
-                param.insightIntentParam_ = std::make_shared<WantParams>(BuildAmapNavigateWantParams(title));
-                param.insightIntentParam_->SetParam("ohos.insightIntent.srcEntry", String::Box("./ets/intents/InsightIntentExecutorImpl.ets"));
-            } else if (bundleName == "com.huawei.hmos.calendardata"){
-                param.insightIntentParam_ = std::make_shared<WantParams>(BuildCalendarWantParams(startTime, title));
-                param.insightIntentParam_->SetParam("ohos.insightIntent.srcEntry", String::Box("./ets/insightintents/IntentExecutorImpl.ets"));
+            
+            if (insightIntentParam_ != nullptr) {
+                param.insightIntentParam_ = insightIntentParam;
             } else {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "No insight intent param provided, using default empty param");
                 param.insightIntentParam_ = std::make_shared<WantParams>();
-                param.insightIntentParam_->SetParam("ohos.insightIntent.srcEntry", String::Box("./ets/insightintents/ViewLogisticsImpl.ets"));
             }
+            
+            TAG_LOGI(AAFwkTag::AA_TOOL, "Executing insight intent: bundle=%{public}s, module=%{public}s, "
+                "ability=%{public}s, intent=%{public}s, mode=%{public}d",
+                bundleName.c_str(), moduleName.c_str(), abilityName.c_str(), 
+                insightIntentName.c_str(), executeMode);
+            
+            uint64_t key = AbilityRuntime::InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(nullptr);
+            
+            auto err = AbilityManagerClient::GetInstance()->ExecuteIntent(key, AbilityRuntime::InsightIntentHostClient::GetInstance(), param);
+            if (err == OHOS::ERR_OK) {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "execute intent successfully");
+                resultReceiver_.append("execute intent successfully.\n");
+            } else {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "execute intent failed: %{public}d", err);
+                resultReceiver_.append("error: failed to execute intent.\n");
+                resultReceiver_.append(GetMessageFromCode(err));
+                result = err;
+            }
+        }
+    }
             
             TAG_LOGI(AAFwkTag::AA_TOOL, "Executing insight intent: bundle=%{public}s, module=%{public}s, "
                 "ability=%{public}s, intent=%{public}s, mode=%{public}d",

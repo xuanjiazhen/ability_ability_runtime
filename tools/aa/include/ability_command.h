@@ -24,10 +24,18 @@
 
 namespace OHOS {
 namespace AAFwk {
-namespace {
+namespace AppExecFwk {
 using ParametersInteger = std::map<std::string, int>;
 using ParametersString = std::map<std::string, std::string>;
 using ParametersBool = std::map<std::string, bool>;
+}
+}
+
+namespace AAFwk {
+
+// Forward declaration
+class AbilityManagerShellCommand;
+std::shared_ptr<WantParams> ParseInsightIntentParam(const std::string&' paramStr);
 
 const std::string TOOL_NAME = "aa";
 
