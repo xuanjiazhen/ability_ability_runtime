@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include "agent_card.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
 
@@ -36,9 +37,9 @@ static napi_value InitAgentCardTypeObject(napi_env env)
 {
     napi_value object = nullptr;
     NAPI_CALL(env, napi_create_object(env, &object));
-    NAPI_CALL(env, SetEnumItem(env, object, "APP", 0));
-    NAPI_CALL(env, SetEnumItem(env, object, "WORKFLOW", 1));
-    NAPI_CALL(env, SetEnumItem(env, object, "ATOMIC_SERVICE", 2));
+    NAPI_CALL(env, SetEnumItem(env, object, "APP", static_cast<int32_t>(AgentCardType::APP)));
+    NAPI_CALL(env, SetEnumItem(env, object, "WORKFLOW", static_cast<int32_t>(AgentCardType::WORKFLOW)));
+    NAPI_CALL(env, SetEnumItem(env, object, "ATOMIC_SERVICE", static_cast<int32_t>(AgentCardType::ATOMIC_SERVICE)));
     return object;
 }
 }

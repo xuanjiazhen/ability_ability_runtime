@@ -24,6 +24,9 @@ namespace {
 constexpr size_t MIN_IDENTIFIER_LENGTH = 1;
 constexpr size_t NEXT_CHARACTER_OFFSET = 1;
 constexpr size_t CORE_VERSION_IDENTIFIER_COUNT = 3;
+constexpr size_t MAJOR_VERSION_INDEX = 0;
+constexpr size_t MINOR_VERSION_INDEX = 1;
+constexpr size_t PATCH_VERSION_INDEX = 2;
 constexpr int COMPARE_RESULT_LESS = -1;
 constexpr int COMPARE_RESULT_EQUAL = 0;
 constexpr int COMPARE_RESULT_GREATER = 1;
@@ -93,17 +96,20 @@ bool ParseCore(const std::string &core, SemVer &version)
         return false;
     }
 
-    if (!IsAsciiDigitString(identifiers[0]) || !IsAsciiDigitString(identifiers[1]) ||
-        !IsAsciiDigitString(identifiers[2])) {
+    if (!IsAsciiDigitString(identifiers[MAJOR_VERSION_INDEX]) ||
+        !IsAsciiDigitString(identifiers[MINOR_VERSION_INDEX]) ||
+        !IsAsciiDigitString(identifiers[PATCH_VERSION_INDEX])) {
         return false;
     }
-    if (HasLeadingZero(identifiers[0]) || HasLeadingZero(identifiers[1]) || HasLeadingZero(identifiers[2])) {
+    if (HasLeadingZero(identifiers[MAJOR_VERSION_INDEX]) ||
+        HasLeadingZero(identifiers[MINOR_VERSION_INDEX]) ||
+        HasLeadingZero(identifiers[PATCH_VERSION_INDEX])) {
         return false;
     }
 
-    version.major = identifiers[0];
-    version.minor = identifiers[1];
-    version.patch = identifiers[2];
+    version.major = identifiers[MAJOR_VERSION_INDEX];
+    version.minor = identifiers[MINOR_VERSION_INDEX];
+    version.patch = identifiers[PATCH_VERSION_INDEX];
     return true;
 }
 
