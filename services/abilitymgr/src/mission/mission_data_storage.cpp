@@ -143,7 +143,8 @@ bool MissionDataStorage::GetMissionSnapshot(int32_t missionId, MissionSnapshot& 
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (GetCachedSnapshot(missionId, missionSnapshot)) {
         if (isLowResolution) {
-            missionSnapshot.snapshot = GetReducedPixelMap(missionSnapshot.snapshot);
+            missionSnapshot.snapshotHandle = GetReducedPixelMap(
+                static_cast<Media::PixelMap*>(missionSnapshot.snapshotHandle));
         }
         TAG_LOGI(AAFwkTag::ABILITYMGR, "GetMissionSnapshot from cache, missionId = %{public}d", missionId);
         return true;
@@ -154,7 +155,7 @@ bool MissionDataStorage::GetMissionSnapshot(int32_t missionId, MissionSnapshot& 
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s: GetPixelMap fail", __func__);
         return false;
     }
-    missionSnapshot.snapshot = std::move(pixelMap);
+    missionSnapshot.snapshotHandle = pixelMap.release();
 #endif
     return true;
 }
@@ -212,8 +213,10 @@ bool MissionDataStorage::CheckFileNameValid(const std::string &fileName)
 #ifdef SUPPORT_SCREEN
 void MissionDataStorage::SaveSnapshotFile(int32_t missionId, const MissionSnapshot& missionSnapshot)
 {
-    SaveSnapshotFile(missionId, missionSnapshot.snapshot, missionSnapshot.isPrivate, false);
-    SaveSnapshotFile(missionId, GetReducedPixelMap(missionSnapshot.snapshot), missionSnapshot.isPrivate, true);
+    auto pixelMap = static_cast<Media::PixelMap*>(missionSnapshot.snapshotHandle);
+    SaveSnapshotFile(missionId, pixelMap ? std::shared_ptr<Media::PixelMap>(pixelMap, [](Media::PixelMap*){}) : nullptr,
+        missionSnapshot.isPrivate, false);
+    SaveSnapshotFile(missionId, GetReducedPixelMap(pixelMap), missionSnapshot.isPrivate, true);
     DelayedSingleton<MissionInfoMgr>::GetInstance()->CompleteSaveSnapshot(missionId);
 }
 
@@ -274,7 +277,7 @@ bool MissionDataStorage::GetCachedSnapshot(int32_t missionId, MissionSnapshot& m
     std::lock_guard<ffrt::mutex> lock(cachedPixelMapMutex_);
     auto pixelMap = cachedPixelMap_.find(missionId);
     if (pixelMap != cachedPixelMap_.end()) {
-        missionSnapshot.snapshot = pixelMap->second;
+        missionSnapshot.snapshotHandle = pixelMap->second.get();
         return true;
     }
     return false;
@@ -283,7 +286,9 @@ bool MissionDataStorage::GetCachedSnapshot(int32_t missionId, MissionSnapshot& m
 bool MissionDataStorage::SaveCachedSnapshot(int32_t missionId, const MissionSnapshot& missionSnapshot)
 {
     std::lock_guard<ffrt::mutex> lock(cachedPixelMapMutex_);
-    auto result = cachedPixelMap_.insert_or_assign(missionId, missionSnapshot.snapshot);
+    auto pixelMap = static_cast<Media::PixelMap*>(missionSnapshot.snapshotHandle);
+    std::shared_ptr<Media::PixelMap> sharedPixelMap(pixelMap, [](Media::PixelMap*) {});
+    auto result = cachedPixelMap_.insert_or_assign(missionId, sharedPixelMap);
     if (!result.second) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "save fail, missionId = %{public}d", missionId);
         return false;

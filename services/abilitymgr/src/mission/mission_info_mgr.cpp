@@ -497,7 +497,7 @@ void MissionInfoMgr::UpdateMissionSnapshot(int32_t missionId, const std::shared_
     if (isPrivate) {
         CreateWhitePixelMap(snapshot);
     }
-    savedSnapshot.snapshot = snapshot.GetPixelMap();
+    savedSnapshot.snapshotHandle = snapshot.GetPixelMap().release();
 
 
     if (!taskDataPersistenceMgr_->SaveMissionSnapshot(missionId, savedSnapshot)) {
@@ -541,13 +541,14 @@ bool MissionInfoMgr::UpdateMissionSnapshot(int32_t missionId, const sptr<IRemote
     if (missionSnapshot.isPrivate) {
         CreateWhitePixelMap(snapshot);
     }
-    missionSnapshot.snapshot = isLowResolution ?
+    auto pixelMap = isLowResolution ?
         MissionDataStorage::GetReducedPixelMap(snapshot.GetPixelMap()) : snapshot.GetPixelMap();
+    missionSnapshot.snapshotHandle = pixelMap.release();
 #endif
 
     MissionSnapshot savedSnapshot = missionSnapshot;
 #ifdef SUPPORT_SCREEN
-    savedSnapshot.snapshot = snapshot.GetPixelMap();
+    savedSnapshot.snapshotHandle = snapshot.GetPixelMap().release();
 #endif
     {
         std::lock_guard<ffrt::mutex> lock(savingSnapshotLock_);
