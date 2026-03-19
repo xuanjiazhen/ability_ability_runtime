@@ -746,6 +746,39 @@ ohos_shared_library("mission_list") {
   part_name = "ability_runtime"
 }
 
+## Build libimage_pixel_map_adapter.z.so
+ohos_shared_library("image_pixel_map_adapter") {
+  branch_protector_ret = "pac_ret"
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_vcall_icall_only = true
+    debug = false
+  }
+
+  include_dirs = [
+    "include/",
+    "${ability_runtime_services_path}/common/include",
+  ]
+
+  sources = image_pixel_map_adapter_sources
+
+  deps = []
+
+  external_deps = [
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
+
+  if (ability_runtime_graphics) {
+    external_deps += [ "image_framework:image_native" ]
+  }
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
 group("ams_service_config") {
   deps = [
     ":ams_service_config.json",

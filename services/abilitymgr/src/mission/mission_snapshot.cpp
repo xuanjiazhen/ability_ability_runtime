@@ -15,11 +15,13 @@
 
 #include "mission_snapshot.h"
 #ifdef SUPPORT_SCREEN
-#include "pixel_map.h"
+#include "image_pixel_map_adapter.h"
+#include "hilog_tag_wrapper.h"
 #endif //SUPPORT_SCREEN
 
 namespace OHOS {
 namespace AAFwk {
+
 bool MissionSnapshot::ReadFromParcel(Parcel &parcel)
 {
 #ifdef SUPPORT_SCREEN
@@ -28,11 +30,19 @@ bool MissionSnapshot::ReadFromParcel(Parcel &parcel)
         return false;
     }
     topAbility = *ability;
-    std::shared_ptr<Media::PixelMap> pixelMap(parcel.ReadParcelable<Media::PixelMap>());
-    if (pixelMap == nullptr) {
-        return false;
+
+    // 动态加载 libimage_pixel_map_adapter.z.so 并读取 PixelMap
+    Media::PixelMap* pixelMap = nullptr;
+    if (LoadImagePixelMapAdapter()) {
+        pixelMap = PixelMapReadFromParcel(parcel, isPrivate);
     }
-    snapshot = pixelMap;
+
+    if (pixelMap == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to read pixel map from parcel");
+        snapshot.reset();
+    } else {
+        snapshot.reset(pixelMap);
+    }
 #endif
     return true;
 }
@@ -57,11 +67,19 @@ bool MissionSnapshot::Marshalling(Parcel &parcel) const
     if (!parcel.WriteParcelable(&topAbility)) {
         return false;
     }
-    if (!parcel.WriteParcelable(snapshot.get())) {
-        return false;
+
+    // 动态加载 libimage_pixel_map_adapter.z.so 并写入 PixelMap
+    if (!LoadImagePixelMapAdapter()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to load image pixel map adapter");
+        return true;  // 如果加载失败，视为成功（向后兼容）
+    }
+
+    if (!PixelMapWriteToParcel(snapshot.get(), parcel)) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to write pixel map to parcel");
     }
 #endif
     return true;
 }
+
 }  // namespace AAFwk
 }  // namespace OHOS
