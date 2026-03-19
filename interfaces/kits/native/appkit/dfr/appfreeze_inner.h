@@ -60,6 +60,7 @@ public:
     void SetAppDebug(bool isAppDebug);
     void SetAppInForeground(bool isInForeground);
     void SetMainThreadSample(bool isEnableMainThreadSample);
+    void SetReportLifeCycleAsAppfreeze(bool reportLifecycleToFreeze);
     void SetAppfreezeApplication(const std::shared_ptr<OHOSApplication> &application);
     std::string GetProcessLifeCycle();
 
@@ -74,6 +75,7 @@ private:
     std::string GetProcStatm(int32_t pid);
     bool GetAppInForeground();
     bool GetMainThreadSample();
+    bool GetReportLifeCycleAsAppfreeze();
     void EnableFreezeSample(FaultData& newFaultData);
     void ReportAppfreezeTask(const FaultData& faultData, bool onlyMainThread);
     std::string LogFormat(size_t totalSize, size_t objectSize);

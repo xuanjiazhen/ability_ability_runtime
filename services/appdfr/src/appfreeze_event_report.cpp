@@ -37,6 +37,7 @@ constexpr char EVENT_FREEZE_INFO_PATH[] = "FREEZE_INFO_PATH";
 constexpr char EVENT_TRACE_ID[] = "HITRACE_ID";
 constexpr char EVENT_FOREGROUND[] = "FOREGROUND";
 constexpr char EVENT_ENABLE_MAINTHREAD_SAMPLE[] = "ENABLE_MAINTHREAD_SAMPLE";
+constexpr char EVENT_REPORT_LIFECYCLE_AS_APPFREEZE [] = "report_lifecycle_as_appfreeze";
 constexpr char EVENT_APPLICATION_HEAP_INFO[] = "APPLICATION_HEAP_INFO";
 constexpr char EVENT_PROCESS_LIFECYCLE_INFO[] = "PROCESS_LIFECYCLE_INFO";
 constexpr char EVENT_MAIN_STACK[] = "MAIN_STACK";
@@ -136,6 +137,8 @@ int AppfreezeEventReport::LogLifeCycleTimeoutEvent(const std::string &name, HiSy
     hisyseventReport->InsertParam(EVENT_MAIN_STACK, eventInfo.mainStack);
     hisyseventReport->InsertParam(EVENT_FREEZE_INFO_PATH, eventInfo.freezeInfoFile);
     hisyseventReport->InsertParam(EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze);
+    hisyseventReport->InsertParam(EVENT_REPORT_LIFECYCLE_AS_APPFREEZE,
+        eventInfo.reportLifecycleToFreeze);
     if (name == AppFreezeType::LIFECYCLE_TIMEOUT) {
         hisyseventReport->InsertParam(EVENT_FOREGROUND, eventInfo.foregroundState);
         hisyseventReport->InsertParam(EVENT_APPLICATION_HEAP_INFO, eventInfo.applicationHeapInfo);

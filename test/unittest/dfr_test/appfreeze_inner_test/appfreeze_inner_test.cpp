@@ -602,5 +602,17 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInnerTest_GetApplicationInfo_002, TestSize
     appfreezeInner->GetApplicationInfo(faultData);
     EXPECT_TRUE(!faultData.timeoutMarkers.empty());
 }
+
+/**
+ * @tc.number: AppfreezeInner_ReportLifeCycleAsAppfreeze_001
+ * @tc.name: SetReportLifeCycleAsAppfreeze and GetReportLifeCycleAsAppfreeze
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ReportLifeCycleAsAppfreeze_001, TestSize.Level1)
+{
+    appfreezeInner->SetReportLifeCycleAsAppfreeze(true);
+    EXPECT_TRUE(appfreezeInner->GetReportLifeCycleAsAppfreeze());
+    appfreezeInner->SetReportLifeCycleAsAppfreeze(false);
+    EXPECT_TRUE(!appfreezeInner->GetReportLifeCycleAsAppfreeze());
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
