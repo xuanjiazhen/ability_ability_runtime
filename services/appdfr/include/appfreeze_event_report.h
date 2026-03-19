@@ -45,6 +45,7 @@ struct AppfreezeEventInfo {
     int eventId = -1;
     bool foregroundState;
     bool enableFreeze;
+    bool reportLifecycleToFreeze;
 };
 
 class AppfreezeEventReport {
