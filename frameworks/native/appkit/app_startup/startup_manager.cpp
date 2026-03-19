@@ -134,7 +134,7 @@ int32_t StartupManager::PreloadAppHintStartup(const AppExecFwk::BundleInfo& bund
             return;
         }
         self->PreloadAppHintStartupTask(data);
-    });
+    }, AppExecFwk::EventQueue::Priority::IMMEDIATE);
     return ERR_OK;
 }
 
