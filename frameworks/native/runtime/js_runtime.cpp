@@ -952,10 +952,6 @@ void JsRuntime::CreatePluginDefaultNamespace(const std::string &lddictionaries)
     Security::AccessToken::AccessTokenID selfToken = IPCSkeleton::GetSelfTokenID();
     int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(selfToken,
         PERMISSION_LOAD_INDEPENDENT_LIBRARY);
-    if (result != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
-        TAG_LOGE(AAFwkTag::JSRUNTIME, "verify access token failed: %{public}d", result);
-        return;
-    }
     auto moduleManager = NativeModuleManager::GetInstance();
     if (moduleManager == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null moduleManager");
@@ -972,6 +968,7 @@ void JsRuntime::CreatePluginDefaultNamespace(const std::string &lddictionaries)
     moduleManager->GetLdNamespaceName(DEFAULT_PLUGIN, pluginDefaultNamespace);
     moduleManager->SetLdPermittedPathsForNamespace(pluginDefaultNamespace, lddictionaries);
     moduleManager->InheritNamespaceEachOther(currentNamespace, pluginDefaultNamespace);
+    TAG_LOGI(AAFwkTag::JSRUNTIME, "testTag CreatePluginDefaultNamespace end");
 }
 
 void JsRuntime::InitSourceMap(const std::shared_ptr<JsEnv::SourceMapOperator> operatorObj)
