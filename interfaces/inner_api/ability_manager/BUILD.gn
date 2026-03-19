@@ -265,8 +265,13 @@ ohos_shared_library("mission_info") {
 
   public_configs = [ ":ability_manager_public_config" ]
 
+  include_dirs = [
+    "${ability_runtime_services_path}/abilitymgr/include",
+  ]
+
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "ipc:ipc_core",
   ]
   public_external_deps = [
@@ -277,7 +282,6 @@ ohos_shared_library("mission_info") {
     "bundle_framework:appexecfwk_core",
   ]
   if (ability_runtime_graphics) {
-    external_deps += [ "image_framework:image_native" ]
     public_external_deps += [ "graphic_2d:color_manager" ]
   }
 

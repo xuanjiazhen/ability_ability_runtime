@@ -200,6 +200,16 @@ if (ability_runtime_graphics) {
   ]
 }
 
+# 图像像素图适配器（仅当支持图形时编译）
+if (ability_runtime_graphics) {
+  image_pixel_map_adapter_sources = [
+    "src/load_image_pixel_map_adapter.cpp",
+    "src/image_pixel_map_adapter.cpp",
+  ]
+} else {
+  image_pixel_map_adapter_sources = []
+}
+
 if (include_app_domain_verify) {
   abilityms_files += [ "src/ag_convert_callback_impl.cpp" ]
 }
