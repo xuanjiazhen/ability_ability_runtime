@@ -28,8 +28,9 @@ export default namespace errorManager {
     native function notifyUnhandledRejectionHandler(reason: Error | Any, promise: Promise<Any>): void;
     native function onUnhandledRejectionInner(observer: UnhandledRejectionObserver): void;
     export function onUnhandledRejection(observer: UnhandledRejectionObserver): void {
-        StdProcess.on('unhandledPromiseRejection', (reason: Object, obj: Object): void => {
-            notifyUnhandledRejectionHandler(reason as Error, obj as Promise<Any>);
+        StdProcess.on('unhandledPromiseRejection', (reason: Error, obj: Object): void => {
+            let promiseTmp: obj as Promise<Any> = obj as Promise<Any>;
+            notifyUnhandledRejectionHandler(reason, promiseTmp);
         });
         onUnhandledRejectionInner(observer);
     };
