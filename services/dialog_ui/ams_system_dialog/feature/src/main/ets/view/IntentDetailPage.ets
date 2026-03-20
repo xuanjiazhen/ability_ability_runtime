@@ -18,6 +18,10 @@ import { DetailItem } from './DetailItem';
 import { common, insightIntent, insightIntentDriver } from '@kit.AbilityKit';
 import { format, jsClone, addArrayParams, removeArrayParams, removeFormData } from './format';
 
+interface ItemsInfo {
+  type: string
+}
+
 interface propertiesInfo {
   name: string;
   type: string;
@@ -27,6 +31,7 @@ interface propertiesInfo {
   maxLength?: number;
   default?: number | Resource;
   required?: boolean;
+  items?: ItemsInfo;
 }
 
 interface FormField {
@@ -166,7 +171,12 @@ export struct IntentDetailPage {
         if (index === 0) {
           this.countArr = [0];
         }
-        const subProperties = this.findProperties(obj);
+        let subProperties = this.findProperties(obj);
+
+        if (Object.keys(subProperties).length === 0) {
+          subProperties = { 'items':  { name: '', type: obj.items?.type ?? 'string'  } as propertiesInfo };
+        }
+        
         subItem = [this.changeProperties(subProperties, propKey, 'array')] as FormField[][];
       }
       const description = obj.description;
