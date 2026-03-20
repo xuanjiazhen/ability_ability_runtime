@@ -127,9 +127,6 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
             continue;
         }
         for (const auto &hapInfo : bundleInfo.hapModuleInfos) {
-            if (!hapInfo.hasIntent) {
-                continue;
-            }
             SaveInsightIntentInfos(bundleInfo.name, hapInfo.moduleName, bundleInfo.versionCode, userId);
             hasNewIntent = true;
         }
