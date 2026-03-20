@@ -167,6 +167,11 @@ export struct IntentDetailPage {
           this.countArr = [0];
         }
         const subProperties = this.findProperties(obj);
+
+        if (Object.keys(subProperties).length === 0) {
+          subProperties = { 'items':  { name: '', type: obj.items?.type ?? 'string'  } as propertiesInfo };
+        }
+        
         subItem = [this.changeProperties(subProperties, propKey, 'array')] as FormField[][];
       }
       const description = obj.description;
