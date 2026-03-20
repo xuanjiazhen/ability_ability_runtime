@@ -153,6 +153,16 @@ public:
 
     void SetUIExtensionBindAbilityId(const int32_t uiExtensionBindAbilityId);
     int32_t GetUIExtensionBindAbilityId() const;
+
+    inline void SetSkipAbilityStageLifecycle(bool skipAbilityStageLifecycle)
+    {
+        skipAbilityStageLifecycle_ = skipAbilityStageLifecycle;
+    }
+
+    inline bool IsSkipAbilityStageLifecycle() const
+    {
+        return skipAbilityStageLifecycle_;
+    }
 private:
     int32_t abilityRecordId_ = 0;
     int32_t uiExtensionAbilityId_ = 0;
@@ -168,6 +178,7 @@ private:
     bool isFocused_ = false;
     bool isSingleUser_ = false;
     bool isUserRequestCleaning_ = false;
+    bool skipAbilityStageLifecycle_ = false;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

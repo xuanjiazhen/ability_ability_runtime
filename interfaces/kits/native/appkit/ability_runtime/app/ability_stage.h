@@ -73,12 +73,24 @@ public:
     virtual int32_t RunAutoStartupTask(const std::function<void()> &callback, std::shared_ptr<AAFwk::Want> want,
         bool &isAsyncCallback, const std::shared_ptr<Context> &stageContext, bool preAbilityStageLoad);
 
+    inline void SetSkipAbilityStageLifecycle(bool skipAbilityStageLifecycle)
+    {
+        skipAbilityStageLifecycle_ = skipAbilityStageLifecycle;
+    }
+
+    inline bool IsSkipAbilityStageLifecycle() const
+    {
+        return skipAbilityStageLifecycle_;
+    }
+
 private:
     friend class JsAbilityStage;
     friend class ETSAbilityStage;
     std::shared_ptr<Context> context_;
     std::map<sptr<IRemoteObject>, std::shared_ptr<AppExecFwk::AbilityLocalRecord>> abilityRecords_;
     std::weak_ptr<AppExecFwk::OHOSApplication> application_;
+
+    bool skipAbilityStageLifecycle_ = false;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

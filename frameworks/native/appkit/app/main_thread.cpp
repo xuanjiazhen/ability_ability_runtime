@@ -184,6 +184,7 @@ constexpr const char* INHERIT_PLUGIN_NAMESPACE = "persist.sys.abilityms.inherit_
 constexpr const char* PLUGIN_DEFAULT_NAMESPACE_LDDICTIONARY =
     "persist.sys.abilityms.plugin_default_namespace_lddictionary";
 constexpr char KILL_REASON[] = "Kill Reason:Js Error";
+constexpr const char* IS_SKIP_ABILITY_STAGE_LIFECYCLE = "skipAbilityStageLifecycleFlag";
 
 const int32_t JSCRASH_TYPE = 3;
 const std::string JSVM_TYPE = "ARK";
@@ -823,12 +824,16 @@ void MainThread::ScheduleLaunchAbility(const AbilityInfo &info, const sptr<IRemo
     TAG_LOGI(AAFwkTag::APPKIT, "%{public}s called, ability %{public}s, type is %{public}d.",
         __func__, info.name.c_str(), info.type);
 
+    bool skipAbilityStageLifecycle = false;
     if (want != nullptr) {
+        skipAbilityStageLifecycle = want->GetBoolParam(IS_SKIP_ABILITY_STAGE_LIFECYCLE, false);
+        want->RemoveParam(IS_SKIP_ABILITY_STAGE_LIFECYCLE);
         AAFwk::Want newWant(*want);
         newWant.CloseAllFd();
     }
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>(info);
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, want, abilityRecordId);
+    abilityRecord->SetSkipAbilityStageLifecycle(skipAbilityStageLifecycle);
     auto tmpWatchdog = watchdog_;
     if (tmpWatchdog != nullptr) {
         tmpWatchdog->SetBgWorkingThreadStatus(IsBgWorkingThread(info));
