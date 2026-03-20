@@ -29,12 +29,14 @@ constexpr uint32_t RETRY_TIMES = 3;
 using PixelMapReadFromParcelFunc = Media::PixelMap* (*)(Parcel& parcel, bool isPrivate);
 using PixelMapWriteToParcelFunc = bool (*)(const Media::PixelMap* pixelMap, Parcel& parcel);
 using PixelMapCreateWhiteFunc = Media::PixelMap* (*)(int32_t width, int32_t height);
+using PixelMapDestroyFunc = void (*)(Media::PixelMap* pixelMap);
 
 // 全局状态
 void* g_handle = nullptr;
 PixelMapReadFromParcelFunc g_readFunc = nullptr;
 PixelMapWriteToParcelFunc g_writeFunc = nullptr;
 PixelMapCreateWhiteFunc g_createWhiteFunc = nullptr;
+PixelMapDestroyFunc g_destroyFunc = nullptr;
 } // namespace
 
 bool LoadImagePixelMapAdapter(void)
@@ -72,6 +74,7 @@ void UnloadImagePixelMapAdapter(void)
     g_readFunc = nullptr;
     g_writeFunc = nullptr;
     g_createWhiteFunc = nullptr;
+    g_destroyFunc = nullptr;
 }
 
 __attribute__((no_sanitize("cfi"))) Media::PixelMap* PixelMapReadFromParcel(Parcel& parcel, bool isPrivate)
@@ -147,6 +150,31 @@ __attribute__((no_sanitize("cfi"))) Media::PixelMap* PixelMapCreateWhite(int32_t
     }
 
     return g_createWhiteFunc(width, height);
+}
+
+__attribute__((no_sanitize("cfi"))) void PixelMapDestroy(Media::PixelMap* pixelMap)
+{
+    if (g_handle == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "g_handle is nullptr");
+        return;
+    }
+
+    if (g_destroyFunc == nullptr) {
+        dlerror();
+        g_destroyFunc = reinterpret_cast<PixelMapDestroyFunc>(
+            dlsym(g_handle, "PixelMapDestroyImpl"));
+        const char* dlsymError = dlerror();
+        if (dlsymError) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "dlsym PixelMapDestroyImpl error: %{public}s", dlsymError);
+            return;
+        }
+    }
+
+    if (g_destroyFunc == nullptr) {
+        return;
+    }
+
+    g_destroyFunc(pixelMap);
 }
 
 } // namespace AAFwk

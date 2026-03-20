@@ -86,5 +86,14 @@ extern "C" __attribute__((visibility("default"))) Media::PixelMap* PixelMapCreat
     return pixelMap;
 }
 
+extern "C" __attribute__((visibility("default"))) void PixelMapDestroyImpl(Media::PixelMap* pixelMap)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "PixelMapDestroyImpl in, pixelMap: %{public}p", pixelMap);
+
+    if (pixelMap != nullptr) {
+        delete pixelMap;
+    }
+}
+
 } // namespace AAFwk
 } // namespace OHOS

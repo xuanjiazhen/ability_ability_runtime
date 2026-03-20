@@ -69,6 +69,13 @@ bool PixelMapWriteToParcel(const Media::PixelMap* pixelMap, Parcel& parcel);
  */
 Media::PixelMap* PixelMapCreateWhite(int32_t width, int32_t height);
 
+/**
+ * @brief 销毁 PixelMap 对象
+ * @param pixelMap PixelMap 指针，可以为 nullptr
+ * @note 此函数用于在动态加载的库中正确删除 PixelMap 对象
+ */
+void PixelMapDestroy(Media::PixelMap* pixelMap);
+
 } // namespace AAFwk
 } // namespace OHOS
 

@@ -16,7 +16,6 @@
 #include "mission_snapshot.h"
 #ifdef SUPPORT_SCREEN
 #include "image_pixel_map_adapter.h"
-#include "pixel_map.h"
 #include "hilog_tag_wrapper.h"
 #endif //SUPPORT_SCREEN
 
@@ -42,7 +41,12 @@ bool MissionSnapshot::ReadFromParcel(Parcel &parcel)
         TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to read pixel map from parcel");
         snapshot.reset();
     } else {
-        snapshot.reset(pixelMap);
+        // 使用 adapter 提供的 PixelMapDestroy 作为删除器
+        // 这样 shared_ptr 在析构时会调用动态加载库中的函数
+        // 不需要在编译时依赖 PixelMap 的完整定义
+        snapshot = std::shared_ptr<Media::PixelMap>(pixelMap, [](Media::PixelMap* p) {
+            PixelMapDestroy(p);
+        });
     }
 #endif
     return true;
