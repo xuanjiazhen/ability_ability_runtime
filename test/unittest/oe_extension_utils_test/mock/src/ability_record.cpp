@@ -15,6 +15,8 @@
 
 #include "ability_record.h"
 
+#include "startup_util.h"
+
 namespace OHOS {
 namespace AAFwk {
 std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(
@@ -23,6 +25,16 @@ std::shared_ptr<AbilityRecord> AbilityRecord::CreateAbilityRecord(
     auto abilityRecord = std::make_shared<AbilityRecord>(abilityInfo, userId);
     abilityRecord->token_ = sptr<Token>::MakeSptr(abilityRecord);
     return abilityRecord;
+}
+}
+namespace AbilityRuntime {
+bool StartupUtil::mockStatus = true;
+bool StartupUtil::mockAppIndex = 0;
+
+bool StartupUtil::GetAppIndex(const AAFwk::Want &want, int32_t &appIndex)
+{
+    appIndex = mockAppIndex;
+    return mockStatus;
 }
 }
 }
