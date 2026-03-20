@@ -98,6 +98,7 @@ HWTEST_F(FaultDataTest, FaultDataTest_ReadFromParcel_002, TestSize.Level1)
     messageSixth.WriteString(helloWord);
     messageSixth.WriteString(helloWord);
     messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
     messageSixth.WriteInt32(1);
     messageSixth.WriteString(helloWord);
     messageSixth.WriteBool(true);
@@ -151,6 +152,7 @@ HWTEST_F(FaultDataTest, Unmarshalling_001, TestSize.Level1)
     EXPECT_EQ(nullptr, retFirst);
 
     std::string helloWord = "HelloWord";
+    message.WriteString(helloWord);
     message.WriteString(helloWord);
     message.WriteString(helloWord);
     message.WriteString(helloWord);
@@ -264,6 +266,7 @@ HWTEST_F(FaultDataTest, ReadFromParcel_003, TestSize.Level1)
     messageSixth.WriteString(helloWord);
     messageSixth.WriteString(helloWord);
     messageSixth.WriteString(helloWord);
+    messageSixth.WriteString(helloWord);
     messageSixth.WriteInt32(1);
     messageSixth.WriteInt32(1234);
     messageSixth.WriteString(helloWord);
@@ -309,6 +312,7 @@ HWTEST_F(FaultDataTest, Unmarshalling_002, TestSize.Level1)
     EXPECT_EQ(nullptr, retFirst);
 
     std::string helloWord = "HelloWord";
+    message.WriteString(helloWord);
     message.WriteString(helloWord);
     message.WriteString(helloWord);
     message.WriteString(helloWord);
