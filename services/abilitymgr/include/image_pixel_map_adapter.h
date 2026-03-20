@@ -18,6 +18,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <unistd.h>
 
 #include "parcel.h"
 

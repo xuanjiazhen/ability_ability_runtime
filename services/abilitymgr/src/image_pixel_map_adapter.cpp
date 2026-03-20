@@ -25,25 +25,32 @@ extern "C" __attribute__((visibility("default"))) Media::PixelMap* PixelMapReadF
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "PixelMapReadFromParcelImpl in, isPrivate: %{public}d", isPrivate);
 
-    std::shared_ptr<Media::PixelMap> pixelMap(parcel.ReadParcelable<Media::PixelMap>());
-    if (pixelMap == nullptr) {
+    std::shared_ptr<Media::PixelMap> tempPixelMap(parcel.ReadParcelable<Media::PixelMap>());
+    if (tempPixelMap == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to read pixel map from parcel");
         return nullptr;
     }
 
     // 如果是私有窗口，填充白色
     if (isPrivate) {
-        int32_t byteCount = pixelMap->GetByteCount();
-        uint8_t* data = const_cast<uint8_t*>(pixelMap->GetPixels());
+        int32_t byteCount = tempPixelMap->GetByteCount();
+        uint8_t* data = const_cast<uint8_t*>(tempPixelMap->GetPixels());
         if (byteCount > 0 && data != nullptr) {
             memset(data, 0xFF, byteCount);
             TAG_LOGD(AAFwkTag::ABILITYMGR, "Created white pixel map: %{public}dx%{public}d",
-                pixelMap->GetWidth(), pixelMap->GetHeight());
+                tempPixelMap->GetWidth(), tempPixelMap->GetHeight());
         }
     }
 
-    // 返回原始指针，调用者负责管理生命周期
-    return pixelMap.release();
+    // 创建 PixelMap 的副本，使用 new 分配内存
+    // 这样调用者可以安全地使用 PixelMapDestroy 释放
+    Media::PixelMap* pixelMap = new (std::nothrow) Media::PixelMap(*tempPixelMap);
+    if (pixelMap == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to create pixel map copy");
+        return nullptr;
+    }
+
+    return pixelMap;
 }
 
 extern "C" __attribute__((visibility("default"))) bool PixelMapWriteToParcelImpl(
@@ -70,20 +77,22 @@ extern "C" __attribute__((visibility("default"))) Media::PixelMap* PixelMapCreat
     opts.pixelFormat = Media::PixelFormat::BGRA_8888;
     opts.alphaType = Media::AlphaType::IMAGE_ALPHA_TYPE_OPAQUE;
 
-    Media::PixelMap* pixelMap = Media::PixelMap::Create(opts);
-    if (pixelMap == nullptr) {
+    // PixelMap::Create 返回 unique_ptr，使用 release() 转移所有权
+    std::unique_ptr<Media::PixelMap> uniquePixelMap = Media::PixelMap::Create(opts);
+    if (uniquePixelMap == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to create pixel map");
         return nullptr;
     }
 
     // 填充白色
-    int32_t byteCount = pixelMap->GetByteCount();
-    uint8_t* data = const_cast<uint8_t*>(pixelMap->GetPixels());
+    int32_t byteCount = uniquePixelMap->GetByteCount();
+    uint8_t* data = const_cast<uint8_t*>(uniquePixelMap->GetPixels());
     if (byteCount > 0 && data != nullptr) {
         memset(data, 0xFF, byteCount);
     }
 
-    return pixelMap;
+    // 使用 release() 释放 unique_ptr 的所有权，返回原始指针
+    return uniquePixelMap.release();
 }
 
 extern "C" __attribute__((visibility("default"))) void PixelMapDestroyImpl(Media::PixelMap* pixelMap)
