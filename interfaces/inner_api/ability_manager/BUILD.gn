@@ -267,6 +267,7 @@ ohos_shared_library("mission_info") {
 
   include_dirs = [
     "${ability_runtime_services_path}/abilitymgr/include",
+    "${ability_runtime_path}/services/common/include",
   ]
 
   external_deps = [
