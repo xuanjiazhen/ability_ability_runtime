@@ -16,6 +16,7 @@
 #include "mission_snapshot.h"
 #ifdef SUPPORT_SCREEN
 #include "image_pixel_map_adapter.h"
+#include "pixel_map.h"
 #include "hilog_tag_wrapper.h"
 #endif //SUPPORT_SCREEN
 
