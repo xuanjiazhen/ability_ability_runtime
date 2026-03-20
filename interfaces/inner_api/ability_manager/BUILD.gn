@@ -263,6 +263,12 @@ ohos_shared_library("mission_info") {
     "${ability_runtime_services_path}/abilitymgr/src/mission/mission_snapshot.cpp",
   ]
 
+  if (ability_runtime_graphics) {
+    sources += [
+      "${ability_runtime_services_path}/abilitymgr/src/load_image_pixel_map_adapter.cpp",
+    ]
+  }
+
   public_configs = [ ":ability_manager_public_config" ]
 
   include_dirs = [
