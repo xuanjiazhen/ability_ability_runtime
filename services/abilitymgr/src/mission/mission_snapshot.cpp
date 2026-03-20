@@ -16,13 +16,8 @@
 #include "mission_snapshot.h"
 #ifdef SUPPORT_SCREEN
 #include "image_pixel_map_adapter.h"
+#include "pixel_map.h"
 #include "hilog_tag_wrapper.h"
-
-namespace OHOS {
-namespace Media {
-class PixelMap;
-} // namespace Media
-} // namespace OHOS
 #endif //SUPPORT_SCREEN
 
 namespace OHOS {
@@ -45,9 +40,9 @@ bool MissionSnapshot::ReadFromParcel(Parcel &parcel)
 
     if (pixelMap == nullptr) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to read pixel map from parcel");
-        snapshotHandle = nullptr;
+        snapshot.reset();
     } else {
-        snapshotHandle = pixelMap;
+        snapshot.reset(pixelMap);
     }
 #else
     (void)parcel;
@@ -82,7 +77,7 @@ bool MissionSnapshot::Marshalling(Parcel &parcel) const
         return true;  // 如果加载失败，视为成功（向后兼容）
     }
 
-    if (!PixelMapWriteToParcel(static_cast<Media::PixelMap*>(snapshotHandle), parcel)) {
+    if (!PixelMapWriteToParcel(snapshot.get(), parcel)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "Failed to write pixel map to parcel");
     }
 #else

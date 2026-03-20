@@ -21,32 +21,23 @@
 #include <memory>
 
 namespace OHOS {
+namespace Media {
+#ifdef SUPPORT_SCREEN
+class PixelMap;
+#endif //SUPPORT_SCREEN
+} // namespace Media
+
 namespace AAFwk {
 struct MissionSnapshot : public Parcelable {
     AppExecFwk::ElementName topAbility;
-
-    // 使用 void* 存储快照句柄，避免编译时依赖 Media::PixelMap
-    // 实际类型通过运行时动态加载的库来解析
-    void* snapshotHandle = nullptr;
-
-    // If is private, ability is secure, snapshot is a blank picture.
+#ifdef SUPPORT_SCREEN
+    std::shared_ptr<OHOS::Media::PixelMap> snapshot;
+#endif //SUPPORT_SCREEN
+    // If is private, ability is secure, the snapshot is a blank picture.
     bool isPrivate = false;
-
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
     static MissionSnapshot *Unmarshalling(Parcel &parcel);
-
-    /**
-     * @brief 获取快照句柄（用于兼容现有代码）
-     * @return 快照句柄
-     */
-    void* GetSnapshotHandle() const { return snapshotHandle; }
-
-    /**
-     * @brief 设置快照句柄（用于兼容现有代码）
-     * @param handle 快照句柄
-     */
-    void SetSnapshotHandle(void* handle) { snapshotHandle = handle; }
 };
 }  // namespace AAFwk
 }  // namespace OHOS
