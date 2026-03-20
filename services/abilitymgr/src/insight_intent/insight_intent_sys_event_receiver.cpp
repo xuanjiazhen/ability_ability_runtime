@@ -36,7 +36,7 @@ InsightIntentSysEventReceiver::InsightIntentSysEventReceiver(const EventFwk::Com
 {
 }
 
-void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bundleName, const std::string &moduleName,
+bool InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bundleName, const std::string &moduleName,
     uint32_t versionCode, int32_t userId)
 {
     std::vector<std::string> moduleNameVec;
@@ -49,9 +49,10 @@ void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null bundleMgrHelper");
-        return;
+        return false;
     }
 
+    bool isSave = false;
     OHOS::SplitStr(moduleName, ",", moduleNameVec);
     for (std::string moduleNameLocal : moduleNameVec) {
         // Get json profile firstly
@@ -82,9 +83,11 @@ void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
             continue;
         }
 
+        isSave = true;
         TAG_LOGI(AAFwkTag::INTENT, "save intent info success, bundleName: %{public}s, moduleName: %{public}s, "
             "userId: %{public}d", bundleName.c_str(), moduleNameLocal.c_str(), userId);
     }
+    return isSave;
 }
 
 void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
@@ -127,11 +130,9 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
             continue;
         }
         for (const auto &hapInfo : bundleInfo.hapModuleInfos) {
-            if (!hapInfo.hasIntent) {
-                continue;
+            if(SaveInsightIntentInfos(bundleInfo.name, hapInfo.moduleName, bundleInfo.versionCode, userId)) {
+                hasNewIntent = true;
             }
-            SaveInsightIntentInfos(bundleInfo.name, hapInfo.moduleName, bundleInfo.versionCode, userId);
-            hasNewIntent = true;
         }
     }
     if (hasNewIntent) {
