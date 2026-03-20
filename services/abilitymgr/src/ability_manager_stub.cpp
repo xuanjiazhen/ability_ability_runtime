@@ -962,6 +962,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::MANUAL_START_AUTO_STARTUP_APPS) {
         return ManualStartAutoStartupAppsInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_MODULAR_OBJECT_DISABLED_STATE) {
+        return SetModularObjectDisabledStateInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_USER_LOCKED_BUNDLE_LIST) {
         return GetUserLockedBundleListInner(data, reply);
     }
@@ -5305,6 +5308,20 @@ int32_t AbilityManagerStub::UnRegisterPreloadUIExtensionHostClientInner(MessageP
     int32_t callerPid = data.ReadInt32();
     int32_t result = UnRegisterPreloadUIExtensionHostClient(callerPid);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::SetModularObjectDisabledStateInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName = Str16ToStr8(data.ReadString16());
+    std::string moduleName = Str16ToStr8(data.ReadString16());
+    std::string abilityName = Str16ToStr8(data.ReadString16());
+    int32_t appIndex = data.ReadInt32();
+    int32_t result = SetModularObjectDisabledState(bundleName, moduleName, abilityName, appIndex);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
     return NO_ERROR;
 }
 

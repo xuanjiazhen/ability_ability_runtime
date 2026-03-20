@@ -714,6 +714,9 @@ enum class AbilityManagerInterfaceCode {
 
     // set app recovery flag
     SET_APP_RECOVERY_FLAG  = 6160,
+
+    // set modular object disabled state
+    SET_MODULAR_OBJECT_DISABLED_STATE = 6161,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

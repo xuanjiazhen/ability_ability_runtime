@@ -461,6 +461,8 @@ bool AbilityManagerService::Init()
     InitAppSpawnMsgPipe();
     insightIntentEventMgr_ = std::make_shared<AbilityRuntime::InsightIntentEventMgr>();
     insightIntentEventMgr_->SubscribeSysEventReceiver();
+    modularObjectExtensionEventMgr_ = std::make_shared<AbilityRuntime::ModularObjectExtensionEventMgr>();
+    modularObjectExtensionEventMgr_->SubscribeSysEventReceiver();
     ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent();
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     ResourceSchedule::ResSchedClient::GetInstance().InitKillReasonListener();
@@ -16816,6 +16818,12 @@ int32_t AbilityManagerService::UnRegisterPreloadUIExtensionHostClient(int32_t ca
         return ERR_INVALID_VALUE;
     }
     return connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
+}
+
+int32_t AbilityManagerService::SetModularObjectDisabledState(const std::string &bundleName,
+    const std::string &moduleName, const std::string &abilityName, int32_t appIndex)
+{
+    return CHECK_PERMISSION_FAILED;
 }
 
 int32_t AbilityManagerService::GetUserLockedBundleList(int32_t userId,

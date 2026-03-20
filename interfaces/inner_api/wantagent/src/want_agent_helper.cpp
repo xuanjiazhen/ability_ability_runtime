@@ -94,6 +94,7 @@ ErrCode WantAgentHelper::GetWantAgent(
     const std::shared_ptr<OHOS::AbilityRuntime::ApplicationContext> &context,
     const WantAgentInfo &paramsInfo, std::shared_ptr<WantAgent> &wantAgent)
 {
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt GetWantAgent enter");
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
@@ -151,6 +152,7 @@ ErrCode WantAgentHelper::GetWantAgent(
 
 std::shared_ptr<WantAgent> WantAgentHelper::GetWantAgent(const WantAgentInfo &paramsInfo, int32_t userId, int32_t uid)
 {
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::GetWantAgent] userId: %{public}d", userId);
     std::vector<std::shared_ptr<Want>> wants = paramsInfo.GetWants();
     if (wants.empty()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
@@ -177,6 +179,8 @@ std::shared_ptr<WantAgent> WantAgentHelper::GetWantAgent(const WantAgentInfo &pa
     wantSenderInfo.type = static_cast<int32_t>(paramsInfo.GetOperationType());
     wantSenderInfo.userId = userId;
     wantSenderInfo.appIndex = paramsInfo.GetAppIndex();
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::GetWantAgent] bundleName: %{public}s", wantSenderInfo.bundleName.c_str());
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::GetWantAgent] appIndex: %{public}d", wantSenderInfo.appIndex);
     sptr<IWantSender> target = nullptr;
     WantAgentClient::GetInstance().GetWantSender(wantSenderInfo, nullptr, target, uid);
     if (target == nullptr) {
@@ -452,6 +456,7 @@ void WantAgentHelper::UnregisterCancelListener(
 
 std::string WantAgentHelper::ToString(const std::shared_ptr<WantAgent> &agent)
 {
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::ToString] ToString enter");
     if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid param");
         return "";
@@ -474,6 +479,8 @@ std::string WantAgentHelper::ToString(const std::shared_ptr<WantAgent> &agent)
     jsonObject["flags"] = (*info.get()).flags;
     jsonObject["userId"] = (*info.get()).userId;
     jsonObject["appIndex"] = (*info.get()).appIndex;
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::ToString] userId: %{public}d", (*info.get()).userId);
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::ToString] appIndex: %{public}d", (*info.get()).appIndex);
 
     nlohmann::json wants = nlohmann::json::array();
     for (auto &wantInfo : (*info.get()).allWants) {
@@ -487,15 +494,18 @@ std::string WantAgentHelper::ToString(const std::shared_ptr<WantAgent> &agent)
         paramsObj["extraInfoValue"] = wWrapper.ToString();
         jsonObject["extraInfo"] = paramsObj;
     }
-
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::ToString] jsonObject.dump: %{public}s", jsonObject.dump().c_str());
     return jsonObject.dump();
 }
 
 std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonString, int32_t uid)
 {
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::FromString] FromString enter");
     if (jsonString.empty()) {
         return nullptr;
     }
+    std::string str = jsonString;
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::FromString] FromString jsonString: %{public}s", str.c_str());
     nlohmann::json jsonObject = nlohmann::json::parse(jsonString);
     if (jsonObject.is_discarded()) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "Failed to parse json string");
@@ -510,6 +520,7 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     if (jsonObject.contains("userId") && jsonObject["userId"].is_number_integer()) {
         userId = jsonObject.at("userId").get<int>();
     }
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::FromString] userId: %{public}d", userId);
 
     WantAgentConstant::OperationType operationType = WantAgentConstant::OperationType::UNKNOWN_TYPE;
     if (jsonObject.contains("operationType") && jsonObject["operationType"].is_number_integer()) {
@@ -545,6 +556,8 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     }
     
     WantAgentInfo info(requestCode, appIndex, operationType, flagsVec, wants, extraInfo);
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::FromString] userId: %{public}d", userId);
+    TAG_LOGI(AAFwkTag::WANTAGENT, "ttt [WantAgentHelper::FromString] uid: %{public}d", uid);
     return GetWantAgent(info, userId, uid);
 }
 
