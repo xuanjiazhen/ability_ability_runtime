@@ -115,7 +115,8 @@
             "webview",
             "window_manager",
             "zlib",
-            "hiperf"
+            "hiperf",
+            "netmanager_ext"
   ],
           "third_party": [
             "libjpeg-turbo"

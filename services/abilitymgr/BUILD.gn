@@ -207,6 +207,7 @@ ohos_shared_library("abilityms") {
     "window_manager:scene_session",
     "window_manager:session_manager_lite",
     "window_manager:sms",
+    "netmanager_ext:net_vpn_permission_if",
   ]
   public_external_deps = [ "background_task_mgr:bgtaskmgr_innerkits" ]
 
