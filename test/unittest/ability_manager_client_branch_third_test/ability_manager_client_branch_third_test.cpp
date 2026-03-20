@@ -1249,5 +1249,170 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, PreloadApplication_0100, TestSize.
     auto result = client_->PreloadApplication(bundleName, userId, appIndex);
     EXPECT_EQ(result, ERR_OK);
 }
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_0100
+ * @tc.desc: ListWindowInfo_0100
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_0100, TestSize.Level1)
+{
+    NormalTestBoardDisable();
+    Rosen::WindowInfoOption windowInfoOption;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, ERR_NOT_SUPPORT_SCREEN);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_0200
+ * @tc.desc: ListWindowInfo_0200
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_0200, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowId = -1;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, static_cast<int>(WMError::WM_OK));
+    EXPECT_EQ(0, infos.size());
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_0300
+ * @tc.desc: ListWindowInfo_0300
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_0300, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowId = -1;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, static_cast<int>(WMError::WM_OK));
+    EXPECT_EQ(0, infos.size());
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_0400
+ * @tc.desc: ListWindowInfo_0400
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_0400, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowId = -1;
+    windowInfoOption.windowInfoFilterOption = WindowInfoFilterOption::EXCLUDE_SYSTEM;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, static_cast<int>(WMError::WM_OK));
+    EXPECT_EQ(0, infos.size());
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_0500
+ * @tc.desc: ListWindowInfo_0500
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_0500, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowId = -1;
+    windowInfoOption.windowInfoFilterOption = WindowInfoFilterOption::VISIBLE;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, static_cast<int>(WMError::WM_OK));
+    EXPECT_EQ(0, infos.size());
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_0600
+ * @tc.desc: ListWindowInfo_0600
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_0600, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowId = -1;
+    windowInfoOption.windowInfoFilterOption = WindowInfoFilterOption::FOREGROUND;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, static_cast<int>(WMError::WM_OK));
+    EXPECT_EQ(0, infos.size());
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_0700
+ * @tc.desc: ListWindowInfo_0700
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_0700, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowId = -1;
+    windowInfoOption.windowInfoTypeOption = WindowInfoTypeOption::WINDOW_UI_INFO;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, static_cast<int>(WMError::WM_OK));
+    EXPECT_EQ(0, infos.size());
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_0800
+ * @tc.desc: ListWindowInfo_0800
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_0800, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowId = -1;
+    windowInfoOption.windowInfoTypeOption = WindowInfoTypeOption::WINDOW_DISPLAY_INFO;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, static_cast<int>(WMError::WM_OK));
+    EXPECT_EQ(0, infos.size());
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_0900
+ * @tc.desc: ListWindowInfo_0900
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_0900, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowId = -1;
+    windowInfoOption.windowInfoTypeOption = WindowInfoTypeOption::WINDOW_LAYOUT_INFO;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, static_cast<int>(WMError::WM_OK));
+    EXPECT_EQ(0, infos.size());
+}
+
+/**
+ * @tc.name: AbilityManagerClient_ListWindowInfo_1000
+ * @tc.desc: ListWindowInfo_1000
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, ListWindowInfo_1000, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    windowInfoOption.windowId = -1;
+    windowInfoOption.windowInfoTypeOption = WindowInfoTypeOption::WINDOW_META_INFO;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, static_cast<int>(WMError::WM_OK));
+    EXPECT_EQ(0, infos.size());
+}
 }  // namespace AAFwk
 }  // namespace OHOS
