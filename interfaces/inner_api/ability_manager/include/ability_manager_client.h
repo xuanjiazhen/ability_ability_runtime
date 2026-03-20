@@ -2080,6 +2080,18 @@ public:
     ErrCode UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE);
 
     /**
+     * @brief Set the disabled state of modular object extensions.
+     * @param bundleName The application bundle name.
+     * @param moduleName The application module name.
+     * @param abilityName The application ability name.
+     * @param appIndex The application clone index
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode SetModularObjectDisabledState(const std::string &bundleName, const std::string &moduleName,
+        const std::string &abilityName, int32_t appIndex);
+
+    /**
      * @brief Get list of applications launched before the first unlock.
      * @param userId The User Id.
      * @param userLockedBundleList List of applications launched before the first unlock.

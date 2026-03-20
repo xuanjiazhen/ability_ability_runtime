@@ -2556,6 +2556,14 @@ ErrCode AbilityManagerClient::UnRegisterPreloadUIExtensionHostClient(int32_t cal
     return abms->UnRegisterPreloadUIExtensionHostClient(callerPid);
 }
 
+ErrCode AbilityManagerClient::SetModularObjectDisabledState(const std::string &bundleName, const std::string &moduleName,
+    const std::string &abilityName, int32_t appIndex)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->SetModularObjectDisabledState(bundleName, moduleName, abilityName, appIndex);
+}
+
 ErrCode AbilityManagerClient::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)
 {

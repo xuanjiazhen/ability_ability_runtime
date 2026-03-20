@@ -7651,6 +7651,46 @@ int32_t AbilityManagerProxy::UnRegisterPreloadUIExtensionHostClient(int32_t call
     return result;
 }
 
+ErrCode AbilityManagerProxy::SetModularObjectDisabledState(const std::string &bundleName, const std::string &moduleName,
+    const std::string &abilityName, int32_t appIndex)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "writeInterfaceToken fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to write bundleName");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteString(moduleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to write moduleName");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteString(abilityName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to write moduleName");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!data.WriteInt32(appIndex)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to write userID");
+        return ERR_INVALID_VALUE;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_MODULAR_OBJECT_DISABLED_STATE,
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error: %{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AbilityManagerProxy::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)
 {
