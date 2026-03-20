@@ -798,6 +798,16 @@ public:
         return isFrozenByPreload_.load();
     }
 
+    inline void SetSkipAbilityStageLifeCycle(bool skipAbilityStageLifeCycle)
+    {
+        skipAbilityStageLifeCycle_ = skipAbilityStageLifeCycle;
+    }
+
+    inline bool IsSkipAbilityStageLifeCycle() const
+    {
+        return skipAbilityStageLifeCycle_;
+    }
+
     void SendEvent(uint32_t msg, uint32_t timeOut, int32_t param = -1, bool isExtension = false,
         const std::string &taskName = "");
 
@@ -952,6 +962,7 @@ protected:
     bool isHook_ = false;
     bool isPluginAbility_ = false;
     bool isPrelaunch_ = false;
+    bool skipAbilityStageLifeCycle_ = false;
 
     int32_t uiExtensionAbilityId_ = 0;                // uiextension ability id
     int32_t uid_ = 0;

@@ -8083,6 +8083,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     }
     request.abilityInfo = abilityInfo->abilityInfo;
     request.extensionProcessMode = abilityInfo->extensionProcessMode;
+    request.skipAbilityStageLifeCycle = abilityInfo->skipAbilityStageLifeCycle;
     request.customProcess = abilityInfo->customProcess;
     request.collaboratorType = GetCollaboratorType(request.abilityInfo.applicationInfo.codePath);
     request.isTargetPlugin = abilityInfo->isTargetPlugin;

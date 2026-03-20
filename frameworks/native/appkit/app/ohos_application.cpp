@@ -309,7 +309,7 @@ void OHOSApplication::OnConfigurationUpdated(
     }
     for (auto it = abilityStages_.begin(); it != abilityStages_.end(); it++) {
         auto abilityStage = it->second;
-        if (abilityStage) {
+        if (abilityStage && !abilityStage->IsSkipAbilityStageLifeCycle()) {
             abilityStage->OnConfigurationUpdated(config);
         }
     }
@@ -368,7 +368,7 @@ void OHOSApplication::OnMemoryLevel(int32_t level)
     TAG_LOGD(AAFwkTag::APPKIT, "Number of abilityStage to be notified : [%{public}zu]", abilityStages_.size());
     for (auto it = abilityStages_.begin(); it != abilityStages_.end(); it++) {
         auto abilityStage = it->second;
-        if (abilityStage) {
+        if (abilityStage && !abilityStage->IsSkipAbilityStageLifeCycle()) {
             abilityStage->OnMemoryLevel(level);
         }
     }
@@ -494,6 +494,7 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
         auto application = std::static_pointer_cast<OHOSApplication>(shared_from_this());
         std::weak_ptr<OHOSApplication> weak = application;
         abilityStage->Init(stageContext, weak);
+        abilityStage->SetSkipAbilityStageLifeCycle(abilityRecord->IsSkipAbilityStageLifeCycle());
         auto firstCallback = CreateFirstStartupCallbackForRecord(abilityStage, abilityRecord, *hapModuleInfo,
             callback);
         if (firstCallback != nullptr) {
@@ -523,7 +524,9 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
             TAG_LOGD(AAFwkTag::APPKIT, "want is ok, transport to abilityStage");
             want = *(abilityRecord->GetWant());
         }
-        abilityStage->OnCreate(want);
+        if (!abilityStage->IsSkipAbilityStageLifeCycle()) {
+            abilityStage->OnCreate(want);
+        }
         abilityStages_[moduleName] = abilityStage;
     } else {
         abilityStage = iterator->second;
@@ -843,7 +846,9 @@ void OHOSApplication::CleanAbilityStage(const sptr<IRemoteObject> &token,
         }
         abilityStage->RemoveAbility(token);
         if (!abilityStage->ContainsAbility() && !isCacheProcess) {
-            abilityStage->OnDestroy();
+            if (!abilityStage->IsSkipAbilityStageLifeCycle()) {
+                abilityStage->OnDestroy();
+            }
             abilityStages_.erase(moduleName);
         }
     }
@@ -932,7 +937,7 @@ void OHOSApplication::SchedulePrepareTerminate(const std::string &moduleName,
         return;
     }
     callbackInfo->Push(callback);
-    if (!iter->second->OnPrepareTerminate(callbackInfo, isAsync)) {
+    if (iter->second->IsSkipAbilityStageLifeCycle() || !iter->second->OnPrepareTerminate(callbackInfo, isAsync)) {
         TAG_LOGI(AAFwkTag::APPKIT, "not exist");
         AppExecFwk::OnPrepareTerminationResult result = { 0, false };
         callbackInfo->Call(result);
@@ -1070,7 +1075,9 @@ void OHOSApplication::CleanEmptyAbilityStage()
             continue;
         }
         if (!abilityStage->ContainsAbility()) {
-            abilityStage->OnDestroy();
+            if (!abilityStage->IsSkipAbilityStageLifeCycle()) {
+                abilityStage->OnDestroy();
+            }
             it = abilityStages_.erase(it);
         } else {
             containsNonEmpty = true;

@@ -30,6 +30,7 @@ namespace AppExecFwk {
 namespace {
 constexpr const char* REUSING_WINDOW = "ohos.ability_runtime.reusing_window";
 constexpr const char* IS_HOOK = "ohos.ability_runtime.is_hook";
+constexpr const char* IS_SKIP_ABILITY_STAGE_LIFECYCLE = "skipAbilityStageLifeCycleFlag";
 }
 AppLifeCycleDeal::AppLifeCycleDeal()
 {}
@@ -105,11 +106,15 @@ void AppLifeCycleDeal::LaunchAbility(const std::shared_ptr<AbilityRunningRecord>
                 return;
             }
         }
+        if (ability->GetWant() != nullptr) {
+            ability->GetWant()->SetParam(IS_SKIP_ABILITY_STAGE_LIFECYCLE, ability->IsSkipAbilityStageLifeCycle());
+        }
         appThread->ScheduleLaunchAbility(*abilityInfo, ability->GetToken(),
             ability->GetWant(), ability->GetAbilityRecordId());
         if (ability->GetWant() != nullptr) {
             ability->GetWant()->RemoveParam(REUSING_WINDOW);
             ability->GetWant()->RemoveParam(IS_HOOK);
+            ability->GetWant()->RemoveParam(IS_SKIP_ABILITY_STAGE_LIFECYCLE);
         }
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "null appThread or ability");

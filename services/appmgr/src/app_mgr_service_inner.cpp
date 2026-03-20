@@ -3551,6 +3551,10 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
     appRecord->SetTaskHandler(taskHandler_);
     appRecord->SetEventHandler(eventHandler_);
     appRecord->AddModule(appInfo, abilityInfo, loadParam->token, hapModuleInfo, want, loadParam->abilityRecordId);
+    auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(loadParam->token);
+    if (abilityRecord) {
+        abilityRecord->SetSkipAbilityStageLifeCycle(loadParam->skipAbilityStageLifeCycle);
+    }
     appRecord->SetIsKia(isKia);
     SetAppRunningRecordStrictMode(appRecord, loadParam);
     if (want) {
