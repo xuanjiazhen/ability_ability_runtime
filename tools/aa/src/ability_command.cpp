@@ -2185,6 +2185,8 @@ ErrCode AbilityManagerShellCommand::MakeWantFromCmd(Want& want, std::string& win
             if (isDebugApp) {
                 want.SetParam("debugApp", isDebugApp);
             }
+            TAG_LOGI(AAFwkTag::AA_TOOL, "aa start want debugApp=%{public}d, multiThread=%{public}d",
+                want.GetBoolParam("debugApp", false), want.GetBoolParam("multiThread", false));
             if (isContinuation) {
                 want.AddFlags(Want::FLAG_ABILITY_CONTINUATION);
             }

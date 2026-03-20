@@ -153,6 +153,11 @@ AbilityRecord::AbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &ab
     }
     SetDebugAppByWaitingDebugFlag();
     launchDebugInfo_.Update(want_);
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "czx AbilityRecord ctor: want.debugApp=%{public}d, isDebugAppSet=%{public}d, launchDebugInfo.debugApp=%{public}d",
+        want_.GetBoolParam(AbilityConfig::DEBUG_APP, false),
+        launchDebugInfo_.isDebugAppSet, launchDebugInfo_.debugApp);
+
 }
 
 AbilityRecord::~AbilityRecord()
@@ -2069,8 +2074,17 @@ void AbilityRecord::SetWant(const Want &want)
     auto multiThread = want_.GetBoolParam(MULTI_THREAD, false);
     auto errorInfoEnhance = want_.GetBoolParam(ERROR_INFO_ENHANCE, false);
     want_.CloseAllFd();
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "SetWant before: incoming.debugApp=%{public}d, old.isDebugAppSet=%{public}d, old.launchDebugInfo.debugApp=%{public}d",
+        want.GetBoolParam(AbilityConfig::DEBUG_APP, false),
+        launchDebugInfo_.isDebugAppSet, launchDebugInfo_.debugApp);
 
     want_ = want;
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "SetWant after: final want_.debugApp=%{public}d, hasDebugApp=%{public}d",
+        want_.GetBoolParam(AbilityConfig::DEBUG_APP, false),
+        want_.HasParameter(AbilityConfig::DEBUG_APP));
+
     if (launchDebugInfo_.isDebugAppSet) {
         want_.SetParam(AbilityConfig::DEBUG_APP, launchDebugInfo_.debugApp);
     } else {

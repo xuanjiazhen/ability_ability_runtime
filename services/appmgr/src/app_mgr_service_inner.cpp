@@ -3555,7 +3555,11 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
     SetAppRunningRecordStrictMode(appRecord, loadParam);
     if (want) {
         appRecord->SetStartupTaskData(*want);
+        TAG_LOGI(AAFwkTag::APPMGR, "AppMgr load1: want.debugApp=%{public}d, hasDebugApp=%{public}d",
+            want->GetBoolParam(DEBUG_APP, false), want->HasParameter(DEBUG_APP));
         appRecord->SetDebugApp(want->GetBoolParam(DEBUG_APP, false));
+        TAG_LOGI(AAFwkTag::APPMGR, "AppMgr load2: want.debugApp=%{public}d, hasDebugApp=%{public}d",
+            want->GetBoolParam(DEBUG_APP, false), want->HasParameter(DEBUG_APP));
         appRecord->SetNativeDebug(want->GetBoolParam("nativeDebug", false));
         appRecord->SetDebugFromLocal(want->GetBoolParam(DEBUG_FROM, false));
         if (want->GetBoolParam(COLD_START, false)) {
