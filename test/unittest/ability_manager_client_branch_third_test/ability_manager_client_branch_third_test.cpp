@@ -1249,5 +1249,35 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, PreloadApplication_0100, TestSize.
     auto result = client_->PreloadApplication(bundleName, userId, appIndex);
     EXPECT_EQ(result, ERR_OK);
 }
+
+/**
+ * @tc.name: AbilityManagerClient_GetMissionInfo_0400
+ * @tc.desc: GetMissionInfo_0400
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0400, TestSize.Level1)
+{
+    NormalTestBoardDisable();
+    Rosen::WindowInfoOption windowInfoOption;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, ERR_NOT_SUPPORT_SCREEN);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_GetMissionInfo_0500
+ * @tc.desc: GetMissionInfo_0500
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0500, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    Rosen::WindowInfoOption windowInfoOption;
+    std::vector<sptr<Rosen::WindowInfo>> infos;
+    EXPECT_CALL(*mockSceneSessionManagerLite_, ListWindowInfo(_, _))
+        .Times(1).WillOnce(Return(WMError::WM_OK));
+    auto result = client_->ListWindowInfo(windowInfoOption, infos);
+    EXPECT_EQ(result, WMError::WM_OK);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
