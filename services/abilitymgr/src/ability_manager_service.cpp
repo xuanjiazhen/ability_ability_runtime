@@ -533,16 +533,21 @@ void AbilityManagerService::InitInterceptor()
      TAG_LOGI(AAFwkTag::ABILITYMGR, "Listen signal msg ...");
  }
 
-void AbilityManagerService::InitInterceptorForScreenUnlock(int32_t userId)
+void AbilityManagerService::InitInterceptorForScreenUnlock()
 {
     if (interceptorExecuter_) {
-        if (userId != DEFAULT_INVAL_VALUE &&
-            AbilityRuntime::AbilityEventMapManager::GetInstance().CheckUserUnlocked(userId)) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "SU life, user already unlocked, skip interceptor registration");
-            return;
-        }
         TAG_LOGI(AAFwkTag::ABILITYMGR, "SU life, begin");
         interceptorExecuter_->AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
+    }
+}
+
+void AbilityManagerService::UpdateScreenUnlockInterceptor(int32_t userId)
+{
+    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId);
+    if (userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED) {
+        RemoveScreenUnlockInterceptor();
+    } else {
+        InitInterceptorForScreenUnlock();
     }
 }
 
@@ -9821,7 +9826,6 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
     // Lister screen unlock for auto startup apps.
     if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_ &&
         !abilityAutoStartupService_->FindHandledAutoStartupUsers(userId)) {
-        InitInterceptorForScreenUnlock(userId);
         SubscribeScreenUnlockedEvent();
     }
 
@@ -9853,6 +9857,8 @@ int AbilityManagerService::StartUser(int userId, uint64_t displayId, sptr<IUserC
             AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
         return ERR_OK;
     }
+    UpdateScreenUnlockInterceptor(userId);
+
     TAG_LOGE(AAFwkTag::ABILITYMGR, "SwitchToUser filed, oldUserId:%{public}d, hasDisplayId:%{public}d", oldUserId, hasDisplayId);
     if (hasDisplayId) {
         AbilityRuntime::UserController::GetInstance().SetForegroundUserId(oldUserId, displayId);
@@ -9952,7 +9958,6 @@ int AbilityManagerService::LogoutUser(int32_t userId, sptr<IUserCallback> callba
     }
     // clear userInfo for autoStartup
     if (AppUtils::GetInstance().IsProductAppbootSettingEnabled() && abilityAutoStartupService_) {
-        InitInterceptorForScreenUnlock();
         abilityAutoStartupService_->RemoveHandledAutoStartupUsers(userId);
     }
     AbilityRuntime::AbilityEventMapManager::GetInstance().RemoveUser(userId);
