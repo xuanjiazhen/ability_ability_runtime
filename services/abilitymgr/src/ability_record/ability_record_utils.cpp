@@ -18,6 +18,7 @@
 #include "ability_config.h"
 #include "hilog_tag_wrapper.h"
 
+
 namespace OHOS {
 namespace AAFwk {
 Token::Token(std::weak_ptr<AbilityRecord> abilityRecord) : abilityRecord_(abilityRecord)
