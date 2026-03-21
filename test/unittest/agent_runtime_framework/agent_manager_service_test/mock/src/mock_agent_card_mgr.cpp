@@ -25,6 +25,7 @@ int32_t AgentRuntime::MyFlag::retRegisterAgentCard = ERR_OK;
 int32_t AgentRuntime::MyFlag::retUpdateAgentCard = ERR_OK;
 int32_t AgentRuntime::MyFlag::retDeleteAgentCard = ERR_OK;
 std::string AgentRuntime::MyFlag::agentCardAgentId = "testAgent";
+int32_t AgentRuntime::MyFlag::agentCardType = 0;
 
 namespace AgentRuntime {
 AgentCardMgr &AgentCardMgr::GetInstance()
@@ -53,6 +54,7 @@ int32_t AgentCardMgr::GetAgentCardByAgentId(const std::string &bundleName, const
 {
     if (MyFlag::retGetAgentCardByAgentId == ERR_OK) {
         card.agentId = MyFlag::agentCardAgentId;
+        card.type = static_cast<AgentCardType>(MyFlag::agentCardType);
     }
     return MyFlag::retGetAgentCardByAgentId;
 }
