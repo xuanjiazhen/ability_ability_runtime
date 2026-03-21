@@ -2030,6 +2030,43 @@ public:
     virtual int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE) override;
 
     /**
+     * @brief Set the disabled state of modular object extensions.
+     * @param bundleName The application bundle name.
+     * @param moduleName The application module name.
+     * @param abilityName The application ability name.
+     * @param appIndex The application clone index
+     *
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetModularObjectDisabledState(const std::string &bundleName, const std::string &moduleName,
+        const std::string &abilityName, int32_t appIndex, bool disabled) override;
+
+    /**
+ 	 * @brief Queries all modular object extension information.
+     * @param bundleName The application bundle name.
+     * 
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t QueryAllModularObjectExtensionInfo(
+        std::vector<ModularObjectExtensionInfo> &extensionInfos) override;
+
+    /**
+ 	 * @brief Set the global disabled state of modular object extensions
+     * @param disabled The global disabled state..
+     * 
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetModularObjectGlobalDisabledState(bool disabled) override;
+
+    /**
+ 	 * @brief Get the global disabled state of modular object extensions
+     * @param disabled The global disabled state.
+     * 
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetModularObjectGlobalDisabledState(bool &disabled) override;
+
+    /**
      * @brief Get list of applications launched before the first unlock.
      * @param userId The User Id.
      * @param userLockedBundleList List of applications launched before the first unlock.
