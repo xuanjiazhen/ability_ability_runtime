@@ -43,10 +43,10 @@
 给定批量URI、目标应用包名、权限flag，先对校验调用方是否有权限分享URI，再调用URI授权。
 
 - **RevokeUriPermission**
-撤销对其他应用授权的权限
+撤销对其他应用的授权。
 
 - **GrantUriPermissionByKey & GrantUriPermissionByKeyAsCaller**
-从udKey中读取大批量URI，并授权给其他应用。
+从udKey中读取URI，并授权给其他应用。
 
 - **ClearPermissionTokenByMap**
 清理临时URI权限，应用退出时调用。
@@ -68,10 +68,10 @@
 
 ```bash
 # 构建 UriPermissionManager 服务库 (libupms.z.so)
-./build.sh --product-name <product> --build-target libupms
+./build.sh --product-name <product> --build-target libupms 
 
-# 启用特定特性构建
-./build.sh --product-name <product> --build-target libupms --gn-args "ability_runtime_feature_sandboxmanager=true"
+# 独立编译命令
+hb build ability_runtime -i --build-target //foundation/ability/ability_runtime/services/uripermmgr:libupms
 ```
 
 ### 特性标志（定义在 ability_runtime.gni）
