@@ -18,6 +18,7 @@
 
 #include <string>
 #include "ability_connect_callback_interface.h"
+#include "want.h"
 #include "iremote_object.h"
 #include "running_process_info.h"
 #include "extension_ability_info.h"
@@ -47,11 +48,14 @@ public:
     static int32_t retGetAgentCardsByBundleName;
     static int32_t retGetAgentCardByAgentId;
     static std::string agentCardAgentId;
+    static int32_t agentCardType;
     static bool retQueryExtensionAbilityInfos;
+    static bool shouldFillExtensionAbilityInfos;
     static AppExecFwk::ExtensionAbilityType extensionAbilityType;
     static int32_t retGetProcessRunningInfoByPid;
     static AppExecFwk::AppProcessState processState;
     static int32_t retGetBundleNameByPid;
+    static AAFwk::Want lastConnectAbilityWant;
     static sptr<AAFwk::IAbilityConnection> lastConnectAbilityConnection;
     static sptr<AAFwk::IAbilityConnection> lastDisconnectAbilityConnection;
 };
