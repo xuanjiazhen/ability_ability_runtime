@@ -754,6 +754,30 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_010, TestSize.Lev
 }
 
 /**
+* @tc.name  : ConnectAgentExtensionAbility_011
+* @tc.number: ConnectAgentExtensionAbility_011
+* @tc.desc  : Test ConnectAgentExtensionAbility allows atomic-service agent connect without local extension metadata
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_011, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retQueryExtensionAbilityInfos = false;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::ATOMIC_SERVICE);
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+    MyFlag::retQueryExtensionAbilityInfos = true;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+}
+
+/**
 * @tc.name  : DisconnectAgentExtensionAbility_001
 * @tc.number: DisconnectAgentExtensionAbility_001
 * @tc.desc  : Test DisconnectAgentExtensionAbility when permission verification fails
