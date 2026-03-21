@@ -968,6 +968,18 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::MANUAL_START_AUTO_STARTUP_APPS) {
         return ManualStartAutoStartupAppsInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_MODULAR_OBJECT_DISABLED_STATE) {
+        return SetModularObjectDisabledStateInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::QUERY_ALL_MODULAR_OBJECT_EXTENSION_INFO) {
+        return QueryAllModularObjectExtensionInfoInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_MODULAR_OBJECT_GLOBAL_DISABLED_STATE) {
+        return SetModularObjectGlobalDisabledStateInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::GET_MODULAR_OBJECT_GLOBAL_DISABLED_STATE) {
+        return GetModularObjectGlobalDisabledStateInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_USER_LOCKED_BUNDLE_LIST) {
         return GetUserLockedBundleListInner(data, reply);
     }
@@ -5349,6 +5361,62 @@ int32_t AbilityManagerStub::UnRegisterPreloadUIExtensionHostClientInner(MessageP
     int32_t callerPid = data.ReadInt32();
     int32_t result = UnRegisterPreloadUIExtensionHostClient(callerPid);
     reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::SetModularObjectDisabledStateInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName = Str16ToStr8(data.ReadString16());
+    std::string moduleName = Str16ToStr8(data.ReadString16());
+    std::string abilityName = Str16ToStr8(data.ReadString16());
+    int32_t appIndex = data.ReadInt32();
+    bool isDisabled = data.ReadBool();
+    int32_t result = SetModularObjectDisabledState(bundleName, moduleName, abilityName, appIndex, isDisabled);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::QueryAllModularObjectExtensionInfoInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::vector<ModularObjectExtensionInfo> extensionInfos;
+    int32_t result = QueryAllModularObjectExtensionInfo(extensionInfos);
+    reply.WriteInt32(extensionInfos.size());
+    for (auto &it : extensionInfos) {
+        if (!reply.WriteParcelable(&it)) {
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+int32_t AbilityManagerStub::SetModularObjectGlobalDisabledStateInner(MessageParcel &data, MessageParcel &reply)
+{
+    bool isDisabled = data.ReadBool();
+    int32_t result = SetModularObjectGlobalDisabledState(isDisabled);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+int32_t AbilityManagerStub::GetModularObjectGlobalDisabledStateInner(MessageParcel &data, MessageParcel &reply)
+{
+    bool isDisabled;
+    int32_t result = GetModularObjectGlobalDisabledState(isDisabled);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    if (!reply.WriteBool(isDisabled)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "reply write fail");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
     return NO_ERROR;
 }
 
