@@ -21,7 +21,10 @@ ohos_unittest("free_install_manager_test") {
 
   include_dirs = [
     "mock/include",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
+    "${ability_runtime_test_path}/mock/common/include",
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/include",
+    "${ability_runtime_test_path}/mock/services_appmgr_test/include",
   ]
 
   sources = [
