@@ -45,6 +45,7 @@ public:
     static int32_t retGetAgentCardsByBundleName;
     static int32_t retGetAgentCardByAgentId;
     static std::string agentCardAgentId;
+    static int32_t agentCardType;
     static bool retQueryExtensionAbilityInfos;
     static AppExecFwk::ExtensionAbilityType extensionAbilityType;
     static int32_t retGetProcessRunningInfoByPid;

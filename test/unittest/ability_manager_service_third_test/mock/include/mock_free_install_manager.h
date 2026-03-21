@@ -133,7 +133,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int ConnectFreeInstall(const Want &want, int32_t userId, sptr<IRemoteObject> callerToken,
-        const std::string &localDeviceId);
+        const std::string &localDeviceId, AppExecFwk::ExtensionAbilityType extensionType);
 
     /**
      * Add an observer from application into freeInstallObserverManager.
