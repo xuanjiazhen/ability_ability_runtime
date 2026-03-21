@@ -43,10 +43,10 @@
 给定批量URI、目标应用包名、权限flag，先对校验调用方是否有权限分享URI，再调用URI授权。
 
 - **RevokeUriPermission**
-撤销对其他应用的授权。
+移除已授予目标应用的 URI 访问权限。
 
 - **GrantUriPermissionByKey & GrantUriPermissionByKeyAsCaller**
-从udKey中读取URI，并授权给其他应用。
+通过统一数据密钥(Uniform Data Key)读取 URI，并授权给目标应用。
 
 - **ClearPermissionTokenByMap**
 清理临时URI权限，应用退出时调用。
