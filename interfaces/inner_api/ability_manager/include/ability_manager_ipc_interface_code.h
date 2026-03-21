@@ -718,6 +718,18 @@ enum class AbilityManagerInterfaceCode {
 
     // start ability by oe extension
     START_ABILITY_BY_OE_EXT = 6161,
+
+    // set modular object disabled state
+    SET_MODULAR_OBJECT_DISABLED_STATE = 6162,
+
+    // query all modular object extension info
+    QUERY_ALL_MODULAR_OBJECT_EXTENSION_INFO = 6163,
+
+    // set modular object global disabled state
+    SET_MODULAR_OBJECT_GLOBAL_DISABLED_STATE = 6164,
+
+    // get modular object global disabled state
+    GET_MODULAR_OBJECT_GLOBAL_DISABLED_STATE = 6165,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
