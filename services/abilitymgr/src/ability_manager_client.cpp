@@ -1053,6 +1053,22 @@ ErrCode AbilityManagerClient::GetMissionInfo(const std::string& deviceId, int32_
     return abms->GetMissionInfo(deviceId, missionId, missionInfo);
 }
 
+ErrCode AbilityManagerClient::ListWindowInfo(
+    const Rosen::WindowInfoOption &windowInfoOption, std::vector<sptr<Rosen::WindowInfo>> &infos)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+#ifdef SUPPORT_SCREEN
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sceneSessionManager = SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
+        CHECK_POINTER_RETURN_INVALID_VALUE(sceneSessionManager);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, ListWindowInfo windowId is %{public}d", windowInfoOption.windowId);
+        auto err = sceneSessionManager->ListWindowInfo(windowInfoOption, infos);
+        return static_cast<int>(err);
+    }
+#endif //SUPPORT_SCREEN
+    return ERR_NOT_SUPPORT_SCREEN;
+}
+
 ErrCode AbilityManagerClient::CleanMission(int32_t missionId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
