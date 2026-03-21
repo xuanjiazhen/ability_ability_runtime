@@ -430,6 +430,10 @@ private:
     int32_t GetKioskStatusInner(MessageParcel &data, MessageParcel &reply);
     int32_t StartSelfUIAbilityInCurrentProcessInner(MessageParcel &data, MessageParcel &reply);
     int32_t IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply);
+    int32_t SetModularObjectDisabledStateInner(MessageParcel &data, MessageParcel &reply);
+    int32_t QueryAllModularObjectExtensionInfoInner(MessageParcel &data, MessageParcel &reply);
+    int32_t SetModularObjectGlobalDisabledStateInner(MessageParcel &data, MessageParcel &reply);
+    int32_t GetModularObjectGlobalDisabledStateInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetUserLockedBundleListInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk

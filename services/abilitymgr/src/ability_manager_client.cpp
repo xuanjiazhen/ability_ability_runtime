@@ -2585,6 +2585,36 @@ ErrCode AbilityManagerClient::UnRegisterPreloadUIExtensionHostClient(int32_t cal
     return abms->UnRegisterPreloadUIExtensionHostClient(callerPid);
 }
 
+ErrCode AbilityManagerClient::SetModularObjectDisabledState(const std::string &bundleName,
+    const std::string &moduleName, const std::string &abilityName, int32_t appIndex, bool disabled)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->SetModularObjectDisabledState(bundleName, moduleName, abilityName, appIndex, disabled);
+}
+
+ErrCode AbilityManagerClient::QueryAllModularObjectExtensionInfo(
+    std::vector<ModularObjectExtensionInfo> &extensionInfos)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->QueryAllModularObjectExtensionInfo(extensionInfos);
+}
+
+ErrCode AbilityManagerClient::SetModularObjectGlobalDisabledState(bool disabled)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->SetModularObjectGlobalDisabledState(disabled);
+}
+
+ErrCode AbilityManagerClient::GetModularObjectGlobalDisabledState(bool &disabled)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->GetModularObjectGlobalDisabledState(disabled);
+}
+
 ErrCode AbilityManagerClient::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)
 {
