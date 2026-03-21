@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2022-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -18,11 +18,17 @@
 #define protected public
 #define private public
 #include "ability_manager_service.h"
+#include "atomic_service_status_callback_interface.h"
+#include "bundle_mgr_helper.h"
 #include "task_handler_wrap.h"
+#include "utils/ability_util.h"
+#include "utils/app_mgr_util.h"
 #undef private
 #undef protected
 
 #include "ability_record.h"
+#include "mock_app_mgr_service.h"
+#include "mock_bundle_manager_service.h"
 #include "sa_mgr_client.h"
 #include "mock_my_flag.h"
 
@@ -32,10 +38,47 @@ using namespace OHOS::AAFwk;
 namespace OHOS {
 namespace AppExecFwk {
 namespace {
-const int BUNDLE_MGR_SERVICE_SYS_ABILITY_ID = 401;
 const int VALID_RECORD_ID = 100;
 const int INVALID_RECORD_ID = -1;
 constexpr const char* KEY_REQUEST_ID = "com.ohos.param.requestId";
+
+class FreeInstallBundleMgrService : public OHOS::MockBundleManagerService {
+public:
+    ErrCode GetNameForUid(const int, std::string &bundleName) override
+    {
+        bundleName = "com.test.demo";
+        return ERR_OK;
+    }
+
+    bool QueryAbilityInfo(const OHOS::AAFwk::Want &, int32_t, int32_t, AbilityInfo &) override
+    {
+        return false;
+    }
+
+    bool QueryExtensionAbilityInfos(const OHOS::AAFwk::Want &, const int32_t &, const int32_t &,
+        std::vector<ExtensionAbilityInfo> &) override
+    {
+        return false;
+    }
+
+    bool QueryAbilityInfo(const OHOS::AAFwk::Want &want, int32_t, int32_t userId, AbilityInfo &,
+        const sptr<IRemoteObject> &callback) override
+    {
+        auto atomicCallback = iface_cast<OHOS::AAFwk::IAtomicServiceStatusCallback>(callback);
+        if (atomicCallback != nullptr) {
+            atomicCallback->OnInstallFinished(ERR_OK, want, userId);
+        }
+        return false;
+    }
+};
+
+class FreeInstallAppMgrService : public MockAppMgrService {
+public:
+    bool GetAppRunningStateByBundleName(const std::string &) override
+    {
+        return false;
+    }
+};
 }
 class FreeInstallTest : public testing::Test {
 public:
@@ -159,6 +202,40 @@ HWTEST_F(FreeInstallTest, FreeInstall_StartFreeInstall_003, TestSize.Level1)
     freeInstallManager_->OnInstallFinished(-1, 1, want, userId, false);
 
     EXPECT_TRUE(freeInstallManager_ != nullptr);
+}
+
+/**
+ * @tc.number: FreeInstall_StartFreeInstall_004
+ * @tc.name: StartFreeInstall
+ * @tc.desc: Test StartFreeInstall when permission check is skipped.
+ */
+HWTEST_F(FreeInstallTest, FreeInstall_StartFreeInstall_004, TestSize.Level1)
+{
+    freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    ASSERT_NE(bundleMgrHelper, nullptr);
+    auto bundleMgrBackup = bundleMgrHelper->bundleMgr_;
+    auto appMgrBackup = AppMgrUtil::appMgr_;
+    sptr<FreeInstallBundleMgrService> mockBundleMgr = new (std::nothrow) FreeInstallBundleMgrService();
+    sptr<FreeInstallAppMgrService> mockAppMgr = new (std::nothrow) FreeInstallAppMgrService();
+    ASSERT_NE(mockBundleMgr, nullptr);
+    ASSERT_NE(mockAppMgr, nullptr);
+    bundleMgrHelper->bundleMgr_ = mockBundleMgr;
+    AppMgrUtil::appMgr_ = mockAppMgr;
+
+    Want want;
+    ElementName element("", "com.test.demo", "MainAbility");
+    want.SetElement(element);
+    want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
+    const int32_t userId = 100;
+    const int requestCode = 0;
+    auto param = std::make_shared<FreeInstallParams>();
+    param->skipStartFreeInstallPermissionCheck = true;
+    int result = freeInstallManager_->StartFreeInstall(want, userId, requestCode, nullptr, param);
+    bundleMgrHelper->bundleMgr_ = bundleMgrBackup;
+    AppMgrUtil::appMgr_ = appMgrBackup;
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(freeInstallManager_->freeInstallList_.empty());
 }
 
 /**
@@ -317,8 +394,41 @@ HWTEST_F(FreeInstallTest, FreeInstall_ConnectFreeInstall_001, TestSize.Level1)
     want.SetElement(element);
     const int32_t userId = 1;
 
-    int res = freeInstallManager_->ConnectFreeInstall(want, userId, nullptr, "");
+    int res = freeInstallManager_->ConnectFreeInstall(
+        want, userId, nullptr, "", AppExecFwk::ExtensionAbilityType::SERVICE);
     EXPECT_NE(res, 0);
+}
+
+/**
+ * @tc.number: FreeInstall_ConnectFreeInstall_002
+ * @tc.name: ConnectFreeInstall
+ * @tc.desc: Test ConnectFreeInstall for agent extension type.
+ */
+HWTEST_F(FreeInstallTest, FreeInstall_ConnectFreeInstall_002, TestSize.Level1)
+{
+    freeInstallManager_ = std::make_shared<FreeInstallManager>();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    ASSERT_NE(bundleMgrHelper, nullptr);
+    auto bundleMgrBackup = bundleMgrHelper->bundleMgr_;
+    auto appMgrBackup = AppMgrUtil::appMgr_;
+    sptr<FreeInstallBundleMgrService> mockBundleMgr = new (std::nothrow) FreeInstallBundleMgrService();
+    sptr<FreeInstallAppMgrService> mockAppMgr = new (std::nothrow) FreeInstallAppMgrService();
+    ASSERT_NE(mockBundleMgr, nullptr);
+    ASSERT_NE(mockAppMgr, nullptr);
+    bundleMgrHelper->bundleMgr_ = mockBundleMgr;
+    AppMgrUtil::appMgr_ = mockAppMgr;
+
+    Want want;
+    ElementName element("", "com.test.demo", "MainAbility");
+    want.SetElement(element);
+    want.SetParam(Want::PARAM_RESV_START_TIME, std::string("0"));
+    const int32_t userId = 1;
+    int agentRes = freeInstallManager_->ConnectFreeInstall(
+        want, userId, nullptr, "", AppExecFwk::ExtensionAbilityType::AGENT);
+    bundleMgrHelper->bundleMgr_ = bundleMgrBackup;
+    AppMgrUtil::appMgr_ = appMgrBackup;
+    EXPECT_EQ(agentRes, ERR_OK);
+    EXPECT_TRUE(freeInstallManager_->freeInstallList_.empty());
 }
 
 /**
