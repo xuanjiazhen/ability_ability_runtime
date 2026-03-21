@@ -76,6 +76,11 @@ void AgentManagerServiceTest::SetUp(void)
     MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
     MyFlag::retGetBundleNameByPid = ERR_OK;
     MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::lastConnectAbilityWant = Want();
+    MyFlag::shouldFillExtensionAbilityInfos = true;
     MyFlag::lastConnectAbilityConnection = nullptr;
     MyFlag::lastDisconnectAbilityConnection = nullptr;
     auto service = AgentManagerService::GetInstance();
@@ -848,6 +853,8 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_007, TestSize.Lev
     MyFlag::retVerifyCallingPermission = true;
     MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
     MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
     MyFlag::retQueryExtensionAbilityInfos = false;
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
@@ -895,6 +902,8 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_009, TestSize.Lev
     want.SetBundle("test.bundle");
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+    EXPECT_EQ(MyFlag::lastConnectAbilityWant.GetFlags() & Want::FLAG_INSTALL_ON_DEMAND, 0);
+    EXPECT_TRUE(MyFlag::lastConnectAbilityWant.GetStringParam(Want::PARAM_RESV_START_TIME).empty());
 }
 
 /**
@@ -927,6 +936,75 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_000, TestSize.
     MyFlag::retJudgeCallerIsAllowedToUseSystemAPI = false;
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbility(connection), ERR_NOT_SYSTEM_APP);
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_014
+* @tc.number: ConnectAgentExtensionAbility_014
+* @tc.desc  : Test ConnectAgentExtensionAbility allows atomic-service agent connect without local extension metadata
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_014, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retQueryExtensionAbilityInfos = false;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::ATOMIC_SERVICE);
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+    EXPECT_NE(MyFlag::lastConnectAbilityWant.GetFlags() & Want::FLAG_INSTALL_ON_DEMAND, 0);
+    EXPECT_FALSE(MyFlag::lastConnectAbilityWant.GetStringParam(Want::PARAM_RESV_START_TIME).empty());
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_015
+* @tc.number: ConnectAgentExtensionAbility_015
+* @tc.desc  : Test ConnectAgentExtensionAbility returns RESOLVE_ABILITY_ERR when extension query succeeds but is empty
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_015, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::retQueryExtensionAbilityInfos = true;
+    MyFlag::shouldFillExtensionAbilityInfos = false;
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection),
+        AAFwk::RESOLVE_ABILITY_ERR);
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_016
+* @tc.number: ConnectAgentExtensionAbility_016
+* @tc.desc  : Test ConnectAgentExtensionAbility allows atomic-service agent when extension query succeeds but is empty
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_016, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::ATOMIC_SERVICE);
+    MyFlag::retQueryExtensionAbilityInfos = true;
+    MyFlag::shouldFillExtensionAbilityInfos = false;
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+    EXPECT_NE(MyFlag::lastConnectAbilityWant.GetFlags() & Want::FLAG_INSTALL_ON_DEMAND, 0);
+    EXPECT_FALSE(MyFlag::lastConnectAbilityWant.GetStringParam(Want::PARAM_RESV_START_TIME).empty());
 }
 
 /**
