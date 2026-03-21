@@ -317,7 +317,8 @@ HWTEST_F(FreeInstallTest, FreeInstall_ConnectFreeInstall_001, TestSize.Level1)
     want.SetElement(element);
     const int32_t userId = 1;
 
-    int res = freeInstallManager_->ConnectFreeInstall(want, userId, nullptr, "");
+    int res = freeInstallManager_->ConnectFreeInstall(
+        want, userId, nullptr, "", AppExecFwk::ExtensionAbilityType::SERVICE);
     EXPECT_NE(res, 0);
 }
 
