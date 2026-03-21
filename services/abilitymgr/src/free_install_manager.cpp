@@ -558,7 +558,8 @@ int FreeInstallManager::FreeInstallAbilityFromRemote(const Want &want, sptr<IRem
 }
 
 int FreeInstallManager::ConnectFreeInstall(const Want &want, int32_t userId,
-    sptr<IRemoteObject> callerToken, const std::string &localDeviceId)
+    sptr<IRemoteObject> callerToken, const std::string &localDeviceId,
+    AppExecFwk::ExtensionAbilityType extensionType)
 {
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, GET_ABILITY_SERVICE_FAILED);
@@ -569,6 +570,7 @@ int FreeInstallManager::ConnectFreeInstall(const Want &want, int32_t userId,
     }
 
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
+    bool isAgentConnect = extensionType == AppExecFwk::ExtensionAbilityType::AGENT;
     if (!isSaCall) {
         std::string wantAbilityName = want.GetElement().GetAbilityName();
         std::string wantBundleName = want.GetElement().GetBundleName();
@@ -579,7 +581,10 @@ int FreeInstallManager::ConnectFreeInstall(const Want &want, int32_t userId,
         int callerUid = IPCSkeleton::GetCallingUid();
         std::string localBundleName;
         auto res = IN_PROCESS_CALL(bundleMgrHelper->GetNameForUid(callerUid, localBundleName));
-        if (res != ERR_OK || localBundleName != wantBundleName) {
+        bool allowCrossBundleAgentConnect = isAgentConnect &&
+            AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+                PermissionConstants::PERMISSION_CONNECT_AGENT);
+        if (res != ERR_OK || (localBundleName != wantBundleName && !allowCrossBundleAgentConnect)) {
             TAG_LOGE(AAFwkTag::FREE_INSTALL, "not local BundleName");
             return INVALID_PARAMETERS_ERR;
         }
