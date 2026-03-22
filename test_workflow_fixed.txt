@@ -1,0 +1,11 @@
+Test file for fixed afwk-git-workflow skill.
+
+This file verifies:
+1. Correct PR description template format
+2. All 16 stability checks included
+3. All 22 security checks included
+4. Proper Issue-PR linking
+5. No encoding issues with English titles
+
+Created: 2026-03-22
+Status: Testing fixed skill
