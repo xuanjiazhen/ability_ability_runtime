@@ -48,6 +48,7 @@ int32_t BatchUri::Init(const std::vector<std::string> &uriVec, uint32_t mode, co
         // content uri
         if (scheme == FUDConstants::CONTENT_SCHEME) {
             contentUris.emplace_back(uriInner.ToString());
+            contentIndexes.emplace_back(index);
             continue;
         }
         InitFileUriInfo(uriInner, index, mode, callerAlterBundleName, targetAlterBundleName,
@@ -266,6 +267,23 @@ bool BatchUri::IsAllUriPermissioned()
     for (auto &checkRes : checkResult) {
         if (!checkRes.result) {
             return false;
+        }
+    }
+    return true;
+}
+
+bool BatchUri::SetCheckProxyByContentUriResult(const std::vector<bool> &contentUriResult)
+{
+    if (contentUriResult.size() != contentIndexes.size()) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "Invalid contentUriResult:%{public}zu, %{public}zu", contentUriResult.size(),
+                 contentIndexes.size());
+        return false;
+    }
+    for (size_t i = 0; i < contentUriResult.size(); i++) {
+        auto index = contentIndexes[i];
+        checkResult[index].result = contentUriResult[i];
+        if (checkResult[index].result) {
+            checkResult[index].permissionType = PolicyType::AUTHORIZATION_PATH;
         }
     }
     return true;

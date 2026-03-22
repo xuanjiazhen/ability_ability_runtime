@@ -538,6 +538,46 @@ int32_t AbilityManagerCollaboratorProxy::RevokeUriPermission(uint32_t tokenId)
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerCollaboratorProxy::VerifyUriPermission(const std::vector<std::string> &uriVec, uint32_t flag,
+    uint32_t tokenId, std::vector<bool> &checkResults)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(AbilityManagerCollaboratorProxy::GetDescriptor())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!data.WriteStringVector(uriVec)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write uriVec fail");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!data.WriteUint32(flag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write flag fail");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!data.WriteUint32(tokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write tokenId fail");
+        return ERR_INVALID_OPERATION;
+    }
+
+    int32_t ret = SendTransactCmd(IAbilityManagerCollaborator::VERIFY_URI_PERMISSION, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
+        return ERR_INVALID_OPERATION;
+    }
+    ret = reply.ReadInt32();
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "VerifyUriPermission failed:%{public}d", ret);
+        return ret;
+    }
+    if (!reply.ReadBoolVector(&checkResults)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read checkResults fail");
+        return ERR_INVALID_OPERATION;
+    }
+    return ERR_OK;
+}
+
 void AbilityManagerCollaboratorProxy::NotifyMissionBindPid(int32_t missionId, int32_t pid, int32_t userId)
 {
     MessageParcel data;

@@ -57,6 +57,8 @@ public:
 
     bool SetCheckProxyByPolicyResult(const std::vector<bool> &proxyResultByPolicy);
 
+    bool SetCheckProxyByContentUriResult(const std::vector<bool> &contentUriResult);
+
     int32_t GetUriToGrantByMap(std::vector<std::string> &uriVec);
 
     void SelectPermissionedUri(std::vector<Uri> &uris, std::vector<int32_t> &indexs, std::vector<std::string> &uriVec);
@@ -88,6 +90,7 @@ public:
 
     // content uri
     std::vector<std::string> contentUris;
+    std::vector<int32_t> contentIndexes;
 
     // caller's uri
     std::vector<PolicyInfo> selfBundlePolicyInfos;
