@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git config:*)",
+      "Bash(git reset:*)",
+      "Bash(git checkout:*)",
+      "Bash(gh:*)",
+      "Bash(chmod:*)",
+      "Bash(git push:*)",
+      "Bash(curl:*)",
+      "Bash(git remote get-url:*)",
+      "Bash(# 删除本地测试文件 rm -f test_workflow.md test_v2.md test_v3.md test_v4.md final_test.md ls -la)",
+      "Bash(echo:*)",
+      "Bash(python:*)"
+    ]
+  }
+}

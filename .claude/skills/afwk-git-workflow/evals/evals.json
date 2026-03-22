@@ -1,0 +1,23 @@
+{
+  "skill_name": "afwk-git-workflow",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "我修改了 ability_manager_service.cpp 文件，修复了一个空指针问题，想提交代码",
+      "expected_output": "Skill should execute the complete workflow: stage changes, create commit with proper format, create branch named master-0322-fix-null-pointer, push to remote, check for existing PR, create PR with template-based description, and create linked issue",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "添加了新的 lifecycle 回调函数到 ability_context.h，帮我 push 并创建 PR",
+      "expected_output": "Skill should analyze the new feature addition, generate appropriate commit message starting with 'feat:', create branch master-0322-add-lifecycle-callback, and complete the full workflow including PR and issue creation",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "重构了 mission_list_manager 的初始化逻辑，现在想合并到 master",
+      "expected_output": "Skill should identify this as a refactor change, create commit with 'refactor:' prefix, branch master-0322-refactor-mission-list, push and create PR with detailed description of refactoring changes",
+      "files": []
+    }
+  ]
+}
