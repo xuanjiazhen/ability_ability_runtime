@@ -178,6 +178,9 @@ private:
 
     int32_t RevokeContentUriPermission(uint32_t tokenId);
 
+    int32_t VerifyContentUriPermission(const std::vector<std::string> &contentUris, uint32_t flag,
+        uint32_t tokenId, std::vector<bool> &checkResults);
+
     bool IsContentUriGranted(uint32_t tokenId);
 
     void AddContentTokenIdRecord(uint32_t tokenId);

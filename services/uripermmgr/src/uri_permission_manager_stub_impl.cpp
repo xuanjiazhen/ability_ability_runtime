@@ -537,6 +537,32 @@ int32_t UriPermissionManagerStubImpl::RevokeContentUriPermission(uint32_t tokenI
     return ret;
 }
 
+int32_t UriPermissionManagerStubImpl::VerifyContentUriPermission(const std::vector<std::string> &contentUris,
+    uint32_t flag, uint32_t tokenId, std::vector<bool> &checkResults)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (contentUris.empty()) {
+        return ERR_OK;
+    }
+    TAG_LOGI(AAFwkTag::URIPERMMGR, "VerifyContentUriPermission, contentUris: %{public}zu", contentUris.size());
+    auto abilityClient = AAFwk::AbilityManagerClient::GetInstance();
+    if (abilityClient == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "abilityClient null");
+        return INNER_ERR;
+    }
+    auto collaborator = IN_PROCESS_CALL(abilityClient->GetAbilityManagerCollaborator());
+    if (collaborator == nullptr) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "collaborator null");
+        return INNER_ERR;
+    }
+    auto ret = collaborator->VerifyUriPermission(contentUris, flag, tokenId, checkResults);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::URIPERMMGR, "VerifyUriPermission failed:%{public}d", ret);
+        return ret;
+    }
+    return ERR_OK;
+}
+
 bool UriPermissionManagerStubImpl::IsContentUriGranted(uint32_t tokenId)
 {
     std::lock_guard<std::mutex> lock(contentTokenIdSetMutex_);
@@ -1184,6 +1210,13 @@ int32_t UriPermissionManagerStubImpl::CheckProxyUriPermission(BatchUri &batchUri
     if (!proxyUrisByPolicy.empty()) {
         auto proxyResultByPolicy = VerifyUriPermissionByPolicy(proxyUrisByPolicy, flag, callerTokenId);
         batchUri.SetCheckProxyByPolicyResult(proxyResultByPolicy);
+    }
+    if (!batchUri.contentUris.empty()) {
+        std::vector<bool> contentUriResults;
+        auto ret = VerifyContentUriPermission(batchUri.contentUris, flag, callerTokenId, contentUriResults);
+        if (ret == ERR_OK) {
+            batchUri.SetCheckProxyByContentUriResult(contentUriResults);
+        }
     }
     return ERR_OK;
 }
