@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_EXTENSION_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_UI_EXTENSION_CONTEXT_H
 
+#include <atomic>
 #include <map>
 
 #include "ability_connect_callback.h"
@@ -34,6 +35,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 using RuntimeTask = std::function<void(int, const AAFwk::Want &, bool)>;
 using AbilityConfigUpdateCallback = std::function<void(AppExecFwk::Configuration &config)>;
+using TerminateSelfWithAnimationCallback = std::function<void()>;
 /**
  * @brief context supply for UIExtension
  *
@@ -169,6 +171,20 @@ public:
      */
     void RequestComponentTerminate();
 
+    /**
+     * @brief Register terminate self with animation callback.
+     * Only available for embedded atomic service.
+     * @param callback The callback to be called when terminateSelf is invoked.
+     * @return errCode ERR_OK on success, others on failure.
+     */
+    ErrCode TerminateSelfWithAnimation(TerminateSelfWithAnimationCallback &&callback);
+
+    /**
+     * @brief Terminate self inner, should be called by ArkUI when animation is finished.
+     * Will cancel the timeout task and proceed with termination.
+     */
+    ErrCode TerminateSelfInner();
+
 #ifdef SUPPORT_SCREEN
     void SetWindow(sptr<Rosen::Window> window);
 
@@ -255,6 +271,11 @@ private:
     std::mutex onOpenLinkRequestResultMutex_;
     std::vector<std::shared_ptr<OnAtomicRequestResult>> onAtomicRequestResults_;
     std::vector<std::shared_ptr<AAFwk::OnOpenLinkRequestResult>> onOpenLinkRequestResults_;
+    
+    TerminateSelfWithAnimationCallback terminateSelfWithAnimationCallback_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
+    std::atomic<bool> terminateTimeoutExec_{false};
+    std::mutex terminateSelfMutex_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
