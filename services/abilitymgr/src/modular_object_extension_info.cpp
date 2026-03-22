@@ -23,7 +23,7 @@ constexpr const char *JSON_KEY_MODULE_NAME = "moduleName";
 constexpr const char *JSON_KEY_ABILITY_NAME = "abilityName";
 constexpr const char *JSON_KEY_APP_INDEX = "appIndex";
 constexpr const char *JSON_KEY_IS_SYSTEM_DISABLED = "isSystemDisabled";
-} 
+}
 namespace OHOS {
 namespace AAFwk {
 bool ModularObjectExtensionInfo::ReadFromParcel(Parcel &parcel)

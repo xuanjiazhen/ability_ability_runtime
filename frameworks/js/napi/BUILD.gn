@@ -87,6 +87,7 @@ group("napi_packages") {
     "${ability_runtime_napi_path}/kiosk_manager:kioskmanager_napi",
     "${ability_runtime_napi_path}/mission_manager:distributedmissionmanager",
     "${ability_runtime_napi_path}/mission_manager:missionmanager_napi",
+    "${ability_runtime_napi_path}/modular_object_manager:modularobjectmanager_napi",
     "${ability_runtime_napi_path}/particleAbility:particleability",
     "${ability_runtime_napi_path}/photo_editor_extension_ability:photoeditorextensionability_napi",
     "${ability_runtime_napi_path}/photo_editor_extension_context:photoeditorextensioncontext_napi",

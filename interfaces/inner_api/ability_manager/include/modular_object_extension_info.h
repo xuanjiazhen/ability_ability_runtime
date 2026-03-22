@@ -55,10 +55,14 @@ enum class ThreadMode : int32_t {
  * Information of a modular object extension.
  */
 struct ModularObjectExtensionInfo : public Parcelable {
-    std::string bundleName;
-    std::string moduleName;
-    std::string abilityName;
-    int32_t appIndex = 0;
+    std::string bundleName;        // Bundle name
+    std::string moduleName;        // Module name
+    std::string abilityName;       // Ability name
+    int32_t appIndex = 0;          // App index
+    LaunchMode launchMode = LaunchMode::IN_PROCESS;      // Launch mode
+    ModularProcessMode processMode = ModularProcessMode::BUNDLE;       // Process mode
+    ThreadMode threadMode = ThreadMode::BUNDLE;          // Thread mode
+    bool isSelfDisabled = false;    // Whether disabled by the self application
     bool isSystemDisabled = false;  // Whether disabled by system application
 
     /**

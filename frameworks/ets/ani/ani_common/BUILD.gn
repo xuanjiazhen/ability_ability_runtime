@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -56,6 +56,7 @@ ohos_shared_library("ani_common") {
     "src/ani_common_start_options.cpp",
     "src/ani_common_util.cpp",
     "src/ani_common_want.cpp",
+    "src/ani_modular_object_extension_info.cpp",
     "src/ani_task.cpp",
     "src/context_transfer.cpp",
     "src/ets_ability_lifecycle_callback.cpp",
