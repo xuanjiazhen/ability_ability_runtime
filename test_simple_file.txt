@@ -1,0 +1,6 @@
+This is a simple test file for testing the afwk-git-workflow skill.
+
+Purpose: Verify that the skill correctly creates PR and Issue with proper formatting.
+
+Created: 2026-03-22
+Status: Testing
