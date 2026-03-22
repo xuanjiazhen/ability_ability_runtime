@@ -24,92 +24,275 @@ class MissionAbilityRecord;
 using MissionAbilityRecordPtr = std::shared_ptr<MissionAbilityRecord>;
 class MissionAbilityRecord : public AbilityRecord {
 public:
+    /**
+     * @brief Constructor
+     * @param want The Want object containing ability launch information
+     * @param abilityInfo The AbilityInfo containing ability metadata
+     * @param applicationInfo The ApplicationInfo containing application metadata
+     * @param requestCode The request code for ability launch
+     */
     MissionAbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
         const AppExecFwk::ApplicationInfo &applicationInfo, int requestCode);
-    
+
+    /**
+     * @brief Create a MissionAbilityRecord from an AbilityRequest
+     * @param abilityRequest The ability request containing launch information
+     * @return Shared pointer to the created MissionAbilityRecord
+     */
     static MissionAbilityRecordPtr CreateAbilityRecord(const AbilityRequest &abilityRequest);
+
+    /**
+     * @brief Convert a base AbilityRecord to MissionAbilityRecord
+     * @param abilityRecord Shared pointer to the base AbilityRecord
+     * @return Shared pointer to the converted MissionAbilityRecord
+     */
     static MissionAbilityRecordPtr FromBaseRecord(std::shared_ptr<AbilityRecord> abilityRecord);
 
+    /**
+     * @brief Get the ability record type
+     * @return The AbilityRecordType enum value
+     */
     AbilityRecordType GetAbilityRecordType() override;
+
+    /**
+     * @brief Dump ability record information for debugging
+     * @param info Vector to receive the dumped information strings
+     */
     void Dump(std::vector<std::string> &info) override;
+
+    /**
+     * @brief Set the ability foregrounding flag
+     */
     void SetAbilityForegroundingFlag();
+
+    /**
+     * @brief Check if need to back to other mission stack
+     * @return Returns true if need to back to other mission stack, otherwise false
+     */
     bool IsNeedBackToOtherMissionStack() const
     {
         return isNeedBackToOtherMissionStack_;
     }
+
+    /**
+     * @brief Set whether need to back to other mission stack
+     * @param isNeedBackToOtherMissionStack Flag indicating whether to back to other mission stack
+     */
     void SetNeedBackToOtherMissionStack(bool isNeedBackToOtherMissionStack)
     {
         isNeedBackToOtherMissionStack_ = isNeedBackToOtherMissionStack;
     }
 
+    /**
+     * @brief Get the ability record in other mission stack
+     * @return Shared pointer to the other mission stack ability record
+     */
     MissionAbilityRecordPtr GetOtherMissionStackAbilityRecord() const
     {
         return otherMissionStackAbilityRecord_.lock();
     }
+
+    /**
+     * @brief Set the ability record in other mission stack
+     * @param abilityRecord Shared pointer to the ability record
+     */
     void SetOtherMissionStackAbilityRecord(MissionAbilityRecordPtr abilityRecord)
     {
         otherMissionStackAbilityRecord_ = abilityRecord;
     }
 
+    /**
+     * @brief Set the previous ability record in the mission
+     * @param abilityRecord Shared pointer to the previous ability record
+     */
     void SetPreAbilityRecord(MissionAbilityRecordPtr abilityRecord)
     {
         preAbilityRecord_ = abilityRecord;
     }
+
+    /**
+     * @brief Get the previous ability record in the mission
+     * @return Shared pointer to the previous ability record
+     */
     MissionAbilityRecordPtr GetPreAbilityRecord() const
     {
         return preAbilityRecord_.lock();
     }
 
+    /**
+     * @brief Set the next ability record in the mission
+     * @param abilityRecord Shared pointer to the next ability record
+     */
     void SetNextAbilityRecord(MissionAbilityRecordPtr abilityRecord)
     {
         nextAbilityRecord_ = abilityRecord;
     }
+
+    /**
+     * @brief Get the next ability record in the mission
+     * @return Shared pointer to the next ability record
+     */
     MissionAbilityRecordPtr GetNextAbilityRecord() const
     {
         return nextAbilityRecord_.lock();
     }
 
-    std::string GetLabel();
-#ifdef SUPPORT_SCREEN
-    void NotifyAnimationFromMinimizeAbility(bool& animaEnabled);
     /**
-     * process request of foregrounding the ability.
-     *
+     * @brief Get the label of the ability
+     * @return The label string
+     */
+    std::string GetLabel();
+
+#ifdef SUPPORT_SCREEN
+    /**
+     * @brief Notify animation from minimize ability
+     * @param animaEnabled Reference to flag indicating whether animation is enabled
+     */
+    void NotifyAnimationFromMinimizeAbility(bool& animaEnabled);
+
+    /**
+     * @brief Process request of foregrounding the ability
+     * @param isRecent Flag indicating if launched from recent tasks
+     * @param abilityRequest The ability request containing launch information
+     * @param startOptions Shared pointer to start options
+     * @param callerAbility Shared pointer to the caller ability record
+     * @param sceneFlag The scene flag for ability transition
      */
     void ProcessForegroundAbility(bool isRecent, const AbilityRequest &abilityRequest,
         std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<AbilityRecord> &callerAbility,
         uint32_t sceneFlag = 0);
+
+    /**
+     * @brief Process request of foregrounding the ability
+     * @param callerAbility Shared pointer to the caller ability record
+     * @param needExit Flag indicating whether to exit current ability
+     * @param sceneFlag The scene flag for ability transition
+     */
     void ProcessForegroundAbility(const std::shared_ptr<AbilityRecord> &callerAbility, bool needExit = true,
         uint32_t sceneFlag = 0);
+
+    /**
+     * @brief Post task to cancel starting window hot task
+     */
     void PostCancelStartingWindowHotTask();
+
+    /**
+     * @brief Notify animation from terminating ability
+     */
     void NotifyAnimationFromTerminatingAbility() const;
+
+    /**
+     * @brief Notify animation from terminating ability
+     * @param callerAbility Shared pointer to the caller ability record
+     * @param needExit Flag indicating whether to exit current ability
+     * @param flag Additional flag for animation control
+     */
     void NotifyAnimationFromTerminatingAbility(const std::shared_ptr<AbilityRecord> &callerAbility, bool needExit,
         bool flag);
+
+    /**
+     * @brief Handle animation task for ability transition
+     * @param isRecent Flag indicating if launched from recent tasks
+     * @param abilityRequest The ability request containing launch information
+     * @param startOptions Shared pointer to start options
+     * @param callerAbility Shared pointer to the caller ability record
+     */
     void AnimationTask(bool isRecent, const AbilityRequest &abilityRequest,
         const std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<AbilityRecord> &callerAbility);
+
+    /**
+     * @brief Notify animation from starting ability
+     * @param callerAbility Shared pointer to the caller ability record
+     * @param abilityRequest The ability request containing launch information
+     */
     void NotifyAnimationFromStartingAbility(const std::shared_ptr<AbilityRecord> &callerAbility,
         const AbilityRequest &abilityRequest) const;
+
+    /**
+     * @brief Notify animation from recent task
+     * @param startOptions Shared pointer to start options
+     * @param want Shared pointer to the Want object
+     */
     void NotifyAnimationFromRecentTask(const std::shared_ptr<StartOptions> &startOptions,
         const std::shared_ptr<Want> &want) const;
+
+    /**
+     * @brief Handle starting window task
+     * @param isRecent Flag indicating if launched from recent tasks
+     * @param isCold Flag indicating if it's a cold start
+     * @param abilityRequest The ability request containing launch information
+     * @param startOptions Shared pointer to start options
+     */
     void StartingWindowTask(bool isRecent, bool isCold, const AbilityRequest &abilityRequest,
         std::shared_ptr<StartOptions> &startOptions);
+
+    /**
+     * @brief Post task to cancel starting window cold task
+     */
     void PostCancelStartingWindowColdTask();
 
+    /**
+     * @brief Show starting window for hot start
+     * @param startOptions Shared pointer to start options
+     * @param want Shared pointer to the Want object
+     * @param abilityRequest The ability request containing launch information
+     */
     void StartingWindowHot(const std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<Want> &want,
         const AbilityRequest &abilityRequest);
+
+    /**
+     * @brief Show starting window for hot start without parameters
+     */
     void StartingWindowHot();
+
+    /**
+     * @brief Show starting window for cold start
+     * @param startOptions Shared pointer to start options
+     * @param want Shared pointer to the Want object
+     * @param abilityRequest The ability request containing launch information
+     */
     void StartingWindowCold(const std::shared_ptr<StartOptions> &startOptions, const std::shared_ptr<Want> &want,
         const AbilityRequest &abilityRequest);
 
+    /**
+     * @brief Create resource manager for the ability
+     * @return Shared pointer to the created resource manager
+     */
     std::shared_ptr<Global::Resource::ResourceManager> CreateResourceManager() const;
+
+    /**
+     * @brief Get pixel map from resource manager
+     * @param windowIconId The icon resource ID
+     * @param resourceMgr Shared pointer to resource manager
+     * @return Shared pointer to the pixel map
+     */
     std::shared_ptr<Media::PixelMap> GetPixelMap(const uint32_t windowIconId,
         std::shared_ptr<Global::Resource::ResourceManager> resourceMgr) const;
 
+    /**
+     * @brief Initialize cold starting window resources
+     * @param resourceMgr Shared pointer to resource manager
+     */
     void InitColdStartingWindowResource(const std::shared_ptr<Global::Resource::ResourceManager> &resourceMgr);
+
+    /**
+     * @brief Get cold starting window resources
+     * @param bg Reference to receive background pixel map
+     * @param bgColor Reference to receive background color
+     */
     void GetColdStartingWindowResource(std::shared_ptr<Media::PixelMap> &bg, uint32_t &bgColor);
 #endif
 private:
+    /**
+     * @brief Dump previous ability information
+     * @return String containing previous ability dump information
+     */
     std::string DumpPreAbility() const;
+
+    /**
+     * @brief Dump next ability information
+     * @return String containing next ability dump information
+     */
     std::string DumpNextAbility() const;
 private:
     bool isNeedBackToOtherMissionStack_ = false;
