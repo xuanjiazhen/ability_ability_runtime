@@ -19,7 +19,7 @@
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include "parcel.h"
-#include "pixel_map.h"
+#include "image_pixel_map_adapter.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -93,8 +93,9 @@ void WindowManagerServiceHandlerProxy::StartingWindow(sptr<AbilityTransitionInfo
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write info failed");
         return;
     }
-    if (!data.WriteParcelable(pixelMap.get())) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write pixelMap failed");
+    // 动态加载适配器来写入 PixelMap
+    if (!LoadImagePixelMapAdapter() || !PixelMapWriteToParcel(pixelMap.get(), data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to write pixelMap");
         return;
     }
     if (!data.WriteUint32(bgColor)) {
@@ -122,7 +123,8 @@ void WindowManagerServiceHandlerProxy::StartingWindow(sptr<AbilityTransitionInfo
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write info failed");
         return;
     }
-    if (!data.WriteParcelable(pixelMap.get())) {
+    // 动态加载适配器来写入 PixelMap
+    if (!LoadImagePixelMapAdapter() || !PixelMapWriteToParcel(pixelMap.get(), data)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to write pixelMap");
         return;
     }

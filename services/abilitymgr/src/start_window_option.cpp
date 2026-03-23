@@ -17,7 +17,7 @@
 #include "hilog_tag_wrapper.h"
 
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
-#include "pixel_map.h"
+#include "image_pixel_map_adapter.h"
 #endif
 
 namespace OHOS {
@@ -27,8 +27,19 @@ bool StartWindowOption::ReadFromParcel(Parcel &parcel)
     hasStartWindow = parcel.ReadBool();
     startWindowBackgroundColor = parcel.ReadString();
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
-    std::shared_ptr<Media::PixelMap> pixelMap(parcel.ReadParcelable<Media::PixelMap>());
-    startWindowIcon = pixelMap;
+    // 动态加载适配器来读取 PixelMap
+    Media::PixelMap* rawPixelMap = nullptr;
+    if (LoadImagePixelMapAdapter()) {
+        rawPixelMap = PixelMapReadFromParcel(parcel, false);
+    }
+    if (rawPixelMap != nullptr) {
+        // 使用 shared_ptr 管理生命周期，自定义删除器使用适配器的销毁函数
+        startWindowIcon = std::shared_ptr<Media::PixelMap>(rawPixelMap, [](Media::PixelMap* p) {
+            PixelMapDestroy(p);
+        });
+    } else {
+        startWindowIcon.reset();
+    }
 #endif
     return true;
 }
@@ -59,7 +70,8 @@ bool StartWindowOption::Marshalling(Parcel &parcel) const
         return false;
     }
 #ifdef START_WINDOW_OPTIONS_WITH_PIXELMAP
-    if (!parcel.WriteParcelable(startWindowIcon.get())) {
+    // 动态加载适配器来写入 PixelMap
+    if (!LoadImagePixelMapAdapter() || !PixelMapWriteToParcel(startWindowIcon.get(), parcel)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startWindowIcon write failed");
         return false;
     }

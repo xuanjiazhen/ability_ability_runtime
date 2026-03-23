@@ -18,7 +18,7 @@
 
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
-#include "pixel_map.h"
+#include "image_pixel_map_adapter.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -116,12 +116,19 @@ int WindowManagerServiceHandlerStub::StartingWindowCold(MessageParcel &data, Mes
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read info failed");
         return ERR_AAFWK_PARCEL_FAIL;
     }
-    std::shared_ptr<Media::PixelMap> pixelMap
-        = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
-    if (pixelMap == nullptr) {
+    // 动态加载适配器来读取 PixelMap
+    Media::PixelMap* rawPixelMap = nullptr;
+    if (LoadImagePixelMapAdapter()) {
+        rawPixelMap = PixelMapReadFromParcel(data, false);
+    }
+    if (rawPixelMap == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read pixelMap failed");
         return ERR_AAFWK_PARCEL_FAIL;
     }
+    // 使用 shared_ptr 管理生命周期，自定义删除器使用适配器的销毁函数
+    std::shared_ptr<Media::PixelMap> pixelMap(rawPixelMap, [](Media::PixelMap* p) {
+        PixelMapDestroy(p);
+    });
     auto bgColor = data.ReadUint32();
     StartingWindow(info, pixelMap, bgColor);
     return ERR_OK;
@@ -135,12 +142,19 @@ int WindowManagerServiceHandlerStub::StartingWindowHot(MessageParcel &data, Mess
         TAG_LOGE(AAFwkTag::ABILITYMGR, "read info failed");
         return ERR_AAFWK_PARCEL_FAIL;
     }
-    std::shared_ptr<Media::PixelMap> pixelMap
-        = std::shared_ptr<Media::PixelMap>(data.ReadParcelable<Media::PixelMap>());
-    if (pixelMap == nullptr) {
+    // 动态加载适配器来读取 PixelMap
+    Media::PixelMap* rawPixelMap = nullptr;
+    if (LoadImagePixelMapAdapter()) {
+        rawPixelMap = PixelMapReadFromParcel(data, false);
+    }
+    if (rawPixelMap == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to read pixelMap");
         return ERR_AAFWK_PARCEL_FAIL;
     }
+    // 使用 shared_ptr 管理生命周期，自定义删除器使用适配器的销毁函数
+    std::shared_ptr<Media::PixelMap> pixelMap(rawPixelMap, [](Media::PixelMap* p) {
+        PixelMapDestroy(p);
+    });
     StartingWindow(info, pixelMap);
     return ERR_OK;
 }
