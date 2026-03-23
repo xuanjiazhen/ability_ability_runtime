@@ -74,6 +74,7 @@ public:
     void SignRestartAppFlag(int32_t uid, const std::string &instanceKey, bool isAppRecovery = false);
     void SignRestartProcess(int32_t pid);
     ErrCode QueryCallerTokenIdForAnco(const std::string &asCallerForAncoSessionId, uint32_t &callerTokenId);
+   
     void UpdateTokenIdAndWantWithRealCallerInfo(AAFwk::Want &want, uint32_t &realCallerTokenId);
 
     /**
@@ -677,6 +678,20 @@ private:
      * @param abilityRecord The ability record that completed foreground
      */
     void CompleteForegroundSuccess(const UIAbilityRecordPtr &abilityRecord);
+
+    /**
+     * @brief Cancel game prelaunch and kill the game process.
+     * @param callerToken Token of the caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode CancelGamePreLaunch(const sptr<IRemoteObject> callerToken);
+
+    /**
+     * @brief Complete game SA prelaunch by clearing flag and killing process
+     * @param callerToken Token of the game SA prelaunch ability
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode CompleteGamePreLaunch(const sptr<IRemoteObject> callerToken);
 
     /**
      * @brief Handle load timeout for ability

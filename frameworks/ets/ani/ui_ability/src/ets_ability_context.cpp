@@ -1871,6 +1871,28 @@ void EtsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_o
     AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
 }
 
+void EtsAbilityContext::CancelGamePreLaunch(ani_env *env, ani_object aniObj, ani_object call)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "CancelGamePreLaunch called");
+
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    auto context = etsContext ? etsContext->context_.lock() : nullptr;
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "GetAbilityContext is nullptr");
+        ani_object errorObject = EtsErrorUtil::CreateErrorByNativeErr(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+ 	    AppExecFwk::AsyncCallback(env, call, errorObject, nullptr);
+ 	    return;
+    }
+    
+    ErrCode innerErrCode = context->CancelGamePreLaunch();
+    if (innerErrCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "CancelGamePreLaunch failed, innerErrCode: %{public}d", innerErrCode);
+    }
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+}
+
 ani_long EtsAbilityContext::OnConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj,
     ani_object wantObj, ani_int aniAccountId, ani_object connectOptionsObj)
 {
@@ -3108,6 +3130,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void *>(EtsAbilityContext::StartRecentAbility) },
             ani_native_function { "nativeRestartAppSync", "C{@ohos.app.ability.Want.Want}:",
                 reinterpret_cast<void*>(EtsAbilityContext::RestartAppWithWindow) },
+            ani_native_function { "nativeCancelGamePreLaunchAsync", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::CancelGamePreLaunch) },
             ani_native_function { "nativeSetMissionWindowIcon",
                 "C{@ohos.multimedia.image.image.PixelMap}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetMissionWindowIcon) },
