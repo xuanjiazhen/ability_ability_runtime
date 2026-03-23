@@ -492,6 +492,11 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
     UIAbility::OnStart(want, sessionInfo);
+    if (want.GetBoolParam("ability.want.params.game_prelaunch") == true) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "OnStart: Set game prelaunch flag from want");
+        isGamePreLaunch_ = true;
+    }
+
 
     CHECK_POINTER(abilityInfo_);
     if (!jsAbilityObj_) {
@@ -987,7 +992,18 @@ void JsUIAbility::OnDidForeground()
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
 
     if (scene_ != nullptr) {
-        scene_->GoResume();
+        // 只在首次调用时传递 isGamePreLaunch（flag 为 0 表示首次）
+        bool isGamePreLaunch = (goResumeCalledFlag_ == 0) ? isGamePreLaunch_ : false;
+        if (goResumeCalledFlag_ == 0 && isGamePreLaunch) {
+            TAG_LOGI(AAFwkTag::UIABILITY, "OnDidForeground: first call with game prelaunch (flag=%{public}d)",
+                goResumeCalledFlag_);
+        }
+        scene_->GoResume(isGamePreLaunch);
+        if (isGamePreLaunch) {
+            scene_->GoPause();
+        }
+        // 标记已经调用过 GoResume
+        goResumeCalledFlag_ = 1;
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -1200,7 +1216,9 @@ void JsUIAbility::DoOnForeground(const Want &want)
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->GoForeground");
-    scene_->GoForeground(UIAbility::sceneFlag_);
+
+    // isGamePreLaunch_ 已在 Init 中设置，这里直接使用
+    scene_->GoForeground(UIAbility::sceneFlag_, isGamePreLaunch_);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
