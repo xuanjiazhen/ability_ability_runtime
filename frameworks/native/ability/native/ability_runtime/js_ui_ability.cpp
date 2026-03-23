@@ -987,7 +987,16 @@ void JsUIAbility::OnDidForeground()
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
 
     if (scene_ != nullptr) {
-        scene_->GoResume();
+        // 只在首次调用时传递 isGamePreLaunch，然后立即重置
+        bool isGamePreLaunch = isGamePreLaunch_;
+        if (isGamePreLaunch) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "OnDidForeground: first call with game prelaunch");
+            isGamePreLaunch_ = false; // 立即重置，确保后续调用不再传递
+        }
+        scene_->GoResume(isGamePreLaunch);
+        if (isGamePreLaunch) {
+            scene_->GoPause();
+        }
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -1200,7 +1209,14 @@ void JsUIAbility::DoOnForeground(const Want &want)
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->GoForeground");
-    scene_->GoForeground(UIAbility::sceneFlag_);
+
+    // 从 want 读取游戏预启动标志并设置成员变量，供 OnDidForeground 使用
+    if (want.GetBoolParam("ability.want.params.game_prelaunch") == true) {
+        TAG_LOGD(AAFwkTag::UIABILITY, "DoOnForeground: Set game prelaunch flag");
+        isGamePreLaunch_ = true;
+    }
+
+    scene_->GoForeground(UIAbility::sceneFlag_, isGamePreLaunch_);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
