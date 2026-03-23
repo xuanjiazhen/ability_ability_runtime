@@ -161,11 +161,16 @@ void AppScheduler::UpdateExtensionState(const sptr<IRemoteObject> &token, const 
     IN_PROCESS_CALL_WITHOUT_RET(appMgrClient_->UpdateExtensionState(token, state));
 }
 
-void AppScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
+int32_t AppScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "kill process");
-    CHECK_POINTER(appMgrClient_);
-    appMgrClient_->KillProcessByAbilityToken(token);
+    CHECK_POINTER_AND_RETURN(appMgrClient_, INNER_ERR);
+    int32_t ret = appMgrClient_->KillProcessByAbilityToken(token);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to KillProcessByAbilityToken");
+        return ret;
+    }
+    return ERR_OK;
 }
 
 void AppScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,

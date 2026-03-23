@@ -219,21 +219,19 @@ void AmsMgrScheduler::RegisterAppStateCallback(const sptr<IAppStateCallback> &ca
     amsHandler_->SubmitTask(registerAppStateCallbackFunc, TASK_REGISTER_APP_STATE_CALLBACK);
 }
 
-void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
+int32_t AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
 {
     if (!IsReady()) {
-        return;
+        TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
+        return ERR_INVALID_VALUE;
     }
 
     if (amsMgrServiceInner_->VerifyKillProcessPermission(token) != ERR_OK) {
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
-        return;
+        return ERR_PERMISSION_DENIED;
     }
 
-    std::function<void()> killProcessByAbilityTokenFunc = [amsMgrServiceInner = amsMgrServiceInner_, token]() {
-        amsMgrServiceInner->KillProcessByAbilityToken(token);
-    };
-    amsHandler_->SubmitTask(killProcessByAbilityTokenFunc, TASK_KILL_PROCESS_BY_ABILITY_TOKEN);
+    return amsMgrServiceInner_->KillProcessByAbilityToken(token);
 }
 
 void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,

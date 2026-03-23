@@ -1177,6 +1177,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     }
     if (appRecord && abilityInfo->type == AppExecFwk::AbilityType::PAGE) {
         NotifyMemMgrPriorityChanged(appRecord);
+        if (appRecord->IsGameSAPreLaunch()) {
+            (void)KillProcessByPid(pid, "GameSAPreLaunch kill Process");
+            appRecord == nullptr;
+        }
     }
 
     if (AAFwk::UIExtensionWrapper::IsAgentUIExtension(abilityInfo->extensionAbilityType) &&
@@ -3576,6 +3580,9 @@ std::shared_ptr<AppRunningRecord> AppMgrServiceInner::CreateAppRunningRecord(
             appIndex = abilityInfo->appIndex;
         }
         appRecord->SetAppIndex(appIndex);
+        if (want.GetBoolParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH)) {
+            appRecord->SetGameSAPreLaunch(true)
+        }
 #ifdef WITH_DLP
         appRecord->SetSecurityFlag(want->GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false));
 #endif // WITH_DLP
@@ -3798,23 +3805,23 @@ void AppMgrServiceInner::RemoveDeadAppStateCallback(const wptr<IRemoteObject> &r
     }
 }
 
-void AppMgrServiceInner::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
+int32_t AppMgrServiceInner::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!token) {
         TAG_LOGE(AAFwkTag::APPMGR, "token null");
-        return;
+        return ERR_INVALID_VALUE;
     }
     auto appRecord = GetAppRunningRecordByAbilityToken(token);
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRecord unexist");
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     // before exec ScheduleProcessSecurityExit return
     // The resident process won't let him die
     if (appRecord->IsKeepAliveApp() && IsMemorySizeSufficient()) {
-        return;
+        return ERR_OK;
     }
 
     pid_t pid = appRecord->GetPid();
@@ -3826,10 +3833,11 @@ void AppMgrServiceInner::KillProcessByAbilityToken(const sptr<IRemoteObject> &to
             int32_t result = KillProcessByPid(pid, "KillProcessByAbilityToken");
             if (result < 0) {
                 TAG_LOGE(AAFwkTag::APPMGR, "killProcessByAbilityToken kill process fail");
-                return;
+                return result;
             }
         }
     }
+    return ERR_OK;
 }
 
 void AppMgrServiceInner::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
