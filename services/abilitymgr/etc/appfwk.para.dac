@@ -23,6 +23,7 @@ persist.sys.abilityms.support.ecologicalrulemgrservice = foundation:foundation:0
 persist.sys.abilityms.inherit_window_split_screen_mode = foundation:foundation:0755
 persist.sys.abilityms.support_anco_app = foundation:foundation:0755
 persist.sys.abilityms.timeout_unit_time_ratio = foundation:foundation:0755
+persist.sys.abilityms.game_prelaunch_complete_delaytime_ms = foundation:foundation:0755
 persist.sys.abilityms.selector_dialog_possion = foundation:foundation:0755
 persist.sys.abilityms.start_specified_process = foundation:foundation:0755
 persist.sys.abilityms.use_multi_render_process = foundation:foundation:0755
