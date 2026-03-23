@@ -110,6 +110,7 @@ struct StartAbilityWrapParam {
     std::string hostBundleName;
     bool isStartByOEExt = false;
     std::string specifiedFlag;
+    bool isGamePrelaunch = false;
 };
 }
 }
