@@ -35,6 +35,7 @@ constexpr const char* SCENEBOARD_ABILITY_NAME = "com.ohos.sceneboard.MainAbility
 constexpr const char* INHERIT_WINDOW_SPLIT_SCREEN_MODE = "persist.sys.abilityms.inherit_window_split_screen_mode";
 constexpr const char* SUPPORT_ANCO_APP = "persist.sys.abilityms.support_anco_app";
 constexpr const char* TIMEOUT_UNIT_TIME_RATIO = "persist.sys.abilityms.timeout_unit_time_ratio";
+constexpr const char* GAME_PRELAUNCH_DELAYTIME = "persist.sys.abilityms.game_prelaunch_complete_delaytime_ms";
 constexpr const char* SELECTOR_DIALOG_POSSION = "persist.sys.abilityms.selector_dialog_possion";
 constexpr const char* START_SPECIFIED_PROCESS = "persist.sys.abilityms.start_specified_process";
 constexpr const char* USE_MULTI_RENDER_PROCESS = "persist.sys.abilityms.use_multi_render_process";
@@ -179,6 +180,17 @@ int32_t AppUtils::GetTimeoutUnitTimeRatio()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", timeoutUnitTimeRatio_.value);
     return timeoutUnitTimeRatio_.value;
+}
+
+int32_t AppUtils::GetGamePreLaunchCompleteDelayTime()
+{
+    if (!gamePreLaunchDelayTime_.isLoaded) {
+        gamePreLaunchDelayTime_.value = system::GetIntParameter<int32_t>(GAME_PRELAUNCH_DELAYTIME,
+            GAME_PRELAUNCH_COMPLETE_DELAYTIME_MS);
+        gamePreLaunchDelayTime_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", gamePreLaunchDelayTime_.value);
+    return gamePreLaunchDelayTime_.value;
 }
 
 bool AppUtils::IsSelectorDialogDefaultPossion()
