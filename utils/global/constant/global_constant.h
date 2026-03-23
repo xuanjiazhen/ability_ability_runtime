@@ -28,6 +28,7 @@ constexpr int32_t DEFAULT_FFRT_TASK_TIMEOUT = 60 * 1000 * 1000; // 60s = 60 000 
 constexpr int32_t FFRT_TASK_TIMEOUT = 5 * 1000 * 1000;  // 5s
 constexpr const char* LOW_MEMORY_KILL = "LowMemoryKill";
 constexpr const char* PAGE_CONFIG = "ohos.abilityRuntime.pageConfig";
+constexpr const char* GAME_PRELAUNCH = "ohos.params.gamePrelaunch";
 
 #ifdef SUPPORT_ASAN
 constexpr int32_t COLDSTART_TIMEOUT_MULTIPLE = 15000;

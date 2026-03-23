@@ -229,6 +229,8 @@ export default class UIAbilityContext extends Context {
   private native nativeDisconnectUIServiceExtensionAbility(proxy: UIServiceProxy, callback:AsyncCallbackWrapper<void>): void;
 
   private native nativeRestartAppSync(want: Want): void;
+  private native nativeCancelGamePreLaunchAsync(callback: AsyncCallbackWrapper<void>): void;
+  private native nativeCompleteGamePreLaunchAsync(callback: AsyncCallbackWrapper<void>): void;
 
   startAbility(want: Want, options: StartOptions, callback: AsyncCallback<void>): void {
     this.nativeStartAbilitySyncCheck(options);
@@ -707,6 +709,40 @@ hideAbility(): Promise<void> {
         } else {
           this.nativeStartSelfUIAbilityInCurrentProcessSync(want, specifiedFlag, options, myCall);
         }
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+  }
+
+  cancelGamePreLaunch(): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeCancelGamePreLaunchAsync(asyncCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+  }
+
+  completeGamePreLaunch(): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let asyncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeCompleteGamePreLaunchAsync(asyncCall);
       }).catch((err: Error): void => {
         reject(err as BusinessError);
       });
