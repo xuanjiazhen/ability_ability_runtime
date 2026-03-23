@@ -1323,6 +1323,13 @@ void UIAbilityLifecycleManager::UpdateAbilityRecordLaunchReason(
         return;
     }
 
+    // Check for game prelaunch
+    if (abilityRequest.want.GetBoolParam("ohos.ability.params.game_prelaunch", false)) {
+        abilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_GAME_PRELAUNCH);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Set launch reason to GAME_PRELAUNCH");
+        return;
+    }
+
     abilityRecord->SetLaunchReason(LaunchReason::LAUNCHREASON_START_ABILITY);
     return;
 }
