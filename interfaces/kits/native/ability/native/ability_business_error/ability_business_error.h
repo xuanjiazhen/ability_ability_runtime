@@ -230,6 +230,9 @@ enum class AbilityErrorCode {
     // The specified agent card has already been registered.
     ERROR_CODE_AGENT_CARD_DUPLICATE_REGISTER = 35600006,
 
+    // The specified workflow agent is already active and has not completed.
+    ERROR_CODE_WORKFLOW_AGENT_ALREADY_ACTIVE = 35600007,
+
     // invalid caller.
     ERROR_CODE_INVALID_CALLER = 16200001,
 

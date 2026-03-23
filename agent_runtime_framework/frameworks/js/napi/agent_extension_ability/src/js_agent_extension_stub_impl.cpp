@@ -50,5 +50,14 @@ int32_t JsAgentExtensionStubImpl::Authorize(const sptr<IRemoteObject> &hostProxy
     }
     return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
 }
+
+int32_t JsAgentExtensionStubImpl::WorkflowInvoked(const std::string &agentId)
+{
+    auto sptr = extension_.lock();
+    if (sptr) {
+        return sptr->OnWorkflowInvoked(agentId);
+    }
+    return static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER);
+}
 }
 }

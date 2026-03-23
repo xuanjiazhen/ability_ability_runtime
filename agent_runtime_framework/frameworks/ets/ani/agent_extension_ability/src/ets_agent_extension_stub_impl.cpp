@@ -51,5 +51,16 @@ int32_t EtsAgentExtensionStubImpl::Authorize(const sptr<IRemoteObject> &hostProx
     TAG_LOGE(AAFwkTag::SER_ROUTER, "extension lock failed");
     return static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
 }
+
+int32_t EtsAgentExtensionStubImpl::WorkflowInvoked(const std::string &agentId)
+{
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "WorkflowInvoked called, agentId: %{public}s", agentId.c_str());
+    auto sptr = extension_.lock();
+    if (sptr) {
+        return sptr->OnWorkflowInvoked(agentId);
+    }
+    TAG_LOGE(AAFwkTag::SER_ROUTER, "extension lock failed");
+    return static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+}
 } // namespace AgentRuntime
 } // namespace OHOS
