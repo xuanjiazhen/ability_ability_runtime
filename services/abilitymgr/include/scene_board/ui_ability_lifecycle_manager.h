@@ -550,6 +550,20 @@ public:
      */
     int32_t NotifyStartupExceptionBySCB(int32_t requestId, const std::string &reason);
 
+    /**
+     * @brief Cancel game prelaunch and kill the game process.
+     * @param callerToken Token of the caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t CancelGamePreLaunch(const sptr<IRemoteObject> callerToken);
+
+    /**
+     * @brief Complete game SA prelaunch by clearing flag and killing process
+     * @param callerToken Token of the game SA prelaunch ability
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t CompleteGamePreLaunch(const sptr<IRemoteObject> callerToken);
+
     ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
 
@@ -677,6 +691,7 @@ private:
      * @param abilityRecord The ability record that completed foreground
      */
     void CompleteForegroundSuccess(const UIAbilityRecordPtr &abilityRecord);
+
 
     /**
      * @brief Handle load timeout for ability
