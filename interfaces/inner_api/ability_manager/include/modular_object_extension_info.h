@@ -59,6 +59,10 @@ struct ModularObjectExtensionInfo : public Parcelable {
     std::string moduleName;
     std::string abilityName;
     int32_t appIndex = 0;
+    LaunchMode launchMode = LaunchMode::IN_PROCESS;      // Launch mode
+    ModularProcessMode processMode = ModularProcessMode::BUNDLE;       // Process mode
+    ThreadMode threadMode = ThreadMode::BUNDLE;          // Thread mode
+    bool isSelfDisabled = false;    // Whether disabled by the self application
     bool isSystemDisabled = false;  // Whether disabled by system application
 
     /**
