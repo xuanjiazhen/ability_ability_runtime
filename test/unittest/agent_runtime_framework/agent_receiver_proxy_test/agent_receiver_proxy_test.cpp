@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "ability_business_error.h"
 #include "agent_receiver_proxy.h"
@@ -324,6 +324,66 @@ HWTEST_F(AgentReceiverProxyTest, AgentReceiverProxy_Authorize_006, TestSize.Leve
     int32_t result = proxy_->Authorize(connectorProxy, longData);
 
     EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: AgentReceiverProxy
+ * Function: WorkflowInvoked
+ * SubFunction: NA
+ * FunctionPoints: WorkflowInvoked with null remote object
+ * EnvConditions: Remote object is null
+ * CaseDescription: Verify that WorkflowInvoked returns error when remote object is null
+ */
+HWTEST_F(AgentReceiverProxyTest, AgentReceiverProxy_WorkflowInvoked_001, TestSize.Level1)
+{
+    sptr<IRemoteObject> nullObject = nullptr;
+    proxy_ = new AgentReceiverProxy(nullObject);
+
+    int32_t result = proxy_->WorkflowInvoked("workflowAgent");
+
+    EXPECT_EQ(result, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+}
+
+/*
+ * Feature: AgentReceiverProxy
+ * Function: WorkflowInvoked
+ * SubFunction: NA
+ * FunctionPoints: WorkflowInvoked with successful SendRequest
+ * EnvConditions: Valid remote object
+ * CaseDescription: Verify that WorkflowInvoked succeeds when SendRequest succeeds
+ */
+HWTEST_F(AgentReceiverProxyTest, AgentReceiverProxy_WorkflowInvoked_002, TestSize.Level1)
+{
+    EXPECT_CALL(*mockRemoteObject_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    proxy_ = new AgentReceiverProxy(mockRemoteObject_);
+
+    int32_t result = proxy_->WorkflowInvoked("workflowAgent");
+
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: AgentReceiverProxy
+ * Function: WorkflowInvoked
+ * SubFunction: NA
+ * FunctionPoints: WorkflowInvoked with failed SendRequest
+ * EnvConditions: SendRequest returns error
+ * CaseDescription: Verify that WorkflowInvoked returns error when SendRequest fails
+ */
+HWTEST_F(AgentReceiverProxyTest, AgentReceiverProxy_WorkflowInvoked_003, TestSize.Level1)
+{
+    EXPECT_CALL(*mockRemoteObject_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_INVALID_OPERATION));
+
+    proxy_ = new AgentReceiverProxy(mockRemoteObject_);
+
+    int32_t result = proxy_->WorkflowInvoked("workflowAgent");
+
+    EXPECT_EQ(result, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
 }
 
 } // namespace AgentRuntime

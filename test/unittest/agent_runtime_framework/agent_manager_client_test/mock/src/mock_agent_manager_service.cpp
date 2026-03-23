@@ -27,6 +27,7 @@ int MyFlag::retUpdateAgentCard = 0;
 int MyFlag::retDeleteAgentCard = 0;
 int MyFlag::retConnectAgentExtensionAbility = 0;
 int MyFlag::retDisconnectAgentExtensionAbility = 0;
+int MyFlag::retNotifyWorkflowAgentComplete = 0;
 
 MockAgentManagerService::MockAgentManagerService()
 {}
@@ -75,6 +76,11 @@ int32_t MockAgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want 
 int32_t MockAgentManagerService::DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection)
 {
     return MyFlag::retDisconnectAgentExtensionAbility;
+}
+
+int32_t MockAgentManagerService::NotifyWorkflowAgentComplete(const std::string &agentId)
+{
+    return MyFlag::retNotifyWorkflowAgentComplete;
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS
