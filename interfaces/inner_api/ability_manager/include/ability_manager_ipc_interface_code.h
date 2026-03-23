@@ -574,6 +574,8 @@ enum class AbilityManagerInterfaceCode {
     MANUAL_START_AUTO_STARTUP_APPS = 6107,
     // ipc id for query the caller's token id for anco
     QUERY_CALLER_TOKEN_ID_FOR_ANCO = 6108,
+    // ipc id for launch game customized
+    LAUNCH_GAME_CUSTOMIZED = 6109,
 
     // ipc id for on auto starup on
     ON_AUTO_STARTUP_ON = 6111,
@@ -722,8 +724,16 @@ enum class AbilityManagerInterfaceCode {
     // start ability by oe extension
     START_ABILITY_BY_OE_EXT = 6161,
 
+<<<<<<< HEAD
     // query self modular object Extension infos
     QUERY_SELF_MODULAR_OBJECT_EXTENSION_INFOS = 6162,
+=======
+    // cancel game prelaunch
+    CANCEL_GAME_PRELAUNCH = 6162,
+
+    // complete game prelaunch
+    COMPLETE_GAME_PRELAUNCH = 6163,
+>>>>>>> 58b1c718bb (游戏预启动需求)
 };
 }  // namespace AAFwk
 }  // namespace OHOS

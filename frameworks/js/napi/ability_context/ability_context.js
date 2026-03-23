@@ -273,6 +273,14 @@ class AbilityContext extends Context {
     return this.__context_impl__.startSelfUIAbilityInCurrentProcess(want, specifiedFlag, options);
   }
 
+  cancelGamePreLaunch(callback) {
+    return this.__context_impl__.cancelGamePreLaunch(callback);
+  }
+
+  completeGamePreLaunch(callback) {
+    return this.__context_impl__.completeGamePreLaunch(callback);
+  }
+
   restartApp(want) {
     return this.__context_impl__.restartApp(want);
   }
