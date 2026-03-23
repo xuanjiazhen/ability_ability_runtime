@@ -13,17 +13,19 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "ability_connect_callback_interface.h"
 #include "agent_card.h"
 #include "agent_extension_connection_constants.h"
+
 #define private public
 #include "ability_manager_errors.h"
 #include "agent_bundle_event_callback.h"
 #include "agent_manager_service.h"
 #include "agent_load_callback.h"
+#include "iagent_receiver.h"
 #include "hilog_tag_wrapper.h"
 #undef private
 #include "iremote_object.h"
@@ -72,6 +74,16 @@ void AgentManagerServiceTest::SetUp(void)
     MyFlag::extensionAbilityType = AppExecFwk::ExtensionAbilityType::AGENT;
     MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
     MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::APP);
+    MyFlag::agentCardBundleName = "test.bundle";
+    MyFlag::agentCardModuleName = "test.module";
+    MyFlag::agentCardAbilityName = "test.ability";
+    MyFlag::connectAbilityWithExtensionTypeCallCount = 0;
+    MyFlag::disconnectAbilityCallCount = 0;
+    MyFlag::lastConnectAbilityConnection = nullptr;
+    MyFlag::lastDisconnectAbilityConnection = nullptr;
+    AgentManagerService::GetInstance()->workflowHostSessions_.clear();
+    AgentManagerService::GetInstance()->workflowAgentOwners_.clear();
 }
 
 void AgentManagerServiceTest::TearDown(void)
@@ -539,6 +551,11 @@ public:
     MockAbilityConnection() = default;
     ~MockAbilityConnection() override = default;
 
+    int32_t connectDoneCount = 0;
+    int32_t disconnectDoneCount = 0;
+    int32_t lastConnectResultCode = ERR_OK;
+    int32_t lastDisconnectResultCode = ERR_OK;
+
     int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
     {
         return 0;
@@ -548,10 +565,44 @@ public:
         const AppExecFwk::ElementName &element,
         const sptr<IRemoteObject> &remoteObject,
         int32_t resultCode) override
-    {}
+    {
+        connectDoneCount++;
+        lastConnectResultCode = resultCode;
+    }
 
     void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int32_t resultCode) override
-    {}
+    {
+        disconnectDoneCount++;
+        lastDisconnectResultCode = resultCode;
+    }
+};
+
+class TestWorkflowReceiver : public IRemoteStub<IAgentReceiver> {
+public:
+    int32_t workflowInvokedCount = 0;
+    std::vector<std::string> invokedAgentIds;
+
+    int OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        return 0;
+    }
+
+    int32_t SendData(const sptr<IRemoteObject> &connectorProxy, const std::string &data) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t Authorize(const sptr<IRemoteObject> &connectorProxy, const std::string &data) override
+    {
+        return ERR_OK;
+    }
+
+    int32_t WorkflowInvoked(const std::string &agentId) override
+    {
+        workflowInvokedCount++;
+        invokedAgentIds.push_back(agentId);
+        return ERR_OK;
+    }
 };
 }
 
@@ -627,7 +678,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_004, TestSize.Lev
     // agentId is not set, so it will be empty
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection),
-        ERR_INVALID_VALUE);
+        AAFwk::INVALID_PARAMETERS_ERR);
 }
 
 /**
@@ -648,7 +699,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_005, TestSize.Lev
     want.SetBundle("test.bundle");
     sptr<AAFwk::IAbilityConnection> connection = nullptr;
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection),
-        ERR_INVALID_VALUE);
+        AAFwk::INVALID_PARAMETERS_ERR);
 }
 
 /**
@@ -801,7 +852,281 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_002, TestSize.
     MyFlag::retVerifyCallingPermission = true;
     sptr<AAFwk::IAbilityConnection> connection = nullptr;
     EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbility(connection),
-        ERR_INVALID_VALUE);
+        AAFwk::INVALID_PARAMETERS_ERR);
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_012
+* @tc.number: ConnectAgentExtensionAbility_012
+* @tc.desc  : Test workflow connect rejects mismatched target with INVALID_PARAMETERS_ERR
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_012, TestSize.Level1)
+{
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::WORKFLOW);
+    MyFlag::agentCardBundleName = "workflow.bundle";
+    MyFlag::agentCardAbilityName = "WorkflowExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("workflowAgent"));
+    want.SetElementName("", "other.bundle", "WorkflowExtAbility", "entry");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection),
+        AAFwk::INVALID_PARAMETERS_ERR);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 0);
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_013
+* @tc.number: ConnectAgentExtensionAbility_013
+* @tc.desc  : Test workflow connect skips module comparison when want module is empty
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_013, TestSize.Level1)
+{
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::WORKFLOW);
+    MyFlag::agentCardAgentId = "workflowAgent";
+    MyFlag::agentCardBundleName = "workflow.bundle";
+    MyFlag::agentCardAbilityName = "WorkflowExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("workflowAgent"));
+    want.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_014
+* @tc.number: ConnectAgentExtensionAbility_014
+* @tc.desc  : Test workflow connect reuses one real host connection and notifies each workflow invocation
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_014, TestSize.Level1)
+{
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::WORKFLOW);
+    MyFlag::agentCardBundleName = "workflow.bundle";
+    MyFlag::agentCardAbilityName = "WorkflowExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+
+    auto service = AgentManagerService::GetInstance();
+    ASSERT_NE(MyFlag::lastConnectAbilityConnection, nullptr);
+    ASSERT_EQ(service->workflowHostSessions_.size(), 1);
+    auto sessionIter = service->workflowHostSessions_.begin();
+    auto hostKey = sessionIter->first;
+
+    sptr<TestWorkflowReceiver> receiver = new TestWorkflowReceiver();
+    AppExecFwk::ElementName element("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    service->HandleWorkflowConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
+    EXPECT_EQ(receiver->workflowInvokedCount, 1);
+    ASSERT_EQ(receiver->invokedAgentIds.size(), 1);
+    EXPECT_EQ(receiver->invokedAgentIds[0], "agentA");
+    EXPECT_EQ(connectionA->connectDoneCount, 1);
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(wantB, connectionB), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+    EXPECT_EQ(receiver->workflowInvokedCount, 2);
+    ASSERT_EQ(receiver->invokedAgentIds.size(), 2);
+    EXPECT_EQ(receiver->invokedAgentIds[1], "agentB");
+    EXPECT_EQ(connectionB->connectDoneCount, 1);
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_015
+* @tc.number: ConnectAgentExtensionAbility_015
+* @tc.desc  : Test workflow connect rejects duplicate active agentId for the same caller
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_015, TestSize.Level1)
+{
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::WORKFLOW);
+    MyFlag::agentCardBundleName = "workflow.bundle";
+    MyFlag::agentCardAbilityName = "WorkflowExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("agentA"));
+    want.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connectionA), ERR_OK);
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connectionB),
+        ERR_WORKFLOW_AGENT_ALREADY_ACTIVE);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+}
+
+/**
+* @tc.name  : NotifyWorkflowAgentComplete_001
+* @tc.number: NotifyWorkflowAgentComplete_001
+* @tc.desc  : Test notifyWorkflowAgentComplete validates empty agentId
+*/
+HWTEST_F(AgentManagerServiceTest, NotifyWorkflowAgentComplete_001, TestSize.Level1)
+{
+    EXPECT_EQ(AgentManagerService::GetInstance()->NotifyWorkflowAgentComplete(""),
+        AAFwk::INVALID_PARAMETERS_ERR);
+}
+
+/**
+* @tc.name  : NotifyWorkflowAgentComplete_002
+* @tc.number: NotifyWorkflowAgentComplete_002
+* @tc.desc  : Test notifyWorkflowAgentComplete keeps host alive until the last workflow completes
+*/
+HWTEST_F(AgentManagerServiceTest, NotifyWorkflowAgentComplete_002, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::WORKFLOW);
+    MyFlag::agentCardBundleName = "workflow.bundle";
+    MyFlag::agentCardAbilityName = "WorkflowExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+
+    AppExecFwk::ElementName element("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    auto hostKey = service->workflowHostSessions_.begin()->first;
+    sptr<TestWorkflowReceiver> receiver = new TestWorkflowReceiver();
+    service->HandleWorkflowConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantB, connectionB), ERR_OK);
+
+    EXPECT_EQ(service->NotifyWorkflowAgentComplete("agentA"), ERR_OK);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 0);
+    ASSERT_EQ(service->workflowHostSessions_.size(), 1);
+    EXPECT_TRUE(service->workflowHostSessions_.begin()->second->activeAgentIds.count("agentB") > 0);
+
+    EXPECT_EQ(service->NotifyWorkflowAgentComplete("agentB"), ERR_OK);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 1);
+}
+
+/**
+* @tc.name  : WorkflowHostConnection_OnAbilityConnectDone_001
+* @tc.number: WorkflowHostConnection_OnAbilityConnectDone_001
+* @tc.desc  : Test WorkflowHostConnection forwards connect completion to the owning workflow session
+*/
+HWTEST_F(AgentManagerServiceTest, WorkflowHostConnection_OnAbilityConnectDone_001, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::WORKFLOW);
+    MyFlag::agentCardBundleName = "workflow.bundle";
+    MyFlag::agentCardAbilityName = "WorkflowExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("agentA"));
+    want.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+
+    ASSERT_EQ(service->workflowHostSessions_.size(), 1);
+    auto sessionIter = service->workflowHostSessions_.begin();
+    auto hostConnection = sessionIter->second->hostConnection;
+    ASSERT_NE(hostConnection, nullptr);
+
+    sptr<TestWorkflowReceiver> receiver = new TestWorkflowReceiver();
+    AppExecFwk::ElementName element("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    hostConnection->OnAbilityConnectDone(element, receiver->AsObject(), ERR_OK);
+
+    EXPECT_EQ(receiver->workflowInvokedCount, 1);
+    ASSERT_EQ(receiver->invokedAgentIds.size(), 1);
+    EXPECT_EQ(receiver->invokedAgentIds[0], "agentA");
+    EXPECT_EQ(connection->connectDoneCount, 1);
+}
+
+/**
+* @tc.name  : WorkflowHostConnection_OnAbilityDisconnectDone_001
+* @tc.number: WorkflowHostConnection_OnAbilityDisconnectDone_001
+* @tc.desc  : Test WorkflowHostConnection forwards disconnect completion and clears workflow session state
+*/
+HWTEST_F(AgentManagerServiceTest, WorkflowHostConnection_OnAbilityDisconnectDone_001, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::WORKFLOW);
+    MyFlag::agentCardBundleName = "workflow.bundle";
+    MyFlag::agentCardAbilityName = "WorkflowExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("agentA"));
+    want.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+
+    ASSERT_EQ(service->workflowHostSessions_.size(), 1);
+    auto sessionIter = service->workflowHostSessions_.begin();
+    auto hostKey = sessionIter->first;
+    auto hostConnection = sessionIter->second->hostConnection;
+    ASSERT_NE(hostConnection, nullptr);
+
+    sptr<TestWorkflowReceiver> receiver = new TestWorkflowReceiver();
+    AppExecFwk::ElementName element("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    service->HandleWorkflowConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
+    ASSERT_EQ(connection->connectDoneCount, 1);
+
+    hostConnection->OnAbilityDisconnectDone(element, ERR_OK);
+
+    EXPECT_EQ(connection->disconnectDoneCount, 1);
+    EXPECT_TRUE(service->workflowHostSessions_.empty());
+    EXPECT_TRUE(service->workflowAgentOwners_.empty());
+}
+
+/**
+* @tc.name  : DisconnectAgentExtensionAbility_005
+* @tc.number: DisconnectAgentExtensionAbility_005
+* @tc.desc  : Test explicit workflow disconnect clears bookkeeping and disconnects shared host once
+*/
+HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_005, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::WORKFLOW);
+    MyFlag::agentCardBundleName = "workflow.bundle";
+    MyFlag::agentCardAbilityName = "WorkflowExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    sptr<MockAbilityConnection> connectionA = new MockAbilityConnection();
+    sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+    auto hostKey = service->workflowHostSessions_.begin()->first;
+    sptr<TestWorkflowReceiver> receiver = new TestWorkflowReceiver();
+    AppExecFwk::ElementName element("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    service->HandleWorkflowConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "workflow.bundle", "WorkflowExtAbility", "entry");
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantB, connectionB), ERR_OK);
+
+    EXPECT_EQ(service->DisconnectAgentExtensionAbility(connectionB), ERR_OK);
+    EXPECT_EQ(MyFlag::disconnectAbilityCallCount, 1);
+    EXPECT_TRUE(service->workflowHostSessions_.begin()->second->activeAgentIds.empty());
+    EXPECT_TRUE(service->workflowAgentOwners_.empty());
 }
 
 /**
