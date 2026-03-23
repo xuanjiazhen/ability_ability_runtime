@@ -39,10 +39,14 @@ public:
      * Preload application.
      * @param bundleName Name of the application.
      * @param userId user id.
-     * @param appIndex app clone index.
+     * @param appIndex app clone index. Currently, only appIndex = 0 is supported.
      * @return Returns ERR_OK on success, others on failure.
      */
     int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex);
+
+    int32_t LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = 0);
+
+    int32_t PreloadApplicationVerification(const std::string &bundleName, int32_t userId, int32_t appIndex, Want &want);
 
 private:
     PreloadManagerService();
