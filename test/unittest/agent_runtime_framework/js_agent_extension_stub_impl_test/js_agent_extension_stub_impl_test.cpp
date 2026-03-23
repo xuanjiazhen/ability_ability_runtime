@@ -254,5 +254,45 @@ HWTEST_F(JsAgentExtensionStubImplTest, JsAgentExtensionStubImpl_Authorize_004, T
     GTEST_LOG_(INFO) << "JsAgentExtensionStubImpl_Authorize_004 end";
 }
 
+/*
+ * Feature: JsAgentExtensionStubImpl
+ * Function: WorkflowInvoked
+ * SubFunction: NA
+ * FunctionPoints: WorkflowInvoked with valid extension and agent id
+ * EnvConditions: Extension is alive
+ * CaseDescription: Verify that WorkflowInvoked forwards call to extension successfully
+ */
+HWTEST_F(JsAgentExtensionStubImplTest, JsAgentExtensionStubImpl_WorkflowInvoked_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "JsAgentExtensionStubImpl_WorkflowInvoked_001 start";
+    std::string agentId = "workflowAgent";
+
+    int32_t result = stubImpl_->WorkflowInvoked(agentId);
+
+    EXPECT_EQ(result, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK));
+    GTEST_LOG_(INFO) << "JsAgentExtensionStubImpl_WorkflowInvoked_001 end";
+}
+
+/*
+ * Feature: JsAgentExtensionStubImpl
+ * Function: WorkflowInvoked
+ * SubFunction: NA
+ * FunctionPoints: WorkflowInvoked with expired extension
+ * EnvConditions: Extension weak_ptr is expired
+ * CaseDescription: Verify that WorkflowInvoked returns ERROR_CODE_INNER when extension is expired
+ */
+HWTEST_F(JsAgentExtensionStubImplTest, JsAgentExtensionStubImpl_WorkflowInvoked_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "JsAgentExtensionStubImpl_WorkflowInvoked_002 start";
+    std::string agentId = "workflowAgent";
+
+    mockExtension_.reset();
+
+    int32_t result = stubImpl_->WorkflowInvoked(agentId);
+
+    EXPECT_EQ(result, static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER));
+    GTEST_LOG_(INFO) << "JsAgentExtensionStubImpl_WorkflowInvoked_002 end";
+}
+
 } // namespace AgentRuntime
 } // namespace OHOS

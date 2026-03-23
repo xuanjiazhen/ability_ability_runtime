@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "agent_receiver_stub.h"
 #include "agent_receiver_stub_test_mock.h"
@@ -340,6 +340,51 @@ HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnAuthorize_005, TestSize.Leve
     int result = stub_->OnAuthorize(data, reply);
 
     EXPECT_EQ(result, NO_ERROR);
+}
+
+/*
+ * Feature: AgentReceiverStub
+ * Function: OnRemoteRequest
+ * SubFunction: WORKFLOW_INVOKED
+ * FunctionPoints: OnRemoteRequest with WORKFLOW_INVOKED code
+ * EnvConditions: Valid descriptor and workflow agent id
+ * CaseDescription: Verify that OnRemoteRequest handles WORKFLOW_INVOKED correctly
+ */
+HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnRemoteRequest_005, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    data.WriteString("workflowAgent");
+
+    int result = stub_->OnRemoteRequest(IAgentReceiver::WORKFLOW_INVOKED, data, reply, option);
+
+    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(stub_->lastWorkflowAgentId, "workflowAgent");
+}
+
+/*
+ * Feature: AgentReceiverStub
+ * Function: OnWorkflowInvoked
+ * SubFunction: NA
+ * FunctionPoints: OnWorkflowInvoked with valid workflow agent id
+ * EnvConditions: Valid data parcel
+ * CaseDescription: Verify that OnWorkflowInvoked returns NO_ERROR and forwards agent id
+ */
+HWTEST_F(AgentReceiverStubTest, AgentReceiverStub_OnWorkflowInvoked_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+
+    WriteInterfaceToken(data);
+    data.WriteString("workflowAgent");
+
+    int result = stub_->OnWorkflowInvoked(data, reply);
+
+    EXPECT_EQ(result, NO_ERROR);
+    EXPECT_EQ(stub_->lastWorkflowAgentId, "workflowAgent");
 }
 
 /*

@@ -50,6 +50,14 @@ public:
      */
     virtual int32_t Authorize(const sptr<IRemoteObject> &connectorProxy, const std::string &data) = 0;
 
+    /**
+     * Notify the connected agent extension that a workflow agent has been invoked.
+     *
+     * @param agentId The invoked workflow agent id.
+     * @return Returns 0 on success, error code otherwise.
+     */
+    virtual int32_t WorkflowInvoked(const std::string &agentId) = 0;
+
     enum {
         /**
          * Command code for SendData.
@@ -60,6 +68,11 @@ public:
          * Command code for Authorize.
          */
         AUTHORIZE = 2,
+
+        /**
+         * Command code for WorkflowInvoked.
+         */
+        WORKFLOW_INVOKED = 3,
     };
 };
 
