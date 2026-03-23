@@ -1114,6 +1114,11 @@ enum {
     ERR_INVALID_AGENT_CARD_ID = 2099213,
 
     /**
+    * Result (2099220) for pid has been reused.
+    */
+    ERR_PID_HAS_BEEN_REUSED = 2099220,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,
