@@ -610,6 +610,16 @@ public:
         return ERR_OK;
     }
 
+    virtual ErrCode CompleteGamePreLaunch()
+    {
+        return ERR_OK;
+    }
+
+    virtual ErrCode CancelGamePreLaunch()
+    {
+        return ERR_OK;
+    }
+
     virtual ErrCode RestartAppWithWindow(const AAFwk::Want &want)
     {
         return 0;
