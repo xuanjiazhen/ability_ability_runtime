@@ -27,6 +27,7 @@ constexpr const int32_t DEFAULT_MAX_EXT_PER_PROC = 10;
 constexpr const int32_t DEFAULT_MAX_EXT_PER_DEV = 100;
 constexpr const int32_t DEFAULT_INVALID_VALUE = -1;
 constexpr const int32_t DEFAULT_MAX_CHILD_PROCESS = 0;
+constexpr const int32_t GAME_PRELAUNCH_COMPLETE_DELAYTIME_MS = 30 * 1000 * 1000; // 30s
 template<typename T>
 class DeviceConfiguration {
 public:
@@ -91,6 +92,13 @@ public:
      * @return Timeout unit time ratio.
      */
     int32_t GetTimeoutUnitTimeRatio();
+
+    /**
+     * GetGamePreLaunchCompleteDelayTime, get the delay time (in milliseconds) for completing the game pre-launch.
+     *
+     * @return The delay time in milliseconds (a positive value).
+     */
+    int32_t GetGamePreLaunchCompleteDelayTime();
 
     /**
      * IsSelectorDialogDefaultPossion, check if selector dialog is on the default position.
@@ -435,6 +443,7 @@ private:
     volatile DeviceConfiguration<bool> isInheritWindowSplitScreenMode_ = {false, true};
     volatile DeviceConfiguration<bool> isSupportAncoApp_ = {false, false};
     volatile DeviceConfiguration<int32_t> timeoutUnitTimeRatio_ = {false, 1};
+    volatile DeviceConfiguration<int32_t> gamePreLaunchDelayTime_ = {false, GAME_PRELAUNCH_COMPLETE_DELAYTIME_MS};
     volatile DeviceConfiguration<bool> isSelectorDialogDefaultPossion_ = {false, true};
     volatile DeviceConfiguration<bool> isStartSpecifiedProcess_ = {false, false};
     volatile DeviceConfiguration<bool> isUseMultiRenderProcess_ = {false, true};

@@ -23,6 +23,7 @@ persist.sys.abilityms.support.ecologicalrulemgrservice = true
 persist.sys.abilityms.inherit_window_split_screen_mode = true
 persist.sys.abilityms.support_anco_app = false
 persist.sys.abilityms.timeout_unit_time_ratio = 1
+persist.sys.abilityms.game_prelaunch_complete_delaytime_ms = 30000000
 persist.sys.abilityms.selector_dialog_possion = true
 persist.sys.abilityms.start_specified_process = false
 persist.sys.abilityms.use_multi_render_process = true
