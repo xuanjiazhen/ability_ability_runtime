@@ -532,6 +532,16 @@ public:
     virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions) = 0;
 
+    /**
+     * @brief Execute an ABC (ArkTS bytecode) file.
+     * This method executes an ABC file compiled from TypeScript/ArkTS code using the JS runtime.
+     *
+     * @param abcFilePath Path to the ABC file to execute.
+     * @param entryPoint The entry function name to execute (e.g., "_GLOBAL::func_main_0").
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    virtual ErrCode ExecuteAbc(napi_env env, const std::string &abcFilePath, const std::string &entryPoint) = 0;
+
 protected:
     bool IsContext(size_t contextTypeId) override
     {
