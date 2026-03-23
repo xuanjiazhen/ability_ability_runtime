@@ -251,25 +251,26 @@ void AmsMgrProxy::RegisterAppStateCallback(const sptr<IAppStateCallback> &callba
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
 
-void AmsMgrProxy::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
+int32_t AmsMgrProxy::KillProcessByAbilityToken(const sptr<IRemoteObject> &token)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "start");
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
     if (!WriteInterfaceToken(data)) {
-        return;
+        return ERR_INVALID_DATA;
     }
     if (!data.WriteRemoteObject(token.GetRefPtr())) {
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to write token");
-        return;
+        return ERR_INVALID_DATA;
     }
     int32_t ret = SendTransactCmd(static_cast<uint32_t>(IAmsMgr::Message::KILL_PEOCESS_BY_ABILITY_TOKEN),
         data, reply, option);
     if (ret != NO_ERROR) {
         TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+        return ret;
     }
-    TAG_LOGD(AAFwkTag::APPMGR, "end");
+    return reply.ReadInt32();
 }
 
 void AmsMgrProxy::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,

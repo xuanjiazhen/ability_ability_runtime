@@ -247,8 +247,12 @@ AppMgrResultCode AppMgrClient::KillProcessByAbilityToken(const sptr<IRemoteObjec
     if (service != nullptr) {
         sptr<IAmsMgr> amsService = service->GetAmsMgr();
         if (amsService != nullptr) {
-            amsService->KillProcessByAbilityToken(token);
-            return AppMgrResultCode::RESULT_OK;
+            int32_t ret = amsService->KillProcessByAbilityToken(token);
+            if (ret == ERR_OK) {
+                return AppMgrResultCode::RESULT_OK;
+            }
+            TAG_LOGE(AAFwkTag::APPMGR, "KillProcessByAbilityToken failed, ret=%{public}d", ret);
+            return static_cast<AppMgrResultCode>(ret);
         }
     }
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;

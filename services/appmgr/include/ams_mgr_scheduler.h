@@ -103,9 +103,9 @@ public:
      * kill the process by ability token.
      *
      * @param token, the unique identification to the ability.
-     * @return
+     * @return ERR_OK on success, others on failure.
      */
-    virtual void KillProcessByAbilityToken(const sptr<IRemoteObject> &token) override;
+    virtual int32_t KillProcessByAbilityToken(const sptr<IRemoteObject> &token) override;
 
     /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,

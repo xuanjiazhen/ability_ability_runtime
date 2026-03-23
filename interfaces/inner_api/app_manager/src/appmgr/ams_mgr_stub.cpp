@@ -327,7 +327,11 @@ ErrCode AmsMgrStub::HandleKillProcessByAbilityToken(MessageParcel &data, Message
     HITRACE_METER(HITRACE_TAG_APP);
     sptr<IRemoteObject> token = data.ReadRemoteObject();
 
-    KillProcessByAbilityToken(token);
+    int32_t result = KillProcessByAbilityToken(token);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write result");
+        return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
+    }
     return NO_ERROR;
 }
 
