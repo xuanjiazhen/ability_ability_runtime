@@ -91,6 +91,13 @@ public:
     int32_t GetTimeoutUnitTimeRatio();
 
     /**
+     * GetGamePreLaunchCompleteDelayTime, get the delay time (in milliseconds) for completing the game pre-launch.
+     *
+     * @return The delay time in milliseconds (a positive value).
+     */
+    int32_t GetGamePreLaunchCompleteDelayTime();
+
+    /**
      * IsSelectorDialogDefaultPossion, check if selector dialog is on the default position.
      *
      * @return Whether selector dialog is on the default position.
