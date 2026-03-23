@@ -492,6 +492,10 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", GetAbilityName().c_str());
     UIAbility::OnStart(want, sessionInfo);
+    if (want.GetBoolParam("ability.want.params.game_prelaunch") == true) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "OnStart: Set game prelaunch flag from want");
+        isGamePreLaunch_ = true;
+    }
 
     CHECK_POINTER(abilityInfo_);
     if (!jsAbilityObj_) {
@@ -987,7 +991,12 @@ void JsUIAbility::OnDidForeground()
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
 
     if (scene_ != nullptr) {
-        scene_->GoResume();
+        bool isGamePreLaunch = (goResumeCalledFlag_ == 0) ? isGamePreLaunch_ : false;
+        scene_->GoResume(isGamePreLaunch);
+        if (isGamePreLaunch) { // 目的是？有无问题
+            scene_->GoPause();
+        }
+        goResumeCalledFlag_ = 1;
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -1200,7 +1209,8 @@ void JsUIAbility::DoOnForeground(const Want &want)
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->GoForeground");
-    scene_->GoForeground(UIAbility::sceneFlag_);
+
+    scene_->GoForeground(UIAbility::sceneFlag_, isGamePreLaunch_);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
