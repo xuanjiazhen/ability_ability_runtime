@@ -5469,6 +5469,40 @@ ErrCode AbilityManagerProxy::QueryCallerTokenIdForAnco(int32_t userId, const std
     return NO_ERROR;
 }
 
+ErrCode AbilityManagerProxy::LaunchGameCustomized(const Want &want, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write want fail");
+        return ERR_WRITE_PARCEL_FAILED;
+    }
+    if (!data.WriteInt32(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write userId fail");
+        return ERR_WRITE_INT32_FAILED;
+    }
+    if (!data.WriteInt32(requestCode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write requestCode fail");
+        return ERR_WRITE_INT32_FAILED;
+    }
+    if (!data.WriteUint64(specifiedFullTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write specifiedFullTokenId fail");
+        return ERR_WRITE_UINT64_FAILED;
+    }
+    auto ret = SendRequest(AbilityManagerInterfaceCode::LAUNCH_GAME_CUSTOMIZED, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "send request error:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 int AbilityManagerProxy::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isPrepareTerminate)
 {
     MessageParcel data;
