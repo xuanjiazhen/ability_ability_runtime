@@ -237,6 +237,15 @@ constexpr struct option LONG_OPTIONS_SEND_MEMORY_LEVEL[] = {
     {"level", required_argument, nullptr, 'l' },
     {nullptr, 0, nullptr, 0 },
 };
+
+const std::string SHORT_OPTIONS_PRESTART = "hm:b:u:";
+constexpr struct option LONG_OPTIONS_PRESTART[] = {
+    {"help", no_argument, nullptr, 'h'},
+    {"mode", required_argument, nullptr, 'm' },
+    {"bundle", required_argument, nullptr, 'b' },
+    {"user", required_argument, nullptr, 'u' },
+    {nullptr, 0, nullptr, 0 },
+};
 }  // namespace
 
 AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
@@ -264,6 +273,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"pre-start", [this]() { return this->RunAsPreStartCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -1103,6 +1113,120 @@ ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, s
                 TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -l' level", cmd_.c_str());
                 // 'aa send-memory-level -l level'
                 memoryLevelParse = optarg;
+                break;
+            }
+            case '?':{
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                resultReceiver_.append(unknownOptionMsg);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    return OHOS::ERR_OK;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsPreStartCommand()
+{
+    TAG_LOGD(AAFwkTag::AA_TOOL, "preStart");
+    int32_t mode = -1;
+    std::string bundleName = "";
+    int32_t userId = -1;
+    ParsePreStartOptions(mode, bundleName, userId);
+    if (mode == -1 || bundleName.empty() || userId == -1) {
+        resultReceiver_.append(HELP_MSG_PRESTART + "\n");
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    // Currently only support mode 1 (game prelaunch)
+    if (mode != 1) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid mode: %{public}d, only mode 1 is supported", mode);
+        resultReceiver_.append("error: invalid mode, only mode 1 (game prelaunch) is supported\n");
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    // Validate userId
+    if (userId < 0) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid userId: %{public}d", userId);
+        resultReceiver_.append(STRING_PRESTART_NG + "\n");
+        resultReceiver_.append("error: invalid userId\n");
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "preStart game: bundle=%{public}s, userId=%{public}d, mode=%{public}d",
+        bundleName.c_str(), userId, mode);
+
+    // Call AbilityManagerClient::LaunchGameCustomized
+    auto result = DelayedSingleton<AbilityManagerClient>::GetInstance()->LaunchGameCustomized(
+        bundleName, userId, 0);  // appIndex defaults to 0
+    if (result == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_PRESTART_OK.c_str());
+        resultReceiver_ = STRING_PRESTART_OK + "\n";
+    } else {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d", STRING_PRESTART_NG.c_str(), result);
+        resultReceiver_ = STRING_PRESTART_NG + "\n";
+        resultReceiver_.append(GetMessageFromCode(result));
+    }
+
+    return result;
+}
+
+ErrCode AbilityManagerShellCommand::ParsePreStartOptions(int32_t& mode, std::string& bundleName, int32_t& userId)
+{
+    int option = -1;
+    int counter = 0;
+    std::string modeStr = "";
+
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_PRESTART.c_str(),
+            LONG_OPTIONS_PRESTART, nullptr);
+        TAG_LOGD(AAFwkTag::AA_TOOL, "getopt_long option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+
+        if (optind < 0 || optind > argc_) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        // aa command without option
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+            }
+            break;
+        }
+
+        switch (option) {
+            case 'h':{
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -h' no arg", cmd_.c_str());
+                // 'aa pre-start -h' no arg
+                break;
+            }
+            case 'm':{
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -m' mode", cmd_.c_str());
+                // 'aa pre-start -m modeValue'
+                modeStr = optarg;
+                if (!StrToInt(modeStr, mode)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid mode format");
+                    return OHOS::ERR_INVALID_VALUE;
+                }
+                break;
+            }
+            case 'b':{
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -b' bundle", cmd_.c_str());
+                // 'aa pre-start -b bundleName'
+                bundleName = optarg;
+                break;
+            }
+            case 'u':{
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -u' userId", cmd_.c_str());
+                // 'aa pre-start -u userId'
+                if (!StrToInt(optarg, userId)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid userId format");
+                    return OHOS::ERR_INVALID_VALUE;
+                }
                 break;
             }
             case '?':{
