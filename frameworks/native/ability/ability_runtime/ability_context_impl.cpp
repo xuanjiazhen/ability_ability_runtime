@@ -17,6 +17,11 @@
 
 #include <native_engine/native_engine.h>
 
+#ifdef PANDA_JS_VM_AVAILABLE
+#include "ecmascript/ecma_vm.h"
+#include "plugins/ets/ecmascript/ani_helper.h"
+#endif
+
 #include "ability_manager_client.h"
 #include "app_utils.h"
 #include "application_configuration_manager.h"
@@ -1735,6 +1740,69 @@ ErrCode AbilityContextImpl::StartSelfUIAbilityInCurrentProcess(const AAFwk::Want
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
     return err;
+}
+
+ErrCode AbilityContextImpl::ExecuteAbc(napi_env env, const std::string &abcFilePath, const std::string &entryPoint)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT, "ExecuteAbc called, filePath=%{public}s, entryPoint=%{public}s",
+        abcFilePath.c_str(), entryPoint.c_str());
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "napi_env is null");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (abcFilePath.empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "abcFilePath is empty");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (entryPoint.empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "entryPoint is empty");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Check if file exists and read it
+    std::ifstream file(abcFilePath, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to open ABC file: %{public}s", abcFilePath.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    size_t bufferSize = file.tellg();
+    if (bufferSize == 0) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ABC file is empty: %{public}s", abcFilePath.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    std::unique_ptr<uint8_t[]> abcBuffer = std::make_unique<uint8_t[]>(bufferSize);
+    file.seekg(0);
+    file.read(reinterpret_cast<char*>(abcBuffer.get()), bufferSize);
+    file.close();
+
+    TAG_LOGD(AAFwkTag::CONTEXT, "Read ABC file: size=%{public}zu", bufferSize);
+
+#ifdef PANDA_JS_VM_AVAILABLE
+    // Get the JS runtime VM instance
+    // Note: This implementation requires access to the EcmaVM instance.
+    // The actual VM access mechanism depends on the runtime context.
+    // For ETS applications, we need to obtain the underlying EcmaVM through the ANI VM.
+    // For JS applications, we can use JsRuntime::GetEcmaVm().
+    //
+    // TODO: Implement VM access mechanism to call:
+    // panda::JSNApi::Execute(vm, abcBuffer.get(), bufferSize, entryPoint.c_str())
+
+    TAG_LOGW(AAFwkTag::CONTEXT, "ExecuteAbc: VM access not implemented in current context");
+    TAG_LOGD(AAFwkTag::CONTEXT,
+        "To implement ExecuteAbc, you need to:"
+        "1. Add a way to access the EcmaVM instance in AbilityContextImpl"
+        "2. Call panda::JSNApi::Execute(vm, abcBuffer, bufferSize, entryPoint.c_str())");
+    return ERR_NOT_IMPLEMENTED;
+#else
+    TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc: Panda JS VM not available");
+    return ERR_NOT_SUPPORT;
+#endif
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
