@@ -44,6 +44,14 @@ public:
      * @param data The data to send.
      */
     virtual int32_t OnAuthorize(const sptr<IRemoteObject> &hostProxy, const std::string &data);
+
+    /**
+     * @brief Called when a workflow agent is invoked.
+     *
+     * @param agentId The workflow agent id.
+     * @return Returns 0 on success, error code otherwise.
+     */
+    virtual int32_t OnWorkflowInvoked(const std::string &agentId);
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
