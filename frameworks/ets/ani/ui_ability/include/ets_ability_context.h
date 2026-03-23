@@ -154,6 +154,16 @@ public:
     static void StartAbilityForResultWithAccountCheck(ani_env *env, ani_object aniObj);
     static void SetOnNewWantSkipScenarios(ani_env *env, ani_object aniObj, ani_int etsScenarios, ani_object callback);
 
+    /**
+     * Execute an ABC (ArkTS bytecode) file.
+     * @param env ANI environment pointer.
+     * @param aniObj ETS object that this method is called on.
+     * @param abcFilePath Path to the ABC file to execute.
+     * @param entryPoint String specifying the entry function name.
+     */
+    static void ExecuteAbc(ani_env *env, ani_object aniObj, ani_string abcFilePath,
+        ani_string entryPoint, ani_object envNapi);
+
 #ifdef SUPPORT_GRAPHICS
 public:
     static void SetAbilityInstanceInfo(ani_env *env, ani_object aniObj, ani_string labelObj, ani_object iconObj,
