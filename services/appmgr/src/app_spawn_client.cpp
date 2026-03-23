@@ -596,6 +596,11 @@ bool AppSpawnClient::VerifyMsg(const AppSpawnStartMsg &startMsg)
             return false;
         }
 
+        if (startMsg.gids.size() + startMsg.dataGroupInfoList.size() > APP_MAX_GIDS) {
+            TAG_LOGE(AAFwkTag::APPMGR, "total gids (gids + dataGroupInfoList) exceeds limit");
+            return false;
+        }
+
         for (uint32_t i = 0; i < startMsg.gids.size(); ++i) {
             if (startMsg.gids[i] < 0) {
                 TAG_LOGE(AAFwkTag::APPMGR, "invalid gids array! [%{public}d]", startMsg.gids[i]);
