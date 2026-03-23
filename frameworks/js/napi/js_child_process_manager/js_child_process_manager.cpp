@@ -37,10 +37,24 @@ enum {
 };
 struct ChildProcessNApiParam {
     std::string srcEntry;
+    bool isStatic = false;
     AppExecFwk::ChildProcessArgs args;
     AppExecFwk::ChildProcessOptions options;
     int32_t childProcessType;
 };
+
+void ProcessSrcEntry(std::string &srcEntry, bool &isStatic)
+{
+    if (srcEntry.size() >= 4 && srcEntry.substr(srcEntry.size() - 4) == ".ets") {
+        isStatic = false;
+    } else {
+        isStatic = true;
+        auto pos = srcEntry.find(".ets");
+        if (pos != std::string::npos) {
+            srcEntry = srcEntry.substr(0, pos);
+        }
+    }
+}
 }
 
 class JsChildProcessManager {
@@ -90,6 +104,8 @@ private:
             ThrowInvalidParamError(env, "Parse param srcEntry failed, must be a valid string.");
             return CreateJsUndefined(env);
         }
+        bool isStatic = false;
+        ProcessSrcEntry(srcEntry, isStatic);
         if (!ConvertFromJsValue(env, argv[PARAM1], startMode)) {
             TAG_LOGE(AAFwkTag::PROCESSMGR, "Parse startMode failed");
             ThrowInvalidParamError(env,
@@ -106,20 +122,20 @@ private:
         napi_value result = nullptr;
         napi_value lastParam = (argc <= ARGC_TWO) ? nullptr : argv[ARGC_TWO];
         if (startMode == MODE_SELF_FORK) {
-            StartChildProcessSelfForkTask(env, lastParam, result, srcEntry);
+            StartChildProcessSelfForkTask(env, lastParam, result, srcEntry, isStatic);
         } else {
-            StartChildProcessAppSpawnForkTask(env, lastParam, result, srcEntry);
+            StartChildProcessAppSpawnForkTask(env, lastParam, result, srcEntry, isStatic);
         }
         return result;
     }
 
     void StartChildProcessSelfForkTask(const napi_env &env, const napi_value &lastParam, napi_value &result,
-        const std::string &srcEntry)
+        const std::string &srcEntry, bool isStatic)
     {
-        NapiAsyncTask::CompleteCallback complete = [srcEntry](napi_env env, NapiAsyncTask &task, int32_t status) {
+        NapiAsyncTask::CompleteCallback complete = [srcEntry, isStatic](napi_env env, NapiAsyncTask &task, int32_t status) {
             pid_t pid = 0;
             ChildProcessManagerErrorCode errorCode =
-                ChildProcessManager::GetInstance().StartChildProcessBySelfFork(srcEntry, pid);
+                ChildProcessManager::GetInstance().StartChildProcessBySelfFork(srcEntry, pid, isStatic);
             if (errorCode == ChildProcessManagerErrorCode::ERR_OK) {
                 task.ResolveWithNoError(env, CreateJsValue(env, pid));
             } else {
@@ -132,16 +148,16 @@ private:
     }
 
     void StartChildProcessAppSpawnForkTask(const napi_env &env, const napi_value &lastParam, napi_value &result,
-        const std::string &srcEntry)
+        const std::string &srcEntry, bool isStatic)
     {
         auto innerErrorCode = std::make_shared<ChildProcessManagerErrorCode>(ChildProcessManagerErrorCode::ERR_OK);
         auto pid = std::make_shared<pid_t>(ERR_INVALID_VALUE);
-        NapiAsyncTask::ExecuteCallback execute = [srcEntry, pid, innerErrorCode]() {
+        NapiAsyncTask::ExecuteCallback execute = [srcEntry, isStatic, pid, innerErrorCode]() {
             if (!pid || !innerErrorCode) {
                 TAG_LOGE(AAFwkTag::PROCESSMGR, "null innerErrorCode or pid");
                 return;
             }
-            *innerErrorCode = ChildProcessManager::GetInstance().StartChildProcessByAppSpawnFork(srcEntry, *pid);
+            *innerErrorCode = ChildProcessManager::GetInstance().StartChildProcessByAppSpawnFork(srcEntry, *pid, isStatic);
         };
         NapiAsyncTask::CompleteCallback complete =
             [pid, innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
@@ -187,11 +203,14 @@ private:
             ThrowInvalidParamError(env, "Param srcEntry cannot be empty.");
             return CreateJsUndefined(env);
         }
+        bool isStatic = false;
+        ProcessSrcEntry(srcEntry, isStatic);
         if (!ParseArgsAndOptions(env, argv, argc, args, options)) {
             return CreateJsUndefined(env);
         }
         ChildProcessNApiParam param;
         param.srcEntry = srcEntry;
+        param.isStatic = isStatic;
         param.args = args;
         param.options = options;
         param.childProcessType = AppExecFwk::CHILD_PROCESS_TYPE_ARK;
@@ -266,21 +285,24 @@ private:
     void StartChildProcessWithArgsTask(const napi_env &env, napi_value &result, const ChildProcessNApiParam &param)
     {
         auto &srcEntry = param.srcEntry;
+        auto isStatic = param.isStatic;
         auto &args = param.args;
         auto &options = param.options;
         auto childProcessType = param.childProcessType;
         TAG_LOGD(AAFwkTag::PROCESSMGR, "StartChildProcessWithArgs, childProcessType:%{public}d, srcEntry:%{private}s, "
-            "args.entryParams size:%{public}zu, args.fds size:%{public}zu, options.isolationMode:%{public}d",
-            childProcessType, srcEntry.c_str(), args.entryParams.length(), args.fds.size(), options.isolationMode);
+            "isStatic:%{public}d, args.entryParams size:%{public}zu, args.fds size:%{public}zu, "
+            "options.isolationMode:%{public}d", childProcessType, srcEntry.c_str(), isStatic, 
+            args.entryParams.length(), args.fds.size(), options.isolationMode);
         auto innerErrorCode = std::make_shared<ChildProcessManagerErrorCode>(ChildProcessManagerErrorCode::ERR_OK);
         auto pid = std::make_shared<pid_t>(0);
-        NapiAsyncTask::ExecuteCallback execute = [srcEntry, args, options, childProcessType, pid, innerErrorCode]() {
+        NapiAsyncTask::ExecuteCallback execute = [srcEntry, isStatic, args, options, childProcessType, pid,
+            innerErrorCode]() {
             if (!pid || !innerErrorCode) {
                 TAG_LOGE(AAFwkTag::PROCESSMGR, "null pid or innerErrorCode");
                 return;
             }
             *innerErrorCode = ChildProcessManager::GetInstance().StartChildProcessWithArgs(srcEntry, *pid,
-                childProcessType, args, options);
+                childProcessType, args, options, isStatic);
         };
         NapiAsyncTask::CompleteCallback complete =
             [pid, innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
