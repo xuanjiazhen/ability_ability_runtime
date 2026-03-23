@@ -62,6 +62,26 @@ void ResSchedUtil::ReportSubHealtyPerfInfoToRSS()
 #endif
 }
 
+void ResSchedUtil::ReportForkAllEventToRSS(const int32_t imagePid, int32_t originalPid,
+    std::shared_ptr<AbilityInfo> abilityInfo, int32_t forkAllState)
+{
+#ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "nullptr");
+        return;
+    }
+    uint32_t resType = 193; // RES_TYPE_CREATE_LIVING_APP_PROCESS
+    std::unordered_map<std::string, std::string> eventParams {
+        { "uid", std::to_string(abilityInfo->applicationInfo.uid) },
+        { "bundleName", abilityInfo->applicationInfo.bundleName },
+        { "imagePid", std::to_string(imagePid) },
+        { "originalPid", std::to_string(originalPid) },
+    };
+    TAG_LOGI(AAFwkTag::DEFAULT, "call");
+    ResourceSchedule::ResSchedClient::GetInstance().ReportData(resType, forkAllState, eventParams);
+#endif
+}
+
 void ResSchedUtil::ReportAbilityStartInfoToRSS(const AbilityInfo &abilityInfo, int32_t pid, bool isColdStart,
     bool supportWarmSmartGC, int32_t preloadMode)
 {
