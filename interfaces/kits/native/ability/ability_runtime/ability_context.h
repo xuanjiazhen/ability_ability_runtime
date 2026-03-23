@@ -532,6 +532,12 @@ public:
     virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions) = 0;
 
+    /**
+     * @brief Cancel game prelaunch and kill the process.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode CancelGamePreLaunch() = 0;
+
 protected:
     bool IsContext(size_t contextTypeId) override
     {

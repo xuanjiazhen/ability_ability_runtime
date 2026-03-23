@@ -236,6 +236,16 @@ void AmsMgrScheduler::KillProcessByAbilityToken(const sptr<IRemoteObject> &token
     amsHandler_->SubmitTask(killProcessByAbilityTokenFunc, TASK_KILL_PROCESS_BY_ABILITY_TOKEN);
 }
 
+ErrCode AmsMgrScheduler::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, const bool isGameSAPrelaunch)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AmsMgrScheduler is not ready");
+        return ERR_INVALID_VALUE;
+    }
+
+    return amsMgrServiceInner_->SetGameSAPrelaunch(token, isGameSAPrelaunch);
+}
+
 void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
     sptr<AAFwk::IUserCallback> callback)
 {
