@@ -182,6 +182,17 @@ ErrCode AbilityManagerClient::StartAbility(
     HandleDlpApp(const_cast<Want &>(want));
     return abms->StartAbility(want, callerToken, userId, requestCode, specifiedFullTokenId);
 }
+ErrCode AbilityManagerClient::LaunchGameCustomized(const Want &want, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "launchGameCustomized ability:%{public}s, bandleName:%{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
+    HandleDlpApp(const_cast<Want &>(want));
+    return abms->LaunchGameCustomized(want, userId, requestCode, specifiedFullTokenId);
+}
 
 ErrCode AbilityManagerClient::StartAbilityByInsightIntent(
     const Want &want, sptr<IRemoteObject> callerToken, uint64_t intentId, int32_t userId)

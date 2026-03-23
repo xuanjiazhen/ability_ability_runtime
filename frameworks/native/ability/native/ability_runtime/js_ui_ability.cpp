@@ -1200,7 +1200,11 @@ void JsUIAbility::DoOnForeground(const Want &want)
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->GoForeground");
-    scene_->GoForeground(UIAbility::sceneFlag_);
+    if (launchParam_.launchReason == AppExecFwk::LaunchReason::LAUNCHREASON_GAME_PRELAUNCH) {// 怎么判断是预启动游戏然后赋值的？
+        LAG_LOGD(AAFwkTag::UIABILITY, "game prelaunch")
+        UIAbility::isGamePreLaunch_ = true;
+    } 
+    scene_->GoForeground(UIAbility::sceneFlag_, UIAbility::isGamePreLaunch_);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 

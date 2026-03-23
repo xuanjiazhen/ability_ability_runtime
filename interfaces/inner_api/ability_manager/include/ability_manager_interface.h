@@ -1852,6 +1852,20 @@ public:
     }
 
     /**
+     * @brief Launch game customized with game SA verification.
+     * @param want Indicates the want containing information about the ability to start.
+     * @param userId Indicates the user ID.
+     * @param requestCode Indicates the request code.
+     * @param specifiedFullTokenId Indicates the specified full token ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode LaunchGameCustomized(const Want &want, int32_t userId, int requestCode,
+        uint64_t specifiedFullTokenId)
+    {
+        return ERR_OK;
+    }
+
+    /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
      *
      * @param sessionInfo the session info of the ability to start.
