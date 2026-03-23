@@ -1168,6 +1168,16 @@ public:
         return reasonExist_;
     }
 
+    bool IsGameSAPreLaunch() const
+    {
+        return isGameSAPreLaunch_;
+    }
+
+    void SetGameSAPreLaunch(bool isGameSAPreLaunch)
+    {
+        isGameSAPreLaunch_ = isGameSAPreLaunch;
+    }
+
     void SetDebugFromLocal(bool isDebugFromLocal);
 
     bool GetDebugFromLocal() const
@@ -1437,6 +1447,7 @@ private:
     bool saEnableFlags_ = true;
     bool processCacheBlocked = false; // temporarily block process cache feature
     bool reasonExist_ = false;
+    std::atomic<bool> isGameSAPreLaunch_ = false; //和ability_record同名是否可以？
 
     ffrt::mutex appInfosLock_;
     ffrt::mutex renderRecordMapLock_; // render record lock
