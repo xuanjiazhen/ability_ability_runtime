@@ -1888,6 +1888,18 @@ public:
     }
 
     /**
+     * @brief Launch game customized with game SA verification.
+     * @param bundleName Name of the game application.
+     * @param userId Indicates the user ID.
+     * @param appIndex app clone index. Currently, only appIndex = 0 is supported.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex = 0)
+    {
+        return 0;
+    }
+
+    /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
      *
      * @param sessionInfo the session info of the ability to start.
@@ -2555,6 +2567,26 @@ public:
      */
     virtual ErrCode StartSelfUIAbilityInCurrentProcess(const Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Cancel game prelaunch and kill the process.
+     * @param callerToken Indicates the caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t CancelGamePreLaunch(const sptr<IRemoteObject> callerToken)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Complete game prelaunch and clear the flag.
+     * @param callerToken Indicates the caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t CompleteGamePreLaunch(const sptr<IRemoteObject> callerToken)
     {
         return ERR_OK;
     }
