@@ -1860,9 +1860,13 @@ int AbilityManagerStub::ConnectAbilityWithTypeInner(MessageParcel &data, Message
     bool isQueryExtensionOnly = data.ReadBool();
     uint64_t specifiedFullTokenId = data.ReadUint64();
     int32_t loadTimeout = data.ReadInt32();
+    IndirectCallerInfo *indirectCallerInfo = data.ReadParcelable<IndirectCallerInfo>();
     int32_t result = ConnectAbilityCommon(*want, callback, token, extensionType, userId, isQueryExtensionOnly,
-        specifiedFullTokenId, loadTimeout);
+        specifiedFullTokenId, loadTimeout, indirectCallerInfo);
     reply.WriteInt32(result);
+    if (indirectCallerInfo != nullptr) {
+        delete indirectCallerInfo;
+    }
     return NO_ERROR;
 }
 
