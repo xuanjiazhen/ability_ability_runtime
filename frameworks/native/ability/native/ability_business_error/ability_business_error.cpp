@@ -120,7 +120,10 @@ constexpr const char* ERROR_MSG_AGENT_CARD_VERSION_INVALID =
 constexpr const char* ERROR_MSG_AGENT_CARD_DUPLICATE_REGISTER =
     "The specified agent card has already been registered. Use updateAgentCard instead.";
 constexpr const char* ERROR_MSG_MAX_CONNECTIONS_REACHED =
-    "Maximum connections from the same caller have been reached. Please disconnect at least one agent extension beforehand.";
+    "Maximum connections from the same caller have been reached. "
+    "Please disconnect at least one agent extension beforehand.";
+constexpr const char* ERROR_MSG_WORKFLOW_AGENT_ALREADY_ACTIVE =
+    "The specified workflow agent is already active and has not completed.";
 constexpr const char* ERROR_MSG_NOT_UI_ABILITY_CONTEXT =
     "The context is not UIAbilityContext.";
 constexpr const char* ERROR_MSG_INVALID_MAIN_ELEMENT_TYPE = "Invalid main element type.";
@@ -250,6 +253,7 @@ static std::unordered_map<AbilityErrorCode, const char*> ERR_CODE_MAP = {
     { AbilityErrorCode::ERROR_CODE_AGENT_CARD_VERSION_INVALID, ERROR_MSG_AGENT_CARD_VERSION_INVALID},
     { AbilityErrorCode::ERROR_CODE_AGENT_CARD_DUPLICATE_REGISTER, ERROR_MSG_AGENT_CARD_DUPLICATE_REGISTER},
     { AbilityErrorCode::ERROR_CODE_MAX_CONNECTIONS_REACHED, ERROR_MSG_MAX_CONNECTIONS_REACHED },
+    { AbilityErrorCode::ERROR_CODE_WORKFLOW_AGENT_ALREADY_ACTIVE, ERROR_MSG_WORKFLOW_AGENT_ALREADY_ACTIVE },
     { AbilityErrorCode::ERROR_CODE_NOT_UI_ABILITY_CONTEXT, ERROR_MSG_NOT_UI_ABILITY_CONTEXT},
     { AbilityErrorCode::ERROR_CODE_INVALID_MAIN_ELEMENT_TYPE, ERROR_MSG_INVALID_MAIN_ELEMENT_TYPE},
     { AbilityErrorCode::ERROR_CODE_CHANGE_KEEP_ALIVE, ERROR_MSG_CHANGE_KEEP_ALIVE},
@@ -367,6 +371,7 @@ static std::unordered_map<int32_t, AbilityErrorCode> INNER_TO_JS_ERROR_CODE_MAP 
     {ERR_AGENT_CARD_VERSION_TOO_OLD, AbilityErrorCode::ERROR_CODE_AGENT_CARD_VERSION_TOO_OLD},
     {ERR_INVALID_AGENT_CARD_VERSION, AbilityErrorCode::ERROR_CODE_AGENT_CARD_VERSION_INVALID},
     {ERR_AGENT_CARD_DUPLICATE_REGISTER, AbilityErrorCode::ERROR_CODE_AGENT_CARD_DUPLICATE_REGISTER},
+    {ERR_WORKFLOW_AGENT_ALREADY_ACTIVE, AbilityErrorCode::ERROR_CODE_WORKFLOW_AGENT_ALREADY_ACTIVE},
     {ERR_INVALID_MAIN_ELEMENT_TYPE, AbilityErrorCode::ERROR_CODE_INVALID_MAIN_ELEMENT_TYPE},
     {ERR_CHANGE_KEEP_ALIVE, AbilityErrorCode::ERROR_CODE_CHANGE_KEEP_ALIVE},
     {ERR_NO_U1, AbilityErrorCode::ERROR_CODE_NO_U1},
