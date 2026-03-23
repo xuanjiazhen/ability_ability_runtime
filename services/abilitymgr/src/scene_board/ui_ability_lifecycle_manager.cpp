@@ -83,6 +83,7 @@ constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsI
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
 constexpr int32_t BY_CALL_TIMEOUT = 10 * 1000 * 1000; // 10s
 constexpr int32_t SCENE_FLAG_BYCALL = 4;
+constexpr int64_t GAME_PRELAUNCH_COMPLETE_DELAY_MS = 30 * 1000 * 1000; // 30s
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
     CHECK_POINTER_LOG(token, "token is nullptr.");
@@ -1125,6 +1126,35 @@ int UIAbilityLifecycleManager::DispatchTerminate(const UIAbilityRecordPtr &abili
     return ERR_OK;
 }
 
+void UIAbilityLifecycleManager::CancelGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken is null");
+        return ERR_INVALID_VALUE;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    if (abilityRecord->IsGameSAPreLaunch()) {
+        DelayedSingleton<AppScheduler>::GetInstance()->KillProcessByAbilityToken(abilityRecord->GetToken());
+    }
+}
+
+void UIAbilityLifecycleManager::CompleteGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken is null");
+        return ERR_INVALID_VALUE;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    CHECK_POINTER_AND_RETURN(abilityRecord, ERR_INVALID_VALUE);
+    if (abilityRecord->IsGameSAPreLaunch()) {
+        abilityRecord->SetGameSAPreLaunch(false);
+        DelayedSingleton<AppScheduler>::GetInstance()->;
+    }
+}
+
 void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordPtr &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1145,6 +1175,23 @@ void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordP
         abilityRecord->CallRequest();
         abilityRecord->SetStartToForeground(false);
     }
+    if(abilityRecord->IsGameSAPreLaunch()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Game SA prelaunch detected, schedule CompleteGamePreLaunch task");
+        auto self(weak_from_this());
+        std::weak_ptr<UIAbilityRecord> weakAbilityRecord(abilityRecord);
+        auto task = [self, weakAbilityRecord]() {
+            auto selfObj = self.lock();
+            auto abilityRecordObj = weakAbilityRecord.lock();
+            if (selfObj == nullptr || abilityRecordObj == nullptr) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "UIAbilityLifecycleManager or abilityRecord invalid");
+                return;
+            }
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Execute CompleteGamePreLaunch for game SA prelaunch");
+            selfObj->CompleteGamePreLaunch(abilityRecordObj->GetToken());
+        };
+        ffrt::submit(task, ffrt::task_attr().delay(GAME_PRELAUNCH_COMPLETE_DELAY_MS));
+    }
+
 
     if (abilityRecord->HasLastWant()) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "has last want");
