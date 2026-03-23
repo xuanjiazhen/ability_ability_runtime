@@ -90,6 +90,7 @@ public:
      */
     int32_t GetTimeoutUnitTimeRatio();
 
+
     /**
      * IsSelectorDialogDefaultPossion, check if selector dialog is on the default position.
      *

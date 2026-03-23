@@ -16,7 +16,6 @@
 #include "mock_app_utils.h"
 #include "mock_my_status.h"
 
-
 namespace OHOS {
 namespace AAFwk {
 
@@ -54,6 +53,7 @@ int32_t AppUtils::GetTimeoutUnitTimeRatio()
 {
     return 0;
 }
+
 
 bool AppUtils::IsSelectorDialogDefaultPossion()
 {
