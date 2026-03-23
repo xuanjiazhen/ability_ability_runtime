@@ -107,6 +107,8 @@ bool AppSpawnMsgWrapper::AssembleMsg(const AppSpawnStartMsg &startMsg)
     }
     if (memset_s(msg_, msgSize, 0, msgSize) != EOK) {
         TAG_LOGE(AAFwkTag::APPMGR, "memset fail");
+        free(msg_);
+        msg_ = nullptr;
         return false;
     }
     msg_->code = static_cast<AppSpawn::ClientSocket::AppOperateCode>(startMsg.code);

@@ -41,7 +41,7 @@ UIExtensionHostInfo *UIExtensionHostInfo::Unmarshalling(Parcel &parcel)
 
     if (!hostInfo->ReadFromParcel(parcel)) {
         delete hostInfo;
-        hostInfo = nullptr;
+        return nullptr;
     }
 
     return hostInfo;

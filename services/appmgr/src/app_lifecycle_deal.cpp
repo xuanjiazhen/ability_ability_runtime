@@ -273,7 +273,7 @@ void AppLifeCycleDeal::ScheduleAcceptWant(const AAFwk::Want &want, const std::st
 
 void AppLifeCycleDeal::SchedulePrepareTerminate(const std::string &moduleName)
 {
-    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
     auto appThread = GetApplicationClient();
     if (!appThread) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
