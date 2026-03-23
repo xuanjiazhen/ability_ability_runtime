@@ -435,5 +435,130 @@ HWTEST_F(AbilityStageContextTest, AbilityStageContext_CreateModuleOrPluginContex
     auto context = abilityStageContext->CreateModuleOrPluginContext(bundleName, moduleName);
     EXPECT_EQ(context, nullptr);
 }
+
+/**
+ * @tc.number: AbilityStageContext_SetElementName_001
+ * @tc.name: SetElementName and GetElementName
+ * @tc.desc: Test SetElementName and GetElementName with valid ElementName.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityStageContextTest, AbilityStageContext_SetElementName_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityStageContext_SetElementName_001 begin");
+    auto abilityStageContext = std::make_shared<AbilityStageContext>();
+    ASSERT_NE(abilityStageContext, nullptr);
+
+    // Create a valid ElementName
+    AppExecFwk::ElementName elementName;
+    elementName.SetBundleName("com.example.testbundle");
+    elementName.SetAbilityName("TestAbility");
+    elementName.SetModuleName("TestModule");
+    elementName.SetDeviceId("testDeviceId");
+
+    // Set the element name
+    abilityStageContext->SetElementName(elementName);
+
+    // Get and verify
+    const auto& retrievedElementName = abilityStageContext->GetElementName();
+    EXPECT_EQ(retrievedElementName.GetBundleName(), "com.example.testbundle");
+    EXPECT_EQ(retrievedElementName.GetAbilityName(), "TestAbility");
+    EXPECT_EQ(retrievedElementName.GetModuleName(), "TestModule");
+    EXPECT_EQ(retrievedElementName.GetDeviceId(), "testDeviceId");
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityStageContext_SetElementName_001 end");
+}
+
+/**
+ * @tc.number: AbilityStageContext_SetElementName_002
+ * @tc.name: SetElementName and GetElementName with default ElementName
+ * @tc.desc: Test SetElementName and GetElementName with default (empty) ElementName.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityStageContextTest, AbilityStageContext_SetElementName_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityStageContext_SetElementName_002 begin");
+    auto abilityStageContext = std::make_shared<AbilityStageContext>();
+    ASSERT_NE(abilityStageContext, nullptr);
+
+    // Get default element name before setting
+    const auto& defaultElementName = abilityStageContext->GetElementName();
+    EXPECT_TRUE(defaultElementName.GetBundleName().empty());
+    EXPECT_TRUE(defaultElementName.GetAbilityName().empty());
+
+    // Set empty element name
+    AppExecFwk::ElementName emptyElementName;
+    abilityStageContext->SetElementName(emptyElementName);
+
+    // Verify it remains empty
+    const auto& retrievedElementName = abilityStageContext->GetElementName();
+    EXPECT_TRUE(retrievedElementName.GetBundleName().empty());
+    EXPECT_TRUE(retrievedElementName.GetAbilityName().empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityStageContext_SetElementName_002 end");
+}
+
+/**
+ * @tc.number: AbilityStageContext_SetElementName_003
+ * @tc.name: SetElementName and GetElementName with multiple updates
+ * @tc.desc: Test SetElementName and GetElementName with multiple updates.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityStageContextTest, AbilityStageContext_SetElementName_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityStageContext_SetElementName_003 begin");
+    auto abilityStageContext = std::make_shared<AbilityStageContext>();
+    ASSERT_NE(abilityStageContext, nullptr);
+
+    // Set first element name
+    AppExecFwk::ElementName elementName1;
+    elementName1.SetBundleName("com.example.bundle1");
+    elementName1.SetAbilityName("Ability1");
+    abilityStageContext->SetElementName(elementName1);
+
+    const auto& retrieved1 = abilityStageContext->GetElementName();
+    EXPECT_EQ(retrieved1.GetBundleName(), "com.example.bundle1");
+    EXPECT_EQ(retrieved1.GetAbilityName(), "Ability1");
+
+    // Update with second element name
+    AppExecFwk::ElementName elementName2;
+    elementName2.SetBundleName("com.example.bundle2");
+    elementName2.SetAbilityName("Ability2");
+    abilityStageContext->SetElementName(elementName2);
+
+    const auto& retrieved2 = abilityStageContext->GetElementName();
+    EXPECT_EQ(retrieved2.GetBundleName(), "com.example.bundle2");
+    EXPECT_EQ(retrieved2.GetAbilityName(), "Ability2");
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityStageContext_SetElementName_003 end");
+}
+
+/**
+ * @tc.number: AbilityStageContext_SetElementName_004
+ * @tc.name: GetElementName returns const reference
+ * @tc.desc: Test that GetElementName returns a const reference.
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(AbilityStageContextTest, AbilityStageContext_SetElementName_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityStageContext_SetElementName_004 begin");
+    auto abilityStageContext = std::make_shared<AbilityStageContext>();
+    ASSERT_NE(abilityStageContext, nullptr);
+
+    AppExecFwk::ElementName elementName;
+    elementName.SetBundleName("com.example.test");
+    elementName.SetAbilityName("TestAbility");
+    abilityStageContext->SetElementName(elementName);
+
+    // Get reference and verify it's const (cannot modify through it)
+    const auto& retrievedRef = abilityStageContext->GetElementName();
+    EXPECT_EQ(retrievedRef.GetBundleName(), "com.example.test");
+    EXPECT_EQ(retrievedRef.GetAbilityName(), "TestAbility");
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityStageContext_SetElementName_004 end");
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

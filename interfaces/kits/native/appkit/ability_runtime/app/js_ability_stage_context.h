@@ -18,14 +18,16 @@
 
 #include "configuration.h"
 #include "native_engine/native_engine.h"
+#include "napi/native_api.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-class Context;
 class JsAbilityStageContext final {
 public:
     explicit JsAbilityStageContext(const std::shared_ptr<Context>& context) : context_(context) {}
     ~JsAbilityStageContext() = default;
+
+    static napi_value GetCurrentElementName(napi_env env, napi_callback_info info);
 
     static void ConfigurationUpdated(napi_env env, std::shared_ptr<NativeReference> &jsContext,
         const std::shared_ptr<AppExecFwk::Configuration> &config);

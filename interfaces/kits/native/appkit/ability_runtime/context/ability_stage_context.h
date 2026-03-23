@@ -18,6 +18,7 @@
 
 #include "context.h"
 #include "context_impl.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -88,6 +89,9 @@ public:
     std::string GetProcessName() override;
     void SetProcessName(const std::string &processName);
 
+    void SetElementName(const AppExecFwk::ElementName &elementName);
+    const AppExecFwk::ElementName &GetElementName() const;
+
     Global::Resource::DeviceType GetDeviceType() const override;
 
     using SelfType = AbilityStageContext;
@@ -101,6 +105,7 @@ protected:
 
 private:
     std::shared_ptr<ContextImpl> contextImpl_;
+    AppExecFwk::ElementName elementName_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

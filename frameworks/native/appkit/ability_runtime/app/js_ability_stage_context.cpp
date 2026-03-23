@@ -17,6 +17,7 @@
 
 #include "ability_runtime/context/context.h"
 #include "ability_stage_context.h"
+#include "api_common_want.h"
 #include "hilog_tag_wrapper.h"
 #include "js_context_utils.h"
 #include "js_data_struct_converter.h"
@@ -43,6 +44,50 @@ void DetachFinalizeAbilityStageContext(void* detachedObject, void*)
     TAG_LOGD(AAFwkTag::APPKIT, "Finalizer detached abilityStage context");
     delete static_cast<std::weak_ptr<AbilityStageContext> *>(detachedObject);
 }
+}
+
+napi_value JsAbilityStageContext::GetCurrentElementName(napi_env env, napi_callback_info info)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "GetCurrentElementName called");
+    size_t argc = 0;
+    napi_value jsThis = nullptr;
+    napi_status status = napi_get_cb_info(env, info, &argc, nullptr, &jsThis, nullptr);
+    if (status != napi_ok || jsThis == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to get callback info");
+        return nullptr;
+    }
+
+    auto context = Context::GetContext(env, jsThis);
+    if (!context) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to get context");
+        return nullptr;
+    }
+
+    auto stageContext = std::dynamic_pointer_cast<AbilityStageContext>(context);
+    if (!stageContext) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to get ability stage context");
+        return nullptr;
+    }
+
+    const auto &elementName = stageContext->GetElementName();
+
+    // Check if elementName is empty (not properly set)
+    if (elementName.GetBundleName().empty() && elementName.GetAbilityName().empty()) {
+        TAG_LOGW(AAFwkTag::APPKIT, "ElementName is empty, may not have been set properly");
+    } else {
+        TAG_LOGD(AAFwkTag::APPKIT, "Get elementName: %{public}s/%{public}s",
+            elementName.GetBundleName().c_str(), elementName.GetAbilityName().c_str());
+    }
+
+    napi_value result = AppExecFwk::WrapElementName(env, elementName);
+    if (result == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to wrap ElementName to JS object");
+        // Return undefined instead of nullptr to avoid JS-side errors
+        napi_value undefined;
+        napi_get_undefined(env, &undefined);
+        return undefined;
+    }
+    return result;
 }
 
 void JsAbilityStageContext::ConfigurationUpdated(napi_env env, std::shared_ptr<NativeReference> &jsContext,
@@ -88,6 +133,10 @@ napi_value CreateJsAbilityStageContext(napi_env env, std::shared_ptr<AbilityRunt
 
     std::string type = "AbilityStageContext";
     napi_set_named_property(env, objValue, "contextType", CreateJsValue(env, type));
+
+    const char *moduleName = "JsAbilityStageContext";
+    BindNativeFunction(env, objValue, "getCurrentElementName", moduleName,
+        JsAbilityStageContext::GetCurrentElementName);
 
     return handle.Escape(objValue);
 }

@@ -522,6 +522,10 @@ std::shared_ptr<AbilityRuntime::Context> OHOSApplication::AddAbilityStage(
         if (abilityRecord->GetWant()) {
             TAG_LOGD(AAFwkTag::APPKIT, "want is ok, transport to abilityStage");
             want = *(abilityRecord->GetWant());
+            auto elementName = want.GetElement();
+            TAG_LOGD(AAFwkTag::APPKIT, "Set elementName to stageContext: %{public}s/%{public}s",
+                elementName.GetBundleName().c_str(), elementName.GetAbilityName().c_str());
+            stageContext->SetElementName(elementName);
         }
         abilityStage->OnCreate(want);
         abilityStages_[moduleName] = abilityStage;

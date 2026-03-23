@@ -1600,5 +1600,129 @@ HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_RegisterGetAllUIAbi
     GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_RegisterGetAllUIAbilitiesCallback_0100 end.";
 }
 #endif
+
+/*
+* @tc.number: AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0100
+* @tc.name: AddAbilityStage sets ElementName
+* @tc.desc: Verify that AddAbilityStage properly sets ElementName to AbilityStageContext.
+*/
+HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0100 start.";
+
+    // Setup basic requirements
+    ohosApplication_->runtime_ = std::make_unique<AbilityRuntime::MockRuntime>();
+    ohosApplication_->abilityRuntimeContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
+
+    // Create Want with valid ElementName
+    auto want = std::make_shared<Want>();
+    AppExecFwk::ElementName elementName;
+    elementName.SetBundleName("com.example.testbundle");
+    elementName.SetAbilityName("TestAbility");
+    elementName.SetModuleName("entry");
+    want->SetElement(elementName);
+
+    // Create AbilityLocalRecord
+    sptr<Notification::MockIRemoteObject> token = new (std::nothrow) Notification::MockIRemoteObject();
+    std::shared_ptr<AbilityInfo> info = std::make_shared<AbilityInfo>();
+    info->moduleName = "entry";
+    auto abilityRecord = std::make_shared<AbilityLocalRecord>(info, token, want, 0);
+
+    // Call AddAbilityStage
+    auto callback = [](const std::shared_ptr<AbilityRuntime::Context> &) {};
+    bool isAsyncCallback = false;
+    auto context = ohosApplication_->AddAbilityStage(abilityRecord, callback, isAsyncCallback);
+
+    // Verify context is created and ElementName is set
+    ASSERT_NE(context, nullptr);
+    auto stageContext = std::dynamic_pointer_cast<AbilityRuntime::AbilityStageContext>(context);
+    ASSERT_NE(stageContext, nullptr);
+
+    const auto& retrievedElementName = stageContext->GetElementName();
+    EXPECT_EQ(retrievedElementName.GetBundleName(), "com.example.testbundle");
+    EXPECT_EQ(retrievedElementName.GetAbilityName(), "TestAbility");
+    EXPECT_EQ(retrievedElementName.GetModuleName(), "entry");
+
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0100 end.";
+}
+
+/*
+* @tc.number: AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0200
+* @tc.name: AddAbilityStage with null Want
+* @tc.desc: Verify that AddAbilityStage handles null Want gracefully.
+*/
+HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0200 start.";
+
+    // Setup basic requirements
+    ohosApplication_->runtime_ = std::make_unique<AbilityRuntime::MockRuntime>();
+    ohosApplication_->abilityRuntimeContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
+
+    // Create AbilityLocalRecord with null Want
+    sptr<Notification::MockIRemoteObject> token = new (std::nothrow) Notification::MockIRemoteObject();
+    std::shared_ptr<AbilityInfo> info = std::make_shared<AbilityInfo>();
+    info->moduleName = "entry";
+    auto abilityRecord = std::make_shared<AbilityLocalRecord>(info, token, nullptr, 0);
+
+    // Call AddAbilityStage
+    auto callback = [](const std::shared_ptr<AbilityRuntime::Context> &) {};
+    bool isAsyncCallback = false;
+    auto context = ohosApplication_->AddAbilityStage(abilityRecord, callback, isAsyncCallback);
+
+    // Verify context is created even with null Want
+    ASSERT_NE(context, nullptr);
+    auto stageContext = std::dynamic_pointer_cast<AbilityRuntime::AbilityStageContext>(context);
+    ASSERT_NE(stageContext, nullptr);
+
+    // ElementName should be empty (default constructed)
+    const auto& retrievedElementName = stageContext->GetElementName();
+    EXPECT_TRUE(retrievedElementName.GetBundleName().empty());
+    EXPECT_TRUE(retrievedElementName.GetAbilityName().empty());
+
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0200 end.";
+}
+
+/*
+* @tc.number: AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0300
+* @tc.name: AddAbilityStage with empty ElementName
+* @tc.desc: Verify that AddAbilityStage handles empty ElementName in Want.
+*/
+HWTEST_F(OHOSApplicationTest, AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0300 start.";
+
+    // Setup basic requirements
+    ohosApplication_->runtime_ = std::make_unique<AbilityRuntime::MockRuntime>();
+    ohosApplication_->abilityRuntimeContext_ = std::make_shared<AbilityRuntime::ApplicationContext>();
+
+    // Create Want with empty ElementName
+    auto want = std::make_shared<Want>();
+    AppExecFwk::ElementName elementName; // Default constructed, empty
+    want->SetElement(elementName);
+
+    // Create AbilityLocalRecord
+    sptr<Notification::MockIRemoteObject> token = new (std::nothrow) Notification::MockIRemoteObject();
+    std::shared_ptr<AbilityInfo> info = std::make_shared<AbilityInfo>();
+    info->moduleName = "entry";
+    auto abilityRecord = std::make_shared<AbilityLocalRecord>(info, token, want, 0);
+
+    // Call AddAbilityStage
+    auto callback = [](const std::shared_ptr<AbilityRuntime::Context> &) {};
+    bool isAsyncCallback = false;
+    auto context = ohosApplication_->AddAbilityStage(abilityRecord, callback, isAsyncCallback);
+
+    // Verify context is created
+    ASSERT_NE(context, nullptr);
+    auto stageContext = std::dynamic_pointer_cast<AbilityRuntime::AbilityStageContext>(context);
+    ASSERT_NE(stageContext, nullptr);
+
+    // ElementName should be empty
+    const auto& retrievedElementName = stageContext->GetElementName();
+    EXPECT_TRUE(retrievedElementName.GetBundleName().empty());
+    EXPECT_TRUE(retrievedElementName.GetAbilityName().empty());
+
+    GTEST_LOG_(INFO) << "AppExecFwk_OHOSApplicationTest_AddAbilityStage_ElementName_0300 end.";
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

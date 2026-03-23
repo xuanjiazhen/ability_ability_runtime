@@ -443,6 +443,17 @@ void AbilityStageContext::SetProcessName(const std::string &processName)
     contextImpl_->SetProcessName(processName);
 }
 
+void AbilityStageContext::SetElementName(const AppExecFwk::ElementName &elementName)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "SetElementName called");
+    elementName_ = elementName;
+}
+
+const AppExecFwk::ElementName &AbilityStageContext::GetElementName() const
+{
+    return elementName_;
+}
+
 Global::Resource::DeviceType AbilityStageContext::GetDeviceType() const
 {
     if (contextImpl_ == nullptr) {

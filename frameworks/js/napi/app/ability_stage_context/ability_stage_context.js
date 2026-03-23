@@ -26,6 +26,10 @@ class AbilityStageContext extends Context {
   onUpdateConfiguration(config) {
     this.config = config;
   }
+
+  getCurrentElementName() {
+    return nativeGetCurrentElementName();
+  }
 }
 
 export default AbilityStageContext;
