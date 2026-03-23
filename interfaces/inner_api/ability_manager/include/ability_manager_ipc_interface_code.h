@@ -553,6 +553,7 @@ enum class AbilityManagerInterfaceCode {
     KILL_APP_WITH_REASON = 6007,
     KILL_BUNDLE_WITH_REASON = 6008,
     RECORD_APP_WITH_REASON = 6009,
+    RECORD_APP_WITH_REASON_BY_USERID = 6010,
 
     // ipc id for register auto startup system callback
     REGISTER_AUTO_STARTUP_SYSTEM_CALLBACK = 6101,
@@ -716,6 +717,9 @@ enum class AbilityManagerInterfaceCode {
 
     // set app recovery flag
     SET_APP_RECOVERY_FLAG  = 6160,
+
+    // start ability by oe extension
+    START_ABILITY_BY_OE_EXT = 6161,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

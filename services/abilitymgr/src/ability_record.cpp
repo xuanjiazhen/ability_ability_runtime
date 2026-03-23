@@ -268,6 +268,10 @@ void AbilityRecord::LoadUIAbility()
         TAG_LOGI(AAFwkTag::ABILITYMGR, "preload, no event sent");
         return;
     }
+    if (isPrelaunch_) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "prelaunch, no event sent");
+        return;
+    }
     SendEvent(AbilityManagerService::LOAD_HALF_TIMEOUT_MSG, loadTimeout / HALF_TIMEOUT);
     SendEvent(AbilityManagerService::LOAD_TIMEOUT_MSG, loadTimeout);
     std::string methodName = "LoadAbility";
@@ -2750,6 +2754,7 @@ void AbilityRecord::GrantUriPermission(Want &want, std::string targetBundleName,
     grantInfo.userId = GetOwnerMissionUserId();
     grantInfo.flag = want.GetFlags();
     grantInfo.isNotifyCollaborator = isNotifyCollaborator;
+    grantInfo.targetUid = uid_;
     grantInfo.callerUid = want.GetIntParam(Want::PARAM_RESV_CALLER_UID, IPCSkeleton::GetCallingUid());
     if (!isNotifyCollaborator) {
         grantInfo.targetAbilityName = abilityInfo_.name;

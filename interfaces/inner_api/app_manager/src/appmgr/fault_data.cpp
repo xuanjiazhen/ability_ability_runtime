@@ -94,6 +94,7 @@ bool FaultData::ReadContent(Parcel &parcel)
 
     isInForeground = parcel.ReadBool();
     isEnableMainThreadSample = parcel.ReadBool();
+    reportLifecycleToFreeze = parcel.ReadBool();
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
@@ -110,6 +111,7 @@ bool FaultData::ReadContent(Parcel &parcel)
 bool FaultData::ReadLeakContent(Parcel &parcel)
 {
     int type = 0;
+    std::string strValue;
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadInt32(type), "LeakType read int32 failed.");
     leakObject.leakType = static_cast<LeakType>(type);
 
@@ -134,6 +136,11 @@ bool FaultData::ReadLeakContent(Parcel &parcel)
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(sizeValue), "LeakDetailInfo otherSize read uint64 failed.");
     leakObject.detailInfo.otherSize = sizeValue;
+
+    if (!parcel.ReadString(strValue)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "callback log read string failed.");
+        return false;
+    }
     return true;
 }
 
@@ -187,6 +194,10 @@ bool FaultData::WriteLeakContent(Parcel &parcel) const
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(otherSize),
         "LeakDetailInfo otherSize [%{public}" PRIu64 "] write uint64 failed.", otherSize
     );
+    
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(callbackLog),
+        "CallbackLog [%{public}s] write int32 failed.", callbackLog.c_str()
+    );
     return true;
 }
 
@@ -225,6 +236,10 @@ bool FaultData::WriteContent(Parcel &parcel) const
         "isEnableMainThreadSample [%{public}d] write bool failed.", isEnableMainThreadSample
     );
 
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(reportLifecycleToFreeze),
+        "reportLifecycleToFreeze [%{public}d] write bool failed.", reportLifecycleToFreeze
+    );
+
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationHeapInfo),
         "applicationHeapInfo [%{public}s] write string failed.", applicationHeapInfo.c_str()
     );
@@ -244,6 +259,7 @@ bool FaultData::WriteContent(Parcel &parcel) const
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteInt32(dispatchedEventId),
         "DispatchedEventId [%{public}d] write int32 failed.", dispatchedEventId
     );
+
     return WriteLeakContent(parcel);
 }
 
@@ -384,6 +400,7 @@ bool AppFaultDataBySA::ReadContent(Parcel &parcel)
     procStatm = strValue;
     isInForeground = parcel.ReadBool();
     isEnableMainThreadSample = parcel.ReadBool();
+    reportLifecycleToFreeze = parcel.ReadBool();
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadString(strValue), "ApplicationHeapInfo read string failed.");
     applicationHeapInfo = strValue;
@@ -505,6 +522,10 @@ bool AppFaultDataBySA::WriteContent(Parcel &parcel) const
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(isEnableMainThreadSample),
         "isEnableMainThreadSample [%{public}d] write bool failed.", isEnableMainThreadSample
+    );
+
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteBool(reportLifecycleToFreeze),
+        "reportLifecycleToFreeze [%{public}d] write bool failed.", reportLifecycleToFreeze
     );
 
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(applicationHeapInfo),

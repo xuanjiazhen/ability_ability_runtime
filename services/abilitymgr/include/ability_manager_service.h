@@ -276,6 +276,21 @@ public:
         uint64_t intentId,
         int32_t userId = DEFAULT_INVAL_VALUE) override;
 
+     /**
+      * Starts a new ability by oe extension.
+      *
+      * @param want Indicates the ability to start.
+      * @param callerToken Indicates the caller ability token.
+      * @param hostPid Indicates the host process ID.
+      * @param specifiedFlag Indicates the specified flag for the target UIAbility for specified mode.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+    int32_t StartAbilityByOEExt(
+        const Want &want,
+        sptr<IRemoteObject> callerToken,
+        int32_t hostPid,
+        const std::string &specifiedFlag) override;
+
     /**
      * Starts a new ability with specific start settings.
      *
@@ -398,6 +413,15 @@ public:
      */
     ErrCode StartUIAbilities(const std::vector<AAFwk::Want> &wantList,
         const std::string &requestKey, sptr<IRemoteObject> callerToken) override;
+    
+    /**
+     * RecordAppWithReasonByUserId, record app exit reason by userId.
+     *
+     * @param userId The user id.
+     * @param exitReason The reason of app exit.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode RecordAppWithReasonByUserId(int32_t userId, const ExitReasonCompability &exitReason) override;
 
     /**
      * Start ui session ability with extension session info, send session info to ability manager service.
@@ -3176,6 +3200,9 @@ private:
     int32_t UninstallAppInner(const std::string &bundleName, const int32_t uid, int32_t appIndex, const bool isUpgrade,
         const std::string &exitMsg);
 
+    int32_t HandleAppUpgradeProcess(const std::string &bundleName, const int32_t uid, int32_t appIndex,
+        const std::string &exitMsg);
+
     int32_t GetMissionIdByAbilityTokenInner(const sptr<IRemoteObject> &token);
     bool CheckCallerIsDmsProcess();
 
@@ -3363,6 +3390,9 @@ private:
         AbilityRuntime::ExtractInsightIntentGenericInfo &linkInfo, const int32_t userId);
  
     AbilityRuntime::ExtractInsightIntentGenericInfo GetInsightIntentGenericInfo(const InsightIntentExecuteParam &param);
+
+    int32_t RecordAppWithReasonByAccessTokenId(uint32_t accessTokenId,
+        const ExitReasonCompability &exitReasonCompability);
  
     void CombinLinkInfo(
         const std::vector<AbilityRuntime::LinkIntentParamMapping> &paramMappings, std::string &uri, AAFwk::Want &want);

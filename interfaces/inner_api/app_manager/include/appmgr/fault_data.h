@@ -99,12 +99,14 @@ struct FaultData : public Parcelable {
     std::string procStatm;
     bool isInForeground;
     bool isEnableMainThreadSample;
+    bool reportLifecycleToFreeze = false;
     std::string applicationHeapInfo;
     std::string processLifeTime;
     int32_t markedId = 0;
     int32_t processedId = 0;
     int32_t dispatchedEventId = 0;
     LeakObject leakObject;
+    std::string callbackLog;
 };
 
 /**
@@ -140,6 +142,7 @@ struct AppFaultDataBySA : public Parcelable {
     std::string procStatm;
     bool isInForeground;
     bool isEnableMainThreadSample;
+    bool reportLifecycleToFreeze = false;
     std::string applicationHeapInfo;
     std::string processLifeTime;
     LeakObject leakObject;

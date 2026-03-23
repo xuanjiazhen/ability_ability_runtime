@@ -91,20 +91,20 @@ static constexpr int SYSLOAD_GET_KILL_INFO_MAGIC = 0xE5AC02;
 #define SYSLOAD_GET_KILL_INFO_MAGIC 0xE5AC02
 
 struct KillEventInfo {
-    int id;
-    int adj;
-    bool processed;
-    bool foreground;
-    pid_t pid;
-    int uid;
-    int64_t timestamp;
-    int64_t eventParamFirst;
-    int64_t eventParamSecond;
-    int64_t eventParamThird;
-    int64_t eventParamFourth;
-    int64_t eventParamFifth;
-    int64_t eventParamSixth;
-    int64_t eventParamSeventh;
+    int id = 0;
+    int adj = 0;
+    bool processed = false;
+    bool foreground = false;
+    pid_t pid = 0;
+    int uid = 0;
+    int64_t timestamp = 0;
+    int64_t eventParamFirst = 0;
+    int64_t eventParamSecond = 0;
+    int64_t eventParamThird = 0;
+    int64_t eventParamFourth = 0;
+    int64_t eventParamFifth = 0;
+    int64_t eventParamSixth = 0;
+    int64_t eventParamSeventh = 0;
 };
 
 struct KillInfo {
@@ -320,11 +320,13 @@ int AppfreezeManager::AppfreezeHandleWithStack(const FaultData& faultData, const
     faultNotifyData.procStatm = faultData.procStatm;
     faultNotifyData.isInForeground = faultData.isInForeground;
     faultNotifyData.isEnableMainThreadSample = faultData.isEnableMainThreadSample;
+    faultNotifyData.reportLifecycleToFreeze = faultData.reportLifecycleToFreeze;
     faultNotifyData.applicationHeapInfo = faultData.applicationHeapInfo;
     faultNotifyData.processLifeTime = faultData.processLifeTime;
     faultNotifyData.markedId = faultData.markedId;
     faultNotifyData.processedId = faultData.processedId;
     faultNotifyData.dispatchedEventId = faultData.dispatchedEventId;
+    faultNotifyData.callbackLog = faultData.callbackLog;
     HITRACE_METER_FMT(HITRACE_TAG_APP, "AppfreezeHandleWithStack pid:%{public}d-name:%{public}s",
         appInfo.pid, faultData.errorObject.name.c_str());
     return MergeNotifyInfo(faultNotifyData, appInfo);
@@ -446,11 +448,13 @@ FaultData AppfreezeManager::GetFaultNotifyData(const FaultData& faultData, int p
     faultNotifyData.procStatm = faultData.procStatm;
     faultNotifyData.isInForeground = faultData.isInForeground;
     faultNotifyData.isEnableMainThreadSample = faultData.isEnableMainThreadSample;
+    faultNotifyData.reportLifecycleToFreeze = faultData.reportLifecycleToFreeze;
     faultNotifyData.applicationHeapInfo = faultData.applicationHeapInfo;
     faultNotifyData.processLifeTime = faultData.processLifeTime;
     faultNotifyData.markedId = faultData.markedId;
     faultNotifyData.processedId = faultData.processedId;
     faultNotifyData.dispatchedEventId = faultData.dispatchedEventId;
+    faultNotifyData.callbackLog = faultData.callbackLog;
     return faultNotifyData;
 }
 
@@ -601,22 +605,26 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     eventInfo.hitraceInfo = GetHitraceInfo();
     eventInfo.foregroundState = faultData.isInForeground;
     eventInfo.enableFreeze = faultData.isEnableMainThreadSample;
+    eventInfo.reportLifecycleToFreeze = faultData.reportLifecycleToFreeze;
     eventInfo.applicationHeapInfo = faultData.applicationHeapInfo;
     eventInfo.processLifeTime = faultData.processLifeTime;
     eventInfo.markedId = faultData.markedId;
     eventInfo.processedId = faultData.processedId;
     eventInfo.dispatchedEventId = faultData.dispatchedEventId;
+    eventInfo.externalLog = faultData.callbackLog;
 
     int ret = AppfreezeEventReport::SendAppfreezeEvent(eventName, HISYSEVENT_FAULT, eventInfo);
     TAG_LOGW(AAFwkTag::APPDFR, "reportEvent:%{public}s, pid:%{public}d, tid:%{public}d, bundleName:%{public}s, "
         "appRunningUniqueId:%{public}s, endTime:%{public}s, interval:%{public}" PRId64 " ms, "
         "eventId:%{public}d freezeInfoFile:%{public}s foreground:%{public}d enableFreeze:%{public}d,"
-        "applicationHeapInfo:%{public}s processLifeTime:%{public}s hisysevent write ret: %{public}d",
+        " reportFreeze:%{public}d, applicationHeapInfo:%{public}s processLifeTime:%{public}s "
+        "hisysevent write ret: %{public}d",
         faultData.errorObject.name.c_str(), appInfo.pid, faultData.tid, appInfo.bundleName.c_str(),
         appRunningUniqueId.c_str(), AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str(),
         AbilityRuntime::TimeUtil::CurrentTimeMillis() - startTime, faultData.eventId,
         eventInfo.freezeInfoFile.c_str(), eventInfo.foregroundState, eventInfo.enableFreeze,
-        eventInfo.applicationHeapInfo.c_str(), eventInfo.processLifeTime.c_str(), ret);
+        eventInfo.reportLifecycleToFreeze, eventInfo.applicationHeapInfo.c_str(),
+        eventInfo.processLifeTime.c_str(), ret);
     OHOS::HiviewDFX::HiTraceChain::ClearId();
     return 0;
 }
@@ -1276,6 +1284,13 @@ AppfreezeManager::ProcessKillInfo AppfreezeManager::GetProcessKillReason(
         .adj = 0,
         .timestamp = 0,
         .killId = killId,
+        .eventParamFirst = 0,
+        .eventParamSecond = 0,
+        .eventParamThird = 0,
+        .eventParamFourth = 0,
+        .eventParamFifth = 0,
+        .eventParamSixth = 0,
+        .eventParamSeventh = 0,
     };
     if (killId == INVALID_KILL_ID) {
         killInfo.killReason = INVALID_KILL_REASON;
@@ -1330,6 +1345,7 @@ void AppfreezeManager::GetExitKernelReason(int32_t pid, ProcessKillInfo& killInf
             killInfo.eventParamFirst, killInfo.eventParamSecond, killInfo.eventParamThird, killInfo.eventParamFourth,
             killInfo.eventParamFifth, killInfo.eventParamSixth, killInfo.eventParamSeventh);
     } else {
+        killInfo.killReason = INVALID_KILL_REASON;
         TAG_LOGW(AAFwkTag::APPDFR, "Get killReason ioctl failed, errno:%{public}d", errno);
     }
 }
