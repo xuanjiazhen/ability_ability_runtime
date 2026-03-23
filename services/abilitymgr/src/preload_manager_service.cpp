@@ -28,6 +28,7 @@
 
 namespace OHOS {
 namespace AAFwk {
+constexpr int32_t GAME_SA_UID = 7011;
 PreloadManagerService &PreloadManagerService::GetInstance()
 {
     static PreloadManagerService instance;
@@ -63,6 +64,15 @@ int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "getLaunchWantForBundle returns %{public}d", errCode);
         return errCode;
     }
+    StartAbilityWrapParam startAbilityWrapParam = {
+        .want = launchWant,
+    };
+    startAbilityWrapParam.userId = userId; // 是否需要bundleName、appIndex
+    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+        startAbilityWrapParam.isGamePrelaunch = true;
+ 	    TAG_LOGI(AAFwkTag::ABILITYMGR, "verify game SA success");
+ 	    return DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityInner(startAbilityWrapParam);
+ 	}
     AppExecFwk::AbilityInfo abilityInfo;
     CHECK_TRUE_RETURN_RET(!IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(launchWant,
         AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, abilityInfo)),

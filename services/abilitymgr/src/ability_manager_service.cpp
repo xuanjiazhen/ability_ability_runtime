@@ -278,6 +278,7 @@ constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
 constexpr const char* SCREENCONFIG_SCREENMODE = "ohos.verticalpanel.screenconfig.screenmode";
 constexpr const char* UD_KEY = "ability.want.params.udKey";
 constexpr const char* UI_EXTENSION_CONTEXT_TRANSFER_ROOT_HOST_TOKEN = "ohos.ability.params.transferRootHostToken";
+constexpr const char* GAME_PRELAUNCH = "ability.want.params.game_prelaunch";
 constexpr int32_t INSTALL_TYPE_UPGRADE = 2;
 constexpr int64_t CLEAR_USER_LOCKED_BUNDLE_LIST_KEY_DELAY_TIME = 60 * 1000; // 60s
 
@@ -1687,6 +1688,8 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         CollaboratorUtil::HandleCallerIfNeed(param.callerToken, collaborator, abilityRequest.want, callerBundleName);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+        abilityRequest.want.RemoveParam(GAME_PRELAUNCH);
+        abilityRequest.want.SetParam(GAME_PRELAUNCH, param.isGamePrelaunch);
         result = uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, result, "NotifySCBToStartUIAbility failed");
         return AbilityErrorUtil::ConvertToOriginErrorCode(result);
