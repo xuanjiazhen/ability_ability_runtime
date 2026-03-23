@@ -1666,5 +1666,77 @@ HWTEST_F(AbilityManagerServiceFourteenthTest, CheckUIExtensionCallerPidByHostWin
     }
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest CheckUIExtensionCallerPidByHostWindowId_001 end");
 }
+
+/**
+ * @tc.name: LaunchGameCustomized_001
+ * @tc.desc: Test LaunchGameCustomized with valid parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, LaunchGameCustomized_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest LaunchGameCustomized_001 start");
+    std::string bundleName = "com.test.game";
+    int32_t userId = 100;
+    int32_t appIndex = 0;
+    auto result = abilityMs_->LaunchGameCustomized(bundleName, userId, appIndex);
+    EXPECT_EQ(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest LaunchGameCustomized_001 end");
+}
+
+/**
+ * @tc.name: SetGamePreLaunchCompleteTime_001
+ * @tc.desc: Test SetGamePreLaunchCompleteTime with invalid permission (wrong UID).
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, SetGamePreLaunchCompleteTime_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest SetGamePreLaunchCompleteTime_001 start");
+    int32_t userId = 100;
+    int64_t completeTime = 1000;
+    auto result = abilityMs_->SetGamePreLaunchCompleteTime(userId, completeTime);
+    // Should fail due to permission check (unless running as GAME_SA_UID)
+    if (IPCSkeleton::GetCallingUid() != AbilityRuntime::GlobalConstant::GAME_SA_UID) {
+        EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    } else {
+        EXPECT_EQ(result, ERR_OK);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest SetGamePreLaunchCompleteTime_001 end");
+}
+
+/**
+ * @tc.name: NotifyCancelGamePreLaunch_001
+ * @tc.desc: Test NotifyCancelGamePreLaunch when scene board is not enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCancelGamePreLaunch_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCancelGamePreLaunch_001 start");
+    sptr<IRemoteObject> callerToken = nullptr;
+    auto result = abilityMs_->NotifyCancelGamePreLaunch(callerToken);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+    } else {
+        EXPECT_EQ(result, ERR_INVALID_VALUE);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCancelGamePreLaunch_001 end");
+}
+
+/**
+ * @tc.name: NotifyCompleteGamePreLaunch_001
+ * @tc.desc: Test NotifyCompleteGamePreLaunch when scene board is not enabled.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourteenthTest, NotifyCompleteGamePreLaunch_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunch_001 start");
+    sptr<IRemoteObject> callerToken = nullptr;
+    auto result = abilityMs_->NotifyCompleteGamePreLaunch(callerToken);
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+    } else {
+        EXPECT_EQ(result, ERR_INVALID_VALUE);
+    }
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourteenthTest NotifyCompleteGamePreLaunch_001 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
