@@ -129,6 +129,12 @@ std::string AbilityStage::OnNewProcessRequest(const AAFwk::Want &want,
     return "";
 }
 
+void AbilityStage::OnUpdate()
+{}
+ 	 
+void AbilityStage::OnPreAbilityCreate()
+{}
+
 void AbilityStage::OnConfigurationUpdated(const AppExecFwk::Configuration& configuration)
 {}
 
@@ -140,6 +146,16 @@ int32_t AbilityStage::RunAutoStartupTask(const std::function<void()> &callback, 
 {
     isAsyncCallback = false;
     return ERR_OK;
+}
+
+bool AbilityStage::IsAbilityCreated() const
+{
+ 	return isAbilityCreate_;
+}
+ 	 
+void AbilityStage::MarkAbilityCreated()
+{
+ 	isAbilityCreate_ = true;
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
