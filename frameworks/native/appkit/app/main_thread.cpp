@@ -1350,6 +1350,23 @@ bool IsNeedLoadLibrary(const std::string &bundleName)
         != needLoadLibraryBundleNames.end();
 }
 
+bool IsFaModelLibrary(const std::string &fileEntry)
+{
+    if (fileEntry.empty()) {
+        return false;
+    }
+    auto fileNameStart = fileEntry.find_last_of('/');
+    const std::string fileName = (fileNameStart == std::string::npos) ? fileEntry : fileEntry.substr(fileNameStart + 1);
+    static const std::vector<std::string> faLibraryBaseNames{
+        "libfeatureability",
+        "libfeatureability_napi",
+        "libparticleability",
+    };
+    return std::any_of(faLibraryBaseNames.begin(), faLibraryBaseNames.end(), [&fileName](const std::string &baseName) {
+        return fileName == (baseName + ".so") || fileName == (baseName + ".z.so");
+    });
+}
+
 bool GetBundleForLaunchApplication(std::shared_ptr<BundleMgrHelper> bundleMgrHelper, const std::string &bundleName,
     int32_t appIndex, BundleInfo &bundleInfo)
 {
@@ -1622,20 +1639,20 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     if (IsNeedLoadLibrary(bundleName)) {
         std::vector<std::string> localPaths;
         ChangeToLocalPath(bundleName, appInfo.moduleSourceDirs, localPaths);
-        LoadAbilityLibrary(localPaths);
-        LoadNativeLibrary(bundleInfo, appInfo.nativeLibraryPath);
+        LoadAbilityLibrary(localPaths, isStageBased);
+        LoadNativeLibrary(bundleInfo, appInfo.nativeLibraryPath, isStageBased);
 #ifdef SUPPORT_SCREEN
     } else if (Ace::AceForwardCompatibility::PipelineChanged()) {
         std::vector<std::string> localPaths;
         ChangeToLocalPath(bundleName, appInfo.moduleSourceDirs, localPaths);
-        LoadAbilityLibrary(localPaths);
+        LoadAbilityLibrary(localPaths, isStageBased);
 #endif
     }
     if (appInfo.needAppDetail) {
         TAG_LOGD(AAFwkTag::APPKIT,
             "MainThread::handleLaunchApplication %{public}s need add app detail ability library path",
             bundleName.c_str());
-        LoadAppDetailAbilityLibrary(appInfo.appDetailAbilityLibraryPath);
+        LoadAppDetailAbilityLibrary(appInfo.appDetailAbilityLibraryPath, isStageBased);
     }
     LoadAppLibrary();
 
@@ -1746,6 +1763,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
         options.moduleName = moduleName;
         options.eventRunner = mainHandler_->GetEventRunner();
         options.loadAce = true;
+        options.isStageModel = isStageBased;
         options.isBundle = (entryHapModuleInfo.compileMode != AppExecFwk::CompileMode::ES_MODULE);
         options.isDebugVersion = bundleInfo.applicationInfo.debug;
         options.arkNativeFilePath = bundleInfo.applicationInfo.arkNativeFilePath;
@@ -2308,7 +2326,7 @@ void MainThread::CalcNativeLiabraryEntries(const BundleInfo &bundleInfo, std::st
     }
 }
 
-void MainThread::LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &nativeLibraryPath)
+void MainThread::LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &nativeLibraryPath, bool isStageBasedModel)
 {
     CalcNativeLiabraryEntries(bundleInfo, nativeLibraryPath);
     if (nativeFileEntries_.empty()) {
@@ -2318,6 +2336,10 @@ void MainThread::LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &na
     char resolvedPath[PATH_MAX] = {0};
     void *handleAbilityLib = nullptr;
     for (auto fileEntry : nativeFileEntries_) {
+        if (isStageBasedModel && IsFaModelLibrary(fileEntry)) {
+            TAG_LOGI(AAFwkTag::APPKIT, "Skip FA model native lib in stage model: %{public}s", fileEntry.c_str());
+            continue;
+        }
         if (fileEntry.empty() || fileEntry.size() >= PATH_MAX) {
             continue;
         }
@@ -3274,7 +3296,7 @@ bool MainThread::IsApplicationReady() const
  * @param libraryPaths the library paths.
  *
  */
-void MainThread::LoadAbilityLibrary(const std::vector<std::string> &libraryPaths)
+void MainThread::LoadAbilityLibrary(const std::vector<std::string> &libraryPaths, bool isStageBasedModel)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
 #ifdef ABILITY_LIBRARY_LOADER
@@ -3303,6 +3325,10 @@ void MainThread::LoadAbilityLibrary(const std::vector<std::string> &libraryPaths
     char resolvedPath[PATH_MAX] = {0};
     void *handleAbilityLib = nullptr;
     for (const auto& fileEntry : fileEntries_) {
+        if (isStageBasedModel && IsFaModelLibrary(fileEntry)) {
+            TAG_LOGI(AAFwkTag::APPKIT, "Skip FA model ability lib in stage model: %{public}s", fileEntry.c_str());
+            continue;
+        }
         if (fileEntry.empty() || fileEntry.size() >= PATH_MAX) {
             continue;
         }
@@ -3349,7 +3375,7 @@ void MainThread::LoadAppLibrary()
 #endif  // APPLICATION_LIBRARY_LOADER
 }
 
-void MainThread::LoadAppDetailAbilityLibrary(std::string &nativeLibraryPath)
+void MainThread::LoadAppDetailAbilityLibrary(std::string &nativeLibraryPath, bool isStageBasedModel)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
 #ifdef ABILITY_LIBRARY_LOADER
@@ -3365,6 +3391,11 @@ void MainThread::LoadAppDetailAbilityLibrary(std::string &nativeLibraryPath)
     char resolvedPath[PATH_MAX] = {0};
     void *handleAbilityLib = nullptr;
     for (const auto& fileEntry : fileEntries) {
+        if (isStageBasedModel && IsFaModelLibrary(fileEntry)) {
+            TAG_LOGI(AAFwkTag::APPKIT,
+                "Skip FA model app detail ability lib in stage model: %{public}s", fileEntry.c_str());
+            continue;
+        }
         if (fileEntry.empty() || fileEntry.size() >= PATH_MAX) {
             continue;
         }

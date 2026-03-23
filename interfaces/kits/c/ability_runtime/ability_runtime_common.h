@@ -153,6 +153,21 @@ typedef enum {
      * @since 21
      */
     ABILITY_RUNTIME_ERROR_CODE_MAIN_THREAD_NOT_SUPPORTED = 16000134,
+    /**
+     * @error The target member (method/property/field) is not found.
+     * @since 26
+     */
+    ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND = 16000135,
+    /**
+     * @error The input parameter type does not match metadata.
+     * @since 26
+     */
+    ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH = 16000136,
+    /**
+     * @error IPC request sending failed.
+     * @since 26
+     */
+    ABILITY_RUNTIME_ERROR_CODE_SEND_REQUEST_FAILED = 16000137,
 } AbilityRuntime_ErrorCode;
 
 #ifdef __cplusplus

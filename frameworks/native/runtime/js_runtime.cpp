@@ -18,6 +18,7 @@
 #include <cerrno>
 #include <climits>
 #include <cstdlib>
+#include <dlfcn.h>
 #include <fstream>
 #include <mutex>
 #include <regex>
@@ -91,6 +92,15 @@ constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
 constexpr const char* PERMISSION_RUN_ANY_CODE = "ohos.permission.RUN_ANY_CODE";
 constexpr const char* PERMISSION_LOAD_INDEPENDENT_LIBRARY = "ohos.permission.kernel.LOAD_INDEPENDENT_LIBRARY";
+constexpr const char* FA_MODULE_FEATURE_ABILITY = "ability.featureAbility";
+constexpr const char* FA_MODULE_FEATURE_ABILITY_LEGACY = "FeatureAbility";
+constexpr const char* FA_MODULE_PARTICLE_ABILITY = "ability.particleAbility";
+constexpr const char* FA_LIB_FEATURE_ABILITY = "libfeatureability.z.so";
+constexpr const char* FA_LIB_FEATURE_ABILITY_COMPAT = "libfeatureability.so";
+constexpr const char* FA_LIB_FEATURE_ABILITY_NAPI = "libfeatureability_napi.z.so";
+constexpr const char* FA_LIB_FEATURE_ABILITY_NAPI_COMPAT = "libfeatureability_napi.so";
+constexpr const char* FA_LIB_PARTICLE_ABILITY = "libparticleability.z.so";
+constexpr const char* FA_LIB_PARTICLE_ABILITY_COMPAT = "libparticleability.so";
 
 const std::string CONFIG_PATH = "/etc/system_kits_config.json";
 const std::string SYSTEM_KITS_CONFIG_PATH = "/system/etc/system_kits_config.json";
@@ -704,6 +714,7 @@ bool JsRuntime::Initialize(const Options& options)
         }
     }
     apiTargetVersion_ = options.apiTargetVersion;
+    isStageModel_ = options.isStageModel;
     TAG_LOGD(AAFwkTag::JSRUNTIME, "Initialize: %{public}d", apiTargetVersion_);
     bool isModular = false;
     if (IsUseAbilityRuntime(options)) {
@@ -1010,6 +1021,19 @@ void JsRuntime::Deinitialize()
     }
 
     methodRequireNapiRef_.reset();
+    {
+        std::lock_guard<std::mutex> lock(faModuleLoadMutex_);
+        for (auto &item : faModuleHandles_) {
+            auto &moduleName = item.first;
+            auto handle = item.second;
+            if (handle == nullptr) {
+                continue;
+            }
+            dlclose(handle);
+            TAG_LOGD(AAFwkTag::JSRUNTIME, "dlclose FA module library, moduleName=%{public}s", moduleName.c_str());
+        }
+        faModuleHandles_.clear();
+    }
 
     CHECK_POINTER(jsEnv_);
     jsEnv_->DeInitLoop();
@@ -1143,6 +1167,16 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModule(
     const std::string& moduleName, const napi_value* argv, size_t argc)
 {
     TAG_LOGD(AAFwkTag::JSRUNTIME, "SystemModule %{public}s", moduleName.c_str());
+    if (IsFaModuleName(moduleName)) {
+        if (isStageModel_) {
+            TAG_LOGW(AAFwkTag::JSRUNTIME, "Reject FA module in stage model, moduleName=%{public}s", moduleName.c_str());
+            return std::unique_ptr<NativeReference>();
+        }
+        if (!EnsureFaModuleLibraryLoaded(moduleName)) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "Load FA module library failed, moduleName=%{public}s", moduleName.c_str());
+            return std::unique_ptr<NativeReference>();
+        }
+    }
     napi_env env = GetNapiEnv();
     CHECK_POINTER_AND_RETURN(env, std::unique_ptr<NativeReference>());
 
@@ -1166,6 +1200,53 @@ std::unique_ptr<NativeReference> JsRuntime::LoadSystemModule(
     napi_ref resultRef = nullptr;
     napi_create_reference(env, instanceValue, 1, &resultRef);
     return std::unique_ptr<NativeReference>(reinterpret_cast<NativeReference*>(resultRef));
+}
+
+bool JsRuntime::IsFaModuleName(const std::string& moduleName) const
+{
+    return moduleName == FA_MODULE_FEATURE_ABILITY ||
+        moduleName == FA_MODULE_FEATURE_ABILITY_LEGACY ||
+        moduleName == FA_MODULE_PARTICLE_ABILITY;
+}
+
+bool JsRuntime::EnsureFaModuleLibraryLoaded(const std::string& moduleName)
+{
+    std::vector<std::string> libraryCandidates;
+    if (moduleName == FA_MODULE_FEATURE_ABILITY || moduleName == FA_MODULE_FEATURE_ABILITY_LEGACY) {
+        libraryCandidates = {
+            FA_LIB_FEATURE_ABILITY_NAPI,
+            FA_LIB_FEATURE_ABILITY_NAPI_COMPAT,
+            FA_LIB_FEATURE_ABILITY,
+            FA_LIB_FEATURE_ABILITY_COMPAT,
+        };
+    } else if (moduleName == FA_MODULE_PARTICLE_ABILITY) {
+        libraryCandidates = {
+            FA_LIB_PARTICLE_ABILITY,
+            FA_LIB_PARTICLE_ABILITY_COMPAT,
+        };
+    } else {
+        return true;
+    }
+
+    std::lock_guard<std::mutex> lock(faModuleLoadMutex_);
+    auto loadedHandle = faModuleHandles_.find(moduleName);
+    if (loadedHandle != faModuleHandles_.end() && loadedHandle->second != nullptr) {
+        return true;
+    }
+
+    for (const auto &libraryName : libraryCandidates) {
+        void *handle = dlopen(libraryName.c_str(), RTLD_NOW | RTLD_GLOBAL);
+        if (handle == nullptr) {
+            TAG_LOGD(AAFwkTag::JSRUNTIME, "dlopen failed for %{public}s, err=%{public}s",
+                libraryName.c_str(), dlerror());
+            continue;
+        }
+        faModuleHandles_[moduleName] = handle;
+        TAG_LOGI(AAFwkTag::JSRUNTIME, "dlopen success for %{public}s, moduleName=%{public}s",
+            libraryName.c_str(), moduleName.c_str());
+        return true;
+    }
+    return false;
 }
 
 napi_value JsRuntime::GetExportObjectFromOhmUrl(const std::string &srcEntrance, const std::string &key)

@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <functional>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -182,6 +183,8 @@ private:
     bool Initialize(const Options& options);
     void Deinitialize();
     int32_t JsperfProfilerCommandParse(const std::string &command, int32_t defaultValue);
+    bool IsFaModuleName(const std::string& moduleName) const;
+    bool EnsureFaModuleLibraryLoaded(const std::string& moduleName);
 
     napi_value LoadJsBundle(const std::string& path, const std::string& hapPath, bool useCommonChunk = false);
     napi_value LoadJsModule(const std::string& path, const std::string& hapPath, const std::string& srcEntrance = "");
@@ -189,10 +192,13 @@ private:
     bool preloaded_ = false;
     bool isBundle_ = true;
     bool isOhmUrl_ = false;
+    bool isStageModel_ = true;
     std::string codePath_;
     std::string moduleName_;
     std::unique_ptr<NativeReference> methodRequireNapiRef_;
     std::unordered_map<std::string, NativeReference*> modules_;
+    std::unordered_map<std::string, void*> faModuleHandles_;
+    std::mutex faModuleLoadMutex_;
     std::shared_ptr<JsEnv::JsEnvironment> jsEnv_ = nullptr;
     uint32_t instanceId_ = 0;
     std::string bundleName_;

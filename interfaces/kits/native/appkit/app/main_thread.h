@@ -782,13 +782,13 @@ private:
      * @param libraryPaths the library paths.
      *
      */
-    void LoadAbilityLibrary(const std::vector<std::string> &libraryPaths);
+    void LoadAbilityLibrary(const std::vector<std::string> &libraryPaths, bool isStageBasedModel);
     void LoadAceAbilityLibrary();
 
     void CalcNativeLiabraryEntries(const BundleInfo &bundleInfo, std::string &nativeLibraryPath);
-    void LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &nativeLibraryPath);
+    void LoadNativeLibrary(const BundleInfo &bundleInfo, std::string &nativeLibraryPath, bool isStageBasedModel);
 
-    void LoadAppDetailAbilityLibrary(std::string &nativeLibraryPath);
+    void LoadAppDetailAbilityLibrary(std::string &nativeLibraryPath, bool isStageBasedModel);
 
     void LoadAppLibrary();
 
