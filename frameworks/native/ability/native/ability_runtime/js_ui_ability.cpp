@@ -1200,7 +1200,12 @@ void JsUIAbility::DoOnForeground(const Want &want)
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->GoForeground");
-    scene_->GoForeground(UIAbility::sceneFlag_);
+    bool isGamePreLaunch = false;
+    if (want.GetBoolParam("ability.want.params.game_prelaunch") == true) {
+        LAG_LOGD(AAFwkTag::UIABILITY, "game prelaunch")
+        isGamePreLaunch = true;
+    } 
+    scene_->GoForeground(UIAbility::sceneFlag_, isGamePreLaunch);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 

@@ -411,6 +411,7 @@ private:
 #ifdef SUPPORT_SCREEN
 public:
     uint32_t sceneFlag_ = 0;
+    bool isGamePreLaunch_ = false;
 
     enum CollaborateResult {
         ACCEPT = 0,
