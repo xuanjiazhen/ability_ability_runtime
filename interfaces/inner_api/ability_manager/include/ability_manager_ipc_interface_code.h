@@ -571,6 +571,8 @@ enum class AbilityManagerInterfaceCode {
     MANUAL_START_AUTO_STARTUP_APPS = 6107,
     // ipc id for query the caller's token id for anco
     QUERY_CALLER_TOKEN_ID_FOR_ANCO = 6108,
+    // ipc id for launch game customized
+    LAUNCH_GAME_CUSTOMIZED = 6109,
 
     // ipc id for on auto starup on
     ON_AUTO_STARTUP_ON = 6111,
