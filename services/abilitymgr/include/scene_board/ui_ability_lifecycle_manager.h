@@ -679,6 +679,20 @@ private:
     void CompleteForegroundSuccess(const UIAbilityRecordPtr &abilityRecord);
 
     /**
+     * @brief Cancel game prelaunch and kill the game process.
+     * @param callerToken Token of the caller ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode CancelGamePreLaunch(const sptr<IRemoteObject> callerToken);
+
+    /**
+     * @brief Complete game SA prelaunch by clearing flag and killing process
+     * @param callerToken Token of the game SA prelaunch ability
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode CompleteGamePreLaunch(const sptr<IRemoteObject> callerToken);
+
+    /**
      * @brief Handle load timeout for ability
      * @param ability The ability that timed out
      */
