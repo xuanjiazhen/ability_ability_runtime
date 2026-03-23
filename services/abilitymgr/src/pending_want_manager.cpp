@@ -694,10 +694,10 @@ int32_t PendingWantManager::GetPendingRequestWant(const sptr<IWantSender> &targe
 
     auto record = GetPendingWantRecordByCode(targetRecord->GetKey()->GetCode());
     if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::WANTAGENT, "null record, request code=%{public}d", targetRecord->GetKey()->GetCode());
-        return ERR_INVALID_VALUE;
+        TAG_LOGI(AAFwkTag::WANTAGENT, "request code=%{public}d has been canceled", targetRecord->GetKey()->GetCode());
+        record = targetRecord;
     }
-    want.reset(new (std::nothrow) Want(record->GetKey()->GetRequestWant()));
+    want.reset(new (std::nothrow) Want(targetRecord->GetKey()->GetRequestWant()));
     return NO_ERROR;
 }
 
