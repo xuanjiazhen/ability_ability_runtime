@@ -22,12 +22,18 @@
 #include "app_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
+#include "global_constant.h"
 #include "permission_verification.h"
 #include "process_options.h"
 #include "start_options.h"
+#include "bundle_mgr_interface.h"
 
 namespace OHOS {
 namespace AAFwk {
+namespace {
+constexpr const char* DEVELOPER_MODE_STATE = "const.security.developermode.state";
+constexpr int32_t GAME_SA_UID = 7800;
+}  // namespace
 PreloadManagerService &PreloadManagerService::GetInstance()
 {
     static PreloadManagerService instance;
@@ -42,27 +48,12 @@ int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName,
 {
     CHECK_TRUE_RETURN_RET(!AppUtils::GetInstance().IsPreloadApplicationEnabled() || appIndex != 0,
         ERR_CAPABILITY_NOT_SUPPORT, "preload application not supported");
-    CHECK_TRUE_RETURN_RET(!PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission(),
-        ERR_PERMISSION_DENIED, "no preload permission");
-    userId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetValidUserId(userId);
-    CHECK_TRUE_RETURN_RET(!DelayedSingleton<AbilityManagerService>::GetInstance()->JudgeMultiUserConcurrency(userId),
-        ERR_CROSS_USER, "multi-user non-concurrent unsatisfied");
-
-    bool isExist = false;
-    int32_t ret = ERR_OK;
-    CHECK_TRUE_RETURN_RET((ret = DelayedSingleton<AppScheduler>::GetInstance()->CheckPreloadAppRecordExist(
-        bundleName, userId, appIndex, isExist)) != ERR_OK, ret, "CheckPreloadAppRecordExist failed");
-    CHECK_TRUE_RETURN_RET(isExist, ERR_PRELOAD_APP_RECORD_ALREADY_EXIST, "already started");
-
-    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-    CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
-
     Want launchWant;
-    auto errCode = IN_PROCESS_CALL(bundleMgrHelper->GetLaunchWantForBundle(bundleName, launchWant, userId));
-    if (errCode != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "getLaunchWantForBundle returns %{public}d", errCode);
-        return errCode;
+    if (auto ret = PreloadApplicationVerification(bundleName, userId, appIndex, launchWant); ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verify PreloadApplication failed");
+        return ret;
     }
+
     AppExecFwk::AbilityInfo abilityInfo;
     CHECK_TRUE_RETURN_RET(!IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(launchWant,
         AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, abilityInfo)),
@@ -88,6 +79,60 @@ int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName,
     options.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
     options.processOptions->isPreloadStart = true;
     return DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(launchWant, options, nullptr, userId);
+}
+
+int32_t PreloadManagerService::LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    Want launchWant;
+    if (auto ret = PreloadApplicationVerification(bundleName, userId, appIndex, launchWant); ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verify preload game failed");
+        return ret;
+    }
+
+    bool isGameSACall = IPCSkeleton::GetCallingUid() == GAME_SA_UID;
+    bool isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    bool isDevelopMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
+    bool isDebugApp = launchWant.GetBoolParam(AbilityConfig::DEBUG_APP, false);
+    if (!(isGameSACall || (isShellCall && isDevelopMode && isDebugApp))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Permission check failed: callingUid: %{public}d, isGameSACall = %{public}d, ",
+            "isShellCall = %{public}d, isDevelopMode = %{public}d, isDebugApp = %{public}d",
+            IPCSkeleton::GetCallingUid(), isGameSACall, isShellCall, isDevelopMode, isDebugApp);
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    // Set game prelaunch flag
+    launchWant.SetParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH, true);
+
+    StartAbilityWrapParam startAbilityWrapParam;
+    startAbilityWrapParam.want = launchWant;
+    startAbilityWrapParam.userId = userId;
+    return DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbilityInner(startAbilityWrapParam);
+}
+
+int32_t PreloadManagerService::PreloadApplicationVerification(const std::string &bundleName, int32_t userId,
+    int32_t appIndex, Want &want)
+{
+    CHECK_TRUE_RETURN_RET(!PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission(),
+        ERR_PERMISSION_DENIED, "no preload permission");
+    userId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetValidUserId(userId);
+    CHECK_TRUE_RETURN_RET(!DelayedSingleton<AbilityManagerService>::GetInstance()->JudgeMultiUserConcurrency(userId),
+        ERR_CROSS_USER, "multi-user non-concurrent unsatisfied");
+
+    bool isExist = false;
+    int32_t ret = ERR_OK;
+    CHECK_TRUE_RETURN_RET((ret = DelayedSingleton<AppScheduler>::GetInstance()->CheckPreloadAppRecordExist(
+        bundleName, userId, appIndex, isExist)) != ERR_OK, ret, "CheckPreloadAppRecordExist failed");
+    CHECK_TRUE_RETURN_RET(isExist, ERR_PRELOAD_APP_RECORD_ALREADY_EXIST, "already started");
+    
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
+
+    auto errCode = IN_PROCESS_CALL(bundleMgrHelper->GetLaunchWantForBundle(bundleName, want, userId));
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "getLaunchWantForBundle returns %{public}d", errCode);
+        return errCode;
+    }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
