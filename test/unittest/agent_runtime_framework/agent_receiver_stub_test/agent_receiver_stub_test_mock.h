@@ -91,6 +91,8 @@ public:
     AgentReceiverStubTestMock() = default;
     virtual ~AgentReceiverStubTestMock() = default;
 
+    std::string lastWorkflowAgentId;
+
     int32_t SendData(const sptr<IRemoteObject> &connectorProxy, const std::string &data) override
     {
         return 0;
@@ -98,6 +100,12 @@ public:
 
     int32_t Authorize(const sptr<IRemoteObject> &connectorProxy, const std::string &data) override
     {
+        return 0;
+    }
+
+    int32_t WorkflowInvoked(const std::string &agentId) override
+    {
+        lastWorkflowAgentId = agentId;
         return 0;
     }
 };

@@ -550,6 +550,11 @@ napi_value JsAgentManager::DisconnectAgentExtensionAbility(napi_env env, napi_ca
     GET_CB_INFO_AND_CALL(env, info, JsAgentManager, OnDisconnectAgentExtensionAbility);
 }
 
+napi_value JsAgentManager::NotifyWorkflowAgentComplete(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JsAgentManager, OnNotifyWorkflowAgentComplete);
+}
+
 napi_value JsAgentManager::OnDisconnectAgentExtensionAbility(napi_env env, size_t argc, napi_value *argv)
 {
     if (!CheckCallerIsSystemApp()) {
@@ -587,7 +592,7 @@ napi_value JsAgentManager::OnDisconnectAgentExtensionAbility(napi_env env, size_
 
         if (connection == nullptr) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "Connection not found");
-            *innerErrCode = ERR_INVALID_VALUE;
+            *innerErrCode = AAFwk::INVALID_PARAMETERS_ERR;
             return;
         }
 
@@ -605,6 +610,41 @@ napi_value JsAgentManager::OnDisconnectAgentExtensionAbility(napi_env env, size_
 
     napi_value result = nullptr;
     NapiAsyncTask::Schedule("JsAgentManager::OnDisconnectAgentExtensionAbility",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsAgentManager::OnNotifyWorkflowAgentComplete(napi_env env, size_t argc, napi_value *argv)
+{
+    if (!CheckCallerIsSystemApp()) {
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_NOT_SYSTEM_APP);
+        return CreateJsUndefined(env);
+    }
+    if (argc < ARGC_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string agentId;
+    if (!ConvertFromJsValue(env, argv[ARG_INDEX_0], agentId)) {
+        ThrowInvalidParamError(env, "Parse param agentId failed, must be a string.");
+        return CreateJsUndefined(env);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [agentId, innerErrCode]() {
+        *innerErrCode = AgentManagerClient::GetInstance().NotifyWorkflowAgentComplete(agentId);
+    };
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+        if (*innerErrCode == ERR_OK) {
+            task.ResolveWithNoError(env, CreateJsUndefined(env));
+        } else {
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+        }
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JsAgentManager::OnNotifyWorkflowAgentComplete",
         env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
     return result;
 }
@@ -631,6 +671,8 @@ napi_value JsAgentManagerInit(napi_env env, napi_value exportObj)
         JsAgentManager::ConnectAgentExtensionAbility);
     BindNativeFunction(env, exportObj, "disconnectAgentExtensionAbility", moduleName,
         JsAgentManager::DisconnectAgentExtensionAbility);
+    BindNativeFunction(env, exportObj, "notifyWorkflowAgentComplete", moduleName,
+        JsAgentManager::NotifyWorkflowAgentComplete);
     TAG_LOGD(AAFwkTag::SER_ROUTER, "end");
     return CreateJsUndefined(env);
 }
