@@ -284,12 +284,12 @@ static std::string GetContent(napi_env env, napi_value exception, const std::str
 {
     napi_value tempContent;
     std::string content;
-    napi_value propertyNmae = nullptr;
+    napi_value propertyName = nullptr;
     std::string property = name;
-    if (napi_create_string_utf8(env, property.c_str(), property.size(), &propertyNmae) != napi_ok) {
+    if (napi_create_string_utf8(env, property.c_str(), property.size(), &propertyName) != napi_ok) {
         TAG_LOGW(AAFwkTag::JSNAPI, "Create String Failed");
     }
-    if (napi_get_property(env, exception, propertyNmae, &tempContent) != napi_ok) {
+    if (napi_get_property(env, exception, propertyName, &tempContent) != napi_ok) {
         TAG_LOGW(AAFwkTag::JSNAPI, "Get Property Failed");
     }
     size_t length = 0;
