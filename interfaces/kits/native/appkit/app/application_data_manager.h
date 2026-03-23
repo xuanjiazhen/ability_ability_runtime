@@ -67,7 +67,7 @@ private:
     std::atomic_bool isUncatchable_;
     LeakObserverFunction leakObserver_ = nullptr;
     std::mutex leakObserverMutex_;
-    EtsErrorCallback errorCallback_;
+    EtsErrorCallback errorCallback_ = nullptr;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
