@@ -183,6 +183,16 @@ ErrCode AbilityManagerClient::StartAbility(
     return abms->StartAbility(want, callerToken, userId, requestCode, specifiedFullTokenId);
 }
 
+int32_t AbilityManagerClient::LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "LaunchGameCustomized call, bundleName:%{public}s, userId:%{public}d, "
+        "appIndex:%{public}d", bundleName.c_str(), userId, appIndex);
+    return abms->LaunchGameCustomized(bundleName, userId, appIndex);
+}
+
 ErrCode AbilityManagerClient::StartAbilityByInsightIntent(
     const Want &want, sptr<IRemoteObject> callerToken, uint64_t intentId, int32_t userId)
 {
@@ -2564,6 +2574,24 @@ ErrCode AbilityManagerClient::StartSelfUIAbilityInCurrentProcess(const Want &wan
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, options, hasOptions, callerToken);
+}
+
+ErrCode AbilityManagerClient::CancelGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CancelGamePreLaunch called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->CancelGamePreLaunch(callerToken);
+}
+
+ErrCode AbilityManagerClient::CompleteGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteGamePreLaunch called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->CompleteGamePreLaunch(callerToken);
 }
 
 bool AbilityManagerClient::IsRestartAppLimit()
