@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #include "child_process.h"
 
 #include "js_child_process.h"
+#include "ets_child_process_instance.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -27,6 +28,13 @@ std::shared_ptr<ChildProcess> ChildProcess::Create(const std::unique_ptr<Runtime
     switch (runtime->GetLanguage()) {
         case AbilityRuntime::Runtime::Language::JS:
             return AbilityRuntime::JsChildProcess::Create(runtime);
+        case AbilityRuntime::Runtime::Language::ETS: {
+            auto* childProcess = AbilityRuntime::CreateETSEtsChildProcess(runtime);
+            if (childProcess == nullptr) {
+                return nullptr;
+            }
+            return std::shared_ptr<ChildProcess>(childProcess);
+        }
         default:
             return std::make_shared<ChildProcess>();
     }

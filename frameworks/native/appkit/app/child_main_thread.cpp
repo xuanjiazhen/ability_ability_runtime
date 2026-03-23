@@ -204,7 +204,8 @@ void ChildMainThread::HandleLoadJs()
         return;
     }
 
-    runtime_ = childProcessManager.CreateRuntime(bundleInfoCopy, hapModuleInfo, true, processInfo_->jitEnabled);
+    runtime_ = childProcessManager.CreateRuntime(bundleInfoCopy, hapModuleInfo, true, processInfo_->jitEnabled,
+        processInfo_->isStatic);
     if (!runtime_) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
@@ -245,7 +246,8 @@ void ChildMainThread::HandleLoadArkTs()
         return;
     }
 
-    runtime_ = childProcessManager.CreateRuntime(*bundleInfo_, hapModuleInfo, true, processInfo_->jitEnabled);
+    runtime_ = childProcessManager.CreateRuntime(*bundleInfo_, hapModuleInfo, true, processInfo_->jitEnabled,
+        processInfo_->isStatic);
     if (!runtime_) {
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return;
