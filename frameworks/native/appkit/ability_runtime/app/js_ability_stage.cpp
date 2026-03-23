@@ -293,6 +293,67 @@ void JsAbilityStage::OnDestroy() const
     napi_call_function(env, obj, methodOnDestroy, 0, nullptr, nullptr);
 }
 
+void JsAbilityStage::OnLaunchFromHyperSnap()
+{
+    AbilityStage::OnLaunchFromHyperSnap();
+
+    if (!jsAbilityStageObj_) {
+ 	    TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+ 	    return;
+ 	}
+
+    HandleScope handleScope(jsRuntime_);
+ 	auto env = jsRuntime_.GetNapiEnv();
+
+    napi_value obj = jsAbilityStageObj_->GetNapiValue();
+ 	if (!CheckTypeForNapiValue(env, obj, napi_object)) {
+ 	    TAG_LOGE(AAFwkTag::APPKIT, "get object failed");
+ 	    return;
+ 	}
+
+    napi_value methodOnAbortToCreateAbility = nullptr;
+ 	napi_get_named_property(env, obj, "onAboutToCreateAbility", &methodOnAbortToCreateAbility);
+ 	if (methodOnAbortToCreateAbility == nullptr) {
+ 	    TAG_LOGI(AAFwkTag::APPKIT, "null methodOnAbortToCreateAbility");
+ 	    return;
+ 	}
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "JSAbilityStage::OnAboutToCreateAbility begin");
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    napi_call_function(env, obj, methodOnAbortToCreateAbility, 0, nullptr, nullptr);
+    FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "JSAbilityStage::OnAboutToCreateAbility end");
+}
+
+void JsAbilityStage::OnAboutToCreateAbility()
+{
+    AbilityStage::OnAboutToCreateAbility()
+
+    if (!jsAbilityStageObj_) {
+ 	    TAG_LOGW(AAFwkTag::APPKIT, "Not found AbilityStage.js");
+ 	    return;
+ 	}
+ 	 
+ 	HandleScope handleScope(jsRuntime_);
+ 	auto env = jsRuntime_.GetNapiEnv();
+ 	 
+ 	napi_value obj = jsAbilityStageObj_->GetNapiValue();
+ 	if (!CheckTypeForNapiValue(env, obj, napi_object)) {
+ 	    TAG_LOGE(AAFwkTag::APPKIT, "get object failed");
+ 	    return;
+ 	}
+
+    napi_value methodonPreAbilityCreate = nullptr;
+ 	napi_get_named_property(env, obj, "onPreAbilityCreate", &methodonPreAbilityCreate);
+ 	if (methodonPreAbilityCreate == nullptr) {
+ 	    TAG_LOGI(AAFwkTag::APPKIT, "null methodonPreAbilityCreate");
+ 	    return;
+ 	}
+ 	FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "JSAbilityStage::onPreAbilityCreate begin");
+    
+ 	HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+ 	napi_call_function(env, obj, methodonPreAbilityCreate, 0, nullptr, nullptr);
+ 	FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "JSAbilityStage::onPreAbilityCreate end");
+}
+
 bool JsAbilityStage::OnPrepareTerminate(
     AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnPrepareTerminationResult> *callbackInfo,
     bool &isAsync) const
