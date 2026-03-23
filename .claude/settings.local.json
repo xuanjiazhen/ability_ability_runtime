@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -rn 'struct NapiCallbackInfo' --include=*.h c:/hilog/ability_ability_runtime_9012/)",
+      "Bash(grep -rn ani_object --include=*.h c:/hilog/ability_ability_runtime_9012/frameworks/ets/ani/ui_ability/include/)",
+      "Bash(grep -rn 'class ArkNativeEngine' --include=*.h c:/hilog/ability_ability_runtime_9012/)",
+      "Bash(grep -rn \"ani_reference\\\\|AniRef\\\\|GlobalReference\" --include=*.h c:/hilog/ability_ability_runtime_9012/frameworks/ets/)",
+      "Bash(grep -rn \"ToNapiValue\\\\|ToNapi\\\\|AsNapi\" --include=*.h --include=*.cpp c:/hilog/ability_ability_runtime_9012/frameworks/ets/)",
+      "Bash(grep -rn \"NativeArkEngineVM\\\\|NativeEngineFromAni\" --include=*.h --include=*.cpp c:/hilog/ability_ability_runtime_9012/)"
+    ]
+  }
+}
