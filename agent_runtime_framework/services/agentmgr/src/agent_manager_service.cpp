@@ -15,6 +15,7 @@
 
 #include "agent_manager_service.h"
 
+#include <algorithm>
 #include <chrono>
 #include <utility>
 
@@ -24,6 +25,7 @@
 #include "agent_card_mgr.h"
 #include "agent_config.h"
 #include "agent_extension_connection_constants.h"
+#include "agent_receiver_proxy.h"
 #include "agent_service_connection.h"
 #include "app_mgr_client.h"
 #include "bundle_mgr_helper.h"
@@ -38,6 +40,24 @@
 
 namespace OHOS {
 namespace AgentRuntime {
+namespace {
+bool IsWorkflowTargetMatched(const AAFwk::Want &want, const AgentCard &card)
+{
+    if (card.appInfo == nullptr) {
+        return false;
+    }
+    if (want.GetElement().GetBundleName() != card.appInfo->bundleName ||
+        want.GetElement().GetAbilityName() != card.appInfo->abilityName) {
+        return false;
+    }
+    const std::string moduleName = want.GetElement().GetModuleName();
+    if (!moduleName.empty() && moduleName != card.appInfo->moduleName) {
+        return false;
+    }
+    return true;
+}
+}
+
 std::mutex g_mutex;
 sptr<AgentManagerService> AgentManagerService::instance_ = nullptr;
 const bool REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(AgentManagerService::GetInstance());
@@ -250,6 +270,56 @@ int32_t AgentManagerService::DeleteAgentCard(const std::string &bundleName, cons
 int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection)
 {
+    // Step 1: validate caller state and shared caller-side connection quota.
+    int32_t callerUid = 0;
+    auto ret = ValidateConnectAgentRequest(connection, callerUid);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // Step 2: resolve the agentId and backing card metadata from the request.
+    AAFwk::Want connectWant;
+    std::string agentId;
+    AgentCard card;
+    ret = ResolveConnectAgentTarget(want, connectWant, agentId, card, callerUid);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // Step 3: low-code agents use dedicated shared-host session management.
+    if (card.type == AgentCardType::LOW_CODE) {
+        return ConnectWorkflowAgentExtensionAbility(connectWant, agentId, connection, callerUid);
+    }
+
+    // Step 4: prepare the final Want for standard agent-extension connect.
+    ret = PrepareStandardAgentConnectWant(connectWant, card, callerUid);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // Step 5: create the tracked wrapper connection before talking to AMS.
+    sptr<AAFwk::IAbilityConnection> serviceConnection;
+    ret = RegisterTrackedConnectionAndGetServiceConnection(connection, callerUid, serviceConnection);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // Step 6: issue the actual extension connect request through AMS.
+    ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbilityWithExtensionType(
+        connectWant, serviceConnection, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::AGENT);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ConnectAbilityWithExtensionType failed: %{public}d", ret);
+        ReleaseTrackedConnection(connection);
+        return ret;
+    }
+
+    return ERR_OK;
+}
+
+int32_t AgentManagerService::ValidateConnectAgentRequest(const sptr<AAFwk::IAbilityConnection> &connection,
+    int32_t &callerUid)
+{
+    // Reject unauthorized callers before doing any stateful work.
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "caller no system-app, can not use system-api");
         return AAFwk::ERR_NOT_SYSTEM_APP;
@@ -263,7 +333,9 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Invalid connection object");
         return ERR_INVALID_VALUE;
     }
-    int32_t callerUid = IPCSkeleton::GetCallingUid();
+
+    // Reserve only against the caller-level shared connection budget.
+    callerUid = IPCSkeleton::GetCallingUid();
     {
         std::lock_guard<std::mutex> lock(connectionLock_);
         if (HasReachedCallerConnectionLimitLocked(callerUid)) {
@@ -271,6 +343,8 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
             return AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED;
         }
     }
+
+    // Only foreground apps are allowed to initiate agent connects.
     auto callerPid = IPCSkeleton::GetCallingPid();
     AppExecFwk::RunningProcessInfo processInfo;
     auto ret = IN_PROCESS_CALL(DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->GetRunningProcessInfoByPid(
@@ -283,22 +357,41 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
         TAG_LOGE(AAFwkTag::SER_ROUTER, "not foreground app");
         return AAFwk::NOT_TOP_ABILITY;
     }
+    return ERR_OK;
+}
 
-    AAFwk::Want connectWant = want;
-    std::string agentId = connectWant.GetStringParam(AGENTID_KEY);
+int32_t AgentManagerService::ResolveConnectAgentTarget(const AAFwk::Want &want, AAFwk::Want &connectWant,
+    std::string &agentId, AgentCard &card, int32_t &callingUid) const
+{
+    // Copy the incoming Want so later steps can enrich it safely.
+    connectWant = want;
+    agentId = connectWant.GetStringParam(AGENTID_KEY);
     if (agentId.empty()) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "empty agentId");
-        return ERR_INVALID_VALUE;
+        return AAFwk::INVALID_PARAMETERS_ERR;
     }
 
-    AgentCard card;
     int32_t cardRet = AgentCardMgr::GetInstance().GetAgentCardByAgentId(connectWant.GetBundle(), agentId, card);
     if (cardRet != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "no such card");
         return AAFwk::ERR_INVALID_AGENT_CARD_ID;
     }
+    if (card.type == AgentCardType::LOW_CODE && !IsWorkflowTargetMatched(connectWant, card)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "workflow target mismatch");
+        return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+
+    // Capture the caller UID once the target metadata is known-good.
+    callingUid = IPCSkeleton::GetCallingUid();
+    return ERR_OK;
+}
+
+int32_t AgentManagerService::PrepareStandardAgentConnectWant(AAFwk::Want &connectWant, const AgentCard &card,
+    int32_t callingUid) const
+{
+    // Resolve extension metadata unless the card is allowed to free-install on demand.
     bool isAtomicServiceAgent = card.type == AgentCardType::ATOMIC_SERVICE;
-    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    int32_t userId = callingUid / BASE_USER_RANGE;
     std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
     bool queryResult = IN_PROCESS_CALL(
         DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->QueryExtensionAbilityInfos(
@@ -311,15 +404,23 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
         TAG_LOGE(AAFwkTag::SER_ROUTER, "incorrect extension");
         return AAFwk::ERR_WRONG_INTERFACE_CALL;
     }
+
+    // Atomic-service agents connect with install-on-demand metadata attached.
     if (isAtomicServiceAgent) {
         connectWant.AddFlags(AAFwk::Want::FLAG_INSTALL_ON_DEMAND);
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count());
         connectWant.SetParam(AAFwk::Want::PARAM_RESV_START_TIME, startTime);
     }
-    TAG_LOGI(AAFwkTag::SER_ROUTER, "connecting %{public}s-%{public}s",
-        connectWant.GetBundle().c_str(), agentId.c_str());
+    return ERR_OK;
+}
 
+int32_t AgentManagerService::RegisterTrackedConnectionAndGetServiceConnection(
+    const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid,
+    sptr<AAFwk::IAbilityConnection> &serviceConnection)
+{
+    // Register the caller callback and allocate the service-side wrapper connection.
+    int32_t ret = ERR_OK;
     {
         std::lock_guard<std::mutex> lock(connectionLock_);
         ret = TryRegisterConnectionLocked(connection, callerUid);
@@ -329,25 +430,16 @@ int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &wan
         return ret;
     }
 
-    sptr<AAFwk::IAbilityConnection> serviceConnection;
+    // Fetch the wrapper connection that was just installed into tracked state.
     {
         std::lock_guard<std::mutex> lock(connectionLock_);
         auto it = trackedConnections_.find(connection->AsObject());
         if (it == trackedConnections_.end()) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "tracked connection missing after register");
-            return ERR_INVALID_VALUE;
+            return AAFwk::INVALID_PARAMETERS_ERR;
         }
         serviceConnection = it->second.serviceConnection;
     }
-
-    ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbilityWithExtensionType(
-        connectWant, serviceConnection, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::AGENT);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "ConnectAbilityWithExtensionType failed: %{public}d", ret);
-        ReleaseTrackedConnection(connection);
-        return ret;
-    }
-
     return ERR_OK;
 }
 
@@ -366,7 +458,46 @@ int32_t AgentManagerService::DisconnectAgentExtensionAbility(const sptr<AAFwk::I
     // Validate connection object
     if (connection == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Invalid connection object");
-        return ERR_INVALID_VALUE;
+        return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+
+    sptr<WorkflowHostConnection> hostConnection = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(workflowMutex_);
+        for (auto &[key, session] : workflowHostSessions_) {
+            if (session == nullptr) {
+                continue;
+            }
+            auto callbackIter = std::find(session->callbacks.begin(), session->callbacks.end(), connection);
+            if (callbackIter == session->callbacks.end()) {
+                continue;
+            }
+            if (session->isDisconnecting) {
+                return ERR_OK;
+            }
+            session->isDisconnecting = true;
+            EraseWorkflowOwnersLocked(*session);
+            session->activeAgentIds.clear();
+            session->pendingAgentIds.clear();
+            hostConnection = session->hostConnection;
+            break;
+        }
+    }
+    if (hostConnection != nullptr) {
+        auto ret = IN_PROCESS_CALL(AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(hostConnection));
+        if (ret != ERR_OK) {
+            std::lock_guard<std::mutex> lock(workflowMutex_);
+            auto sessionIter = std::find_if(workflowHostSessions_.begin(), workflowHostSessions_.end(),
+                [hostConnection](const auto &item) {
+                    return item.second != nullptr && item.second->hostConnection == hostConnection;
+                });
+            if (sessionIter != workflowHostSessions_.end()) {
+                sessionIter->second->isDisconnecting = false;
+            }
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "DisconnectAbility failed: %{public}d", ret);
+            return ret;
+        }
+        return ERR_OK;
     }
 
     sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
@@ -411,6 +542,14 @@ bool AgentManagerService::HasReachedCallerConnectionLimitLocked(int32_t callerUi
         return false;
     }
     return countIt->second >= MAX_CONNECTIONS_PER_CALLER;
+}
+
+size_t AgentManagerService::GetWorkflowAgentCountByUidLocked(int32_t callerUid) const
+{
+    return static_cast<size_t>(std::count_if(workflowAgentOwners_.begin(), workflowAgentOwners_.end(),
+        [callerUid](const auto &item) {
+            return item.first.callingUid == callerUid;
+        }));
 }
 
 int32_t AgentManagerService::TryRegisterConnectionLocked(const sptr<AAFwk::IAbilityConnection> &connection,
@@ -466,6 +605,19 @@ int32_t AgentManagerService::TryRegisterConnectionLocked(const sptr<AAFwk::IAbil
     return ERR_OK;
 }
 
+void AgentManagerService::ReleaseCallerConnectionCountByUidLocked(int32_t callerUid)
+{
+    auto countIt = callerConnectionCounts_.find(callerUid);
+    if (countIt == callerConnectionCounts_.end()) {
+        return;
+    }
+    if (countIt->second <= 1) {
+        callerConnectionCounts_.erase(countIt);
+        return;
+    }
+    countIt->second--;
+}
+
 bool AgentManagerService::ReleaseCallerConnectionCountLocked(const sptr<IRemoteObject> &callerRemote)
 {
     auto it = trackedConnections_.find(callerRemote);
@@ -476,11 +628,7 @@ bool AgentManagerService::ReleaseCallerConnectionCountLocked(const sptr<IRemoteO
     if (countIt == callerConnectionCounts_.end()) {
         return false;
     }
-    if (countIt->second <= 1) {
-        callerConnectionCounts_.erase(countIt);
-        return true;
-    }
-    countIt->second--;
+    ReleaseCallerConnectionCountByUidLocked(it->second.callerUid);
     return true;
 }
 
@@ -551,6 +699,302 @@ void AgentManagerService::HandleConnectionDone(
     if (isDisconnect || resultCode != ERR_OK) {
         ReleaseTrackedConnection(connection);
     }
+}
+
+int32_t AgentManagerService::NotifyLowCodeAgentComplete(const std::string &agentId)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "caller no system-app, can not use system-api");
+        return AAFwk::ERR_NOT_SYSTEM_APP;
+    }
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_CONNECT_AGENT)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Permission verification failed");
+        return ERR_PERMISSION_DENIED;
+    }
+    if (agentId.empty()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "empty agentId");
+        return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+    sptr<WorkflowHostConnection> hostConnection = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(workflowMutex_);
+        WorkflowAgentOwnerKey ownerKey { IPCSkeleton::GetCallingUid(), agentId };
+        auto ownerIter = workflowAgentOwners_.find(ownerKey);
+        if (ownerIter == workflowAgentOwners_.end()) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "workflow agent not found");
+            return AAFwk::ERR_INVALID_AGENT_CARD_ID;
+        }
+        auto session = ownerIter->second;
+        if (session == nullptr) {
+            workflowAgentOwners_.erase(ownerIter);
+            return AAFwk::CONNECTION_NOT_EXIST;
+        }
+        session->activeAgentIds.erase(agentId);
+        session->pendingAgentIds.erase(agentId);
+        workflowAgentOwners_.erase(ownerIter);
+        if (!session->activeAgentIds.empty() || session->isDisconnecting) {
+            return ERR_OK;
+        }
+        session->isDisconnecting = true;
+        hostConnection = session->hostConnection;
+    }
+    auto ret = IN_PROCESS_CALL(AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(hostConnection));
+    if (ret != ERR_OK) {
+        std::lock_guard<std::mutex> lock(workflowMutex_);
+        auto sessionIter = std::find_if(workflowHostSessions_.begin(), workflowHostSessions_.end(),
+            [hostConnection](const auto &item) {
+                return item.second != nullptr && item.second->hostConnection == hostConnection;
+            });
+        if (sessionIter != workflowHostSessions_.end()) {
+            sessionIter->second->isDisconnecting = false;
+        }
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "DisconnectAbility failed: %{public}d", ret);
+        return ret;
+    }
+    return ERR_OK;
+}
+
+int32_t AgentManagerService::ConnectWorkflowAgentExtensionAbility(const AAFwk::Want &want,
+    const std::string &agentId, const sptr<AAFwk::IAbilityConnection> &connection, int32_t callingUid)
+{
+    // Step 1: create or reuse the shared workflow host session bookkeeping.
+    WorkflowConnectPlan plan;
+    auto ret = PrepareWorkflowConnectPlan(BuildWorkflowHostKey(want, callingUid), agentId, connection, callingUid,
+        plan);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    // Step 2: if the host is already connected, notify the caller immediately.
+    if (plan.notifyExistingConnection) {
+        NotifyExistingWorkflowConnection(plan, agentId, connection);
+        return ERR_OK;
+    }
+
+    // Step 3: otherwise connect the shared host session once through AMS.
+    if (!plan.needRealConnect) {
+        return ERR_OK;
+    }
+    return CompleteWorkflowHostConnect(want, agentId, callingUid, plan);
+}
+
+int32_t AgentManagerService::PrepareWorkflowConnectPlan(const WorkflowHostKey &hostKey, const std::string &agentId,
+    const sptr<AAFwk::IAbilityConnection> &connection, int32_t callingUid, WorkflowConnectPlan &plan)
+{
+    plan.hostKey = hostKey;
+    std::scoped_lock lock(connectionLock_, workflowMutex_);
+    WorkflowAgentOwnerKey ownerKey { callingUid, agentId };
+    if (workflowAgentOwners_.find(ownerKey) != workflowAgentOwners_.end()) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "workflow agent already active");
+        return AAFwk::ERR_WORKFLOW_AGENT_ALREADY_ACTIVE;
+    }
+    if (GetWorkflowAgentCountByUidLocked(callingUid) >= MAX_WORKFLOW_AGENTS_PER_CALLER) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "workflow agent count limit reached for callerUid: %{public}d", callingUid);
+        return AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED;
+    }
+
+    auto sessionIter = workflowHostSessions_.find(hostKey);
+    if (sessionIter != workflowHostSessions_.end()) {
+        auto session = sessionIter->second;
+        if (session == nullptr) {
+            workflowHostSessions_.erase(sessionIter);
+            return ERR_OK;
+        }
+        if (session->activeAgentIds.size() >= MAX_WORKFLOW_AGENTS_PER_HOST_SESSION) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "workflow host session limit reached");
+            return AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED;
+        }
+        session->callbacks.push_back(connection);
+        session->activeAgentIds.insert(agentId);
+        workflowAgentOwners_[ownerKey] = session;
+        plan.hostConnection = session->hostConnection;
+        plan.notifyExistingConnection = session->isConnected && session->remoteObject != nullptr;
+        if (plan.notifyExistingConnection) {
+            plan.cachedElement = session->element;
+            plan.cachedRemoteObject = session->remoteObject;
+            plan.cachedResultCode = session->resultCode;
+        } else {
+            session->pendingAgentIds.insert(agentId);
+        }
+        return ERR_OK;
+    }
+
+    if (HasReachedCallerConnectionLimitLocked(callingUid)) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "Maximum agent connections reached for callerUid: %{public}d", callingUid);
+        return AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED;
+    }
+    auto session = std::make_shared<WorkflowHostSession>();
+    session->key = hostKey;
+    session->hostConnection = sptr<WorkflowHostConnection>::MakeSptr(hostKey);
+    session->callbacks.push_back(connection);
+    session->activeAgentIds.insert(agentId);
+    session->pendingAgentIds.insert(agentId);
+    workflowHostSessions_[hostKey] = session;
+    workflowAgentOwners_[ownerKey] = session;
+    callerConnectionCounts_[callingUid]++;
+    plan.hostConnection = session->hostConnection;
+    plan.needRealConnect = true;
+    plan.reservedCallerConnectionSlot = true;
+    return ERR_OK;
+}
+
+void AgentManagerService::NotifyExistingWorkflowConnection(const WorkflowConnectPlan &plan, const std::string &agentId,
+    const sptr<AAFwk::IAbilityConnection> &connection)
+{
+    WorkflowHostSession callbackSession;
+    callbackSession.remoteObject = plan.cachedRemoteObject;
+    NotifyAgentInvokedLocked(callbackSession, agentId);
+    connection->OnAbilityConnectDone(plan.cachedElement, plan.cachedRemoteObject, plan.cachedResultCode);
+}
+
+void AgentManagerService::CleanupWorkflowConnectPlan(const WorkflowConnectPlan &plan, const std::string &agentId,
+    int32_t callingUid)
+{
+    std::scoped_lock lock(connectionLock_, workflowMutex_);
+    workflowAgentOwners_.erase(WorkflowAgentOwnerKey { callingUid, agentId });
+    workflowHostSessions_.erase(plan.hostKey);
+    if (plan.reservedCallerConnectionSlot) {
+        ReleaseCallerConnectionCountByUidLocked(callingUid);
+    }
+}
+
+int32_t AgentManagerService::CompleteWorkflowHostConnect(const AAFwk::Want &want, const std::string &agentId,
+    int32_t callingUid, WorkflowConnectPlan &plan)
+{
+    int32_t userId = callingUid / BASE_USER_RANGE;
+    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
+    bool queryResult = IN_PROCESS_CALL(
+        DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->QueryExtensionAbilityInfos(
+            want, AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, userId, extensionInfos));
+    if (!queryResult || extensionInfos.empty()) {
+        CleanupWorkflowConnectPlan(plan, agentId, callingUid);
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "extension ability not exist");
+        return AAFwk::RESOLVE_ABILITY_ERR;
+    }
+    if (extensionInfos[0].type != AppExecFwk::ExtensionAbilityType::AGENT) {
+        CleanupWorkflowConnectPlan(plan, agentId, callingUid);
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "incorrect extension");
+        return AAFwk::ERR_WRONG_INTERFACE_CALL;
+    }
+
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbilityWithExtensionType(
+        want, plan.hostConnection, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::AGENT);
+    if (ret != ERR_OK) {
+        CleanupWorkflowConnectPlan(plan, agentId, callingUid);
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "ConnectAbilityWithExtensionType failed: %{public}d", ret);
+        return ret;
+    }
+    return ERR_OK;
+}
+
+WorkflowHostKey AgentManagerService::BuildWorkflowHostKey(const AAFwk::Want &want, int32_t callingUid) const
+{
+    WorkflowHostKey key;
+    key.callingUid = callingUid;
+    key.bundleName = want.GetElement().GetBundleName();
+    key.moduleName = want.GetElement().GetModuleName();
+    key.abilityName = want.GetElement().GetAbilityName();
+    return key;
+}
+
+bool AgentManagerService::NotifyAgentInvokedLocked(const WorkflowHostSession &session, const std::string &agentId)
+{
+    if (session.remoteObject == nullptr) {
+        return false;
+    }
+    auto receiver = iface_cast<IAgentReceiver>(session.remoteObject);
+    if (receiver == nullptr) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "workflow receiver null");
+        return false;
+    }
+    receiver->AgentInvoked(agentId);
+    return true;
+}
+
+void AgentManagerService::EraseWorkflowOwnersLocked(const WorkflowHostSession &session)
+{
+    for (const auto &agentId : session.activeAgentIds) {
+        workflowAgentOwners_.erase(WorkflowAgentOwnerKey { session.key.callingUid, agentId });
+    }
+}
+
+void AgentManagerService::HandleWorkflowConnectDone(const WorkflowHostKey &key, const AppExecFwk::ElementName &element,
+    const sptr<IRemoteObject> &remoteObject, int resultCode)
+{
+    std::vector<sptr<AAFwk::IAbilityConnection>> callbacks;
+    std::vector<std::string> pendingAgentIds;
+    {
+        std::scoped_lock lock(connectionLock_, workflowMutex_);
+        auto sessionIter = workflowHostSessions_.find(key);
+        if (sessionIter == workflowHostSessions_.end()) {
+            return;
+        }
+        auto session = sessionIter->second;
+        if (session == nullptr) {
+            workflowHostSessions_.erase(sessionIter);
+            return;
+        }
+        session->element = element;
+        session->remoteObject = remoteObject;
+        session->resultCode = resultCode;
+        session->isConnected = (resultCode == ERR_OK && remoteObject != nullptr);
+        callbacks = session->callbacks;
+        pendingAgentIds.assign(session->pendingAgentIds.begin(), session->pendingAgentIds.end());
+        session->pendingAgentIds.clear();
+        if (!session->isConnected) {
+            ClearWorkflowSessionLocked(key);
+        }
+    }
+    WorkflowHostSession callbackSession;
+    callbackSession.remoteObject = remoteObject;
+    if (resultCode == ERR_OK && remoteObject != nullptr) {
+        for (const auto &agentId : pendingAgentIds) {
+            NotifyAgentInvokedLocked(callbackSession, agentId);
+        }
+    }
+    for (const auto &callback : callbacks) {
+        if (callback != nullptr) {
+            callback->OnAbilityConnectDone(element, remoteObject, resultCode);
+        }
+    }
+}
+
+void AgentManagerService::HandleWorkflowDisconnectDone(const WorkflowHostKey &key,
+    const AppExecFwk::ElementName &element, int resultCode)
+{
+    std::vector<sptr<AAFwk::IAbilityConnection>> callbacks;
+    {
+        std::scoped_lock lock(connectionLock_, workflowMutex_);
+        auto sessionIter = workflowHostSessions_.find(key);
+        if (sessionIter == workflowHostSessions_.end()) {
+            return;
+        }
+        if (sessionIter->second == nullptr) {
+            workflowHostSessions_.erase(sessionIter);
+            return;
+        }
+        callbacks = sessionIter->second->callbacks;
+        ClearWorkflowSessionLocked(key);
+    }
+    for (const auto &callback : callbacks) {
+        if (callback != nullptr) {
+            callback->OnAbilityDisconnectDone(element, resultCode);
+        }
+    }
+}
+
+void AgentManagerService::ClearWorkflowSessionLocked(const WorkflowHostKey &key)
+{
+    auto sessionIter = workflowHostSessions_.find(key);
+    if (sessionIter == workflowHostSessions_.end()) {
+        return;
+    }
+    if (sessionIter->second != nullptr) {
+        EraseWorkflowOwnersLocked(*sessionIter->second);
+        ReleaseCallerConnectionCountByUidLocked(sessionIter->second->key.callingUid);
+    }
+    workflowHostSessions_.erase(sessionIter);
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS
