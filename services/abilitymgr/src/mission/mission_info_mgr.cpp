@@ -533,7 +533,7 @@ bool MissionInfoMgr::UpdateMissionSnapshot(int32_t missionId, const sptr<IRemote
     Snapshot snapshot;
     int32_t result = snapshotHandler_->GetSnapshot(abilityToken, snapshot);
     if (result != 0) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, result = %{public}d", result);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fai, result = %{public}d", result);
         return false;
     }
 
