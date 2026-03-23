@@ -484,8 +484,12 @@ int32_t AppSpawnClient::SetUserIdInfo(const AppSpawnStartMsg &startMsg, AppSpawn
 
 int32_t AppSpawnClient::AppspawnSetExtMsgSec(const AppSpawnStartMsg &startMsg, AppSpawnReqMsgHandle reqHandle)
 {
-    SetUserIdInfo(startMsg, reqHandle);
-
+    int32_t setUserIdRet = SetUserIdInfo(startMsg, reqHandle);
+    if (setUserIdRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPMGR, "SetUserIdInfo failed, ret: %{public}d", setUserIdRet);
+        return setUserIdRet;
+    }
+    
     int32_t ret = 0;
     if (startMsg.hostProcessUid != 0) {
         ret = AppSpawnReqMsgAddStringInfo(reqHandle, MSG_EXT_NAME_PARENT_UID,
@@ -648,6 +652,7 @@ int32_t AppSpawnClient::StartProcess(const AppSpawnStartMsg &startMsg, pid_t &pi
     ret = AppspawnCreateDefaultMsg(startMsg, reqHandle);
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "AppspawnCreateDefaultMsg fail");
+        AppSpawnReqMsgFree(reqHandle); // release reqHandle
         return ret; // create msg failed
     }
 

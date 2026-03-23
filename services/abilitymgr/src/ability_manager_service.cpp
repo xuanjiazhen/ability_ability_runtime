@@ -9314,7 +9314,7 @@ bool AbilityManagerService::IsRamConstrainedDevice()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "service IsRamConstrainedDevice start");
     const char *key = "const.product.islowram";
     const char *def = "0";
-    char *valueGet = nullptr;
+    char valueGet[128] = {0};
     unsigned int len = 128;
     int ret = GetParameter(key, def, valueGet, len);
     if ((ret != GET_PARAMETER_OTHER) && (ret != GET_PARAMETER_INCORRECT)) {
