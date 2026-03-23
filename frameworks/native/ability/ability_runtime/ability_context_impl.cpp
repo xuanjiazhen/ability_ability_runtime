@@ -16,6 +16,14 @@
 #include "ability_context_impl.h"
 
 #include <native_engine/native_engine.h>
+#include "ark_native_engine.h"
+#include "js_runtime.h"
+
+#ifdef PANDA_JS_VM_AVAILABLE
+#include "ecmascript/ecma_vm.h"
+#include "ecmascript/napi/include/jsnapi.h"
+#include "native_engine/native_engine.h"
+#endif
 
 #include "ability_manager_client.h"
 #include "app_utils.h"
@@ -1735,6 +1743,112 @@ ErrCode AbilityContextImpl::StartSelfUIAbilityInCurrentProcess(const AAFwk::Want
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
     return err;
+}
+
+ErrCode AbilityContextImpl::ExecuteAbc(napi_env env, const std::string &abcFilePath, const std::string &entryPoint,
+    napi_value jsAbilityContext)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CONTEXT, "ExecuteAbc called, filePath=%{public}s, entryPoint=%{public}s",
+        abcFilePath.c_str(), entryPoint.c_str());
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc napi_env is null");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (abcFilePath.empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc abcFilePath is empty");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (entryPoint.empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc entryPoint is empty");
+        return ERR_INVALID_VALUE;
+    }
+
+    std::ifstream stream(abcFilePath, std::ios::ate | std::ios::binary);
+    if (!stream.is_open()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc open: %{public}s failed", abcFilePath.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    size_t len = stream.tellg();
+    if (len == 0) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc ABC stream is empty: %{public}s", abcFilePath.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    std::unique_ptr<uint8_t[]> abcBuffer = std::make_unique<uint8_t[]>(len);
+    stream.seekg(0);
+    stream.read(reinterpret_cast<char*>(abcBuffer.get()), len);
+    stream.close();
+
+    TAG_LOGI(AAFwkTag::CONTEXT, "ExecuteAbc Read ABC file: size=%{public}zu", len);
+
+    // Get EcmaVM from napi_env
+    // napi_env is actually NativeEngine* type, use GetEcmaVm() to get the VM
+    NativeEngine* nativeEngine = reinterpret_cast<NativeEngine*>(env);
+    if (nativeEngine == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc Failed to get NativeEngine from napi_env");
+        return ERR_INVALID_VALUE;
+    }
+
+    panda::ecmascript::EcmaVM* vm = const_cast<panda::ecmascript::EcmaVM*>(nativeEngine->GetEcmaVm());
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc Failed to get EcmaVM from NativeEngine");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Execute the ABC file
+    panda::JSNApi::BackupAndClearNormalizedOhmUrlPack(vm);
+    bool execResult = panda::JSNApi::Execute(vm, abcBuffer.get(), len, "query", "test");
+    panda::Local<panda::ObjectRef> queryExport = panda::JSNApi::GetExportObjectFromBuffer(vm, "query", "query");
+
+    if (!execResult) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc failed, ret=%{public}d", ret);
+        panda::JSNApi::RecoverNormalizedOhmUrlPack(vm);
+        return ERR_INVALID_VALUE;
+    }
+
+    if (queryExport.IsEmpty() || queryExport->IsHole()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get 'query' export from ABC");
+        panda::JSNApi::RecoverNormalizedOhmUrlPack(vm);
+        return ERR_INVALID_VALUE;
+    }
+
+    // Convert Local<JSValueRef> to napi_value
+    napi_value queryFunc = ArkNativeEngine::ArkValueToNapiValue(env, queryExport);
+    if (queryFunc == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to convert query function to napi_value");
+        panda::JSNApi::RecoverNormalizedOhmUrlPack(vm);
+        return ERR_INVALID_VALUE;
+    }
+
+    // Use the jsAbilityContext passed from caller
+    if (jsAbilityContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "jsAbilityContext is null");
+        panda::JSNApi::RecoverNormalizedOhmUrlPack(vm);
+        return ERR_INVALID_VALUE;
+    }
+
+    // Call the query function with ability_context as parameter
+    napi_value undefined = nullptr;
+    napi_get_undefined(env, &undefined);
+
+    napi_value callResult = nullptr;
+    napi_status status = napi_call_function(env, undefined, queryFunc, 1, &jsAbilityContext, &callResult);
+
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to call query function, status=%{public}d", status);
+        panda::JSNApi::RecoverNormalizedOhmUrlPack(vm);
+        return ERR_INVALID_VALUE;
+    }
+
+    panda::JSNApi::RecoverNormalizedOhmUrlPack(vm);
+
+    TAG_LOGD(AAFwkTag::CONTEXT, "Query function called successfully");
+    return ERR_OK;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
