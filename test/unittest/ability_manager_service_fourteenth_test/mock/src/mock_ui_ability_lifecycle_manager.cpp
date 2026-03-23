@@ -211,7 +211,8 @@ std::shared_ptr<AbilityRecord> UIAbilityLifecycleManager::GetUIAbilityRecordBySe
     return nullptr;
 }
 
-int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token)
+int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token,
+    bool shouldBackToCaller, int32_t notifyScbBackgroundReason)
 {
     return 0;
 }
