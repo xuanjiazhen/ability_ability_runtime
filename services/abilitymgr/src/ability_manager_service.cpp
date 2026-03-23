@@ -22,6 +22,7 @@
 #include "ability_connect_manager.h"
 #include "ability_errors_util.h"
 #include "ability_manager_radar.h"
+#include "ability_util.h"
 #include "agent_extension_connection_constants.h"
 #include "ability_manager_xcollie.h"
 #include "ability_start_by_call_helper.h"
@@ -268,6 +269,7 @@ constexpr int32_t START_AUTO_START_APP_DELAY_TIME = 200;
 constexpr int32_t START_AUTO_START_APP_RETRY_MAX_TIMES = 5;
 constexpr int32_t RETRY_COUNT = 20;
 constexpr int32_t BROKER_UID = 5557;
+constexpr int32_t GAME_SA_UID = 7011;
 
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
     "share", "action", "navigation", "mail", "finance", "flight", "express", "photoEditor"
@@ -278,6 +280,7 @@ constexpr const char* APP_LINKING_ONLY = "appLinkingOnly";
 constexpr const char* SCREENCONFIG_SCREENMODE = "ohos.verticalpanel.screenconfig.screenmode";
 constexpr const char* UD_KEY = "ability.want.params.udKey";
 constexpr const char* UI_EXTENSION_CONTEXT_TRANSFER_ROOT_HOST_TOKEN = "ohos.ability.params.transferRootHostToken";
+constexpr const char* GAME_PRELAUNCH = "ability.want.params.game_prelaunch";
 constexpr int32_t INSTALL_TYPE_UPGRADE = 2;
 constexpr int64_t CLEAR_USER_LOCKED_BUNDLE_LIST_KEY_DELAY_TIME = 60 * 1000; // 60s
 
@@ -1685,6 +1688,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, std::string(""));
         }
         CollaboratorUtil::HandleCallerIfNeed(param.callerToken, collaborator, abilityRequest.want, callerBundleName);
+ 	    abilityRequest.want.SetParam(GAME_PRELAUNCH, param.isGamePrelaunch);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
         CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
         result = uiAbilityManager->NotifySCBToStartUIAbility(abilityRequest);
@@ -13348,6 +13352,11 @@ ErrCode AbilityManagerService::QueryCallerTokenIdForAnco(int32_t userId, const s
     auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
     return uiAbilityManager->QueryCallerTokenIdForAnco(asCallerForAncoSessionId, callerTokenId);
+}
+
+int32_t AbilityManagerService::LaunchGameCustomized(const std::string &bundleName, int32_t userId, int32_t appIndex)
+{
+    return PreloadManagerService::GetInstance()->LaunchGameCustomized(bundleName, userId, appIndex);
 }
 
 int AbilityManagerService::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isTerminate)
