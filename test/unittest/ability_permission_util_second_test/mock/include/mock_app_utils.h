@@ -53,6 +53,7 @@ public:
     bool IsInheritWindowSplitScreenMode();
     bool IsSupportAncoApp();
     int32_t GetTimeoutUnitTimeRatio();
+    int32_t GetGamePreLaunchCompleteDelayTime();
     bool IsSelectorDialogDefaultPossion();
     bool IsStartSpecifiedProcess();
     bool IsUseMultiRenderProcess();
