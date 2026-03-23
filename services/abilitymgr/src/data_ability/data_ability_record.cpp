@@ -379,7 +379,7 @@ int DataAbilityRecord::KillBoundClientProcesses()
                 clientAbilityRecord->GetAbilityInfo().name.c_str(),
                 ability_->GetApplicationInfo().bundleName.c_str(),
                 ability_->GetAbilityInfo().name.c_str());
-            appScheduler->KillProcessByAbilityToken(clientAbilityRecord->GetToken());
+            (void)appScheduler->KillProcessByAbilityToken(clientAbilityRecord->GetToken());
         }
     }
 
