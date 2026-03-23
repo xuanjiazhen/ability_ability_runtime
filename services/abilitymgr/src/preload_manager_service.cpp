@@ -40,19 +40,10 @@ PreloadManagerService::~PreloadManagerService() {}
 
 int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex)
 {
-    CHECK_TRUE_RETURN_RET(!AppUtils::GetInstance().IsPreloadApplicationEnabled() || appIndex != 0,
-        ERR_CAPABILITY_NOT_SUPPORT, "preload application not supported");
-    CHECK_TRUE_RETURN_RET(!PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission(),
-        ERR_PERMISSION_DENIED, "no preload permission");
-    userId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetValidUserId(userId);
-    CHECK_TRUE_RETURN_RET(!DelayedSingleton<AbilityManagerService>::GetInstance()->JudgeMultiUserConcurrency(userId),
-        ERR_CROSS_USER, "multi-user non-concurrent unsatisfied");
-
-    bool isExist = false;
-    int32_t ret = ERR_OK;
-    CHECK_TRUE_RETURN_RET((ret = DelayedSingleton<AppScheduler>::GetInstance()->CheckPreloadAppRecordExist(
-        bundleName, userId, appIndex, isExist)) != ERR_OK, ret, "CheckPreloadAppRecordExist failed");
-    CHECK_TRUE_RETURN_RET(isExist, ERR_PRELOAD_APP_RECORD_ALREADY_EXIST, "already started");
+    if (PreloadApplicationVerification != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verify PreloadApplication failed");
+        return;
+    }
 
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
@@ -88,6 +79,25 @@ int32_t PreloadManagerService::PreloadApplication(const std::string &bundleName,
     options.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
     options.processOptions->isPreloadStart = true;
     return DelayedSingleton<AbilityManagerService>::GetInstance()->StartAbility(launchWant, options, nullptr, userId);
+}
+
+int32_t PreloadManagerService::PreloadApplicationVerification(const std::string &bundleName, int32_t userId,
+    int32_t appIndex)
+{
+    CHECK_TRUE_RETURN_RET(!AppUtils::GetInstance().IsPreloadApplicationEnabled() || appIndex != 0,
+        ERR_CAPABILITY_NOT_SUPPORT, "preload application not supported");
+    CHECK_TRUE_RETURN_RET(!PermissionVerification::GetInstance()->VerifyPreloadApplicationPermission(),
+        ERR_PERMISSION_DENIED, "no preload permission");
+    userId = DelayedSingleton<AbilityManagerService>::GetInstance()->GetValidUserId(userId);
+    CHECK_TRUE_RETURN_RET(!DelayedSingleton<AbilityManagerService>::GetInstance()->JudgeMultiUserConcurrency(userId),
+        ERR_CROSS_USER, "multi-user non-concurrent unsatisfied");
+
+    bool isExist = false;
+    int32_t ret = ERR_OK;
+    CHECK_TRUE_RETURN_RET((ret = DelayedSingleton<AppScheduler>::GetInstance()->CheckPreloadAppRecordExist(
+        bundleName, userId, appIndex, isExist)) != ERR_OK, ret, "CheckPreloadAppRecordExist failed");
+    CHECK_TRUE_RETURN_RET(isExist, ERR_PRELOAD_APP_RECORD_ALREADY_EXIST, "already started");
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

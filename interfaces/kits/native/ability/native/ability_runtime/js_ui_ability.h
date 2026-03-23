@@ -446,6 +446,7 @@ private:
     std::shared_ptr<NativeReference> jsAbilityObj_;
     sptr<IRemoteObject> remoteCallee_;
     bool reusingWindow_ = false;
+    bool isGamePreLaunch_  = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

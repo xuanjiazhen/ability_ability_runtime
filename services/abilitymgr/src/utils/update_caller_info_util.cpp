@@ -47,6 +47,7 @@ constexpr const char* COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules"
 constexpr const char* SPECIFIED_ABILITY_FLAG = "ohos.ability.params.specifiedAbilityFlag";
 constexpr const char* SHELL_ASSISTANT_BUNDLENAME = "com.ohos.shell_assistant";
 constexpr const char* UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionType";
+constexpr const char* GAME_PRELAUNCH = "ability.want.params.game_prelaunch";
 constexpr int32_t BROKER_UID = 5557;
 }
 
@@ -77,6 +78,7 @@ void UpdateCallerInfoUtil::UpdateCallerInfo(Want& want, const sptr<IRemoteObject
     want.RemoveParam(WANT_PARAMS_APP_RESTART_FLAG);
     want.RemoveParam(IS_SHELL_CALL);
     want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
+    want.RemoveParam(GAME_PRELAUNCH);
 
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (!abilityRecord) {
@@ -140,6 +142,7 @@ void UpdateCallerInfoUtil::UpdateAsCallerSourceInfo(Want& want, sptr<IRemoteObje
     want.RemoveParam(IS_SHELL_CALL);
     want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
     want.RemoveParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX);
+    want.RemoveParam(GAME_PRELAUNCH);
     ClearProtectedWantParam(want);
 #ifdef SUPPORT_SCREEN
     if (UpdateAsCallerInfoFromDialog(want)) {
@@ -258,6 +261,7 @@ void UpdateCallerInfoUtil::UpdateCallerInfoFromToken(Want& want, const sptr<IRem
     want.RemoveParam(WANT_PARAMS_APP_RESTART_FLAG);
     want.RemoveParam(IS_SHELL_CALL);
     want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
+    want.RemoveParam(GAME_PRELAUNCH);
 
     std::string callerBundleName = abilityRecord->GetAbilityInfo().bundleName;
     want.RemoveParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
@@ -276,6 +280,8 @@ void UpdateCallerInfoUtil::UpdateCallerInfoFromToken(Want& want, const sptr<IRem
 void UpdateCallerInfoUtil::UpdateBackToCallerFlag(const sptr<IRemoteObject> &callerToken, Want &want,
     int32_t requestCode, bool backFlag)
 {
+    //是否需要
+    want.RemoveParam(GAME_PRELAUNCH);
     if (want.HasParameter(CALLER_REQUEST_CODE)) {
         want.RemoveParam(CALLER_REQUEST_CODE);
     }
@@ -300,6 +306,7 @@ void UpdateCallerInfoUtil::UpdateDmsCallerInfo(Want& want, const sptr<IRemoteObj
     int32_t tokenId = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     ClearProtectedWantParam(want);
+    want.RemoveParam(GAME_PRELAUNCH);
 
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (!abilityRecord) {
