@@ -493,6 +493,11 @@ napi_value JsAbilityContext::SetMissionWindowIcon(napi_env env, napi_callback_in
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnSetMissionWindowIcon);
 }
 
+napi_value JsAbilityContext::ExecuteAbc(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, ExecuteAbc);
+}
+
 void JsAbilityContext::ClearFailedCallConnection(
     const std::weak_ptr<AbilityContext>& abilityContext, const std::shared_ptr<CallerCallBack> &callback)
 {
@@ -2437,6 +2442,7 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
         JsAbilityContext::DisconnectAppServiceExtensionAbility);
     BindNativeFunction(env, object, "setOnNewWantSkipScenarios", moduleName,
         JsAbilityContext::SetOnNewWantSkipScenarios);
+    BindNativeFunction(env, object, "executeAbc", moduleName, JsAbilityContext::ExecuteAbc);
     BindNativeFunction(env, object, "startSelfUIAbilityInCurrentProcess", moduleName,
         JsAbilityContext::StartSelfUIAbilityInCurrentProcess);
     BindNativeFunction(env, object, "restartApp", moduleName,
@@ -3453,6 +3459,46 @@ napi_value JsAbilityContext::OnSetMissionWindowIcon(napi_env env, NapiCallbackIn
 #else
     return CreateJsUndefined(env);
 #endif
+}
+
+napi_value JsAbilityContext::ExecuteAbc(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ExecuteAbc called");
+    if (info.argc < ARGC_TWO) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    // Get first parameter: abcFilePath (string)
+    std::string filePathStr;
+    if (!OHOS::AppExecFwk::UnwrapStringFromJS2(env, info.argv[INDEX_ZERO], filePathStr)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to parse abcFilePath");
+        ThrowInvalidParamError(env, "Parse param abcFilePath failed, abcFilePath must be string.");
+        return CreateJsUndefined(env);
+    }
+
+    // Get second parameter: entryPoint (string)
+    std::string entryPointStr;
+    if (!OHOS::AppExecFwk::UnwrapStringFromJS2(env, info.argv[INDEX_ONE], entryPointStr)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to parse entryPoint");
+        ThrowInvalidParamError(env, "Parse param entryPoint failed, entryPoint must be string.");
+        return CreateJsUndefined(env);
+    }
+
+    // Get context and call ExecuteAbc
+    auto context = GetAbilityContext();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get AbilityContext");
+        return CreateJsUndefined(env);
+    }
+
+    ErrCode ret = context->ExecuteAbc(env, filePathStr, entryPointStr);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to execute ABC file: err=%{public}d", ret);
+        return CreateJsUndefined(env);
+    }
+
+    return CreateJsUndefined(env);
 }
 
 int32_t JsAbilityContext::GenerateRequestCode()

@@ -28,6 +28,7 @@
 #include "cJSON.h"
 #include "common_fun_ani.h"
 #include "ets_caller_complex.h"
+#include "ecmascript/napi/include/dfx_jsnapi.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_ui_extension_callback.h"
@@ -874,6 +875,72 @@ void EtsAbilityContext::SetOnNewWantSkipScenarios(ani_env *env, ani_object aniOb
         return;
     }
     etsContext->OnSetOnNewWantSkipScenarios(env, aniObj, etsScenarios, callback);
+}
+
+void EtsAbilityContext::ExecuteAbc(ani_env *env, ani_object aniObj, ani_string abcFilePath,
+    ani_string entryPoint, ani_object envNapi)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "ExecuteAbc called");
+
+    ani_size filePathLength = 0;
+    if (env->String_GetUtf8Length(abcFilePath, &filePathLength) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get file path length");
+        return;
+    }
+
+    std::vector<char> filePathBuffer(filePathLength + 1);
+    if (env->String_GetUtf8Chars(abcFilePath, filePathBuffer.data(), filePathLength + 1) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get file path string");
+        return;
+    }
+
+    std::string filePathStr(filePathBuffer.data(), filePathLength);
+
+    ani_size entryPointLength = 0;
+    if (env->String_GetUtf8Length(entryPoint, &entryPointLength) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get entry point length");
+        return;
+    }
+
+    std::vector<char> entryPointBuffer(entryPointLength + 1);
+    if (env->String_GetUtf8Chars(entryPoint, entryPointBuffer.data(), entryPointLength + 1) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get entry point string");
+        return;
+    }
+
+    std::string entryPointStr(entryPointBuffer.data(), entryPointLength);
+
+    // Get napi_env from envNapi parameter
+    napi_env napiEnv = nullptr;
+    if (env->Object_GetNativePointer(envNapi, reinterpret_cast<void**>(&napiEnv)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get napi_env");
+        return;
+    }
+
+    if (napiEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "napi_env is null");
+        return;
+    }
+
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get EtsAbilityContext");
+        return;
+    }
+
+    auto context = etsContext->context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get AbilityContext");
+        return;
+    }
+
+    TAG_LOGD(AAFwkTag::CONTEXT, "Executing ABC file: filePath=%{public}s, entryPoint=%{public}s",
+        filePathStr.c_str(), entryPointStr.c_str());
+
+    ErrCode ret = context->ExecuteAbc(napiEnv, filePathStr, entryPointStr);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to execute ABC file: err=%{public}d", ret);
+    }
 }
 
 int32_t EtsAbilityContext::GenerateRequestCode()

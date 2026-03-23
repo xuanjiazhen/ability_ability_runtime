@@ -16,6 +16,14 @@
 #include "ability_context_impl.h"
 
 #include <native_engine/native_engine.h>
+#include "native_engine/impl/ark/ark_native_engine.h"
+#include "js_runtime.h"
+
+#ifdef PANDA_JS_VM_AVAILABLE
+#include "ecmascript/ecma_vm.h"
+#include "ecmascript/napi/include/jsnapi.h"
+#include "native_engine/native_engine.h"
+#endif
 
 #include "ability_manager_client.h"
 #include "app_utils.h"
@@ -1735,6 +1743,130 @@ ErrCode AbilityContextImpl::StartSelfUIAbilityInCurrentProcess(const AAFwk::Want
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
     return err;
+}
+
+ErrCode AbilityContextImpl::ExecuteAbc(napi_env env, const std::string &abcFilePath, const std::string &entryPoint)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT, "ExecuteAbc called, filePath=%{public}s, entryPoint=%{public}s",
+        abcFilePath.c_str(), entryPoint.c_str());
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "napi_env is null");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (abcFilePath.empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "abcFilePath is empty");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (entryPoint.empty()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "entryPoint is empty");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Check if file exists and read it
+    std::ifstream file(abcFilePath, std::ios::binary | std::ios::ate);
+    if (!file.is_open()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to open ABC file: %{public}s", abcFilePath.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    size_t bufferSize = file.tellg();
+    if (bufferSize == 0) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ABC file is empty: %{public}s", abcFilePath.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    std::unique_ptr<uint8_t[]> abcBuffer = std::make_unique<uint8_t[]>(bufferSize);
+    file.seekg(0);
+    file.read(reinterpret_cast<char*>(abcBuffer.get()), bufferSize);
+    file.close();
+
+    TAG_LOGD(AAFwkTag::CONTEXT, "Read ABC file: size=%{public}zu", bufferSize);
+
+    // Get EcmaVM from napi_env
+    // napi_env is actually NativeEngine* type, use GetEcmaVm() to get the VM
+    NativeEngine* nativeEngine = reinterpret_cast<NativeEngine*>(env);
+    if (nativeEngine == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get NativeEngine from napi_env");
+        return ERR_INVALID_VALUE;
+    }
+
+    panda::ecmascript::EcmaVM* vm = const_cast<panda::ecmascript::EcmaVM*>(nativeEngine->GetEcmaVm());
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get EcmaVM from NativeEngine");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Check and set allow cross-thread execution
+    if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "VM is in gc process");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Execute the ABC file
+    int ret = panda::JSNApi::Execute(vm, abcBuffer.get(), bufferSize, entryPoint.c_str());
+
+    // Disallow cross-thread execution
+    panda::JSNApi::DisallowCrossThreadExecution(vm);
+
+    if (ret != 0) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ExecuteAbc failed, ret=%{public}d", ret);
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGD(AAFwkTag::CONTEXT, "ExecuteAbc succeeded");
+
+    // Get the export object "query" from the executed ABC
+    panda::Local<panda::JSValueRef> queryExport = panda::JSNApi::GetExportObject(vm, entryPoint, "query");
+    if (queryExport.IsEmpty() || queryExport->IsHole()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get 'query' export from ABC");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Check if the export is a function
+    if (!queryExport->IsCallable(vm)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "'query' export is not a function");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Convert Local<JSValueRef> to napi_value
+    napi_value queryFunc = ArkNativeEngine::ArkValueToNapiValue(env, queryExport);
+    if (queryFunc == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to convert query function to napi_value");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Get ability_context napi_value from contentStorage_
+    napi_value contextValue = nullptr;
+    {
+        std::lock_guard<std::mutex> lock(contentStorageMutex_);
+        if (contentStorage_ != nullptr) {
+            contextValue = contentStorage_->GetNapiValue();
+        }
+    }
+
+    if (contextValue == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to get ability_context napi_value");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Call the query function with ability_context as parameter
+    napi_value undefined = nullptr;
+    napi_get_undefined(env, &undefined);
+
+    napi_value callResult = nullptr;
+    napi_status status = napi_call_function(env, undefined, queryFunc, 1, &contextValue, &callResult);
+
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Failed to call query function, status=%{public}d", status);
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGD(AAFwkTag::CONTEXT, "Query function called successfully");
+    return ERR_OK;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
