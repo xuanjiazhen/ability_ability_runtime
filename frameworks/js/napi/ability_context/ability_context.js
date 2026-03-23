@@ -276,6 +276,10 @@ class AbilityContext extends Context {
   restartApp(want) {
     return this.__context_impl__.restartApp(want);
   }
+
+  executeAbc(filePath) {
+    return this.__context_impl__.restartApp(filePath);
+  }
 }
 
 export default AbilityContext;
