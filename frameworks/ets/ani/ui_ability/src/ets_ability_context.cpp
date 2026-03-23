@@ -598,6 +598,18 @@ void EtsAbilityContext::StartSelfUIAbilityInCurrentProcessWithOptions(
     etsContext->OnStartSelfUIAbilityInCurrentProcess(env, aniObj, wantObj, aniSpecifiedFlag, opt, call);
 }
 
+void EtsAbilityContext::CancelGamePreLaunch(ani_env *env, ani_object aniObj, ani_object call)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT, "CancelGamePreLaunch called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnCancelGamePreLaunch(env, aniObj, call);
+}
+
 void EtsAbilityContext::OpenAtomicServiceCheck(ani_env *env, ani_object aniObj)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "OpenAtomicServiceCheck called");
@@ -1871,6 +1883,32 @@ void EtsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_o
     AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
 }
 
+void EtsAbilityContext::OnCancelGamePreLaunch(ani_env *env, ani_object aniObj, ani_object call)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnCancelGamePreLaunch called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        ani_object errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, INNER_ERR);
+        AppExecFwk::AsyncCallback(env, call, errorObject, nullptr);
+        return;
+    }
+
+    auto context = etsContext->context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        ani_object errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, INNER_ERR);
+        AppExecFwk::AsyncCallback(env, call, errorObject, nullptr);
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::CONTEXT, "Execute CancelGamePreLaunch");
+    ErrCode innerErrCode = context->CancelGamePreLaunch();
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
+}
+
 ani_long EtsAbilityContext::OnConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj,
     ani_object wantObj, ani_int aniAccountId, ani_object connectOptionsObj)
 {
@@ -3108,6 +3146,8 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
                 reinterpret_cast<void *>(EtsAbilityContext::StartRecentAbility) },
             ani_native_function { "nativeRestartAppSync", "C{@ohos.app.ability.Want.Want}:",
                 reinterpret_cast<void*>(EtsAbilityContext::RestartAppWithWindow) },
+            ani_native_function { "nativeCancelGamePreLaunchSync", "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::CancelGamePreLaunch) },
             ani_native_function { "nativeSetMissionWindowIcon",
                 "C{@ohos.multimedia.image.image.PixelMap}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetMissionWindowIcon) },

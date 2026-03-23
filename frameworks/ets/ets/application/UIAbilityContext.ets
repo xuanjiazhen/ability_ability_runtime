@@ -713,6 +713,23 @@ hideAbility(): Promise<void> {
     });
   }
 
+  cancelGamePreLaunch(): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeCancelGamePreLaunchSync(myCall);
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+  }
+
   setAbilityInstanceInfo(label: string, icon: image.PixelMap): Promise<void> {
     this.nativeSetAbilityInstanceInfoCheck(label, icon);
     let p:Promise<void> = new Promise<void>((resolve: (data:undefined)=>void, reject: (err: BusinessError)=>void):void => {
