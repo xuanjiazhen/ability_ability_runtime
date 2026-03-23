@@ -965,6 +965,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::QUERY_CALLER_TOKEN_ID_FOR_ANCO) {
         return QueryCallerTokenIdForAncoInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::LAUNCH_GAME_CUSTOMIZED) {
+        return LaunchGameCustomizedInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::MANUAL_START_AUTO_STARTUP_APPS) {
         return ManualStartAutoStartupAppsInner(data, reply);
     }
@@ -4003,6 +4006,19 @@ int32_t AbilityManagerStub::QueryCallerTokenIdForAncoInner(MessageParcel &data, 
     }
     if (!reply.WriteUint32(callerTokenId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerTokenId fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::LaunchGameCustomizedInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName = data.ReadString();
+    int32_t userId = data.ReadInt32();
+    int32_t appIndex = data.ReadInt32();
+    int32_t result = LaunchGameCustomized(bundleName, userId, appIndex);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;
     }
     return NO_ERROR;

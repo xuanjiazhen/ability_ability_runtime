@@ -987,7 +987,17 @@ void JsUIAbility::OnDidForeground()
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
 
     if (scene_ != nullptr) {
-        scene_->GoResume();
+        // 生命周期顺序：onForeground → onDidForeground
+        // 在DoOnForeground阶段已向窗口传递特殊字段，为何后续在OnDidForeground还需再传一次，是否可以复用DoOnForeground中的特殊字段
+        bool isGamePreLaunch = false;
+        if (want.GetBoolParam("ability.want.params.game_prelaunch") == true) {
+            LAG_LOGD(AAFwkTag::UIABILITY, "OnDidForeground game prelaunch")
+            isGamePreLaunch = true;
+        }
+        scene_->GoResume(isGamePreLaunch);
+        if (isGamePreLaunch) {
+            scene_->GoPause();
+        }
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -1200,7 +1210,12 @@ void JsUIAbility::DoOnForeground(const Want &want)
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->GoForeground");
-    scene_->GoForeground(UIAbility::sceneFlag_);
+    bool isGamePreLaunch = false;
+    if (want.GetBoolParam("ability.want.params.game_prelaunch") == true) {
+        LAG_LOGD(AAFwkTag::UIABILITY, "DoOnForeground game prelaunch")
+        isGamePreLaunch = true;
+    } 
+    scene_->GoForeground(UIAbility::sceneFlag_, isGamePreLaunch);
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
