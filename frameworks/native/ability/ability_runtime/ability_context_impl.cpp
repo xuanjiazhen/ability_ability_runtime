@@ -1736,5 +1736,16 @@ ErrCode AbilityContextImpl::StartSelfUIAbilityInCurrentProcess(const AAFwk::Want
     }
     return err;
 }
+
+ErrCode AbilityContextImpl::CancelGamePreLaunch()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CONTEXT, "CancelGamePreLaunch called");
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->CancelGamePreLaunch(token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "CancelGamePreLaunch failed, ret=%{public}d", err);
+    }
+    return err;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

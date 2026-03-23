@@ -483,6 +483,11 @@ napi_value JsAbilityContext::StartSelfUIAbilityInCurrentProcess(napi_env env, na
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnStartSelfUIAbilityInCurrentProcess);
 }
 
+napi_value JsAbilityContext::CancelGamePreLaunch(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnCancelGamePreLaunch);
+}
+
 napi_value JsAbilityContext::RestartAppWithWindow(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnRestartAppWithWindow);
@@ -3453,6 +3458,37 @@ napi_value JsAbilityContext::OnSetMissionWindowIcon(napi_env env, NapiCallbackIn
 #else
     return CreateJsUndefined(env);
 #endif
+}
+
+napi_value JsAbilityContext::OnCancelGamePreLaunch(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "OnCancelGamePreLaunch called");
+
+    auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, innerErrCode]() {
+        auto context = weak.lock();
+        if (!context) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+            *innerErrCode = AAFwk::ERR_INVALID_CONTEXT;
+            return;
+        }
+        TAG_LOGI(AAFwkTag::CONTEXT, "Execute CancelGamePreLaunch");
+        *innerErrCode = context->CancelGamePreLaunch();
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode == ERR_OK) {
+            task.Resolve(env, CreateJsUndefined(env));
+            return;
+        }
+        task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::CancelGamePreLaunch",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
 }
 
 int32_t JsAbilityContext::GenerateRequestCode()
