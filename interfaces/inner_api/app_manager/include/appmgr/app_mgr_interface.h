@@ -37,6 +37,8 @@
 #include "iapp_state_callback.h"
 #include "iapplication_state_observer.h"
 #include "iconfiguration_observer.h"
+#include "image_error_handler_interface.h"
+#include "image_process_state_observer_interface.h"
 #include "iquick_fix_callback.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
@@ -92,6 +94,22 @@ public:
         return;
     }
 
+    virtual int32_t MakeImage(const std::string &bundleName, int32_t userId,
+ 	    AppExecFwk::PreloadMode preloadMode, int32_t appIndex = 0, sptr<IImageErrorHandler> errorHandler = nullptr)
+ 	{
+ 	    return 0;
+ 	}
+ 	 
+ 	virtual int32_t DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler = nullptr)
+ 	{
+ 	    return 0;
+ 	}
+ 	 
+ 	virtual int32_t NotifyTemplateProcessDeepFrozen(int32_t pid)
+ 	{
+ 	    return 0;
+ 	}
+    
     /**
      * ApplicationForegrounded, call ApplicationForegrounded() through proxy object,
      * set the application to Foreground State.
@@ -346,6 +364,17 @@ public:
     {
         return 0;
     }
+
+    virtual int32_t RegisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer)
+ 	{
+ 	    return 0;
+ 	}
+ 	 
+ 	virtual int32_t UnregisterImageProcessStateObserver(const sptr<IImageProcessStateObserver> &observer)
+ 	{
+ 	    return 0;
+ 	}
+ 	
 
     /**
      * Unregister application or process state observer.
