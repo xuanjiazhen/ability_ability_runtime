@@ -15,7 +15,6 @@
 
 #include "mock_app_utils.h"
 
-
 namespace OHOS {
 namespace AAFwk {
 
@@ -50,6 +49,11 @@ bool AppUtils::IsSupportAncoApp()
 }
 
 int32_t AppUtils::GetTimeoutUnitTimeRatio()
+{
+    return 0;
+}
+
+int32_t AppUtils::GetGamePreLaunchCompleteDelayTime()
 {
     return 0;
 }
