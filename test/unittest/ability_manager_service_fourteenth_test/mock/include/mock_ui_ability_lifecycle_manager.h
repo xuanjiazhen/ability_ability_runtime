@@ -123,7 +123,8 @@ public:
      *
      * @param token ability's token
      */
-    int32_t NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token);
+    int32_t NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token, bool shouldBackToCaller = true,
+        int32_t notifyScbBackgroundReason = 0);
 
     /**
      * MinimizeUIAbility, minimize the special ability by scb.
