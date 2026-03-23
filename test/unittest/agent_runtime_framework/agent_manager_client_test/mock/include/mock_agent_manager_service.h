@@ -43,6 +43,8 @@ public:
         const sptr<AAFwk::IAbilityConnection> &connection) override;
 
     virtual int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection) override;
+
+    virtual int32_t NotifyWorkflowAgentComplete(const std::string &agentId) override;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

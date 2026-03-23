@@ -47,6 +47,8 @@ public:
 
     int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection);
 
+    int32_t NotifyWorkflowAgentComplete(const std::string &agentId);
+
 private:
     sptr<IAgentManager> GetAgentMgrProxy();
     void ClearProxy();

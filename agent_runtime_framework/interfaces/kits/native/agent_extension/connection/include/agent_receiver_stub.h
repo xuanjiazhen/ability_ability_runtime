@@ -66,6 +66,15 @@ public:
      * @return Returns ERR_OK on success, error code otherwise.
      */
     int32_t OnAuthorize(MessageParcel &data, MessageParcel &reply);
+
+    /**
+     * Handle WorkflowInvoked request from host application.
+     *
+     * @param data The request data parcel containing the workflow agent id.
+     * @param reply The reply parcel.
+     * @return Returns ERR_OK on success, error code otherwise.
+     */
+    int32_t OnWorkflowInvoked(MessageParcel &data, MessageParcel &reply);
 };
 
 } // namespace AgentRuntime

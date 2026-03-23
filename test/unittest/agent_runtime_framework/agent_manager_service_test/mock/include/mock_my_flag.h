@@ -46,11 +46,18 @@ public:
     static int32_t retGetAgentCardByAgentId;
     static std::string agentCardAgentId;
     static int32_t agentCardType;
+    static std::string agentCardBundleName;
+    static std::string agentCardModuleName;
+    static std::string agentCardAbilityName;
     static bool retQueryExtensionAbilityInfos;
     static AppExecFwk::ExtensionAbilityType extensionAbilityType;
     static int32_t retGetProcessRunningInfoByPid;
     static AppExecFwk::AppProcessState processState;
     static int32_t retGetBundleNameByPid;
+    static int32_t connectAbilityWithExtensionTypeCallCount;
+    static int32_t disconnectAbilityCallCount;
+    static sptr<IRemoteObject> lastConnectAbilityConnection;
+    static sptr<IRemoteObject> lastDisconnectAbilityConnection;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS

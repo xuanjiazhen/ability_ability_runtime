@@ -51,6 +51,14 @@ public:
      */
     int32_t Authorize(const sptr<IRemoteObject> &hostProxy, const std::string &data) override;
 
+    /**
+     * Forward workflow invocation notification to the extension.
+     *
+     * @param agentId The invoked workflow agent id.
+     * @return Returns 0 on success, error code otherwise.
+     */
+    int32_t WorkflowInvoked(const std::string &agentId) override;
+
 protected:
     /**
      * Weak pointer to the EtsAgentExtension.

@@ -34,6 +34,7 @@ public:
     static int retToAgentCardVec;
     static int retConnectAgentExtensionAbility;
     static int retDisconnectAgentExtensionAbility;
+    static int retNotifyWorkflowAgentComplete;
     static std::vector<AgentCard> convertedCards;
     static bool nullSystemAbility;
     static int retLoadSystemAbility;
