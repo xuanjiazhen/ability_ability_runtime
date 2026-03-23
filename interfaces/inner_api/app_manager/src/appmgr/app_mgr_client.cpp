@@ -254,6 +254,18 @@ AppMgrResultCode AppMgrClient::KillProcessByAbilityToken(const sptr<IRemoteObjec
     return AppMgrResultCode::ERROR_SERVICE_NOT_CONNECTED;
 }
 
+ErrCode AppMgrClient::SetGameSAPrelaunch(const sptr<IRemoteObject> &token, const bool isGameSAPrelaunch)
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        if (amsService != nullptr) {
+            return amsService->SetGameSAPrelaunch(token, isGameSAPrelaunch);
+        }
+    }
+    return ERR_INVALID_VALUE;
+}
+
 AppMgrResultCode AppMgrClient::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSpawnMsg,
     sptr<AAFwk::IUserCallback> callback)
 {
