@@ -110,6 +110,10 @@ struct AbilityRequest {
     bool promotePriority = false;
     bool isFromOpenLink = false;
     bool isStartByOEExt = false;
+<<<<<<< HEAD
+=======
+    bool isGamePrelaunch = false;
+>>>>>>> 3e0080d882 (游戏预启动需求)
     std::pair<bool, LaunchReason> IsContinuation() const;
 
     bool IsAcquireShareData() const

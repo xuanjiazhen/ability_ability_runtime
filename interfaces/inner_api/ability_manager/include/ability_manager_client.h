@@ -1236,6 +1236,17 @@ public:
         uint32_t &callerTokenId);
 
     /**
+     * @brief Launch game customized with game SA verification.
+     * @param want Indicates the want containing information about the ability to start.
+     * @param userId Indicates the user ID.
+     * @param requestCode Indicates the request code.
+     * @param specifiedFullTokenId Indicates the specified full token ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode LaunchGameCustomized(const Want &want, int32_t userId = DEFAULT_INVAL_VALUE,
+        int requestCode = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0);
+
+    /**
      * PrepareTerminateAbilityBySCB, prepare to terminate ability by scb.
      *
      * @param sessionInfo the session info of the ability to terminate.

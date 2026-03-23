@@ -268,6 +268,7 @@ constexpr int32_t START_AUTO_START_APP_DELAY_TIME = 200;
 constexpr int32_t START_AUTO_START_APP_RETRY_MAX_TIMES = 5;
 constexpr int32_t RETRY_COUNT = 20;
 constexpr int32_t BROKER_UID = 5557;
+constexpr int32_t GAME_SA_UID = 7011;
 
 const std::unordered_set<std::string> COMMON_PICKER_TYPE = {
     "share", "action", "navigation", "mail", "finance", "flight", "express", "photoEditor"
@@ -13348,6 +13349,24 @@ ErrCode AbilityManagerService::QueryCallerTokenIdForAnco(int32_t userId, const s
     auto uiAbilityManager = GetUIAbilityManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
     return uiAbilityManager->QueryCallerTokenIdForAnco(asCallerForAncoSessionId, callerTokenId);
+}
+
+ErrCode AbilityManagerService::LaunchGameCustomized(const Want &want, int32_t userId, int requestCode,
+    uint64_t specifiedFullTokenId)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "LaunchGameCustomized userId: %{public}d, requestCode: %{public}d",
+        userId, requestCode);
+    if (IPCSkeleton::GetCallingUid() != GAME_SA_UID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "verify game SA failed, callingUid: %{public}d",
+            IPCSkeleton::GetCallingUid());
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    // Create a new Want with game prelaunch flag
+    Want gameWant = want;
+    gameWant.SetParam("ohos.ability.params.game_prelaunch", true);
+
+    return AbilityManagerService::StartAbility(gameWant, userId, requestCode, specifiedFullTokenId);
 }
 
 int AbilityManagerService::PrepareTerminateAbilityBySCB(const sptr<SessionInfo> &sessionInfo, bool &isTerminate)
