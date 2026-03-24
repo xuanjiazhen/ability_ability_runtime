@@ -1132,6 +1132,45 @@ void UvWorkOnCallback(uv_work_t *work, int status)
     napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName2.c_str(), jsValueArr[1]);
     napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName3.c_str(), jsValueArr[ARGS_TWO]);
     napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName4.c_str(), jsValueArr[ARGS_THREE]);
+
+    // 创建appIds数组
+    napi_value jsAppIdsArray = nullptr;
+    napi_create_array(onCB->cbBase.cbInfo.env, &jsAppIdsArray);
+    size_t index = 0;
+
+    if (!onCB->appIdentifierList.empty()) {
+        // 解析appIdentifierList字符串（逗号分隔）
+        std::string appList = onCB->appIdentifierList;
+        size_t start = 0;
+        size_t pos = 0;
+
+        while ((pos = appList.find(',', start)) != std::string::npos) {
+            if (pos > start) {
+                std::string appId = appList.substr(start, pos - start);
+                napi_value jsAppId = nullptr;
+                napi_create_string_utf8(onCB->cbBase.cbInfo.env, appId.c_str(),
+                    NAPI_AUTO_LENGTH, &jsAppId);
+                napi_set_element(onCB->cbBase.cbInfo.env, jsAppIdsArray, index++, jsAppId);
+            }
+            start = pos + 1;
+        }
+
+        // 处理最后一个元素
+        if (start < appList.size()) {
+            std::string appId = appList.substr(start);
+            napi_value jsAppId = nullptr;
+            napi_create_string_utf8(onCB->cbBase.cbInfo.env, appId.c_str(),
+                NAPI_AUTO_LENGTH, &jsAppId);
+            napi_set_element(onCB->cbBase.cbInfo.env, jsAppIdsArray, index++, jsAppId);
+        }
+    }
+
+    // 将appIds添加到result[1]对象中
+    if (index > 0) {
+        std::string paramName5 = "appIds";
+        napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName5.c_str(), jsAppIdsArray);
+    }
+
     napi_set_named_property(onCB->cbBase.cbInfo.env, result[ARGS_TWO], napiState.c_str(), result[0]);
     napi_set_named_property(onCB->cbBase.cbInfo.env, result[ARGS_TWO], napiInfo.c_str(), result[1]);
     for (auto ele = onCB->cbBase.cbInfo.vecCallbacks.begin(); ele != onCB->cbBase.cbInfo.vecCallbacks.end(); ++ele) {
@@ -1183,9 +1222,10 @@ void NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceI
 }
 
 void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
-    const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName)
+    const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName,
+    const std::string &appIdentifierList)
 {
-    TAG_LOGI(AAFwkTag::MISSION, "called");
+    TAG_LOGI(AAFwkTag::MISSION, "called, appIdentifierList: %{public}s", appIdentifierList.c_str());
     uv_loop_s *loop = nullptr;
 
     napi_get_uv_event_loop(env_, &loop);
@@ -1211,6 +1251,7 @@ void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::s
     onCB->bundleName = bundleName;
     onCB->continueType = continueType;
     onCB->srcBundleName = srcBundleName;
+    onCB->appIdentifierList = appIdentifierList;
     work->data = static_cast<void *>(onCB);
 
     int rev = uv_queue_work_with_qos_internal(

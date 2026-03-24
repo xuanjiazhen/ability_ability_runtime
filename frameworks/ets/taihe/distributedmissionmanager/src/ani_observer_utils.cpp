@@ -96,7 +96,7 @@ bool MissionObserver::IsCallbackListEmpty()
 
 void MissionObserver::OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
     const std::string &bundleName, const std::string &continueType,
-    const std::string &srcBundleName)
+    const std::string &srcBundleName, const std::string &appIdentifier)
 {
     TAG_LOGI(AAFwkTag::MISSION, "MissionObserver::OnCallback");
     auto taiheState = ohos::distributedmissionmanager::ContinueState::from_value(continueState);
@@ -105,6 +105,7 @@ void MissionObserver::OnCallback(const uint32_t continueState, const std::string
     taiheInfo.bundleName = bundleName;
     taiheInfo.srcBundleName = ::taihe::optional<::taihe::string>::make(srcBundleName);
     taiheInfo.continueType = ::taihe::optional<::taihe::string>::make(continueType);
+    taiheInfo.appIdentifier = ::taihe::optional<::taihe::string>::make(appIdentifier);
     ::ohos::distributedmissionmanager::ContinueCallbackInfo callbackInfo = { .state = taiheState, .info = taiheInfo };
 
     wptr<MissionObserver> weakthis = this;

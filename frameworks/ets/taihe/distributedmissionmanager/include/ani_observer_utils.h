@@ -53,7 +53,7 @@ public:
 
     void OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
         const std::string &bundleName, const std::string &continueType = "",
-        const std::string &srcBundleName = "") override;
+        const std::string &srcBundleName = "", const std::string &appIdentifier = "") override;
     void OnCallbackInMainThread(const ::ohos::distributedmissionmanager::ContinueCallbackInfo& info);
 
 protected:

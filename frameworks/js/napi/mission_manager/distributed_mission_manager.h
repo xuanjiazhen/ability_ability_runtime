@@ -103,7 +103,8 @@ public:
 
     void OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
         const std::string &bundleName, const std::string &continueType = "",
-        const std::string &srcBundleName = "") override;
+        const std::string &srcBundleName = "",
+        const std::string &appIdentifierList = "") override;
     void SetEnv(const napi_env &env);
     void SetOnCallbackCBRef(std::shared_ptr<NativeReference> &ref);
     std::vector<std::shared_ptr<NativeReference>> GetOnCallbackCBRef();
@@ -161,6 +162,7 @@ struct OnCB {
     std::string bundleName;
     std::string continueType;
     std::string srcBundleName;
+    std::string appIdentifierList;
     OnCallbackCB onCallbackCB;
     int result = 0;
     napi_ref callbackRef;

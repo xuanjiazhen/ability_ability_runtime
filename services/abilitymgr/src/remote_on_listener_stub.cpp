@@ -53,7 +53,8 @@ int32_t RemoteOnListenerStub::OnCallbackInner(MessageParcel &data, MessageParcel
     std::string bundleName = data.ReadString();
     std::string continueType = data.ReadString();
     std::string srcBundleName = data.ReadString();
-    OnCallback(continueState, srcDeviceId, bundleName, continueType, srcBundleName);
+    std::string appIdentifier = data.ReadString();
+    OnCallback(continueState, srcDeviceId, bundleName, continueType, srcBundleName, appIdentifier);
     return NO_ERROR;
 }
 }  // namespace AAFwk
