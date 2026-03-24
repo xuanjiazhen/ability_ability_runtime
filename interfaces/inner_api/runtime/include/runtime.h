@@ -19,6 +19,7 @@
 #include <map>
 #include <string>
 #include <vector>
+#include "app_jsheap_mem_info.h"
 
 class ModuleCheckerDelegate;
 
@@ -124,7 +125,7 @@ public:
     virtual void ForceFullGC() = 0;
     virtual void ForceFullGC(uint32_t tid) = 0;
     virtual void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) = 0;
-    virtual void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary, bool isClearNodeIdCache) {};
+    virtual void DumpHeapSnapshot(const OHOS::AppExecFwk::JsHeapDumpInfo &info) {};
     virtual void AllowCrossThreadExecution() = 0;
     virtual void GetHeapPrepare() = 0;
     virtual void NotifyApplicationState(bool isBackground) = 0;

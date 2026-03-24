@@ -1362,12 +1362,12 @@ void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary)
     DumpHeapSnapshot(tid, isFullGC, isBinary, false);
 }
 
-void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary, bool isClearNodeIdCache)
+void JsRuntime::DumpHeapSnapshot(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
     auto vm = GetEcmaVm();
     CHECK_POINTER(vm);
     panda::ecmascript::DumpSnapShotOption dumpOption;
-    if (isBinary) {
+    if (info.needBinary) {
         dumpOption.dumpFormat = panda::ecmascript::DumpFormat::BINARY;
     } else {
         dumpOption.dumpFormat = panda::ecmascript::DumpFormat::JSON;
@@ -1375,10 +1375,11 @@ void JsRuntime::DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary, boo
     dumpOption.isVmMode = true;
     dumpOption.isPrivate = false;
     dumpOption.captureNumericValue = true;
-    dumpOption.isFullGC = isFullGC;
+    dumpOption.isFullGC = info.needGC;
     dumpOption.isSync = false;
-    dumpOption.isClearNodeIdCache = isClearNodeIdCache;
-    DFXJSNApi::DumpHeapSnapshot(vm, dumpOption, tid);
+    dumpOption.isClearNodeIdCache = info.needNodeIdCache;
+    dumpOption.isMergeBinary = info.needMergeBinary;
+    DFXJSNApi::DumpHeapSnapshot(vm, dumpOption, info.tid);
 }
 
 size_t JsRuntime::GetHeapTotalSize()

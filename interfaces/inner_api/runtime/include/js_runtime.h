@@ -99,7 +99,7 @@ public:
     void ForceFullGC() override;
     void ForceFullGC(uint32_t tid) override;
     void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary = false) override;
-    void DumpHeapSnapshot(uint32_t tid, bool isFullGC, bool isBinary, bool isClearNodeIdCache) override;
+    void DumpHeapSnapshot(const OHOS::AppExecFwk::JsHeapDumpInfo &info) override;
     void AllowCrossThreadExecution() override;
     void GetHeapPrepare() override;
     void NotifyApplicationState(bool isBackground) override;
