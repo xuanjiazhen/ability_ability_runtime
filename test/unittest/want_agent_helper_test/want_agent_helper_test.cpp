@@ -1242,11 +1242,11 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5700, Function | MediumTest | Leve
 }
 
 /*
- * @tc.number    : WantAgentHelper_5800
+ * @tc.number    : WantAgentHelper_6700
  * @tc.name      : WantAgentHelper Cancel success after remove death recipient
  * @tc.desc      : RemoveDeathRecipient normal test
  */
-HWTEST_F(WantAgentHelperTest, WantAgentHelper_5800, Function | MediumTest | Level1)
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_6700, Function | MediumTest | Level1)
 {
     std::shared_ptr<WantAgentHelper> wantAgentHelper = std::make_shared<WantAgentHelper>();
     std::shared_ptr<Want> want = std::make_shared<Want>();
@@ -1275,11 +1275,11 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5800, Function | MediumTest | Leve
 }
 
 /*
- * @tc.number    : WantAgentHelper_5900
+ * @tc.number    : WantAgentHelper_6800
  * @tc.name      : WantAgentHelper GetWant for local wantagent
  * @tc.desc      : wantAgent is local and not null
  */
-HWTEST_F(WantAgentHelperTest, WantAgentHelper_5900, Function | MediumTest | Level1)
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_6800, Function | MediumTest | Level1)
 {
     std::shared_ptr<AAFwk::Want> expectedWant = std::make_shared<AAFwk::Want>();
     expectedWant->SetElement(ElementName("deviceId", "bundleName", "abilityName"));
@@ -1295,11 +1295,11 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_5900, Function | MediumTest | Leve
 }
 
 /*
- * @tc.number    : WantAgentHelper_6000
+ * @tc.number    : WantAgentHelper_6900
  * @tc.name      : WantAgentHelper GetWant for local wantagent
  * @tc.desc      : wantAgent is local and null
  */
-HWTEST_F(WantAgentHelperTest, WantAgentHelper_6000, Function | MediumTest | Level1)
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_6900, Function | MediumTest | Level1)
 {
     std::shared_ptr<LocalPendingWant> localPendingWant = nullptr;
     std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(localPendingWant);
@@ -1311,11 +1311,11 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6000, Function | MediumTest | Leve
 }
 
 /*
- * @tc.number    : WantAgentHelper_6100
+ * @tc.number    :WantAgentHelper_7000
  * @tc.name      : WantAgentHelper GetType for local wantagent
  * @tc.desc      : wantAgent is local and not null
  */
-HWTEST_F(WantAgentHelperTest, WantAgentHelper_6100, Function | MediumTest | Level1)
+HWTEST_F(WantAgentHelperTest,WantAgentHelper_7000, Function | MediumTest | Level1)
 {
     std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
     want->SetElement(ElementName("deviceId", "bundleName", "abilityName"));
@@ -1330,11 +1330,11 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6100, Function | MediumTest | Leve
 }
 
 /*
- * @tc.number    : WantAgentHelper_6200
+ * @tc.number    : WantAgentHelper_7100
  * @tc.name      : WantAgentHelper GetType for local wantagent
  * @tc.desc      : wantAgent is local and null
  */
-HWTEST_F(WantAgentHelperTest, WantAgentHelper_6200, Function | MediumTest | Level1)
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_7100, Function | MediumTest | Level1)
 {
     std::shared_ptr<LocalPendingWant> localPendingWant = nullptr;
     std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(localPendingWant);
@@ -1345,11 +1345,11 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6200, Function | MediumTest | Leve
 }
 
 /*
- * @tc.number    : WantAgentHelper_6300
+ * @tc.number    : WantAgentHelper_7200
  * @tc.name      : WantAgentHelper GetUid for local wantagent
  * @tc.desc      : wantAgent is local and not null
  */
-HWTEST_F(WantAgentHelperTest, WantAgentHelper_6300, Function | MediumTest | Level1)
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_7200, Function | MediumTest | Level1)
 {
     std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
     want->SetElement(ElementName("deviceId", "bundleName", "abilityName"));
@@ -1364,11 +1364,11 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6300, Function | MediumTest | Leve
 }
 
 /*
- * @tc.number    : WantAgentHelper_6400
+ * @tc.number    : WantAgentHelper_7300
  * @tc.name      : WantAgentHelper GetUid for local wantagent
  * @tc.desc      : wantAgent is local and null
  */
-HWTEST_F(WantAgentHelperTest, WantAgentHelper_6400, Function | MediumTest | Level1)
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_7300, Function | MediumTest | Level1)
 {
     std::shared_ptr<LocalPendingWant> localPendingWant = nullptr;
     std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(localPendingWant);
@@ -1378,11 +1378,11 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6400, Function | MediumTest | Leve
 }
 
 /*
- * @tc.number    : WantAgentHelper_6500
+ * @tc.number    : WantAgentHelper_7400
  * @tc.name      : WantAgentHelper GetBundleName for local wantagent
  * @tc.desc      : wantAgent is local and not null
  */
-HWTEST_F(WantAgentHelperTest, WantAgentHelper_6500, Function | MediumTest | Level1)
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_7400, Function | MediumTest | Level1)
 {
     std::shared_ptr<AAFwk::Want> want = std::make_shared<AAFwk::Want>();
     want->SetElement(ElementName("deviceId", "bundleName", "abilityName"));
@@ -1396,11 +1396,11 @@ HWTEST_F(WantAgentHelperTest, WantAgentHelper_6500, Function | MediumTest | Leve
 }
 
 /*
- * @tc.number    : WantAgentHelper_6600
+ * @tc.number    : WantAgentHelper_7500
  * @tc.name      : WantAgentHelper GetBundleName for local wantagent
  * @tc.desc      : wantAgent is local and null
  */
-HWTEST_F(WantAgentHelperTest, WantAgentHelper_6600, Function | MediumTest | Level1)
+HWTEST_F(WantAgentHelperTest, WantAgentHelper_7500, Function | MediumTest | Level1)
 {
     std::shared_ptr<LocalPendingWant> localPendingWant = nullptr;
     std::shared_ptr<WantAgent> wantAgent = std::make_shared<WantAgent>(localPendingWant);
