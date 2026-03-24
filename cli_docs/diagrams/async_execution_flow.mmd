@@ -1,0 +1,32 @@
+sequenceDiagram
+    participant App as AIClaw App
+    participant API as JS API
+    participant Proxy as Client Proxy
+    participant Svc as CLI Manager Service
+    participant Proc as Process Manager
+    participant Tool as CLI Tool Process
+    participant Event as Event Dispatcher
+
+    App->>API: execToolAsync(name, args, callback)
+    API->>Proxy: execToolAsync(name, args, callback)
+    Proxy->>Svc: execToolAsync(name, args)
+    Svc->>Proc: spawnProcessAsync(name, args)
+    Proc->>Tool: 启动进程
+    Svc-->>Proxy: return taskId
+    Proxy-->>API: return taskId
+    API-->>App: resolve(taskId)
+
+    loop 工具输出事件
+        Tool->>Event: stdout/stderr
+        Event->>Svc: onOutput(taskId, data)
+        Svc->>Proxy: onOutput(taskId, data)
+        Proxy->>API: onOutput(taskId, data)
+        API->>App: callback(data)
+    end
+
+    Tool->>Proc: exit
+    Proc->>Event: onExit(taskId, exitCode)
+    Event->>Svc: onExit(taskId, exitCode)
+    Svc->>Proxy: onExit(taskId, exitCode)
+    Proxy->>API: onExit(taskId, exitCode)
+    API->>App: callback({type: 'exit', code})

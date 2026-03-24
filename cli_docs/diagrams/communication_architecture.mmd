@@ -1,0 +1,39 @@
+graph TB
+    subgraph AIClaw["AIClaw Application"]
+        JS["JS Layer Event Handler"]
+        NAPI["NAPI Layer C++ Bridge"]
+        Proxy["Client Proxy IPC Client"]
+    end
+
+    subgraph Service["CLI Manager Service SA 9001"]
+        RPC["RPC Server"]
+        ED["Event Dispatcher"]
+        PM["Process Manager"]
+        RM["Registry Manager"]
+        IO["I/O Monitor epoll"]
+    end
+
+    subgraph Tool["CLI Tool Process"]
+        EXE["CLI Executable"]
+        OUT_P["stdout pipe"]
+        ERR_P["stderr pipe"]
+    end
+
+    JS --> NAPI
+    NAPI --> Proxy
+    Proxy <-->|IPC Binder| RPC
+    RPC --> ED
+    RPC --> PM
+    PM --> RM
+    ED --> IO
+
+    PM -->|spawn| EXE
+    EXE --> OUT_P
+    EXE --> ERR_P
+
+    OUT_P -->|pipe read| IO
+    ERR_P -->|pipe read| IO
+
+    IO -->|OnReadable| ED
+    ED -->|Callback| RPC
+    RPC --> Proxy
