@@ -667,6 +667,18 @@ HWTEST_F(PendingWantTest, PendingWant_3500, Function | MediumTest | Level1)
 }
 
 /*
+ * @tc.number    : PendingWant_3500
+ * @tc.name      : PendingWant GetWant
+ * @tc.desc      : 1.GetWant
+ */
+HWTEST_F(PendingWantTest, PendingWant_3500, Function | MediumTest | Level1)
+{
+    PendingWant pendingWant(nullptr);
+    auto want = pendingWant.GetWantFromProxy(nullptr);
+    EXPECT_EQ(want, nullptr);
+}
+
+/*
  * @tc.number    : PendingWant_3600
  * @tc.name      : PendingWant Equals
  * @tc.desc      : Equals
