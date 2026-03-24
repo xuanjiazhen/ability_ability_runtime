@@ -1,0 +1,31 @@
+sequenceDiagram
+    participant User as User Code
+    participant JS as JS API
+    participant NAPI as NAPI Layer
+    participant SVC as CLI Manager Service
+    participant Reg as Registry Manager
+    participant PM as Process Manager
+    participant Param as Parameter Mapper
+    participant Tool as CLI Tool Process
+
+    User->>JS: execTool('network-scanner', args)
+    Note right of User: args = {<br/>  target: "192.168.1.1",<br/>  ports: [80, 443],<br/>  timeout: 5000,<br/>  verbose: true<br/>}
+
+    JS->>NAPI: ExecTool(name, args)
+    NAPI->>SVC: IPC 调用
+
+    SVC->>Reg: GetToolInfo('network-scanner')
+    Reg-->>SVC: ToolInfo
+    Note right of Reg: argumentMapping.type = "flag"<br/>templates = {<br/>  target: "--target={value}",<br/>  ports: "--port={value}",<br/>  timeout: "--timeout={value}",<br/>  verbose: {if_true: "-v"}<br/>}
+
+    SVC->>PM: CreateExecutionContext(toolInfo, args)
+    PM->>Param: MapToCommandLine(toolInfo, args)
+
+    Param->>Param: 遍历 args 应用模板
+    Note right of Param: target → "--target=192.168.1.1"<br/>ports[0] → "--port=80"<br/>ports[1] → "--port=443"<br/>timeout → "--timeout=5000"<br/>verbose → "-v"
+
+    Param-->>PM: argv = [<br/>  "/usr/bin/net-scan",<br/>  "--target=192.168.1.1",<br/>  "--port=80",<br/>  "--port=443",<br/>  "--timeout=5000",<br/>  "-v"<br/>]
+
+    PM->>Tool: fork() + execve(argv)
+
+    Note right of Tool: net-scan --target=192.168.1.1 --port=80 --port=443 --timeout=5000 -v
