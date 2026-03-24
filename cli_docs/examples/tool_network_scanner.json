@@ -1,0 +1,100 @@
+{
+  "$schema": "https://schemas.openharmony.org/cli/tool/v1",
+  "name": "network-scanner",
+  "version": "1.0.0",
+  "description": "Network scanning utility for diagnosing network connectivity",
+  "executable": "/usr/bin/net-scan",
+  "permissions": [
+    "ohos.permission.INTERNET",
+    "ohos.permission.GET_NETWORK_INFO"
+  ],
+
+  "input": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string",
+        "format": "ipv4",
+        "description": "Target IP address or hostname",
+        "minLength": 1,
+        "maxLength": 255,
+        "example": "192.168.1.1"
+      },
+      "ports": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "minItems": 1,
+        "maxItems": 100,
+        "description": "List of ports to scan",
+        "example": [80, 443, 8080]
+      },
+      "timeout": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 60000,
+        "default": 5000,
+        "description": "Scan timeout in milliseconds"
+      },
+      "verbose": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enable verbose output"
+      },
+      "outputFormat": {
+        "type": "string",
+        "enum": ["json", "text", "csv"],
+        "default": "json",
+        "description": "Output format"
+      }
+    },
+    "required": ["target"]
+  },
+
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "ports": "--port={value}",
+      "timeout": "--timeout={value}ms",
+      "verbose": {
+        "if_true": "-v",
+        "if_false": ""
+      },
+      "outputFormat": "--format={value}"
+    }
+  },
+
+  "output": {
+    "type": "object",
+    "description": "Scan results",
+    "properties": {
+      "results": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "port": {"type": "integer"},
+            "status": {"type": "string", "enum": ["open", "closed", "filtered"]},
+            "service": {"type": "string"},
+            "responseTime": {"type": "integer"}
+          }
+        }
+      },
+      "summary": {
+        "type": "object",
+        "properties": {
+          "totalPorts": {"type": "integer"},
+          "openPorts": {"type": "integer"},
+          "scanTime": {"type": "integer"}
+        }
+      }
+    }
+  },
+
+  "timeout": 30000,
+  "events": ["progress", "result"]
+}

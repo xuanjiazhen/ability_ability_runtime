@@ -1,0 +1,139 @@
+{
+  "$schema": "https://schemas.openharmony.org/cli/tool/v1",
+  "name": "app-deploy",
+  "version": "1.0.0",
+  "description": "Application deployment tool with nested configuration",
+  "executable": "/usr/bin/app-deploy",
+  "permissions": ["ohos.permission.INSTALL_BUNDLE"],
+
+  "input": {
+    "type": "object",
+    "properties": {
+      "app": {
+        "type": "object",
+        "description": "Application configuration",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Application name"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$",
+            "description": "Application version (e.g., 1.0.0)"
+          },
+          "env": {
+            "type": "object",
+            "description": "Environment variables",
+            "properties": {
+              "production": {
+                "type": "boolean",
+                "default": false,
+                "description": "Production environment"
+              },
+              "debug": {
+                "type": "boolean",
+                "default": false,
+                "description": "Debug mode"
+              },
+              "logLevel": {
+                "type": "string",
+                "enum": ["DEBUG", "INFO", "WARN", "ERROR"],
+                "default": "INFO",
+                "description": "Log level"
+              }
+            }
+          }
+        },
+        "required": ["name"]
+      },
+      "server": {
+        "type": "object",
+        "description": "Server configuration",
+        "properties": {
+          "host": {
+            "type": "string",
+            "format": "hostname",
+            "description": "Server hostname or IP"
+          },
+          "port": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 65535,
+            "default": 8080,
+            "description": "Server port"
+          },
+          "ssl": {
+            "type": "object",
+            "description": "SSL/TLS configuration",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "default": false
+              },
+              "cert": {
+                "type": "string",
+                "description": "SSL certificate file path"
+              },
+              "key": {
+                "type": "string",
+                "description": "SSL key file path"
+              }
+            }
+          }
+        },
+        "required": ["host"]
+      },
+      "force": {
+        "type": "boolean",
+        "default": false,
+        "description": "Force deployment without confirmation"
+      },
+      "dryRun": {
+        "type": "boolean",
+        "default": false,
+        "description": "Perform a dry run without actual deployment"
+      }
+    },
+    "required": ["app", "server"]
+  },
+
+  "argumentMapping": {
+    "type": "flattened",
+    "separator": ".",
+    "templates": {
+      "app.name": "--app-name={value}",
+      "app.version": "--app-version={value}",
+      "app.env.production": "--env-prod",
+      "app.env.debug": "--env-debug",
+      "app.env.logLevel": "--env-log-level={value}",
+      "server.host": "--server-host={value}",
+      "server.port": "--server-port={value}",
+      "server.ssl.enabled": "--ssl",
+      "server.ssl.cert": "--ssl-cert={value}",
+      "server.ssl.key": "--ssl-key={value}",
+      "force": {
+        "if_true": "--force",
+        "if_false": ""
+      },
+      "dryRun": {
+        "if_true": "--dry-run",
+        "if_false": ""
+      }
+    }
+  },
+
+  "output": {
+    "type": "object",
+    "properties": {
+      "success": {"type": "boolean"},
+      "message": {"type": "string"},
+      "deploymentId": {"type": "string"},
+      "deploymentTime": {"type": "integer"}
+    }
+  },
+
+  "timeout": 120000,
+  "events": ["progress"]
+}
