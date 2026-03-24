@@ -1,0 +1,598 @@
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "cli_manager_service.h"
+#include "registry_manager.h"
+#include "process_manager.h"
+#include "process_monitor.h"
+#include "timeout_manager.h"
+#include "resource_manager.h"
+#include "command_sanitizer.h"
+#include "event_dispatcher.h"
+#include "permission_checker.h"
+#include "io_monitor.h"
+#include "hilog_tag_wrapper.h"
+#include <algorithm>
+
+namespace OHOS {
+namespace CliMgr {
+
+// 在 OnStart 中初始化新组件
+bool CLIManagerService::InitComponents()
+{
+    // 创建 Registry Manager
+    registryManager_ = std::make_shared<RegistryManager>();
+    if (!registryManager_->Initialize()) {
+        TAG_LOGE(TAG, "Failed to initialize RegistryManager");
+        return false;
+    }
+
+    // 创建 Event Dispatcher
+    eventDispatcher_ = std::make_shared<EventDispatcher>();
+
+    // Create I/O Monitor
+    ioMonitor_ = std::make_shared<IOMonitor>(eventDispatcher_.get());
+
+    // 创建 Process Manager
+    processManager_ = std::make_shared<ProcessManager>(ioMonitor_.get());
+
+    // 创建 Process Monitor
+    processMonitor_ = std::make_shared<ProcessMonitor>(eventDispatcher_.get());
+    if (!processMonitor_->Start()) {
+        TAG_LOGE(TAG, "Failed to start ProcessMonitor");
+        return false;
+    }
+
+    // 创建 Timeout Manager
+    timeoutManager_ = std::make_shared<TimeoutManager>(processManager_.get(), eventDispatcher_.get());
+    if (!timeoutManager_->Start()) {
+        TAG_LOGE(TAG, "Failed to start TimeoutManager");
+        return false;
+    }
+
+    // 创建 Resource Manager
+    resourceManager_ = std::make_shared<ResourceManager>();
+    if (!resourceManager_->Initialize()) {
+        TAG_LOGE(TAG, "Failed to initialize ResourceManager");
+        return false;
+    }
+
+    // 设置进程退出回调
+    processMonitor_ = nullptr;  // 将在 ProcessMonitor 中处理
+
+    // 创建 Permission Checker
+    permissionChecker_ = std::make_shared<PermissionChecker>();
+    if (!permissionChecker_->Initialize()) {
+        TAG_LOGE(TAG, "Failed to initialize PermissionChecker");
+        return false;
+    }
+
+    TAG_LOGI(TAG, "All components initialized successfully");
+    return true;
+}
+
+// RPC 处理方法
+int32_t CLIManagerService::QueryToolsInternal(MessageParcel& data, MessageParcel& reply)
+{
+    std::vector<ToolInfo> tools;
+    int32_t ret = QueryTools(tools);
+
+    // 写入错误码
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_DATA;
+    }
+
+    if (ret != ErrCode::OK) {
+        return ERR_OK;
+    }
+
+    // 写入工具数量
+    if (!reply.WriteInt32(tools.size())) {
+        return ERR_INVALID_DATA;
+    }
+
+    // 写入每个工具
+    for (const auto& tool : tools) {
+        if (!WriteToolInfo(reply, tool)) {
+            TAG_LOGE(TAG, "Failed to write tool info");
+            return ERR_INVALID_DATA;
+        }
+    }
+
+    return ERR_OK;
+}
+
+int32_t CLIManagerService::ExecToolInternal(MessageParcel& data, MessageParcel& reply)
+{
+    // 读取参数
+    std::string name = data.ReadString();
+
+    std::string argsStr = data.ReadString();
+    Json::Value arguments;
+    Json::Reader reader;
+    reader.parse(argsStr, arguments);
+
+    // 读取新的选项参数
+    bool background = data.ReadBool();
+    uint32_t yieldMs = data.ReadUint32();
+    uint32_t timeoutMs = data.ReadUint32();
+    std::string workingDir = data.ReadString();
+
+    std::string envStr = data.ReadString();
+    Json::Value env;
+    if (!envStr.empty()) {
+        reader.parse(envStr, env);
+    }
+
+    ExecOptions options;
+    options.background = background;
+    options.yieldMs = yieldMs;
+    options.timeoutMs = timeoutMs;
+    options.workingDir = workingDir;
+    options.env = env;
+
+    // 执行工具
+    SessionInfo session;
+    int32_t ret = ExecTool(name, arguments, options, session);
+
+    // 写入错误码
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_DATA;
+    }
+
+    if (ret != ErrCode::OK) {
+        return ERR_OK;
+    }
+
+    // 写入会话信息
+    if (!reply.WriteString(session.sessionId)) {
+        return ERR_INVALID_DATA;
+    }
+    if (!reply.WriteString(session.toolName)) {
+        return ERR_INVALID_DATA;
+    }
+    if (!reply.WriteString(session.status)) {
+        return ERR_INVALID_DATA;
+    }
+    if (!reply.WriteUint64(session.startTime)) {
+        return ERR_INVALID_DATA;
+    }
+    if (!reply.WriteUint64(session.endTime)) {
+        return ERR_INVALID_DATA;
+    }
+
+    // 写入执行结果（如果有）
+    bool hasResult = (session.result != nullptr);
+    if (!reply.WriteBool(hasResult)) {
+        return ERR_INVALID_DATA;
+    }
+
+    if (hasResult && session.result != nullptr) {
+        if (!reply.WriteString(session.result->taskId)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteInt32(session.result->exitCode)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteString(session.result->stdout)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteString(session.result->stderr)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteInt32(session.result->signal)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteBool(session.result->timedOut)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteUint64(session.result->executionTimeMs)) {
+            return ERR_INVALID_DATA;
+        }
+    }
+
+    return ERR_OK;
+}
+
+int32_t CLIManagerService::SubscribeSessionInternal(MessageParcel& data, MessageParcel& reply)
+{
+    // 读取参数
+    std::string sessionId = data.ReadString();
+
+    sptr<IRemoteObject> callbackObj = data.ReadRemoteObject();
+    sptr<ICLICallback> callback = iface_cast<ICLICallback>(callbackObj);
+
+    // 订阅会话事件
+    int32_t ret = SubscribeSession(sessionId, callback);
+
+    // 写入错误码
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_DATA;
+    }
+
+    return ERR_OK;
+}
+
+int32_t CLIManagerService::CancelSessionInternal(MessageParcel& data, MessageParcel& reply)
+{
+    std::string sessionId = data.ReadString();
+
+    int32_t ret = CancelSession(sessionId);
+
+    return reply.WriteInt32(ret) ? ERR_OK : ERR_INVALID_DATA;
+}
+
+int32_t CLIManagerService::QuerySessionStatusInternal(MessageParcel& data, MessageParcel& reply)
+{
+    std::string sessionId = data.ReadString();
+
+    SessionInfo session;
+    int32_t ret = QuerySessionStatus(sessionId, session);
+
+    // 写入错误码
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_DATA;
+    }
+
+    if (ret != ErrCode::OK) {
+        return ERR_OK;
+    }
+
+    // 写入会话信息
+    if (!reply.WriteString(session.sessionId)) {
+        return ERR_INVALID_DATA;
+    }
+    if (!reply.WriteString(session.toolName)) {
+        return ERR_INVALID_DATA;
+    }
+    if (!reply.WriteString(session.status)) {
+        return ERR_INVALID_DATA;
+    }
+    if (!reply.WriteUint64(session.startTime)) {
+        return ERR_INVALID_DATA;
+    }
+    if (!reply.WriteUint64(session.endTime)) {
+        return ERR_INVALID_DATA;
+    }
+
+    // 写入执行结果（如果有）
+    bool hasResult = (session.result != nullptr);
+    if (!reply.WriteBool(hasResult)) {
+        return ERR_INVALID_DATA;
+    }
+
+    if (hasResult && session.result != nullptr) {
+        if (!reply.WriteString(session.result->taskId)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteInt32(session.result->exitCode)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteString(session.result->stdout)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteString(session.result->stderr)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteInt32(session.result->signal)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteBool(session.result->timedOut)) {
+            return ERR_INVALID_DATA;
+        }
+        if (!reply.WriteUint64(session.result->executionTimeMs)) {
+            return ERR_INVALID_DATA;
+        }
+    }
+
+    return ERR_OK;
+}
+
+// ============================================================================
+// 动态工具注册 RPC 处理
+// ============================================================================
+
+int32_t CLIManagerService::RegisterToolInternal(MessageParcel& data, MessageParcel& reply)
+{
+    // 读取工具信息
+    ToolInfo tool;
+    if (!ReadToolInfo(data, tool)) {
+        HILOG_ERROR(TAG, "Failed to read tool info");
+        return reply.WriteInt32(ErrCode::ERR_INVALID_ARGS) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 读取持久化标志
+    bool persist = data.ReadBool();
+
+    // 权限检查
+    if (!CheckRegisterPermission()) {
+        HILOG_ERROR(TAG, "Permission denied for tool registration");
+        return reply.WriteInt32(ErrCode::ERR_PERMISSION_DENIED) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 注册工具
+    int32_t ret = RegisterTool(tool, persist);
+
+    return reply.WriteInt32(ret) ? ERR_OK : ERR_INVALID_DATA;
+}
+
+int32_t CLIManagerService::RegisterToolsInternal(MessageParcel& data, MessageParcel& reply)
+{
+    // 读取工具数量
+    int32_t toolCount = data.ReadInt32();
+    if (toolCount <= 0 || toolCount > 1000) {  // 限制批量注册数量
+        HILOG_ERROR(TAG, "Invalid tool count: %{public}d", toolCount);
+        return reply.WriteInt32(ErrCode::ERR_INVALID_ARGS) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 读取工具列表
+    std::vector<ToolInfo> tools;
+    tools.reserve(toolCount);
+    for (int32_t i = 0; i < toolCount; ++i) {
+        ToolInfo tool;
+        if (!ReadToolInfo(data, tool)) {
+            HILOG_ERROR(TAG, "Failed to read tool info at index %{public}d", i);
+            return reply.WriteInt32(ErrCode::ERR_INVALID_ARGS) ? ERR_OK : ERR_INVALID_DATA;
+        }
+        tools.push_back(tool);
+    }
+
+    // 读取持久化标志
+    bool persist = data.ReadBool();
+
+    // 权限检查
+    if (!CheckRegisterPermission()) {
+        HILOG_ERROR(TAG, "Permission denied for tools registration");
+        return reply.WriteInt32(ErrCode::ERR_PERMISSION_DENIED) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 批量注册
+    int32_t ret = RegisterTools(tools, persist);
+
+    return reply.WriteInt32(ret) ? ERR_OK : ERR_INVALID_DATA;
+}
+
+int32_t CLIManagerService::UpdateToolInternal(MessageParcel& data, MessageParcel& reply)
+{
+    // 读取工具信息
+    ToolInfo tool;
+    if (!ReadToolInfo(data, tool)) {
+        HILOG_ERROR(TAG, "Failed to read tool info");
+        return reply.WriteInt32(ErrCode::ERR_INVALID_ARGS) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 读取持久化标志
+    bool persist = data.ReadBool();
+
+    // 权限检查
+    if (!CheckRegisterPermission()) {
+        HILOG_ERROR(TAG, "Permission denied for tool update");
+        return reply.WriteInt32(ErrCode::ERR_PERMISSION_DENIED) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 更新工具
+    int32_t ret = UpdateTool(tool, persist);
+
+    return reply.WriteInt32(ret) ? ERR_OK : ERR_INVALID_DATA;
+}
+
+int32_t CLIManagerService::UnregisterToolInternal(MessageParcel& data, MessageParcel& reply)
+{
+    // 读取工具名称
+    std::string toolName = data.ReadString();
+    if (toolName.empty()) {
+        HILOG_ERROR(TAG, "Tool name is empty");
+        return reply.WriteInt32(ErrCode::ERR_INVALID_ARGS) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 读取持久化标志
+    bool persist = data.ReadBool();
+
+    // 权限检查
+    if (!CheckRegisterPermission()) {
+        HILOG_ERROR(TAG, "Permission denied for tool unregistration");
+        return reply.WriteInt32(ErrCode::ERR_PERMISSION_DENIED) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 注销工具
+    int32_t ret = UnregisterTool(toolName, persist);
+
+    return reply.WriteInt32(ret) ? ERR_OK : ERR_INVALID_DATA;
+}
+
+int32_t CLIManagerService::QueryToolInternal(MessageParcel& data, MessageParcel& reply)
+{
+    // 读取工具名称
+    std::string toolName = data.ReadString();
+    if (toolName.empty()) {
+        HILOG_ERROR(TAG, "Tool name is empty");
+        return reply.WriteInt32(ErrCode::ERR_INVALID_ARGS) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 查询工具
+    ToolInfo tool;
+    int32_t ret = QueryTool(toolName, tool);
+
+    // 写入错误码
+    if (!reply.WriteInt32(ret)) {
+        return ERR_INVALID_DATA;
+    }
+
+    if (ret != ErrCode::OK) {
+        return ERR_OK;
+    }
+
+    // 写入工具信息
+    if (!WriteToolInfo(reply, tool)) {
+        HILOG_ERROR(TAG, "Failed to write tool info");
+        return ERR_INVALID_DATA;
+    }
+
+    return ERR_OK;
+}
+
+int32_t CLIManagerService::ReloadRegistryInternal(MessageParcel& data, MessageParcel& reply)
+{
+    // 权限检查
+    if (!CheckRegisterPermission()) {
+        HILOG_ERROR(TAG, "Permission denied for registry reload");
+        return reply.WriteInt32(ErrCode::ERR_PERMISSION_DENIED) ? ERR_OK : ERR_INVALID_DATA;
+    }
+
+    // 重新加载注册表
+    int32_t ret = ReloadRegistry();
+
+    return reply.WriteInt32(ret) ? ERR_OK : ERR_INVALID_DATA;
+}
+
+bool CLIManagerService::ReadToolInfo(MessageParcel& parcel, ToolInfo& tool)
+{
+    // 读取基本字段
+    tool.name = parcel.ReadString();
+    if (tool.name.empty()) {
+        HILOG_ERROR(TAG, "Tool name is empty");
+        return false;
+    }
+
+    tool.version = parcel.ReadString();
+    tool.description = parcel.ReadString();
+    tool.executablePath = parcel.ReadString();
+
+    if (tool.executablePath.empty()) {
+        HILOG_ERROR(TAG, "Executable path is empty");
+        return false;
+    }
+
+    // 读取权限列表
+    int32_t permCount = parcel.ReadInt32();
+    if (permCount < 0 || permCount > 100) {
+        HILOG_ERROR(TAG, "Invalid permission count: %{public}d", permCount);
+        return false;
+    }
+
+    tool.permissions.clear();
+    tool.permissions.reserve(permCount);
+    for (int32_t i = 0; i < permCount; ++i) {
+        std::string perm = parcel.ReadString();
+        if (!perm.empty()) {
+            tool.permissions.push_back(perm);
+        }
+    }
+
+    // 读取 JSON Schema
+    Json::Reader reader;
+    std::string inputSchemaStr = parcel.ReadString();
+    std::string outputSchemaStr = parcel.ReadString();
+
+    if (!inputSchemaStr.empty()) {
+        reader.parse(inputSchemaStr, tool.inputSchema);
+    }
+    if (!outputSchemaStr.empty()) {
+        reader.parse(outputSchemaStr, tool.outputSchema);
+    }
+
+    // 读取超时时间
+    tool.timeoutMs = parcel.ReadUint32();
+
+    // 读取事件类型
+    int32_t eventCount = parcel.ReadInt32();
+    if (eventCount < 0 || eventCount > 100) {
+        HILOG_ERROR(TAG, "Invalid event type count: %{public}d", eventCount);
+        return false;
+    }
+
+    tool.eventTypes.clear();
+    tool.eventTypes.reserve(eventCount);
+    for (int32_t i = 0; i < eventCount; ++i) {
+        std::string event = parcel.ReadString();
+        if (!event.empty()) {
+            tool.eventTypes.push_back(event);
+        }
+    }
+
+    // 读取注册时间和启用状态
+    tool.registeredTime = parcel.ReadUint64();
+    tool.enabled = parcel.ReadBool();
+
+    return true;
+}
+
+bool CLIManagerService::WriteToolInfo(MessageParcel& parcel, const ToolInfo& tool)
+{
+    // 写入基本字段
+    if (!parcel.WriteString(tool.name)) {
+        return false;
+    }
+    if (!parcel.WriteString(tool.version)) {
+        return false;
+    }
+    if (!parcel.WriteString(tool.description)) {
+        return false;
+    }
+    if (!parcel.WriteString(tool.executablePath)) {
+        return false;
+    }
+
+    // 写入权限列表
+    if (!parcel.WriteInt32(tool.permissions.size())) {
+        return false;
+    }
+    for (const auto& perm : tool.permissions) {
+        if (!parcel.WriteString(perm)) {
+            return false;
+        }
+    }
+
+    // 写入 JSON Schema
+    Json::StreamWriterBuilder builder;
+    builder["indentation"] = "";
+    std::string inputSchemaStr = Json::writeString(builder, tool.inputSchema);
+    std::string outputSchemaStr = Json::writeString(builder, tool.outputSchema);
+
+    if (!parcel.WriteString(inputSchemaStr)) {
+        return false;
+    }
+    if (!parcel.WriteString(outputSchemaStr)) {
+        return false;
+    }
+
+    // 写入超时时间
+    if (!parcel.WriteUint32(tool.timeoutMs)) {
+        return false;
+    }
+
+    // 写入事件类型
+    if (!parcel.WriteInt32(tool.eventTypes.size())) {
+        return false;
+    }
+    for (const auto& event : tool.eventTypes) {
+        if (!parcel.WriteString(event)) {
+            return false;
+        }
+    }
+
+    // 写入注册时间和启用状态
+    if (!parcel.WriteUint64(tool.registeredTime)) {
+        return false;
+    }
+    if (!parcel.WriteBool(tool.enabled)) {
+        return false;
+    }
+
+    return true;
+}
+
+} // namespace CliMgr
+} // namespace OHOS
