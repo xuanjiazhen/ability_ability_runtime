@@ -69,7 +69,6 @@ HWTEST_F(UIExtensionContextTest, StartUIServiceExtension_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "StartUIServiceExtension_0100 end");
 }
 
-
 /**
  * @tc.number: TerminateSelfWithAnimation_0100
  * @tc.name: TerminateSelfWithAnimation
