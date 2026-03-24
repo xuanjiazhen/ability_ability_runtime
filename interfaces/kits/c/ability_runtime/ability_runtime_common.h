@@ -153,6 +153,21 @@ typedef enum {
      * @since 21
      */
     ABILITY_RUNTIME_ERROR_CODE_MAIN_THREAD_NOT_SUPPORTED = 16000134,
+    /**
+     * @error The requested property, method, enum, or struct member is not found.
+     * @since 26
+     */
+    ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND = 16000135,
+    /**
+     * @error The runtime value type does not match the expected metadata type.
+     * @since 26
+     */
+    ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH = 16000136,
+    /**
+     * @error The IPC request to the remote service fails.
+     * @since 26
+     */
+    ABILITY_RUNTIME_ERROR_CODE_SEND_REQUEST_FAILED = 16000137,
 } AbilityRuntime_ErrorCode;
 
 #ifdef __cplusplus
