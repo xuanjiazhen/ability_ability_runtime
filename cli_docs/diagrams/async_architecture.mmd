@@ -1,0 +1,421 @@
+# CLI 工具异步执行架构图
+
+## 整体架构图
+
+```mermaid
+graph TB
+    subgraph "应用层 (AIClaw Application)"
+        A[JS/TS 应用代码]
+        B[NAPI 绑定层]
+        C[客户端代理 Client Proxy]
+    end
+
+    subgraph "IPC 通信层"
+        D[IPC Binder]
+    end
+
+    subgraph "CLI Manager 服务"
+        E[CLI Manager Service]
+        F[权限检查器]
+        G[工具注册表]
+        H[参数映射器]
+        I[进程管理器]
+        J[事件分发器 EventDispatcher]
+        K[I/O 监控器 IOMonitor]
+    end
+
+    subgraph "CLI 工具进程"
+        L[(CLI Tool Process)]
+        M[stdout 管道]
+        N[stderr 管道]
+    end
+
+    A -->|JavaScript 调用| B
+    B -->|C++ 调用| C
+    C -->|IPC 请求| D
+    D -->|IPC| E
+    E --> F
+    E --> G
+    E --> H
+    E --> I
+    I -->|fork/exec| L
+    L -->|写入| M
+    L -->|写入| N
+    M -->|epoll| K
+    N -->|epoll| K
+    K -->|事件分发| J
+    J -->|IPC 回调| D
+    D -->|异步事件| C
+    C -->|回调触发| B
+    B -->|事件通知| A
+
+    style A fill:#e1f5ff
+    style E fill:#fff4e1
+    style L fill:#e8f5e9
+    style J fill:#fce4ec
+    style K fill:#f3e5f5
+```
+
+## 异步数据流序列图
+
+```mermaid
+sequenceDiagram
+    participant App as 应用层 (JS)
+    participant NAPI as NAPI 层
+    participant Client as 客户端代理
+    participant Service as CLI Manager 服务
+    participant Process as 进程管理器
+    participant IO as I/O 监控器
+    participant Event as 事件分发器
+    participant Tool as CLI 工具进程
+
+    App->>NAPI: execTool(name, args, options)
+    NAPI->>Client: ExecTool()
+    Client->>Service: IPC: ExecTool
+
+    Service->>Service: 权限检查
+    Service->>Service: 参数映射
+
+    Service->>Process: SpawnProcess()
+    Process->>Tool: fork() + execve()
+
+    Tool-->>IO: stdout 数据
+    Tool-->>IO: stderr 数据
+
+    IO->>IO: epoll_wait() 监听
+
+    loop 持续监控
+        IO->>Event: DispatchIOEvent(stdout)
+        Event->>Client: IPC: OnOutput()
+        Client->>NAPI: 回调触发
+        NAPI->>App: onEvent({type: 'stdout', data})
+
+        IO->>Event: DispatchIOEvent(stderr)
+        Event->>Client: IPC: OnOutput()
+        Client->>NAPI: 回调触发
+        NAPI->>App: onEvent({type: 'stderr', data})
+    end
+
+    Tool->>IO: 进程退出
+    IO->>Event: DispatchExitEvent()
+    Event->>Client: IPC: OnExit()
+    Client->>NAPI: 回调触发
+    NAPI->>App: onEvent({type: 'exit', exitCode})
+```
+
+## 前台执行流程图
+
+```mermaid
+flowchart TD
+    Start([开始]) --> CallApp[应用调用 execTool]
+    CallApp --> CheckBg{background?}
+    CheckBg -->|false| Foreground[前台模式]
+    CheckBg -->|true| Background[后台模式]
+
+    Foreground --> CreatePipes[创建管道]
+    CreatePipes --> Fork[fork 子进程]
+    Fork --> Exec[execve 执行工具]
+
+    Exec --> StartTimer[启动 yieldMs 定时器]
+    StartTimer --> MonitorIO[IOMonitor 监听输出]
+
+    MonitorIO --> CheckComplete{工具完成?}
+    CheckComplete -->|是| CollectResult[收集结果]
+    CheckComplete -->|否| CheckTimeout{yieldMs 超时?}
+
+    CheckTimeout -->|否| MonitorIO
+    CheckTimeout -->|是| ConvertToBg[转为后台会话]
+
+    CollectResult --> ReturnSession[返回 SessionInfo<br/>status=completed]
+    ConvertToBg --> ReturnRunning[返回 SessionInfo<br/>status=running]
+    Background --> ReturnBg[立即返回 SessionInfo<br/>status=running]
+
+    ReturnSession --> End([结束])
+    ReturnRunning --> End
+    ReturnBg --> End
+
+    style Start fill:#e8f5e9
+    style End fill:#ffebee
+    style Foreground fill:#e1f5ff
+    style Background fill:#fff3e0
+    style ConvertToBg fill:#fce4ec
+```
+
+## 后台执行流程图
+
+```mermaid
+flowchart TD
+    Start([开始]) --> CreateBg[创建后台会话]
+    CreateBg --> CreatePipes[创建管道]
+    CreatePipes --> Fork[fork 子进程]
+    Fork --> Exec[execve 执行工具]
+    Exec --> ReturnId[立即返回 sessionId]
+
+    ReturnId --> Subscribe{应用订阅?}
+
+    Subscribe -->|是| MonitorLoop[持续监控循环]
+    Subscribe -->|否| End([结束])
+
+    MonitorLoop --> EpollWait[epoll_wait 等待事件]
+    EpollWait --> CheckEvent{事件类型}
+
+    CheckEvent -->|stdout| HandleStdout[处理标准输出]
+    CheckEvent -->|stderr| HandleStderr[处理标准错误]
+    CheckEvent -->|进程退出| HandleExit[处理退出事件]
+    CheckEvent -->|超时| HandleTimeout[处理超时]
+
+    HandleStdout --> DispatchStdout[分发 stdout 事件]
+    HandleStderr --> DispatchStderr[分发 stderr 事件]
+    HandleExit --> DispatchExit[分发 exit 事件]
+    HandleTimeout --> KillProcess[终止进程]
+
+    DispatchStdout --> Callback[回调应用层]
+    DispatchStderr --> Callback
+    DispatchExit --> Callback
+    KillProcess --> DispatchError[分发 error 事件]
+
+    Callback --> RemoveSession{会话结束?}
+    RemoveSession -->|否| EpollWait
+    RemoveSession -->|是| Cleanup[清理资源]
+    Cleanup --> End
+
+    style Start fill:#e8f5e9
+    style End fill:#ffebee
+    style MonitorLoop fill:#e1f5ff
+    style Callback fill:#fff9c4
+```
+
+## 完整执行时序图
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant App as JS 应用
+    participant NAPI as NAPI 层
+    participant Proxy as 客户端代理
+    participant Service as CLI Manager
+    participant Registry as 工具注册表
+    participant Perm as 权限检查器
+    participant Mapper as 参数映射器
+    participant ProcMgr as 进程管理器
+    participant IOMon as I/O 监控
+    participant Event as 事件分发器
+    participant Tool as CLI 工具
+
+    Note over App,Tool: 前台执行（快速完成）
+
+    App->>NAPI: execTool('net-scan', {target: '127.0.0.1'})
+    NAPI->>Proxy: ExecTool(name, args, {background: false})
+    Proxy->>Service: IPC: ExecTool(name, args, options)
+
+    Service->>Perm: CheckPermission()
+    Perm-->>Service: 权限检查通过
+
+    Service->>Registry: GetToolInfo(name)
+    Registry-->>Service: ToolInfo
+
+    Service->>Mapper: MapToCommandLine(args)
+    Mapper-->>Service: argv[]
+
+    Service->>ProcMgr: SpawnProcess(ToolInfo, argv)
+    ProcMgr->>ProcMgr: CreatePipes()
+    ProcMgr->>ProcMgr: fork()
+    ProcMgr->>Tool: execve(argv)
+
+    ProcMgr->>IOMon: RegisterTask(context)
+
+    Tool-->>IOMon: stdout 数据
+    IOMon->>Event: DispatchIOEvent(stdout)
+    Event-->>Proxy: IPC: OnOutput(taskId, event)
+    Proxy-->>NAPI: 回调触发
+    NAPI-->>App: onEvent({type: 'stdout', data})
+
+    Tool-->>IOMon: 进程退出
+    IOMon->>Event: DispatchExitEvent()
+    Event-->>Proxy: IPC: OnExit(taskId, 0)
+    Proxy->>Service: 收集结果
+
+    Service-->>Proxy: SessionInfo(status: 'completed', result)
+    Proxy-->>NAPI: Promise resolve
+    NAPI-->>App: return SessionInfo
+
+    Note over App,Tool: 后台执行（长时间运行）
+
+    App->>NAPI: execTool('log-monitor', {file: '/var/log/app.log'})
+    NAPI->>Proxy: ExecTool(name, args, {background: true})
+    Proxy->>Service: IPC: ExecTool(name, args, options)
+
+    Service->>ProcMgr: SpawnProcess(ToolInfo, argv)
+    ProcMgr->>Tool: execve(argv)
+    ProcMgr->>IOMon: RegisterTask(context)
+
+    Service-->>Proxy: sessionId (立即返回)
+    Proxy-->>NAPI: Promise resolve
+    NAPI-->>App: SessionInfo(status: 'running')
+
+    App->>NAPI: subscribeSession(sessionId, callback)
+    NAPI->>Proxy: SubscribeSession(sessionId, cb)
+    Proxy->>Service: IPC: SubscribeSession
+
+    loop 实时输出
+        Tool-->>IOMon: stdout 数据
+        IOMon->>Event: DispatchIOEvent(stdout)
+        Event-->>Proxy: IPC: OnOutput()
+        Proxy-->>NAPI: 回调触发
+        NAPI-->>App: onEvent({type: 'stdout', data})
+    end
+
+    Tool-->>IOMon: 进程退出
+    IOMon->>Event: DispatchExitEvent()
+    Event-->>Proxy: IPC: OnExit()
+    Proxy-->>NAPI: 回调触发
+    NAPI-->>App: onEvent({type: 'exit', exitCode})
+```
+
+## 事件分发流程图
+
+```mermaid
+sequenceDiagram
+    participant App as 应用层
+    participant Client as 客户端代理
+    participant Service as CLI Manager
+    participant Event as EventDispatcher
+
+    Note over App,Event: 第一步：创建回调对象
+
+    App->>Client: subscribeSession(sessionId, callback)
+    Client->>Client: 创建 CliCallbackProxy
+    Client->>Service: IPC: SubscribeSession(sessionId, callbackProxy)
+    Service->>Event: RegisterCallback(sessionId, callbackProxy)
+    Event->>Event: callbacks_[sessionId] = callbackProxy
+    Event-->>Service: 注册成功
+    Service-->>Client: 返回成功
+    Client-->>App: Promise resolve(true)
+
+    Note over App,Event: 第二步：事件分发
+
+    Service->>Event: DispatchIOEvent(stdout event)
+    Event->>Event: 查找 callbacks_[sessionId]
+    Event->>Client: IPC: OnOutput(sessionId, toolEvent)
+    Client->>App: 回调触发
+    App->>App: onEvent({type: 'stdout', data})
+```
+
+## I/O 监控流程图
+
+```mermaid
+flowchart TD
+    Start([启动 IOMonitor]) --> CreateEpoll[创建 epoll fd]
+    CreateEpoll --> StartThread[启动监控线程]
+    StartThread --> EpollWait[epoll_wait 等待事件]
+
+    EpollWait --> CheckEvent{事件类型}
+
+    CheckEvent -->|EPOLLIN| Readable[管道可读]
+    CheckEvent -->|EPOLLHUP/ERR| Hup[管道关闭]
+    CheckEvent -->|超时| EpollWait
+
+    Readable --> FindFd[查找 fd 对应的 taskId]
+    FindFd --> DetermineType{stdout 或 stderr}
+    DetermineType -->|stdout| ReadStdout[读取 stdout 数据]
+    DetermineType -->|stderr| ReadStderr[读取 stderr 数据]
+
+    ReadStdout --> DispatchStdout[分发 stdout 事件]
+    ReadStderr --> DispatchStderr[分发 stderr 事件]
+
+    DispatchStdout --> AppendStdout[追加到 stdoutBuffer]
+    DispatchStderr --> AppendStderr[追加到 stderrBuffer]
+
+    AppendStdout --> EpollWait
+    AppendStderr --> EpollWait
+
+    Hup --> FindTask[查找对应的 task]
+    FindTask --> WaitPid[waitpid 检查进程]
+    WaitPid --> CheckExit{进程退出?}
+    CheckExit -->|是| DispatchExit[分发 exit 事件]
+    CheckExit -->|否| EpollWait
+
+    DispatchExit --> ClosePipes[关闭所有管道]
+    ClosePipes --> RemoveTask[移除任务]
+    RemoveTask --> EpollWait
+
+    style Start fill:#e8f5e9
+    style EpollWait fill:#e1f5ff
+    style DispatchStdout fill:#fff9c4
+    style DispatchStderr fill:#fff9c4
+    style DispatchExit fill:#fce4ec
+```
+
+## 错误处理流程图
+
+```mermaid
+flowchart TD
+    Start([execTool 调用]) --> Validate{参数验证}
+    Validate -->|失败| Error1[返回 ERR_INVALID_ARGS]
+    Validate -->|成功| CheckPerm{权限检查}
+
+    CheckPerm -->|失败| Error2[返回 ERR_PERMISSION_DENIED]
+    CheckPerm -->|成功| FindTool{查找工具}
+
+    FindTool -->|未找到| Error3[返回 ERR_TOOL_NOT_FOUND]
+    FindTool -->|找到| CreatePipe{创建管道}
+
+    CreatePipe -->|失败| Error4[返回 ERR_PIPE_CREATE_FAILED]
+    CreatePipe -->|成功| Fork{fork 进程}
+
+    Fork -->|失败| Error5[返回 ERR_FORK_FAILED]
+    Fork -->|成功| Exec{execve 执行}
+
+    Exec -->|失败| Error6[返回 ERR_EXEC_FAILED]
+    Exec -->|成功| Monitor[监控执行]
+
+    Monitor --> CheckTimeout{超时?}
+    CheckTimeout -->|是| Error7[返回 ERR_TIMEOUT]
+    CheckTimeout -->|否| Complete[正常完成]
+
+    Complete --> ReturnSuccess[返回结果]
+    Error1 --> End([结束])
+    Error2 --> End
+    Error3 --> End
+    Error4 --> End
+    Error5 --> End
+    Error6 --> End
+    Error7 --> End
+    ReturnSuccess --> End
+
+    style Start fill:#e8f5e9
+    style End fill:#ffebee
+    style Error1 fill:#ffcdd2
+    style Error2 fill:#ffcdd2
+    style Error3 fill:#ffcdd2
+    style Error4 fill:#ffcdd2
+    style Error5 fill:#ffcdd2
+    style Error6 fill:#ffcdd2
+    style Error7 fill:#ffcdd2
+```
+
+## 组件交互图
+
+```mermaid
+graph LR
+    A[ExecutionContext] -->|包含| B[进程信息]
+    A -->|包含| C[管道文件描述符]
+    A -->|包含| D[回调对象]
+
+    C -->|stdout| E[stdoutPipe[2]]
+    C -->|stderr| F[stderrPipe[2]]
+    C -->|stdin| G[stdinPipe[2]]
+
+    E -->|可读| H[IOMonitor.epoll]
+    F -->|可读| H
+
+    H -->|事件| I[EventDispatcher]
+    I -->|回调| D
+    D -->|IPC| J[Client Proxy]
+    J -->|事件| K[JS Layer]
+
+    style A fill:#e1f5ff
+    style H fill:#f3e5f5
+    style I fill:#fce4ec
+    style K fill:#fff9c4
+```

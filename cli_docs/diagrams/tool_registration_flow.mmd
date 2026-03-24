@@ -1,0 +1,13 @@
+sequenceDiagram
+    participant CLI as CLI Tool Binary
+    participant Svc as CLI Manager Service
+    participant Reg as Registry Manager
+    participant DB as Tool Metadata DB
+
+    CLI->>Svc: 注册请求 (tool_name, desc_path)
+    Svc->>Reg: 解析描述文件
+    Reg->>DB: 验证工具唯一性
+    DB-->>Reg: 返回验证结果
+    Reg->>DB: 存储工具元数据
+    DB-->>Svc: 注册成功
+    Svc-->>CLI: 返回注册结果
