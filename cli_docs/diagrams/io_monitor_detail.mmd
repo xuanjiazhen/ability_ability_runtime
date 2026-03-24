@@ -1,0 +1,33 @@
+graph TB
+    subgraph IOMonitor["I/O Monitor epoll thread"]
+        EP["epoll instance"]
+        EQ["epoll_wait"]
+        RD["Read Handler"]
+        BUF["Buffer 64KB"]
+    end
+
+    subgraph Pipes["Pipe File Descriptors"]
+        P1["Tool1 stdout 0"]
+        P2["Tool1 stderr 0"]
+        P3["Tool2 stdout 0"]
+        P4["Tool2 stderr 0"]
+    end
+
+    subgraph Callback["Event Callback"]
+        ED["Event Dispatcher"]
+        CB1["Callback Tool1"]
+        CB2["Callback Tool2"]
+    end
+
+    P1 -->|EPOLLIN| EP
+    P2 -->|EPOLLIN| EP
+    P3 -->|EPOLLIN| EP
+    P4 -->|EPOLLIN| EP
+
+    EP --> EQ
+    EQ -->|event ready| RD
+    RD -->|read| BUF
+    BUF -->|data| ED
+
+    ED --> CB1
+    ED --> CB2
