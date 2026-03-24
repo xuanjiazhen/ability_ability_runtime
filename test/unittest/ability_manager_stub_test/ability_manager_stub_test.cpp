@@ -1865,6 +1865,22 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetPendingRequestWantInner_0
 
 /*
  * Feature: AbilityManagerService
+ * Function: GetPendingRequestWantInnerFromProxy
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService GetPendingRequestWantFromProxy
+ * EnvConditions: NA
+ * CaseDescription: Verify the function GetPendingRequestWantFromProxy is normal flow.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_GetPendingRequestWantFromProxy_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    auto res = stub_->GetPendingRequestWantFromProxy(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: GetWantSenderInfoInner
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService GetWantSenderInfoInner
