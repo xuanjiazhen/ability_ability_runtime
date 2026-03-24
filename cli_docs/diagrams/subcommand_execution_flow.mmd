@@ -1,0 +1,37 @@
+sequenceDiagram
+    participant User as User Code
+    participant JS as JS API
+    participant SVC as CLI Manager Service
+    participant Reg as Registry Manager
+    participant PM as Process Manager
+    participant Param as Parameter Mapper
+    participant Tool as CLI Tool (pkg-mgr)
+
+    User->>JS: execTool('pkg-manager', args)
+    Note right of User: args = {<br/>  subcommand: 'install',<br/>  package: '/data/app.hap',<br/>  force: true,<br/>  silent: true<br/>}
+
+    JS->>SVC: ExecTool('pkg-manager', args)
+
+    SVC->>Reg: GetToolInfo('pkg-manager')
+    Reg-->>SVC: ToolInfo
+    Note right of Reg: hasSubcommands = true<br/>subcommands = {<br/>  install: {...},<br/>  remove: {...},<br/>  list: {...}<br/>}
+
+    SVC->>PM: CreateExecutionContext(toolInfo, args)
+    PM->>Param: MapToCommandLine(toolInfo, args)
+
+    Param->>Param: 检测 hasSubcommands = true
+    Param->>Param: 提取 subcommand = "install"
+    Param->>Param: 查找 subcommands["install"]
+
+    Param->>Param: argv.push("/usr/bin/pkg-mgr")
+    Param->>Param: argv.push("install")
+    Note right of Param: 添加子命令名称
+
+    Note over Param: 使用子命令的 argumentMapping
+    Note right of Param: package → "/data/app.hap"<br/>force → "--force"<br/>silent → "--silent"
+
+    Param-->>PM: argv = [<br/>  "/usr/bin/pkg-mgr",<br/>  "install",<br/>  "/data/app.hap",<br/>  "--force",<br/>  "--silent"<br/>]
+
+    PM->>Tool: fork() + execve(argv)
+
+    Note right of Tool: pkg-mgr install /data/app.hap --force --silent

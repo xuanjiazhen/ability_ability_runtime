@@ -1,0 +1,116 @@
+{
+  "$schema": "https://schemas.openharmony.org/cli/tool/v1",
+  "name": "cloud-deploy",
+  "version": "1.0.0",
+  "description": "Cloud deployment tool with complex JSON configuration",
+  "executable": "/usr/bin/cloud-deploy",
+  "permissions": ["ohos.permission.INTERNET"],
+
+  "input": {
+    "type": "object",
+    "properties": {
+      "config": {
+        "type": "object",
+        "description": "Deployment configuration (will be serialized as JSON)",
+        "properties": {
+          "application": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "replicas": {"type": "integer", "minimum": 1, "maximum": 100},
+              "image": {"type": "string"},
+              "ports": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "container": {"type": "integer"},
+                    "protocol": {"type": "string"},
+                    "service": {"type": "string"}
+                  }
+                }
+              }
+            }
+          },
+          "resources": {
+            "type": "object",
+            "properties": {
+              "requests": {
+                "type": "object",
+                "properties": {
+                  "cpu": {"type": "string"},
+                  "memory": {"type": "string"}
+                }
+              },
+              "limits": {
+                "type": "object",
+                "properties": {
+                  "cpu": {"type": "string"},
+                  "memory": {"type": "string"}
+                }
+              }
+            }
+          },
+          "env": {
+            "type": "object",
+            "description": "Environment variables",
+            "additionalProperties": {"type": "string"}
+          }
+        }
+      },
+      "namespace": {
+        "type": "string",
+        "default": "default",
+        "description": "Kubernetes namespace"
+      },
+      "timeout": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3600,
+        "default": 300,
+        "description": "Deployment timeout in seconds"
+      },
+      "dryRun": {
+        "type": "boolean",
+        "default": false,
+        "description": "Dry run without actual deployment"
+      },
+      "verbose": {
+        "type": "boolean",
+        "default": false,
+        "description": "Verbose output"
+      }
+    },
+    "required": ["config"]
+  },
+
+  "argumentMapping": {
+    "type": "json-string",
+    "templates": {
+      "config": "--config={json}",
+      "namespace": "-n {value}",
+      "timeout": "--timeout={value}",
+      "dryRun": {
+        "if_true": "--dry-run",
+        "if_false": ""
+      },
+      "verbose": {
+        "if_true": "-v",
+        "if_false": ""
+      }
+    }
+  },
+
+  "output": {
+    "type": "object",
+    "properties": {
+      "success": {"type": "boolean"},
+      "deploymentName": {"type": "string"},
+      "deploymentTime": {"type": "integer"},
+      "status": {"type": "string"}
+    }
+  },
+
+  "timeout": 600000,
+  "events": ["progress"]
+}

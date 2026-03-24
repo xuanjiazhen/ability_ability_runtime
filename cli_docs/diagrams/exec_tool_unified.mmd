@@ -1,0 +1,76 @@
+sequenceDiagram
+    participant User as User Code
+    participant JS as JS API (CLIManager)
+    participant NAPI as NAPI Layer
+    participant Proxy as Client Proxy
+    participant IPC as IPC (Binder)
+    participant SVC as CLI Manager Service
+    participant Perm as Permission Checker
+    participant Reg as Registry Manager
+    participant PM as Process Manager
+    participant Param as Parameter Mapper
+    participant Tool as CLI Tool Process
+    participant IO as I/O Monitor
+    participant ED as Event Dispatcher
+
+    Note over User,ED: === execTool 统一接口完整流程 ===
+
+    User->>JS: execTool(name, args, options)
+    JS->>NAPI: ExecTool(name, args, options)
+    NAPI->>Proxy: ExecTool(name, args, options)
+    Proxy->>IPC: IPC 同步调用
+    IPC->>SVC: ExecTool(name, args, options)
+
+    SVC->>Perm: CheckPermission(name, caller)
+    Perm-->>SVC: 权限校验通过
+
+    SVC->>Reg: GetToolInfo(name)
+    Reg-->>SVC: ToolInfo
+
+    SVC->>PM: CreateExecutionContext()
+    PM->>PM: CreatePipes()
+
+    PM->>Param: MapToCommandLine(toolInfo, args)
+    Param-->>PM: argv (命令行参数)
+
+    PM->>Tool: fork() + execve(argv)
+    PM->>IO: RegisterPipes(context)
+    PM-->>SVC: context (taskId, pid)
+
+    alt background = true
+        Note over SVC: 后台模式
+        SVC->>ED: RegisterSession(context)
+        SVC-->>IPC: SessionInfo(status='running')
+        IPC-->>Proxy: SessionInfo
+        Proxy-->>NAPI: SessionInfo
+        NAPI-->>JS: Promise<SessionInfo>
+        JS-->>User: { sessionId, status: 'running' }
+
+        Note over Tool,ED: 异步事件通知
+        Tool->>IO: stdout 数据
+        IO->>ED: OnReadable(data)
+        ED->>IPC: 事件回调
+        IPC->>Proxy: 事件通知
+        Proxy->>NAPI: invoke callback
+        NAPI->>JS: 事件回调
+        JS->>User: onEvent({type, data})
+    else background = false
+        Note over SVC: 前台模式
+        SVC->>SVC: 启动定时器 (yieldMs)
+        alt 在 yieldMs 内完成
+            Tool->>Tool: 执行完成
+            PM->>PM: waitpid(pid)
+            PM-->>SVC: ExecResult
+            SVC-->>IPC: SessionInfo(status='completed', result)
+            IPC-->>Proxy: SessionInfo
+            Proxy-->>NAPI: SessionInfo
+            NAPI-->>JS: Promise<SessionInfo>
+            JS-->>User: { sessionId, status: 'completed', result }
+        else 超时未完成
+            SVC-->>IPC: SessionInfo(status='running')
+            IPC-->>Proxy: SessionInfo
+            Proxy-->>NAPI: SessionInfo
+            NAPI-->>JS: Promise<SessionInfo>
+            JS-->>User: { sessionId, status: 'running' }
+        end
+    end

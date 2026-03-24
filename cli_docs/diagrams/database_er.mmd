@@ -1,0 +1,32 @@
+erDiagram
+    TOOLS ||--o{ TOOL_PERMISSIONS : has
+    TOOLS ||--o{ EXECUTION_HISTORY : generates
+    TOOLS {
+        string tool_name PK
+        string version
+        string description
+        string executable_path
+        enum type
+        uint32_t timeout_ms
+        uint64_t registered_time
+        bool enabled
+    }
+
+    TOOL_PERMISSIONS {
+        string tool_name FK
+        string permission
+        uint32_t id PK
+    }
+
+    EXECUTION_HISTORY {
+        uint64_t task_id PK
+        string tool_name FK
+        string caller_bundle_name
+        string caller_ability_name
+        pid_t process_id
+        enum mode
+        int exit_code
+        uint64_t start_time
+        uint64_t end_time
+        bool timed_out
+    }

@@ -1,0 +1,57 @@
+graph TB
+    subgraph "应用层"
+        AIClaw[AIClaw 系统应用]
+    end
+
+    subgraph "JS API 层"
+        JSAPI[CLI Manager JS API]
+        NAPI[NAPI Binding]
+    end
+
+    subgraph "框架层"
+        ClientProxy[CLI Manager Client Proxy]
+        ClientCallback[Client Callback Handler]
+    end
+
+    subgraph "服务层 (SystemAbility)"
+        CLIManagerServ[CLI Manager Service]
+        RegistryMgr[Tool Registry Manager]
+        PermChecker[Permission Checker]
+        ProcessMgr[Process Manager]
+        EventDispatcher[Event Dispatcher]
+    end
+
+    subgraph "工具描述层"
+        DescParser[Descriptor Parser]
+        DescCache[Descriptor Cache]
+        ToolDB[(Tool Metadata DB)]
+    end
+
+    subgraph "进程层"
+        Tool1[CLI Tool Process 1]
+        Tool2[CLI Tool Process 2]
+        ToolN[CLI Tool Process N]
+    end
+
+    AIClaw --> JSAPI
+    JSAPI --> NAPI
+    NAPI --> ClientProxy
+    ClientProxy <-->|IPC| CLIManagerServ
+    ClientProxy <-->|IPC| ClientCallback
+
+    CLIManagerServ --> RegistryMgr
+    CLIManagerServ --> PermChecker
+    CLIManagerServ --> ProcessMgr
+    CLIManagerServ --> EventDispatcher
+
+    RegistryMgr --> DescParser
+    DescParser --> DescCache
+    DescCache --> ToolDB
+
+    ProcessMgr --> Tool1
+    ProcessMgr --> Tool2
+    ProcessMgr --> ToolN
+
+    Tool1 -.->|stdout/stderr| EventDispatcher
+    Tool2 -.->|stdout/stderr| EventDispatcher
+    ToolN -.->|stdout/stderr| EventDispatcher
