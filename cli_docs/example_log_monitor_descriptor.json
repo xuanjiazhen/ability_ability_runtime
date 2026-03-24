@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schemas.openharmony.org/cli/tool/v1",
+  "name": "log-monitor",
+  "version": "1.2.0",
+  "description": "Real-time log monitoring and filtering tool",
+  "executable": "/usr/bin/log-monitor",
+  "type": "long-lived",
+  "permissions": [
+    "ohos.permission.READ_LOGS"
+  ],
+  "input": {
+    "type": "object",
+    "properties": {
+      "filter": {
+        "type": "string",
+        "description": "Log filter pattern (regex supported)"
+      },
+      "level": {
+        "type": "string",
+        "enum": ["DEBUG", "INFO", "WARN", "ERROR", "FATAL"],
+        "default": "INFO",
+        "description": "Minimum log level to display"
+      },
+      "module": {
+        "type": "string",
+        "description": "Specific module to monitor"
+      },
+      "tail": {
+        "type": "boolean",
+        "default": true,
+        "description": "Follow log file (like tail -f)"
+      },
+      "lines": {
+        "type": "integer",
+        "minimum": 0,
+        "default": 100,
+        "description": "Number of recent lines to show initially"
+      }
+    }
+  },
+  "output": {
+    "type": "object",
+    "description": "Continuous stream of log entries"
+  },
+  "timeout": 300000,
+  "events": ["log", "error", "warning"]
+}

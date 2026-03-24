@@ -1,0 +1,89 @@
+{
+  "$schema": "https://schemas.openharmony.org/cli/tool/v1",
+  "name": "log-monitor",
+  "version": "1.0.0",
+  "description": "Long-running log monitoring tool with real-time filtering",
+  "executable": "/usr/bin/log-mon",
+  "type": "long-lived",
+  "permissions": ["ohos.permission.READ_LOGS"],
+
+  "input": {
+    "type": "object",
+    "properties": {
+      "filter": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Log filter pattern (e.g., 'ERROR', 'Exception')",
+        "example": "ERROR"
+      },
+      "level": {
+        "type": "string",
+        "enum": ["DEBUG", "INFO", "WARN", "ERROR", "FATAL"],
+        "default": "INFO",
+        "description": "Minimum log level to capture"
+      },
+      "tail": {
+        "type": "boolean",
+        "default": true,
+        "description": "Follow log file (tail -f style)"
+      },
+      "lines": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 10000,
+        "default": 100,
+        "description": "Number of lines to show initially"
+      },
+      "logFile": {
+        "type": "string",
+        "description": "Path to log file (default: system log)",
+        "pattern": "^/.*\\.log$"
+      },
+      "highlight": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        },
+        "description": "Patterns to highlight in output",
+        "example": ["ERROR", "FATAL"]
+      },
+      "outputFormat": {
+        "type": "string",
+        "enum": ["text", "json", "json-pretty"],
+        "default": "text",
+        "description": "Output format for log entries"
+      }
+    },
+    "required": ["filter"]
+  },
+
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "filter": "-f {value}",
+      "level": "--level={value}",
+      "tail": {
+        "if_true": "--follow",
+        "if_false": ""
+      },
+      "lines": "-n {value}",
+      "logFile": "--log-file={value}",
+      "highlight": "--highlight={value}",
+      "outputFormat": "--format={value}"
+    }
+  },
+
+  "output": {
+    "type": "object",
+    "description": "Real-time log events",
+    "properties": {
+      "timestamp": {"type": "string"},
+      "level": {"type": "string"},
+      "tag": {"type": "string"},
+      "message": {"type": "string"}
+    }
+  },
+
+  "timeout": 0,
+  "events": ["stdout", "stderr", "exit", "error"]
+}
