@@ -2021,6 +2021,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     application_->AttachBaseContext(contextDeal);
     application_->SetAbilityRecordMgr(abilityRecordMgr_);
     application_->SetConfiguration(appConfig);
+
+    application_->InitJSLeakWatcher(bundleInfo.name);
+
     contextImpl->SetConfiguration(application_->GetConfiguration());
 
     applicationImpl_->SetRecordId(appLaunchData.GetRecordId());
