@@ -17,6 +17,7 @@
 
 #include "ability_runtime/context/context.h"
 #include "ability_stage_context.h"
+#include "api_common_want.h"
 #include "hilog_tag_wrapper.h"
 #include "js_context_utils.h"
 #include "js_data_struct_converter.h"
@@ -88,6 +89,21 @@ napi_value CreateJsAbilityStageContext(napi_env env, std::shared_ptr<AbilityRunt
 
     std::string type = "AbilityStageContext";
     napi_set_named_property(env, objValue, "contextType", CreateJsValue(env, type));
+
+    // Set launchElement property (optional parameter)
+    auto stageContext = std::dynamic_pointer_cast<AbilityStageContext>(context);
+    if (stageContext != nullptr) {
+        const auto &elementName = stageContext->GetLaunchElement();
+        // Only set launchElement if it has valid values (optional parameter)
+        if (!elementName.GetBundleName().empty() || !elementName.GetAbilityName().empty()) {
+            napi_value jsElementName = AppExecFwk::WrapElementName(env, elementName);
+            if (jsElementName != nullptr) {
+                napi_set_named_property(env, objValue, "launchElement", jsElementName);
+            }
+        }
+        // If ElementName is empty, don't set the property
+        // ArkTS side will get undefined, which is correct for optional parameter
+    }
 
     return handle.Escape(objValue);
 }
