@@ -157,7 +157,6 @@ ErrCode UIExtensionContext::HandleTerminateWithAnimation()
                     TAG_LOGE(AAFwkTag::UI_EXT, "Force terminate failed, err=%{public}d", err);
                 }
             };
-
             if (!eventHandler_->PostTask(timeoutTask, "UIExtensionTerminateTimeout",
                 TERMINATE_SELF_ANIMATION_TIMEOUT_MS)) {
                 TAG_LOGE(AAFwkTag::UI_EXT, "Failed to post timeout task");
