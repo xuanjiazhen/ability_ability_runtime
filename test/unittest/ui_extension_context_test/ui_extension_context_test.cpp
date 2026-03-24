@@ -22,6 +22,7 @@
 #undef private
 #undef protected
 
+#include "event_handler.h"
 #include "hilog_tag_wrapper.h"
 #include "want.h"
 #include "mock_window.h"
