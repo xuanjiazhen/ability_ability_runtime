@@ -1,0 +1,159 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+############################# CLI Manager Service #############################
+
+config("climgr_config") {
+  include_dirs = [
+    "src",
+    "//interfaces/inner_api/cli_manager",
+    "//interfaces/kits/native/cli",
+    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy/include",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+    "//hilog/interfaces/native/innerkits/include",
+  ]
+
+  cflags = [
+    "-Wall",
+    "-Werror",
+    "-Wno-error=unused-function",
+  ]
+}
+
+ohos_shared_library("climgr_service") {
+  sources = [
+    "src/cli_manager_service.cpp",
+    "src/cli_manager_service_rpc.cpp",
+    "src/registry_manager.cpp",
+    "src/process_manager.cpp",
+    "src/io_monitor.cpp",
+    "src/event_dispatcher.cpp",
+    "src/permission_checker.cpp",
+    "src/timeout_manager.cpp",
+    "src/resource_manager.cpp",
+    "src/command_sanitizer.cpp",
+    "src/process_monitor.cpp",
+  ]
+
+  include_dirs = [
+    "src",
+    "//interfaces/inner_api/cli_manager",
+    "//interfaces/kits/native/cli",
+    "//utils/native/base/include",
+    "//commonlibrary/c_utils/base/include",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy/include",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+    "//hilog/interfaces/native/innerkits/include",
+  ]
+
+  configs = [ ":climgr_config" ]
+
+  deps = [
+    "//c/utils/utils:utils",
+    "//foundation/systemabilitymgr/samgr/native/samgr:samgr_proxy",
+    "//utils/native/base:base",
+  ]
+
+  external_deps = [
+    "hilog:hilog_native",
+    "ipc:ipc_core",
+    "samgr_standard:samgr_proxy",
+    "jsoncpp:json_shared",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+
+  install_images = [
+    "system",
+    "updater",
+  ]
+}
+
+############################# CLI Manager Client #############################
+
+ohos_shared_library("cli_manager_client") {
+  sources = [
+    "../../interfaces/kits/native/cli/cli_manager_client.cpp",
+    "../../interfaces/inner_api/cli_manager/cli_manager_proxy.cpp",
+    "../../interfaces/inner_api/cli_manager/cli_callback_stub.cpp",
+    "../../interfaces/inner_api/cli_manager/cli_callback_proxy.cpp",
+    "../../interfaces/inner_api/cli_manager/cli_execution_context.cpp",
+  ]
+
+  include_dirs = [
+    "//interfaces/kits/native/cli",
+    "//interfaces/inner_api/cli_manager",
+    "//utils/native/base/include",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+  ]
+
+  configs = [ ":climgr_config" ]
+
+  deps = [
+    "//c/utils/utils:utils",
+    "//foundation/systemabilitymgr/samgr/native/samgr:samgr_proxy",
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "samgr_standard:samgr_proxy",
+    "jsoncpp:json_shared",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+############################# CLI Manager Inner API #############################
+
+ohos_source_set("cli_manager_inner_api") {
+  sources = [
+    "../../interfaces/inner_api/cli_manager/cli_manager_proxy.cpp",
+    "../../interfaces/inner_api/cli_manager/cli_callback_stub.cpp",
+    "../../interfaces/inner_api/cli_manager/cli_callback_proxy.cpp",
+    "../../interfaces/inner_api/cli_manager/cli_execution_context.cpp",
+  ]
+
+  include_dirs = [
+    "//interfaces/inner_api/cli_manager",
+    "//interfaces/kits/native/cli",
+    "//utils/native/base/include",
+    "//foundation/systemabilitymgr/samgr/interfaces/innerkits/samgr_proxy/include",
+    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
+  ]
+
+  configs = [ ":climgr_config" ]
+
+  deps = [
+    "//c/utils/utils:utils",
+    "//foundation/systemabilitymgr/samgr/native/samgr:samgr_proxy",
+  ]
+
+  external_deps = [
+    "ipc:ipc_core",
+    "samgr_standard:samgr_proxy",
+    "jsoncpp:json_shared",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}

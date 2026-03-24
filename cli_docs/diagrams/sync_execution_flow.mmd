@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant App as AIClaw App
+    participant API as JS API
+    participant Proxy as Client Proxy
+    participant Svc as CLI Manager Service
+    participant Perm as Permission Checker
+    participant Proc as Process Manager
+    participant Tool as CLI Tool Process
+
+    App->>API: execTool(name, args)
+    API->>Proxy: execTool(name, args)
+    Proxy->>Svc: execTool(name, args)
+    Svc->>Perm: checkPermission(caller, tool)
+    Perm-->>Svc: 权限校验结果
+    Svc->>Proc: spawnProcess(name, args)
+    Proc->>Tool: 启动进程
+    Tool-->>Proc: exit code + stdout
+    Proc-->>Svc: execution result
+    Svc-->>Proxy: return result
+    Proxy-->>API: return result
+    API-->>App: resolve(result)

@@ -1,0 +1,29 @@
+sequenceDiagram
+    participant PM as Process Manager
+    participant EP as Executor
+    participant Tool as CLI Tool Process
+    participant IO as I/O Monitor
+    participant ED as Event Dispatcher
+
+    Note over PM,ED: 1. Pipe Creation
+    PM->>EP: CreateExecutionContext()
+    EP->>EP: pipe(stdoutPipe)
+    EP->>EP: pipe(stderrPipe)
+    EP->>EP: pipe(stdinPipe) [optional]
+    Note over EP: Pipes created<br/>stdoutPipe[0/1]<br/>stderrPipe[0/1]<br/>stdinPipe[0/1]
+
+    Note over PM,ED: 2. Process Spawn
+    EP->>Tool: fork() + execve()
+    Note over Tool: Child process starts
+    EP->>Tool: dup2(stdoutPipe[1], STDOUT)
+    EP->>Tool: dup2(stderrPipe[1], STDERR)
+    EP->>Tool: dup2(stdinPipe[0], STDIN)
+    EP->>Tool: close(pipe fds)
+    Note over Tool: FD redirection complete
+
+    Note over PM,ED: 3. I/O Monitoring
+    EP->>IO: Register stdoutPipe[0]
+    EP->>IO: Register stderrPipe[0]
+    IO->>IO: epoll_ctl(EPOLLIN, stdout)
+    IO->>IO: epoll_ctl(EPOLLIN, stderr)
+    Note over IO: Start monitoring pipes

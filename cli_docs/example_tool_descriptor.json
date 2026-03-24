@@ -1,0 +1,72 @@
+{
+  "$schema": "https://schemas.openharmony.org/cli/tool/v1",
+  "name": "network-scanner",
+  "version": "1.0.0",
+  "description": "Network scanning utility tool for diagnosing network connectivity",
+  "executable": "/usr/bin/net-scan",
+  "type": "short-lived",
+  "permissions": [
+    "ohos.permission.INTERNET",
+    "ohos.permission.GET_NETWORK_INFO"
+  ],
+  "input": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string",
+        "format": "ipv4",
+        "description": "Target IP address or hostname to scan"
+      },
+      "ports": {
+        "type": "array",
+        "items": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "description": "List of ports to scan"
+      },
+      "timeout": {
+        "type": "integer",
+        "minimum": 1000,
+        "maximum": 60000,
+        "default": 5000,
+        "description": "Scan timeout in milliseconds"
+      },
+      "verbose": {
+        "type": "boolean",
+        "default": false,
+        "description": "Enable verbose output"
+      }
+    },
+    "required": ["target"]
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "results": {
+        "type": "array",
+        "description": "Scan results for each port"
+      },
+      "summary": {
+        "type": "object",
+        "properties": {
+          "totalPorts": {
+            "type": "integer",
+            "description": "Total number of ports scanned"
+          },
+          "openPorts": {
+            "type": "integer",
+            "description": "Number of open ports found"
+          },
+          "scanTime": {
+            "type": "integer",
+            "description": "Time taken to scan in milliseconds"
+          }
+        }
+      }
+    }
+  },
+  "timeout": 30000,
+  "events": ["progress", "result"]
+}

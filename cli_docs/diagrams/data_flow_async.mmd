@@ -1,0 +1,36 @@
+graph TB
+    subgraph AIClaw["AIClaw Application"]
+        JS["JS Code<br/>(event handler)"]
+        NAPI["NAPI Layer<br/>(callback wrapper)"]
+        Proxy["Client Proxy<br/>(callback stub)"]
+    end
+
+    subgraph Service["CLI Manager Service"]
+        RPC["RPC Server"]
+        PM["Process Manager"]
+        IO["I/O Monitor<br/>(epoll thread)"]
+        ED["Event Dispatcher"]
+    end
+
+    subgraph Tool["CLI Tool Process"]
+        EXE["Executable<br/>(long running)"]
+        OUT["stdout"]
+    end
+
+    JS -->|1. execToolAsync| NAPI
+    NAPI -->|2. ExecToolAsync| Proxy
+    Proxy -->|3. IPC<br/>pass callback| RPC
+    RPC -->|4. Register Callback| ED
+    RPC -->|5. CreateContext| PM
+    PM -->|6. spawn| EXE
+    PM -->|7. return taskId| RPC
+    RPC -->|8. return taskId| Proxy
+    Proxy -->|9. resolve| JS
+
+    EXE -->|10. printf| OUT
+    OUT -->|11. write pipe| IO
+    IO -->|12. epoll event| IO
+    IO -->|13. OnReadable| ED
+    ED -->|14. IPC Callback| Proxy
+    Proxy -->|15. invoke JS callback| NAPI
+    NAPI -->|16. JS event handler| JS

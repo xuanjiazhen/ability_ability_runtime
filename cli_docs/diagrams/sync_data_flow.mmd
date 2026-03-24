@@ -1,0 +1,32 @@
+graph TB
+    subgraph AIClaw["AIClaw Application"]
+        JS["JS Code"]
+        NAPI["NAPI Layer"]
+        Proxy["Client Proxy"]
+    end
+
+    subgraph Service["CLI Manager Service"]
+        RPC["RPC Server"]
+        PM["Process Manager"]
+        IO["I/O Monitor"]
+    end
+
+    subgraph Tool["CLI Tool Process"]
+        EXE["Executable"]
+        OUT["stdout"]
+    end
+
+    JS -->|1. execTool| NAPI
+    NAPI -->|2. ExecTool| Proxy
+    Proxy -->|3. IPC Sync| RPC
+    RPC -->|4. CreateContext| PM
+    PM -->|5. pipes| PM
+    PM -->|6. fork| EXE
+    PM -->|7. waitpid| PM
+    OUT -->|8. write| IO
+    IO -.->|9. read| IO
+    IO -->|10. buffer| PM
+    PM -->|11. Return| RPC
+    RPC -->|12. Result| Proxy
+    Proxy -->|13. Return| NAPI
+    NAPI -->|14. Promise| JS

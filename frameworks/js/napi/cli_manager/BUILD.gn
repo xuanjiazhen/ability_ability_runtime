@@ -1,0 +1,47 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("../../../../../build/ohos.gni")
+import("../../../../../build/ohos_ndk.gni")
+
+OHOS_NATIVE_SHARED_LIBRARY("cli_manager_napi") {
+  sources = [
+    "js_cli_manager.cpp",
+    "js_cli_manager_module.cpp",
+  ]
+
+  include_dirs = [
+    "..",
+    "../..",
+    "../../../../interfaces/kits/native",
+    "../../../../interfaces/inner_api",
+  ]
+
+  deps = [
+    "../../../../interfaces/kits/native/cli:cli_manager_client",
+    "../../../../interfaces/inner_api/cli_manager:cli_manager_proxy",
+  ]
+
+  external_deps = [
+    "napi:ace_napi.z",
+    "hilog:hilog",
+    "jsoncpp:json_shared",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+OHOS.Phony("build_cli_manager_napi") {
+  deps = [ ":cli_manager_napi" ]
+}
