@@ -3339,5 +3339,31 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_StartSelfUIAbilityInCurren
         mock_->code_);
     EXPECT_EQ(res, NO_ERROR);
 }
+
+/*
+ * @tc.number    : AbilityManagerProxy_GetPendingRequestWantFromProxy_001
+ * @tc.name      : GetPendingRequestWantFromProxy
+ * @tc.desc      : 1.GetPendingRequestWantFromProxy with null target
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetPendingRequestWantFromProxy_001, TestSize.Level1)
+{
+    sptr<IWantSender> target = nullptr;
+    std::shared_ptr<Want> want = std::make_shared<Want>();
+    auto res = proxy_->GetPendingRequestWantFromProxy(target, want);
+    EXPECT_EQ(res, INNER_ERR);
+}
+
+/*
+ * @tc.number    : AbilityManagerProxy_GetPendingRequestWantFromProxy_002
+ * @tc.name      : GetPendingRequestWantFromProxy
+ * @tc.desc      : 1.GetPendingRequestWantFromProxy with null want
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_GetPendingRequestWantFromProxy_002, TestSize.Level1)
+{
+    sptr<IWantSender> target = nullptr;
+    std::shared_ptr<Want> want = nullptr;
+    auto res = proxy_->GetPendingRequestWantFromProxy(target, want);
+    EXPECT_EQ(res, INNER_ERR);
+}
 } // namespace AAFwk
 } // namespace OHOS
