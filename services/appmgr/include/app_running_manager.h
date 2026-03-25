@@ -40,7 +40,10 @@
 #include "refbase.h"
 #include "running_process_info.h"
 #include "simple_process_info.h"
+#include "pi_mutex.h"
 #include "process_bind_data.h"
+
+typedef OHOS::PiMutex::PiMutex<std::mutex> pimutex;
 
 namespace OHOS {
 namespace Rosen {
@@ -464,7 +467,7 @@ private:
     bool IsSameAbilityType(
         const std::shared_ptr<AppRunningRecord> &appRecord, const AppExecFwk::AbilityInfo &abilityInfo);
 private:
-    std::mutex runningRecordMapMutex_;
+    pimutex runningRecordMapMutex_;
     std::map<const int32_t, const std::shared_ptr<AppRunningRecord>> appRunningRecordMap_;
 
     std::mutex uiExtensionMapLock_;

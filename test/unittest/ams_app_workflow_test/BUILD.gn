@@ -79,6 +79,7 @@ ohos_unittest("AmsWorkFlowTest") {
     "memmgr:memmgrclient",
     "memory_utils:libmeminfo",
     "os_account:os_account_innerkits",
+    "qos_manager:pi_mutex",
     "resource_schedule_service:ressched_client",
     "json:nlohmann_json_static",
     "window_manager:session_manager_lite",

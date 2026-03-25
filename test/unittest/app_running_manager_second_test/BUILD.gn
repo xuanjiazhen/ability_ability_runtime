@@ -70,6 +70,7 @@ ohos_unittest("app_running_manager_second_test") {
     "ipc:ipc_core",
     "kv_store:distributeddata_mgr",
     "memory_utils:libmeminfo",
+    "qos_manager:pi_mutex",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
