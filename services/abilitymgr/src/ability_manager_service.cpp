@@ -10821,13 +10821,90 @@ bool AbilityManagerService::IsAbilityControllerForeground(const std::string &bun
     return true;
 }
 
+ErrCode AbilityManagerService::GetBundleInfoForTest(
+    const std::string& bundleName, 
+    int32_t userId, 
+    AppExecFwk::BundleInfo& bundleInfo)
+{
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, START_USER_TEST_FAIL);
+    
+    if (!IN_PROCESS_CALL(
+        bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, 
+                       bundleInfo, U0_USER_ID))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by U0_USER_ID %{public}d", U0_USER_ID);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "bundleName: %{public}s, userId: %{public}d", 
+                  bundleName.c_str(), userId);
+        
+        if (!IN_PROCESS_CALL(
+            bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, 
+                           bundleInfo, userId))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by userId %{public}d", userId);
+            return GET_BUNDLE_INFO_FAILED;
+        }
+    }
+    
+    return ERR_OK;
+}
+
+ErrCode AbilityManagerService::ValidateDebugMode(
+    const Want& want, 
+    const AppExecFwk::BundleInfo& bundleInfo)
+{
+    bool isDebugApp = want.GetBoolParam(AbilityConfig::DEBUG_APP, false);
+    if (isDebugApp && 
+        bundleInfo.applicationInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "release app not support debug");
+        return ERR_NOT_IN_APP_PROVISION_MODE;
+    }
+    return ERR_OK;
+}
+
 int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObject> &observer)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "enter");
+    
     if (observer == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "observer null");
         return ERR_INVALID_VALUE;
     }
+
+    std::string bundleName = want.GetStringParam("-b");
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid bundle name");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto checkResult = AbilityUtil::CheckInstanceKey(want);
+    if (checkResult != ERR_OK) {
+        return checkResult;
+    }
+
+    int32_t appIndex = 0;
+    if (!StartAbilityUtils::GetAppIndex(want, nullptr, appIndex) || appIndex != 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Not support app clone");
+        return ERR_NOT_SUPPORT_APP_CLONE;
+    }
+
+    int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    ErrCode ret = ParseAndValidateUserId(want, userId);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    AppExecFwk::BundleInfo bundleInfo;
+    ret = GetBundleInfoForTest(bundleName, userId, bundleInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    ret = ValidateDebugMode(want, bundleInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    return DelayedSingleton<AppScheduler>::GetInstance()->StartUserTest(want, observer, bundleInfo, userId);
+}
 
     std::string bundleName = want.GetStringParam("-b");
     if (bundleName.empty()) {
@@ -10845,10 +10922,26 @@ int AbilityManagerService::StartUserTest(const Want &want, const sptr<IRemoteObj
         return ERR_NOT_SUPPORT_APP_CLONE;
     }
 
+    int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    std::string userIdParam = want.GetStringParam("-u");
+    if (!userIdParam.empty()) {
+        try {
+            userId = std::stoi(userIdParam);
+        } catch (...) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid userId: %{public}s", userIdParam.c_str());
+            return ERR_INVALID_VALUE;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "userId specified: %{public}d", userId);
+        // Check if the specified userId is a foreground user
+        if (!AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "userId %{public}d is not a foreground user", userId);
+            return ERR_INVALID_USERID_VALUE;
+        }
+    }
+
     auto bms = AbilityUtil::GetBundleManagerHelper();
     CHECK_POINTER_AND_RETURN(bms, START_USER_TEST_FAIL);
     AppExecFwk::BundleInfo bundleInfo;
-    int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
     if (!IN_PROCESS_CALL(
         bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, U0_USER_ID))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed get bundleInfo by U0_USER_ID %{public}d", U0_USER_ID);

@@ -134,6 +134,8 @@ const std::string ERR_INVALID_PID_VALUE_SOLUTION_ONE =
     "Check if the pid specified by the application exists.";
 const std::string ERR_INVALID_LEVEL_VALUE_SOLUTION_ONE =
     "Check if the value range of level is [0, 1, 2, 3, 4, 5, 6].";
+const std::string ERR_INVALID_USERID_VALUE_SOLUTION_ONE =
+    "Check if the userId is a foreground user. Only foreground users can run tests.";
 const std::string BLACK_ACTION_SELECT_DATA = "ohos.want.action.select";
 
 constexpr struct option LONG_OPTIONS[] = {
@@ -415,6 +417,9 @@ ErrCode AbilityManagerShellCommand::CreateMessageMap()
     messageMap_[ERR_INVALID_OPERATION] = GetAaToolErrorInfo("10105002", "Failed to obtain ability information.",
         "The abilityInfo is empty when generating the Ability request through BMS",
         {GET_ABILITY_SERVICE_FAILED_SOLUTION_ONE});
+    messageMap_[INVALID_USERID_VALUE] = GetAaToolErrorInfo("10104005", "The specified userId is not a foreground user.",
+        "The userId specified by the aa test command is not currently a foreground user.",
+        {ERR_INVALID_USERID_VALUE_SOLUTION_ONE});
     return OHOS::ERR_OK;
 }
 
@@ -2425,13 +2430,49 @@ ErrCode AbilityManagerShellCommand::RunAsTestCommand()
     for (int i = USER_TEST_COMMAND_START_INDEX; i < argc_; i++) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", i, argv_[i]);
         std::string opt = argv_[i];
+        
         if ((opt == "-h") || (opt == "--help")) {
             resultReceiver_.append(HELP_MSG_TEST);
             return OHOS::ERR_OK;
-        } else if ((opt == "-b") || (opt == "-p") || (opt == "-m")) {
-            if (i >= argc_ - 1) {
-                return TestCommandError("error: option [" + opt + "] requires a value.\n");
+        }
+        
+        if (opt.at(0) != '-') {
+            continue;
+        }
+        
+        if (!ValidateOptionHasValue(argc_, i, opt)) {
+            return {return OHOS::ERR_INVALID_VALUE;
+        }
+        
+        std::string argv = argv_[++i];
+        
+        if ((opt == "-b") || (opt == "-p") || (opt == "-m")) {
+            params[opt] = argv;
+        } else if (opt == "-w" || opt == "-u" || opt == "--userId") {
+            if (!ValidateIntegerParam(argv, opt)) {
+                return OHOS::ERR_INVALID_VALUE;
             }
+            params[opt] = argv;
+        } else if (opt == "-s") {
+            if (i >= argc_ - USER_TEST_COMMAND_PARAMS_NUM) {
+                return TestCommandError("error: option [-s] is incorrect.\n");
+            }
+            std::string argKey = argv_[++i];
+            std::string argValue = argv_[++i];
+            params[opt + " " + argKey] = argValue;
+        } else if (opt == "-D") {
+            params[opt] = DEBUG_VALUE;
+        } else {
+            return TestCommandError("error: unknown option: " + opt + "\n");
+        }
+    }
+
+    if (!IsTestCommandIntegrity(params)) {
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    return StartUserTest(params);
+}
             std::string argv = argv_[++i];
             params[opt] = argv;
         } else if (opt == "-w") {
@@ -2445,6 +2486,15 @@ ErrCode AbilityManagerShellCommand::RunAsTestCommand()
             }
 
             params[opt] = argv;
+        } else if (opt == "-u" || opt == "--userId") {
+            if (i >= argc_ - 1) {
+                return TestCommandError("error: option [" + opt + "] requires a value.\n");
+            }
+            std::string argv = argv_[++i];
+            if (!std::regex_match(argv, std::regex(STRING_TEST_REGEX_INTEGER_NUMBERS))) {
+                return TestCommandError("error: option [" + opt + "] only supports integer numbers.\n");
+            }
+            params["-u"] = argv;
         } else if (opt == "-s") {
             if (i >= argc_ - USER_TEST_COMMAND_PARAMS_NUM) {
                 return TestCommandError("error: option [-s] is incorrect.\n");
@@ -2466,6 +2516,50 @@ ErrCode AbilityManagerShellCommand::RunAsTestCommand()
     return StartUserTest(params);
 }
 
+bool AbilityManagerShellCommand::ValidateOptionHasValue(int argc, int currentIdx, const std::string& opt)
+{
+    if (currentIdx >= argc - 1) {
+        TestCommandError("error: option [" + opt + "] requires a value.\n");
+        return false;
+    }
+    return true;
+}
+
+bool AbilityManagerShellCommand::ValidateIntegerParam(const std::string& value, const std::string& opt)
+{
+    if (!std::regex_match(value, std::regex(STRING_TEST_REGEX_INTEGER_NUMBERS))) {
+        TestCommandError("error: option [" + opt + "] only supports integer numbers.\n");
+        return false;
+    }
+    return true;
+}
+
+ErrCode AbilityManagerShellCommand::ParseAndValidateUserId(const AAFwk::Want& want, int32_t& userId)
+{
+    userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    std::string userIdParam = want.GetStringParam("-u");
+    
+    if (userIdParam.empty()) {
+        return OHOS::ERR_OK;
+    }
+    
+    try {
+        userId = std::stoi(userIdParam);
+    } catch (...) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid userId: %{public}s", userIdParam.c_str());
+        return OHOS::ERR_INVALID_VALUE;
+    }
+    
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "userId specified: %{public}d", userId);
+    
+    if (!AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "userId %{public}d is not a foreground user", userId);
+        return ERR_INVALID_USERID_VALUE;
+    }
+    
+    return OHOS::ERR_OK;
+}
+
 bool AbilityManagerShellCommand::IsTestCommandIntegrity(const std::map<std::string, std::string>& params)
 {
     TAG_LOGD(AAFwkTag::AA_TOOL, "enter");
@@ -2474,9 +2568,12 @@ bool AbilityManagerShellCommand::IsTestCommandIntegrity(const std::map<std::stri
     for (auto opt : opts) {
         auto it = params.find(opt);
         if (it == params.end()) {
-            TestCommandError("error: the option [" + opt + "] is expected.\n");
+            TestCommandError("error:  option [" + opt + "] is expected.\n");
             return false;
         }
+    }
+    return true;
+}
     }
     return true;
 }
