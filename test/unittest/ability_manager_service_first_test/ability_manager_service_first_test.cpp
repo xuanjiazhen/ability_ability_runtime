@@ -1581,8 +1581,7 @@ HWTEST_F(AbilityManagerServiceFirstTest, IsAllowAttachOrDetachAppDebug, TestSize
     applicationInfo.appProvisionType = AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE;
     EXPECT_FALSE(abilityMs_->IsAllowAttachOrDetachAppDebug(applicationInfo));
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportAllowDebugPermission_.isLoaded = true;
-    appUtils.isSupportAllowDebugPermission_.value = true;
+    appUtils.SetSupportAllowDebugPermissionCacheForTest(true);
     EXPECT_FALSE(abilityMs_->IsAllowAttachOrDetachAppDebug(applicationInfo));
 }
 

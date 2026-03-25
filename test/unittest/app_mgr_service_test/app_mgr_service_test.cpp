@@ -50,14 +50,12 @@ public:
 
 void AppMgrServiceTest::SetUpTestCase(void)
 {
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.isLoaded = true;
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.value = true;
+    AAFwk::AppUtils::GetInstance().SetMultiProcessModelCacheForTest(true);
 }
 
 void AppMgrServiceTest::TearDownTestCase(void)
 {
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.isLoaded = false;
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.value = false;
+    AAFwk::AppUtils::GetInstance().ResetMultiProcessModelCacheForTest();
 }
 
 void AppMgrServiceTest::SetUp()

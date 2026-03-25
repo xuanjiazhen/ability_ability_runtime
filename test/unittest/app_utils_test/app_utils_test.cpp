@@ -346,7 +346,7 @@ HWTEST_F(AppUtilsTest, AppUtilsTest_1600, TestSize.Level2)
     bool allow = appUtils.AllowChildProcessInMultiProcessFeatureApp();
     EXPECT_FALSE(allow);
 
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = true;
+    appUtils.SetAllowChildProcessInMultiProcessFeatureAppCacheForTest(true);
     allow = appUtils.AllowChildProcessInMultiProcessFeatureApp();
     EXPECT_TRUE(allow);
     TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_1600 end.");
@@ -538,8 +538,7 @@ HWTEST_F(AppUtilsTest, IsSupportNativeChildProcess_0200, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsSupportNativeChildProcess_0200 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportNativeChildProcess_.isLoaded = true;
-    appUtils.isSupportNativeChildProcess_.value = true;
+    appUtils.SetSupportNativeChildProcessCacheForTest(true);
     bool result = appUtils.IsSupportNativeChildProcess();
     EXPECT_TRUE(result);
 }
@@ -592,8 +591,7 @@ HWTEST_F(AppUtilsTest, IsSupportAppServiceExtension_0200, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsSupportAppServiceExtension_0200 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportAppServiceExtension_.isLoaded = true;
-    appUtils.isSupportAppServiceExtension_.value = true;
+    appUtils.SetSupportAppServiceExtensionCacheForTest(true);
     bool result = appUtils.IsSupportAppServiceExtension();
     EXPECT_TRUE(result);
 }
@@ -809,7 +807,7 @@ HWTEST_F(AppUtilsTest, AppUtilsTest_3000, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_3000 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportAppServiceExtension_.isLoaded = false;
+    appUtils.ResetSupportAppServiceExtensionCacheForTest();
     auto value = OHOS::system::GetBoolParameter("const.abilityms.support_app_service", false);
     auto isSupportAppServiceExtension = appUtils.IsSupportAppServiceExtension();
     EXPECT_EQ(value, isSupportAppServiceExtension);
@@ -824,8 +822,7 @@ HWTEST_F(AppUtilsTest, AppUtilsTest_3100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_3100 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportAppServiceExtension_.isLoaded = true;
-    appUtils.isSupportAppServiceExtension_.value = true;
+    appUtils.SetSupportAppServiceExtensionCacheForTest(true);
     auto isSupportAppServiceExtension = appUtils.IsSupportAppServiceExtension();
     EXPECT_TRUE(isSupportAppServiceExtension);
 }
@@ -960,7 +957,7 @@ HWTEST_F(AppUtilsTest, AppUtilsTest_4000, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_4000 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportNativeChildProcess_.isLoaded = false;
+    appUtils.ResetSupportNativeChildProcessCacheForTest();
     auto value = system::GetBoolParameter("persist.sys.abilityms.start_native_child_process", false);
     auto isSupportNativeChildProcess = appUtils.IsSupportNativeChildProcess();
     EXPECT_EQ(value, isSupportNativeChildProcess);
@@ -975,8 +972,7 @@ HWTEST_F(AppUtilsTest, AppUtilsTest_4100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "AppUtilsTest_4100 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportNativeChildProcess_.isLoaded = true;
-    appUtils.isSupportNativeChildProcess_.value = true;
+    appUtils.SetSupportNativeChildProcessCacheForTest(true);
     auto isSupportNativeChildProcess = appUtils.IsSupportNativeChildProcess();
     EXPECT_TRUE(isSupportNativeChildProcess);
 }
@@ -1020,9 +1016,9 @@ HWTEST_F(AppUtilsTest, IsSupportRestartAppWithWindow_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsSupportRestartAppWithWindow_0100 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportRestartAppWithWindow_.isLoaded = false;
-    appUtils.IsSupportRestartAppWithWindow();
-    EXPECT_TRUE(appUtils.isSupportRestartAppWithWindow_.isLoaded);
+    appUtils.ResetSupportRestartAppWithWindowCacheForTest();
+    auto value = system::GetBoolParameter("persist.sys.abilityms.restart_app_with_window", false);
+    EXPECT_EQ(value, appUtils.IsSupportRestartAppWithWindow());
 }
 
 /**
@@ -1034,8 +1030,7 @@ HWTEST_F(AppUtilsTest, IsSupportRestartAppWithWindow_0200, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsSupportRestartAppWithWindow_0200 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportRestartAppWithWindow_.isLoaded = true;
-    appUtils.isSupportRestartAppWithWindow_.value = true;
+    appUtils.SetSupportRestartAppWithWindowCacheForTest(true);
     EXPECT_TRUE(appUtils.IsSupportRestartAppWithWindow());
 }
 
@@ -1048,9 +1043,9 @@ HWTEST_F(AppUtilsTest, IsSupportAllowDebugPermission_0100, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsSupportAllowDebugPermission_0100 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportAllowDebugPermission_.isLoaded = false;
-    appUtils.IsSupportAllowDebugPermission();
-    EXPECT_TRUE(appUtils.isSupportAllowDebugPermission_.isLoaded);
+    appUtils.ResetSupportAllowDebugPermissionCacheForTest();
+    auto value = system::GetBoolParameter("persist.sys.abilityms.allow_debug_permission", false);
+    EXPECT_EQ(value, appUtils.IsSupportAllowDebugPermission());
 }
 
 /**
@@ -1062,8 +1057,7 @@ HWTEST_F(AppUtilsTest, IsSupportAllowDebugPermission_0200, TestSize.Level2)
 {
     TAG_LOGI(AAFwkTag::TEST, "IsSupportAllowDebugPermission_0200 called.");
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportAllowDebugPermission_.isLoaded = true;
-    appUtils.isSupportAllowDebugPermission_.value = true;
+    appUtils.SetSupportAllowDebugPermissionCacheForTest(true);
     EXPECT_TRUE(appUtils.IsSupportAllowDebugPermission());
 }
 }  // namespace AbilityRuntime

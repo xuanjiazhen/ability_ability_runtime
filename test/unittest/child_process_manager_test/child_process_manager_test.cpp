@@ -43,10 +43,8 @@ public:
 
 void ChildProcessManagerTest::SetUpTestCase()
 {
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.isLoaded = true;
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.value = true;
-    AAFwk::AppUtils::GetInstance().isSupportNativeChildProcess_.isLoaded = true;
-    AAFwk::AppUtils::GetInstance().isSupportNativeChildProcess_.value = true;
+    AAFwk::AppUtils::GetInstance().SetMultiProcessModelCacheForTest(true);
+    AAFwk::AppUtils::GetInstance().SetSupportNativeChildProcessCacheForTest(true);
 
     sptr<IRemoteObject> bundleMgrService =  sptr<IRemoteObject>(new (std::nothrow) AppExecFwk::BundleMgrService());
     sptr<IRemoteObject> mockAppMgrService = sptr<IRemoteObject>(new (std::nothrow) AppExecFwk::MockAppMgrService());
@@ -61,10 +59,8 @@ void ChildProcessManagerTest::SetUpTestCase()
 
 void ChildProcessManagerTest::TearDownTestCase()
 {
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.isLoaded = false;
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.value = false;
-    AAFwk::AppUtils::GetInstance().isSupportNativeChildProcess_.isLoaded = false;
-    AAFwk::AppUtils::GetInstance().isSupportNativeChildProcess_.value = false;
+    AAFwk::AppUtils::GetInstance().ResetMultiProcessModelCacheForTest();
+    AAFwk::AppUtils::GetInstance().ResetSupportNativeChildProcessCacheForTest();
 }
 
 void ChildProcessManagerTest::SetUp()
@@ -94,8 +90,7 @@ HWTEST_F(ChildProcessManagerTest, StartChildProcessBySelfFork_0100, TestSize.Lev
 HWTEST_F(ChildProcessManagerTest, StartChildProcessBySelfFork_0200, TestSize.Level1)
 {
     TAG_LOGD(AAFwkTag::TEST, "StartChildProcessBySelfFork_0200 called.");
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.isLoaded = true;
-    AAFwk::AppUtils::GetInstance().isMultiProcessModel_.value = true;
+    AAFwk::AppUtils::GetInstance().SetMultiProcessModelCacheForTest(true);
     pid_t pid;
     auto ret = ChildProcessManager::GetInstance().StartChildProcessBySelfFork("./ets/process/DemoProcess.ts", pid);
     EXPECT_NE(ret, ChildProcessManagerErrorCode::ERR_FORK_FAILED);
@@ -111,10 +106,8 @@ HWTEST_F(ChildProcessManagerTest, StartChildProcessBySelfFork_0300, TestSize.Lev
     TAG_LOGD(AAFwkTag::TEST, "StartChildProcessBySelfFork_0300 called.");
 
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isMultiProcessModel_.isLoaded = true;
-    appUtils.isMultiProcessModel_.value = false;
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = false;
+    appUtils.SetMultiProcessModelCacheForTest(false);
+    appUtils.SetAllowChildProcessInMultiProcessFeatureAppCacheForTest(false);
     
     pid_t pid;
     auto ret = ChildProcessManager::GetInstance().StartChildProcessBySelfFork("./ets/process/DemoProcess.ts", pid);
@@ -429,21 +422,18 @@ HWTEST_F(ChildProcessManagerTest, AllowChildProcessOnDevice_0100, TestSize.Level
     TAG_LOGD(AAFwkTag::TEST, "AllowChildProcessOnDevice_0100 called.");
 
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isMultiProcessModel_.isLoaded = true;
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
-
-    appUtils.isMultiProcessModel_.value = true;
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = false;
+    appUtils.SetMultiProcessModelCacheForTest(true);
+    appUtils.SetAllowChildProcessInMultiProcessFeatureAppCacheForTest(false);
     auto allow = ChildProcessManager::GetInstance().AllowChildProcessOnDevice();
     EXPECT_TRUE(allow);
 
-    appUtils.isMultiProcessModel_.value = false;
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = true;
+    appUtils.SetMultiProcessModelCacheForTest(false);
+    appUtils.SetAllowChildProcessInMultiProcessFeatureAppCacheForTest(true);
     allow = ChildProcessManager::GetInstance().AllowChildProcessOnDevice();
     EXPECT_TRUE(allow);
 
-    appUtils.isMultiProcessModel_.value = false;
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = false;
+    appUtils.SetMultiProcessModelCacheForTest(false);
+    appUtils.SetAllowChildProcessInMultiProcessFeatureAppCacheForTest(false);
     allow = ChildProcessManager::GetInstance().AllowChildProcessOnDevice();
     EXPECT_FALSE(allow);
 }

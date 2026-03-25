@@ -1973,8 +1973,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_007, TestSize.Leve
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     abilityRecord->SetLastWant(std::make_shared<Want>());
-    AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = true;
-    AppUtils::GetInstance().isStartSpecifiedProcess_.value = true;
+    AppUtils::GetInstance().SetStartSpecifiedProcessCacheForTest(true);
     abilityRecord->abilityInfo_.applicationInfo.isSystemApp = true;
     abilityRecord->ForegroundAbility(0, true);
     EXPECT_TRUE(abilityRecord != nullptr);
@@ -1992,8 +1991,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_008, TestSize.Leve
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     abilityRecord->SetLastWant(std::make_shared<Want>());
-    AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = true;
-    AppUtils::GetInstance().isStartSpecifiedProcess_.value = true;
+    AppUtils::GetInstance().SetStartSpecifiedProcessCacheForTest(true);
     abilityRecord->abilityInfo_.applicationInfo.isSystemApp = false;
     abilityRecord->ForegroundAbility(0, true);
     EXPECT_TRUE(abilityRecord != nullptr);
@@ -2011,8 +2009,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_009, TestSize.Leve
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     abilityRecord->SetLastWant(std::make_shared<Want>());
-    AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = true;
-    AppUtils::GetInstance().isStartSpecifiedProcess_.value = false;
+    AppUtils::GetInstance().SetStartSpecifiedProcessCacheForTest(false);
     abilityRecord->abilityInfo_.applicationInfo.isSystemApp = true;
     abilityRecord->ForegroundAbility(0, true);
     EXPECT_TRUE(abilityRecord != nullptr);
@@ -2030,8 +2027,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_ForegroundAbility_010, TestSize.Leve
 {
     std::shared_ptr<AbilityRecord> abilityRecord = GetAbilityRecord();
     abilityRecord->SetLastWant(std::make_shared<Want>());
-    AppUtils::GetInstance().isStartSpecifiedProcess_.isLoaded = true;
-    AppUtils::GetInstance().isStartSpecifiedProcess_.value = false;
+    AppUtils::GetInstance().SetStartSpecifiedProcessCacheForTest(false);
     abilityRecord->abilityInfo_.applicationInfo.isSystemApp = false;
     abilityRecord->ForegroundAbility(0, true);
     EXPECT_TRUE(abilityRecord != nullptr);

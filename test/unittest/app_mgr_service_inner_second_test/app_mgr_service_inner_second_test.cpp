@@ -811,13 +811,11 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_MakeKiaProce
     bool isWatermarkEnabled = false;
     bool isFileUri = false;
     std::string processName = "MakeKiaProcess";
-    AAFwk::AppUtils::GetInstance().isStartOptionsWithAnimation_.isLoaded = true;
-    AAFwk::AppUtils::GetInstance().isStartOptionsWithAnimation_.value = false;
+    AAFwk::AppUtils::GetInstance().SetStartOptionsWithAnimationCacheForTest(false);
     int32_t res = appMgrServiceInner->MakeKiaProcess(want, isKia, watermarkBusinessName,
         isWatermarkEnabled, isFileUri, processName);
     EXPECT_EQ(res, ERR_OK);
-    AAFwk::AppUtils::GetInstance().isStartOptionsWithAnimation_.isLoaded = true;
-    AAFwk::AppUtils::GetInstance().isStartOptionsWithAnimation_.value = true;
+    AAFwk::AppUtils::GetInstance().SetStartOptionsWithAnimationCacheForTest(true);
     res = appMgrServiceInner->MakeKiaProcess(want, isKia, watermarkBusinessName,
         isWatermarkEnabled, isFileUri, processName);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
@@ -2187,7 +2185,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_StartChildPr
 
     system::SetBoolParameter(MULTI_PROCESS_MODEL, true);
     auto& utils = AAFwk::AppUtils::GetInstance();
-    utils.isMultiProcessModel_.isLoaded = false;
+    utils.ResetMultiProcessModelCacheForTest();
     utils.maxChildProcess_.isLoaded = true;
     utils.maxChildProcess_.value = 1000000;
     ret = appMgrServiceInner->StartChildProcessPreCheck(pid, 1);
@@ -2228,7 +2226,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_StartChildPr
     auto pid = appRecord->GetPriorityObject()->GetPid();
     system::SetBoolParameter(MULTI_PROCESS_MODEL, true);
     auto& utils = AAFwk::AppUtils::GetInstance();
-    utils.isMultiProcessModel_.isLoaded = false;
+    utils.ResetMultiProcessModelCacheForTest();
     utils.maxChildProcess_.isLoaded = true;
     utils.maxChildProcess_.value = 1000000;
     ret = appMgrServiceInner->StartChildProcess(pid, childPid, request);

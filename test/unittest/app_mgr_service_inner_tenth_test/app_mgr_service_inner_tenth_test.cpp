@@ -2251,12 +2251,11 @@ HWTEST_F(AppMgrServiceInnerTenthTest, PreloadApplicationByPhase_001, TestSize.Le
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
 
-    AAFwk::AppUtils::GetInstance().isPreloadApplicationEnabled_.isLoaded = true;
-    AAFwk::AppUtils::GetInstance().isPreloadApplicationEnabled_.value = false;
+    AAFwk::AppUtils::GetInstance().SetPreloadApplicationEnabledCacheForTest(false);
 
     auto ret = appMgrServiceInner->PreloadApplicationByPhase("com.test.demo", 100, 0, PreloadPhase::PROCESS_CREATED);
     EXPECT_EQ(ret, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
-    AAFwk::AppUtils::GetInstance().isPreloadApplicationEnabled_.isLoaded = false;
+    AAFwk::AppUtils::GetInstance().ResetPreloadApplicationEnabledCacheForTest();
     TAG_LOGI(AAFwkTag::TEST, "PreloadApplicationByPhase_001 end");
 }
 
@@ -2271,12 +2270,11 @@ HWTEST_F(AppMgrServiceInnerTenthTest, PreloadApplicationByPhase_002, TestSize.Le
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     AAFwk::MyStatus::GetInstance().resetRunningRecordFunctionFlag();
 
-    AAFwk::AppUtils::GetInstance().isPreloadApplicationEnabled_.isLoaded = true;
-    AAFwk::AppUtils::GetInstance().isPreloadApplicationEnabled_.value = true;
+    AAFwk::AppUtils::GetInstance().SetPreloadApplicationEnabledCacheForTest(true);
 
     auto ret = appMgrServiceInner->PreloadApplicationByPhase("com.test.demo", 100, 0, PreloadPhase::PROCESS_CREATED);
     EXPECT_NE(ret, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
-    AAFwk::AppUtils::GetInstance().isPreloadApplicationEnabled_.isLoaded = false;
+    AAFwk::AppUtils::GetInstance().ResetPreloadApplicationEnabledCacheForTest();
     TAG_LOGI(AAFwkTag::TEST, "PreloadApplicationByPhase_002 end");
 }
 

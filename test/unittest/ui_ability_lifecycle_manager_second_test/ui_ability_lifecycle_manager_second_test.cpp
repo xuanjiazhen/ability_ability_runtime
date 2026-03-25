@@ -274,7 +274,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, PrepareTerminateAppAndGetRemaining
     sptr<IRemoteObject> token = abilityRecord->GetToken()->AsObject();
     tokens.push_back(token);
     AAFwk::MyFlag::flag_ = 1;
-    AppUtils::isStartOptionsWithAnimation_ = true;
+    AppUtils::GetInstance().SetStartOptionsWithAnimationCacheForTest(true);
     ret = uiAbilityLifecycleManager->PrepareTerminateAppAndGetRemaining(pid, tokens);
     EXPECT_EQ(ret, remainingTokens);
 }
@@ -614,7 +614,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, NotifySCBToRecoveryAfterIntercepti
     abilityRequest.abilityInfo.isolationProcess = true;
     abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
     abilityRequest.abilityInfo.isStageBasedModel = true;
-    AppUtils::GetInstance().isStartOptionsWithAnimation_ = true;
+    AppUtils::GetInstance().SetStartOptionsWithAnimationCacheForTest(true);
 
     auto ret = mgr->NotifySCBToRecoveryAfterInterception(abilityRequest);
 
@@ -818,7 +818,7 @@ HWTEST_F(UIAbilityLifecycleManagerSecondTest, CheckPrepareTerminateTokens_001, T
     std::vector<sptr<IRemoteObject>> tokens = {};
     uint32_t tokenId = 0;
     std::map<std::string, std::vector<sptr<IRemoteObject>>> tokensPerModuleName = {};
-    AppUtils::isStartOptionsWithAnimation_ = true;
+    AppUtils::GetInstance().SetStartOptionsWithAnimationCacheForTest(true);
 
     auto ret = mgr->CheckPrepareTerminateTokens(tokens, tokenId, tokensPerModuleName);
     EXPECT_EQ(ret, false);

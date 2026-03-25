@@ -628,12 +628,11 @@ HWTEST_F(AppMgrServiceInnerSixthTest, AllowDebugCheck_001, TestSize.Level1)
     applicationInfo.appProvisionType = AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG;
     EXPECT_TRUE(appMgrServiceInner->AllowDebugCheck(applicationInfo));
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.isSupportAllowDebugPermission_.isLoaded = true;
-    appUtils.isSupportAllowDebugPermission_.value = false;
+    appUtils.SetSupportAllowDebugPermissionCacheForTest(false);
     applicationInfo.appProvisionType = AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE;
     EXPECT_FALSE(appMgrServiceInner->AllowDebugCheck(applicationInfo));
 
-    appUtils.isSupportAllowDebugPermission_.value = true;
+    appUtils.SetSupportAllowDebugPermissionCacheForTest(true);
     EXPECT_FALSE(appMgrServiceInner->AllowDebugCheck(applicationInfo));
 }
 } // namespace AppExecFwk

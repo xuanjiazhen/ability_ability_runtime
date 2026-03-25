@@ -14,6 +14,7 @@
  */
 
 #include "app_utils.h"
+#include <new>
 #include <unordered_set>
 #include "json_utils.h"
 #include "hilog_tag_wrapper.h"
@@ -117,6 +118,23 @@ AppUtils::AppUtils()
 #endif
 }
 
+template<typename T>
+void AppUtils::ResetOnceCacheForTest(T &cache, const T &defaultValue, std::once_flag &flag)
+{
+    cache = defaultValue;
+    flag.~once_flag();
+    new (&flag) std::once_flag();
+}
+
+template<typename T>
+void AppUtils::SetOnceCacheForTest(T &cache, const T &value, std::once_flag &flag)
+{
+    ResetOnceCacheForTest(cache, value, flag);
+    std::call_once(flag, [&cache, value]() {
+        cache = value;
+    });
+}
+
 AppUtils &AppUtils::GetInstance()
 {
     static AppUtils utils;
@@ -126,6 +144,7 @@ AppUtils &AppUtils::GetInstance()
 void AppUtils::ForbidStartCallback(const char *key, const char *, void *)
 {
     if (strcmp(key, FORBID_START) == 0) {
+        std::lock_guard lock(GetInstance().isForbidStartMutex_);
         GetInstance().isForbidStart_.value = system::GetBoolParameter(FORBID_START, false);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "param %{public}s changed: %{public}d", FORBID_START,
             GetInstance().isForbidStart_.value);
@@ -152,56 +171,52 @@ bool AppUtils::IsLauncherAbility(const std::string &abilityName) const
 
 bool AppUtils::IsInheritWindowSplitScreenMode()
 {
-    if (!isInheritWindowSplitScreenMode_.isLoaded) {
-        isInheritWindowSplitScreenMode_.value = system::GetBoolParameter(INHERIT_WINDOW_SPLIT_SCREEN_MODE, true);
-        isInheritWindowSplitScreenMode_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isInheritWindowSplitScreenMode_.value);
-    return isInheritWindowSplitScreenMode_.value;
+    std::call_once(isInheritWindowSplitScreenModeOnce, [this]() {
+        isInheritWindowSplitScreenMode_ = system::GetBoolParameter(INHERIT_WINDOW_SPLIT_SCREEN_MODE, true);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isInheritWindowSplitScreenMode_);
+    return isInheritWindowSplitScreenMode_;
 }
 
 bool AppUtils::IsSupportAncoApp()
 {
-    if (!isSupportAncoApp_.isLoaded) {
-        isSupportAncoApp_.value = system::GetBoolParameter(SUPPORT_ANCO_APP, false);
-        isSupportAncoApp_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAncoApp_.value);
-    return isSupportAncoApp_.value;
+    std::call_once(isSupportAncoAppOnce, [this]() {
+        isSupportAncoApp_ = system::GetBoolParameter(SUPPORT_ANCO_APP, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAncoApp_);
+    return isSupportAncoApp_;
 }
 
 int32_t AppUtils::GetTimeoutUnitTimeRatio()
 {
-    if (!timeoutUnitTimeRatio_.isLoaded) {
-        timeoutUnitTimeRatio_.value = system::GetIntParameter<int32_t>(TIMEOUT_UNIT_TIME_RATIO, 1);
-        timeoutUnitTimeRatio_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", timeoutUnitTimeRatio_.value);
-    return timeoutUnitTimeRatio_.value;
+    std::call_once(timeoutUnitTimeRatioOnce, [this]() {
+        timeoutUnitTimeRatio_ = system::GetIntParameter<int32_t>(TIMEOUT_UNIT_TIME_RATIO, 1);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", timeoutUnitTimeRatio_);
+    return timeoutUnitTimeRatio_;
 }
 
 bool AppUtils::IsSelectorDialogDefaultPossion()
 {
-    if (!isSelectorDialogDefaultPossion_.isLoaded) {
-        isSelectorDialogDefaultPossion_.value = system::GetBoolParameter(SELECTOR_DIALOG_POSSION, true);
-        isSelectorDialogDefaultPossion_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSelectorDialogDefaultPossion_.value);
-    return isSelectorDialogDefaultPossion_.value;
+    std::call_once(isSelectorDialogDefaultPossionOnce, [this]() {
+        isSelectorDialogDefaultPossion_ = system::GetBoolParameter(SELECTOR_DIALOG_POSSION, true);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSelectorDialogDefaultPossion_);
+    return isSelectorDialogDefaultPossion_;
 }
 
 bool AppUtils::IsStartSpecifiedProcess()
 {
-    if (!isStartSpecifiedProcess_.isLoaded) {
-        isStartSpecifiedProcess_.value = system::GetBoolParameter(START_SPECIFIED_PROCESS, false);
-        isStartSpecifiedProcess_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartSpecifiedProcess_.value);
-    return isStartSpecifiedProcess_.value;
+    std::call_once(isStartSpecifiedProcessOnce, [this]() {
+        isStartSpecifiedProcess_ = system::GetBoolParameter(START_SPECIFIED_PROCESS, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartSpecifiedProcess_);
+    return isStartSpecifiedProcess_;
 }
 
 bool AppUtils::IsUseMultiRenderProcess()
 {
+    std::lock_guard lock(isUseMultiRenderProcessMutex_);
     if (!isUseMultiRenderProcess_.isLoaded) {
         isUseMultiRenderProcess_.value = system::GetBoolParameter(USE_MULTI_RENDER_PROCESS, true);
         isUseMultiRenderProcess_.isLoaded = true;
@@ -212,16 +227,16 @@ bool AppUtils::IsUseMultiRenderProcess()
 
 bool AppUtils::IsLimitMaximumOfRenderProcess()
 {
-    if (!isLimitMaximumOfRenderProcess_.isLoaded) {
-        isLimitMaximumOfRenderProcess_.value = system::GetBoolParameter(LIMIT_MAXIMUM_OF_RENDER_PROCESS, true);
-        isLimitMaximumOfRenderProcess_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isLimitMaximumOfRenderProcess_.value);
-    return isLimitMaximumOfRenderProcess_.value;
+    std::call_once(isLimitMaximumOfRenderProcessOnce, [this]() {
+        isLimitMaximumOfRenderProcess_ = system::GetBoolParameter(LIMIT_MAXIMUM_OF_RENDER_PROCESS, true);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isLimitMaximumOfRenderProcess_);
+    return isLimitMaximumOfRenderProcess_;
 }
 
 bool AppUtils::IsGrantPersistUriPermission()
 {
+    std::lock_guard lock(isGrantPersistUriPermissionMutex_);
     if (!isGrantPersistUriPermission_.isLoaded) {
         isGrantPersistUriPermission_.value = system::GetBoolParameter(GRANT_PERSIST_URI_PERMISSION, false);
         isGrantPersistUriPermission_.isLoaded = true;
@@ -232,6 +247,7 @@ bool AppUtils::IsGrantPersistUriPermission()
 
 bool AppUtils::IsSupportGrantUriPermission()
 {
+    std::lock_guard lock(isGrantTempUriPermissionMutex_);
     if (!isGrantTempUriPermission_.isLoaded) {
         isGrantTempUriPermission_.value = system::GetBoolParameter(GRANT_TEMPORARY_URI_PERMISSION, true);
         isGrantTempUriPermission_.isLoaded = true;
@@ -242,16 +258,16 @@ bool AppUtils::IsSupportGrantUriPermission()
 
 bool AppUtils::IsStartOptionsWithAnimation()
 {
-    if (!isStartOptionsWithAnimation_.isLoaded) {
-        isStartOptionsWithAnimation_.value = system::GetBoolParameter(START_OPTIONS_WITH_ANIMATION, false);
-        isStartOptionsWithAnimation_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithAnimation_.value);
-    return isStartOptionsWithAnimation_.value;
+    std::call_once(isStartOptionsWithAnimationOnce, [this]() {
+        isStartOptionsWithAnimation_ = system::GetBoolParameter(START_OPTIONS_WITH_ANIMATION, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isStartOptionsWithAnimation_);
+    return isStartOptionsWithAnimation_;
 }
 
 bool AppUtils::IsSupportStartAbilities()
 {
+    std::lock_guard lock(isSupportStartAbilitiesMutex_);
     if (!isSupportStartAbilities_.isLoaded) {
         isSupportStartAbilities_.value = system::GetBoolParameter(SUPPORT_START_ABILITIES, false);
         isSupportStartAbilities_.isLoaded = true;
@@ -262,28 +278,27 @@ bool AppUtils::IsSupportStartAbilities()
 
 bool AppUtils::IsMultiProcessModel()
 {
-    if (!isMultiProcessModel_.isLoaded) {
-        isMultiProcessModel_.value = system::GetBoolParameter(MULTI_PROCESS_MODEL, false);
-        isMultiProcessModel_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isMultiProcessModel_.value);
-    return isMultiProcessModel_.value;
+    std::call_once(isMultiProcessModelOnce, [this]() {
+        isMultiProcessModel_ = system::GetBoolParameter(MULTI_PROCESS_MODEL, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isMultiProcessModel_);
+    return isMultiProcessModel_;
 }
 
 bool AppUtils::AllowChildProcessInMultiProcessFeatureApp()
 {
-    if (!allowChildProcessInMultiProcessFeatureApp_.isLoaded) {
-        allowChildProcessInMultiProcessFeatureApp_.value =
+    std::call_once(allowChildProcessInMultiProcessFeatureAppOnce, [this]() {
+        allowChildProcessInMultiProcessFeatureApp_ =
             system::GetBoolParameter(ALLOW_CHILD_PROCESS_IN_MULTI_PROCESS_FEATURE_APP, false);
-            allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
-    }
+    });
     TAG_LOGD(AAFwkTag::DEFAULT, "AllowChildProcessInMultiProcessFeatureApp:%{public}d",
-        allowChildProcessInMultiProcessFeatureApp_.value);
-    return allowChildProcessInMultiProcessFeatureApp_.value;
+        allowChildProcessInMultiProcessFeatureApp_);
+    return allowChildProcessInMultiProcessFeatureApp_;
 }
 
 bool AppUtils::IsStartOptionsWithProcessOptions()
 {
+    std::lock_guard lock(isStartOptionsWithProcessOptionsMutex_);
     if (!isStartOptionsWithProcessOptions_.isLoaded) {
         isStartOptionsWithProcessOptions_.value = system::GetBoolParameter(START_OPTIONS_WITH_PROCESS_OPTION, false);
         isStartOptionsWithProcessOptions_.isLoaded = true;
@@ -294,17 +309,17 @@ bool AppUtils::IsStartOptionsWithProcessOptions()
 
 bool AppUtils::EnableMoveUIAbilityToBackgroundApi()
 {
-    if (!enableMoveUIAbilityToBackgroundApi_.isLoaded) {
-        enableMoveUIAbilityToBackgroundApi_.value =
+    std::call_once(enableMoveUIAbilityToBackgroundApiOnce, [this]() {
+        enableMoveUIAbilityToBackgroundApi_ =
             system::GetBoolParameter(MOVE_UI_ABILITY_TO_BACKGROUND_API_ENABLE, true);
-        enableMoveUIAbilityToBackgroundApi_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", enableMoveUIAbilityToBackgroundApi_.value);
-    return enableMoveUIAbilityToBackgroundApi_.value;
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", enableMoveUIAbilityToBackgroundApi_);
+    return enableMoveUIAbilityToBackgroundApi_;
 }
 
 bool AppUtils::IsLaunchEmbededUIAbility()
 {
+    std::lock_guard lock(isLaunchEmbededUIAbilityMutex_);
     if (!isLaunchEmbededUIAbility_.isLoaded) {
         isLaunchEmbededUIAbility_.value = system::GetBoolParameter(LAUNCH_EMBEDED_UI_ABILITY, false);
         isLaunchEmbededUIAbility_.isLoaded = true;
@@ -315,12 +330,11 @@ bool AppUtils::IsLaunchEmbededUIAbility()
 
 bool AppUtils::IsSupportNativeChildProcess()
 {
-    if (!isSupportNativeChildProcess_.isLoaded) {
-        isSupportNativeChildProcess_.value = system::GetBoolParameter(SUPPROT_NATIVE_CHILD_PROCESS, false);
-        isSupportNativeChildProcess_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportNativeChildProcess_.value);
-    return isSupportNativeChildProcess_.value;
+    std::call_once(isSupportNativeChildProcessOnce, [this]() {
+        isSupportNativeChildProcess_ = system::GetBoolParameter(SUPPROT_NATIVE_CHILD_PROCESS, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportNativeChildProcess_);
+    return isSupportNativeChildProcess_;
 }
 
 bool AppUtils::IsAllowResidentInExtremeMemory(const std::string& bundleName, const std::string& abilityName)
@@ -330,7 +344,7 @@ bool AppUtils::IsAllowResidentInExtremeMemory(const std::string& bundleName, con
         LoadResidentProcessInExtremeMemory();
         residentProcessInExtremeMemory_.isLoaded = true;
     }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportNativeChildProcess_.value);
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportNativeChildProcess_);
     for (auto &element : residentProcessInExtremeMemory_.value) {
         if (bundleName == element.first &&
             (abilityName == "" || abilityName == element.second)) {
@@ -454,6 +468,7 @@ void AppUtils::LoadResidentProcessInExtremeMemory()
 bool AppUtils::IsAllowNativeChildProcess(const std::string &appIdentifier)
 {
     TAG_LOGD(AAFwkTag::DEFAULT, "appId:%{private}s", appIdentifier.c_str());
+    std::lock_guard lock(allowStartNativeProcessAppsMutex_);
     if (!allowStartNativeProcessApps_.isLoaded) {
         LoadAllowNativeChildProcessApps();
         allowStartNativeProcessApps_.isLoaded = true;
@@ -489,24 +504,22 @@ void AppUtils::LoadAllowNativeChildProcessApps()
 
 int32_t AppUtils::GetLimitMaximumExtensionsPerProc()
 {
-    if (!limitMaximumExtensionsPerProc_.isLoaded) {
-        limitMaximumExtensionsPerProc_.value =
+    std::call_once(limitMaximumExtensionsPerProcOnce, [this]() {
+        limitMaximumExtensionsPerProc_ =
             system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_PROCESS, DEFAULT_MAX_EXT_PER_PROC);
-        limitMaximumExtensionsPerProc_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerProc: %{public}d", limitMaximumExtensionsPerProc_.value);
-    return limitMaximumExtensionsPerProc_.value;
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerProc: %{public}d", limitMaximumExtensionsPerProc_);
+    return limitMaximumExtensionsPerProc_;
 }
 
 int32_t AppUtils::GetLimitMaximumExtensionsPerDevice()
 {
-    if (!limitMaximumExtensionsPerDevice_.isLoaded) {
-        limitMaximumExtensionsPerDevice_.value =
+    std::call_once(limitMaximumExtensionsPerDeviceOnce, [this]() {
+        limitMaximumExtensionsPerDevice_ =
             system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_DEVICE, DEFAULT_MAX_EXT_PER_DEV);
-        limitMaximumExtensionsPerDevice_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerDevice: %{public}d", limitMaximumExtensionsPerDevice_.value);
-    return limitMaximumExtensionsPerDevice_.value;
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "limitMaximumExtensionsPerDevice: %{public}d", limitMaximumExtensionsPerDevice_);
+    return limitMaximumExtensionsPerDevice_;
 }
 
 std::string AppUtils::GetCacheExtensionTypeList()
@@ -571,37 +584,35 @@ void AppUtils::LoadStartAbilityWithoutCallerToken()
 
 std::string AppUtils::GetBrokerDelegateBundleName()
 {
-    if (!brokerDelegateBundleName_.isLoaded) {
-        brokerDelegateBundleName_.value = system::GetParameter(BROKER_DELEGATE_BUNDLE_NAME, "");
-        brokerDelegateBundleName_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "shellAssistantBundleName_ is %{public}s", brokerDelegateBundleName_.value.c_str());
-    return brokerDelegateBundleName_.value;
+    std::call_once(brokerDelegateBundleNameOnce, [this]() {
+        brokerDelegateBundleName_ = system::GetParameter(BROKER_DELEGATE_BUNDLE_NAME, "");
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "shellAssistantBundleName_ is %{public}s", brokerDelegateBundleName_.c_str());
+    return brokerDelegateBundleName_;
 }
 
 int32_t AppUtils::GetCollaboratorBrokerUID()
 {
-    if (!collaboratorBrokerUid_.isLoaded) {
-        collaboratorBrokerUid_.value = system::GetIntParameter(COLLABORATOR_BROKER_UID, DEFAULT_INVALID_VALUE);
-        collaboratorBrokerUid_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerUid_ is %{public}d", collaboratorBrokerUid_.value);
-    return collaboratorBrokerUid_.value;
+    std::call_once(collaboratorBrokerUidOnce, [this]() {
+        collaboratorBrokerUid_ = system::GetIntParameter(COLLABORATOR_BROKER_UID, DEFAULT_INVALID_VALUE);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerUid_ is %{public}d", collaboratorBrokerUid_);
+    return collaboratorBrokerUid_;
 }
 
 int32_t AppUtils::GetCollaboratorBrokerReserveUID()
 {
-    if (!collaboratorBrokerReserveUid_.isLoaded) {
-        collaboratorBrokerReserveUid_.value = system::GetIntParameter(COLLABORATOR_BROKER_RESERVE_UID,
+    std::call_once(collaboratorBrokerReserveUidOnce, [this]() {
+        collaboratorBrokerReserveUid_ = system::GetIntParameter(COLLABORATOR_BROKER_RESERVE_UID,
             DEFAULT_INVALID_VALUE);
-        collaboratorBrokerReserveUid_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerReserveUid_ is %{public}d", collaboratorBrokerReserveUid_.value);
-    return collaboratorBrokerReserveUid_.value;
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "collaboratorBrokerReserveUid_ is %{public}d", collaboratorBrokerReserveUid_);
+    return collaboratorBrokerReserveUid_;
 }
 
 int32_t AppUtils::MaxChildProcess()
 {
+    std::lock_guard lock(maxChildProcessMutex_);
     if (!maxChildProcess_.isLoaded) {
         maxChildProcess_.value =
             system::GetIntParameter<int32_t>(MAX_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
@@ -613,6 +624,7 @@ int32_t AppUtils::MaxChildProcess()
 
 int32_t AppUtils::MaxMultiProcessFeatureChildProcess()
 {
+    std::lock_guard lock(maxMultiProcessFeatureChildProcessMutex_);
     if (!maxMultiProcessFeatureChildProcess_.isLoaded) {
         maxMultiProcessFeatureChildProcess_.value =
             system::GetIntParameter<int32_t>(MAX_MULTI_PROCESS_FEATURE_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
@@ -625,16 +637,16 @@ int32_t AppUtils::MaxMultiProcessFeatureChildProcess()
 
 bool AppUtils::IsSupportMultiInstance()
 {
-    if (!isSupportMultiInstance_.isLoaded) {
-        isSupportMultiInstance_.value = system::GetBoolParameter(SUPPORT_MULTI_INSTANCE, false);
-        isSupportMultiInstance_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportMultiInstance_.value);
-    return isSupportMultiInstance_.value;
+    std::call_once(isSupportMultiInstanceOnce, [this]() {
+        isSupportMultiInstance_ = system::GetBoolParameter(SUPPORT_MULTI_INSTANCE, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportMultiInstance_);
+    return isSupportMultiInstance_;
 }
 
 std::string AppUtils::GetMigrateClientBundleName()
 {
+    std::lock_guard lock(migrateClientBundleNameMutex_);
     if (!migrateClientBundleName_.isLoaded) {
         migrateClientBundleName_.value = system::GetParameter(MIGRATE_CLIENT_BUNDLE_NAME, "");
         migrateClientBundleName_.isLoaded = true;
@@ -645,13 +657,11 @@ std::string AppUtils::GetMigrateClientBundleName()
 
 bool AppUtils::IsConnectSupportCrossUser()
 {
-    std::lock_guard guard(isConnectSupportCrossUserMutex_);
-    if (!isConnectSupportCrossUser_.isLoaded) {
-        isConnectSupportCrossUser_.value = system::GetBoolParameter(CONNECT_SUPPORT_CROSS_USER, false);
-        isConnectSupportCrossUser_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isConnectSupportCrossUser_.value);
-    return isConnectSupportCrossUser_.value;
+    std::call_once(isConnectSupportCrossUserOnce, [this]() {
+        isConnectSupportCrossUser_ = system::GetBoolParameter(CONNECT_SUPPORT_CROSS_USER, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isConnectSupportCrossUser_);
+    return isConnectSupportCrossUser_;
 }
 
 bool AppUtils::IsPrepareTerminateEnabled()
@@ -822,23 +832,20 @@ bool AppUtils::InOnNewProcessEnableList(const std::string &bundleName)
 
 bool AppUtils::IsSupportAppServiceExtension()
 {
-    if (!isSupportAppServiceExtension_.isLoaded) {
-        isSupportAppServiceExtension_.value = system::GetBoolParameter(SUPPORT_APP_SERVICE_EXTENSION, false);
-        isSupportAppServiceExtension_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAppServiceExtension_.value);
-    return isSupportAppServiceExtension_.value;
+    std::call_once(isSupportAppServiceExtensionOnce, [this]() {
+        isSupportAppServiceExtension_ = system::GetBoolParameter(SUPPORT_APP_SERVICE_EXTENSION, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isSupportAppServiceExtension_);
+    return isSupportAppServiceExtension_;
 }
 
 bool AppUtils::IsPreloadApplicationEnabled()
 {
-    if (!isPreloadApplicationEnabled_.isLoaded) {
-        isPreloadApplicationEnabled_.value = system::GetBoolParameter(
-            PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED, false);
-        isPreloadApplicationEnabled_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isPreloadApplicationEnabled_.value);
-    return isPreloadApplicationEnabled_.value;
+    std::call_once(isPreloadApplicationEnabledOnce, [this]() {
+        isPreloadApplicationEnabled_ = system::GetBoolParameter(PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "called %{public}d", isPreloadApplicationEnabled_);
+    return isPreloadApplicationEnabled_;
 }
 
 bool AppUtils::IsForbidStart()
@@ -846,8 +853,10 @@ bool AppUtils::IsForbidStart()
 #ifndef ABILITY_RUNTIME_FORBID_START_ENABLED
     return false;
 #else
+    std::lock_guard lock(isForbidStartMutex_);
     if (!isForbidStart_.isLoaded) {
         isForbidStart_.value = system::GetBoolParameter(FORBID_START, false);
+        isForbidStart_.isLoaded = true;
     }
     return isForbidStart_.value;
 #endif
@@ -855,26 +864,25 @@ bool AppUtils::IsForbidStart()
 
 bool AppUtils::IsSupportRestartAppWithWindow()
 {
-    if (!isSupportRestartAppWithWindow_.isLoaded) {
-        isSupportRestartAppWithWindow_.value = system::GetBoolParameter(RESTART_APP_WITH_WINDOW, false);
-        isSupportRestartAppWithWindow_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportRestartAppWithWindow_.value);
-    return isSupportRestartAppWithWindow_.value;
+    std::call_once(isSupportRestartAppWithWindowOnce, [this]() {
+        isSupportRestartAppWithWindow_ = system::GetBoolParameter(RESTART_APP_WITH_WINDOW, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportRestartAppWithWindow_);
+    return isSupportRestartAppWithWindow_;
 }
 
 bool AppUtils::IsSupportAllowDebugPermission()
 {
-    if (!isSupportAllowDebugPermission_.isLoaded) {
-        isSupportAllowDebugPermission_.value = system::GetBoolParameter(ALLOW_DEBUG_PERMISSION, false);
-        isSupportAllowDebugPermission_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportAllowDebugPermission_.value);
-    return isSupportAllowDebugPermission_.value;
+    std::call_once(isSupportAllowDebugPermissionOnce, [this]() {
+        isSupportAllowDebugPermission_ = system::GetBoolParameter(ALLOW_DEBUG_PERMISSION, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "restartApp: %{public}d", isSupportAllowDebugPermission_);
+    return isSupportAllowDebugPermission_;
 }
 
 bool AppUtils::IsStartUIAbilityInCurrentProcess()
 {
+    std::lock_guard lock(isStartUIAbilityInCurrentProcessMutex_);
     if (!isStartUIAbilityInCurrentProcess_.isLoaded) {
         isStartUIAbilityInCurrentProcess_.value = system::GetBoolParameter(START_ABILITY_IN_CURRENT_PROCESS, false);
         isStartUIAbilityInCurrentProcess_.isLoaded = true;
@@ -885,12 +893,11 @@ bool AppUtils::IsStartUIAbilityInCurrentProcess()
 
 bool AppUtils::IsProductAppbootSettingEnabled()
 {
-    if (!isProductAppbootSettingEnabled_.isLoaded) {
-        isProductAppbootSettingEnabled_.value = system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false);
-        isProductAppbootSettingEnabled_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "ProductAppbootSettingEnabled: %{public}d", isProductAppbootSettingEnabled_.value);
-    return isProductAppbootSettingEnabled_.value;
+    std::call_once(isProductAppbootSettingEnabledOnce, [this]() {
+        isProductAppbootSettingEnabled_ = system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "ProductAppbootSettingEnabled: %{public}d", isProductAppbootSettingEnabled_);
+    return isProductAppbootSettingEnabled_;
 }
 
 void AppUtils::LoadAppTransferList()
@@ -932,12 +939,103 @@ bool AppUtils::InAppTransferList(const std::string &bundleName)
 
 bool AppUtils::IsHybridSpawnUnified()
 {
-    if (!isHybridSpawnUnified_.isLoaded) {
-        isHybridSpawnUnified_.value = system::GetBoolParameter(HYBRIDSPAWN_UNIFIED, false);
-        isHybridSpawnUnified_.isLoaded = true;
-    }
-    TAG_LOGD(AAFwkTag::DEFAULT, "IsHybridSpawnUnified: %{public}d", isHybridSpawnUnified_.value);
-    return isHybridSpawnUnified_.value;
+    std::call_once(isHybridSpawnUnifiedOnce, [this]() {
+        isHybridSpawnUnified_ = system::GetBoolParameter(HYBRIDSPAWN_UNIFIED, false);
+    });
+    TAG_LOGD(AAFwkTag::DEFAULT, "IsHybridSpawnUnified: %{public}d", isHybridSpawnUnified_);
+    return isHybridSpawnUnified_;
+}
+
+void AppUtils::ResetSupportNativeChildProcessCacheForTest()
+{
+    ResetOnceCacheForTest(isSupportNativeChildProcess_, false, isSupportNativeChildProcessOnce);
+}
+
+void AppUtils::SetSupportNativeChildProcessCacheForTest(bool value)
+{
+    SetOnceCacheForTest(isSupportNativeChildProcess_, value, isSupportNativeChildProcessOnce);
+}
+
+void AppUtils::ResetSupportAppServiceExtensionCacheForTest()
+{
+    ResetOnceCacheForTest(isSupportAppServiceExtension_, false, isSupportAppServiceExtensionOnce);
+}
+
+void AppUtils::SetSupportAppServiceExtensionCacheForTest(bool value)
+{
+    SetOnceCacheForTest(isSupportAppServiceExtension_, value, isSupportAppServiceExtensionOnce);
+}
+
+void AppUtils::ResetPreloadApplicationEnabledCacheForTest()
+{
+    ResetOnceCacheForTest(isPreloadApplicationEnabled_, false, isPreloadApplicationEnabledOnce);
+}
+
+void AppUtils::SetPreloadApplicationEnabledCacheForTest(bool value)
+{
+    SetOnceCacheForTest(isPreloadApplicationEnabled_, value, isPreloadApplicationEnabledOnce);
+}
+
+void AppUtils::ResetSupportRestartAppWithWindowCacheForTest()
+{
+    ResetOnceCacheForTest(isSupportRestartAppWithWindow_, false, isSupportRestartAppWithWindowOnce);
+}
+
+void AppUtils::SetSupportRestartAppWithWindowCacheForTest(bool value)
+{
+    SetOnceCacheForTest(isSupportRestartAppWithWindow_, value, isSupportRestartAppWithWindowOnce);
+}
+
+void AppUtils::ResetSupportAllowDebugPermissionCacheForTest()
+{
+    ResetOnceCacheForTest(isSupportAllowDebugPermission_, false, isSupportAllowDebugPermissionOnce);
+}
+
+void AppUtils::SetSupportAllowDebugPermissionCacheForTest(bool value)
+{
+    SetOnceCacheForTest(isSupportAllowDebugPermission_, value, isSupportAllowDebugPermissionOnce);
+}
+
+void AppUtils::ResetStartSpecifiedProcessCacheForTest()
+{
+    ResetOnceCacheForTest(isStartSpecifiedProcess_, false, isStartSpecifiedProcessOnce);
+}
+
+void AppUtils::SetStartSpecifiedProcessCacheForTest(bool value)
+{
+    SetOnceCacheForTest(isStartSpecifiedProcess_, value, isStartSpecifiedProcessOnce);
+}
+
+void AppUtils::ResetMultiProcessModelCacheForTest()
+{
+    ResetOnceCacheForTest(isMultiProcessModel_, false, isMultiProcessModelOnce);
+}
+
+void AppUtils::SetMultiProcessModelCacheForTest(bool value)
+{
+    SetOnceCacheForTest(isMultiProcessModel_, value, isMultiProcessModelOnce);
+}
+
+void AppUtils::ResetAllowChildProcessInMultiProcessFeatureAppCacheForTest()
+{
+    ResetOnceCacheForTest(allowChildProcessInMultiProcessFeatureApp_, false,
+        allowChildProcessInMultiProcessFeatureAppOnce);
+}
+
+void AppUtils::SetAllowChildProcessInMultiProcessFeatureAppCacheForTest(bool value)
+{
+    SetOnceCacheForTest(allowChildProcessInMultiProcessFeatureApp_, value,
+        allowChildProcessInMultiProcessFeatureAppOnce);
+}
+
+void AppUtils::ResetStartOptionsWithAnimationCacheForTest()
+{
+    ResetOnceCacheForTest(isStartOptionsWithAnimation_, false, isStartOptionsWithAnimationOnce);
+}
+
+void AppUtils::SetStartOptionsWithAnimationCacheForTest(bool value)
+{
+    SetOnceCacheForTest(isStartOptionsWithAnimation_, value, isStartOptionsWithAnimationOnce);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

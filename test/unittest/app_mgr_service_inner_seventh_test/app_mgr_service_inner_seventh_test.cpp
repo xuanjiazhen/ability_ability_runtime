@@ -2817,15 +2817,13 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, AllowChildProcessInMultiProcessFeatureAp
     EXPECT_NE(appRecord, nullptr);
 
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = false;
+    appUtils.SetAllowChildProcessInMultiProcessFeatureAppCacheForTest(false);
     auto ret = appMgrServiceInner->AllowChildProcessInMultiProcessFeatureApp(appRecord);
     EXPECT_FALSE(ret);
     ret = appMgrServiceInner->AllowChildProcessInMultiProcessFeatureApp(nullptr);
     EXPECT_FALSE(ret);
 
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = true;
+    appUtils.SetAllowChildProcessInMultiProcessFeatureAppCacheForTest(true);
     appRecord->SetSupportMultiProcessDeviceFeature(false);
     ret = appMgrServiceInner->AllowChildProcessInMultiProcessFeatureApp(appRecord);
     EXPECT_FALSE(ret);
@@ -2849,8 +2847,7 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, AllowChildProcessInMultiProcessFeatureAp
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 1, "com.example.child");
     EXPECT_NE(appRecord, nullptr);
     auto &appUtils = AAFwk::AppUtils::GetInstance();
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.isLoaded = true;
-    appUtils.allowChildProcessInMultiProcessFeatureApp_.value = true;
+    appUtils.SetAllowChildProcessInMultiProcessFeatureAppCacheForTest(true);
 
     AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
     AAFwk::MyStatus::GetInstance().getBundleInfoV9_ = 1;

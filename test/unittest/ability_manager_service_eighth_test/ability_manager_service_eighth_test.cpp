@@ -513,12 +513,11 @@ HWTEST_F(AbilityManagerServiceEighthTest, StartUIAbilityBySCB_001_002, TestSize.
 
     params.isRestart = true;
     ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
-    AppUtils::GetInstance().isSupportRestartAppWithWindow_.isLoaded = true;
-    AppUtils::GetInstance().isSupportRestartAppWithWindow_.value = false;
+    AppUtils::GetInstance().SetSupportRestartAppWithWindowCacheForTest(false);
     EXPECT_NE(ret, ERR_OK);
 
     ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
-    AppUtils::GetInstance().isSupportRestartAppWithWindow_.value = true;
+    AppUtils::GetInstance().SetSupportRestartAppWithWindowCacheForTest(true);
     EXPECT_NE(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceEighthTest StartUIAbilityBySCB_001_002 end");
 }

@@ -144,13 +144,12 @@ HWTEST_F(AbilityContextImplSecondTest, RestartAppWithWindow_0100, Function | Med
 
     EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled)
         .Times(2).WillRepeatedly(Return(true));
-    AAFwk::AppUtils::GetInstance().isSupportRestartAppWithWindow_.isLoaded = true;
-    AAFwk::AppUtils::GetInstance().isSupportRestartAppWithWindow_.value = false;
+    AAFwk::AppUtils::GetInstance().SetSupportRestartAppWithWindowCacheForTest(false);
     ret = context_->RestartAppWithWindow(want);
     EXPECT_EQ(ret, AAFwk::ERR_CAPABILITY_NOT_SUPPORT);
 
     EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled).Times(1).WillOnce(Return(true));
-    AAFwk::AppUtils::GetInstance().isSupportRestartAppWithWindow_.value = true;
+    AAFwk::AppUtils::GetInstance().SetSupportRestartAppWithWindowCacheForTest(true);
     ret = context_->RestartAppWithWindow(want);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
 }
