@@ -48,6 +48,7 @@
 #include "string_wrapper.h"
 #include "utils/window_options_utils.h"
 
+
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
