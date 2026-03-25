@@ -17,6 +17,7 @@
 
 #include "ability_manager_client.h"
 #include "mock_my_flag.h"
+#include "batch_uri.h"
 
 #define private public
 #define protected public
@@ -47,7 +48,11 @@ void UriPermissionManagerStubImplTest::SetUpTestCase() {}
 
 void UriPermissionManagerStubImplTest::TearDownTestCase() {}
 
-void UriPermissionManagerStubImplTest::SetUp() {}
+void UriPermissionManagerStubImplTest::SetUp()
+{
+    MyFlag::Init();
+    IAbilityManagerCollaborator::verifyResult = 0;
+}
 
 void UriPermissionManagerStubImplTest::TearDown() {}
 
@@ -700,5 +705,245 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RawDataToPolicyInfo_001, TestSi
     EXPECT_EQ(result, INVALID_PARAMETERS_ERR);
 #endif
 }
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: VerifyContentUriPermission
+ * SubFunction: NA
+ * FunctionPoints: VerifyContentUriPermission with empty contentUris
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, VerifyContentUriPermission_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    std::vector<std::string> contentUris; // Empty
+    uint32_t flag = 1;
+    uint32_t tokenId = 1;
+    std::vector<bool> checkResults;
+    auto result = upmsi->VerifyContentUriPermission(contentUris, flag, tokenId, checkResults);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: VerifyContentUriPermission
+ * SubFunction: NA
+ * FunctionPoints: VerifyContentUriPermission with null abilityClient
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, VerifyContentUriPermission_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    AbilityManagerClient::isNullInstance = true;
+    std::vector<std::string> contentUris = {"content://com.example.test/file.txt"};
+    uint32_t flag = 1;
+    uint32_t tokenId = 1;
+    std::vector<bool> checkResults;
+    auto result = upmsi->VerifyContentUriPermission(contentUris, flag, tokenId, checkResults);
+    EXPECT_EQ(result, INNER_ERR);
+    AbilityManagerClient::isNullInstance = false;
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: VerifyContentUriPermission
+ * SubFunction: NA
+ * FunctionPoints: VerifyContentUriPermission with null collaborator
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, VerifyContentUriPermission_003, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    AbilityManagerClient::isNullInstance = false;
+    AbilityManagerClient::collaborator_ = nullptr;
+    std::vector<std::string> contentUris = {"content://com.example.test/file.txt"};
+    uint32_t flag = 1;
+    uint32_t tokenId = 1;
+    std::vector<bool> checkResults;
+    auto result = upmsi->VerifyContentUriPermission(contentUris, flag, tokenId, checkResults);
+    EXPECT_EQ(result, INNER_ERR);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: VerifyContentUriPermission
+ * SubFunction: NA
+ * FunctionPoints: VerifyContentUriPermission when collaborator VerifyUriPermission fails
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, VerifyContentUriPermission_004, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    AbilityManagerClient::isNullInstance = false;
+    auto collaborator = std::make_shared<IAbilityManagerCollaborator>();
+    AbilityManagerClient::collaborator_ = collaborator;
+    IAbilityManagerCollaborator::verifyResult = ERR_INVALID_VALUE;
+    std::vector<std::string> contentUris = {"content://com.example.test/file.txt"};
+    uint32_t flag = 1;
+    uint32_t tokenId = 1;
+    std::vector<bool> checkResults;
+    auto result = upmsi->VerifyContentUriPermission(contentUris, flag, tokenId, checkResults);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    IAbilityManagerCollaborator::verifyResult = 0;
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: VerifyContentUriPermission
+ * SubFunction: NA
+ * FunctionPoints: VerifyContentUriPermission success path
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, VerifyContentUriPermission_005, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    AbilityManagerClient::isNullInstance = false;
+    auto collaborator = std::make_shared<IAbilityManagerCollaborator>();
+    AbilityManagerClient::collaborator_ = collaborator;
+    IAbilityManagerCollaborator::verifyResult = ERR_OK;
+    std::vector<std::string> contentUris = {"content://com.example.test/file.txt", "content://com.example.test/file2.txt"};
+    uint32_t flag = 1;
+    uint32_t tokenId = 1;
+    std::vector<bool> checkResults;
+    auto result = upmsi->VerifyContentUriPermission(contentUris, flag, tokenId, checkResults);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(checkResults.size(), 2u);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckProxyUriPermission without proxy authorization permission
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, CheckProxyUriPermission_001, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    MyFlag::permissionProxyAuthorization_ = false;
+    BatchUri batchUri;
+    batchUri.Init({"file://test/file.txt"});
+    batchUri.otherPolicyInfos.emplace_back(PolicyInfo{});
+    uint32_t callerTokenId = 1;
+    uint32_t flag = 1;
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckProxyUriPermission with empty proxyUrisByPolicy and empty contentUris
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, CheckProxyUriPermission_002, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    MyFlag::permissionProxyAuthorization_ = true;
+    BatchUri batchUri;
+    batchUri.Init({"file://caller/file.txt"}, 0, "caller", "", false);
+    uint32_t callerTokenId = 1;
+    uint32_t flag = 1;
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckProxyUriPermission with proxyUrisByPolicy
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, CheckProxyUriPermission_003, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    MyFlag::permissionProxyAuthorization_ = true;
+    BatchUri batchUri;
+    batchUri.Init({"file://docs/file.txt"}, 0, "", "target", false);
+    batchUri.otherPolicyInfos.emplace_back(PolicyInfo{});
+    uint32_t callerTokenId = 1;
+    uint32_t flag = 1;
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckProxyUriPermission with contentUris
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, CheckProxyUriPermission_004, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    MyFlag::permissionProxyAuthorization_ = true;
+    BatchUri batchUri;
+    batchUri.Init({"content://test/file.txt"});
+    uint32_t callerTokenId = 1;
+    uint32_t flag = 1;
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckProxyUriPermission with contentUris VerifyUriPermission fails
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, CheckProxyUriPermission_005, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    MyFlag::permissionProxyAuthorization_ = true;
+    BatchUri batchUri;
+    batchUri.Init({"content://test/file.txt"});
+    uint32_t callerTokenId = 1;
+    uint32_t flag = 1;
+    AbilityManagerClient::isNullInstance = false;
+    auto collaborator = std::make_shared<IAbilityManagerCollaborator>();
+    AbilityManagerClient::collaborator_ = collaborator;
+    IAbilityManagerCollaborator::verifyResult = ERR_INVALID_VALUE;
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+    // Should still return ERR_OK even when VerifyContentUriPermission fails (just logs warning)
+    EXPECT_EQ(result, ERR_OK);
+    IAbilityManagerCollaborator::verifyResult = 0;
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckProxyUriPermission with both proxyUrisByPolicy and contentUris
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, CheckProxyUriPermission_006, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    MyFlag::permissionProxyAuthorization_ = true;
+    BatchUri batchUri;
+    batchUri.Init({"file://docs/file.txt", "content://test/file.txt"});
+    batchUri.otherPolicyInfos.emplace_back(PolicyInfo{});
+    uint32_t callerTokenId = 1;
+    uint32_t flag = 1;
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/*
+ * Feature: UriPermissionManagerService
+ * Function: CheckProxyUriPermission
+ * SubFunction: NA
+ * FunctionPoints: CheckProxyUriPermission with multiple contentUris success
+ */
+HWTEST_F(UriPermissionManagerStubImplTest, CheckProxyUriPermission_007, TestSize.Level1)
+{
+    auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
+    MyFlag::permissionProxyAuthorization_ = true;
+    BatchUri batchUri;
+    batchUri.Init({"content://test/file.txt", "content://test/file2.txt"});
+    uint32_t callerTokenId = 1;
+    uint32_t flag = 1;
+    AbilityManagerClient::isNullInstance = false;
+    auto collaborator = std::make_shared<IAbilityManagerCollaborator>();
+    AbilityManagerClient::collaborator_ = collaborator;
+    IAbilityManagerCollaborator::verifyResult = ERR_OK;
+    auto result = upmsi->CheckProxyUriPermission(batchUri, callerTokenId, flag);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_TRUE(batchUri.IsAllUriPermissioned());
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
