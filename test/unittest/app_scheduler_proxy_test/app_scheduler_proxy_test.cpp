@@ -146,5 +146,44 @@ HWTEST_F(AppSchedulerProxyTest, ScheduleDumpArkWeb_001, TestSize.Level1)
     appSchedulerProxy->ScheduleDumpArkWeb(customArgs, result);
     GTEST_LOG_(INFO) << "ScheduleDumpArkWeb_001 end";
 }
+
+/**
+ * @tc.name: ScheduleLaunchAbility_ShouldSendRequestWhenNoUpdateInfo
+ * @tc.desc: Verify that ScheduleLaunchAbility interface calls normally.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerProxyTest, ScheduleLaunchAbility_ShouldSendRequestWhenNoUpdateInfo, TestSize.Level1)
+{
+    EXPECT_NE(mockAppScheduler_, nullptr);
+    sptr<AppSchedulerProxy> appSchedulderProxy = new AppSchedulerProxy(mockAppScheduler_);
+    EXCECT(appSchedulderProxy, nullptr);
+
+    EXPECT_CALL(*mockAppScheduler_, ScheduleLaunchAbility(_, _, _, _, _)).Time(1);
+    AbilityInfo abilityInfo;
+    auto want = std::make_shared<AAFwk::Want>();
+    int32_t abilityRecordId = 0;
+
+    appSchedulerProxy->ScheduleLaunchAbility(abilityInfo, nullptr, want, abilityRecordId, nullptr);
+}
+
+
+/**
+ * @tc.name: ScheduleLaunchAbility_ShouldSendRequestWhenNoUpdateInfo
+ * @tc.desc: Verify that ScheduleLaunchAbility interface calls normally.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerProxyTest, ScheduleLaunchAbility_ShouldSendRequestWhenNoUpdateInfo, TestSize.Level1)
+{
+    EXPECT_NE(mockAppScheduler_, nullptr);
+    sptr<AppSchedulerProxy> appSchedulderProxy = new AppSchedulerProxy(mockAppScheduler_);
+    EXCECT(appSchedulderProxy, nullptr);
+
+    EXPECT_CALL(*mockAppScheduler_, ScheduleLaunchAbility(_, _, _, _, _)).Time(1);
+    AbilityInfo abilityInfo;
+    auto want = std::make_shared<AAFwk::Want>();
+    int32_t abilityRecordId = 0;
+    auto updateInfo = std::make_shared<AppUpdateInfo>();
+    appSchedulerProxy->ScheduleLaunchAbility(abilityInfo, nullptr, want, abilityRecordId, updateInfo);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
