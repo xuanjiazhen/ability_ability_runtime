@@ -8191,6 +8191,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     }
     request.abilityInfo = abilityInfo->abilityInfo;
     request.extensionProcessMode = abilityInfo->extensionProcessMode;
+    request.skipAbilityStageLifecycle = abilityInfo->skipAbilityStageLifecycle;
     request.customProcess = abilityInfo->customProcess;
     request.collaboratorType = GetCollaboratorType(request.abilityInfo.applicationInfo.codePath);
     request.isTargetPlugin = abilityInfo->isTargetPlugin;

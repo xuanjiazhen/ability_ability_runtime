@@ -76,12 +76,23 @@ public:
     const std::shared_ptr<AAFwk::Want> &GetWant();
     
     bool IsHook() const;
+
+    inline void SetSkipAbilityStageLifecycle(bool skipAbilityStageLifecycle)
+    {
+        skipAbilityStageLifecycle_ = skipAbilityStageLifecycle;
+    }
+
+    inline bool IsSkipAbilityStageLifecycle() const
+    {
+        return skipAbilityStageLifecycle_;
+    }
 private:
     std::shared_ptr<AbilityInfo> abilityInfo_ = nullptr;
     sptr<IRemoteObject> token_ = nullptr;
     std::shared_ptr<AAFwk::Want> want_ = nullptr;
     int32_t abilityRecordId_ = 0;
     sptr<AbilityThread> abilityThread_;
+    bool skipAbilityStageLifecycle_ = false;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

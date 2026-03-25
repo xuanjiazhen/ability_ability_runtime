@@ -779,6 +779,57 @@ HWTEST_F(AbilityConnectManagerTest, GetOrCreateServiceRecord_001, TestSize.Level
 }
 
 /*
+* Feature: AbilityConnectManager
+* Function: GetOrCreateServiceRecord
+*/
+HWTEST_F(AbilityConnectManagerTest, GetOrCreateServiceRecord_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetOrCreateServiceRecord_002 start");
+    auto connectManager = std::make_shared<AbilityConnectManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::BACKUP;
+    abilityRequest.abilityInfo.bundleName = "com.example.test";
+    abilityRequest.abilityInfo.name = "TestAbility";
+    abilityRequest.abilityInfo.applicationInfo.allowMultiProcess = true;
+    abilityRequest.skipAbilityStageLifecycle = true;
+
+    std::shared_ptr<BaseExtensionRecord> serviceRecord = nullptr;
+    bool isLoadedAbility = false;
+    connectManager->GetOrCreateServiceRecord(abilityRequest, false, serviceRecord, isLoadedAbility);
+
+    ASSERT_NE(serviceRecord, nullptr);
+    EXPECT_EQ(serviceRecord->GetAbilityInfo().name, "TestAbility");
+    EXPECT_EQ(serviceRecord->IsSkipAbilityStageLifecycle(), false);
+}
+
+/*
+* Feature: AbilityConnectManager
+* Function: GetOrCreateServiceRecord
+*/
+HWTEST_F(AbilityConnectManagerTest, GetOrCreateServiceRecord_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetOrCreateServiceRecord_003 start");
+    auto connectManager = std::make_shared<AbilityConnectManager>(0);
+    EXPECT_NE(connectManager, nullptr);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::BACKUP;
+    abilityRequest.abilityInfo.bundleName = "com.example.test";
+    abilityRequest.abilityInfo.name = "TestAbility";
+    abilityRequest.skipAbilityStageLifecycle = true;
+
+    std::shared_ptr<BaseExtensionRecord> serviceRecord = nullptr;
+    bool isLoadedAbility = false;
+    connectManager->GetOrCreateServiceRecord(abilityRequest, false, serviceRecord, isLoadedAbility);
+
+    ASSERT_NE(serviceRecord, nullptr);
+    EXPECT_EQ(serviceRecord->GetAbilityInfo().name, "TestAbility");
+    EXPECT_EQ(serviceRecord->IsSkipAbilityStageLifecycle(), true);
+}
+
+/*
   * Feature: AbilityConnectManager
   * Function: SetServiceAfterNewCreate
   */
