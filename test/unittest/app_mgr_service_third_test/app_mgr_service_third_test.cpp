@@ -510,5 +510,69 @@ HWTEST_F(AppMgrServiceThirdTest, SetProcessPrepareExit_001, TestSize.Level1)
         .WillOnce(Return(true));
     appMgrService->SetProcessPrepareExit(0);
 }
+
+/**
+ * @tc.name: MakeImage_ShouldReturnInvaildOperationWhenNotReady
+ * @tc.desc: MakeImage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceThirdTest, MakeImage_ShouldReturnInvaildOperationWhenNotReady, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    std::string bundleName = "com.acts.makeimagetest";
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    auto ret = appMgrService->MakeImage(bundleName, userId, preloadMode, appIndex, nullptr);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+}
+
+/**
+ * @tc.name: MakeImage_ShouldReturnNotSystemAppWhenCallerIsNotSystemApp
+ * @tc.desc: MakeImage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceThirdTest, MakeImage_ShouldReturnNotSystemAppWhenCallerIsNotSystemApp, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    appMgrService->taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(Constants::APP_MGR_SERVICE_NAME);
+    appMgrService->appMgrServiceInner_ = std::make_shared<AppMgrServiceInner>();
+    appMgrService->eventHandler_ = 
+        std::make_shared<AMSEventHandler>(appMgrService->taskHandler_, appMgrService->appMgrServiceInner_);
+    std::string bundleName = "com.acts.makeimagetest";
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+
+    AAFwk::MyFlag::flag_ = 0;
+    auto ret = appMgrService->MakeImage(bundleName, userId, preloadMode, appIndex, nullptr);
+    AAFwk::MyFlag::flag_ = 1;
+    EXPECT_EQ(ret, AAFwk::ERR_NOT_SYSTEM_APP);
+}
+
+/**
+ * @tc.name: MakeImage_ShouldReturnRermissionDeniedWhenNotPreloadPremission
+ * @tc.desc: MakeImage.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceThirdTest, MakeImage_ShouldReturnRermissionDeniedWhenNotPreloadPremission, TestSize.Level1)
+{
+    auto appMgrService = std::make_shared<AppMgrService>();
+    ASSERT_NE(appMgrService, nullptr);
+    appMgrService->taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(Constants::APP_MGR_SERVICE_NAME);
+    appMgrService->appMgrServiceInner_ = std::make_shared<AppMgrServiceInner>();
+    appMgrService->eventHandler_ = 
+        std::make_shared<AMSEventHandler>(appMgrService->taskHandler_, appMgrService->appMgrServiceInner_);
+    std::string bundleName = "com.acts.makeimagetest";
+    int32_t userId = 100;
+    PreloadMode preloadMode = PreloadMode::PRE_MAKE;
+    int32_t appIndex = 0;
+    AAFwk::MyFlag::flag_ = -1;
+    auto ret = appMgrService->MakeImage(bundleName, userId, preloadMode, appIndex, nullptr);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS
