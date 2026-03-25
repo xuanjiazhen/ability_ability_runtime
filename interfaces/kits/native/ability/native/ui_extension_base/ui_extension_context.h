@@ -288,6 +288,8 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     std::atomic<bool> terminateTimeoutExec_{false};
     std::mutex terminateSelfMutex_;
+    std::atomic<bool> isTerminated_{false};
+    bool pendingAnimationTerminate_ = false;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
