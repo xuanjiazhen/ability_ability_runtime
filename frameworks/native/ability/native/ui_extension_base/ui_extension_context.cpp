@@ -160,8 +160,7 @@ ErrCode UIExtensionContext::HandleTerminateWithAnimation()
     }
 
     terminateTimeoutExec_.store(false);
-    auto weakContext = std::weak_ptr<UIExtensionContext>(shared_from_this());
-    auto timeoutTask = [weakContext, token = token_]() {
+    auto timeoutTask = [weakContext = weak_from_this(), token = token_]() {
         auto context = std::static_pointer_cast<UIExtensionContext>(weakContext.lock());
         if (context == nullptr || context->isTerminated_.load()) {
             TAG_LOGI(AAFwkTag::UI_EXT, "Context destroyed or already terminated, timeout skipped");
