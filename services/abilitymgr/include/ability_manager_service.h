@@ -2711,6 +2711,24 @@ protected:
         std::unordered_set<std::string> &userLockedBundleList) override;
 
 private:
+    /**
+     * @brief Get BundleInfo for test with two attempts.
+     * @param bundleName Bundle name.
+     * @param userId User ID.
+     * @param bundleInfo BundleInfo output.
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    static ErrCode GetBundleInfoForTest(const std::string& bundleName, int32_t userId, 
+                                      AppExecFwk::BundleInfo& bundleInfo);
+
+    /**
+     * @brief Validate debug mode.
+     * @param want Want object.
+     * @param bundleInfo BundleInfo.
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    static ErrCode ValidateDebugMode(const Want& want, const AppExecFwk::BundleInfo& bundleInfo);
+
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);

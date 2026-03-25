@@ -130,6 +130,7 @@ const std::string HELP_MSG_TEST =
     "                  [-s timeout <test-timeout>]\n"
     "                  [-s <any-key> <any-value>]\n"
     "                  [-w <wait-time>]\n"
+    "                  [-u <userId>]                          user id for running test\n"
     "                  [-D]\n";
 
 const std::string HELP_MSG_SEND_MEMORY_LEVEL =
@@ -284,6 +285,11 @@ private:
     void FormatOutputForWithWait(const Want &want, const AbilityStartWithWaitObserverData& data);
     bool IsImplicitStartAction(const Want &want);
     bool startAbilityWithWaitFlag_ = false;
+
+private:
+    static bool ValidateOptionHasValue(int argc, int currentIdx, const std::string& opt);
+    static bool ValidateIntegerParam(const std::string& value, const std::string& opt);
+    static ErrCode ParseAndValidateUserId(const AAFwk::Want& want, int32_t& userId);
 };
 }  // namespace AAFwk
 }  // namespace OHOS
