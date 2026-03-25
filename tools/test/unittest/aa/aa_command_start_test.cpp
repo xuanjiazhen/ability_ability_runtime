@@ -1728,3 +1728,55 @@ HWTEST_F(AaCommandStartTest, Aa_Command_Start_5600, Function | MediumTest | Leve
     std::string result = cmd.ExecCommand();
     EXPECT_TRUE(result.find(STRING_START_ABILITY_OK) != std::string::npos);
 }
+
+/**
+ * @tc.number: Aa_Command_Start_5700
+ * @tc.name: ExecCommand
+ * @tc.desc: Verify the "aa start -a <ability> -b <bundle> -s <windowMode>" command with windowMode option.
+ */
+HWTEST_F(AaCommandStartTest, Aa_Command_Start_5700, Function | MediumTest | Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Aa_Command_Start_5700");
+
+    char* argv[] = {
+        (char*)TOOL_NAME.c_str(),
+        (char*)cmd_.c_str(),
+        (char*)"-a",
+        (char*)STRING_ABILITY_NAME.c_str(),
+        (char*)"-b",
+        (char*)STRING_BUNDLE_NAME.c_str(),
+        (char*)"-s",
+        (char*)"102",
+        (char*)"",
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AbilityManagerShellCommand cmd(argc, argv);
+    EXPECT_EQ(cmd.ExecCommand(), STRING_START_ABILITY_OK + "\n");
+}
+
+/**
+ * @tc.number: Aa_Command_Start_5800
+ * @tc.name: ExecCommand
+ * @tc.desc: Verify the "aa start -a <ability> -b <bundle> -W" command with wait option.
+ */
+HWTEST_F(AaCommandStartTest, Aa_Command_Start_5800, Function | MediumTest | Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Aa_Command_Start_5800");
+
+    char* argv[] = {
+        (char*)TOOL_NAME.c_str(),
+        (char*)cmd_.c_str(),
+        (char*)"-a",
+        (char*)STRING_ABILITY_NAME.c_str(),
+        (char*)"-b",
+        (char*)STRING_BUNDLE_NAME.c_str(),
+        (char*)"-W",
+        (char*)"",
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AbilityManagerShellCommand cmd(argc, argv);
+    std::string result = cmd.ExecCommand();
+    EXPECT_TRUE(result.find(STRING_START_ABILITY_OK) != std::string::npos);
+}
