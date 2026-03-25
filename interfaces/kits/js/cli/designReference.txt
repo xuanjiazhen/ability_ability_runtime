@@ -1,0 +1,7 @@
+(1)整体结构 
+1.framwork/js/napi中新增cli_manager文件夹，其中包含js_cli_manager的相关文件，完成js接口到C++的应用侧参数解析和转换，类似js_ability_manager。
+接口绑定和task处理放在js_cli_manager中，参数解析放在js_cli_manager_utils中。
+2.interfaces/inner_api中新增cli_manager的SA，包含client，proxy，stub，类似foreground_app_connection_client的方式实现单例。
+3.services文件夹中新增climgr文件夹，继续完成该SA，完成cli_manager_service的实现文件
+(2)新增接口
+1.目前js_cli_manager整个功能中仅需要包含queryTools和execTool接口，参考D:\Code\gitcode\ability_ability_runtime\interfaces\kits\js\cli\@ohos.cli.manager.d.ts的接口设计进行实现。
