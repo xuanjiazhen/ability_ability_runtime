@@ -3433,7 +3433,7 @@ int32_t AbilityManagerService::KillAppWithReason(const int32_t pid, const ExitRe
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
 
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
+    if (!SupportSystemAbilityPermission::IsSupportSaKillPermission() &&
         !AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not sa or shell call");
         return ERR_PERMISSION_DENIED;
@@ -3488,7 +3488,7 @@ int32_t AbilityManagerService::KillBundleWithReason(
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
 
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall() &&
+    if (!SupportSystemAbilityPermission::IsSupportSaKillPermission() &&
         !AAFwk::PermissionVerification::GetInstance()->IsShellCall()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not sa or shell call");
         return ERR_PERMISSION_DENIED;
