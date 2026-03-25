@@ -440,11 +440,13 @@ private:
     volatile DeviceConfiguration<bool> isGrantPersistUriPermission_ = {false, false};
     volatile DeviceConfiguration<bool> isStartOptionsWithAnimation_ = {false, false};
     volatile DeviceConfiguration<bool> isMultiProcessModel_ = {false, false};
+    std::mutex isMultiProcessModelMutex_;
     volatile DeviceConfiguration<bool> allowChildProcessInMultiProcessFeatureApp_ = {false, false};
     volatile DeviceConfiguration<bool> isStartOptionsWithProcessOptions_ = {false, false};
     volatile DeviceConfiguration<bool> enableMoveUIAbilityToBackgroundApi_ = {false, true};
     volatile DeviceConfiguration<bool> isLaunchEmbededUIAbility_ = {false, false};
     volatile DeviceConfiguration<bool> isSupportNativeChildProcess_ = {false, false};
+    std::mutex isSupportNativeChildProcessMutex_;
     volatile DeviceConfiguration<bool> isSupportMultiInstance_ = {false, false};
     std::mutex isConnectSupportCrossUserMutex_;
     volatile DeviceConfiguration<bool> isConnectSupportCrossUser_ = {false, false};
@@ -467,17 +469,22 @@ private:
     std::mutex requireBigMemoryAppMutex_;
     DeviceConfiguration<std::vector<std::string>>
         allowStartNativeProcessApps_ = {false, {}};
+    std::mutex allowStartNativeProcessAppsMutex_;
     volatile DeviceConfiguration<int32_t> limitMaximumExtensionsPerProc_ = {false, DEFAULT_MAX_EXT_PER_PROC};
     volatile DeviceConfiguration<int32_t> limitMaximumExtensionsPerDevice_ = {false, DEFAULT_MAX_EXT_PER_DEV};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         startAbilityWithoutCallerToken_ = {false, {}};
     std::mutex startAbilityWithoutCallerTokenMutex_;
     DeviceConfiguration<std::string> brokerDelegateBundleName_ = {false, ""};
+    std::mutex brokerDelegateBundleNameMutex_;
     volatile DeviceConfiguration<int32_t> collaboratorBrokerUid_ = {false, DEFAULT_INVALID_VALUE};
     volatile DeviceConfiguration<int32_t> collaboratorBrokerReserveUid_ = {false, DEFAULT_INVALID_VALUE};
     volatile DeviceConfiguration<int32_t> maxChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
+    std::mutex maxChildProcessMutex_;
     volatile DeviceConfiguration<int32_t> maxMultiProcessFeatureChildProcess_ = {false, DEFAULT_MAX_CHILD_PROCESS};
+    std::mutex maxMultiProcessFeatureChildProcessMutex_;
     DeviceConfiguration<std::string> migrateClientBundleName_ = {true, "com.huwei.hmos.migratecilent"};
+    std::mutex migrateClientBundleNameMutex_;
     std::mutex cacheAbilityListMutex_;
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         cacheAbilityList_ = {false, {}};

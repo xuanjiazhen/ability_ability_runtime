@@ -262,6 +262,7 @@ bool AppUtils::IsSupportStartAbilities()
 
 bool AppUtils::IsMultiProcessModel()
 {
+    std::lock_guard lock(isMultiProcessModelMutex_);
     if (!isMultiProcessModel_.isLoaded) {
         isMultiProcessModel_.value = system::GetBoolParameter(MULTI_PROCESS_MODEL, false);
         isMultiProcessModel_.isLoaded = true;
@@ -315,6 +316,7 @@ bool AppUtils::IsLaunchEmbededUIAbility()
 
 bool AppUtils::IsSupportNativeChildProcess()
 {
+    std::lock_guard lock(isSupportNativeChildProcessMutex_);
     if (!isSupportNativeChildProcess_.isLoaded) {
         isSupportNativeChildProcess_.value = system::GetBoolParameter(SUPPROT_NATIVE_CHILD_PROCESS, false);
         isSupportNativeChildProcess_.isLoaded = true;
@@ -454,6 +456,7 @@ void AppUtils::LoadResidentProcessInExtremeMemory()
 bool AppUtils::IsAllowNativeChildProcess(const std::string &appIdentifier)
 {
     TAG_LOGD(AAFwkTag::DEFAULT, "appId:%{private}s", appIdentifier.c_str());
+    std::lock_guard lock(allowStartNativeProcessAppsMutex_);
     if (!allowStartNativeProcessApps_.isLoaded) {
         LoadAllowNativeChildProcessApps();
         allowStartNativeProcessApps_.isLoaded = true;
@@ -571,6 +574,7 @@ void AppUtils::LoadStartAbilityWithoutCallerToken()
 
 std::string AppUtils::GetBrokerDelegateBundleName()
 {
+    std::lock_guard lock(brokerDelegateBundleNameMutex_);
     if (!brokerDelegateBundleName_.isLoaded) {
         brokerDelegateBundleName_.value = system::GetParameter(BROKER_DELEGATE_BUNDLE_NAME, "");
         brokerDelegateBundleName_.isLoaded = true;
@@ -602,6 +606,7 @@ int32_t AppUtils::GetCollaboratorBrokerReserveUID()
 
 int32_t AppUtils::MaxChildProcess()
 {
+    std::lock_guard lock(maxChildProcessMutex_);
     if (!maxChildProcess_.isLoaded) {
         maxChildProcess_.value =
             system::GetIntParameter<int32_t>(MAX_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
@@ -613,6 +618,7 @@ int32_t AppUtils::MaxChildProcess()
 
 int32_t AppUtils::MaxMultiProcessFeatureChildProcess()
 {
+    std::lock_guard lock(maxMultiProcessFeatureChildProcessMutex_);
     if (!maxMultiProcessFeatureChildProcess_.isLoaded) {
         maxMultiProcessFeatureChildProcess_.value =
             system::GetIntParameter<int32_t>(MAX_MULTI_PROCESS_FEATURE_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
@@ -635,6 +641,7 @@ bool AppUtils::IsSupportMultiInstance()
 
 std::string AppUtils::GetMigrateClientBundleName()
 {
+    std::lock_guard lock(migrateClientBundleNameMutex_);
     if (!migrateClientBundleName_.isLoaded) {
         migrateClientBundleName_.value = system::GetParameter(MIGRATE_CLIENT_BUNDLE_NAME, "");
         migrateClientBundleName_.isLoaded = true;
