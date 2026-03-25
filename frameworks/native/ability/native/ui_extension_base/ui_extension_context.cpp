@@ -178,7 +178,6 @@ ErrCode UIExtensionContext::HandleTerminateWithAnimation()
             context->isTerminated_.store(true);
         }
     };
-
     if (!localHandler->PostTask(timeoutTask, "UIExtensionTerminateTimeout", TERMINATE_SELF_ANIMATION_TIMEOUT_MS)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to post timeout task, fallback to normal terminate");
         return TerminateSelfInner();
