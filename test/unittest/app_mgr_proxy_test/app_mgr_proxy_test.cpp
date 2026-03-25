@@ -19,6 +19,8 @@
 #include "app_foreground_state_observer_stub.h"
 #include "app_mgr_proxy.h"
 #include "hilog_tag_wrapper.h"
+#include "image_error_handler_stub.h"
+#include "image_process_state_observer_stub.h"
 #include "mock_ability_foreground_state_observer_stub.h"
 #include "mock_app_mgr_service.h"
 #include "quick_fix_callback_stub.h"
@@ -41,6 +43,26 @@ public:
 
     void OnAppStateChanged(const AppStateData &appStateData) override
     {}
+};
+
+class MockImageErrorHandlerStub : public ImageErrorHandlerStub {
+public:
+    MockImageErrorHandlerStub() = default;
+    virtual ~MockImageErrorHandlerStub() = default;
+
+    void OnError(int32_t errCode) override
+    {}
+};
+
+class ImageProcessStateObserverMock : public ImageProcessStateObserverStub {
+public:
+    ImageProcessStateObserverMock() = default;
+    virtual ~ImageProcessStateObserverMock() = default;
+
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        return 0;
+    }
 };
 
 class RenderStateObserverMock : public RenderStateObserverStub {
@@ -1347,6 +1369,45 @@ HWTEST_F(AppMgrProxyTest, SetProcessPrepareExit_001, TestSize.Level2)
     EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _)).Times(1);
     auto pid = 100;
     appMgrProxy_->SetProcessPrepareExit(pid);
+}
+
+/**
+ * @tc.name: RegisterImageProcessStateObserver_0100
+ * @tc.desc: Verify that the RegisterImageProcessStateObserver parameter of the function is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, RegisterImageProcessStateObserver_0100, TestSize.Level1)
+{
+    sptr<IImageProcessStateObserver> observer = nullptr;
+    auto result = appMgrProxy_->RegisterImageProcessStateObserver(observer);
+    EXPECT_EQ(result, OHOS::ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: RegisterImageProcessStateObserver_0300
+ * @tc.desc: Verify that the RegisterImageProcessStateObserver function call SendRequestfail.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, RegisterImageProcessStateObserver_0300, TestSize.Level1)
+{
+    sptr<IImageProcessStateObserver> observer = new ImageProcessStateObserverMock();
+    EXPECT_NE(observer->AsObject(), nullptr);
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(-1));
+    EXPECT_EQ(appMgrProxy_->RegisterImageProcessStateObserver(observer), -1);
+}
+
+/**
+ * @tc.name: UnregisterImageProcessStateObserver_0100
+ * @tc.desc: Verify that the UnregisterImageProcessStateObserver parameter of the function is null.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, UnregisterImageProcessStateObserver_0100, TestSize.Level1)
+{
+    sptr<IImageProcessStateObserver> observer = nullptr;
+    auto result = appMgrProxy_->UnregisterImageProcessStateObserver(observer);
+    EXPECT_EQ(result, OHO::ERR_INVALID_VALUE);
 }
 } // namespace AppExecFwk
 } // namespace OHOS
