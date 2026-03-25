@@ -1699,4 +1699,3 @@ HWTEST_F(AaCommandStartTest, Aa_Command_Start_5500, Function | MediumTest | Leve
     AbilityManagerShellCommand cmd(argc, argv);
     EXPECT_EQ(cmd.ExecCommand(), STRING_START_ABILITY_OK + "\n");
 }
-}
