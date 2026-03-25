@@ -32,6 +32,8 @@ namespace OHOS {
 namespace AbilityRuntime {
 namespace {
 constexpr const char* EXTENSION_TYPE_APP_SERVICE = "AppServiceExtension";
+constexpr const char* EXTENSION_TYPE_SERVICE_EXTENSION = "ServiceExtension";
+constexpr const char* ABILITY_TYPE_UI_ABILITY = "UIAbility";
 } // namespace
 
 class AbilityAutoStartupService : public std::enable_shared_from_this<AbilityAutoStartupService> {
