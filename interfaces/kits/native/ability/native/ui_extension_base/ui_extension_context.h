@@ -270,14 +270,11 @@ private:
 
     void GetFailureInfoByMessage(const std::string &message, int32_t &failureCode,
         std::string &failureMessage, int32_t resultCode);
-    /**
-     * @brief Handle terminate self with animation for embedded mode.
-     * Creates timeout task and executes animation callback.
-     * Manages lock internally: acquires lock to check and take callback,
-     * releases lock before executing callback to avoid deadlock.
-     * @return errCode ERR_OK on success
-     */
+
     ErrCode HandleTerminateWithAnimation();
+    bool CheckAndSetPendingTerminate();
+    bool TryGetAnimationCallback(TerminateSelfWithAnimationCallback &callback);
+    ErrCode GetOrCreateEventHandler(std::shared_ptr<AppExecFwk::EventHandler> &handler);
 
     std::mutex onRequestResultMutex_;
     std::mutex onOpenLinkRequestResultMutex_;
