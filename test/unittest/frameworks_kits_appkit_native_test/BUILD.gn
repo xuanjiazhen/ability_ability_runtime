@@ -86,6 +86,7 @@ ohos_unittest("application_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "&{ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -156,6 +157,7 @@ ohos_unittest("context_impl_test") {
     "${ability_runtime_native_path}/appkit:app_context_utils",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "&{ability_runtime_native_path}/appkit:application_image_observer_manager",
     "${ability_runtime_path}/frameworks/ets/ani/ani_common:ani_common",
     "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
   ]
@@ -221,6 +223,7 @@ ohos_unittest("context_impl_second_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "&{ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -283,6 +286,7 @@ ohos_unittest("context_impl_third_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "&{ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -339,6 +343,7 @@ ohos_unittest("context_container_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "&{ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -542,6 +547,7 @@ ohos_unittest("context_deal_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "&{ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -610,6 +616,7 @@ ohos_unittest("application_impl_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "&{ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
@@ -758,6 +765,7 @@ ohos_unittest("form_extension_context_test") {
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:appkit_native",
+    "&{ability_runtime_native_path}/appkit:application_image_observer_manager",
   ]
 
   external_deps = [
