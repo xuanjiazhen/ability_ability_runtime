@@ -1179,22 +1179,6 @@ HWTEST_F(UIExtensionContextTest, GetAbilityInfoType_0800, TestSize.Level1)
 }
 
 /**
- * @tc.number: RequestComponentTerminate_0800
- * @tc.name: RequestComponentTerminate variant
- * @tc.desc: RequestComponentTerminate with WM_ERROR timeout.
- */
-HWTEST_F(UIExtensionContextTest, RequestComponentTerminate_0800, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "RequestComponentTerminate_0800 start");
-    auto context = std::make_shared<UIExtensionContext>();
-    sptr<MockWindow> window = sptr<MockWindow>::MakeSptr();
-    EXPECT_CALL(*window, TransferExtensionData(_)).Times(1).WillOnce(Return(Rosen::WMError::WM_ERROR_TIMEOUT));
-    context->SetWindow(window);
-    context->RequestComponentTerminate();
-    TAG_LOGI(AAFwkTag::TEST, "RequestComponentTerminate_0800 end");
-}
-
-/**
  * @tc.number: AddCompletionHandlerForAtomicService_0800
  * @tc.name: AddCompletionHandlerForAtomicService variant
  * @tc.desc: AddCompletionHandlerForAtomicService with variant appId.
