@@ -85,6 +85,8 @@ constexpr const char* PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED = "const.produ
 constexpr const char* FORBID_START = "persist.sys.abilityms.forbid_start";
 constexpr const char* ALLOW_DEBUG_PERMISSION = "persist.sys.abilityms.allow_debug_permission";
 constexpr const char* START_ABILITY_IN_CURRENT_PROCESS = "persist.sys.abilityms.start_ability_in_current_process";
+constexpr const char* QUERY_SELF_MODULAR_OBJECT_EXTENSION_INFOS =
+    "persist.sys.abilityms.query_self_modular_object_extension_infos";
 constexpr const char* RESTART_APP_WITH_WINDOW = "persist.sys.abilityms.restart_app_with_window";
 constexpr const char* PRODUCT_APPBOOT_SETTING_ENABLED = "const.product.appboot.setting.enabled";
 // Support prepare terminate
@@ -881,6 +883,17 @@ bool AppUtils::IsStartUIAbilityInCurrentProcess()
     }
     TAG_LOGD(AAFwkTag::DEFAULT, "startAbilityInCurrentProcess: %{public}d", isStartUIAbilityInCurrentProcess_.value);
     return isStartUIAbilityInCurrentProcess_.value;
+}
+
+bool AppUtils::IsQuerySelfModularObjectExtensionInfos()
+{
+    if (!isQuerySelfModularObjectExtensionInfos_.isLoaded) {
+        isQuerySelfModularObjectExtensionInfos_.value =
+            system::GetBoolParameter(QUERY_SELF_MODULAR_OBJECT_EXTENSION_INFOS, false);
+        isQuerySelfModularObjectExtensionInfos_.isLoaded = true;
+    }
+    TAG_LOGD(AAFwkTag::DEFAULT, "querySelfModularObjectExtensionInfos: %{public}d", isQuerySelfModularObjectExtensionInfos_.value);
+    return isQuerySelfModularObjectExtensionInfos_.value;
 }
 
 bool AppUtils::IsProductAppbootSettingEnabled()

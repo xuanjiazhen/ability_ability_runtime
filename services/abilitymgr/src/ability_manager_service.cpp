@@ -80,6 +80,7 @@
 #include "mock_session_manager_service.h"
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
 #include "modal_system_ui_extension.h"
+#include "modular_object_manager.h"
 #include "multi_app_utils.h"
 #include "os_account_manager_wrapper.h"
 #include "permission_constants.h"
@@ -462,6 +463,8 @@ bool AbilityManagerService::Init()
     InitAppSpawnMsgPipe();
     insightIntentEventMgr_ = std::make_shared<AbilityRuntime::InsightIntentEventMgr>();
     insightIntentEventMgr_->SubscribeSysEventReceiver();
+    modularObjectExtensionEventMgr_ = std::make_shared<AbilityRuntime::ModularObjectExtensionEventMgr>();
+    modularObjectExtensionEventMgr_->SubscribeSysEventReceiver();
     ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent();
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     ResourceSchedule::ResSchedClient::GetInstance().InitKillReasonListener();
@@ -16955,6 +16958,28 @@ int32_t AbilityManagerService::UnRegisterPreloadUIExtensionHostClient(int32_t ca
         return ERR_INVALID_VALUE;
     }
     return connectManager->UnRegisterPreloadUIExtensionHostClient(callerPid);
+}
+
+int32_t AbilityManagerService::QuerySelfModularObjectExtensionInfos(
+    std::vector<ModularObjectExtensionInfo> &extensionInfos)
+{
+    if (!AppUtils::GetInstance().IsQuerySelfModularObjectExtensionInfos()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "device not supported");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    int32_t callinguid = IPCSkeleton::GetCallingUid();
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bundleMgrHelper, ERR_INVALID_VALUE);
+    std::string callerBundleName;
+    int32_t callerAppIndex;
+    auto ret = bundleMgrHelper->GetBundleNameForUid(callinguid, callerBundleName, callerAppIndex);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetBundleNameForUid failed for uid: %{public}d", callinguid);
+        return ret;
+    }
+    int32_t userId = callinguid / BASE_USER_RANGE;
+    return DelayedSingleton<ModularObjectManager>::GetInstance()->QuerySelfModularObjectExtensionInfos(userId,
+        callerBundleName, callerAppIndex, extensionInfos);
 }
 
 int32_t AbilityManagerService::GetUserLockedBundleList(int32_t userId,
