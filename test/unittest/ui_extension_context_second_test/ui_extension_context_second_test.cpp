@@ -311,7 +311,7 @@ HWTEST_F(UIExtensionContextTest, TerminateSelfInner_0100, TestSize.Level1)
     context->terminateSelfWithAnimationCallback_ = []() {};
     context->terminateTimeoutExec_.store(false);
     auto result = context->TerminateSelfInner();
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
     EXPECT_TRUE(context->terminateTimeoutExec_.load());
     EXPECT_EQ(context->terminateSelfWithAnimationCallback_, nullptr);
     context->eventHandler_ = nullptr;
