@@ -126,6 +126,7 @@ AppUtils &AppUtils::GetInstance()
 void AppUtils::ForbidStartCallback(const char *key, const char *, void *)
 {
     if (strcmp(key, FORBID_START) == 0) {
+        std::lock_guard lock(GetInstance().isForbidStartMutex_);
         GetInstance().isForbidStart_.value = system::GetBoolParameter(FORBID_START, false);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "param %{public}s changed: %{public}d", FORBID_START,
             GetInstance().isForbidStart_.value);
@@ -152,6 +153,7 @@ bool AppUtils::IsLauncherAbility(const std::string &abilityName) const
 
 bool AppUtils::IsInheritWindowSplitScreenMode()
 {
+    std::lock_guard lock(isInheritWindowSplitScreenModeMutex_);
     if (!isInheritWindowSplitScreenMode_.isLoaded) {
         isInheritWindowSplitScreenMode_.value = system::GetBoolParameter(INHERIT_WINDOW_SPLIT_SCREEN_MODE, true);
         isInheritWindowSplitScreenMode_.isLoaded = true;
@@ -162,6 +164,7 @@ bool AppUtils::IsInheritWindowSplitScreenMode()
 
 bool AppUtils::IsSupportAncoApp()
 {
+    std::lock_guard lock(isSupportAncoAppMutex_);
     if (!isSupportAncoApp_.isLoaded) {
         isSupportAncoApp_.value = system::GetBoolParameter(SUPPORT_ANCO_APP, false);
         isSupportAncoApp_.isLoaded = true;
@@ -172,6 +175,7 @@ bool AppUtils::IsSupportAncoApp()
 
 int32_t AppUtils::GetTimeoutUnitTimeRatio()
 {
+    std::lock_guard lock(timeoutUnitTimeRatioMutex_);
     if (!timeoutUnitTimeRatio_.isLoaded) {
         timeoutUnitTimeRatio_.value = system::GetIntParameter<int32_t>(TIMEOUT_UNIT_TIME_RATIO, 1);
         timeoutUnitTimeRatio_.isLoaded = true;
@@ -182,6 +186,7 @@ int32_t AppUtils::GetTimeoutUnitTimeRatio()
 
 bool AppUtils::IsSelectorDialogDefaultPossion()
 {
+    std::lock_guard lock(isSelectorDialogDefaultPossionMutex_);
     if (!isSelectorDialogDefaultPossion_.isLoaded) {
         isSelectorDialogDefaultPossion_.value = system::GetBoolParameter(SELECTOR_DIALOG_POSSION, true);
         isSelectorDialogDefaultPossion_.isLoaded = true;
@@ -192,6 +197,7 @@ bool AppUtils::IsSelectorDialogDefaultPossion()
 
 bool AppUtils::IsStartSpecifiedProcess()
 {
+    std::lock_guard lock(isStartSpecifiedProcessMutex_);
     if (!isStartSpecifiedProcess_.isLoaded) {
         isStartSpecifiedProcess_.value = system::GetBoolParameter(START_SPECIFIED_PROCESS, false);
         isStartSpecifiedProcess_.isLoaded = true;
@@ -202,6 +208,7 @@ bool AppUtils::IsStartSpecifiedProcess()
 
 bool AppUtils::IsUseMultiRenderProcess()
 {
+    std::lock_guard lock(isUseMultiRenderProcessMutex_);
     if (!isUseMultiRenderProcess_.isLoaded) {
         isUseMultiRenderProcess_.value = system::GetBoolParameter(USE_MULTI_RENDER_PROCESS, true);
         isUseMultiRenderProcess_.isLoaded = true;
@@ -212,6 +219,7 @@ bool AppUtils::IsUseMultiRenderProcess()
 
 bool AppUtils::IsLimitMaximumOfRenderProcess()
 {
+    std::lock_guard lock(isLimitMaximumOfRenderProcessMutex_);
     if (!isLimitMaximumOfRenderProcess_.isLoaded) {
         isLimitMaximumOfRenderProcess_.value = system::GetBoolParameter(LIMIT_MAXIMUM_OF_RENDER_PROCESS, true);
         isLimitMaximumOfRenderProcess_.isLoaded = true;
@@ -222,6 +230,7 @@ bool AppUtils::IsLimitMaximumOfRenderProcess()
 
 bool AppUtils::IsGrantPersistUriPermission()
 {
+    std::lock_guard lock(isGrantPersistUriPermissionMutex_);
     if (!isGrantPersistUriPermission_.isLoaded) {
         isGrantPersistUriPermission_.value = system::GetBoolParameter(GRANT_PERSIST_URI_PERMISSION, false);
         isGrantPersistUriPermission_.isLoaded = true;
@@ -232,6 +241,7 @@ bool AppUtils::IsGrantPersistUriPermission()
 
 bool AppUtils::IsSupportGrantUriPermission()
 {
+    std::lock_guard lock(isGrantTempUriPermissionMutex_);
     if (!isGrantTempUriPermission_.isLoaded) {
         isGrantTempUriPermission_.value = system::GetBoolParameter(GRANT_TEMPORARY_URI_PERMISSION, true);
         isGrantTempUriPermission_.isLoaded = true;
@@ -242,6 +252,7 @@ bool AppUtils::IsSupportGrantUriPermission()
 
 bool AppUtils::IsStartOptionsWithAnimation()
 {
+    std::lock_guard lock(isStartOptionsWithAnimationMutex_);
     if (!isStartOptionsWithAnimation_.isLoaded) {
         isStartOptionsWithAnimation_.value = system::GetBoolParameter(START_OPTIONS_WITH_ANIMATION, false);
         isStartOptionsWithAnimation_.isLoaded = true;
@@ -252,6 +263,7 @@ bool AppUtils::IsStartOptionsWithAnimation()
 
 bool AppUtils::IsSupportStartAbilities()
 {
+    std::lock_guard lock(isSupportStartAbilitiesMutex_);
     if (!isSupportStartAbilities_.isLoaded) {
         isSupportStartAbilities_.value = system::GetBoolParameter(SUPPORT_START_ABILITIES, false);
         isSupportStartAbilities_.isLoaded = true;
@@ -262,6 +274,7 @@ bool AppUtils::IsSupportStartAbilities()
 
 bool AppUtils::IsMultiProcessModel()
 {
+    std::lock_guard lock(isMultiProcessModelMutex_);
     if (!isMultiProcessModel_.isLoaded) {
         isMultiProcessModel_.value = system::GetBoolParameter(MULTI_PROCESS_MODEL, false);
         isMultiProcessModel_.isLoaded = true;
@@ -272,6 +285,7 @@ bool AppUtils::IsMultiProcessModel()
 
 bool AppUtils::AllowChildProcessInMultiProcessFeatureApp()
 {
+    std::lock_guard lock(allowChildProcessInMultiProcessFeatureAppMutex_);
     if (!allowChildProcessInMultiProcessFeatureApp_.isLoaded) {
         allowChildProcessInMultiProcessFeatureApp_.value =
             system::GetBoolParameter(ALLOW_CHILD_PROCESS_IN_MULTI_PROCESS_FEATURE_APP, false);
@@ -284,6 +298,7 @@ bool AppUtils::AllowChildProcessInMultiProcessFeatureApp()
 
 bool AppUtils::IsStartOptionsWithProcessOptions()
 {
+    std::lock_guard lock(isStartOptionsWithProcessOptionsMutex_);
     if (!isStartOptionsWithProcessOptions_.isLoaded) {
         isStartOptionsWithProcessOptions_.value = system::GetBoolParameter(START_OPTIONS_WITH_PROCESS_OPTION, false);
         isStartOptionsWithProcessOptions_.isLoaded = true;
@@ -294,6 +309,7 @@ bool AppUtils::IsStartOptionsWithProcessOptions()
 
 bool AppUtils::EnableMoveUIAbilityToBackgroundApi()
 {
+    std::lock_guard lock(enableMoveUIAbilityToBackgroundApiMutex_);
     if (!enableMoveUIAbilityToBackgroundApi_.isLoaded) {
         enableMoveUIAbilityToBackgroundApi_.value =
             system::GetBoolParameter(MOVE_UI_ABILITY_TO_BACKGROUND_API_ENABLE, true);
@@ -305,6 +321,7 @@ bool AppUtils::EnableMoveUIAbilityToBackgroundApi()
 
 bool AppUtils::IsLaunchEmbededUIAbility()
 {
+    std::lock_guard lock(isLaunchEmbededUIAbilityMutex_);
     if (!isLaunchEmbededUIAbility_.isLoaded) {
         isLaunchEmbededUIAbility_.value = system::GetBoolParameter(LAUNCH_EMBEDED_UI_ABILITY, false);
         isLaunchEmbededUIAbility_.isLoaded = true;
@@ -315,6 +332,7 @@ bool AppUtils::IsLaunchEmbededUIAbility()
 
 bool AppUtils::IsSupportNativeChildProcess()
 {
+    std::lock_guard lock(isSupportNativeChildProcessMutex_);
     if (!isSupportNativeChildProcess_.isLoaded) {
         isSupportNativeChildProcess_.value = system::GetBoolParameter(SUPPROT_NATIVE_CHILD_PROCESS, false);
         isSupportNativeChildProcess_.isLoaded = true;
@@ -454,6 +472,7 @@ void AppUtils::LoadResidentProcessInExtremeMemory()
 bool AppUtils::IsAllowNativeChildProcess(const std::string &appIdentifier)
 {
     TAG_LOGD(AAFwkTag::DEFAULT, "appId:%{private}s", appIdentifier.c_str());
+    std::lock_guard lock(allowStartNativeProcessAppsMutex_);
     if (!allowStartNativeProcessApps_.isLoaded) {
         LoadAllowNativeChildProcessApps();
         allowStartNativeProcessApps_.isLoaded = true;
@@ -489,6 +508,7 @@ void AppUtils::LoadAllowNativeChildProcessApps()
 
 int32_t AppUtils::GetLimitMaximumExtensionsPerProc()
 {
+    std::lock_guard lock(limitMaximumExtensionsPerProcMutex_);
     if (!limitMaximumExtensionsPerProc_.isLoaded) {
         limitMaximumExtensionsPerProc_.value =
             system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_PROCESS, DEFAULT_MAX_EXT_PER_PROC);
@@ -500,6 +520,7 @@ int32_t AppUtils::GetLimitMaximumExtensionsPerProc()
 
 int32_t AppUtils::GetLimitMaximumExtensionsPerDevice()
 {
+    std::lock_guard lock(limitMaximumExtensionsPerDeviceMutex_);
     if (!limitMaximumExtensionsPerDevice_.isLoaded) {
         limitMaximumExtensionsPerDevice_.value =
             system::GetIntParameter<int32_t>(LIMIT_MAXIMUM_EXTENSIONS_OF_PER_DEVICE, DEFAULT_MAX_EXT_PER_DEV);
@@ -571,6 +592,7 @@ void AppUtils::LoadStartAbilityWithoutCallerToken()
 
 std::string AppUtils::GetBrokerDelegateBundleName()
 {
+    std::lock_guard lock(brokerDelegateBundleNameMutex_);
     if (!brokerDelegateBundleName_.isLoaded) {
         brokerDelegateBundleName_.value = system::GetParameter(BROKER_DELEGATE_BUNDLE_NAME, "");
         brokerDelegateBundleName_.isLoaded = true;
@@ -581,6 +603,7 @@ std::string AppUtils::GetBrokerDelegateBundleName()
 
 int32_t AppUtils::GetCollaboratorBrokerUID()
 {
+    std::lock_guard lock(collaboratorBrokerUidMutex_);
     if (!collaboratorBrokerUid_.isLoaded) {
         collaboratorBrokerUid_.value = system::GetIntParameter(COLLABORATOR_BROKER_UID, DEFAULT_INVALID_VALUE);
         collaboratorBrokerUid_.isLoaded = true;
@@ -591,6 +614,7 @@ int32_t AppUtils::GetCollaboratorBrokerUID()
 
 int32_t AppUtils::GetCollaboratorBrokerReserveUID()
 {
+    std::lock_guard lock(collaboratorBrokerReserveUidMutex_);
     if (!collaboratorBrokerReserveUid_.isLoaded) {
         collaboratorBrokerReserveUid_.value = system::GetIntParameter(COLLABORATOR_BROKER_RESERVE_UID,
             DEFAULT_INVALID_VALUE);
@@ -602,6 +626,7 @@ int32_t AppUtils::GetCollaboratorBrokerReserveUID()
 
 int32_t AppUtils::MaxChildProcess()
 {
+    std::lock_guard lock(maxChildProcessMutex_);
     if (!maxChildProcess_.isLoaded) {
         maxChildProcess_.value =
             system::GetIntParameter<int32_t>(MAX_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
@@ -613,6 +638,7 @@ int32_t AppUtils::MaxChildProcess()
 
 int32_t AppUtils::MaxMultiProcessFeatureChildProcess()
 {
+    std::lock_guard lock(maxMultiProcessFeatureChildProcessMutex_);
     if (!maxMultiProcessFeatureChildProcess_.isLoaded) {
         maxMultiProcessFeatureChildProcess_.value =
             system::GetIntParameter<int32_t>(MAX_MULTI_PROCESS_FEATURE_CHILD_PROCESS, DEFAULT_MAX_CHILD_PROCESS);
@@ -625,6 +651,7 @@ int32_t AppUtils::MaxMultiProcessFeatureChildProcess()
 
 bool AppUtils::IsSupportMultiInstance()
 {
+    std::lock_guard lock(isSupportMultiInstanceMutex_);
     if (!isSupportMultiInstance_.isLoaded) {
         isSupportMultiInstance_.value = system::GetBoolParameter(SUPPORT_MULTI_INSTANCE, false);
         isSupportMultiInstance_.isLoaded = true;
@@ -635,6 +662,7 @@ bool AppUtils::IsSupportMultiInstance()
 
 std::string AppUtils::GetMigrateClientBundleName()
 {
+    std::lock_guard lock(migrateClientBundleNameMutex_);
     if (!migrateClientBundleName_.isLoaded) {
         migrateClientBundleName_.value = system::GetParameter(MIGRATE_CLIENT_BUNDLE_NAME, "");
         migrateClientBundleName_.isLoaded = true;
@@ -822,6 +850,7 @@ bool AppUtils::InOnNewProcessEnableList(const std::string &bundleName)
 
 bool AppUtils::IsSupportAppServiceExtension()
 {
+    std::lock_guard lock(isSupportAppServiceExtensionMutex_);
     if (!isSupportAppServiceExtension_.isLoaded) {
         isSupportAppServiceExtension_.value = system::GetBoolParameter(SUPPORT_APP_SERVICE_EXTENSION, false);
         isSupportAppServiceExtension_.isLoaded = true;
@@ -832,6 +861,7 @@ bool AppUtils::IsSupportAppServiceExtension()
 
 bool AppUtils::IsPreloadApplicationEnabled()
 {
+    std::lock_guard lock(isPreloadApplicationEnabledMutex_);
     if (!isPreloadApplicationEnabled_.isLoaded) {
         isPreloadApplicationEnabled_.value = system::GetBoolParameter(
             PRODUCT_PRELOAD_APPLICATION_SETTING_ENABLED, false);
@@ -846,8 +876,10 @@ bool AppUtils::IsForbidStart()
 #ifndef ABILITY_RUNTIME_FORBID_START_ENABLED
     return false;
 #else
+    std::lock_guard lock(isForbidStartMutex_);
     if (!isForbidStart_.isLoaded) {
         isForbidStart_.value = system::GetBoolParameter(FORBID_START, false);
+        isForbidStart_.isLoaded = true;
     }
     return isForbidStart_.value;
 #endif
@@ -855,6 +887,7 @@ bool AppUtils::IsForbidStart()
 
 bool AppUtils::IsSupportRestartAppWithWindow()
 {
+    std::lock_guard lock(isSupportRestartAppWithWindowMutex_);
     if (!isSupportRestartAppWithWindow_.isLoaded) {
         isSupportRestartAppWithWindow_.value = system::GetBoolParameter(RESTART_APP_WITH_WINDOW, false);
         isSupportRestartAppWithWindow_.isLoaded = true;
@@ -865,6 +898,7 @@ bool AppUtils::IsSupportRestartAppWithWindow()
 
 bool AppUtils::IsSupportAllowDebugPermission()
 {
+    std::lock_guard lock(isSupportAllowDebugPermissionMutex_);
     if (!isSupportAllowDebugPermission_.isLoaded) {
         isSupportAllowDebugPermission_.value = system::GetBoolParameter(ALLOW_DEBUG_PERMISSION, false);
         isSupportAllowDebugPermission_.isLoaded = true;
@@ -875,6 +909,7 @@ bool AppUtils::IsSupportAllowDebugPermission()
 
 bool AppUtils::IsStartUIAbilityInCurrentProcess()
 {
+    std::lock_guard lock(isStartUIAbilityInCurrentProcessMutex_);
     if (!isStartUIAbilityInCurrentProcess_.isLoaded) {
         isStartUIAbilityInCurrentProcess_.value = system::GetBoolParameter(START_ABILITY_IN_CURRENT_PROCESS, false);
         isStartUIAbilityInCurrentProcess_.isLoaded = true;
@@ -885,6 +920,7 @@ bool AppUtils::IsStartUIAbilityInCurrentProcess()
 
 bool AppUtils::IsProductAppbootSettingEnabled()
 {
+    std::lock_guard lock(isProductAppbootSettingEnabledMutex_);
     if (!isProductAppbootSettingEnabled_.isLoaded) {
         isProductAppbootSettingEnabled_.value = system::GetBoolParameter(PRODUCT_APPBOOT_SETTING_ENABLED, false);
         isProductAppbootSettingEnabled_.isLoaded = true;
@@ -932,6 +968,7 @@ bool AppUtils::InAppTransferList(const std::string &bundleName)
 
 bool AppUtils::IsHybridSpawnUnified()
 {
+    std::lock_guard lock(isHybridSpawnUnifiedMutex_);
     if (!isHybridSpawnUnified_.isLoaded) {
         isHybridSpawnUnified_.value = system::GetBoolParameter(HYBRIDSPAWN_UNIFIED, false);
         isHybridSpawnUnified_.isLoaded = true;
