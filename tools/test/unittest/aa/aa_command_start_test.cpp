@@ -1699,3 +1699,32 @@ HWTEST_F(AaCommandStartTest, Aa_Command_Start_5500, Function | MediumTest | Leve
     AbilityManagerShellCommand cmd(argc, argv);
     EXPECT_EQ(cmd.ExecCommand(), STRING_START_ABILITY_OK + "\n");
 }
+
+/**
+ * @tc.number: Aa_Command_Start_5600
+ * @tc.name: ExecCommand
+ * @tc.desc: Verify the "aa start -a <ability> -b <bundle> -u <userId> -W" command where userId is ignored with -W option.
+ */
+HWTEST_F(AaCommandStartTest, Aa_Command_Start_5600, Function | MediumTest | Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "Aa_Command_Start_5600");
+
+    char* argv[] = {
+        (char*)TOOL_NAME.c_str(),
+        (char*)cmd_.c_str(),
+        (char*)"-a",
+        (char*)STRING_ABILITY_NAME.c_str(),
+        (char*)"-b",
+        (char*)STRING_BUNDLE_NAME.c_str(),
+        (char*)"-u",
+        (char*)"100",
+        (char*)"-W",
+        (char*)"",
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+
+    AbilityManagerShellCommand cmd(argc, argv);
+    // userId should be ignored when using -W option, a warning will be logged
+    std::string result = cmd.ExecCommand();
+    EXPECT_TRUE(result.find(STRING_START_ABILITY_OK) != std::string::npos);
+}
