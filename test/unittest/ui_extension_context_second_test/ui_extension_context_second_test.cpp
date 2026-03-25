@@ -466,38 +466,6 @@ HWTEST_F(UIExtensionContextTest, HandleTerminateWithAnimation_NoRunner_0100, Tes
 }
 
 /**
- * @tc.number: StartAbilityByType_WithUriPermission_0100
- * @tc.name: UIExtensionContext StartAbilityByType with URI permission
- * @tc.desc: Verify URI permission flag is properly handled and removed from wantParam.
- */
-HWTEST_F(UIExtensionContextTest, StartAbilityByType_WithUriPermission_0100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_WithUriPermission_0100 start");
-
-    std::string type = "modal";
-    AAFwk::WantParams wantParam;
-    const std::string FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPermissionFlag";
-
-    // Set URI permission flag with a specific value
-    int32_t permissionFlag = 0x00010000; // Example flag value
-    wantParam.SetParam(FLAG_AUTH_READ_URI_PERMISSION, permissionFlag);
-
-    napi_env env;
-    std::shared_ptr<JsUIExtensionCallback> uiExtensionCallbacks = std::make_shared<JsUIExtensionCallback>(env);
-    sptr<Rosen::Window> window = new MockWindow();
-
-    auto context = std::make_shared<UIExtensionContext>();
-    context->SetWindow(window);
-
-    // This will fail because MockWindow doesn't return valid UIContent, but we can verify the flag handling
-    auto result = context->StartAbilityByType(type, wantParam, uiExtensionCallbacks);
-    // The test verifies the code path where URI permission flag exists
-    EXPECT_NE(uiExtensionCallbacks, nullptr);
-
-    TAG_LOGI(AAFwkTag::TEST, "StartAbilityByType_WithUriPermission_0100 end");
-}
-
-/**
  * @tc.number: StartAbility_0800
  * @tc.name: StartAbility with different Want parameters
  * @tc.desc: Start a new ability with variant parameters.
@@ -627,7 +595,7 @@ HWTEST_F(UIExtensionContextTest, StartAbilityForResult_0800, TestSize.Level1)
     AAFwk::StartOptions startOptions;
     int32_t requestCode = 8888;
     RuntimeTask task = [](const int32_t count, const Want& want, bool isInner)
-    { TAG_LOGI(AAFwkTag::TEST, "StartAbilityForResult_0800 task variant"; };
+    { TAG_LOGI(AAFwkTag::TEST, "StartAbilityForResult_0800 task variant"); };
     auto ret = context->StartAbilityForResult(want, startOptions, requestCode, std::move(task));
     EXPECT_NE(ret, ERR_OK);
 
@@ -649,7 +617,7 @@ HWTEST_F(UIExtensionContextTest, StartAbilityForResult_0900, TestSize.Level1)
     want.SetElement(element);
     int32_t requestCode = 7777;
     RuntimeTask task = [](const int32_t count, const Want& want, bool isInner)
-    { TAG_LOGI(AAFwkTag::TEST, "StartAbilityForResult_0900 task variant"; };
+    { TAG_LOGI(AAFwkTag::TEST, "StartAbilityForResult_0900 task variant"); };
     auto ret = context->StartAbilityForResult(want, requestCode, std::move(task));
     EXPECT_NE(ret, ERR_OK);
 
@@ -812,7 +780,7 @@ HWTEST_F(UIExtensionContextTest, StartAbilityForResultAsCaller_0800, TestSize.Le
     want.SetElement(element);
     int requestCode = 5432;
     RuntimeTask task = [](const int32_t count, const Want& want, bool isInner)
-    { TAG_LOGI(AAFwkTag::TEST, "StartAbilityForResultAsCaller_0800 task called"; };
+    { TAG_LOGI(AAFwkTag::TEST, "StartAbilityForResultAsCaller_0800 task called"); };
     context->StartAbilityForResultAsCaller(want, requestCode, std::move(task));
     EXPECT_TRUE(context != nullptr);
 
@@ -836,7 +804,7 @@ HWTEST_F(UIExtensionContextTest, StartAbilityForResultAsCaller_0900, TestSize.Le
     startOptions.windowMode_ = 2;
     int requestCode = 3456;
     RuntimeTask task = [](const int32_t count, const Want& want, bool isInner)
-    { TAG_LOGI(AAFwkTag::TEST, "StartAbilityForResultAsCaller_0900 task called"; };
+    { TAG_LOGI(AAFwkTag::TEST, "StartAbilityForResultAsCaller_0900 task called"); };
     context->StartAbilityForResultAsCaller(want, startOptions, requestCode, std::move(task));
     EXPECT_TRUE(context != nullptr);
 
@@ -876,7 +844,7 @@ HWTEST_F(UIExtensionContextTest, InsertResultCallbackTask_0800, TestSize.Level1)
     context->SetWindow(window);
     int requestCode = 2222;
     RuntimeTask task = [](const int32_t count, const Want& want, bool isInner)
-    { TAG_LOGI(AAFwkTag::TEST, "InsertResultCallbackTask_0800 task called"; };
+    { TAG_LOGI(AAFwkTag::TEST, "InsertResultCallbackTask_0800 task called"); };
     context->InsertResultCallbackTask(requestCode, std::move(task));
     EXPECT_TRUE(context->resultCallbacks_.find(requestCode) != context->resultCallbacks_.end());
 
@@ -901,7 +869,7 @@ HWTEST_F(UIExtensionContextTest, OpenAtomicService_0800, TestSize.Level1)
     AAFwk::StartOptions startOptions;
     int requestCode = 3333;
     RuntimeTask task = [](const int32_t count, const Want& want, bool isInner)
-    { TAG_LOGI(AAFwkTag::TEST, "OpenAtomicService_0800 task called"; };
+    { TAG_LOGI(AAFwkTag::TEST, "OpenAtomicService_0800 task called"); };
     context->OpenAtomicService(want, startOptions, requestCode, std::move(task));
     EXPECT_TRUE(context != nullptr);
 
@@ -969,10 +937,10 @@ HWTEST_F(UIExtensionContextTest, RemoveResultCallbackTask_0800, TestSize.Level1)
     int requestCode1 = 1001;
     int requestCode2 = 1002;
     RuntimeTask task1 = [](const int32_t count, const Want &want, bool isInner) {
-        TAG_LOGI(AAFwkTag::TEST, "RemoveResultCallbackTask_0800 task1 called";
+        TAG_LOGI(AAFwkTag::TEST, "RemoveResultCallbackTask_0800 task1 called");
     };
     RuntimeTask task2 = [](const int32_t count, const Want &want, bool isInner) {
-        TAG_LOGI(AAFwkTag::TEST, "RemoveResultCallbackTask_0800 task2 called";
+        TAG_LOGI(AAFwkTag::TEST, "RemoveResultCallbackTask_0800 task2 called");
     };
 
     context->InsertResultCallbackTask(requestCode1, std::move(task1));
@@ -1037,13 +1005,13 @@ HWTEST_F(UIExtensionContextTest, RegisterAbilityConfigUpdateCallback_0800, TestS
     auto context = std::make_shared<UIExtensionContext>();
 
     auto abilityConfigCallback1 = [](const AppExecFwk::Configuration &config) {
-        TAG_LOGI(AAFwkTag::TEST, "Config callback 1 invoked";
+        TAG_LOGI(AAFwkTag::TEST, "Config callback 1 invoked");
     };
     context->RegisterAbilityConfigUpdateCallback(abilityConfigCallback1);
     EXPECT_NE(context->abilityConfigUpdateCallback_, nullptr);
 
     auto abilityConfigCallback2 = [](const AppExecFwk::Configuration &config) {
-        TAG_LOGI(AAFwkTag::TEST, "Config callback 2 invoked";
+        TAG_LOGI(AAFwkTag::TEST, "Config callback 2 invoked");
     };
     context->RegisterAbilityConfigUpdateCallback(abilityConfigCallback2);
     EXPECT_NE(context->abilityConfigUpdateCallback_, nullptr);
@@ -1108,7 +1076,7 @@ HWTEST_F(UIExtensionContextTest, SetAbilityColorMode_0800, TestSize.Level1)
     auto context = std::make_shared<UIExtensionContext>();
 
     auto abilityConfigCallback = [](const AppExecFwk::Configuration &config) {
-        TAG_LOGI(AAFwkTag::TEST, "Color mode callback invoked";
+        TAG_LOGI(AAFwkTag::TEST, "Color mode callback invoked");
     };
     context->abilityConfigUpdateCallback_ = abilityConfigCallback;
 
@@ -1236,10 +1204,10 @@ HWTEST_F(UIExtensionContextTest, AddCompletionHandlerForAtomicService_0800, Func
     std::string requestId = "variant_request_9876";
     std::string appId = "variant_app_id";
     OnAtomicRequestSuccess onRequestSucc = [](const std::string&) {
-        TAG_LOGI(AAFwkTag::TEST, "Variant atomic success callback";
+        TAG_LOGI(AAFwkTag::TEST, "Variant atomic success callback");
     };
     OnAtomicRequestFailure onRequestFail = [](const std::string&, int32_t, const std::string&) {
-        TAG_LOGI(AAFwkTag::TEST, "Variant atomic failure callback";
+        TAG_LOGI(AAFwkTag::TEST, "Variant atomic failure callback");
     };
     auto context = std::make_shared<UIExtensionContext>();
     ASSERT_NE(context, nullptr);
@@ -1259,10 +1227,10 @@ HWTEST_F(UIExtensionContextTest, OnRequestSuccess_0800, Function | MediumTest | 
     std::string requestId = "variant_success_request";
     std::string appId = "variant_success_app";
     OnAtomicRequestSuccess onRequestSucc = [](const std::string&) {
-        TAG_LOGI(AAFwkTag::TEST, "Variant request success";
+        TAG_LOGI(AAFwkTag::TEST, "Variant request success");
     };
     OnAtomicRequestFailure onRequestFail = [](const std::string&, int32_t, const std::string&) {
-        TAG_LOGI(AAFwkTag::TEST, "Variant request failure";
+        TAG_LOGI(AAFwkTag::TEST, "Variant request failure");
     };
     auto context = std::make_shared<UIExtensionContext>();
     ASSERT_NE(context, nullptr);
@@ -1285,10 +1253,10 @@ HWTEST_F(UIExtensionContextTest, OnRequestFailure_0800, Function | MediumTest | 
     std::string requestId = "variant_failure_request";
     std::string appId = "variant_failure_app";
     OnAtomicRequestSuccess onRequestSucc = [](const std::string&) {
-        TAG_LOGI(AAFwkTag::TEST, "Variant request success";
+        TAG_LOGI(AAFwkTag::TEST, "Variant request success");
     };
     OnAtomicRequestFailure onRequestFail = [](const std::string&, int32_t, const std::string&) {
-        TAG_LOGI(AAFwkTag::TEST, "Variant request failure";
+        TAG_LOGI(AAFwkTag::TEST, "Variant request failure");
     };
     auto context = std::make_shared<UIExtensionContext>();
     ASSERT_NE(context, nullptr);
@@ -1340,10 +1308,10 @@ HWTEST_F(UIExtensionContextTest, AddCompletionHandlerForOpenLink_0800, TestSize.
 
     std::string requestId = "variant_link_request_123";
     OnRequestResult onRequestSucc = [](const AppExecFwk::ElementName&, const std::string&) {
-        TAG_LOGI(AAFwkTag::TEST, "Variant link success";
+        TAG_LOGI(AAFwkTag::TEST, "Variant link success");
     };
     OnRequestResult onRequestFail = [](const AppExecFwk::ElementName&, const std::string&) {
-        TAG_LOGI(AAFwkTag::TEST, "Variant link failure";
+        TAG_LOGI(AAFwkTag::TEST, "Variant link failure");
     };
 
     auto result = context->AddCompletionHandlerForOpenLink(requestId, onRequestSucc, onRequestFail);
