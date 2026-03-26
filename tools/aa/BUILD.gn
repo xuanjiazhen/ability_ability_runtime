@@ -20,6 +20,7 @@ config("ability_command_config") {
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_services_path}/abilitymgr/include/utils",
     "${ability_runtime_services_path}/abilitymgr/include",
+    "${ability_runtime_path}/frameworks/native/runtime",
   ]
 }
 
@@ -59,6 +60,8 @@ ohos_static_library("tools_aa_source_set") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
   ]
 
   external_deps = [
@@ -71,6 +74,11 @@ ohos_static_library("tools_aa_source_set") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "json:nlohmann_json_static",
+    "ets_runtime:libark_jsruntime",
+    "ets_utils:console",
+    "ets_utils:timer",
+    "napi:ace_napi",
   ]
   public_external_deps = [
     "ability_base:session_info",
@@ -95,7 +103,11 @@ ohos_executable("aa") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
 
-  deps = [ ":tools_aa_source_set" ]
+  deps = [
+    ":tools_aa_source_set",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native"
+  ]
 
   external_deps = [
     "ability_base:base",
