@@ -56,6 +56,7 @@ ohos_fuzztest("AppMgrServiceFirstFuzzTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "napi:ace_napi",
+    "qos_manager:pi_mutex",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
