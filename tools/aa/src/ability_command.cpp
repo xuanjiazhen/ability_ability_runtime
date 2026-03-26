@@ -13,11 +13,20 @@
  * limitations under the License.
  */
 #include "ability_command.h"
-
+#include "want_params.h"
+#include "want_params_wrapper.h"
+#include "string_wrapper.h"
+#include "int_wrapper.h"
+#include "bool_wrapper.h"
+#include "long_wrapper.h"
+#include "float_wrapper.h"
+#include "double_wrapper.h"
+#include "array_wrapper.h"
 #include <charconv>
 #include <csignal>
 #include <cstdlib>
 #include <getopt.h>
+#include <fstream>
 #include <iostream>
 #include <regex>
 #include "ability_manager_client.h"
@@ -31,15 +40,31 @@
 #include "bool_wrapper.h"
 #include "parameters.h"
 #include "sa_mgr_client.h"
+#include "system_ability.h"
 #include "system_ability_definition.h"
 #include "test_observer.h"
 #include "app_mem_info.h"
+#include "insight_intent_host_client.h"
+#include "insight_intent_info_for_query.h"
+#include "insight_intent_constant.h"
+#include "js_runtime_utils.h"
+#include <nlohmann/json.hpp>
+#include "console.h"
+#include "sys_timer.h"
+#include <future>
+#include <thread>
+#include "event_handler.h"
+#include "event_runner.h"
+#include "ohos_loop_handler.h"
 #include "xcollie/process_kill_reason.h"
-
+#include "native_engine/impl/ark/ark_native_engine.h"
 using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
 namespace AAFwk {
+namespace {
+    std::shared_ptr<AppExecFwk::EventHandler> g_eventHandler = nullptr;
+}
 using TerminateReason = AbilityStartWithWaitObserverUtil::TerminateReason;
 namespace {
 constexpr size_t PARAM_LENGTH = 1024;
@@ -67,7 +92,17 @@ constexpr int INNER_ERR_DEBUG = 10108601;
 constexpr int64_t WAIT_INTERVAL = 10 * 1000; // us
 constexpr int64_t MAX_WAIT_TIME = 15 * 1000 * 1000; // us
 
+// JSVM constants for execute-abc command
+constexpr int64_t DEFAULT_GC_POOL_SIZE = 0x10000000; // 256MB
+constexpr int32_t DEFAULT_ARK_PROPERTIES = -1;
+constexpr size_t DEFAULT_GC_THREAD_NUM = 7;
+constexpr size_t DEFAULT_LONG_PAUSE_TIME = 40;
+
 const std::string DEVELOPERMODE_STATE = "const.security.developermode.state";
+};
+
+using ErrCode = OHOS::ErrCode;
+using OHOS::sptr;
 
 const std::string SHORT_OPTIONS = "ch:d:a:b:e:t:p:s:m:A:U:CDESNR";
 const std::string SHORT_OPTION_CHARS = "chdabetpsmAUCDESNR";
@@ -230,26 +265,196 @@ constexpr struct option LONG_OPTIONS_ATTACH[] = {
     {"bundle", required_argument, nullptr, 'b'},
     {nullptr, 0, nullptr, 0},
 };
-const std::string SHORT_OPTIONS_SEND_MEMORY_LEVEL = "hp:l:";
+const std::string SHORT_OPTIONS_SEND_MEMORY_LEVEL = "hvb:e:a:i:";
+
+const std::string SHORT_OPTIONS_EXECUTE_INTENT_PLUS = "hb:m:a:i:e:p:";
+constexpr struct option LONG_OPTIONS_EXECUTE_INTENT_PLUS[] = {
+{"help", no_argument, nullptr, 'h'},
+{"bundle", required_argument, nullptr, 'b'},
+{"module", required_argument, nullptr, 'm'},
+{"ability", required_argument, nullptr, 'a'},
+{"intent", required_argument, nullptr, 'i'},
+{"execute-mode", required_argument, nullptr, 'e'},
+{"param", required_argument, nullptr, 'p'},
+{nullptr, 0, nullptr, 0},
+};
+
 constexpr struct option LONG_OPTIONS_SEND_MEMORY_LEVEL[] = {
     {"help", no_argument, nullptr, 'h'},
     {"pid", required_argument, nullptr, 'p' },
     {"level", required_argument, nullptr, 'l' },
     {nullptr, 0, nullptr, 0 },
 };
+
+constexpr struct option LONG_OPTIONS_GET_ALL_INSIGHT_INTENT[] = {
+    {"help", no_argument, nullptr, 'h'},
+    {"flag", required_argument, nullptr, 'f'},
+    {"user-id", required_argument, nullptr, 'u'},
+    {nullptr, 0, nullptr, 0},
+};
+// JSVM creation function for execute-abc command
+panda::ecmascript::EcmaVM* CreateJSVM()
+{
+    panda::RuntimeOption pandaOption;
+    pandaOption.SetArkProperties(DEFAULT_ARK_PROPERTIES);
+    pandaOption.SetGcThreadNum(DEFAULT_GC_THREAD_NUM);
+    pandaOption.SetLongPauseTime(DEFAULT_LONG_PAUSE_TIME);
+    pandaOption.SetGcType(panda::RuntimeOption::GC_TYPE::GEN_GC);
+    pandaOption.SetGcPoolSize(DEFAULT_GC_POOL_SIZE);
+    pandaOption.SetLogLevel(panda::RuntimeOption::LOG_LEVEL::FOLLOW);
+    pandaOption.SetEnableAsmInterpreter(true);
+    pandaOption.SetAsmOpcodeDisableRange("");
+    return panda::JSNApi::CreateJSVM(pandaOption);
+}
 }  // namespace
 
 AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
 {
     for (int i = 0; i < argc_; i++) {
-        if (i > 1) {
-            TAG_LOGI(AAFwkTag::AA_TOOL, "argc greater than 2, ignoring the rest");
-            return;
-        }
         TAG_LOGI(AAFwkTag::AA_TOOL, "argv_[%{public}d]: %{public}s", i, argv_[i]);
     }
 }
 
+WantParams AbilityManagerShellCommand::BuildWantParamsFromJson(const std::string& jsonStr)
+{
+    WantParams wantParams;
+    
+    if (jsonStr.empty()) {
+        TAG_LOGW(AAFwkTag::AA_TOOL, "json string is empty");
+        return wantParams;
+    }
+    
+    try {
+        nlohmann::json jsonObj = nlohmann::json::parse(jsonStr);
+        
+        if (!jsonObj.is_object()) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "json is not an object");
+            return wantParams;
+        }
+        
+        wantParams = ParseJsonObjectToWantParams(jsonObj);
+        
+        TAG_LOGI(AAFwkTag::AA_TOOL, "BuildWantParamsFromJson success, params count: %{public}d", wantParams.Size());
+    } catch (const nlohmann::json::exception& e) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "json parse error: %{public}s", e.what());
+    }
+    
+    return wantParams;
+}
+
+WantParams AbilityManagerShellCommand::ParseJsonObjectToWantParams(const nlohmann::json& jsonObj)
+{
+    WantParams wantParams;
+    
+    if (!jsonObj.is_object()) {
+        return wantParams;
+    }
+    
+    for (auto it = jsonObj.begin(); it != jsonObj.end(); ++it) {
+        const std::string& key = it.key();
+        const nlohmann::json& value = it.value();
+        
+        if (value.is_string()) {
+            wantParams.SetParam(key, String::Box(value.get<std::string>()));
+        } else if (value.is_number_integer()) {
+            // 检测数值范围，大数使用 Long 类型
+            int64_t longValue = value.get<int64_t>();
+            if (longValue > INT32_MAX || longValue < INT32_MIN) {
+                wantParams.SetParam(key, Long::Box(longValue));
+            } else {
+                wantParams.SetParam(key, Integer::Box(static_cast<int32_t>(longValue)));
+            }
+        } else if (value.is_number_float()) {
+            // 浮点数作为字符串存储
+            wantParams.SetParam(key, String::Box(std::to_string(value.get<double>())));
+        } else if (value.is_boolean()) {
+            wantParams.SetParam(key, Boolean::Box(value.get<bool>()));
+        } else if (value.is_null()) {
+            wantParams.SetParam(key, String::Box(""));
+        } else if (value.is_object()) {
+            // 嵌套对象，递归解析为 WantParams
+            WantParams nestedParams = ParseJsonObjectToWantParams(value);
+            wantParams.SetParam(key, WantParamWrapper::Box(nestedParams));
+        } else if (value.is_array()) {
+            // 数组处理
+            sptr<IArray> arrayObj = ParseJsonArrayToIArray(value);
+            if (arrayObj != nullptr) {
+                wantParams.SetParam(key, arrayObj);
+            }
+        } else {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "unsupported json type for key: %{public}s", key.c_str());
+        }
+    }
+    
+    return wantParams;
+}
+
+sptr<IArray> AbilityManagerShellCommand::ParseJsonArrayToIArray(const nlohmann::json& jsonArr)
+{
+    if (!jsonArr.is_array()) {
+        return nullptr;
+    }
+    
+    std::vector<sptr<IInterface>> itemsArray;
+    
+    for (const auto& item : jsonArr) {
+        if (item.is_object()) {
+            WantParams itemParams = ParseJsonObjectToWantParams(item);
+            itemsArray.push_back(WantParamWrapper::Box(itemParams));
+        } else if (item.is_string()) {
+            itemsArray.push_back(String::Box(item.get<std::string>()));
+        } else if (item.is_number_integer()) {
+            // 检测数值范围，大数使用 Long 类型
+            int64_t longValue = item.get<int64_t>();
+            if (longValue > INT32_MAX || longValue < INT32_MIN) {
+                itemsArray.push_back(Long::Box(longValue));
+            } else {
+                itemsArray.push_back(Integer::Box(static_cast<int32_t>(longValue)));
+            }
+        } else if (item.is_number_float()) {
+            itemsArray.push_back(String::Box(std::to_string(item.get<double>())));
+        } else if (item.is_boolean()) {
+            itemsArray.push_back(Boolean::Box(item.get<bool>()));
+        } else {
+            TAG_LOGW(AAFwkTag::AA_TOOL, "unsupported array item type");
+        }
+    }
+    
+    if (itemsArray.empty()) {
+        return nullptr;
+    }
+    
+    // 根据第一个元素的类型确定数组类型
+    InterfaceID arrayType = g_IID_IWantParams;
+    sptr<IInterface> firstItem = itemsArray[0];
+    
+    if (IString::Query(firstItem) != nullptr) {
+        arrayType = g_IID_IString;
+    } else if (IInteger::Query(firstItem) != nullptr) {
+        arrayType = g_IID_IInteger;
+    } else if (ILong::Query(firstItem) != nullptr) {
+        arrayType = g_IID_ILong;
+    } else if (IBoolean::Query(firstItem) != nullptr) {
+        arrayType = g_IID_IBoolean;
+    } else if (IFloat::Query(firstItem) != nullptr) {
+        arrayType = g_IID_IFloat;
+    } else if (IDouble::Query(firstItem) != nullptr) {
+        arrayType = g_IID_IDouble;
+    } else if (IWantParams::Query(firstItem) != nullptr) {
+        arrayType = g_IID_IWantParams;
+    }
+    
+    TAG_LOGI(AAFwkTag::AA_TOOL, "array type detected, size: %{public}zu", itemsArray.size());
+    
+    sptr<IArray> arrayObj = new (std::nothrow) Array(itemsArray.size(), arrayType);
+    if (arrayObj != nullptr) {
+        for (size_t i = 0; i < itemsArray.size(); i++) {
+            arrayObj->Set(i, itemsArray[i]);
+        }
+    }
+    
+    return arrayObj;
+}
 ErrCode AbilityManagerShellCommand::CreateCommandMap()
 {
     commandMap_ = {
@@ -264,6 +469,9 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"execute-intent-plus", [this]() { return this->RunAsExecuteIntentPlusCommand(); }},
+        {"get-all-insight-intent", [this]() { return this->RunAsGetAllInsightIntentCommand(); }},
+        {"execute-abc", [this]() { return this->RunAsExecuteAbcCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -1064,6 +1272,169 @@ ErrCode AbilityManagerShellCommand::RunAsSendMemoryLevelCommand()
     return result;
 }
 
+void DelayedExit(int milliseconds)
+{
+    std::async(std::launch::async, [milliseconds]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(milliseconds));
+        std::quick_exit(0);
+    });
+}
+
+void PostTaskToHandler(const uv_task_info_t* taskInfo)
+{
+    TAG_LOGD(AAFwkTag::JSRUNTIME, "called");
+    if (!taskInfo || !taskInfo->func || !taskInfo->work) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Invalid parameters");
+        return;
+    }
+
+    auto task = [func = taskInfo->func, work = taskInfo->work, status = taskInfo->status]() {
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "Do uv work");
+        func(work, status);
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "Do uv work end");
+    };
+
+    AppExecFwk::EventQueue::Priority prio = AppExecFwk::EventQueue::Priority::IMMEDIATE;
+    switch (taskInfo->prio) {
+        case uv_qos_t::uv_qos_user_interactive:
+            prio = AppExecFwk::EventQueue::Priority::VIP;
+            break;
+        case uv_qos_t::uv_qos_user_initiated:
+            prio = AppExecFwk::EventQueue::Priority::IMMEDIATE;
+            break;
+        case uv_qos_t::uv_qos_utility:
+            prio = AppExecFwk::EventQueue::Priority::LOW;
+            break;
+        case uv_qos_t::uv_qos_background:
+            prio = AppExecFwk::EventQueue::Priority::IDLE;
+            break;
+        default:
+            prio = AppExecFwk::EventQueue::Priority::HIGH;
+            break;
+    }
+
+    if (g_eventHandler == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "Invalid parameters");
+        return;
+    }
+    if (taskInfo->location == UV_POST_TASK_TO_HEAD) {
+        g_eventHandler->PostTaskAtFront(task, taskInfo->name ? taskInfo->name : "uv_loop_task", prio);
+    } else {
+        g_eventHandler->PostTask(task, taskInfo->name ? taskInfo->name : "uv_io_cb", 0, prio);
+    }
+}
+
+ErrCode AbilityManagerShellCommand::RunAsExecuteAbcCommand()
+{
+    TAG_LOGD(AAFwkTag::AA_TOOL, "execute-abc command");
+
+    // Check for help option
+    if (argc_ >= 2 && (strcmp(argv_[1], "-h") == 0 || strcmp(argv_[1], "--help") == 0)) {
+        resultReceiver_.append(HELP_MSG_EXECUTE_ABC);
+        return OHOS::ERR_OK;
+    }
+
+    // Get abc file path from command line
+    if (argc_ < 2) {
+        resultReceiver_.append("error: abc file path is required\n");
+        resultReceiver_.append(HELP_MSG_EXECUTE_ABC);
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    std::string abcFilePath = argv_[2];
+    TAG_LOGI(AAFwkTag::AA_TOOL, "executing abc file: %{public}s", abcFilePath.c_str());
+
+    // Read abc file
+    std::ifstream stream(abcFilePath, std::ios::ate | std::ios::binary);
+    if (!stream.is_open()) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to open abc file: %{public}s", abcFilePath.c_str());
+        resultReceiver_ = "error: failed to open abc file: " + abcFilePath + "\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    size_t len = stream.tellg();
+    std::unique_ptr<uint8_t[]> buffer = std::make_unique<uint8_t[]>(len);
+    stream.seekg(0);
+    stream.read(reinterpret_cast<char*>(buffer.get()), len);
+    stream.close();
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "abc file loaded, size: %{public}zu bytes", len);
+
+    // Create JSVM
+    panda::ecmascript::EcmaVM *vm = CreateJSVM();
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to create JSVM");
+        resultReceiver_ = "error: failed to create JS runtime environment\n";
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "JSVM created successfully");
+
+    auto engine = new (std::nothrow) ArkNativeEngine(vm, nullptr);
+    if (engine == nullptr) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "null engine");
+        return false;
+    }
+    napi_env env = reinterpret_cast<napi_env>(engine);
+
+    JsSysModule::Console::InitConsoleModule(env);
+    (void)JsSysModule::Timer::RegisterTime(env);
+
+    std::shared_ptr<EventRunner> eventRunner = EventRunner::GetMainEventRunner();
+    if (eventRunner == nullptr) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "null runner");
+        return false;
+    }
+
+    auto eventHandler = std::make_shared<AppExecFwk::EventHandler>(eventRunner);
+    g_eventHandler = eventHandler;
+
+    auto uvLoop = engine->GetUVLoop();
+    auto fd = uvLoop != nullptr ? uv_backend_fd(uvLoop) : -1;
+    if (fd < 0) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "get fd failed");
+        return false;
+    }
+
+    uv_run(uvLoop, UV_RUN_NOWAIT);
+
+    if (eventHandler != nullptr) {
+        uint32_t events = AppExecFwk::FILE_DESCRIPTOR_INPUT_EVENT | AppExecFwk::FILE_DESCRIPTOR_OUTPUT_EVENT;
+        eventHandler->AddFileDescriptorListener(fd, events, std::make_shared<AbilityRuntime::OHOSLoopHandler>(uvLoop), "uvLoopTask");
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "uv_register_task_to_event");
+        if (eventHandler->GetEventRunner().get() == AppExecFwk::EventRunner::GetMainEventRunner().get()) {
+            static const bool canInterrupt = system::GetBoolParameter("persist.sys.uv_can_interrupt", true);
+            TAG_LOGD(AAFwkTag::JSRUNTIME, "uv_register_task_to_event with canInterrupt: %{public}d", canInterrupt);
+            uv_register_task_to_event(uvLoop, PostTaskToHandler, nullptr);
+            // send signal here to trigger uv tasks generated during initialization.
+            uv_async_send(&uvLoop->wq_async);
+        }
+    }
+
+    // Execute abc file
+    bool execResult = panda::JSNApi::Execute(vm, buffer.get(), len, "query", "test");
+    if (execResult) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "abc file executed successfully");
+    } else {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to execute abc file");
+        resultReceiver_ = "error: failed to execute abc file\n";
+        panda::JSNApi::DestroyJSVM(vm);
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    int ret = eventRunner->Run();
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "failed to run");
+    }
+
+    // Destroy JSVM
+    panda::JSNApi::DestroyJSVM(vm);
+    vm = nullptr;
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "execute-abc command completed successfully");
+    return OHOS::ERR_OK;
+}
+
 ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, std::string &memoryLevelParse)
 {
     int option = -1;
@@ -1116,6 +1487,335 @@ ErrCode AbilityManagerShellCommand::ParsePidMemoryLevel(std::string &pidParse, s
     }
 
     return OHOS::ERR_OK;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsGetAllInsightIntentCommand()
+{
+    TAG_LOGI(AAFwkTag::AA_TOOL, "get-all-insight-intent command called");
+
+    int32_t flag = -1;
+    int32_t userId = DEFAULT_INVAL_VALUE;
+    int option = -1;
+    int counter = 0;
+    ErrCode result = OHOS::ERR_OK;
+
+    const std::string SHORT_OPTIONS_GET_ALL_INSIGHT_INTENT = "hf:u:";
+
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_GET_ALL_INSIGHT_INTENT.c_str(), LONG_OPTIONS_GET_ALL_INSIGHT_INTENT, nullptr);
+
+        TAG_LOGI(AAFwkTag::AA_TOOL, "option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+        
+        if (optind < 0 || optind > argc_) {
+            resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+                resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+            }
+            break;
+        }
+
+        if (option == '?') {
+            std::string unknownOption = "";
+            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa get-all-insight-intent' option unknown");
+            resultReceiver_.append(unknownOptionMsg);
+            resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+            result = OHOS::ERR_INVALID_VALUE;
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            case 'f': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "flag is null");
+                    resultReceiver_.append("error: option -f requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                auto res = std::from_chars(optarg, optarg + strlen(optarg), flag);
+                if (res.ec != std::errc() || res.ptr != optarg + strlen(optarg)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid flag: %{public}s", optarg);
+                    resultReceiver_.append("error: invalid flag value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                TAG_LOGI(AAFwkTag::AA_TOOL, "flag: %{public}d", flag);
+                break;
+            }
+            case 'u': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "user id is null");
+                    resultReceiver_.append("error: option -u requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                auto res = std::from_chars(optarg, optarg + strlen(optarg), userId);
+                if (res.ec != std::errc() || res.ptr != optarg + strlen(optarg)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid user id: %{public}s", optarg);
+                    resultReceiver_.append("error: invalid user id value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                TAG_LOGI(AAFwkTag::AA_TOOL, "userId: %{public}d", userId);
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        
+        if (result != OHOS::ERR_OK) {
+            break;
+        }
+    }
+    
+    if (result == OHOS::ERR_OK) {
+        if (flag < 0) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "missing required parameter flag");
+            resultReceiver_.append("error: missing required parameter -f.\n");
+            resultReceiver_.append(HELP_MSG_GET_ALL_INSIGHT_INTENT + "\n");
+            result = OHOS::ERR_INVALID_VALUE;
+        } else {
+            std::vector<AbilityRuntime::InsightIntentInfoForQuery> infos;
+            TAG_LOGI(AAFwkTag::AA_TOOL, "Getting all insight intent info with flag: %{public}d, userId: %{public}d",
+                flag, userId);
+            
+            auto err = AbilityManagerClient::GetInstance()->GetAllInsightIntentInfo(
+                static_cast<AbilityRuntime::GetInsightIntentFlag>(flag), infos, userId);
+            
+            if (err == OHOS::ERR_OK) {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "get all insight intent info successfully, count: %{public}zu", infos.size());
+                resultReceiver_.append("get all insight intent info successfully.\n");
+                resultReceiver_.append("Total count: " + std::to_string(infos.size()) + "\n");
+                
+                for (size_t i = 0; i < infos.size(); i++) {
+                    resultReceiver_.append("\n--- Insight Intent " + std::to_string(i + 1) + " ---\n");
+                    resultReceiver_.append("BundleName: " + infos[i].bundleName + "\n");
+                    resultReceiver_.append("ModuleName: " + infos[i].moduleName + "\n");
+                    resultReceiver_.append("IntentName: " + infos[i].intentName + "\n");
+                    resultReceiver_.append("DisplayName: " + infos[i].displayName + "\n");
+                    resultReceiver_.append("Domain: " + infos[i].domain + "\n");
+                    resultReceiver_.append("IntentVersion: " + infos[i].intentVersion + "\n");
+                    resultReceiver_.append("IntentType: " + infos[i].intentType + "\n");
+                }
+            } else {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "get all insight intent info failed: %{public}d", err);
+                resultReceiver_.append("error: failed to get all insight intent info.\n");
+                resultReceiver_.append(GetMessageFromCode(err));
+                result = err;
+            }
+        }
+    }
+    
+    return result;
+}
+ErrCode AbilityManagerShellCommand::RunAsExecuteIntentPlusCommand()
+{
+    TAG_LOGI(AAFwkTag::AA_TOOL, "execute-intent-plus command called");
+    
+    std::string bundleName;
+    std::string moduleName;
+    std::string abilityName;
+    std::string insightIntentName;
+    std::string intentParamJson;
+    
+    int32_t executeMode = -1;
+
+    int option = -1;
+    int counter = 0;
+    ErrCode result = OHOS::ERR_OK;
+    
+    while (true) {
+        counter++;
+        TAG_LOGI(AAFwkTag::AA_TOOL, "execute-intent-plus command called");
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_EXECUTE_INTENT_PLUS.c_str(),
+            LONG_OPTIONS_EXECUTE_INTENT_PLUS, nullptr);
+        
+        TAG_LOGI(AAFwkTag::AA_TOOL, "option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+        
+        if (optind < 0 || optind > argc_) {
+            resultReceiver_.append(HELP_MSG_EXECUTE_INTENT_PLUS + "\n");
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+                resultReceiver_.append(HELP_MSG_EXECUTE_INTENT_PLUS + "\n");
+            }
+            break;
+        }
+        
+        if (option == '?') {
+            std::string unknownOption = "";
+            std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+            TAG_LOGI(AAFwkTag::AA_TOOL, "'aa execute-intent-plus' option unknown");
+            resultReceiver_.append(unknownOptionMsg);
+            resultReceiver_.append(HELP_MSG_EXECUTE_INTENT_PLUS + "\n");
+            result = OHOS::ERR_INVALID_VALUE;
+            break;
+        }
+        
+        switch (option) {
+            case 'h': {
+                resultReceiver_.append(HELP_MSG_EXECUTE_INTENT_PLUS + "\n");
+                result = OHOS::ERR_INVALID_VALUE;
+                break;
+            }
+            case 'b': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "bundle name is null");
+                    resultReceiver_.append("error: option -b requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                bundleName = optarg;
+                TAG_LOGI(AAFwkTag::AA_TOOL, "bundleName: %{public}s", bundleName.c_str());
+                break;
+            }
+            case 'm': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "module name is null");
+                    resultReceiver_.append("error: option -m requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                moduleName = optarg;
+                TAG_LOGI(AAFwkTag::AA_TOOL, "moduleName: %{public}s", moduleName.c_str());
+                break;
+            }
+            case 'a': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "ability name is null");
+                    resultReceiver_.append("error: option -a requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                abilityName = optarg;
+                TAG_LOGI(AAFwkTag::AA_TOOL, "abilityName: %{public}s", abilityName.c_str());
+                break;
+            }
+            case 'i': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "intent name is null");
+                    resultReceiver_.append("error: option -i requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                insightIntentName = optarg;
+                TAG_LOGI(AAFwkTag::AA_TOOL, "insightIntentName: %{public}s", insightIntentName.c_str());
+                break;
+            }
+            case 'e': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "execute mode is null");
+                    resultReceiver_.append("error: option -e requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                auto res = std::from_chars(optarg, optarg + strlen(optarg), executeMode);
+                if (res.ec != std::errc() || res.ptr != optarg + strlen(optarg)) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "invalid execute mode: %{public}s", optarg);
+                    resultReceiver_.append("error: invalid execute mode value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                break;
+            }
+            case 'p': {
+                if (optarg == nullptr) {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "intent param is null");
+                    resultReceiver_.append("error: option -p requires a value.\n");
+                    result = OHOS::ERR_INVALID_VALUE;
+                    break;
+                }
+                intentParamJson = optarg;
+                TAG_LOGI(AAFwkTag::AA_TOOL, "intentParamJson: %{public}s", intentParamJson.c_str());
+                break;
+            }
+            default: {
+                break;
+            }
+        }
+        
+        if (result != OHOS::ERR_OK) {
+            break;
+        }
+    }
+    
+    if (result == OHOS::ERR_OK) {
+        if (bundleName.empty() || moduleName.empty() || abilityName.empty() || 
+            insightIntentName.empty() || executeMode < 0) {
+            TAG_LOGE(AAFwkTag::AA_TOOL, "missing required parameters");
+            resultReceiver_.append("error: missing required parameters.\n");
+            resultReceiver_.append("Required: -b, -m, -a, -i, -e\n");
+            resultReceiver_.append(HELP_MSG_EXECUTE_INTENT_PLUS + "\n");
+            result = OHOS::ERR_INVALID_VALUE;
+        } else {
+            InsightIntentExecuteParam param;
+            param.bundleName_ = bundleName;
+            param.moduleName_ = moduleName;
+            param.abilityName_ = abilityName;
+            param.insightIntentName_ = insightIntentName;
+            param.executeMode_ = executeMode;
+            if (!intentParamJson.empty()) {
+                param.insightIntentParam_ = std::make_shared<WantParams>(BuildWantParamsFromJson(intentParamJson));
+                TAG_LOGI(AAFwkTag::INTENT, "CRRR intentParam String: %{public}s", param.insightIntentParam_->ToString().c_str());
+            } else {
+                param.insightIntentParam_ = std::make_shared<WantParams>();
+            }
+            TAG_LOGI(AAFwkTag::INTENT, "CRRR intentParam String: %{public}s", param.insightIntentParam_->ToString().c_str());
+            TAG_LOGI(AAFwkTag::AA_TOOL, "Executing insight intent plus: bundle=%{public}s, module=%{public}s, "
+                "ability=%{public}s, intent=%{public}s, mode=%{public}d",
+                bundleName.c_str(), moduleName.c_str(), abilityName.c_str(), 
+                insightIntentName.c_str(), executeMode);
+            
+            InsightIntentExecuteResult executeResult;
+            auto err = AbilityManagerClient::GetInstance()->ExecuteIntentWithResult(param, executeResult, 30000);
+            
+            if (err == OHOS::ERR_OK) {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "execute intent plus successfully, innerErr=%{public}d, code=%{public}d",
+                    executeResult.innerErr, executeResult.code);
+                resultReceiver_.append("execute intent plus successfully.\n");
+                resultReceiver_.append("Result:\n");
+                resultReceiver_.append("  innerErr: " + std::to_string(executeResult.innerErr) + "\n");
+                resultReceiver_.append("  code: " + std::to_string(executeResult.code) + "\n");
+                resultReceiver_.append("  flags: " + std::to_string(executeResult.flags) + "\n");
+                
+                // resultReceiver_.append("  result: " + executeResult.result->ToString() + "\n");
+
+                if (executeResult.result != nullptr) {
+                    resultReceiver_.append("  result: " + executeResult.result->ToString() + "\n");
+                }
+                if (!executeResult.uris.empty()) {
+                    resultReceiver_.append("  uris: " + std::to_string(executeResult.uris.size()) + " item(s)\n");
+                    for (const auto& uri : executeResult.uris) {
+                        resultReceiver_.append("    - " + uri + "\n");
+                    }
+                }
+            } else {
+                TAG_LOGE(AAFwkTag::AA_TOOL, "execute intent plus failed: %{public}d", err);
+                resultReceiver_.append("error: failed to execute intent plus.\n");
+                resultReceiver_.append(GetMessageFromCode(err));
+                result = err;
+            }
+        }
+    }
+    
+    return result;
 }
 
 bool AbilityManagerShellCommand::MatchOrderString(const std::regex &regexScript, const std::string &orderCmd)
@@ -2844,6 +3544,8 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     DelayedSingleton<AppMgrClient>::GetInstance()->NotifyAppFaultBySA(faultData);
     return result;
 }
+
+
 #endif
 }  // namespace AAFwk
-}  // namespace OHOS
+  // namespace OHOS

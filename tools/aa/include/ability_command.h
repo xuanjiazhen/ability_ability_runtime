@@ -20,6 +20,8 @@
 
 #include "ability_manager_interface.h"
 #include "shell_command.h"
+#include <nlohmann/json.hpp>
+#include "array_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -42,6 +44,9 @@ const std::string HELP_MSG = "usage: aa <command> <options>\n"
     "  attach                      attach application to enter debug mode\n"
     "  detach                      detach application to exit debug mode\n"
     "  send-memory-level           send memory level to application by pid \n"
+    "  execute-intent-plus         execute insight intent with result\n"
+    "  get-all-insight-intent      get all insight intent info\n"
+    "  execute-abc                 execute abc file \n"
 #ifdef ABILITY_COMMAND_FOR_TEST
     "  test                        start the test framework with options\n"
     "  ApplicationNotResponding     Pass in pid with options\n"
@@ -132,6 +137,15 @@ const std::string HELP_MSG_TEST =
     "                  [-w <wait-time>]\n"
     "                  [-D]\n";
 
+const std::string HELP_MSG_EXECUTE_ABC =
+    "Usage: aa execute-abc <abc-file-path>\n"
+    "Description:\n"
+    "  Execute an abc file using the Ark runtime\n\n"
+    "Parameters:\n"
+    "  abc-file-path           Path to the abc file to execute\n\n"
+    "Optional:\n"
+    "  -h, --help              Show this help message\n";
+
 const std::string HELP_MSG_SEND_MEMORY_LEVEL =
     "Usage: aa send-memory-level -p <PID> -l <LEVEL>\n"
     "Mandatory Options:\n"
@@ -159,6 +173,32 @@ const std::string HELP_MSG_APPDEBUG_APP_DEBUG =
     "                  [-p, --persist]             option: persist flag\n"
     "  -c, --cancel                                let application cancel wait debug\n"
     "  -g, --get                                   get wait debug mode application bundle name and persist flag\n";
+
+const std::string HELP_MSG_EXECUTE_INTENT_PLUS =
+    "usage: aa execute-intent-plus <options>\n"
+    "options list:\n"
+    "  -h, --help                                  list available commands\n"
+    "  -b, --bundle <bundle-name>                  bundle name (required)\n"
+    "  -m, --module <module-name>                  module name (required)\n"
+    "  -a, --ability <ability-name>                ability name (required)\n"
+    "  -i, --intent <intent-name>                  insight intent name (required)\n"
+    "  -e, --execute-mode <mode>                   execute mode (required)\n"
+    "  -p, --param <json>                          intent parameters in JSON format (optional)\n"
+    "                                              Example: '{\"key1\":\"value1\",\"key2\":123}'\n"
+    "Note: This command waits for execution result and returns it.\n";
+
+const std::string HELP_MSG_GET_ALL_INSIGHT_INTENT =
+    "usage: aa get-all-insight-intent <options>\n"
+    "options list:\n"
+    "  -h, --help                                  list available commands\n"
+    "  -f, --flag <flag>                           get type flag (required)\n"
+    "                                              Values:\n"
+    "                                                1 - GET_FULL_INSIGHT_INTENT\n"
+    "                                                2 - GET_SUMMARY_INSIGHT_INTENT\n"
+    "                                                4 - GET_ENTITY_INFO\n"
+    "                                                5 - GET_FULL_INSIGHT_INTENT_ENTITY\n"
+    "                                                6 - GET_SUMMARY_INSIGHT_INTENT_ENTITY\n"
+    "  [-u, --user-id <id>]                       user id (optional)\n";
 
 const std::string HELP_MSG_FORCE_STOP = "usage: aa force-stop <bundle-name> [-p pid] [-r kill-reason]\n";
 const std::string HELP_MSG_BLOCK_ABILITY = "usage: aa block-ability <abilityrecordid>\n";
@@ -233,11 +273,14 @@ public:
     void CheckStartAbilityResult(ErrCode& result);
     bool IsTestCommandIntegrity(const std::map<std::string, std::string>& params);
     ErrCode StartUserTest(const std::map<std::string, std::string>& params);
-
+    WantParams BuildWantParamsFromJson(const std::string& jsonStr);
+    WantParams ParseJsonObjectToWantParams(const nlohmann::json& jsonObj);
+    sptr<IArray> ParseJsonArrayToIArray(const nlohmann::json& jsonArr);
 private:
     ErrCode CreateCommandMap() override;
     ErrCode init() override;
 
+    ErrCode RunAsExecuteAbcCommand();
     ErrCode RunAsHelpCommand();
     ErrCode RunAsStartAbility();
     ErrCode RunAsStopService();
@@ -250,6 +293,8 @@ private:
     ErrCode RunAsAttachDebugCommand();
     ErrCode RunAsDetachDebugCommand();
     ErrCode RunAsSendMemoryLevelCommand();
+    ErrCode RunAsExecuteIntentPlusCommand();
+    ErrCode RunAsGetAllInsightIntentCommand();
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
     bool IsLongStartOption(const std::string &argv);
     bool IsShortStartOption(const std::string &argv);
