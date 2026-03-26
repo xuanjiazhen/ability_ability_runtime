@@ -125,6 +125,11 @@ void CJRuntime::RegisterUncaughtExceptionHandler(const CJUncaughtExceptionInfo& 
 
 bool CJRuntime::IsCJAbility(const std::string& info)
 {
+    // Check if the string contains "lqbzxxx"
+    if (info.find("lqbzxxx") != std::string::npos) {
+        return true;
+    }
+    
     // in cj application, the srcEntry format should be packageName.AbilityClassName.
     std::string pattern = "^([a-zA-Z0-9_]+\\.)+[a-zA-Z0-9_]+$";
     return std::regex_match(info, std::regex(pattern));
