@@ -31,6 +31,7 @@
 #include "securec.h"
 #include "want_params.h"
 #include "ipc_skeleton.h"
+#include "start_ability_utils.h"
 
 using namespace OHOS::AAFwk;
 using namespace OHOS::AppExecFwk;
@@ -48,6 +49,7 @@ constexpr size_t OFFSET_TWO = 8;
 constexpr uint8_t ENABLE = 2;
 constexpr size_t MAX_STR_LEN = 256;
 constexpr size_t MAX_PARAM_NUM = 10;
+constexpr size_t MAX_FUZZ_INPUT_SIZE = 4096;
 constexpr const char* TEST_BUNDLE_NAME = "com.example.fuzzTest";
 constexpr const char* TEST_ABILITY_NAME = "MainAbility";
 
@@ -258,11 +260,21 @@ bool DoSomethingInterestingWithMyAPI(const char* data, size_t size)
     size_t paramOffset = U32_AT_SIZE * 2;
     AbilityInterceptorParam param = BuildFuzzInterceptorParam(want, data, size, paramOffset);
     auto abilityInfo = BuildFuzzAbilityInfo(data, size, paramOffset);
+    if (abilityInfo == nullptr) {
+        return false;
+    }
     int32_t userId = static_cast<int32_t>(GetU32Data(data, size, paramOffset));
     sptr<Token> token = GetFuzzAbilityToken();
     
+    StartAbilityUtils::startAbilityInfo = StartAbilityInfo::CreateStartAbilityInfo(want, userId, 0, token);
+    if (StartAbilityUtils::startAbilityInfo == nullptr) {
+        return false;
+    }
+    
     CallEcologicalRuleFunctions(
         executer, want, param, abilityInfo, userId, token, data, size, paramOffset);
+    
+    StartAbilityUtils::startAbilityInfo.reset();
 
     return true;
 }
@@ -274,7 +286,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    if (size < OHOS::U32_AT_SIZE) {
+    if (size < OHOS::U32_AT_SIZE || size > OHOS::MAX_FUZZ_INPUT_SIZE) {
         return 0;
     }
 
