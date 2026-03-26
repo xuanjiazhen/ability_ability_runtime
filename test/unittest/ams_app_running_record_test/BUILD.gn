@@ -72,6 +72,7 @@ ohos_unittest("AmsAppRunningRecordTest") {
     "image_framework:image_native",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "samgr:samgr_proxy",
     "window_manager:libwmutil",
     "window_manager:libwmutil_static",

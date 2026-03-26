@@ -53,6 +53,7 @@ ohos_unittest("app_config_data_manager_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
     "kv_store:distributeddata_mgr",
   ]

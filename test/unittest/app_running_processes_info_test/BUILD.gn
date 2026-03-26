@@ -92,6 +92,7 @@ ohos_unittest("AppRunningProcessesInfoTest") {
     "kv_store:distributeddata_inner",
     "memmgr:memmgrclient",
     "memory_utils:libmeminfo",
+    "qos_manager:pi_mutex",
     "resource_schedule_service:ressched_client",
     "samgr:samgr_proxy",
     "selinux_adapter:librestorecon",

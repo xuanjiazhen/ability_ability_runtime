@@ -65,6 +65,7 @@ ohos_fuzztest("AbilityInterfacesAppManagerAmsMgrStubSecondFuzzTest") {
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "qos_manager:pi_mutex",
   ]
 
   if (ability_runtime_graphics) {

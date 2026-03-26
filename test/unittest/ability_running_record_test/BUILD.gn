@@ -53,6 +53,7 @@ ohos_unittest("ability_running_record_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 
   defines = [ "AMS_LOG_TAG = \"AppMgrService\"" ]

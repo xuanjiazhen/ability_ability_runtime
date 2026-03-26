@@ -42,6 +42,7 @@ ohos_unittest("ams_mgr_scheduler_dump_test") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

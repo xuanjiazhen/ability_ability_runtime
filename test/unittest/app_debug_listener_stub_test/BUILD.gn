@@ -41,6 +41,7 @@ ohos_unittest("AppDebugListenerStubTest") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "samgr:samgr_proxy",
   ]
 

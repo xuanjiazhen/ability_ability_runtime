@@ -45,6 +45,7 @@ ohos_unittest("render_state_observer_manager_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "window_manager:libwm",
     "window_manager:libwsutils",
   ]

@@ -47,6 +47,7 @@ ohos_unittest("app_preloader_test") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "resource_schedule_service:ressched_client",
   ]
 }
