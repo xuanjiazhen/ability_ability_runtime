@@ -53,6 +53,7 @@ constexpr int32_t APP_PROVISION_TYPE_DEBUG = 0;
 constexpr size_t MAX_STR_LEN = 256;
 constexpr size_t TEST_APPINDEX = 1;
 constexpr size_t Max_Status = 3;
+constexpr size_t MAX_FUZZ_INPUT_SIZE = 4096;
 }
 
 uint32_t GetU32Data(const char* ptr)
@@ -211,7 +212,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    if (size < OHOS::U32_AT_SIZE) {
+    if (size < OHOS::U32_AT_SIZE || size > OHOS::MAX_FUZZ_INPUT_SIZE) {
         return 0;
     }
 
