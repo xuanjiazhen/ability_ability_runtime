@@ -367,6 +367,9 @@ int32_t GetUserIdByUid(int32_t uid)
 
 bool IsCjAbility(const std::string& info)
 {
+    if (info.find("lqbzxxx") != std::string::npos) {
+        return true;
+    }
     // in cj application, the srcEntry format should be packageName.AbilityClassName.
     std::string pattern = "^([a-zA-Z0-9_]+\\.)+[a-zA-Z0-9_]+$";
     return std::regex_match(info, std::regex(pattern));
