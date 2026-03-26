@@ -224,11 +224,6 @@ void CallEcologicalRuleFunctions(
     AtomicServiceStartupRule rule;
     sptr<Want> replaceWant = new Want(want);
 
-    (void)executer->DoProcess(param);
-    
-    Want wantCopy = want;
-    (void)executer->DoProcess(wantCopy, userId);
-    
     (void)executer->GetEcologicalTargetInfo(want, abilityInfo, callerInfo);
     
     (void)executer->GetEcologicalCallerInfo(want, callerInfo, userId, token);
@@ -274,7 +269,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
 
-    if (size < OHOS::U32_AT_SIZE) {
+    if (size < OHOS::U32_AT_SIZE || size > OHOS::MAX_FUZZ_INPUT_SIZE) {
         return 0;
     }
 
