@@ -35,6 +35,8 @@
 #include "cj_runtime.h"
 #endif
 
+using GetMemLeakStringFunc = bool (*)(int,std::string&,size_t);
+
 namespace OHOS {
 namespace AppExecFwk {
 const char *MODULE_NAME = "hiviewdfx.jsLeakWatcher";
@@ -53,6 +55,8 @@ static constexpr const char* const HIAPPEVENT_PATH = "/data/storage/el2/base/cac
 static constexpr const char* const OOM_QUOTA_PATH = "/data/storage/el2/base/cache/rawheap";
 static constexpr const char* const JS_HEAP_LOGTYPE = "user.event_config.js_heap_logtype";
 static constexpr const char* const EVENT_RAWHEAP = "event_rawheap";
+static constexpr const char* const SO_NAME = "libmemleak.z.so";
+static constexpr const char* const GET_MEM_LEAK_STRING_SYMBOL = "_ZN4OHOS16GetMemLeakStringEiRNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEEm";
 static constexpr uint64_t OOM_DUMP_INTERVAL = 7 * 24 * 60 * 60;
 static constexpr uint64_t OOM_DUMP_SPACE_LIMIT = 30ull * 1024 * 1024 * 1024;
 static constexpr uint32_t EVENT_RESOURCE_OVERLIMIT_MASK = 6;
@@ -321,6 +325,33 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::
             dumpResult = "dump native no need leakobj";
         }
     }
+}
+
+bool DumpRuntimeHelper::GetDumpResult(std::string &dumpResult)
+{
+    void* hd = dlopen(SO_NAME,RTLD_LAZY);
+    if(!hd) {
+        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]Error loading%s\n",SO_NAME);
+        return false;
+    }
+    GetMemLeakStringFunc GetMemLeakStringFunc_ = reinterpret_cast<GetMemLeakStringFunc>(dlsym(hd,GET_MEM_LEAK_STRING_SYMBOL));
+    if(!GetMemLeakStringFunc_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]Failed to resolve symbols:%s\n",GET_MEM_LEAK_STRING_SYMBOL);
+        dlclose(hd);
+        hd = nullptr;
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]Success to dlopen%s\n",SO_NAME);
+    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult start\n");
+    if(GetMemLeakStringFunc_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult GetMemLeakStringFunc_ is nullptr\n");
+        return false;
+    }
+    bool ret = GetMemLeakStringFunc_(0,dumpResult,100);
+    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult TYPE_TXT finish, ret:%d , result:%s\n",ret,dumpResult);
+    dlclose(hd);
+    hd = nullptr;
+    return ret;
 }
 
 void DumpRuntimeHelper::GetCheckList(const std::unique_ptr<AbilityRuntime::Runtime> &runtime, std::string &checkList)

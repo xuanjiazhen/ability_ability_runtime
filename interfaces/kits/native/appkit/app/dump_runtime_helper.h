@@ -22,6 +22,8 @@
 #include "napi_common_want.h"
 #include "ohos_application.h"
 #include "runtime.h"
+#include <dlfcn.h>
+#include <inttypes.h>
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -63,6 +65,7 @@ private:
     static bool Check2CQuota();
     static bool Check2DQuota(bool needDecreaseQuota);
     static bool SafeStoll(const std::string &str, long long &value);
+    static bool GetDumpResult(std::string &dumpResult);
     static int GetCompressQuota (const std::vector<int64_t> &quotas);
     static bool SplitPropertyByComma(const std::string &property, std::string &runningId, std::string &value);
     static std::string GetEventConfig(const std::string &key);
