@@ -836,6 +836,7 @@ public:
 
     void SetAppRecoveryFlag(int flag);
     int GetAppRecoveryFlag() const;
+    void SetDebugExtension();
 protected:
     Want want_ = {};                                       // want to start this ability
     std::unique_ptr<LifecycleDeal> lifecycleDeal_ = {};    // life manager used to schedule life
