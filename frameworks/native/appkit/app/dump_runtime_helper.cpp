@@ -35,7 +35,7 @@
 #include "cj_runtime.h"
 #endif
 
-using GetMemLeakStringFunc = bool (*)(int,std::string&,size_t);
+using GetMemLeakString = bool (*)(int, std::string&, size_t);
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -56,7 +56,8 @@ static constexpr const char* const OOM_QUOTA_PATH = "/data/storage/el2/base/cach
 static constexpr const char* const JS_HEAP_LOGTYPE = "user.event_config.js_heap_logtype";
 static constexpr const char* const EVENT_RAWHEAP = "event_rawheap";
 static constexpr const char* const SO_NAME = "libmemleak.z.so";
-static constexpr const char* const GET_MEM_LEAK_STRING_SYMBOL = "_ZN4OHOS16GetMemLeakStringEiRNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEEm";
+static constexpr const char* const GET_MEM_LEAK_STRING_SYMBOL =
+    "_ZN4OHOS16GetMemLeakStringEiRNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEEm";
 static constexpr uint64_t OOM_DUMP_INTERVAL = 7 * 24 * 60 * 60;
 static constexpr uint64_t OOM_DUMP_SPACE_LIMIT = 30ull * 1024 * 1024 * 1024;
 static constexpr uint32_t EVENT_RESOURCE_OVERLIMIT_MASK = 6;
@@ -319,7 +320,10 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::
     if (info.dumpType == MemDumpType::NATIVE) {
         if (info.needLeakobj) {
             TAG_LOGI(AAFwkTag::APPKIT, "dump native need leakobj");
-            dumpResult = "dump native need leakobj";
+            bool ret = GetDumpResult(dumpResult);
+            if (!ret) {
+                TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]GetDumpResult failed");
+            }
         } else {
             TAG_LOGI(AAFwkTag::APPKIT, "dump native no need leakobj");
             dumpResult = "dump native no need leakobj";
@@ -329,26 +333,36 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::
 
 bool DumpRuntimeHelper::GetDumpResult(std::string &dumpResult)
 {
-    void* hd = dlopen(SO_NAME,RTLD_LAZY);
-    if(!hd) {
-        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]Error loading%s\n",SO_NAME);
-        return false;
-    }
-    GetMemLeakStringFunc GetMemLeakStringFunc_ = reinterpret_cast<GetMemLeakStringFunc>(dlsym(hd,GET_MEM_LEAK_STRING_SYMBOL));
-    if(!GetMemLeakStringFunc_) {
-        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]Failed to resolve symbols:%s\n",GET_MEM_LEAK_STRING_SYMBOL);
+    void* hd = nullptr;
+    hd = dlopen(SO_NAME, RTLD_LAZY);
+    if (!hd) {
+        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]Error loading%{public}s\n", SO_NAME);
         dlclose(hd);
         hd = nullptr;
         return false;
     }
-    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]Success to dlopen%s\n",SO_NAME);
-    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult start\n");
-    if(GetMemLeakStringFunc_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult GetMemLeakStringFunc_ is nullptr\n");
+    GetMemLeakString GetMemLeakString_ = nullptr;
+    GetMemLeakString_ = reinterpret_cast<GetMemLeakStringFunc>(dlsym(hd, GET_MEM_LEAK_STRING_SYMBOL));
+    if (!GetMemLeakString_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]Failed to resolve symbols:%{public}s\n", GET_MEM_LEAK_STRING_SYMBOL);
+        dlclose(hd);
+        hd = nullptr;
         return false;
     }
-    bool ret = GetMemLeakStringFunc_(0,dumpResult,100);
-    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult TYPE_TXT finish, ret:%d , result:%s\n",ret,dumpResult);
+    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]Success to dlopen%{public}s\n", SO_NAME);
+    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult start\n");
+    if (GetMemLeakString_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU] GetMemLeakString_ is nullptr\n");
+        dlclose(hd);
+        hd = nullptr;
+        return false;
+    }
+    bool ret = GetMemLeakStringFunc_(0, dumpResult, 100);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU] TYPE_TXT Error, result:%{public}s\n", ret, dumpResult.c_str());
+    } else {
+        TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU] TYPE_TXT finish, result:%{public}s\n", ret, dumpResult.c_str());
+    }
     dlclose(hd);
     hd = nullptr;
     return ret;
