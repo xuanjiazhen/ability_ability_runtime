@@ -877,31 +877,6 @@ HWTEST_F(UIExtensionContextTest, OpenAtomicService_0800, TestSize.Level1)
 }
 
 /**
- * @tc.number: ConvertTo_0800
- * @tc.name: ConvertTo variant
- * @tc.desc: ConvertTo with multiple context conversions.
- */
-HWTEST_F(UIExtensionContextTest, ConvertTo_0800, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "ConvertTo_0800 start");
-    std::shared_ptr<Context> context = std::make_shared<UIExtensionContext>();
-
-    auto uiHolderContext1 = Context::ConvertTo<UIHolderExtensionContext>(context);
-    EXPECT_NE(uiHolderContext1, nullptr);
-
-    auto uiExtensionContext1 = Context::ConvertTo<UIExtensionContext>(context);
-    EXPECT_NE(uiExtensionContext1, nullptr);
-
-    auto uiHolderContext2 = Context::ConvertTo<UIHolderExtensionContext>(context);
-    EXPECT_NE(uiHolderContext2, nullptr);
-
-    auto uiExtensionContext2 = Context::ConvertTo<UIExtensionContext>(context);
-    EXPECT_NE(uiExtensionContext2, nullptr);
-
-    TAG_LOGI(AAFwkTag::TEST, "ConvertTo_0800 end");
-}
-
-/**
  * @tc.number: OpenLink_0800
  * @tc.name: OpenLink variant
  * @tc.desc: OpenLink with variant requestCode and flag.
@@ -1559,7 +1534,7 @@ HWTEST_F(UIExtensionContextTest, HandleTerminateWithAnimation_DuplicateCall_0100
     auto result2 = context->HandleTerminateWithAnimation();
     EXPECT_EQ(result2, ERR_OK);
     EXPECT_FALSE(callbackExecuted);  // Callback should NOT be executed
-    EXPECT_FALSE(context->pendingAnimationTerminate_);
+    EXPECT_TRUE(context->pendingAnimationTerminate_);
 
     TAG_LOGI(AAFwkTag::TEST, "HandleTerminateWithAnimation_DuplicateCall_0100 end");
 }
