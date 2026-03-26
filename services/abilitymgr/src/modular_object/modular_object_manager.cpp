@@ -22,10 +22,10 @@ namespace AbilityRuntime {
 ModularObjectManager::ModularObjectManager() = default;
 ModularObjectManager::~ModularObjectManager() = default;
 
-int32_t ModularObjectManager::QuerySelfModularObjectExtensionInfos(int32_t userId, const std::string &bundleName
+int32_t ModularObjectManager::QuerySelfModularObjectExtensionInfos(int32_t userId, const std::string &bundleName,
     int32_t appIndex, std::vector<AAFwk::ModularObjectExtensionInfo> &infos)
 {
-    std::string key = to_string(userId) + "_" + bundleName + "_" + to_string(appIndex);
+    std::string key = std::to_string(userId) + "_" + bundleName + "_" + std::to_string(appIndex);
     return DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->QueryData(key, infos);
 }
 }

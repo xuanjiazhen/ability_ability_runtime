@@ -260,7 +260,7 @@ void ModularObjectEventReceiver::GetModularObjectExtensionInfos(const AppExecFwk
 }
 
 std::string ModularObjectEventReceiver::GenerateModularObjectKey(int32_t userId, const std::string &bundleName,
-    int32_t index)
+    int32_t appIndex)
 {
     std::string key = std::to_string(userId) + "_" + bundleName + "_" + std::to_string(appIndex);
 }

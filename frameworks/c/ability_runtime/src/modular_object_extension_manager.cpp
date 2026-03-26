@@ -93,15 +93,14 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoElementN
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoDisableState(
-    OH_AbilityRuntime_MoeInfoHandle extensionInfo, bool *isSelfDisabled, bool *isSystemDisabled)
+    OH_AbilityRuntime_MoeInfoHandle extensionInfo, bool *isDisabled)
 {
-    if (!extensionInfo || !isSelfDisabled || !isSystemDisabled) {
+    if (!extensionInfo || !isDisabled) {
         TAG_LOGE(AAFwkTag::APPKIT, "null parameter");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     auto info = reinterpret_cast<OHOS::AAFwk::ModularObjectExtensionInfo*>(extensionInfo);
-    *isSelfDisabled = info->isSelfDisabled;
-    *isSystemDisabled = info->isSystemDisabled;
+    *isDisabled = info->isDisabled;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 

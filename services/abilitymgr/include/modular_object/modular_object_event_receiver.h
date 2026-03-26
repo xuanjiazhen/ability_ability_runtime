@@ -52,7 +52,7 @@ private:
     void RemoveModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex = 0);
     void GetModularObjectExtensionInfos(const AppExecFwk::BundleInfo &bundleInfo,
         std::vector<AAFwk::ModularObjectExtensionInfo> &infos);
-    std::string GenerateModularObjectKey(int32_t userId, const std::string &bundleName, int32_t index);
+    std::string GenerateModularObjectKey(int32_t userId, const std::string &bundleName, int32_t appIndex);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
