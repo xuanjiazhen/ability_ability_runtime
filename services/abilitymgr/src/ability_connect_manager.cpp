@@ -15,6 +15,7 @@
 
 #include "ability_connect_manager.h"
 
+#include <chrono>
 #include <regex>
 
 #include "ability_manager_constants.h"
@@ -994,6 +995,8 @@ int AbilityConnectManager::ScheduleCommandAbilityDoneLocked(const sptr<IRemoteOb
             EventName::START_ABILITY_IN_BACKGROUND_USER, bgUserEventInfo);
         TAG_LOGI(AAFwkTag::EXT, "Start extension in background user, userId: %{public}d, bundle: %{public}s",
             userId_, eventInfo.bundleName.c_str());
+        // Debug: record start stats for frequency analysis
+        RecordBackgroundUserStartStats(bgUserEventInfo);
     }
     abilityRecord->RemoveSignatureInfo();
     // complete command and pop waiting start ability from queue.
@@ -3278,6 +3281,54 @@ void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abili
     if (targetService.IsSceneBoard()) {
         TAG_LOGI(AAFwkTag::EXT, "create sceneboard");
         sceneBoardTokenId_ = abilityRequest.appInfo.accessTokenId;
+    }
+}
+
+void AbilityConnectManager::RecordBackgroundUserStartStats(const EventInfo &eventInfo)
+{
+    // Key: callee bundle name + ability name to track each extension
+    std::string key = eventInfo.bundleName + "/" + eventInfo.abilityName;
+    auto now = std::chrono::system_clock::now();
+    int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        now.time_since_epoch()).count();
+
+    std::lock_guard<std::mutex> lock(bgUserStartStatsMutex_);
+    auto &stats = bgUserStartStatsMap_[key];
+
+    stats.count++;
+    if (stats.firstStartTime == 0) {
+        stats.firstStartTime = nowMs;
+    }
+    stats.lastStartTime = nowMs;
+    stats.lastCallerBundleName = eventInfo.callerBundleName;
+    stats.lastCallerUserId = eventInfo.userId;
+    stats.lastCallerProcessName = eventInfo.callerProcessName;
+
+    // Calculate time interval
+    int64_t intervalMs = nowMs - stats.firstStartTime;
+    double intervalSec = intervalMs / 1000.0;
+    double avgIntervalMs = (stats.count > 1) ? (intervalMs / (stats.count - 1)) : 0;
+
+    // Log for debugging - output detailed stats every time for analysis
+    TAG_LOGI(AAFwkTag::EXT,
+        "[BG_USER_STATS] callee=%{public}s, count=%{public}d, total_sec=%.2f, "
+        "avg_interval_ms=%.2f, caller=%{public}s, caller_uid=%{public}d, "
+        "caller_process=%{public}s, ext_type=%{public}d",
+        key.c_str(),
+        stats.count,
+        intervalSec,
+        avgIntervalMs,
+        eventInfo.callerBundleName.c_str(),
+        eventInfo.callerUid,
+        eventInfo.callerProcessName.c_str(),
+        eventInfo.extensionType);
+
+    // Warning if high frequency (> 10 times in 60 seconds)
+    if (stats.count >= 10 && intervalSec <= 60.0) {
+        TAG_LOGW(AAFwkTag::EXT,
+            "[BG_USER_HIGH_FREQ] High frequency detected! callee=%{public}s, "
+            "count=%{public}d in %.2f seconds",
+            key.c_str(), stats.count, intervalSec);
     }
 }
 }  // namespace AAFwk
