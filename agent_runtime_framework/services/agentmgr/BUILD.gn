@@ -36,11 +36,13 @@ ohos_shared_library("agentmgr") {
     "src/agent_card_mgr.cpp",
     "src/agent_event_handler.cpp",
     "src/agent_manager_service.cpp",
+    "src/agent_service_connection.cpp",
   ]
 
   public_configs = []
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/appkit:appkit_manager_helper",
