@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -591,6 +591,23 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0300, TestSize.Leve
         .Times(1).WillOnce(Return(WSError::WS_OK));
     auto result = client_->GetMissionInfo(deviceId, 0, missionInfo);
     EXPECT_EQ(result, static_cast<ErrCode>(WSError::WS_OK));
+}
+
+/**
+ * @tc.name: AbilityManagerClient_GetMissionInfo_0400
+ * @tc.desc: GetMissionInfo with displayInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0400, TestSize.Level1)
+{
+    ErrorTestBoardDisable();
+    std::string deviceId = "test_deviceId";
+    int32_t missionId = -1;
+    MissionInfo missionInfo;
+    DisplayInfo displayInfo;
+    auto result = client_->GetMissionInfo(deviceId, missionId, missionInfo, displayInfo);
+    EXPECT_NE(result, ERR_OK);
+    EXPECT_EQ(displayInfo.displayName.empty(), true);
 }
 
 /**
@@ -1248,6 +1265,53 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, PreloadApplication_0100, TestSize.
     int32_t appIndex = 0;
     auto result = client_->PreloadApplication(bundleName, userId, appIndex);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartAbilityByOEExt_0100
+ * @tc.desc: StartAbilityByOEExt_0100, proxy is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartAbilityByOEExt_0100, TestSize.Level1)
+{
+    ErrorTestBoardDisable();
+    Want want;
+    int32_t hostPid = 1234;
+    std::string specifiedFlag = "test_flag";
+    auto result = client_->StartAbilityByOEExt(want, nullptr, hostPid, specifiedFlag);
+    EXPECT_EQ(result, ABILITY_SERVICE_NOT_CONNECTED);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartAbilityByOEExt_0200
+ * @tc.desc: StartAbilityByOEExt_0200, normal case
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartAbilityByOEExt_0200, TestSize.Level1)
+{
+    NormalTestBoardDisable();
+    Want want;
+    int32_t hostPid = 1234;
+    std::string specifiedFlag = "test_flag";
+    EXPECT_CALL(*mock_, StartAbilityByOEExt(_, _, _, _)).Times(1).WillOnce(Return(ERR_OK));
+    auto result = client_->StartAbilityByOEExt(want, nullptr, hostPid, specifiedFlag);
+    EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_StartAbilityByOEExt_0300
+ * @tc.desc: StartAbilityByOEExt_0300, with error return
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, StartAbilityByOEExt_0300, TestSize.Level1)
+{
+    NormalTestBoardDisable();
+    Want want;
+    int32_t hostPid = 1234;
+    std::string specifiedFlag = "test_flag";
+    EXPECT_CALL(*mock_, StartAbilityByOEExt(_, _, _, _)).Times(1).WillOnce(Return(ERR_INVALID_VALUE));
+    auto result = client_->StartAbilityByOEExt(want, nullptr, hostPid, specifiedFlag);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

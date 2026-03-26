@@ -1009,6 +1009,10 @@ public:
 
     int32_t NotifyAppMgrRecordExitReasonCompability(
         int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg);
+#ifdef APP_MGR_KILL_REASON_TAG
+    void RecordAppWithReason(int32_t pid, int32_t uid, int32_t killId);
+    void RecordAppWithReasonByUserId(int32_t userId, int32_t killId);
+#endif
 
     /**
      * Notify application status.
@@ -1184,6 +1188,21 @@ public:
      * Free window pid visibility changed listener.
      */
     void FreeWindowPidVisibilityChangedListener();
+
+    /*
+     * @brief Update UIExtension preload state for app record.
+     *
+     * @param appRecord App running record.
+     * @param state Target UIExtension preload state.
+     */
+    void UpdateUIExtensionPreloadState(const std::shared_ptr<AppRunningRecord> &appRecord, bool state);
+
+    /**
+     * @brief Set preload flag for running process info.
+     * @param appRecord App running record.
+     * @return Returns true if the preload flag is set successfully, otherwise returns false.
+     */
+    bool  SetPreloadFlagForProcessInfo(const std::shared_ptr<AppRunningRecord> &appRecord);
 
     /*
      * @brief Notify NativeEngine GC of status change.
@@ -1945,7 +1964,7 @@ private:
 #endif // SUPPORT_CHILD_PROCESS
 
     void AfterLoadAbility(std::shared_ptr<AppRunningRecord> appRecord, std::shared_ptr<AbilityInfo> abilityInfo,
-        std::shared_ptr<AbilityRuntime::LoadParam> loadParam);
+        std::shared_ptr<AbilityRuntime::LoadParam> loadParam, bool isProcessReuse = false);
 
     static int32_t GetLoadTimeout(int32_t loadTimeout);
 
