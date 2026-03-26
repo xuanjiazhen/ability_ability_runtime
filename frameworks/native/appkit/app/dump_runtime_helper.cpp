@@ -35,7 +35,7 @@
 #include "cj_runtime.h"
 #endif
 
-using GetMemLeakStringFunc = bool (*)(int,std::string&,size_t);
+using GetMemLeakString = bool (*)(int,std::string&,size_t);
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -329,13 +329,14 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::
 
 bool DumpRuntimeHelper::GetDumpResult(std::string &dumpResult)
 {
-    void* hd = dlopen(SO_NAME,RTLD_LAZY);
+    void* hd = nullptr;
+    hd = dlopen(SO_NAME,RTLD_LAZY);
     if(!hd) {
         TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]Error loading%s\n",SO_NAME);
         return false;
     }
-    GetMemLeakStringFunc GetMemLeakStringFunc_ = reinterpret_cast<GetMemLeakStringFunc>(dlsym(hd,GET_MEM_LEAK_STRING_SYMBOL));
-    if(!GetMemLeakStringFunc_) {
+    GetMemLeakString GetMemLeakString_ = reinterpret_cast<GetMemLeakStringFunc>(dlsym(hd,GET_MEM_LEAK_STRING_SYMBOL));
+    if(!GetMemLeakString_) {
         TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]Failed to resolve symbols:%s\n",GET_MEM_LEAK_STRING_SYMBOL);
         dlclose(hd);
         hd = nullptr;
@@ -343,12 +344,14 @@ bool DumpRuntimeHelper::GetDumpResult(std::string &dumpResult)
     }
     TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]Success to dlopen%s\n",SO_NAME);
     TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult start\n");
-    if(GetMemLeakStringFunc_ == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult GetMemLeakStringFunc_ is nullptr\n");
+    if(GetMemLeakString_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "[ZHOU] GetMemLeakString_ is nullptr\n");
+        dlclose(hd);
+        hd = nullptr;
         return false;
     }
     bool ret = GetMemLeakStringFunc_(0,dumpResult,100);
-    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU]DumpRuntimeHelper::GetDumpResult TYPE_TXT finish, ret:%d , result:%s\n",ret,dumpResult);
+    TAG_LOGI(AAFwkTag::APPKIT, "[ZHOU] TYPE_TXT finish, ret:%d , result:%s\n",ret,dumpResult);
     dlclose(hd);
     hd = nullptr;
     return ret;
