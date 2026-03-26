@@ -17,12 +17,14 @@
 #define private public
 #define protected public
 #include "ability_manager_service.h"
+#include "extension_config.h"
 #include "interceptor/screen_unlock_interceptor.h"
 #undef private
 #undef protected
 
 #include "ability_util.h"
 #include "event_report.h"
+#include "nlohmann/json.hpp"
 #include "parameters.h"
 #include "scene_board_judgement.h"
 #include "start_ability_utils.h"
@@ -31,6 +33,7 @@
 using namespace testing;
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
+using json = nlohmann::json;
 
 namespace OHOS {
 namespace AAFwk {
@@ -40,9 +43,15 @@ public:
     static void TearDownTestCase();
     void SetUp();
     void TearDown();
+    void LoadTestConfig(const std::string &configStr);
+    void SetupExtensionAbilityInfo(bool isSystemApp, const std::string &appIdentifier);
 
 public:
+    static std::shared_ptr<ExtensionConfig> extensionConfig_;
 };
+
+std::shared_ptr<ExtensionConfig> ScreenUnlockInterceptorTest::extensionConfig_ =
+    DelayedSingleton<ExtensionConfig>::GetInstance();
 
 void ScreenUnlockInterceptorTest::SetUpTestCase()
 {}
@@ -51,10 +60,28 @@ void ScreenUnlockInterceptorTest::TearDownTestCase()
 {}
 
 void ScreenUnlockInterceptorTest::SetUp()
-{}
+{
+    extensionConfig_->configMap_.clear();
+}
 
 void ScreenUnlockInterceptorTest::TearDown()
 {}
+
+void ScreenUnlockInterceptorTest::LoadTestConfig(const std::string &configStr)
+{
+    nlohmann::json jsonConfig = nlohmann::json::parse(configStr);
+    extensionConfig_->LoadExtensionConfig(jsonConfig);
+}
+
+void ScreenUnlockInterceptorTest::SetupExtensionAbilityInfo(bool isSystemApp, const std::string &appIdentifier)
+{
+    StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
+    StartAbilityUtils::startAbilityInfo->abilityInfo.type = AbilityType::EXTENSION;
+    StartAbilityUtils::startAbilityInfo->abilityInfo.extensionTypeName = "form";
+    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.isSystemApp = isSystemApp;
+    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.allowAppRunWhenDeviceFirstLocked = false;
+    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.bundleName = "com.test.bundle";
+}
 
 /**
  * @tc.name: ScreenUnlockInterceptorTest_DoProcess_001
@@ -293,6 +320,561 @@ HWTEST_F(ScreenUnlockInterceptorTest, RecordExtensionEventWhenScreenlock_BundleN
     screenLockManager->SetScreenLockedState(true);
     auto ret = screenUnlockInterceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_NoConfig_ShouldBlock
+ * @tc.desc: Test CheckExtensionInterception when no screen_unlock_access config exists
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest, CheckExtensionInterception_NoConfig_ShouldBlock, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_NoConfig_ShouldBlock start";
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    // Test interception behavior when no config is loaded
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", true);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_NoConfig_ShouldBlock end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_SystemApp_SystemAppInterceptionTrue_InAllowList
+ * @tc.desc: Test system app extension with systemAppInterception=true and in allowlist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_SystemApp_SystemAppInterceptionTrue_InAllowList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_SystemAppInterceptionTrue_InAllowList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "systemAppInterception": true,
+                "allowlist": [
+                    {"appIdentifier": "test_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", true);
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_SystemAppInterceptionTrue_InAllowList end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_SystemApp_SystemAppInterceptionTrue_NotInAllowList
+ * @tc.desc: Test system app extension with systemAppInterception=true and not in allowlist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_SystemApp_SystemAppInterceptionTrue_NotInAllowList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_SystemAppInterceptionTrue_NotInAllowList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "systemAppInterception": true,
+                "allowlist": [
+                    {"appIdentifier": "other_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", true);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_SystemAppInterceptionTrue_NotInAllowList end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_SystemApp_SystemAppInterceptionFalse_InBlockList
+ * @tc.desc: Test system app extension with systemAppInterception=false and in blocklist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_SystemApp_SystemAppInterceptionFalse_InBlockList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_SystemAppInterceptionFalse_InBlockList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "systemAppInterception": false,
+                "blocklist": [
+                    {"appIdentifier": "test_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", true);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_SystemAppInterceptionFalse_InBlockList end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_SystemApp_SystemAppInterceptionFalse_NotInBlockList
+ * @tc.desc: Test system app extension with systemAppInterception=false and not in blocklist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_SystemApp_SystemAppInterceptionFalse_NotInBlockList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_SystemAppInterceptionFalse_NotInBlockList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "systemAppInterception": false,
+                "blocklist": [
+                    {"appIdentifier": "other_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", true);
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_SystemAppInterceptionFalse_NotInBlockList end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_SystemApp_UseDefaultInterceptionTrue_InAllowList
+ * @tc.desc: Test system app extension using defaultInterception=true (no systemAppInterception)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_SystemApp_UseDefaultInterceptionTrue_InAllowList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_UseDefaultInterceptionTrue_InAllowList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": true,
+                "allowlist": [
+                    {"appIdentifier": "test_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", true);
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_UseDefaultInterceptionTrue_InAllowList end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_SystemApp_UseDefaultInterceptionFalse_NotInBlockList
+ * @tc.desc: Test system app extension using defaultInterception=false (no systemAppInterception)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_SystemApp_UseDefaultInterceptionFalse_NotInBlockList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_UseDefaultInterceptionFalse_NotInBlockList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": false,
+                "blocklist": [
+                    {"appIdentifier": "other_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", true);
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_UseDefaultInterceptionFalse_NotInBlockList end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_ThirdParty_NoDefaultInterception_ShouldBlock
+ * @tc.desc: Test third-party extension with no defaultInterception config
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_ThirdParty_NoDefaultInterception_ShouldBlock, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_NoDefaultInterception_ShouldBlock start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "systemAppInterception": true
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    // Third-party apps don't care about systemAppInterception, only check defaultInterception
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", false);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_NoDefaultInterception_ShouldBlock end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_ThirdParty_DefaultInterceptionTrue_InAllowList
+ * @tc.desc: Test third-party extension with defaultInterception=true and in allowlist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_ThirdParty_DefaultInterceptionTrue_InAllowList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_DefaultInterceptionTrue_InAllowList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": true,
+                "allowlist": [
+                    {"appIdentifier": "test_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", false);
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_DefaultInterceptionTrue_InAllowList end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_ThirdParty_DefaultInterceptionTrue_NotInAllowList
+ * @tc.desc: Test third-party extension with defaultInterception=true and not in allowlist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_ThirdParty_DefaultInterceptionTrue_NotInAllowList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_DefaultInterceptionTrue_NotInAllowList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": true,
+                "allowlist": [
+                    {"appIdentifier": "other_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", false);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_DefaultInterceptionTrue_NotInAllowList end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_ThirdParty_DefaultInterceptionFalse_InBlockList
+ * @tc.desc: Test third-party extension with defaultInterception=false and in blocklist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_ThirdParty_DefaultInterceptionFalse_InBlockList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_DefaultInterceptionFalse_InBlockList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": false,
+                "blocklist": [
+                    {"appIdentifier": "test_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", false);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_DefaultInterceptionFalse_InBlockList end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_ThirdParty_DefaultInterceptionFalse_NotInBlockList
+ * @tc.desc: Test third-party extension with defaultInterception=false and not in blocklist
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest,
+    CheckExtensionInterception_ThirdParty_DefaultInterceptionFalse_NotInBlockList, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_DefaultInterceptionFalse_NotInBlockList start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": false,
+                "blocklist": [
+                    {"appIdentifier": "other_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", false);
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_ThirdParty_DefaultInterceptionFalse_NotInBlockList end";
+}
+
+/**
+ * @tc.name: DoProcess_NonSystemUIAbility_ShouldBlock
+ * @tc.desc: Test non-system UIAbility should be blocked when screen locked
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest, DoProcess_NonSystemUIAbility_ShouldBlock, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "DoProcess_NonSystemUIAbility_ShouldBlock start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": true
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    StartAbilityUtils::startAbilityInfo = std::make_shared<StartAbilityInfo>();
+    StartAbilityUtils::startAbilityInfo->abilityInfo.type = AbilityType::PAGE;
+    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.isSystemApp = false;
+    StartAbilityUtils::startAbilityInfo->abilityInfo.applicationInfo.allowAppRunWhenDeviceFirstLocked = false;
+
+    Want want;
+    AbilityInterceptorParam param(want, 0, 100, true, nullptr, []() { return false; });
+
+    auto screenLockManager = OHOS::ScreenLock::ScreenLockManager::GetInstance();
+    EXPECT_NE(screenLockManager, nullptr);
+    screenLockManager->SetScreenLockedState(true);
+
+    auto ret = screenUnlockInterceptor.DoProcess(param);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "DoProcess_NonSystemUIAbility_ShouldBlock end";
+}
+
+/**
+ * @tc.name: DoProcess_SystemAppExtension_WithConfig
+ * @tc.desc: Test system app extension with proper config
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest, DoProcess_SystemAppExtension_WithConfig, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "DoProcess_SystemAppExtension_WithConfig start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "systemAppInterception": false,
+                "defaultInterception": true
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    SetupExtensionAbilityInfo(true, "test_app_id");
+
+    Want want;
+    AbilityInterceptorParam param(want, 0, 100, true, nullptr, []() { return false; });
+
+    auto screenLockManager = OHOS::ScreenLock::ScreenLockManager::GetInstance();
+    EXPECT_NE(screenLockManager, nullptr);
+    screenLockManager->SetScreenLockedState(true);
+
+    auto ret = screenUnlockInterceptor.DoProcess(param);
+    // systemAppInterception=false, not in blocklist, should allow
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "DoProcess_SystemAppExtension_WithConfig end";
+}
+
+/**
+ * @tc.name: DoProcess_ThirdPartyExtension_WithConfig
+ * @tc.desc: Test third-party extension with proper config
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest, DoProcess_ThirdPartyExtension_WithConfig, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "DoProcess_ThirdPartyExtension_WithConfig start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": false,
+                "blocklist": [
+                    {"appIdentifier": "blocked_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    SetupExtensionAbilityInfo(false, "test_app_id");
+
+    Want want;
+    AbilityInterceptorParam param(want, 0, 100, true, nullptr, []() { return false; });
+
+    auto screenLockManager = OHOS::ScreenLock::ScreenLockManager::GetInstance();
+    EXPECT_NE(screenLockManager, nullptr);
+    screenLockManager->SetScreenLockedState(true);
+
+    auto ret = screenUnlockInterceptor.DoProcess(param);
+    // defaultInterception=false, not in blocklist, should allow
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "DoProcess_ThirdPartyExtension_WithConfig end";
+}
+
+/**
+ * @tc.name: ReportThirdPartyExtensionEvent_SystemApp
+ * @tc.desc: Test ReportThirdPartyExtensionEvent for system app
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest, ReportThirdPartyExtensionEvent_SystemApp, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ReportThirdPartyExtensionEvent_SystemApp start";
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    // Test system app event report (isSystemApp=true)
+    screenUnlockInterceptor.ReportThirdPartyExtensionEvent("form", "test_app_id", true);
+    // No return value, just verify no crash
+    GTEST_LOG_(INFO) << "ReportThirdPartyExtensionEvent_SystemApp end";
+}
+
+/**
+ * @tc.name: ReportThirdPartyExtensionEvent_ThirdPartyApp
+ * @tc.desc: Test ReportThirdPartyExtensionEvent for third-party app
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest, ReportThirdPartyExtensionEvent_ThirdPartyApp, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ReportThirdPartyExtensionEvent_ThirdPartyApp start";
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    // Test third-party app event report (isSystemApp=false)
+    screenUnlockInterceptor.ReportThirdPartyExtensionEvent("form", "test_app_id", false);
+    // No return value, just verify no crash
+    GTEST_LOG_(INFO) << "ReportThirdPartyExtensionEvent_ThirdPartyApp end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_EmptyAppIdentifier
+ * @tc.desc: Test CheckExtensionInterception with empty appIdentifier
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest, CheckExtensionInterception_EmptyAppIdentifier, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_EmptyAppIdentifier start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": true,
+                "allowlist": [
+                    {"appIdentifier": "test_app_id"}
+                ]
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    // Empty appIdentifier not in allowlist, should be blocked
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "", false);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_EmptyAppIdentifier end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_UnknownExtensionType
+ * @tc.desc: Test CheckExtensionInterception with unknown extension type
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest, CheckExtensionInterception_UnknownExtensionType, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_UnknownExtensionType start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "defaultInterception": true
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    // Unknown extension type has no config, should be blocked
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("unknown_type", "test_app_id", false);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_UnknownExtensionType end";
+}
+
+/**
+ * @tc.name: CheckExtensionInterception_SystemApp_NoInterceptionConfig
+ * @tc.desc: Test system app extension with screen_unlock_access but no interception config
+ * @tc.type: FUNC
+ */
+HWTEST_F(ScreenUnlockInterceptorTest, CheckExtensionInterception_SystemApp_NoInterceptionConfig, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_NoInterceptionConfig start";
+    const std::string configStr = R"({
+        "ams_extension_config": [{
+            "name": "FormExtension",
+            "extension_type_name": "form",
+            "screen_unlock_access": {
+                "intercept": true,
+                "intercept_exclude_system_app": true
+            }
+        }]
+    })";
+    LoadTestConfig(configStr);
+
+    ScreenUnlockInterceptor screenUnlockInterceptor;
+    // Has screen_unlock_access but no defaultInterception and systemAppInterception, should be blocked
+    auto ret = screenUnlockInterceptor.CheckExtensionInterception("form", "test_app_id", true);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    GTEST_LOG_(INFO) << "CheckExtensionInterception_SystemApp_NoInterceptionConfig end";
 }
 } // namespace AAFwk
 } // namespace OHOS
