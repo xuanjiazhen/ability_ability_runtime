@@ -25,7 +25,7 @@ class ModularObjectManager : public std::enable_shared_from_this<ModularObjectMa
     DECLARE_DELAYED_SINGLETON(ModularObjectManager)
 public:
     int32_t QuerySelfModularObjectExtensionInfos(int32_t userId, const std::string &bundleName
-        int32_t appIndex, std::vector<AAFwk::ModularObjectExtensionInfo> &infos)
+        int32_t appIndex, std::vector<AAFwk::ModularObjectExtensionInfo> &infos);
 };
 }
 }
