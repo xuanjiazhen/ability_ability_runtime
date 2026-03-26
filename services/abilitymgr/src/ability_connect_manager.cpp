@@ -986,6 +986,15 @@ int AbilityConnectManager::ScheduleCommandAbilityDoneLocked(const sptr<IRemoteOb
     }
     EventInfo eventInfo = BuildEventInfo(abilityRecord);
     EventReport::SendStartServiceEvent(EventName::START_SERVICE, eventInfo);
+    // Report background user start extension event
+    if (!AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId_)) {
+        EventInfo bgUserEventInfo = BuildEventInfo(abilityRecord);
+        bgUserEventInfo.userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+        EventReport::SendStartAbilityInBackgroundUserEvent(
+            EventName::START_ABILITY_IN_BACKGROUND_USER, bgUserEventInfo);
+        TAG_LOGI(AAFwkTag::EXT, "Start extension in background user, userId: %{public}d, bundle: %{public}s",
+            userId_, eventInfo.bundleName.c_str());
+    }
     abilityRecord->RemoveSignatureInfo();
     // complete command and pop waiting start ability from queue.
     CompleteCommandAbility(abilityRecord);

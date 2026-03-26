@@ -137,7 +137,10 @@ enum class EventName {
     WANTAGENT_NUMBER,
 
     // report data
-    USER_DATA_SIZE
+    USER_DATA_SIZE,
+
+    // background user extension start event
+    START_ABILITY_IN_BACKGROUND_USER
 };
 
 typedef enum {
@@ -174,6 +177,7 @@ public:
         const EventInfo &eventInfo);
     static void SendAppStartupErrorEvent(
         const EventName &eventName, HiSysEventEventType type, const EventInfo &eventInfo);
+    static void SendStartAbilityInBackgroundUserEvent(const EventName &eventName, const EventInfo &eventInfo);
 
 private:
     static std::string ConvertEventName(const EventName &eventName);
