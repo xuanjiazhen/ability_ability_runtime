@@ -47,6 +47,7 @@ ohos_fuzztest("AbilityMemoryLevelInfoFuzzTest") {
     "init:libbegetutil",
     "ipc:ipc_core",
     "samgr:samgr_proxy",
+    "qos_manager:pi_mutex",
     "window_manager:libwm",
   ]
 }

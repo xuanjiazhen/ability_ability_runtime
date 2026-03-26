@@ -61,6 +61,7 @@ ohos_moduletest("AmsAppMgrServiceModuleTest") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "safwk:system_ability_fwk",
     "selinux_adapter:librestorecon",
   ]
