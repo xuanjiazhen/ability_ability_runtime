@@ -23,6 +23,7 @@ ohos_unittest("js_system_configuration_updated_callback_test") {
   sources = [
     "js_system_configuration_updated_callback_test.cpp",
     "js_system_configuration_callback_helper_test.cpp",
+    "ets_system_configuration_updated_callback_test.cpp",
   ]
 
   include_dirs = [
