@@ -68,6 +68,7 @@ ohos_fuzztest("AbilitymgrEcologicalRuleInterceptorFuzzTest") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
     "samgr:samgr_proxy",

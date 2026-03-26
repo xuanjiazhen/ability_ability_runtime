@@ -48,6 +48,7 @@ ohos_unittest("ability_debug_response_stub_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

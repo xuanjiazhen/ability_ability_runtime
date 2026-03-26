@@ -71,6 +71,7 @@ ohos_unittest("ability_interceptor_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
     "samgr:samgr_proxy",

@@ -49,6 +49,7 @@ ohos_unittest("block_all_app_start_interceptor_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

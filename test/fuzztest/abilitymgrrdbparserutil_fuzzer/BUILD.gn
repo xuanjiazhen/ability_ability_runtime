@@ -72,6 +72,7 @@ ohos_fuzztest("AbilityMgrRdbParserUtilFuzzTest") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "json:nlohmann_json_static",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",

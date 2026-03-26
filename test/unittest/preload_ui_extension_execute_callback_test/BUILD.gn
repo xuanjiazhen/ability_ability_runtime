@@ -51,6 +51,7 @@ ohos_unittest("preload_ui_extension_execute_callback_stub_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "samgr:samgr_proxy",
   ]
 }

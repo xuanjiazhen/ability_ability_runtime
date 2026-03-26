@@ -51,6 +51,7 @@ ohos_unittest("ability_first_frame_state_observer_manager_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 
   cflags_cc = []

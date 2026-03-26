@@ -53,6 +53,7 @@ ohos_unittest("insight_intent_db_cache_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "relational_store:native_rdb",
   ]
 }

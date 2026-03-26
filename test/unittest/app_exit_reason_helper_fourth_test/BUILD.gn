@@ -87,6 +87,7 @@ ohos_unittest("app_exit_reason_helper_fourth_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "safwk:system_ability_fwk",

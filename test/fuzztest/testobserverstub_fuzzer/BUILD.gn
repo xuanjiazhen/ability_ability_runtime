@@ -43,6 +43,7 @@ ohos_fuzztest("TestObserverStubFuzzTest") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

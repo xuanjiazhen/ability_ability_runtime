@@ -49,6 +49,7 @@ ohos_unittest("ability_manager_collaborator_proxy_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

@@ -50,6 +50,7 @@ ohos_unittest("connect_server_manager_test") {
     "googletest:gmock_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "napi:ace_napi",
   ]
 

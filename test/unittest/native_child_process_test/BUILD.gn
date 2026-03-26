@@ -102,6 +102,7 @@ ohos_unittest("native_child_process_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "safwk:system_ability_fwk",

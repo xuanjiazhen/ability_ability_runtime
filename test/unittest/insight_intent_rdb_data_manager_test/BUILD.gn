@@ -50,6 +50,7 @@ ohos_unittest("insight_intent_rdb_data_manager_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "relational_store:native_rdb",
   ]
 }

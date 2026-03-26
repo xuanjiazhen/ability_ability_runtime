@@ -90,6 +90,7 @@ ohos_fuzztest("KeepAliveProcessManagerNinthFuzzTest") {
     "init:libbeget_proxy",
     "input:libmmi-client",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "relational_store:native_dataability",

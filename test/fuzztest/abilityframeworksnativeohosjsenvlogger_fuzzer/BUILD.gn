@@ -84,6 +84,7 @@ ohos_fuzztest("AbilityFrameworksNativeOhosJsEnvLoggerFuzzTest") {
     "hitrace:hitrace_meter",
     "input:libmmi-client",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
     "safwk:api_cache_manager",

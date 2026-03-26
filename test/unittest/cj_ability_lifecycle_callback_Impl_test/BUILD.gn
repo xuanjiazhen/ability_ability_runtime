@@ -57,6 +57,7 @@ ohos_unittest("cj_ability_lifecycle_callback_Impl_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
     "napi:cj_bind_ffi",
   ]

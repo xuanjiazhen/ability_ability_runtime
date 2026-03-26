@@ -71,6 +71,7 @@ ohos_unittest("js_ui_ability_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "ipc:ipc_napi",
     "libuv:uv",
     "napi:ace_napi",

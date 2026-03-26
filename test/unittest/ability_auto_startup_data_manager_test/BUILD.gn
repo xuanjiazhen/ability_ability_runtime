@@ -62,6 +62,7 @@ ohos_unittest("ability_auto_startup_data_manager_test") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
   ]
   if (ability_runtime_upms) {

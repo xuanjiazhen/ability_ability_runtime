@@ -50,6 +50,7 @@ ohos_unittest("app_hybrid_spawn_manager_test") {
     "hisysevent:libhisysevent",
     "init:libbeget_proxy",
     "init:libbegetutil",
+    "qos_manager:pi_mutex",
   ]
 
   if (ability_runtime_child_process) {

@@ -60,6 +60,7 @@ ohos_fuzztest("AbilityManagerServiceFourthFuzzTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "napi:ace_napi",
     "relational_store:native_dataability",
     "relational_store:native_rdb",

@@ -70,6 +70,7 @@ ohos_unittest("uri_utils_second_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

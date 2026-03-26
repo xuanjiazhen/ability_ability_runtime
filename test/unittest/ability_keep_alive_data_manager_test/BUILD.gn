@@ -58,6 +58,7 @@ ohos_unittest("ability_keep_alive_data_manager_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
   ]
 

@@ -94,6 +94,7 @@ ohos_unittest("extension_record_factory_test") {
     "i18n:intl_util",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "json:nlohmann_json_static",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",

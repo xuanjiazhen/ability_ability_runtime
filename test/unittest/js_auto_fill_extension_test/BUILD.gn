@@ -61,6 +61,7 @@ ohos_unittest("js_auto_fill_extension_test") {
     "icu:shared_icuuc",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "ipc:ipc_napi",
     "json:nlohmann_json_static",
     "napi:ace_napi",

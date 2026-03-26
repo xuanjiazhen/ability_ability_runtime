@@ -68,6 +68,7 @@ ohos_unittest("update_caller_info_util_test") {
     "hisysevent:libhisysevent",
     "image_framework:image_native",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
     "safwk:api_cache_manager",
   ]

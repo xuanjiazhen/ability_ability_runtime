@@ -85,6 +85,7 @@ ohos_unittest("assert_fault_callback_death_mgr_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "safwk:api_cache_manager",
     "samgr:samgr_proxy",
     "window_manager:libwsutils",

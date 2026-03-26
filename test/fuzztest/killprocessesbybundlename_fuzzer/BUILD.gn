@@ -49,6 +49,7 @@ ohos_fuzztest("KillProcessesByBundleNameFuzzTest") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "relational_store:native_dataability",
     "relational_store:native_rdb",
     "samgr:samgr_proxy",

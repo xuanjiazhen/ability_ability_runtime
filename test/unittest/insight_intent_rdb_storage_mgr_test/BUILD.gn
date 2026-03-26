@@ -54,6 +54,7 @@ ohos_unittest("insight_intent_rdb_storage_mgr_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "relational_store:native_rdb",
   ]
 }

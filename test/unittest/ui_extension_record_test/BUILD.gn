@@ -51,6 +51,7 @@ ohos_unittest("ui_extension_record_test") {
     "hisysevent:libhisysevent",
     "image_framework:image_native",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "safwk:api_cache_manager",
     "window_manager:scene_session",
   ]

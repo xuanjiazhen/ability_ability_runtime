@@ -76,6 +76,7 @@ ohos_fuzztest("AbilityMgrAbilityManagerStubFuzzTest") {
     "hitrace:hitrace_meter",
     "init:libbeget_proxy",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
     "safwk:api_cache_manager",

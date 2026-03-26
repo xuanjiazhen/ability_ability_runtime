@@ -50,6 +50,7 @@ ohos_unittest("sa_interceptor_stub_test") {
     "hilog:libhilog",
     "image_framework:image_native",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 
   if (background_task_mgr_continuous_task_enable) {

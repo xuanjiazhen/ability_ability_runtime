@@ -49,6 +49,7 @@ ohos_unittest("start_option_display_id_test") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "safwk:api_cache_manager",
   ]
 

@@ -74,6 +74,7 @@ ohos_fuzztest("AbilityMgrUiExtensionRecordFuzzTest") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
     "safwk:api_cache_manager",

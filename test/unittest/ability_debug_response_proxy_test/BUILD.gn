@@ -43,6 +43,7 @@ ohos_unittest("ability_debug_response_proxy_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

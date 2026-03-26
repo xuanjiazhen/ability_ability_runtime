@@ -46,6 +46,7 @@ ohos_unittest("app_debug_manager_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

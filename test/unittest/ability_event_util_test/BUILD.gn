@@ -59,6 +59,7 @@ ohos_unittest("ability_event_util_test") {
     "hisysevent:libhisysevent",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

@@ -57,6 +57,7 @@ ohos_unittest("fault_data_test") {
     "hilog:libhilog",
     "init:libbeget_proxy",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "samgr:samgr_proxy",
   ]
 

@@ -74,6 +74,7 @@ ohos_fuzztest("DialogSessionManagerFirstFuzzTest") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
     "safwk:system_ability_fwk",

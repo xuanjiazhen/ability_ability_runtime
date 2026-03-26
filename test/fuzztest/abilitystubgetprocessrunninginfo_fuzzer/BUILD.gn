@@ -52,6 +52,7 @@ ohos_fuzztest("AbilityStubGetProcessRunningInfoFuzzTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

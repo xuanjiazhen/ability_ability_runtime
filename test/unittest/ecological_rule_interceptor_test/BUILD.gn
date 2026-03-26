@@ -71,6 +71,7 @@ ohos_unittest("ecological_rule_interceptor_test") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "libjpeg-turbo:turbojpeg",
     "napi:ace_napi",
     "samgr:samgr_proxy",

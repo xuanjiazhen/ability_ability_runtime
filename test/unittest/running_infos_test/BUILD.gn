@@ -47,6 +47,7 @@ ohos_unittest("running_infos_test") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "safwk:api_cache_manager",
   ]
 

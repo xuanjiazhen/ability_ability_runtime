@@ -61,6 +61,7 @@ ohos_unittest("ability_record_first_test") {
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 
   defines = []

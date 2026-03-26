@@ -59,6 +59,7 @@ ohos_unittest("app_state_observer_manager_test_second") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "samgr:samgr_proxy",
   ]
 

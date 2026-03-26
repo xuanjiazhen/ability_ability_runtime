@@ -60,6 +60,7 @@ ohos_unittest("js_ui_extension_context_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "ipc:ipc_napi",
     "libuv:uv",
     "napi:ace_napi",

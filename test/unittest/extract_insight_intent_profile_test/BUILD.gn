@@ -46,6 +46,7 @@ ohos_unittest("extract_insight_intent_profile_test") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

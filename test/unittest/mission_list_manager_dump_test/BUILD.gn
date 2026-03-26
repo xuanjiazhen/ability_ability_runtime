@@ -39,6 +39,7 @@ ohos_unittest("mission_list_manager_dump_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 
   if (background_task_mgr_continuous_task_enable) {

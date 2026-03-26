@@ -51,6 +51,7 @@ ohos_unittest("AmsMgrStubTest") {
     "hisysevent:libhisysevent",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "samgr:samgr_proxy",
   ]
 

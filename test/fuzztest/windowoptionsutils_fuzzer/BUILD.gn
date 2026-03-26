@@ -55,6 +55,7 @@ ohos_fuzztest("WindowOptionsUtilsFuzzTest") {
     "hilog:libhilog",
     "hisysevent:libhisysevent",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "image_framework:image_native",
     "safwk:system_ability_fwk",
   ]

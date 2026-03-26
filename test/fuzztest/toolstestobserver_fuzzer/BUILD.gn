@@ -39,6 +39,7 @@ ohos_fuzztest("ToolsTestObserverFuzzTest") {
     "bundle_framework:appexecfwk_base",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

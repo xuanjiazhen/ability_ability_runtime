@@ -73,6 +73,7 @@ ohos_fuzztest("BundleMgrHelperFourthFuzzTest") {
     "hitrace:hitrace_meter",
     "hitrace:libhitracechain",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "os_account:os_account_innerkits",

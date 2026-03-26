@@ -93,6 +93,7 @@ ohos_unittest("cj_ui_ability_test") {
     "hitrace:hitrace_meter",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "napi:ace_napi",
     "napi:cj_bind_ffi",
     "napi:cj_bind_native",

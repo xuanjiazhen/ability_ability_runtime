@@ -48,6 +48,7 @@ ohos_unittest("timeout_state_utils_test") {
     "hilog:libhilog",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "hisysevent:libhisysevent",
     "background_task_mgr:bgtaskmgr_innerkits",
     "safwk:system_ability_fwk",

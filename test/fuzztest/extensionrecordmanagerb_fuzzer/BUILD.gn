@@ -95,6 +95,7 @@ ohos_fuzztest("ExtensionRecordManagerbFuzzTest") {
     "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
     "os_account:os_account_innerkits",
     "relational_store:native_dataability",

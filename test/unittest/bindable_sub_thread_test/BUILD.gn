@@ -49,6 +49,7 @@ ohos_unittest("bindable_sub_thread_test") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 }
 

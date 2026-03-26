@@ -81,6 +81,7 @@ ohos_unittest("ability_auto_startup_service_second_test") {
     "image_framework:image_native",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_inner",
     "safwk:api_cache_manager",
     "selinux_adapter:librestorecon",

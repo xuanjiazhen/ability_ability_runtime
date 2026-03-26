@@ -70,6 +70,7 @@ ohos_unittest("ability_cache_manager_test") {
     "hisysevent:libhisysevent",
     "init:libbeget_proxy",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

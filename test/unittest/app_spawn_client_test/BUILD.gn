@@ -52,6 +52,7 @@ ohos_unittest("AppSpawnClientTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

@@ -63,6 +63,7 @@ ohos_fuzztest("AbilityStartWithWaitObserverManagerFuzzTest") {
     "ipc:ipc_core",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "qos_manager:pi_mutex",
     "window_manager:libwm",
   ]
 }
