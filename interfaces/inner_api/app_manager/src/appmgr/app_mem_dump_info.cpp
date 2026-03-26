@@ -62,6 +62,11 @@ MemDumpInfo *MemDumpInfo::Unmarshalling(Parcel &parcel)
         delete info;
         return nullptr;
     }
+    if(info->pid == 0)
+    {
+        delete info;
+        return nullptr;
+    }
     if (!parcel.ReadUint32(info->tid)) {
         delete info;
         return nullptr;
