@@ -1113,6 +1113,9 @@ enum {
     // Result (2099213) for agent card id does not exist.
     ERR_INVALID_AGENT_CARD_ID = 2099213,
 
+    // Result (2099214) for agent connections from the same caller reach the limit.
+    ERR_MAX_AGENT_CONNECTIONS_REACHED = 2099214,
+
     /**
      * Result (2099214) for not support screen.
      */
