@@ -3246,6 +3246,16 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         AddToServiceMap(serviceKey, targetService);
         isLoadedAbility = false;
     }
+    if (!abilityRequest.appInfo.debug ||
+        abilityRequest.appInfo.appProvisionType !=
+        AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+            TAG_LOGD(AAFwkTag::EXT, "Not debug Extension");
+            return;
+    }
+    if (targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        TAG_LOGD(AAFwkTag::EXT, "Setting up debug Extension");
+        targetService->SetDebugExtension();
+    }
     TAG_LOGD(AAFwkTag::EXT, "service map add, serviceKey: %{public}s", serviceKey.c_str());
 }
 

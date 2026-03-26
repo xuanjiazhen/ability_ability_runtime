@@ -3456,5 +3456,13 @@ int AbilityRecord::GetAppRecoveryFlag() const
 {
     return appRecoveryFlag_;
 }
+
+void AbilityRecord::SetDebugExtension()
+{
+    std::lock_guard guard(wantLock_);
+    want_.SetParam(AbilityConfig::DEBUG_APP, true);
+    launchDebugInfo_.isDebugAppSet = true;
+    launchDebugInfo_.debugApp = true;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
