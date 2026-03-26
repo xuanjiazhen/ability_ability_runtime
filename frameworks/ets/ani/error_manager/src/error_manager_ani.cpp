@@ -402,6 +402,12 @@ static void EtsErrorManagerInit(ani_env *env)
     }
     TAG_LOGD(AAFwkTag::RECOVERY, "ErrorManager ets called end");
 }
+
+static bool IsErrorObserverListNotEmpty()
+{
+    std::lock_guard<std::mutex> lock(g_defaultHandlerMtx);
+    return g_defaultHandler == nullptr ? false : true;
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 
@@ -423,6 +429,8 @@ ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
     OHOS::AbilityRuntime::EtsErrorManagerInit(env);
     *result = ANI_VERSION_1;
     OHOS::AppExecFwk::ApplicationDataManager::GetInstance().SetErrorHandlerCallback(
+        OHOS::AbilityRuntime::ErrorManagerAni::DoErrorCallback);
+    OHOS::AppExecFwk::ApplicationDataManager::GetInstance().RegisterHasOnErrorCallback(
         OHOS::AbilityRuntime::ErrorManagerAni::DoErrorCallback);
 
     TAG_LOGD(AAFwkTag::RECOVERY, "ANI_Constructor finish");
