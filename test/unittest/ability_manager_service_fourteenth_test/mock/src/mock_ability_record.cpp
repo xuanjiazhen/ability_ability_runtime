@@ -1734,5 +1734,9 @@ int AbilityRecord::GetAppRecoveryFlag() const
 {
     return appRecoveryFlag_;
 }
+
+void AbilityRecord::SetDebugExtension()
+{
+}
 }  // namespace AAFwk
 }  // namespace OHOS

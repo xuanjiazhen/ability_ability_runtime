@@ -3246,6 +3246,24 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         AddToServiceMap(serviceKey, targetService);
         isLoadedAbility = false;
     }
+    auto callerRecord = AAFwk::Token::GetAbilityRecordByToken(abilityRequest.callerToken);
+    if (!callerRecord) {
+        TAG_LOGD(AAFwkTag::EXT, "No caller record");
+        return;
+    }
+    if (!callerRecord->IsDebug() ||
+        callerRecord->GetApplicationInfo().appProvisionType !=
+        AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+            TAG_LOGD(AAFwkTag::EXT, "Not debug Extension");
+            return;
+    }
+    auto callerBundleName = callerRecord->GetAbilityInfo().bundleName;
+    auto isSameApp = callerBundleName == abilityRequest.abilityInfo.bundleName;
+    if (isSameApp &&
+        targetService->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
+        TAG_LOGD(AAFwkTag::EXT, "Setting up debug UIExtension");
+        abilityRecord->SetDebugExtension();
+    }
     TAG_LOGD(AAFwkTag::EXT, "service map add, serviceKey: %{public}s", serviceKey.c_str());
 }
 
