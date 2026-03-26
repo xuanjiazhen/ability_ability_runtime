@@ -29,6 +29,7 @@ ohos_fuzztest("AbilitymgrEcologicalRuleInterceptorFirstFuzzTest") {
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_services_path}/abilitymgr/include/interceptor",
     "${ability_runtime_services_path}/abilitymgr/include/ecological_rule",
+    "${ability_runtime_services_path}/abilitymgr/include/utils",
   ]
   cflags = [
     "-g",
@@ -36,7 +37,10 @@ ohos_fuzztest("AbilitymgrEcologicalRuleInterceptorFirstFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "abilitymgrecologicalruleinterceptorfirst_fuzzer.cpp" ]
+  sources = [
+    "${ability_runtime_services_path}/abilitymgr/src/utils/start_ability_utils.cpp",
+    "abilitymgrecologicalruleinterceptorfirst_fuzzer.cpp",
+  ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
