@@ -25,6 +25,7 @@
 #include "bundle_mgr_helper.h"
 #include "insight_intent_db_cache.h"
 #include "ffrt.h"
+#include <chrono>
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -89,6 +90,7 @@ void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
 
 void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
 {
+    auto startTime = std::chrono::high_resolution_clock::now();
     std::lock_guard<std::mutex> lock(userIdMutex_);
     if (userId == -1) {
         userId = AppExecFwk::OsAccountManagerWrapper::GetCurrentActiveAccountId();
@@ -108,6 +110,9 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
     auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null bundleMgrHelper");
+        auto endTime = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+        TAG_LOGI(AAFwkTag::INTENT, "LoadInsightIntentInfos completed in %{public}lld ms (error: null bundleMgrHelper)", duration);
         return;
     }
 
@@ -116,6 +121,9 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
         static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE),
         bundleInfos, userId)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "get bundle info failed");
+        auto endTime = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+        TAG_LOGI(AAFwkTag::INTENT, "LoadInsightIntentInfos completed in %{public}lld ms (error: get bundle info failed)", duration);
         return;
     }
 
@@ -137,6 +145,10 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
     if (hasNewIntent) {
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
     }
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    TAG_LOGI(AAFwkTag::INTENT, "LoadInsightIntentInfos completed successfully in %{public}lld ms, userId: %{public}d, bundles: %{public}zu",
+        duration, userId, bundleInfos.size());
 }
 
 void InsightIntentSysEventReceiver::DeleteInsightIntentInfoByUserId(int32_t userId)
