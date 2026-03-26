@@ -850,6 +850,19 @@ private:
     std::vector<int32_t> thresholds_ = {50, 100, 200, 500};
     std::atomic_uint32_t sceneBoardTokenId_ = 0;
 
+    // For debugging: track background user extension start frequency
+    struct BackgroundUserStartStats {
+        int32_t count = 0;
+        int64_t firstStartTime = 0;
+        int64_t lastStartTime = 0;
+        std::string lastCallerBundleName;
+        int32_t lastCallerUserId = -1;
+        std::string lastCallerProcessName;
+    };
+    std::unordered_map<std::string, BackgroundUserStartStats> bgUserStartStatsMap_;
+    std::mutex bgUserStartStatsMutex_;
+    void RecordBackgroundUserStartStats(const EventInfo &eventInfo);
+
     DISALLOW_COPY_AND_MOVE(AbilityConnectManager);
 };
 }  // namespace AAFwk
