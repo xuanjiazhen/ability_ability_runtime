@@ -192,15 +192,14 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoElementN
  * @brief Gets the disable state of modular object extension.
  *
  * @param extensionInfo The modular object extension info.
- * @param isSelfDisabled Whether the extension is disabled by the application itself.
- * @param isSystemDisabled Whether the extension disabled by system application.
+ * @param isDisabled Whether the extension is disabled by the application itself.
  * @return Returns a specific error code.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoDisableState(
-    OH_AbilityRuntime_MoeInfoHandle extensionInfo, bool *isSelfDisabled, bool *isSystemDisabled);
+    OH_AbilityRuntime_MoeInfoHandle extensionInfo, bool *isDisabled);
 
 /**
  * @brief Queries all modular object extension infos within the self application.

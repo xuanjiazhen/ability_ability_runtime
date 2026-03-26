@@ -16972,9 +16972,9 @@ int32_t AbilityManagerService::QuerySelfModularObjectExtensionInfos(
     CHECK_POINTER_AND_RETURN(bundleMgrHelper, ERR_INVALID_VALUE);
     std::string callerBundleName;
     int32_t callerAppIndex;
-    auto ret = bundleMgrHelper->GetBundleNameForUid(callinguid, callerBundleName, callerAppIndex);
+    auto ret = bundleMgrHelper->GetNameAndIndexForUid(callinguid, callerBundleName, callerAppIndex);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetBundleNameForUid failed for uid: %{public}d", callinguid);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetNameAndIndexForUid failed for uid: %{public}d", callinguid);
         return ret;
     }
     int32_t userId = callinguid / BASE_USER_RANGE;
