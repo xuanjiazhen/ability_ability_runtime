@@ -90,6 +90,7 @@ ohos_fuzztest("AbilityAppMgrAppRunningManagerFuzzTest") {
     "napi:ace_napi",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "qos_manager:pi_mutex",
     "window_manager:libwmutil_base",
     "window_manager:libwmutil_static",
   ]
