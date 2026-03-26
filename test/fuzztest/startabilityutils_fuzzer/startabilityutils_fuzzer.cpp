@@ -41,6 +41,7 @@ constexpr uint8_t ENABLE = 2;
 constexpr size_t OFFSET_ZERO = 24;
 constexpr size_t OFFSET_ONE = 16;
 constexpr size_t OFFSET_TWO = 8;
+constexpr size_t MAX_FUZZ_INPUT_SIZE = 4096;
 }
 
 uint32_t GetU32Data(const char* ptr)
@@ -104,7 +105,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
 
     /* Validate the length of size */
-    if (size < OHOS::U32_AT_SIZE) {
+    if (size < OHOS::U32_AT_SIZE || size > OHOS::MAX_FUZZ_INPUT_SIZE) {
         return 0;
     }
 
