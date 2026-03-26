@@ -58,6 +58,7 @@ ohos_fuzztest("AbilityAppPreloaderFourthFuzzTest") {
     "ipc:ipc_core",
     "resource_schedule_service:ressched_client",
     "samgr:samgr_proxy",
+    "qos_manager:pi_mutex",
     "window_manager:libwm",
   ]
 }

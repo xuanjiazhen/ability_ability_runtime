@@ -61,6 +61,7 @@ ohos_unittest("app_running_record_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_mgr",
     "memory_utils:libmeminfo",
     "safwk:system_ability_fwk",

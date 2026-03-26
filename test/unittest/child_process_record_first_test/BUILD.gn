@@ -64,6 +64,7 @@ ohos_unittest("child_process_record_first_test") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_mgr",
     "memory_utils:libmeminfo",
     "safwk:system_ability_fwk",

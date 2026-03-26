@@ -38,6 +38,7 @@ ohos_unittest("advanced_security_mode_manager_test") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "init:libbegetutil",
+    "qos_manager:pi_mutex",
   ]
 }
 

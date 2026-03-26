@@ -82,6 +82,7 @@ ohos_unittest("AppMgrServiceInnerFourthTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "kv_store:distributeddata_mgr",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",

@@ -53,6 +53,7 @@ ohos_fuzztest("AbilityInterfacesAppManagerAmsMgrStubEleventhFuzzTest") {
     "hisysevent:libhisysevent",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
     "safwk:system_ability_fwk",
   ]
 

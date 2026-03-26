@@ -89,6 +89,7 @@ ohos_fuzztest("ScreenUnlockInterceptorFirstFuzzTest") {
     "napi:ace_napi",
     "safwk:api_cache_manager",
     "samgr:samgr_proxy",
+    "qos_manager:pi_mutex",
   ]
 
   if (ability_runtime_dsoftbus_enable) {

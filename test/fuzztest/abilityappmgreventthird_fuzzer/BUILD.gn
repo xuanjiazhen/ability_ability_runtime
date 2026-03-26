@@ -63,6 +63,7 @@ ohos_fuzztest("AbilityAppMgrEventThirdFuzzTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "qos_manager:pi_mutex",
   ]
 
   if (ability_runtime_graphics) {

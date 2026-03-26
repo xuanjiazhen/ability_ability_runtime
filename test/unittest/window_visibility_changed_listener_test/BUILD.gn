@@ -63,6 +63,7 @@ ohos_unittest("window_visibility_changed_listener_test") {
     "ipc:ipc_core",
     "kv_store:distributeddata_mgr",
     "memory_utils:libmeminfo",
+    "qos_manager:pi_mutex",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "window_manager:libwmutil",
