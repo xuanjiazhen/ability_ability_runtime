@@ -2393,12 +2393,6 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_WOULD_BLOCK, "controller start failed");
         return ERR_WOULD_BLOCK;
     }
-#ifdef SUPPORT_SCREEN
-    if (abilityInfo.isStageBasedModel && !CheckWindowMode(startOptions.GetWindowMode(), abilityInfo.windowModes)) {
-        AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_AAFWK_INVALID_WINDOW_MODE, "CheckWindowMode fail");
-        return ERR_AAFWK_INVALID_WINDOW_MODE;
-    }
-#endif
     if (startOptions.GetDisplayID() == 0) {
         abilityRequest.want.SetParam(Want::PARAM_RESV_DISPLAY_ID,
             DisplayUtil::GetDefaultDisplayId());
