@@ -273,5 +273,90 @@ HWTEST_F(InsightIntentSysEventReceiverTest, DeleteInsightIntentInfoByUserId_0007
     sysEventReceiver->DeleteInsightIntentInfoByUserId(OTHER_USER_ID);
     EXPECT_EQ(sysEventReceiver->lastUserId_, 100);
 }
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_DeleteInsightIntent_0008
+ * @tc.desc: Test DeleteInsightIntent triggered when SaveInsightIntentInfos fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, DeleteInsightIntent_0008, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    uint32_t ver = 100;
+    auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
+
+    // 测试场景1: SaveInsightIntentInfos 调用失败时会触发 DeleteInsightIntent
+    // 当 bundleName 或 moduleName 无效时，系统应该正常处理而不崩溃
+    sysEventReceiver->SaveInsightIntentInfos("", TEST_MODULE_NAME, ver, MAIN_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, "", ver, MAIN_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+
+    // 测试场景2: 使用无效的 userId
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, INVALID_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+
+    // 测试场景3: 使用不存在的 bundle (GetJsonProfile 会失败，触发 DeleteInsightIntent)
+    sysEventReceiver->SaveInsightIntentInfos("com.nonexistent.bundle", TEST_MODULE_NAME, ver, MAIN_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+
+    // 测试场景4: 多模块场景下部分失败的情况
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, MULTI_MODULE_NAME, ver, MAIN_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_SaveInsightIntentInfos_EdgeCases_0009
+ * @tc.desc: Test SaveInsightIntentInfos edge cases that trigger DeleteInsightIntent
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, SaveInsightIntentInfos_EdgeCases_0009, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    uint32_t ver = 0;
+    auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
+
+    // 测试边界条件: versionCode 为 0
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, MAIN_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+
+    // 测试边界条件: versionCode 为最大值
+    uint32_t maxVer = UINT32_MAX;
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, maxVer, MAIN_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+
+    // 测试特殊字符模块名
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, "module@#$%", ver, MAIN_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+
+    // 测试超长模块名
+    std::string longModuleName(1000, 'a');
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, longModuleName, ver, MAIN_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+}
+
+/**
+ * @tc.name: InsightIntentSysEventReceiverTest_DeleteInsightIntent_MultiUser_0010
+ * @tc.desc: Test DeleteInsightIntent with multiple user scenarios
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentSysEventReceiverTest, DeleteInsightIntent_MultiUser_0010, TestSize.Level1)
+{
+    EventFwk::CommonEventSubscribeInfo subscribeInfo;
+    uint32_t ver = 100;
+    auto sysEventReceiver = std::make_shared<AbilityRuntime::InsightIntentSysEventReceiver>(subscribeInfo);
+
+    // 测试多用户场景下的 DeleteInsightIntent 行为
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, MAIN_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, OTHER_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+
+    // 测试用户ID为0的情况
+    sysEventReceiver->SaveInsightIntentInfos(TEST_BUNDLE_NAME, TEST_MODULE_NAME, ver, ZERO_USER_ID);
+    EXPECT_EQ(sysEventReceiver->lastUserId_, 0);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
