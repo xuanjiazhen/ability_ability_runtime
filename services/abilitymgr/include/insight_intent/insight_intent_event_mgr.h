@@ -32,8 +32,6 @@ public:
     void SubscribeSysEventReceiver();
 private:
     std::shared_ptr<InsightIntentSysEventReceiver> insightIntentSysEventReceiver_ = nullptr;
-
-    static void DeleteInsightIntent(const std::string &bundleName, const std::string &moduleName, int32_t userId);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
