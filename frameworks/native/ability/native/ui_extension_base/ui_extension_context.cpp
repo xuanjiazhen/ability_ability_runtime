@@ -291,7 +291,6 @@ void UIExtensionContext::TerminateSelfWithResult(int32_t resultCode, const AAFwk
     pendingResultWant_ = want;
     pendingTerminateCallback_ = std::move(callback);
     hasPendingTerminateRequest_ = true;
-
     SetTerminating(true);
     ErrCode err = HandleTerminateWithAnimation();
 
