@@ -683,6 +683,9 @@ bool UIAbilityLifecycleManager::AddStartCallerTimestamp(int32_t callerUid)
 int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &abilityRequest)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    // Log bundle first launch status for system event (main entry point for most UIAbility starts)
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "FirstLaunch: bundleName=%{public}s, isBundleFirstLaunched=%{public}d",
+        abilityRequest.appInfo.bundleName.c_str(), abilityRequest.appInfo.isBundleFirstLaunched);
     if (!AddStartCallerTimestamp(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1))) {
         return ERR_FREQ_START_ABILITY;
     }
