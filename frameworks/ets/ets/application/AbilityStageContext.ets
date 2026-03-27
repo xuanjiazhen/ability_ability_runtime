@@ -15,6 +15,7 @@
 
 import Context from 'application.Context'
 import { Configuration } from '@ohos.app.ability.Configuration'
+import { ElementName } from 'bundleManager.ElementName'
 import { HapModuleInfo } from 'bundleManager.HapModuleInfo'
 
 export default class AbilityStageContext extends Context {
@@ -23,6 +24,7 @@ export default class AbilityStageContext extends Context {
   }
   config?: Configuration;
   currentHapModuleInfo!: HapModuleInfo;
+  launchElement?: ElementName;
 
   private static native nativeTransferStatic(input: ESValue, type: string): Object;
   private static native nativeTransferDynamic(input: Object): ESValue;
