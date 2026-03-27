@@ -155,6 +155,83 @@ void EtsInteropAbilityLifecycleCallback::CallObjectMethodInner(ani_env *aniEnv, 
     }
 }
 
+void EtsInteropAbilityLifecycleCallback::CallObjectProperty(const char *name,
+    std::shared_ptr<InteropObject> ability)
+{
+    ani_env *aniEnv = GetAniEnv();
+    if (aniEnv == nullptr || ability == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or ability");
+        return;
+    }
+    ani_value aniAbility;
+    if (!GetAniValueFromInteropObject(aniEnv, ability, aniAbility)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get ability ani value");
+        return;
+    }
+    CallObjectPropertyCommon(aniEnv, name, ability->r, nullptr);
+}
+
+void EtsInteropAbilityLifecycleCallback::CallObjectProperty(const char *name,
+    std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    ani_env *aniEnv = GetAniEnv();
+    if (aniEnv == nullptr || ability == nullptr || windowStage == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or ability or windowStage");
+        return;
+    }
+    ani_value aniAbility;
+    if (!GetAniValueFromInteropObject(aniEnv, ability, aniAbility)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed to get ability ani value");
+        return;
+    }
+    ani_value aniWindowStage;
+    bool hasWindowStage = windowStage != nullptr;
+    if (hasWindowStage && !GetAniValueFromInteropObject(aniEnv, windowStage, aniWindowStage)) {
+        TAG_LOGI(AAFwkTag::APPKIT, "failed to get window stage ani value");
+        return;
+    }
+    CallObjectPropertyCommon(aniEnv, name, ability->r, windowStage->r);
+}
+
+void EtsInteropAbilityLifecycleCallback::CallObjectPropertyCommon(ani_env *env, const char *name,
+    ani_ref ability, ani_ref windowStage)
+{
+ TAG_LOGD(AAFwkTag::APPKIT, "CallObjectPropertyCommon called");
+    ani_status status = ANI_ERROR;
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (const auto &callback : callbacks_) {
+        if (callback == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null callback");
+            return;
+        }
+        ani_ref funRef = nullptr;
+        if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(callback),
+            name, &funRef)) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::APPKIT, "failed to get property, status : %{public}d", status);
+            return;
+        }
+        if (!AppExecFwk::IsValidProperty(env, funRef)) {
+            continue;
+        }
+
+        ani_ref result = nullptr;
+        if (windowStage != nullptr) {
+            std::vector<ani_ref> argv = { ability, windowStage };
+            if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_TWO, argv.data(),
+                &result)) != ANI_OK) {
+                TAG_LOGE(AAFwkTag::APPKIT, "failed to call property, status: %{public}d", status);
+            }
+        } else {
+            std::vector<ani_ref> argv = { ability };
+            if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ONE, argv.data(),
+                &result)) != ANI_OK) {
+                TAG_LOGE(AAFwkTag::APPKIT, "failed to call property, status: %{public}d", status);
+            }
+        }
+    }
+}
+
 int32_t EtsInteropAbilityLifecycleCallback::Register(void *callback)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "enter EtsInteropAbilityLifecycleCallback::Register");
@@ -332,6 +409,108 @@ void EtsInteropAbilityLifecycleCallback::OnAbilityForeground(std::shared_ptr<Int
 void EtsInteropAbilityLifecycleCallback::OnAbilityBackground(std::shared_ptr<InteropObject> ability)
 {
     CallObjectMethod("onAbilityBackgroundInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityContinue(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityContinue called");
+    CallObjectMethod("onAbilityContinueInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageActive(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageActive called");
+    CallObjectMethod("onWindowStageActiveInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageInactive(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageInactive called");
+    CallObjectMethod("onWindowStageInactiveInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnNewWant(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnNewWant called");
+    CallObjectProperty("onNewWantInner", ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillBackground(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillBackground called");
+    CallObjectProperty("onAbilityWillBackgroundInner", ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillForeground(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillForeground called");
+    CallObjectProperty("onAbilityWillForegroundInner", ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillCreate(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillCreate called");
+    CallObjectProperty("onAbilityWillCreateInner", ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageWillDestroy(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageWillDestroy called");
+    CallObjectProperty("onWindowStageWillDestroyInner", ability, windowStage);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillDestroy(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillDestroy called");
+    CallObjectProperty("onAbilityWillDestroyInner", ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageRestore(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageRestore called");
+    CallObjectProperty("onWindowStageRestoreInner", ability, windowStage);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilitySaveState(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilitySaveState called");
+    CallObjectProperty("onAbilitySaveStateInner", ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillContinue(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillContinue called");
+    CallObjectProperty("onAbilityWillContinueInner", ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillSaveState(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillSaveState called");
+    CallObjectProperty("onAbilityWillSaveStateInner", ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWillNewWant(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWillNewWant called");
+    CallObjectProperty("onWillNewWantInner", ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageWillCreate(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageWillCreate called");
+    CallObjectProperty("onWindowStageWillCreateInner", ability, windowStage);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageWillRestore(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageWillRestore called");
+    CallObjectProperty("onWindowStageWillRestoreInner", ability, windowStage);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
