@@ -1533,6 +1533,10 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         return result;
     }
 
+    // Log bundle first launch status for system event (central entry point for all ability starts)
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "FirstLaunch: bundleName=%{public}s, isBundleFirstLaunched=%{public}d",
+        abilityRequest.appInfo.bundleName.c_str(), abilityRequest.appInfo.isBundleFirstLaunched);
+
     if (abilityRequest.requestCode != DEFAULT_REQUEST_CODE &&
         ForegroundAppConnectionManager::IsForegroundAppConnection(abilityRequest.abilityInfo, abilityRecord)) {
         DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
