@@ -80,8 +80,6 @@ protected:
         std::weak_ptr<UIExtensionContext> weakContext, sptr<JSUIServiceUIExtConnection> connection,
         std::shared_ptr<NapiAsyncTask> uasyncTaskShared, const AAFwk::Want& want);
     virtual napi_value OnDisconnectUIServiceExtension(napi_env env, NapiCallbackInfo& info);
-    void SetCallbackForTerminateWithResult(int32_t resultCode, AAFwk::Want& want,
-        NapiAsyncTask::CompleteCallback& complete);
     virtual napi_value OnSetColorMode(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnIsTerminating(napi_env env, NapiCallbackInfo& info);
@@ -115,6 +113,15 @@ private:
         const std::shared_ptr<NativeReference> &atomicServiceRef,
         const std::shared_ptr<NativeReference> &onRequestSuccRef,
         const std::shared_ptr<NativeReference> &onRequestFailRef);
+
+    // Helper methods for TerminateSelfWithResult in different modes
+    napi_value HandleTerminateSelfWithResultInEmbeddedMode(napi_env env, napi_value lastParam,
+        const std::shared_ptr<AbilityRuntime::Context>& context, int32_t resultCode, const AAFwk::Want& want);
+    napi_value HandleTerminateSelfWithResultInNonEmbeddedMode(napi_env env, napi_value lastParam,
+        int32_t resultCode, AAFwk::Want& want);
+    void SetCallbackForTerminateWithResult(int32_t resultCode, AAFwk::Want& want,
+        NapiAsyncTask::CompleteCallback& complete);
+
 #ifdef SUPPORT_SCREEN
     void InitDisplayId(AAFwk::Want &want);
     void InitDisplayId(AAFwk::Want &want, AAFwk::StartOptions &startOptions, napi_env &env, NapiCallbackInfo& info);
