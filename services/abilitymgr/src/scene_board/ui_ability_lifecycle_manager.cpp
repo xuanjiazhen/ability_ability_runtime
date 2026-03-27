@@ -216,6 +216,9 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str(),
         sessionInfo->instanceKey.c_str(), sessionInfo->requestId, isCallBySCB, sessionInfo->reuseDelegatorWindow,
         sessionInfo->scenarios, abilityRequest.requestCode);
+    // Log bundle first launch status for system event
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "FirstLaunch: bundleName=%{public}s, isBundleFirstLaunched=%{public}d",
+        abilityRequest.appInfo.bundleName.c_str(), abilityRequest.appInfo.isBundleFirstLaunched);
     abilityRequest.sessionInfo = sessionInfo;
     if (sessionInfo->callerTypeForAnco == static_cast<int32_t>(CallerTypeForAnco::ADD)) {
         auto asCallerForAncoSessionId = StartAbilityUtils::GenerateAsCallerForAncoSessionId();

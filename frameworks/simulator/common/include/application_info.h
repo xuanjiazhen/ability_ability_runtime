@@ -300,6 +300,7 @@ struct ApplicationInfo {
     std::string organization;
     std::string installSource;
     std::string configuration;
+    bool isBundleFirstLaunched = false;  // Indicates whether the bundle is launched for the first time
 };
 } // namespace AppExecFwk
 } // namespace OHOS
