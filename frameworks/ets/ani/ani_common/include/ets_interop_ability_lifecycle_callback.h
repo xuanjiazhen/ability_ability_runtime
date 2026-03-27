@@ -41,6 +41,28 @@ public:
     void OnAbilityDestroy(std::shared_ptr<InteropObject> ability) override;
     void OnAbilityForeground(std::shared_ptr<InteropObject> ability) override;
     void OnAbilityBackground(std::shared_ptr<InteropObject> ability) override;
+    void OnAbilityContinue(std::shared_ptr<InteropObject> ability) override;
+    void OnWindowStageInactive(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage) override;
+    void OnWindowStageActive(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage) override;
+    void OnNewWant(std::shared_ptr<InteropObject> ability) override;
+    void OnAbilityWillBackground(std::shared_ptr<InteropObject> ability) override;
+    void OnAbilityWillForeground(std::shared_ptr<InteropObject> ability) override;
+    void OnAbilityWillCreate(std::shared_ptr<InteropObject> ability) override;
+    void OnWindowStageWillDestroy(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage) override;
+    void OnAbilityWillDestroy(std::shared_ptr<InteropObject> ability) override;
+    void OnWindowStageRestore(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage) override;
+    void OnAbilitySaveState(std::shared_ptr<InteropObject> ability) override;
+    void OnAbilityWillContinue(std::shared_ptr<InteropObject> ability) override;
+    void OnAbilityWillSaveState(std::shared_ptr<InteropObject> ability) override;
+    void OnWillNewWant(std::shared_ptr<InteropObject> ability) override;
+    void OnWindowStageWillCreate(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage) override;
+    void OnWindowStageWillRestore(std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage) override;
 
     int32_t Register(void *callback) override;
     bool Unregister(void *aniCallback = nullptr) override;
@@ -55,6 +77,10 @@ private:
     EtsEnv::ETSErrorObject GetETSErrorObject();
     bool GetAniValueFromInteropObject(ani_env *env, std::shared_ptr<InteropObject> interopObject, ani_value &aniValue);
     std::string GetErrorProperty(ani_error aniError, const char *propertyName);
+    void CallObjectProperty(const char *name, std::shared_ptr<InteropObject> ability);
+    void CallObjectProperty(const char *name, std::shared_ptr<InteropObject> ability,
+        std::shared_ptr<InteropObject> windowStage);
+    void CallObjectPropertyCommon(ani_env *env, const char *name, ani_ref ability, ani_ref windowStage);
 
 private:
     ani_vm *vm_ = nullptr;
