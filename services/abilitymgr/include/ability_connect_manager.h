@@ -866,7 +866,7 @@ private:
     };
     std::vector<BackgroundUserEventItem> bgUserEventCache_;
     std::mutex bgUserEventCacheMutex_;
-    static constexpr int64_t BG_USER_EVENT_REPORT_INTERVAL_MS = 60000;  // 60 seconds
+    static constexpr int64_t BG_USER_EVENT_REPORT_INTERVAL_MS = 7200000;  // 2 hours
     static constexpr size_t BG_USER_EVENT_CACHE_MAX_SIZE = 1000;
     void CacheBackgroundUserEvent(const EventInfo &eventInfo);
     void StartBackgroundUserEventReportTimer();
