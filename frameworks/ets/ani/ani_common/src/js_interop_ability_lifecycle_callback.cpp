@@ -174,6 +174,108 @@ void JsInteropAbilityLifecycleCallback::OnAbilityBackground(std::shared_ptr<Inte
     CallObjectMethod("onAbilityBackground", ability);
 }
 
+void JsInteropAbilityLifecycleCallback::OnAbilityContinue(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnAbilityContinue called");
+    CallObjectMethod("onAbilityContinue", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnWindowStageInactive(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnWindowStageInactive called");
+    CallObjectMethod("onWindowStageInactive", ability, windowStage);
+}
+
+void JsInteropAbilityLifecycleCallback::OnWindowStageActive(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnWindowStageActive called");
+    CallObjectMethod("onWindowStageActive", ability, windowStage);
+}
+
+void JsInteropAbilityLifecycleCallback::OnNewWant(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnNewWant called");
+    CallObjectMethod("onNewWant", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnAbilityWillBackground(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnAbilityWillBackground called");
+    CallObjectMethod("onAbilityWillBackground", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnAbilityWillForeground(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnAbilityWillForeground called");
+    CallObjectMethod("onAbilityWillForeground", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnAbilityWillCreate(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnAbilityWillCreate called");
+    CallObjectMethod("onAbilityWillCreate", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnWindowStageWillDestroy(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnWindowStageWillDestroy called");
+    CallObjectMethod("onWindowStageWillDestroy", ability, windowStage);
+}
+
+void JsInteropAbilityLifecycleCallback::OnAbilityWillDestroy(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnAbilityWillDestroy called");
+    CallObjectMethod("onAbilityWillDestroy", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnWindowStageRestore(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnWindowStageRestore called");
+    CallObjectMethod("onWindowStageRestore", ability, windowStage);
+}
+
+void JsInteropAbilityLifecycleCallback::OnAbilitySaveState(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnAbilitySaveState called");
+    CallObjectMethod("onAbilitySaveState", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnAbilityWillContinue(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnAbilityWillContinue called");
+    CallObjectMethod("onAbilityWillContinue", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnAbilityWillSaveState(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnAbilityWillSaveState called");
+    CallObjectMethod("onAbilityWillSaveState", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnWillNewWant(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnWillNewWant called");
+    CallObjectMethod("onWillNewWant", ability);
+}
+
+void JsInteropAbilityLifecycleCallback::OnWindowStageWillCreate(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnWindowStageWillCreate called");
+    CallObjectMethod("onWindowStageWillCreate", ability, windowStage);
+}
+
+void JsInteropAbilityLifecycleCallback::OnWindowStageWillRestore(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: JS OnWindowStageWillRestore called ");
+    CallObjectMethod("onWindowStageWillRestore", ability, windowStage);
+}
+
 extern "C" ETS_EXPORT InteropAbilityLifecycleCallback* OHOS_CreateJsInteropAbilityLifecycleCallback(void *env)
 {
     if (env == nullptr) {
