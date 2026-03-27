@@ -333,5 +333,107 @@ void EtsInteropAbilityLifecycleCallback::OnAbilityBackground(std::shared_ptr<Int
 {
     CallObjectMethod("onAbilityBackgroundInner", SIGNATURE_UIABILITY, ability);
 }
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityContinue(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityContinue called");
+    CallObjectMethod("onAbilityContinueInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageActive(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageActive called");
+    CallObjectMethod("onWindowStageActiveInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageInactive(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageInactive called");
+    CallObjectMethod("onWindowStageInactiveInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnNewWant(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnNewWant called");
+    CallObjectMethod("onNewWantInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillBackground(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillBackground called");
+    CallObjectMethod("onAbilityWillBackgroundInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillForeground(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillForeground called");
+    CallObjectMethod("onAbilityWillForegroundInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillCreate(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillCreate called");
+    CallObjectMethod("onAbilityWillCreateInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageWillDestroy(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageWillDestroy called");
+    CallObjectMethod("onWindowStageWillDestroyInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);  
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillDestroy(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillDestroy called");
+    CallObjectMethod("onAbilityWillDestroyInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageRestore(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageRestore called");
+    CallObjectMethod("onWindowStageRestoreInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilitySaveState(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilitySaveState called");
+    CallObjectMethod("onAbilitySaveStateInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillContinue(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillContinue called");
+    CallObjectMethod("onAbilityWillContinueInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnAbilityWillSaveState(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnAbilityWillSaveState called");
+    CallObjectMethod("onAbilityWillSaveStateInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWillNewWant(std::shared_ptr<InteropObject> ability)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWillNewWant called");
+    CallObjectMethod("onWillNewWantInner", SIGNATURE_UIABILITY, ability);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageWillCreate(std::shared_ptr<InteropObject> ability, 
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageWillCreate called");
+    CallObjectMethod("onWindowStageWillCreateInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
+}
+
+void EtsInteropAbilityLifecycleCallback::OnWindowStageWillRestore(std::shared_ptr<InteropObject> ability,
+    std::shared_ptr<InteropObject> windowStage)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "TestConsole: OnWindowStageWillRestore called");
+    CallObjectMethod("onWindowStageWillRestoreInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
