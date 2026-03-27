@@ -15,6 +15,7 @@
 
 #include "ability_connect_manager.h"
 
+#include <cinttypes>
 #include <chrono>
 #include <regex>
 
@@ -987,15 +988,13 @@ int AbilityConnectManager::ScheduleCommandAbilityDoneLocked(const sptr<IRemoteOb
     }
     EventInfo eventInfo = BuildEventInfo(abilityRecord);
     EventReport::SendStartServiceEvent(EventName::START_SERVICE, eventInfo);
-    // Report background user start extension event
+    // Report background user start extension event (cached and batch reported)
     if (!AbilityRuntime::UserController::GetInstance().IsForegroundUser(userId_)) {
         EventInfo bgUserEventInfo = BuildEventInfo(abilityRecord);
         bgUserEventInfo.userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
-        EventReport::SendStartAbilityInBackgroundUserEvent(
-            EventName::START_ABILITY_IN_BACKGROUND_USER, bgUserEventInfo);
         TAG_LOGI(AAFwkTag::EXT, "Start extension in background user, userId: %{public}d, bundle: %{public}s",
             userId_, eventInfo.bundleName.c_str());
-        // Debug: record start stats for frequency analysis
+        // Cache event for batch reporting
         RecordBackgroundUserStartStats(bgUserEventInfo);
     }
     abilityRecord->RemoveSignatureInfo();
@@ -3284,52 +3283,141 @@ void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abili
     }
 }
 
-void AbilityConnectManager::RecordBackgroundUserStartStats(const EventInfo &eventInfo)
+std::string AbilityConnectManager::EscapeJsonString(const std::string &input)
 {
-    // Key: callee bundle name + ability name to track each extension
-    std::string key = eventInfo.bundleName + "/" + eventInfo.abilityName;
+    std::string output;
+    output.reserve(input.size() * 2);
+    for (char c : input) {
+        switch (c) {
+            case '"': output += "\\\""; break;
+            case '\\': output += "\\\\"; break;
+            case '\b': output += "\\b"; break;
+            case '\f': output += "\\f"; break;
+            case '\n': output += "\\n"; break;
+            case '\r': output += "\\r"; break;
+            case '\t': output += "\\t"; break;
+            default:
+                if ('\x00' <= c && c <= '\x1f') {
+                    char buf[8];
+                    snprintf(buf, sizeof(buf), "\\u%04x", static_cast<unsigned char>(c));
+                    output += buf;
+                } else {
+                    output += c;
+                }
+        }
+    }
+    return output;
+}
+
+std::string AbilityConnectManager::BuildBackgroundUserEventJson(
+    const std::vector<BackgroundUserEventItem> &events)
+{
+    std::string json = "[";
+    for (size_t i = 0; i < events.size(); ++i) {
+        const auto &item = events[i];
+        if (i > 0) {
+            json += ",";
+        }
+        json += "{";
+        json += "\"callerUid\":" + std::to_string(item.callerUid) + ",";
+        json += "\"callerUserId\":" + std::to_string(item.callerUserId) + ",";
+        json += "\"callerProcessName\":\"" + EscapeJsonString(item.callerProcessName) + "\",";
+        json += "\"callerBundleName\":\"" + EscapeJsonString(item.callerBundleName) + "\",";
+        json += "\"calleeProcessName\":\"" + EscapeJsonString(item.calleeProcessName) + "\",";
+        json += "\"calleeBundleName\":\"" + EscapeJsonString(item.calleeBundleName) + "\",";
+        json += "\"extensionType\":" + std::to_string(item.extensionType) + ",";
+        json += "\"abilityName\":\"" + EscapeJsonString(item.abilityName) + "\",";
+        json += "\"timestamp\":" + std::to_string(item.timestamp);
+        json += "}";
+    }
+    json += "]";
+    return json;
+}
+
+void AbilityConnectManager::CacheBackgroundUserEvent(const EventInfo &eventInfo)
+{
     auto now = std::chrono::system_clock::now();
     int64_t nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         now.time_since_epoch()).count();
 
-    std::lock_guard<std::mutex> lock(bgUserStartStatsMutex_);
-    auto &stats = bgUserStartStatsMap_[key];
+    BackgroundUserEventItem item;
+    item.callerUid = eventInfo.callerUid;
+    item.callerUserId = eventInfo.userId;
+    item.callerProcessName = eventInfo.callerProcessName;
+    item.callerBundleName = eventInfo.callerBundleName;
+    item.calleeProcessName = eventInfo.processName;
+    item.calleeBundleName = eventInfo.bundleName;
+    item.extensionType = eventInfo.extensionType;
+    item.abilityName = eventInfo.abilityName;
+    item.timestamp = nowMs;
 
-    stats.count++;
-    if (stats.firstStartTime == 0) {
-        stats.firstStartTime = nowMs;
+    bool needFlush = false;
+    {
+        std::lock_guard<std::mutex> lock(bgUserEventCacheMutex_);
+        bgUserEventCache_.push_back(item);
+        TAG_LOGD(AAFwkTag::EXT,
+            "[BG_USER_EVENT] Cached event: callee=%{public}s/%{public}s, caller=%{public}s, "
+            "caller_uid=%{public}d, cache_size=%{public}zu",
+            item.calleeBundleName.c_str(), item.abilityName.c_str(),
+            item.callerBundleName.c_str(), item.callerUid, bgUserEventCache_.size());
+
+        // Flush immediately if cache is full
+        if (bgUserEventCache_.size() >= BG_USER_EVENT_CACHE_MAX_SIZE) {
+            needFlush = true;
+        }
     }
-    stats.lastStartTime = nowMs;
-    stats.lastCallerBundleName = eventInfo.callerBundleName;
-    stats.lastCallerUserId = eventInfo.userId;
-    stats.lastCallerProcessName = eventInfo.callerProcessName;
 
-    // Calculate time interval
-    int64_t intervalMs = nowMs - stats.firstStartTime;
-    double intervalSec = intervalMs / 1000.0;
-    double avgIntervalMs = (stats.count > 1) ? (intervalMs / (stats.count - 1)) : 0;
+    if (needFlush) {
+        FlushBackgroundUserEventCache();
+    }
+}
 
-    // Log for debugging - output detailed stats every time for analysis
+void AbilityConnectManager::StartBackgroundUserEventReportTimer()
+{
+    if (taskHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "taskHandler_ is null, cannot start timer");
+        return;
+    }
+
+    auto task = [connectManagerWeak = weak_from_this()]() {
+        auto connectManager = connectManagerWeak.lock();
+        if (connectManager) {
+            connectManager->FlushBackgroundUserEventCache();
+            // Reschedule the timer
+            connectManager->StartBackgroundUserEventReportTimer();
+        }
+    };
+
+    taskHandler_->SubmitTask(task, "bg_user_event_report_timer", BG_USER_EVENT_REPORT_INTERVAL_MS);
+    TAG_LOGD(AAFwkTag::EXT, "Background user event report timer started, interval=%{public}" PRId64 "ms",
+        BG_USER_EVENT_REPORT_INTERVAL_MS);
+}
+
+void AbilityConnectManager::FlushBackgroundUserEventCache()
+{
+    std::vector<BackgroundUserEventItem> eventsToReport;
+    {
+        std::lock_guard<std::mutex> lock(bgUserEventCacheMutex_);
+        if (bgUserEventCache_.empty()) {
+            TAG_LOGD(AAFwkTag::EXT, "Background user event cache is empty, skip reporting");
+            return;
+        }
+        eventsToReport = std::move(bgUserEventCache_);
+        bgUserEventCache_.clear();
+    }
+
+    std::string jsonData = BuildBackgroundUserEventJson(eventsToReport);
     TAG_LOGI(AAFwkTag::EXT,
-        "[BG_USER_STATS] callee=%{public}s, count=%{public}d, total_sec=%.2f, "
-        "avg_interval_ms=%.2f, caller=%{public}s, caller_uid=%{public}d, "
-        "caller_process=%{public}s, ext_type=%{public}d",
-        key.c_str(),
-        stats.count,
-        intervalSec,
-        avgIntervalMs,
-        eventInfo.callerBundleName.c_str(),
-        eventInfo.callerUid,
-        eventInfo.callerProcessName.c_str(),
-        eventInfo.extensionType);
+        "[BG_USER_FLUSH] Reporting %{public}zu background user events, json_size=%{public}zu",
+        eventsToReport.size(), jsonData.size());
 
-    // Warning if high frequency (> 10 times in 60 seconds)
-    if (stats.count >= 10 && intervalSec <= 60.0) {
-        TAG_LOGW(AAFwkTag::EXT,
-            "[BG_USER_HIGH_FREQ] High frequency detected! callee=%{public}s, "
-            "count=%{public}d in %.2f seconds",
-            key.c_str(), stats.count, intervalSec);
-    }
+    EventReport::SendStartAbilityInBackgroundUserEvent(
+        EventName::START_ABILITY_IN_BACKGROUND_USER, jsonData);
+}
+
+void AbilityConnectManager::RecordBackgroundUserStartStats(const EventInfo &eventInfo)
+{
+    CacheBackgroundUserEvent(eventInfo);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

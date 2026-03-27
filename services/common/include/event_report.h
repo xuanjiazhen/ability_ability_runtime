@@ -177,7 +177,7 @@ public:
         const EventInfo &eventInfo);
     static void SendAppStartupErrorEvent(
         const EventName &eventName, HiSysEventEventType type, const EventInfo &eventInfo);
-    static void SendStartAbilityInBackgroundUserEvent(const EventName &eventName, const EventInfo &eventInfo);
+    static void SendStartAbilityInBackgroundUserEvent(const EventName &eventName, const std::string &eventDataJson);
 
 private:
     static std::string ConvertEventName(const EventName &eventName);

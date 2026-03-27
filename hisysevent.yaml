@@ -515,11 +515,4 @@ USER_DATA_SIZE:
 
 START_ABILITY_IN_BACKGROUND_USER:
   __BASE: {type: BEHAVIOR, level: MINOR, tag: ability, desc: start extension ability in background user}
-  CALLER_UID: {type: INT32, desc: caller uid}
-  CALLER_USERID: {type: INT32, desc: caller userId}
-  CALLER_PROCESS_NAME: {type: STRING, desc: caller process name}
-  CALLER_BUNDLE_NAME: {type: STRING, desc: caller bundle name}
-  CALLEE_PROCESS_NAME: {type: STRING, desc: callee process name}
-  CALLEE_BUNDLE_NAME: {type: STRING, desc: callee bundle name}
-  EXTENSION_ABILITY_TYPE: {type: INT32, desc: extension ability type}
-  ABILITY_NAME: {type: STRING, desc: callee ability name}
+  EVENT_DATA: {type: STRING, desc: json array of background user extension start events}

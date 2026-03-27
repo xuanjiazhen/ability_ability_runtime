@@ -209,6 +209,8 @@ public:
     inline void SetTaskHandler(const std::shared_ptr<TaskHandlerWrap> &taskHandler)
     {
         taskHandler_ = taskHandler;
+        // Start background user event report timer when taskHandler is set
+        StartBackgroundUserEventReportTimer();
     }
     /**
      * SetEventHandler.
@@ -850,18 +852,27 @@ private:
     std::vector<int32_t> thresholds_ = {50, 100, 200, 500};
     std::atomic_uint32_t sceneBoardTokenId_ = 0;
 
-    // For debugging: track background user extension start frequency
-    struct BackgroundUserStartStats {
-        int32_t count = 0;
-        int64_t firstStartTime = 0;
-        int64_t lastStartTime = 0;
-        std::string lastCallerBundleName;
-        int32_t lastCallerUserId = -1;
-        std::string lastCallerProcessName;
+    // Background user extension start event cache and batch reporting
+    struct BackgroundUserEventItem {
+        int32_t callerUid = -1;
+        int32_t callerUserId = -1;
+        std::string callerProcessName;
+        std::string callerBundleName;
+        std::string calleeProcessName;
+        std::string calleeBundleName;
+        int32_t extensionType = -1;
+        std::string abilityName;
+        int64_t timestamp = 0;
     };
-    std::unordered_map<std::string, BackgroundUserStartStats> bgUserStartStatsMap_;
-    std::mutex bgUserStartStatsMutex_;
-    void RecordBackgroundUserStartStats(const EventInfo &eventInfo);
+    std::vector<BackgroundUserEventItem> bgUserEventCache_;
+    std::mutex bgUserEventCacheMutex_;
+    static constexpr int64_t BG_USER_EVENT_REPORT_INTERVAL_MS = 60000;  // 60 seconds
+    static constexpr size_t BG_USER_EVENT_CACHE_MAX_SIZE = 1000;
+    void CacheBackgroundUserEvent(const EventInfo &eventInfo);
+    void StartBackgroundUserEventReportTimer();
+    void FlushBackgroundUserEventCache();
+    std::string BuildBackgroundUserEventJson(const std::vector<BackgroundUserEventItem> &events);
+    std::string EscapeJsonString(const std::string &input);
 
     DISALLOW_COPY_AND_MOVE(AbilityConnectManager);
 };

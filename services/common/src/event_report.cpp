@@ -75,9 +75,6 @@ constexpr const char *EVENT_FILE_OR_FOLDER_SIZE = "FILE_OR_FOLDER_SIZE";
 constexpr const char *EVENT_COMPONENT_NAME_KEY = "COMPONENT_NAME";
 constexpr const char *EVENT_PARTITION_NAME_KEY = "PARTITION_NAME";
 constexpr const char *EVENT_REMAIN_PARTITION_SIZE_KEY = "REMAIN_PARTITION_SIZE";
-constexpr const char *EVENT_KEY_CALLER_USERID = "CALLER_USERID";
-constexpr const char *EVENT_KEY_CALLEE_PROCESS_NAME = "CALLEE_PROCESS_NAME";
-constexpr const char *EVENT_KEY_CALLEE_BUNDLE_NAME = "CALLEE_BUNDLE_NAME";
 
 constexpr const int32_t DEFAULT_EXTENSION_TYPE = -1;
 }
@@ -856,22 +853,15 @@ void EventReport::SendAppStartupErrorEvent(
     hisyseventReport->Report("AAFWK", name.c_str(), type);
 }
 
-void EventReport::SendStartAbilityInBackgroundUserEvent(const EventName &eventName, const EventInfo &eventInfo)
+void EventReport::SendStartAbilityInBackgroundUserEvent(const EventName &eventName, const std::string &eventDataJson)
 {
     std::string name = ConvertEventName(eventName);
     if (name == INVALID_EVENT_NAME) {
         TAG_LOGE(AAFwkTag::DEFAULT, "invalid eventName");
         return;
     }
-    auto hisyseventReport = std::make_shared<HisyseventReport>(9);
-    hisyseventReport->InsertParam(EVENT_KEY_CALLER_UID, eventInfo.callerUid);
-    hisyseventReport->InsertParam(EVENT_KEY_CALLER_USERID, eventInfo.userId);
-    hisyseventReport->InsertParam(EVENT_KEY_CALLER_PROCESS_NAME, eventInfo.callerProcessName);
-    hisyseventReport->InsertParam(EVENT_KEY_CALLER_BUNDLE_NAME, eventInfo.callerBundleName);
-    hisyseventReport->InsertParam(EVENT_KEY_CALLEE_PROCESS_NAME, eventInfo.processName);
-    hisyseventReport->InsertParam(EVENT_KEY_CALLEE_BUNDLE_NAME, eventInfo.bundleName);
-    hisyseventReport->InsertParam(EVENT_KEY_EXTENSION_TYPE, eventInfo.extensionType);
-    hisyseventReport->InsertParam(EVENT_KEY_ABILITY_NAME, eventInfo.abilityName);
+    auto hisyseventReport = std::make_shared<HisyseventReport>(1);
+    hisyseventReport->InsertParam("EVENT_DATA", eventDataJson);
     hisyseventReport->Report("AAFWK", name.c_str(), HISYSEVENT_BEHAVIOR);
 }
 
