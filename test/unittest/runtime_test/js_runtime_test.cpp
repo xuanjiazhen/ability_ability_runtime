@@ -1928,8 +1928,9 @@ HWTEST_F(JsRuntimeTest, ExecuteSecureWithOhmUrl_0100, TestSize.Level1)
     std::string moduleName = "moduleName";
     std::string hapPath = "hapPath";
     std::string srcEntrance = "srcEntrance";
-    auto ret = jsRuntime->ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
-    EXPECT_EQ(ret, false);
+    std::shared_ptr<AbilityBase::Extractor> extractor;
+    auto ret = jsRuntime->ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance, extractor);
+    EXPECT_EQ(ret, nullptr);
 
     std::string key = "key";
     auto retVal = jsRuntime->GetExportObjectFromOhmUrl(srcEntrance, key);
