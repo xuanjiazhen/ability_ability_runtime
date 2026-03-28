@@ -85,7 +85,7 @@ public:
     }
 
 private:
-    static std::unique_ptr<NativeReference> LoadJsCode(
+    std::unique_ptr<NativeReference> LoadJsCode(
         const InsightIntentExecutorInfo& insightIntentInfo,
         JsRuntime& runtime);
 
