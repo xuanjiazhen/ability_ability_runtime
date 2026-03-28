@@ -51,6 +51,12 @@ JsInsightIntentEntry::JsInsightIntentEntry(JsRuntime& runtime) : runtime_(runtim
 JsInsightIntentEntry::~JsInsightIntentEntry()
 {
     state_ = State::DESTROYED;
+    if (safeData_ != nullptr) {
+        safeData_->SetAutoReleaseMem(true);
+    }
+    if (extractor_ != nullptr) {
+        extractor_->SetAutoCloseFd(true);
+    }
     TAG_LOGI(AAFwkTag::INTENT, "destructor");
 }
 
@@ -63,7 +69,7 @@ bool JsInsightIntentEntry::Init(const InsightIntentExecutorInfo& insightIntentIn
 
     HandleScope handleScope(runtime_);
     if (jsObj_ == nullptr) {
-        jsObj_ = JsInsightIntentEntry::LoadJsCode(insightIntentInfo, runtime_);
+        jsObj_ = JsInsightIntentEntry::LoadJsCode(insightIntentInfo, runtime_, safeData_);
         if (jsObj_ == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "load js failed");
             STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
@@ -141,7 +147,8 @@ bool JsInsightIntentEntry::HandleExecuteIntent(
 
 std::unique_ptr<NativeReference> JsInsightIntentEntry::LoadJsCode(
     const InsightIntentExecutorInfo& info,
-    JsRuntime& runtime)
+    JsRuntime& runtime,
+    std::unique_ptr<AbilityBase::FileMapper>& safeData)
 {
     TAG_LOGD(AAFwkTag::INTENT, "load module");
     auto executeParam = info.executeParam;
@@ -157,8 +164,8 @@ std::unique_ptr<NativeReference> JsInsightIntentEntry::LoadJsCode(
     TAG_LOGD(AAFwkTag::INTENT, "moduleName %{public}s, hapPath %{private}s, srcEntrance %{private}s",
         moduleName.c_str(), hapPath.c_str(), srcEntrance.c_str());
 
-    auto ret = runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
-    if (!ret) {
+    safeData = runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance, extractor_);
+    if (safeData == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "execute failed");
         return std::unique_ptr<NativeReference>();
     }
