@@ -910,6 +910,8 @@ public:
 
     void SetPreloadPhase(PreloadPhase phase);
 
+    PreloadState GetPreloadState();
+
     PreloadPhase GetPreloadPhase();
 
     bool IsPreloading() const;
