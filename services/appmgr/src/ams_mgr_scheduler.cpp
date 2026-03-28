@@ -507,8 +507,8 @@ void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppEx
         TAG_LOGE(AAFwkTag::APPMGR, "verification failed");
         return;
     }
-    auto task = [=]() {
-        amsMgrServiceInner_->StartSpecifiedAbility(want, abilityInfo, requestId, customProcess, isPreloadStart); };
+    auto task = [=]() { amsMgrServiceInner_->StartSpecifiedAbility(want, abilityInfo, requestId,
+        customProcess, isPreloadStart); };
     amsHandler_->SubmitTask(task, {
         .taskName_ = "StartSpecifiedAbility",
         .taskQos_ = AAFwk::TaskQoS::USER_INTERACTIVE
