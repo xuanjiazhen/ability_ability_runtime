@@ -485,6 +485,37 @@ HWTEST_F(AppMgrServiceInnerTest, HandleExistingAppRecordAfterFound_003, TestSize
 }
 
 /**
+ * @tc.name: HandleExistingAppRecordAfterFound_004
+ * @tc.desc: verify preload-by-phase state is preserved when loadParam is preload start
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, HandleExistingAppRecordAfterFound_004, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    HapModuleInfo hapModuleInfo;
+    auto want = std::make_shared<AAFwk::Want>();
+    BundleInfo info;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, info, "");
+
+    appRecord->SetPreloadMode(PreloadMode::PRELOAD_BY_PHASE);
+    appRecord->SetPreloadPhase(PreloadPhase::WINDOW_STAGE_CREATED);
+    appRecord->SetPreloadState(PreloadState::PRELOADED);
+
+    AbilityRuntime::LoadParam loadParam;
+    loadParam.isPreloadStart = true;
+
+    appMgrServiceInner->HandleExistingAppRecordAfterFound(appRecord, abilityInfo_, hapModuleInfo, want, false,
+        std::make_shared<AbilityRuntime::LoadParam>(loadParam));
+
+    EXPECT_EQ(appRecord->GetPreloadMode(), PreloadMode::PRELOAD_BY_PHASE);
+    EXPECT_EQ(appRecord->GetPreloadPhase(), PreloadPhase::WINDOW_STAGE_CREATED);
+}
+
+/**
  * @tc.name: PreStartNWebSpawnProcess_002
  * @tc.desc: prestart nwebspawn process.
  * @tc.type: FUNC
@@ -596,6 +627,54 @@ HWTEST_F(AppMgrServiceInnerTest, UpdateUIExtensionPreloadState_001, TestSize.Lev
     appMgrServiceInner->UpdateUIExtensionPreloadState(appRecord, true);
     EXPECT_TRUE(appRecord->GetUIExtensionPreloadState());
     TAG_LOGI(AAFwkTag::TEST, "UpdateUIExtensionPreloadState_001 end");
+}
+
+/**
+ * @tc.name: SetPreloadStartState_001
+ * @tc.desc: test SetPreloadStartState function with valid appRecord
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SetPreloadStartState_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetPreloadStartState_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(
+            applicationInfo_, processName, bundleInfo, "");
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->SetPreloadMode(AppExecFwk::PreloadMode::PRELOAD_NONE);
+    appRecord->SetPreloadPhase(AppExecFwk::PreloadPhase::UNSPECIFIED);
+    appRecord->SetPreloadState(AppExecFwk::PreloadState::NONE);
+    appMgrServiceInner->SetPreloadStartState(appRecord);
+    EXPECT_EQ(appRecord->GetPreloadMode(), AppExecFwk::PreloadMode::PRELOAD_BY_PHASE);
+    EXPECT_EQ(appRecord->GetPreloadPhase(), AppExecFwk::PreloadPhase::WINDOW_STAGE_CREATED);
+    TAG_LOGI(AAFwkTag::TEST, "SetPreloadStartState_001 end");
+}
+
+/**
+ * @tc.name: SetPreloadStartState_002
+ * @tc.desc: test SetPreloadStartState also sets preload state to PRELOADING
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SetPreloadStartState_002, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(applicationInfo_, processName, bundleInfo, "");
+    ASSERT_NE(appRecord, nullptr);
+
+    appRecord->SetPreloadState(AppExecFwk::PreloadState::NONE);
+    appMgrServiceInner->SetPreloadStartState(appRecord);
+
+    EXPECT_EQ(appRecord->GetPreloadMode(), AppExecFwk::PreloadMode::PRELOAD_BY_PHASE);
+    EXPECT_EQ(appRecord->GetPreloadPhase(), AppExecFwk::PreloadPhase::WINDOW_STAGE_CREATED);
+    EXPECT_EQ(appRecord->GetPreloadState(), AppExecFwk::PreloadState::PRELOADING);
 }
 
 /**

@@ -1056,7 +1056,7 @@ void AppRunningRecord::SetPreloadMode(PreloadMode mode)
 PreloadMode AppRunningRecord::GetPreloadMode()
 {
     return preloadMode_;
-}
+} 
 
 void AppRunningRecord::SetUIExtensionPreloadState(bool isPreload)
 {

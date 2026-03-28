@@ -979,11 +979,6 @@ void AppRunningRecord::SetPreloadMode(PreloadMode mode)
     preloadMode_ = mode;
 }
 
-PreloadMode AppRunningRecord::GetPreloadMode()
-{
-    return preloadMode_;
-}
-
 void AppRunningRecord::SetUIExtensionPreloadState(bool isPreload)
 {
     isUIExtensionPreload_.store(isPreload, std::memory_order_relaxed);
