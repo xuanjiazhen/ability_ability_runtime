@@ -831,6 +831,7 @@ HWTEST_F(AmsMgrSchedulerSecondTest, AmsMgrSchedulerSecondTest_StartSpecifiedAbil
     IPCSkeleton::SetCallingUid(-1);
     const AAFwk::Want want;
     const AppExecFwk::AbilityInfo abilityInfo;
+    EXPECT_CALL(*appMgrServiceInner, StartSpecifiedAbility(_, _, _, _, _)).Times(0);
     amsMgrScheduler->StartSpecifiedAbility(want, abilityInfo, 0);
     EXPECT_TRUE(amsMgrScheduler != nullptr);
     TAG_LOGI(AAFwkTag::TEST, "AmsMgrSchedulerSecondTest_StartSpecifiedAbility_002 end");
