@@ -1692,6 +1692,92 @@ HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_007, TestSize.Leve
 }
 
 /**
+* @tc.name: StartSpecifiedAbility_008
+* @tc.desc: test StartSpecifiedAbility clears preload mode when isPreloadStart is false
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_008, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getSandboxHapModuleInfo_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getCloneBundleInfo_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getHapModuleInfo_ = true;
+    AAFwk::MyStatus::GetInstance().isLogoutUser_ = false;
+    AAFwk::MyStatus::GetInstance().scheduleAcceptCall_ = 0;
+    AAFwk::MyStatus::GetInstance().checkAppRunning_ = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    AAFwk::MyStatus::GetInstance().checkAppRunning_->SetPreloadMode(PreloadMode::PRELOAD_BY_PHASE);
+    AAFwk::MyStatus::GetInstance().checkAppRunning_->SetPreloadPhase(PreloadPhase::WINDOW_STAGE_CREATED);
+    AAFwk::MyStatus::GetInstance().checkAppRunning_->SetPreloadState(PreloadState::PRELOADING);
+    AAFwk::MyStatus::GetInstance().getModuleRecord_ = std::make_shared<ModuleRunningRecord>(nullptr, nullptr);
+
+    AAFwk::Want want;
+    AppExecFwk::AbilityInfo abilityInfo;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, 0, "", false);
+
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().scheduleAcceptCall_, 1);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().checkAppRunning_->GetPreloadMode(), PreloadMode::PRELOAD_NONE);
+}
+
+/**
+* @tc.name: StartSpecifiedAbility_009
+* @tc.desc: test StartSpecifiedAbility preserves preload state when isPreloadStart is true
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_009, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getSandboxHapModuleInfo_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getCloneBundleInfo_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getHapModuleInfo_ = true;
+    AAFwk::MyStatus::GetInstance().isLogoutUser_ = false;
+    AAFwk::MyStatus::GetInstance().scheduleAcceptCall_ = 0;
+    AAFwk::MyStatus::GetInstance().checkAppRunning_ = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+    AAFwk::MyStatus::GetInstance().checkAppRunning_->SetPreloadMode(PreloadMode::PRELOAD_BY_PHASE);
+    AAFwk::MyStatus::GetInstance().checkAppRunning_->SetPreloadPhase(PreloadPhase::WINDOW_STAGE_CREATED);
+    AAFwk::MyStatus::GetInstance().checkAppRunning_->SetPreloadState(PreloadState::PRELOADED);
+    AAFwk::MyStatus::GetInstance().getModuleRecord_ = std::make_shared<ModuleRunningRecord>(nullptr, nullptr);
+
+    AAFwk::Want want;
+    AppExecFwk::AbilityInfo abilityInfo;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, 0, "", true);
+
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().scheduleAcceptCall_, 1);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().checkAppRunning_->GetPreloadMode(), PreloadMode::PRELOAD_BY_PHASE);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().checkAppRunning_->GetPreloadState(), PreloadState::PRELOADED);
+}
+
+/**
+* @tc.name: StartSpecifiedAbility_010
+* @tc.desc: test StartSpecifiedAbility sets preload start state for new app record
+* @tc.type: FUNC
+*/
+HWTEST_F(AppMgrServiceInnerSeventhTest, StartSpecifiedAbility_010, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    AAFwk::MyStatus::GetInstance().getBundleManagerHelper_ = std::make_shared<BundleMgrHelper>();
+    AAFwk::MyStatus::GetInstance().getBundleInfoV9_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getSandboxHapModuleInfo_ = ERR_OK;
+    AAFwk::MyStatus::GetInstance().getHapModuleInfo_ = true;
+    AAFwk::MyStatus::GetInstance().isLogoutUser_ = false;
+    AAFwk::MyStatus::GetInstance().addModulesCall_ = 0;
+    AAFwk::MyStatus::GetInstance().checkAppRunning_ = nullptr;
+    AAFwk::MyStatus::GetInstance().checkAppRunningByUid_ = false;
+    AAFwk::MyStatus::GetInstance().createAppRunning_ = std::make_shared<AppRunningRecord>(nullptr, 0, "");
+
+    AAFwk::Want want;
+    AppExecFwk::AbilityInfo abilityInfo;
+    appMgrServiceInner->StartSpecifiedAbility(want, abilityInfo, 0, "", true);
+
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().addModulesCall_, 1);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().createAppRunning_->GetPreloadMode(), PreloadMode::PRELOAD_BY_PHASE);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().createAppRunning_->GetPreloadPhase(),
+        PreloadPhase::WINDOW_STAGE_CREATED);
+    EXPECT_EQ(AAFwk::MyStatus::GetInstance().createAppRunning_->GetPreloadState(), PreloadState::PRELOADING);
+}
+
+/**
 * @tc.name: RegisterStartSpecifiedAbilityResponse_001
 * @tc.desc: test RegisterStartSpecifiedAbilityResponse_001
 * @tc.type: FUNC
