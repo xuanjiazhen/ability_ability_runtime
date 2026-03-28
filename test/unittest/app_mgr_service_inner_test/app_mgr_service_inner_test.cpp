@@ -599,6 +599,31 @@ HWTEST_F(AppMgrServiceInnerTest, UpdateUIExtensionPreloadState_001, TestSize.Lev
 }
 
 /**
+ * @tc.name: SetPreloadStartState_001
+ * @tc.desc: test SetPreloadStartState function with valid appRecord
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerTest, SetPreloadStartState_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetPreloadStartState_001 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+    BundleInfo bundleInfo;
+    std::string processName = "test_processName";
+    std::shared_ptr<AppRunningRecord> appRecord =
+        appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(
+            applicationInfo_, processName, bundleInfo, "");
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->SetPreloadMode(AppExecFwk::PreloadMode::PRELOAD_NONE);
+    appRecord->SetPreloadPhase(AppExecFwk::PreloadPhase::UNSPECIFIED);
+    appRecord->SetPreloadState(AppExecFwk::PreloadState::NONE);
+    appMgrServiceInner->SetPreloadStartState(appRecord);
+    EXPECT_EQ(appRecord->GetPreloadMode(), AppExecFwk::PreloadMode::PRELOAD_BY_PHASE);
+    EXPECT_EQ(appRecord->GetPreloadPhase(), AppExecFwk::PreloadPhase::WINDOW_STAGE_CREATED);
+    TAG_LOGI(AAFwkTag::TEST, "SetPreloadStartState_001 end");
+}
+
+/**
  * @tc.name: SetPreloadFlagForProcessInfo_001
  * @tc.desc: test SetPreloadFlagForProcessInfo function
  * @tc.type: FUNC

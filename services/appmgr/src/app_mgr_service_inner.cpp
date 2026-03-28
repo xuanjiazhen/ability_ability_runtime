@@ -1221,8 +1221,8 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
                 appRecord->SetPreloadMode(PreloadMode::PRE_LAUNCH);
             }
             if (loadParam->isPreloadStart) {
-                appRecord->SetPreloadMode(PreloadMode::PRELOAD_BY_PHASE);
-            }
+                SetPreloadStartState(appRecord);
+        }
         }
         ReportUIExtensionProcColdStartToRss(abilityInfo, want, loadParam->isPreloadUIExtension);
         if (loadParam->isPreloadUIExtension) {
@@ -1363,7 +1363,7 @@ void AppMgrServiceInner::HandleExistingAppRecordAfterFound(std::shared_ptr<AppRu
     if (appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
         appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
     }
-    if (appRecord->IsPreloaded() || appRecord->IsPreloading()) {
+    if ((appRecord->IsPreloaded() || appRecord->IsPreloading()) && (!loadParam->isPreloadStart)) {
         appRecord->SetPreloadState(PreloadState::NONE);
         appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
     }
@@ -2001,7 +2001,9 @@ void AppMgrServiceInner::ApplicationForegrounded(const int32_t recordId)
         TAG_LOGD(AAFwkTag::APPMGR, "callerRecord null");
     }
     AAFwk::EventReport::SendAppForegroundEvent(AAFwk::EventName::APP_FOREGROUND, eventInfo);
-    if (appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH) {
+    if (appRecord->GetPreloadMode() == PreloadMode::PRE_LAUNCH ||
+        (appRecord->GetPreloadMode() == PreloadMode::PRELOAD_BY_PHASE &&
+        appRecord->GetPreloadPhase() == PreloadPhase::WINDOW_STAGE_CREATED)) {
         appRecord->SetPreloadMode(PreloadMode::PRELOAD_NONE);
     }
     UpdateUIExtensionPreloadState(appRecord, false);
@@ -5559,6 +5561,17 @@ void AppMgrServiceInner::UpdateUIExtensionPreloadState(const std::shared_ptr<App
         appRecord->GetUIExtensionPreloadState());
 }
 
+void AppMgrServiceInner::SetPreloadStartState(const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRecord null");
+        return;
+    }
+    appRecord->SetPreloadMode(PreloadMode::PRELOAD_BY_PHASE);
+    appRecord->SetPreloadPhase(PreloadPhase::WINDOW_STAGE_CREATED);
+    appRecord->SetPreloadState(PreloadState::PRELOADING);
+}
+
 bool AppMgrServiceInner::SetPreloadFlagForProcessInfo(const std::shared_ptr<AppRunningRecord> &appRecord)
 {
     if (appRecord == nullptr) {
@@ -6144,7 +6157,7 @@ int AppMgrServiceInner::FinishUserTestLocked(
 }
 
 void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-    int32_t requestId, const std::string &customProcess)
+    int32_t requestId, const std::string &customProcess, bool isPreloadStart)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "Start specified ability.");
     if (!CheckRemoteClient()) {
@@ -6224,6 +6237,9 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
             appRecord->SetPerfCmd(wantPtr->GetStringParam(PERF_CMD));
             appRecord->SetErrorInfoEnhance(wantPtr->GetBoolParam(ERROR_INFO_ENHANCE, false));
             appRecord->SetMultiThread(wantPtr->GetBoolParam(MULTI_THREAD, false));
+        }
+        if (isPreloadStart) {
+            SetPreloadStartState(appRecord);
         }
         appRecord->SetProcessAndExtensionType(abilityInfoPtr);
         appRecord->SetStartupTaskData(want);

@@ -4209,7 +4209,8 @@ void UIAbilityLifecycleManager::StartSpecifiedRequest(SpecifiedRequest &specifie
             sessionInfo->want.RemoveAllFd();
         } else {
             DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(request.want,
-                request.abilityInfo, specifiedRequest.requestId, request.customProcess);
+                request.abilityInfo, specifiedRequest.requestId, request.customProcess,
+                (request.processOptions ? request.processOptions->isPreloadStart : false));
         }
     }
     if (request.want.GetBoolParam("debugApp", false) || request.want.GetBoolParam("nativeDebug", false) ||
