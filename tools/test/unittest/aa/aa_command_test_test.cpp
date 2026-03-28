@@ -220,3 +220,148 @@ HWTEST_F(AaCommandTestTest, Aa_Command_Test_0400, Function | MediumTest | Level1
     managerClientPtr->proxy_  = nullptr;
     testing::Mock::AllowLeak(mockAbilityManagerStub);
 }
+
+/**
+ * @tc.number: Aa_Command_Test_0500
+ * @tc.name: ExecCommand
+ * @tc.desc: Verify the "aa test -b bundle -u 100 -s unittest 1" command with userId and other options.
+ */
+HWTEST_F(AaCommandTestTest, Aa_Command_Test_1000, Function | MediumTest | Level1)
+{
+    char* argv[] = {
+        (char*)TOOL_NAME.c_str(),
+        (char*)cmd_.c_str(),
+        (char*)"-b",
+        (char*)STRING_BUNDLE_NAME.c_str(),
+        (char*)"-u",
+        (char*)"100",
+        (char*)"-s",
+        (char*)"unittest",
+        (char*)"1",
+        (char*)"",
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    AbilityManagerShellCommand cmd(argc, argv);
+
+    auto managerClientPtr = AbilityManagerClient::GetInstance();
+    auto mockAbilityManagerStub = sptr<MockAbilityManagerStub>(new MockAbilityManagerStub());
+    ASSERT_NE(mockAbilityManagerStub, nullptr);
+    EXPECT_CALL(*mockAbilityManagerStub, StartUserTest(_, _))
+        .Times(1)
+        .WillOnce(Return(0));
+    managerClientPtr->proxy_ = static_cast<IAbilityManager*>(mockAbilityManagerStub);
+
+    EXPECT_EQ(cmd.ExecCommand(), STRING_USER_TEST_STARTED + "\n");
+    managerClientPtr->proxy_ = nullptr;
+    testing::Mock::AllowLeak(mockAbilityManagerStub);
+}
+
+/**
+ * @tc.number: Aa_Command_Test_0600
+ * @tc.name: ExecCommand
+ * @tc.desc: Verify the "aa test -b bundle -u invalid" command with invalid userId format.
+ */
+HWTEST_F(AaCommandTestTest, Aa_Command_Test_0600, Function | MediumTest | Level1)
+{
+    char* argv[] = {
+        (char*)TOOL_NAME.c_str(),
+        (char*)cmd_.c_str(),
+        (char*)"-b",
+        (char*)STRING_BUNDLE_NAME.c_str(),
+        (char*)"-u",
+        (char*)"invalid",
+        (char*)"",
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    AbilityManagerShellCommand cmd(argc, argv);
+
+    // Invalid userId format should trigger error from ParseTestCommandOption
+    auto result = cmd.ExecCommand();
+    EXPECT_EQ(result, "error: option [-u] only supports integer numbers.\n");
+}
+
+/**
+ * @tc.number: Aa_Command_Test_0700
+ * @tc.name: ExecCommand
+ * @tc.desc: Verify the "aa test -b bundle -u -1" command with negative userId.
+ */
+HWTEST_F(AaCommandTestTest, Aa_Command_Test_0700, Function | MediumTest | Level1)
+{
+    char* argv[] = {
+        (char*)TOOL_NAME.c_str(),
+        (char*)cmd_.c_str(),
+        (char*)"-b",
+        (char*)STRING_BUNDLE_NAME.c_str(),
+        (char*)"-u",
+        (char*)"-1",
+        (char*)"",
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    AbilityManagerShellCommand cmd(argc, argv);
+
+    auto managerClientPtr = AbilityManagerClient::GetInstance();
+    auto mockAbilityManagerStub = sptr<MockAbilityManagerStub>(new MockAbilityManagerStub());
+    ASSERT_NE(mockAbilityManagerStub, nullptr);
+    EXPECT_CALL(*mockAbilityManagerStub, StartUserTest(_, _))
+        .Times(1)
+        .WillOnce(Return(INVALID_USERID_VALUE));
+    managerClientPtr->proxy_ = static_cast<IAbilityManager*>(mockAbilityManagerStub);
+
+    EXPECT_EQ(cmd.ExecCommand(), "error: failed to start user test.\n");
+    managerClientPtr->proxy_ = nullptr;
+    testing::Mock::AllowLeak(mockAbilityManagerStub);
+}
+
+/**
+ * @tc.number: Aa_Command_Test_0800
+ * @tc.name: ExecCommand
+ * @tc.desc: Verify the "aa test -b bundle -u 100 --userId" command with long option.
+ */
+HWTEST_F(AaCommandTestTest, Aa_Command_Test_0800, Function | MediumTest | Level1)
+{
+    char* argv[] = {
+        (char*)TOOL_NAME.c_str(),
+        (char*)cmd_.c_str(),
+        (char*)"-b",
+        (char*)STRING_BUNDLE_NAME.c_str(),
+        (char*)"--userId",
+        (char*)"100",
+        (char*)"",
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    AbilityManagerShellCommand cmd(argc, argv);
+
+    auto managerClientPtr = AbilityManagerClient::GetInstance();
+    auto mockAbilityManagerStub = sptr<MockAbilityManagerStub>(new MockAbilityManagerStub());
+    ASSERT_NE(mockAbilityManagerStub, nullptr);
+    EXPECT_CALL(*mockAbilityManagerStub, StartUserTest(_, _))
+        .Times(1)
+        .WillOnce(Return(0));
+    managerClientPtr->proxy_ = static_cast<IAbilityManager*>(mockAbilityManagerStub);
+
+    EXPECT_EQ(cmd.ExecCommand(), STRING_USER_TEST_STARTED + "\n");
+    managerClientPtr->proxy_ = nullptr;
+    testing::Mock::AllowLeak(mockAbilityManagerStub);
+}
+
+/**
+ * @tc.number: Aa_Command_Test_0900
+ * @tc.name: ExecCommand
+ * @tc.desc: Verify the "aa test -b bundle -u" command without userId value.
+ */
+HWTEST_F(AaCommandTestTest, Aa_Command_Test_0900, Function | MediumTest | Level1)
+{
+    char* argv[] = {
+        (char*)TOOL_NAME.c_str(),
+        (char*)cmd_.c_str(),
+        (char*)"-b",
+        (char*)STRING_BUNDLE_NAME.c_str(),
+        (char*)"-u",
+        (char*)"",
+    };
+    int argc = sizeof(argv) / sizeof(argv[0]) - 1;
+    AbilityManagerShellCommand cmd(argc, argv);
+
+    // Missing userId value should trigger error
+    EXPECT_EQ(cmd.ExecCommand(), "error: option [-u] requires a value.\n");
+}
