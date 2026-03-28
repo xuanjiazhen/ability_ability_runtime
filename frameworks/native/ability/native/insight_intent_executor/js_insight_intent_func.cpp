@@ -105,7 +105,8 @@ bool JsInsightIntentFunc::LoadJsCode(const InsightIntentExecutorInfo& info, JsRu
     TAG_LOGD(AAFwkTag::INTENT, "moduleName %{public}s, hapPath %{private}s, srcEntrance %{private}s",
         moduleName.c_str(), hapPath.c_str(), srcEntrance.c_str());
 
-    return runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
+    auto safeData = runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
+    return safeData != nullptr;
 }
 
 void JsInsightIntentFunc::ReplyFailedInner(InsightIntentInnerErr innerErr)
