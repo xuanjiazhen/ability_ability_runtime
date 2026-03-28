@@ -3388,7 +3388,7 @@ void AppMgrServiceInner::SendProcessKillEvent(std::shared_ptr<AppRunningRecord> 
     std::string newReason = appRecord->GetKillReason().empty() ? defaultReason : appRecord->GetKillReason();
     bool foreground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
         appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
-    AAFwk::EventReport::SendAppEvent(AAFwk::EventName::APP_TERMINATE, HISYSEVENT_BEHAVIOR, eventInfo);
+    // Remove duplicate APP_TERMINATE event report, caller ApplicationTerminated() already reports it
     auto hisyseventReport = std::make_shared<AAFwk::HisyseventReport>(6);
     hisyseventReport->InsertParam(EVENT_KEY_PID, std::to_string(eventInfo.pid));
     hisyseventReport->InsertParam(EVENT_KEY_PROCESS_NAME, eventInfo.processName);
