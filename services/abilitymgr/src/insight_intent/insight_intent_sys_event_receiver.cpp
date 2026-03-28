@@ -100,8 +100,8 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
     }
 
     TAG_LOGI(AAFwkTag::INTENT, "init insight intent cache start, userId: %{public}d", userId);
-    if (DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->
-        InitInsightIntentCache(userId) == ERR_OK) {
+    if (DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::
+        GetInstance()->InitInsightIntentCache(userId) == ERR_OK) {
         TAG_LOGI(AAFwkTag::INTENT, "Load intent from db success");
     }
 
