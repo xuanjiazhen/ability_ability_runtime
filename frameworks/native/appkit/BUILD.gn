@@ -215,6 +215,7 @@ ohos_shared_library("appkit_native") {
     "hicollie:libhicollie",
     "hilog:libhilog",
     "hichecker:libhichecker",
+    "hichecker:jsleakwatchernative",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "i18n:preferred_language",
