@@ -1009,6 +1009,11 @@ void AppRunningRecord::SetPreloadState(PreloadState state)
     preloadState_ = state;
 }
 
+PreloadState AppRunningRecord::GetPreloadState()
+{
+    return preloadState_;
+}
+
 void AppRunningRecord::SetPreloadPhase(PreloadPhase phase)
 {
     preloadPhase_ = phase;
