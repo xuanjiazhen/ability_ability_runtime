@@ -1102,6 +1102,39 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_ApplicationF
 }
 
 /**
+ * @tc.name: AppMgrServiceInnerSecondTest_ApplicationForegrounded_002
+ * @tc.desc: verify foreground clears preload mode for pre-launch and window-stage-created preload
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, ApplicationForegrounded_002, TestSize.Level1)
+{
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(appMgrServiceInner, nullptr);
+
+    std::string processName = "test_processName";
+
+    auto preLaunchRecord = std::make_shared<AppRunningRecord>(applicationInfo_, ++g_recordId, processName);
+    ASSERT_NE(preLaunchRecord, nullptr);
+    preLaunchRecord->SetApplicationScheduleState(ApplicationScheduleState::SCHEDULE_FOREGROUNDING);
+    preLaunchRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
+    preLaunchRecord->SetPreloadMode(PreloadMode::PRE_LAUNCH);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(g_recordId, preLaunchRecord);
+    appMgrServiceInner->ApplicationForegrounded(g_recordId);
+    EXPECT_EQ(preLaunchRecord->GetPreloadMode(), PreloadMode::PRELOAD_NONE);
+
+    auto byPhaseRecord = std::make_shared<AppRunningRecord>(applicationInfo_, ++g_recordId, processName);
+    ASSERT_NE(byPhaseRecord, nullptr);
+    byPhaseRecord->SetApplicationScheduleState(ApplicationScheduleState::SCHEDULE_FOREGROUNDING);
+    byPhaseRecord->SetState(ApplicationState::APP_STATE_BACKGROUND);
+    byPhaseRecord->SetPreloadMode(PreloadMode::PRELOAD_BY_PHASE);
+    byPhaseRecord->SetPreloadPhase(PreloadPhase::WINDOW_STAGE_CREATED);
+    byPhaseRecord->SetPreloadState(PreloadState::NONE);
+    appMgrServiceInner->appRunningManager_->appRunningRecordMap_.emplace(g_recordId, byPhaseRecord);
+    appMgrServiceInner->ApplicationForegrounded(g_recordId);
+    EXPECT_EQ(byPhaseRecord->GetPreloadMode(), PreloadMode::PRELOAD_NONE);
+}
+
+/**
  * @tc.name: AppMgrServiceInnerSecondTest_KillApplicationByUid_0100
  * @tc.desc: Test KillApplicationByUid
  * @tc.type: FUNC
