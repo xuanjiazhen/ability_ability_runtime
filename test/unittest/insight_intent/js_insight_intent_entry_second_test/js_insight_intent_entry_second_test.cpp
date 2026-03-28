@@ -249,7 +249,8 @@ HWTEST_F(JsInsightIntentEntrySecondTest, JsInsightIntentEntryLoadJsCode_001, Tes
     info.executeParam = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
     EXPECT_NE(info.executeParam, nullptr);
     MyFlag::isExecuteSecureWithOhmUrl_ = false;
-    auto ret = jsInsightIntentEntry->LoadJsCode(info, *jsRuntime);
+    std::unique_ptr<AbilityBase::FileMapper> safeData;
+    auto ret = jsInsightIntentEntry->LoadJsCode(info, *jsRuntime, safeData);
     EXPECT_EQ(ret, nullptr);
 }
 
@@ -267,7 +268,8 @@ HWTEST_F(JsInsightIntentEntrySecondTest, JsInsightIntentEntryLoadJsCode_002, Tes
     info.executeParam = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
     EXPECT_NE(info.executeParam, nullptr);
     MyFlag::isExecuteSecureWithOhmUrl_ = true;
-    auto ret = jsInsightIntentEntry->LoadJsCode(info, *jsRuntime);
+    std::unique_ptr<AbilityBase::FileMapper> safeData;
+    auto ret = jsInsightIntentEntry->LoadJsCode(info, *jsRuntime, safeData);
     EXPECT_EQ(ret, nullptr);
 }
 
