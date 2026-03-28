@@ -17,6 +17,7 @@
 
 #include <want_params.h>
 
+#include "extractor.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_constant.h"
 #include "insight_intent_execute_result.h"
@@ -50,6 +51,9 @@ JsInsightIntentFunc::JsInsightIntentFunc(JsRuntime& runtime) : runtime_(runtime)
 JsInsightIntentFunc::~JsInsightIntentFunc()
 {
     state_ = State::DESTROYED;
+    if (safeData_ != nullptr) {
+        safeData_->SetAutoReleaseMem(true);
+    }
     TAG_LOGI(AAFwkTag::INTENT, "destructor");
 }
 
@@ -105,7 +109,12 @@ bool JsInsightIntentFunc::LoadJsCode(const InsightIntentExecutorInfo& info, JsRu
     TAG_LOGD(AAFwkTag::INTENT, "moduleName %{public}s, hapPath %{private}s, srcEntrance %{private}s",
         moduleName.c_str(), hapPath.c_str(), srcEntrance.c_str());
 
-    return runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
+    std::shared_ptr<AbilityBase::Extractor> extractor;
+    safeData_ = runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance, extractor);
+    if (extractor != nullptr) {
+        extractor->SetAutoCloseFd(true);
+    }
+    return safeData_ != nullptr;
 }
 
 void JsInsightIntentFunc::ReplyFailedInner(InsightIntentInnerErr innerErr)
