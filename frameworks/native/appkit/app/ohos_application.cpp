@@ -1308,6 +1308,7 @@ void OHOSApplication::RegisterGetAllUIAbilitiesCallback(
             std::shared_ptr<OHOSApplication> appSptr = appWeakPtr.lock();
             if (appSptr == nullptr) {
                 TAG_LOGE(AAFwkTag::APPKIT, "null applicationSptr");
+                TAG_LOGE(AAFwkTag::APPKIT, "null applicationSptr");
                 return;
             }
             appSptr->GetAllUIAbilities(uIAbilities);
