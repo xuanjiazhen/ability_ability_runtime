@@ -188,13 +188,9 @@ ErrCode UIExtensionContext::HandleTerminateWithAnimation()
         return ERR_OK;
     }
 
-    // Check if there's a pending terminate request with result
-    if (hasPendingTerminateRequest_) {
-        TAG_LOGW(AAFwkTag::UI_EXT, "Has pending terminate request with result, skip duplicate");
-        return ERR_OK;
-    }
-
+    // CheckAndSetPendingTerminate() provides duplicate call protection via pendingAnimationTerminate_
     if (!CheckAndSetPendingTerminate()) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "Already pending animation terminate, skip");
         return ERR_OK;
     }
 
@@ -334,11 +330,11 @@ void UIExtensionContext::TerminateSelfWithResult(int32_t resultCode, const AAFwk
     pendingResultCode_ = resultCode;
     pendingResultWant_ = want;
     pendingTerminateCallback_ = std::move(callback);
-    hasPendingTerminateRequest_ = true;
+    hasPendingTerminateRequest_ = true;  // Set before triggering animation to ensure callback is notified
     SetTerminating(true);
     ErrCode err = HandleTerminateWithAnimation();
 
-    // Even if triggering animation fails, notify through callback
+    // Even if triggering animation fails, notify through callback and reset flag
     if (err != ERR_OK && pendingTerminateCallback_) {
         pendingTerminateCallback_(err);
         hasPendingTerminateRequest_ = false;
