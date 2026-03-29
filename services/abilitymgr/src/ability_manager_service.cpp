@@ -1533,25 +1533,6 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         return result;
     }
 
-    // Handle bundle first launch logging and status setting
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "FirstLaunch: bundleName=%{public}s, isBundleFirstLaunched=%{public}d",
-        abilityRequest.appInfo.bundleName.c_str(), abilityRequest.appInfo.isBundleFirstLaunched);
-    if (!abilityRequest.appInfo.isBundleFirstLaunched) {
-        auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-        if (bundleMgrHelper != nullptr) {
-            int32_t appIndex = abilityRequest.appInfo.appIndex;
-            auto ret = IN_PROCESS_CALL(bundleMgrHelper->SetBundleFirstLaunch(
-                abilityRequest.appInfo.bundleName, validUserId, appIndex, true));
-            if (ret == ERR_OK) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch success: bundleName=%{public}s",
-                    abilityRequest.appInfo.bundleName.c_str());
-            } else {
-                TAG_LOGW(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch failed: bundleName=%{public}s, err=%{public}d",
-                    abilityRequest.appInfo.bundleName.c_str(), ret);
-            }
-        }
-    }
-
     if (abilityRequest.requestCode != DEFAULT_REQUEST_CODE &&
         ForegroundAppConnectionManager::IsForegroundAppConnection(abilityRequest.abilityInfo, abilityRecord)) {
         DelayedSingleton<ForegroundAppConnectionManager>::GetInstance()->OnCallerStarted(IPCSkeleton::GetCallingPid(),
@@ -3243,6 +3224,26 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
 int32_t AbilityManagerService::StartUIAbilityBySCBDefaultCommon(AbilityRequest &abilityRequest,
     sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
+    // Handle bundle first launch logging and status setting (centralized entry point for all UIAbility starts)
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "FirstLaunch: bundleName=%{public}s, isBundleFirstLaunched=%{public}d",
+        abilityRequest.appInfo.bundleName.c_str(), abilityRequest.appInfo.isBundleFirstLaunched);
+    if (!abilityRequest.appInfo.isBundleFirstLaunched) {
+        auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+        if (bundleMgrHelper != nullptr) {
+            int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+            int32_t appIndex = abilityRequest.appInfo.appIndex;
+            auto ret = IN_PROCESS_CALL(bundleMgrHelper->SetBundleFirstLaunch(
+                abilityRequest.appInfo.bundleName, userId, appIndex, true));
+            if (ret == ERR_OK) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch success: bundleName=%{public}s",
+                    abilityRequest.appInfo.bundleName.c_str());
+            } else {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch failed: bundleName=%{public}s, err=%{public}d",
+                    abilityRequest.appInfo.bundleName.c_str(), ret);
+            }
+        }
+    }
+
     auto abilityInfo = abilityRequest.abilityInfo;
     if (!AbilityUtil::IsSystemDialogAbility(abilityInfo.bundleName, abilityInfo.name)) {
         int32_t result = PreLoadAppDataAbilities(abilityInfo.bundleName, IPCSkeleton::GetCallingUid() / BASE_USER_RANGE);
