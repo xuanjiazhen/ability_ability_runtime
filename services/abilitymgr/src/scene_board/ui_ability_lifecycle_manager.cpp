@@ -216,9 +216,6 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str(),
         sessionInfo->instanceKey.c_str(), sessionInfo->requestId, isCallBySCB, sessionInfo->reuseDelegatorWindow,
         sessionInfo->scenarios, abilityRequest.requestCode);
-    // Log bundle first launch status for system event
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "FirstLaunch: bundleName=%{public}s, isBundleFirstLaunched=%{public}d",
-        abilityRequest.appInfo.bundleName.c_str(), abilityRequest.appInfo.isBundleFirstLaunched);
     abilityRequest.sessionInfo = sessionInfo;
     if (sessionInfo->callerTypeForAnco == static_cast<int32_t>(CallerTypeForAnco::ADD)) {
         auto asCallerForAncoSessionId = StartAbilityUtils::GenerateAsCallerForAncoSessionId();
@@ -686,6 +683,23 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     // Log bundle first launch status for system event (main entry point for most UIAbility starts)
     TAG_LOGI(AAFwkTag::ABILITYMGR, "FirstLaunch: bundleName=%{public}s, isBundleFirstLaunched=%{public}d",
         abilityRequest.appInfo.bundleName.c_str(), abilityRequest.appInfo.isBundleFirstLaunched);
+    // Set bundle first launch status to true after first launch
+    if (!abilityRequest.appInfo.isBundleFirstLaunched) {
+        auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+        if (bundleMgrHelper != nullptr) {
+            int32_t userId = userId_;
+            int32_t appIndex = abilityRequest.appInfo.appIndex;
+            auto ret = IN_PROCESS_CALL(bundleMgrHelper->SetBundleFirstLaunch(
+                abilityRequest.appInfo.bundleName, userId, appIndex, true));
+            if (ret == ERR_OK) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch success: bundleName=%{public}s",
+                    abilityRequest.appInfo.bundleName.c_str());
+            } else {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch failed: bundleName=%{public}s, err=%{public}d",
+                    abilityRequest.appInfo.bundleName.c_str(), ret);
+            }
+        }
+    }
     if (!AddStartCallerTimestamp(abilityRequest.want.GetIntParam(Want::PARAM_RESV_CALLER_UID, -1))) {
         return ERR_FREQ_START_ABILITY;
     }

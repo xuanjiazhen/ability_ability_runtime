@@ -294,6 +294,7 @@ bool IsEmbeddableStart(int32_t screenMode)
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
 }
+
 } // namespace
 
 using namespace std::chrono;
@@ -1533,9 +1534,24 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         return result;
     }
 
-    // Log bundle first launch status for system event (central entry point for all ability starts)
+    // Handle bundle first launch logging and status setting
     TAG_LOGI(AAFwkTag::ABILITYMGR, "FirstLaunch: bundleName=%{public}s, isBundleFirstLaunched=%{public}d",
         abilityRequest.appInfo.bundleName.c_str(), abilityRequest.appInfo.isBundleFirstLaunched);
+    if (!abilityRequest.appInfo.isBundleFirstLaunched) {
+        auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+        if (bundleMgrHelper != nullptr) {
+            int32_t appIndex = abilityRequest.appInfo.appIndex;
+            auto ret = IN_PROCESS_CALL(bundleMgrHelper->SetBundleFirstLaunch(
+                abilityRequest.appInfo.bundleName, validUserId, appIndex, true));
+            if (ret == ERR_OK) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch success: bundleName=%{public}s",
+                    abilityRequest.appInfo.bundleName.c_str());
+            } else {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch failed: bundleName=%{public}s, err=%{public}d",
+                    abilityRequest.appInfo.bundleName.c_str(), ret);
+            }
+        }
+    }
 
     if (abilityRequest.requestCode != DEFAULT_REQUEST_CODE &&
         ForegroundAppConnectionManager::IsForegroundAppConnection(abilityRequest.abilityInfo, abilityRecord)) {
