@@ -158,7 +158,10 @@ void UIExtensionContext::ExecuteTerminationWithTimeout(const sptr<IRemoteObject>
     if (hasPendingRequest) {
         ErrCode transferErr = TransferPendingResult();
         if (transferErr != ERR_OK) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "Transfer result failed, skip termination, err=%{public}d", transferErr);
+            TAG_LOGE(AAFwkTag::UI_EXT, "Transfer result failed, cleanup and retry termination, err=%{public}d", transferErr);
+            // Reset flags to allow termination through animation completion path
+            CleanupAnimationResources();
+            terminateTimeoutExec_.store(false);
             NotifyPendingCallback(transferErr);
             return;
         }
@@ -169,7 +172,10 @@ void UIExtensionContext::ExecuteTerminationWithTimeout(const sptr<IRemoteObject>
     if (err == ERR_OK) {
         isTerminated_.store(true);
     } else {
-        TAG_LOGE(AAFwkTag::UI_EXT, "Termination failed, err=%{public}d", err);
+        TAG_LOGE(AAFwkTag::UI_EXT, "Termination failed, cleanup and allow retry, err=%{public}d", err);
+        // Termination failed: reset timeout flag to allow retry through normal path
+        CleanupAnimationResources();
+        terminateTimeoutExec_.store(false);
     }
 
     // Notify callback for pending request
@@ -361,6 +367,7 @@ ErrCode UIExtensionContext::TerminateSelfInner()
             if (transferErr != ERR_OK) {
                 NotifyPendingCallback(transferErr);
                 CleanupAnimationResources();  // Clean up resources to allow retry
+                terminateTimeoutExec_.store(false);  // Reset timeout flag to allow retry
                 return transferErr;
             }
         }
