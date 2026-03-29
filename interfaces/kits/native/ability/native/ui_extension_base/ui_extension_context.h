@@ -294,6 +294,7 @@ private:
     void NotifyPendingCallback(ErrCode err);
     void CleanupAnimationResources();
     ErrCode TransferPendingResult();
+    void ExecuteTerminationWithTimeout(const sptr<IRemoteObject> &token);
 
     std::mutex onRequestResultMutex_;
     std::mutex onOpenLinkRequestResultMutex_;

@@ -139,6 +139,45 @@ ErrCode UIExtensionContext::GetOrCreateEventHandler(std::shared_ptr<AppExecFwk::
     return ERR_OK;
 }
 
+void UIExtensionContext::ExecuteTerminationWithTimeout(const sptr<IRemoteObject> &token)
+{
+    if (isTerminated_.load()) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "Already terminated, timeout skipped");
+        return;
+    }
+
+    if (terminateTimeoutExec_.exchange(true)) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "Already terminated by another thread");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::UI_EXT, "Animation timeout, execute termination logic");
+
+    // Transfer pending result if any
+    bool hasPendingRequest = hasPendingTerminateRequest_;
+    if (hasPendingRequest) {
+        ErrCode transferErr = TransferPendingResult();
+        if (transferErr != ERR_OK) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Transfer result failed, skip termination, err=%{public}d", transferErr);
+            NotifyPendingCallback(transferErr);
+            return;
+        }
+    }
+
+    // Execute termination
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token, -1, nullptr);
+    if (err == ERR_OK) {
+        isTerminated_.store(true);
+    } else {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Termination failed, err=%{public}d", err);
+    }
+
+    // Notify callback for pending request
+    if (hasPendingRequest) {
+        NotifyPendingCallback(err);
+    }
+}
+
 ErrCode UIExtensionContext::HandleTerminateWithAnimation()
 {
     TAG_LOGI(AAFwkTag::UI_EXT, "Handle terminate with animation");
@@ -174,41 +213,8 @@ ErrCode UIExtensionContext::HandleTerminateWithAnimation()
     terminateTimeoutExec_.store(false);
     auto timeoutTask = [weakContext = weak_from_this(), token = token_]() {
         auto context = std::static_pointer_cast<UIExtensionContext>(weakContext.lock());
-        if (context == nullptr || context->isTerminated_.load()) {
-            TAG_LOGI(AAFwkTag::UI_EXT, "Context destroyed or already terminated, timeout skipped");
-            return;
-        }
-        if (context->terminateTimeoutExec_.exchange(true)) {
-            TAG_LOGI(AAFwkTag::UI_EXT, "Already terminated by another thread");
-            return;
-        }
-        TAG_LOGI(AAFwkTag::UI_EXT, "Animation timeout, execute termination logic");
-
-        // For TerminateSelfWithResult: try to transfer result first
-        bool hasPendingRequest = context->hasPendingTerminateRequest_;
-        ErrCode transferErr = ERR_OK;
-        if (hasPendingRequest) {
-            transferErr = context->TransferPendingResult();
-            if (transferErr != ERR_OK) {
-                TAG_LOGE(AAFwkTag::UI_EXT, "Transfer result failed, skip termination, err=%{public}d", transferErr);
-                // Notify callback with transfer error (consistent with non-embedded mode)
-                context->NotifyPendingCallback(transferErr);
-                // Don't set isTerminated_ because termination didn't execute, allow retry
-                return;
-            }
-        }
-
-        // Transfer succeeded (or no result to transfer), execute termination
-        auto err = AAFwk::AbilityManagerClient::GetInstance()->TerminateAbility(token, -1, nullptr);
-        if (err != ERR_OK) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "Termination failed, err=%{public}d", err);
-        } else {
-            context->isTerminated_.store(true);
-        }
-
-        // Only notify callback for TerminateSelfWithResult scenario
-        if (hasPendingRequest) {
-            context->NotifyPendingCallback(err);
+        if (context != nullptr) {
+            context->ExecuteTerminationWithTimeout(token);
         }
     };
     if (!localHandler->PostTask(timeoutTask, "UIExtensionTerminateTimeout", TERMINATE_SELF_ANIMATION_TIMEOUT_MS)) {
