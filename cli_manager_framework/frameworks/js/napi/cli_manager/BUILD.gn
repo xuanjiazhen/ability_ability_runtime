@@ -1,4 +1,4 @@
-# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Copyright (c) 2025-2026 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,51 +14,44 @@
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-config("cli_manager_public_config") {
-  visibility = [ ":*" ]
-  visibility += [
-    "${ability_runtime_test_path}/unittest/cli_manager_test/*",
-  ]
-  include_dirs = [
-    "include",
-    "${ability_runtime_services_path}/common/include",
-  ]
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-}
-
-ohos_shared_library("cli_manager") {
-  branch_protector_ret = "pac_ret"
+ohos_shared_library("climanager") {
   sanitize = {
     cfi = true
     cfi_cross_dso = true
     debug = false
   }
-
-  sources = [
-    "src/cli_manager_data.cpp",
-    "src/cli_manager_proxy.cpp",
-    "src/cli_manager_stub.cpp",
-    "src/cli_manager_client.cpp",
-  ]
-
-  public_configs = [ ":cli_manager_public_config" ]
+  branch_protector_ret = "pac_ret"
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
-  deps = []
+  sources = [
+    "cli_manager_module.cpp",
+    "js_cli_manager.cpp",
+    "js_cli_manager_utils.cpp",
+  ]
+
+  include_dirs = [
+    "./",
+    "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_napi_path}/inner/napi_common",
+  ]
+
+  deps = [
+    "${cli_manager_framework_path}/interfaces/inner_api:cli_manager_client",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${ability_runtime_native_path}/ability/native:ability_business_error",
+    "${ability_runtime_services_path}/common:app_util",
+  ]
 
   external_deps = [
+    "ability_base:base",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
-    "samgr:samgr_proxy",
+    "napi:ace_napi",
   ]
 
-  cflags_cc = []
-  innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

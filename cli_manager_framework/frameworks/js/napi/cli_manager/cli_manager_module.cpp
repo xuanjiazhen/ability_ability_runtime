@@ -16,7 +16,6 @@
 #include "native_engine/native_engine.h"
 #include "js_cli_manager.h"
 
-#ifdef ENABLE_ERRCODE
 /*
  * The module definition.
  */
@@ -34,23 +33,4 @@ extern "C" __attribute__((constructor)) void NAPI_application_CliManager_AutoReg
 {
     napi_module_register(&_module);
 }
-#else
-/*
- * The module definition.
- */
-static napi_module _module = {
-    .nm_version = 0,
-    .nm_filename = "application/climanager.so/cli_manager.js",
-    .nm_register_func = OHOS::AbilityRuntime::JsCliManagerInit,
-    .nm_modname = "application.CliManager",
-};
-
-/*
- * The module registration.
- */
-extern "C" __attribute__((constructor)) void NAPI_CliManager_AutoRegister(void)
-{
-    napi_module_register(&_module);
-}
-#endif
 
