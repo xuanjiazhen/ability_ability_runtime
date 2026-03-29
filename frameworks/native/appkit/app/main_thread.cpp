@@ -2022,7 +2022,9 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     application_->SetAbilityRecordMgr(abilityRecordMgr_);
     application_->SetConfiguration(appConfig);
     contextImpl->SetConfiguration(application_->GetConfiguration());
-    application_->InitJSLeakWatcher(bundleInfo.name);
+    if (options.lang == AbilityRuntime::Runtime::Language::JS) {
+        application_->InitJSLeakWatcher(bundleInfo.name);
+    }
 
     applicationImpl_->SetRecordId(appLaunchData.GetRecordId());
     applicationImpl_->SetApplication(application_);
