@@ -44,7 +44,7 @@ ohos_shared_library("climgr") {
   ]
 
   deps = [
-    "${ability_runtime_innerkits_path}/cli_manager:cli_manager",
+    "${cli_manager_framework_path}/interfaces/inner_api:cli_manager_client",
     "${ability_runtime_services_path}/common:app_util",
   ]
 
