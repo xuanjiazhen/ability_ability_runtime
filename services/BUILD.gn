@@ -16,7 +16,7 @@ group("ams_target") {
   deps = [
     "abilitymgr:abilityms_target",
     "appmgr:appms_target",
-    "climgr:climgr_target",
+    "${cli_manager_framework_path}/services/climgr:climgr_target",
     "common:ams_common_target",
     "dataobsmgr:dataobsms",
     "quickfixmgr:quickfixms",
