@@ -158,7 +158,8 @@ void UIExtensionContext::ExecuteTerminationWithTimeout(const sptr<IRemoteObject>
     if (hasPendingRequest) {
         ErrCode transferErr = TransferPendingResult();
         if (transferErr != ERR_OK) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "Transfer result failed, cleanup and retry termination, err=%{public}d", transferErr);
+            TAG_LOGE(AAFwkTag::UI_EXT,
+                "Transfer result failed, cleanup and retry termination, err=%{public}d", transferErr);
             // Reset flags to allow termination through animation completion path
             CleanupAnimationResources();
             terminateTimeoutExec_.store(false);
@@ -352,10 +353,9 @@ void UIExtensionContext::TerminateSelfWithResult(int32_t resultCode, const AAFwk
     pendingResultCode_ = resultCode;
     pendingResultWant_ = want;
     pendingTerminateCallback_ = std::move(callback);
-    hasPendingTerminateRequest_ = true;  // Set before triggering animation to ensure callback is notified
+    hasPendingTerminateRequest_ = true;
     SetTerminating(true);
     ErrCode err = HandleTerminateWithAnimation();
-
     // If triggering animation fails, notify callback and roll back all pending state
     // This prevents mixed calling scenarios where first animation uses wrong result data
     if (err != ERR_OK) {
