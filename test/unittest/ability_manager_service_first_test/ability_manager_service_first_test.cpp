@@ -2770,5 +2770,129 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_004, TestSiz
     EXPECT_EQ(abilityMs_->CheckCallAbilityPermission(abilityRequest, false), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_004 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityInner - Bundle First Launch
+ * SubFunction: Handle bundle first launch logging and status setting
+ * FunctionPoints: Test first launch logic when isBundleFirstLaunched is false
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInner_FirstLaunch_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInner_FirstLaunch_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    ElementName element;
+    element.SetBundleName("com.ix.hiworld");
+    element.SetAbilityName("MainAbility");
+    want.SetElement(element);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.want = want;
+    abilityRequest.appInfo.bundleName = "com.ix.hiworld";
+    abilityRequest.appInfo.isBundleFirstLaunched = false;
+    abilityRequest.appInfo.appIndex = 0;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.ix.hiworld";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityRequest.callerToken = nullptr;
+    abilityRequest.requestCode = 0;
+
+    StartAbilityWrapParam startAbilityWrapParam;
+    startAbilityWrapParam.want = want;
+    startAbilityWrapParam.callerToken = nullptr;
+    startAbilityWrapParam.requestCode = 0;
+    startAbilityWrapParam.specifyTokenId = 0;
+    startAbilityWrapParam.isStartAsCaller = false;
+
+    MyFlag::flag_ = 1;
+    auto result = abilityMs->StartAbilityInner(startAbilityWrapParam);
+    EXPECT_NE(result, ERR_OK);
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInner_FirstLaunch_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityInner - Bundle Already Launched
+ * SubFunction: Handle bundle first launch logging when already launched
+ * FunctionPoints: Test first launch logic when isBundleFirstLaunched is true
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInner_FirstLaunch_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInner_FirstLaunch_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    ElementName element;
+    element.SetBundleName("com.ix.hiworld");
+    element.SetAbilityName("MainAbility");
+    want.SetElement(element);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.want = want;
+    abilityRequest.appInfo.bundleName = "com.ix.hiworld";
+    abilityRequest.appInfo.isBundleFirstLaunched = true;
+    abilityRequest.appInfo.appIndex = 0;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.ix.hiworld";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityRequest.callerToken = nullptr;
+    abilityRequest.requestCode = 0;
+
+    StartAbilityWrapParam startAbilityWrapParam;
+    startAbilityWrapParam.want = want;
+    startAbilityWrapParam.callerToken = nullptr;
+    startAbilityWrapParam.requestCode = 0;
+    startAbilityWrapParam.specifyTokenId = 0;
+    startAbilityWrapParam.isStartAsCaller = false;
+
+    MyFlag::flag_ = 1;
+    auto result = abilityMs->StartAbilityInner(startAbilityWrapParam);
+    EXPECT_NE(result, ERR_OK);
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInner_FirstLaunch_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartAbilityInner - Clone App First Launch
+ * SubFunction: Handle bundle first launch for clone app
+ * FunctionPoints: Test first launch logic for clone app (appIndex > 0)
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartAbilityInner_FirstLaunch_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInner_FirstLaunch_003 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    ElementName element;
+    element.SetBundleName("com.ix.hiworld");
+    element.SetAbilityName("MainAbility");
+    want.SetElement(element);
+
+    AbilityRequest abilityRequest;
+    abilityRequest.want = want;
+    abilityRequest.appInfo.bundleName = "com.ix.hiworld";
+    abilityRequest.appInfo.isBundleFirstLaunched = false;
+    abilityRequest.appInfo.appIndex = 1;
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.bundleName = "com.ix.hiworld";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityRequest.callerToken = nullptr;
+    abilityRequest.requestCode = 0;
+
+    StartAbilityWrapParam startAbilityWrapParam;
+    startAbilityWrapParam.want = want;
+    startAbilityWrapParam.callerToken = nullptr;
+    startAbilityWrapParam.requestCode = 0;
+    startAbilityWrapParam.specifyTokenId = 0;
+    startAbilityWrapParam.isStartAsCaller = false;
+
+    MyFlag::flag_ = 1;
+    auto result = abilityMs->StartAbilityInner(startAbilityWrapParam);
+    EXPECT_NE(result, ERR_OK);
+    MyFlag::flag_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest StartAbilityInner_FirstLaunch_003 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS
