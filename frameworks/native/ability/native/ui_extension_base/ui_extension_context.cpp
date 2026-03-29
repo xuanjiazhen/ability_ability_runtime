@@ -251,12 +251,12 @@ ErrCode UIExtensionContext::TransferAbilityResultToWindow(int32_t resultCode, co
     sptr<Rosen::Window> uiWindow = GetWindow();
     if (!uiWindow) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null uiWindow");
-        return INVALID_PARAMETERS_ERR;
+        return AAFwk::INVALID_PARAMETERS_ERR;
     }
     auto ret = uiWindow->TransferAbilityResult(resultCode, want);
     if (ret != Rosen::WMError::WM_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "TransferAbilityResult to window failed, ret = %{public}d", ret);
-        return INVALID_PARAMETERS_ERR;
+        return AAFwk::INVALID_PARAMETERS_ERR;
     }
 #endif // SUPPORT_SCREEN
 
