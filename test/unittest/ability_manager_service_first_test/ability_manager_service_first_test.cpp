@@ -2784,7 +2784,8 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartUIAbilityBySCB_FirstLaunch_001, Te
 
     // Prepare AbilityRequest with first launch status = false
     AbilityRequest abilityRequest;
-    abilityRequest.want.SetElement(BundleName("com.ix.hiworld"), AbilityName("MainAbility"));
+    ElementName element("device", "com.ix.hiworld", "MainAbility", "");
+    abilityRequest.want.SetElement(element);
     abilityRequest.appInfo.bundleName = "com.ix.hiworld";
     abilityRequest.appInfo.isBundleFirstLaunched = false;
     abilityRequest.appInfo.appIndex = 0;
@@ -2824,7 +2825,8 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartUIAbilityBySCB_FirstLaunch_002, Te
 
     // Prepare AbilityRequest with first launch status = true
     AbilityRequest abilityRequest;
-    abilityRequest.want.SetElement(BundleName("com.ix.hiworld"), AbilityName("MainAbility"));
+    ElementName element("device", "com.ix.hiworld", "MainAbility", "");
+    abilityRequest.want.SetElement(element);
     abilityRequest.appInfo.bundleName = "com.ix.hiworld";
     abilityRequest.appInfo.isBundleFirstLaunched = true;
     abilityRequest.appInfo.appIndex = 0;
@@ -2864,7 +2866,8 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartUIAbilityBySCB_FirstLaunch_003, Te
 
     // Prepare AbilityRequest for clone app (appIndex = 1)
     AbilityRequest abilityRequest;
-    abilityRequest.want.SetElement(BundleName("com.ix.hiworld"), AbilityName("MainAbility"));
+    ElementName element("device", "com.ix.hiworld", "MainAbility", "");
+    abilityRequest.want.SetElement(element);
     abilityRequest.appInfo.bundleName = "com.ix.hiworld";
     abilityRequest.appInfo.isBundleFirstLaunched = false;
     abilityRequest.appInfo.appIndex = 1;
