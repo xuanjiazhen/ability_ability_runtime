@@ -61,7 +61,7 @@ void AbilityEventUtil::SendKillProcessWithReasonEvent(int32_t errCode, const std
 }
 
 bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo &appInfo, int32_t userId,
-    const std::string &appId)
+    const std::string &callerBundleName)
 {
     if (appInfo.isBundleFirstLaunched) {
         return true;  // Already launched, no need to process
@@ -69,6 +69,17 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleBundleFirstLaunch: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d",
         appInfo.bundleName.c_str(), userId, appInfo.appIndex);
+
+    // Get appId from SignatureInfo
+    std::string appId;
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper != nullptr) {
+        AppExecFwk::SignatureInfo signatureInfo;
+        if (IN_PROCESS_CALL(bundleMgrHelper->GetSignatureInfoByBundleName(
+            appInfo.bundleName, signatureInfo)) == ERR_OK) {
+            appId = signatureInfo.appId;
+        }
+    }
 
     // Publish COMMON_EVENT_APP_FIRST_LAUNCH event
     AAFwk::Want want;
@@ -79,6 +90,9 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     want.SetParam("uid", appInfo.uid);
     if (!appId.empty()) {
         want.SetParam("appId", appId);
+    }
+    if (!callerBundleName.empty()) {
+        want.SetParam("callerBundleName", callerBundleName);
     }
     EventFwk::CommonEventData commonData {want};
 
