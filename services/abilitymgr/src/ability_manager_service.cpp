@@ -3226,7 +3226,12 @@ int32_t AbilityManagerService::StartUIAbilityBySCBDefaultCommon(AbilityRequest &
 {
     // Handle bundle first launch event and status setting (centralized entry point for all UIAbility starts)
     int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
-    AbilityEventUtil::HandleBundleFirstLaunch(abilityRequest.appInfo, userId, abilityRequest.appId);
+
+    // Get caller bundle name, use empty string as default if not available
+    std::string callerBundleName;
+    WantUtils::GetCallerBundleName(callerBundleName);
+
+    AbilityEventUtil::HandleBundleFirstLaunch(abilityRequest.appInfo, userId, callerBundleName);
 
     auto abilityInfo = abilityRequest.abilityInfo;
     if (!AbilityUtil::IsSystemDialogAbility(abilityInfo.bundleName, abilityInfo.name)) {
