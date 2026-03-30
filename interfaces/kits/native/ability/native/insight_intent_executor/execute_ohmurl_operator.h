@@ -35,8 +35,9 @@ public:
     {
         TAG_LOGD(AAFwkTag::INTENT, "Execute ohmurl, moduleName %{public}s, srcEntrance %{private}s",
             moduleName_.c_str(), srcEntrance_.c_str());
-        auto ret = runtime_.ExecuteSecureWithOhmUrl(moduleName_, hapPath_, srcEntrance_);
-        if (!ret) {
+        std::unique_ptr<AbilityBase::FileMapper> safeData =
+            runtime_.ExecuteSecureWithOhmUrl(moduleName_, hapPath_, srcEntrance_);
+        if (safeData == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "Execute ohmurl failed, moduleName %{public}s, srcEntrance %{private}s",
                 moduleName_.c_str(), srcEntrance_.c_str());
         }

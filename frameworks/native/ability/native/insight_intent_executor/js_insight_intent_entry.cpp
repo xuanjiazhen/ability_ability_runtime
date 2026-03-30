@@ -157,8 +157,9 @@ std::unique_ptr<NativeReference> JsInsightIntentEntry::LoadJsCode(
     TAG_LOGD(AAFwkTag::INTENT, "moduleName %{public}s, hapPath %{private}s, srcEntrance %{private}s",
         moduleName.c_str(), hapPath.c_str(), srcEntrance.c_str());
 
-    auto ret = runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
-    if (!ret) {
+    std::unique_ptr<AbilityBase::FileMapper> safeData =
+        runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
+    if (safeData == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "execute failed");
         return std::unique_ptr<NativeReference>();
     }
