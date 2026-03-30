@@ -218,7 +218,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0500, Te
 
 /**
  * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0600
- * @tc.desc: Test HandleBundleFirstLaunch with appId parameter
+ * @tc.desc: Test HandleBundleFirstLaunch with different userId
  * @tc.type: FUNC
  * @tc.require: NA
  */
@@ -229,18 +229,17 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0600, Te
     appInfo.bundleName = "com.test.demo";
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 0;
-    appInfo.uid = 20010000;
-    int32_t userId = 100;
-    std::string appId = "test_app_id_12345";
+    appInfo.uid = 20020000;
+    int32_t userId = 200;
 
-    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, appId);
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
     EXPECT_EQ(result, true);
     TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0600 end");
 }
 
 /**
  * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0700
- * @tc.desc: Test HandleBundleFirstLaunch with clone app and appId parameter
+ * @tc.desc: Test HandleBundleFirstLaunch with callerBundleName parameter
  * @tc.type: FUNC
  * @tc.require: NA
  */
@@ -250,19 +249,19 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0700, Te
     ApplicationInfo appInfo;
     appInfo.bundleName = "com.test.demo";
     appInfo.isBundleFirstLaunched = false;
-    appInfo.appIndex = 1;
-    appInfo.uid = 20010001;
+    appInfo.appIndex = 0;
+    appInfo.uid = 20010000;
     int32_t userId = 100;
-    std::string appId = "test_app_id_clone_67890";
+    std::string callerBundleName = "com.test.caller";
 
-    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, appId);
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, callerBundleName);
     EXPECT_EQ(result, true);
     TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0700 end");
 }
 
 /**
  * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0800
- * @tc.desc: Test HandleBundleFirstLaunch with different userId for clone app
+ * @tc.desc: Test HandleBundleFirstLaunch with clone app and callerBundleName
  * @tc.type: FUNC
  * @tc.require: NA
  */
@@ -272,18 +271,19 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0800, Te
     ApplicationInfo appInfo;
     appInfo.bundleName = "com.test.demo";
     appInfo.isBundleFirstLaunched = false;
-    appInfo.appIndex = 0;
-    appInfo.uid = 20020000;
-    int32_t userId = 200;
+    appInfo.appIndex = 1;
+    appInfo.uid = 20010001;
+    int32_t userId = 100;
+    std::string callerBundleName = "com.test.caller";
 
-    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, callerBundleName);
     EXPECT_EQ(result, true);
     TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0800 end");
 }
 
 /**
  * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0900
- * @tc.desc: Test HandleBundleFirstLaunch with empty appId parameter
+ * @tc.desc: Test HandleBundleFirstLaunch with empty callerBundleName (default)
  * @tc.type: FUNC
  * @tc.require: NA
  */
@@ -296,16 +296,16 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0900, Te
     appInfo.appIndex = 0;
     appInfo.uid = 20010000;
     int32_t userId = 100;
-    std::string appId = "";
+    std::string callerBundleName = "";
 
-    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, appId);
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, callerBundleName);
     EXPECT_EQ(result, true);
     TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0900 end");
 }
 
 /**
  * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_1000
- * @tc.desc: Test HandleBundleFirstLaunch with clone app, appId and already launched
+ * @tc.desc: Test HandleBundleFirstLaunch with default callerBundleName (no parameter)
  * @tc.type: FUNC
  * @tc.require: NA
  */
@@ -314,37 +314,14 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_1000, Te
     TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1000 start");
     ApplicationInfo appInfo;
     appInfo.bundleName = "com.test.demo";
-    appInfo.isBundleFirstLaunched = true;
-    appInfo.appIndex = 1;
-    appInfo.uid = 20010001;
-    int32_t userId = 100;
-    std::string appId = "test_app_id_clone_67890";
-
-    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, appId);
-    EXPECT_EQ(result, true);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1000 end");
-}
-
-/**
- * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_1100
- * @tc.desc: Test HandleBundleFirstLaunch with different userId and appId
- * @tc.type: FUNC
- * @tc.require: NA
- */
-HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_1100, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1100 start");
-    ApplicationInfo appInfo;
-    appInfo.bundleName = "com.test.demo";
     appInfo.isBundleFirstLaunched = false;
     appInfo.appIndex = 0;
-    appInfo.uid = 20020000;
-    int32_t userId = 200;
-    std::string appId = "test_app_id_user200";
+    appInfo.uid = 20010000;
+    int32_t userId = 100;
 
-    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, appId);
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
     EXPECT_EQ(result, true);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1100 end");
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1000 end");
 }
 
 }  // namespace AAFwk
