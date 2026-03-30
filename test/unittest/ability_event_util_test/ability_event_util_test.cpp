@@ -110,5 +110,69 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_SendKillProcessWithReasonEvent_0
     EXPECT_EQ(eventInfo.userId, -1);
     TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_SendKillProcessWithReasonEvent_0100 end");
 }
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0100
+ * @tc.desc: Test HandleBundleFirstLaunch with first launch (isBundleFirstLaunched = false)
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0100 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 0;
+    appInfo.uid = 20010000;
+    int32_t userId = 100;
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0100 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0200
+ * @tc.desc: Test HandleBundleFirstLaunch with already launched (isBundleFirstLaunched = true)
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0200 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = true;
+    appInfo.appIndex = 0;
+    appInfo.uid = 20010000;
+    int32_t userId = 100;
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0200 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0300
+ * @tc.desc: Test HandleBundleFirstLaunch with clone app (appIndex > 0)
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0300 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 1;
+    appInfo.uid = 20010001;
+    int32_t userId = 100;
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0300 end");
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
