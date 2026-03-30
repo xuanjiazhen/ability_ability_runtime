@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_EVENT_UTIL_H
 #define OHOS_ABILITY_RUNTIME_ABILITY_EVENT_UTIL_H
 
+#include <mutex>
+#include <set>
 #include <string>
 
 #include "application_info.h"
@@ -25,6 +27,24 @@
 
 namespace OHOS {
 namespace AAFwk {
+// Key structure for tracking first launch status per app clone
+struct FirstLaunchKey {
+    std::string bundleName;
+    int32_t userId;
+    int32_t appIndex;
+
+    bool operator<(const FirstLaunchKey& other) const
+    {
+        if (bundleName != other.bundleName) {
+            return bundleName < other.bundleName;
+        }
+        if (userId != other.userId) {
+            return userId < other.userId;
+        }
+        return appIndex < other.appIndex;
+    }
+};
+
 class AbilityEventUtil {
 public:
     static void HandleModuleInfoUpdated(const std::string &bundleName, const int uid, const std::string &moduleName,
@@ -42,6 +62,11 @@ public:
      */
     static bool HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo &appInfo, int32_t userId,
         const std::string &appId = "");
+
+private:
+    // Cache to track which app clones have already triggered first launch event
+    static std::set<FirstLaunchKey> firstLaunchCache_;
+    static std::mutex firstLaunchCacheMutex_;
 };
 
 } // namespace AAFwk
