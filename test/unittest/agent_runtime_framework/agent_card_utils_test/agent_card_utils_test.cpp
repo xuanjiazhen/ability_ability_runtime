@@ -106,6 +106,9 @@ HWTEST_F(AgentCardUtilsTest, HasRequiredRegisterFields_001, TestSize.Level1)
     AgentCard card;
     EXPECT_FALSE(AgentCardUtils::HasRequiredRegisterFields(card));
     EXPECT_TRUE(AgentCardUtils::HasRequiredRegisterFields(BuildCard("testAgent", "1.0.0")));
+    auto invalidIconCard = BuildCard("invalidIcon", "1.0.0");
+    invalidIconCard.iconUrl.clear();
+    EXPECT_FALSE(AgentCardUtils::HasRequiredRegisterFields(invalidIconCard));
 }
 
 HWTEST_F(AgentCardUtilsTest, ShouldValidateAppInfo_001, TestSize.Level1)
