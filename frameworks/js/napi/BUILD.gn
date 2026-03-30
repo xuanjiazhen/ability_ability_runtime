@@ -57,7 +57,7 @@ group("napi_packages") {
     "${ability_runtime_napi_path}/application_context_constant:contextconstant_napi",
     "${ability_runtime_napi_path}/callee:callee_napi",
     "${ability_runtime_napi_path}/caller:caller_napi",
-    "${ability_runtime_napi_path}/cli_manager:climanager",
+    "${cli_manager_framework_path}/frameworks/js/napi/cli_manager:climanager",
     "${ability_runtime_napi_path}/completion_handler_for_abilitystartcallback:completionhandlerforabilitystartcallback",
     "${ability_runtime_napi_path}/completion_handler_for_atomic_service:completionhandlerforatomicservice",
     "${ability_runtime_napi_path}/configuration_constant:configurationconstant",

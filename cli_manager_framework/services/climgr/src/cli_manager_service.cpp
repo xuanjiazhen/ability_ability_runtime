@@ -131,6 +131,15 @@ void CliManagerService::LoadToolsFromConfig()
     tool4.supportedEvents = {"startAbility", "stderr", "exit"};
     tools_.push_back(tool4);
 
+    ToolInfo tool5;
+    tool5.name = "/system/bin/claw_sandbox";
+    tool5.version = "1.0.0";
+    tool5.description = "sandbox tools";
+    tool5.permissions = {};
+    tool5.timeout = 15000;
+    tool5.supportedEvents = {"sandbox", "stderr", "exit"};
+    tools_.push_back(tool5);
+
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Loaded %{public}zu tools", tools_.size());
 }
 
