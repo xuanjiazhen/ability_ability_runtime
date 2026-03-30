@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_EXECUTE_OHMURL_OPERATOR_H
 #define OHOS_ABILITY_RUNTIME_EXECUTE_OHMURL_OPERATOR_H
 
+#include "file_mapper.h"
 #include "hilog_tag_wrapper.h"
 #include "js_runtime.h"
 
@@ -35,8 +36,9 @@ public:
     {
         TAG_LOGD(AAFwkTag::INTENT, "Execute ohmurl, moduleName %{public}s, srcEntrance %{private}s",
             moduleName_.c_str(), srcEntrance_.c_str());
-        auto ret = runtime_.ExecuteSecureWithOhmUrl(moduleName_, hapPath_, srcEntrance_);
-        if (!ret) {
+        std::unique_ptr<AbilityBase::FileMapper> safeData =
+            runtime_.ExecuteSecureWithOhmUrl(moduleName_, hapPath_, srcEntrance_);
+        if (safeData == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "Execute ohmurl failed, moduleName %{public}s, srcEntrance %{private}s",
                 moduleName_.c_str(), srcEntrance_.c_str());
         }
