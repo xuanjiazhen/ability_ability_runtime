@@ -174,5 +174,112 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0300, Te
     TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0300 end");
 }
 
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0400
+ * @tc.desc: Test HandleBundleFirstLaunch with second clone app (appIndex = 2)
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0400 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 2;
+    appInfo.uid = 20010002;
+    int32_t userId = 100;
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0400 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0500
+ * @tc.desc: Test HandleBundleFirstLaunch with clone app already launched
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0500 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = true;
+    appInfo.appIndex = 1;
+    appInfo.uid = 20010001;
+    int32_t userId = 100;
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0500 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0600
+ * @tc.desc: Test HandleBundleFirstLaunch with appId parameter
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0600 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 0;
+    appInfo.uid = 20010000;
+    int32_t userId = 100;
+    std::string appId = "test_app_id_12345";
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, appId);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0600 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0700
+ * @tc.desc: Test HandleBundleFirstLaunch with clone app and appId parameter
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0700 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 1;
+    appInfo.uid = 20010001;
+    int32_t userId = 100;
+    std::string appId = "test_app_id_clone_67890";
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, appId);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0700 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0800
+ * @tc.desc: Test HandleBundleFirstLaunch with different userId for clone app
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0800 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 0;
+    appInfo.uid = 20020000;
+    int32_t userId = 200;
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_0800 end");
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
