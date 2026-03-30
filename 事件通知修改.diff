@@ -1,0 +1,89 @@
+diff --git a/frameworks/native/src/common_event_support.cpp b/frameworks/native/src/common_event_support.cpp
+index f6199e44b445135b27663cf129fbbb4cc39dc849..45e29c85c434006b048e3b920e44dbca88253bbf 100644
+--- a/frameworks/native/src/common_event_support.cpp
++++ b/frameworks/native/src/common_event_support.cpp
+@@ -1218,6 +1218,13 @@ const std::string CommonEventSupport::COMMON_EVENT_ACCOUNT_DELETED = "usual.even
+  */
+ const std::string CommonEventSupport::COMMON_EVENT_FOUNDATION_READY = "common.event.FOUNDATION_READY";
+ 
++/**
++ * Indicates the action of a common event that the application is launched for the first time after installation.
++ * This common event is published when the UIAbility is started for the first time after installation.
++ * This is a protected common event, which can be sent only by the system.
++ */
++const std::string CommonEventSupport::COMMON_EVENT_APP_FIRST_LAUNCH = "usual.event.APP_FIRST_LAUNCH";
++
+ /**
+  * Indicates the action of a common event that the default voice subscription has changed.
+  * This is a protected common event that can only be sent by system.
+@@ -2762,6 +2769,13 @@ void CommonEventSupport::Init()
+      */
+     commonEventSupport_.emplace_back(COMMON_EVENT_FOUNDATION_READY);
+ 
++    /**
++     * Indicates the action of a common event that the application is launched for the first time after installation.
++     * This common event is published when the UIAbility is started for the first time after installation.
++     * This is a protected common event, which can be sent only by the system.
++     */
++    commonEventSupport_.emplace_back(COMMON_EVENT_APP_FIRST_LAUNCH);
++
+     /**
+      * Indicates the action of a common event that the default voice subscription has changed.
+      * This is a protected common event that can only be sent by system.
+diff --git a/interfaces/inner_api/common_event_support.h b/interfaces/inner_api/common_event_support.h
+index d2d62d4543895b2d42dd711b9f0fce7fa350e292..7e904c7a6f0e7bb254bf31dd55c66c82a548f8ff 100644
+--- a/interfaces/inner_api/common_event_support.h
++++ b/interfaces/inner_api/common_event_support.h
+@@ -1085,6 +1085,13 @@ public:
+      */
+     static const std::string COMMON_EVENT_FOUNDATION_READY;
+ 
++    /**
++     * Indicates the action of a common event that the application is launched for the first time after installation.
++     * This common event is published when the UIAbility is started for the first time after installation.
++     * This is a protected common event, which can be sent only by the system.
++     */
++    static const std::string COMMON_EVENT_APP_FIRST_LAUNCH;
++
+     /**
+      * Indicates the action of a common event that the default voice subscription has changed.
+      * This is a protected common event that can only be sent by system.
+diff --git a/interfaces/kits/ani/common_event/ets/@ohos.commonEventManager.ets b/interfaces/kits/ani/common_event/ets/@ohos.commonEventManager.ets
+index e1eec29be90cb86a1651efe9f4f4728cc9828638..e0e2e7908fe20c10e5d65a9798a77322e8618ff2 100644
+--- a/interfaces/kits/ani/common_event/ets/@ohos.commonEventManager.ets
++++ b/interfaces/kits/ani/common_event/ets/@ohos.commonEventManager.ets
+@@ -488,6 +488,7 @@ namespace commonEventManager {
+         COMMON_EVENT_VISIBLE_ACCOUNTS_UPDATED = 'usual.event.data.VISIBLE_ACCOUNTS_UPDATED',
+         COMMON_EVENT_ACCOUNT_DELETED = 'usual.event.data.ACCOUNT_DELETED',
+         COMMON_EVENT_FOUNDATION_READY = 'common.event.FOUNDATION_READY',
++        COMMON_EVENT_APP_FIRST_LAUNCH = 'usual.event.APP_FIRST_LAUNCH',
+         COMMON_EVENT_AIRPLANE_MODE_CHANGED = 'usual.event.AIRPLANE_MODE',
+         COMMON_EVENT_SPLIT_SCREEN = 'common.event.SPLIT_SCREEN',
+         COMMON_EVENT_SLOT_CHANGE = 'usual.event.SLOT_CHANGE',
+diff --git a/interfaces/kits/napi/support/src/support.cpp b/interfaces/kits/napi/support/src/support.cpp
+index 4090ceaf8ee77d848db2ef2896212a633494e936..7aeaaed7c1ddd70d1e232709541b466a1a034e75 100644
+--- a/interfaces/kits/napi/support/src/support.cpp
++++ b/interfaces/kits/napi/support/src/support.cpp
+@@ -501,6 +501,8 @@ napi_value SupportInit(napi_env env, napi_value exports)
+         env, obj, EventFwk::CommonEventSupport::COMMON_EVENT_ACCOUNT_DELETED, "COMMON_EVENT_ACCOUNT_DELETED");
+     SetNamedPropertyByStr(
+         env, obj, EventFwk::CommonEventSupport::COMMON_EVENT_FOUNDATION_READY, "COMMON_EVENT_FOUNDATION_READY");
++    SetNamedPropertyByStr(
++        env, obj, EventFwk::CommonEventSupport::COMMON_EVENT_APP_FIRST_LAUNCH, "COMMON_EVENT_APP_FIRST_LAUNCH");
+     SetNamedPropertyByStr(env,
+         obj,
+         EventFwk::CommonEventSupport::COMMON_EVENT_SIM_STATE_CHANGED,
+diff --git a/services/src/common_event_permission_manager.cpp b/services/src/common_event_permission_manager.cpp
+index 2cfd3e809fdac2c63f03201b9f6183831aa8ab54..dbbfa114b8317bd84eaecb2e05d53c1cb34b72a4 100644
+--- a/services/src/common_event_permission_manager.cpp
++++ b/services/src/common_event_permission_manager.cpp
+@@ -198,7 +198,8 @@ static const std::unordered_set<std::string> SYSTEM_API_COMMON_EVENTS {
+     CommonEventSupport::COMMON_EVENT_USER_LOCKED,
+     CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED,
+     CommonEventSupport::COMMON_EVENT_SCREEN_SHARE,
+-    CommonEventSupport::COMMON_EVENT_CLOUD_DISK_STATE_CHANGED
++    CommonEventSupport::COMMON_EVENT_CLOUD_DISK_STATE_CHANGED,
++    CommonEventSupport::COMMON_EVENT_APP_FIRST_LAUNCH
+ };
+ 
+ static const std::vector<std::string> SENSITIVE_COMMON_EVENTS {
