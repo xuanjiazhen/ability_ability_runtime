@@ -102,17 +102,6 @@ ErrCode UIExtensionContext::StartUIServiceExtension(const AAFwk::Want& want, int
     return err;
 }
 
-bool UIExtensionContext::CheckAndSetPendingTerminate()
-{
-    std::lock_guard<std::mutex> lock(terminateSelfMutex_);
-    if (pendingAnimationTerminate_) {
-        TAG_LOGW(AAFwkTag::UI_EXT, "Already pending animation terminate, skip");
-        return false;
-    }
-    pendingAnimationTerminate_ = true;
-    return true;
-}
-
 bool UIExtensionContext::TryGetAnimationCallback(TerminateSelfWithAnimationCallback &callback)
 {
     std::lock_guard<std::mutex> lock(terminateSelfMutex_);
@@ -154,7 +143,7 @@ void UIExtensionContext::ExecuteTerminationWithTimeout(const sptr<IRemoteObject>
     TAG_LOGI(AAFwkTag::UI_EXT, "Animation timeout, execute termination logic, requestId=%{public}d", requestId);
 
     // ✅ Find request data from map and check if already terminated
-    std::lock_guard<std::mutex> lock(terminateRequestMutex_);
+    std::unique_lock<std::mutex> lock(terminateRequestMutex_);
     auto it = terminateRequests_.find(requestId);
     if (it == terminateRequests_.end()) {
         TAG_LOGW(AAFwkTag::UI_EXT, "Request not found for requestId=%{public}d, already completed", requestId);
@@ -173,10 +162,14 @@ void UIExtensionContext::ExecuteTerminationWithTimeout(const sptr<IRemoteObject>
     info.isTerminated = true;
 
     // ✅ Transfer result for TerminateSelfWithResult (if transfer fails, cleanup and return)
+    bool hasError = false;
+    ErrCode errorToReport = ERR_OK;
     if (!info.isTerminateSelfWithoutResult) {
         ErrCode transferErr = TransferAbilityResultToWindow(info.resultCode, info.want);
         if (transferErr != ERR_OK) {
             TAG_LOGE(AAFwkTag::UI_EXT, "Transfer result failed, err=%{public}d, cleanup and return", transferErr);
+            hasError = true;
+            errorToReport = transferErr;
 
             // ✅ Notify error and clean up
             TerminateSelfResultCallback callback = std::move(info.callback);
@@ -192,7 +185,7 @@ void UIExtensionContext::ExecuteTerminationWithTimeout(const sptr<IRemoteObject>
                 TAG_LOGI(AAFwkTag::UI_EXT, "Timeout task removed for requestId=%{public}d", requestId);
             }
             if (callback) {
-                callback(transferErr);
+                callback(errorToReport);
             }
             return;  // ❌ 不调用 TerminateAbility
         }
@@ -342,14 +335,12 @@ void UIExtensionContext::NotifyPendingCallbackById(TerminateRequestId requestId,
 void UIExtensionContext::CleanupAnimationResources()
 {
     std::lock_guard<std::mutex> lock(terminateSelfMutex_);
-    if (eventHandler_ != nullptr) {
-        // For old interface path (requestId == -1), remove all tasks
-        // For new interface (embedded mode), specific request tasks are removed directly in the failure handling
-        eventHandler_->RemoveAllTasks();
-        TAG_LOGI(AAFwkTag::UI_EXT, "All timeout tasks removed");
-    }
+    // For old interface path (requestId == -1), remove all tasks
+    // For new interface (embedded mode), specific request tasks are removed directly in the failure handling
+    eventHandler_ = nullptr;
     terminateSelfWithAnimationCallback_ = nullptr;
     terminateSelfWithAnimationCallbackWithId_ = nullptr;
+    TAG_LOGI(AAFwkTag::UI_EXT, "Cleanup animation resources completed");
 }
 
 ErrCode UIExtensionContext::TransferPendingResult(TerminateRequestId requestId)
@@ -436,6 +427,9 @@ ErrCode UIExtensionContext::TerminateSelfInner(TerminateRequestId requestId)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelfInner begin, requestId=%{public}d", requestId);
 
+    // Declare callback in outer scope
+    TerminateSelfResultCallback callback;
+
     if (IsEmbeddableStart(screenMode_)) {
         // Non-embedded mode or requestId is -1: use original logic
         if (requestId == -1) {
@@ -454,7 +448,7 @@ ErrCode UIExtensionContext::TerminateSelfInner(TerminateRequestId requestId)
         // Embedded mode: use requestId logic
 
         // ✅ Find request data from map and check if already terminated
-        std::lock_guard<std::mutex> lock(terminateRequestMutex_);
+        std::unique_lock<std::mutex> lock(terminateRequestMutex_);
         auto it = terminateRequests_.find(requestId);
         if (it == terminateRequests_.end()) {
             TAG_LOGW(AAFwkTag::UI_EXT, "Request not found for requestId=%{public}d, already completed", requestId);
@@ -479,7 +473,7 @@ ErrCode UIExtensionContext::TerminateSelfInner(TerminateRequestId requestId)
                 TAG_LOGE(AAFwkTag::UI_EXT, "Transfer result failed, err=%{public}d, cancel timeout and return", transferErr);
 
                 // ✅ Cancel timeout task and notify callback with error
-                TerminateSelfResultCallback callback = std::move(info.callback);
+                TerminateSelfResultCallback errorCallback = std::move(info.callback);
                 terminateRequests_.erase(it);
 
                 // Release lock before calling callback and cleanup
@@ -491,15 +485,15 @@ ErrCode UIExtensionContext::TerminateSelfInner(TerminateRequestId requestId)
                     eventHandler_->RemoveTask("UIExtensionTerminateTimeout_" + std::to_string(requestId));
                     TAG_LOGI(AAFwkTag::UI_EXT, "Timeout task removed for requestId=%{public}d", requestId);
                 }
-                if (callback) {
-                    callback(transferErr);
+                if (errorCallback) {
+                    errorCallback(transferErr);
                 }
                 return transferErr;  // ❌ 不调用 TerminateAbility
             }
         }
 
         // ✅ Transfer succeeded, save callback and clean up request
-        TerminateSelfResultCallback callback = std::move(info.callback);
+        callback = std::move(info.callback);
         terminateRequests_.erase(it);
 
         // Release lock before executing termination
