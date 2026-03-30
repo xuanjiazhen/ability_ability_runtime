@@ -19,13 +19,18 @@
 #include <memory>
 #include <map>
 #include <mutex>
+#include <set>
 #include <string>
+#include <vector>
 
+#include "ability_connect_callback_stub.h"
 #include "agent_bundle_event_callback.h"
 #include "agent_event_handler.h"
 #include "agent_manager_stub.h"
 #include "system_ability.h"
 #include "task_handler_wrap.h"
+#include "workflow_connection_types.h"
+#include "workflow_host_connection.h"
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -67,8 +72,11 @@ public:
 
     int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection) override;
 
+    int32_t NotifyLowCodeAgentComplete(const std::string &agentId) override;
+
 private:
     friend class AgentServiceConnection;
+    friend class WorkflowHostConnection;
     struct TrackedConnectionRecord {
         int32_t callerUid = 0;
         sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
@@ -80,16 +88,43 @@ private:
     AgentManagerService();
     void Init();
     void RegisterBundleEventCallback();
+    int32_t ValidateConnectAgentRequest(const sptr<AAFwk::IAbilityConnection> &connection, int32_t &callerUid);
+    int32_t ResolveConnectAgentTarget(const AAFwk::Want &want, AAFwk::Want &connectWant,
+        std::string &agentId, AgentCard &card, int32_t &callingUid) const;
+    int32_t PrepareStandardAgentConnectWant(AAFwk::Want &connectWant, const AgentCard &card, int32_t callingUid) const;
+    int32_t RegisterTrackedConnectionAndGetServiceConnection(const sptr<AAFwk::IAbilityConnection> &connection,
+        int32_t callerUid, sptr<AAFwk::IAbilityConnection> &serviceConnection);
     bool HasReachedCallerConnectionLimitLocked(int32_t callerUid) const;
+    size_t GetWorkflowAgentCountByUidLocked(int32_t callerUid) const;
     int32_t TryRegisterConnectionLocked(const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid);
+    void ReleaseCallerConnectionCountByUidLocked(int32_t callerUid);
     void HandleConnectionDone(const sptr<AAFwk::IAbilityConnection> &connection, int32_t resultCode, bool isDisconnect);
     bool ReleaseCallerConnectionCountLocked(const sptr<IRemoteObject> &callerRemote);
     void ReleaseTrackedConnection(const sptr<AAFwk::IAbilityConnection> &connection);
     void HandleCallerConnectionDied(const wptr<IRemoteObject> &remote);
+    int32_t ConnectWorkflowAgentExtensionAbility(const AAFwk::Want &want,
+        const std::string &agentId, const sptr<AAFwk::IAbilityConnection> &connection, int32_t callingUid);
+    int32_t PrepareWorkflowConnectPlan(const WorkflowHostKey &hostKey, const std::string &agentId,
+        const sptr<AAFwk::IAbilityConnection> &connection, int32_t callingUid, WorkflowConnectPlan &plan);
+    void NotifyExistingWorkflowConnection(const WorkflowConnectPlan &plan, const std::string &agentId,
+        const sptr<AAFwk::IAbilityConnection> &connection);
+    void CleanupWorkflowConnectPlan(const WorkflowConnectPlan &plan, const std::string &agentId, int32_t callingUid);
+    int32_t CompleteWorkflowHostConnect(const AAFwk::Want &want, const std::string &agentId,
+        int32_t callingUid, WorkflowConnectPlan &plan);
+    WorkflowHostKey BuildWorkflowHostKey(const AAFwk::Want &want, int32_t callingUid) const;
+    bool NotifyAgentInvokedLocked(const WorkflowHostSession &session, const std::string &agentId);
+    void EraseWorkflowOwnersLocked(const WorkflowHostSession &session);
+    void HandleWorkflowConnectDone(const WorkflowHostKey &key, const AppExecFwk::ElementName &element,
+        const sptr<IRemoteObject> &remoteObject, int resultCode);
+    void HandleWorkflowDisconnectDone(const WorkflowHostKey &key, const AppExecFwk::ElementName &element,
+        int resultCode);
+    void ClearWorkflowSessionLocked(const WorkflowHostKey &key);
     DISALLOW_COPY_AND_MOVE(AgentManagerService);
 
 private:
     static constexpr size_t MAX_CONNECTIONS_PER_CALLER = 5;
+    static constexpr size_t MAX_WORKFLOW_AGENTS_PER_CALLER = 20;
+    static constexpr size_t MAX_WORKFLOW_AGENTS_PER_HOST_SESSION = 10;
     static sptr<AgentManagerService> instance_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AgentEventHandler> eventHandler_;
@@ -97,6 +132,9 @@ private:
     std::mutex connectionLock_;
     std::map<sptr<IRemoteObject>, TrackedConnectionRecord> trackedConnections_;
     std::map<int32_t, size_t> callerConnectionCounts_;
+    std::mutex workflowMutex_;
+    std::map<WorkflowHostKey, std::shared_ptr<WorkflowHostSession>> workflowHostSessions_;
+    std::map<WorkflowAgentOwnerKey, std::shared_ptr<WorkflowHostSession>> workflowAgentOwners_;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
