@@ -17,6 +17,7 @@
 
 #include <want_params.h>
 
+#include "file_mapper.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_constant.h"
 #include "insight_intent_execute_result.h"
@@ -105,7 +106,9 @@ bool JsInsightIntentFunc::LoadJsCode(const InsightIntentExecutorInfo& info, JsRu
     TAG_LOGD(AAFwkTag::INTENT, "moduleName %{public}s, hapPath %{private}s, srcEntrance %{private}s",
         moduleName.c_str(), hapPath.c_str(), srcEntrance.c_str());
 
-    return runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
+    std::unique_ptr<AbilityBase::FileMapper> safeData =
+        runtime.ExecuteSecureWithOhmUrl(moduleName, hapPath, srcEntrance);
+    return safeData != nullptr;
 }
 
 void JsInsightIntentFunc::ReplyFailedInner(InsightIntentInnerErr innerErr)
