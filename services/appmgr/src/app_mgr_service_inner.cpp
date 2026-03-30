@@ -11676,5 +11676,14 @@ void AppMgrServiceInner::HandleForegroundAbilityDied(
         AppRecoveryMgr::AppRecoveryMgr::GetInstance().HandleAppDied(token);
     }
 }
+
+int32_t AppMgrServiceInner::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos, const int32_t pid)
+{
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ is nullptr");
+        return ERR_NO_INIT;
+    }
+    return appRunningManager_->GetAllAbilityInfos(infos, pid);
+}
 } // namespace AppExecFwk
 }  // namespace OHOS

@@ -486,5 +486,10 @@ bool AppRunningManager::CheckAppRunningRecordIsLast(const std::shared_ptr<AppRun
 {
     return true;
 }
+
+int32_t AppRunningManager::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos, const int32_t pid)
+{
+    return ERR_OK;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
