@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''s/^pick/reword/''\" git rebase:*)"
+    ]
+  }
+}

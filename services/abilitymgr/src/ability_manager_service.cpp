@@ -3225,36 +3225,8 @@ int32_t AbilityManagerService::StartUIAbilityBySCBDefaultCommon(AbilityRequest &
     sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     // Handle bundle first launch event and status setting (centralized entry point for all UIAbility starts)
-    if (!abilityRequest.appInfo.isBundleFirstLaunched) {
-        int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
-        int32_t appIndex = abilityRequest.appInfo.appIndex;
-
-        // Publish COMMON_EVENT_APP_FIRST_LAUNCH event
-        Want want;
-        want.SetAction(EventFwk::CommonEventSupport::COMMON_EVENT_APP_FIRST_LAUNCH);
-        want.SetParam("bundleName", abilityRequest.appInfo.bundleName);
-        want.SetParam("userId", userId);
-        want.SetParam("appIndex", appIndex);
-        want.SetParam("uid", abilityRequest.appInfo.uid);
-        EventFwk::CommonEventData commonData {want};
-        if (!IN_PROCESS_CALL(EventFwk::CommonEventManager::PublishCommonEvent(commonData))) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "PublishCommonEvent COMMON_EVENT_APP_FIRST_LAUNCH failed");
-        } else {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "FirstLaunch: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d",
-                abilityRequest.appInfo.bundleName.c_str(), userId, appIndex);
-        }
-
-        // Set bundle first launch status to true after first launch
-        auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-        if (bundleMgrHelper != nullptr) {
-            auto ret = IN_PROCESS_CALL(bundleMgrHelper->SetBundleFirstLaunch(
-                abilityRequest.appInfo.bundleName, userId, appIndex, true));
-            if (ret != ERR_OK) {
-                TAG_LOGW(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch failed: bundleName=%{public}s, err=%{public}d",
-                    abilityRequest.appInfo.bundleName.c_str(), ret);
-            }
-        }
-    }
+    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    AbilityEventUtil::HandleBundleFirstLaunch(abilityRequest.appInfo, userId);
 
     auto abilityInfo = abilityRequest.abilityInfo;
     if (!AbilityUtil::IsSystemDialogAbility(abilityInfo.bundleName, abilityInfo.name)) {

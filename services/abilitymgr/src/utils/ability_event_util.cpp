@@ -14,12 +14,16 @@
  */
 
 #include "ability_event_util.h"
+#include "ability_bundle_manager_helper/bundle_mgr_helper.h"
 #include "app_scheduler.h"
 #include "hilog_tag_wrapper.h"
+#include "iid_common_event.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AAFwk {
 constexpr int32_t FFRT_TASK_TIMEOUT = 5 * 1000 * 1000;  // 5s
+
 void AbilityEventUtil::HandleModuleInfoUpdated(const std::string &bundleName, const int uid,
     const std::string& moduleName, bool isPlugin)
 {
@@ -51,5 +55,42 @@ void AbilityEventUtil::SendKillProcessWithReasonEvent(int32_t errCode, const std
         EventReport::SendAbilityEvent(name, HISYSEVENT_STATISTIC, eventInfo);
         }, ffrt::task_attr().timeout(FFRT_TASK_TIMEOUT));
 }
+
+bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo &appInfo, int32_t userId)
+{
+    if (appInfo.isBundleFirstLaunched) {
+        return true;  // Already launched, no need to process
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleBundleFirstLaunch: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d",
+        appInfo.bundleName.c_str(), userId, appInfo.appIndex);
+
+    // Publish COMMON_EVENT_APP_FIRST_LAUNCH event
+    AAFwk::Want want;
+    want.SetAction(EventFwk::CommonEventSupport::COMMON_EVENT_APP_FIRST_LAUNCH);
+    want.SetParam("bundleName", appInfo.bundleName);
+    want.SetParam("userId", userId);
+    want.SetParam("appIndex", appInfo.appIndex);
+    want.SetParam("uid", appInfo.uid);
+    EventFwk::CommonEventData commonData {want};
+    if (!IN_PROCESS_CALL(EventFwk::CommonEventManager::PublishCommonEvent(commonData))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "PublishCommonEvent COMMON_EVENT_APP_FIRST_LAUNCH failed");
+        return false;
+    }
+
+    // Set bundle first launch status to true after first launch
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper != nullptr) {
+        auto ret = IN_PROCESS_CALL(bundleMgrHelper->SetBundleFirstLaunch(
+            appInfo.bundleName, userId, appInfo.appIndex, true));
+        if (ret != ERR_OK) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "SetBundleFirstLaunch failed: bundleName=%{public}s, err=%{public}d",
+                appInfo.bundleName.c_str(), ret);
+        }
+    }
+
+    return true;
+}
+
 } // namespace AAFwk
 } // namespace OHOS
