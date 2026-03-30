@@ -1249,6 +1249,7 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<BaseExtensionRecor
     loadParam.extensionProcessMode = abilityRecord->GetExtensionProcessMode();
     loadParam.isPreloadUIExtension = isPreloadUIExtension;
     loadParam.loadTimeout = loadTimeoutFinal;
+    loadParam.skipAbilityStageLifecycle = abilityRecord->IsSkipAbilityStageLifecycle();
     SetExtensionLoadParam(loadParam, abilityRecord);
     AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(loadParam.token, "AbilityConnectManager::LoadAbility");
     HandleLoadAbilityOrStartSpecifiedProcess(loadParam, abilityRecord);
@@ -3239,6 +3240,10 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         targetService = BaseExtensionRecord::CreateBaseExtensionRecord(abilityRequest);
         CHECK_POINTER(targetService);
         targetService->SetOwnerMissionUserId(userId_);
+        if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::BACKUP &&
+            !abilityRequest.abilityInfo.applicationInfo.allowMultiProcess) {
+            targetService->SetSkipAbilityStageLifecycle(abilityRequest.skipAbilityStageLifecycle);
+        }
         if (isCreatedByConnect) {
             targetService->SetCreateByConnectMode();
         }
