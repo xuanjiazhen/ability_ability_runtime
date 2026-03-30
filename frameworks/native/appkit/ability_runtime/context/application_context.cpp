@@ -1296,5 +1296,41 @@ std::shared_ptr<Context> ApplicationContext::CreateDisplayContext(uint64_t displ
     return contextImpl_ ? contextImpl_->CreateDisplayContext(displayId) : nullptr;
 }
 #endif
+
+// Native Module related methods implementation
+void ApplicationContext::SetNativeThreadInfo(const std::shared_ptr<AppExecFwk::NativeThreadInfo>& info)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    nativeThreadInfo_ = info;
+}
+
+std::shared_ptr<AppExecFwk::NativeThreadInfo> ApplicationContext::GetNativeThreadInfo()
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    return nativeThreadInfo_;
+}
+
+void ApplicationContext::AddNativeAbility(int32_t instanceId, const std::shared_ptr<NativeAbilityWrapper>& wrapper)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    nativeAbilities_[instanceId] = wrapper;
+}
+
+std::shared_ptr<NativeAbilityWrapper> ApplicationContext::GetNativeAbility(int32_t instanceId)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    auto it = nativeAbilities_.find(instanceId);
+    if (it != nativeAbilities_.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+void ApplicationContext::RemoveNativeAbility(int32_t instanceId)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    nativeAbilities_.erase(instanceId);
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -17,10 +17,11 @@
 #define OHOS_ABILITY_RUNTIME_NATIVE_THREAD_INFO_H
 
 #include <memory>
+#include <string>
 #include <thread>
 
-#include "native_module_util.h"
-#include "napi/native_api.h"
+typedef struct napi_env__* napi_env;
+typedef struct napi_value__* napi_value;
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,12 +40,38 @@ typedef void(*OHMainType)();
 #endif
 
 namespace OHOS {
+namespace AAFwk {
+struct NativeModuleMetaData;
+}  // namespace AAFwk
+
 namespace AppExecFwk {
 class NativeThreadInfo {
 public:
+    NativeThreadInfo() = default;
+    ~NativeThreadInfo();
+
+    // Disable copy and move
     NativeThreadInfo(NativeThreadInfo &) = delete;
-    void operator=(NativeThreadInfo &) = delete;
+    NativeThreadInfo& operator=(NativeThreadInfo &) = delete;
+    NativeThreadInfo(NativeThreadInfo &&) = delete;
+    NativeThreadInfo& operator=(NativeThreadInfo &&) = delete;
+
+    /**
+     * @brief Load native module from the specified metadata.
+     * @param metaData The native module metadata containing library path and function names.
+     * @return true if loading succeeded, false otherwise.
+     */
+    bool LoadNativeModule(const AAFwk::NativeModuleMetaData& metaData);
+
+    /**
+     * @brief Run the main function in a new native thread.
+     */
     void RunMain();
+
+    /**
+     * @brief Post the ability wrapper to the native thread.
+     * @param nativeAbilityWrapper The pointer to the native ability wrapper.
+     */
     void PostAbility(const NativeAbilityWrapper* nativeAbilityWrapper);
 
 private:

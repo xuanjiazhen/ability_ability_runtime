@@ -169,6 +169,42 @@ void UIAbilityThread::AttachInner(const std::shared_ptr<AppExecFwk::OHOSApplicat
     }
     abilityImpl_ = uiAbilityImpl;
 
+    // Handle Native Module loading
+    auto abilityInfo = abilityRecord->GetAbilityInfo();
+    if (abilityInfo != nullptr) {
+        AAFwk::NativeModuleMetaData metaData;
+        AAFwk::NativeModuleMetaData::InitData(*abilityInfo, metaData);
+
+        if (metaData.withNativeModule) {
+            TAG_LOGI(AAFwkTag::UIABILITY, "Loading native module: %{public}s", metaData.nativeModuleSource.c_str());
+
+            // Set hasNativeModule flag in ability
+            currentAbility_->SetHasNativeModule(true);
+
+            // Create NativeThreadInfo and load the dynamic library
+            auto nativeThreadInfo = std::make_shared<AppExecFwk::NativeThreadInfo>();
+            if (nativeThreadInfo->LoadNativeModule(metaData)) {
+                // Get ApplicationContext and store NativeThreadInfo
+                auto appContext = AbilityRuntime::ApplicationContext::GetInstance();
+                if (appContext != nullptr) {
+                    appContext->SetNativeThreadInfo(nativeThreadInfo);
+                    TAG_LOGI(AAFwkTag::UIABILITY, "NativeThreadInfo stored in ApplicationContext");
+                } else {
+                    TAG_LOGE(AAFwkTag::UIABILITY, "ApplicationContext is null");
+                }
+
+                // Start the native thread
+                nativeThreadInfo->RunMain();
+                TAG_LOGI(AAFwkTag::UIABILITY, "Native thread started");
+            } else {
+                TAG_LOGE(AAFwkTag::UIABILITY, "Failed to load native module");
+            }
+
+            // Save metadata to UIAbilityImpl
+            uiAbilityImpl->SetNativeModuleMetaData(metaData);
+        }
+    }
+
     // ability attach : ipc
     TAG_LOGI(AAFwkTag::UIABILITY, "Lifecycle:Attach");
     std::string entry = "AbilityThread::Attach";

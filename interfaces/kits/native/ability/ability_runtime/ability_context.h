@@ -278,6 +278,8 @@ public:
 
     virtual ErrCode TerminateSelf() = 0;
 
+    virtual ErrCode StartSelf() = 0;
+
     virtual ErrCode CloseAbility() = 0;
 
     /**

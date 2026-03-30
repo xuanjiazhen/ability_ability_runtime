@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_UI_ABILITY_IMPL_H
 
 #include "insight_intent_execute_result.h"
+#include "native_module_util.h"
 #include "ui_ability.h"
 
 namespace OHOS {
@@ -175,6 +176,17 @@ public:
         }
     }
 
+    // Native Module related methods
+    void SetNativeModuleMetaData(const AAFwk::NativeModuleMetaData& metaData)
+    {
+        nativeModuleMetaData_ = metaData;
+    }
+
+    const AAFwk::NativeModuleMetaData& GetNativeModuleMetaData() const
+    {
+        return nativeModuleMetaData_;
+    }
+
     void ScheduleCollaborate(const Want &want);
 
     void ScheduleAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
@@ -251,6 +263,7 @@ private:
     bool hasSaveData_ = false;
     bool needSaveDate_ = false;
     AppExecFwk::PacMap restoreData_;
+    AAFwk::NativeModuleMetaData nativeModuleMetaData_;
 
 #ifdef SUPPORT_SCREEN
 private:
