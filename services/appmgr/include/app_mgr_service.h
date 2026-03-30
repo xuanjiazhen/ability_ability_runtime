@@ -936,6 +936,16 @@ public:
      */
     virtual int32_t PreloadExtension(const AAFwk::Want &want, int32_t appIndex, int32_t userId) override;
 
+    /**
+     * Get all ability infos
+     *
+     * @param infos ability infos
+     * @param pid if pid is not -1, query ability infos for this pid, otherwise query all ability infos
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos,
+        const int32_t pid = -1) override;
+
 private:
     /**
      * Init, Initialize application services.
