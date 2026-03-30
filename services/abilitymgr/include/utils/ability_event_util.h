@@ -25,6 +25,7 @@
 
 namespace OHOS {
 namespace AAFwk {
+
 class AbilityEventUtil {
 public:
     static void HandleModuleInfoUpdated(const std::string &bundleName, const int uid, const std::string &moduleName,
