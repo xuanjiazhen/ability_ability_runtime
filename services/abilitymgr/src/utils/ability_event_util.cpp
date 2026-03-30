@@ -68,6 +68,21 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleBundleFirstLaunch: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d",
         appInfo.bundleName.c_str(), userId, appInfo.appIndex);
 
+    // Get SignatureInfo for appId
+    std::string appId;
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper != nullptr) {
+        AppExecFwk::SignatureInfo signatureInfo;
+        if (IN_PROCESS_CALL(bundleMgrHelper->GetSignatureInfoByBundleName(appInfo.bundleName, signatureInfo))) {
+            appId = signatureInfo.appId;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "GetSignatureInfoByBundleName success: appId=%{public}s",
+                appId.c_str());
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "GetSignatureInfoByBundleName failed: bundleName=%{public}s",
+                appInfo.bundleName.c_str());
+        }
+    }
+
     // Publish COMMON_EVENT_APP_FIRST_LAUNCH event
     AAFwk::Want want;
     want.SetAction(EventFwk::CommonEventSupport::COMMON_EVENT_APP_FIRST_LAUNCH);
@@ -75,6 +90,9 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     want.SetParam("userId", userId);
     want.SetParam("appIndex", appInfo.appIndex);
     want.SetParam("uid", appInfo.uid);
+    if (!appId.empty()) {
+        want.SetParam("appId", appId);
+    }
     EventFwk::CommonEventData commonData {want};
     if (!IN_PROCESS_CALL(EventFwk::CommonEventManager::PublishCommonEvent(commonData))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "PublishCommonEvent COMMON_EVENT_APP_FIRST_LAUNCH failed");
@@ -82,7 +100,6 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     }
 
     // Set bundle first launch status to true after first launch
-    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper != nullptr) {
         auto ret = IN_PROCESS_CALL(bundleMgrHelper->SetBundleFirstLaunch(
             appInfo.bundleName, userId, appInfo.appIndex, true));
