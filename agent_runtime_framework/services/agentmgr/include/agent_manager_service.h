@@ -72,6 +72,12 @@ public:
 
     int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection) override;
 
+    int32_t ConnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken, const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection) override;
+
+    int32_t DisconnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken,
+        const sptr<AAFwk::IAbilityConnection> &connection) override;
+
     int32_t NotifyLowCodeAgentComplete(const std::string &agentId) override;
 
 private:
@@ -84,6 +90,7 @@ private:
         sptr<IRemoteObject::DeathRecipient> deathRecipient = nullptr;
         AgentHostKey hostKey;
         bool isLowCode = false;
+        bool countTowardsCallerLimit = true;
         bool isDisconnecting = false;
     };
 
@@ -95,14 +102,18 @@ private:
         std::string &agentId, AgentCard &card, int32_t &callingUid) const;
     int32_t PrepareStandardAgentConnectWant(AAFwk::Want &connectWant, const AgentCard &card, int32_t callingUid) const;
     int32_t ResolveLowCodeHostInfo(const AAFwk::Want &want, int32_t userId, int32_t &hostUid) const;
+    int32_t ValidateConnectServiceRequest(const sptr<IRemoteObject> &callerToken,
+        const sptr<AAFwk::IAbilityConnection> &connection) const;
+    int32_t PrepareServiceConnectWant(const AAFwk::Want &want, AAFwk::Want &connectWant) const;
     int32_t RegisterTrackedConnectionAndGetServiceConnection(const sptr<AAFwk::IAbilityConnection> &connection,
-        int32_t callerUid, sptr<AAFwk::IAbilityConnection> &serviceConnection);
+        int32_t callerUid, bool countTowardsCallerLimit, sptr<AAFwk::IAbilityConnection> &serviceConnection);
     bool HasReachedCallerConnectionLimitLocked(int32_t callerUid) const;
     int32_t TryRegisterConnectionLocked(const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid,
         const sptr<AAFwk::IAbilityConnection> &serviceConnection = nullptr, const AgentHostKey *hostKey = nullptr);
     sptr<IRemoteObject> GetConnectionIdentityRemote(const sptr<AAFwk::IAbilityConnection> &connection) const;
     std::map<sptr<IRemoteObject>, TrackedConnectionRecord>::iterator FindTrackedConnectionLocked(
-        const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid);
+        const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid,
+        bool countTowardsCallerLimit);
     void ReleaseCallerConnectionCountByUidLocked(int32_t callerUid);
     void HandleConnectionDone(const sptr<AAFwk::IAbilityConnection> &connection, int32_t resultCode, bool isDisconnect);
     bool ReleaseCallerConnectionCountLocked(const sptr<IRemoteObject> &callerRemote);

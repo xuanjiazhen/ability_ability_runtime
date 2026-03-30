@@ -110,6 +110,10 @@ public:
     ErrCode ConnectAgentExtensionAbility(const AAFwk::Want &want,
         const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
     ErrCode DisconnectAgentExtensionAbility(const sptr<AbilityRuntime::AbilityConnectCallback> &connection);
+    ErrCode ConnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken, const AAFwk::Want &want,
+        const sptr<AAFwk::IAbilityConnection> &connection);
+    ErrCode DisconnectServiceExtensionAbility(const sptr<IRemoteObject> &callerToken,
+        const sptr<AAFwk::IAbilityConnection> &connection);
 
     bool RemoveConnection(const sptr<AgentConnection> &connection);
     bool DisconnectNonexistentService(const AppExecFwk::ElementName &element,
