@@ -62,6 +62,7 @@ public:
     static int32_t retGetBundleNameByPid;
     static AAFwk::Want lastConnectAbilityWant;
     static sptr<AAFwk::IAbilityConnection> lastConnectAbilityConnection;
+    static sptr<IRemoteObject> lastConnectAbilityCallerToken;
     static sptr<AAFwk::IAbilityConnection> lastDisconnectAbilityConnection;
     static int32_t connectAbilityWithExtensionTypeCallCount;
     static int32_t disconnectAbilityCallCount;
