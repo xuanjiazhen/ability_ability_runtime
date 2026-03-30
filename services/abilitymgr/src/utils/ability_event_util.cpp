@@ -20,6 +20,7 @@
 #include "common_event_manager.h"
 #include "common_event_support.h"
 #include "hilog_tag_wrapper.h"
+#include "in_process_call_wrapper.h"
 #include "want.h"
 
 namespace OHOS {
