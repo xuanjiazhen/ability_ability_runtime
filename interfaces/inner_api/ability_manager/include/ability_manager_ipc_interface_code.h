@@ -721,6 +721,9 @@ enum class AbilityManagerInterfaceCode {
 
     // start ability by oe extension
     START_ABILITY_BY_OE_EXT = 6161,
+
+    // start self ability with token
+    START_SELF = 6162,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

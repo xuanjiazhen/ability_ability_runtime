@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_NOTIVE_MODULE_UTIL_H
-#define OHOS_ABILITY_RUNTIME_NOTIVE_MODULE_UTIL_H
+#ifndef OHOS_ABILITY_RUNTIME_NATIVE_MODULE_UTIL_H
+#define OHOS_ABILITY_RUNTIME_NATIVE_MODULE_UTIL_H
 
 #include "ability_info.h"
 
@@ -36,4 +36,4 @@ public:
 };
 }  // namespace AAFwk
 }  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_NOTIVE_MODULE_UTIL_H
+#endif  // OHOS_ABILITY_RUNTIME_NATIVE_MODULE_UTIL_H

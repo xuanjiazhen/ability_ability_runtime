@@ -366,6 +366,12 @@ public:
     bool CreateProperty(std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext,
         std::shared_ptr<AppExecFwk::BaseDelegatorAbilityProperty> delegatorAbilityProperty);
 
+    // Native Module related methods
+    void SetHasNativeModule(bool hasNativeModule)
+    {
+        hasNativeModule_ = hasNativeModule;
+    }
+
 protected:
     const AAFwk::LaunchParam &GetLaunchParam() const;
     bool IsRestoredInContinuation() const;
@@ -374,12 +380,18 @@ protected:
     bool ShouldDefaultRecoverState(const AAFwk::Want &want);
     bool IsUseNewStartUpRule();
 
+    bool HasNativeModule() const
+    {
+        return hasNativeModule_;
+    }
+
     std::shared_ptr<AbilityRuntime::AbilityContext> abilityContext_ = nullptr;
     std::shared_ptr<AppExecFwk::AbilityStartSetting> setting_ = nullptr;
     std::shared_ptr<AppExecFwk::AbilityRecovery> abilityRecovery_ = nullptr;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
     AAFwk::LaunchParam launchParam_;
     bool securityFlag_ = false;
+    bool hasNativeModule_ = false;
     uint64_t intentId_;
 
 private:

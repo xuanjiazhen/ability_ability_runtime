@@ -207,6 +207,14 @@ void UIAbilityImpl::HandleAbilityTransaction(
         }
     }
 
+    // Check if native module startup phase is PRE_WINDOW
+    if (nativeModuleMetaData_.withNativeModule &&
+        nativeModuleMetaData_.startupPhase == AAFwk::StartupPhase::PRE_WINDOW) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Native module startPhase is PRE_WINDOW, skip AbilityTransaction");
+        AbilityTransactionCallback(targetState.state);
+        return;
+    }
+
     bool ret = false;
     ret = AbilityTransaction(want, targetState);
     if (ret) {
@@ -578,6 +586,15 @@ void UIAbilityImpl::Foreground(const AAFwk::Want &want)
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     if (ability_ == nullptr || ability_->GetAbilityInfo() == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
+        return;
+    }
+
+    // Check if native module startup phase is PRE_FOREGROUND
+    if (nativeModuleMetaData_.withNativeModule &&
+        nativeModuleMetaData_.startupPhase == AAFwk::StartupPhase::PRE_FOREGROUND) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Native module startPhase is PRE_FOREGROUND, skip OnForeground");
+        std::lock_guard<std::mutex> lock(notifyForegroundLock_);
+        notifyForegroundByAbility_ = true;
         return;
     }
 
