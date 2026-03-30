@@ -52,7 +52,7 @@ void AgentConnection::OnAbilityConnectDone(
             return;
         }
     
-        SetRemoteObject(remoteObject);
+        SetRemoteObject(remoteObject); 
         SetResultCode(resultCode);
         SetConnectionState(CONNECTION_STATE_CONNECTED);
     }
