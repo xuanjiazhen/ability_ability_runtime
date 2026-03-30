@@ -129,6 +129,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data
             return HandleNotifyProcMemoryLevel(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::APP_GET_RUNNING_PROCESSES_BY_USER_ID):
             return HandleGetProcessRunningInfosByUserId(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::GET_PROCESS_RUNNING_INFOS_BY_ACCESS_TOKEN_ID):
+            return HandleGetProcessRunningInfosByAccessTokenId(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::APP_ADD_ABILITY_STAGE_INFO_DONE):
             return HandleAddAbilityStageDone(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::STARTUP_RESIDENT_PROCESS):
@@ -639,6 +641,25 @@ int32_t AppMgrStub::HandleGetProcessRunningInfosByUserId(MessageParcel &data, Me
         return ERR_INVALID_VALUE;
     }
     TAG_LOGD(AAFwkTag::APPMGR, "AppMgrStub::HandleGetAllRunningProcesses end");
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleGetProcessRunningInfosByAccessTokenId(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER(HITRACE_TAG_APP);
+    uint32_t accessTokenId = data.ReadUint32();
+    std::vector<RunningProcessInfo> info;
+    auto result = GetProcessRunningInfosByAccessTokenId(accessTokenId, info);
+    reply.WriteInt32(info.size());
+    for (auto &it : info) {
+        if (!reply.WriteParcelable(&it)) {
+            return ERR_INVALID_VALUE;
+        }
+    }
+    if (!reply.WriteInt32(result)) {
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGD(AAFwkTag::APPMGR, "AppMgrStub::HandleGetProcessRunningInfosByAccessTokenId end");
     return NO_ERROR;
 }
 

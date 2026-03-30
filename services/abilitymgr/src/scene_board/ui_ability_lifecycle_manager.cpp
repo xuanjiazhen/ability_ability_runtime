@@ -949,7 +949,7 @@ void UIAbilityLifecycleManager::HandleAbilitiesRequestDone(int32_t requestId, in
         abilitiesRequestMap_.erase(it);
         auto callerRecord = Token::GetAbilityRecordByToken(abilitiesRequest->callerToken);
         if (callerRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
             return;
         }
         callerRecord->NotifyAbilitiesRequestDone(abilitiesRequest->requestKey,
@@ -971,7 +971,7 @@ void UIAbilityLifecycleManager::HandleAbilitiesRequestDone(int32_t requestId, in
         abilitiesRequestMap_.erase(it);
         auto callerRecord = Token::GetAbilityRecordByToken(abilitiesRequest->callerToken);
         if (callerRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
             return;
         }
         callerRecord->NotifyAbilitiesRequestDone(abilitiesRequest->requestKey, ret);
