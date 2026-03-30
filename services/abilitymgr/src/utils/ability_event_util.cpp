@@ -61,14 +61,25 @@ void AbilityEventUtil::SendKillProcessWithReasonEvent(int32_t errCode, const std
 }
 
 bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo &appInfo, int32_t userId,
-    const std::string &appId)
+    const std::string &callerBundleName)
 {
     if (appInfo.isBundleFirstLaunched) {
         return true;  // Already launched, no need to process
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleBundleFirstLaunch: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d",
-        appInfo.bundleName.c_str(), userId, appInfo.appIndex);
+    // Get appId from SignatureInfo
+    std::string appId;
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper != nullptr) {
+        AppExecFwk::SignatureInfo signatureInfo;
+        if (IN_PROCESS_CALL(bundleMgrHelper->GetSignatureInfoByBundleName(
+            appInfo.bundleName, signatureInfo)) == ERR_OK) {
+            appId = signatureInfo.appId;
+        }
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleBundleFirstLaunch: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d, appId=%{public}s, callerBundleName=%{public}s",
+        appInfo.bundleName.c_str(), userId, appInfo.appIndex, appId.c_str(), callerBundleName.c_str());
 
     // Publish COMMON_EVENT_APP_FIRST_LAUNCH event
     AAFwk::Want want;
@@ -80,6 +91,7 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     if (!appId.empty()) {
         want.SetParam("appId", appId);
     }
+    want.SetParam("callerBundleName", callerBundleName);
     EventFwk::CommonEventData commonData {want};
 
     // Set subscriber permissions to ohos.permission.INSTALL_BUNDLE
@@ -94,7 +106,6 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     }
 
     // Set bundle first launch status to true after first launch
-    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper != nullptr) {
         auto ret = IN_PROCESS_CALL(bundleMgrHelper->SetBundleFirstLaunch(
             appInfo.bundleName, userId, appInfo.appIndex, true));
