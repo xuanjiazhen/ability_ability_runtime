@@ -18,6 +18,7 @@
 #include "app_scheduler.h"
 #include "common_event.h"
 #include "common_event_manager.h"
+#include "common_event_publish_info.h"
 #include "common_event_support.h"
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
@@ -80,7 +81,14 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
         want.SetParam("appId", appId);
     }
     EventFwk::CommonEventData commonData {want};
-    if (!IN_PROCESS_CALL(EventFwk::CommonEventManager::PublishCommonEvent(commonData))) {
+
+    // Set subscriber permissions to ohos.permission.INSTALL_BUNDLE
+    EventFwk::CommonEventPublishInfo commonEventPublishInfo;
+    std::vector<std::string> permissions;
+    permissions.emplace_back("ohos.permission.INSTALL_BUNDLE");
+    commonEventPublishInfo.SetSubscriberPermissions(permissions);
+
+    if (!IN_PROCESS_CALL(EventFwk::CommonEventManager::PublishCommonEvent(commonData, commonEventPublishInfo))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "PublishCommonEvent COMMON_EVENT_APP_FIRST_LAUNCH failed");
         return false;
     }
