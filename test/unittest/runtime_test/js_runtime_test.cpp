@@ -1956,5 +1956,6 @@ HWTEST_F(JsRuntimeTest, RegisterUncatchableExceptionHandler_0100, TestSize.Level
     EXPECT_NE(jsRuntime, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "RegisterUncatchableExceptionHandler_0100 end");
 }
+
 } // namespace AbilityRuntime
 } // namespace OHOS

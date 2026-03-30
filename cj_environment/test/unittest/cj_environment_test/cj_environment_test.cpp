@@ -12,6 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+extern "C" {
+    void* DynamicLoadLibrary(const char* path) { return nullptr; }
+    void* DynamicFindSymbol(void* handle, const char* symbol) { return nullptr; }
+    bool DynamicFreeLibrary(void* handle) { return true; }
+    void* DynamicInitNamespace(const char* name, const char* path) { return nullptr; }
+    bool DynamicInherit(void* ns, void* parent) { return true; }
+    void* DynamicInheritByName(void* ns, const char* name) { return nullptr; }
+    char* DynamicGetError() { return nullptr; }
+}
+#include "//foundation/ability/ability_runtime/cj_environment/frameworks/cj_environment/src/cj_environment.cpp"
 #include <gtest/gtest.h>
 #include <gtest/hwext/gtest-multithread.h>
 #include <string>
@@ -36,6 +46,8 @@ public:
     void TearDown() override;
 };
 
+struct CJRuntimeAPI;
+
 void CjEnvironmentTest::SetUpTestCase() {}
 
 void CjEnvironmentTest::TearDownTestCase() {}
@@ -45,6 +57,14 @@ void CjEnvironmentTest::SetUp() {}
 void CjEnvironmentTest::TearDown() {}
 
 void RegisterCJUncaughtExceptionHandlerTest(const CJUncaughtExceptionInfo &handle) {}
+
+void RegisterCJOOMHandlerTest(const CJOOMInfo &handle) {}
+
+static bool g_isRegisterCalled = false;
+
+void MockRegisterCJOOMHandler(const CJOOMInfo& handle) {
+    g_isRegisterCalled = true;
+}
 
 /**
  * @tc.name: CJEnvironment_GetInstance_0001
@@ -383,4 +403,77 @@ HWTEST_F(CjEnvironmentTest, CjEnvironmentTestInitCJAppNS_0100, TestSize.Level2)
     cJEnvironment.InitCJAppNS(appPath);
     EXPECT_EQ(CJEnvironment::GetInstance(), nullptr);
 }
+
+/**
+ * @tc.name: CJEnvironment_RegisterCJOOMHandler_0001
+ * @tc.desc: JsRuntime test for RegisterCJOOMHandler.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CJEnvironment_RegisterCJOOMHandler_0001, TestSize.Level1)
+{
+    CJEnvironment cJEnvironment(CJEnvironment::NSMode::APP);
+    CJOOMInfo handle;
+    handle.hapPath = "/test1/";
+    handle.oomInfoTask = [](const char* domain, const char* event, size_t hiSysEventType,
+        size_t limitSize, size_t activeMemory) {};
+    CJRuntimeAPI api;
+    api.RegisterCJOOMHandler = RegisterCJOOMHandlerTest;
+    CJRuntimeAPI* lazyApis_ = new CJRuntimeAPI(api);
+    cJEnvironment.SetLazyApis(lazyApis_);
+    cJEnvironment.RegisterCJOOMHandler(handle);
+
+    bool ret = cJEnvironment.StartRuntime();
+    EXPECT_EQ(ret, false);
+}
+
+/**
+ * @tc.name: CJEnvironment_RegisterCJOOMHandler_0002
+ * @tc.desc: JsRuntime test for RegisterCJOOMHandler.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CJEnvironment_RegisterCJOOMHandler_0002, TestSize.Level1)
+{
+    CJEnvironment cJEnvironment(CJEnvironment::NSMode::APP);
+    CJOOMInfo handle;
+    cJEnvironment.SetLazyApis(nullptr);
+    cJEnvironment.RegisterCJOOMHandler(handle);
+
+    EXPECT_EQ(cJEnvironment.lazyApis_, nullptr);
+}
+
+/**
+ * @tc.name: CJEnvironment_RegisterCJOOMHandler_0003
+ * @tc.desc: JsRuntime test for RegisterCJOOMHandler.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CJEnvironment_RegisterCJCJOOMHandler_0003, TestSize.Level1)
+{
+    g_isRegisterCalled = false;
+    auto env = CJEnvironment::GetInstance();
+    ASSERT_NE(env, nullptr);
+    CJRuntimeAPI mockApi;
+    mockApi.RegisterCJOOMHandler = MockRegisterCJOOMHandler;
+    env->SetLazyApis(new CJRuntimeAPI(mockApi));
+    CJOOMInfo handle;
+    handle.hapPath = "/test_coverage/";
+    env->RegisterCJOOMHandler(handle);
+
+    EXPECT_TRUE(g_isRegisterCalled);
+    EXPECT_NE(env->lazyApis_, nullptr);
+}
+
+/**
+ * @tc.name: CJEnvironment_RegisterCJOOMHandler_0004
+ * @tc.desc: JsRuntime test for RegisterCJOOMHandler.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjEnvironmentTest, CJEnvironment_RegisterCJOOMHandler_0004, TestSize.Level1)
+{
+    CJRuntimeAPI apis;
+    void* fakeSymbol = reinterpret_cast<void*>(0x12345678);
+    bool ret = LoadSymbolRegisterCJOOMHandler(fakeSymbol, apis);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(reinterpret_cast<uintptr_t>(apis.RegisterCJOOMHandler), 0x12345678);
+}
+
 } // namespace OHOS
