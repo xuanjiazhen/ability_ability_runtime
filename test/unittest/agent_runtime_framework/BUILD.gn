@@ -33,6 +33,7 @@ group("unittest") {
     "agent_service_connection_test:agent_service_connection_test",
     "js_agent_extension_stub_impl_test:js_agent_extension_stub_impl_test",
     "sem_ver_test:sem_ver_test",
+    "workflow_host_connection_test:workflow_host_connection_test",
   ]
 }
 
