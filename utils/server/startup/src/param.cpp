@@ -89,6 +89,9 @@ bool LoadParam::MarshallingTwo(Parcel &parcel) const
     if (!parcel.WriteInt32(loadTimeout)) {
         return false;
     }
+    if (!parcel.WriteBool(skipAbilityStageLifecycle)) {
+        return false;
+    }
     return true;
 }
 
@@ -124,6 +127,7 @@ bool LoadParam::ReadFromParcel(Parcel &parcel)
     isPrelaunch = parcel.ReadBool();
     isPreloadStart = parcel.ReadBool();
     loadTimeout = parcel.ReadInt32();
+    skipAbilityStageLifecycle = parcel.ReadBool();
     return true;
 }
 

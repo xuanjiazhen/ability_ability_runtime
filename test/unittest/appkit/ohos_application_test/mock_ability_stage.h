@@ -27,6 +27,8 @@ public:
     MockAbilityStage() {}
     ~MockAbilityStage() {}
 
+    MOCK_CONST_METHOD0(OnDestroy, void());
+    MOCK_METHOD1(OnMemoryLevel, void(int));
     MOCK_METHOD5(RunAutoStartupTask, int32_t(const std::function<void()>&, std::shared_ptr<AAFwk::Want>, bool&,
         const std::shared_ptr<Context>&, bool));
 };
