@@ -19,6 +19,7 @@
 #include "native_reference.h"
 #include "ohos_js_environment_impl.h"
 #include "js_environment.h"
+#include "file_mapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -81,10 +82,13 @@ napi_value JsRuntime::GetExportObjectFromOhmUrl(const std::string &srcEntrance, 
     return fn;
 }
 
-bool JsRuntime::ExecuteSecureWithOhmUrl(const std::string &moduleName, const std::string &hapPath,
-    const std::string &srcEntrance)
+std::shared_ptr<AbilityBase::FileMapper> JsRuntime::ExecuteSecureWithOhmUrl(const std::string &moduleName,
+    const std::string &hapPath, const std::string &srcEntrance)
 {
-    return MyFlag::isExecuteSecureWithOhmUrl_;
+    if (MyFlag::isExecuteSecureWithOhmUrl_) {
+        return std::make_shared<AbilityBase::FileMapper>();
+    }
+    return nullptr;
 }
 
 napi_env JsRuntime::GetNapiEnv() const
