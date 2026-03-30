@@ -1125,6 +1125,9 @@ enum {
     // Result (2099217) for duplicate register of an existing agent card.
     ERR_AGENT_CARD_DUPLICATE_REGISTER = 2099217,
 
+    // Result (2099218) for duplicate active workflow invocation.
+    ERR_WORKFLOW_AGENT_ALREADY_ACTIVE = 2099218,
+
     /**
      * Result (2099411) for not support screen.
      */

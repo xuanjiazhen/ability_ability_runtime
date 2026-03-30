@@ -19,13 +19,18 @@
 #include <memory>
 #include <map>
 #include <mutex>
+#include <set>
 #include <string>
+#include <vector>
 
+#include "ability_connect_callback_stub.h"
 #include "agent_bundle_event_callback.h"
 #include "agent_event_handler.h"
 #include "agent_manager_stub.h"
 #include "system_ability.h"
 #include "task_handler_wrap.h"
+#include "agent_host_connection.h"
+#include "agent_host_connection_types.h"
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -67,8 +72,11 @@ public:
 
     int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection) override;
 
+    int32_t NotifyLowCodeAgentComplete(const std::string &agentId) override;
+
 private:
     friend class AgentServiceConnection;
+    friend class AgentHostConnection;
     struct TrackedConnectionRecord {
         int32_t callerUid = 0;
         sptr<AAFwk::IAbilityConnection> serviceConnection = nullptr;
@@ -80,16 +88,41 @@ private:
     AgentManagerService();
     void Init();
     void RegisterBundleEventCallback();
+    int32_t ValidateConnectAgentRequest(const sptr<AAFwk::IAbilityConnection> &connection, int32_t &callerUid);
+    int32_t ResolveConnectAgentTarget(const AAFwk::Want &want, AAFwk::Want &connectWant,
+        std::string &agentId, AgentCard &card, int32_t &callingUid) const;
+    int32_t PrepareStandardAgentConnectWant(AAFwk::Want &connectWant, const AgentCard &card, int32_t callingUid) const;
+    int32_t RegisterTrackedConnectionAndGetServiceConnection(const sptr<AAFwk::IAbilityConnection> &connection,
+        int32_t callerUid, sptr<AAFwk::IAbilityConnection> &serviceConnection);
     bool HasReachedCallerConnectionLimitLocked(int32_t callerUid) const;
     int32_t TryRegisterConnectionLocked(const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid);
+    void ReleaseCallerConnectionCountByUidLocked(int32_t callerUid);
     void HandleConnectionDone(const sptr<AAFwk::IAbilityConnection> &connection, int32_t resultCode, bool isDisconnect);
     bool ReleaseCallerConnectionCountLocked(const sptr<IRemoteObject> &callerRemote);
     void ReleaseTrackedConnection(const sptr<AAFwk::IAbilityConnection> &connection);
     void HandleCallerConnectionDied(const wptr<IRemoteObject> &remote);
+    int32_t ConnectLowCodeAgentExtensionAbility(const AAFwk::Want &want,
+        const std::string &agentId, const sptr<AAFwk::IAbilityConnection> &connection, int32_t callingUid);
+    int32_t PrepareLowCodeConnectPlan(const AgentHostKey &hostKey, const std::string &agentId,
+        const sptr<AAFwk::IAbilityConnection> &connection, int32_t callingUid, AgentConnectPlan &plan);
+    void NotifyExistingLowCodeConnection(const AgentConnectPlan &plan, const std::string &agentId,
+        const sptr<AAFwk::IAbilityConnection> &connection);
+    void CleanupLowCodeConnectPlan(const AgentConnectPlan &plan, const std::string &agentId, int32_t callingUid);
+    int32_t CompleteAgentHostConnect(const AAFwk::Want &want, const std::string &agentId,
+        int32_t callingUid, AgentConnectPlan &plan);
+    AgentHostKey BuildAgentHostKey(const AAFwk::Want &want, int32_t callingUid) const;
+    bool NotifyAgentInvokedLocked(const AgentHostSession &session, const std::string &agentId);
+    void EraseAgentOwnersLocked(const AgentHostSession &session);
+    void HandleAgentHostConnectDone(const AgentHostKey &key, const AppExecFwk::ElementName &element,
+        const sptr<IRemoteObject> &remoteObject, int resultCode);
+    void HandleAgentHostDisconnectDone(const AgentHostKey &key, const AppExecFwk::ElementName &element,
+        int resultCode);
+    void ClearAgentHostSessionLocked(const AgentHostKey &key);
     DISALLOW_COPY_AND_MOVE(AgentManagerService);
 
 private:
     static constexpr size_t MAX_CONNECTIONS_PER_CALLER = 5;
+    static constexpr size_t MAX_AGENTS_PER_HOST_SESSION = 100;
     static sptr<AgentManagerService> instance_;
     std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler_;
     std::shared_ptr<AgentEventHandler> eventHandler_;
@@ -97,6 +130,9 @@ private:
     std::mutex connectionLock_;
     std::map<sptr<IRemoteObject>, TrackedConnectionRecord> trackedConnections_;
     std::map<int32_t, size_t> callerConnectionCounts_;
+    std::mutex agentHostMutex_;
+    std::map<AgentHostKey, std::shared_ptr<AgentHostSession>> agentHostSessions_;
+    std::map<AgentOwnerKey, std::shared_ptr<AgentHostSession>> agentOwners_;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
