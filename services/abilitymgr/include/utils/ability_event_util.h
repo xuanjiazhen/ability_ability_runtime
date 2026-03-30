@@ -38,11 +38,11 @@ public:
      * @brief Handle bundle first launch event publishing and status setting.
      * @param appInfo The application info containing bundle information.
      * @param userId The user ID.
-     * @param appId The application ID (optional, from SignatureInfo).
+     * @param callerBundleName The caller bundle name (optional, empty string if none).
      * @return Returns true if the event was published successfully; returns false otherwise.
      */
     static bool HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo &appInfo, int32_t userId,
-        const std::string &appId = "");
+        const std::string &callerBundleName = "");
 };
 
 } // namespace AAFwk
