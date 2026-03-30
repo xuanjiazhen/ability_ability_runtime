@@ -61,7 +61,7 @@ void AbilityEventUtil::SendKillProcessWithReasonEvent(int32_t errCode, const std
 }
 
 bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo &appInfo, int32_t userId,
-    const std::string &appId)
+    const std::string &appId, const std::string &callerBundleName)
 {
     if (appInfo.isBundleFirstLaunched) {
         return true;  // Already launched, no need to process
@@ -79,6 +79,9 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     want.SetParam("uid", appInfo.uid);
     if (!appId.empty()) {
         want.SetParam("appId", appId);
+    }
+    if (!callerBundleName.empty()) {
+        want.SetParam("callerBundleName", callerBundleName);
     }
     EventFwk::CommonEventData commonData {want};
 

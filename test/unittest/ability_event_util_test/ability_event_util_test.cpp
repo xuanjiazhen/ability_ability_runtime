@@ -347,5 +347,94 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_1100, Te
     TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1100 end");
 }
 
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_1200
+ * @tc.desc: Test HandleBundleFirstLaunch with callerBundleName parameter
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_1200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1200 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 0;
+    appInfo.uid = 20010000;
+    int32_t userId = 100;
+    std::string callerBundleName = "com.test.caller";
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, "", callerBundleName);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1200 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_1300
+ * @tc.desc: Test HandleBundleFirstLaunch with clone app and callerBundleName
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_1300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1300 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 1;
+    appInfo.uid = 20010001;
+    int32_t userId = 100;
+    std::string callerBundleName = "com.test.caller";
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, "", callerBundleName);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1300 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_1400
+ * @tc.desc: Test HandleBundleFirstLaunch with appId and callerBundleName
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_1400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1400 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 0;
+    appInfo.uid = 20010000;
+    int32_t userId = 100;
+    std::string appId = "test_app_id_12345";
+    std::string callerBundleName = "com.test.caller";
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, appId, callerBundleName);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1400 end");
+}
+
+/**
+ * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_1500
+ * @tc.desc: Test HandleBundleFirstLaunch with empty callerBundleName
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_1500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1500 start");
+    ApplicationInfo appInfo;
+    appInfo.bundleName = "com.test.demo";
+    appInfo.isBundleFirstLaunched = false;
+    appInfo.appIndex = 0;
+    appInfo.uid = 20010000;
+    int32_t userId = 100;
+    std::string callerBundleName = "";
+
+    bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, "", callerBundleName);
+    EXPECT_EQ(result, true);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityEventUtil_HandleBundleFirstLaunch_1500 end");
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
