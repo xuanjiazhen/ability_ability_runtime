@@ -16,8 +16,6 @@
 #include "ability_event_util.h"
 #include "ability_bundle_manager_helper/bundle_mgr_helper.h"
 #include "app_scheduler.h"
-#include "common_event.h"
-#include "common_event_manager.h"
 #include "common_event_support.h"
 #include "hilog_tag_wrapper.h"
 #include "want.h"
