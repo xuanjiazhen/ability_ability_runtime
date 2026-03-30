@@ -1126,6 +1126,18 @@ public:
     }
 
     virtual void SetProcessPrepareExit(int32_t pid) {}
+
+    /**
+     * Get all ability infos
+     *
+     * @param infos ability infos
+     * @param pid if pid is not -1, query ability infos for this pid, otherwise query all ability infos
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos, const int32_t pid = -1)
+    {
+        return 0;
+    }
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

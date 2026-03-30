@@ -314,5 +314,128 @@ HWTEST_F(AmsMgrProxyTest, CheckPreloadAppRecordExist_0200, TestSize.Level1)
     EXPECT_EQ(result, ERR_OK);
     GTEST_LOG_(INFO) << "CheckPreloadAppRecordExist_0200 end";
 }
+
+/**
+ * @tc.name: GetAllAbilityInfos_0100
+ * @tc.desc: Test GetAllAbilityInfos when SendRequest fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrProxyTest, GetAllAbilityInfos_0100, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_INVALID_VALUE));
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = amsMgrProxy_->GetAllAbilityInfos(infos);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0200
+ * @tc.desc: Test GetAllAbilityInfos when service returns error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrProxyTest, GetAllAbilityInfos_0200, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_PERMISSION_DENIED);
+            return NO_ERROR;
+        })
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = amsMgrProxy_->GetAllAbilityInfos(infos);
+    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0300
+ * @tc.desc: Test GetAllAbilityInfos when reading infos size fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrProxyTest, GetAllAbilityInfos_0300, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            reply.WriteInt32(-1);
+            return NO_ERROR;
+        })
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = amsMgrProxy_->GetAllAbilityInfos(infos);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0400
+ * @tc.desc: Test GetAllAbilityInfos when reading Parcelable fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrProxyTest, GetAllAbilityInfos_0400, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            reply.WriteInt32(1);
+            return NO_ERROR;
+        })
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = amsMgrProxy_->GetAllAbilityInfos(infos);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0500
+ * @tc.desc: Test GetAllAbilityInfos when reading empty info list.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrProxyTest, GetAllAbilityInfos_0500, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            reply.WriteInt32(0);
+            return NO_ERROR;
+        })
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = amsMgrProxy_->GetAllAbilityInfos(infos);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_TRUE(infos.empty());
+}
+
+/**
+ * @tc.name: GetAllAbilityInfos_0600
+ * @tc.desc: Test GetAllAbilityInfos when reading one ability info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AmsMgrProxyTest, GetAllAbilityInfos_0600, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce([](uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option) {
+            reply.WriteInt32(ERR_OK);
+            reply.WriteInt32(1);
+            AppExecFwk::AbilityStateData info;
+            info.abilityRecordId = 1001;
+            info.pid = 1001;
+            info.uid = 1001;
+            info.abilityType = 1;
+            info.extensionAbilityType = 0;
+            reply.WriteParcelable(&info);
+            return NO_ERROR;
+        })
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    auto ret = amsMgrProxy_->GetAllAbilityInfos(infos);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(infos.size(), 1);
 }  // namespace AppExecFwk
 }  // namespace OHOS

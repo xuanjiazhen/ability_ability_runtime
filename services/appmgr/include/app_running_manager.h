@@ -451,6 +451,7 @@ public:
         std::shared_ptr<ChildProcessRecord> childRecord, std::shared_ptr<AppRunningRecord> appRecord);
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForUIExtension(
         int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag);
+    int32_t GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos, const int32_t pid = -1);
 
 private:
     std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);

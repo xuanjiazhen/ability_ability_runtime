@@ -1676,6 +1676,15 @@ public:
 
     void NotifyTerminateAbility(const sptr<IRemoteObject> token);
 
+    /**
+     * Get all ability infos
+     *
+     * @param infos ability infos
+     * @param pid if pid is not -1, query ability infos for this pid, otherwise query all ability infos
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos, const int32_t pid = -1);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
