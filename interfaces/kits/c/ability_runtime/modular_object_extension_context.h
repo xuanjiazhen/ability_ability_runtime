@@ -1,0 +1,186 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+ /**
+ * @addtogroup AbilityRuntime
+ * @{
+ *
+ * @brief Provides the definition of the C interface for the modular object extension context.
+ *
+ * @since 26.0.0
+ */
+
+/**
+ * @file modular_object_extension_context.h
+ *
+ * @brief Declares the modular object extension context.
+ *
+ * @library libmodular_object_extension.so
+ * @kit AbilityKit
+ * @syscap SystemCapability.Ability.AbilityRuntime.Core
+ * @since 26.0.0
+ */
+
+#ifndef ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_CONTEXT_H
+#define ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_CONTEXT_H
+
+#include "ability_runtime_common.h"
+#include "context.h"
+#include "ipc_cremote_object.h"
+#include "start_options.h"
+#include "want.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+struct AbilityBase_Want;
+typedef struct AbilityBase_Want AbilityBase_Want;
+
+/**
+ * @brief Defines a pointer type to OH_AbilityRuntime_ModularObject_ExtensionContext.
+ *
+ * @since 26.0.0
+ */
+typedef struct OH_AbilityRuntime_ModularObject_ExtensionContext* OH_AbilityRuntime_MoeContextHandle;
+
+/**
+ * @brief Gets the base context from the modular object extension context.
+ *
+ * @param moeContext Represents a pointer to a modular object extension ability context.
+ * @param baseContext Represents a pointer to a {@link AbilityRuntime_Context} base extension ability context.
+ * @return Returns a specific error code.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - success.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} - parameter check failed.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - device not supported.
+ * @since 26.0.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_GetBaseContext(
+    OH_AbilityRuntime_MoeContextHandle moeContext, AbilityRuntime_ContextHandle *baseContext);
+
+/**
+ * @brief Starts the self UIAbility.
+ *
+ * @permission ohos.permission.NDK_START_SELF_UI_ABILITY
+ * @param context Represents a pointer to a modular object extension ability context.
+ * @param want The arguments passed to start the self UIAbility.
+ * For details, see {@link AbilityBase_Want}.
+ * @return Returns a specific error code.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - if the call is successful.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED} - if the caller has no correct permission.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} - if the arguments provided is invalid.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - if the device does not support starting self UIAbility.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY} - if the target ability does not exist.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE} - if the ability type is incorrect.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_CROWDTEST_EXPIRED} - if the crowdtesting application expires.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_WUKONG_MODE} - if the ability cannot be started in Wukong mode.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_CONTROLLED} - if the app is controlled.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_EDM_CONTROLLED} - if the app is controlled by EDM.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_CROSS_APP} - if the caller tries to start a different application.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} - if an internal error occurs.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_TOP_ABILITY} - if the caller is not top ability.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED} - if the app clone or multi-instance is not supported.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY} - if the app instance key is invalid.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED} - if the number of app instances has reached the limit.
+ *          {@link ABILITY_RUNTIME_ERROR_MULTI_INSTANCE_NOT_SUPPORTED} - if multi-instance is not supported.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED} - if the APP_INSTANCE_KEY cannot be specified.
+ * @since 26.0.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbility(
+    OH_AbilityRuntime_MoeContextHandle context, AbilityBase_Want *want);
+
+/**
+ * @brief Starts the self UIAbility with start options.
+ *
+ * @permission ohos.permission.NDK_START_SELF_UI_ABILITY
+ * @param context Represents a pointer to a modular object extension ability context.
+ * @param want The arguments passed to start the self UIAbility.
+ * For details, see {@link AbilityBase_Want}.
+ * @param options The start options passed to start the self UIAbility.
+ * For details, see {@link AbilityRuntime_StartOptions}.
+ * @return Returns a specific error code.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - if the call is successful.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED} - if the caller has no correct permission.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} - if the arguments provided are invalid.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - if the device does not support starting self UIAbility.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY} - if the target ability does not exist.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE} - if the ability type is incorrect.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_CROWDTEST_EXPIRED} - if the crowdtesting application expires.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_WUKONG_MODE} - if the ability cannot be started in Wukong mode.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_CONTROLLED} - if the app is controlled.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_EDM_CONTROLLED} - if the app is controlled by EDM.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_CROSS_APP} - if the caller tries to start a different application.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} - if an internal error occurs.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_TOP_ABILITY} - if the caller is not a foreground process.
+ *          {@link ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED} - if setting visibility is disabled.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED} - if the app clone or multi-instance is not supported.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY} - if the app instance key is invalid.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED} - if the number of app instances has reached the limit.
+ *          {@link ABILITY_RUNTIME_ERROR_MULTI_INSTANCE_NOT_SUPPORTED} - if multi-instance is not supported.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED} - if the APP_INSTANCE_KEY cannot be specified.
+ * @since 26.0.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbilityWithStartOptions(
+    OH_AbilityRuntime_MoeContextHandle context, AbilityBase_Want *want, AbilityRuntime_StartOptions *options);
+
+/**
+ * @brief Destroys the modular object extension.
+ *
+ * @param context Represents a pointer to a modular object extension ability context.
+ * @return Returns a specific error code.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - if the call is successful.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} - if the arguments provided are invalid.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - if the device does not support starting self UIAbility.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_WUKONG_MODE} - if the ability cannot be started in Wukong mode.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST} - if the context does not exist.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} - if an internal error occurs.
+ * @since 26.0.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_TerminateSelf(OH_AbilityRuntime_MoeContextHandle context);
+
+/**
+ * @brief Creates an <b>OHIPCRemoteStub</b> object, supporting requestCallback and destroyCallback running 
+ * according to a specified threading model of the modular object extension ability.
+ * The caller is responsible for destroying the returned object by calling
+ * {@link OH_AbilityRuntime_MoeContext_DestroyIPCRemoteStub} to avoid memory leaks.
+ *
+ * @param context Represents a pointer to a modular object extension ability context.
+ * @param descriptor Pointer to the descriptor of the <b>OHIPCRemoteStub</b> object to create. It cannot be NULL.
+ * @param requestCallback Callback used to process the data request. It cannot be NULL.
+ * @param destroyCallback Callback to be invoked when the object is destroyed. It can be NULL.
+ * @param userData Pointer to the user data. It can be NULL.
+ * @return Returns the pointer to the <b>OHIPCRemoteStub</b> object created if the operation is successful;
+ * returns NULL otherwise.
+ * @since 26.0.0
+ */
+OHIPCRemoteStub* OH_AbilityRuntime_MoeContext_CreateIPCRemoteStub(OH_AbilityRuntime_MoeContextHandle context,
+    const char *descriptor, OH_OnRemoteRequestCallback requestCallback,
+    OH_OnRemoteDestroyCallback destroyCallback, void *userData);
+
+/**
+ * @brief Destroys an <b>OHIPCRemoteStub</b> object.
+ *
+ * @param context Represents a pointer to a modular object extension ability context.
+ * @param stub Pointer to the <b>OHIPCRemoteStub</b> object to destroy.
+ * @since 26.0.0
+ */
+void OH_AbilityRuntime_MoeContext_DestroyIPCRemoteStub(OH_AbilityRuntime_MoeContextHandle context,
+    OHIPCRemoteStub *stub);
+
+#ifdef __cplusplus
+}
+#endif
+
+/** @} */
+#endif // ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_CONTEXT_H
