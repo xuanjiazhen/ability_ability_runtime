@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_EXTENSION_CONTEXT_H
 #define OHOS_ABILITY_RUNTIME_UI_EXTENSION_CONTEXT_H
 
+#include <atomic>
 #include <map>
 
 #include "ability_connect_callback.h"
@@ -31,9 +32,17 @@
 #endif // SUPPORT_SCREEN
 
 namespace OHOS {
+namespace AppExecFwk {
+class EventHandler;
+}
+
 namespace AbilityRuntime {
 using RuntimeTask = std::function<void(int, const AAFwk::Want &, bool)>;
 using AbilityConfigUpdateCallback = std::function<void(AppExecFwk::Configuration &config)>;
+using TerminateSelfWithAnimationCallback = std::function<void()>;
+using TerminateSelfWithAnimationCallbackWithId = std::function<void(int32_t)>;
+using TerminateSelfResultCallback = std::function<void(ErrCode)>;
+using TerminateRequestId = int32_t;
 /**
  * @brief context supply for UIExtension
  *
@@ -64,6 +73,35 @@ public:
      * @return errCode ERR_OK on success, others on failure.
      */
     virtual ErrCode TerminateSelf();
+    /**
+     * @brief Destroys the current ui extension ability with result.
+     *
+     * @param resultCode Indicates the result code returned to the caller.
+     * @param want Indicates the data returned to the caller.
+     * @param callback Result callback, called when termination completes.
+     *
+     * Non-embedded mode: execute synchronously and call callback.
+     * Embedded mode: trigger animation, transfer result after animation completes, then call callback.
+     */
+    virtual void TerminateSelfWithResult(int32_t resultCode, const AAFwk::Want &want,
+        TerminateSelfResultCallback callback);
+
+    /**
+     * @brief Terminate self with result using request ID (internal use for embedded mode).
+     * @param resultCode Result code to return.
+     * @param want Result data to return.
+     * @param requestId Unique request ID for callback matching.
+     * @param callback Result callback.
+     */
+    void TerminateSelfWithResultForResult(int32_t resultCode, const AAFwk::Want &want,
+        TerminateRequestId requestId, TerminateSelfResultCallback callback);
+
+    /**
+     * @brief Generate unique terminate request ID.
+     * @return Unique request ID.
+     */
+    TerminateRequestId GenerateTerminateRequestId();
+
         /**
      * @brief Connects the current ability to an ability using the AbilityInfo.AbilityType.SERVICE template.
      *
@@ -169,6 +207,21 @@ public:
      */
     void RequestComponentTerminate();
 
+    /**
+     * @brief Register terminate self with animation callback.
+     * Only available for embedded atomic service.
+     * @param callback The callback to be called when terminateSelf is invoked.
+     * @return errCode ERR_OK on success, others on failure.
+     */
+    ErrCode TerminateSelfWithAnimation(TerminateSelfWithAnimationCallback &&callback);
+
+    /**
+     * @brief Terminate self inner, should be called by ArkUI when animation is finished.
+     * Will cancel the timeout task and proceed with termination.
+     * @param requestId Request ID for embedded mode termination, -1 for non-embedded mode, 0 for TerminateSelf.
+     */
+    ErrCode TerminateSelfInner(TerminateRequestId requestId = -1);
+
 #ifdef SUPPORT_SCREEN
     void SetWindow(sptr<Rosen::Window> window);
 
@@ -250,11 +303,54 @@ private:
 
     void GetFailureInfoByMessage(const std::string &message, int32_t &failureCode,
         std::string &failureMessage, int32_t resultCode);
-    
+
+    // Request information structure: stores complete data for each terminate request
+    struct TerminateRequestInfo {
+        int32_t resultCode;
+        AAFwk::Want want;
+        TerminateSelfResultCallback callback;
+        bool isTerminateSelfWithoutResult;  // true: TerminateSelf, false: TerminateSelfWithResult
+        bool isTerminated;  // true: already terminated by timeout or callback, prevent duplicate execution
+
+        TerminateRequestInfo() : resultCode(0), isTerminateSelfWithoutResult(false), isTerminated(false) {}
+
+        TerminateRequestInfo(int32_t code, const AAFwk::Want& w,
+                            TerminateSelfResultCallback cb, bool isWithoutResult)
+            : resultCode(code), want(w), callback(std::move(cb)),
+              isTerminateSelfWithoutResult(isWithoutResult), isTerminated(false) {}
+    };
+
+    ErrCode HandleTerminateWithAnimation(TerminateRequestId requestId);
+    bool TryGetAnimationCallback(TerminateSelfWithAnimationCallback &callback);
+    bool TryGetAnimationCallbackWithId(TerminateSelfWithAnimationCallbackWithId &callback);
+    ErrCode GetOrCreateEventHandler(std::shared_ptr<AppExecFwk::EventHandler> &handler);
+
+    // Helper methods for TerminateSelfWithResult refactoring
+    ErrCode TransferAbilityResultToWindow(int32_t resultCode, const AAFwk::Want &want);
+    void NotifyPendingCallbackById(TerminateRequestId requestId, ErrCode err);
+    void CleanupAnimationResources();
+    ErrCode TransferPendingResult(TerminateRequestId requestId);
+    void ExecuteTerminationWithTimeout(const sptr<IRemoteObject> &token, TerminateRequestId requestId);
+    bool HasTerminateRequest(TerminateRequestId requestId);
+
     std::mutex onRequestResultMutex_;
     std::mutex onOpenLinkRequestResultMutex_;
     std::vector<std::shared_ptr<OnAtomicRequestResult>> onAtomicRequestResults_;
     std::vector<std::shared_ptr<AAFwk::OnOpenLinkRequestResult>> onOpenLinkRequestResults_;
+
+    TerminateSelfWithAnimationCallback terminateSelfWithAnimationCallback_ = nullptr;
+    TerminateSelfWithAnimationCallbackWithId terminateSelfWithAnimationCallbackWithId_ = nullptr;
+    std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
+    std::mutex terminateSelfMutex_;
+    std::atomic<bool> isTerminated_{false};
+
+    // Embedded mode: unified request storage map (each request has independent data)
+    std::map<TerminateRequestId, TerminateRequestInfo> terminateRequests_;
+    std::mutex terminateRequestMutex_;
+
+    // Request ID generator
+    static TerminateRequestId curTerminateRequestId_;
+    static std::mutex terminateRequestIdMutex_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
