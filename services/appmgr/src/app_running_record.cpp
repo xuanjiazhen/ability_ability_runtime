@@ -1481,6 +1481,16 @@ void AppRunningRecord::SetKeepAliveAppService(bool isKeepAliveAppService)
     isKeepAliveAppService_ = isKeepAliveAppService;
 }
 
+void AppRunningRecord::SetStartedByCallToBackground(bool isStartedByCallToBackground)
+{
+    isStartedByCallToBackground_ = isStartedByCallToBackground;
+}
+
+bool AppRunningRecord::IsStartedByCallToBackground() const
+{
+    return isStartedByCallToBackground_;
+}
+
 void AppRunningRecord::SetKeepAliveBundle(bool isKeepAliveBundle)
 {
     isKeepAliveBundle_ = isKeepAliveBundle;
