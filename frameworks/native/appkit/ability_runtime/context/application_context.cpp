@@ -25,6 +25,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "js_runtime.h"
+#include "native_module_util.h"
 #include "running_process_info.h"
 
 namespace OHOS {
@@ -1298,10 +1299,22 @@ std::shared_ptr<Context> ApplicationContext::CreateDisplayContext(uint64_t displ
 #endif
 
 // Native Module related methods implementation
-void ApplicationContext::SetNativeThreadInfo(const std::shared_ptr<AppExecFwk::NativeThreadInfo>& info)
+bool ApplicationContext::CreateNativeThread(const AAFwk::NativeModuleMetaData &metaData)
 {
-    std::lock_guard<std::mutex> lock(nativeMutex_);
-    nativeThreadInfo_ = info;
+    if (!metaData.withNativeModule) {
+        return false;
+    }
+    std::lock_guard lock(nativeMutex_);
+    if (nativeThreadInfo_ != nullptr) {
+        return true;
+    }
+    auto nativeThreadInfo = std::make_shared<AppExecFwk::NativeThreadInfo>();
+    if (!nativeThreadInfo->LoadNativeModule(metaData)) {
+        return false;
+    }
+    nativeThreadInfo->RunMain();
+    nativeThreadInfo_ = nativeThreadInfo;
+    return true;
 }
 
 std::shared_ptr<AppExecFwk::NativeThreadInfo> ApplicationContext::GetNativeThreadInfo()
