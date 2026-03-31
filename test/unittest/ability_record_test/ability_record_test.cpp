@@ -661,6 +661,7 @@ HWTEST_F(AbilityRecordTest, AaFwk_AbilityMS_LoadAbility_004, TestSize.Level1)
     abilityRecord->abilityInfo_.type = AbilityType::DATA;
     abilityRecord->abilityInfo_.applicationInfo.name = "app";
     abilityRecord->isLauncherRoot_ = false;
+    abilityRecord->isStartedByCall_ = true;
     abilityRecord->callerList_.push_back(nullptr);
     int res = abilityRecord->LoadAbility();
     EXPECT_EQ(res, ERR_INVALID_VALUE);
