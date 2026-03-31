@@ -271,9 +271,9 @@ int32_t UIExtensionContext::GenerateTerminateRequestId()
     return ++curTerminateRequestId_;
 }
 
-ErrCode UIExtensionContext::TerminateSelfWithAnimation(TerminateSelfResultCallback callback)
+ErrCode UIExtensionContext::TerminateSelfWithAsyncResult(TerminateSelfResultCallback callback)
 {
-    TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelfWithAnimation (embedded)");
+    TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelfWithAsyncResult (embedded)");
 
     // Generate terminateRequestId and register request
     int32_t terminateRequestId = GenerateTerminateRequestId();

@@ -488,7 +488,7 @@ napi_value JsUIExtensionContext::OnTerminateSelf(napi_env env, NapiCallbackInfo&
 
     // Route to appropriate handler based on mode
     if (isEmbeddable) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "Embedded mode: use TerminateSelfWithAnimation");
+        TAG_LOGI(AAFwkTag::UI_EXT, "Embedded mode: use TerminateSelfWithAsyncResult");
         return HandleTerminateSelfInEmbeddedMode(env, lastParam, context);
     } else {
         TAG_LOGI(AAFwkTag::UI_EXT, "Non-embedded mode: use ScheduleHighQos pattern");
@@ -612,7 +612,7 @@ napi_value JsUIExtensionContext::HandleTerminateSelfWithResultInEmbeddedMode(nap
 
     // Create callback with shared_ptr capture to extend lifetime
     auto callback = [env, asyncTask](ErrCode errCode) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "TerminateSelfWithAnimationAndResult callback called, errCode=%{public}d", errCode);
+        TAG_LOGI(AAFwkTag::UI_EXT, "terminateSelfWithResult callback (embedded mode), errCode=%{public}d", errCode);
         if (errCode == ERR_OK) {
             asyncTask->ResolveWithNoError(env, CreateJsUndefined(env));
         } else {
@@ -664,7 +664,7 @@ napi_value JsUIExtensionContext::HandleTerminateSelfInEmbeddedMode(napi_env env,
     }
 
     auto callback = [env, asyncTask](ErrCode errCode) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "TerminateSelfWithAnimation callback, errCode=%{public}d", errCode);
+        TAG_LOGI(AAFwkTag::UI_EXT, "terminateSelf callback (embedded mode), errCode=%{public}d", errCode);
         if (errCode == ERR_OK) {
             asyncTask->ResolveWithNoError(env, CreateJsUndefined(env));
         } else {
@@ -672,7 +672,7 @@ napi_value JsUIExtensionContext::HandleTerminateSelfInEmbeddedMode(napi_env env,
         }
     };
 
-    extensionContext->TerminateSelfWithAnimation(std::move(callback));
+    extensionContext->TerminateSelfWithAsyncResult(std::move(callback));
 
     TAG_LOGD(AAFwkTag::UI_EXT, "HandleTerminateSelfInEmbeddedMode end");
     return result;

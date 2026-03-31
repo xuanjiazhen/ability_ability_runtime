@@ -203,12 +203,12 @@ public:
     ErrCode TerminateSelfInner();
 
     /**
-     * @brief Terminate self with animation (embedded mode).
+     * @brief Terminate self with animation result (embedded mode).
      * Triggers animation and passes actual termination result through callback.
      * @param callback Result callback, called when termination completes.
      * @return errCode ERR_OK on success, others on failure.
      */
-    ErrCode TerminateSelfWithAnimation(TerminateSelfResultCallback callback);
+    ErrCode TerminateSelfWithAsyncResult(TerminateSelfResultCallback callback);
 
     /**
      * @brief Terminate self with animation and result (embedded mode).
