@@ -36,6 +36,8 @@ ohos_shared_library("climgr") {
 
   sources = [
     "src/cli_manager_service.cpp",
+    "src/cli_tool_manager.cpp",
+    "src/cli_tool_data_manager.cpp",
   ]
 
   configs = [
@@ -46,6 +48,7 @@ ohos_shared_library("climgr") {
   deps = [
     "${cli_manager_framework_path}/interfaces/inner_api:cli_manager",
     "${ability_runtime_services_path}/common:app_util",
+    ":cli_tools_config",
   ]
 
   external_deps = [
@@ -54,6 +57,8 @@ ohos_shared_library("climgr") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "json:nlohmann_json_static",
+    "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
@@ -63,5 +68,16 @@ ohos_shared_library("climgr") {
 }
 
 group("climgr_target") {
-  deps = [ ":climgr" ]
+  deps = [
+    ":climgr",
+    ":cli_tools_config",
+  ]
+}
+
+# Prebuild cli_tools.json to /etc/cli/
+ohos_prebuilt_etc("cli_tools_config") {
+  source = "${cli_manager_framework_path}/resources/cli_tools.json"
+  relative_install_dir = "cli"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
 }
