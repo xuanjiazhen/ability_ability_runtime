@@ -647,6 +647,10 @@ public:
 
     void SetKeepAliveAppService(bool isKeepAliveAppService);
 
+    void SetStartedByCallToBackground(bool isStartedByCallToBackground);
+
+    bool IsStartedByCallToBackground() const;
+
     /**
      * @brief roughly considered as a value from the process's bundle info.
      *
@@ -1441,6 +1445,7 @@ private:
     bool hasGPU_ = false;
     bool hasUIAbilityLaunched_ = false;
     bool isKeepAliveAppService_ = false;
+    bool isStartedByCallToBackground_ = false;
     bool isKeepAliveBundle_ = false;
     bool isKeepAliveDkv_ = false; // Only non-resident keep-alive processes can be set to true, please choose carefully
     bool isKia_ = false;
