@@ -81,9 +81,15 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleBundleFirstLaunch: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d, appId=%{public}s, callerBundleName=%{public}s",
         appInfo.bundleName.c_str(), userId, appInfo.appIndex, appId.c_str(), callerBundleName.c_str());
 
-    // Re-check isBundleFirstLaunched before publishing event (posttask async execution)
-    if (appInfo.isBundleFirstLaunched) {
-        return true;
+    // Re-check isBundleFirstLaunched by querying from bundle manager (posttask async execution)
+    AppExecFwk::ApplicationInfo latestAppInfo;
+    if (bundleMgrHelper != nullptr) {
+        if (IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfoWithAppIndex(
+            appInfo.bundleName, appInfo.appIndex, userId, latestAppInfo)) && latestAppInfo.isBundleFirstLaunched) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Bundle already launched, skipping event: bundleName=%{public}s",
+                appInfo.bundleName.c_str());
+            return true;
+        }
     }
 
     // Publish COMMON_EVENT_APP_FIRST_LAUNCH event
