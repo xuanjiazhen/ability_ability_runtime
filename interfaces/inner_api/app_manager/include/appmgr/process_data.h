@@ -77,6 +77,7 @@ struct ProcessData : public Parcelable {
     int32_t imageProcessType = 0;
     bool isPreloadUIExtension = false;
     bool isFromScreenOffBackground = false;
+    bool isStartedByCallToBackground = false;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
