@@ -81,6 +81,11 @@ bool AbilityEventUtil::HandleBundleFirstLaunch(const AppExecFwk::ApplicationInfo
     TAG_LOGI(AAFwkTag::ABILITYMGR, "HandleBundleFirstLaunch: bundleName=%{public}s, userId=%{public}d, appIndex=%{public}d, appId=%{public}s, callerBundleName=%{public}s",
         appInfo.bundleName.c_str(), userId, appInfo.appIndex, appId.c_str(), callerBundleName.c_str());
 
+    // Re-check isBundleFirstLaunched before publishing event (posttask async execution)
+    if (appInfo.isBundleFirstLaunched) {
+        return true;
+    }
+
     // Publish COMMON_EVENT_APP_FIRST_LAUNCH event
     AAFwk::Want want;
     want.SetAction(EventFwk::CommonEventSupport::COMMON_EVENT_APP_FIRST_LAUNCH);

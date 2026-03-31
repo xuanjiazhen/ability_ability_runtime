@@ -283,7 +283,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0800, Te
 
 /**
  * @tc.name: AbilityEventUtil_HandleBundleFirstLaunch_0900
- * @tc.desc: Test HandleBundleFirstLaunch with empty callerBundleName (default)
+ * @tc.desc: Test HandleBundleFirstLaunch with _system callerBundleName (system caller)
  * @tc.type: FUNC
  * @tc.require: NA
  */
@@ -296,7 +296,7 @@ HWTEST_F(AbilityEventUtilTest, AbilityEventUtil_HandleBundleFirstLaunch_0900, Te
     appInfo.appIndex = 0;
     appInfo.uid = 20010000;
     int32_t userId = 100;
-    std::string callerBundleName = "";
+    std::string callerBundleName = "_system";
 
     bool result = AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, callerBundleName);
     EXPECT_EQ(result, true);
