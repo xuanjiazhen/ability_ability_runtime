@@ -75,6 +75,7 @@ struct ProcessData : public Parcelable {
     bool isFromWindowFocusChanged = false;
     int32_t preloadMode = -1;
     bool isPreloadUIExtension = false;
+    bool isStartedByCallToBackground = false;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
