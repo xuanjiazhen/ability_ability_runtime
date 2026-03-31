@@ -1,0 +1,13 @@
+diff a/interfaces/inner_api/ability_manager/include/ability_manager_errors.h b/interfaces/inner_api/ability_manager/include/ability_manager_errors.h	(rejected hunks)
+@@ -1118,6 +1118,11 @@ enum {
+      */
+     ERR_NOT_SUPPORT_SCREEN = 2099214,
+ 
++    /**
++     * Result (2099220) for pid has been reused.
++     */
++    ERR_PID_HAS_BEEN_REUSED = 2099220,
++
+     /**
+      * Native error(3000000) for target bundle not exist.
+      */
