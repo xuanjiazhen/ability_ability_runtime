@@ -1555,6 +1555,8 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ConnectAbilityWithTypeInner_
 {
     MessageParcel data;
     MessageParcel reply;
+    Want want;
+    data.WriteParcelable(&want);
     auto res = stub_->ConnectAbilityWithTypeInner(data, reply);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
 }
