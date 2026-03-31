@@ -1222,7 +1222,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
             }
             if (loadParam->isPreloadStart) {
                 SetPreloadStartState(appRecord);
-        }
+            }
         }
         ReportUIExtensionProcColdStartToRss(abilityInfo, want, loadParam->isPreloadUIExtension);
         if (loadParam->isPreloadUIExtension) {
