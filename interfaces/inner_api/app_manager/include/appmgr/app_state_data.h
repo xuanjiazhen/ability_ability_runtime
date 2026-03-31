@@ -74,6 +74,7 @@ struct AppStateData : public Parcelable {
     std::string bundleName;
     std::string callerBundleName;
     bool isFromWindowFocusChanged = false;
+    bool isStartedByCallToBackground = false;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
