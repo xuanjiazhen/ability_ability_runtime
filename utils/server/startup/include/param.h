@@ -61,6 +61,7 @@ struct LoadParam : public Parcelable {
     pid_t selfPid = -1;
     bool isPreloadUIExtension = false;
     int32_t loadTimeout = 0;
+    bool isStartedByCallToBackground = false;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
