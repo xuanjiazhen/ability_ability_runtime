@@ -23,6 +23,9 @@
 #include "global_constant.h"
 #include "hitrace_meter.h"
 #include "startup_util.h"
+#include "permission_verification.h"
+#include "permission_constants.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -472,6 +475,32 @@ std::string StartAbilityUtils::GenerateAsCallerForAncoSessionId()
     int randomDigit = uni(rng);
     std::string asCallerForAncoSessionId = std::to_string(time) + "_" + std::to_string(randomDigit);
     return asCallerForAncoSessionId;
+}
+
+void StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(Want &want,
+    const AppExecFwk::AbilityInfo &targetAbilityInfo)
+{
+    if (!want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "No ATOMIC_SERVICE_SHARE_ROUTER parameter, skip check");
+        return;
+    }
+
+    bool isAtomicService = (targetAbilityInfo.applicationInfo.bundleType ==
+        AppExecFwk::BundleType::ATOMIC_SERVICE);
+
+    bool hasStartAbilityToPagePermission = PermissionVerification::GetInstance()->
+        VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILITY_TO_PAGE);
+
+    if (!isAtomicService && !hasStartAbilityToPagePermission) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR,
+            "Remove ATOMIC_SERVICE_SHARE_ROUTER: isAtomicService=%{public}d, hasPermission=%{public}d",
+            isAtomicService, hasStartAbilityToPagePermission);
+        want.RemoveParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+    } else {
+        TAG_LOGD(AAFwkTag::ABILITYMGR,
+            "Keep ATOMIC_SERVICE_SHARE_ROUTER: isAtomicService=%{public}d, hasPermission=%{public}d",
+            isAtomicService, hasStartAbilityToPagePermission);
+    }
 }
 }
 }
