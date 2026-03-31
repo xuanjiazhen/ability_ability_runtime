@@ -179,6 +179,16 @@ napi_value JsUIExtensionContext::TerminateSelfWithResult(napi_env env, napi_call
     GET_NAPI_INFO_AND_CALL(env, info, JsUIExtensionContext, OnTerminateSelfWithResult);
 }
 
+napi_value JsUIExtensionContext::TerminateSelfWithAnimation(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsUIExtensionContext, OnTerminateSelfWithAnimation);
+}
+
+napi_value JsUIExtensionContext::TerminateSelfWithAnimationAndResult(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsUIExtensionContext, OnTerminateSelfWithAnimationAndResult);
+}
+
 napi_value JsUIExtensionContext::ConnectAbility(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsUIExtensionContext, OnConnectAbility);
@@ -643,6 +653,100 @@ napi_value JsUIExtensionContext::HandleTerminateSelfWithResultInNonEmbeddedMode(
         env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr, std::move(complete), &result));
 
     TAG_LOGD(AAFwkTag::UI_EXT, "HandleTerminateSelfWithResultInNonEmbeddedMode end");
+    return result;
+}
+
+napi_value JsUIExtensionContext::OnTerminateSelfWithAnimation(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "OnTerminateSelfWithAnimation called");
+
+    napi_value lastParam = (info.argc > 0) ? info.argv[INDEX_ZERO] : nullptr;
+
+    napi_value result = nullptr;
+    std::unique_ptr<NapiAsyncTask> uasyncTask =
+        CreateAsyncTaskWithLastParam(env, lastParam, nullptr, nullptr, &result);
+    std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
+
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        return result;
+    }
+
+    auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::UIExtensionContext>(context);
+    if (!extensionContext) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null extensionContext");
+        asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+        return result;
+    }
+
+    auto callback = [env, asyncTask](ErrCode errCode) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "OnTerminateSelfWithAnimation callback, errCode=%{public}d", errCode);
+        if (errCode == ERR_OK) {
+            asyncTask->ResolveWithNoError(env, CreateJsUndefined(env));
+        } else {
+            asyncTask->Reject(env, CreateJsErrorByNativeErr(env, errCode));
+        }
+    };
+
+    extensionContext->TerminateSelfWithAnimation(std::move(callback));
+
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnTerminateSelfWithAnimation end");
+    return result;
+}
+
+napi_value JsUIExtensionContext::OnTerminateSelfWithAnimationAndResult(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::UI_EXT, "OnTerminateSelfWithAnimationAndResult called");
+
+    if (info.argc == 0) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    int32_t resultCode = 0;
+    AAFwk::Want want;
+    if (!AppExecFwk::UnWrapAbilityResult(env, info.argv[INDEX_ZERO], resultCode, want)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "parse ability result failed");
+        ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return CreateJsUndefined(env);
+    }
+
+    napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[INDEX_ONE] : nullptr;
+
+    napi_value result = nullptr;
+    std::unique_ptr<NapiAsyncTask> uasyncTask =
+        CreateAsyncTaskWithLastParam(env, lastParam, nullptr, nullptr, &result);
+    std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
+
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null context");
+        asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+        return result;
+    }
+
+    auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::UIExtensionContext>(context);
+    if (!extensionContext) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null extensionContext");
+        asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+        return result;
+    }
+
+    auto callback = [env, asyncTask](ErrCode errCode) {
+        TAG_LOGI(AAFwkTag::UI_EXT, "OnTerminateSelfWithAnimationAndResult callback, errCode=%{public}d", errCode);
+        if (errCode == ERR_OK) {
+            asyncTask->ResolveWithNoError(env, CreateJsUndefined(env));
+        } else {
+            asyncTask->Reject(env, CreateJsErrorByNativeErr(env, errCode));
+        }
+    };
+
+    extensionContext->TerminateSelfWithAnimationAndResult(resultCode, want, std::move(callback));
+
+    TAG_LOGD(AAFwkTag::UI_EXT, "OnTerminateSelfWithAnimationAndResult end");
     return result;
 }
 
@@ -1628,6 +1732,8 @@ napi_value JsUIExtensionContext::CreateJsUIExtensionContext(napi_env env,
     BindNativeFunction(env, objValue, "terminateSelf", moduleName, TerminateSelf);
     BindNativeFunction(env, objValue, "startAbilityForResult", moduleName, StartAbilityForResult);
     BindNativeFunction(env, objValue, "terminateSelfWithResult", moduleName, TerminateSelfWithResult);
+    BindNativeFunction(env, objValue, "terminateSelfWithAnimation", moduleName, TerminateSelfWithAnimation);
+    BindNativeFunction(env, objValue, "terminateSelfWithAnimationAndResult", moduleName, TerminateSelfWithAnimationAndResult);
     BindNativeFunction(env, objValue, "startAbilityForResultAsCaller", moduleName, StartAbilityForResultAsCaller);
     BindNativeFunction(env, objValue, "startUIAbilitiesInSplitWindowMode", moduleName,
         StartUIAbilitiesInSplitWindowMode);

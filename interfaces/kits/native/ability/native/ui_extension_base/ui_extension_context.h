@@ -39,7 +39,7 @@ class EventHandler;
 namespace AbilityRuntime {
 using RuntimeTask = std::function<void(int, const AAFwk::Want &, bool)>;
 using AbilityConfigUpdateCallback = std::function<void(AppExecFwk::Configuration &config)>;
-using TerminateSelfWithAnimationCallback = std::function<void()>;
+using TerminateSelfWithAnimationCallback = std::function<void(int32_t)>;
 using TerminateSelfResultCallback = std::function<void(ErrCode)>;
 /**
  * @brief context supply for UIExtension
@@ -202,6 +202,32 @@ public:
      */
     ErrCode TerminateSelfInner();
 
+    /**
+     * @brief Terminate self with animation (embedded mode).
+     * Triggers animation and passes actual termination result through callback.
+     * @param callback Result callback, called when termination completes.
+     * @return errCode ERR_OK on success, others on failure.
+     */
+    ErrCode TerminateSelfWithAnimation(TerminateSelfResultCallback callback);
+
+    /**
+     * @brief Terminate self with animation and result (embedded mode).
+     * Triggers animation, transfers result, and passes actual termination result through callback.
+     * @param resultCode Result code to return.
+     * @param want Want data to return.
+     * @param callback Result callback, called when termination completes.
+     */
+    void TerminateSelfWithAnimationAndResult(int32_t resultCode, const AAFwk::Want &want,
+        TerminateSelfResultCallback callback);
+
+    /**
+     * @brief Terminate self inner with request ID (embedded mode).
+     * Should be called by ArkUI when animation is finished.
+     * @param terminateRequestId Request ID to match with pending request.
+     * @return errCode ERR_OK on success, others on failure.
+     */
+    ErrCode TerminateSelfInner(int32_t terminateRequestId);
+
 #ifdef SUPPORT_SCREEN
     void SetWindow(sptr<Rosen::Window> window);
 
@@ -284,35 +310,40 @@ private:
     void GetFailureInfoByMessage(const std::string &message, int32_t &failureCode,
         std::string &failureMessage, int32_t resultCode);
 
-    ErrCode HandleTerminateWithAnimation();
-    bool CheckAndSetPendingTerminate();
+    ErrCode HandleTerminateWithAnimation(int32_t terminateRequestId);
     bool TryGetAnimationCallback(TerminateSelfWithAnimationCallback &callback);
     ErrCode GetOrCreateEventHandler(std::shared_ptr<AppExecFwk::EventHandler> &handler);
 
     // Helper methods for TerminateSelfWithResult refactoring
     ErrCode TransferAbilityResultToWindow(int32_t resultCode, const AAFwk::Want &want);
-    void NotifyPendingCallback(ErrCode err);
     void CleanupAnimationResources();
-    ErrCode TransferPendingResult();
-    void ExecuteTerminationWithTimeout(const sptr<IRemoteObject> &token);
+    void ExecuteTerminationWithTimeout(const sptr<IRemoteObject> &token, int32_t terminateRequestId);
+    int32_t GenerateTerminateRequestId();
 
     std::mutex onRequestResultMutex_;
     std::mutex onOpenLinkRequestResultMutex_;
     std::vector<std::shared_ptr<OnAtomicRequestResult>> onAtomicRequestResults_;
     std::vector<std::shared_ptr<AAFwk::OnOpenLinkRequestResult>> onOpenLinkRequestResults_;
-    
+
+    // ====== Animation related (only for embedded mode) ======
     TerminateSelfWithAnimationCallback terminateSelfWithAnimationCallback_ = nullptr;
+    std::mutex terminateSelfMutex_;
+
+    // ====== Terminate request management (only for embedded mode) ======
+    int32_t curTerminateRequestId_ = 0;  // ID generator (main thread constraint, no atomic needed)
+
+    struct PendingTerminateRequest {
+        int32_t resultCode;
+        AAFwk::Want want;
+        TerminateSelfResultCallback callback;
+        bool hasResult;  // true=needs to return result, false=no result needed
+    };
+    std::map<int32_t, PendingTerminateRequest> pendingTerminateRequests_;
+    std::mutex pendingRequestsMutex_;
+
+    // ====== Timeout management (only for embedded mode) ======
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     std::atomic<bool> terminateTimeoutExec_{false};
-    std::mutex terminateSelfMutex_;
-    std::atomic<bool> isTerminated_{false};
-    bool pendingAnimationTerminate_ = false;
-
-    // Embedded mode: pending result to transfer after animation completes
-    int32_t pendingResultCode_ = 0;
-    AAFwk::Want pendingResultWant_;
-    TerminateSelfResultCallback pendingTerminateCallback_;
-    bool hasPendingTerminateRequest_ = false;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

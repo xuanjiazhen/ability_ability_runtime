@@ -37,6 +37,8 @@ public:
     static napi_value OpenLink(napi_env env, napi_callback_info info);
     static napi_value TerminateSelf(napi_env env, napi_callback_info info);
     static napi_value TerminateSelfWithResult(napi_env env, napi_callback_info info);
+    static napi_value TerminateSelfWithAnimation(napi_env env, napi_callback_info info);
+    static napi_value TerminateSelfWithAnimationAndResult(napi_env env, napi_callback_info info);
     static napi_value CreateJsUIExtensionContext(napi_env env, std::shared_ptr<UIExtensionContext> context);
     static napi_value StartAbilityForResult(napi_env env, napi_callback_info info);
     static napi_value StartAbilityForResultAsCaller(napi_env env, napi_callback_info info);
@@ -60,6 +62,8 @@ protected:
     virtual napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnTerminateSelf(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnTerminateSelfWithResult(napi_env env, NapiCallbackInfo& info);
+    virtual napi_value OnTerminateSelfWithAnimation(napi_env env, NapiCallbackInfo& info);
+    virtual napi_value OnTerminateSelfWithAnimationAndResult(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnStartAbilityForResult(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnStartAbilityForResultAsCaller(napi_env env, NapiCallbackInfo &info);
     virtual napi_value OnStartUIAbilitiesInSplitWindowMode(napi_env env, NapiCallbackInfo& info);
