@@ -99,7 +99,7 @@ public:
     void DispatchOnAbilityWillBackground(const AbilityLifecycleCallbackArgs &ability);
 
     // Native Module related methods
-    void SetNativeThreadInfo(const std::shared_ptr<AppExecFwk::NativeThreadInfo>& info);
+    bool CreateNativeThread(const AAFwk::NativeModuleMetaData &metaData);
     std::shared_ptr<AppExecFwk::NativeThreadInfo> GetNativeThreadInfo();
     void AddNativeAbility(int32_t instanceId, const std::shared_ptr<NativeAbilityWrapper>& wrapper);
     std::shared_ptr<NativeAbilityWrapper> GetNativeAbility(int32_t instanceId);
