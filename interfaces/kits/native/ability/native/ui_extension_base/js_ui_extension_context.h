@@ -37,8 +37,6 @@ public:
     static napi_value OpenLink(napi_env env, napi_callback_info info);
     static napi_value TerminateSelf(napi_env env, napi_callback_info info);
     static napi_value TerminateSelfWithResult(napi_env env, napi_callback_info info);
-    static napi_value TerminateSelfWithAnimation(napi_env env, napi_callback_info info);
-    static napi_value TerminateSelfWithAnimationAndResult(napi_env env, napi_callback_info info);
     static napi_value CreateJsUIExtensionContext(napi_env env, std::shared_ptr<UIExtensionContext> context);
     static napi_value StartAbilityForResult(napi_env env, napi_callback_info info);
     static napi_value StartAbilityForResultAsCaller(napi_env env, napi_callback_info info);
@@ -62,8 +60,6 @@ protected:
     virtual napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnTerminateSelf(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnTerminateSelfWithResult(napi_env env, NapiCallbackInfo& info);
-    virtual napi_value OnTerminateSelfWithAnimation(napi_env env, NapiCallbackInfo& info);
-    virtual napi_value OnTerminateSelfWithAnimationAndResult(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnStartAbilityForResult(napi_env env, NapiCallbackInfo& info);
     virtual napi_value OnStartAbilityForResultAsCaller(napi_env env, NapiCallbackInfo &info);
     virtual napi_value OnStartUIAbilitiesInSplitWindowMode(napi_env env, NapiCallbackInfo& info);
@@ -119,6 +115,11 @@ private:
         const std::shared_ptr<NativeReference> &atomicServiceRef,
         const std::shared_ptr<NativeReference> &onRequestSuccRef,
         const std::shared_ptr<NativeReference> &onRequestFailRef);
+
+    // Helper methods for TerminateSelf in different modes
+    napi_value HandleTerminateSelfInEmbeddedMode(napi_env env, napi_value lastParam,
+        const std::shared_ptr<AbilityRuntime::Context>& context);
+    napi_value HandleTerminateSelfInNonEmbeddedMode(napi_env env, napi_value lastParam);
 
     // Helper methods for TerminateSelfWithResult in different modes
     napi_value HandleTerminateSelfWithResultInEmbeddedMode(napi_env env, napi_value lastParam,
