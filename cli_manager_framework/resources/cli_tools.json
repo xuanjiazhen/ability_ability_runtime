@@ -1,0 +1,42 @@
+[
+  {
+    "name": "ls",
+    "version": "1.0.0",
+    "description": "List directory contents",
+    "permissions": [],
+    "timeout": 5000,
+    "supportedEvents": ["stdout", "stderr", "exit"]
+  },
+  {
+    "name": "cat",
+    "version": "1.0.0",
+    "description": "Concatenate and print files",
+    "permissions": [],
+    "timeout": 10000,
+    "supportedEvents": ["stdout", "stderr", "exit"]
+  },
+  {
+    "name": "grep",
+    "version": "1.0.0",
+    "description": "Search text patterns",
+    "permissions": [],
+    "timeout": 15000,
+    "supportedEvents": ["stdout", "stderr", "exit"]
+  },
+  {
+    "name": "aa",
+    "version": "1.0.0",
+    "description": "Ability tools",
+    "permissions": [],
+    "timeout": 15000,
+    "supportedEvents": ["startAbility", "stderr", "exit"]
+  },
+  {
+    "name": "claw_sandbox",
+    "version": "1.0.0",
+    "description": "Sandbox tools",
+    "permissions": [],
+    "timeout": 15000,
+    "supportedEvents": ["sandbox", "stderr", "exit"]
+  }
+]

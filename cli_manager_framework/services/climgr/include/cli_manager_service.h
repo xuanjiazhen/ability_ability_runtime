@@ -21,10 +21,13 @@
 #include <utility>
 #include "cli_manager_data.h"
 #include "cli_manager_stub.h"
+#include "cli_tool_manager.h"
 #include "system_ability.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
+
+enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
 /**
  * @class CliManagerService
@@ -76,15 +79,14 @@ public:
 
 private:
     void Init();
-    void LoadToolsFromConfig();
     DISALLOW_COPY_AND_MOVE(CliManagerService);
 
 private:
     static sptr<CliManagerService> instance_;
     static std::mutex instanceMutex_;
     std::mutex mutex_;
-    bool serviceStarted_ = false;
-    std::vector<ToolInfo> tools_;
+    ServiceRunningState state_ = ServiceRunningState::STATE_NOT_START;
+    std::unique_ptr<CliToolManager> cliToolManager_;
 };
 
 } // namespace AbilityRuntime
