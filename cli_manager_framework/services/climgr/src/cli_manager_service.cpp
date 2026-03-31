@@ -14,10 +14,10 @@
  */
 
 #include "cli_manager_service.h"
+#include "cli_tool_manager.h"
 #include "hilog_tag_wrapper.h"
 #include <chrono>
 #include <sstream>
-#include <fstream>
 #include <unistd.h>
 #include <sys/wait.h>
 #include <signal.h>
@@ -59,18 +59,27 @@ CliManagerService::~CliManagerService()
 void CliManagerService::Init()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService Init called");
-    LoadToolsFromConfig();
+
+    // Create CliToolManager instance (construction does initialization)
+    cliToolManager_ = std::make_unique<CliToolManager>();
+    if (cliToolManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to create CliToolManager");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService Init completed");
 }
 
 void CliManagerService::OnStart()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService OnStart called");
 
-    if (serviceStarted_) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "CliManagerService already started");
+    if (state_ == ServiceRunningState::STATE_RUNNING) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService already started");
         return;
     }
 
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService starting");
     Init();
 
     if (!Publish(CliManagerService::GetInstance())) {
@@ -78,90 +87,35 @@ void CliManagerService::OnStart()
         return;
     }
 
-    serviceStarted_ = true;
+    state_ = ServiceRunningState::STATE_RUNNING;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService started successfully");
 }
 
 void CliManagerService::OnStop()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService OnStop called");
-    serviceStarted_ = false;
-}
-
-void CliManagerService::LoadToolsFromConfig()
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadToolsFromConfig called");
-
-    // TODO: Load from actual configuration file
-    // For now, add some example tools
-
-    ToolInfo tool1;
-    tool1.name = "ls";
-    tool1.version = "1.0.0";
-    tool1.description = "List directory contents";
-    tool1.permissions = {};
-    tool1.timeout = 5000;
-    tool1.supportedEvents = {"stdout", "stderr", "exit"};
-    tools_.push_back(tool1);
-
-    ToolInfo tool2;
-    tool2.name = "cat";
-    tool2.version = "1.0.0";
-    tool2.description = "Concatenate and print files";
-    tool2.permissions = {};
-    tool2.timeout = 10000;
-    tool2.supportedEvents = {"stdout", "stderr", "exit"};
-    tools_.push_back(tool2);
-
-    ToolInfo tool3;
-    tool3.name = "grep";
-    tool3.version = "1.0.0";
-    tool3.description = "Search text patterns";
-    tool3.permissions = {};
-    tool3.timeout = 15000;
-    tool3.supportedEvents = {"stdout", "stderr", "exit"};
-    tools_.push_back(tool3);
-
-    ToolInfo tool4;
-    tool4.name = "aa";
-    tool4.version = "1.0.0";
-    tool4.description = "aa tools";
-    tool4.permissions = {};
-    tool4.timeout = 15000;
-    tool4.supportedEvents = {"startAbility", "stderr", "exit"};
-    tools_.push_back(tool4);
-
-    ToolInfo tool5;
-    tool5.name = "/system/bin/claw_sandbox";
-    tool5.version = "1.0.0";
-    tool5.description = "sandbox tools";
-    tool5.permissions = {};
-    tool5.timeout = 15000;
-    tool5.supportedEvents = {"sandbox", "stderr", "exit"};
-    tools_.push_back(tool5);
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Loaded %{public}zu tools", tools_.size());
+    state_ = ServiceRunningState::STATE_NOT_START;
+    // cliToolManager_ will be automatically destroyed when service is destroyed
 }
 
 int32_t CliManagerService::QueryTools(std::vector<ToolInfo> &tools)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "QueryTools called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService::QueryTools called");
 
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (!serviceStarted_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Service not started");
+    if (cliToolManager_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "CliToolManager is not initialized");
         return -1;
     }
 
-    tools = tools_;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Returned %{public}zu tools to client", tools.size());
-    for (size_t i = 0; i < tools.size(); ++i) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "  Tool[%{public}zu]: name=%{public}s, version=%{public}s",
-            i, tools[i].name.c_str(), tools[i].version.c_str());
+    int32_t ret = cliToolManager_->QueryTools(tools);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to query tools: %{public}d", ret);
+        return ret;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "QueryTools service completed, returning ERR_OK");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Returned %{public}zu tools to client", tools.size());
     return ERR_OK;
 }
 
@@ -182,21 +136,13 @@ int32_t CliManagerService::ExecTool(const std::string &name,
 
     std::lock_guard<std::mutex> lock(mutex_);
 
-    if (!serviceStarted_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Service not started");
-        return -1;
-    }
-
     // Validate tool exists
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: validating tool exists");
-    auto it = std::find_if(tools_.begin(), tools_.end(),
-        [&name](const ToolInfo &tool) { return tool.name == name; });
-
-    if (it == tools_.end()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Tool not found: %{public}s", name.c_str());
+    if (cliToolManager_ == nullptr || !cliToolManager_->ValidateTool(name)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Tool not found or invalid: %{public}s", name.c_str());
         return -1;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: tool '%{public}s' found", name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: tool '%{public}s' validated", name.c_str());
 
     auto startTime = std::chrono::steady_clock::now();
 
