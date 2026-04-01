@@ -140,7 +140,10 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     const bool ignoreAbilityName)
 {
     int32_t result = CheckCallerPermission();
-    if (result != ERR_OK && (param == nullptr || !param->isServiceMatch_)) {
+    if (result == ERR_PERMISSION_DENIED && param != nullptr &&
+        !callerBundleName.empty() && callerBundleName == param->bundleName_) {
+        TAG_LOGI(AAFwkTag::INTENT, "caller execute own intent, skip permission check");
+    } else if (result != ERR_OK && (param == nullptr || !param->isServiceMatch_)) {
         return result;
     }
     if (callerToken == nullptr && (param == nullptr || !param->isServiceMatch_)) {
@@ -664,7 +667,13 @@ int32_t InsightIntentExecuteManager::IsValidCall(const Want &want)
 
 int32_t InsightIntentExecuteManager::CheckCallerPermission()
 {
-    bool isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
+    if (PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGD(AAFwkTag::INTENT, "shell caller, skip permission check");
+        return ERR_OK;
+    }
+
+    bool isSystemAppCall =
+        PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
     if (!isSystemAppCall) {
         TAG_LOGE(AAFwkTag::INTENT, "system-api cannot use");
         return ERR_NOT_SYSTEM_APP;
@@ -673,7 +682,9 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission()
     bool isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
         EXECUTE_INSIGHT_INTENT_PERMISSION);
     if (!isCallingPerm) {
-        TAG_LOGE(AAFwkTag::INTENT, "permission %{public}s verification failed", EXECUTE_INSIGHT_INTENT_PERMISSION);
+        TAG_LOGE(AAFwkTag::INTENT,
+            "permission %{public}s verification failed",
+            EXECUTE_INSIGHT_INTENT_PERMISSION);
         return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;
@@ -681,15 +692,24 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission()
 
 int32_t InsightIntentExecuteManager::CheckGetInsightIntenInfoPermission()
 {
-    bool isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
+    if (PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGD(AAFwkTag::INTENT, "shell caller, skip permission check");
+        return ERR_OK;
+    }
+
+    bool isSystemAppCall =
+        PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
     if (!isSystemAppCall) {
         TAG_LOGE(AAFwkTag::INTENT, "system-api cannot use");
         return ERR_NOT_SYSTEM_APP;
     }
 
-    bool isCallingPerm = PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission();
+    bool isCallingPerm =
+        PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission();
     if (!isCallingPerm) {
-        TAG_LOGE(AAFwkTag::INTENT, "permission %{public}s verification failed", PERMISSION_GET_BUNDLE_INFO_PRIVILEGED);
+        TAG_LOGE(AAFwkTag::INTENT,
+            "permission %{public}s verification failed",
+            PERMISSION_GET_BUNDLE_INFO_PRIVILEGED);
         return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;
