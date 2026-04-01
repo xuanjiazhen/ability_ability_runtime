@@ -1298,6 +1298,8 @@ private:
      */
     uint64_t GenerateRunningId();
 
+    bool HasOnlyOneExtensionType();
+
     bool IsWindowIdsEmpty();
 
     std::map<std::string, std::shared_ptr<ApplicationInfo>> appInfos_;

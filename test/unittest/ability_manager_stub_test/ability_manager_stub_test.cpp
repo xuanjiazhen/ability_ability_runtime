@@ -1561,6 +1561,24 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ConnectAbilityWithTypeInner_
 
 /*
  * Feature: AbilityManagerService
+ * Function: ConnectAbilityWithTypeInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService ConnectAbilityWithTypeInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function ConnectAbilityWithTypeInner is normal flow.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_ConnectAbilityWithTypeInner_002, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    Want want;
+    data.WriteParcelable(&want);
+    auto res = stub_->ConnectAbilityWithTypeInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: ConnectUIExtensionAbilityInner
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService ConnectUIExtensionAbilityInner
