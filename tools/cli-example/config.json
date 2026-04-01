@@ -1,0 +1,89 @@
+{
+  "$schema": "https://schemas.openharmony.org/cli/tool/v1",
+  "name": "cli-example",
+  "version": "1.0.0",
+  "description": "示例 CLI 工具，演示 CLI 工具规范实现",
+  "executable": "/etc/cli/tools/cli-example",
+  "hasSubcommands": true,
+  "timeout": 30000,
+  "events": ["result"],
+  "subcommands": {
+    "run": {
+      "description": "运行示例工具，执行并返回结果",
+      "input": {
+        "type": "object",
+        "properties": {
+          "args": {
+            "type": "array",
+            "items": {"type": "string"},
+            "description": "传递给工具的参数列表"
+          }
+        }
+      },
+      "output": {
+        "type": "object",
+        "description": "执行结果",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "执行结果字符串"
+          }
+        }
+      },
+      "events": ["progress", "result"],
+      "eventSchemas": {
+        "progress": {
+          "type": "object",
+          "description": "执行进度事件",
+          "properties": {
+            "percentage": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 100,
+              "description": "完成百分比"
+            },
+            "status": {
+              "type": "string",
+              "enum": ["starting", "running", "completed", "failed"],
+              "description": "当前状态"
+            }
+          },
+          "required": ["percentage", "status"]
+        }
+      },
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "args": "--arg={value}"
+        }
+      }
+    },
+    "version": {
+      "description": "显示版本信息",
+      "input": {
+        "type": "object",
+        "properties": {}
+      },
+      "output": {
+        "type": "object",
+        "description": "版本信息",
+        "properties": {
+          "version": {
+            "type": "string",
+            "description": "工具版本号"
+          },
+          "build_time": {
+            "type": "string",
+            "description": "构建时间"
+          }
+        },
+        "required": ["version"]
+      },
+      "events": ["result"],
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {}
+      }
+    }
+  }
+}
