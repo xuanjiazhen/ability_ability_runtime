@@ -974,6 +974,12 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::QUERY_SELF_MODULAR_OBJECT_EXTENSION_INFOS) {
         return QuerySelfModularObjectExtensionInfosInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::CONNECT_MODULAR_OBJECT_EXTENSION) {
+        return ConnectModularObjectExtensionInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::DISCONNECT_MODULAR_OBJECT_EXTENSION) {
+        return DisconnectModularObjectExtensionInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_USER_LOCKED_BUNDLE_LIST) {
         return GetUserLockedBundleListInner(data, reply);
     }
@@ -5393,6 +5399,49 @@ int32_t AbilityManagerStub::QuerySelfModularObjectExtensionInfosInner(MessagePar
         if (!reply.WriteParcelable(&it)) {
             return ERR_INVALID_VALUE;
         }
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::ConnectModularObjectExtensionInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    std::shared_ptr<Want> want(data.ReadParcelable<Want>());
+    if (want == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null want");
+        return ERR_INVALID_VALUE;
+    }
+    sptr<IAbilityConnection> callback = nullptr;
+    if (data.ReadBool()) {
+        callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    }
+    sptr<IRemoteObject> callerToken = nullptr;
+    if (data.ReadBool()) {
+        callerToken = data.ReadRemoteObject();
+    }
+    int32_t userId = data.ReadInt32();
+
+    int32_t result = ConnectModularObjectExtension(*want, callback, callerToken, userId);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write failed");
+        return ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::DisconnectModularObjectExtensionInner(MessageParcel &data, MessageParcel &reply)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    sptr<IAbilityConnection> callback = iface_cast<IAbilityConnection>(data.ReadRemoteObject());
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callback null");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t result = DisconnectModularObjectExtension(callback);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "DisconnectModularObjectExtension ret = %{public}d", result);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write failed");
+        return ERR_WRITE_RESULT_CODE_FAILED;
     }
     return NO_ERROR;
 }

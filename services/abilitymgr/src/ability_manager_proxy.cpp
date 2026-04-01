@@ -7780,6 +7780,66 @@ int32_t AbilityManagerProxy::QuerySelfModularObjectExtensionInfos(
     return NO_ERROR;
 }
 
+int32_t AbilityManagerProxy::ConnectModularObjectExtension(const Want &want,
+    sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &want);
+    CHECK_POINTER_AND_RETURN_LOG(connect, ERR_INVALID_VALUE, "connect fail, null connect");
+    if (connect->AsObject()) {
+        PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, true);
+        PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, RemoteObject, connect->AsObject());
+    } else {
+        PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, false);
+    }
+    if (callerToken != nullptr) {
+        PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, true);
+        PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, RemoteObject, callerToken);
+    } else {
+        PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Bool, false);
+    }
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, userId);
+
+    int error = SendRequest(AbilityManagerInterfaceCode::CONNECT_MODULAR_OBJECT_EXTENSION, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::DisconnectModularObjectExtension(sptr<IAbilityConnection> connect)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (connect == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "fail, connect null");
+        return ERR_INVALID_VALUE;
+    }
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+    if (!data.WriteRemoteObject(connect->AsObject())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "connect write failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    int error = SendRequest(AbilityManagerInterfaceCode::DISCONNECT_MODULAR_OBJECT_EXTENSION, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int32_t AbilityManagerProxy::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)
 {
