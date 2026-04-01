@@ -24,10 +24,17 @@
 namespace OHOS {
 namespace AbilityRuntime {
 
+// Create JS objects from native structures
+napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary);
+napi_value CreateJsToolSummaryArray(napi_env env, const std::vector<ToolSummary> &summaries);
 napi_value CreateJsToolInfo(napi_env env, const ToolInfo &info);
 napi_value CreateJsToolInfoArray(napi_env env, const std::vector<ToolInfo> &infos);
 napi_value CreateJsExecResult(napi_env env, const ExecResult &result);
+napi_value CreateJsSessionInfo(napi_env env, const SessionInfo &session);
+napi_value CreateJsSessionStatus(napi_env env, const SessionStatus &status);
+napi_value CreateJsToolEvent(napi_env env, const ToolEvent &event);
 
+// Unwrap JS objects to native structures
 bool UnwrapExecOptions(napi_env env, napi_value jsOptions, ExecOptions &options);
 bool UnwrapStringMap(napi_env env, napi_value jsMap, std::vector<std::pair<std::string, std::string>> &map);
 
