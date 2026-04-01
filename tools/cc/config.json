@@ -1,0 +1,168 @@
+{
+  "name": "ohos-claw-cc",
+  "version": "1.0.0",
+  "description": "OpenHarmony InsightIntent framework CLI tool for executing and querying insight intents",
+  "executable": "/system/bin/cli_tool/executable/ohos-claw-cc",
+  "requirePermissions": [],
+  "hasSubcommands": true,
+  "subcommands": {
+    "execute-intent": {
+      "description": "Execute an insight intent and return the result synchronously (30s timeout)",
+      "requirePermissions": [],
+      "input": {
+        "type": "object",
+        "properties": {
+          "bundle": {
+            "type": "string",
+            "description": "Target application bundle name",
+            "minLength": 1
+          },
+          "module": {
+            "type": "string",
+            "description": "Module name",
+            "minLength": 1
+          },
+          "intent": {
+            "type": "string",
+            "description": "Insight intent name",
+            "minLength": 1
+          },
+          "ability": {
+            "type": "string",
+            "description": "Ability name (optional, auto-resolved if omitted)"
+          },
+          "executeMode": {
+            "type": "integer",
+            "description": "Execute mode: 0=UI_ABILITY_FOREGROUND, 1=UI_ABILITY_BACKGROUND, 2=UI_EXTENSION_ABILITY, 3=SERVICE_EXTENSION_ABILITY",
+            "minimum": 0,
+            "maximum": 3
+          },
+          "param": {
+            "type": "string",
+            "description": "Intent parameters as a JSON object string",
+            "format": "json"
+          }
+        },
+        "required": ["bundle", "module", "intent"]
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "innerErr": {
+            "type": "integer",
+            "description": "Intent execution internal error code. 0 = success"
+          },
+          "code": {
+            "type": "integer",
+            "description": "Business return code"
+          },
+          "flags": {
+            "type": "integer",
+            "description": "Return flags"
+          },
+          "result": {
+            "type": "object",
+            "description": "Structured execution result (WantParams)"
+          },
+          "uris": {
+            "type": "array",
+            "description": "Returned URI list",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["innerErr", "code", "flags"]
+      },
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "bundle": "-b {value}",
+          "module": "-m {value}",
+          "ability": "-a {value}",
+          "intent": "-i {value}",
+          "executeMode": "-e {value}",
+          "param": "-p {value}"
+        }
+      }
+    },
+    "get-intent": {
+      "description": "Query insight intent registration information with three query modes",
+      "requirePermissions": [],
+      "input": {
+        "type": "object",
+        "properties": {
+          "executeMode": {
+            "type": "integer",
+            "description": "Query mode: 1=query all, 2=query by bundle, 3=query by intent name",
+            "minimum": 1,
+            "maximum": 3
+          },
+          "flag": {
+            "type": "integer",
+            "description": "Query flag (bitmask): 1=GET_FULL_INSIGHT_INTENT, 2=GET_SUMMARY_INSIGHT_INTENT, 4=GET_ENTITY_INFO",
+            "minimum": 1,
+            "maximum": 7
+          },
+          "userId": {
+            "type": "integer",
+            "description": "User ID (default: 100)",
+            "minimum": 0,
+            "default": 100
+          },
+          "bundle": {
+            "type": "string",
+            "description": "Bundle name (required when executeMode is 2 or 3)"
+          },
+          "module": {
+            "type": "string",
+            "description": "Module name (required when executeMode is 3)"
+          },
+          "intent": {
+            "type": "string",
+            "description": "Intent name (required when executeMode is 3)"
+          }
+        },
+        "required": ["executeMode", "flag"]
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "total": {
+            "type": "integer",
+            "description": "Total count of matched intents"
+          },
+          "intents": {
+            "type": "array",
+            "description": "List of matched intent information",
+            "items": {
+              "type": "object",
+              "properties": {
+                "bundleName": { "type": "string" },
+                "moduleName": { "type": "string" },
+                "intentName": { "type": "string" },
+                "displayName": { "type": "string" },
+                "intentType": { "type": "string" },
+                "developType": { "type": "string" },
+                "parameters": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "executeMode": "-e {value}",
+          "flag": "-f {value}",
+          "userId": "-u {value}",
+          "bundle": "-b {value}",
+          "module": "-m {value}",
+          "intent": "-i {value}"
+        }
+      }
+    }
+  },
+  "timeout": 30,
+  "events": ["stdout", "result"]
+}
