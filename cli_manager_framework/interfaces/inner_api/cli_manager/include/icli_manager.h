@@ -57,13 +57,13 @@ public:
      * @param name Tool name
      * @param args Arguments as key-value pairs (preserves insertion order)
      * @param options Execution options
-     * @param result Output execution result
+     * @param session Output session information
      * @return Returns ERR_OK on success, others on failure
      */
     virtual int32_t ExecTool(const std::string &name,
                              const std::vector<std::pair<std::string, std::string>> &args,
                              const ExecOptions &options,
-                             ExecResult &result) = 0;
+                             SessionInfo &session) = 0;
 };
 
 } // namespace AbilityRuntime
