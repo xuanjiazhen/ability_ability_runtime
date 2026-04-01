@@ -106,7 +106,7 @@ bool UIExtensionContext::TryGetAnimationCallback(TerminateSelfWithAnimationCallb
 {
     std::lock_guard<std::mutex> lock(terminateSelfMutex_);
     if (terminateSelfWithAnimationCallback_ != nullptr) {
-        std::swap(callback, terminateSelfWithAnimationCallback_);
+        callback = terminateSelfWithAnimationCallback_;  // Copy, allow repeated calls
         return true;
     }
     return false;
@@ -240,7 +240,7 @@ void UIExtensionContext::CleanupAnimationResources()
     if (eventHandler_ != nullptr) {
         eventHandler_->RemoveTask("UIExtensionTerminateTimeout");
     }
-    // Note: terminateSelfWithAnimationCallback_ already taken by TryGetAnimationCallback
+    // Note: terminateSelfWithAnimationCallback_ is retained for reuse (allows repeated calls)
 }
 
 void UIExtensionContext::TerminateSelfWithResult(int32_t resultCode, const AAFwk::Want &want,
