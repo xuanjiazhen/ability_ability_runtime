@@ -19,7 +19,6 @@
 #include "modular_object_extension_types.h"
 
 namespace {
-using OHOS::AbilityRuntime::GetModularObjectExtensionType;
 
 AbilityRuntime_ErrorCode CheckMoeInstance(OH_AbilityRuntime_MoeInstanceHandle instance,
     OH_AbilityRuntime_ModularObject_ExtensionInstance **moeInstance)
@@ -29,7 +28,7 @@ AbilityRuntime_ErrorCode CheckMoeInstance(OH_AbilityRuntime_MoeInstanceHandle in
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     auto *inner = reinterpret_cast<OH_AbilityRuntime_ModularObject_ExtensionInstance *>(instance);
-    if (inner->type != GetModularObjectExtensionType()) {
+    if (inner->type != OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid extension type");
         return ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE;
     }
@@ -134,7 +133,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_GetInstanceFromBase(
         TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (baseExtensionInstance->type != GetModularObjectExtensionType()) {
+    if (baseExtensionInstance->type != OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid extension type");
         return ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE;
     }

@@ -46,7 +46,7 @@ void ModularObjectExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
         TAG_LOGE(AAFwkTag::EXT, "failed to create modular object extension instance");
         return;
     }
-    moeInstance_->type = GetModularObjectExtensionType();
+    moeInstance_->type = AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     moeInstance_->extension = weak_from_this();
 
     moeContext_ = std::make_shared<OH_AbilityRuntime_ModularObject_ExtensionContext>();
@@ -54,7 +54,7 @@ void ModularObjectExtension::Init(const std::shared_ptr<AbilityLocalRecord> &rec
         TAG_LOGE(AAFwkTag::EXT, "failed to create modular object extension context");
         return;
     }
-    moeContext_->type = GetModularObjectExtensionType();
+    moeContext_->type = AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto context = GetContext();
     if (context != nullptr) {
         moeContext_->context = context->weak_from_this();

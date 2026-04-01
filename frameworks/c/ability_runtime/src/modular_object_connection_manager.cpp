@@ -152,9 +152,9 @@ ErrCode ModularObjectConnectionManager::ConnectModularObjectExtension(const sptr
     abilityConnection->AddConnectCallback(connectCallback);
     abilityConnection->SetConnectionState(CONNECTION_STATE_CONNECTING);
 
-    // Connect directly via AbilityManagerClient (bypass ConnectionManager)
-    ErrCode ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbilityWithExtensionType(
-        want, abilityConnection, token, AAFwk::DEFAULT_INVAL_VALUE, GetModularObjectExtensionType());
+    // Connect directly via AbilityManagerClient
+    ErrCode ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectModularObjectExtension(
+        want, abilityConnection, token, AAFwk::DEFAULT_INVAL_VALUE);
 
     if (ret == ERR_OK) {
         std::lock_guard<std::mutex> guard(connectionMutex_);
@@ -193,7 +193,7 @@ ErrCode ModularObjectConnectionManager::DisconnectModularObjectExtension(
         abilityConnection = iter->second.connection;
     }
 
-    ErrCode ret = AAFwk::AbilityManagerClient::GetInstance()->DisconnectAbility(abilityConnection);
+    ErrCode ret = AAFwk::AbilityManagerClient::GetInstance()->DisconnectModularObjectExtension(abilityConnection);
     if (ret == ERR_OK || ret == AAFwk::CONNECTION_NOT_EXIST) {
         RemoveConnectionRecord(connectionId);
     }

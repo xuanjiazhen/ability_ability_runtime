@@ -724,6 +724,12 @@ enum class AbilityManagerInterfaceCode {
 
     // query self modular object Extension infos
     QUERY_SELF_MODULAR_OBJECT_EXTENSION_INFOS = 6162,
+
+    // connect modular object extension
+    CONNECT_MODULAR_OBJECT_EXTENSION = 6163,
+
+    // disconnect modular object extension
+    DISCONNECT_MODULAR_OBJECT_EXTENSION = 6164,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

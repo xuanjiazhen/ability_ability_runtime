@@ -2124,6 +2124,24 @@ public:
     ErrCode QuerySelfModularObjectExtensionInfos(std::vector<ModularObjectExtensionInfo> &extensionInfos);
 
     /**
+     * @brief Connect modular object extension ability.
+     * @param want Special want for modular object extension ability.
+     * @param connect Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken Caller ability token.
+     * @param userId Designation User ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ConnectModularObjectExtension(const Want &want, sptr<IAbilityConnection> connect,
+        sptr<IRemoteObject> callerToken, int32_t userId = DEFAULT_INVAL_VALUE);
+
+    /**
+     * @brief Disconnect modular object extension ability.
+     * @param connect Callback used to notify caller the result of disconnecting.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode DisconnectModularObjectExtension(sptr<IAbilityConnection> connect);
+
+    /**
      * @brief Get list of applications launched before the first unlock.
      * @param userId The User Id.
      * @param userLockedBundleList List of applications launched before the first unlock.

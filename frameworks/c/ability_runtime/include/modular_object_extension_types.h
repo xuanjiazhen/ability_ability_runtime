@@ -22,17 +22,6 @@
 #include "native_extension/context_impl.h"
 #include "native_extension/extension_ability_impl.h"
 
-namespace OHOS {
-namespace AbilityRuntime {
-constexpr int32_t MODULAR_OBJECT_EXTENSION_TYPE = 37;
-
-// todo remove
-inline AppExecFwk::ExtensionAbilityType GetModularObjectExtensionType()
-{
-    return static_cast<AppExecFwk::ExtensionAbilityType>(MODULAR_OBJECT_EXTENSION_TYPE);
-}
-} // namespace AbilityRuntime
-} // namespace OHOS
 
 #ifdef __cplusplus
 extern "C" {

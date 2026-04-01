@@ -35,7 +35,7 @@ AbilityRuntime_ErrorCode CheckMoeContext(OH_AbilityRuntime_MoeContextHandle cont
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (context->type != GetModularObjectExtensionType()) {
+    if (context->type != AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid extension type");
         return ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE;
     }
@@ -74,7 +74,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_GetBaseContext(
         TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (moeContext->type != GetModularObjectExtensionType()) {
+    if (moeContext->type != AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid extension type");
         return ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE;
     }
