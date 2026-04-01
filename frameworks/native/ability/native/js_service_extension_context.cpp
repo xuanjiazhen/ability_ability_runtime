@@ -195,6 +195,11 @@ public:
         GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnOpenAtomicService);
     }
 
+    static napi_value IsContextType(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnIsContextType);
+    }
+
 private:
     std::weak_ptr<ServiceExtensionContext> context_;
     sptr<JsFreeInstallObserver> freeInstallObserver_ = nullptr;
@@ -1604,6 +1609,28 @@ private:
             *innerErrorCode = context->ConnectAbility(want, connection);
         };
     }
+
+    napi_value OnIsContextType(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        std::string contextType;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], contextType)) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "parse contextType failed");
+            ThrowInvalidParamError(env, "Parse param contextType failed, contextType must be string.");
+            return CreateJsUndefined(env);
+        }
+
+        std::string type = "ServiceExtensionContext";
+        bool result = (contextType == type);
+        TAG_LOGD(AAFwkTag::SERVICE_EXT, "contextType: %{public}s, match: %{public}d", contextType.c_str(), result);
+        return CreateJsValue(env, result);
+    }
 };
 } // namespace
 
@@ -1660,6 +1687,7 @@ napi_value CreateJsServiceExtensionContext(napi_env env, std::shared_ptr<Service
         JsServiceExtensionContext::RequestModalUIExtension);
     BindNativeFunction(env, object, "preStartMission", moduleName, JsServiceExtensionContext::PreStartMission);
     BindNativeFunction(env, object, "openAtomicService", moduleName, JsServiceExtensionContext::OpenAtomicService);
+    BindNativeFunction(env, object, "contextType", moduleName, JsServiceExtensionContext::IsContextType);
     return handleEscape.Escape(object);
 }
 

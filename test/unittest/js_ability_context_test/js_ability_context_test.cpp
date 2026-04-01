@@ -437,5 +437,83 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_OnStartUIServiceExten
     JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
 }
 
+/**
+ * @tc.name: IsContextType_0100
+ * @tc.desc: Test IsContextType with matching context type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, IsContextType_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsContextType_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env_, "UIAbilityContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    auto result = jsAbilityContext_->OnIsContextType(env_, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env_, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_TRUE(boolResult);
+    GTEST_LOG_(INFO) << "IsContextType_0100 end";
+}
+
+/**
+ * @tc.name: IsContextType_0200
+ * @tc.desc: Test IsContextType with non-matching context type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, IsContextType_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsContextType_0200 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env_, "OtherContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    auto result = jsAbilityContext_->OnIsContextType(env_, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env_, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_FALSE(boolResult);
+    GTEST_LOG_(INFO) << "IsContextType_0200 end";
+}
+
+/**
+ * @tc.name: IsContextType_0300
+ * @tc.desc: Test IsContextType with no parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, IsContextType_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "IsContextType_0300 start";
+    HandleScope handleScope(env_);
+    TryCatch tryCatch(env_);
+    NapiCallbackInfo info;
+    info.argc = 0;
+
+    auto result = jsAbilityContext_->OnIsContextType(env_, info);
+    EXPECT_NE(result, nullptr);
+    EXPECT_TRUE(tryCatch.HasCaught());
+    tryCatch.ClearException();
+    ArkNativeEngine* engine = (ArkNativeEngine*)env_;
+    if (!engine->lastException_.IsEmpty()) {
+        engine->lastException_.Empty();
+    }
+    GTEST_LOG_(INFO) << "IsContextType_0300 end";
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS

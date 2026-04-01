@@ -967,6 +967,12 @@ napi_value JsApplicationContextUtils::OnGetRunningProcessInformation(napi_env en
     return result;
 }
 
+napi_value JsApplicationContextUtils::IsContextType(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnIsContextType, APPLICATION_CONTEXT_NAME);
+}
+
 napi_value JsApplicationContextUtils::GetAllWindowStages(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
@@ -1024,6 +1030,28 @@ napi_value JsApplicationContextUtils::OnGetAllWindowStages(napi_env env, NapiCal
     napi_resolve_deferred(env, deferred, emptyArray);
     return promise;
 #endif
+}
+
+napi_value JsApplicationContextUtils::OnIsContextType(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "called");
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid argc");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string contextType;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], contextType)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "parse contextType failed");
+        ThrowInvalidParamError(env, "Parse param contextType failed, contextType must be string.");
+        return CreateJsUndefined(env);
+    }
+
+    std::string type = "ApplicationContext";
+    bool result = (contextType == type);
+    TAG_LOGD(AAFwkTag::APPKIT, "contextType: %{public}s, match: %{public}d", contextType.c_str(), result);
+    return CreateJsValue(env, result);
 }
 
 napi_value JsApplicationContextUtils::GetCurrentAppCloneIndex(napi_env env, napi_callback_info info)
@@ -2128,6 +2156,7 @@ void JsApplicationContextUtils::BindNativeApplicationContextTwo(napi_env env, na
     BindNativeFunction(env, object, "setFontSizeScale", MD_NAME,
         JsApplicationContextUtils::SetFontSizeScale);
     BindNativeFunction(env, object, "getAllWindowStages", MD_NAME, JsApplicationContextUtils::GetAllWindowStages);
+    BindNativeFunction(env, object, "contextType", MD_NAME, JsApplicationContextUtils::IsContextType);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

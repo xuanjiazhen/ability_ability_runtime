@@ -56,6 +56,7 @@ public:
     static napi_value IsAutoStartup(napi_env env, napi_callback_info info);
     static napi_value RegisterSystemConfigurationUpdated(napi_env env, napi_callback_info info);
     static napi_value UnRegisterSystemConfigurationUpdated(napi_env env, napi_callback_info info);
+    static napi_value IsContextType(napi_env env, napi_callback_info info);
 
     napi_value OnRegisterAbilityLifecycleCallback(napi_env env, NapiCallbackInfo& info);
     napi_value OnUnregisterAbilityLifecycleCallback(napi_env env, NapiCallbackInfo& info);
@@ -151,6 +152,7 @@ private:
     napi_value OnGetApplicationContext(napi_env env, NapiCallbackInfo& info);
     napi_value OnCreateAreaModeContext(napi_env env, NapiCallbackInfo &info);
     napi_value OnCreateDisplayContext(napi_env env, NapiCallbackInfo &info);
+    napi_value OnIsContextType(napi_env env, NapiCallbackInfo& info);
     napi_value CreateJsContext(napi_env env, const std::shared_ptr<Context> &context);
     bool CheckCallerIsSystemApp();
     static void BindNativeApplicationContextOne(napi_env env, napi_value object);

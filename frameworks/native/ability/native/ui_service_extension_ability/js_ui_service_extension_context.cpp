@@ -92,6 +92,11 @@ public:
         GET_NAPI_INFO_AND_CALL(env, info, JSUIServiceExtensionContext, OnDisConnectServiceExtensionAbility);
     }
 
+    static napi_value IsContextType(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JSUIServiceExtensionContext, OnIsContextType);
+    }
+
 private:
     std::weak_ptr<UIServiceExtensionContext> context_;
 
@@ -474,6 +479,28 @@ private:
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
         return result;
     }
+
+    napi_value OnIsContextType(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::UISERVC_EXT, "called");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::UISERVC_EXT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        std::string contextType;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], contextType)) {
+            TAG_LOGE(AAFwkTag::UISERVC_EXT, "parse contextType failed");
+            ThrowInvalidParamError(env, "Parse param contextType failed, contextType must be string.");
+            return CreateJsUndefined(env);
+        }
+
+        std::string type = "UIServiceExtensionContext";
+        bool result = (contextType == type);
+        TAG_LOGD(AAFwkTag::UISERVC_EXT, "contextType: %{public}s, match: %{public}d", contextType.c_str(), result);
+        return CreateJsValue(env, result);
+    }
 };
 } // namespace
 
@@ -503,6 +530,7 @@ napi_value CreateJsUIServiceExtensionContext(napi_env env, std::shared_ptr<UISer
         JSUIServiceExtensionContext::ConnectServiceExtensionAbility);
     BindNativeFunction(env, object, "disconnectServiceExtensionAbility", moduleName,
         JSUIServiceExtensionContext::DisConnectServiceExtensionAbility);
+    BindNativeFunction(env, object, "contextType", moduleName, JSUIServiceExtensionContext::IsContextType);
     return handleEscape.Escape(object);
 }
 

@@ -27,6 +27,9 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
+constexpr int32_t INDEX_ZERO = 0;
+constexpr size_t ARGC_ONE = 1;
+
 void* DetachNewAbilityStageContext(napi_env, void* nativeObject, void*)
 {
     auto* origContext = static_cast<std::weak_ptr<AbilityStageContext> *>(nativeObject);
@@ -44,6 +47,48 @@ void DetachFinalizeAbilityStageContext(void* detachedObject, void*)
     TAG_LOGD(AAFwkTag::APPKIT, "Finalizer detached abilityStage context");
     delete static_cast<std::weak_ptr<AbilityStageContext> *>(detachedObject);
 }
+
+class JsAbilityStageContext final {
+public:
+    explicit JsAbilityStageContext(const std::shared_ptr<Context>& context) : context_(context) {}
+    ~JsAbilityStageContext() = default;
+
+    static void Finalizer(napi_env env, void* data, void* hint)
+    {
+        TAG_LOGD(AAFwkTag::APPKIT, "called");
+        std::unique_ptr<JsAbilityStageContext>(static_cast<JsAbilityStageContext*>(data));
+    }
+
+    static napi_value IsContextType(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityStageContext, OnIsContextType);
+    }
+
+private:
+    std::weak_ptr<Context> context_;
+
+    napi_value OnIsContextType(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::APPKIT, "called");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::APPKIT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        std::string contextType;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], contextType)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "parse contextType failed");
+            ThrowInvalidParamError(env, "Parse param contextType failed, contextType must be string.");
+            return CreateJsUndefined(env);
+        }
+
+        std::string type = "AbilityStageContext";
+        bool result = (contextType == type);
+        TAG_LOGD(AAFwkTag::APPKIT, "contextType: %{public}s, match: %{public}d", contextType.c_str(), result);
+        return CreateJsValue(env, result);
+    }
+};
 }
 
 void JsAbilityStageContext::ConfigurationUpdated(napi_env env, std::shared_ptr<NativeReference> &jsContext,
@@ -86,6 +131,12 @@ napi_value CreateJsAbilityStageContext(napi_env env, std::shared_ptr<AbilityRunt
     if (configuration != nullptr && CheckTypeForNapiValue(env, objValue, napi_object)) {
         napi_set_named_property(env, objValue, "config", CreateJsConfiguration(env, *configuration));
     }
+
+    std::unique_ptr<JsAbilityStageContext> jsContext = std::make_unique<JsAbilityStageContext>(context);
+    napi_wrap(env, objValue, jsContext.release(), JsAbilityStageContext::Finalizer, nullptr, nullptr);
+
+    const char *moduleName = "JsAbilityStageContext";
+    BindNativeFunction(env, objValue, "contextType", moduleName, JsAbilityStageContext::IsContextType);
 
     std::string type = "AbilityStageContext";
     napi_set_named_property(env, objValue, "contextType", CreateJsValue(env, type));

@@ -95,6 +95,11 @@ public:
         GET_NAPI_INFO_AND_CALL(env, info, JsFormExtensionContext, OnDisconnectAbility);
     }
 
+    static napi_value IsContextType(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsFormExtensionContext, OnIsContextType);
+    }
+
 private:
     std::weak_ptr<FormExtensionContext> context_;
 
@@ -350,6 +355,28 @@ private:
         }
         return;
     }
+
+    napi_value OnIsContextType(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::FORM_EXT, "called");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::FORM_EXT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        std::string contextType;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], contextType)) {
+            TAG_LOGE(AAFwkTag::FORM_EXT, "parse contextType failed");
+            ThrowInvalidParamError(env, "Parse param contextType failed, contextType must be string.");
+            return CreateJsUndefined(env);
+        }
+
+        std::string type = "FormExtensionContext";
+        bool result = (contextType == type);
+        TAG_LOGD(AAFwkTag::FORM_EXT, "contextType: %{public}s, match: %{public}d", contextType.c_str(), result);
+        return CreateJsValue(env, result);
+    }
 };
 } // namespace
 
@@ -372,6 +399,10 @@ napi_value CreateJsFormExtensionContext(napi_env env, std::shared_ptr<FormExtens
         env, object, "connectServiceExtensionAbility", moduleName, JsFormExtensionContext::ConnectAbility);
     BindNativeFunction(env, object, "disconnectServiceExtensionAbility",
         moduleName, JsFormExtensionContext::DisconnectAbility);
+    BindNativeFunction(env, object, "contextType", moduleName, JsFormExtensionContext::IsContextType);
+
+    std::string type = "FormExtensionContext";
+    napi_set_named_property(env, object, "contextType", CreateJsValue(env, type));
 
     return object;
 }

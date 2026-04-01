@@ -41,6 +41,11 @@ napi_value JsAutoFillExtensionContext::ReloadInModal(napi_env env, napi_callback
     GET_NAPI_INFO_AND_CALL(env, info, JsAutoFillExtensionContext, OnReloadInModal);
 }
 
+napi_value JsAutoFillExtensionContext::IsContextType(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAutoFillExtensionContext, OnIsContextType);
+}
+
 napi_value JsAutoFillExtensionContext::OnReloadInModal(napi_env env, NapiCallbackInfo &info)
 {
     TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "called");
@@ -94,6 +99,28 @@ napi_value JsAutoFillExtensionContext::OnReloadInModal(napi_env env, NapiCallbac
     return handleEscape.Escape(result);
 }
 
+napi_value JsAutoFillExtensionContext::OnIsContextType(napi_env env, NapiCallbackInfo &info)
+{
+    TAG_LOGI(AAFwkTag::AUTOFILL_EXT, "called");
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "invalid argc");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return CreateJsUndefined(env);
+    }
+
+    std::string contextType;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], contextType)) {
+        TAG_LOGE(AAFwkTag::AUTOFILL_EXT, "parse contextType failed");
+        ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM);
+        return CreateJsUndefined(env);
+    }
+
+    std::string type = "AutoFillExtensionContext";
+    bool result = (contextType == type);
+    TAG_LOGD(AAFwkTag::AUTOFILL_EXT, "contextType: %{public}s, match: %{public}d", contextType.c_str(), result);
+    return CreateJsValue(env, result);
+}
+
 napi_value JsAutoFillExtensionContext::CreateJsAutoFillExtensionContext(
     napi_env env, const std::shared_ptr<AutoFillExtensionContext> &context)
 {
@@ -110,6 +137,7 @@ napi_value JsAutoFillExtensionContext::CreateJsAutoFillExtensionContext(
 
     const char *moduleName = "JsAutoFillExtensionContext";
     BindNativeFunction(env, objValue, "reloadInModal", moduleName, ReloadInModal);
+    BindNativeFunction(env, objValue, "contextType", moduleName, IsContextType);
 
     std::string type = "AutoFillExtensionContext";
     napi_set_named_property(env, objValue, "contextType", CreateJsValue(env, type));
