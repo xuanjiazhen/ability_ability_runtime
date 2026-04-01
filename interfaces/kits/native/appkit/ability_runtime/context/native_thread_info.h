@@ -59,9 +59,12 @@ public:
     /**
      * @brief Load native module from the specified metadata.
      * @param metaData The native module metadata containing library path and function names.
+     * @param bundleName Indicates native library path bundleName.
+     * @param moduleName Indicates native library path moduleName.
      * @return true if loading succeeded, false otherwise.
      */
-    bool LoadNativeModule(const AAFwk::NativeModuleMetaData& metaData);
+    bool LoadNativeModule(const AAFwk::NativeModuleMetaData& metaData, const std::string &bundleName,
+        const std::string &moduleName);
 
     /**
      * @brief Run the main function in a new native thread.
@@ -74,6 +77,7 @@ public:
      */
     void PostAbility(const NativeAbilityWrapper* nativeAbilityWrapper);
 
+    static void* OpenNativeLibrary(const std::string& bundleModuleName, const std::string& fileName);
 private:
     void *moduleHandle_ = nullptr;
     OHMainType OHMain_ = nullptr;
