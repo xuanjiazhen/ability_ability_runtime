@@ -212,9 +212,10 @@ ohos_shared_library("appkit_native") {
     "graphic_2d:EGL",
     "graphic_2d:libcomposer",
     "graphic_2d:librender_service_base",
+    "hichecker:libhichecker",
     "hicollie:libhicollie",
     "hilog:libhilog",
-    "hichecker:libhichecker",
+    "hiprofiler:hidebug_dump",
     "hisysevent:libhisysevent",
     "hitrace:hitrace_meter",
     "i18n:preferred_language",
@@ -232,7 +233,6 @@ ohos_shared_library("appkit_native") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "storage_service:storage_manager_acl",
-    "hiprofiler:hidebug_dump"
   ]
   public_external_deps = [ "ability_base:configuration" ]
 
