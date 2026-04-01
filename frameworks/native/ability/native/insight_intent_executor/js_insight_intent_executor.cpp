@@ -185,6 +185,7 @@ std::unique_ptr<NativeReference> JsInsightIntentExecutor::LoadJsCode(
 
     std::string moduleName(executeParam->moduleName_);
     std::string srcPath(executeParam->moduleName_ + "/" + info.srcEntry);
+    TAG_LOGI(AAFwkTag::INTENT, "crrr open srcName called %{public}s, %{public}s", executeParam->moduleName_.c_str(), info.srcEntry.c_str());
     auto pos = srcPath.rfind('.');
     if (pos == std::string::npos) {
         return nullptr;
@@ -216,6 +217,7 @@ napi_value JsInsightIntentExecutor::CallJsFunctionWithResult(
         TAG_LOGE(AAFwkTag::INTENT, "null method");
         return nullptr;
     }
+    TAG_LOGI(AAFwkTag::INTENT, "CRRR js CallJsEunctionWith Result called");
     napi_call_function(
         env,
         obj,
@@ -223,6 +225,7 @@ napi_value JsInsightIntentExecutor::CallJsFunctionWithResult(
         argc,
         argv,
         &result);
+    TAG_LOGI(AAFwkTag::INTENT, "CRRR js CallJsEunctionWith Result end");
     return handleEscape.Escape(result);
 }
 
