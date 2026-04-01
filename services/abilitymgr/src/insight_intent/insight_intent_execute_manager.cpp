@@ -496,6 +496,29 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     want.SetElementName("", param->bundleName_, param->abilityName_, param->moduleName_);
 
     if (param->insightIntentParam_ != nullptr) {
+        for (const auto &[key, value] : param->insightIntentParam_->GetParams()) {
+            std::string typeName = "Unknown";
+            if (AAFwk::IString::Query(value) != nullptr) {
+                typeName = "String";
+            } else if (AAFwk::IInteger::Query(value) != nullptr) {
+                typeName = "Integer";
+            } else if (AAFwk::ILong::Query(value) != nullptr) {
+                typeName = "Long";
+            } else if (AAFwk::IBoolean::Query(value) != nullptr) {
+                typeName = "Boolean";
+            } else if (AAFwk::IFloat::Query(value) != nullptr) {
+                typeName = "Float";
+            } else if (AAFwk::IDouble::Query(value) != nullptr) {
+                typeName = "Double";
+            } else if (AAFwk::IArray::Query(value) != nullptr) {
+                typeName = "Array";
+            } else if (AAFwk::IWantParams::Query(value) != nullptr) {
+                typeName = "WantParams";
+            }
+            TAG_LOGI(AAFwkTag::INTENT,
+                "CRRR param key: %{public}s, type: %{public}s",
+                key.c_str(), typeName.c_str());
+        }
         sptr<AAFwk::IWantParams> pExecuteParams = WantParamWrapper::Box(*param->insightIntentParam_);
         if (pExecuteParams != nullptr) {
             WantParams wantParams;
@@ -508,6 +531,7 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     std::string arkTSMode;
     auto ret = AbilityRuntime::InsightIntentUtils::GetSrcEntry(want.GetElement(), param->insightIntentName_,
         static_cast<AppExecFwk::ExecuteMode>(param->executeMode_), srcEntry, &arkTSMode, param->userId_);
+    TAG_LOGE(AAFwkTag::INTENT, "CRRR null param %{public}s", srcEntry.c_str());
     if (!arkTSMode.empty()) {
         want.SetParam(INSIGHT_INTENT_ARKTS_MODE, arkTSMode);
     }
@@ -566,7 +590,13 @@ int32_t InsightIntentExecuteManager::IsValidCall(const Want &want)
 
 int32_t InsightIntentExecuteManager::CheckCallerPermission()
 {
-    bool isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
+    if (PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGD(AAFwkTag::INTENT, "shell caller, skip permission check");
+        return ERR_OK;
+    }
+
+    bool isSystemAppCall =
+        PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
     if (!isSystemAppCall) {
         TAG_LOGE(AAFwkTag::INTENT, "system-api cannot use");
         return ERR_NOT_SYSTEM_APP;
@@ -575,7 +605,9 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission()
     bool isCallingPerm = PermissionVerification::GetInstance()->VerifyCallingPermission(
         EXECUTE_INSIGHT_INTENT_PERMISSION);
     if (!isCallingPerm) {
-        TAG_LOGE(AAFwkTag::INTENT, "permission %{public}s verification failed", EXECUTE_INSIGHT_INTENT_PERMISSION);
+        TAG_LOGE(AAFwkTag::INTENT,
+            "permission %{public}s verification failed",
+            EXECUTE_INSIGHT_INTENT_PERMISSION);
         return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;
@@ -583,15 +615,24 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission()
 
 int32_t InsightIntentExecuteManager::CheckGetInsightIntenInfoPermission()
 {
-    bool isSystemAppCall = PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
+    if (PermissionVerification::GetInstance()->IsShellCall()) {
+        TAG_LOGD(AAFwkTag::INTENT, "shell caller, skip permission check");
+        return ERR_OK;
+    }
+
+    bool isSystemAppCall =
+        PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
     if (!isSystemAppCall) {
         TAG_LOGE(AAFwkTag::INTENT, "system-api cannot use");
         return ERR_NOT_SYSTEM_APP;
     }
 
-    bool isCallingPerm = PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission();
+    bool isCallingPerm =
+        PermissionVerification::GetInstance()->VerifyGetBundleInfoPrivilegedPermission();
     if (!isCallingPerm) {
-        TAG_LOGE(AAFwkTag::INTENT, "permission %{public}s verification failed", PERMISSION_GET_BUNDLE_INFO_PRIVILEGED);
+        TAG_LOGE(AAFwkTag::INTENT,
+            "permission %{public}s verification failed",
+            PERMISSION_GET_BUNDLE_INFO_PRIVILEGED);
         return ERR_PERMISSION_DENIED;
     }
     return ERR_OK;
