@@ -25,6 +25,9 @@ int32_t AgentRuntime::MyFlag::retRegisterAgentCard = ERR_OK;
 int32_t AgentRuntime::MyFlag::retUpdateAgentCard = ERR_OK;
 int32_t AgentRuntime::MyFlag::retDeleteAgentCard = ERR_OK;
 std::string AgentRuntime::MyFlag::agentCardAgentId = "testAgent";
+std::string AgentRuntime::MyFlag::agentCardBundleName = "test.bundle";
+std::string AgentRuntime::MyFlag::agentCardModuleName;
+std::string AgentRuntime::MyFlag::agentCardAbilityName = "TestAbility";
 
 namespace AgentRuntime {
 AgentCardMgr &AgentCardMgr::GetInstance()
@@ -53,6 +56,10 @@ int32_t AgentCardMgr::GetAgentCardByAgentId(const std::string &bundleName, const
 {
     if (MyFlag::retGetAgentCardByAgentId == ERR_OK) {
         card.agentId = MyFlag::agentCardAgentId;
+        card.appInfo = std::make_shared<AgentAppInfo>();
+        card.appInfo->bundleName = MyFlag::agentCardBundleName;
+        card.appInfo->moduleName = MyFlag::agentCardModuleName;
+        card.appInfo->abilityName = MyFlag::agentCardAbilityName;
     }
     return MyFlag::retGetAgentCardByAgentId;
 }

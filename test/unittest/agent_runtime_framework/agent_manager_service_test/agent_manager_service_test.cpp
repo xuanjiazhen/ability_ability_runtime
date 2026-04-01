@@ -76,6 +76,10 @@ void AgentManagerServiceTest::SetUp(void)
     MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
     MyFlag::retGetBundleNameByPid = ERR_OK;
     MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::agentCardAgentId = "testAgent";
+    MyFlag::agentCardBundleName = "test.bundle";
+    MyFlag::agentCardModuleName = "";
+    MyFlag::agentCardAbilityName = "TestAbility";
     MyFlag::lastConnectAbilityConnection = nullptr;
     MyFlag::lastDisconnectAbilityConnection = nullptr;
     auto service = AgentManagerService::GetInstance();
@@ -832,6 +836,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_006, TestSize.Lev
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection),
         ERR_INVALID_VALUE);
@@ -852,6 +857,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_007, TestSize.Lev
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection),
         AAFwk::RESOLVE_ABILITY_ERR);
@@ -870,6 +876,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_008, TestSize.Lev
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection),
         ERR_INVALID_VALUE);
@@ -893,6 +900,51 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_009, TestSize.Lev
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_009_1
+* @tc.number: ConnectAgentExtensionAbility_009_1
+* @tc.desc  : Test ConnectAgentExtensionAbility rejects want target mismatch with card appInfo
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_009_1, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retQueryExtensionAbilityInfos = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "OtherAbility");
+    sptr<MockAbilityConnection> connection = new MockAbilityConnection();
+    EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection),
+        AAFwk::ERR_WRONG_INTERFACE_CALL);
+}
+
+/**
+* @tc.name  : ConnectAgentExtensionAbility_009_2
+* @tc.number: ConnectAgentExtensionAbility_009_2
+* @tc.desc  : Test ConnectAgentExtensionAbility ignores module mismatch when want module is absent
+*/
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_009_2, TestSize.Level1)
+{
+    MyFlag::retVerifyCallingPermission = true;
+    MyFlag::retQueryExtensionAbilityInfos = true;
+    MyFlag::retGetProcessRunningInfoByPid = ERR_OK;
+    MyFlag::processState = AppExecFwk::AppProcessState::APP_STATE_FOREGROUND;
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
+    MyFlag::agentCardModuleName = "entry";
+    AAFwk::Want want;
+    want.SetParam(AGENTID_KEY, std::string("testAgent"));
+    want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
 }
@@ -973,6 +1025,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_003, TestSize.
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
     EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbility(connection), ERR_OK);
@@ -995,6 +1048,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_004, TestSize.
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     sptr<MockAbilityConnection> connection = new MockAbilityConnection();
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
     EXPECT_EQ(AgentManagerService::GetInstance()->DisconnectAgentExtensionAbility(connection),
@@ -1018,6 +1072,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_011, TestSize.Lev
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
 
     std::vector<sptr<MockAbilityConnection>> connections;
     for (size_t i = 0; i < AgentManagerService::MAX_CONNECTIONS_PER_CALLER; i++) {
@@ -1047,6 +1102,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_012, TestSize.Lev
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
 
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
@@ -1077,6 +1133,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_005, TestSize.
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
 
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
@@ -1111,6 +1168,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_007, TestSize.
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
 
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
@@ -1139,6 +1197,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_008, TestSize.
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
 
     std::vector<sptr<MockAbilityConnection>> connections;
     for (size_t i = 0; i < AgentManagerService::MAX_CONNECTIONS_PER_CALLER; i++) {
@@ -1169,6 +1228,7 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_009, TestSize.
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
 
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
@@ -1194,6 +1254,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_013, TestSize.Lev
     AAFwk::Want want;
     want.SetParam(AGENTID_KEY, std::string("testAgent"));
     want.SetBundle("test.bundle");
+    want.SetElementName("test.bundle", "TestAbility");
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
 
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connection), ERR_OK);
