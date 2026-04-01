@@ -1,0 +1,58 @@
+{
+  "name": "cli-simple",
+  "version": "1.0.0",
+  "description": "简单 CLI 工具示例，无子命令格式",
+  "executablePath": "/etc/cli/tools/cli-simple",
+  "timeout": 10000,
+  "eventTypes": ["result", "stdout"],
+  "inputSchema": {
+    "type": "object",
+    "description": "工具输入参数",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "要显示的消息"
+      },
+      "count": {
+        "type": "integer",
+        "description": "重复次数",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 10
+      },
+      "verbose": {
+        "type": "boolean",
+        "description": "详细输出模式",
+        "default": false
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "description": "工具输出结果",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "执行状态",
+        "enum": ["success", "error"]
+      },
+      "message": {
+        "type": "string",
+        "description": "处理后的消息"
+      },
+      "repeat_count": {
+        "type": "integer",
+        "description": "实际重复次数"
+      }
+    },
+    "required": ["status", "message", "repeat_count"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "message": "--message={value}",
+      "count": "--count={value}",
+      "verbose": "--verbose"
+    }
+  }
+}
