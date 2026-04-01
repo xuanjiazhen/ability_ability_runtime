@@ -172,7 +172,7 @@ int32_t CliManagerClient::QueryTools(std::vector<ToolInfo> &tools)
 int32_t CliManagerClient::ExecTool(const std::string &name,
                                     const std::vector<std::pair<std::string, std::string>> &args,
                                     const ExecOptions &options,
-                                    ExecResult &result)
+                                    SessionInfo &session)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient ExecTool called");
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: name='%{public}s'", name.c_str());
@@ -181,8 +181,8 @@ int32_t CliManagerClient::ExecTool(const std::string &name,
         TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient:   arg[%{public}s]='%{public}s'",
             key.c_str(), value.c_str());
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: options.mode='%{public}s', options.timeout=%{public}d",
-        options.mode.c_str(), options.timeout);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: options.background=%{public}d, yieldMs=%{public}d, timeoutMs=%{public}d",
+        options.background, options.yieldMs, options.timeoutMs);
 
     auto proxy = GetCliManager();
     if (!proxy) {
@@ -190,10 +190,14 @@ int32_t CliManagerClient::ExecTool(const std::string &name,
         return ERROR_CODE;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: calling proxy->ExecTool");
-    int32_t ret = proxy->ExecTool(name, args, options, result);
+    int32_t ret = proxy->ExecTool(name, args, options, session);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: proxy->ExecTool returned=%{public}d", ret);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: result.exitCode=%{public}d, stdout.len=%{public}zu",
-        result.exitCode, result.stdOut.length());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: session.sessionId='%{public}s', session.status='%{public}s'",
+        session.sessionId.c_str(), session.status.c_str());
+    if (session.result != nullptr) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: session.result.exitCode=%{public}d, stdOut.len=%{public}zu",
+            session.result->exitCode, session.result->stdOut.length());
+    }
     return ret;
 }
 
