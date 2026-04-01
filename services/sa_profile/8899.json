@@ -2,7 +2,7 @@
     "process": "foundation",
     "systemability": [
         {
-            "name": 9999,
+            "name": 8899,
             "libpath": "libclimgr.z.so",
             "run-on-create": true,
             "distributed": false,

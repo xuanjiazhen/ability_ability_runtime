@@ -25,7 +25,7 @@ namespace AbilityRuntime {
 
 namespace {
 constexpr int32_t ERROR_CODE = -1;
-constexpr int32_t CLI_MANAGER_SA_ID = 9999; // TODO: Use proper SA ID
+constexpr int32_t CLI_MANAGER_SA_ID = 8899; // TODO: Use proper SA ID
 }
 
 CliManagerClient& CliManagerClient::GetInstance()
