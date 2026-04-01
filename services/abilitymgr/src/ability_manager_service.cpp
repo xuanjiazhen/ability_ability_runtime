@@ -13944,7 +13944,9 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     }
 
     Want want;
+    TAG_LOGI(AAFwkTag::INTENT, "intentParam: %{public}s", paramPtr->insightIntentParam_->ToString().c_str());
     ret = InsightIntentExecuteManager::GenerateWant(paramPtr, infos, want);
+    TAG_LOGI(AAFwkTag::INTENT, "generated want: %{public}s", want.ToString().c_str());
     if (ret != ERR_OK) {
         return ret;
     }
