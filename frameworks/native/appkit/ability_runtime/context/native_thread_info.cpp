@@ -15,10 +15,9 @@
 
 #include "native_thread_info.h"
 
-#include <dlfcn.h>
-
 #include "hilog_tag_wrapper.h"
 #include "native_module_util.h"
+#include "native_runtime.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -38,7 +37,8 @@ NativeThreadInfo::~NativeThreadInfo()
     }
 }
 
-bool NativeThreadInfo::LoadNativeModule(const AAFwk::NativeModuleMetaData& metaData)
+bool NativeThreadInfo::LoadNativeModule(const AAFwk::NativeModuleMetaData& metaData,
+    const std::string &bundleName, const std::string &moduleName)
 {
     if (metaData.nativeModuleSource.empty()) {
         TAG_LOGE(AAFwkTag::ABILITY, "Native module source is empty");
@@ -51,17 +51,16 @@ bool NativeThreadInfo::LoadNativeModule(const AAFwk::NativeModuleMetaData& metaD
     }
 
     // Load the dynamic library
-    moduleHandle_ = dlopen(metaData.nativeModuleSource.c_str(), RTLD_LAZY);
+    std::string bundleModuleName = bundleName + "/" + moduleName;
+    moduleHandle_ = AbilityRuntime::NativeRuntime::OpenNativeLibrary(bundleModuleName,
+        metaData.nativeModuleSource);
     if (moduleHandle_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Failed to load native module: %{public}s, error: %{public}s",
-            metaData.nativeModuleSource.c_str(), dlerror());
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to load native module: %{public}s",
+            metaData.nativeModuleSource.c_str());
         return false;
     }
 
     TAG_LOGI(AAFwkTag::ABILITY, "Native module loaded: %{public}s", metaData.nativeModuleSource.c_str());
-
-    // Clear any existing error
-    dlerror();
 
     // Find the OHMain function
     OHMain_ = reinterpret_cast<OHMainType>(dlsym(moduleHandle_, metaData.nativeModuleFunc.c_str()));

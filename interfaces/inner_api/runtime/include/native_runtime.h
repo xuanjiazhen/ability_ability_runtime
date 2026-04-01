@@ -25,6 +25,7 @@ class NativeRuntime {
 public:
     static bool LoadModule(const std::string& bundleModuleName, const std::string& fileName,
         const std::string& abilityName, AbilityRuntime_ExtensionInstance& instance);
+    static void* OpenNativeLibrary(const std::string& bundleModuleName, const std::string& fileName);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

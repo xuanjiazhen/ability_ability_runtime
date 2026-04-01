@@ -1281,7 +1281,8 @@ std::shared_ptr<Context> ApplicationContext::CreateDisplayContext(uint64_t displ
 #endif
 
 // Native Module related methods implementation
-bool ApplicationContext::CreateNativeThread(const AAFwk::NativeModuleMetaData &metaData)
+bool ApplicationContext::CreateNativeThread(const AAFwk::NativeModuleMetaData &metaData,
+    const std::string &bundleName, const std::string &moduleName)
 {
     if (!metaData.withNativeModule) {
         return false;

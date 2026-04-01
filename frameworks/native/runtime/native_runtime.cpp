@@ -24,28 +24,34 @@ const std::string DEFAULT_NAMESPACE = "default";
 const char *OH_ABILITY_RUNTIME_ON_NATIVE_EXTENSION_CREATE = "OH_AbilityRuntime_OnNativeExtensionCreate";
 using CreateFuncType = void(*)(AbilityRuntime_ExtensionInstanceHandle, const char*);
 
-bool NativeRuntime::LoadModule(const std::string& bundleModuleName, const std::string& fileName,
-    const std::string& abilityName, AbilityRuntime_ExtensionInstance& instance)
+LIBHANDLE NativeRuntime::OpenNativeLibrary(const std::string& bundleModuleName, const std::string& fileName)
 {
     auto moduleManager = NativeModuleManager::GetInstance();
     if (moduleManager == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "null moduleManager");
-        return false;
+        return nullptr;
     }
     std::string namespaceName;
     if (!moduleManager->GetLdNamespaceName(bundleModuleName, namespaceName)) {
         if (!moduleManager->GetLdNamespaceName(DEFAULT_NAMESPACE, namespaceName)) {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "GetLdNamespaceName failed");
-            return false;
+            return nullptr;
         }
     }
     Dl_namespace ns;
     if (dlns_get(namespaceName.data(), &ns) != 0) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "namespaceName not found: %{public}s", namespaceName.c_str());
-        return false;
+        return nullptr;
     }
     LIBHANDLE nativeHandle = nullptr;
     nativeHandle = dlopen_ns(&ns, fileName.c_str(), RTLD_LAZY);
+    return nativeHandle;
+}
+
+bool NativeRuntime::LoadModule(const std::string& bundleModuleName, const std::string& fileName,
+    const std::string& abilityName, AbilityRuntime_ExtensionInstance& instance)
+{
+    auto nativeHandle = OpenNativeLibrary(bundleModuleName, fileName);
     if (nativeHandle == nullptr) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "dlopen failed: %{public}s", fileName.c_str());
         return false;
