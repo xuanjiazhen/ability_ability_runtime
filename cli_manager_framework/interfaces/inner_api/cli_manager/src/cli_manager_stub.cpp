@@ -140,15 +140,15 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
         reply.WriteInt32(ERROR_CODE);
         return ERROR_CODE;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: options.mode='%{public}s', timeout=%{public}d",
-        options->mode.c_str(), options->timeout);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: options.background=%{public}d, yieldMs=%{public}d, timeoutMs=%{public}d",
+        options->background, options->yieldMs, options->timeoutMs);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: calling ExecTool(name='%{public}s', args.count=%{public}zu)",
         name.c_str(), args.size());
-    ExecResult result;
-    int32_t ret = ExecTool(name, args, *options, result);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: ExecTool returned ret=%{public}d, result.exitCode=%{public}d, stdout.len=%{public}zu",
-        ret, result.exitCode, result.stdOut.length());
+    SessionInfo session;
+    int32_t ret = ExecTool(name, args, *options, session);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: ExecTool returned ret=%{public}d, session.status='%{public}s', sessionId='%{public}s'",
+        ret, session.status.c_str(), session.sessionId.c_str());
 
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecTool failed: %{public}d", ret);
@@ -156,9 +156,9 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
         return ret;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: writing result to reply");
-    if (!reply.WriteParcelable(&result)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write result failed");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: writing session to reply");
+    if (!reply.WriteParcelable(&session)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write session failed");
         reply.WriteInt32(ERROR_CODE);
         return ERROR_CODE;
     }
