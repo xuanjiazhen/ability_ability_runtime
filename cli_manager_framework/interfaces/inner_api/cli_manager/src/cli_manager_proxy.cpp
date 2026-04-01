@@ -85,7 +85,7 @@ int32_t CliManagerProxy::QueryTools(std::vector<ToolInfo> &tools)
 int32_t CliManagerProxy::ExecTool(const std::string &name,
                                    const std::vector<std::pair<std::string, std::string>> &args,
                                    const ExecOptions &options,
-                                   ExecResult &result)
+                                   SessionInfo &session)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy ExecTool called");
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: received name='%{public}s'", name.c_str());
@@ -94,8 +94,8 @@ int32_t CliManagerProxy::ExecTool(const std::string &name,
         TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy:   arg[%{public}s]='%{public}s'",
             key.c_str(), value.c_str());
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: options.mode='%{public}s', timeout=%{public}d",
-        options.mode.c_str(), options.timeout);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: options.background=%{public}d, yieldMs=%{public}d, timeoutMs=%{public}d",
+        options.background, options.yieldMs, options.timeoutMs);
 
     MessageParcel data;
     MessageParcel reply;
@@ -144,14 +144,14 @@ int32_t CliManagerProxy::ExecTool(const std::string &name,
         return ret;
     }
 
-    std::unique_ptr<ExecResult> resultPtr(reply.ReadParcelable<ExecResult>());
-    if (!resultPtr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Read result failed");
+    std::unique_ptr<SessionInfo> sessionPtr(reply.ReadParcelable<SessionInfo>());
+    if (!sessionPtr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Read session failed");
         return ERROR_CODE;
     }
-    result = *resultPtr;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: read result from reply: exitCode=%{public}d, stdout.len=%{public}zu",
-        result.exitCode, result.stdOut.length());
+    session = *sessionPtr;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: read session from reply: status='%{public}s', sessionId='%{public}s'",
+        session.status.c_str(), session.sessionId.c_str());
 
     // Read final result code
     int32_t finalResult = ERROR_CODE;
