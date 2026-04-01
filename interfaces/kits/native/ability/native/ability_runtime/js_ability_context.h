@@ -61,6 +61,7 @@ public:
     static napi_value RestoreWindowStage(napi_env env, napi_callback_info info);
     static napi_value RequestDialogService(napi_env env, napi_callback_info info);
     static napi_value IsTerminating(napi_env env, napi_callback_info info);
+    static napi_value IsContextType(napi_env env, napi_callback_info info);
     static napi_value ReportDrawnCompleted(napi_env env, napi_callback_info info);
     static napi_value SetMissionContinueState(napi_env env, napi_callback_info info);
     static napi_value StartAbilityByType(napi_env env, napi_callback_info info);
@@ -132,6 +133,7 @@ private:
     napi_value OnRestoreWindowStage(napi_env env, NapiCallbackInfo& info);
     napi_value OnRequestDialogService(napi_env env, NapiCallbackInfo& info);
     napi_value OnIsTerminating(napi_env env, NapiCallbackInfo& info);
+    napi_value OnIsContextType(napi_env env, NapiCallbackInfo& info);
     napi_value OnReportDrawnCompleted(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetMissionContinueState(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info);

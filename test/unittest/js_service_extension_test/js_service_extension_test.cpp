@@ -333,5 +333,71 @@ HWTEST_F(JsServiceExtensionTest, HandleInsightIntent_0100, TestSize.Level1)
     auto ret = jsServiceExtension_->HandleInsightIntent(want);
     EXPECT_TRUE(ret);
 }
+
+/**
+ * @tc.name: IsContextType_0100
+ * @tc.desc: Test IsContextType with matching context type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, IsContextType_0100, TestSize.Level1)
+{
+    auto context = jsServiceExtension_->GetContext();
+    ASSERT_NE(context, nullptr);
+
+    auto serviceContext = std::static_pointer_cast<ServiceExtensionContext>(context);
+    ASSERT_NE(serviceContext, nullptr);
+
+    JsServiceExtensionContext jsContext(serviceContext);
+
+    napi_env env = reinterpret_cast<napi_env>(jsRuntime_.get());
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env, "ServiceExtensionContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    auto result = jsContext.OnIsContextType(env, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_TRUE(boolResult);
+}
+
+/**
+ * @tc.name: IsContextType_0200
+ * @tc.desc: Test IsContextType with non-matching context type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsServiceExtensionTest, IsContextType_0200, TestSize.Level1)
+{
+    auto context = jsServiceExtension_->GetContext();
+    ASSERT_NE(context, nullptr);
+
+    auto serviceContext = std::static_pointer_cast<ServiceExtensionContext>(context);
+    ASSERT_NE(serviceContext, nullptr);
+
+    JsServiceExtensionContext jsContext(serviceContext);
+
+    napi_env env = reinterpret_cast<napi_env>(jsRuntime_.get());
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env, "OtherContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    auto result = jsContext.OnIsContextType(env, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_FALSE(boolResult);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
