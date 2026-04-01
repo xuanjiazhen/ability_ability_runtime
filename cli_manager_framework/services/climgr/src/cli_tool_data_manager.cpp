@@ -15,6 +15,7 @@
 
 #include "cli_tool_data_manager.h"
 #include "hilog_tag_wrapper.h"
+#include <chrono>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <unistd.h>
@@ -312,15 +313,49 @@ int32_t CliToolDataManager::ParseJsonFile(const std::string &filePath, std::vect
                 }
             }
         }
-        if (item.contains("timeout") && item["timeout"].is_number()) {
-            tool.timeout = item["timeout"];
+        if (item.contains("executablePath") && item["executablePath"].is_string()) {
+            tool.executablePath = item["executablePath"];
         }
-        if (item.contains("supportedEvents") && item["supportedEvents"].is_array()) {
-            for (const auto &event : item["supportedEvents"]) {
+        if (item.contains("inputSchema") && item["inputSchema"].is_string()) {
+            tool.inputSchema = item["inputSchema"];
+        }
+        if (item.contains("outputSchema") && item["outputSchema"].is_string()) {
+            tool.outputSchema = item["outputSchema"];
+        }
+        if (item.contains("argMapping") && item["argMapping"].is_string()) {
+            tool.argMapping = item["argMapping"];
+        }
+        if (item.contains("eventSchemas") && item["eventSchemas"].is_string()) {
+            tool.eventSchemas = item["eventSchemas"];
+        }
+        if (item.contains("timeoutMs") && item["timeoutMs"].is_number()) {
+            tool.timeoutMs = item["timeoutMs"];
+        }
+        if (item.contains("eventTypes") && item["eventTypes"].is_array()) {
+            for (const auto &event : item["eventTypes"]) {
                 if (event.is_string()) {
-                    tool.supportedEvents.push_back(event);
+                    tool.eventTypes.push_back(event);
                 }
             }
+        }
+        if (item.contains("registeredTime") && item["registeredTime"].is_number()) {
+            tool.registeredTime = item["registeredTime"];
+        } else {
+            tool.registeredTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                std::chrono::system_clock::now().time_since_epoch()).count();
+        }
+        if (item.contains("enabled") && item["enabled"].is_boolean()) {
+            tool.enabled = item["enabled"];
+        } else {
+            tool.enabled = true;
+        }
+        if (item.contains("hasSubcommands") && item["hasSubcommands"].is_boolean()) {
+            tool.hasSubcommands = item["hasSubcommands"];
+        } else {
+            tool.hasSubcommands = false;
+        }
+        if (item.contains("subcommands") && item["subcommands"].is_string()) {
+            tool.subcommands = item["subcommands"];
         }
 
         tools.push_back(tool);
@@ -337,9 +372,18 @@ std::string CliToolDataManager::ToolInfoToJson(const ToolInfo &tool)
     j["name"] = tool.name;
     j["version"] = tool.version;
     j["description"] = tool.description;
+    j["executablePath"] = tool.executablePath;
     j["permissions"] = tool.permissions;
-    j["timeout"] = tool.timeout;
-    j["supportedEvents"] = tool.supportedEvents;
+    j["inputSchema"] = tool.inputSchema;
+    j["outputSchema"] = tool.outputSchema;
+    j["argMapping"] = tool.argMapping;
+    j["eventSchemas"] = tool.eventSchemas;
+    j["timeoutMs"] = tool.timeoutMs;
+    j["eventTypes"] = tool.eventTypes;
+    j["registeredTime"] = tool.registeredTime;
+    j["enabled"] = tool.enabled;
+    j["hasSubcommands"] = tool.hasSubcommands;
+    j["subcommands"] = tool.subcommands;
     return j.dump();
 }
 
@@ -361,14 +405,41 @@ int32_t CliToolDataManager::JsonToToolInfo(const std::string &jsonStr, ToolInfo 
     if (j.contains("description") && j["description"].is_string()) {
         tool.description = j["description"];
     }
+    if (j.contains("executablePath") && j["executablePath"].is_string()) {
+        tool.executablePath = j["executablePath"];
+    }
     if (j.contains("permissions") && j["permissions"].is_array()) {
         tool.permissions = j["permissions"];
     }
-    if (j.contains("timeout") && j["timeout"].is_number()) {
-        tool.timeout = j["timeout"];
+    if (j.contains("inputSchema") && j["inputSchema"].is_string()) {
+        tool.inputSchema = j["inputSchema"];
     }
-    if (j.contains("supportedEvents") && j["supportedEvents"].is_array()) {
-        tool.supportedEvents = j["supportedEvents"];
+    if (j.contains("outputSchema") && j["outputSchema"].is_string()) {
+        tool.outputSchema = j["outputSchema"];
+    }
+    if (j.contains("argMapping") && j["argMapping"].is_string()) {
+        tool.argMapping = j["argMapping"];
+    }
+    if (j.contains("eventSchemas") && j["eventSchemas"].is_string()) {
+        tool.eventSchemas = j["eventSchemas"];
+    }
+    if (j.contains("timeoutMs") && j["timeoutMs"].is_number()) {
+        tool.timeoutMs = j["timeoutMs"];
+    }
+    if (j.contains("eventTypes") && j["eventTypes"].is_array()) {
+        tool.eventTypes = j["eventTypes"];
+    }
+    if (j.contains("registeredTime") && j["registeredTime"].is_number()) {
+        tool.registeredTime = j["registeredTime"];
+    }
+    if (j.contains("enabled") && j["enabled"].is_boolean()) {
+        tool.enabled = j["enabled"];
+    }
+    if (j.contains("hasSubcommands") && j["hasSubcommands"].is_boolean()) {
+        tool.hasSubcommands = j["hasSubcommands"];
+    }
+    if (j.contains("subcommands") && j["subcommands"].is_string()) {
+        tool.subcommands = j["subcommands"];
     }
 
     return ERR_OK;
@@ -382,9 +453,18 @@ std::string CliToolDataManager::ToolsToJsonArray(const std::vector<ToolInfo> &to
         item["name"] = tool.name;
         item["version"] = tool.version;
         item["description"] = tool.description;
+        item["executablePath"] = tool.executablePath;
         item["permissions"] = tool.permissions;
-        item["timeout"] = tool.timeout;
-        item["supportedEvents"] = tool.supportedEvents;
+        item["inputSchema"] = tool.inputSchema;
+        item["outputSchema"] = tool.outputSchema;
+        item["argMapping"] = tool.argMapping;
+        item["eventSchemas"] = tool.eventSchemas;
+        item["timeoutMs"] = tool.timeoutMs;
+        item["eventTypes"] = tool.eventTypes;
+        item["registeredTime"] = tool.registeredTime;
+        item["enabled"] = tool.enabled;
+        item["hasSubcommands"] = tool.hasSubcommands;
+        item["subcommands"] = tool.subcommands;
         j.push_back(item);
     }
     return j.dump();
