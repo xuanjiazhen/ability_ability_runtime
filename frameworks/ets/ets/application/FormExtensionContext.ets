@@ -38,6 +38,10 @@ let destroyRegister = new FinalizationRegistry<Cleaner>(callback);
 let unregisterToken = new object();
 
 export default class FormExtensionContext extends ExtensionContext {
+  static {
+    loadLibraryWithPermissionCheck("form_extension_context_ani_kit.z", "application.FormExtensionContext");
+  }
+
   constructor(context: long) {
     if (this.nativeEtsContext == 0) {
       this.nativeEtsContext = context;
@@ -66,6 +70,25 @@ export default class FormExtensionContext extends ExtensionContext {
   native nativeCheckWant(want: Want): void;
 
   native nativeCheckConnectionAbility(): void;
+
+  private static native nativeTransferStatic(input: ESValue, type: string): Object;
+  private static native nativeTransferDynamic(input: Object): ESValue;
+  private static contextType: string = 'FormExtensionContext';
+
+  static transferStatic(input: Any): Object {
+    let type: string = '';
+    try {
+      type = ESValue.wrap(input).getProperty('__context_impl__').getProperty('contextType').toString();
+    } catch (err) {
+      console.log('transferStatic err: ' + err.toString());
+    }
+    console.log('transferStatic type: ' + type);
+    return FormExtensionContext.nativeTransferStatic(ESValue.wrap(input), type);
+  }
+
+  static transferDynamic(input: Object): Any {
+    return FormExtensionContext.nativeTransferDynamic(input).unwrap();
+  }
 
   startAbility(want: Want, callback: AsyncCallback<void>): void {
     this.nativeCheckWant(want);

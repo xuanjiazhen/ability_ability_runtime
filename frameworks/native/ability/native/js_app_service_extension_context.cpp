@@ -103,6 +103,11 @@ public:
         GET_NAPI_INFO_AND_CALL(env, info, JsAppServiceExtensionContext, OnTerminateSelf);
     }
 
+    static napi_value IsContextType(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAppServiceExtensionContext, OnIsContextType);
+    }
+
 private:
     std::weak_ptr<AppServiceExtensionContext> context_;
     sptr<JsFreeInstallObserver> freeInstallObserver_ = nullptr;
@@ -365,6 +370,28 @@ private:
             env, CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
         return result;
     }
+
+    napi_value OnIsContextType(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::APP_SERVICE_EXT, "called");
+        if (info.argc < ARGC_ONE) {
+            TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        int32_t contextType = 0;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], contextType)) {
+            TAG_LOGE(AAFwkTag::APP_SERVICE_EXT, "parse contextType failed");
+            ThrowInvalidParamError(env, "Parse param contextType failed, contextType must be number.");
+            return CreateJsUndefined(env);
+        }
+
+        int32_t type = 4; // AppServiceExtensionContext
+        bool result = (contextType == type);
+        TAG_LOGD(AAFwkTag::APP_SERVICE_EXT, "contextType: %{public}d, match: %{public}d", contextType, result);
+        return CreateJsValue(env, result);
+    }
 };
 } // namespace
 
@@ -392,6 +419,7 @@ napi_value CreateJsAppServiceExtensionContext(napi_env env, std::shared_ptr<AppS
     BindNativeFunction(env, object, "startAbility", moduleName, JsAppServiceExtensionContext::StartAbility);
     BindNativeFunction(
         env, object, "terminateSelf", moduleName, JsAppServiceExtensionContext::TerminateSelf);
+    BindNativeFunction(env, object, "contextType", moduleName, JsAppServiceExtensionContext::IsContextType);
     return handleEscape.Escape(object);
 }
 

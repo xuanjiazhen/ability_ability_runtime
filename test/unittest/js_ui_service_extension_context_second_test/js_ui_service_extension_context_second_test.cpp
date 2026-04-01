@@ -246,5 +246,82 @@ HWTEST_F(JsUiServiceExtensionContextSecondTest, OnDisConnectServiceExtensionAbil
     EXPECT_NE(result, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "OnDisConnectServiceExtensionAbility_0200 end");
 }
+
+/**
+ * @tc.name: OnIsContextType_0100
+ * @tc.desc: Test IsContextType with matching context type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiServiceExtensionContextSecondTest, OnIsContextType_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnIsContextType_0100 start");
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env_, "UIServiceExtensionContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    std::shared_ptr<UIServiceExtensionContext> uiServiceExtensionContext =
+        std::make_shared<UIServiceExtensionContext>();
+    JSUIServiceExtensionContext jsUIServiceExtensionContext(uiServiceExtensionContext);
+    auto result = jsUIServiceExtensionContext.OnIsContextType(env_, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env_, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_TRUE(boolResult);
+    TAG_LOGI(AAFwkTag::TEST, "OnIsContextType_0100 end");
+}
+
+/**
+ * @tc.name: OnIsContextType_0200
+ * @tc.desc: Test IsContextType with non-matching context type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiServiceExtensionContextSecondTest, OnIsContextType_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnIsContextType_0200 start");
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env_, "OtherContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    std::shared_ptr<UIServiceExtensionContext> uiServiceExtensionContext =
+        std::make_shared<UIServiceExtensionContext>();
+    JSUIServiceExtensionContext jsUIServiceExtensionContext(uiServiceExtensionContext);
+    auto result = jsUIServiceExtensionContext.OnIsContextType(env_, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env_, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_FALSE(boolResult);
+    TAG_LOGI(AAFwkTag::TEST, "OnIsContextType_0200 end");
+}
+
+/**
+ * @tc.name: OnIsContextType_0300
+ * @tc.desc: Test IsContextType with no parameters.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsUiServiceExtensionContextSecondTest, OnIsContextType_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "OnIsContextType_0300 start");
+    NapiCallbackInfo info;
+    info.argc = 0;
+
+    std::shared_ptr<UIServiceExtensionContext> uiServiceExtensionContext =
+        std::make_shared<UIServiceExtensionContext>();
+    JSUIServiceExtensionContext jsUIServiceExtensionContext(uiServiceExtensionContext);
+    auto result = jsUIServiceExtensionContext.OnIsContextType(env_, info);
+    EXPECT_NE(result, nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "OnIsContextType_0300 end");
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

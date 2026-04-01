@@ -393,6 +393,11 @@ napi_value JsAbilityContext::IsTerminating(napi_env env, napi_callback_info info
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnIsTerminating);
 }
 
+napi_value JsAbilityContext::IsContextType(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnIsContextType);
+}
+
 napi_value JsAbilityContext::StartAbilityByType(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnStartAbilityByType);
@@ -2163,6 +2168,28 @@ napi_value JsAbilityContext::OnIsTerminating(napi_env env, NapiCallbackInfo& inf
     return CreateJsValue(env, context->IsTerminating());
 }
 
+napi_value JsAbilityContext::OnIsContextType(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::CONTEXT, "called");
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid argc");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    int32_t contextType = 0;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], contextType)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse contextType failed");
+        ThrowInvalidParamError(env, "Parse param contextType failed, contextType must be number.");
+        return CreateJsUndefined(env);
+    }
+
+    int32_t type = 2; // UIAbilityContext
+    bool result = (contextType == type);
+    TAG_LOGD(AAFwkTag::CONTEXT, "contextType: %{public}d, match: %{public}d", contextType, result);
+    return CreateJsValue(env, result);
+}
+
 napi_value JsAbilityContext::OnReportDrawnCompleted(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
@@ -2394,6 +2421,7 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
         JsAbilityContext::BackToCallerAbilityWithResult);
     BindNativeFunction(env, object, "restoreWindowStage", moduleName, JsAbilityContext::RestoreWindowStage);
     BindNativeFunction(env, object, "isTerminating", moduleName, JsAbilityContext::IsTerminating);
+    BindNativeFunction(env, object, "contextType", moduleName, JsAbilityContext::IsContextType);
     BindNativeFunction(env, object, "startRecentAbility", moduleName,
         JsAbilityContext::StartRecentAbility);
     BindNativeFunction(env, object, "requestDialogService", moduleName,

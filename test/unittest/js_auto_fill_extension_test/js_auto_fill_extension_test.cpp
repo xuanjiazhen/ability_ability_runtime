@@ -194,5 +194,71 @@ HWTEST_F(JsAutoFillExtensionTest, OnReloadInModal_0100, TestSize.Level1)
     ret = jsAutoFillExtension_->OnReloadInModal(sessionInfo, customData);
     EXPECT_EQ(ret, ERR_NULL_OBJECT);
 }
+
+/**
+ * @tc.name: OnIsContextType_0100
+ * @tc.desc: Test IsContextType with matching context type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsAutoFillExtensionTest, OnIsContextType_0100, TestSize.Level1)
+{
+    auto context = jsAutoFillExtension_->GetContext();
+    ASSERT_NE(context, nullptr);
+
+    auto autoFillContext = std::static_pointer_cast<AutoFillExtensionContext>(context);
+    ASSERT_NE(autoFillContext, nullptr);
+
+    JsAutoFillExtensionContext jsContext(autoFillContext);
+
+    napi_env env = reinterpret_cast<napi_env>(jsRuntime_.get());
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env, "AutoFillExtensionContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    auto result = jsContext.OnIsContextType(env, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_TRUE(boolResult);
+}
+
+/**
+ * @tc.name: OnIsContextType_0200
+ * @tc.desc: Test IsContextType with non-matching context type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsAutoFillExtensionTest, OnIsContextType_0200, TestSize.Level1)
+{
+    auto context = jsAutoFillExtension_->GetContext();
+    ASSERT_NE(context, nullptr);
+
+    auto autoFillContext = std::static_pointer_cast<AutoFillExtensionContext>(context);
+    ASSERT_NE(autoFillContext, nullptr);
+
+    JsAutoFillExtensionContext jsContext(autoFillContext);
+
+    napi_env env = reinterpret_cast<napi_env>(jsRuntime_.get());
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env, "OtherContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    auto result = jsContext.OnIsContextType(env, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_FALSE(boolResult);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
