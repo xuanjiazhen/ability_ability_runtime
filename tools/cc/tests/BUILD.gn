@@ -1,0 +1,124 @@
+# Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+module_output_path = "ability_runtime/ability_runtime/tools"
+
+config("tools_cc_config_mock") {
+  include_dirs = [ "${ability_runtime_path}/tools/test/mock" ]
+}
+
+tools_cc_mock_sources =
+    [ "${ability_runtime_path}/tools/test/mock/mock_ability_manager_stub.cpp" ]
+
+ohos_moduletest("cc_command_execute_intent_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "cc_command_execute_intent_module_test.cpp" ]
+  sources += tools_cc_mock_sources
+
+  configs = [ ":tools_cc_config_mock" ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${ability_runtime_path}/tools/cc:tools_cc_source_set",
+    "${ability_runtime_services_path}/ability_manager:ability_manager",
+    "${ability_runtime_services_path}/abilitymgr:abilityms",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "json:nlohmann_json_static",
+  ]
+}
+
+ohos_moduletest("cc_command_get_intent_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "cc_command_get_intent_module_test.cpp" ]
+  sources += tools_cc_mock_sources
+
+  configs = [ ":tools_cc_config_mock" ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${ability_runtime_path}/tools/cc:tools_cc_source_set",
+    "${ability_runtime_services_path}/abilitymgr:abilityms",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "json:nlohmann_json_static",
+  ]
+}
+
+ohos_moduletest("cc_command_help_module_test") {
+  module_out_path = module_output_path
+
+  sources = [ "cc_command_help_module_test.cpp" ]
+  sources += tools_cc_mock_sources
+
+  configs = [ ":tools_cc_config_mock" ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    "${ability_runtime_path}/tools/cc:tools_cc_source_set",
+    "${ability_runtime_services_path}/abilitymgr:abilityms",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+  ]
+}
+
+group("moduletest") {
+  testonly = true
+
+  deps = [
+    ":cc_command_execute_intent_module_test",
+    ":cc_command_get_intent_module_test",
+    ":cc_command_help_module_test",
+  ]
+}

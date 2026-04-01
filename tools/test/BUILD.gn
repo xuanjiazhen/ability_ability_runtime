@@ -12,6 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 group("systemtest") {
   testonly = true
@@ -24,6 +25,7 @@ group("moduletest") {
 
   deps = [ "moduletest/aa:moduletest" ]
   deps += [ "moduletest/ability_delegator:moduletest" ]
+  deps += [ "${ability_runtime_path}/tools/cc/tests:moduletest" ]
 }
 
 group("unittest") {
