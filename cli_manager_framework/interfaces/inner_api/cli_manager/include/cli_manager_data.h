@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_CLI_MANAGER_DATA_H
 #define OHOS_ABILITY_RUNTIME_CLI_MANAGER_DATA_H
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <map>
@@ -25,16 +26,39 @@ namespace OHOS {
 namespace AbilityRuntime {
 
 /**
- * @brief Tool information structure
+ * @brief Tool summary information (lightweight for listing)
+ * @since 2025-03-28
+ */
+class ToolSummary : public Parcelable {
+public:
+    std::string name;
+    std::string version;
+    std::string description;
+
+    bool Marshalling(Parcel &parcel) const;
+    static ToolSummary *Unmarshalling(Parcel &parcel);
+};
+
+/**
+ * @brief Tool information structure (full version)
  */
 class ToolInfo : public Parcelable {
 public:
     std::string name;
     std::string version;
     std::string description;
+    std::string executablePath;
     std::vector<std::string> permissions;
-    int32_t timeout;
-    std::vector<std::string> supportedEvents;
+    std::string inputSchema;       // JSON string
+    std::string outputSchema;      // JSON string
+    std::string argMapping;        // JSON string
+    std::string eventSchemas;      // JSON string (map of event type to schema)
+    int32_t timeoutMs;
+    std::vector<std::string> eventTypes;
+    int64_t registeredTime;
+    bool enabled;
+    bool hasSubcommands;
+    std::string subcommands;       // JSON string (map of subcommand name to SubCommandInfo)
 
     bool Marshalling(Parcel &parcel) const;
     static ToolInfo *Unmarshalling(Parcel &parcel);
@@ -45,17 +69,18 @@ public:
  */
 class ExecOptions : public Parcelable {
 public:
-    std::string mode; // "sync" or "async"
-    int32_t timeout;
+    bool background;               // true: async, false: sync with yieldMs timeout
+    int32_t yieldMs;               // foreground wait timeout (only when background=false)
+    int32_t timeoutMs;             // total execution timeout (0 = use tool default)
     std::map<std::string, std::string> env;
-    std::string cwd;
+    std::string workingDir;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecOptions *Unmarshalling(Parcel &parcel);
 };
 
 /**
- * @brief Tool execution result (sync mode)
+ * @brief Tool execution result
  */
 class ExecResult : public Parcelable {
 public:
@@ -72,11 +97,29 @@ public:
 };
 
 /**
- * @brief Tool event (async mode)
+ * @brief Session information
+ */
+class SessionInfo : public Parcelable {
+public:
+    std::string sessionId;
+    std::string toolName;
+    std::string status;            // "running", "completed", "failed"
+    int64_t startTime;
+    int64_t endTime;
+    std::shared_ptr<ExecResult> result;  // optional, only when status="completed"
+
+    SessionInfo() = default;
+
+    bool Marshalling(Parcel &parcel) const;
+    static SessionInfo *Unmarshalling(Parcel &parcel);
+};
+
+/**
+ * @brief Tool event (for async mode)
  */
 class ToolEvent : public Parcelable {
 public:
-    std::string type; // "stdout", "stderr", "exit", "error"
+    std::string type;              // "stdout", "stderr", "exit", "error"
     std::string data;
     int32_t exitCode;
     int64_t timestamp;
@@ -86,19 +129,21 @@ public:
 };
 
 /**
- * @brief Task status
+ * @brief Session status (for query)
  */
-class TaskStatus : public Parcelable {
+class SessionStatus : public Parcelable {
 public:
-    std::string taskId;
+    std::string sessionId;
     std::string toolName;
-    std::string status; // "running", "completed", "failed", "timeout", "cancelled"
+    std::string status;            // "running", "completed", "failed"
     int64_t startTime;
     int64_t endTime;
-    int32_t exitCode;
+    std::shared_ptr<ExecResult> result;  // optional, only when status="completed"
+
+    SessionStatus() = default;
 
     bool Marshalling(Parcel &parcel) const;
-    static TaskStatus *Unmarshalling(Parcel &parcel);
+    static SessionStatus *Unmarshalling(Parcel &parcel);
 };
 
 } // namespace AbilityRuntime
