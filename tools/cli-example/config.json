@@ -1,0 +1,23 @@
+{
+  "name": "cli-example",
+  "description": "示例 CLI 工具，演示 ohos_cli_executable 模板的使用",
+  "command_list": [
+    {
+      "command_name": "run",
+      "command_description": "运行示例工具",
+      "command_param_list": ["string"],
+      "command_out_schema": {
+        "result": "string"
+      }
+    },
+    {
+      "command_name": "version",
+      "command_description": "显示版本信息",
+      "command_param_list": [],
+      "command_out_schema": {
+        "version": "string",
+        "build_time": "string"
+      }
+    }
+  ]
+}
