@@ -1,0 +1,58 @@
+# Copyright (c) 2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos.gni")
+import("//build/test.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+ohos_shared_library("appkit_child_fake") {
+  testonly = true
+  module_out_path = "ability_runtime/ability_runtime/appkit"
+  output_name = "appkit_child"
+
+  sources = [ "fake_child_main_thread_entry.cpp" ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+ohos_unittest("child_process_api_test") {
+  module_out_path = "ability_runtime/ability_runtime/appkit"
+
+  sources = [ "child_process_api_test.cpp" ]
+
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  deps = [
+    ":appkit_child_fake",
+    "${ability_runtime_native_path}/appkit:appkit_child_entry",
+  ]
+
+  external_deps = [
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+  ]
+
+  defines = []
+  if (ability_runtime_child_process) {
+    defines += [ "SUPPORT_CHILD_PROCESS" ]
+  }
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":child_process_api_test" ]
+}

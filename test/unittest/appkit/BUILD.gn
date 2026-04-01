@@ -22,6 +22,7 @@ group("unittest") {
   ]
   if (ability_runtime_child_process) {
     deps += [
+      "child_process_api_test:unittest",
       "child_main_thread_first_test:unittest",
       "child_main_thread_test:unittest",
     ]
