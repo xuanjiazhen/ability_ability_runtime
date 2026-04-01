@@ -334,6 +334,9 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::
     if (info.dumpType == MemDumpType::NATIVE) {
         DumpNativeHeap(info, dumpResult);
     }
+    if (info.dumpType == MemDumpType::KMP_KOTLIN) {
+        DumpKmpKotlinHeap(info);
+    }
 }
 
 void DumpRuntimeHelper::DumpNativeHeap(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
@@ -438,6 +441,24 @@ bool DumpRuntimeHelper::GetSnapshot(int fd)
     }
     free(buf);
     return ret;
+}
+
+void DumpRuntimeHelper::DumpKmpKotlinHeap(const OHOS::AppExecFwk::MemDumpInfo &info)
+{
+    int32_t fd = RequestFileDescriptor(static_cast<int32_t>(FaultLoggerType::KMP_HEAP_SNAPSHOT));
+    if (fd < 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "RequestFileDescriptor failed");
+        return;
+    }
+    auto& dumpListener = OHOS::HiviewDFX::HidebugMemDumpListener::GetInstance();
+    bool ret = dumpListener.TriggerListener("KMP", fd,
+        OH_HiDebug_MemListenerType::OH_HiDebug_DUMP_SNAPSHOT, info.caller.c_str());
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::APPKIT, "TriggerListener failed");
+        close(fd);
+        return;
+    }
+    close(fd);
 }
 
 void DumpRuntimeHelper::GetCheckList(const std::unique_ptr<AbilityRuntime::Runtime> &runtime, std::string &checkList)
