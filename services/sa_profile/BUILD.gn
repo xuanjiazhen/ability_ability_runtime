@@ -21,6 +21,7 @@ ohos_sa_profile("ams_sa_profile") {
     "184.json",
     "185.json",
     "501.json",
+    "9999.json",
   ]
 
   part_name = "ability_runtime"
