@@ -42,11 +42,13 @@ public:
 private:
     // Event handlers
     void HandleEventUserSwitched(const EventFwk::CommonEventData &data);
+    void HandleBundleScanFinished(const EventFwk::CommonEventData &data);
     void HandleBundleInstall(const EventFwk::CommonEventData &data);
     void HandleBundleRemoved(const EventFwk::CommonEventData &data);
     void HandleBundleChanged(const EventFwk::CommonEventData &data);
 
     void LoadModularObjectExtensionInfos();
+    void UpdateModularObjectWithVersion();
     void InsertModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex = 0);
     void UpdateModularObjectExtensionInfos(const std::string &bundleName, int32_t userId, int32_t appIndex = 0);
     void RemoveModularObjectExtensionInfo(const std::string &bundleName, int32_t userId, int32_t appIndex = 0);
