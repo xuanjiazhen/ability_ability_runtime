@@ -175,7 +175,7 @@ void UIAbilityThread::AttachInner(const std::shared_ptr<AppExecFwk::OHOSApplicat
     if (abilityInfo != nullptr && appContext != nullptr) {
         AAFwk::NativeModuleMetaData metaData;
         AAFwk::NativeModuleMetaData::InitData(*abilityInfo, metaData);
-        if (appContext->CreateNativeThread(metaData)) {
+        if (appContext->CreateNativeThread(metaData, abilityInfo->bundleName, abilityInfo->moduleName)) {
             TAG_LOGI(AAFwkTag::UIABILITY, "Loading native module: %{public}s", metaData.nativeModuleSource.c_str());
 
             // Set hasNativeModule flag in ability

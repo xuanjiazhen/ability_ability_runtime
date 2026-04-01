@@ -15,14 +15,13 @@
 
 #include "native_thread_info.h"
 
-#include <dlfcn.h>
-
 #include "hilog_tag_wrapper.h"
+#include "module_manager/native_module_manager.h"
 #include "native_module_util.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-
+constexpr const char* DEFAULT_NAMESPACE = "default";
 NativeThreadInfo::~NativeThreadInfo()
 {
     // Clean up resources
@@ -38,7 +37,8 @@ NativeThreadInfo::~NativeThreadInfo()
     }
 }
 
-bool NativeThreadInfo::LoadNativeModule(const AAFwk::NativeModuleMetaData& metaData)
+bool NativeThreadInfo::LoadNativeModule(const AAFwk::NativeModuleMetaData& metaData,
+    const std::string &bundleName, const std::string &moduleName)
 {
     if (metaData.nativeModuleSource.empty()) {
         TAG_LOGE(AAFwkTag::ABILITY, "Native module source is empty");
@@ -51,24 +51,23 @@ bool NativeThreadInfo::LoadNativeModule(const AAFwk::NativeModuleMetaData& metaD
     }
 
     // Load the dynamic library
-    moduleHandle_ = dlopen(metaData.nativeModuleSource.c_str(), RTLD_LAZY);
+    std::string bundleModuleName = bundleName + "/" + moduleName;
+    moduleHandle_ = OpenNativeLibrary(bundleModuleName, metaData.nativeModuleSource);
     if (moduleHandle_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Failed to load native module: %{public}s, error: %{public}s",
-            metaData.nativeModuleSource.c_str(), dlerror());
+        TAG_LOGE(AAFwkTag::ABILITY, "Failed to load native module: %{public}s-%{public}s",
+            bundleModuleName.c_str(), metaData.nativeModuleSource.c_str());
         return false;
     }
 
     TAG_LOGI(AAFwkTag::ABILITY, "Native module loaded: %{public}s", metaData.nativeModuleSource.c_str());
 
-    // Clear any existing error
-    dlerror();
-
+    dlerror(); // clear error
     // Find the OHMain function
     OHMain_ = reinterpret_cast<OHMainType>(dlsym(moduleHandle_, metaData.nativeModuleFunc.c_str()));
-    char* error = dlerror();
-    if (error != nullptr) {
+    if (OHMain_ == nullptr) {
+        char* error = dlerror();
         TAG_LOGE(AAFwkTag::ABILITY, "Failed to find OHMain function: %{public}s, error: %{public}s",
-            metaData.nativeModuleFunc.c_str(), error);
+            metaData.nativeModuleFunc.c_str(), error ? error : "null");
         dlclose(moduleHandle_);
         moduleHandle_ = nullptr;
         return false;
@@ -78,10 +77,10 @@ bool NativeThreadInfo::LoadNativeModule(const AAFwk::NativeModuleMetaData& metaD
 
     // Find the PostAbility function (optional but recommended)
     postAbilityFunc_ = reinterpret_cast<PostAbilityType>(dlsym(moduleHandle_, "PostAbility"));
-    error = dlerror();
-    if (error != nullptr) {
-        TAG_LOGW(AAFwkTag::ABILITY, "PostAbility function not found (optional): %{public}s", error);
-        postAbilityFunc_ = nullptr;
+    if (postAbilityFunc_ == nullptr) {
+        char* error = dlerror();
+        TAG_LOGW(AAFwkTag::ABILITY, "PostAbility function not found (optional): %{public}s",
+            error ? error : "null");
     } else {
         TAG_LOGI(AAFwkTag::ABILITY, "PostAbility function found");
     }
@@ -131,5 +130,28 @@ void NativeThreadInfo::PostAbility(const NativeAbilityWrapper* nativeAbilityWrap
     postAbilityFunc_(nativeAbilityWrapper);
 }
 
+LIBHANDLE NativeThreadInfo::OpenNativeLibrary(const std::string& bundleModuleName, const std::string& fileName)
+{
+    auto moduleManager = NativeModuleManager::GetInstance();
+    if (moduleManager == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null moduleManager");
+        return nullptr;
+    }
+    std::string namespaceName;
+    if (!moduleManager->GetLdNamespaceName(bundleModuleName, namespaceName)) {
+        if (!moduleManager->GetLdNamespaceName(DEFAULT_NAMESPACE, namespaceName)) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "GetLdNamespaceName failed");
+            return nullptr;
+        }
+    }
+    Dl_namespace ns;
+    if (dlns_get(namespaceName.data(), &ns) != 0) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "namespaceName not found: %{public}s", namespaceName.c_str());
+        return nullptr;
+    }
+    LIBHANDLE nativeHandle = nullptr;
+    nativeHandle = dlopen_ns(&ns, fileName.c_str(), RTLD_LAZY);
+    return nativeHandle;
+}
 } // namespace AppExecFwk
 } // namespace OHOS
