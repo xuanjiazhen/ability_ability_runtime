@@ -602,6 +602,15 @@ int32_t AppMgrService::GetProcessRunningInfosByUserId(std::vector<RunningProcess
     return appMgrServiceInner_->GetProcessRunningInfosByUserId(info, userId);
 }
 
+int32_t AppMgrService::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+    std::vector<RunningProcessInfo> &info)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->GetProcessRunningInfosByAccessTokenId(accessTokenId, info);
+}
+
 int32_t AppMgrService::GetProcessRunningInformation(RunningProcessInfo &info)
 {
     if (!IsReady()) {
