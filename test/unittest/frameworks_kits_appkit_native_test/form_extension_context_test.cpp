@@ -24,6 +24,9 @@
 #include "errors.h"
 #include "hilog_tag_wrapper.h"
 #include "ability_manager_errors.h"
+#include "form_runtime/js_form_extension_context.h"
+#include "native_engine/impl/ark/ark_native_engine.h"
+#include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -276,6 +279,84 @@ HWTEST_F(FormExtensionContextTest, formExtensionContext_DisconnectAbility_001, T
     ErrCode result = formextension_->DisconnectAbility(want, connectCallback);
     EXPECT_EQ(AAFwk::ERR_INVALID_CALLER, result);
     GTEST_LOG_(INFO) << "formExtensionContext_DisconnectAbility_001 end";
+}
+
+/**
+ * @tc.number: formExtensionContext_IsContextType_001
+ * @tc.name: JsFormExtensionContext IsContextType with matching context type.
+ * @tc.desc: Test IsContextType method with matching context type.
+ */
+HWTEST_F(FormExtensionContextTest, formExtensionContext_IsContextType_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "formExtensionContext_IsContextType_001 start";
+
+    // Create JS environment
+    panda::RuntimeOption pandaOption;
+    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
+    ASSERT_NE(vm, nullptr);
+
+    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
+    ASSERT_NE(env, nullptr);
+
+    AbilityRuntime::JsFormExtensionContext jsContext(formextension_);
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env, "FormExtensionContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    auto result = jsContext.OnIsContextType(env, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_TRUE(boolResult);
+
+    delete reinterpret_cast<NativeEngine*>(env);
+    panda::JSNApi::DestroyJSVM(vm);
+    GTEST_LOG_(INFO) << "formExtensionContext_IsContextType_001 end";
+}
+
+/**
+ * @tc.number: formExtensionContext_IsContextType_002
+ * @tc.name: JsFormExtensionContext IsContextType with non-matching context type.
+ * @tc.desc: Test IsContextType method with non-matching context type.
+ */
+HWTEST_F(FormExtensionContextTest, formExtensionContext_IsContextType_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "formExtensionContext_IsContextType_002 start";
+
+    // Create JS environment
+    panda::RuntimeOption pandaOption;
+    panda::ecmascript::EcmaVM* vm = panda::JSNApi::CreateJSVM(pandaOption);
+    ASSERT_NE(vm, nullptr);
+
+    napi_env env = reinterpret_cast<napi_env>(new ArkNativeEngine(vm, nullptr));
+    ASSERT_NE(env, nullptr);
+
+    AbilityRuntime::JsFormExtensionContext jsContext(formextension_);
+    NapiCallbackInfo info;
+    napi_value argv[1];
+    napi_status status = napi_create_string_utf8(env, "OtherContext",
+        NAPI_AUTO_LENGTH, &argv[0]);
+    EXPECT_EQ(status, napi_ok);
+    info.argc = 1;
+    info.argv = argv;
+
+    auto result = jsContext.OnIsContextType(env, info);
+    EXPECT_NE(result, nullptr);
+
+    bool boolResult = false;
+    status = napi_get_value_bool(env, result, &boolResult);
+    EXPECT_EQ(status, napi_ok);
+    EXPECT_FALSE(boolResult);
+
+    delete reinterpret_cast<NativeEngine*>(env);
+    panda::JSNApi::DestroyJSVM(vm);
+    GTEST_LOG_(INFO) << "formExtensionContext_IsContextType_002 end";
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
