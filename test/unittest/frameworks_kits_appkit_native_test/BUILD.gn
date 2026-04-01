@@ -997,6 +997,7 @@ ohos_unittest("dump_runtime_helper_test") {
     "napi:ace_napi",
     "ffrt:libffrt",
     "storage_service:storage_manager_acl",
+    "hiprofiler:hidebug_dump"
   ]
 }
 
@@ -1097,6 +1098,7 @@ ohos_unittest("dump_runtime_helper_second_test") {
     "ffrt:libffrt",
     "storage_service:storage_manager_acl",
     "runtime_core:ani",
+    "hiprofiler:hidebug_dump"
   ]
 }
 
