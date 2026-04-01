@@ -267,6 +267,8 @@ private:
         }
         auto client = std::make_shared<JsInsightIntentExecuteCallbackClient>(env, nativeDeferred, callbackRef);
         uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(client);
+        TAG_LOGI(AAFwkTag::INTENT, "CRRR on execute new ");
+        // uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(nullptr);
         if (IsServiceMatch(param) && NeedStartByContext(param)) {
             return HandleServiceMatch(env, info, param);
         }
