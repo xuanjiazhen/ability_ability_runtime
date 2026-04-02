@@ -613,7 +613,7 @@ napi_value JsUIExtensionContext::HandleTerminateSelfWithResultInEmbeddableMode(n
     auto callback = [env, asyncTask](ErrCode errCode) {
         TAG_LOGI(AAFwkTag::UI_EXT, "terminateSelfWithResult callback (embeddable mode), errCode=%{public}d", errCode);
         if (errCode == ERR_OK) {
-            asyncTask->ResolveWithNoError(env, CreateJsUndefined(env));
+            asyncTask->Resolve(env, CreateJsUndefined(env));
         } else {
             asyncTask->Reject(env, CreateJsErrorByNativeErr(env, errCode));
         }

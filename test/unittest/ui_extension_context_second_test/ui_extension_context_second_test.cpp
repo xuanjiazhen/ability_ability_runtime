@@ -337,12 +337,23 @@ HWTEST_F(UIExtensionContextTest, TerminateSelfInner_0100, TestSize.Level1)
     context->screenMode_ = AAFwk::EMBEDDED_FULL_SCREEN_MODE;
     context->eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create());
     context->terminateSelfWithAnimationCallback_ = [](int32_t) {};
-    context->terminateTimeoutExec_.store(false);
 
+    // Create a pending request first
     int32_t terminateRequestId = 123;
+    UIExtensionContext::PendingTerminateRequest request;
+    request.resultCode = 0;
+    request.want = {};
+    request.callback = [](ErrCode) {};
+    request.hasResult = false;
+    request.handled = false;
+    context->pendingTerminateRequests_[terminateRequestId] = request;
+
+    // Call TerminateSelfInner
     auto result = context->TerminateSelfInner(terminateRequestId);
     EXPECT_EQ(result, ERR_INVALID_VALUE);  // Will fail due to invalid token
-    EXPECT_TRUE(context->terminateTimeoutExec_.load());
+
+    // Request should be removed after processing
+    EXPECT_TRUE(context->pendingTerminateRequests_.empty());
     // Callback is retained (not cleared)
     EXPECT_NE(context->terminateSelfWithAnimationCallback_, nullptr);
 
@@ -354,7 +365,7 @@ HWTEST_F(UIExtensionContextTest, TerminateSelfInner_0100, TestSize.Level1)
 /**
  * @tc.number: TerminateSelfInner_0200
  * @tc.name: TerminateSelfInner duplicate call
- * @tc.desc: TerminateSelfInner handles duplicate calls correctly via terminateTimeoutExec_.
+ * @tc.desc: TerminateSelfInner handles duplicate calls correctly via request.handled.
  */
 HWTEST_F(UIExtensionContextTest, TerminateSelfInner_0200, TestSize.Level1)
 {
@@ -362,9 +373,18 @@ HWTEST_F(UIExtensionContextTest, TerminateSelfInner_0200, TestSize.Level1)
     auto context = std::make_shared<UIExtensionContext>();
     ASSERT_NE(context, nullptr);
     context->screenMode_ = AAFwk::EMBEDDED_FULL_SCREEN_MODE;
-    context->terminateTimeoutExec_.store(true);
 
+    // Create a pending request with handled = true (simulating already processed)
     int32_t terminateRequestId = 456;
+    UIExtensionContext::PendingTerminateRequest request;
+    request.resultCode = 0;
+    request.want = {};
+    request.callback = [](ErrCode) {};
+    request.hasResult = false;
+    request.handled = true;  // Already handled
+    context->pendingTerminateRequests_[terminateRequestId] = request;
+
+    // Call TerminateSelfInner - should return ERR_OK because request is already handled
     auto result = context->TerminateSelfInner(terminateRequestId);
     EXPECT_EQ(result, ERR_OK);
 
@@ -1695,9 +1715,9 @@ HWTEST_F(UIExtensionContextTest, CleanupAnimationResources_0100, TestSize.Level1
     ASSERT_NE(context, nullptr);
 
     context->eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create());
-    context->terminateTimeoutExec_.store(true);
 
-    context->CleanupAnimationResources();
+    int32_t terminateRequestId = 789;
+    context->CleanupAnimationResources(terminateRequestId);
 
     // After cleanup, eventHandler should still exist but timeout task removed
     EXPECT_NE(context->eventHandler_, nullptr);
