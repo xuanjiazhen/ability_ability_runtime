@@ -61,13 +61,14 @@ HWTEST_F(RemoteOnListenerProxyTest, OnCallback_001, TestSize.Level1)
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &RemoteOnListenerStubMock::InvokeSendRequest));
-    std::string srcDeviceId = "";
-    uint32_t continueState = 0;
-    std::string bundleName = "bundleName";
-    std::string continueType = "continueType";
-    std::string srcBundleName = "srcBundleName";
-    std::string appIdentifier = "appIdentifier";
-    proxy_->OnCallback(continueState, srcDeviceId, bundleName, continueType, srcBundleName, appIdentifier);
+    OnCallbackInfo info;
+    info.continueState = 0;
+    info.srcDeviceId = "";
+    info.bundleName = "bundleName";
+    info.continueType = "continueType";
+    info.srcBundleName = "srcBundleName";
+    info.appIdentifier = "appIdentifier";
+    proxy_->OnCallback(info);
     EXPECT_EQ(IRemoteOnListener::ON_CALLBACK, mock_->code_);
 }
 
@@ -84,13 +85,14 @@ HWTEST_F(RemoteOnListenerProxyTest, OnCallback_002, TestSize.Level1)
     EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
         .Times(1)
         .WillOnce(Invoke(mock_.GetRefPtr(), &RemoteOnListenerStubMock::InvokeErrorSendRequest));
-    std::string srcDeviceId = "test";
-    uint32_t continueState = 0;
-    std::string bundleName = "bundleName";
-    std::string continueType = "continueType";
-    std::string srcBundleName = "srcBundleName";
-    std::string appIdentifier = "appIdentifier";
-    proxy_->OnCallback(continueState, srcDeviceId, bundleName, continueType, srcBundleName, appIdentifier);
+    OnCallbackInfo info;
+    info.continueState = 0;
+    info.srcDeviceId = "test";
+    info.bundleName = "bundleName";
+    info.continueType = "continueType";
+    info.srcBundleName = "srcBundleName";
+    info.appIdentifier = "appIdentifier";
+    proxy_->OnCallback(info);
     EXPECT_EQ(IRemoteOnListener::ON_CALLBACK, mock_->code_);
 }
 }  // namespace AAFwk

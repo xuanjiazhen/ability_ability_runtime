@@ -48,13 +48,14 @@ int RemoteOnListenerStub::OnRemoteRequest(
 
 int32_t RemoteOnListenerStub::OnCallbackInner(MessageParcel &data, MessageParcel &reply)
 {
-    uint32_t continueState = data.ReadUint32();
-    std::string srcDeviceId = data.ReadString();
-    std::string bundleName = data.ReadString();
-    std::string continueType = data.ReadString();
-    std::string srcBundleName = data.ReadString();
-    std::string appIdentifier = data.ReadString();
-    OnCallback(continueState, srcDeviceId, bundleName, continueType, srcBundleName, appIdentifier);
+    OnCallbackInfo info;
+    info.continueState = data.ReadUint32();
+    info.srcDeviceId = data.ReadString();
+    info.bundleName = data.ReadString();
+    info.continueType = data.ReadString();
+    info.srcBundleName = data.ReadString();
+    info.appIdentifier = data.ReadString();
+    OnCallback(info);
     return NO_ERROR;
 }
 }  // namespace AAFwk

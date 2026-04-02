@@ -20,9 +20,7 @@
 
 namespace OHOS {
 namespace AAFwk {
-void RemoteOnListenerProxy::OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
-    const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName,
-    const std::string &appIdentifier)
+void RemoteOnListenerProxy::OnCallback(const OnCallbackInfo &info)
 {
     MessageParcel data;
     MessageParcel reply;
@@ -31,27 +29,27 @@ void RemoteOnListenerProxy::OnCallback(const uint32_t continueState, const std::
         TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyMissionsChanged Write interface token failed.");
         return;
     }
-    if (!data.WriteUint32(continueState)) {
+    if (!data.WriteUint32(info.continueState)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write ContinueState failed");
         return;
     }
-    if (!data.WriteString(srcDeviceId)) {
+    if (!data.WriteString(info.srcDeviceId)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write srcDeviceId failed");
         return;
     }
-    if (!data.WriteString(bundleName)) {
+    if (!data.WriteString(info.bundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write bundleName failed");
         return;
     }
-    if (!data.WriteString(continueType)) {
+    if (!data.WriteString(info.continueType)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write continueType failed");
         return;
     }
-    if (!data.WriteString(srcBundleName)) {
+    if (!data.WriteString(info.srcBundleName)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write srcBundleName failed");
         return;
     }
-    if (!data.WriteString(appIdentifier)) {
+    if (!data.WriteString(info.appIdentifier)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write appIdentifier failed");
         return;
     }

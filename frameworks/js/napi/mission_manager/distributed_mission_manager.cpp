@@ -1258,9 +1258,7 @@ void NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceI
     TAG_LOGI(AAFwkTag::MISSION, "end");
 }
 
-void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
-    const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName,
-    const std::string &appIdentifierList)
+void NAPIRemoteOnListener::OnCallback(const OnCallbackInfo &info)
 {
     TAG_LOGI(AAFwkTag::MISSION, "called");
     uv_loop_s *loop = nullptr;
@@ -1283,12 +1281,12 @@ void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::s
         onCB->cbBase.cbInfo.vecCallbacks.push_back(*ele);
     }
     onCB->cbBase.cbInfo.env = env_;
-    onCB->continueState = continueState;
-    onCB->srcDeviceId = srcDeviceId;
-    onCB->bundleName = bundleName;
-    onCB->continueType = continueType;
-    onCB->srcBundleName = srcBundleName;
-    onCB->appIdentifierList = appIdentifierList;
+    onCB->continueState = info.continueState;
+    onCB->srcDeviceId = info.srcDeviceId;
+    onCB->bundleName = info.bundleName;
+    onCB->continueType = info.continueType;
+    onCB->srcBundleName = info.srcBundleName;
+    onCB->appIdentifierList = info.appIdentifier;
     work->data = static_cast<void *>(onCB);
 
     int rev = uv_queue_work_with_qos_internal(
