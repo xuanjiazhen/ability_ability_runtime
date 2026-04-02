@@ -377,6 +377,8 @@ constexpr int32_t FORK_ALL_LIVING_END = 1;
 
 constexpr const char* TEMPLATE_MONITOR_PATH = "/proc/checkpoint/monitor";
 
+constexpr int32_t HIPROFILER_UID = 3063;
+
 int32_t GetUserIdByUid(int32_t uid)
 {
     return uid / BASE_USER_RANGE;
@@ -8896,6 +8898,10 @@ int32_t AppMgrServiceInner::NotifyAppFault(const FaultData &faultData)
     TAG_LOGW(AAFwkTag::APPDFR, "called, eventName:%{public}s, pid:%{public}d, bundleName:%{public}s, "
         "currentTime:%{public}s", eventName.c_str(), pid, bundleName.c_str(),
         AbilityRuntime::TimeUtil::DefaultCurrentTimeStr().c_str());
+    if (IsFreezeExcludedPid(pid)) {
+        TAG_LOGW(AAFwkTag::APPDFR, "pid is in freeze excluded list, skip detect: %{public}d", pid);
+        return ERR_OK;
+    }
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName, eventName)) {
         return ERR_OK;
     }
@@ -9048,6 +9054,10 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     int32_t recordId = record->GetRecordId();
     std::string bundleName = record->GetBundleName();
     std::string processName = record->GetProcessName();
+    if (IsFreezeExcludedPid(pid)) {
+        TAG_LOGW(AAFwkTag::APPMGR, "pid is in freeze excluded list, skip detect: %{public}d", pid);
+        return ERR_OK;
+    }
     if (AppExecFwk::AppfreezeManager::GetInstance()->IsSkipDetect(pid, uid, bundleName,
         faultData.errorObject.name)) {
         return ERR_OK;
@@ -12594,6 +12604,26 @@ void AppMgrServiceInner::HandleForegroundAbilityDied(
         }
         AppRecoveryMgr::AppRecoveryMgr::GetInstance().HandleAppDied(token);
     }
+}
+
+void AppMgrServiceInner::UpdateFreezeExcludedPid(bool isAdd, int32_t pid)
+{
+    if (IPCSkeleton::GetCallingUid() != HIPROFILER_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not hiprofiler call.");
+        return;
+    }
+    if (isAdd) {
+        freezeExcludedPidSet_.insert(pid);
+        TAG_LOGI(AAFwkTag::APPMGR, "Add pid to freezeExcludedPidSet_: %{public}d", pid);
+    } else {
+        freezeExcludedPidSet_.erase(pid);
+        TAG_LOGI(AAFwkTag::APPMGR, "Remove pid from freezeExcludedPidSet_: %{public}d", pid);
+    }
+}
+
+bool AppMgrServiceInner::IsFreezeExcludedPid(int32_t pid) const
+{
+    return freezeExcludedPidSet_.find(pid) != freezeExcludedPidSet_.end();
 }
 } // namespace AppExecFwk
 }  // namespace OHOS
