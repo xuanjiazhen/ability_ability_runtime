@@ -35,6 +35,8 @@
 #include "cj_runtime.h"
 #endif
 
+using GetMemLeakString = bool (*)(int, std::string&, size_t);
+
 namespace OHOS {
 namespace AppExecFwk {
 const char *MODULE_NAME = "hiviewdfx.jsLeakWatcher";
@@ -53,6 +55,9 @@ static constexpr const char* const HIAPPEVENT_PATH = "/data/storage/el2/base/cac
 static constexpr const char* const OOM_QUOTA_PATH = "/data/storage/el2/base/cache/rawheap";
 static constexpr const char* const JS_HEAP_LOGTYPE = "user.event_config.js_heap_logtype";
 static constexpr const char* const EVENT_RAWHEAP = "event_rawheap";
+static constexpr const char* const SO_NAME = "libmemleak.z.so";
+static constexpr const char* const GET_MEM_LEAK_STRING_SYMBOL =
+    "_ZN4OHOS16GetMemLeakStringEiRNSt3__h12basic_stringIcNS0_11char_traitsIcEENS0_9allocatorIcEEEEm";
 static constexpr uint64_t OOM_DUMP_INTERVAL = 7 * 24 * 60 * 60;
 static constexpr uint64_t OOM_DUMP_SPACE_LIMIT = 30ull * 1024 * 1024 * 1024;
 static constexpr uint32_t EVENT_RESOURCE_OVERLIMIT_MASK = 6;
@@ -72,6 +77,12 @@ enum {
     INDEX_HAS_SENT,
     INDEX_ROM_RSV_SIZE,
     PROPERTY2C_SIZE
+};
+
+enum {
+    TYPE_TXT = 0,
+    TYPE_VECTOR,
+    TYPE_SNAPSHOT
 };
 
 DumpRuntimeHelper::DumpRuntimeHelper(const std::shared_ptr<OHOSApplication> &application)
@@ -308,6 +319,108 @@ void DumpRuntimeHelper::DumpCjHeap(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
     }
 #endif
 }
+
+void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    TAG_LOGI(AAFwkTag::APPKIT, "dump type: %{public}d", static_cast<uint32_t>(info.dumpType));
+    if (info.dumpType == MemDumpType::NATIVE) {
+        DumpNativeHeap(info, dumpResult);
+    }
+}
+
+void DumpRuntimeHelper::DumpNativeHeap(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    if (info.needLeakobj) {
+        TAG_LOGI(AAFwkTag::APPKIT, "dump native need leakobj");
+        bool ret = GetDumpResult(dumpResult);
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::APPKIT, "GetDumpResult failed");
+        }
+    } else {
+        TAG_LOGI(AAFwkTag::APPKIT, "dump native no need leakobj");
+        int32_t fd = RequestFileDescriptor(static_cast<int32_t>(FaultLoggerType::NATIVE_SNAPSHOT));
+        if (fd > 0) {
+            bool ret = GetSnapshot(fd);
+            if (!ret) {
+            TAG_LOGE(AAFwkTag::APPKIT, "GetSnapshot failed");
+            }
+            close(fd);
+        } else {
+        TAG_LOGE(AAFwkTag::APPKIT, "RequestFileDescriptor failed");
+        }
+    }
+}
+
+bool DumpRuntimeHelper::GetDumpResult(std::string &dumpResult)
+{
+    void* hd = nullptr;
+    hd = dlopen(SO_NAME, RTLD_LAZY);
+    if (!hd) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Error loading%{public}s\n", SO_NAME);
+        return false;
+    }
+    GetMemLeakString GetMemLeakString_ = nullptr;
+    GetMemLeakString_ = reinterpret_cast<GetMemLeakString>(dlsym(hd, GET_MEM_LEAK_STRING_SYMBOL));
+    if (!GetMemLeakString_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to resolve symbols:%{public}s\n", GET_MEM_LEAK_STRING_SYMBOL);
+        dlclose(hd);
+        hd = nullptr;
+        return false;
+    }
+    if (GetMemLeakString_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetMemLeakString_ is nullptr\n");
+        dlclose(hd);
+        hd = nullptr;
+        return false;
+    }
+    bool ret = GetMemLeakString_(TYPE_TXT, dumpResult, 100);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::APPKIT, "TYPE_TXT Error, result:%{public}s\n", dumpResult.c_str());
+    } else {
+        TAG_LOGI(AAFwkTag::APPKIT, "TYPE_TXT finish, result:%{public}s\n", dumpResult.c_str());
+    }
+    dlclose(hd);
+    hd = nullptr;
+    return ret;
+}
+
+bool DumpRuntimeHelper::GetSnapshot(int fd)
+{
+    void* hd = nullptr;
+    hd = dlopen(SO_NAME, RTLD_LAZY);
+    if (!hd) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Error loading%{public}s\n", SO_NAME);
+        return false;
+    }
+    GetMemLeakString GetMemLeakString_ = nullptr;
+    GetMemLeakString_ = reinterpret_cast<GetMemLeakString>(dlsym(hd, GET_MEM_LEAK_STRING_SYMBOL));
+    if (!GetMemLeakString_) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to resolve symbols:%{public}s\n", GET_MEM_LEAK_STRING_SYMBOL);
+        dlclose(hd);
+        hd = nullptr;
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "Success to dlopen%{public}s\n", SO_NAME);
+    if (GetMemLeakString_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "GetMemLeakString_ is nullptr\n");
+        dlclose(hd);
+        hd = nullptr;
+        return false;
+    }
+    std::string snapShot;
+    bool ret = GetMemLeakString_(TYPE_SNAPSHOT, snapShot, 100);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::APPKIT, "TYPE_SNAPSHOT Error\n");
+    } else {
+        lseek(fd, 0, SEEK_END);
+        write(fd, snapShot.c_str(), snapShot.size());
+        TAG_LOGI(AAFwkTag::APPKIT, "TYPE_SNAPSHOT finish\n");
+    }
+    dlclose(hd);
+    hd = nullptr;
+    return ret;
+}
+
 
 void DumpRuntimeHelper::GetCheckList(const std::unique_ptr<AbilityRuntime::Runtime> &runtime, std::string &checkList)
 {
