@@ -107,7 +107,7 @@ bool UIAbilityLifecycleManager::ProcessColdStartBranch(AbilityRequest &abilityRe
     }
     DelayedSingleton<AppScheduler>::GetInstance()->StartSpecifiedAbility(abilityRequest.want,
         abilityRequest.abilityInfo, sessionInfo->requestId, abilityRequest.customProcess,
-        abilityRequest.processOptions->isPreloadStart);
+        abilityRequest.processOptions ? abilityRequest.processOptions->isPreloadStart : false);
     AddCallerRecord(abilityRequest, sessionInfo, uiAbilityRecord);
     uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
     return true;
