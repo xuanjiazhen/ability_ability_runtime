@@ -932,6 +932,10 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         return;
     }
 
+    if (GetPreloadPhase() == PreloadPhase::WINDOW_STAGE_CREATED && GetAbilities().size() > 1) {
+        SetPreloadMode(PreloadMode::PRELOAD_NONE);
+    }
+
     AbilityState curAbilityState = ability->GetState();
     if (curAbilityState != AbilityState::ABILITY_STATE_READY &&
         curAbilityState != AbilityState::ABILITY_STATE_BACKGROUND) {
