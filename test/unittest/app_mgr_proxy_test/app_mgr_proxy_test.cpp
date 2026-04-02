@@ -1409,5 +1409,21 @@ HWTEST_F(AppMgrProxyTest, UnregisterImageProcessStateObserver_0100, TestSize.Lev
     auto result = appMgrProxy_->UnregisterImageProcessStateObserver(observer);
     EXPECT_EQ(result, OHOS::ERR_INVALID_VALUE);
 }
+
+/**
+ * @tc.name: UpdateFreezeExcludedPid_001
+ * @tc.desc: Update freeze excluded pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrProxyTest, UpdateFreezeExcludedPid_001, TestSize.Level1)
+{
+    EXPECT_CALL(*mockAppMgrService_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mockAppMgrService_.GetRefPtr(), &MockAppMgrService::InvokeSendRequest));
+    int32_t pid = 1;
+    bool isAdd = true;
+    appMgrProxy_->UpdateFreezeExcludedPid(isAdd, pid);
+    EXPECT_EQ(mockAppMgrService_->code_, static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_FREEZE_EXCLUDED_PID));
+}
 } // namespace AppExecFwk
 } // namespace OHOS

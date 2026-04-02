@@ -1506,6 +1506,15 @@ bool AppMgrService::SetAppFreezeFilter(int32_t pid)
     return ret;
 }
 
+void AppMgrService::UpdateFreezeExcludedPid(bool isAdd, int32_t pid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return;
+    }
+    appMgrServiceInner_->UpdateFreezeExcludedPid(isAdd, pid);
+}
+
 int32_t AppMgrService::GetProcessMemoryByPid(const int32_t pid, int32_t &memorySize)
 {
     if (!IsReady()) {

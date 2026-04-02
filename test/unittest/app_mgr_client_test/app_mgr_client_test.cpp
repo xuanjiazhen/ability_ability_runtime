@@ -1767,5 +1767,18 @@ HWTEST_F(AppMgrClientTest, DestroyImage_001, TestSize.Level2)
     int32_t ret = appMgrClient->DestroyImage(checkpointId, nullptr);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
 }
+
+/**
+ * @tc.name: AppMgrClient_UpdateFreezeExcludedPid_001
+ * @tc.desc: Update freeze excluded pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrClientTest, AppMgrClient_UpdateFreezeExcludedPid_001, TestSize.Level2)
+{
+    auto appMgrClient = std::make_unique<AppMgrClient>();
+    EXPECT_NE(appMgrClient, nullptr);
+    int32_t pid = 1;
+    appMgrClient->UpdateFreezeExcludedPid(true, pid);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

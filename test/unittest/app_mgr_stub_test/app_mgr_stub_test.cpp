@@ -1250,5 +1250,23 @@ HWTEST_F(AppMgrStubTest, HandleDestroyImage_ShouldReturnNoErrorWhenFlagIsTrueAnd
     auto result = mockAppMgrService_->HandleDestroyImage(data, reply);
     EXPECT_EQ(result, NO_ERROR);
 }
+
+/**
+ * @tc.name: HandleUpdateFreezeExcludedPid_001
+ * @tc.desc: Handle Update Freeze Excluded Pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleUpdateFreezeExcludedPid_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    WriteInterfaceToken(data);
+    data.WriteBool(true);
+    data.WriteInt32(1);
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_FREEZE_EXCLUDED_PID), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
 } // namespace AppExecFwk
 } // namespace OHOS
