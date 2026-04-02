@@ -880,5 +880,38 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetFreezeExitReason_Test001,
     result = appfreezeManager->GetFreezeExitReason(eventName);
     EXPECT_EQ(result, -1);
 }
+
+/**
+ * @tc.number: AppfreezeManagerTest_UpdateFreezeExcludedPid_001
+ * @tc.desc: Test UpdateFreezeExcludedPid and IsFreezeExcludedPid
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_UpdateFreezeExcludedPid_001, TestSize.Level1)
+{
+    EXPECT_NE(appfreezeManager, nullptr);
+
+    constexpr int32_t TEST_PID_FIRST = 1000;
+    constexpr int32_t TEST_PID_SECOND = 2000;
+    constexpr int32_t TEST_PID_THIRD = 3000;
+    constexpr int32_t TEST_PROFILER_PID = 5000;
+
+    appfreezeManager->UpdateFreezeExcludedPid(true, TEST_PID_FIRST, TEST_PROFILER_PID);
+    EXPECT_FALSE(appfreezeManager->IsFreezeExcludedPid(TEST_PID_FIRST));
+
+    appfreezeManager->UpdateFreezeExcludedPid(false, TEST_PID_FIRST, TEST_PROFILER_PID);
+    EXPECT_FALSE(appfreezeManager->IsFreezeExcludedPid(TEST_PID_FIRST));
+
+    appfreezeManager->UpdateFreezeExcludedPid(true, TEST_PID_SECOND, TEST_PROFILER_PID);
+    appfreezeManager->UpdateFreezeExcludedPid(true, TEST_PID_THIRD, TEST_PROFILER_PID);
+    EXPECT_FALSE(appfreezeManager->IsFreezeExcludedPid(TEST_PID_SECOND));
+    EXPECT_FALSE(appfreezeManager->IsFreezeExcludedPid(TEST_PID_THIRD));
+
+    appfreezeManager->UpdateFreezeExcludedPid(false, TEST_PID_SECOND, TEST_PROFILER_PID);
+    EXPECT_FALSE(appfreezeManager->IsFreezeExcludedPid(TEST_PID_SECOND));
+    EXPECT_FALSE(appfreezeManager->IsFreezeExcludedPid(TEST_PID_THIRD));
+
+    appfreezeManager->UpdateFreezeExcludedPid(false, TEST_PID_THIRD, TEST_PROFILER_PID);
+    EXPECT_FALSE(appfreezeManager->IsFreezeExcludedPid(TEST_PID_THIRD));
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
