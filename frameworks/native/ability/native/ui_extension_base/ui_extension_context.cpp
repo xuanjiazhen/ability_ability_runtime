@@ -255,22 +255,6 @@ void UIExtensionContext::CleanupAnimationResources(int32_t terminateRequestId)
     // Note: terminateSelfWithAnimationCallback_ is retained for reuse (allows repeated calls)
 }
 
-void UIExtensionContext::TerminateSelfWithResult(int32_t resultCode, const AAFwk::Want &want,
-    TerminateSelfResultCallback callback)
-{
-    TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelfWithResult (non-embeddable)");
-
-    ErrCode err = TransferAbilityResultToWindow(resultCode, want);
-    if (err != ERR_OK) {
-        if (callback) callback(err);
-        return;
-    }
-
-    err = TerminateSelf();
-
-    if (callback) callback(err);
-}
-
 int32_t UIExtensionContext::GenerateTerminateRequestId()
 {
     return ++curTerminateRequestId_;

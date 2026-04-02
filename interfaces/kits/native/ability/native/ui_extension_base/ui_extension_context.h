@@ -72,18 +72,6 @@ public:
      */
     virtual ErrCode TerminateSelf();
     /**
-     * @brief Destroys the current ui extension ability with result.
-     *
-     * @param resultCode Indicates the result code returned to the caller.
-     * @param want Indicates the data returned to the caller.
-     * @param callback Result callback, called when termination completes.
-     *
-     * Non-embeddable mode: execute synchronously and call callback.
-     * Embeddable mode: trigger animation, transfer result after animation completes, then call callback.
-     */
-    virtual void TerminateSelfWithResult(int32_t resultCode, const AAFwk::Want &want,
-        TerminateSelfResultCallback callback);
-        /**
      * @brief Connects the current ability to an ability using the AbilityInfo.AbilityType.SERVICE template.
      *
      * @param want Indicates the want containing information about the ability to connect

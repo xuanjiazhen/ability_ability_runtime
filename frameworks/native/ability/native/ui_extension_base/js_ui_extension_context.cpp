@@ -69,6 +69,19 @@ bool IsEmbeddableStart(int32_t screenMode)
         screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
 }
 
+bool IsContextEmbeddable(const std::shared_ptr<AbilityRuntime::Context>& context)
+{
+    if (!context) {
+        return false;
+    }
+    auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::UIExtensionContext>(context);
+    if (!extensionContext) {
+        return false;
+    }
+    int32_t screenMode = extensionContext->GetScreenMode();
+    return IsEmbeddableStart(screenMode);
+}
+
 } // namespace
 
 static std::map<UIExtensionConnectionKey, sptr<JSUIExtensionConnection>, key_compare> g_connects;
@@ -475,14 +488,7 @@ napi_value JsUIExtensionContext::OnTerminateSelf(napi_env env, NapiCallbackInfo&
 
     // Check if embeddable mode
     auto context = context_.lock();
-    bool isEmbeddable = false;
-    if (context) {
-        auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::UIExtensionContext>(context);
-        if (extensionContext) {
-            int32_t screenMode = extensionContext->GetScreenMode();
-            isEmbeddable = IsEmbeddableStart(screenMode);
-        }
-    }
+    bool isEmbeddable = IsContextEmbeddable(context);
 
     napi_value lastParam = (info.argc == ARGC_ZERO) ? nullptr : info.argv[INDEX_ZERO];
 
@@ -567,14 +573,7 @@ napi_value JsUIExtensionContext::OnTerminateSelfWithResult(napi_env env, NapiCal
 
     // Check if embeddable mode
     auto context = context_.lock();
-    bool isEmbeddable = false;
-    if (context) {
-        auto extensionContext = AbilityRuntime::Context::ConvertTo<AbilityRuntime::UIExtensionContext>(context);
-        if (extensionContext) {
-            int32_t screenMode = extensionContext->GetScreenMode();
-            isEmbeddable = IsEmbeddableStart(screenMode);
-        }
-    }
+    bool isEmbeddable = IsContextEmbeddable(context);
 
     // Route to appropriate handler based on mode
     if (isEmbeddable) {
