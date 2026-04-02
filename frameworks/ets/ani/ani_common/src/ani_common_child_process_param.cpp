@@ -106,7 +106,8 @@ bool UnwrapChildProcessArgs(ani_env* env, ani_object object, ChildProcessArgs &a
         TAG_LOGE(AAFwkTag::PROCESSMGR, "env null");
         return false;
     }
-    if (!GetStringProperty(env, object, "entryParams", args.entryParams)) {
+    if (IsExistsProperty(env, object, "entryParams") &&
+        !GetStringProperty(env, object, "entryParams", args.entryParams)) {
         TAG_LOGI(AAFwkTag::PROCESSMGR, "parameter error");
         errorMsg = "Parameter error. The type of args.entryParams must be string.";
         return false;
