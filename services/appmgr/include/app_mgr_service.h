@@ -620,6 +620,13 @@ public:
     bool SetAppFreezeFilter(int32_t pid) override;
 
     /**
+     * @brief Update freeze excluded pid set.
+     * @param isAdd true to add pid, false to remove pid.
+     * @param pid The process id to be added or removed.
+     */
+    void UpdateFreezeExcludedPid(bool isAdd, int32_t pid) override;
+
+    /**
      * get memorySize by pid.
      *
      * @param pid process id.

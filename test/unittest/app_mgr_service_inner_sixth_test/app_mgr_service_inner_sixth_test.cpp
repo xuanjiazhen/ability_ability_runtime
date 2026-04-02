@@ -761,5 +761,32 @@ HWTEST_F(AppMgrServiceInnerSixthTest, TryToUseImageInfo_ShouldReturnErrOkWhenIma
         instanceKey, specifiedProcessFlag, customProcessFlag, appRecord), ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "TryToUseImageInfo_ShouldReturnErrOkWhenImageInfoNotMatch end");
 }
+
+/**
+ * @tc.name: UpdateFreezeExcludedPid_001
+ * @tc.type: FUNC
+ * @tc.Function: UpdateFreezeExcludedPid
+ * @tc.SubFunction: NA
+ * @tc.EnvConditions: NA
+ */
+HWTEST_F(AppMgrServiceInnerSixthTest, UpdateFreezeExcludedPid_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "UpdateFreezeExcludedPid_001 start";
+
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    int32_t pid = 1;
+    constexpr int32_t HIPROFILER_UID = 3063;
+
+    IPCSkeleton::SetCallingUid(HIPROFILER_UID);
+    appMgrServiceInner->UpdateFreezeExcludedPid(true, pid);
+    EXPECT_TRUE(appMgrServiceInner->IsFreezeExcludedPid(pid));
+
+    appMgrServiceInner->UpdateFreezeExcludedPid(false, pid);
+    EXPECT_FALSE(appMgrServiceInner->IsFreezeExcludedPid(pid));
+
+    GTEST_LOG_(INFO) << "UpdateFreezeExcludedPid_001 end";
+}
 } // namespace AppExecFwk
 } // namespace OHOS

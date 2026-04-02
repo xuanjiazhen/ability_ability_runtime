@@ -445,9 +445,11 @@ public:
      * @param pid the process pid.
      * @return Returns true on success, others on failure.
      */
-    virtual bool SetAppFreezeFilter(int32_t pid) override;
+     virtual bool SetAppFreezeFilter(int32_t pid) override;
 
-    virtual int32_t GetConfiguration(Configuration& config) override;
+     virtual void UpdateFreezeExcludedPid(bool isAdd, int32_t pid) override;
+
+     virtual int32_t GetConfiguration(Configuration& config) override;
 
     virtual int32_t GetConfiguration(Configuration& config, int32_t userid) override;
 

@@ -670,6 +670,13 @@ public:
     bool SetAppFreezeFilter(int32_t pid);
 
     /**
+     * @brief Update freeze excluded pid set.
+     * @param isAdd true to add pid, false to remove pid.
+     * @param pid The process id to be added or removed.
+     */
+    void UpdateFreezeExcludedPid(bool isAdd, int32_t pid);
+
+    /**
      * Set AbilityForegroundingFlag of an app-record to true.
      *
      * @param pid, pid.
