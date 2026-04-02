@@ -390,6 +390,7 @@ public:
         ON_LOAD_ABILITY_FINISHED,
         SCHEDULE_DUMP_ARKWEB,
         SCHEDULE_UPDATE_WORK_PROCESS_INFO,
+        SCHEDULE_MEM_APPLICATION_TRANSACTION = 37,
     };
 };
 }  // namespace AppExecFwk
