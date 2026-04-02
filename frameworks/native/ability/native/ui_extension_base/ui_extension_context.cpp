@@ -130,11 +130,23 @@ ErrCode UIExtensionContext::GetOrCreateEventHandler(std::shared_ptr<AppExecFwk::
 
 void UIExtensionContext::ExecuteTerminationWithTimeout(const sptr<IRemoteObject> &token, int32_t terminateRequestId)
 {
-    if (terminateTimeoutExec_.exchange(true)) {
-        return;
-    }
-
     TAG_LOGI(AAFwkTag::UI_EXT, "Animation timeout, terminateRequestId=%{public}d", terminateRequestId);
+
+    // Check if this request has already been handled (race between timeout and normal completion)
+    {
+        std::lock_guard<std::mutex> lock(pendingRequestsMutex_);
+        auto it = pendingTerminateRequests_.find(terminateRequestId);
+        if (it == pendingTerminateRequests_.end()) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "Request not found, already processed: %{public}d", terminateRequestId);
+            return;
+        }
+        if (it->second.handled) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "Request already handled: %{public}d", terminateRequestId);
+            return;
+        }
+        // Mark as handled
+        it->second.handled = true;
+    }
 
     // Get request from map
     PendingTerminateRequest request;
@@ -182,8 +194,6 @@ ErrCode UIExtensionContext::HandleTerminateWithAnimation(int32_t terminateReques
         return TerminateSelfInner(terminateRequestId);
     }
 
-    terminateTimeoutExec_.store(false);
-
     auto timeoutTask = [weakContext = weak_from_this(), token = token_, terminateRequestId]() {
         auto context = std::static_pointer_cast<UIExtensionContext>(weakContext.lock());
         if (context != nullptr) {
@@ -191,7 +201,10 @@ ErrCode UIExtensionContext::HandleTerminateWithAnimation(int32_t terminateReques
         }
     };
 
-    if (!localHandler->PostTask(timeoutTask, "UIExtensionTerminateTimeout",
+    // Generate task name with requestId for proper cleanup
+    std::string taskName = "UIExtensionTerminateTimeout_" + std::to_string(terminateRequestId);
+
+    if (!localHandler->PostTask(timeoutTask, taskName,
         TERMINATE_SELF_ANIMATION_TIMEOUT_MS)) {
         return TerminateSelfInner(terminateRequestId);
     }
@@ -239,11 +252,13 @@ ErrCode UIExtensionContext::TransferAbilityResultToWindow(int32_t resultCode, co
     return ERR_OK;
 }
 
-void UIExtensionContext::CleanupAnimationResources()
+void UIExtensionContext::CleanupAnimationResources(int32_t terminateRequestId)
 {
+    // Generate task name with requestId for proper cleanup
+    std::string taskName = "UIExtensionTerminateTimeout_" + std::to_string(terminateRequestId);
     std::lock_guard<std::mutex> lock(terminateSelfMutex_);
     if (eventHandler_ != nullptr) {
-        eventHandler_->RemoveTask("UIExtensionTerminateTimeout");
+        eventHandler_->RemoveTask(taskName);
     }
     // Note: terminateSelfWithAnimationCallback_ is retained for reuse (allows repeated calls)
 }
@@ -337,14 +352,24 @@ ErrCode UIExtensionContext::TerminateSelfInner(int32_t terminateRequestId)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "TerminateSelfInner (embeddable), terminateRequestId=%{public}d", terminateRequestId);
 
-    // Prevent race between timeout and normal completion
-    if (terminateTimeoutExec_.exchange(true)) {
-        TAG_LOGI(AAFwkTag::UI_EXT, "Already handled by timeout");
-        return ERR_OK;
+    // Check if this request has already been handled (race between timeout and normal completion)
+    {
+        std::lock_guard<std::mutex> lock(pendingRequestsMutex_);
+        auto it = pendingTerminateRequests_.find(terminateRequestId);
+        if (it == pendingTerminateRequests_.end()) {
+            TAG_LOGW(AAFwkTag::UI_EXT, "Request not found, may already be processed: %{public}d", terminateRequestId);
+            return ERR_OK;
+        }
+        if (it->second.handled) {
+            TAG_LOGI(AAFwkTag::UI_EXT, "Request already handled (likely by timeout): %{public}d", terminateRequestId);
+            return ERR_OK;
+        }
+        // Mark as handled
+        it->second.handled = true;
     }
 
     // Cleanup animation resources
-    CleanupAnimationResources();
+    CleanupAnimationResources(terminateRequestId);
 
     // Get request from map
     PendingTerminateRequest request;

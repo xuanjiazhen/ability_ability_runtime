@@ -162,11 +162,6 @@ HWTEST_F(UIExtensionContextTest, TerminateSelfWithAnimation_0500, TestSize.Level
     context->terminateSelfWithAnimationCallback_ = nullptr;
     TAG_LOGI(AAFwkTag::TEST, "TerminateSelfWithAnimation_0500 end");
 }
-    EXPECT_EQ(result, ERR_OK);
-    EXPECT_NE(context->terminateSelfWithAnimationCallback_, nullptr);
-    context->terminateSelfWithAnimationCallback_ = nullptr;
-    TAG_LOGI(AAFwkTag::TEST, "TerminateSelfWithAnimation_0500 end");
-}
 
 /**
  * @tc.number: TerminateSelf_WithAnimation_0100
@@ -1633,7 +1628,6 @@ HWTEST_F(UIExtensionContextTest, TerminateSelfWithAnimationAndResult_0100, TestS
 
     int32_t resultCode = 100;
     AAFwk::Want want;
-    want.SetElementName("testElement");
 
     // Register animation callback first
     TerminateSelfWithAnimationCallback animCallback = [](int32_t) {};

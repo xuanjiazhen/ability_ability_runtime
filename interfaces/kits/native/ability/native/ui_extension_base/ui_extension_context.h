@@ -310,7 +310,7 @@ private:
 
     // Helper methods for TerminateSelfWithResult refactoring
     ErrCode TransferAbilityResultToWindow(int32_t resultCode, const AAFwk::Want &want);
-    void CleanupAnimationResources();
+    void CleanupAnimationResources(int32_t terminateRequestId);
     void ExecuteTerminationWithTimeout(const sptr<IRemoteObject> &token, int32_t terminateRequestId);
     int32_t GenerateTerminateRequestId();
 
@@ -331,13 +331,13 @@ private:
         AAFwk::Want want;
         TerminateSelfResultCallback callback;
         bool hasResult;  // true=needs to return result, false=no result needed
+        bool handled = false;  // true=already handled by timeout or normal completion
     };
     std::map<int32_t, PendingTerminateRequest> pendingTerminateRequests_;
     std::mutex pendingRequestsMutex_;
 
     // ====== Timeout management (only for embeddable mode) ======
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
-    std::atomic<bool> terminateTimeoutExec_{false};
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
