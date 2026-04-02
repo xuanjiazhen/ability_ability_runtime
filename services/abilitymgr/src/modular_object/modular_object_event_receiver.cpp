@@ -22,6 +22,7 @@
 #include "in_process_call_wrapper.h"
 #include "modular_object_rdb_storage_mgr.h"
 #include "os_account_manager_wrapper.h"
+#include "user_controller/user_controller.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -47,6 +48,8 @@ void ModularObjectEventReceiver::OnReceiveEvent(const EventFwk::CommonEventData 
 
     if (action == EventFwk::CommonEventSupport::COMMON_EVENT_USER_SWITCHED) {
         HandleEventUserSwitched(data);
+    } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_BUNDLE_SCAN_FINISHED) {
+        HandleBundleScanFinished(data);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_ADDED) {
         HandleBundleInstall(data);
     } else if (action == EventFwk::CommonEventSupport::COMMON_EVENT_PACKAGE_REMOVED) {
@@ -66,12 +69,13 @@ void ModularObjectEventReceiver::LoadModularObjectExtensionInfos()
         return;
     }
 
-    int32_t userId = AppExecFwk::OsAccountManagerWrapper::GetCurrentActiveAccountId();
+    int32_t userId = OHOS::AbilityRuntime::UserController::GetInstance().GetCallerUserId();
     TAG_LOGD(AAFwkTag::EXT, "init modular object, userId: %{public}d", userId);
 
     std::vector<AppExecFwk::BundleInfo> bundleInfos {};
-    if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfos(AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO,
-        bundleInfos, userId)) != ERR_OK) {
+    auto flags =
+        (AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES | AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO);
+    if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfos(flags, bundleInfos, userId)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::EXT, "get bundle infos failed");
         return;
     }
@@ -80,14 +84,51 @@ void ModularObjectEventReceiver::LoadModularObjectExtensionInfos()
     for (const auto &bundleInfo : bundleInfos) {
         GetModularObjectExtensionInfos(bundleInfo, infos);
         std::string key = GenerateModularObjectKey(userId, bundleInfo.name, bundleInfo.appIndex);
-        DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->InsertData(key, infos);
+        DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->InsertData(
+            key, infos, bundleInfo.versionCode);
         infos.clear();
+    }
+}
+
+void ModularObjectEventReceiver::UpdateModularObjectWithVersion()
+{
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null bundleMgrHelper");
+        return;
+    }
+
+    int32_t userId = OHOS::AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    std::vector<AppExecFwk::BundleInfo> bundleInfos {};
+    auto flags =
+        (AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES | AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO);
+    if (!IN_PROCESS_CALL(bundleMgrHelper->GetBundleInfos(flags, bundleInfos, userId)) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::EXT, "get bundle infos failed");
+        return;
+    }
+    std::vector<AAFwk::ModularObjectExtensionInfo> infos;
+    for (const auto &bundleInfo : bundleInfos) {
+        std::string key = GenerateModularObjectKey(userId, bundleInfo.name, bundleInfo.appIndex);
+        uint32_t versionCode = 0;
+        if (DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->QueryVersion(key, versionCode) &&
+            bundleInfo.versionCode != versionCode) {
+            GetModularObjectExtensionInfos(bundleInfo, infos);
+            DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->InsertData(
+                key, infos, bundleInfo.versionCode);
+            infos.clear();
+        }
     }
 }
 
 void ModularObjectEventReceiver::HandleEventUserSwitched(const EventFwk::CommonEventData &data)
 {
     auto task = [self = shared_from_this()]() { self->LoadModularObjectExtensionInfos(); };
+    ffrt::submit(task);
+}
+
+void ModularObjectEventReceiver::HandleBundleScanFinished(const EventFwk::CommonEventData &data)
+{
+    auto task = [self = shared_from_this()]() { self->UpdateModularObjectWithVersion(); };
     ffrt::submit(task);
 }
 
@@ -177,7 +218,8 @@ void ModularObjectEventReceiver::InsertModularObjectExtensionInfo(
         return;
     }
     std::string key = GenerateModularObjectKey(userId, bundleName, appIndex);
-    DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->InsertData(key, infos);
+    DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->InsertData(
+        key, infos, bundleInfo.versionCode);
 }
 
 void ModularObjectEventReceiver::UpdateModularObjectExtensionInfos(const std::string &bundleName, int32_t userId,
@@ -203,7 +245,8 @@ void ModularObjectEventReceiver::UpdateModularObjectExtensionInfos(const std::st
         DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->DeleteData(key);
         return;
     }
-    DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->UpdateData(key, infos);
+    DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->UpdateData(
+        key, infos, bundleInfo.versionCode);
 }
 
 void ModularObjectEventReceiver::RemoveModularObjectExtensionInfo(
