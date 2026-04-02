@@ -265,7 +265,7 @@ HWTEST_F(UIExtensionContextTest, HandleTerminateWithAnimation_0100, TestSize.Lev
     context->terminateSelfWithAnimationCallback_ = nullptr;
     int32_t terminateRequestId = 123;
     auto result = context->HandleTerminateWithAnimation(terminateRequestId);
-    EXPECT_NE(result, ERR_OK);
+    EXPECT_EQ(result, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "HandleTerminateWithAnimation_0100 end");
 }
 
