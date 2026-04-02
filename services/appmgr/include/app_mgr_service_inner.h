@@ -1764,6 +1764,8 @@ public:
      */
     int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos);
 
+    void UpdateFreezeExcludedPid(bool isAdd, int32_t pid);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -2463,6 +2465,10 @@ private:
     std::map<std::string, int32_t> imageStartReportMap_;
     std::chrono::steady_clock::time_point lastReportTime_ = std::chrono::steady_clock::now();
     int32_t imageStartCount_ {0};
+
+    std::unordered_set<int32_t> freezeExcludedPidSet_;
+
+    bool IsFreezeExcludedPid(int32_t pid) const;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
