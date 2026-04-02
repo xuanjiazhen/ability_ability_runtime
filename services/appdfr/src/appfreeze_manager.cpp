@@ -1378,5 +1378,27 @@ int AppfreezeManager::GetFreezeExitReason(const std::string& eventName)
     }
     return UNKNOWN_FREEZE_REASON;
 }
-}  // namespace AAFwk
+
+void AppfreezeManager::UpdateFreezeExcludedPid(bool isAdd, int32_t pid)
+{
+    if (isAdd) {
+        std::lock_guard<ffrt::mutex> lock(freezeExcludedPidMutex_);
+        freezeExcludedPidSet_.insert(pid);
+        TAG_LOGI(AAFwkTag::APPDFR, "Add pid to freezeExcludedPidSet_: %{public}d", pid);
+    } else {
+        std::lock_guard<ffrt::mutex> lock(freezeExcludedPidMutex_);
+        freezeExcludedPidSet_.erase(pid);
+        TAG_LOGI(AAFwkTag::APPDFR, "Remove pid from freezeExcludedPidSet_: %{public}d", pid);
+    }
+}
+
+bool AppfreezeManager::IsFreezeExcludedPid(int32_t pid) const
+{
+    std::lock_guard<ffrt::mutex> lock(freezeExcludedPidMutex_);
+    if (freezeExcludedPidSet_.find(pid) != freezeExcludedPidSet_.end()) {
+        TAG_LOGW(AAFwkTag::APPDFR, "pid is in freeze excluded list, skip detect: %{public}d", pid);
+    }
+    return freezeExcludedPidSet_.find(pid) != freezeExcludedPidSet_.end();
+}
+}  // namespace AppExecFwk
 }  // namespace OHOS

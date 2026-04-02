@@ -23,6 +23,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "cpp/mutex.h"
@@ -127,6 +128,8 @@ public:
     AppfreezeManager::ProcessKillInfo GetProcessKillReason(int32_t killId, int32_t pid, const std::string& killMsg);
     void GetExitKernelReason(int32_t pid, ProcessKillInfo& killInfo);
     int GetFreezeExitReason(const std::string& eventName);
+    void UpdateFreezeExcludedPid(bool isAdd, int32_t pid);
+    bool IsFreezeExcludedPid(int32_t pid) const;
 
 private:
     struct PeerBinderInfo {
@@ -217,6 +220,8 @@ private:
     std::map<int32_t, std::map<std::string, AppfreezeEventRecord>> freezeEventMap_;
     std::mutex freezeKillThreadMutex_;
     std::map<std::string, AppFreezeInfo> freezeKillThreadMap_;
+    mutable ffrt::mutex freezeExcludedPidMutex_;
+    std::unordered_set<int32_t> freezeExcludedPidSet_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

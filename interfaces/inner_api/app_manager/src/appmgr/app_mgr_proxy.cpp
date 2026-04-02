@@ -1661,6 +1661,32 @@ bool AppMgrProxy::SetAppFreezeFilter(int32_t pid)
     return reply.ReadBool();
 }
 
+void AppMgrProxy::UpdateFreezeExcludedPid(bool isAdd, int32_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return;
+    }
+    if (!data.WriteBool(isAdd)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write isAdd failed.");
+        return;
+    }
+    if (!data.WriteInt32(pid)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write pid failed.");
+        return;
+    }
+    auto ret = SendRequest(AppMgrInterfaceCode::UPDATE_FREEZE_EXCLUDED_PID,
+        data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Send request failed with error code %{public}d.", ret);
+        return;
+    }
+}
+
 int32_t AppMgrProxy::GetProcessMemoryByPid(const int32_t pid, int32_t &memorySize)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "GetProcessMemoryByPid start");
