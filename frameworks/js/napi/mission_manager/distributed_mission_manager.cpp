@@ -34,6 +34,9 @@ using AbilityManagerClient = AAFwk::AbilityManagerClient;
 const std::string TAG = "NAPIMissionRegistration";
 constexpr size_t VALUE_BUFFER_SIZE = 128;
 const std::string CODE_KEY_NAME = "code";
+constexpr size_t INT32_SHORT_ID_LEN = 20;
+constexpr size_t INT32_MIN_ID_LEN = 6;
+constexpr size_t INT32_PLAINTEXT_LEN = 4;
 
 napi_value GenerateBusinessError(const napi_env &env, int32_t errCode, const std::string &errMsg)
 {
@@ -131,6 +134,63 @@ napi_value GetUndefined(const napi_env &env)
     napi_value nullResult = nullptr;
     napi_get_undefined(env, &nullResult);
     return handleEscape.Escape(nullResult);
+}
+
+static std::string GetAnonymStr(const std::string &value)
+{
+    std::string res;
+    std::string tmpStr("******");
+    size_t strLen = value.length();
+    if (strLen < INT32_MIN_ID_LEN) {
+        return tmpStr;
+    }
+
+    if (strLen <= INT32_SHORT_ID_LEN) {
+        res += value[0];
+        res += tmpStr;
+        res += value[strLen - 1];
+    } else {
+        res.append(value, 0, INT32_PLAINTEXT_LEN);
+        res += tmpStr;
+        res.append(value, strLen - INT32_PLAINTEXT_LEN, INT32_PLAINTEXT_LEN);
+    }
+    return res;
+}
+
+static napi_value ParseAndCreateAppIdsArray(const napi_env &env, const std::string &appIdentifierList)
+{
+    AbilityRuntime::HandleEscape handleEscape(env);
+    napi_value jsAppIdsArray = nullptr;
+    napi_create_array(env, &jsAppIdsArray);
+    size_t index = 0;
+
+    if (!appIdentifierList.empty()) {
+        std::string appList = appIdentifierList;
+        size_t start = 0;
+        size_t pos = 0;
+
+        while ((pos = appList.find(',', start)) != std::string::npos) {
+            if (pos > start) {
+                std::string appId = appList.substr(start, pos - start);
+                TAG_LOGE(AAFwkTag::MISSION, "appIdentifier element: %{public}s", GetAnonymStr(appId).c_str());
+                napi_value jsAppId = nullptr;
+                napi_create_string_utf8(env, appId.c_str(), NAPI_AUTO_LENGTH, &jsAppId);
+                napi_set_element(env, jsAppIdsArray, index++, jsAppId);
+            }
+            start = pos + 1;
+        }
+        if (start < appList.size()) {
+            std::string appId = appList.substr(start);
+            napi_value jsAppId = nullptr;
+            napi_create_string_utf8(env, appId.c_str(), NAPI_AUTO_LENGTH, &jsAppId);
+            napi_set_element(env, jsAppIdsArray, index++, jsAppId);
+        }
+    }
+
+    if (index > 0) {
+        return handleEscape.Escape(jsAppIdsArray);
+    }
+    return nullptr;
 }
 
 bool SetStartSyncMissionsContext(const napi_env &env, const napi_value &value,
@@ -1095,6 +1155,43 @@ void UvWorkNotifyMissionChanged(uv_work_t *work, int status)
     TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work end");
 }
 
+static void BuildCallbackResult(OnCB *onCB, napi_value result[3])
+{
+    TAG_LOGI(AAFwkTag::MISSION, "BuildCallbackResult");
+    napi_create_int32(onCB->cbBase.cbInfo.env, onCB->continueState, &result[0]);
+    napi_create_object(onCB->cbBase.cbInfo.env, &result[1]);
+    napi_create_object(onCB->cbBase.cbInfo.env, &result[ARGS_TWO]);
+
+    std::string napiValue1 = onCB->srcDeviceId;
+    std::string napiValue2 = onCB->bundleName;
+    std::string napiValue3 = onCB->continueType;
+    std::string napiValue4 = onCB->srcBundleName;
+    napi_value jsValueArr[PARAM4] = {nullptr};
+    napi_create_string_utf8(onCB->cbBase.cbInfo.env, napiValue1.c_str(), NAPI_AUTO_LENGTH, &jsValueArr[0]);
+    napi_create_string_utf8(onCB->cbBase.cbInfo.env, napiValue2.c_str(), NAPI_AUTO_LENGTH, &jsValueArr[1]);
+    napi_create_string_utf8(onCB->cbBase.cbInfo.env, napiValue3.c_str(), NAPI_AUTO_LENGTH, &jsValueArr[ARGS_TWO]);
+    napi_create_string_utf8(onCB->cbBase.cbInfo.env, napiValue4.c_str(), NAPI_AUTO_LENGTH, &jsValueArr[ARGS_THREE]);
+
+    std::string paramName1 = "srcDeviceId";
+    std::string paramName2 = "bundleName";
+    std::string paramName3 = "continueType";
+    std::string paramName4 = "srcBundleName";
+    napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName1.c_str(), jsValueArr[0]);
+    napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName2.c_str(), jsValueArr[1]);
+    napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName3.c_str(), jsValueArr[ARGS_TWO]);
+    napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName4.c_str(), jsValueArr[ARGS_THREE]);
+
+    napi_value jsAppIdsArray = ParseAndCreateAppIdsArray(onCB->cbBase.cbInfo.env, onCB->appIdentifierList);
+    if (jsAppIdsArray != nullptr) {
+        std::string paramName5 = "appIds";
+        napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName5.c_str(), jsAppIdsArray);
+    }
+    std::string napiState = "state";
+    std::string napiInfo = "info";
+    napi_set_named_property(onCB->cbBase.cbInfo.env, result[ARGS_TWO], napiState.c_str(), result[0]);
+    napi_set_named_property(onCB->cbBase.cbInfo.env, result[ARGS_TWO], napiInfo.c_str(), result[1]);
+}
+
 void UvWorkOnCallback(uv_work_t *work, int status)
 {
     TAG_LOGI(AAFwkTag::MISSION, "uv_queue_work");
@@ -1108,32 +1205,11 @@ void UvWorkOnCallback(uv_work_t *work, int status)
         delete work;
         return;
     }
+
     AbilityRuntime::HandleScope handleScope(onCB->cbBase.cbInfo.env);
     napi_value result[3] = {nullptr};
-    napi_create_int32(onCB->cbBase.cbInfo.env, onCB->continueState, &result[0]);
-    napi_create_object(onCB->cbBase.cbInfo.env, &result[1]);
-    napi_create_object(onCB->cbBase.cbInfo.env, &result[ARGS_TWO]);
-    std::string napiValue1 = onCB->srcDeviceId;
-    std::string napiValue2 = onCB->bundleName;
-    std::string napiValue3 = onCB->continueType;
-    std::string napiValue4 = onCB->srcBundleName;
-    napi_value jsValueArr[PARAM4] = {nullptr};
-    napi_create_string_utf8(onCB->cbBase.cbInfo.env, napiValue1.c_str(), NAPI_AUTO_LENGTH, &jsValueArr[0]);
-    napi_create_string_utf8(onCB->cbBase.cbInfo.env, napiValue2.c_str(), NAPI_AUTO_LENGTH, &jsValueArr[1]);
-    napi_create_string_utf8(onCB->cbBase.cbInfo.env, napiValue3.c_str(), NAPI_AUTO_LENGTH, &jsValueArr[ARGS_TWO]);
-    napi_create_string_utf8(onCB->cbBase.cbInfo.env, napiValue4.c_str(), NAPI_AUTO_LENGTH, &jsValueArr[ARGS_THREE]);
-    std::string napiState = "state";
-    std::string paramName1 = "srcDeviceId";
-    std::string paramName2 = "bundleName";
-    std::string paramName3 = "continueType";
-    std::string paramName4 = "srcBundleName";
-    std::string napiInfo = "info";
-    napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName1.c_str(), jsValueArr[0]);
-    napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName2.c_str(), jsValueArr[1]);
-    napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName3.c_str(), jsValueArr[ARGS_TWO]);
-    napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName4.c_str(), jsValueArr[ARGS_THREE]);
-    napi_set_named_property(onCB->cbBase.cbInfo.env, result[ARGS_TWO], napiState.c_str(), result[0]);
-    napi_set_named_property(onCB->cbBase.cbInfo.env, result[ARGS_TWO], napiInfo.c_str(), result[1]);
+    BuildCallbackResult(onCB, result);
+
     for (auto ele = onCB->cbBase.cbInfo.vecCallbacks.begin(); ele != onCB->cbBase.cbInfo.vecCallbacks.end(); ++ele) {
         napi_value undefined = nullptr;
         napi_get_undefined(onCB->cbBase.cbInfo.env, &undefined);
@@ -1183,7 +1259,8 @@ void NAPIRemoteMissionListener::NotifyMissionsChanged(const std::string &deviceI
 }
 
 void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
-    const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName)
+    const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName,
+    const std::string &appIdentifierList)
 {
     TAG_LOGI(AAFwkTag::MISSION, "called");
     uv_loop_s *loop = nullptr;
@@ -1211,6 +1288,7 @@ void NAPIRemoteOnListener::OnCallback(const uint32_t continueState, const std::s
     onCB->bundleName = bundleName;
     onCB->continueType = continueType;
     onCB->srcBundleName = srcBundleName;
+    onCB->appIdentifierList = appIdentifierList;
     work->data = static_cast<void *>(onCB);
 
     int rev = uv_queue_work_with_qos_internal(

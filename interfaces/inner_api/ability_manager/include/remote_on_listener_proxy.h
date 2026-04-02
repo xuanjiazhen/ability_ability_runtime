@@ -35,7 +35,8 @@ public:
      * @param deviceId, remote device Id.
      */
     virtual void OnCallback(const uint32_t continueState, const std::string &srcDeviceId,
-        const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName) override;
+        const std::string &bundleName, const std::string &continueType, const std::string &srcBundleName,
+        const std::string &appIdentifier = "") override;
 private:
     static inline BrokerDelegator<RemoteOnListenerProxy> delegator_;
 };
