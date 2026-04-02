@@ -77,6 +77,16 @@ public:
     bool IsAbilityCreated() const;
     void MarkAbilityCreated();
 
+    void SetSkipAbilityStageLifecycle(bool skipAbilityStageLifecycle)
+    {
+        skipAbilityStageLifecycle_ = skipAbilityStageLifecycle;
+    }
+
+    bool IsSkipAbilityStageLifecycle() const
+    {
+        return skipAbilityStageLifecycle_;
+    }
+
 private:
     friend class JsAbilityStage;
     friend class ETSAbilityStage;
@@ -84,6 +94,8 @@ private:
     std::map<sptr<IRemoteObject>, std::shared_ptr<AppExecFwk::AbilityLocalRecord>> abilityRecords_;
     std::weak_ptr<AppExecFwk::OHOSApplication> application_;
     bool isAbilityCreate_ = false;
+
+    bool skipAbilityStageLifecycle_ = false;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
