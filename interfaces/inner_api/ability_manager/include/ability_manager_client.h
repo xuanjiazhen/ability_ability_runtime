@@ -1688,6 +1688,16 @@ public:
         const InsightIntentExecuteParam &param);
 
     /**
+     * @brief Query entity info.
+     * @param key The key of intent executing client.
+     * @param callerToken Caller ability token.
+     * @param param The Intent query param.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode QueryEntityInfo(uint64_t key, sptr<IRemoteObject> callerToken,
+        const InsightIntentQueryEntityParam &param);
+
+    /**
      * @brief Called when insight intent execute finished.
      *
      * @param token ability's token.
@@ -2114,14 +2124,6 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode UnRegisterPreloadUIExtensionHostClient(int32_t callerPid = DEFAULT_INVAL_VALUE);
-
-    /**
- 	 * @brief Queries self modular object extension information.
-     * @param extensionInfos get the queried extensionInfos.
-     *
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode QuerySelfModularObjectExtensionInfos(std::vector<ModularObjectExtensionInfo> &extensionInfos);
 
     /**
      * @brief Get list of applications launched before the first unlock.

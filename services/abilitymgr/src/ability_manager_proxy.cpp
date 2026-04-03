@@ -5677,6 +5677,42 @@ int32_t AbilityManagerProxy::ExecuteIntent(uint64_t key,  const sptr<IRemoteObje
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::QueryEntityInfo(uint64_t key, sptr<IRemoteObject> callerToken,
+    const InsightIntentQueryEntityParam &param)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteUint64(key)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write key fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteRemoteObject(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write callerToken failed.");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteParcelable(&param)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write param fail");
+        return INNER_ERR;
+    }
+
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::QUERY_ENTITY, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+
+    return reply.ReadInt32();
+}
+
 bool AbilityManagerProxy::IsAbilityControllerStart(const Want &want)
 {
     MessageParcel data;

@@ -29,6 +29,15 @@ const uint8_t NUMBER_OF_PARAMETERS_ONE = 1;
 const uint8_t NUMBER_OF_PARAMETERS_TWO = 2;
 const uint8_t NUMBER_OF_PARAMETERS_THREE = 3;
 
+void SetNamedProperty(napi_env env, napi_value dstObj, const char *objName, const char *propName)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "called");
+    AbilityRuntime::HandleScope handleScope(env);
+    napi_value prop = nullptr;
+    napi_create_string_utf8(env, objName, NAPI_AUTO_LENGTH, &prop);
+    napi_set_named_property(env, dstObj, propName, prop);
+}
+
 napi_value ExecuteModeInit(napi_env env)
 {
     if (env == nullptr) {
@@ -68,6 +77,21 @@ napi_value ReturnModeInit(napi_env env)
     return handleEscape.Escape(objValue);
 }
 
+napi_value QueryTypeInit(napi_env env)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null env");
+        return nullptr;
+    }
+    HandleEscape handleEscape(env);
+    napi_value objValue = nullptr;
+    napi_create_object(env, &objValue);
+
+    SetNamedProperty(env, objValue, "ALL", "all");
+    SetNamedProperty(env, objValue, "BY_RPOPERTY", "by_property");
+    return handleEscape.Escape(objValue);
+}
+
 napi_value JsInsightIntentInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
@@ -78,6 +102,7 @@ napi_value JsInsightIntentInit(napi_env env, napi_value exportObj)
     HandleScope handleScope(env);
     napi_set_named_property(env, exportObj, "ExecuteMode", ExecuteModeInit(env));
     napi_set_named_property(env, exportObj, "ReturnMode", ReturnModeInit(env));
+    napi_set_named_property(env, exportObj, "QueryType", ReturnModeInit(env));
     return exportObj;
 }
 } // namespace AbilityRuntime

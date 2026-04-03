@@ -46,6 +46,27 @@ public:
     // Check result returned by intent executor
     static bool CheckResult(std::shared_ptr<const WantParams> result);
 };
+
+/**
+ * @struct InsightIntentQueryResult
+ * InsightIntentQueryResult is used to save information about query result.
+ */
+struct InsightIntentQueryResult : public Parcelable {
+public:
+    int32_t innerErr = AbilityRuntime::InsightIntentInnerErr::INSIGHT_INTENT_ERR_OK;
+    int32_t code = 0;
+    int32_t flags = 0;
+    std::shared_ptr<WantParams> result = nullptr;
+    std::vector<std::string> uris;
+    bool isDecorator = false;
+    bool isNeedDelayResult = false;
+
+    bool ReadFromParcel(Parcel &parcel);
+    bool Marshalling(Parcel &parcel) const override;
+    static InsightIntentExecuteResult *Unmarshalling(Parcel &parcel);
+    // Check result returned by intent executor
+    static bool CheckResult(std::shared_ptr<const WantParams> result);
+};
 } // namespace AppExecFwk
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_INSIGHT_INTENT_EXECUTE_RESULT_H

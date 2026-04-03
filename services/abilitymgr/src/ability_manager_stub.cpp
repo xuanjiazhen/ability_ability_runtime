@@ -14,6 +14,7 @@
  */
 
 #include "ability_manager_stub.h"
+#include "insight_intent_query_entity_param.h"
 
 #include "ability_manager_errors.h"
 #include "ability_manager_radar.h"
@@ -282,6 +283,9 @@ int AbilityManagerStub::OnRemoteRequestInnerSixth(uint32_t code, MessageParcel &
     }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_INSIGHT_INTENT_DONE) {
         return ExecuteInsightIntentDoneInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::QUERY_ENTITY) {
+        return QueryEntityInner(data, reply);
     }
     if (interfaceCode == AbilityManagerInterfaceCode::OPEN_FILE) {
         return OpenFileInner(data, reply);
@@ -4138,6 +4142,27 @@ int32_t AbilityManagerStub::ExecuteIntentInner(MessageParcel &data, MessageParce
         return ERR_INVALID_VALUE;
     }
     auto result = ExecuteIntent(key, callerToken, *param);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int AbilityManagerStub::QueryEntityInner(MessageParcel &data, MessageParcel &reply)
+{
+    uint64_t key = data.ReadUint64();
+    sptr<IRemoteObject> callerToken = data.ReadRemoteObject();
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null callerToken");
+        return ERR_INVALID_VALUE;
+    }
+    std::unique_ptr<InsightIntentQueryEntityParam> param(data.ReadParcelable<InsightIntentQueryEntityParam>());
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "param null");
+        return ERR_INVALID_VALUE;
+    }
+    auto result = QueryEntityInfo(key, callerToken, *param);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;
