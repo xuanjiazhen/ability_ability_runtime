@@ -75,7 +75,7 @@ public:
     int32_t ExecTool(const std::string &name,
                      const std::vector<std::pair<std::string, std::string>> &args,
                      const ExecOptions &options,
-                     ExecResult &result) override;
+                     SessionInfo &session) override;
 
 private:
     void Init();

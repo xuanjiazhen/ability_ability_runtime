@@ -15,6 +15,7 @@
 
 #include "native_engine/native_engine.h"
 #include "js_cli_manager.h"
+#include "hilog_tag_wrapper.h"
 
 /*
  * The module definition.
@@ -31,6 +32,8 @@ static napi_module _module = {
  */
 extern "C" __attribute__((constructor)) void NAPI_app_ability_CliManager_AutoRegister(void)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManager N-API module auto-register called");
     napi_module_register(&_module);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManager N-API module registered successfully");
 }
 

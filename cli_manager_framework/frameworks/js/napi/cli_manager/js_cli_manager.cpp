@@ -53,12 +53,30 @@ public:
 
     static napi_value QueryTools(napi_env env, napi_callback_info info)
     {
-        GET_CB_INFO_AND_CALL(env, info, JsCliManager, OnQueryTools);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "========== JsCliManager::QueryTools ENTRY ==========");
+
+        // Get arguments without extracting 'this' pointer
+        size_t argc = ARGC_MAX_COUNT;
+        napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+        napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+        // Create instance and call method (static method pattern)
+        JsCliManager instance;
+        return instance.OnQueryTools(env, argc, argv);
     }
 
     static napi_value ExecTool(napi_env env, napi_callback_info info)
     {
-        GET_CB_INFO_AND_CALL(env, info, JsCliManager, OnExecTool);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "========== JsCliManager::ExecTool ENTRY ==========");
+
+        // Get arguments without extracting 'this' pointer
+        size_t argc = ARGC_MAX_COUNT;
+        napi_value argv[ARGC_MAX_COUNT] = {nullptr};
+        napi_get_cb_info(env, info, &argc, argv, nullptr, nullptr);
+
+        // Create instance and call method (static method pattern)
+        JsCliManager instance;
+        return instance.OnExecTool(env, argc, argv);
     }
 
 private:
@@ -154,39 +172,33 @@ private:
         ExecOptions options;
         if (jsOptions != nullptr) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 3.1 - jsOptions is not null");
-            napi_value jsExecOptions = nullptr;
-            napi_get_named_property(env, jsOptions, "options", &jsExecOptions);
             TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 3.2 - calling UnwrapExecOptions");
-            UnwrapExecOptions(env, jsExecOptions, options);
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 3.3 - parsed options: mode='%{public}s', timeout=%{public}d",
-                options.mode.c_str(), options.timeout);
+            UnwrapExecOptions(env, jsOptions, options);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 3.3 - parsed options: background=%{public}d, yieldMs=%{public}d, timeoutMs=%{public}d",
+                options.background, options.yieldMs, options.timeoutMs);
         } else {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 3.1 - jsOptions is null");
         }
 
-        // Extract callback and create napi_ref for lifecycle management
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 4 - extracting callback from argv[2]");
-        napi_value callback = nullptr;
-        if (argc >= ARGC_THREE && argv[INDEX_TWO] != nullptr) {
-            napi_get_named_property(env, argv[INDEX_TWO], "callback", &callback);
-        }
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: callback=%{public}s", callback ? "not null" : "null");
-
-        // Create napi_ref to manage callback lifetime
-        auto callbackRef = std::make_shared<napi_ref>(nullptr);
-        if (callback != nullptr) {
-            napi_create_reference(env, callback, 1, &(*callbackRef));
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: created napi_ref for callback");
-        }
-
         auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
-        auto result = std::make_shared<ExecResult>();
+        auto session = std::make_shared<SessionInfo>();
 
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 5 - creating async callbacks");
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 5.1 - captured name='%{public}s', args.count=%{public}zu",
-            name.c_str(), args.size());
+        // 预先初始化 SessionInfo 的基本信息，以便在失败时也能返回有效的 sessionId
+        auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()).count();
+        session->sessionId = std::to_string(std::hash<std::string>{}(
+            name + std::to_string(nowMs)));
+        session->toolName = name;
+        session->status = "running";
+        session->startTime = nowMs;
+        session->endTime = 0;
+        session->result = nullptr;
 
-        NapiAsyncTask::ExecuteCallback execute = [innerErrCode, name, args, options, result]() {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 4 - creating async callbacks");
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: step 4.1 - captured sessionId='%{public}s', name='%{public}s', args.count=%{public}zu",
+            session->sessionId.c_str(), name.c_str(), args.size());
+
+        NapiAsyncTask::ExecuteCallback execute = [innerErrCode, name, args, options, session]() {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteCallback(ExecTool): starting, name='%{public}s'", name.c_str());
             TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteCallback(ExecTool): args count=%{public}zu", args.size());
             for (const auto &[key, value] : args) {
@@ -194,57 +206,46 @@ private:
                     key.c_str(), value.c_str());
             }
             TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteCallback(ExecTool): calling CliManagerClient::ExecTool");
-            *innerErrCode = CliManagerClient::GetInstance().ExecTool(name, args, options, *result);
+            *innerErrCode = CliManagerClient::GetInstance().ExecTool(name, args, options, *session);
             TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteCallback(ExecTool): returned errCode=%{public}d", *innerErrCode);
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteCallback(ExecTool): result.exitCode=%{public}d, stdout.len=%{public}zu",
-                result->exitCode, result->stdOut.length());
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteCallback(ExecTool): session.status='%{public}s', sessionId='%{public}s'",
+                session->status.c_str(), session->sessionId.c_str());
         };
 
-        NapiAsyncTask::CompleteCallback complete = [innerErrCode, result, callbackRef](
+        NapiAsyncTask::CompleteCallback complete = [innerErrCode, session](
             napi_env env, NapiAsyncTask &task, int32_t status) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "========== CompleteCallback(ExecTool) START ==========");
             TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): errCode=%{public}d", *innerErrCode);
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): result.exitCode=%{public}d, stdout.len=%{public}zu, stderr.len=%{public}zu",
-                result->exitCode, result->stdOut.length(), result->stdErr.length());
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): session.status='%{public}s', sessionId='%{public}s'",
+                session->status.c_str(), session->sessionId.c_str());
 
             HandleScope handleScope(env);
 
-            // Call user's callback if it exists
-            if (*callbackRef != nullptr) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): calling user callback");
-                napi_value callbackFunc = nullptr;
-                napi_get_reference_value(env, *callbackRef, &callbackFunc);
-
-                if (callbackFunc != nullptr) {
-                    napi_value argv[2];
-                    if (*innerErrCode == ERR_OK) {
-                        TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): calling callback with success result");
-                        argv[0] = nullptr; // error = null
-                        argv[1] = CreateJsExecResult(env, *result); // result
-                    } else {
-                        TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): calling callback with error");
-                        argv[0] = CreateJsErrorByNativeErr(env, *innerErrCode); // error
-                        argv[1] = nullptr; // result = undefined
-                    }
-
-                    napi_value result = nullptr;
-                    napi_call_function(env, nullptr, callbackFunc, 2, argv, &result);
-                    TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): user callback called");
+            // 如果 IPC 调用失败，设置 session 状态为 failed
+            if (*innerErrCode != ERR_OK) {
+                session->status = "failed";
+                // 如果还没有结束时间，设置当前时间
+                if (session->endTime == 0) {
+                    session->endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+                        std::chrono::steady_clock::now().time_since_epoch()).count();
                 }
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): IPC failed, setting status to 'failed'");
             }
 
-            // Resolve/reject promise
-            if (*innerErrCode == ERR_OK) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): Creating JS result object for promise");
-                napi_value jsResult = CreateJsExecResult(env, *result);
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): Calling ResolveWithNoError");
-                task.ResolveWithNoError(env, jsResult);
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "========== CompleteCallback(ExecTool) RESOLVED ==========");
-            } else {
-                TAG_LOGE(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): Rejecting promise with errCode=%{public}d", *innerErrCode);
-                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "========== CompleteCallback(ExecTool) REJECTED ==========");
+            // 总是返回 SessionInfo，通过 status 字段判断成功/失败
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): Creating JS session object for promise");
+            napi_value jsSession = CreateJsSessionInfo(env, *session);
+
+            // 检查 jsSession 是否为 null
+            if (jsSession == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): jsSession is nullptr!");
+                task.Reject(env, CreateJsUndefined(env));
+                return;
             }
+
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "CompleteCallback(ExecTool): jsSession created, calling ResolveWithNoError");
+            task.ResolveWithNoError(env, jsSession);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "========== CompleteCallback(ExecTool) RESOLVED ==========");
             TAG_LOGI(AAFwkTag::ABILITYMGR, "========== CompleteCallback(ExecTool) END ==========");
         };
 
@@ -256,19 +257,32 @@ private:
     }
 };
 
-napi_value JsCliManagerInit(napi_env env, napi_value exportObj)
+napi_value JsCliManagerInit(napi_env env, napi_value exports)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "JsCliManagerInit called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "JsCliManagerInit called");
 
+    // Wrap C++ object to exports (like JsAbilityManagerInit)
     std::unique_ptr<JsCliManager> jsCliManager = std::make_unique<JsCliManager>();
-    napi_wrap(env, exportObj, jsCliManager.release(), JsCliManager::Finalizer, nullptr, nullptr);
+    napi_wrap(env, exports, jsCliManager.release(), JsCliManager::Finalizer, nullptr, nullptr);
 
-    const char *moduleName = "JsCliManager";
-    BindNativeFunction(env, exportObj, "queryTools", moduleName, JsCliManager::QueryTools);
-    BindNativeFunction(env, exportObj, "execTool", moduleName, JsCliManager::ExecTool);
+    // Create CLIManager object
+    napi_value cliManagerObj = nullptr;
+    napi_status status = napi_create_object(env, &cliManagerObj);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to create CLIManager object: %{public}d", status);
+        return CreateJsUndefined(env);
+    }
 
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "JsCliManagerInit end");
-    return exportObj;
+    // Bind methods using BindNativeFunction (standard pattern)
+    const char* moduleName = "JsCliManager";
+    BindNativeFunction(env, cliManagerObj, "queryTools", moduleName, JsCliManager::QueryTools);
+    BindNativeFunction(env, cliManagerObj, "execTool", moduleName, JsCliManager::ExecTool);
+
+    // Export CLIManager object to exports
+    napi_set_named_property(env, exports, "CLIManager", cliManagerObj);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "JsCliManagerInit end");
+    return CreateJsUndefined(env);
 }
 
 }  // namespace AbilityRuntime
