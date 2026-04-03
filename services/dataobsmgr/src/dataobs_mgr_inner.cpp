@@ -59,8 +59,10 @@ int DataObsMgrInner::HandleRegisterObserver(const Uri &uri, struct ObserverNode 
     }
 
     obsPair->second.push_back(observerNode);
-    TAG_LOGI(AAFwkTag::DBOBSMGR, "uri:%{public}s p:%{public}d Id:%{public}" PRId64,
-        CommonUtils::Anonymous(uri.ToString()).c_str(), observerNode.pid_, observerNode.nodeId_);
+    TAG_LOGI(AAFwkTag::DBOBSMGR,
+        "uri:%{public}s p:%{public}d Id:%{public}" PRId64 ", obsCnt:%{public}zu, totalObsCnt:%{public}zu",
+        CommonUtils::Anonymous(uri.ToString()).c_str(), observerNode.pid_, observerNode.nodeId_,
+        obsPair->second.size(), observers_.size());
 
     AddObsDeathRecipient(observerNode.observer_);
 
@@ -91,8 +93,10 @@ int DataObsMgrInner::HandleUnregisterObserver(const Uri &uri, struct ObserverNod
             AAFwkTag::DBOBSMGR, "uri no obs:%{public}s", CommonUtils::Anonymous(uri.ToString()).c_str());
         return NO_OBS_FOR_URI;
     }
-    TAG_LOGI(AAFwkTag::DBOBSMGR, "uri:%{public}s p:%{public}d Id:%{public}" PRId64,
-        CommonUtils::Anonymous(uri.ToString()).c_str(), observerNode.pid_, observerNode.nodeId_);
+    TAG_LOGI(AAFwkTag::DBOBSMGR,
+        "uri:%{public}s p:%{public}d Id:%{public}" PRId64 ", obsCnt:%{public}zu, totalObsCnt:%{public}zu",
+        CommonUtils::Anonymous(uri.ToString()).c_str(), observerNode.pid_, observerNode.nodeId_,
+        obsPair->second.size(), observers_.size());
     obsPair->second.remove(*obs);
     if (obsPair->second.empty()) {
         observers_.erase(obsPair);
