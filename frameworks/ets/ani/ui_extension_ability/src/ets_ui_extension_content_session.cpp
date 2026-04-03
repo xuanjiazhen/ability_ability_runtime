@@ -656,7 +656,7 @@ ani_object EtsUIExtensionContentSession::GetUIExtensionHostWindowProxy(ani_env *
         return nullptr;
     }
     ani_object etsExtensionWindow =
-        Rosen::AniExtensionWindow::CreateAniExtensionWindow(env, uiWindow_, sessionInfo_->hostWindowId);
+        Rosen::AniExtensionWindow::CreateAniExtensionWindow(env, uiWindow_, sessionInfo_->hostWindowId, false);
     if (etsExtensionWindow == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null etsExtensionWindow");
         EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
