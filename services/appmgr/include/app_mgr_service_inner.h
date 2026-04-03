@@ -317,9 +317,9 @@ public:
      */
     virtual void PreloadModuleFinished(const int32_t pid);
 
-    void MakeImage(const std::string &bundleName, int32_t userId,
+    void MakeImage(const AAFwk::Want &want, int32_t userId,
         AppExecFwk::PreloadMode preloadMode, int32_t appIndex, sptr<IImageErrorHandler> errorHandler);
-    ImageError MakeImageInner(const std::string &bundleName, int32_t userId,
+    ImageError MakeImageInner(const AAFwk::Want &want, int32_t userId,
         AppExecFwk::PreloadMode preloadMode, int32_t appIndex, sptr<IImageErrorHandler> errorHandler);
     void DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler);
     ImageError DestroyImageInner(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler);
@@ -1730,6 +1730,15 @@ public:
 
     void NotifyTerminateAbility(const sptr<IRemoteObject> token);
 
+    /**
+     * Get all ability infos
+     *
+     * @param pid if pid is -1, query all ability infos, otherwise query ability infos for this pid
+     * @param infos ability infos
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos);
+
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -2146,7 +2155,7 @@ private:
      */
     bool NotifyMemMgrPriorityChanged(const std::shared_ptr<AppRunningRecord> appRecord);
 
-    int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    int32_t PreloadApplication(const AAFwk::Want &want, int32_t userId, int32_t appIndex,
         AppExecFwk::PreloadMode preloadMode, AppExecFwk::PreloadPhase preloadPhase, bool needMakeImage = false,
         sptr<IImageErrorHandler> errorHandler = nullptr);
     void HandlePreloadApplication(const PreloadRequest &request);
