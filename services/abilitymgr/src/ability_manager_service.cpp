@@ -17085,6 +17085,18 @@ int32_t AbilityManagerService::QuerySelfModularObjectExtensionInfos(
         callerBundleName, callerAppIndex, extensionInfos);
 }
 
+int32_t AbilityManagerService::ConnectModularObjectExtension(const Want &want,
+    sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+{
+    return DelayedSingleton<ModularObjectManager>::GetInstance()->ConnectModularObjectExtension(
+        want, connect, callerToken, userId);
+}
+
+int32_t AbilityManagerService::DisconnectModularObjectExtension(sptr<IAbilityConnection> connect)
+{
+    return DelayedSingleton<ModularObjectManager>::GetInstance()->DisconnectModularObjectExtension(connect);
+}
+
 int32_t AbilityManagerService::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)
 {
