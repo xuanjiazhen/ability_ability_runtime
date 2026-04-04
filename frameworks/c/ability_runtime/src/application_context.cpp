@@ -121,13 +121,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetCacheDir(
     char* buffer, const int32_t bufferSize, int32_t* writeLength)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
-    if (buffer == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "buffer is null");
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    if (writeLength == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "writeLength is null");
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    auto ret = CheckParameters(buffer, writeLength);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        return ret;
     }
 
     const auto appContext = Context::GetApplicationContext();
@@ -165,13 +161,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextGetBundleName(
     char* buffer, const int32_t bufferSize, int32_t* writeLength)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
-    if (buffer == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "buffer is null");
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    if (writeLength == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "writeLength is null");
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    auto ret = CheckParameters(buffer, writeLength);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        return ret;
     }
 
     const auto appContext = Context::GetApplicationContext();
