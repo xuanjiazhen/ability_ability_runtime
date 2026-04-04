@@ -53,7 +53,7 @@ public:
     std::string outputSchema;      // JSON string
     std::string argMapping;        // JSON string
     std::string eventSchemas;      // JSON string (map of event type to schema)
-    int32_t timeoutMs;
+    int32_t timeout;
     std::vector<std::string> eventTypes;
     int64_t registeredTime;
     bool enabled;
@@ -71,7 +71,7 @@ class ExecOptions : public Parcelable {
 public:
     bool background;               // true: async, false: sync with yieldMs timeout
     int32_t yieldMs;               // foreground wait timeout (only when background=false)
-    int32_t timeoutMs;             // total execution timeout (0 = use tool default)
+    int32_t timeout;               // total execution timeout (0 = use tool default)
     std::map<std::string, std::string> env;
     std::string workingDir;
 
@@ -84,11 +84,10 @@ public:
  */
 class ExecResult : public Parcelable {
 public:
-    std::string taskId;
     int32_t exitCode;
-    std::string stdOut;
-    std::string stdErr;
-    int32_t signal;
+    std::string outputText;
+    std::string errorText;
+    int32_t signalNumber;
     bool timedOut;
     int64_t executionTime;
 
