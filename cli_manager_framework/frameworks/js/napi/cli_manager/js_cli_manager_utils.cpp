@@ -81,7 +81,7 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &info)
     napi_set_named_property(env, objValue, "description", CreateJsValue(env, info.description));
     napi_set_named_property(env, objValue, "executablePath", CreateJsValue(env, info.executablePath));
     napi_set_named_property(env, objValue, "permissions", CreateNativeArray(env, info.permissions));
-    napi_set_named_property(env, objValue, "timeoutMs", CreateJsValue(env, info.timeoutMs));
+    napi_set_named_property(env, objValue, "timeout", CreateJsValue(env, info.timeout));
     napi_set_named_property(env, objValue, "eventTypes", CreateNativeArray(env, info.eventTypes));
     napi_set_named_property(env, objValue, "registeredTime", CreateJsValue(env, info.registeredTime));
     napi_set_named_property(env, objValue, "enabled", CreateJsValue(env, info.enabled));
@@ -194,11 +194,10 @@ napi_value CreateJsExecResult(napi_env env, const ExecResult &result)
         return nullptr;
     }
 
-    napi_set_named_property(env, objValue, "taskId", CreateJsValue(env, result.taskId));
     napi_set_named_property(env, objValue, "exitCode", CreateJsValue(env, result.exitCode));
-    napi_set_named_property(env, objValue, "stdout", CreateJsValue(env, result.stdOut));
-    napi_set_named_property(env, objValue, "stderr", CreateJsValue(env, result.stdErr));
-    napi_set_named_property(env, objValue, "signal", CreateJsValue(env, result.signal));
+    napi_set_named_property(env, objValue, "outputText", CreateJsValue(env, result.outputText));
+    napi_set_named_property(env, objValue, "errorText", CreateJsValue(env, result.errorText));
+    napi_set_named_property(env, objValue, "signalNumber", CreateJsValue(env, result.signalNumber));
     napi_set_named_property(env, objValue, "timedOut", CreateJsValue(env, result.timedOut));
     napi_set_named_property(env, objValue, "executionTime", CreateJsValue(env, result.executionTime));
 
@@ -292,7 +291,7 @@ napi_value CreateJsToolEvent(napi_env env, const ToolEvent &event)
     }
 
     napi_set_named_property(env, objValue, "type", CreateJsValue(env, event.type));
-    napi_set_named_property(env, objValue, "data", CreateJsValue(env, event.data));
+    napi_set_named_property(env, objValue, "eventData", CreateJsValue(env, event.data));
     napi_set_named_property(env, objValue, "timestamp", CreateJsValue(env, event.timestamp));
 
     // exitCode is only present for 'exit' type events
@@ -356,7 +355,7 @@ bool UnwrapExecOptions(napi_env env, napi_value jsOptions, ExecOptions &options)
         // Use default values
         options.background = false;
         options.yieldMs = 30000; // 30 seconds default
-        options.timeoutMs = 0;    // 0 means use tool default
+        options.timeout = 0;    // 0 means use tool default
         options.workingDir = "";
         return true;
     }
@@ -379,13 +378,13 @@ bool UnwrapExecOptions(napi_env env, napi_value jsOptions, ExecOptions &options)
         options.yieldMs = 30000;
     }
 
-    // Parse timeoutMs
-    napi_value timeoutMsValue = nullptr;
-    napi_get_named_property(env, jsOptions, "timeoutMs", &timeoutMsValue);
-    if (timeoutMsValue != nullptr) {
-        napi_get_value_int32(env, timeoutMsValue, &options.timeoutMs);
+    // Parse timeout
+    napi_value timeoutValue = nullptr;
+    napi_get_named_property(env, jsOptions, "timeout", &timeoutValue);
+    if (timeoutValue != nullptr) {
+        napi_get_value_int32(env, timeoutValue, &options.timeout);
     } else {
-        options.timeoutMs = 0;
+        options.timeout = 0;
     }
 
     // Parse workingDir

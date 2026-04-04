@@ -158,7 +158,7 @@ int32_t CliToolManager::GetToolTimeout(const std::string &name, int32_t &timeout
         return ERR_NOT_FOUND;
     }
 
-    timeout = tool.timeoutMs;
+    timeout = tool.timeout;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Tool timeout: %{public}s, timeout: %{public}d",
         name.c_str(), timeout);
     return ERR_OK;

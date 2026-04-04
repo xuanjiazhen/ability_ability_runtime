@@ -82,7 +82,7 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
     if (!parcel.WriteString(eventSchemas)) {
         return false;
     }
-    if (!parcel.WriteInt32(timeoutMs)) {
+    if (!parcel.WriteInt32(timeout)) {
         return false;
     }
     if (!parcel.WriteStringVector(eventTypes)) {
@@ -142,7 +142,7 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         delete info;
         return nullptr;
     }
-    if (!parcel.ReadInt32(info->timeoutMs)) {
+    if (!parcel.ReadInt32(info->timeout)) {
         delete info;
         return nullptr;
     }
@@ -178,7 +178,7 @@ bool ExecOptions::Marshalling(Parcel &parcel) const
     if (!parcel.WriteInt32(yieldMs)) {
         return false;
     }
-    if (!parcel.WriteInt32(timeoutMs)) {
+    if (!parcel.WriteInt32(timeout)) {
         return false;
     }
     if (!parcel.WriteUint32(static_cast<uint32_t>(env.size()))) {
@@ -209,7 +209,7 @@ ExecOptions *ExecOptions::Unmarshalling(Parcel &parcel)
         delete options;
         return nullptr;
     }
-    if (!parcel.ReadInt32(options->timeoutMs)) {
+    if (!parcel.ReadInt32(options->timeout)) {
         delete options;
         return nullptr;
     }
@@ -241,19 +241,16 @@ ExecOptions *ExecOptions::Unmarshalling(Parcel &parcel)
 // ExecResult
 bool ExecResult::Marshalling(Parcel &parcel) const
 {
-    if (!parcel.WriteString(taskId)) {
-        return false;
-    }
     if (!parcel.WriteInt32(exitCode)) {
         return false;
     }
-    if (!parcel.WriteString(stdOut)) {
+    if (!parcel.WriteString(outputText)) {
         return false;
     }
-    if (!parcel.WriteString(stdErr)) {
+    if (!parcel.WriteString(errorText)) {
         return false;
     }
-    if (!parcel.WriteInt32(signal)) {
+    if (!parcel.WriteInt32(signalNumber)) {
         return false;
     }
     if (!parcel.WriteBool(timedOut)) {
@@ -268,23 +265,19 @@ bool ExecResult::Marshalling(Parcel &parcel) const
 ExecResult *ExecResult::Unmarshalling(Parcel &parcel)
 {
     auto *result = new (std::nothrow) ExecResult();
-    if (result && !parcel.ReadString(result->taskId)) {
+    if (result && !parcel.ReadInt32(result->exitCode)) {
         delete result;
         return nullptr;
     }
-    if (!parcel.ReadInt32(result->exitCode)) {
+    if (!parcel.ReadString(result->outputText)) {
         delete result;
         return nullptr;
     }
-    if (!parcel.ReadString(result->stdOut)) {
+    if (!parcel.ReadString(result->errorText)) {
         delete result;
         return nullptr;
     }
-    if (!parcel.ReadString(result->stdErr)) {
-        delete result;
-        return nullptr;
-    }
-    if (!parcel.ReadInt32(result->signal)) {
+    if (!parcel.ReadInt32(result->signalNumber)) {
         delete result;
         return nullptr;
     }
