@@ -85,6 +85,7 @@ int32_t CliManagerProxy::QueryTools(std::vector<ToolInfo> &tools)
 int32_t CliManagerProxy::ExecTool(const std::string &name,
                                    const std::vector<std::pair<std::string, std::string>> &args,
                                    const ExecOptions &options,
+                                   const std::string &challenge,
                                    SessionInfo &session)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy ExecTool called");
@@ -94,8 +95,9 @@ int32_t CliManagerProxy::ExecTool(const std::string &name,
         TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy:   arg[%{public}s]='%{public}s'",
             key.c_str(), value.c_str());
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: options.background=%{public}d, yieldMs=%{public}d, timeoutMs=%{public}d",
-        options.background, options.yieldMs, options.timeoutMs);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: options.background=%{public}d, yieldMs=%{public}d, timeout=%{public}d",
+        options.background, options.yieldMs, options.timeout);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: received challenge='%{public}s'", challenge.c_str());
 
     MessageParcel data;
     MessageParcel reply;
@@ -135,6 +137,13 @@ int32_t CliManagerProxy::ExecTool(const std::string &name,
 
     if (!data.WriteParcelable(&options)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write options failed");
+        return ERROR_CODE;
+    }
+
+    // Write challenge
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: writing challenge to parcel");
+    if (!data.WriteString(challenge)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write challenge failed");
         return ERROR_CODE;
     }
 

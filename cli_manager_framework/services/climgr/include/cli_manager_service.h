@@ -75,10 +75,19 @@ public:
     int32_t ExecTool(const std::string &name,
                      const std::vector<std::pair<std::string, std::string>> &args,
                      const ExecOptions &options,
+                     const std::string &challenge,
                      SessionInfo &session) override;
 
 private:
     void Init();
+
+    /**
+     * @brief Generate sandbox configuration JSON
+     * @param challenge Challenge string
+     * @return JSON string with sandbox configuration
+     */
+    std::string GenerateSandBoxConfig(const std::string& challenge);
+
     DISALLOW_COPY_AND_MOVE(CliManagerService);
 
 private:

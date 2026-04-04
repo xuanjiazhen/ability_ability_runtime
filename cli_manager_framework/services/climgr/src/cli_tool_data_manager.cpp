@@ -328,8 +328,8 @@ int32_t CliToolDataManager::ParseJsonFile(const std::string &filePath, std::vect
         if (item.contains("eventSchemas") && item["eventSchemas"].is_string()) {
             tool.eventSchemas = item["eventSchemas"];
         }
-        if (item.contains("timeoutMs") && item["timeoutMs"].is_number()) {
-            tool.timeoutMs = item["timeoutMs"];
+        if (item.contains("timeout") && item["timeout"].is_number()) {
+            tool.timeout = item["timeout"];
         }
         if (item.contains("eventTypes") && item["eventTypes"].is_array()) {
             for (const auto &event : item["eventTypes"]) {
@@ -378,7 +378,7 @@ std::string CliToolDataManager::ToolInfoToJson(const ToolInfo &tool)
     j["outputSchema"] = tool.outputSchema;
     j["argMapping"] = tool.argMapping;
     j["eventSchemas"] = tool.eventSchemas;
-    j["timeoutMs"] = tool.timeoutMs;
+    j["timeout"] = tool.timeout;
     j["eventTypes"] = tool.eventTypes;
     j["registeredTime"] = tool.registeredTime;
     j["enabled"] = tool.enabled;
@@ -423,8 +423,8 @@ int32_t CliToolDataManager::JsonToToolInfo(const std::string &jsonStr, ToolInfo 
     if (j.contains("eventSchemas") && j["eventSchemas"].is_string()) {
         tool.eventSchemas = j["eventSchemas"];
     }
-    if (j.contains("timeoutMs") && j["timeoutMs"].is_number()) {
-        tool.timeoutMs = j["timeoutMs"];
+    if (j.contains("timeout") && j["timeout"].is_number()) {
+        tool.timeout = j["timeout"];
     }
     if (j.contains("eventTypes") && j["eventTypes"].is_array()) {
         tool.eventTypes = j["eventTypes"];
@@ -459,7 +459,7 @@ std::string CliToolDataManager::ToolsToJsonArray(const std::vector<ToolInfo> &to
         item["outputSchema"] = tool.outputSchema;
         item["argMapping"] = tool.argMapping;
         item["eventSchemas"] = tool.eventSchemas;
-        item["timeoutMs"] = tool.timeoutMs;
+        item["timeout"] = tool.timeout;
         item["eventTypes"] = tool.eventTypes;
         item["registeredTime"] = tool.registeredTime;
         item["enabled"] = tool.enabled;

@@ -140,13 +140,22 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
         reply.WriteInt32(ERROR_CODE);
         return ERROR_CODE;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: options.background=%{public}d, yieldMs=%{public}d, timeoutMs=%{public}d",
-        options->background, options->yieldMs, options->timeoutMs);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: options.background=%{public}d, yieldMs=%{public}d, timeout=%{public}d",
+        options->background, options->yieldMs, options->timeout);
+
+    // Read challenge
+    std::string challenge;
+    if (!data.ReadString(challenge)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Read challenge failed");
+        reply.WriteInt32(ERROR_CODE);
+        return ERROR_CODE;
+    }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: read challenge='%{public}s'", challenge.c_str());
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: calling ExecTool(name='%{public}s', args.count=%{public}zu)",
         name.c_str(), args.size());
     SessionInfo session;
-    int32_t ret = ExecTool(name, args, *options, session);
+    int32_t ret = ExecTool(name, args, *options, challenge, session);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: ExecTool returned ret=%{public}d, session.status='%{public}s', sessionId='%{public}s'",
         ret, session.status.c_str(), session.sessionId.c_str());
 
