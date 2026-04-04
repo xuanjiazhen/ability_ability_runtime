@@ -124,12 +124,11 @@ int64_t ModularObjectConnectionManager::GenerateConnectionId()
     return nextConnectionId_.fetch_add(1);
 }
 
-ErrCode ModularObjectConnectionManager::ConnectModularObjectExtension(const sptr<IRemoteObject> &token,
-    const AAFwk::Want &want, const std::shared_ptr<OH_AbilityRuntime_ConnectOptionsState> &state,
-    int64_t &connectionId)
+ErrCode ModularObjectConnectionManager::ConnectModularObjectExtension(const AAFwk::Want &want,
+    const std::shared_ptr<OH_AbilityRuntime_ConnectOptionsState> &state, int64_t &connectionId)
 {
-    if (token == nullptr || state == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Invalid token or state");
+    if (state == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Invalid state");
         return AAFwk::ERR_INVALID_CALLER;
     }
 
@@ -154,13 +153,13 @@ ErrCode ModularObjectConnectionManager::ConnectModularObjectExtension(const sptr
 
     // Connect directly via AbilityManagerClient
     ErrCode ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectModularObjectExtension(
-        want, abilityConnection, token, AAFwk::DEFAULT_INVAL_VALUE);
+        want, abilityConnection, nullptr, AAFwk::DEFAULT_INVAL_VALUE);
 
     if (ret == ERR_OK) {
         std::lock_guard<std::mutex> guard(connectionMutex_);
         connectionRecords_.emplace(std::piecewise_construct,
             std::forward_as_tuple(newId),
-            std::forward_as_tuple(token, want, connectCallback, abilityConnection, newId));
+            std::forward_as_tuple(want, connectCallback, abilityConnection, newId));
         TAG_LOGI(AAFwkTag::APPKIT, "Connection created, id: %{public}" PRId64, newId);
     } else {
         TAG_LOGE(AAFwkTag::APPKIT, "Connect failed: %{public}d", ret);
@@ -170,14 +169,8 @@ ErrCode ModularObjectConnectionManager::ConnectModularObjectExtension(const sptr
     return ret;
 }
 
-ErrCode ModularObjectConnectionManager::DisconnectModularObjectExtension(
-    const sptr<IRemoteObject> &token, int64_t connectionId)
+ErrCode ModularObjectConnectionManager::DisconnectModularObjectExtension(int64_t connectionId)
 {
-    if (token == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Null token");
-        return AAFwk::ERR_INVALID_CALLER;
-    }
-
     sptr<AbilityConnection> abilityConnection;
     {
         std::lock_guard<std::mutex> guard(connectionMutex_);
@@ -185,10 +178,6 @@ ErrCode ModularObjectConnectionManager::DisconnectModularObjectExtension(
         if (iter == connectionRecords_.end()) {
             TAG_LOGE(AAFwkTag::APPKIT, "Connection id not found: %{public}" PRId64, connectionId);
             return AAFwk::CONNECTION_NOT_EXIST;
-        }
-        if (iter->second.token != token) {
-            TAG_LOGE(AAFwkTag::APPKIT, "Connection owner mismatched");
-            return AAFwk::ERR_INVALID_CALLER;
         }
         abilityConnection = iter->second.connection;
     }

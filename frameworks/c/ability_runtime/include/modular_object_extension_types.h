@@ -27,15 +27,15 @@
 extern "C" {
 #endif
 
-struct OH_AbilityRuntime_ModularObject_ExtensionContext : public AbilityRuntime_Context {
+struct OH_AbilityRuntime_ModularObjectExtensionContext : public AbilityRuntime_Context {
 };
 
-struct OH_AbilityRuntime_ModularObject_ExtensionInstance : public AbilityRuntime_ExtensionInstance {
-    std::shared_ptr<OH_AbilityRuntime_ModularObject_ExtensionContext> context;
-    OH_AbilityRuntime_MoeAbility_OnCreateFunc onCreateFunc = nullptr;
-    OH_AbilityRuntime_MoeAbility_OnDestroyFunc onDestroyFunc = nullptr;
-    OH_AbilityRuntime_MoeAbility_OnConnectFunc onConnectFunc = nullptr;
-    OH_AbilityRuntime_MoeAbility_OnDisconnectFunc onDisconnectFunc = nullptr;
+struct OH_AbilityRuntime_ModularObjectExtensionInstance : public AbilityRuntime_ExtensionInstance {
+    std::shared_ptr<OH_AbilityRuntime_ModularObjectExtensionContext> context;
+    OH_AbilityRuntime_ModObjExtensionAbility_OnCreateFunc onCreateFunc = nullptr;
+    OH_AbilityRuntime_ModObjExtensionAbility_OnDestroyFunc onDestroyFunc = nullptr;
+    OH_AbilityRuntime_ModObjExtensionAbility_OnConnectFunc onConnectFunc = nullptr;
+    OH_AbilityRuntime_ModObjExtensionAbility_OnDisconnectFunc onDisconnectFunc = nullptr;
 };
 
 #ifdef __cplusplus

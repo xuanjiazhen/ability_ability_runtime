@@ -20,14 +20,14 @@
 
 namespace {
 
-AbilityRuntime_ErrorCode CheckMoeInstance(OH_AbilityRuntime_MoeInstanceHandle instance,
-    OH_AbilityRuntime_ModularObject_ExtensionInstance **moeInstance)
+AbilityRuntime_ErrorCode CheckMoeInstance(OH_AbilityRuntime_ModObjExtensionInstanceHandle instance,
+    OH_AbilityRuntime_ModularObjectExtensionInstance **moeInstance)
 {
     if (instance == nullptr || moeInstance == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    auto *inner = reinterpret_cast<OH_AbilityRuntime_ModularObject_ExtensionInstance *>(instance);
+    auto *inner = reinterpret_cast<OH_AbilityRuntime_ModularObjectExtensionInstance *>(instance);
     if (inner->type != OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid extension type");
         return ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE;
@@ -41,14 +41,15 @@ AbilityRuntime_ErrorCode CheckMoeInstance(OH_AbilityRuntime_MoeInstanceHandle in
 extern "C" {
 #endif
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnCreateFunc(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeAbility_OnCreateFunc onCreateFunc)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_RegisterOnCreateFunc(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance,
+    OH_AbilityRuntime_ModObjExtensionAbility_OnCreateFunc onCreateFunc)
 {
     if (onCreateFunc == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null onCreateFunc");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    OH_AbilityRuntime_ModularObject_ExtensionInstance *inner = nullptr;
+    OH_AbilityRuntime_ModularObjectExtensionInstance *inner = nullptr;
     auto ret = CheckMoeInstance(instance, &inner);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         return ret;
@@ -57,14 +58,15 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnCreateFunc(
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnDestroyFunc(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeAbility_OnDestroyFunc onDestroyFunc)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_RegisterOnDestroyFunc(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance,
+    OH_AbilityRuntime_ModObjExtensionAbility_OnDestroyFunc onDestroyFunc)
 {
     if (onDestroyFunc == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null onDestroyFunc");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    OH_AbilityRuntime_ModularObject_ExtensionInstance *inner = nullptr;
+    OH_AbilityRuntime_ModularObjectExtensionInstance *inner = nullptr;
     auto ret = CheckMoeInstance(instance, &inner);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         return ret;
@@ -73,14 +75,15 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnDestroyFunc(
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnConnectFunc(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeAbility_OnConnectFunc onConnectFunc)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_RegisterOnConnectFunc(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance,
+    OH_AbilityRuntime_ModObjExtensionAbility_OnConnectFunc onConnectFunc)
 {
     if (onConnectFunc == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null onConnectFunc");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    OH_AbilityRuntime_ModularObject_ExtensionInstance *inner = nullptr;
+    OH_AbilityRuntime_ModularObjectExtensionInstance *inner = nullptr;
     auto ret = CheckMoeInstance(instance, &inner);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         return ret;
@@ -89,14 +92,15 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnConnectFunc(
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnDisconnectFunc(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeAbility_OnDisconnectFunc onDisconnectFunc)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_RegisterOnDisconnectFunc(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance,
+    OH_AbilityRuntime_ModObjExtensionAbility_OnDisconnectFunc onDisconnectFunc)
 {
     if (onDisconnectFunc == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null onDisconnectFunc");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    OH_AbilityRuntime_ModularObject_ExtensionInstance *inner = nullptr;
+    OH_AbilityRuntime_ModularObjectExtensionInstance *inner = nullptr;
     auto ret = CheckMoeInstance(instance, &inner);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         return ret;
@@ -105,14 +109,14 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnDisconnectFunc(
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_GetContextFromInstance(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeContextHandle *context)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_GetContextFromInstance(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance, OH_AbilityRuntime_ModObjExtensionContextHandle *context)
 {
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null context");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    OH_AbilityRuntime_ModularObject_ExtensionInstance *inner = nullptr;
+    OH_AbilityRuntime_ModularObjectExtensionInstance *inner = nullptr;
     auto ret = CheckMoeInstance(instance, &inner);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         return ret;
@@ -125,11 +129,11 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_GetContextFromInstance(
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_GetInstanceFromBase(
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_GetInstanceFromBase(
     AbilityRuntime_ExtensionInstanceHandle baseExtensionInstance,
-    OH_AbilityRuntime_MoeInstanceHandle *moExtensionInstance)
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle* modObjExtensionInstance)
 {
-    if (baseExtensionInstance == nullptr || moExtensionInstance == nullptr) {
+    if (baseExtensionInstance == nullptr || modObjExtensionInstance == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
@@ -137,7 +141,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_GetInstanceFromBase(
         TAG_LOGE(AAFwkTag::APPKIT, "invalid extension type");
         return ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE;
     }
-    *moExtensionInstance = reinterpret_cast<OH_AbilityRuntime_MoeInstanceHandle>(baseExtensionInstance);
+    *modObjExtensionInstance = reinterpret_cast<OH_AbilityRuntime_ModObjExtensionInstanceHandle>(baseExtensionInstance);
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 

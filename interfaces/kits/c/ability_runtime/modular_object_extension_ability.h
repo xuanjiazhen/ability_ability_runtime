@@ -47,68 +47,68 @@ extern "C" {
 #endif
 
 /**
- * @brief Defines the struct for OH_AbilityRuntime_MoeInstance.
+ * @brief Defines the struct for OH_AbilityRuntime_ModObjExtensionInstance.
  *
  * @since 26.0.0
  */
-typedef struct OH_AbilityRuntime_ModularObject_ExtensionInstance OH_AbilityRuntime_MoeInstance;
+typedef struct OH_AbilityRuntime_ModularObjectExtensionInstance OH_AbilityRuntime_ModObjExtensionInstance;
 
 /**
- * @brief Defines the pointer to OH_AbilityRuntime_MoeInstance.
+ * @brief Defines the pointer to OH_AbilityRuntime_ModObjExtensionInstance.
  *
  * @since 26.0.0
  */
-typedef OH_AbilityRuntime_MoeInstance* OH_AbilityRuntime_MoeInstanceHandle;
+typedef OH_AbilityRuntime_ModObjExtensionInstance* OH_AbilityRuntime_ModObjExtensionInstanceHandle;
 
 /**
  * @brief Callback invoked when a modular object extension is started for initialization.
  *
- * @param instance Represents a pointer to an {@link OH_AbilityRuntime_MoeInstance} instance which will be set.
+ * @param instance Points to an {@link OH_AbilityRuntime_ModObjExtensionInstance} instance.
  * @param want Indicates the want of created modular object extension.
  * For details, see {@link AbilityBase_Want}.
  *
  * @since 26.0.0
  */
-typedef void (*OH_AbilityRuntime_MoeAbility_OnCreateFunc)(
-    OH_AbilityRuntime_MoeInstanceHandle instance, AbilityBase_Want *want);
+typedef void (*OH_AbilityRuntime_ModObjExtensionAbility_OnCreateFunc)(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance, AbilityBase_Want *want);
 
 /**
  * @brief Callback invoked before a modular object extension is destroyed.
  *
- * @param instance Points to an {@link OH_AbilityRuntime_MoeInstance} instance.
+ * @param instance Points to an {@link OH_AbilityRuntime_ModObjExtensionInstance} instance.
  *
  * @since 26.0.0
  */
-typedef void (*OH_AbilityRuntime_MoeAbility_OnDestroyFunc)(
-    OH_AbilityRuntime_MoeInstanceHandle instance);
+typedef void (*OH_AbilityRuntime_ModObjExtensionAbility_OnDestroyFunc)(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance);
 
 /**
  * @brief Callback invoked when a modular object extension is connected to an ability.
  *
- * @param instance Points to an {@link OH_AbilityRuntime_MoeInstance} instance.
+ * @param instance Points to an {@link OH_AbilityRuntime_ModObjExtensionInstance} instance.
  * @param want Indicates the want of created modular object extension.
  *
  * @since 26.0.0
  */
-typedef OHIPCRemoteStub* (*OH_AbilityRuntime_MoeAbility_OnConnectFunc)(
-    OH_AbilityRuntime_MoeInstanceHandle instance, AbilityBase_Want *want);
+typedef OHIPCRemoteStub* (*OH_AbilityRuntime_ModObjExtensionAbility_OnConnectFunc)(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance, AbilityBase_Want *want);
 
 /**
  * @brief Callback invoked when all abilities connected to a modular object extension are
  * disconnected.
  *
- * @param instance Points to an {@link OH_AbilityRuntime_MoeInstance} instance.
+ * @param instance Points to an {@link OH_AbilityRuntime_ModObjExtensionInstance} instance.
  *
  * @since 26.0.0
  */
-typedef void (*OH_AbilityRuntime_MoeAbility_OnDisconnectFunc)(
-    OH_AbilityRuntime_MoeInstanceHandle instance);
+typedef void (*OH_AbilityRuntime_ModObjExtensionAbility_OnDisconnectFunc)(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance);
 
 /**
- * @brief Registers the function {@link OH_AbilityRuntime_MoeAbility_OnCreateFunc} with
- * {@link OH_AbilityRuntime_MoeInstance}.
+ * @brief Registers the function {@link OH_AbilityRuntime_ModObjExtensionAbility_OnCreateFunc} with
+ * {@link OH_AbilityRuntime_ModObjExtensionInstance}.
  *
- * @param instance Points to an {@link OH_AbilityRuntime_MoeInstance} instance.
+ * @param instance Points to an {@link OH_AbilityRuntime_ModObjExtensionInstance} instance.
  * @param onCreateFunc Represents the onCreate callback function.
  * @return Returns a specific error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - success.
@@ -116,14 +116,15 @@ typedef void (*OH_AbilityRuntime_MoeAbility_OnDisconnectFunc)(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - device not supported.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnCreateFunc(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeAbility_OnCreateFunc onCreateFunc);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_RegisterOnCreateFunc(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance,
+    OH_AbilityRuntime_ModObjExtensionAbility_OnCreateFunc onCreateFunc);
 
 /**
- * @brief Registers the function {@link OH_AbilityRuntime_MoeAbility_OnDestroyFunc} with
- * {@link OH_AbilityRuntime_MoeInstance}.
+ * @brief Registers the function {@link OH_AbilityRuntime_ModObjExtensionAbility_OnDestroyFunc} with
+ * {@link OH_AbilityRuntime_ModObjExtensionInstance}.
  *
- * @param instance Points to an {@link OH_AbilityRuntime_MoeInstance} instance.
+ * @param instance Points to an {@link OH_AbilityRuntime_ModObjExtensionInstance} instance.
  * @param onDestroyFunc Represents the onDestroy callback function.
  * @return Returns a specific error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - success.
@@ -131,14 +132,15 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnCreateFunc(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - device not supported.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnDestroyFunc(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeAbility_OnDestroyFunc onDestroyFunc);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_RegisterOnDestroyFunc(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance,
+    OH_AbilityRuntime_ModObjExtensionAbility_OnDestroyFunc onDestroyFunc);
 
 /**
- * @brief Registers the function {@link OH_AbilityRuntime_MoeAbility_OnConnectFunc} with
- * {@link OH_AbilityRuntime_MoeInstance}.
+ * @brief Registers the function {@link OH_AbilityRuntime_ModObjExtensionAbility_OnConnectFunc} with
+ * {@link OH_AbilityRuntime_ModObjExtensionInstance}.
  *
- * @param instance Points to an {@link OH_AbilityRuntime_MoeInstance} instance.
+ * @param instance Points to an {@link OH_AbilityRuntime_ModObjExtensionInstance} instance.
  * @param onConnectFunc Represents the onConnect callback function.
  * @return Returns a specific error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - success.
@@ -146,14 +148,15 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnDestroyFunc(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - device not supported.
  * @since 26.0.0
  */
- AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnConnectFunc(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeAbility_OnConnectFunc onConnectFunc);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_RegisterOnConnectFunc(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance,
+    OH_AbilityRuntime_ModObjExtensionAbility_OnConnectFunc onConnectFunc);
 
 /**
- * @brief Registers the function {@link OH_AbilityRuntime_MoeAbility_OnDisconnectFunc} with
- * {@link OH_AbilityRuntime_MoeInstance}.
+ * @brief Registers the function {@link OH_AbilityRuntime_ModObjExtensionAbility_OnDisconnectFunc} with
+ * {@link OH_AbilityRuntime_ModObjExtensionInstance}.
  *
- * @param instance Points to an {@link OH_AbilityRuntime_MoeInstance} instance.
+ * @param instance Points to an {@link OH_AbilityRuntime_ModObjExtensionInstance} instance.
  * @param onDisconnectFunc Represents the onDisconnect callback function.
  * @return Returns a specific error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - success.
@@ -161,14 +164,15 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnDestroyFunc(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - device not supported.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnDisconnectFunc(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeAbility_OnDisconnectFunc onDisconnectFunc);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_RegisterOnDisconnectFunc(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance,
+    OH_AbilityRuntime_ModObjExtensionAbility_OnDisconnectFunc onDisconnectFunc);
 
 
 /**
  * @brief Gets the extension context from the modular object extension instance.
  *
- * @param instance Points to an {@link OH_AbilityRuntime_MoeInstance} instance.
+ * @param instance Points to an {@link OH_AbilityRuntime_ModObjExtensionInstance} instance.
  * @param context Represents a pointer to the modular object extension ability context.
  * @return Returns a specific error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - success.
@@ -176,16 +180,16 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_RegisterOnDisconnectFunc(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - device not supported.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_GetContextFromInstance(
-    OH_AbilityRuntime_MoeInstanceHandle instance, OH_AbilityRuntime_MoeContextHandle* context);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_GetContextFromInstance(
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle instance, OH_AbilityRuntime_ModObjExtensionContextHandle* context);
 
 /**
  * @brief Gets the modular object extension instance from a base extension instance.
  *
  * @param baseExtensionInstance Represents a pointer to a {@link
  * AbilityRuntime_ExtensionInstance} base extension instance.
- * @param moExtensionInstance Represents a pointer to an {@link
- * OH_AbilityRuntime_MoeInstanceHandle} instance that is an output parameter.
+ * @param modObjExtensionInstance Represents a pointer to an {@link
+ * OH_AbilityRuntime_ModObjExtensionInstanceHandle} instance that is an output parameter.
  * @return Returns a specific error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - success.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} - parameter check failed.
@@ -194,9 +198,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_GetContextFromInstance(
  *         a modular object extension.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeAbility_GetInstanceFromBase(
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionAbility_GetInstanceFromBase(
     AbilityRuntime_ExtensionInstanceHandle baseExtensionInstance,
-    OH_AbilityRuntime_MoeInstanceHandle* moExtensionInstance);
+    OH_AbilityRuntime_ModObjExtensionInstanceHandle* modObjExtensionInstance);
 
 #ifdef __cplusplus
 }

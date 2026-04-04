@@ -69,8 +69,8 @@ private:
     static bool BuildElement(const AppExecFwk::ElementName &elementName, AbilityBase_Element &element);
     static void DestroyElement(AbilityBase_Element &element);
 
-    std::shared_ptr<OH_AbilityRuntime_ModularObject_ExtensionInstance> moeInstance_;
-    std::shared_ptr<OH_AbilityRuntime_ModularObject_ExtensionContext> moeContext_;
+    std::shared_ptr<OH_AbilityRuntime_ModularObjectExtensionInstance> moeInstance_;
+    std::shared_ptr<OH_AbilityRuntime_ModularObjectExtensionContext> moeContext_;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

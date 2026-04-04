@@ -36,15 +36,14 @@ class ModularObjectConnectionManager;
  * Each connect call creates a new record - no connection reuse.
  */
 struct ModularObjectConnectionRecord {
-    sptr<IRemoteObject> token;
     AAFwk::Want want;
     sptr<AbilityConnectCallback> callback;
     sptr<AbilityConnection> connection;
     int64_t connectionId;
 
-    ModularObjectConnectionRecord(const sptr<IRemoteObject> &token, const AAFwk::Want &want,
+    ModularObjectConnectionRecord(const AAFwk::Want &want,
         const sptr<AbilityConnectCallback> &callback, const sptr<AbilityConnection> &connection, int64_t id)
-        : token(token), want(want), callback(callback), connection(connection), connectionId(id)
+        : want(want), callback(callback), connection(connection), connectionId(id)
     {}
 };
 
@@ -86,13 +85,13 @@ public:
     /**
      * @brief Connect to ModularObjectExtension - always creates new connection.
      */
-    ErrCode ConnectModularObjectExtension(const sptr<IRemoteObject> &token, const AAFwk::Want &want,
+    ErrCode ConnectModularObjectExtension(const AAFwk::Want &want,
         const std::shared_ptr<OH_AbilityRuntime_ConnectOptionsState> &state, int64_t &connectionId);
 
     /**
      * @brief Disconnect from ModularObjectExtension by connection ID.
      */
-    ErrCode DisconnectModularObjectExtension(const sptr<IRemoteObject> &token, int64_t connectionId);
+    ErrCode DisconnectModularObjectExtension(int64_t connectionId);
 
     /**
      * @brief Remove connection record (called by callback on disconnect/failure).

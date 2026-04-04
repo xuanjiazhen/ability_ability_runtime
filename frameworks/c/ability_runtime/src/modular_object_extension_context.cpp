@@ -28,7 +28,7 @@ using namespace OHOS::AAFwk;
 using namespace OHOS::AbilityRuntime;
 
 namespace {
-AbilityRuntime_ErrorCode CheckMoeContext(OH_AbilityRuntime_MoeContextHandle context,
+AbilityRuntime_ErrorCode CheckMoeContext(OH_AbilityRuntime_ModObjExtensionContextHandle context,
     std::shared_ptr<OHOS::AbilityRuntime::Context> &contextPtr)
 {
     if (context == nullptr) {
@@ -47,9 +47,9 @@ AbilityRuntime_ErrorCode CheckMoeContext(OH_AbilityRuntime_MoeContextHandle cont
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode TransformWant(AbilityBase_Want *want, Want &abilityWant)
+AbilityRuntime_ErrorCode TransformWant(const AbilityBase_Want *want, Want &abilityWant)
 {
-    auto ret = CheckWant(want);
+    auto ret = CheckWant(const_cast<AbilityBase_Want *>(want));
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid want");
         return ret;
@@ -67,23 +67,23 @@ AbilityRuntime_ErrorCode TransformWant(AbilityBase_Want *want, Want &abilityWant
 extern "C" {
 #endif
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_GetBaseContext(
-    OH_AbilityRuntime_MoeContextHandle moeContext, AbilityRuntime_ContextHandle *baseContext)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_GetBaseContext(
+    OH_AbilityRuntime_ModObjExtensionContextHandle modObjExtensionContext, AbilityRuntime_ContextHandle* baseContext)
 {
-    if (moeContext == nullptr || baseContext == nullptr) {
+    if (modObjExtensionContext == nullptr || baseContext == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (moeContext->type != AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+    if (modObjExtensionContext->type != AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
         TAG_LOGE(AAFwkTag::APPKIT, "invalid extension type");
         return ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE;
     }
-    *baseContext = static_cast<AbilityRuntime_ContextHandle>(moeContext);
+    *baseContext = static_cast<AbilityRuntime_ContextHandle>(modObjExtensionContext);
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbility(
-    OH_AbilityRuntime_MoeContextHandle context, AbilityBase_Want *want)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbility(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context, const AbilityBase_Want *want)
 {
     std::shared_ptr<OHOS::AbilityRuntime::Context> contextPtr;
     auto ret = CheckMoeContext(context, contextPtr);
@@ -100,8 +100,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbility(
     return ConvertToCommonBusinessErrorCode(err);
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbilityWithStartOptions(
-    OH_AbilityRuntime_MoeContextHandle context, AbilityBase_Want *want, AbilityRuntime_StartOptions *options)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbilityWithStartOptions(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context, const AbilityBase_Want *want,
+    const AbilityRuntime_StartOptions *options)
 {
     if (options == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null options");
@@ -118,12 +119,13 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbilityWithStar
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         return ret;
     }
-    auto startOptions = options->GetInnerStartOptions();
+    auto startOptions = const_cast<AbilityRuntime_StartOptions *>(options)->GetInnerStartOptions();
     auto err = AbilityManagerClient::GetInstance()->StartSelfUIAbilityWithStartOptions(abilityWant, startOptions);
     return ConvertToAPI17BusinessErrorCode(err);
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_TerminateSelf(OH_AbilityRuntime_MoeContextHandle context)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_TerminateSelf(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context)
 {
     std::shared_ptr<OHOS::AbilityRuntime::Context> contextPtr;
     auto ret = CheckMoeContext(context, contextPtr);

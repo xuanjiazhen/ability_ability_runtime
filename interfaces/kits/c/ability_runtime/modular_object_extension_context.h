@@ -49,25 +49,25 @@ struct AbilityBase_Want;
 typedef struct AbilityBase_Want AbilityBase_Want;
 
 /**
- * @brief Defines a pointer type to OH_AbilityRuntime_ModularObject_ExtensionContext.
+ * @brief Defines a pointer type to OH_AbilityRuntime_ModObjExtensionContextHandle.
  *
  * @since 26.0.0
  */
-typedef struct OH_AbilityRuntime_ModularObject_ExtensionContext* OH_AbilityRuntime_MoeContextHandle;
+typedef struct OH_AbilityRuntime_ModularObjectExtensionContext* OH_AbilityRuntime_ModObjExtensionContextHandle;
 
 /**
  * @brief Gets the base context from the modular object extension context.
  *
- * @param moeContext Represents a pointer to a modular object extension ability context.
- * @param baseContext Represents a pointer to a {@link AbilityRuntime_Context} base extension ability context.
+ * @param modObjExtensionContext Represents a pointer to a modular object extension ability context.
+ * @param baseContext Represents a pointer to a {@link AbilityRuntime_ContextHandle} base extension ability context.
  * @return Returns a specific error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} - success.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} - parameter check failed.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - device not supported.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_GetBaseContext(
-    OH_AbilityRuntime_MoeContextHandle moeContext, AbilityRuntime_ContextHandle *baseContext);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_GetBaseContext(
+    OH_AbilityRuntime_ModObjExtensionContextHandle modObjExtensionContext, AbilityRuntime_ContextHandle* baseContext);
 
 /**
  * @brief Starts the self UIAbility.
@@ -90,15 +90,18 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_GetBaseContext(
  *          {@link ABILITY_RUNTIME_ERROR_CODE_CROSS_APP} - if the caller tries to start a different application.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} - if an internal error occurs.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_TOP_ABILITY} - if the caller is not top ability.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED} - if the app clone or multi-instance is not supported.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED} - if the app clone or multi-instance is
+            not supported.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY} - if the app instance key is invalid.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED} - if the number of app instances has reached the limit.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED} - if the number of app instances has reached
+            the limit.
  *          {@link ABILITY_RUNTIME_ERROR_MULTI_INSTANCE_NOT_SUPPORTED} - if multi-instance is not supported.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED} - if the APP_INSTANCE_KEY cannot be specified.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED} - if the APP_INSTANCE_KEY cannot
+            be specified.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbility(
-    OH_AbilityRuntime_MoeContextHandle context, AbilityBase_Want *want);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbility(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context, const AbilityBase_Want *want);
 
 /**
  * @brief Starts the self UIAbility with start options.
@@ -124,15 +127,19 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbility(
  *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} - if an internal error occurs.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_TOP_ABILITY} - if the caller is not a foreground process.
  *          {@link ABILITY_RUNTIME_ERROR_VISIBILITY_SETTING_DISABLED} - if setting visibility is disabled.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED} - if the app clone or multi-instance is not supported.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_MULTI_APP_NOT_SUPPORTED} - if the app clone or multi-instance is
+            not supported.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_INVALID_APP_INSTANCE_KEY} - if the app instance key is invalid.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED} - if the number of app instances has reached the limit.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED} - if the number of app instances has reached
+            the limit.
  *          {@link ABILITY_RUNTIME_ERROR_MULTI_INSTANCE_NOT_SUPPORTED} - if multi-instance is not supported.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED} - if the APP_INSTANCE_KEY cannot be specified.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_APP_INSTANCE_KEY_NOT_SUPPORTED} - if the APP_INSTANCE_KEY cannot
+            be specified.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbilityWithStartOptions(
-    OH_AbilityRuntime_MoeContextHandle context, AbilityBase_Want *want, AbilityRuntime_StartOptions *options);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbilityWithStartOptions(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context, const AbilityBase_Want *want,
+    const AbilityRuntime_StartOptions *options);
 
 /**
  * @brief Destroys the modular object extension.
@@ -147,36 +154,8 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_StartSelfUIAbilityWithStar
  *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} - if an internal error occurs.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_MoeContext_TerminateSelf(OH_AbilityRuntime_MoeContextHandle context);
-
-/**
- * @brief Creates an <b>OHIPCRemoteStub</b> object, supporting requestCallback and destroyCallback running 
- * according to a specified threading model of the modular object extension ability.
- * The caller is responsible for destroying the returned object by calling
- * {@link OH_AbilityRuntime_MoeContext_DestroyIPCRemoteStub} to avoid memory leaks.
- *
- * @param context Represents a pointer to a modular object extension ability context.
- * @param descriptor Pointer to the descriptor of the <b>OHIPCRemoteStub</b> object to create. It cannot be NULL.
- * @param requestCallback Callback used to process the data request. It cannot be NULL.
- * @param destroyCallback Callback to be invoked when the object is destroyed. It can be NULL.
- * @param userData Pointer to the user data. It can be NULL.
- * @return Returns the pointer to the <b>OHIPCRemoteStub</b> object created if the operation is successful;
- * returns NULL otherwise.
- * @since 26.0.0
- */
-OHIPCRemoteStub* OH_AbilityRuntime_MoeContext_CreateIPCRemoteStub(OH_AbilityRuntime_MoeContextHandle context,
-    const char *descriptor, OH_OnRemoteRequestCallback requestCallback,
-    OH_OnRemoteDestroyCallback destroyCallback, void *userData);
-
-/**
- * @brief Destroys an <b>OHIPCRemoteStub</b> object.
- *
- * @param context Represents a pointer to a modular object extension ability context.
- * @param stub Pointer to the <b>OHIPCRemoteStub</b> object to destroy.
- * @since 26.0.0
- */
-void OH_AbilityRuntime_MoeContext_DestroyIPCRemoteStub(OH_AbilityRuntime_MoeContextHandle context,
-    OHIPCRemoteStub *stub);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_TerminateSelf(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context);
 
 #ifdef __cplusplus
 }

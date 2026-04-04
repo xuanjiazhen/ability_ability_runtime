@@ -40,8 +40,7 @@ struct OH_AbilityRuntime_AllModularObjectExtensionInfos {
 extern "C" {
 #endif
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_ConnectModularObjectExtensionAbility(
-    AbilityRuntime_ContextHandle context, AbilityBase_Want *want,
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ConnectModularObjectExtensionAbility(AbilityBase_Want *want,
     OH_AbilityRuntime_ConnectOptions *connectOptions, int64_t *connectionId)
 {
     if (connectOptions == nullptr || connectionId == nullptr) {
@@ -66,15 +65,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ConnectModularObjectExtensionAbility(
         return ret;
     }
 
-    sptr<IRemoteObject> token;
-    ret = ModularObjectUtils::CheckContextAndToken(context, token);
-    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
-        return ret;
-    }
-
     int64_t newConnectionId = 0;
     int32_t innerRet = ModularObjectConnectionManager::GetInstance().ConnectModularObjectExtension(
-        token, abilityWant, connectOptions->state, newConnectionId);
+        abilityWant, connectOptions->state, newConnectionId);
     if (innerRet != ERR_OK) {
         auto businessErrorCode = ModularObjectUtils::ConvertConnectBusinessErrorCode(innerRet);
         ModularObjectUtils::NotifyFailed(connectOptions->state, businessErrorCode);
@@ -85,17 +78,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ConnectModularObjectExtensionAbility(
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_DisconnectModularObjectExtensionAbility(
-    AbilityRuntime_ContextHandle context, int64_t connectionId)
+AbilityRuntime_ErrorCode OH_AbilityRuntime_DisconnectModularObjectExtensionAbility(int64_t connectionId)
 {
-    sptr<IRemoteObject> token;
-    auto ret = ModularObjectUtils::CheckContextAndToken(context, token);
-    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
-        return ret;
-    }
-
-    int32_t innerRet = ModularObjectConnectionManager::GetInstance().DisconnectModularObjectExtension(
-        token, connectionId);
+    int32_t innerRet = ModularObjectConnectionManager::GetInstance().DisconnectModularObjectExtension(connectionId);
     return ModularObjectUtils::ConvertConnectBusinessErrorCode(innerRet);
 }
 
