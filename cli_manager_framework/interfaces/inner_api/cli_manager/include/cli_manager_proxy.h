@@ -44,6 +44,7 @@ public:
     int32_t ExecTool(const std::string &name,
                      const std::vector<std::pair<std::string, std::string>> &args,
                      const ExecOptions &options,
+                     const std::string &challenge,
                      SessionInfo &session) override;
 
 private:
