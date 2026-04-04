@@ -15,15 +15,19 @@
 
 #include "cli_manager_service.h"
 #include "cli_tool_manager.h"
+#include "cli_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include <chrono>
 #include <memory>
 #include <sstream>
+#include <nlohmann/json.hpp>
 #include <unistd.h>
+#include <sys/types.h>
 #include <sys/wait.h>
 #include <signal.h>
 #include <cstring>
-#include <errno.h>
+#include <cerrno>
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -31,6 +35,7 @@ namespace AbilityRuntime {
 namespace {
 constexpr int32_t CLI_MANAGER_SA_ID = 8899; // TODO: Use proper SA ID
 constexpr int32_t ERR_OK = 0;
+constexpr const char* CLAW_SANDBOX_TOOL = "claw_sandbox";
 }
 
 sptr<CliManagerService> CliManagerService::instance_ = nullptr;
@@ -107,7 +112,7 @@ int32_t CliManagerService::QueryTools(std::vector<ToolInfo> &tools)
 
     if (cliToolManager_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "CliToolManager is not initialized");
-        return -1;
+        return ERR_CLI_MANAGER_NOT_INITIALIZED;
     }
 
     int32_t ret = cliToolManager_->QueryTools(tools);
@@ -123,6 +128,7 @@ int32_t CliManagerService::QueryTools(std::vector<ToolInfo> &tools)
 int32_t CliManagerService::ExecTool(const std::string &name,
                                     const std::vector<std::pair<std::string, std::string>> &args,
                                     const ExecOptions &options,
+                                    const std::string &challenge,
                                     SessionInfo &session)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService ExecTool called");
@@ -134,14 +140,16 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: options.background=%{public}d, yieldMs=%{public}d, timeoutMs=%{public}d",
         options.background, options.yieldMs, options.timeoutMs);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: received challenge='%{public}s'", challenge.c_str());
 
     std::lock_guard<std::mutex> lock(mutex_);
 
-    // Validate tool exists
+    // Validate tool exists BEFORE filling session info
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: validating tool exists");
     if (cliToolManager_ == nullptr || !cliToolManager_->ValidateTool(name)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Tool not found or invalid: %{public}s", name.c_str());
-        return -1;
+        // Return error without filling session info
+        return ERR_CLI_TOOL_NOT_FOUND;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: tool '%{public}s' validated", name.c_str());
 
@@ -149,7 +157,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     int64_t startTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         startTimePoint.time_since_epoch()).count();
 
-    // Initialize session
+    // Fill session info before executing command
     session.sessionId = std::to_string(std::hash<std::string>{}(
         name + std::to_string(startTimeMs)));
     session.toolName = name;
@@ -162,7 +170,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     if (session.result == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to allocate ExecResult");
         session.status = "failed";
-        return -1;
+        return ERR_CLI_MEMORY_ALLOC_FAILED;
     }
     session.result->taskId = session.sessionId;
     session.result->exitCode = -1;
@@ -171,6 +179,10 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     session.result->signal = 0;
     session.result->timedOut = false;
     session.result->executionTime = 0;
+
+    // Generate sandbox configuration before executing command
+    std::string sandboxConfig = GenerateSandBoxConfig(challenge);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: sandbox config: %{public}s", sandboxConfig.c_str());
 
     // Create pipes for stdout and stderr
     int stdoutPipe[2];
@@ -183,7 +195,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         session.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
         session.result->stdErr = errMsg;
-        return -1;
+        return ERR_CLI_CREATE_STDOUT_PIPE_FAILED;
     }
 
     if (pipe(stderrPipe) == -1) {
@@ -195,7 +207,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         session.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
         session.result->stdErr = errMsg;
-        return -1;
+        return ERR_CLI_CREATE_STDERR_PIPE_FAILED;
     }
 
     // Fork child process
@@ -211,7 +223,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         session.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
         session.result->stdErr = errMsg;
-        return -1;
+        return ERR_CLI_FORK_FAILED;
     }
 
     // Child process
@@ -263,8 +275,21 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: Calling execvp('%{public}s')", name.c_str());
         TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: Command will be: %{public}s", name.c_str());
 
-        // Execute command
-        execvp(name.c_str(), execArgs.data());
+        // Wrap command with claw_sandbox (includes generating sandbox config internally)
+        std::vector<char*> wrappedArgs = WrapSandBoxExecArgs(execArgs, challenge);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: Wrapped args for sandbox execution");
+
+        // Print complete command
+        std::stringstream fullCmd;
+        for (size_t i = 0; i < wrappedArgs.size(); ++i) {
+            if (wrappedArgs[i] != nullptr) {
+                fullCmd << wrappedArgs[i] << " ";
+            }
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: Complete command: %{public}s", fullCmd.str().c_str());
+
+        // Execute command with sandbox wrapper
+        execvp(CLAW_SANDBOX_TOOL, wrappedArgs.data());
 
         // If execvp returns, it failed
         TAG_LOGE(AAFwkTag::ABILITYMGR, "execvp failed: %{public}s", strerror(errno));
@@ -311,7 +336,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         session.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
         session.result->stdErr = errMsg;
-        return -1;
+        return ERR_CLI_WAITPID_FAILED;
     }
 
     auto endTimePoint = std::chrono::steady_clock::now();
@@ -340,6 +365,90 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: session.result.executionTime=%{public}ldms", session.result->executionTime);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: returning ERR_OK");
     return ERR_OK;
+}
+
+std::string CliManagerService::GenerateSandBoxConfig(const std::string& challenge)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService::GenerateSandBoxConfig called");
+
+    // Get calling information via IPC
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    uint32_t callingTokenId = IPCSkeleton::GetCallingTokenID();
+    int32_t callingPid = IPCSkeleton::GetCallingPid();
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GenerateSandBoxConfig: callingUid=%{public}d, callingTokenId=%{public}u, callingPid=%{public}d",
+        callingUid, callingTokenId, callingPid);
+
+    // Get GID and groups
+    // Note: In OpenHarmony, app's GID usually equals its UID
+    int32_t gid = callingUid;  // GID = UID for app sandbox
+
+    // Get supplementary groups (if any)
+    // Currently no BundleManager API to query groups, use empty array
+    std::vector<int32_t> groupsVec;  // Empty groups list
+    groupsVec.push_back(callingUid);  // Add calling UID as a supplementary group
+
+    // Build JSON object
+    nlohmann::json config;
+    config["uid"] = callingUid;
+    config["gid"] = gid;
+    config["groups"] = groupsVec;
+    config["callerTokenId"] = callingTokenId;
+    config["challenge"] = challenge;
+
+    // Get bundle name from UID (placeholder - would need BundleManager)
+    config["bundleName"] = "com.huawei.hmos.vassistant";
+
+    // Get permissions (placeholder - would need AccessTokenKit)
+    config["permissions"] = std::vector<std::string>{};
+
+    std::string result = config.dump();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GenerateSandBoxConfig: result=%{public}s", result.c_str());
+
+    return result;
+}
+
+std::vector<char*> CliManagerService::WrapSandBoxExecArgs(const std::vector<char*>& execArgs, const std::string& challenge)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "WrapSandBoxExecArgs: called with %{public}zu args", execArgs.size());
+
+    // Generate sandbox configuration
+    std::string sandboxConfig = GenerateSandBoxConfig(challenge);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "WrapSandBoxExecArgs: generated sandbox config");
+
+    // Allocate strings for claw_sandbox command (need to persist for execvp)
+    static std::string cmdSandbox = CLAW_SANDBOX_TOOL;
+    static std::string optConfig = "--config";
+    static std::string optCmd = "--cmd";
+
+    // Create wrapped args: claw_sandbox --config sandboxConfig --cmd [original args...]
+    std::vector<char*> wrappedArgs;
+    wrappedArgs.push_back(const_cast<char*>(cmdSandbox.c_str()));
+    wrappedArgs.push_back(const_cast<char*>(optConfig.c_str()));
+    wrappedArgs.push_back(const_cast<char*>(sandboxConfig.c_str()));
+    wrappedArgs.push_back(const_cast<char*>(optCmd.c_str()));
+
+    // Append original args (except the nullptr terminator)
+    for (size_t i = 0; i < execArgs.size(); ++i) {
+        if (execArgs[i] != nullptr) {
+            wrappedArgs.push_back(execArgs[i]);
+        }
+    }
+
+    // Add nullptr terminator
+    wrappedArgs.push_back(nullptr);
+
+    // Log the wrapped command
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "WrapSandBoxExecArgs: wrapped command:");
+    for (size_t i = 0; i < wrappedArgs.size(); ++i) {
+        if (wrappedArgs[i] != nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "  [%{public}zu] = '%{public}s'", i, wrappedArgs[i]);
+        } else {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "  [%{public}zu] = NULL", i);
+        }
+    }
+
+    return wrappedArgs;
 }
 
 } // namespace AbilityRuntime

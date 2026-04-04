@@ -75,10 +75,27 @@ public:
     int32_t ExecTool(const std::string &name,
                      const std::vector<std::pair<std::string, std::string>> &args,
                      const ExecOptions &options,
+                     const std::string &challenge,
                      SessionInfo &session) override;
 
 private:
     void Init();
+
+    /**
+     * @brief Generate sandbox configuration JSON
+     * @param challenge Challenge string
+     * @return JSON string with sandbox configuration
+     */
+    std::string GenerateSandBoxConfig(const std::string& challenge);
+
+    /**
+     * @brief Wrap execution arguments with claw_sandbox
+     * @param execArgs Original execution arguments (char* array with nullptr terminator)
+     * @param challenge Challenge string for sandbox config generation
+     * @return Wrapped execution arguments ready for execvp
+     */
+    std::vector<char*> WrapSandBoxExecArgs(const std::vector<char*>& execArgs, const std::string& challenge);
+
     DISALLOW_COPY_AND_MOVE(CliManagerService);
 
 private:
