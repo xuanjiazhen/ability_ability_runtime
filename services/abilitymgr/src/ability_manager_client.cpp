@@ -2613,6 +2613,26 @@ ErrCode AbilityManagerClient::QuerySelfModularObjectExtensionInfos(
     return abms->QuerySelfModularObjectExtensionInfos(extensionInfos);
 }
 
+ErrCode AbilityManagerClient::ConnectModularObjectExtension(const Want &want,
+    sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "name:%{public}s %{public}s",
+        want.GetElement().GetBundleName().c_str(), want.GetElement().GetAbilityName().c_str());
+    return abms->ConnectModularObjectExtension(want, connect, callerToken, userId);
+}
+
+ErrCode AbilityManagerClient::DisconnectModularObjectExtension(sptr<IAbilityConnection> connect)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisconnectModularObjectExtension");
+    return abms->DisconnectModularObjectExtension(connect);
+}
+
 ErrCode AbilityManagerClient::GetUserLockedBundleList(int32_t userId,
     std::unordered_set<std::string> &userLockedBundleList)
 {
