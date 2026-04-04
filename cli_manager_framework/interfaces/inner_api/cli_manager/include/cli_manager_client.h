@@ -50,12 +50,14 @@ public:
      * @param name Tool name
      * @param args Arguments as key-value pairs (preserves insertion order)
      * @param options Execution options
+     * @param challenge Challenge string
      * @param session Output session information
      * @return Returns ERR_OK on success, others on failure
      */
     int32_t ExecTool(const std::string &name,
                      const std::vector<std::pair<std::string, std::string>> &args,
                      const ExecOptions &options,
+                     const std::string &challenge,
                      SessionInfo &session);
 
     /**

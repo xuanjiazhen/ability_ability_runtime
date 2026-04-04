@@ -24,16 +24,16 @@ static napi_module _module = {
     .nm_version = 0,
     .nm_filename = "app/ability/libclimanager.so/cli_manager.js",
     .nm_register_func = OHOS::AbilityRuntime::JsCliManagerInit,
-    .nm_modname = "app.ability.CliManager",
+    .nm_modname = "app.ability.cliManager",
 };
 
 /*
  * The module registration.
  */
-extern "C" __attribute__((constructor)) void NAPI_app_ability_CliManager_AutoRegister(void)
+extern "C" __attribute__((constructor)) void NAPI_app_ability_cliManager_AutoRegister(void)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManager N-API module auto-register called");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "cliManager N-API module auto-register called");
     napi_module_register(&_module);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManager N-API module registered successfully");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "cliManager N-API module registered successfully");
 }
 

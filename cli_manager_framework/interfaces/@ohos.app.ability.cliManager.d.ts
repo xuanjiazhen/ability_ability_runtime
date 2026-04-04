@@ -30,10 +30,10 @@
  */
 
 /**
- * @namespace CLI
- * @description CLI 工具管理命名空间
+ * @namespace cliManager
+ * @description cliManager 工具管理命名空间
  */
-declare namespace CLI {
+declare namespace cliManager {
   /**
    * JSON Schema 类型定义
    * 遵循 JSON Schema 规范
@@ -69,9 +69,8 @@ declare namespace CLI {
      * - positional: 位置参数，按顺序排列
      * - flattened: 展平嵌套对象（如 parent.child=value）
      * - json-string: JSON 字符串传递
-     * - javascript: 使用 JavaScript 自定义映射器
      */
-    type: 'flag' | 'positional' | 'flattened' | 'json-string' | 'javascript';
+    type: 'flag' | 'positional' | 'flattened' | 'json-string';
 
     /**
      * 分隔符（仅用于 flattened 模式）
@@ -192,21 +191,11 @@ declare namespace CLI {
     yieldMs?: number;
 
     /**
-     * 总超时时间（毫秒）
+     * 总超时时间（秒）
      * 进程运行超过此时间会被强制终止
      * 0 表示使用工具描述文件中的默认值
      */
-    timeoutMs?: number;
-
-    /**
-     * 工作目录
-     */
-    workingDir?: string;
-
-    /**
-     * 环境变量
-     */
-    env?: Record<string, string>;
+    timeout?: number;
   }
 
   /**
@@ -302,14 +291,14 @@ declare namespace CLI {
     eventSchemas: Record<string, JSONSchema>;
 
     /**
-     * 默认超时时间（毫秒）
+     * 默认超时时间（秒）
      * 工具执行的最大时长，0 表示无限制
      */
-    timeoutMs: number;
+    timeout: number;
 
     /**
      * 支持的事件类型列表
-     * @example ["stdout", "stderr", "exit", "error", "progress", "result"]
+     * @example ["stdout", "stderr", "exit", "error", "result"]
      */
     eventTypes: Array<string>;
 
@@ -359,10 +348,6 @@ declare namespace CLI {
    * 包含工具执行的输出和状态信息
    */
   export interface ExecResult {
-    /**
-     * 任务 ID
-     */
-    taskId: string;
 
     /**
      * 退出码
@@ -373,17 +358,17 @@ declare namespace CLI {
     /**
      * 标准输出
      */
-    stdout: string;
+    outputText: string;
 
     /**
      * 标准错误
      */
-    stderr: string;
+    errorText: string;
 
     /**
      * 终止信号（如果被信号终止）
      */
-    signal: number;
+    signalNumber: number;
 
     /**
      * 是否超时
@@ -491,7 +476,7 @@ declare namespace CLI {
     /**
      * 事件数据
      */
-    data: string;
+    eventData: string;
 
     /**
      * 退出码
@@ -506,184 +491,179 @@ declare namespace CLI {
   }
 
   /**
-   * CLI 管理器
-   * 提供 CLI 工具的查询、执行和管理功能
+   * 查询全量工具摘要信息
+   * 只返回 name, description, version 三个字段
+   *
+   * @returns Promise<Array<ToolSummary>> 返回工具摘要列表
+   *
+   * @example
+   * ```typescript
+   * const summaries = await CLI.CLIManager.queryToolSummaries();
+   * summaries.forEach(tool => {
+   *   console.log(`- ${tool.name} v${tool.version}: ${tool.description}`);
+   * });
+   * ```
+   *
+   * @since 2025-03-28
+   * @version 2.6
    */
-  export class CLIManager {
-    /**
-     * 查询全量工具摘要信息
-     * 只返回 name, description, version 三个字段
-     *
-     * @returns Promise<Array<ToolSummary>> 返回工具摘要列表
-     *
-     * @example
-     * ```typescript
-     * const summaries = await CLI.CLIManager.queryToolSummaries();
-     * summaries.forEach(tool => {
-     *   console.log(`- ${tool.name} v${tool.version}: ${tool.description}`);
-     * });
-     * ```
-     *
-     * @since 2025-03-28
-     * @version 2.6
-     */
-    static queryToolSummaries(): Promise<Array<ToolSummary>>;
+  function queryToolSummaries(): Promise<Array<ToolSummary>>;
 
-    /**
-     * 查询全量工具信息
-     * 返回 ToolInfo 完整信息
-     *
-     * @returns Promise<Array<ToolInfo>> 返回所有可用工具的列表
-     *
-     * @example
-     * ```typescript
-     * const tools = await CLI.CLIManager.queryTools();
-     * tools.forEach(tool => {
-     *   console.log(`${tool.name}: ${tool.description}`);
-     *   console.log('Input schema:', tool.inputSchema);
-     * });
-     * ```
-     */
-    static queryTools(): Promise<Array<ToolInfo>>;
+  /**
+   * 查询全量工具信息
+   * 返回 ToolInfo 完整信息
+   *
+   * @returns Promise<Array<ToolInfo>> 返回所有可用工具的列表
+   *
+   * @example
+   * ```typescript
+   * const tools = await CLI.CLIManager.queryTools();
+   * tools.forEach(tool => {
+   *   console.log(`${tool.name}: ${tool.description}`);
+   *   console.log('Input schema:', tool.inputSchema);
+   * });
+   * ```
+   */
+  function queryTools(): Promise<Array<ToolInfo>>;
 
-    /**
-     * 根据名称查询单个工具的具体信息
-     *
-     * @param name 工具名称
-     *
-     * @returns Promise<ToolInfo> 返回工具完整信息
-     *
-     * @throws {Error} 工具不存在时抛出异常
-     *
-     * @example
-     * ```typescript
-     * try {
-     *   const scanner = await CLI.CLIManager.getToolInfoByName('network-scanner');
-     *   console.log('Scanner schema:', scanner.inputSchema);
-     *   console.log('Scanner permissions:', scanner.permissions);
-     * } catch (error) {
-     *   console.error('Tool not found:', error);
-     * }
-     * ```
-     *
-     * @since 2025-03-28
-     * @version 2.6
-     */
-    static getToolInfoByName(name: string): Promise<ToolInfo>;
+  /**
+   * 根据名称查询单个工具的具体信息
+   *
+   * @param name 工具名称
+   *
+   * @returns Promise<ToolInfo> 返回工具完整信息
+   *
+   * @throws {Error} 工具不存在时抛出异常
+   *
+   * @example
+   * ```typescript
+   * try {
+   *   const scanner = await CLI.CLIManager.getToolInfoByName('network-scanner');
+   *   console.log('Scanner schema:', scanner.inputSchema);
+   *   console.log('Scanner permissions:', scanner.permissions);
+   * } catch (error) {
+   *   console.error('Tool not found:', error);
+   * }
+   * ```
+   *
+   * @since 2025-03-28
+   * @version 2.6
+   */
+  function getToolInfoByName(name: string): Promise<ToolInfo>;
 
-    /**
-     * 统一的执行接口
-     *
-     * 根据 background 参数决定执行模式：
-     * - background=false: 在 yieldMs 内等待结果，超时后自动转入后台
-     * - background=true: 立即进入后台执行
-     *
-     * @param name 工具名称
-     * @param args 执行参数（JSON 对象）
-     * @param options 执行选项
-     *
-     * @returns Promise<SessionInfo> 返回会话信息
-     * - 前台完成: status='completed', result 有值
-     * - 后台运行: status='running', result 为 undefined
-     *
-     * @example
-     * ```typescript
-     * // 前台执行
-     * const session = await CLI.CLIManager.execTool('network-scanner', {
-     *   target: '192.168.1.1',
-     *   ports: [80, 443]
-     * }, {
-     *   background: false,
-     *   yieldMs: 30000
-     * });
-     *
-     * if (session.status === 'completed' && session.result) {
-     *   console.log('Result:', session.result.stdout);
-     * }
-     * ```
-     *
-     * @example
-     * ```typescript
-     * // 后台执行
-     * const session = await CLI.CLIManager.execTool('log-monitor', {
-     *   filter: 'ERROR'
-     * }, {
-     *   background: true
-     * });
-     *
-     * // 订阅事件
-     * CLI.CLIManager.subscribeSession(session.sessionId, (event) => {
-     *   console.log(event.data);
-     * });
-     * ```
-     */
-    static execTool(
-      name: string,
-      args: Record<string, any>,
-      options?: ExecOptions
-    ): Promise<SessionInfo>;
+  /**
+   * 统一的执行接口
+   *
+   * 根据 background 参数决定执行模式：
+   * - background=false: 在 yieldMs 内等待结果，超时后自动转入后台
+   * - background=true: 立即进入后台执行
+   *
+   * @param name 工具名称
+   * @param args 执行参数（JSON 对象）
+   * @param options 执行选项
+   *
+   * @returns Promise<SessionInfo> 返回会话信息
+   * - 前台完成: status='completed', result 有值
+   * - 后台运行: status='running', result 为 undefined
+   *
+   * @example
+   * ```typescript
+   * // 前台执行
+   * const session = await CLI.CLIManager.execTool('network-scanner', {
+   *   target: '192.168.1.1',
+   *   ports: [80, 443]
+   * }, {
+   *   background: false,
+   *   yieldMs: 30000
+   * });
+   *
+   * if (session.status === 'completed' && session.result) {
+   *   console.log('Result:', session.result.stdout);
+   * }
+   * ```
+   *
+   * @example
+   * ```typescript
+   * // 后台执行
+   * const session = await CLI.CLIManager.execTool('log-monitor', {
+   *   filter: 'ERROR'
+   * }, {
+   *   background: true
+   * });
+   *
+   * // 订阅事件
+   * CLI.CLIManager.subscribeSession(session.sessionId, (event) => {
+   *   console.log(event.data);
+   * });
+   * ```
+   */
+  function execTool(
+    name: string,
+    args: Record<string, Object>,
+    challenge?: string,
+    options?: ExecOptions
+  ): Promise<SessionInfo>;
 
-    /**
-     * 订阅后台会话事件
-     *
-     * @param sessionId 会话 ID
-     * @param callback 事件回调函数
-     *
-     * @returns Promise<boolean> 是否订阅成功
-     *
-     * @example
-     * ```typescript
-     * CLI.CLIManager.subscribeSession(sessionId, (event) => {
-     *   if (event.type === 'stdout') {
-     *     console.log('Output:', event.data);
-     *   } else if (event.type === 'exit') {
-     *     console.log('Exit code:', event.exitCode);
-     *   } else if (event.type === 'error') {
-     *     console.error('Error:', event.data);
-     *   }
-     * });
-     * ```
-     */
-    static subscribeSession(
-      sessionId: string,
-      callback: (event: ToolEvent) => void
-    ): Promise<boolean>;
+  /**
+   * 订阅后台会话事件
+   *
+   * @param sessionId 会话 ID
+   * @param callback 事件回调函数
+   *
+   * @returns Promise<boolean> 是否订阅成功
+   *
+   * @example
+   * ```typescript
+   * CLI.CLIManager.subscribeSession(sessionId, (event) => {
+   *   if (event.type === 'stdout') {
+   *     console.log('Output:', event.data);
+   *   } else if (event.type === 'exit') {
+   *     console.log('Exit code:', event.exitCode);
+   *   } else if (event.type === 'error') {
+   *     console.error('Error:', event.data);
+   *   }
+   * });
+   * ```
+   */
+  function subscribeSession(
+    sessionId: string,
+    callback: (event: ToolEvent) => void
+  ): Promise<boolean>;
 
-    /**
-     * 取消后台会话
-     *
-     * @param sessionId 会话 ID
-     *
-     * @returns Promise<boolean> 是否取消成功
-     *
-     * @example
-     * ```typescript
-     * const cancelled = await CLI.CLIManager.cancelSession(sessionId);
-     * if (cancelled) {
-     *   console.log('Session cancelled');
-     * }
-     * ```
-     */
-    static cancelSession(sessionId: string): Promise<boolean>;
+  /**
+   * 取消后台会话
+   *
+   * @param sessionId 会话 ID
+   *
+   * @returns Promise<boolean> 是否取消成功
+   *
+   * @example
+   * ```typescript
+   * const cancelled = await CLI.CLIManager.cancelSession(sessionId);
+   * if (cancelled) {
+   *   console.log('Session cancelled');
+   * }
+   * ```
+   */
+  function cancelSession(sessionId: string): Promise<boolean>;
 
-    /**
-     * 查询会话状态
-     *
-     * @param sessionId 会话 ID
-     *
-     * @returns Promise<SessionStatus> 会话状态
-     *
-     * @example
-     * ```typescript
-     * const status = await CLI.CLIManager.querySessionStatus(sessionId);
-     * console.log(`Status: ${status.status}`);
-     * if (status.result) {
-     *   console.log(`Exit code: ${status.result.exitCode}`);
-     * }
-     * ```
-     */
-    static querySessionStatus(sessionId: string): Promise<SessionStatus>;
-  }
+  /**
+   * 查询会话状态
+   *
+   * @param sessionId 会话 ID
+   *
+   * @returns Promise<SessionStatus> 会话状态
+   *
+   * @example
+   * ```typescript
+   * const status = await CLI.CLIManager.querySessionStatus(sessionId);
+   * console.log(`Status: ${status.status}`);
+   * if (status.result) {
+   *   console.log(`Exit code: ${status.result.exitCode}`);
+   * }
+   * ```
+   */
+  function querySessionStatus(sessionId: string): Promise<SessionStatus>;
 }
 
-export default CLI;
+export default cliManager;
