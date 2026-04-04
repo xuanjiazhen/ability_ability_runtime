@@ -16,7 +16,6 @@
 #include "modular_object_manager.h"
 
 #include "ability_manager_errors.h"
-#include "ability_manager_service.h"
 #include "ability_util.h"
 #include "app_utils.h"
 #include "hilog_tag_wrapper.h"
@@ -31,6 +30,11 @@ namespace OHOS {
 namespace AbilityRuntime {
 ModularObjectManager::ModularObjectManager() = default;
 ModularObjectManager::~ModularObjectManager() = default;
+
+void ModularObjectManager::SetConnectionHandler(const std::shared_ptr<ModularObjectConnectionHandler> &handler)
+{
+    connectionHandler_ = handler;
+}
 
 int32_t ModularObjectManager::QuerySelfModularObjectExtensionInfos(int32_t userId, const std::string &bundleName,
     int32_t appIndex, std::vector<AAFwk::ModularObjectExtensionInfo> &infos)
@@ -79,9 +83,8 @@ int32_t ModularObjectManager::ConnectModularObjectExtension(const AAFwk::Want &w
         return INNER_ERR;
     }
 
-    auto service = DelayedSingleton<AAFwk::AbilityManagerService>::GetInstance();
-    CHECK_POINTER_AND_RETURN(service, ERR_INVALID_VALUE);
-    return service->ConnectAbilityCommon(want, connect, callerToken,
+    CHECK_POINTER_AND_RETURN(connectionHandler_, ERR_INVALID_VALUE);
+    return connectionHandler_->ConnectAbilityCommon(want, connect, callerToken,
         AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT, userId);
 }
 
@@ -94,9 +97,8 @@ int32_t ModularObjectManager::DisconnectModularObjectExtension(sptr<AAFwk::IAbil
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DisconnectModularObjectExtension");
     CHECK_POINTER_AND_RETURN(connect, ERR_INVALID_VALUE);
-    auto service = DelayedSingleton<AAFwk::AbilityManagerService>::GetInstance();
-    CHECK_POINTER_AND_RETURN(service, ERR_INVALID_VALUE);
-    return service->DisconnectAbility(connect);
+    CHECK_POINTER_AND_RETURN(connectionHandler_, ERR_INVALID_VALUE);
+    return connectionHandler_->DisconnectAbility(connect);
 }
 }
 }

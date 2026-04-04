@@ -17,19 +17,18 @@
 #define OHOS_MODULAR_OBJECT_MANAGER_H
 
 #include <singleton.h>
+#include "modular_object_connection_handler.h"
 #include "modular_object_extension_info.h"
 #include "ability_connect_callback_interface.h"
 #include "want.h"
 
 namespace OHOS {
-namespace AAFwk {
-class AbilityManagerService;
-}
-
 namespace AbilityRuntime {
 class ModularObjectManager : public std::enable_shared_from_this<ModularObjectManager> {
     DECLARE_DELAYED_SINGLETON(ModularObjectManager)
 public:
+    void SetConnectionHandler(const std::shared_ptr<ModularObjectConnectionHandler> &handler);
+
     int32_t QuerySelfModularObjectExtensionInfos(int32_t userId, const std::string &bundleName,
         int32_t appIndex, std::vector<AAFwk::ModularObjectExtensionInfo> &infos);
 
@@ -37,6 +36,9 @@ public:
         sptr<AAFwk::IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId);
 
     int32_t DisconnectModularObjectExtension(sptr<AAFwk::IAbilityConnection> connect);
+
+private:
+    std::shared_ptr<ModularObjectConnectionHandler> connectionHandler_;
 };
 }
 }
