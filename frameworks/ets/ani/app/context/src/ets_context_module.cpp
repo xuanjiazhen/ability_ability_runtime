@@ -62,6 +62,55 @@ std::string GetClassNameByContextType(const std::string &contextType)
 }
 } // namespace
 
+ani_boolean EtsContextModule::ContextType(ani_env *aniEnv, ani_object self, ani_int contextType)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::CONTEXT, "IsContextType contextType: %{public}d", contextType);
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null aniEnv");
+        return ANI_FALSE;
+    }
+
+    // Context type mapping (same as ETS side)
+    static const std::unordered_map<int, std::string> contextTypeMap = {
+        {0, "ApplicationContext"},
+        {1, "AbilityStageContext"},
+        {2, "UIAbilityContext"},
+        {3, "FormExtensionContext"},
+        {4, "AppServiceExtensionContext"},
+        {5, "ServiceExtensionContext"},
+        {6, "UIServiceExtensionContext"},
+        {7, "AutoFillExtensionContext"}
+    };
+
+    auto it = contextTypeMap.find(contextType);
+    if (it == contextTypeMap.end()) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "invalid contextType: %{public}d", contextType);
+        return ANI_FALSE;
+    }
+    const std::string &expectedType = it->second;
+    TAG_LOGD(AAFwkTag::CONTEXT, "expectedType: %{public}s", expectedType.c_str());
+
+    // Get the type/class of current instance
+    ani_type type = nullptr;
+    ani_status status = aniEnv->Object_GetType(self, &type);
+    if (status != ANI_OK || type == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Object_GetType failed, status: %{public}d", status);
+        return ANI_FALSE;
+    }
+
+    // Get the contextType static field from the class
+    std::string actualType;
+    if (!AppExecFwk::GetStaticFieldString(aniEnv, static_cast<ani_class>(type), "contextType", actualType)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "get context type failed");
+        return ANI_FALSE;
+    }
+    TAG_LOGD(AAFwkTag::CONTEXT, "actualType: %{public}s", actualType.c_str());
+
+    // Compare the two strings
+    return (actualType == expectedType) ? ANI_TRUE : ANI_FALSE;
+}
+
 ani_object EtsContextModule::NativeTransferStatic(ani_env *aniEnv, ani_object self, ani_object input, ani_object type)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -417,6 +466,39 @@ void EtsContextModule::SaveStaticBindingObject(ani_env *aniEnv, ani_object input
     context->Bind<ani_ref>(contextGlobalRef);
 }
 
+ani_object ContextStaticObjectCreator(ani_env *aniEnv, std::shared_ptr<Context> context)
+{
+    ani_class cls {};
+    ani_status status = ANI_ERROR;
+    if ((status = aniEnv->FindClass("application.Context.Context", &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
+        return nullptr;
+    }
+    return ContextUtil::CreateContextObject(aniEnv, cls, context);
+}
+
+napi_value ContextDynamicObjectCreator(napi_env napiEnv, std::shared_ptr<Context> context)
+{
+    auto object = EtsContextModule::GetOrCreateDynamicObject(napiEnv, context);
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "get or create object failed");
+        return nullptr;
+    }
+    return object;
+}
+
+void RegisterContextCreators()
+{
+    ContextTransfer::GetInstance().RegisterStaticObjectCreator("Context",
+        [](ani_env *aniEnv, std::shared_ptr<Context> context) -> ani_object {
+            return ContextStaticObjectCreator(aniEnv, context);
+        });
+    ContextTransfer::GetInstance().RegisterDynamicObjectCreator("Context",
+        [](napi_env napiEnv, std::shared_ptr<Context> context) -> napi_value {
+            return ContextDynamicObjectCreator(napiEnv, context);
+        });
+}
+
 void EtsContextModuleInit(ani_env *aniEnv)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "Init Context kit");
@@ -444,27 +526,17 @@ void EtsContextModuleInit(ani_env *aniEnv)
         return;
     }
 
-    ContextTransfer::GetInstance().RegisterStaticObjectCreator("Context",
-        [](ani_env *aniEnv, std::shared_ptr<Context> context) -> ani_object {
-            ani_class cls {};
-            ani_status status = ANI_ERROR;
-            if ((status = aniEnv->FindClass("application.Context.Context", &cls)) != ANI_OK) {
-                TAG_LOGE(AAFwkTag::CONTEXT, "status: %{public}d", status);
-                return nullptr;
-            }
-            return ContextUtil::CreateContextObject(aniEnv, cls, context);
-    });
+    std::array instanceNativeFuncs = {
+        ani_native_function { "contextType", "I:Z",
+            reinterpret_cast<void*>(EtsContextModule::ContextType) },
+    };
+    status = aniEnv->Class_BindNativeMethods(contextCls, instanceNativeFuncs.data(), instanceNativeFuncs.size());
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
+        return;
+    }
 
-    ContextTransfer::GetInstance().RegisterDynamicObjectCreator("Context",
-        [](napi_env napiEnv, std::shared_ptr<Context> context) -> napi_value {
-            auto object = EtsContextModule::GetOrCreateDynamicObject(napiEnv, context);
-            if (object == nullptr) {
-            TAG_LOGE(AAFwkTag::CONTEXT, "get or create object failed");
-                return nullptr;
-            }
-            return object;
-    });
-
+    RegisterContextCreators();
     TAG_LOGD(AAFwkTag::CONTEXT, "Init Context kit end");
 }
 
