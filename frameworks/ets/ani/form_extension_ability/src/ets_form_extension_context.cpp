@@ -16,15 +16,27 @@
 #include "ets_form_extension_context.h"
 
 #include <algorithm>
+#include <cstdio>
 #include <iterator>
+#include <sys/syscall.h>
+#include <unistd.h>
 
 #include "ani_common_configuration.h"
 #include "ani_common_want.h"
+#include "ani_common_util.h"
+#include "context_transfer.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
 #include "ets_extension_context.h"
 #include "form_extension_context.h"
 #include "hilog_tag_wrapper.h"
+#include "interop_js/arkts_esvalue.h"
+#include "interop_js/arkts_interop_js_api.h"
+#include "interop_js/hybridgref_ani.h"
+#include "interop_js/hybridgref_napi.h"
+#include "js_runtime_utils.h"
+#include "js_form_extension_context.h"
+#include "native_engine/native_engine.h"
 #include "remote_object_taihe_ani.h"
 
 namespace OHOS {
@@ -616,5 +628,389 @@ void ETSFormExtensionConnection::DetachCurrentThread()
         isAttachThread_ = false;
     }
 }
+
+std::shared_ptr<FormExtensionContext> UnwrapFormExtensionContext(ani_env *aniEnv, ani_object input)
+{
+    void *unwrapResult = nullptr;
+    bool success = arkts_esvalue_unwrap(aniEnv, input, &unwrapResult);
+    if (!success || unwrapResult == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "failed to unwrap");
+        return nullptr;
+    }
+
+    auto context = reinterpret_cast<std::weak_ptr<FormExtensionContext> *>(unwrapResult)->lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null FormExtensionContext");
+        return nullptr;
+    }
+
+    return Context::ConvertTo<FormExtensionContext>(context);
+}
+
+ani_object NativeTransferStatic(ani_env *aniEnv, ani_object, ani_object input, ani_object type)
+{
+    TAG_LOGD(AAFwkTag::FORM_EXT, "transfer static FormExtensionContext");
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null aniEnv");
+        return nullptr;
+    }
+
+    auto formExtContext = UnwrapFormExtensionContext(aniEnv, input);
+    if (formExtContext == nullptr) {
+        EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
+        return nullptr;
+    }
+
+    auto &bindingObj = formExtContext->GetBindingObject();
+    if (bindingObj == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null bindingObj");
+        EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
+        return nullptr;
+    }
+
+    auto staticContext = bindingObj->Get<ani_ref>();
+    if (staticContext != nullptr) {
+        TAG_LOGI(AAFwkTag::FORM_EXT, "there exist a staticContext");
+        return reinterpret_cast<ani_object>(*staticContext);
+    }
+
+    std::string contextType;
+    if (!AppExecFwk::GetStdString(aniEnv, reinterpret_cast<ani_string>(type), contextType)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "GetStdString failed");
+        EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
+        return nullptr;
+    }
+    TAG_LOGD(AAFwkTag::FORM_EXT, "contextType %{public}s", contextType.c_str());
+
+    auto context = Context::ConvertTo<Context>(formExtContext);
+    auto newContext = ContextTransfer::GetInstance().GetStaticObject(contextType, aniEnv, context);
+    if (newContext == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "create formExtContext failed");
+        EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
+        return nullptr;
+    }
+    return newContext;
+}
+
+napi_value AttachFormExtensionContext(napi_env env, void *value, void *)
+{
+    if (value == nullptr) {
+        TAG_LOGW(AAFwkTag::FORM_EXT, "null value");
+        return nullptr;
+    }
+    auto ptr = reinterpret_cast<std::weak_ptr<AbilityRuntime::FormExtensionContext> *>(value)->lock();
+    if (ptr == nullptr) {
+        TAG_LOGW(AAFwkTag::FORM_EXT, "null ptr");
+        return nullptr;
+    }
+    napi_value object = AbilityRuntime::CreateJsFormExtensionContext(env, ptr);
+    auto sysModule =
+        AbilityRuntime::JsRuntime::LoadSystemModuleByEngine(env, "application.FormExtensionContext", &object, 1);
+    if (sysModule == nullptr) {
+        TAG_LOGW(AAFwkTag::FORM_EXT, "null sysModule");
+        return nullptr;
+    }
+    auto contextObj = sysModule->GetNapiValue();
+    napi_coerce_to_native_binding_object(
+        env, contextObj, AbilityRuntime::DetachCallbackFunc, AttachFormExtensionContext, value, nullptr);
+    auto workContext = new (std::nothrow) std::weak_ptr<AbilityRuntime::FormExtensionContext>(ptr);
+    napi_wrap(env, contextObj, workContext,
+        [](napi_env, void *data, void *) {
+            TAG_LOGD(AAFwkTag::FORM_EXT, "Finalizer for weak_ptr form extension context is called");
+            delete static_cast<std::weak_ptr<AbilityRuntime::FormExtensionContext> *>(data);
+        },
+        nullptr, nullptr);
+    return contextObj;
+}
+
+std::unique_ptr<NativeReference> CreateNativeReference(
+    napi_env napiEnv, std::shared_ptr<FormExtensionContext> formExtContext)
+{
+    if (napiEnv == nullptr || formExtContext == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null param");
+        return nullptr;
+    }
+
+    auto value = CreateJsFormExtensionContext(napiEnv, formExtContext);
+    auto systemModule =
+        JsRuntime::LoadSystemModuleByEngine(napiEnv, "application.FormExtensionContext", &value, 1);
+    if (systemModule == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null systemModule");
+        return nullptr;
+    }
+
+    napi_value object = systemModule->GetNapiValue();
+    if (!CheckTypeForNapiValue(napiEnv, object, napi_object)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "check type failed");
+        return nullptr;
+    }
+
+    auto workContext = new (std::nothrow) std::weak_ptr<FormExtensionContext>(formExtContext);
+    if (workContext == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null workContext");
+        return nullptr;
+    }
+    auto status = napi_coerce_to_native_binding_object(
+        napiEnv, object, DetachCallbackFunc, AttachFormExtensionContext, workContext, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "coerce FormExtensionContext failed: %{public}d", status);
+        delete workContext;
+        return nullptr;
+    }
+
+    status = napi_wrap(napiEnv, object, workContext,
+        [](napi_env, void *data, void *) {
+            TAG_LOGD(AAFwkTag::FORM_EXT, "finalizer for weak_ptr FormExtensionContext");
+            delete static_cast<std::weak_ptr<FormExtensionContext> *>(data);
+        },
+        nullptr, nullptr);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "wrap failed: %{public}d", status);
+        delete workContext;
+        return nullptr;
+    }
+
+    return systemModule;
+}
+
+napi_value GetOrCreateDynamicObject(
+    napi_env napiEnv, std::shared_ptr<FormExtensionContext> formExtContext)
+{
+    if (napiEnv == nullptr || formExtContext == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null param");
+        return nullptr;
+    }
+
+    // if sub-thread, create a new formExtContext and return
+    if (getpid() != syscall(SYS_gettid)) {
+        auto subThreadObj =
+            static_cast<NativeReference *>(formExtContext->GetSubThreadObject(static_cast<void *>(napiEnv)));
+        if (subThreadObj != nullptr) {
+            return subThreadObj->Get();
+        }
+        auto subThreadRef = CreateNativeReference(napiEnv, formExtContext);
+        if (subThreadRef == nullptr) {
+            return nullptr;
+        }
+        auto newObject = subThreadRef->Get();
+        formExtContext->BindSubThreadObject(
+            static_cast<void *>(napiEnv), static_cast<void *>(subThreadRef.release()));
+        return newObject;
+    }
+
+    // if main-thread, get bindingObj firstly
+    auto &bindingObj = formExtContext->GetBindingObject();
+    if (bindingObj == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null bindingObj");
+        return nullptr;
+    }
+
+    // if main-thread bindingObj exist, return it directly
+    auto dynamicContext = bindingObj->Get<NativeReference>();
+    if (dynamicContext != nullptr) {
+        TAG_LOGI(AAFwkTag::FORM_EXT, "there exist a dynamicContext");
+        return dynamicContext->Get();
+    }
+
+    // if main-thread bindingObj didn't exist, create and bind
+    auto nativeRef = CreateNativeReference(napiEnv, formExtContext);
+    if (nativeRef == nullptr) {
+        return nullptr;
+    }
+
+    auto object = nativeRef->Get();
+    formExtContext->Bind(nativeRef.release());
+    return object;
+}
+
+ani_object ConvertNapiToAniObject(ani_env *aniEnv, napi_env napiEnv, napi_value contextObj)
+{
+    hybridgref ref = nullptr;
+    bool success = hybridgref_create_from_napi(napiEnv, contextObj, &ref);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "hybridgref_create_from_napi failed");
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return nullptr;
+    }
+
+    ani_object result = nullptr;
+    success = hybridgref_get_esvalue(aniEnv, ref, &result);
+    if (!success) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "hybridgref_get_esvalue failed");
+        hybridgref_delete_from_napi(napiEnv, ref);
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return nullptr;
+    }
+
+    hybridgref_delete_from_napi(napiEnv, ref);
+    if (!arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "arkts_napi_scope_close_n failed");
+        return nullptr;
+    }
+    return result;
+}
+
+ani_object NativeTransferDynamic(ani_env *aniEnv, ani_class aniCls, ani_object input)
+{
+    TAG_LOGD(AAFwkTag::FORM_EXT, "transfer dynamic FormExtensionContext");
+    if (!IsInstanceOf(aniEnv, input)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "not FormExtensionContext");
+        EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
+        return nullptr;
+    }
+
+    auto context = AbilityRuntime::GetStageModeContext(aniEnv, input);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null context");
+        EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
+        return nullptr;
+    }
+
+    auto formExtContext = Context::ConvertTo<FormExtensionContext>(context);
+    if (formExtContext == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "invalid formExtContext");
+        EtsErrorUtil::ThrowEtsTransferClassError(aniEnv);
+        return nullptr;
+    }
+
+    std::string contextType;
+    if (!AppExecFwk::GetStaticFieldString(aniEnv, aniCls, "contextType", contextType)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "get context type failed");
+        return nullptr;
+    }
+    TAG_LOGD(AAFwkTag::FORM_EXT, "contextType %{public}s", contextType.c_str());
+
+    napi_env napiEnv = {};
+    if (!arkts_napi_scope_open(aniEnv, &napiEnv)) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "arkts_napi_scope_open failed");
+        return nullptr;
+    }
+
+    auto contextObj = ContextTransfer::GetInstance().GetDynamicObject(contextType, napiEnv, formExtContext);
+    if (contextObj == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "create FormExtensionContext failed");
+        arkts_napi_scope_close_n(napiEnv, 0, nullptr, nullptr);
+        return nullptr;
+    }
+
+    return ConvertNapiToAniObject(aniEnv, napiEnv, contextObj);
+}
+
+bool IsInstanceOf(ani_env *aniEnv, ani_object aniObj)
+{
+    ani_class cls {};
+    ani_status status = ANI_ERROR;
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null aniEnv");
+        return false;
+    }
+    if ((status = aniEnv->FindClass(FORM_EXTENSION_CONTEXT_CLASS_NAME, &cls)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "FindClass status: %{public}d", status);
+        return false;
+    }
+    ani_boolean isInstanceOf = false;
+    if ((status = aniEnv->Object_InstanceOf(aniObj, cls, &isInstanceOf)) != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Object_InstanceOf status: %{public}d", status);
+        return false;
+    }
+    return isInstanceOf;
+}
+
+ani_object StaticObjectCreator(ani_env *aniEnv, std::shared_ptr<Context> context)
+{
+    auto formExtContext = Context::ConvertTo<FormExtensionContext>(context);
+    if (formExtContext == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "invalid formExtContext");
+        return nullptr;
+    }
+    auto newContext = CreateEtsFormExtensionContext(aniEnv, formExtContext);
+    if (newContext == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "create formExtContext failed");
+        return nullptr;
+    }
+    return newContext;
+}
+
+napi_value DynamicObjectCreator(napi_env napiEnv, std::shared_ptr<Context> context)
+{
+    auto formExtContext = Context::ConvertTo<FormExtensionContext>(context);
+    if (formExtContext == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "invalid formExtContext");
+        return nullptr;
+    }
+    auto object = GetOrCreateDynamicObject(napiEnv, formExtContext);
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "get or create object failed");
+        return nullptr;
+    }
+    return object;
+}
+
+void RegisterFormExtensionContextCreators()
+{
+    ContextTransfer::GetInstance().RegisterStaticObjectCreator("FormExtensionContext",
+        [](ani_env *aniEnv, std::shared_ptr<Context> context) -> ani_object {
+            return StaticObjectCreator(aniEnv, context);
+        });
+    ContextTransfer::GetInstance().RegisterDynamicObjectCreator("FormExtensionContext",
+        [](napi_env napiEnv, std::shared_ptr<Context> context) -> napi_value {
+            return DynamicObjectCreator(napiEnv, context);
+        });
+}
+
+void EtsFormExtensionContextModuleInit(ani_env *aniEnv)
+{
+    TAG_LOGD(AAFwkTag::FORM_EXT, "Init FormExtensionContext kit");
+    if (aniEnv == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null ani env");
+        return;
+    }
+
+    ani_class formExtContextCls = nullptr;
+    auto status = aniEnv->FindClass(FORM_EXTENSION_CONTEXT_CLASS_NAME, &formExtContextCls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "FindClass FormExtensionContext failed status: %{public}d", status);
+        return;
+    }
+
+    std::array nativeFuncs = {
+        ani_native_function { "nativeTransferStatic", "C{std.interop.ESValue}C{std.core.String}:C{std.core.Object}",
+            reinterpret_cast<void *>(NativeTransferStatic) },
+        ani_native_function { "nativeTransferDynamic", "C{std.core.Object}:C{std.interop.ESValue}",
+            reinterpret_cast<void *>(NativeTransferDynamic) },
+    };
+    status = aniEnv->Class_BindStaticNativeMethods(formExtContextCls, nativeFuncs.data(), nativeFuncs.size());
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "Class_BindStaticNativeMethods failed status: %{public}d", status);
+        return;
+    }
+
+    RegisterFormExtensionContextCreators();
+    TAG_LOGD(AAFwkTag::FORM_EXT, "Init FormExtensionContext kit end");
+}
+
+extern "C" {
+ANI_EXPORT ani_status ANI_Constructor(ani_vm *vm, uint32_t *result)
+{
+    TAG_LOGD(AAFwkTag::FORM_EXT, "ANI_Constructor");
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "null vm");
+        return ANI_ERROR;
+    }
+
+    ani_env *aniEnv = nullptr;
+    ani_status status = vm->GetEnv(ANI_VERSION_1, &aniEnv);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::FORM_EXT, "GetEnv failed status: %{public}d", status);
+        return ANI_NOT_FOUND;
+    }
+
+    EtsFormExtensionContextModuleInit(aniEnv);
+    *result = ANI_VERSION_1;
+    TAG_LOGD(AAFwkTag::FORM_EXT, "ANI_Constructor finish");
+    return ANI_OK;
+}
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS
