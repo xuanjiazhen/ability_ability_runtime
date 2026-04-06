@@ -145,12 +145,14 @@ private:
                     // argv[3] might be options
                     if (argc >= INDEX_THREE + 2 && argv[INDEX_THREE] != nullptr) {
                         UnwrapExecOptions(env, argv[INDEX_THREE], options);
-                        TAG_LOGI(AAFwkTag::ABILITYMGR, "Options parsed from argv[3]");
+                        TAG_LOGI(AAFwkTag::ABILITYMGR, "Options parsed from argv[3]: timeout=%{public}d, background=%{public}d",
+                            options.timeout, options.background);
                     }
                 } else if (valueType == napi_object) {
                     // argv[2] is options (object)
                     UnwrapExecOptions(env, argv[INDEX_TWO], options);
-                    TAG_LOGI(AAFwkTag::ABILITYMGR, "Options parsed from argv[2]");
+                    TAG_LOGI(AAFwkTag::ABILITYMGR, "Options parsed from argv[2]: timeout=%{public}d, background=%{public}d",
+                        options.timeout, options.background);
                 }
             }
         }

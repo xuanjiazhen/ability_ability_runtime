@@ -38,6 +38,7 @@ ohos_shared_library("climgr") {
     "src/cli_manager_service.cpp",
     "src/cli_tool_manager.cpp",
     "src/cli_tool_data_manager.cpp",
+    "src/timeout_manager.cpp",
   ]
 
   configs = [
