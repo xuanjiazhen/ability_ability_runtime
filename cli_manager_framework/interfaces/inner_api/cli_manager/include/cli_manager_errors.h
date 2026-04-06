@@ -97,6 +97,12 @@ enum {
      * chdir system call failed
      */
     ERR_CLI_CHDIR_FAILED = 2100013,
+
+    /**
+     * Result(2100014) Too many concurrent sessions
+     * Maximum number of concurrent sessions (64) has been reached
+     */
+    ERR_CLI_TOO_MANY_SESSIONS = 2100014,
 };
 
 }  // namespace AbilityRuntime

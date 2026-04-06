@@ -664,6 +664,8 @@ declare namespace cliManager {
    * ```
    */
   function querySessionStatus(sessionId: string): Promise<SessionStatus>;
+
+  function WriteSessionInput(sessionId: string, inputText: string): Promise<boolean>;
 }
 
 export default cliManager;
