@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,6 +47,18 @@ int32_t CliManagerStub::OnRemoteRequest(uint32_t code, MessageParcel &data,
             return QueryToolsInner(data, reply);
         case CliManagerCmd::EXEC_TOOL:
             return ExecToolInner(data, reply);
+        case CliManagerCmd::REGISTER_SCHEDULER:
+            return RegisterSchedulerInner(data, reply);
+        case CliManagerCmd::UNREGISTER_SCHEDULER:
+            return UnregisterSchedulerInner(data, reply);
+        case CliManagerCmd::SUBSCRIBE_SESSION:
+            return SubscribeSessionInner(data, reply);
+        case CliManagerCmd::UNSUBSCRIBE_SESSION:
+            return UnsubscribeSessionInner(data, reply);
+        case CliManagerCmd::CANCEL_SESSION:
+            return CancelSessionInner(data, reply);
+        case CliManagerCmd::QUERY_SESSION_STATUS:
+            return QuerySessionStatusInner(data, reply);
         default:
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Unknown command code: %{public}u", code);
             return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
@@ -175,6 +187,89 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: writing final result code ERR_OK");
     reply.WriteInt32(ERR_OK);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: ExecToolInner completed successfully");
+    return ERR_OK;
+}
+
+int32_t CliManagerStub::CancelSessionInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string sessionId;
+    if (!data.ReadString(sessionId)) {
+        reply.WriteInt32(ERROR_CODE);
+        return ERROR_CODE;
+    }
+
+    int32_t ret = CancelSession(sessionId);
+    reply.WriteInt32(ret);
+    return ret;
+}
+
+int32_t CliManagerStub::RegisterSchedulerInner(MessageParcel &data, MessageParcel &reply)
+{
+    auto remote = data.ReadRemoteObject();
+    auto scheduler = iface_cast<ICliManagerScheduler>(remote);
+    if (scheduler == nullptr) {
+        reply.WriteInt32(ERROR_CODE);
+        return ERROR_CODE;
+    }
+
+    int32_t ret = RegisterScheduler(scheduler);
+    reply.WriteInt32(ret);
+    return ret;
+}
+
+int32_t CliManagerStub::UnregisterSchedulerInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t ret = UnregisterScheduler();
+    reply.WriteInt32(ret);
+    return ret;
+}
+
+int32_t CliManagerStub::SubscribeSessionInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string sessionId;
+    std::string subscriptionId;
+    if (!data.ReadString(sessionId) || !data.ReadString(subscriptionId)) {
+        reply.WriteInt32(ERROR_CODE);
+        return ERROR_CODE;
+    }
+
+    int32_t ret = SubscribeSession(sessionId, subscriptionId);
+    reply.WriteInt32(ret);
+    return ret;
+}
+
+int32_t CliManagerStub::UnsubscribeSessionInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string sessionId;
+    std::string subscriptionId;
+    if (!data.ReadString(sessionId) || !data.ReadString(subscriptionId)) {
+        reply.WriteInt32(ERROR_CODE);
+        return ERROR_CODE;
+    }
+
+    int32_t ret = UnsubscribeSession(sessionId, subscriptionId);
+    reply.WriteInt32(ret);
+    return ret;
+}
+
+int32_t CliManagerStub::QuerySessionStatusInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string sessionId;
+    if (!data.ReadString(sessionId)) {
+        reply.WriteInt32(ERROR_CODE);
+        return ERROR_CODE;
+    }
+
+    SessionStatus status;
+    int32_t ret = QuerySessionStatus(sessionId, status);
+    reply.WriteInt32(ret);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    if (!reply.WriteParcelable(&status)) {
+        return ERROR_CODE;
+    }
     return ERR_OK;
 }
 

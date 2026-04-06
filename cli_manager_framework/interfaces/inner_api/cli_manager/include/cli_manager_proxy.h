@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -46,6 +46,18 @@ public:
                      const ExecOptions &options,
                      const std::string &challenge,
                      SessionInfo &session) override;
+
+    int32_t RegisterScheduler(const sptr<ICliManagerScheduler> &scheduler) override;
+
+    int32_t UnregisterScheduler() override;
+
+    int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
+
+    int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
+
+    int32_t CancelSession(const std::string &sessionId) override;
+
+    int32_t QuerySessionStatus(const std::string &sessionId, SessionStatus &status) override;
 
 private:
     static inline BrokerDelegator<CliManagerProxy> delegator_;

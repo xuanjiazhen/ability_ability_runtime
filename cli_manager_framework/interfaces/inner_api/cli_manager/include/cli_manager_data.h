@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -119,7 +119,7 @@ public:
 class ToolEvent : public Parcelable {
 public:
     std::string type;              // "stdout", "stderr", "exit", "error"
-    std::string data;
+    std::string eventData;
     int32_t exitCode;
     int64_t timestamp;
 
@@ -143,32 +143,6 @@ public:
 
     bool Marshalling(Parcel &parcel) const;
     static SessionStatus *Unmarshalling(Parcel &parcel);
-};
-
-/**
- * @brief Session record (internal use for service-side session management)
- */
-struct SessionRecord {
-    std::string sessionId;
-    std::string toolName;
-    std::string status;            // "running", "completed", "failed", "cancelled"
-    int64_t startTime;
-    int64_t endTime;
-    pid_t processId;               // Process ID for task cancellation
-    int32_t callingUid;            // Caller's UID for permission check
-    int32_t callingPid;            // Caller's PID
-    uint64_t callingTokenId;       // Caller's Token ID
-    std::shared_ptr<ExecResult> result;
-    std::string challenge;         // Challenge string for sandbox config
-
-    SessionRecord()
-        : status("running"),
-          startTime(0),
-          endTime(0),
-          processId(-1),
-          callingUid(-1),
-          callingPid(-1),
-          callingTokenId(0) {}
 };
 
 } // namespace AbilityRuntime

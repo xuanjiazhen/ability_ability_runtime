@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -33,6 +33,9 @@ namespace AbilityRuntime {
  */
 class CliManagerClient {
 public:
+    using SessionEventHandler = std::function<void(const std::string &, const std::string &, const ToolEvent &)>;
+    using ServiceDeathHandler = std::function<void()>;
+
     CliManagerClient() = default;
     virtual ~CliManagerClient() = default;
 
@@ -60,6 +63,18 @@ public:
                      const std::string &challenge,
                      SessionInfo &session);
 
+    int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId);
+
+    int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId);
+
+    int32_t CancelSession(const std::string &sessionId);
+
+    int32_t QuerySessionStatus(const std::string &sessionId, SessionStatus &status);
+
+    void SetSessionEventHandler(SessionEventHandler handler);
+
+    void SetServiceDeathHandler(ServiceDeathHandler handler);
+
     /**
      * @brief Clear proxy when service died
      */
@@ -70,6 +85,8 @@ private:
     bool LoadCliManagerService();
     void SetCliManager(const sptr<IRemoteObject> &remoteObject);
     sptr<ICliManager> GetCliManager();
+    int32_t EnsureSchedulerRegistered(const sptr<ICliManager> &proxy);
+    int32_t DispatchSessionEvent(const std::string &sessionId, const std::string &subscriptionId, const ToolEvent &event);
 
     class CliMgrDeathRecipient : public IRemoteObject::DeathRecipient {
     public:
@@ -86,6 +103,10 @@ private:
     std::mutex mutex_;
     sptr<ICliManager> cliManager_ = nullptr;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
+    sptr<ICliManagerScheduler> schedulerStub_ = nullptr;
+    SessionEventHandler sessionEventHandler_;
+    ServiceDeathHandler serviceDeathHandler_;
+    bool schedulerRegistered_ = false;
 };
 
 } // namespace AbilityRuntime

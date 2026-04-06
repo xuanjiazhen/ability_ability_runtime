@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -291,7 +291,7 @@ napi_value CreateJsToolEvent(napi_env env, const ToolEvent &event)
     }
 
     napi_set_named_property(env, objValue, "type", CreateJsValue(env, event.type));
-    napi_set_named_property(env, objValue, "eventData", CreateJsValue(env, event.data));
+    napi_set_named_property(env, objValue, "eventData", CreateJsValue(env, event.eventData));
     napi_set_named_property(env, objValue, "timestamp", CreateJsValue(env, event.timestamp));
 
     // exitCode is only present for 'exit' type events

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -366,7 +366,7 @@ bool ToolEvent::Marshalling(Parcel &parcel) const
     if (!parcel.WriteString(type)) {
         return false;
     }
-    if (!parcel.WriteString(data)) {
+    if (!parcel.WriteString(eventData)) {
         return false;
     }
     if (!parcel.WriteInt32(exitCode)) {
@@ -385,7 +385,7 @@ ToolEvent *ToolEvent::Unmarshalling(Parcel &parcel)
         delete event;
         return nullptr;
     }
-    if (!parcel.ReadString(event->data)) {
+    if (!parcel.ReadString(event->eventData)) {
         delete event;
         return nullptr;
     }

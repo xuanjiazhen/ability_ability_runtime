@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -39,6 +39,12 @@ private:
 
     int32_t QueryToolsInner(MessageParcel &data, MessageParcel &reply);
     int32_t ExecToolInner(MessageParcel &data, MessageParcel &reply);
+    int32_t RegisterSchedulerInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnregisterSchedulerInner(MessageParcel &data, MessageParcel &reply);
+    int32_t SubscribeSessionInner(MessageParcel &data, MessageParcel &reply);
+    int32_t UnsubscribeSessionInner(MessageParcel &data, MessageParcel &reply);
+    int32_t CancelSessionInner(MessageParcel &data, MessageParcel &reply);
+    int32_t QuerySessionStatusInner(MessageParcel &data, MessageParcel &reply);
 };
 
 } // namespace AbilityRuntime

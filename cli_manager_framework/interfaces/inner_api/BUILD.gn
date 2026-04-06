@@ -38,8 +38,12 @@ ohos_shared_library("cli_manager") {
   ]
 
   sources = [
+    "cli_manager/src/cli_callback_proxy.cpp",
+    "cli_manager/src/cli_callback_stub.cpp",
     "cli_manager/src/cli_manager_data.cpp",
     "cli_manager/src/cli_manager_proxy.cpp",
+    "cli_manager/src/cli_manager_scheduler_proxy.cpp",
+    "cli_manager/src/cli_manager_scheduler_stub.cpp",
     "cli_manager/src/cli_manager_stub.cpp",
     "cli_manager/src/cli_manager_client.cpp",
   ]

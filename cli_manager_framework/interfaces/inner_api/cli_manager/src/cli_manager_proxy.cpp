@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -171,6 +171,156 @@ int32_t CliManagerProxy::ExecTool(const std::string &name,
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: read final result code=%{public}d", finalResult);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerProxy: ExecTool succeeded, returning");
+    return finalResult;
+}
+
+int32_t CliManagerProxy::RegisterScheduler(const sptr<ICliManagerScheduler> &scheduler)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor()) || scheduler == nullptr || scheduler->AsObject() == nullptr ||
+        !data.WriteRemoteObject(scheduler->AsObject())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "RegisterScheduler write request failed");
+        return ERROR_CODE;
+    }
+
+    int32_t ret = SendTransactCmd(CliManagerCmd::REGISTER_SCHEDULER, data, reply, option);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    int32_t finalResult = ERROR_CODE;
+    if (!reply.ReadInt32(finalResult)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "RegisterScheduler read result failed");
+        return ERROR_CODE;
+    }
+    return finalResult;
+}
+
+int32_t CliManagerProxy::UnregisterScheduler()
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UnregisterScheduler write request failed");
+        return ERROR_CODE;
+    }
+
+    int32_t ret = SendTransactCmd(CliManagerCmd::UNREGISTER_SCHEDULER, data, reply, option);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    int32_t finalResult = ERROR_CODE;
+    if (!reply.ReadInt32(finalResult)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UnregisterScheduler read result failed");
+        return ERROR_CODE;
+    }
+    return finalResult;
+}
+
+int32_t CliManagerProxy::SubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor()) || !data.WriteString(sessionId) || !data.WriteString(subscriptionId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SubscribeSession write request failed");
+        return ERROR_CODE;
+    }
+
+    int32_t ret = SendTransactCmd(CliManagerCmd::SUBSCRIBE_SESSION, data, reply, option);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    int32_t finalResult = ERROR_CODE;
+    if (!reply.ReadInt32(finalResult)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SubscribeSession read result failed");
+        return ERROR_CODE;
+    }
+    return finalResult;
+}
+
+int32_t CliManagerProxy::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor()) || !data.WriteString(sessionId) ||
+        !data.WriteString(subscriptionId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UnsubscribeSession write request failed");
+        return ERROR_CODE;
+    }
+
+    int32_t ret = SendTransactCmd(CliManagerCmd::UNSUBSCRIBE_SESSION, data, reply, option);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    int32_t finalResult = ERROR_CODE;
+    if (!reply.ReadInt32(finalResult)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UnsubscribeSession read result failed");
+        return ERROR_CODE;
+    }
+    return finalResult;
+}
+
+int32_t CliManagerProxy::CancelSession(const std::string &sessionId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor()) || !data.WriteString(sessionId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "CancelSession write request failed");
+        return ERROR_CODE;
+    }
+
+    int32_t ret = SendTransactCmd(CliManagerCmd::CANCEL_SESSION, data, reply, option);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    int32_t finalResult = ERROR_CODE;
+    if (!reply.ReadInt32(finalResult)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "CancelSession read result failed");
+        return ERROR_CODE;
+    }
+    return finalResult;
+}
+
+int32_t CliManagerProxy::QuerySessionStatus(const std::string &sessionId, SessionStatus &status)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor()) || !data.WriteString(sessionId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "QuerySessionStatus write request failed");
+        return ERROR_CODE;
+    }
+
+    int32_t ret = SendTransactCmd(CliManagerCmd::QUERY_SESSION_STATUS, data, reply, option);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    int32_t finalResult = ERROR_CODE;
+    if (!reply.ReadInt32(finalResult)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "QuerySessionStatus read result failed");
+        return ERROR_CODE;
+    }
+    if (finalResult != ERR_OK) {
+        return finalResult;
+    }
+
+    std::unique_ptr<SessionStatus> statusPtr(reply.ReadParcelable<SessionStatus>());
+    if (!statusPtr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Read session status failed");
+        return ERROR_CODE;
+    }
+    status = *statusPtr;
     return finalResult;
 }
 

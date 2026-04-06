@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,11 +14,13 @@
  */
 
 #include "cli_manager_client.h"
+
 #include "cli_manager_proxy.h"
+#include "cli_manager_scheduler_stub.h"
+#include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
-#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -26,7 +28,30 @@ namespace AbilityRuntime {
 namespace {
 constexpr int32_t ERROR_CODE = -1;
 constexpr int32_t CLI_MANAGER_SA_ID = 8899; // TODO: Use proper SA ID
-}
+constexpr int32_t ERR_OK = 0;
+
+class CliManagerSchedulerRecipient final : public CliManagerSchedulerStub {
+public:
+    explicit CliManagerSchedulerRecipient(const std::function<int32_t(
+        const std::string &, const std::string &, const ToolEvent &)> &handler)
+        : handler_(handler)
+    {}
+
+    ~CliManagerSchedulerRecipient() override = default;
+
+    int32_t ScheduleSessionEvent(const std::string &sessionId, const std::string &subscriptionId,
+        const ToolEvent &event) override
+    {
+        if (!handler_) {
+            return ERROR_CODE;
+        }
+        return handler_(sessionId, subscriptionId, event);
+    }
+
+private:
+    std::function<int32_t(const std::string &, const std::string &, const ToolEvent &)> handler_;
+};
+} // namespace
 
 CliManagerClient& CliManagerClient::GetInstance()
 {
@@ -55,152 +80,215 @@ bool CliManagerClient::LoadCliManagerService()
         return true;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadCliManagerService: getting SystemAbilityManager");
     auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (!samgr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Get SystemAbilityManager failed");
         return false;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadCliManagerService: getting CliManagerService SA %{public}d", CLI_MANAGER_SA_ID);
     auto remoteObject = samgr->GetSystemAbility(CLI_MANAGER_SA_ID);
     if (!remoteObject) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Get CliManagerService failed - SA not found");
         return false;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadCliManagerService: got remote object, calling SetCliManager");
     SetCliManager(remoteObject);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "LoadCliManagerService: completed successfully");
     return true;
 }
 
 void CliManagerClient::SetCliManager(const sptr<IRemoteObject> &remoteObject)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetCliManager: start");
     std::lock_guard<std::mutex> lock(mutex_);
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetCliManager: calling iface_cast");
     cliManager_ = iface_cast<ICliManager>(remoteObject);
-    if (!cliManager_) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Create CliManagerProxy failed - iface_cast returned null");
-        return;
-    }
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetCliManager: iface_cast succeeded, checking AsObject");
-    if (!cliManager_->AsObject()) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Create CliManagerProxy failed - AsObject is null");
+    if (!cliManager_ || !cliManager_->AsObject()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Create CliManagerProxy failed");
         cliManager_ = nullptr;
         return;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetCliManager: creating death recipient");
+    schedulerRegistered_ = false;
     deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(
         new CliMgrDeathRecipient([this](const wptr<IRemoteObject> &remote) {
             ClearProxy();
         }));
 
     if (deathRecipient_) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "SetCliManager: adding death recipient");
         remoteObject->AddDeathRecipient(deathRecipient_);
     }
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Connect to CliManagerService success");
 }
 
 void CliManagerClient::ClearProxy()
 {
-    std::lock_guard<std::mutex> lock(mutex_);
-    cliManager_ = nullptr;
+    ServiceDeathHandler serviceDeathHandler;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        cliManager_ = nullptr;
+        schedulerRegistered_ = false;
+        serviceDeathHandler = serviceDeathHandler_;
+    }
+
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService died, clear proxy");
+    if (serviceDeathHandler) {
+        serviceDeathHandler();
+    }
 }
 
 sptr<ICliManager> CliManagerClient::GetCliManager()
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetCliManager: start");
-
-    // First check: quick read with lock
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (cliManager_ != nullptr && cliManager_->AsObject() != nullptr) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "GetCliManager: returning cached proxy");
             return cliManager_;
         }
     }
 
-    // Load service without holding lock (SetCliManager will acquire it)
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetCliManager: calling LoadCliManagerService");
     if (!LoadCliManagerService()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Load CliManagerService failed");
         return nullptr;
     }
 
-    // Second check: verify result with lock
     std::lock_guard<std::mutex> lock(mutex_);
-    if (cliManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get CliManager proxy - cliManager_ is null");
-        return nullptr;
-    }
-
-    if (cliManager_->AsObject() == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get CliManager proxy - AsObject is null");
+    if (cliManager_ == nullptr || cliManager_->AsObject() == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get CliManager proxy");
         cliManager_ = nullptr;
         return nullptr;
     }
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetCliManager: returning new proxy");
     return cliManager_;
+}
+
+int32_t CliManagerClient::EnsureSchedulerRegistered(const sptr<ICliManager> &proxy)
+{
+    sptr<ICliManagerScheduler> schedulerStub;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (schedulerRegistered_) {
+            return ERR_OK;
+        }
+        schedulerStub = schedulerStub_;
+    }
+
+    if (proxy == nullptr || schedulerStub == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "EnsureSchedulerRegistered prerequisites are missing");
+        return ERROR_CODE;
+    }
+
+    int32_t ret = proxy->RegisterScheduler(schedulerStub);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "RegisterScheduler failed: %{public}d", ret);
+        return ret;
+    }
+
+    std::lock_guard<std::mutex> lock(mutex_);
+    schedulerRegistered_ = true;
+    return ERR_OK;
+}
+
+int32_t CliManagerClient::DispatchSessionEvent(const std::string &sessionId, const std::string &subscriptionId,
+    const ToolEvent &event)
+{
+    SessionEventHandler handler;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        handler = sessionEventHandler_;
+    }
+
+    if (!handler) {
+        return ERROR_CODE;
+    }
+
+    handler(sessionId, subscriptionId, event);
+    return ERR_OK;
 }
 
 int32_t CliManagerClient::QueryTools(std::vector<ToolInfo> &tools)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient QueryTools called");
     auto proxy = GetCliManager();
     if (!proxy) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Proxy is null");
         return ERROR_CODE;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "About to call proxy->QueryTools");
-
-    int32_t result = proxy->QueryTools(tools);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "proxy->QueryTools returned: %{public}d, tools.size()=%{public}zu",
-        result, tools.size());
-
-    return result;
+    return proxy->QueryTools(tools);
 }
 
 int32_t CliManagerClient::ExecTool(const std::string &name,
-                                    const std::vector<std::pair<std::string, std::string>> &args,
-                                    const ExecOptions &options,
-                                    const std::string &challenge,
-                                    SessionInfo &session)
+    const std::vector<std::pair<std::string, std::string>> &args,
+    const ExecOptions &options,
+    const std::string &challenge,
+    SessionInfo &session)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient ExecTool called");
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: name='%{public}s'", name.c_str());
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: args.count=%{public}zu", args.size());
-    for (const auto &[key, value] : args) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient:   arg[%{public}s]='%{public}s'",
-            key.c_str(), value.c_str());
-    }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: options.background=%{public}d, yieldMs=%{public}d, timeout=%{public}d",
-        options.background, options.yieldMs, options.timeout);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: challenge='%{public}s'", challenge.c_str());
-
     auto proxy = GetCliManager();
     if (!proxy) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Proxy is null");
         return ERROR_CODE;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: calling proxy->ExecTool");
-    int32_t ret = proxy->ExecTool(name, args, options, challenge, session);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: proxy->ExecTool returned=%{public}d", ret);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: session.sessionId='%{public}s', session.status='%{public}s'",
-        session.sessionId.c_str(), session.status.c_str());
-    if (session.result != nullptr) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerClient: session.result.exitCode=%{public}d, outputText.len=%{public}zu",
-            session.result->exitCode, session.result->outputText.length());
+    return proxy->ExecTool(name, args, options, challenge, session);
+}
+
+int32_t CliManagerClient::CancelSession(const std::string &sessionId)
+{
+    auto proxy = GetCliManager();
+    if (!proxy) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Proxy is null");
+        return ERROR_CODE;
     }
-    return ret;
+    return proxy->CancelSession(sessionId);
+}
+
+int32_t CliManagerClient::SubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
+{
+    auto proxy = GetCliManager();
+    if (!proxy) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Proxy is null");
+        return ERROR_CODE;
+    }
+
+    int32_t ret = EnsureSchedulerRegistered(proxy);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    return proxy->SubscribeSession(sessionId, subscriptionId);
+}
+
+int32_t CliManagerClient::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
+{
+    auto proxy = GetCliManager();
+    if (!proxy) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Proxy is null");
+        return ERROR_CODE;
+    }
+
+    return proxy->UnsubscribeSession(sessionId, subscriptionId);
+}
+
+int32_t CliManagerClient::QuerySessionStatus(const std::string &sessionId, SessionStatus &status)
+{
+    auto proxy = GetCliManager();
+    if (!proxy) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Proxy is null");
+        return ERROR_CODE;
+    }
+    return proxy->QuerySessionStatus(sessionId, status);
+}
+
+void CliManagerClient::SetSessionEventHandler(SessionEventHandler handler)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    sessionEventHandler_ = std::move(handler);
+    if (schedulerStub_ == nullptr) {
+        schedulerStub_ = sptr<ICliManagerScheduler>(new (std::nothrow) CliManagerSchedulerRecipient(
+            [this](const std::string &sessionId, const std::string &subscriptionId, const ToolEvent &event) {
+                return DispatchSessionEvent(sessionId, subscriptionId, event);
+            }));
+    }
+    schedulerRegistered_ = false;
+}
+
+void CliManagerClient::SetServiceDeathHandler(ServiceDeathHandler handler)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    serviceDeathHandler_ = std::move(handler);
 }
 
 } // namespace AbilityRuntime

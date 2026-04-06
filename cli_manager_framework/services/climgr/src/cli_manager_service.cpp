@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -14,26 +14,328 @@
  */
 
 #include "cli_manager_service.h"
-#include "cli_tool_manager.h"
-#include "cli_manager_errors.h"
-#include "hilog_tag_wrapper.h"
+
+#include <cerrno>
 #include <chrono>
+#include <csignal>
+#include <cstring>
+#include <functional>
 #include <memory>
+#include <new>
 #include <nlohmann/json.hpp>
-#include <unistd.h>
+#include <sys/prctl.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <cstring>
-#include <cerrno>
+#include <unistd.h>
+#include <unordered_map>
+#include <vector>
+
+#include "cli_manager_errors.h"
+#include "cli_manager_scheduler_proxy.h"
+#include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 
 namespace {
-constexpr int32_t CLI_MANAGER_SA_ID = 8899; // TODO: Use proper SA ID
+constexpr int32_t CLI_MANAGER_SA_ID = 8899;
+constexpr int32_t ERROR_CODE = -1;
 constexpr int32_t ERR_OK = 0;
+constexpr int32_t DEFAULT_TIMEOUT_SEC = 30 * 60;
+
+int64_t GetCurrentTimeMs()
+{
+    return std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::steady_clock::now().time_since_epoch()).count();
 }
+
+class CallbackDeathRecipient final : public IRemoteObject::DeathRecipient {
+public:
+    using Handler = std::function<void(const wptr<IRemoteObject> &)>;
+
+    explicit CallbackDeathRecipient(Handler handler) : handler_(std::move(handler))
+    {}
+
+    ~CallbackDeathRecipient() override = default;
+
+    void OnRemoteDied(const wptr<IRemoteObject> &remote) override
+    {
+        if (handler_) {
+            handler_(remote);
+        }
+    }
+
+private:
+    Handler handler_;
+};
+
+class EventDispatcher final {
+public:
+    struct SubscriberKey {
+        int32_t callerPid = 0;
+        std::string subscriptionId;
+
+        bool operator==(const SubscriberKey &other) const
+        {
+            return callerPid == other.callerPid && subscriptionId == other.subscriptionId;
+        }
+    };
+
+    struct SubscriberKeyHash {
+        size_t operator()(const SubscriberKey &key) const
+        {
+            return std::hash<int32_t>()(key.callerPid) ^ (std::hash<std::string>()(key.subscriptionId) << 1);
+        }
+    };
+
+    struct SchedulerState {
+        sptr<ICliManagerScheduler> scheduler;
+        sptr<IRemoteObject> remote;
+        sptr<IRemoteObject::DeathRecipient> deathRecipient;
+    };
+
+    struct SubscriberState {
+        SubscriberKey key;
+        sptr<ICliManagerScheduler> scheduler;
+    };
+
+    static EventDispatcher &GetInstance()
+    {
+        static EventDispatcher instance;
+        return instance;
+    }
+
+    int32_t RegisterScheduler(int32_t callerPid, const sptr<ICliManagerScheduler> &scheduler)
+    {
+        if (callerPid <= 0 || scheduler == nullptr || scheduler->AsObject() == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "RegisterScheduler failed: invalid callerPid=%{public}d or scheduler remote is null", callerPid);
+            return ERROR_CODE;
+        }
+
+        auto remote = scheduler->AsObject();
+        auto deathRecipient = sptr<IRemoteObject::DeathRecipient>(
+            new (std::nothrow) CallbackDeathRecipient([callerPid](const wptr<IRemoteObject> &) {
+                EventDispatcher::GetInstance().UnregisterScheduler(callerPid);
+            }));
+        if (deathRecipient == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "RegisterScheduler failed: alloc death recipient for pid %{public}d",
+                callerPid);
+            return ERR_CLI_MEMORY_ALLOC_FAILED;
+        }
+        if (!remote->AddDeathRecipient(deathRecipient)) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "AddDeathRecipient failed for scheduler pid %{public}d", callerPid);
+        }
+
+        sptr<IRemoteObject> oldRemote;
+        sptr<IRemoteObject::DeathRecipient> oldDeathRecipient;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto schedulerIt = schedulers_.find(callerPid);
+            if (schedulerIt != schedulers_.end()) {
+                oldRemote = schedulerIt->second.remote;
+                oldDeathRecipient = schedulerIt->second.deathRecipient;
+                RemoveSubscribersForPidLocked(callerPid);
+            }
+            schedulers_[callerPid] = SchedulerState {scheduler, remote, deathRecipient};
+        }
+
+        if (oldRemote != nullptr && oldDeathRecipient != nullptr) {
+            oldRemote->RemoveDeathRecipient(oldDeathRecipient);
+        }
+        return ERR_OK;
+    }
+
+    int32_t UnregisterScheduler(int32_t callerPid)
+    {
+        sptr<IRemoteObject> remote;
+        sptr<IRemoteObject::DeathRecipient> deathRecipient;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto it = schedulers_.find(callerPid);
+            if (it != schedulers_.end()) {
+                remote = it->second.remote;
+                deathRecipient = it->second.deathRecipient;
+                schedulers_.erase(it);
+            }
+            RemoveSubscribersForPidLocked(callerPid);
+        }
+        if (remote != nullptr && deathRecipient != nullptr) {
+            remote->RemoveDeathRecipient(deathRecipient);
+        }
+        return ERR_OK;
+    }
+
+    int32_t RegisterSubscriber(const std::string &sessionId, const std::string &subscriptionId, int32_t callerPid)
+    {
+        if (sessionId.empty() || subscriptionId.empty() || callerPid <= 0) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "RegisterSubscriber failed: invalid args sessionId='%{public}s', subscriptionId='%{public}s', "
+                "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
+            return ERROR_CODE;
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto schedulerIt = schedulers_.find(callerPid);
+            if (schedulerIt == schedulers_.end() || schedulerIt->second.scheduler == nullptr) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR,
+                    "RegisterSubscriber failed: scheduler not found for pid %{public}d, sessionId='%{public}s', "
+                    "subscriptionId='%{public}s'", callerPid, sessionId.c_str(), subscriptionId.c_str());
+                return ERROR_CODE;
+            }
+            auto &subscribers = sessionSubscribers_[sessionId];
+            SubscriberKey key {callerPid, subscriptionId};
+            subscribers[key] = SubscriberState {key, schedulerIt->second.scheduler};
+        }
+        return ERR_OK;
+    }
+
+    int32_t UnregisterSubscriber(const std::string &sessionId, const std::string &subscriptionId, int32_t callerPid)
+    {
+        if (sessionId.empty() || subscriptionId.empty() || callerPid <= 0) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "UnregisterSubscriber failed: invalid args sessionId='%{public}s', subscriptionId='%{public}s', "
+                "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
+            return ERROR_CODE;
+        }
+
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto sessionIt = sessionSubscribers_.find(sessionId);
+        if (sessionIt == sessionSubscribers_.end()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "UnregisterSubscriber skipped: no subscribers for sessionId='%{public}s'", sessionId.c_str());
+            return ERR_OK;
+        }
+
+        sessionIt->second.erase(SubscriberKey {callerPid, subscriptionId});
+        if (sessionIt->second.empty()) {
+            sessionSubscribers_.erase(sessionIt);
+        }
+        return ERR_OK;
+    }
+
+    int32_t DispatchIOEvent(const std::string &sessionId, const std::string &eventType, const std::string &data)
+    {
+        ToolEvent event;
+        event.type = eventType;
+        event.eventData = data;
+        event.exitCode = 0;
+        event.timestamp = GetCurrentTimeMs();
+        return DispatchEvent(sessionId, event);
+    }
+
+    int32_t DispatchErrorEvent(const std::string &sessionId, const std::string &error)
+    {
+        return DispatchIOEvent(sessionId, "error", error);
+    }
+
+    int32_t DispatchExitEvent(const std::string &sessionId, int32_t exitCode)
+    {
+        ToolEvent event;
+        event.type = "exit";
+        event.eventData = "";
+        event.exitCode = exitCode;
+        event.timestamp = GetCurrentTimeMs();
+        return DispatchEvent(sessionId, event);
+    }
+
+    void ClearSessionSubscribers(const std::string &sessionId)
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        sessionSubscribers_.erase(sessionId);
+    }
+
+    void ClearAll()
+    {
+        std::vector<std::pair<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>>> cleanupList;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            for (auto &[pid, schedulerState] : schedulers_) {
+                cleanupList.emplace_back(schedulerState.remote, schedulerState.deathRecipient);
+            }
+            schedulers_.clear();
+            sessionSubscribers_.clear();
+        }
+        for (const auto &[remote, deathRecipient] : cleanupList) {
+            if (remote != nullptr && deathRecipient != nullptr) {
+                remote->RemoveDeathRecipient(deathRecipient);
+            }
+        }
+    }
+
+private:
+    int32_t DispatchEvent(const std::string &sessionId, const ToolEvent &event)
+    {
+        std::vector<SubscriberState> subscribers;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto sessionIt = sessionSubscribers_.find(sessionId);
+            if (sessionIt == sessionSubscribers_.end()) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "DispatchEvent skipped: no subscribers for sessionId='%{public}s', eventType='%{public}s'",
+                    sessionId.c_str(), event.type.c_str());
+                return ERR_OK;
+            }
+            for (const auto &[key, state] : sessionIt->second) {
+                subscribers.push_back(state);
+            }
+        }
+
+        std::vector<SubscriberKey> failedSubscribers;
+        for (const auto &subscriber : subscribers) {
+            if (subscriber.scheduler == nullptr ||
+                subscriber.scheduler->ScheduleSessionEvent(sessionId, subscriber.key.subscriptionId, event) != ERR_OK) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "DispatchEvent failed for pid %{public}d, sessionId='%{public}s', subscriptionId='%{public}s', "
+                    "eventType='%{public}s'", subscriber.key.callerPid, sessionId.c_str(),
+                    subscriber.key.subscriptionId.c_str(), event.type.c_str());
+                failedSubscribers.push_back(subscriber.key);
+            }
+        }
+
+        if (!failedSubscribers.empty()) {
+            std::lock_guard<std::mutex> lock(mutex_);
+            auto sessionIt = sessionSubscribers_.find(sessionId);
+            if (sessionIt != sessionSubscribers_.end()) {
+                for (const auto &key : failedSubscribers) {
+                    sessionIt->second.erase(key);
+                }
+                if (sessionIt->second.empty()) {
+                    sessionSubscribers_.erase(sessionIt);
+                }
+            }
+        }
+        return ERR_OK;
+    }
+
+    void RemoveSubscribersForPidLocked(int32_t callerPid)
+    {
+        for (auto sessionIt = sessionSubscribers_.begin(); sessionIt != sessionSubscribers_.end();) {
+            auto &subscribers = sessionIt->second;
+            for (auto it = subscribers.begin(); it != subscribers.end();) {
+                if (it->first.callerPid == callerPid) {
+                    it = subscribers.erase(it);
+                } else {
+                    ++it;
+                }
+            }
+            if (subscribers.empty()) {
+                sessionIt = sessionSubscribers_.erase(sessionIt);
+            } else {
+                ++sessionIt;
+            }
+        }
+    }
+
+    std::unordered_map<int32_t, SchedulerState> schedulers_;
+    std::unordered_map<std::string, std::unordered_map<SubscriberKey, SubscriberState, SubscriberKeyHash>>
+        sessionSubscribers_;
+    std::mutex mutex_;
+};
+} // namespace
 
 sptr<CliManagerService> CliManagerService::instance_ = nullptr;
 std::mutex CliManagerService::instanceMutex_;
@@ -50,331 +352,402 @@ sptr<CliManagerService> CliManagerService::GetInstance()
 }
 
 CliManagerService::CliManagerService() : SystemAbility(CLI_MANAGER_SA_ID, true)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService constructor called");
-}
+{}
 
-CliManagerService::~CliManagerService()
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService destructor called");
-}
+CliManagerService::~CliManagerService() = default;
 
 void CliManagerService::Init()
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService Init called");
-
-    // Create CliToolManager instance (construction does initialization)
-    cliToolManager_ = std::make_shared<CliToolManager>();
-    if (cliToolManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to create CliToolManager");
-        return;
-    }
-
-    // Create and start TimeoutManager
+    cliToolManager_ = std::make_unique<CliToolManager>();
     timeoutManager_ = std::make_shared<TimeoutManager>();
-    timeoutManager_->Start();
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService Init completed");
+    if (timeoutManager_ != nullptr) {
+        timeoutManager_->Start();
+    }
+    processMonitor_.SetExitCallback([this](const std::string &sessionId, int status, bool timedOut) {
+        HandleProcessExit(sessionId, status, timedOut);
+    });
+    processMonitor_.SetTimeoutCallback([](const std::string &sessionId) {
+        EventDispatcher::GetInstance().DispatchErrorEvent(sessionId, "session timed out");
+    });
+    ioMonitor_.SetOutputCallback([](const std::string &sessionId, bool isStdout, const std::string &data) {
+        auto record = CliManagerService::GetInstance()->GetSessionRecord(sessionId);
+        if (record != nullptr) {
+            record->AppendOutput(isStdout, data);
+        }
+        EventDispatcher::GetInstance().DispatchIOEvent(sessionId, isStdout ? "stdout" : "stderr", data);
+    });
+    ioMonitor_.SetSessionClosedCallback([this](const std::string &sessionId, bool isStdout) {
+        HandleOutputClosed(sessionId, isStdout);
+    });
+    ioMonitor_.SetSessionDrainedCallback([this](const std::string &sessionId) {
+        HandleOutputDrained(sessionId);
+    });
+    ioMonitor_.Start();
+    processMonitor_.Start();
 }
 
 void CliManagerService::OnStart()
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService OnStart called");
-
     if (state_ == ServiceRunningState::STATE_RUNNING) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService already started");
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "OnStart skipped: service already running");
         return;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService starting");
+    stopping_.store(false, std::memory_order_release);
     Init();
 
     if (!Publish(CliManagerService::GetInstance())) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to publish CliManagerService");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnStart failed: Publish returned false");
         return;
     }
-
     state_ = ServiceRunningState::STATE_RUNNING;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService started successfully");
 }
 
 void CliManagerService::OnStop()
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService OnStop called");
     state_ = ServiceRunningState::STATE_NOT_START;
-    // cliToolManager_ will be automatically destroyed when service is destroyed
+    stopping_.store(true, std::memory_order_release);
+
+    std::vector<pid_t> activePids;
+    {
+        std::lock_guard<std::mutex> lock(sessionsMutex_);
+        for (const auto &[sessionId, record] : sessionRecords_) {
+            if (record != nullptr && record->processId > 0) {
+                activePids.push_back(record->processId);
+            }
+        }
+        sessionRecords_.clear();
+    }
+    EventDispatcher::GetInstance().ClearAll();
+
+    for (pid_t pid : activePids) {
+        kill(pid, SIGKILL);
+    }
+
+    ioMonitor_.Stop();
+    processMonitor_.Stop();
+    if (timeoutManager_ != nullptr) {
+        timeoutManager_->Stop();
+    }
+}
+
+std::string CliManagerService::GenerateSessionId(const std::string &name, int64_t startTimeMs)
+{
+    uint64_t counter = sessionCounter_.fetch_add(1, std::memory_order_relaxed) + 1;
+    return name + "-" + std::to_string(startTimeMs) + "-" + std::to_string(counter);
+}
+
+void CliManagerService::AddSessionRecord(const std::shared_ptr<SessionRecord> &record)
+{
+    std::lock_guard<std::mutex> lock(sessionsMutex_);
+    sessionRecords_[record->sessionId] = record;
+}
+
+std::shared_ptr<SessionRecord> CliManagerService::GetSessionRecord(const std::string &sessionId)
+{
+    std::lock_guard<std::mutex> lock(sessionsMutex_);
+    auto it = sessionRecords_.find(sessionId);
+    if (it == sessionRecords_.end()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "GetSessionRecord failed: sessionId='%{public}s' not found", sessionId.c_str());
+        return nullptr;
+    }
+    return it->second;
+}
+
+void CliManagerService::RemoveSessionRecord(const std::string &sessionId)
+{
+    std::lock_guard<std::mutex> lock(sessionsMutex_);
+    sessionRecords_.erase(sessionId);
+}
+
+void CliManagerService::HandleProcessExit(const std::string &sessionId, int status, bool timedOut)
+{
+    auto record = GetSessionRecord(sessionId);
+    if (record == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "HandleProcessExit skipped: sessionId='%{public}s' not found, status=%{public}d, timedOut=%{public}d",
+            sessionId.c_str(), status, timedOut);
+        return;
+    }
+    record->SetTerminalResult(status, timedOut);
+    if (record->OutputDrained()) {
+        FinalizeBackgroundSession(record);
+    }
+}
+
+void CliManagerService::HandleOutputClosed(const std::string &sessionId, bool isStdout)
+{
+    auto record = GetSessionRecord(sessionId);
+    if (record == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "HandleOutputClosed skipped: sessionId='%{public}s' not found, isStdout=%{public}d",
+            sessionId.c_str(), isStdout);
+        return;
+    }
+    if (isStdout) {
+        record->MarkStdoutClosed();
+    } else {
+        record->MarkStderrClosed();
+    }
+    if (record->HasProcessExited() && record->OutputDrained()) {
+        FinalizeBackgroundSession(record);
+    }
+}
+
+void CliManagerService::HandleOutputDrained(const std::string &sessionId)
+{
+    auto record = GetSessionRecord(sessionId);
+    if (record != nullptr && record->HasProcessExited()) {
+        FinalizeBackgroundSession(record);
+    }
+}
+
+void CliManagerService::FinalizeBackgroundSession(const std::shared_ptr<SessionRecord> &record)
+{
+    if (record == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "FinalizeBackgroundSession skipped: record is null");
+        return;
+    }
+    if (!record->BeginCleanup()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR,
+            "FinalizeBackgroundSession skipped: cleanup already started for sessionId='%{public}s'",
+            record->sessionId.c_str());
+        return;
+    }
+
+    const int status = record->GetTerminalStatus();
+    const int32_t exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+
+    if (timeoutManager_ != nullptr) {
+        timeoutManager_->CancelTimeoutTask(record->sessionId);
+    }
+    EventDispatcher::GetInstance().DispatchExitEvent(record->sessionId, exitCode);
+    ioMonitor_.UnregisterSession(record->sessionId);
+    processMonitor_.UnregisterSession(record->sessionId);
+    EventDispatcher::GetInstance().ClearSessionSubscribers(record->sessionId);
+    RemoveSessionRecord(record->sessionId);
 }
 
 int32_t CliManagerService::QueryTools(std::vector<ToolInfo> &tools)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService::QueryTools called");
-
     std::lock_guard<std::mutex> lock(mutex_);
-
     if (cliToolManager_ == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "CliToolManager is not initialized");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "QueryTools failed: cliToolManager_ is null");
         return ERR_CLI_MANAGER_NOT_INITIALIZED;
     }
-
-    int32_t ret = cliToolManager_->QueryTools(tools);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to query tools: %{public}d", ret);
-        return ret;
-    }
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Returned %{public}zu tools to client", tools.size());
-    return ERR_OK;
+    return cliToolManager_->QueryTools(tools);
 }
 
 int32_t CliManagerService::ExecTool(const std::string &name,
-                                    const std::vector<std::pair<std::string, std::string>> &args,
-                                    const ExecOptions &options,
-                                    const std::string &challenge,
-                                    SessionInfo &session)
+    const std::vector<std::pair<std::string, std::string>> &args,
+    const ExecOptions &options,
+    const std::string &challenge,
+    SessionInfo &session)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService ExecTool called");
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: received name='%{public}s'", name.c_str());
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: received args.count=%{public}zu", args.size());
-    for (const auto &[key, value] : args) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService:   arg[%{public}s]='%{public}s'",
-            key.c_str(), value.c_str());
-    }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: options.background=%{public}d, yieldMs=%{public}d, timeout=%{public}d",
-        options.background, options.yieldMs, options.timeout);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: received challenge='%{public}s'", challenge.c_str());
-
-    std::lock_guard<std::mutex> lock(mutex_);
-
-    // Validate tool exists BEFORE filling session info
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: validating tool exists");
-    if (cliToolManager_ == nullptr || !cliToolManager_->ValidateTool(name)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Tool not found or invalid: %{public}s", name.c_str());
-        // Return error without filling session info
-        return ERR_CLI_TOOL_NOT_FOUND;
-    }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: tool '%{public}s' validated", name.c_str());
-
-    // Check if maximum session count reached
-    if (sessionRecords_.size() >= MAX_SESSION_COUNT) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Too many concurrent sessions: %{public}zu (max: %{public}zu)",
-            sessionRecords_.size(), MAX_SESSION_COUNT);
-        return ERR_CLI_TOO_MANY_SESSIONS;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (cliToolManager_ == nullptr || !cliToolManager_->ValidateTool(name)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "ExecTool failed: tool '%{public}s' not found or manager not initialized", name.c_str());
+            return ERR_CLI_TOOL_NOT_FOUND;
+        }
     }
 
-    // Generate sessionId on service side
-    std::string sessionId = GenerateSessionId();
+    {
+        std::lock_guard<std::mutex> lock(sessionsMutex_);
+        if (sessionRecords_.size() >= MAX_SESSION_COUNT) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "ExecTool failed: too many sessions, current=%{public}zu, max=%{public}zu",
+                sessionRecords_.size(), MAX_SESSION_COUNT);
+            return ERR_CLI_TOO_MANY_SESSIONS;
+        }
+    }
 
-    // Record start time for duration calculation
     auto startTimePoint = std::chrono::steady_clock::now();
+    int64_t startTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        startTimePoint.time_since_epoch()).count();
 
-    // Create session record
-    auto record = CreateSessionRecord(sessionId, name, challenge);
-
-    // Store in map
-    sessionRecords_[sessionId] = record;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Stored session record: %{public}s", sessionId.c_str());
-
-    // Create result object for session record
-    record->result = std::make_shared<ExecResult>();
-    if (record->result == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to allocate ExecResult");
-        record->status = "failed";
-        record->endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::system_clock::now().time_since_epoch()).count();
-        // Build session info for error response
-        session = BuildSessionInfo(record);
+    session.sessionId = GenerateSessionId(name, startTimeMs);
+    session.toolName = name;
+    session.status = "running";
+    session.startTime = startTimeMs;
+    session.endTime = 0;
+    session.result = std::make_shared<ExecResult>();
+    if (session.result == nullptr) {
+        session.status = "failed";
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecTool failed: alloc ExecResult for tool '%{public}s'", name.c_str());
         return ERR_CLI_MEMORY_ALLOC_FAILED;
     }
-    record->result->exitCode = -1;
-    record->result->outputText = "";
-    record->result->errorText = "";
-    record->result->signalNumber = 0;
-    record->result->timedOut = false;
-    record->result->executionTime = 0;
+    session.result->exitCode = -1;
+    session.result->outputText = "";
+    session.result->errorText = "";
+    session.result->signalNumber = 0;
+    session.result->timedOut = false;
+    session.result->executionTime = 0;
 
-    // Generate sandbox configuration before executing command
     std::string sandboxConfig = GenerateSandBoxConfig(challenge);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: sandbox config: %{public}s", sandboxConfig.c_str());
+    int32_t timeoutMs = static_cast<int32_t>(ResolveTimeout(options, name));
 
-    // Create pipes for stdout and stderr
     int stdoutPipe[2];
     int stderrPipe[2];
-
     if (pipe(stdoutPipe) == -1) {
-        std::string errMsg = "Failed to create stdout pipe: " + std::string(strerror(errno));
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s", errMsg.c_str());
-        auto failEndTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
-        // Update session record
-        record->status = "failed";
-        record->endTime = failEndTime;
-        record->result->errorText = errMsg;
-        // Build session info for error response
-        session = BuildSessionInfo(record);
-        // Clean up session record
-        sessionRecords_.erase(sessionId);
+        session.status = "failed";
+        session.result->errorText = "Failed to create stdout pipe: " + std::string(strerror(errno));
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecTool failed: create stdout pipe for tool '%{public}s': %{public}s",
+            name.c_str(), strerror(errno));
         return ERR_CLI_CREATE_STDOUT_PIPE_FAILED;
     }
-
     if (pipe(stderrPipe) == -1) {
-        std::string errMsg = "Failed to create stderr pipe: " + std::string(strerror(errno));
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s", errMsg.c_str());
         close(stdoutPipe[0]);
         close(stdoutPipe[1]);
-        auto failEndTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
-        // Update session record
-        record->status = "failed";
-        record->endTime = failEndTime;
-        record->result->errorText = errMsg;
-        // Build session info for error response
-        session = BuildSessionInfo(record);
-        // Clean up session record
-        sessionRecords_.erase(sessionId);
+        session.status = "failed";
+        session.result->errorText = "Failed to create stderr pipe: " + std::string(strerror(errno));
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecTool failed: create stderr pipe for tool '%{public}s': %{public}s",
+            name.c_str(), strerror(errno));
         return ERR_CLI_CREATE_STDERR_PIPE_FAILED;
     }
 
-    // Fork child process
     pid_t pid = fork();
     if (pid == -1) {
-        std::string errMsg = "Failed to fork: " + std::string(strerror(errno));
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s", errMsg.c_str());
         close(stdoutPipe[0]);
         close(stdoutPipe[1]);
         close(stderrPipe[0]);
         close(stderrPipe[1]);
-        auto failEndTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
-        // Update session record
-        record->status = "failed";
-        record->endTime = failEndTime;
-        record->result->errorText = errMsg;
-        // Build session info for error response
-        session = BuildSessionInfo(record);
-        // Clean up session record
-        sessionRecords_.erase(sessionId);
+        session.status = "failed";
+        session.result->errorText = "Failed to fork: " + std::string(strerror(errno));
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecTool failed: fork for tool '%{public}s': %{public}s",
+            name.c_str(), strerror(errno));
         return ERR_CLI_FORK_FAILED;
     }
 
-    // Child process
     if (pid == 0) {
-        // Close read ends of pipes
+        if (prctl(PR_SET_PDEATHSIG, SIGTERM) != 0) {
+            _exit(128);
+        }
+        if (getppid() == 1) {
+            _exit(129);
+        }
         close(stdoutPipe[0]);
         close(stderrPipe[0]);
-
-        // Redirect stdout and stderr to pipes
         dup2(stdoutPipe[1], STDOUT_FILENO);
         dup2(stderrPipe[1], STDERR_FILENO);
-
-        // Close write ends after dup2 (duplicated descriptors remain)
         close(stdoutPipe[1]);
         close(stderrPipe[1]);
 
-        // Prepare arguments for execvp
         std::vector<char *> execArgs;
-        std::string claw_sandbox = "/system/bin/claw_sandbox";
-        std::string config_prompt = "--config";
-        std::string cmd_prompt = "--cmd";
+        std::string clawSandbox = "/system/bin/claw_sandbox";
+        std::string configPrompt = "--config";
+        std::string cmdPrompt = "--cmd";
         std::string cmdline = name;
-        execArgs.push_back(const_cast<char*>(claw_sandbox.c_str()));
-        execArgs.push_back(const_cast<char*>(config_prompt.c_str()));
-        execArgs.push_back(const_cast<char*>(sandboxConfig.c_str()));
-        execArgs.push_back(const_cast<char*>(cmd_prompt.c_str()));
-
+        execArgs.push_back(const_cast<char *>(clawSandbox.c_str()));
+        execArgs.push_back(const_cast<char *>(configPrompt.c_str()));
+        execArgs.push_back(const_cast<char *>(sandboxConfig.c_str()));
+        execArgs.push_back(const_cast<char *>(cmdPrompt.c_str()));
         for (const auto &[key, value] : args) {
             cmdline += " " + key + " " + value;
         }
-        execArgs.push_back(const_cast<char*>(cmdline.c_str()));
+        execArgs.push_back(const_cast<char *>(cmdline.c_str()));
         execArgs.push_back(nullptr);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: Command will be: %{public}s", cmdline.c_str());
-
-        for (size_t i = 0; i < execArgs.size(); i++) {
-            if (execArgs[i] != nullptr) {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: execArgs[%{public}zu]='%{public}s'",
-                    i, execArgs[i]);
-            } else {
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: execArgs[%{public}zu]=NULL",
-                    i);
-            }
-        }
-
-        // Execute command
         execvp(execArgs[0], execArgs.data());
-
-        // If execvp returns, it failed
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "execvp failed: %{public}s", strerror(errno));
-        _exit(127); // Exit with code 127 indicating command not found
+        _exit(127);
     }
 
-    // Parent process
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Parent process waiting for child PID: %{public}d", pid);
-
-    // Update session record with process ID
-    record->processId = pid;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Updated session %{public}s with pid=%{public}d", sessionId.c_str(), pid);
-
-    // Create timeout context and add to timeout manager
-    auto timeoutContext = std::make_shared<TimeoutContext>();
-    timeoutContext->sessionId = sessionId;
-    timeoutContext->processId = pid;
-
-    // Resolve timeout with priority
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: options.timeout=%{public}d, toolName='%{public}s'",
-        options.timeout, name.c_str());
-    uint32_t timeoutMs = ResolveTimeout(options, name);
-    uint32_t actualTimeoutMs = timeoutManager_->AddTimeoutTask(
-        sessionId, pid, timeoutContext, timeoutMs);
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Added timeout monitoring: %{public}s, timeout=%{public}u ms",
-        sessionId.c_str(), actualTimeoutMs);
-
-    // Close write ends of pipes (parent only reads)
     close(stdoutPipe[1]);
     close(stderrPipe[1]);
 
-    // Read output from pipes
+    std::shared_ptr<TimeoutContext> timeoutContext;
+    if (timeoutManager_ != nullptr) {
+        timeoutContext = std::make_shared<TimeoutContext>();
+        if (timeoutContext != nullptr) {
+            timeoutContext->sessionId = session.sessionId;
+            timeoutContext->processId = pid;
+            timeoutManager_->AddTimeoutTask(session.sessionId, pid, timeoutContext,
+                static_cast<uint32_t>(timeoutMs));
+        }
+    }
+
+    if (options.background) {
+        auto record = std::make_shared<SessionRecord>();
+        if (record == nullptr) {
+            close(stdoutPipe[0]);
+            close(stderrPipe[0]);
+            kill(pid, SIGKILL);
+            if (timeoutManager_ != nullptr) {
+                timeoutManager_->CancelTimeoutTask(session.sessionId);
+            }
+            session.status = "failed";
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "ExecTool failed: alloc SessionRecord for background sessionId='%{public}s'", session.sessionId.c_str());
+            return ERR_CLI_MEMORY_ALLOC_FAILED;
+        }
+
+        record->sessionId = session.sessionId;
+        record->toolName = name;
+        record->processId = pid;
+        record->startTime = startTimeMs;
+        record->timeoutMs = timeoutMs;
+        record->SetState(SessionState::RUNNING);
+        AddSessionRecord(record);
+
+        if (ioMonitor_.RegisterSession(record->sessionId, stdoutPipe[0], stderrPipe[0]) != ERR_OK) {
+            close(stdoutPipe[0]);
+            close(stderrPipe[0]);
+            kill(pid, SIGKILL);
+            if (timeoutManager_ != nullptr) {
+                timeoutManager_->CancelTimeoutTask(session.sessionId);
+            }
+            RemoveSessionRecord(record->sessionId);
+            session.status = "failed";
+            session.result->errorText = "Failed to register IO monitor";
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "ExecTool failed: ioMonitor registration for sessionId='%{public}s', pid=%{public}d",
+                record->sessionId.c_str(), pid);
+            return ERROR_CODE;
+        }
+        if (processMonitor_.RegisterSession(pid, record->sessionId, startTimeMs, timeoutMs) != ERR_OK) {
+            ioMonitor_.UnregisterSession(record->sessionId);
+            kill(pid, SIGKILL);
+            if (timeoutManager_ != nullptr) {
+                timeoutManager_->CancelTimeoutTask(session.sessionId);
+            }
+            RemoveSessionRecord(record->sessionId);
+            session.status = "failed";
+            session.result->errorText = "Failed to register process monitor";
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "ExecTool failed: processMonitor registration for sessionId='%{public}s', pid=%{public}d",
+                record->sessionId.c_str(), pid);
+            return ERROR_CODE;
+        }
+
+        session.result = nullptr;
+        return ERR_OK;
+    }
+
     std::string stdoutOutput;
     std::string stderrOutput;
     char buffer[4096];
-    ssize_t bytesRead;
-
-    // Read stdout
+    ssize_t bytesRead = 0;
     while ((bytesRead = read(stdoutPipe[0], buffer, sizeof(buffer) - 1)) > 0) {
         buffer[bytesRead] = '\0';
         stdoutOutput += buffer;
     }
-
-    // Read stderr
     while ((bytesRead = read(stderrPipe[0], buffer, sizeof(buffer) - 1)) > 0) {
         buffer[bytesRead] = '\0';
         stderrOutput += buffer;
     }
-
-    // Close read ends
     close(stdoutPipe[0]);
     close(stderrPipe[0]);
 
-    // Wait for child process to finish
-    int status;
+    int status = 0;
     pid_t waitResult = waitpid(pid, &status, 0);
-
-    // Cancel timeout monitoring (task completed or timeout occurred)
-    timeoutManager_->CancelTimeoutTask(sessionId);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Cancelled timeout monitoring for %{public}s", sessionId.c_str());
-
+    if (timeoutManager_ != nullptr) {
+        timeoutManager_->CancelTimeoutTask(session.sessionId);
+    }
     if (waitResult == -1) {
-        std::string errMsg = "waitpid failed: " + std::string(strerror(errno));
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s", errMsg.c_str());
-        auto failEndTime = std::chrono::duration_cast<std::chrono::milliseconds>(
-            std::chrono::steady_clock::now().time_since_epoch()).count();
-        // Update session record
-        record->status = "failed";
-        record->endTime = failEndTime;
-        record->result->errorText = errMsg;
-        // Build session info for error response
-        session = BuildSessionInfo(record);
-        // Clean up session record
-        sessionRecords_.erase(sessionId);
+        session.status = "failed";
+        session.result->errorText = "waitpid failed: " + std::string(strerror(errno));
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecTool failed: waitpid for sessionId='%{public}s', pid=%{public}d: %{public}s",
+            session.sessionId.c_str(), pid, strerror(errno));
         return ERR_CLI_WAITPID_FAILED;
     }
 
@@ -382,176 +755,131 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTimePoint - startTimePoint);
     int64_t endTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         endTimePoint.time_since_epoch()).count();
-
-    // Update session record with execution result
-    record->result->exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-    record->result->outputText = stdoutOutput;
-    record->result->errorText = stderrOutput;
-    record->result->signalNumber = WIFSIGNALED(status) ? WTERMSIG(status) : 0;
-    record->result->executionTime = duration.count();
-
-    // Check if task timed out
-    if (timeoutContext->isTimedOut.load()) {
-        record->result->timedOut = true;
-        record->result->errorText = "Execution timed out";
-        record->status = "failed";
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "Session %{public}s timed out", sessionId.c_str());
-    } else {
-        record->result->timedOut = false;
-        record->status = (record->result->exitCode == 0) ? "completed" : "failed";
+    session.result->exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+    session.result->outputText = stdoutOutput;
+    session.result->errorText = stderrOutput;
+    session.result->signalNumber = WIFSIGNALED(status) ? WTERMSIG(status) : 0;
+    session.result->timedOut = timeoutContext != nullptr && timeoutContext->isTimedOut.load();
+    if (session.result->timedOut) {
+        session.result->errorText = "Execution timed out";
     }
-    record->endTime = endTimeMs;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Updated session %{public}s: status=%{public}s", sessionId.c_str(), record->status.c_str());
-
-    // Build session info for client response
-    session = BuildSessionInfo(record);
-
-    // Clean up session record after task completion
-    sessionRecords_.erase(sessionId);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Removed session record: %{public}s", sessionId.c_str());
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: command execution completed");
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: session.sessionId='%{public}s'", session.sessionId.c_str());
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: session.status='%{public}s'", session.status.c_str());
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: session.result.exitCode=%{public}d", session.result->exitCode);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: session.result.outputText.len=%{public}zu", session.result->outputText.length());
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: session.result.errorText.len=%{public}zu", session.result->errorText.length());
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: session.result.executionTime=%{public}ldms", session.result->executionTime);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: returning ERR_OK");
+    session.result->executionTime = duration.count();
+    session.status = (!session.result->timedOut && session.result->exitCode == 0) ? "completed" : "failed";
+    session.endTime = endTimeMs;
     return ERR_OK;
 }
 
-std::string CliManagerService::GenerateSessionId()
+int32_t CliManagerService::CancelSession(const std::string &sessionId)
 {
-    // Generate unique session ID using nanosecond time (similar to startTime pattern)
-    auto now = std::chrono::system_clock::now();
-    auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
-        now.time_since_epoch()).count();
-
-    std::string sessionId = "sess_" + std::to_string(nanos);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Generated sessionId: %{public}s", sessionId.c_str());
-    return sessionId;
+    auto record = GetSessionRecord(sessionId);
+    if (record == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "CancelSession failed: sessionId='%{public}s' not found", sessionId.c_str());
+        return ERR_CLI_SESSION_NOT_FOUND;
+    }
+    if (record->GetState() != SessionState::RUNNING && record->GetState() != SessionState::SPAWNING) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "CancelSession failed: sessionId='%{public}s' state=%{public}d is not cancellable",
+            sessionId.c_str(), static_cast<int32_t>(record->GetState()));
+        return ERR_CLI_SESSION_NOT_RUNNING;
+    }
+    record->SetState(SessionState::CANCELLING);
+    if (record->processId > 0 && kill(record->processId, SIGTERM) != 0 && errno != ESRCH) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "CancelSession SIGTERM failed: %{public}s", strerror(errno));
+    }
+    return ERR_OK;
 }
 
-std::shared_ptr<SessionRecord> CliManagerService::CreateSessionRecord(
-    const std::string& sessionId,
-    const std::string& toolName,
-    const std::string& challenge)
+int32_t CliManagerService::RegisterScheduler(const sptr<ICliManagerScheduler> &scheduler)
 {
-    // Get timestamp
-    auto startTimePoint = std::chrono::system_clock::now();
-    int64_t startTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-        startTimePoint.time_since_epoch()).count();
+    return EventDispatcher::GetInstance().RegisterScheduler(IPCSkeleton::GetCallingPid(), scheduler);
+}
 
-    // Get calling information
+int32_t CliManagerService::UnregisterScheduler()
+{
+    return EventDispatcher::GetInstance().UnregisterScheduler(IPCSkeleton::GetCallingPid());
+}
+
+int32_t CliManagerService::SubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
+{
+    if (sessionId.empty() || subscriptionId.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "SubscribeSession failed: invalid args sessionId='%{public}s', subscriptionId='%{public}s'",
+            sessionId.c_str(), subscriptionId.c_str());
+        return ERROR_CODE;
+    }
+    if (GetSessionRecord(sessionId) == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "SubscribeSession failed: sessionId='%{public}s' not found, subscriptionId='%{public}s'",
+            sessionId.c_str(), subscriptionId.c_str());
+        return ERR_CLI_SESSION_NOT_FOUND;
+    }
+
+    return EventDispatcher::GetInstance().RegisterSubscriber(sessionId, subscriptionId, IPCSkeleton::GetCallingPid());
+}
+
+int32_t CliManagerService::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
+{
+    return EventDispatcher::GetInstance().UnregisterSubscriber(sessionId, subscriptionId, IPCSkeleton::GetCallingPid());
+}
+
+int32_t CliManagerService::QuerySessionStatus(const std::string &sessionId, SessionStatus &status)
+{
+    auto record = GetSessionRecord(sessionId);
+    if (record == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "QuerySessionStatus failed: sessionId='%{public}s' not found", sessionId.c_str());
+        return ERR_CLI_SESSION_NOT_FOUND;
+    }
+
+    status.sessionId = record->sessionId;
+    status.toolName = record->toolName;
+    if (!record->HasProcessExited() || !record->OutputDrained()) {
+        status.status = "running";
+        status.result = nullptr;
+    } else {
+        auto result = record->BuildExecResult();
+        status.result = result;
+        status.status = (result != nullptr && result->exitCode == 0 && !result->timedOut) ? "completed" : "failed";
+    }
+    status.startTime = record->startTime;
+    status.endTime = record->GetEndTimeMs();
+    return ERR_OK;
+}
+
+std::string CliManagerService::GenerateSandBoxConfig(const std::string &challenge)
+{
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    int32_t callingPid = IPCSkeleton::GetCallingPid();
     uint64_t callingTokenId = IPCSkeleton::GetCallingFullTokenID();
+    int32_t gid = callingUid;
 
-    // Create SessionRecord
-    auto record = std::make_shared<SessionRecord>();
-    record->sessionId = sessionId;
-    record->toolName = toolName;
-    record->status = "running";
-    record->startTime = startTimeMs;
-    record->endTime = 0;
-    record->processId = -1;
-    record->callingUid = callingUid;
-    record->callingPid = callingPid;
-    record->callingTokenId = callingTokenId;
-    record->challenge = challenge;
-    record->result = nullptr;
+    std::vector<int32_t> groupsVec;
+    groupsVec.push_back(callingUid);
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Created session record: %{public}s for tool '%{public}s'",
-        sessionId.c_str(), toolName.c_str());
-
-    return record;
-}
-
-SessionInfo CliManagerService::BuildSessionInfo(const std::shared_ptr<SessionRecord>& record)
-{
-    SessionInfo session;
-    session.sessionId = record->sessionId;
-    session.toolName = record->toolName;
-    session.status = record->status;
-    session.startTime = record->startTime;
-    session.endTime = record->endTime;
-    session.result = record->result;
-    return session;
-}
-
-std::string CliManagerService::GenerateSandBoxConfig(const std::string& challenge)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService::GenerateSandBoxConfig called");
-
-    // Get calling information via IPC
-    int32_t callingUid = IPCSkeleton::GetCallingUid();
-    uint64_t callingTokenId = IPCSkeleton::GetCallingFullTokenID();
-    int32_t callingPid = IPCSkeleton::GetCallingPid();
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "GenerateSandBoxConfig: callingUid=%{public}d, callingTokenId=%{public}lu, callingPid=%{public}d",
-        callingUid, callingTokenId, callingPid);
-
-    // Get GID and groups
-    // Note: In OpenHarmony, app's GID usually equals its UID
-    int32_t gid = callingUid;  // GID = UID for app sandbox
-
-    // Get supplementary groups (if any)
-    // Currently no BundleManager API to query groups, use empty array
-    std::vector<int32_t> groupsVec;  // Empty groups list
-    groupsVec.push_back(callingUid);  // Add calling UID as a supplementary group
-
-    // Build JSON object
     nlohmann::json config;
     config["uid"] = callingUid;
     config["gid"] = gid;
     config["groups"] = groupsVec;
     config["callerTokenId"] = callingTokenId;
     config["challenge"] = challenge;
-
-    // Get bundle name from UID (placeholder - would need BundleManager)
     config["bundleName"] = "com.huawei.hmos.vassistant";
-
-    // Get permissions (placeholder - would need AccessTokenKit)
-    config["permissions"] = std::vector<std::string>{};
-
-    std::string result = config.dump();
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "GenerateSandBoxConfig: result=%{public}s", result.c_str());
-
-    return result;
+    config["permissions"] = std::vector<std::string> {};
+    return config.dump();
 }
 
-uint32_t CliManagerService::ResolveTimeout(const ExecOptions& options, const std::string& toolName)
+uint32_t CliManagerService::ResolveTimeout(const ExecOptions &options, const std::string &toolName)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "ResolveTimeout: options.timeout=%{public}d, toolName='%{public}s'",
-        options.timeout, toolName.c_str());
-
-    // Priority 1: User specified timeout in options (in seconds, 0 means no timeout)
-    if (options.timeout > 0) {
-        uint32_t timeoutMs = static_cast<uint32_t>(options.timeout) * 1000;
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "Using user specified timeout: %{public}d sec (%{public}u ms)",
-            options.timeout, timeoutMs);
-        return timeoutMs;
+    if (options.timeout > 0 && options.timeout <= DEFAULT_TIMEOUT_SEC) {
+        return static_cast<uint32_t>(options.timeout) * 1000;
     }
 
-    // Priority 2: Tool's default timeout from CliToolManager (in seconds)
+    std::lock_guard<std::mutex> lock(mutex_);
     if (cliToolManager_ != nullptr && !toolName.empty()) {
         int32_t toolTimeout = 0;
-        if (cliToolManager_->GetToolTimeout(toolName, toolTimeout) == 0 && toolTimeout > 0) {
-            uint32_t timeoutMs = static_cast<uint32_t>(toolTimeout) * 1000;
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "Using tool default timeout for '%{public}s': %{public}d sec (%{public}u ms)",
-                toolName.c_str(), toolTimeout, timeoutMs);
-            return timeoutMs;
+        if (cliToolManager_->GetToolTimeout(toolName, toolTimeout) == ERR_OK && toolTimeout > 0) {
+            return static_cast<uint32_t>(toolTimeout) * 1000;
         }
     }
 
-    // Priority 3: Default timeout (30 minutes)
-    constexpr int32_t DEFAULT_TIMEOUT_SEC = 30 * 60;
-    uint32_t timeoutMs = DEFAULT_TIMEOUT_SEC * 1000;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Using default timeout: %{public}d sec (%{public}u ms)",
-        DEFAULT_TIMEOUT_SEC, timeoutMs);
-    return timeoutMs;
+    return DEFAULT_TIMEOUT_SEC * 1000;
 }
-
 } // namespace AbilityRuntime
 } // namespace OHOS

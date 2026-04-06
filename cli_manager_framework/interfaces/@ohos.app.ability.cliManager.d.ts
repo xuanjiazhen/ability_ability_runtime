@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -593,7 +593,7 @@ declare namespace cliManager {
    *
    * // 订阅事件
    * CLI.CLIManager.subscribeSession(session.sessionId, (event) => {
-   *   console.log(event.data);
+   *   console.log(event.eventData);
    * });
    * ```
    */
@@ -616,11 +616,11 @@ declare namespace cliManager {
    * ```typescript
    * CLI.CLIManager.subscribeSession(sessionId, (event) => {
    *   if (event.type === 'stdout') {
-   *     console.log('Output:', event.data);
+   *     console.log('Output:', event.eventData);
    *   } else if (event.type === 'exit') {
    *     console.log('Exit code:', event.exitCode);
    *   } else if (event.type === 'error') {
-   *     console.error('Error:', event.data);
+   *     console.error('Error:', event.eventData);
    *   }
    * });
    * ```

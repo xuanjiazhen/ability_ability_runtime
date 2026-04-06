@@ -27,8 +27,10 @@ ohos_shared_library("climanager") {
 
   sources = [
     "cli_manager_module.cpp",
+    "js_cli_callback.cpp",
     "js_cli_manager.cpp",
     "js_cli_manager_utils.cpp",
+    "js_cli_subscription_manager.cpp",
   ]
 
   include_dirs = [

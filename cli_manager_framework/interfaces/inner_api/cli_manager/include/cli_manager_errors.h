@@ -103,6 +103,18 @@ enum {
      * Maximum number of concurrent sessions (64) has been reached
      */
     ERR_CLI_TOO_MANY_SESSIONS = 2100014,
+
+    /**
+     * Result(2100015) Session not found
+     * The specified session does not exist or has already been cleaned up
+     */
+    ERR_CLI_SESSION_NOT_FOUND = 2100015,
+
+    /**
+     * Result(2100016) Session not running
+     * The specified session cannot be cancelled because it is not active
+     */
+    ERR_CLI_SESSION_NOT_RUNNING = 2100016,
 };
 
 }  // namespace AbilityRuntime
