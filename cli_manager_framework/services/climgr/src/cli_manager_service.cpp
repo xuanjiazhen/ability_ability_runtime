@@ -20,6 +20,7 @@
 #include <chrono>
 #include <memory>
 #include <sstream>
+#include <random>
 #include <nlohmann/json.hpp>
 #include <unistd.h>
 #include <sys/types.h>
@@ -66,11 +67,15 @@ void CliManagerService::Init()
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService Init called");
 
     // Create CliToolManager instance (construction does initialization)
-    cliToolManager_ = std::make_unique<CliToolManager>();
+    cliToolManager_ = std::make_shared<CliToolManager>();
     if (cliToolManager_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to create CliToolManager");
         return;
     }
+
+    // Create and start TimeoutManager
+    timeoutManager_ = std::make_shared<TimeoutManager>();
+    timeoutManager_->Start();
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService Init completed");
 }
@@ -152,31 +157,43 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: tool '%{public}s' validated", name.c_str());
 
+    // Check if maximum session count reached
+    if (sessionRecords_.size() >= MAX_SESSION_COUNT) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Too many concurrent sessions: %{public}zu (max: %{public}zu)",
+            sessionRecords_.size(), MAX_SESSION_COUNT);
+        return ERR_CLI_TOO_MANY_SESSIONS;
+    }
+
+    // Generate sessionId on service side
+    std::string sessionId = GenerateSessionId();
+
+    // Record start time for duration calculation
     auto startTimePoint = std::chrono::steady_clock::now();
-    int64_t startTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-        startTimePoint.time_since_epoch()).count();
 
-    // Fill session info before executing command
-    session.sessionId = std::to_string(std::hash<std::string>{}(
-        name + std::to_string(startTimeMs)));
-    session.toolName = name;
-    session.status = "running";
-    session.startTime = startTimeMs;
-    session.endTime = 0;
+    // Create session record
+    auto record = CreateSessionRecord(sessionId, name, challenge);
 
-    // 提前创建 result，以便在所有失败场景中都能记录错误信息
-    session.result = std::make_shared<ExecResult>();
-    if (session.result == nullptr) {
+    // Store in map
+    sessionRecords_[sessionId] = record;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Stored session record: %{public}s", sessionId.c_str());
+
+    // Create result object for session record
+    record->result = std::make_shared<ExecResult>();
+    if (record->result == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to allocate ExecResult");
-        session.status = "failed";
+        record->status = "failed";
+        record->endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+            std::chrono::system_clock::now().time_since_epoch()).count();
+        // Build session info for error response
+        session = BuildSessionInfo(record);
         return ERR_CLI_MEMORY_ALLOC_FAILED;
     }
-    session.result->exitCode = -1;
-    session.result->outputText = "";
-    session.result->errorText = "";
-    session.result->signalNumber = 0;
-    session.result->timedOut = false;
-    session.result->executionTime = 0;
+    record->result->exitCode = -1;
+    record->result->outputText = "";
+    record->result->errorText = "";
+    record->result->signalNumber = 0;
+    record->result->timedOut = false;
+    record->result->executionTime = 0;
 
     // Generate sandbox configuration before executing command
     std::string sandboxConfig = GenerateSandBoxConfig(challenge);
@@ -189,10 +206,16 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     if (pipe(stdoutPipe) == -1) {
         std::string errMsg = "Failed to create stdout pipe: " + std::string(strerror(errno));
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s", errMsg.c_str());
-        session.status = "failed";
-        session.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        auto failEndTime = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
-        session.result->errorText = errMsg;
+        // Update session record
+        record->status = "failed";
+        record->endTime = failEndTime;
+        record->result->errorText = errMsg;
+        // Build session info for error response
+        session = BuildSessionInfo(record);
+        // Clean up session record
+        sessionRecords_.erase(sessionId);
         return ERR_CLI_CREATE_STDOUT_PIPE_FAILED;
     }
 
@@ -201,10 +224,16 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s", errMsg.c_str());
         close(stdoutPipe[0]);
         close(stdoutPipe[1]);
-        session.status = "failed";
-        session.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        auto failEndTime = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
-        session.result->errorText = errMsg;
+        // Update session record
+        record->status = "failed";
+        record->endTime = failEndTime;
+        record->result->errorText = errMsg;
+        // Build session info for error response
+        session = BuildSessionInfo(record);
+        // Clean up session record
+        sessionRecords_.erase(sessionId);
         return ERR_CLI_CREATE_STDERR_PIPE_FAILED;
     }
 
@@ -217,10 +246,16 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         close(stdoutPipe[1]);
         close(stderrPipe[0]);
         close(stderrPipe[1]);
-        session.status = "failed";
-        session.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        auto failEndTime = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
-        session.result->errorText = errMsg;
+        // Update session record
+        record->status = "failed";
+        record->endTime = failEndTime;
+        record->result->errorText = errMsg;
+        // Build session info for error response
+        session = BuildSessionInfo(record);
+        // Clean up session record
+        sessionRecords_.erase(sessionId);
         return ERR_CLI_FORK_FAILED;
     }
 
@@ -277,6 +312,23 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     // Parent process
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Parent process waiting for child PID: %{public}d", pid);
 
+    // Update session record with process ID
+    record->processId = pid;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Updated session %{public}s with pid=%{public}d", sessionId.c_str(), pid);
+
+    // Create timeout context and add to timeout manager
+    auto timeoutContext = std::make_shared<TimeoutContext>();
+    timeoutContext->sessionId = sessionId;
+    timeoutContext->processId = pid;
+
+    // Resolve timeout with priority
+    uint32_t timeoutMs = ResolveTimeout(options, name);
+    uint32_t actualTimeoutMs = timeoutManager_->AddTimeoutTask(
+        sessionId, pid, timeoutContext, timeoutMs);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Added timeout monitoring: %{public}s, timeout=%{public}u ms",
+        sessionId.c_str(), actualTimeoutMs);
+
     // Close write ends of pipes (parent only reads)
     close(stdoutPipe[1]);
     close(stderrPipe[1]);
@@ -307,13 +359,23 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     int status;
     pid_t waitResult = waitpid(pid, &status, 0);
 
+    // Cancel timeout monitoring (task completed or timeout occurred)
+    timeoutManager_->CancelTimeoutTask(sessionId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Cancelled timeout monitoring for %{public}s", sessionId.c_str());
+
     if (waitResult == -1) {
         std::string errMsg = "waitpid failed: " + std::string(strerror(errno));
         TAG_LOGE(AAFwkTag::ABILITYMGR, "%{public}s", errMsg.c_str());
-        session.status = "failed";
-        session.endTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        auto failEndTime = std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::steady_clock::now().time_since_epoch()).count();
-        session.result->errorText = errMsg;
+        // Update session record
+        record->status = "failed";
+        record->endTime = failEndTime;
+        record->result->errorText = errMsg;
+        // Build session info for error response
+        session = BuildSessionInfo(record);
+        // Clean up session record
+        sessionRecords_.erase(sessionId);
         return ERR_CLI_WAITPID_FAILED;
     }
 
@@ -322,17 +384,32 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     int64_t endTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         endTimePoint.time_since_epoch()).count();
 
-    // 填充 result（已在函数开始时创建）
-    session.result->exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
-    session.result->outputText = stdoutOutput;
-    session.result->errorText = stderrOutput;
-    session.result->signalNumber = WIFSIGNALED(status) ? WTERMSIG(status) : 0;
-    session.result->timedOut = false;
-    session.result->executionTime = duration.count();
+    // Update session record with execution result
+    record->result->exitCode = WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+    record->result->outputText = stdoutOutput;
+    record->result->errorText = stderrOutput;
+    record->result->signalNumber = WIFSIGNALED(status) ? WTERMSIG(status) : 0;
+    record->result->executionTime = duration.count();
 
-    // Update session status
-    session.status = (session.result->exitCode == 0) ? "completed" : "failed";
-    session.endTime = endTimeMs;
+    // Check if task timed out
+    if (timeoutContext->isTimedOut.load()) {
+        record->result->timedOut = true;
+        record->result->errorText = "Execution timed out";
+        record->status = "failed";
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Session %{public}s timed out", sessionId.c_str());
+    } else {
+        record->result->timedOut = false;
+        record->status = (record->result->exitCode == 0) ? "completed" : "failed";
+    }
+    record->endTime = endTimeMs;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Updated session %{public}s: status=%{public}s", sessionId.c_str(), record->status.c_str());
+
+    // Build session info for client response
+    session = BuildSessionInfo(record);
+
+    // Clean up session record after task completion
+    sessionRecords_.erase(sessionId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Removed session record: %{public}s", sessionId.c_str());
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: command execution completed");
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: session.sessionId='%{public}s'", session.sessionId.c_str());
@@ -343,6 +420,65 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: session.result.executionTime=%{public}ldms", session.result->executionTime);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService: returning ERR_OK");
     return ERR_OK;
+}
+
+std::string CliManagerService::GenerateSessionId()
+{
+    // Generate unique session ID using nanosecond time (similar to startTime pattern)
+    auto now = std::chrono::system_clock::now();
+    auto nanos = std::chrono::duration_cast<std::chrono::nanoseconds>(
+        now.time_since_epoch()).count();
+
+    std::string sessionId = "sess_" + std::to_string(nanos);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Generated sessionId: %{public}s", sessionId.c_str());
+    return sessionId;
+}
+
+std::shared_ptr<SessionRecord> CliManagerService::CreateSessionRecord(
+    const std::string& sessionId,
+    const std::string& toolName,
+    const std::string& challenge)
+{
+    // Get timestamp
+    auto startTimePoint = std::chrono::system_clock::now();
+    int64_t startTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+        startTimePoint.time_since_epoch()).count();
+
+    // Get calling information
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    int32_t callingPid = IPCSkeleton::GetCallingPid();
+    uint64_t callingTokenId = IPCSkeleton::GetCallingFullTokenID();
+
+    // Create SessionRecord
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = sessionId;
+    record->toolName = toolName;
+    record->status = "running";
+    record->startTime = startTimeMs;
+    record->endTime = 0;
+    record->processId = -1;
+    record->callingUid = callingUid;
+    record->callingPid = callingPid;
+    record->callingTokenId = callingTokenId;
+    record->challenge = challenge;
+    record->result = nullptr;
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Created session record: %{public}s for tool '%{public}s'",
+        sessionId.c_str(), toolName.c_str());
+
+    return record;
+}
+
+SessionInfo CliManagerService::BuildSessionInfo(const std::shared_ptr<SessionRecord>& record)
+{
+    SessionInfo session;
+    session.sessionId = record->sessionId;
+    session.toolName = record->toolName;
+    session.status = record->status;
+    session.startTime = record->startTime;
+    session.endTime = record->endTime;
+    session.result = record->result;
+    return session;
 }
 
 std::string CliManagerService::GenerateSandBoxConfig(const std::string& challenge)
@@ -384,6 +520,35 @@ std::string CliManagerService::GenerateSandBoxConfig(const std::string& challeng
     TAG_LOGI(AAFwkTag::ABILITYMGR, "GenerateSandBoxConfig: result=%{public}s", result.c_str());
 
     return result;
+}
+
+uint32_t CliManagerService::ResolveTimeout(const ExecOptions& options, const std::string& toolName)
+{
+    // Priority 1: User specified timeout in options (in seconds, 0 means no timeout)
+    if (options.timeout > 0) {
+        uint32_t timeoutMs = static_cast<uint32_t>(options.timeout) * 1000;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Using user specified timeout: %{public}d sec (%{public}u ms)",
+            options.timeout, timeoutMs);
+        return timeoutMs;
+    }
+
+    // Priority 2: Tool's default timeout from CliToolManager (in seconds)
+    if (cliToolManager_ != nullptr && !toolName.empty()) {
+        int32_t toolTimeout = 0;
+        if (cliToolManager_->GetToolTimeout(toolName, toolTimeout) == 0 && toolTimeout > 0) {
+            uint32_t timeoutMs = static_cast<uint32_t>(toolTimeout) * 1000;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Using tool default timeout for '%{public}s': %{public}d sec (%{public}u ms)",
+                toolName.c_str(), toolTimeout, timeoutMs);
+            return timeoutMs;
+        }
+    }
+
+    // Priority 3: Default timeout (30 minutes)
+    constexpr int32_t DEFAULT_TIMEOUT_SEC = 30 * 60;
+    uint32_t timeoutMs = DEFAULT_TIMEOUT_SEC * 1000;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Using default timeout: %{public}d sec (%{public}u ms)",
+        DEFAULT_TIMEOUT_SEC, timeoutMs);
+    return timeoutMs;
 }
 
 } // namespace AbilityRuntime
