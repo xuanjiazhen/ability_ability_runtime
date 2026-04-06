@@ -43,7 +43,7 @@ export default class Context extends BaseContext {
     loadLibraryWithPermissionCheck("context_ani_kit.z", "application.Context");
   }
   nativePtr: long = 0;
-  
+
   etsContextPtr: long = 0;
   private cleaner: Cleaner | null = null;
   filesDir: string = "";
@@ -85,6 +85,8 @@ export default class Context extends BaseContext {
   unregisterCleaner(): void {
     destroyRegister.unregister(unregisterToken);
   }
+
+  public native contextType(contextType: int): boolean;
 
   public native getApplicationContextSync(): ApplicationContext;
   public native createModuleResourceManagerSync(bundleName: string, moduleName: string): resmgr.ResourceManager;

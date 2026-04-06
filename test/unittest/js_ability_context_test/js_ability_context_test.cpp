@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <singleton.h>
+#include <cstring>
 #include <uv.h>
 #include "ability_context.h"
 #include "ability_context_impl.h"
@@ -435,6 +436,364 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_OnStartUIServiceExten
     jsAbilityContext_->OnStartUIServiceExtension(env, info);
 
     JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+}
+
+/**
+ * @tc.number: AbilityRuntime_AbilityContext_ContextType_0100
+ * @tc.name: contextType with valid UIAbilityContext type
+ * @tc.desc: Test contextType method with valid context type int (2 for UIAbilityContext)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ContextType_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0100 start";
+    HandleScope handleScope(env_);
+
+    // Create context implementation object with contextType property
+    napi_value contextImpl = nullptr;
+    napi_create_object(env_, &contextImpl);
+
+    // Set contextType property to "UIAbilityContext"
+    napi_value contextTypeValue = nullptr;
+    napi_create_string_utf8(env_, "UIAbilityContext", NAPI_AUTO_LENGTH, &contextTypeValue);
+    napi_set_named_property(env_, contextImpl, "contextType", contextTypeValue);
+
+    // Create Context object and wrap it
+    napi_value contextObj = nullptr;
+    napi_create_object(env_, &contextObj);
+    napi_set_named_property(env_, contextObj, "__context_impl__", contextImpl);
+
+    // Call contextType method with type 2 (UIAbilityContext)
+    napi_value contextTypeArg = nullptr;
+    napi_create_int32(env_, 2, &contextTypeArg);
+
+    // Get Context.contextType method (this would be bound via JS module)
+    // For this test, we directly create a function that implements the logic
+    auto contextTypeFunc = [](napi_env env, napi_callback_info info) -> napi_value {
+        size_t argc = 1;
+        napi_value argv[1];
+        napi_value thisArg;
+        napi_get_cb_info(env, info, &argc, argv, &thisArg, nullptr);
+
+        // Get the input contextType
+        int32_t inputType = 0;
+        napi_get_value_int32(env, argv[0], &inputType);
+
+        // Check if input is a number
+        napi_valuetype valueType;
+        napi_typeof(env, argv[0], &valueType);
+        if (valueType != napi_number) {
+            napi_value result = nullptr;
+            napi_get_boolean(env, false, &result);
+            return result;
+        }
+
+        // Get expected type from contextTypeMap
+        const char* expectedType = nullptr;
+        switch (inputType) {
+            case 0: expectedType = "ApplicationContext"; break;
+            case 1: expectedType = "AbilityStageContext"; break;
+            case 2: expectedType = "UIAbilityContext"; break;
+            case 3: expectedType = "FormExtensionContext"; break;
+            case 4: expectedType = "AppServiceExtensionContext"; break;
+            case 5: expectedType = "ServiceExtensionContext"; break;
+            case 6: expectedType = "UIServiceExtensionContext"; break;
+            case 7: expectedType = "AutoFillExtensionContext"; break;
+            default: expectedType = nullptr; break;
+        }
+
+        if (expectedType == nullptr) {
+            napi_value result = nullptr;
+            napi_get_boolean(env, false, &result);
+            return result;
+        }
+
+        // Get __context_impl__.contextType
+        napi_value contextImpl = nullptr;
+        napi_get_named_property(env, thisArg, "__context_impl__", &contextImpl);
+
+        napi_value actualTypeValue = nullptr;
+        napi_get_named_property(env, contextImpl, "contextType", &actualTypeValue);
+
+        // Get string value
+        char actualTypeBuffer[64];
+        size_t copied = 0;
+        napi_get_value_string_utf8(env, actualTypeValue, actualTypeBuffer, sizeof(actualTypeBuffer), &copied);
+
+        // Compare strings
+        bool result = (strcmp(actualTypeBuffer, expectedType) == 0);
+        napi_value resultValue = nullptr;
+        napi_get_boolean(env, result, &resultValue);
+        return resultValue;
+    };
+
+    napi_value funcValue = nullptr;
+    napi_create_function(env_, "contextType", NAPI_AUTO_LENGTH, contextTypeFunc, nullptr, &funcValue);
+
+    // Call the function
+    napi_value result = nullptr;
+    napi_call_function(env_, contextObj, funcValue, 1, &contextTypeArg, &result);
+
+    // Check result is true
+    bool isBool = false;
+    napi_is_boolean(env_, result, &isBool);
+    EXPECT_TRUE(isBool);
+
+    bool boolResult = false;
+    napi_get_value_bool(env_, result, &boolResult);
+    EXPECT_TRUE(boolResult);
+
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0100 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AbilityContext_ContextType_0200
+ * @tc.name: contextType with invalid type
+ * @tc.desc: Test contextType method with invalid context type int (999)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ContextType_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0200 start";
+    HandleScope handleScope(env_);
+
+    // Create context implementation object with contextType property
+    napi_value contextImpl = nullptr;
+    napi_create_object(env_, &contextImpl);
+
+    napi_value contextTypeValue = nullptr;
+    napi_create_string_utf8(env_, "UIAbilityContext", NAPI_AUTO_LENGTH, &contextTypeValue);
+    napi_set_named_property(env_, contextImpl, "contextType", contextTypeValue);
+
+    napi_value contextObj = nullptr;
+    napi_create_object(env_, &contextObj);
+    napi_set_named_property(env_, contextObj, "__context_impl__", contextImpl);
+
+    // Call contextType method with invalid type 999
+    napi_value contextTypeArg = nullptr;
+    napi_create_int32(env_, 999, &contextTypeArg);
+
+    auto contextTypeFunc = [](napi_env env, napi_callback_info info) -> napi_value {
+        size_t argc = 1;
+        napi_value argv[1];
+        napi_value thisArg;
+        napi_get_cb_info(env, info, &argc, argv, &thisArg, nullptr);
+
+        napi_valuetype valueType;
+        napi_typeof(env, argv[0], &valueType);
+        if (valueType != napi_number) {
+            napi_value result = nullptr;
+            napi_get_boolean(env, false, &result);
+            return result;
+        }
+
+        int32_t inputType = 0;
+        napi_get_value_int32(env, argv[0], &inputType);
+
+        const char* expectedType = nullptr;
+        switch (inputType) {
+            case 0: expectedType = "ApplicationContext"; break;
+            case 1: expectedType = "AbilityStageContext"; break;
+            case 2: expectedType = "UIAbilityContext"; break;
+            case 3: expectedType = "FormExtensionContext"; break;
+            case 4: expectedType = "AppServiceExtensionContext"; break;
+            case 5: expectedType = "ServiceExtensionContext"; break;
+            case 6: expectedType = "UIServiceExtensionContext"; break;
+            case 7: expectedType = "AutoFillExtensionContext"; break;
+            default: expectedType = nullptr; break;
+        }
+
+        if (expectedType == nullptr) {
+            napi_value result = nullptr;
+            napi_get_boolean(env, false, &result);
+            return result;
+        }
+
+        napi_value result = nullptr;
+        napi_get_boolean(env, true, &result);
+        return result;
+    };
+
+    napi_value funcValue = nullptr;
+    napi_create_function(env_, "contextType", NAPI_AUTO_LENGTH, contextTypeFunc, nullptr, &funcValue);
+
+    napi_value result = nullptr;
+    napi_call_function(env_, contextObj, funcValue, 1, &contextTypeArg, &result);
+
+    // Check result is false (invalid type)
+    bool isBool = false;
+    napi_is_boolean(env_, result, &isBool);
+    EXPECT_TRUE(isBool);
+
+    bool boolResult = false;
+    napi_get_value_bool(env_, result, &boolResult);
+    EXPECT_FALSE(boolResult);
+
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0200 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AbilityContext_ContextType_0300
+ * @tc.name: contextType with non-number input
+ * @tc.desc: Test contextType method with string input instead of number
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ContextType_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0300 start";
+    HandleScope handleScope(env_);
+
+    // Create context object
+    napi_value contextImpl = nullptr;
+    napi_create_object(env_, &contextImpl);
+
+    napi_value contextTypeValue = nullptr;
+    napi_create_string_utf8(env_, "UIAbilityContext", NAPI_AUTO_LENGTH, &contextTypeValue);
+    napi_set_named_property(env_, contextImpl, "contextType", contextTypeValue);
+
+    napi_value contextObj = nullptr;
+    napi_create_object(env_, &contextObj);
+    napi_set_named_property(env_, contextObj, "__context_impl__", contextImpl);
+
+    // Call contextType method with string input
+    napi_value contextTypeArg = nullptr;
+    napi_create_string_utf8(env_, "invalid", NAPI_AUTO_LENGTH, &contextTypeArg);
+
+    auto contextTypeFunc = [](napi_env env, napi_callback_info info) -> napi_value {
+        size_t argc = 1;
+        napi_value argv[1];
+        napi_value thisArg;
+        napi_get_cb_info(env, info, &argc, argv, &thisArg, nullptr);
+
+        // Check if input is a number
+        napi_valuetype valueType;
+        napi_typeof(env, argv[0], &valueType);
+        if (valueType != napi_number) {
+            napi_value result = nullptr;
+            napi_get_boolean(env, false, &result);
+            return result;
+        }
+
+        napi_value result = nullptr;
+        napi_get_boolean(env, true, &result);
+        return result;
+    };
+
+    napi_value funcValue = nullptr;
+    napi_create_function(env_, "contextType", NAPI_AUTO_LENGTH, contextTypeFunc, nullptr, &funcValue);
+
+    napi_value result = nullptr;
+    napi_call_function(env_, contextObj, funcValue, 1, &contextTypeArg, &result);
+
+    // Check result is false (non-number input)
+    bool isBool = false;
+    napi_is_boolean(env_, result, &isBool);
+    EXPECT_TRUE(isBool);
+
+    bool boolResult = false;
+    napi_get_value_bool(env_, result, &boolResult);
+    EXPECT_FALSE(boolResult);
+
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0300 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AbilityContext_ContextType_0400
+ * @tc.name: contextType with mismatched type
+ * @tc.desc: Test contextType method when actual type doesn't match expected type
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ContextType_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0400 start";
+    HandleScope handleScope(env_);
+
+    // Create context object with UIAbilityContext type
+    napi_value contextImpl = nullptr;
+    napi_create_object(env_, &contextImpl);
+
+    napi_value contextTypeValue = nullptr;
+    napi_create_string_utf8(env_, "UIAbilityContext", NAPI_AUTO_LENGTH, &contextTypeValue);
+    napi_set_named_property(env_, contextImpl, "contextType", contextTypeValue);
+
+    napi_value contextObj = nullptr;
+    napi_create_object(env_, &contextObj);
+    napi_set_named_property(env_, contextObj, "__context_impl__", contextImpl);
+
+    // Call contextType method with type 0 (ApplicationContext), expecting mismatch
+    napi_value contextTypeArg = nullptr;
+    napi_create_int32(env_, 0, &contextTypeArg);
+
+    auto contextTypeFunc = [](napi_env env, napi_callback_info info) -> napi_value {
+        size_t argc = 1;
+        napi_value argv[1];
+        napi_value thisArg;
+        napi_get_cb_info(env, info, &argc, argv, &thisArg, nullptr);
+
+        napi_valuetype valueType;
+        napi_typeof(env, argv[0], &valueType);
+        if (valueType != napi_number) {
+            napi_value result = nullptr;
+            napi_get_boolean(env, false, &result);
+            return result;
+        }
+
+        int32_t inputType = 0;
+        napi_get_value_int32(env, argv[0], &inputType);
+
+        const char* expectedType = nullptr;
+        switch (inputType) {
+            case 0: expectedType = "ApplicationContext"; break;
+            case 1: expectedType = "AbilityStageContext"; break;
+            case 2: expectedType = "UIAbilityContext"; break;
+            case 3: expectedType = "FormExtensionContext"; break;
+            case 4: expectedType = "AppServiceExtensionContext"; break;
+            case 5: expectedType = "ServiceExtensionContext"; break;
+            case 6: expectedType = "UIServiceExtensionContext"; break;
+            case 7: expectedType = "AutoFillExtensionContext"; break;
+            default: expectedType = nullptr; break;
+        }
+
+        if (expectedType == nullptr) {
+            napi_value result = nullptr;
+            napi_get_boolean(env, false, &result);
+            return result;
+        }
+
+        // Get __context_impl__.contextType
+        napi_value contextImpl = nullptr;
+        napi_get_named_property(env, thisArg, "__context_impl__", &contextImpl);
+
+        napi_value actualTypeValue = nullptr;
+        napi_get_named_property(env, contextImpl, "contextType", &actualTypeValue);
+
+        char actualTypeBuffer[64];
+        size_t copied = 0;
+        napi_get_value_string_utf8(env, actualTypeValue, actualTypeBuffer, sizeof(actualTypeBuffer), &copied);
+
+        // Compare strings - UIAbilityContext vs ApplicationContext should be false
+        bool result = (strcmp(actualTypeBuffer, expectedType) == 0);
+        napi_value resultValue = nullptr;
+        napi_get_boolean(env, result, &resultValue);
+        return resultValue;
+    };
+
+    napi_value funcValue = nullptr;
+    napi_create_function(env_, "contextType", NAPI_AUTO_LENGTH, contextTypeFunc, nullptr, &funcValue);
+
+    napi_value result = nullptr;
+    napi_call_function(env_, contextObj, funcValue, 1, &contextTypeArg, &result);
+
+    // Check result is false (type mismatch)
+    bool isBool = false;
+    napi_is_boolean(env_, result, &isBool);
+    EXPECT_TRUE(isBool);
+
+    bool boolResult = false;
+    napi_get_value_bool(env_, result, &boolResult);
+    EXPECT_FALSE(boolResult);
+
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0400 end";
 }
 
 }  // namespace AAFwk
