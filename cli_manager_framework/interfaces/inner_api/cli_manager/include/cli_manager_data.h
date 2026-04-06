@@ -145,6 +145,32 @@ public:
     static SessionStatus *Unmarshalling(Parcel &parcel);
 };
 
+/**
+ * @brief Session record (internal use for service-side session management)
+ */
+struct SessionRecord {
+    std::string sessionId;
+    std::string toolName;
+    std::string status;            // "running", "completed", "failed", "cancelled"
+    int64_t startTime;
+    int64_t endTime;
+    pid_t processId;               // Process ID for task cancellation
+    int32_t callingUid;            // Caller's UID for permission check
+    int32_t callingPid;            // Caller's PID
+    uint64_t callingTokenId;       // Caller's Token ID
+    std::shared_ptr<ExecResult> result;
+    std::string challenge;         // Challenge string for sandbox config
+
+    SessionRecord()
+        : status("running"),
+          startTime(0),
+          endTime(0),
+          processId(-1),
+          callingUid(-1),
+          callingPid(-1),
+          callingTokenId(0) {}
+};
+
 } // namespace AbilityRuntime
 } // namespace OHOS
 
