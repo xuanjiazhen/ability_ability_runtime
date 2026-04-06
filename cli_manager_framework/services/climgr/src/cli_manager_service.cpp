@@ -239,28 +239,23 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         close(stderrPipe[1]);
 
         // Prepare arguments for execvp
-        std::vector<char*> execArgs;
-        execArgs.push_back(const_cast<char*>(name.c_str()));
-
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: building execArgs, current count=%{public}zu",
-            execArgs.size() - 1);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]:   arg[0]='%{public}s'", name.c_str());
+        std::vector<char *> execArgs;
+        std::string claw_sandbox = "/system/bin/claw_sandbox";
+        std::string config_prompt = "--config";
+        std::string cmd_prompt = "--cmd";
+        std::string cmdline = name;
+        execArgs.push_back(const_cast<char*>(claw_sandbox.c_str()));
+        execArgs.push_back(const_cast<char*>(config_prompt.c_str()));
+        execArgs.push_back(const_cast<char*>(sandboxConfig.c_str()));
+        execArgs.push_back(const_cast<char*>(cmd_prompt.c_str()));
 
         for (const auto &[key, value] : args) {
-            execArgs.push_back(const_cast<char*>(key.c_str()));
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]:   arg[%{public}zu]='%{public}s'",
-                execArgs.size() - 1, key.c_str());
-            if (!value.empty()) {
-                execArgs.push_back(const_cast<char*>(value.c_str()));
-                TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]:   arg[%{public}zu]='%{public}s'",
-                    execArgs.size() - 1, value.c_str());
-            }
+            cmdline += " " + key + " " + value;
         }
+        execArgs.push_back(const_cast<char*>(cmdline.c_str()));
         execArgs.push_back(nullptr);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: Command will be: %{public}s", cmdline.c_str());
 
-        // Print final execArgs array
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: ========== Final execArgs ==========");
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: execArgs.size()=%{public}zu", execArgs.size());
         for (size_t i = 0; i < execArgs.size(); i++) {
             if (execArgs[i] != nullptr) {
                 TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: execArgs[%{public}zu]='%{public}s'",
@@ -270,11 +265,9 @@ int32_t CliManagerService::ExecTool(const std::string &name,
                     i);
             }
         }
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: Calling execvp('%{public}s')", name.c_str());
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerService[CHILD]: Command will be: %{public}s", name.c_str());
 
-        // Execute command directly (no sandbox wrapper)
-        execvp(name.c_str(), execArgs.data());
+        // Execute command
+        execvp(execArgs[0], execArgs.data());
 
         // If execvp returns, it failed
         TAG_LOGE(AAFwkTag::ABILITYMGR, "execvp failed: %{public}s", strerror(errno));
