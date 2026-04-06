@@ -132,9 +132,13 @@ private:
         ExecOptions options;
         std::string challenge;  // Default empty
 
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: argc=%{public}zu", argc);
+
         if (argc >= INDEX_THREE + 1 && argv[INDEX_TWO] != nullptr) {
             napi_valuetype valueType;
             napi_status status = napi_typeof(env, argv[INDEX_TWO], &valueType);
+
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: argv[2] valueType=%{public}d", valueType);
 
             if (status == napi_ok) {
                 if (valueType == napi_string) {
@@ -144,16 +148,35 @@ private:
 
                     // argv[3] might be options
                     if (argc >= INDEX_THREE + 2 && argv[INDEX_THREE] != nullptr) {
-                        UnwrapExecOptions(env, argv[INDEX_THREE], options);
-                        TAG_LOGI(AAFwkTag::ABILITYMGR, "Options parsed from argv[3]");
+                        napi_valuetype valueType3;
+                        napi_status status3 = napi_typeof(env, argv[INDEX_THREE], &valueType3);
+                        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool: argv[3] exists, valueType=%{public}d", valueType3);
+
+                        if (status3 == napi_ok && valueType3 == napi_object) {
+                            UnwrapExecOptions(env, argv[INDEX_THREE], options);
+                            TAG_LOGI(AAFwkTag::ABILITYMGR, "Options parsed from argv[3]: timeout=%{public}d, background=%{public}d",
+                                options.timeout, options.background);
+                        } else {
+                            TAG_LOGW(AAFwkTag::ABILITYMGR, "argv[3] is not an object, cannot parse options");
+                        }
+                    } else {
+                        TAG_LOGI(AAFwkTag::ABILITYMGR, "No argv[3] provided, using default options");
                     }
                 } else if (valueType == napi_object) {
-                    // argv[2] is options (object)
+                    // argv[2] is options (object) - 3参数模式：execTool(name, args, options)
                     UnwrapExecOptions(env, argv[INDEX_TWO], options);
-                    TAG_LOGI(AAFwkTag::ABILITYMGR, "Options parsed from argv[2]");
+                    TAG_LOGI(AAFwkTag::ABILITYMGR, "Options parsed from argv[2]: timeout=%{public}d, background=%{public}d",
+                        options.timeout, options.background);
+                } else {
+                    TAG_LOGW(AAFwkTag::ABILITYMGR, "argv[2] has unexpected type: %{public}d", valueType);
                 }
             }
+        } else {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "No optional parameters provided, using defaults");
         }
+
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool final: timeout=%{public}d, background=%{public}d, challenge='%{public}s'",
+            options.timeout, options.background, challenge.c_str());
 
         auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
         auto session = std::make_shared<SessionInfo>();

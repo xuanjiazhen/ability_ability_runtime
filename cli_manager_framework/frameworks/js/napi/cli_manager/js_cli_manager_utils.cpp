@@ -381,10 +381,14 @@ bool UnwrapExecOptions(napi_env env, napi_value jsOptions, ExecOptions &options)
     // Parse timeout
     napi_value timeoutValue = nullptr;
     napi_get_named_property(env, jsOptions, "timeout", &timeoutValue);
-    if (timeoutValue != nullptr) {
+    napi_valuetype valueType;
+    napi_typeof(env, timeoutValue, &valueType);
+    if (valueType == napi_number) {
         napi_get_value_int32(env, timeoutValue, &options.timeout);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "UnwrapExecOptions: timeout=%{public}d (from JS)", options.timeout);
     } else {
         options.timeout = 0;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "UnwrapExecOptions: timeout not set, using 0 (default)");
     }
 
     // Parse workingDir
