@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_REMOTE_ON_LISTENER_INTERFACE_H
 #define OHOS_ABILITY_RUNTIME_REMOTE_ON_LISTENER_INTERFACE_H
 
+#include <vector>
 #include "iremote_broker.h"
 
 namespace OHOS {
@@ -30,7 +31,7 @@ struct OnCallbackInfo {
     std::string bundleName;
     std::string continueType;
     std::string srcBundleName;
-    std::string appIdentifier;
+    std::vector<std::string> appIdentifiers;
 };
 
 /**

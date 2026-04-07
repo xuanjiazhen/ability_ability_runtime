@@ -54,7 +54,14 @@ int32_t RemoteOnListenerStub::OnCallbackInner(MessageParcel &data, MessageParcel
     info.bundleName = data.ReadString();
     info.continueType = data.ReadString();
     info.srcBundleName = data.ReadString();
-    info.appIdentifier = data.ReadString();
+
+    // Read appIdentifiers array: first read length, then read each element
+    uint32_t arraySize = data.ReadUint32();
+    for (uint32_t i = 0; i < arraySize; ++i) {
+        std::string appIdentifier = data.ReadString();
+        info.appIdentifiers.push_back(appIdentifier);
+    }
+
     OnCallback(info);
     return NO_ERROR;
 }

@@ -49,9 +49,16 @@ void RemoteOnListenerProxy::OnCallback(const OnCallbackInfo &info)
         TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write srcBundleName failed");
         return;
     }
-    if (!data.WriteString(info.appIdentifier)) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write appIdentifier failed");
+
+    if (!data.WriteUint32(static_cast<uint32_t>(info.appIdentifiers.size()))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write appIdentifiers size failed");
         return;
+    }
+    for (const auto &appIdentifier : info.appIdentifiers) {
+        if (!data.WriteString(appIdentifier)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "NotifyOnsChanged Write appIdentifier element failed");
+            return;
+        }
     }
     sptr<IRemoteObject> remote = Remote();
     if (remote == nullptr) {

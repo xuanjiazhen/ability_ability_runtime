@@ -67,7 +67,7 @@ HWTEST_F(RemoteOnListenerProxyTest, OnCallback_001, TestSize.Level1)
     info.bundleName = "bundleName";
     info.continueType = "continueType";
     info.srcBundleName = "srcBundleName";
-    info.appIdentifier = "appIdentifier";
+    info.appIdentifiers.push_back("appIdentifier");
     proxy_->OnCallback(info);
     EXPECT_EQ(IRemoteOnListener::ON_CALLBACK, mock_->code_);
 }
@@ -91,7 +91,7 @@ HWTEST_F(RemoteOnListenerProxyTest, OnCallback_002, TestSize.Level1)
     info.bundleName = "bundleName";
     info.continueType = "continueType";
     info.srcBundleName = "srcBundleName";
-    info.appIdentifier = "appIdentifier";
+    info.appIdentifiers.push_back("appIdentifier");
     proxy_->OnCallback(info);
     EXPECT_EQ(IRemoteOnListener::ON_CALLBACK, mock_->code_);
 }

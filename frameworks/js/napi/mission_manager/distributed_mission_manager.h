@@ -159,7 +159,7 @@ struct OnCB {
     std::string bundleName;
     std::string continueType;
     std::string srcBundleName;
-    std::string appIdentifierList;
+    std::vector<std::string> appIdentifiers;
     OnCallbackCB onCallbackCB;
     int result = 0;
     napi_ref callbackRef;

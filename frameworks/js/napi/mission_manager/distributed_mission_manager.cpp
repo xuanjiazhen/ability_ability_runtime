@@ -157,42 +157,6 @@ static std::string GetAnonymStr(const std::string &value)
     return res;
 }
 
-static napi_value ParseAndCreateAppIdsArray(const napi_env &env, const std::string &appIdentifierList)
-{
-    AbilityRuntime::HandleEscape handleEscape(env);
-    napi_value jsAppIdsArray = nullptr;
-    napi_create_array(env, &jsAppIdsArray);
-    size_t index = 0;
-
-    if (!appIdentifierList.empty()) {
-        std::string appList = appIdentifierList;
-        size_t start = 0;
-        size_t pos = 0;
-
-        while ((pos = appList.find(',', start)) != std::string::npos) {
-            if (pos > start) {
-                std::string appId = appList.substr(start, pos - start);
-                TAG_LOGE(AAFwkTag::MISSION, "appIdentifier element: %{public}s", GetAnonymStr(appId).c_str());
-                napi_value jsAppId = nullptr;
-                napi_create_string_utf8(env, appId.c_str(), NAPI_AUTO_LENGTH, &jsAppId);
-                napi_set_element(env, jsAppIdsArray, index++, jsAppId);
-            }
-            start = pos + 1;
-        }
-        if (start < appList.size()) {
-            std::string appId = appList.substr(start);
-            napi_value jsAppId = nullptr;
-            napi_create_string_utf8(env, appId.c_str(), NAPI_AUTO_LENGTH, &jsAppId);
-            napi_set_element(env, jsAppIdsArray, index++, jsAppId);
-        }
-    }
-
-    if (index > 0) {
-        return handleEscape.Escape(jsAppIdsArray);
-    }
-    return nullptr;
-}
-
 bool SetStartSyncMissionsContext(const napi_env &env, const napi_value &value,
     SyncRemoteMissionsContext* context, std::string &errInfo)
 {
@@ -1181,11 +1145,24 @@ static void BuildCallbackResult(OnCB *onCB, napi_value result[3])
     napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName3.c_str(), jsValueArr[ARGS_TWO]);
     napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName4.c_str(), jsValueArr[ARGS_THREE]);
 
-    napi_value jsAppIdsArray = ParseAndCreateAppIdsArray(onCB->cbBase.cbInfo.env, onCB->appIdentifierList);
-    if (jsAppIdsArray != nullptr) {
-        std::string paramName5 = "appIds";
-        napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName5.c_str(), jsAppIdsArray);
+    TAG_LOGI(AAFwkTag::MISSION, "BuildCallbackResult: continueState=%{public}u, srcDeviceId=%{public}s, "
+                                "bundleName=%{public}s, continueType=%{public}s, srcBundleName=%{public}s",
+             onCB->continueState, onCB->srcDeviceId.c_str(), onCB->bundleName.c_str(),
+             onCB->continueType.c_str(), onCB->srcBundleName.c_str());
+
+    napi_value jsAppIdsArray = nullptr;
+    napi_create_array(onCB->cbBase.cbInfo.env, &jsAppIdsArray);
+    for (size_t i = 0; i < onCB->appIdentifiers.size(); ++i) {
+        napi_value jsAppId = nullptr;
+        napi_create_string_utf8(onCB->cbBase.cbInfo.env, onCB->appIdentifiers[i].c_str(),
+            NAPI_AUTO_LENGTH, &jsAppId);
+        napi_set_element(onCB->cbBase.cbInfo.env, jsAppIdsArray, i, jsAppId);
+        TAG_LOGI(AAFwkTag::MISSION, "BuildCallbackResult: appIdentifiers[%{public}zu]=%{public}s",
+                 i, GetAnonymStr(onCB->appIdentifiers[i]).c_str());
     }
+    // Always set appIds property, even if empty
+    std::string paramName5 = "targetAppIds";
+    napi_set_named_property(onCB->cbBase.cbInfo.env, result[1], paramName5.c_str(), jsAppIdsArray);
     std::string napiState = "state";
     std::string napiInfo = "info";
     napi_set_named_property(onCB->cbBase.cbInfo.env, result[ARGS_TWO], napiState.c_str(), result[0]);
@@ -1286,7 +1263,7 @@ void NAPIRemoteOnListener::OnCallback(const OnCallbackInfo &info)
     onCB->bundleName = info.bundleName;
     onCB->continueType = info.continueType;
     onCB->srcBundleName = info.srcBundleName;
-    onCB->appIdentifierList = info.appIdentifier;
+    onCB->appIdentifiers = info.appIdentifiers;
     work->data = static_cast<void *>(onCB);
 
     int rev = uv_queue_work_with_qos_internal(
