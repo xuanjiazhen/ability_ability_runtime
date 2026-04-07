@@ -794,22 +794,30 @@ static napi_value CreateDetailInfoObject(napi_env env, AppExecFwk::LeakType leak
 
 static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
 {
+    napi_handle_scope scope_ = nullptr;
+    napi_status scopeStatus = napi_open_handle_scope(defaultLeakObserver.env, &scope_);
+    if (scopeStatus != napi_ok || scope_ == nullptr) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "napi_open_handle_scope failed");
+        return false;
+    }
     std::lock_guard<std::mutex> lock(defaultLeakMtx);
     if (!g_defaultLeakObserver.ref) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "not register ObserverFunc callback");
+        napi_close_handle_scope(defaultLeakObserver.env, scope_);
+        TAG_LOGE(AAFwkTag::JSNAPI, "not register ObserverFunc callback");
         return false;
     }
  
     napi_value global = nullptr;
     if (napi_get_global(g_defaultLeakObserver.env, &global) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Global Failed");
+        napi_close_handle_scope(defaultLeakObserver.env, scope_);
+        TAG_LOGE(AAFwkTag::JSNAPI, "Get Global Failed");
         return false;
     }
  
     size_t argc = ARGC_TWO;
     napi_value args[ARGC_THREE];
-    args[0] = CreateJsValue(g_defaultLeakObserver.env, obj.leakType);
-    args[1] = CreateJsValue(g_defaultLeakObserver.env, static_cast<int64_t>(obj.leakSize));
+    args[ARGC_ZERO] = CreateJsValue(g_defaultLeakObserver.env, obj.leakType);
+    args[ARGC_ONE] = CreateJsValue(g_defaultLeakObserver.env, static_cast<int64_t>(obj.leakSize));
  
     if (obj.leakType == AppExecFwk::LeakType::PSS_MEMORY) {
         args[ARGC_TWO] = CreateDetailInfoObject(g_defaultLeakObserver.env, obj.leakType, obj.detailInfo);
@@ -821,14 +829,17 @@ static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
 
     napi_value function = nullptr;
     if (napi_get_reference_value(g_defaultLeakObserver.env, g_defaultLeakObserver.ref, &function) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Get Callback Failed");
+        napi_close_handle_scope(defaultLeakObserver.env, scope_);
+        TAG_LOGE(AAFwkTag::JSNAPI, "get callback Failed");
         return false;
     }
     napi_value result = nullptr;
     if (napi_call_function(g_defaultLeakObserver.env, global, function, argc, args, &result) != napi_ok) {
-        TAG_LOGI(AAFwkTag::JSNAPI, "Do Callback Failed");
+        napi_close_handle_scope(defaultLeakObserver.env, scope_);
+        TAG_LOGE(AAFwkTag::JSNAPI, "do callback Failed");
         return false;
     }
+    napi_close_handle_scope(defaultLeakObserver.env, scope_);
     return true;
 }
 
@@ -1024,8 +1035,9 @@ private:
 
     napi_value OnSetDefaultResourceUsageObserver(napi_env env, const size_t argc, napi_value *argv)
     {
+         TAG_LOGD(AAFwkTag::JSNAPI, "called");
         if (argc != ARGC_ZERO && argc != ARGC_ONE) {
-            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc: %zu", argc);
+            TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
             ThrowInvalidNumParametersError(env);
             return CreateJsUndefined(env);
         }
