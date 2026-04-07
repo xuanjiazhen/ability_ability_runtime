@@ -83,10 +83,22 @@ public:
     {
         return isLastWantBackgroundDriven_.load();
     }
+
+    inline void SetNativeState(AbilityNativeState newState)
+    {
+        abilityNativeState_ = newState;
+    }
+
+    inline AbilityNativeState GetNativeState() const
+    {
+        return abilityNativeState_;
+    }
+
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;
     std::atomic_bool isKillPrecedeStart_ = false;
+    AbilityNativeState abilityNativeState_ = AbilityNativeState::NONE;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
