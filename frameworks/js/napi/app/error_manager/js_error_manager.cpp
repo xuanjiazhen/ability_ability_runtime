@@ -953,8 +953,7 @@ private:
             return CreateJsUndefined(env);
         }
         if (CheckTypeForNapiValue(env, function, napi_null) ||CheckTypeForNapiValue(env, function, napi_undefined)) {
-            ThrowInvalidNumParametersError(env);
-            return CreateJsUndefined(env);
+            function = nullptr;
         }
         std::lock_guard<std::mutex> lock(defaultHandlerMtx);
         napi_value object = nullptr;
