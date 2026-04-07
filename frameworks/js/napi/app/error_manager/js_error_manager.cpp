@@ -795,7 +795,7 @@ static napi_value CreateDetailInfoObject(napi_env env, AppExecFwk::LeakType leak
 static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
 {
     napi_handle_scope scope_ = nullptr;
-    napi_status scopeStatus = napi_open_handle_scope(defaultLeakObserver.env, &scope_);
+    napi_status scopeStatus = napi_open_handle_scope(g_defaultLeakObserver.env, &scope_);
     if (scopeStatus != napi_ok || scope_ == nullptr) {
         TAG_LOGE(AAFwkTag::JSNAPI, "napi_open_handle_scope failed");
         return false;
