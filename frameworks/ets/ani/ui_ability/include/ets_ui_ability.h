@@ -351,6 +351,7 @@ private:
     bool CheckSatisfyTargetAPIVersion(int32_t targetAPIVersion);
     bool BackPressDefaultValue();
     void WriteLifecycleSwitchLog(const std::string lifecycleName);
+    void HandleNativeModule();
     int32_t CallSaveState(ani_value args[], WantParams &wantParams, AppExecFwk::StateReason stateReason,
         AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo);
 
