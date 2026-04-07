@@ -1028,6 +1028,54 @@ napi_value JsApplicationContextUtils::OnGetAllWindowStages(napi_env env, NapiCal
 #endif
 }
 
+napi_value JsApplicationContextUtils::GetUIAbilityByInstanceId(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
+        OnGetUIAbilityByInstanceId, APPLICATION_CONTEXT_NAME);
+}
+
+napi_value JsApplicationContextUtils::OnGetUIAbilityByInstanceId(napi_env env, NapiCallbackInfo& info)
+{
+    auto context = applicationContext_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null context");
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    if (info.argc == 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Not enough arguments");
+        ThrowInvalidParamError(env, "Not enough params.");
+        return CreateJsUndefined(env);
+    }
+
+    int32_t instanceId = 0;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], instanceId)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Parse instanceId failed");
+        ThrowInvalidParamError(env, "Parse param instanceId failed, instanceId must be number.");
+        return CreateJsUndefined(env);
+    }
+
+    // Get NativeAbilityWrapper from ApplicationContext
+    auto nativeAbility = context->GetNativeAbility(instanceId);
+    if (nativeAbility == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "NativeAbility not found for instanceId: %{public}d", instanceId);
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    // Return the jsAbilityObj from NativeAbilityWrapper
+    if (nativeAbility->jsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "jsAbilityObj is null for instanceId: %{public}d", instanceId);
+        AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
+        return CreateJsUndefined(env);
+    }
+
+    napi_value result = nativeAbility->jsAbilityObj_;
+    TAG_LOGD(AAFwkTag::APPKIT, "Get UIAbility for instanceId: %{public}d", instanceId);
+    return result;
+}
+
 napi_value JsApplicationContextUtils::GetCurrentAppCloneIndex(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_WITH_NAME_AND_CALL(env, info, JsApplicationContextUtils,
@@ -2146,6 +2194,8 @@ void JsApplicationContextUtils::BindNativeApplicationContextTwo(napi_env env, na
     BindNativeFunction(env, object, "setFontSizeScale", MD_NAME,
         JsApplicationContextUtils::SetFontSizeScale);
     BindNativeFunction(env, object, "getAllWindowStages", MD_NAME, JsApplicationContextUtils::GetAllWindowStages);
+    BindNativeFunction(env, object, "getUIAbilityByInstanceId", MD_NAME,
+        JsApplicationContextUtils::GetUIAbilityByInstanceId);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
