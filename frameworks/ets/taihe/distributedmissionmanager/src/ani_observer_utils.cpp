@@ -105,10 +105,11 @@ void MissionObserver::OnCallback(const AAFwk::OnCallbackInfo &info)
     taiheInfo.continueType = ::taihe::optional<::taihe::string>::make(info.continueType);
 
     // Convert appIdentifiers vector to taihe array
-    ::taihe::array<::taihe::string> appIdentifiersArray;
+    std::vector<::taihe::string> appIdentifiersVector;
     for (const auto &appIdentifier : info.appIdentifiers) {
-        appIdentifiersArray.push_back(::taihe::string(appIdentifier));
+        appIdentifiersVector.push_back(::taihe::string(appIdentifier));
     }
+    ::taihe::array<::taihe::string> appIdentifiersArray(appIdentifiersVector);
     taiheInfo.appIdentifiers = ::taihe::optional<::taihe::array<::taihe::string>>::make(appIdentifiersArray);
 
     ::ohos::distributedmissionmanager::ContinueCallbackInfo callbackInfo = { .state = taiheState, .info = taiheInfo };
