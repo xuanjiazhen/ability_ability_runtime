@@ -480,7 +480,7 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
             continue;
         }
         std::string content = "Binder catcher stacktrace, type is peer, pid : " + std::to_string(pidTemp) + "\n";
-        content += CatcherStacktrace(pidTemp);
+        content += IsAncoProc(pidTemp) ? "" : CatcherStacktrace(pidTemp);
         binderPidsStr += " " + std::to_string(pidTemp);
         if (terminalBinder.pid > 0 && pidTemp == terminalBinder.pid) {
             terminalBinder.tid  = (terminalBinder.tid > 0) ? terminalBinder.tid : terminalBinder.pid;
@@ -500,6 +500,13 @@ int AppfreezeManager::AcquireStack(const FaultData& faultData,
     return ret;
 }
 
+bool AppfreezeManager::IsAncoProc(int pid) const
+{
+    std::string cgroupPath = "/proc/" + std::to_string(pid) + "/cgroup";
+    std::string firstLine = GetFirstLine(cgroupPath);
+    return firstLine.find("isulad") != std::string::npos;
+}
+
 std::string AppfreezeManager::CatchASyncByPid(const std::set<int> &asyncPids, const std::set<int> &syncPids, int pid)
 {
     std::string binderInfo;
@@ -510,7 +517,7 @@ std::string AppfreezeManager::CatchASyncByPid(const std::set<int> &asyncPids, co
             continue;
         }
         TAG_LOGI(AAFwkTag::APPDFR, "AsyncBinder pidTemp pids:%{public}d", pidTemp);
-        if (pidTemp != pid && syncPids.find(pidTemp) == syncPids.end()) {
+        if (pidTemp != pid && !IsAncoProc(pidTemp) && syncPids.find(pidTemp) == syncPids.end()) {
             std::string content = "Binder catcher stacktrace, type is async, pid : " + std::to_string(pidTemp) + "\n";
             content += CatcherStacktrace(pidTemp);
             binderInfo += content;
