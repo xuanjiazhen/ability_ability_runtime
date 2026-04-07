@@ -83,10 +83,31 @@ public:
     {
         return isLastWantBackgroundDriven_.load();
     }
+
+    inline void SetNativeState(AbilityNativeState newState)
+    {
+        abilityNativeState_ = newState;
+    }
+
+    inline AbilityNativeState GetNativeState() const
+    {
+        return abilityNativeState_;
+    }
+
+    void AttachNative();
+
+    inline bool CheckStartPendingState() const
+    {
+        auto pendingState = GetPendingState();
+        return pendingState == AbilityState::INITIAL ||
+            (pendingState == AbilityState::FOREGROUND && GetNativeState() == AbilityNativeState::CREATED);
+    }
+
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;
     std::atomic_bool isKillPrecedeStart_ = false;
+    std::atomic<AbilityNativeState> abilityNativeState_ = AbilityNativeState::NONE;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -30,6 +30,7 @@
 #include "global_constant.h"
 #include "hidden_start_observer_manager.h"
 #include "hitrace_meter.h"
+#include "native_ability_util.h"
 #include "permission_constants.h"
 #include "process_options.h"
 #include "request_id_util.h"
@@ -82,6 +83,7 @@ constexpr int32_t REQUEST_LIST_ID_INIT = -1;
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
 constexpr int32_t BY_CALL_TIMEOUT = 10 * 1000 * 1000; // 10s
+constexpr int32_t START_SELF_TIMEOUT = 10 * 1000 * 1000; // 10s
 constexpr int32_t SCENE_FLAG_BYCALL = 4;
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
@@ -268,7 +270,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     }
     auto scenarios = static_cast<uint32_t>(uiAbilityRecord->GetOnNewWantSkipScenarios()) &
         static_cast<uint32_t>(sessionInfo->scenarios);
-    if (uiAbilityRecord->GetPendingState() != AbilityState::INITIAL) {
+    if (!uiAbilityRecord->CheckStartPendingState()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state dropped START: %{public}d",
             static_cast<int32_t>(uiAbilityRecord->GetPendingState()));
         uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
@@ -572,13 +574,13 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
         abilityRecord->ReportAbilityConnectionRelations();
     }
 
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
-    CHECK_POINTER_AND_RETURN_LOG(handler, ERR_INVALID_VALUE, "Fail to get AbilityEventHandler.");
     abilityRecord->RemoveLoadTimeoutTask();
     abilityRecord->SetLoading(false);
     FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
 
     abilityRecord->SetScheduler(scheduler);
+    // Check if this is a NativeModule and set native state
+    abilityRecord->AttachNative();
     if (processAttachResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "process attachment failed, close ability");
         TerminateSession(abilityRecord);
@@ -600,6 +602,7 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
     if (abilityRecord->IsNeedToCallRequest()) {
         abilityRecord->CallRequest();
     }
+
     abilityRecord->PostForegroundTimeoutTask();
     abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
     DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token);
@@ -1075,6 +1078,24 @@ int UIAbilityLifecycleManager::DispatchForeground(const UIAbilityRecordPtr &abil
     abilityRecord->RemoveForegroundTimeoutTask();
     g_deleteLifecycleEventTask(abilityRecord->GetToken());
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(abilityRecord->GetPid());
+
+    // Check if this is a NativeModule with
+    if (abilityRecord->GetNativeState() == AbilityNativeState::ATTACHED) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule foreground is pending");
+        abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+        auto timeoutTask = [wThis = weak_from_this(), abilityRecord]() {
+            auto pThis = wThis.lock();
+            if (pThis != nullptr && abilityRecord->GetNativeState() == AbilityNativeState::CREATED) {
+                pThis->HandleForegroundTimeout(abilityRecord);
+            }
+        };
+        ffrt::submit(std::move(timeoutTask), ffrt::task_attr().delay(START_SELF_TIMEOUT));
+        return ERR_OK;
+    }
+    if (abilityRecord->GetNativeState() == AbilityNativeState::ON_FOREGROUND) {
+        abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    }
+
     if (success) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "foreground succeeded.");
         // do not submitTask, for grant uri permission in terminateSelfWithResult
@@ -1562,6 +1583,42 @@ void UIAbilityLifecycleManager::MoveToBackground(const UIAbilityRecordPtr &abili
     abilityRecord->BackgroundAbility(task);
 }
 
+int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRecord)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSelf called");
+    std::lock_guard guard(sessionLock_);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (abilityRecord->GetNativeState() == AbilityNativeState::NONE) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not a NativeModule ability");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+
+    if (abilityRecord->GetNativeState() == AbilityNativeState::CREATED) {
+        abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    }
+
+    auto sessionInfo = abilityRecord->GetSessionInfo();
+    CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
+    CHECK_POINTER_AND_RETURN(sessionInfo->sessionToken, ERR_INVALID_VALUE);
+
+    auto session = iface_cast<Rosen::ISession>(sessionInfo->sessionToken);
+    CHECK_POINTER_AND_RETURN(session, ERR_INVALID_VALUE);
+
+    sessionInfo->nativeHideWindow = false;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule completing foreground, ability: %{public}s",
+        abilityRecord->GetAbilityInfo().name.c_str());
+    auto ret = static_cast<int>(session->PendingSessionActivation(sessionInfo));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
+    }
+    return ret;
+}
+
 int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abilityRequest, const int32_t frameNum)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "prelaunch ability: %{public}s %{public}s",
@@ -1900,6 +1957,8 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_MODE, 0),
         (sessionInfo->supportWindowModes).size(), sessionInfo->specifiedFlag.c_str());
+    sessionInfo->nativeHideWindow = (sessionInfo->persistentId == 0 &&
+        NativeAbilityMetaData::HideWindowOnStartup(abilityRequest.abilityInfo));
     if (abilityRequest.isStartInSplitMode) {
         return NotifySCBPendingActivationInSplitMode(sessionInfo, abilityRequest);
     }
@@ -3022,6 +3081,7 @@ int32_t UIAbilityLifecycleManager::StartAbilityBySpecified(const SpecifiedReques
     auto sessionInfo = CreateSessionInfo(abilityRequest, specifiedRequest.requestId);
     sessionInfo->requestCode = abilityRequest.requestCode;
     sessionInfo->specifiedFlag = abilityRequest.specifiedFlag;
+    sessionInfo->nativeHideWindow = NativeAbilityMetaData::HideWindowOnStartup(abilityRequest.abilityInfo);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "specified flag:%{public}s", abilityRequest.specifiedFlag.c_str());
     if (specifiedRequest.requestListId != REQUEST_LIST_ID_INIT) {
         HandleAbilitiesRequestDone(specifiedRequest.requestId, specifiedRequest.requestListId, sessionInfo);
@@ -3042,6 +3102,7 @@ int32_t UIAbilityLifecycleManager::StartSpecifiedAbilityDirectlyWithFlag(const A
     auto sessionInfo = CreateSessionInfo(abilityRequest, requestId);
     sessionInfo->requestCode = abilityRequest.requestCode;
     sessionInfo->specifiedFlag = abilityRequest.specifiedFlag;
+    sessionInfo->nativeHideWindow = NativeAbilityMetaData::HideWindowOnStartup(abilityRequest.abilityInfo);
     auto callerAbility = GetAbilityRecordByToken(abilityRequest.callerToken);
     return SendSessionInfoToSCB(callerAbility, sessionInfo);
 }

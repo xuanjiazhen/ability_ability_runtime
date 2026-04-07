@@ -7693,10 +7693,10 @@ HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_NotContains_001, Tes
 
 /**
  * @tc.name: AttachAbilityThread_ProcessAttachFail_001
- * @tc.desc: AttachAbilityThread with process attachment failure
+ * @tc.desc: AttachAbilityThread with process attachment success
  * @tc.type: FUNC
  */
-HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_ProcessAttachFail_001, TestSize.Level1)
+HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_ProcessAttachSuccess_001, TestSize.Level1)
 {
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
@@ -7708,7 +7708,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_ProcessAttachFail_00
     mgr->sessionAbilityMap_.emplace(1, record);
     
     auto result = mgr->AttachAbilityThread(nullptr, token->AsObject());
-    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -7730,7 +7730,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_StartedByCall_001, T
     mgr->sessionAbilityMap_.emplace(1, record);
     
     auto result = mgr->AttachAbilityThread(nullptr, token->AsObject());
-    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -8352,6 +8352,142 @@ HWTEST_F(UIAbilityLifecycleManagerTest, SetGamePreLaunchCompleteTime_003, TestSi
     int64_t completeTime = -1000;
     auto result = mgr->SetGamePreLaunchCompleteTime(completeTime);
     EXPECT_EQ(result, ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelf_001
+ * @tc.desc: Test StartSelf with null abilityRecord.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_001, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    EXPECT_EQ(mgr->StartSelf(nullptr), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: StartSelf_002
+ * @tc.desc: Test StartSelf when nativeState is NONE (not a NativeModule ability).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_002, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    EXPECT_NE(abilityRecord, nullptr);
+    // Default nativeState is NONE
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+    EXPECT_EQ(mgr->StartSelf(abilityRecord), ERR_CAPABILITY_NOT_SUPPORT);
+}
+
+/**
+ * @tc.name: StartSelf_003
+ * @tc.desc: Test StartSelf with null sessionInfo.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_003, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    EXPECT_EQ(mgr->StartSelf(abilityRecord), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: StartSelf_004
+ * @tc.desc: Test StartSelf with null sessionToken.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_004, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    abilityRecord->SetSessionInfo(sessionInfo);
+    EXPECT_EQ(mgr->StartSelf(abilityRecord), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: StartSelf_005
+ * @tc.desc: Test StartSelf success: nativeHideWindow is set to false and
+ *           PendingSessionActivation is called on the session.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_005, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->nativeHideWindow = true;
+    abilityRecord->SetSessionInfo(sessionInfo);
+
+    auto ret = mgr->StartSelf(abilityRecord);
+    EXPECT_EQ(ret, ERR_OK);
+    // Verify nativeHideWindow is set to false after StartSelf
+    EXPECT_EQ(sessionInfo->nativeHideWindow, false);
+}
+
+/**
+ * @tc.name: StartSelf_006
+ * @tc.desc: Test StartSelf when nativeState is CREATED, should transition to ON_FOREGROUND.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_006, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->nativeHideWindow = true;
+    abilityRecord->SetSessionInfo(sessionInfo);
+
+    auto ret = mgr->StartSelf(abilityRecord);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ON_FOREGROUND);
+}
+
+/**
+ * @tc.name: DispatchForeground_NativeModuleAttached_0100
+ * @tc.desc: Test DispatchForeground when NativeModule is in ATTACHED state,
+ *           should set state to CREATED and return ERR_OK.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_NativeModuleAttached_0100, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, true);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::CREATED);
+}
+
+/**
+ * @tc.name: DispatchForeground_NativeModuleOnForeground_0100
+ * @tc.desc: Test DispatchForeground when NativeModule is in ON_FOREGROUND state
+ *           and success is true, should set state to NORMAL.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_NativeModuleOnForeground_0100, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, true);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
