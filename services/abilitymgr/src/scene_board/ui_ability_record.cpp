@@ -28,6 +28,12 @@ std::shared_ptr<UIAbilityRecord> UIAbilityRecord::CreateAbilityRecord(const Abil
     auto abilityRecord = std::make_shared<UIAbilityRecord>(
         abilityRequest.want, abilityRequest.abilityInfo, abilityRequest.appInfo, abilityRequest.requestCode);
     abilityRecord->Init(abilityRequest);
+    NativeAbilityMetaData metaData;
+    NativeAbilityMetaData::InitData(abilityRecord->abilityInfo_, metaData);
+    if (metaData.withNativeModule && (metaData.startupPhase == AAFwk::StartupPhase::PRE_WINDOW ||
+        metaData.startupPhase == AAFwk::StartupPhase::PRE_FOREGROUND)) {
+        abilityRecord
+    }
     return abilityRecord;
 }
 

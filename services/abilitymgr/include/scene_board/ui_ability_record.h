@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_UI_ABILITY_RECORD_H
 
 #include "ability_record.h"
+#include "native_ability_util.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -83,10 +84,41 @@ public:
     {
         return isLastWantBackgroundDriven_.load();
     }
+
+    // Native Module related methods
+    inline void SetNativeModuleMetaData(const NativeAbilityMetaData& metaData)
+    {
+        nativeModuleMetaData_ = metaData;
+    }
+
+    inline const NativeAbilityMetaData& GetNativeModuleMetaData() const
+    {
+        return nativeModuleMetaData_;
+    }
+
+    inline bool IsWithNative() const
+    {
+        return nativeModuleMetaData_.withNativeModule;
+    }
+
+    // Native module state management
+    inline void SetNativeForegroundPending(bool pending)
+    {
+        nativeForegroundPending_ = pending;
+    }
+
+    inline bool IsNativeForegroundPending() const
+    {
+        return nativeForegroundPending_;
+    }
+
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;
+    bool nativeForegroundPending_ = false;
     std::atomic_bool isKillPrecedeStart_ = false;
+    AbilityNativeState abilityNativeState_ = AbilityNativeState::DONE;
+    NativeAbilityMetaData nativeModuleMetaData_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

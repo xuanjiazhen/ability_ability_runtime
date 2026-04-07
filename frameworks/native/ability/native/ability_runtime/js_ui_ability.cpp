@@ -544,6 +544,10 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
         applicationContext->DispatchOnAbilityCreate(ability);
         DISPATCH_ABILITY_INTEROP(OnAbilityCreate, applicationContext, jsRuntime_, ability);
     }
+
+    // Handle NativeModule: Create NativeAbilityWrapper and call PostAbility
+    HandleNativeModule(env);
+
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
@@ -2468,6 +2472,52 @@ void JsUIAbility::RegisterDelayResultCallback(const std::shared_ptr<InsightInten
     bool isDecorator = executeParam->decoratorType_ != static_cast<int8_t>(InsightIntentType::DECOR_NONE);
     InsightIntentDelayResultCallbackMgr::GetInstance().AddDelayResultCallback(
         executeParam->insightIntentId_, {delayResultCallback, isDecorator});
+}
+
+void JsUIAbility::HandleNativeModule(napi_env env)
+{
+    if (!IsWithNative()) {
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "Creating NativeAbilityWrapper for native module");
+
+    // Get JS Ability object
+    if (!jsAbilityObj_) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "jsAbilityObj_ is null");
+        return;
+    }
+
+    napi_value jsAbilityObj = jsAbilityObj_->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, jsAbilityObj, napi_object)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "jsAbilityObj is not an object");
+        return;
+    }
+
+    // Create NativeAbilityWrapper
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = GetAbilityRecordId();
+    wrapper->abilityName = GetAbilityName();
+    wrapper->env = env;
+    wrapper->jsAbilityObj_ = jsAbilityObj;
+
+    // Get ApplicationContext
+    auto appContext = AbilityRuntime::Context::GetApplicationContext();
+    if (appContext != nullptr) {
+        // Save wrapper to ApplicationContext
+        appContext->AddNativeAbility(wrapper->instanceId, wrapper);
+
+        // Get AbilityNativeThread and call PostAbility
+        auto nativeThreadInfo = appContext->GetNativeThread();
+        if (nativeThreadInfo != nullptr) {
+            nativeThreadInfo->PostAbility(wrapper.get());
+            TAG_LOGI(AAFwkTag::UIABILITY, "PostAbility called for instanceId: %{public}d", wrapper->instanceId);
+        } else {
+            TAG_LOGE(AAFwkTag::UIABILITY, "AbilityNativeThread is null");
+        }
+    } else {
+        TAG_LOGE(AAFwkTag::UIABILITY, "ApplicationContext is null");
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
