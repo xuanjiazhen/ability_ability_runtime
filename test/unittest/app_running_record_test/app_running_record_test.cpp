@@ -2282,7 +2282,8 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_ScheduleNewProcessRequest_0200, 
     ASSERT_NE(appRunningRecord, nullptr);
 
     appRunningRecord->taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(Constants::APP_MGR_SERVICE_NAME);
-    appRunningRecord->eventHandler_ = std::make_shared<AMSEventHandler>(appRunningRecord->taskHandler_, appRunningRecord->appMgrServiceInner_);
+    appRunningRecord->eventHandler_ = std::make_shared<AMSEventHandler>(appRunningRecord->taskHandler_,
+        appRunningRecord->appMgrServiceInner_);
     auto appLifeCycleDeal = std::make_shared<AppLifeCycleDeal>();
     appRunningRecord->appLifeCycleDeal_ = appLifeCycleDeal;
     AAFwk::Want want;
@@ -2301,7 +2302,8 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_IsAbilitiesBackground_0200, Test
     ASSERT_NE(appRunningRecord, nullptr);
 
     appRunningRecord->taskHandler_ = AAFwk::TaskHandlerWrap::CreateQueueHandler(Constants::APP_MGR_SERVICE_NAME);
-    appRunningRecord->eventHandler_ = std::make_shared<AMSEventHandler>(appRunningRecord->taskHandler_, appRunningRecord->appMgrServiceInner_);
+    appRunningRecord->eventHandler_ = std::make_shared<AMSEventHandler>(appRunningRecord->taskHandler_,
+        appRunningRecord->appMgrServiceInner_);
     auto moduleRecord = std::make_shared<ModuleRunningRecord>(appInfo, appRunningRecord->eventHandler_);
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
     abilityInfo->type = AbilityType::PAGE;
