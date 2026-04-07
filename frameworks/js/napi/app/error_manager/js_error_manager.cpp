@@ -1035,7 +1035,7 @@ private:
 
     napi_value OnSetDefaultResourceUsageObserver(napi_env env, const size_t argc, napi_value *argv)
     {
-         TAG_LOGD(AAFwkTag::JSNAPI, "called");
+        TAG_LOGD(AAFwkTag::JSNAPI, "called");
         if (argc != ARGC_ZERO && argc != ARGC_ONE) {
             TAG_LOGE(AAFwkTag::JSNAPI, "invalid argc");
             ThrowInvalidNumParametersError(env);
