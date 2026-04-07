@@ -771,5 +771,18 @@ void ExtensionAbilityThread::DumpOtherInfo(std::vector<std::string> &info)
     runner->DumpRunnerInfo(dumpInfo);
     info.push_back(dumpInfo);
 }
+
+int ExtensionAbilityThread::CreateModalUIExtension(const Want &want)
+{
+    TAG_LOGD(AAFwkTag::EXT, "ExtensionAbilityThread::CreateModalUIExtension call");
+
+    if (extensionImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGD(AAFwkTag::EXT, "Calling extensionImpl_->CreateModalUIExtension");
+    return extensionImpl_->CreateModalUIExtension(want);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

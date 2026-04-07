@@ -2103,7 +2103,7 @@ int Ability::CreateModalUIExtension(const Want &want)
         TAG_LOGE(AAFwkTag::ABILITY, "null abilityContext");
         return ERR_INVALID_VALUE;
     }
-    return abilityContextImpl->CreateModalUIExtensionWithApp(want);
+    return abilityContextImpl->CreateModalUIExtension(want);
 }
 
 void Ability::SetSessionToken(sptr<IRemoteObject> sessionToken)

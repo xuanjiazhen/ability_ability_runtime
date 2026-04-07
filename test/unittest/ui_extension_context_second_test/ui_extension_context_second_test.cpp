@@ -19,6 +19,7 @@
 #define protected public
 #include "extension_base.h"
 #include "ui_extension_context.h"
+#include "ui_extension_modal_callback.h"
 #undef private
 #undef protected
 
@@ -1526,5 +1527,314 @@ HWTEST_F(UIExtensionContextTest, TerminateSelfInner_NonEmbedded_0100, TestSize.L
 
     TAG_LOGI(AAFwkTag::TEST, "TerminateSelfInner_NonEmbedded_0100 end");
 }
+
+/**
+ * @tc.number: EraseUIExtension_0100
+ * @tc.name: EraseUIExtension
+ * @tc.desc: Test EraseUIExtension removes session from map.
+ */
+HWTEST_F(UIExtensionContextTest, EraseUIExtension_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "EraseUIExtension_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+
+    // Manually add a session to the map
+    int32_t testSessionId = 100;
+    AAFwk::Want testWant;
+    testWant.SetElementName("com.test.bundle", "TestExtension");
+
+    {
+        std::lock_guard<std::mutex> lock(context->uiExtensionMutex_);
+        context->uiExtensionMap_.emplace(testSessionId, testWant);
+    }
+
+    // Verify session exists
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1U);
+
+    // Call EraseUIExtension
+    ErrCode result = context->EraseUIExtension(testSessionId);
+    EXPECT_EQ(result, ERR_OK);
+
+    // Verify session is removed
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0U);
+
+    // Erase non-existent session should also succeed (idempotent)
+    result = context->EraseUIExtension(999);
+    EXPECT_EQ(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "EraseUIExtension_0100 end");
+}
+
+/**
+ * @tc.number: EraseUIExtension_Multiple_0100
+ * @tc.name: EraseUIExtension multiple sessions
+ * @tc.desc: Test EraseUIExtension with multiple sessions in map.
+ */
+HWTEST_F(UIExtensionContextTest, EraseUIExtension_Multiple_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "EraseUIExtension_Multiple_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+
+    // Add multiple sessions
+    AAFwk::Want want1, want2, want3;
+    want1.SetElementName("com.test.bundle", "TestExtension1");
+    want2.SetElementName("com.test.bundle", "TestExtension2");
+    want3.SetElementName("com.test.bundle", "TestExtension3");
+
+    {
+        std::lock_guard<std::mutex> lock(context->uiExtensionMutex_);
+        context->uiExtensionMap_.emplace(100, want1);
+        context->uiExtensionMap_.emplace(200, want2);
+        context->uiExtensionMap_.emplace(300, want3);
+    }
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 3U);
+
+    // Erase middle session
+    context->EraseUIExtension(200);
+    EXPECT_EQ(context->uiExtensionMap_.size(), 2U);
+
+    // Erase first session
+    context->EraseUIExtension(100);
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1U);
+
+    // Erase last session
+    context->EraseUIExtension(300);
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0U);
+
+    TAG_LOGI(AAFwkTag::TEST, "EraseUIExtension_Multiple_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnRelease_0100
+ * @tc.name: UIExtensionModalCallback::OnRelease
+ * @tc.desc: Test UIExtensionModalCallback::OnRelease calls EraseUIExtension.
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnRelease_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnRelease_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+
+    // Create callback and set up
+    auto callback = std::make_shared<UIExtensionModalCallback>();
+    callback->SetSessionId(100);
+    callback->SetUIExtensionContext(context.get());
+
+    // Add a session to the map
+    AAFwk::Want testWant;
+    testWant.SetElementName("com.test.bundle", "TestExtension");
+    {
+        std::lock_guard<std::mutex> lock(context->uiExtensionMutex_);
+        context->uiExtensionMap_.emplace(100, testWant);
+    }
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1U);
+
+    // Call OnRelease
+    callback->OnRelease();
+
+    // Verify EraseUIExtension was called
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0U);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnRelease_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnError_0100
+ * @tc.name: UIExtensionModalCallback::OnError
+ * @tc.desc: Test UIExtensionModalCallback::OnError calls EraseUIExtension.
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnError_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnError_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+
+    // Create callback and set up
+    auto callback = std::make_shared<UIExtensionModalCallback>();
+    callback->SetSessionId(200);
+    callback->SetUIExtensionContext(context.get());
+
+    // Add a session to the map
+    AAFwk::Want testWant;
+    testWant.SetElementName("com.test.bundle", "TestExtension");
+    {
+        std::lock_guard<std::mutex> lock(context->uiExtensionMutex_);
+        context->uiExtensionMap_.emplace(200, testWant);
+    }
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1U);
+
+    // Call OnError
+    callback->OnError();
+
+    // Verify EraseUIExtension was called
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0U);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnError_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnDestroy_0100
+ * @tc.name: UIExtensionModalCallback::OnDestroy
+ * @tc.desc: Test UIExtensionModalCallback::OnDestroy calls EraseUIExtension.
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnDestroy_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnDestroy_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+
+    // Create callback and set up
+    auto callback = std::make_shared<UIExtensionModalCallback>();
+    callback->SetSessionId(300);
+    callback->SetUIExtensionContext(context.get());
+
+    // Add a session to the map
+    AAFwk::Want testWant;
+    testWant.SetElementName("com.test.bundle", "TestExtension");
+    {
+        std::lock_guard<std::mutex> lock(context->uiExtensionMutex_);
+        context->uiExtensionMap_.emplace(300, testWant);
+    }
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1U);
+
+    // Call OnDestroy
+    callback->OnDestroy();
+
+    // Verify EraseUIExtension was called
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0U);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnDestroy_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_NullContext_0100
+ * @tc.name: UIExtensionModalCallback with null context
+ * @tc.desc: Test UIExtensionModalCallback handles null context gracefully.
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_NullContext_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_NullContext_0100 start");
+
+    // Create callback without setting context
+    auto callback = std::make_shared<UIExtensionModalCallback>();
+    callback->SetSessionId(400);
+
+    // Call OnRelease with null context - should not crash
+    callback->OnRelease();
+
+    // Call OnError with null context - should not crash
+    callback->OnError();
+
+    // Call OnDestroy with null context - should not crash
+    callback->OnDestroy();
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_NullContext_0100 end");
+}
+
+/**
+ * @tc.number: IsUIExtensionExist_0100
+ * @tc.name: IsUIExtensionExist with existing extension
+ * @tc.desc: Test IsUIExtensionExist returns true for existing extension.
+ */
+HWTEST_F(UIExtensionContextTest, IsUIExtensionExist_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+
+    // Add a session to the map
+    AAFwk::Want testWant;
+    testWant.SetElementName("com.test.bundle", "TestModule", "TestExtension");
+    {
+        std::lock_guard<std::mutex> lock(context->uiExtensionMutex_);
+        context->uiExtensionMap_.emplace(100, testWant);
+    }
+
+    // Check if exists
+    EXPECT_TRUE(context->IsUIExtensionExist(testWant));
+
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_0100 end");
+}
+
+/**
+ * @tc.number: IsUIExtensionExist_NotExist_0100
+ * @tc.name: IsUIExtensionExist with non-existing extension
+ * @tc.desc: Test IsUIExtensionExist returns false for non-existing extension.
+ */
+HWTEST_F(UIExtensionContextTest, IsUIExtensionExist_NotExist_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_NotExist_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+
+    AAFwk::Want testWant;
+    testWant.SetElementName("com.test.bundle", "TestModule", "TestExtension");
+
+    // Check if exists (map is empty)
+    EXPECT_FALSE(context->IsUIExtensionExist(testWant));
+
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_NotExist_0100 end");
+}
+
+/**
+ * @tc.number: IsUIExtensionExist_DifferentComponent_0100
+ * @tc.name: IsUIExtensionExist with different component
+ * @tc.desc: Test IsUIExtensionExist returns false for different component.
+ */
+HWTEST_F(UIExtensionContextTest, IsUIExtensionExist_DifferentComponent_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_DifferentComponent_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+
+    // Add session for Extension1
+    AAFwk::Want want1;
+    want1.SetElementName("com.test.bundle", "TestModule", "Extension1");
+    {
+        std::lock_guard<std::mutex> lock(context->uiExtensionMutex_);
+        context->uiExtensionMap_.emplace(100, want1);
+    }
+
+    // Check for Extension2
+    AAFwk::Want want2;
+    want2.SetElementName("com.test.bundle", "TestModule", "Extension2");
+    EXPECT_FALSE(context->IsUIExtensionExist(want2));
+
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_DifferentComponent_0100 end");
+}
+
+/**
+ * @tc.number: IsUIExtensionExist_UseGlobalUIContent_0100
+ * @tc.name: IsUIExtensionExist with USE_GLOBAL_UICONTENT flag
+ * @tc.desc: Test IsUIExtensionExist allows duplicate when USE_GLOBAL_UICONTENT is true.
+ */
+HWTEST_F(UIExtensionContextTest, IsUIExtensionExist_UseGlobalUIContent_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_UseGlobalUIContent_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+
+    // Add a session to the map
+    AAFwk::Want testWant;
+    testWant.SetElementName("com.test.bundle", "TestModule", "TestExtension");
+    testWant.SetParam("ohos.uec.params.useGlobalUIContent", true);
+
+    {
+        std::lock_guard<std::mutex> lock(context->uiExtensionMutex_);
+        context->uiExtensionMap_.emplace(100, testWant);
+    }
+
+    // IsUIExtensionExist should return true (the extension exists)
+    EXPECT_TRUE(context->IsUIExtensionExist(testWant));
+
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_UseGlobalUIContent_0100 end");
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -27,6 +27,7 @@
 #include "want.h"
 #include "js_ui_extension_callback.h"
 #include "string_wrapper.h"
+#include "ui_extension_modal_callback.h"
 #ifdef SUPPORT_SCREEN
 #include "wm/window.h"
 #endif // SUPPORT_SCREEN
@@ -244,6 +245,28 @@ public:
     */
     ErrCode StartAbilityByType(const std::string &type,
         AAFwk::WantParams &wantParam, const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks);
+
+    /**
+     * @brief Create modal UIExtension for embedded services.
+     * @param want The want of the modal UIExtension to create.
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    ErrCode CreateModalUIExtension(const AAFwk::Want &want);
+
+    /**
+     * @brief Check if a modal UIExtension with the same component already exists.
+     * @param want The want of the modal UIExtension to check.
+     * @return Returns true if exists, false otherwise.
+     */
+    bool IsUIExtensionExist(const AAFwk::Want &want);
+
+    /**
+     * @brief Erase modal UIExtension from the tracking map.
+     * @param sessionId The session ID of the modal UIExtension to erase.
+     * @return Returns ERR_OK on success.
+     */
+    ErrCode EraseUIExtension(int32_t sessionId);
+
     bool IsTerminating();
     void SetTerminating(bool state);
 
@@ -313,6 +336,10 @@ private:
     AAFwk::Want pendingResultWant_;
     TerminateSelfResultCallback pendingTerminateCallback_;
     bool hasPendingTerminateRequest_ = false;
+
+    // Modal UIExtension lifecycle management
+    std::map<int32_t, AAFwk::Want> uiExtensionMap_;
+    std::mutex uiExtensionMutex_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
