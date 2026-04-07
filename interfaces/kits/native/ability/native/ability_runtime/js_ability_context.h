@@ -83,6 +83,7 @@ public:
     static napi_value StartSelfUIAbilityInCurrentProcess(napi_env env, napi_callback_info info);
     static napi_value NotifyCancelGamePreLaunch(napi_env env, napi_callback_info info);
     static napi_value NotifyCompleteGamePreLaunch(napi_env env, napi_callback_info info);
+    static napi_value StartSelf(napi_env env, napi_callback_info info);
     static napi_value RestartAppWithWindow(napi_env env, napi_callback_info info);
     static napi_value SetMissionWindowIcon(napi_env env, napi_callback_info info);
 
@@ -137,6 +138,7 @@ private:
     napi_value OnReportDrawnCompleted(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetMissionContinueState(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info);
+    napi_value OnStartSelf(napi_env env, NapiCallbackInfo& info);
     napi_value OnRequestModalUIExtension(napi_env env, NapiCallbackInfo& info);
     napi_value OnShowAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnHideAbility(napi_env env, NapiCallbackInfo& info);
