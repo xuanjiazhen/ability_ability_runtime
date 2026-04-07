@@ -432,6 +432,8 @@ private:
     int32_t StartSelfUIAbilityInCurrentProcessInner(MessageParcel &data, MessageParcel &reply);
     int32_t IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply);
     int32_t QuerySelfModularObjectExtensionInfosInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ConnectModularObjectExtensionInner(MessageParcel &data, MessageParcel &reply);
+    int32_t DisconnectModularObjectExtensionInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetUserLockedBundleListInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk

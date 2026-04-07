@@ -15,11 +15,22 @@
 
 #include "ability_runtime/modular_object_extension_manager.h"
 
+#include "modular_object_extension_manager.h"
+
+#include <new>
+#include <string>
+
 #include "ability_business_error_utils.h"
 #include "ability_manager_client.h"
 #include "ability_manager/include/modular_object_extension_info.h"
+#include "connect_options_impl.h"
 #include "hilog_tag_wrapper.h"
-#include "want_manager.h"
+#include "modular_object_connection_manager.h"
+#include "modular_object_utils.h"
+
+using namespace OHOS;
+using namespace OHOS::AAFwk;
+using namespace OHOS::AbilityRuntime;
 
 struct OH_AbilityRuntime_AllModularObjectExtensionInfos {
     std::vector<OHOS::AAFwk::ModularObjectExtensionInfo> allMoeInfos;
@@ -28,6 +39,50 @@ struct OH_AbilityRuntime_AllModularObjectExtensionInfos {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ConnectModularObjectExtensionAbility(AbilityBase_Want *want,
+    OH_AbilityRuntime_ConnectOptions *connectOptions, int64_t *connectionId)
+{
+    if (connectOptions == nullptr || connectionId == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    if (connectOptions->state == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null connectOptions state");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    {
+        std::lock_guard<std::mutex> guard(connectOptions->state->mutex);
+        if (!connectOptions->state->alive) {
+            TAG_LOGE(AAFwkTag::APPKIT, "connect options already destroyed");
+            return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        }
+    }
+
+    Want abilityWant;
+    auto ret = ModularObjectUtils::TransformWant(want, abilityWant);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        return ret;
+    }
+
+    int64_t newConnectionId = 0;
+    int32_t innerRet = ModularObjectConnectionManager::GetInstance().ConnectModularObjectExtension(
+        abilityWant, connectOptions->state, newConnectionId);
+    if (innerRet != ERR_OK) {
+        auto businessErrorCode = ModularObjectUtils::ConvertConnectBusinessErrorCode(innerRet);
+        ModularObjectUtils::NotifyFailed(connectOptions->state, businessErrorCode);
+        return businessErrorCode;
+    }
+
+    *connectionId = newConnectionId;
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_DisconnectModularObjectExtensionAbility(int64_t connectionId)
+{
+    int32_t innerRet = ModularObjectConnectionManager::GetInstance().DisconnectModularObjectExtension(connectionId);
+    return ModularObjectUtils::ConvertConnectBusinessErrorCode(innerRet);
+}
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_ReleaseAllExtensionInfos(
     OH_AbilityRuntime_AllModObjExtensionInfosHandle *allExtensionInfos)
