@@ -802,14 +802,14 @@ static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
     }
     std::lock_guard<std::mutex> lock(defaultLeakMtx);
     if (!g_defaultLeakObserver.ref) {
-        napi_close_handle_scope(defaultLeakObserver.env, scope_);
+        napi_close_handle_scope(g_defaultLeakObserver.env, scope_);
         TAG_LOGE(AAFwkTag::JSNAPI, "not register ObserverFunc callback");
         return false;
     }
  
     napi_value global = nullptr;
     if (napi_get_global(g_defaultLeakObserver.env, &global) != napi_ok) {
-        napi_close_handle_scope(defaultLeakObserver.env, scope_);
+        napi_close_handle_scope(g_defaultLeakObserver.env, scope_);
         TAG_LOGE(AAFwkTag::JSNAPI, "Get Global Failed");
         return false;
     }
@@ -829,17 +829,17 @@ static bool LeakObserverFunc(const AppExecFwk::LeakObject &obj)
 
     napi_value function = nullptr;
     if (napi_get_reference_value(g_defaultLeakObserver.env, g_defaultLeakObserver.ref, &function) != napi_ok) {
-        napi_close_handle_scope(defaultLeakObserver.env, scope_);
+        napi_close_handle_scope(g_defaultLeakObserver.env, scope_);
         TAG_LOGE(AAFwkTag::JSNAPI, "get callback Failed");
         return false;
     }
     napi_value result = nullptr;
     if (napi_call_function(g_defaultLeakObserver.env, global, function, argc, args, &result) != napi_ok) {
-        napi_close_handle_scope(defaultLeakObserver.env, scope_);
+        napi_close_handle_scope(g_defaultLeakObserver.env, scope_);
         TAG_LOGE(AAFwkTag::JSNAPI, "do callback Failed");
         return false;
     }
-    napi_close_handle_scope(defaultLeakObserver.env, scope_);
+    napi_close_handle_scope(g_defaultLeakObserver.env, scope_);
     return true;
 }
 
