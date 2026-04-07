@@ -25,6 +25,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "js_runtime.h"
+#include "native_ability_util.h"
 #include "running_process_info.h"
 
 namespace OHOS {
@@ -1296,5 +1297,54 @@ std::shared_ptr<Context> ApplicationContext::CreateDisplayContext(uint64_t displ
     return contextImpl_ ? contextImpl_->CreateDisplayContext(displayId) : nullptr;
 }
 #endif
+
+// Native Module related methods implementation
+bool ApplicationContext::CreateNativeThread(const AAFwk::NativeAbilityMetaData &metaData,
+    const std::string &bundleName, const std::string &moduleName)
+{
+    if (!metaData.withNativeModule) {
+        return false;
+    }
+    std::lock_guard lock(nativeMutex_);
+    if (abilityNativeThread_ != nullptr) {
+        return true;
+    }
+    auto nativeThread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    if (!nativeThread->LoadNativeModule(metaData, bundleName, moduleName)) {
+        return false;
+    }
+    nativeThread->RunMain();
+    abilityNativeThread_ = nativeThread;
+    return true;
+}
+
+std::shared_ptr<AppExecFwk::AbilityNativeThread> ApplicationContext::GetNativeThread()
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    return abilityNativeThread_;
+}
+
+void ApplicationContext::AddNativeAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    nativeAbilities_[instanceId] = wrapper;
+}
+
+std::shared_ptr<NativeAbilityWrapper> ApplicationContext::GetNativeAbility(int32_t instanceId)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    auto it = nativeAbilities_.find(instanceId);
+    if (it != nativeAbilities_.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+void ApplicationContext::RemoveNativeAbility(int32_t instanceId)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    nativeAbilities_.erase(instanceId);
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS

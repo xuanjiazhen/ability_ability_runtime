@@ -426,6 +426,10 @@ class ApplicationContext {
   get stageMode() {
     return true;
   }
+
+  getUIAbilityByInstanceId(instanceId) {
+    return this.__context_impl__.getUIAbilityByInstanceId(instanceId);
+  }
 }
 
 export default ApplicationContext;

@@ -734,6 +734,9 @@ enum class AbilityManagerInterfaceCode {
 
     // complete game prelaunch
     COMPLETE_GAME_PRELAUNCH = 6164,
+
+    // start self ability with token
+    START_SELF = 6165,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

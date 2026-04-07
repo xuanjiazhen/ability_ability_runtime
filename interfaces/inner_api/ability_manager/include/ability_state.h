@@ -69,6 +69,15 @@ enum UserStatus {
     ASSERT_CONTINUE,
     ASSERT_RETRY,
 };
+
+enum class AbilityNativeState : int8_t {
+    NONE,
+    NORMAL,
+    INIT,
+    ATTACH,
+    ON_CREATE,
+    ON_FOREGROUND,
+};
 }  // namespace AAFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ABILITY_STATE_H
