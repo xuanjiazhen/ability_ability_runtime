@@ -25,6 +25,7 @@
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "js_runtime.h"
+#include "native_ability_util.h"
 #include "running_process_info.h"
 
 namespace OHOS {
@@ -1296,5 +1297,92 @@ std::shared_ptr<Context> ApplicationContext::CreateDisplayContext(uint64_t displ
     return contextImpl_ ? contextImpl_->CreateDisplayContext(displayId) : nullptr;
 }
 #endif
+
+// Native Module related methods implementation
+bool ApplicationContext::CreateNativeThread(const AAFwk::NativeAbilityMetaData &metaData,
+    const std::string &bundleName, const std::string &moduleName)
+{
+    if (!metaData.withNativeModule) {
+        return false;
+    }
+    std::lock_guard lock(nativeMutex_);
+    if (abilityNativeThread_ != nullptr) {
+        return true;
+    }
+    auto nativeThread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    if (!nativeThread->LoadNativeModule(metaData, bundleName, moduleName)) {
+        return false;
+    }
+    nativeThread->RunMain();
+    abilityNativeThread_ = nativeThread;
+    return true;
+}
+
+std::shared_ptr<AppExecFwk::AbilityNativeThread> ApplicationContext::GetNativeThread()
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    return abilityNativeThread_;
+}
+
+void ApplicationContext::AddNativeAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    nativeAbilities_[instanceId] = wrapper;
+}
+
+std::shared_ptr<NativeAbilityWrapper> ApplicationContext::GetNativeAbility(int32_t instanceId)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    auto it = nativeAbilities_.find(instanceId);
+    if (it != nativeAbilities_.end()) {
+        return it->second;
+    }
+    return nullptr;
+}
+
+void ApplicationContext::RemoveNativeAbility(int32_t instanceId)
+{
+    std::lock_guard<std::mutex> lock(nativeMutex_);
+    nativeAbilities_.erase(instanceId);
+}
+
+void ApplicationContext::PostAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper)
+{
+    if (wrapper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "NativeAbilityWrapper is null");
+        return;
+    }
+
+    AddNativeAbility(instanceId, wrapper);
+
+    auto nativeThreadInfo = GetNativeThread();
+    if (nativeThreadInfo != nullptr) {
+        nativeThreadInfo->PostAbility(wrapper.get());
+        TAG_LOGI(AAFwkTag::ABILITY, "PostAbility called for instanceId: %{public}d", instanceId);
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITY, "AbilityNativeThread is null");
+    }
+}
+
+void ApplicationContext::DestroyAbility(int32_t instanceId)
+{
+    auto nativeThreadInfo = GetNativeThread();
+    auto nativeAbility = GetNativeAbility(instanceId);
+    if (nativeThreadInfo != nullptr && nativeAbility != nullptr) {
+        nativeThreadInfo->DestroyAbility(nativeAbility.get());
+        TAG_LOGI(AAFwkTag::ABILITY, "DestroyAbility called for instanceId: %{public}d", instanceId);
+    }
+
+    RemoveNativeAbility(instanceId);
+}
+
+void ApplicationContext::NotifyProcessExit()
+{
+    auto nativeThreadInfo = GetNativeThread();
+    if (nativeThreadInfo != nullptr) {
+        nativeThreadInfo->NotifyProcessExit();
+    }
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS
