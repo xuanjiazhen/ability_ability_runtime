@@ -590,6 +590,12 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
     if (abilityRecord->IsNeedToCallRequest()) {
         abilityRecord->CallRequest();
     }
+
+    // Check if this is a NativeModule and set native state
+    if (abilityRecord->GetNativeState() == AbilityNativeState::INIT) {
+       abilityRecord->SetNativeState(AbilityNativeState::ATTACH);
+    }
+
     abilityRecord->PostForegroundTimeoutTask();
     abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
     DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token);
@@ -1065,6 +1071,14 @@ int UIAbilityLifecycleManager::DispatchForeground(const UIAbilityRecordPtr &abil
     abilityRecord->RemoveForegroundTimeoutTask();
     g_deleteLifecycleEventTask(abilityRecord->GetToken());
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(abilityRecord->GetPid());
+
+    // Check if this is a NativeModule with
+    if (abilityRecord->GetNativeState() == AbilityNativeState::ATTACH) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule foreground is pending");
+        abilityRecord->SetNativeState(AbilityNativeState::ON_CREATE);
+        return ERR_OK;
+    }
+
     if (success) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "foreground succeeded.");
         // do not submitTask, for grant uri permission in terminateSelfWithResult
@@ -1464,6 +1478,28 @@ void UIAbilityLifecycleManager::MoveToBackground(const UIAbilityRecordPtr &abili
         selfObj->CompleteBackground(abilityRecord);
     };
     abilityRecord->BackgroundAbility(task);
+}
+
+int UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRecord)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSelf called");
+
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (abilityRecord->GetNativeState() == AbilityNativeState::NONE) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not a NativeModule ability");
+        return ERR_INVALID_VALUE;
+    }
+
+    // Complete the deferred foreground transition
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule completing foreground, ability: %{public}s",
+        abilityRecord->GetAbilityInfo().name.c_str());
+    CompleteForegroundSuccess(abilityRecord);
+    return ERR_OK;
 }
 
 int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abilityRequest, const int32_t frameNum)
