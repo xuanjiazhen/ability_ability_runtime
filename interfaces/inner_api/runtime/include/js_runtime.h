@@ -76,6 +76,7 @@ public:
 
     static void SetAppLibPath(const AppLibPathMap& appLibPaths, const bool& isSystemApp = false);
     static void SetOrUpdateLibPath(const AppLibPathMap& appLibPaths, const bool& isSystemApp = false);
+    static void SetLibSupportDirPermittedPaths(const std::map<std::string, std::string> &permittedPathsMap);
     static void InheritPluginNamespace(const std::vector<std::string> &moduleNames);
     static void CreatePluginDefaultNamespace(const std::string &lddictorys);
 

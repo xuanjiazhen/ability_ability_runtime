@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_NATIVE_LIB_UTIL_H
 
 #include <string>
+#include <vector>
 
 #include "base_shared_bundle_info.h"
 #include "hap_module_info.h"
@@ -32,6 +33,10 @@ void GetHspNativeLibPath(const BaseSharedBundleInfo &hspInfo, AppLibPathMap &app
 
 void GetPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNativeLibraryPath,
     AppLibPathMap &appLibPaths);
+
+void GetLibSupportDirPaths(const std::vector<HapModuleInfo> &hapModuleInfos,
+    const std::vector<BaseSharedBundleInfo> &hspList, bool isPreInstallApp,
+    std::map<std::string, std::string> &permittedPathsMap);
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_NATIVE_LIB_UTIL_H

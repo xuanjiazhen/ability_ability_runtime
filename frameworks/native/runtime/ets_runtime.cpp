@@ -323,6 +323,29 @@ void ETSRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths,
     g_etsEnvFuncs->SetAppLibPath(abcPathsToBundleModuleNameMap, cb);
 }
 
+void ETSRuntime::SetLibSupportDirPermittedPaths(const std::map<std::string, std::string> &permittedPathsMap)
+{
+    if (permittedPathsMap.empty()) {
+        return;
+    }
+
+    auto moduleManager = NativeModuleManager::GetInstance();
+    if (moduleManager == nullptr) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "null moduleManager");
+        return;
+    }
+
+    for (const auto &[moduleKey, permittedPaths] : permittedPathsMap) {
+        std::string nsName;
+        if (!moduleManager->GetLdNamespaceName(moduleKey, nsName)) {
+            TAG_LOGW(AAFwkTag::ETSRUNTIME, "namespace not found for %{public}s", moduleKey.c_str());
+            continue;
+        }
+        TAG_LOGD(AAFwkTag::ETSRUNTIME, "Set permitted paths for ns: %{public}s", nsName.c_str());
+        moduleManager->SetLdPermittedPathsForNamespace(nsName, permittedPaths);
+    }
+}
+
 void ETSRuntime::SetExtensionApiCheckCallback(
     std::function<bool(const std::string &className, const std::string &fileName)> &cb)
 {

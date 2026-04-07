@@ -945,6 +945,29 @@ void JsRuntime::SetOrUpdateLibPath(const AppLibPathMap& appLibPaths, const bool&
     }
 }
 
+void JsRuntime::SetLibSupportDirPermittedPaths(const std::map<std::string, std::string> &permittedPathsMap)
+{
+    if (permittedPathsMap.empty()) {
+        return;
+    }
+
+    auto moduleManager = NativeModuleManager::GetInstance();
+    if (moduleManager == nullptr) {
+        TAG_LOGE(AAFwkTag::JSRUNTIME, "null moduleManager");
+        return;
+    }
+
+    for (const auto &[moduleKey, permittedPaths] : permittedPathsMap) {
+        std::string nsName;
+        if (!moduleManager->GetLdNamespaceName(moduleKey, nsName)) {
+            TAG_LOGW(AAFwkTag::JSRUNTIME, "namespace not found for %{public}s", moduleKey.c_str());
+            continue;
+        }
+        TAG_LOGD(AAFwkTag::JSRUNTIME, "Set permitted paths for ns: %{public}s", nsName.c_str());
+        moduleManager->SetLdPermittedPathsForNamespace(nsName, permittedPaths);
+    }
+}
+
 void JsRuntime::InheritPluginNamespace(const std::vector<std::string> &moduleNames)
 {
     auto moduleManager = NativeModuleManager::GetInstance();

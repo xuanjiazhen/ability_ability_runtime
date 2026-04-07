@@ -49,6 +49,7 @@ public:
         std::unique_ptr<Runtime> &jsRuntime, bool isMove = true);
     static void SetAppLibPath(const AppLibPathMap& appLibPaths,
         const std::map<std::string, std::string>& abcPathsToBundleModuleNameMap, bool isSystemApp);
+    static void SetLibSupportDirPermittedPaths(const std::map<std::string, std::string>& permittedPathsMap);
     ~ETSRuntime() override;
     Language GetLanguage() const override
     {

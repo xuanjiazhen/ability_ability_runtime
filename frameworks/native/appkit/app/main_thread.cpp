@@ -1715,8 +1715,16 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             std::map<std::string, std::string> abcPathsToBundleModuleNameMap {};
             GetEtsNativeLibPath(bundleInfo, hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
             AbilityRuntime::ETSRuntime::SetAppLibPath(etsAppLibPaths, abcPathsToBundleModuleNameMap, isSystemApp);
+            std::map<std::string, std::string> etsPermittedPathsMap {};
+            GetEtsLibSupportDirPaths(bundleInfo.hapModuleInfos, hspList,
+                bundleInfo.isPreInstallApp, etsPermittedPathsMap);
+            AbilityRuntime::ETSRuntime::SetLibSupportDirPermittedPaths(etsPermittedPathsMap);
         } else {
             AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
+            std::map<std::string, std::string> permittedPathsMap {};
+            GetLibSupportDirPaths(bundleInfo.hapModuleInfos, hspList,
+                bundleInfo.isPreInstallApp, permittedPathsMap);
+            AbilityRuntime::JsRuntime::SetLibSupportDirPermittedPaths(permittedPathsMap);
             if (IsPluginNamespaceInherited()) {
                 AbilityRuntime::JsRuntime::InheritPluginNamespace(pluginModuleNames);
             }
@@ -4502,6 +4510,9 @@ bool MainThread::CheckAndUpdateRuntime(const std::shared_ptr<AbilityLocalRecord>
     GetEtsNativeLibPath(bundleInfo, hspList, etsAppLibPaths, abcPathsToBundleModuleNameMap);
     AbilityRuntime::ETSRuntime::SetAppLibPath(
         etsAppLibPaths, abcPathsToBundleModuleNameMap, applicationInfo_->isSystemApp);
+    std::map<std::string, std::string> etsPermittedPathsMap {};
+    GetEtsLibSupportDirPaths(bundleInfo.hapModuleInfos, hspList, bundleInfo.isPreInstallApp, etsPermittedPathsMap);
+    AbilityRuntime::ETSRuntime::SetLibSupportDirPermittedPaths(etsPermittedPathsMap);
     runtimeUpdateParam_.option.preload = false;
     if (!application_->UpdateETSRuntime(runtimeUpdateParam_.option)) {
         TAG_LOGE(AAFwkTag::APPKIT, "UpdateETSRuntime failed");

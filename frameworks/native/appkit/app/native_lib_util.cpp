@@ -102,5 +102,71 @@ void GetPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNativ
         patchLibPath.c_str());
     appLibPaths[appLibPathKey].emplace_back(patchLibPath);
 }
+void GetLibSupportDirPaths(const std::vector<HapModuleInfo> &hapModuleInfos,
+    const std::vector<BaseSharedBundleInfo> &hspList, bool isPreInstallApp,
+    std::map<std::string, std::string> &permittedPathsMap)
+{
+    for (const auto &hapInfo : hapModuleInfos) {
+        if (hapInfo.nativeLibraryPath.empty() || hapInfo.librarySupportDirectory.empty()) {
+            continue;
+        }
+
+        std::string appLibPathKey = hapInfo.bundleName + "/" + hapInfo.moduleName;
+        std::string libPath = AbilityBase::Constants::LOCAL_CODE_PATH;
+        if (!hapInfo.compressNativeLibs) {
+            libPath = GetLibPath(hapInfo.hapPath, isPreInstallApp);
+        }
+        libPath += (libPath.back() == '/') ? hapInfo.nativeLibraryPath : "/" + hapInfo.nativeLibraryPath;
+
+        std::string permittedPaths;
+        for (const auto &dir : hapInfo.librarySupportDirectory) {
+            if (!permittedPaths.empty()) {
+                permittedPaths += ":";
+            }
+            permittedPaths += libPath + "/" + dir;
+        }
+
+        if (!permittedPaths.empty()) {
+            TAG_LOGD(AAFwkTag::APPKIT, "key: %{public}s, permittedPaths: %{private}s",
+                appLibPathKey.c_str(), permittedPaths.c_str());
+            permittedPathsMap[appLibPathKey] = permittedPaths;
+        }
+    }
+
+    for (const auto &hspInfo : hspList) {
+        if (hspInfo.nativeLibraryPath.empty() || hspInfo.librarySupportDirectory.empty()) {
+            continue;
+        }
+
+        std::string appLibPathKey = hspInfo.bundleName + "/" + hspInfo.moduleName;
+        std::string libPath = AbilityBase::Constants::LOCAL_CODE_PATH;
+        if (!hspInfo.compressNativeLibs) {
+            libPath = GetLibPath(hspInfo.hapPath, isPreInstallApp);
+            libPath = libPath.back() == '/' ? libPath : libPath + "/";
+            if (isPreInstallApp) {
+                libPath += hspInfo.nativeLibraryPath;
+            } else {
+                libPath += hspInfo.bundleName + "/" + hspInfo.moduleName + "/" + hspInfo.nativeLibraryPath;
+            }
+        } else {
+            libPath = libPath.back() == '/' ? libPath : libPath + "/";
+            libPath += hspInfo.bundleName + "/" + hspInfo.nativeLibraryPath;
+        }
+
+        std::string permittedPaths;
+        for (const auto &dir : hspInfo.librarySupportDirectory) {
+            if (!permittedPaths.empty()) {
+                permittedPaths += ":";
+            }
+            permittedPaths += libPath + "/" + dir;
+        }
+
+        if (!permittedPaths.empty()) {
+            TAG_LOGD(AAFwkTag::APPKIT, "key: %{public}s, permittedPaths: %{private}s",
+                appLibPathKey.c_str(), permittedPaths.c_str());
+            permittedPathsMap[appLibPathKey] = permittedPaths;
+        }
+    }
+}
 } // AppExecFwk
 } // namespace OHOS

@@ -315,6 +315,10 @@ void ChildMainThread::InitNativeLib(const BundleInfo &bundleInfo, const HspList 
     if (processInfo_->childProcessType != CHILD_PROCESS_TYPE_NATIVE &&
         processInfo_->childProcessType != CHILD_PROCESS_TYPE_NATIVE_ARGS) {
         AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
+        std::map<std::string, std::string> permittedPathsMap {};
+        GetLibSupportDirPaths(bundleInfo.hapModuleInfos, hspList,
+            bundleInfo.isPreInstallApp, permittedPathsMap);
+        AbilityRuntime::JsRuntime::SetLibSupportDirPermittedPaths(permittedPathsMap);
     } else {
         UpdateNativeChildLibModuleName(appLibPaths, isSystemApp);
     }
