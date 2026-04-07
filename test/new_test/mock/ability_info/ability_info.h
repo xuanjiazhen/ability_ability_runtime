@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 #ifndef MOCK_FOUNDATION_ABILITY_RUNTIME_SIMULATOR_COMMON_ABILITY_INFO_H
 #define MOCK_FOUNDATION_ABILITY_RUNTIME_SIMULATOR_COMMON_ABILITY_INFO_H
 
