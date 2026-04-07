@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 #ifndef OHOS_ABILITY_RUNTIME_AMS_MGR_INTERFACE_H
 #define OHOS_ABILITY_RUNTIME_AMS_MGR_INTERFACE_H
 
