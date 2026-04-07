@@ -539,13 +539,8 @@ int ExtensionImpl::CreateModalUIExtension(const AAFwk::Want &want)
         return ERR_INVALID_VALUE;
     }
 
-    // Use dynamic_cast to convert to UIExtension
-    auto uiExtension = std::dynamic_pointer_cast<AbilityRuntime::UIExtension>(extension_);
-    if (uiExtension == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "Failed to cast extension to UIExtension");
-        return ERR_INVALID_VALUE;
-    }
-
+    // Use static_cast to convert to UIExtension (type already verified by IsUIExtension)
+    auto uiExtension = std::static_pointer_cast<AbilityRuntime::UIExtension>(extension_);
     TAG_LOGD(AAFwkTag::EXT, "Calling UIExtension::CreateModalUIExtension");
     return uiExtension->CreateModalUIExtension(want);
 }

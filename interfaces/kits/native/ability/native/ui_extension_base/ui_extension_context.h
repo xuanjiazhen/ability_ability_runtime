@@ -27,7 +27,6 @@
 #include "want.h"
 #include "js_ui_extension_callback.h"
 #include "string_wrapper.h"
-#include "ui_extension_modal_callback.h"
 #ifdef SUPPORT_SCREEN
 #include "wm/window.h"
 #endif // SUPPORT_SCREEN
@@ -38,6 +37,7 @@ class EventHandler;
 }
 
 namespace AbilityRuntime {
+class UIExtensionModalCallback;
 using RuntimeTask = std::function<void(int, const AAFwk::Want &, bool)>;
 using AbilityConfigUpdateCallback = std::function<void(AppExecFwk::Configuration &config)>;
 using TerminateSelfWithAnimationCallback = std::function<void()>;
