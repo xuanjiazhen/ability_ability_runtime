@@ -17,7 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_MOCK_ABILITY_STAGE_CONTEXT_H
 
 #include "ability_stage_context.h"
-
+ 
 namespace OHOS {
 namespace AbilityRuntime {
 class MockAbilityStageContext : public AbilityStageContext {
