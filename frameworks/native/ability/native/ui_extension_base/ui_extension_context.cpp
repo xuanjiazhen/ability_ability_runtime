@@ -195,7 +195,6 @@ ErrCode UIExtensionContext::HandleTerminateWithAnimation(int32_t terminateReques
 
     // Generate task name with requestId for proper cleanup
     std::string taskName = "UIExtensionTerminateTimeout_" + std::to_string(terminateRequestId);
-
     if (!localHandler->PostTask(timeoutTask, taskName,
         TERMINATE_SELF_ANIMATION_TIMEOUT_MS)) {
         return TerminateSelfInner(terminateRequestId);
@@ -279,7 +278,6 @@ ErrCode UIExtensionContext::TerminateSelfWithAnimation(TerminateSelfResultCallba
     }
 
     ErrCode err = HandleTerminateWithAnimation(terminateRequestId);
-
     if (err != ERR_OK) {
         // Cleanup on failure
         std::lock_guard<std::mutex> lock(pendingRequestsMutex_);
@@ -312,7 +310,6 @@ void UIExtensionContext::TerminateSelfWithResultAndAnimation(int32_t resultCode,
     }
 
     ErrCode err = HandleTerminateWithAnimation(terminateRequestId);
-
     if (err != ERR_OK) {
         // Cleanup on failure
         std::lock_guard<std::mutex> lock(pendingRequestsMutex_);

@@ -574,7 +574,6 @@ napi_value JsUIExtensionContext::OnTerminateSelfWithResult(napi_env env, NapiCal
     // Check if embeddable mode
     auto context = context_.lock();
     bool isEmbeddable = IsContextEmbeddable(context);
-
     // Route to appropriate handler based on mode
     if (isEmbeddable) {
         TAG_LOGI(AAFwkTag::UI_EXT, "Embeddable mode: use async callback pattern");

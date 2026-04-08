@@ -512,7 +512,10 @@ HWTEST_F(UIExtensionContextTest, HandleTerminateWithAnimation_NoRunner_0100, Tes
     context->eventHandler_ = nullptr;
 
     int32_t receivedRequestId = 0;
-    TerminateSelfWithAnimationCallback callback = [&receivedRequestId](int32_t requestId) { receivedRequestId = requestId; };
+    TerminateSelfWithAnimationCallback callback =
+        [&receivedRequestId](int32_t requestId) {
+            receivedRequestId = requestId;
+        };
     context->terminateSelfWithAnimationCallback_ = callback;
 
     int32_t terminateRequestId = 999;
