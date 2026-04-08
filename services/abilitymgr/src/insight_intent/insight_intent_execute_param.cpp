@@ -154,6 +154,7 @@ bool InsightIntentExecuteParam::GenerateFromWant(const AAFwk::Want &want,
     executeParam.pagePath_ = wantParams.GetStringParam(INSIGHT_INTENT_PAGE_PARAM_PAGEPATH);
     executeParam.navigationId_ = wantParams.GetStringParam(INSIGHT_INTENT_PAGE_PARAM_NAVIGATIONID);
     executeParam.navDestinationName_ = wantParams.GetStringParam(INSIGHT_INTENT_PAGE_PARAM_NAVDESTINATIONNAME);
+    executeParam.queryEntityClassName_ = wantParams.GetStringParam(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME);
     return true;
 }
 
@@ -210,6 +211,9 @@ bool InsightIntentExecuteParam::RemoveInsightIntent(AAFwk::Want &want)
     }
     if (want.HasParameter(INSIGHT_INTENT_PAGE_PARAM_NAVDESTINATIONNAME)) {
         want.RemoveParam(INSIGHT_INTENT_PAGE_PARAM_NAVDESTINATIONNAME);
+    }
+    if (want.HasParameter(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME)) {
+        want.RemoveParam(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME);
     }
     return true;
 }
