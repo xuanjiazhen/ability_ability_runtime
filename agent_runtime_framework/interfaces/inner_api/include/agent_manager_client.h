@@ -48,6 +48,8 @@ public:
 
     int32_t DisconnectAgentExtensionAbility(const sptr<AAFwk::IAbilityConnection> &connection);
 
+    int32_t NotifyLowCodeAgentComplete(const std::string &agentId);
+
 private:
     sptr<IAgentManager> GetAgentMgrProxy();
     void ClearProxy();
