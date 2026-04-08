@@ -973,7 +973,7 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
             TAG_LOGE(AAFwkTag::APPMGR, "pid error");
             return;
         }
-        auto result = inner->KillProcessByPid(pid, "TerminateAbility");
+        auto result = inner->KillProcessByPid(pid, "TerminateAbility", false, appRecordSptr->GetRecordId());
         if (result < 0) {
             TAG_LOGW(AAFwkTag::APPMGR, "failed, pid: %{public}d", pid);
         }
@@ -2216,7 +2216,8 @@ int32_t AppRunningManager::DumpArkWeb(const std::vector<int32_t> &pids, const st
     return DumpErrorCode::ERR_OK;
 }
 
-bool AppRunningManager::HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid)
+bool AppRunningManager::HandleUserRequestClean(const sptr<IRemoteObject> &abilityToken, pid_t &pid, int32_t &uid,
+    int32_t &recordId)
 {
     if (abilityToken == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null abilityToken");
@@ -2250,6 +2251,7 @@ bool AppRunningManager::HandleUserRequestClean(const sptr<IRemoteObject> &abilit
         pid = appRecord->GetPid();
     }
     uid = appRecord->GetUid();
+    recordId = appRecord->GetRecordId();
     return true;
 }
 
@@ -2360,6 +2362,28 @@ int32_t AppRunningManager::QueryUIExtensionBindItemById(
         return ERR_OK;
     }
     return ERR_INVALID_VALUE;
+}
+
+int32_t AppRunningManager::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
+{
+    std::lock_guard guard(runningRecordMapMutex_);
+    if (pid != -1) {
+        for (const auto &[recordId, appRecord] : appRunningRecordMap_) {
+            if (appRecord != nullptr && appRecord->GetPid() == pid) {
+                appRecord->GetAllAbilityInfos(infos);
+                return ERR_OK;
+            }
+        }
+        TAG_LOGE(AAFwkTag::APPMGR, "not find pid:%{public}d appRecord", pid);
+        return ERR_INVALID_VALUE;
+    } else {
+        for (const auto &[recordId, appRecord] : appRunningRecordMap_) {
+            if (appRecord != nullptr) {
+                appRecord->GetAllAbilityInfos(infos);
+            }
+        }
+    }
+    return ERR_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

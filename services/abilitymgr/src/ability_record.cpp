@@ -56,6 +56,7 @@
 #include "uri_utils.h"
 #include "user_controller/user_controller.h"
 #include "utils/state_utils.h"
+#include "utils/ability_event_util.h"
 #ifdef SUPPORT_GRAPHICS
 #include "image_source.h"
 #endif
@@ -339,6 +340,17 @@ int AbilityRecord::LoadAbility(bool isShellCall, bool isStartupHide, pid_t calli
     if (result == ERR_OK) {
         AbilityRuntime::UserController::GetInstance().AddToUserLockedBundleList(abilityInfo_.bundleName, userId);
     }
+
+    // Handle bundle first launch event via posttask
+    if (abilityInfo_.type == AppExecFwk::AbilityType::PAGE &&
+        !abilityInfo_.applicationInfo.isBundleFirstLaunched) {
+        auto userId = abilityInfo_.uid / BASE_USER_RANGE;
+        std::string callerBundleName = firstCallerBundleName_.empty() ? "_system" : firstCallerBundleName_;
+        ffrt::submit([this, appInfo = abilityInfo_.applicationInfo, userId, callerBundleName]() {
+                AbilityEventUtil::HandleBundleFirstLaunch(appInfo, userId, callerBundleName);
+            }, ffrt::task_attr().name("HandleBundleFirstLaunch"));
+    }
+
     return result;
 }
 
@@ -1904,8 +1916,9 @@ void AbilityRecord::OnSchedulerDied(const wptr<IRemoteObject> &remote)
         CHECK_POINTER_LOG(ability, "ability nullptr");
         DelayedSingleton<AbilityManagerService>::GetInstance()->OnAbilityDied(ability);
     };
+    std::string typeName = abilityInfo_.type == AppExecFwk::AbilityType::PAGE ? "(uiability)" : "(extension)";
     handler->SubmitTask(task, AAFwk::TaskAttribute{
-        .taskName_ = "OnSchedulerDied",
+        .taskName_ = "OnSchedulerDied" + typeName,
         .timeoutMillis_ = SCHEDULER_DIED_TIMEOUT
     });
     auto resultTask = [want = GetWant(), ability = shared_from_this()]() {
