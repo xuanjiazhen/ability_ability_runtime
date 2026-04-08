@@ -1069,7 +1069,11 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "ConnectAbilityWithAccount");
-        // Unwrap want, accountId and connection
+        auto context = context_.lock();
+        if (!context || context->GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD >= API26) {
+            TAG_LOGD(AAFwkTag::APPKIT, "reject connectAbilityWithAccount");
+            return CreateJsUndefined(env);
+        }
         AAFwk::Want want;
         int32_t accountId = 0;
         sptr<JSServiceExtensionConnection> connection = new JSServiceExtensionConnection(env);
@@ -1140,6 +1144,11 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+        auto context = context_.lock();
+        if (!context || context->GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD >= API26) {
+            TAG_LOGD(AAFwkTag::APPKIT, "reject disconnectAbility");
+            return CreateJsUndefined(env);
+        }
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
             ThrowTooFewParametersError(env);
