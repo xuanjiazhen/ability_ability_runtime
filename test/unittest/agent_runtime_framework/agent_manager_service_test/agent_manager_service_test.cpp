@@ -1250,11 +1250,11 @@ HWTEST_F(AgentManagerServiceTest, DisconnectAgentExtensionAbility_002, TestSize.
 }
 
 /**
- * @tc.name  : ConnectAgentExtensionAbility_017
- * @tc.number: ConnectAgentExtensionAbility_017
+ * @tc.name  : ConnectAgentExtensionAbility_024
+ * @tc.number: ConnectAgentExtensionAbility_024
  * @tc.desc  : Test low-code connect rejects mismatched target with INVALID_PARAMETERS_ERR
  */
-HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_017, TestSize.Level1)
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_024, TestSize.Level1)
 {
     MyFlag::retGetAgentCardByAgentId = ERR_OK;
     MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
@@ -1272,11 +1272,11 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_017, TestSize.Lev
 }
 
 /**
- * @tc.name  : ConnectAgentExtensionAbility_018
- * @tc.number: ConnectAgentExtensionAbility_018
+ * @tc.name  : ConnectAgentExtensionAbility_025
+ * @tc.number: ConnectAgentExtensionAbility_025
  * @tc.desc  : Test low-code connect skips module comparison when want module is empty
  */
-HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_018, TestSize.Level1)
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_025, TestSize.Level1)
 {
     MyFlag::retGetAgentCardByAgentId = ERR_OK;
     MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
@@ -1294,11 +1294,11 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_018, TestSize.Lev
 }
 
 /**
- * @tc.name  : ConnectAgentExtensionAbility_019
- * @tc.number: ConnectAgentExtensionAbility_019
+ * @tc.name  : ConnectAgentExtensionAbility_026
+ * @tc.number: ConnectAgentExtensionAbility_026
  * @tc.desc  : Test low-code connect reuses one real host connection and notifies each invocation
  */
-HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_019, TestSize.Level1)
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_026, TestSize.Level1)
 {
     MyFlag::retGetAgentCardByAgentId = ERR_OK;
     MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
@@ -1342,11 +1342,11 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_019, TestSize.Lev
 }
 
 /**
- * @tc.name  : ConnectAgentExtensionAbility_020
- * @tc.number: ConnectAgentExtensionAbility_020
+ * @tc.name  : ConnectAgentExtensionAbility_027
+ * @tc.number: ConnectAgentExtensionAbility_027
  * @tc.desc  : Test low-code connect rejects duplicate active agentId for the same caller
  */
-HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_020, TestSize.Level1)
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_027, TestSize.Level1)
 {
     MyFlag::retGetAgentCardByAgentId = ERR_OK;
     MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
@@ -1366,11 +1366,11 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_020, TestSize.Lev
 }
 
 /**
- * @tc.name  : ConnectAgentExtensionAbility_021
- * @tc.number: ConnectAgentExtensionAbility_021
+ * @tc.name  : ConnectAgentExtensionAbility_028
+ * @tc.number: ConnectAgentExtensionAbility_028
  * @tc.desc  : Test low-code host connections consume MAX_CONNECTIONS_PER_CALLER slots per distinct host
  */
-HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_021, TestSize.Level1)
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_028, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
     MyFlag::retGetAgentCardByAgentId = ERR_OK;
@@ -1407,11 +1407,11 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_021, TestSize.Lev
 }
 
 /**
- * @tc.name  : ConnectAgentExtensionAbility_022
- * @tc.number: ConnectAgentExtensionAbility_022
+ * @tc.name  : ConnectAgentExtensionAbility_029
+ * @tc.number: ConnectAgentExtensionAbility_029
  * @tc.desc  : Test low-code shared host session rejects more than MAX_AGENTS_PER_HOST_SESSION agents
  */
-HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_022, TestSize.Level1)
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_029, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
     MyFlag::retGetAgentCardByAgentId = ERR_OK;
@@ -1452,11 +1452,11 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_022, TestSize.Lev
 }
 
 /**
- * @tc.name  : ConnectAgentExtensionAbility_023
- * @tc.number: ConnectAgentExtensionAbility_023
+ * @tc.name  : ConnectAgentExtensionAbility_030
+ * @tc.number: ConnectAgentExtensionAbility_030
  * @tc.desc  : Test low-code shared host still enforces MAX_CONNECTIONS_PER_CALLER per caller
  */
-HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_023, TestSize.Level1)
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_030, TestSize.Level1)
 {
     auto service = AgentManagerService::GetInstance();
     MyFlag::retGetAgentCardByAgentId = ERR_OK;
