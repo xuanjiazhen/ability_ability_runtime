@@ -284,7 +284,7 @@ HWTEST_F(UIExtensionContextTest, HandleTerminateWithAnimation_0200, TestSize.Lev
     int32_t receivedRequestId = 0;
     TerminateSelfWithAnimationCallback callback =
         [&receivedRequestId](int32_t requestId) {
-            receivedRequestId = requestId; 
+            receivedRequestId = requestId;
         };
     context->terminateSelfWithAnimationCallback_ = callback;
 
