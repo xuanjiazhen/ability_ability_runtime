@@ -215,22 +215,6 @@ class ApplicationContext {
     this.__context_impl__.eventHub = eventHub;
   }
 
-  registerAbilityLifecycleCallback(abilityLifecycleCallback) {
-    return this.__context_impl__.registerAbilityLifecycleCallback(abilityLifecycleCallback);
-  }
-
-  unregisterAbilityLifecycleCallback(callbackId, callback) {
-    return this.__context_impl__.unregisterAbilityLifecycleCallback(callbackId, callback);
-  }
-
-  registerEnvironmentCallback(environmentCallback) {
-    return this.__context_impl__.registerEnvironmentCallback(environmentCallback);
-  }
-
-  unregisterEnvironmentCallback(callbackId, envcallback) {
-    return this.__context_impl__.unregisterEnvironmentCallback(callbackId, envcallback);
-  }
-
   on(type, callback) {
     return this.__context_impl__.on(type, callback);
   }

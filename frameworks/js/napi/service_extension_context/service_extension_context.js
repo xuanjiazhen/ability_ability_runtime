@@ -94,19 +94,9 @@ class ServiceExtensionContext extends ExtensionContext {
     return this.__context_impl__.stopServiceExtensionAbilityWithAccount(want, accountId, callback);
   }
 
-  connectAbilityWithAccount(want, accountId, options) {
-    hilog.sLogI(domainID, TAG, 'connectAbilityWithAccount');
-    return this.__context_impl__.connectAbilityWithAccount(want, accountId, options);
-  }
-
   connectServiceExtensionAbilityWithAccount(want, accountId, options) {
     hilog.sLogI(domainID, TAG, 'connectServiceExtensionAbilityWithAccount');
     return this.__context_impl__.connectServiceExtensionAbilityWithAccount(want, accountId, options);
-  }
-
-  disconnectAbility(connection, callback) {
-    hilog.sLogI(domainID, TAG, 'disconnectAbility');
-    return this.__context_impl__.disconnectAbility(connection, callback);
   }
 
   disconnectServiceExtensionAbility(connection, callback) {
