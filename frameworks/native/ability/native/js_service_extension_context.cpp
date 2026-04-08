@@ -56,6 +56,8 @@ constexpr size_t ARGC_FOUR = 4;
 constexpr const char* ATOMIC_SERVICE_PREFIX = "com.atomicservice.";
 const std::string JSON_KEY_ERR_MSG = "errMsg";
 const std::string KEY_REQUEST_ID = "com.ohos.param.requestId";
+constexpr const int32_t API26 = 26;
+constexpr const int32_t API_VERSION_MOD = 100;
 
 class StartAbilityByCallParameters {
 public:
@@ -1069,6 +1071,11 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGI(AAFwkTag::SERVICE_EXT, "ConnectAbilityWithAccount");
+        auto context = context_.lock();
+        if (!context || context->GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD >= API26) {
+            TAG_LOGD(AAFwkTag::APPKIT, "reject connectAbilityWithAccount");
+            return CreateJsUndefined(env);
+        }
         // Unwrap want, accountId and connection
         AAFwk::Want want;
         int32_t accountId = 0;
@@ -1140,6 +1147,11 @@ private:
     {
         HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
         TAG_LOGD(AAFwkTag::SERVICE_EXT, "called");
+        auto context = context_.lock();
+        if (!context || context->GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD >= API26) {
+            TAG_LOGD(AAFwkTag::APPKIT, "reject connectAbilityWithAccount");
+            return CreateJsUndefined(env);
+        }
         if (info.argc < ARGC_ONE) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid argc");
             ThrowTooFewParametersError(env);
