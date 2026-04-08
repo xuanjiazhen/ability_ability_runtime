@@ -59,6 +59,12 @@ void ApplicationContext::RegisterAbilityLifecycleCallback(
     if (abilityLifecycleCallback == nullptr) {
         return;
     }
+
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD >= API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject registerAbilityLifecycleCallback");
+        return;
+    }
+
     std::lock_guard<std::recursive_mutex> lock(callbackLock_);
     callbacks_.push_back(abilityLifecycleCallback);
 }
@@ -121,6 +127,12 @@ void ApplicationContext::RegisterEnvironmentCallback(
     if (environmentCallback == nullptr) {
         return;
     }
+
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject registerEnvironmentCallback");
+        return;
+    }
+
     std::lock_guard<std::recursive_mutex> lock(envCallbacksLock_);
     envCallbacks_.push_back(environmentCallback);
 }
@@ -129,6 +141,12 @@ void ApplicationContext::UnregisterEnvironmentCallback(
     const std::shared_ptr<EnvironmentCallback> &environmentCallback)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject unregisterEnvironmentCallback");
+        return;
+    }
+
     std::lock_guard<std::recursive_mutex> lock(envCallbacksLock_);
     auto it = std::find(envCallbacks_.begin(), envCallbacks_.end(), environmentCallback);
     if (it != envCallbacks_.end()) {

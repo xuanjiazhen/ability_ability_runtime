@@ -71,6 +71,8 @@ const std::string KEY_REQUEST_ID = "com.ohos.param.requestId";
 const std::string TRACE_ATOMIC_SERVICE = "StartAtomicService";
 constexpr int32_t CALLER_TIME_OUT = 10; // 10s
 const std::string JSON_KEY_ERR_MSG = "errMsg";
+constexpr const int32_t API26 = 26;
+constexpr const int32_t API_VERSION_MOD = 100;
 
 namespace {
 static std::map<ConnectionKey, sptr<JSAbilityConnection>, KeyCompare> g_connects;
@@ -1912,9 +1914,14 @@ napi_value JsAbilityContext::ConnectExtensionAbilityCommon(napi_env env, NapiCal
     return CreateJsValue(env, connectId);
 }
 
-napi_value JsAbilityContext::OnConnectAbilityWithAccount(napi_env env, NapiCallbackInfo& info)
+napi_value JsAbilityContext::OnConnectAbilityWithAccount(napi_env env, NapiCallbackInfo& info)//ConnectAbilityWithAccount JsAbilityContext侧
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = context_.lock();
+    if (!context || context->GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD >= API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject connectAbilityWithAccount");
+        return CreateJsUndefined(env);
+    }
     // only support three params
     if (info.argc < ARGC_THREE) {
         TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
@@ -1982,6 +1989,11 @@ napi_value JsAbilityContext::OnConnectAbilityWithAccount(napi_env env, NapiCallb
 napi_value JsAbilityContext::OnDisconnectAbility(napi_env env, NapiCallbackInfo& info)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto context = context_.lock();
+    if (!context || context->GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD >= API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject disconnectAbility");
+        return CreateJsUndefined(env);
+    }
     std::lock_guard<std::recursive_mutex> lock(gConnectsLock_);
     if (info.argc < ARGC_ONE) {
         TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
