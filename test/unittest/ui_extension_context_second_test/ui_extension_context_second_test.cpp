@@ -282,7 +282,10 @@ HWTEST_F(UIExtensionContextTest, HandleTerminateWithAnimation_0200, TestSize.Lev
     context->screenMode_ = AAFwk::EMBEDDED_FULL_SCREEN_MODE;
 
     int32_t receivedRequestId = 0;
-    TerminateSelfWithAnimationCallback callback = [&receivedRequestId](int32_t requestId) { receivedRequestId = requestId; };
+    TerminateSelfWithAnimationCallback callback =
+        [&receivedRequestId](int32_t requestId) {
+            receivedRequestId = requestId; 
+        };
     context->terminateSelfWithAnimationCallback_ = callback;
 
     int32_t terminateRequestId = 456;
@@ -310,7 +313,10 @@ HWTEST_F(UIExtensionContextTest, HandleTerminateWithAnimation_0300, TestSize.Lev
     context->eventHandler_ = std::make_shared<AppExecFwk::EventHandler>(AppExecFwk::EventRunner::Create());
 
     int32_t receivedRequestId = 0;
-    TerminateSelfWithAnimationCallback callback = [&receivedRequestId](int32_t requestId) { receivedRequestId = requestId; };
+    TerminateSelfWithAnimationCallback callback =
+        [&receivedRequestId](int32_t requestId) {
+            receivedRequestId = requestId;
+        };
     context->terminateSelfWithAnimationCallback_ = callback;
 
     int32_t terminateRequestId = 789;
