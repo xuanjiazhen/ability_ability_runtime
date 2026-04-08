@@ -72,6 +72,8 @@ constexpr const char* IS_WINDOWMODE_FOLLOWHOST = "ohos.uec.params.isWindowModeFo
 constexpr const char* USE_GLOBAL_UICONTENT = "ohos.uec.params.useGlobalUIContent";
 constexpr const int32_t ERR_NOT_SUPPORTED = -2;
 const std::string JSON_KEY_ERR_MSG = "errMsg";
+constexpr int32_t API26 = 26;
+constexpr int32_t API_VERSION_MOD = 100;
 
 struct RequestResult {
     int32_t resultCode {0};
@@ -477,6 +479,12 @@ ErrCode AbilityContextImpl::ConnectAbilityWithAccount(const AAFwk::Want& want, i
     const sptr<AbilityConnectCallback>& connectCallback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
+
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject connectAbilityWithAccount");
+        return;
+    }
+    
     ErrCode ret =
         ConnectionManager::GetInstance().ConnectAbilityWithAccount(token_, want, accountId, connectCallback);
     if (ret != ERR_OK) {
@@ -504,6 +512,12 @@ void AbilityContextImpl::DisconnectAbility(const AAFwk::Want& want,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::CONTEXT, "DisconnectAbility, caller:%{public}s, target:%{public}s",
         abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str(), want.GetElement().GetAbilityName().c_str());
+    
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject disconnectAbility");
+        return;
+    }
+
     ErrCode ret =
         ConnectionManager::GetInstance().DisconnectAbility(token_, want, connectCallback, accountId);
     if (ret != ERR_OK) {

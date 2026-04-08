@@ -27,6 +27,9 @@
 #include "js_runtime.h"
 #include "running_process_info.h"
 
+constexpr int32_t API26 = 26;
+constexpr int32_t API_VERSION_MOD = 100;
+
 namespace OHOS {
 namespace AbilityRuntime {
 const size_t ApplicationContext::CONTEXT_TYPE_ID(std::hash<const char*> {} ("ApplicationContext"));
@@ -59,6 +62,12 @@ void ApplicationContext::RegisterAbilityLifecycleCallback(
     if (abilityLifecycleCallback == nullptr) {
         return;
     }
+
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject registerAbilityLifecycleCallback");
+        return;
+    }
+
     std::lock_guard<std::recursive_mutex> lock(callbackLock_);
     callbacks_.push_back(abilityLifecycleCallback);
 }
@@ -67,6 +76,12 @@ void ApplicationContext::UnregisterAbilityLifecycleCallback(
     const std::shared_ptr<AbilityLifecycleCallback> &abilityLifecycleCallback)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject registerAbilityLifecycleCallback");
+        return;
+    }
+    
     std::lock_guard<std::recursive_mutex> lock(callbackLock_);
     auto it = std::find(callbacks_.begin(), callbacks_.end(), abilityLifecycleCallback);
     if (it != callbacks_.end()) {
@@ -121,6 +136,12 @@ void ApplicationContext::RegisterEnvironmentCallback(
     if (environmentCallback == nullptr) {
         return;
     }
+
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject registerEnvironmentCallback");
+        return;
+    }
+
     std::lock_guard<std::recursive_mutex> lock(envCallbacksLock_);
     envCallbacks_.push_back(environmentCallback);
 }
@@ -129,6 +150,12 @@ void ApplicationContext::UnregisterEnvironmentCallback(
     const std::shared_ptr<EnvironmentCallback> &environmentCallback)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "called");
+
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject unregisterEnvironmentCallback");
+        return;
+    }
+
     std::lock_guard<std::recursive_mutex> lock(envCallbacksLock_);
     auto it = std::find(envCallbacks_.begin(), envCallbacks_.end(), environmentCallback);
     if (it != envCallbacks_.end()) {
