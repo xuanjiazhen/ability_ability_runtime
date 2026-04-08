@@ -113,63 +113,71 @@ class RecordWriter {
 
   private writeObjectToNative(key: string, obj: Any, wantParams?: NativeWantParams | null): boolean {
     let localWantParams = (wantParams === undefined) ? this.wantParams : wantParams;
-    hilog.debug(DOMAIN_ID, TAG, `key: %{public}s, value type: %{public}s`, JSON.stringify(key), typeof obj);
     // skip reserved param
     if (this.blackListFilter(key)) {
-      hilog.debug(DOMAIN_ID, TAG, `%{public}s is filtered.`, JSON.stringify(key));
       return true;
     }
     if (obj === null) {
-      hilog.debug(DOMAIN_ID, TAG, `value is null, key: %{public}s`, JSON.stringify(key));
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> null`, key);
       return true;
     } else if (obj === undefined) {
-      hilog.debug(DOMAIN_ID, TAG, `value is undefined, key: %{public}s`, JSON.stringify(key));
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> undefined`, key);
       return true;
     } else if (obj instanceof String) {
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> String`, key);
       localWantParams?.setParam(key, obj as String);
       return true;
     } else if (this.writeValueTypeToNative(localWantParams, key, obj as Object)) {
-      // nothing to do
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> valueType(%{public}s)`, key, typeof obj);
       return true;
     } else if (obj instanceof Array) {
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> Array len=%{public}d`, key, (obj as Array<valueType>).length);
       this.writeArrayToNative(key, obj as Object as Array<valueType>, localWantParams);
       return true;
     } else if (obj instanceof Tuple) {
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> Tuple`, key);
       let tupleAsArray = this.tupleToArray(obj as Tuple);
       this.writeArrayToNative(key, tupleAsArray as Object as Array<valueType>, localWantParams);
       return true;
     } else if (this.isRemoteObjectFormat(obj)) { // consistent with napi behavior
-      hilog.debug(DOMAIN_ID, TAG, `key: %{public}s, value is rpc.RemoteObject type`, JSON.stringify(key));
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> RemoteObject`, key);
       let newWantParams = new NativeWantParams();
        if (this.writeRemoteObjectToNative(obj as Object as Record<string, valueType>, newWantParams) === true) {
           localWantParams?.setParam(key, newWantParams);
        }
       return true;
     } else if (this.isRemoteProxyFormat(obj)) { // consistent with napi behavior
-      hilog.debug(DOMAIN_ID, TAG, `key: %{public}s, value is rpc.RemoteProxy type`, JSON.stringify(key));
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> RemoteProxy`, key);
       let newWantParams = new NativeWantParams();
        if (this.writeRemoteProxyToNative(obj as Object as Record<string, valueType>, newWantParams) === true) {
           localWantParams?.setParam(key, newWantParams);
        }
       return true;
     } else if (obj instanceof Record) {
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> Record`, key);
       let newWantParams = new NativeWantParams();
       this.writeRecordToNative(obj as Object as Record<string, valueType>, newWantParams);
       localWantParams?.setParam(key, newWantParams);
       return true;
     } else {
       const objCls = Class.of(obj as Object);
+      hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> Object(class=%{public}s,enum=%{public}s,iface=%{public}s,fixedArr=%{public}s,union=%{public}s,primitive=%{public}s) typeof=%{public}s`,
+        key,
+        String(this.isClassType(objCls)),
+        String(objCls.isEnum()), String(objCls.isInterface()),
+        String(objCls.isFixedArray()), String(objCls.isUnion()),
+        String(objCls.isPrimitive()), typeof obj);
       if (this.isClassType(objCls)) {
         // enum value are string
         if (typeof obj === 'string') {
-          hilog.debug(DOMAIN_ID, TAG, `key: %{public}s,  value is Class string`, key);
+          hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> Class.string`, key);
           let value: string = String(obj as Object);
           localWantParams?.setParam(key, value);
           return true;
         }
         // enum value are number
         if (typeof obj === 'number') {
-          hilog.debug(DOMAIN_ID, TAG, `key: %{public}s,  value is Class number`, key);
+          hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> Class.number`, key);
           let value: string = String(obj as Object);
           let num: number = Number(value);
           if (Number.isInteger(num)) {
@@ -183,6 +191,7 @@ class RecordWriter {
           }
           return true;
         }
+        hilog.info(DOMAIN_ID, TAG, `[D] key=%{public}s -> Class.object`, key);
         let newWantParams = new NativeWantParams();
         this.writeClassValueToNative(obj as Object, objCls, newWantParams);
         localWantParams?.setParam(key, newWantParams);
@@ -373,7 +382,6 @@ class RecordWriter {
         continue;
       }
       const valueType = typeof element;
-      hilog.debug(DOMAIN_ID, TAG, `array value type: %{public}s`, valueType);
       switch (valueType) {
         case 'string':
           if (element instanceof String) {
