@@ -53,15 +53,21 @@ public:
     static std::string agentCardAbilityName;
     static bool shouldCreateAgentCardAppInfo;
     static int32_t agentCardType;
+    static std::string agentCardBundleName;
+    static std::string agentCardModuleName;
+    static std::string agentCardAbilityName;
     static bool retQueryExtensionAbilityInfos;
     static bool shouldFillExtensionAbilityInfos;
     static AppExecFwk::ExtensionAbilityType extensionAbilityType;
+    static int32_t extensionAbilityUid;
     static int32_t retGetProcessRunningInfoByPid;
     static AppExecFwk::AppProcessState processState;
     static int32_t retGetBundleNameByPid;
     static AAFwk::Want lastConnectAbilityWant;
     static sptr<AAFwk::IAbilityConnection> lastConnectAbilityConnection;
     static sptr<AAFwk::IAbilityConnection> lastDisconnectAbilityConnection;
+    static int32_t connectAbilityWithExtensionTypeCallCount;
+    static int32_t disconnectAbilityCallCount;
 };
 }  // namespace AgentRuntime
 }  // namespace OHOS
