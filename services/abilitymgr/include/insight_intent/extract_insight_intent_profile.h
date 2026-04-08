@@ -156,7 +156,8 @@ struct InsightIntentEntityInfo {
     std::string entityCategory;
     std::string parameters;
     std::string parentClassName;
-
+    bool isQueryable;
+    std::vector<std::string>  supportQueryProperties;
     InsightIntentEntityInfo() = default;
 };
 
@@ -175,6 +176,7 @@ struct ExtractInsightIntentInfo {
     std::string llmDescription;
     std::string result;
     std::string example;
+    std::string arkTSMode;
 
     ExtractInsightIntentInfo() = default;
 };
