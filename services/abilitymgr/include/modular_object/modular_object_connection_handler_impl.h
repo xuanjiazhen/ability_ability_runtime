@@ -39,6 +39,8 @@ public:
 
     int32_t DisconnectAbility(sptr<AAFwk::IAbilityConnection> connect) override;
 
+    bool HasRunningUIAbilityOrExtension(int32_t targetUid, int32_t userId) override;
+
 private:
     std::weak_ptr<AAFwk::AbilityManagerService> serviceWeak_;
 };

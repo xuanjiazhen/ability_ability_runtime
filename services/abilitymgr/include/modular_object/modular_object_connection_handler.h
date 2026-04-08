@@ -33,6 +33,8 @@ public:
         AppExecFwk::ExtensionAbilityType extensionType, int32_t userId) = 0;
 
     virtual int32_t DisconnectAbility(sptr<AAFwk::IAbilityConnection> connect) = 0;
+
+    virtual bool HasRunningUIAbilityOrExtension(int32_t targetUid, int32_t userId) = 0;
 };
 
 } // namespace AbilityRuntime

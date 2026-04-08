@@ -183,6 +183,11 @@ typedef enum {
      * @since 26.0.0
      */
     ABILITY_RUNTIME_ERROR_CODE_UPPER_CONNECTION_NUMBER_LIMIT = 16000162,
+    /**
+     * @error The modular object extension is disabled.
+     * @since 26.0.0
+     */
+    ABILITY_RUNTIME_ERROR_CODE_MODULAR_OBJECRT_EXTENSION_DISABLED = 16000163,
 } AbilityRuntime_ErrorCode;
 
 #ifdef __cplusplus

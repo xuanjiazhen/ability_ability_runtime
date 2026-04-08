@@ -38,6 +38,19 @@ public:
     int32_t DisconnectModularObjectExtension(sptr<AAFwk::IAbilityConnection> connect);
 
 private:
+    int32_t ValidateConnectRequest(const std::string &targetBundleName, int32_t targetAppIndex,
+        const AAFwk::ModularObjectExtensionInfo &extensionInfo, int32_t userId);
+
+    int32_t CheckExtensionEnabled(const AAFwk::ModularObjectExtensionInfo &info);
+
+    int32_t CheckCallerForeground();
+
+    int32_t CheckAppDistributionType(const std::string &callerAppDistributionType,
+        const std::string &targetAppDistributionType);
+
+    int32_t CheckTargetHasRunningAbility(int32_t targetUid, int32_t userId,
+        const std::string &targetBundleName);
+
     std::shared_ptr<ModularObjectConnectionHandler> connectionHandler_;
 };
 }

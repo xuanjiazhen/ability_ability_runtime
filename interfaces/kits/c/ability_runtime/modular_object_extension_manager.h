@@ -267,7 +267,6 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModObjExtensionInfoByIndex(
             the permission.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_CROSS_USER_OPERATION} - Cross-user operations are not allowed.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_CROWDTEST_EXPIRED} - if the crowdtesting application expires.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST} - if the context does not exist.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} - if an internal error occurs.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_TOP_ABILITY} - if the caller is not a foreground process.
  *          {@lin ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED} - The number of ability instances is more than five.
@@ -290,7 +289,6 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ConnectModularObjectExtensionAbility(
  *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} - if the arguments provided are invalid.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} - if the device does not support disconnecting modular
  *          object extension ability.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST} - if the context does not exist.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} - if an internal error occurs.
  * @since 26.0.0
  */

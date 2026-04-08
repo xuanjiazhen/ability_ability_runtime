@@ -16,6 +16,7 @@
 #include "modular_object_connection_handler_impl.h"
 #include "ability_manager_service.h"
 #include "hilog_tag_wrapper.h"
+#include "scene_board_judgement.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -45,6 +46,47 @@ int32_t ModularObjectConnectionHandlerImpl::DisconnectAbility(sptr<AAFwk::IAbili
         return ERR_NO_INIT;
     }
     return service->DisconnectAbility(connect);
+}
+
+bool ModularObjectConnectionHandlerImpl::HasRunningUIAbilityOrExtension(int32_t targetUid, int32_t userId)
+{
+    auto service = serviceWeak_.lock();
+    if (!service) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Service is null");
+        return false;
+    }
+
+    // Check UIAbility
+    std::vector<std::string> abilityList;
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto uiAbilityManager = service->GetUIAbilityManagerByUserId(userId);
+        if (uiAbilityManager) {
+            uiAbilityManager->GetActiveAbilityList(targetUid, abilityList);
+        }
+    } else {
+        auto missionListManager = service->GetMissionListManagerByUserId(userId);
+        if (missionListManager) {
+            missionListManager->GetActiveAbilityList(targetUid, abilityList);
+        }
+    }
+    if (!abilityList.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Found running UIAbility for uid: %{public}d", targetUid);
+        return true;
+    }
+
+    // Check UIExtension
+    auto uiExtManager = service->GetUIExtensionAbilityManagerByUserId(userId);
+    if (uiExtManager) {
+        std::vector<std::string> extensionList;
+        uiExtManager->GetActiveUIExtensionListByUid(targetUid, extensionList);
+        if (!extensionList.empty()) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "Found running UIExtension for uid: %{public}d", targetUid);
+            return true;
+        }
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "No UIAbility or UIExt for uid: %{public}d", targetUid);
+    return false;
 }
 
 } // namespace AbilityRuntime
