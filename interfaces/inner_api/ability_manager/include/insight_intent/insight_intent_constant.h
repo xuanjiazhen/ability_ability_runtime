@@ -98,6 +98,7 @@ namespace OHOS::AbilityRuntime {
         DECOR_FUNC = 3,
         DECOR_FORM = 4,
         DECOR_ENTRY = 5,
+        DECOR_QUERY_ENTITY = 6,
     };
 
     enum InsightIntentReturnMode {

@@ -323,7 +323,7 @@ int32_t InsightIntentExecuteManager::UpdateFuncDecoratorParams(
     }
 
     if (param->abilityName_.empty()) {
-        param->abilityName_ = GetMainElementName(param);
+        param->abilityName_ = GetMainElementName(param->bundleName_, param->moduleName_);
     }
     if (param->abilityName_.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "ability name empty");
@@ -347,8 +347,8 @@ int32_t InsightIntentExecuteManager::UpdateFuncDecoratorParams(
     return ERR_OK;
 }
 
-std::string InsightIntentExecuteManager::GetMainElementName(
-    const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param)
+std::string InsightIntentExecuteManager::GetMainElementName(const std::string &bundleName,
+    const std::string &moduleName)
 {
     auto bms = AbilityUtil::GetBundleManagerHelper();
     if (bms == nullptr) {
@@ -358,14 +358,14 @@ std::string InsightIntentExecuteManager::GetMainElementName(
 
     const int32_t userId = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
     std::vector<AppExecFwk::AbilityInfo> abilityInfos;
-    if (IN_PROCESS_CALL(bms->GetLauncherAbilityInfoSync(param->bundleName_, userId, abilityInfos)) != ERR_OK) {
+    if (IN_PROCESS_CALL(bms->GetLauncherAbilityInfoSync(bundleName, userId, abilityInfos)) != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "get launcher ability info failed");
         return "";
     }
 
     for (auto &info: abilityInfos) {
-        TAG_LOGD(AAFwkTag::INTENT, "moduleName %{public}s", param->moduleName_.c_str());
-        if (info.moduleName == param->moduleName_) {
+        TAG_LOGD(AAFwkTag::INTENT, "moduleName %{public}s", moduleName.c_str());
+        if (info.moduleName == moduleName) {
             TAG_LOGI(AAFwkTag::INTENT, "ability matched %{public}s", info.name.c_str());
             return info.name;
         }
@@ -396,7 +396,7 @@ int32_t InsightIntentExecuteManager::UpdatePageDecoratorParams(
         return ERR_INVALID_VALUE;
     }
     if (uiAbilityName.empty()) {
-        uiAbilityName = GetMainElementName(param);
+        uiAbilityName = GetMainElementName(param->bundleName_, param->moduleName_);
     }
     if (uiAbilityName.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "ability name empty");
@@ -662,6 +662,113 @@ void InsightIntentExecuteManager::OnInsightAppDied(const std::string &bundleName
     }
     TAG_LOGI(AAFwkTag::INTENT, "removed %{public}zu records, remaining: %{public}zu",
         toRemove.size(), records_.size());
+}
+
+bool InsightIntentExecuteManager::CheckCanQueryEntity(const ExtractInsightIntentInfo& intentInfo,
+    const std::string& className)
+{
+    if (className.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "className is empty");
+        return false;
+    }
+    TAG_LOGI(AAFwkTag::INTENT, "entity count:%{public}d", intentInfo.entities.size());
+    for (size_t i = 0; i < intentInfo.entities.size(); i++){
+        const auto& entity = intentInfo.entities[i];
+        TAG_LOGI(AAFwkTag::INTENT, "entity[%{public}d], className:%{public}s, parentClassName:%{public}s,"
+            "isQueryable:%{public}d, supportProperty count:%{public}d", i, entity.className.c_str(),
+            entity.parentClassName.c_str(), entity.isQueryable, entity.supportQueryProperties.size());
+        // 可查询并且classname一致时才认为目标entity是可以查询的
+        if (entity.isQueryable && entity.className.compare(className)) {
+            TAG_LOGI(AAFwkTag::INTENT, "testTag query succcess!");
+            return true;
+        }
+    }
+
+    TAG_LOGE(AAFwkTag::INTENT, "entity not found, className:%{public}s", className.c_str());
+    // return false;
+    return true;
+}
+
+int32_t InsightIntentExecuteManager::CheckAndUpdateQueryEntityParam(uint64_t key,
+    const sptr<IRemoteObject> &callerToken, std::shared_ptr<AppExecFwk::InsightIntentQueryEntityParam> &param,
+    std::string callerBundleName)
+{
+    if (callerToken == nullptr || param == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null callerToken or param");
+        return ERR_INVALID_VALUE;
+    }
+    if (param->bundleName_.empty() || param->moduleName_.empty() || param->intentName_.empty() ||
+        param->className_.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid param, bundle:%{public}s, module:%{public}s, intent:%{public}s,"
+            "className:%{public}s", param->bundleName_.c_str(), param->moduleName_.c_str(), param->intentName_.c_str(),
+            param->className_.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    if (param->userId_ == DEFAULT_INVAL_VALUE) {
+        param->userId_ = IPCSkeleton::GetCallingUid() / AppExecFwk::Constants::BASE_USER_RANGE;
+    }
+
+    uint64_t intentId = 0;
+    int32_t result = AddRecord(key, callerToken, param->bundleName_, intentId, callerBundleName);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "add record failed, result:%{public}d", result);
+        return result;
+    }
+    param->intentId_ = intentId;
+    return ERR_OK;
+}
+
+int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
+    const std::shared_ptr<AppExecFwk::InsightIntentQueryEntityParam> &param, Want &want)
+{
+    TAG_LOGE(AAFwkTag::INTENT, "testTag 1");
+    // queryEntityParam是必填字段
+    if (param == nullptr || param->queryEntityParam_ == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null param or queryEntityParam");
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGE(AAFwkTag::INTENT, "testTag 2");
+    ExtractInsightIntentInfo intentInfo;
+    DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
+        param->bundleName_, param->moduleName_, param->intentName_, param->userId_, intentInfo);
+    if (!CheckCanQueryEntity(intentInfo, param->className_)) {
+        TAG_LOGE(AAFwkTag::INTENT, "target intent is not queryable, bundle:%{public}s, module:%{public}s,"
+            "intent:%{public}s", param->bundleName_.c_str(), param->moduleName_.c_str(), param->intentName_.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGE(AAFwkTag::INTENT, "testTag 3");
+    // 拉起需要的参数
+    auto abilityName = InsightIntentExecuteManager::GetMainElementName(param->bundleName_, param->moduleName_);
+    if (abilityName.empty()) {
+        TAG_LOGE(AAFwkTag::INTENT, "ability name empty");
+        return ERR_INVALID_VALUE;
+    }
+    want.SetElementName("", param->bundleName_, abilityName, param->moduleName_);
+
+    sptr<AAFwk::IWantParams> pQueryEntityParams = WantParamWrapper::Box(*param->queryEntityParam_);
+    if (pQueryEntityParams != nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "testTag 5");
+        WantParams wantParams;
+        wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pQueryEntityParams);
+        want.SetParams(wantParams);
+    }
+
+    want.SetParam(INSIGHT_INTENT_ARKTS_MODE, intentInfo.arkTSMode); // QueryEntity时不需要CheckAbilityName
+    want.SetParam(INSIGHT_INTENT_SRC_ENTRANCE, intentInfo.decoratorFile);
+    want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME, param->intentName_);
+    want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_MODE,
+        static_cast<int32_t>(AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND));
+    want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_ID, std::to_string(param->intentId_));
+
+    TAG_LOGE(AAFwkTag::INTENT, "testTag 4");
+    // 进行查询时需要的参数
+    want.SetParam(INSIGHT_INTENT_DECORATOR_TYPE, static_cast<int>(InsightIntentType::DECOR_QUERY_ENTITY));
+    want.SetParam(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME, param->className_);
+    TAG_LOGE(AAFwkTag::INTENT, "testTag 6");
+    return ERR_OK;
 }
 } // namespace AAFwk
 } // namespace OHOS
