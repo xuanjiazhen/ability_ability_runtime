@@ -477,6 +477,12 @@ ErrCode AbilityContextImpl::ConnectAbilityWithAccount(const AAFwk::Want& want, i
     const sptr<AbilityConnectCallback>& connectCallback)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
+
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject connectAbilityWithAccount");
+        return;
+    }
+    
     ErrCode ret =
         ConnectionManager::GetInstance().ConnectAbilityWithAccount(token_, want, accountId, connectCallback);
     if (ret != ERR_OK) {
@@ -504,6 +510,12 @@ void AbilityContextImpl::DisconnectAbility(const AAFwk::Want& want,
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::CONTEXT, "DisconnectAbility, caller:%{public}s, target:%{public}s",
         abilityInfo_ == nullptr ? "" : abilityInfo_->name.c_str(), want.GetElement().GetAbilityName().c_str());
+    
+    if (GetApplicationInfo()->apiTargetVersion % API_VERSION_MOD > API26) {
+        TAG_LOGD(AAFwkTag::APPKIT, "reject disconnectAbility");
+        return;
+    }
+
     ErrCode ret =
         ConnectionManager::GetInstance().DisconnectAbility(token_, want, connectCallback, accountId);
     if (ret != ERR_OK) {
