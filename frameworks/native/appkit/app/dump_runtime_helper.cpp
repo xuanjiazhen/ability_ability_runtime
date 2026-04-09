@@ -150,6 +150,7 @@ void DumpRuntimeHelper::WriteRunningId()
 
     SetDirXattr(OOM_QUOTA_PATH, RUNNING_ID_NAME, curRunningId);
 }
+
 bool DumpRuntimeHelper::CheckOomdumpSwitch()
 {
     // if value is disable, then no dump whatever
