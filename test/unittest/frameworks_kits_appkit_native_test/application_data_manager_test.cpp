@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 
-
+#include <thread>
 #define private public
 #define protected public
 #include "application_data_manager.h"
@@ -291,6 +291,86 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyLeakObject_002
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyLeakObject_002 end";
 }
 
+/**
+* @tc.number: ApplicationDataManager_RegisterResourceObserver_001
+* @tc.name: ApplicationDataManager RegisterResourceObserver Normal
+* @tc.desc: Test RegisterResourceObserver with valid callback and leak type
+*/
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObserver_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_001 start";
+ 
+    bool callbackInvoked = false;
+    AppTelemetryLeakType receivedLeakType = ATLT_PSS;
+    std::string receivedRunningId;
+ 
+    auto callback = [&](const AppTelemetryObject& atObj) {
+        callbackInvoked = true;
+        receivedLeakType = atObj.atLeakType;
+        receivedRunningId = atObj.runningId;
+    };
+ 
+    uint64_t appTelemetryLeakType = static_cast<uint64_t>(ATLT_PSS) | static_cast<uint64_t>(ATLT_GPU);
+ 
+    bool result = ApplicationDataManager::GetInstance().RegisterResourceObserver(appTelemetryLeakType, callback);
+    EXPECT_FALSE(result);
+ 
+    GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_001 end";
+}
+ 
+/**
+* @tc.number: ApplicationDataManager_RegisterResourceObserver_002
+* @tc.name: ApplicationDataManager RegisterResourceObserver Unregister NullCallback
+* @tc.desc: Test RegisterResourceObserver with null callback to unregister
+*/
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObserver_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_002 start";
+ 
+    uint64_t appTelemetryLeakType = static_cast<uint64_t>(ATLT_PSS);
+ 
+    bool result = ApplicationDataManager::GetInstance().RegisterResourceObserver(appTelemetryLeakType, nullptr);
+    EXPECT_FALSE(result);
+ 
+    GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_002 end";
+}
+/**
+* @tc.number: ApplicationDataManager_RegisterResourceObserver_003
+* @tc.name: ApplicationDataManager RegisterResourceObserver Unregister ZeroType
+* @tc.desc: Test RegisterResourceObserver with zero leak type to unregister
+*/
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObserver_003, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_003 start";
+ 
+    bool callbackInvoked = false;
+    auto callback = [&](const AppTelemetryObject& atObj) {
+        callbackInvoked = true;
+    };
+ 
+    uint64_t appTelemetryLeakType = 0;
+ 
+    bool result = ApplicationDataManager::GetInstance().RegisterResourceObserver(appTelemetryLeakType, callback);
+    EXPECT_FALSE(result);
+ 
+    GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_003 end";
+}
+ 
+/**
+* @tc.number: ApplicationDataManager_NotifyAppTelemetry_001
+* @tc.name: ApplicationDataManager NotifyAppTelemetry NoCallback
+* @tc.desc: Test NotifyAppTelemetry when no callback is registered
+*/
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_001, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_001 start";
+ 
+    ApplicationDataManager::GetInstance().resourceOverlimitCB_ = nullptr;
+ 
+    ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS);
+ 
+    GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_001 end";
+}
 
 }  // namespace AppExecFwk
 }  // namespace OHOS
