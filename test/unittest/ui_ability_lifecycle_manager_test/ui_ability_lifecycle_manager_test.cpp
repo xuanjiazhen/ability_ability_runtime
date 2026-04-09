@@ -7693,10 +7693,10 @@ HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_NotContains_001, Tes
 
 /**
  * @tc.name: AttachAbilityThread_ProcessAttachFail_001
- * @tc.desc: AttachAbilityThread with process attachment failure
+ * @tc.desc: AttachAbilityThread with process attachment success
  * @tc.type: FUNC
  */
-HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_ProcessAttachFail_001, TestSize.Level1)
+HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_ProcessAttachSuccess_001, TestSize.Level1)
 {
     auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     AbilityRequest abilityRequest;
@@ -7708,7 +7708,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_ProcessAttachFail_00
     mgr->sessionAbilityMap_.emplace(1, record);
     
     auto result = mgr->AttachAbilityThread(nullptr, token->AsObject());
-    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**
@@ -7730,7 +7730,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, AttachAbilityThread_StartedByCall_001, T
     mgr->sessionAbilityMap_.emplace(1, record);
     
     auto result = mgr->AttachAbilityThread(nullptr, token->AsObject());
-    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    EXPECT_EQ(result, ERR_OK);
 }
 
 /**

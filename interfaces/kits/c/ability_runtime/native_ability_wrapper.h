@@ -20,7 +20,7 @@
  * @brief Provide the definition of the C interface for the native ability wrapper
  *
  * @syscap SystemCapability.Ability.AbilityRuntime.Core
- * @since 24
+ * @since 26.0.0
  */
 
 /**
@@ -31,7 +31,7 @@
  * @library libability_runtime.so
  * @kit AbilityKit
  * @syscap SystemCapability.Ability.AbilityRuntime.Core
- * @since 24
+ * @since 26.0.0
  */
 
 #ifndef ABILITY_RUNTIME_NATIVE_ABILITY_WRAPPER_H
@@ -55,7 +55,7 @@ struct NativeAbilityWrapper;
  * @return The error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the nativeAbilityWrapper or instanceId is null.
- * @since 24
+ * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityInstanceId(
     const NativeAbilityWrapper* nativeAbilityWrapper, int32_t* instanceId);
@@ -73,7 +73,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityInstanceId(
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the nativeAbilityWrapper, buffer, or writeLength is null,
  *         or the buffer size is less than the minimum buffer size.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST} if the ability context does not exist.
- * @since 24
+ * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityName(
     const NativeAbilityWrapper* nativeAbilityWrapper, char* buffer, const int32_t bufferSize, int32_t* writeLength);
@@ -86,7 +86,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityName(
  * @return The error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the nativeAbilityWrapper or env is null.
- * @since 24
+ * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetEnv(
     const NativeAbilityWrapper* nativeAbilityWrapper, napi_env* env);
