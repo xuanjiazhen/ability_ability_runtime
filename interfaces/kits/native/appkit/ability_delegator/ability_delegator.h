@@ -38,6 +38,7 @@
 #include "test_runner.h"
 #include "want.h"
 #include "iability_delegator.h"
+#include "iinterop_ability_monitor.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -326,6 +327,20 @@ public:
      */
     void RegisterClearFunc(ClearFunc func);
 
+    /**
+     * Adds interop monitor for cross-language ability lifecycle monitoring.
+     *
+     * @param monitor, Indicates the interop monitor object.
+     */
+    void AddInteropAbilityMonitor(const std::shared_ptr<IInteropAbilityMonitor> &monitor);
+
+    /**
+     * Removes interop monitor.
+     *
+     * @param monitor, Indicates the specified interop monitor object.
+     */
+    void RemoveInteropAbilityMonitor(const std::shared_ptr<IInteropAbilityMonitor> &monitor);
+
 private:
     AbilityDelegator::AbilityState ConvertAbilityState(const AbilityLifecycleExecutor::LifecycleState lifecycleState);
     void ProcessAbilityProperties(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability);
@@ -333,6 +348,14 @@ private:
     std::shared_ptr<BaseDelegatorAbilityProperty> FindPropertyByToken(const sptr<IRemoteObject> &token);
     std::shared_ptr<BaseDelegatorAbilityProperty> FindPropertyByName(const std::string &name);
     inline void CallClearFunc(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability);
+
+    void PostPerformInteropStart(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability);
+    void PostPerformInteropForeground(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability);
+    void PostPerformInteropBackground(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability);
+    void PostPerformInteropStop(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability);
+    void PostPerformInteropScenceCreated(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability);
+    void PostPerformInteropScenceRestored(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability);
+    void PostPerformInteropScenceDestroyed(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability);
 
 private:
     static constexpr size_t INFORMATION_MAX_LENGTH {1000};
@@ -355,6 +378,8 @@ private:
     std::mutex mutexAbilityProperties_;
     std::mutex mutexStageMonitor_;
     std::mutex mutexClearMonitor_;
+    std::mutex mutexInteropMonitor_;
+    std::vector<std::shared_ptr<IInteropAbilityMonitor>> interopMonitors_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
