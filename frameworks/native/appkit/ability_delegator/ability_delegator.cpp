@@ -102,6 +102,34 @@ void AbilityDelegator::ClearAllMonitors()
     abilityMonitors_.clear();
 }
 
+void AbilityDelegator::AddInteropAbilityMonitor(const std::shared_ptr<IInteropAbilityMonitor> &monitor)
+{
+    if (!monitor) {
+        TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
+        return;
+    }
+    std::unique_lock<std::mutex> lck(mutexInteropMonitor_);
+    auto pos = std::find(interopMonitors_.begin(), interopMonitors_.end(), monitor);
+    if (pos != interopMonitors_.end()) {
+        TAG_LOGW(AAFwkTag::DELEGATOR, "interop monitor already added");
+        return;
+    }
+    interopMonitors_.emplace_back(monitor);
+}
+
+void AbilityDelegator::RemoveInteropAbilityMonitor(const std::shared_ptr<IInteropAbilityMonitor> &monitor)
+{
+    if (!monitor) {
+        TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
+        return;
+    }
+    std::unique_lock<std::mutex> lck(mutexInteropMonitor_);
+    auto pos = std::find(interopMonitors_.begin(), interopMonitors_.end(), monitor);
+    if (pos != interopMonitors_.end()) {
+        interopMonitors_.erase(pos);
+    }
+}
+
 size_t AbilityDelegator::GetMonitorsNum()
 {
     std::unique_lock<std::mutex> lck(mutexMonitor_);
@@ -377,6 +405,7 @@ void AbilityDelegator::PostPerformStart(const std::shared_ptr<BaseDelegatorAbili
     }
 
     ProcessAbilityProperties(ability);
+    PostPerformInteropStart(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     if (abilityMonitors_.empty()) {
@@ -426,6 +455,7 @@ void AbilityDelegator::PostPerformScenceCreated(const std::shared_ptr<BaseDelega
     }
 
     ProcessAbilityProperties(ability);
+    PostPerformInteropScenceCreated(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     if (abilityMonitors_.empty()) {
@@ -453,6 +483,7 @@ void AbilityDelegator::PostPerformScenceRestored(const std::shared_ptr<BaseDeleg
     }
 
     ProcessAbilityProperties(ability);
+    PostPerformInteropScenceRestored(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     if (abilityMonitors_.empty()) {
@@ -480,6 +511,7 @@ void AbilityDelegator::PostPerformScenceDestroyed(const std::shared_ptr<BaseDele
     }
 
     ProcessAbilityProperties(ability);
+    PostPerformInteropScenceDestroyed(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     if (abilityMonitors_.empty()) {
@@ -507,6 +539,7 @@ void AbilityDelegator::PostPerformForeground(const std::shared_ptr<BaseDelegator
     }
 
     ProcessAbilityProperties(ability);
+    PostPerformInteropForeground(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     if (abilityMonitors_.empty()) {
@@ -534,6 +567,7 @@ void AbilityDelegator::PostPerformBackground(const std::shared_ptr<BaseDelegator
     }
 
     ProcessAbilityProperties(ability);
+    PostPerformInteropBackground(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     if (abilityMonitors_.empty()) {
@@ -561,6 +595,7 @@ void AbilityDelegator::PostPerformStop(const std::shared_ptr<BaseDelegatorAbilit
     }
 
     ProcessAbilityProperties(ability);
+    PostPerformInteropStop(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     if (abilityMonitors_.empty()) {
@@ -579,6 +614,104 @@ void AbilityDelegator::PostPerformStop(const std::shared_ptr<BaseDelegatorAbilit
 
     RemoveAbilityProperty(ability);
     CallClearFunc(ability);
+}
+
+void AbilityDelegator::PostPerformInteropStart(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    if (!ability) {
+        return;
+    }
+    std::unique_lock<std::mutex> lck(mutexInteropMonitor_);
+    for (auto &monitor : interopMonitors_) {
+        if (monitor) {
+            monitor->OnAbilityStart(ability);
+        }
+    }
+}
+
+void AbilityDelegator::PostPerformInteropForeground(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    if (!ability) {
+        return;
+    }
+    std::unique_lock<std::mutex> lck(mutexInteropMonitor_);
+    for (auto &monitor : interopMonitors_) {
+        if (monitor) {
+            monitor->OnAbilityForeground(ability);
+        }
+    }
+}
+
+void AbilityDelegator::PostPerformInteropBackground(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    if (!ability) {
+        return;
+    }
+    std::unique_lock<std::mutex> lck(mutexInteropMonitor_);
+    for (auto &monitor : interopMonitors_) {
+        if (monitor) {
+            monitor->OnAbilityBackground(ability);
+        }
+    }
+}
+
+void AbilityDelegator::PostPerformInteropStop(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    if (!ability) {
+        return;
+    }
+    std::unique_lock<std::mutex> lck(mutexInteropMonitor_);
+    for (auto &monitor : interopMonitors_) {
+        if (monitor) {
+            monitor->OnAbilityStop(ability);
+        }
+    }
+}
+
+void AbilityDelegator::PostPerformInteropScenceCreated(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    if (!ability) {
+        return;
+    }
+    std::unique_lock<std::mutex> lck(mutexInteropMonitor_);
+    for (auto &monitor : interopMonitors_) {
+        if (monitor) {
+            monitor->OnWindowStageCreate(ability);
+        }
+    }
+}
+
+void AbilityDelegator::PostPerformInteropScenceRestored(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    if (!ability) {
+        return;
+    }
+    std::unique_lock<std::mutex> lck(mutexInteropMonitor_);
+    for (auto &monitor : interopMonitors_) {
+        if (monitor) {
+            monitor->OnWindowStageRestore(ability);
+        }
+    }
+}
+
+void AbilityDelegator::PostPerformInteropScenceDestroyed(const std::shared_ptr<BaseDelegatorAbilityProperty> &ability)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    if (!ability) {
+        return;
+    }
+    std::unique_lock<std::mutex> lck(mutexInteropMonitor_);
+    for (auto &monitor : interopMonitors_) {
+        if (monitor) {
+            monitor->OnWindowStageDestroy(ability);
+        }
+    }
 }
 
 AbilityDelegator::AbilityState AbilityDelegator::ConvertAbilityState(

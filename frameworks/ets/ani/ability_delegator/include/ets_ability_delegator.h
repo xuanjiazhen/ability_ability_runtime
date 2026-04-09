@@ -97,6 +97,12 @@ public:
 
     static ani_ref GetCurrentTopAbility(ani_env *env, [[maybe_unused]]ani_class aniClass, ani_object callback);
 
+    static void AddInteropAbilityMonitor(ani_env *env, [[maybe_unused]]ani_class aniClass,
+        ani_object callback, ani_object asyncCallback);
+
+    static void RemoveInteropAbilityMonitor(ani_env *env, [[maybe_unused]]ani_class aniClass,
+        ani_object callback, ani_object asyncCallback);
+
 private:
     static ani_object WrapShellCmdResult(ani_env *env, std::unique_ptr<AppExecFwk::ShellCmdResult> result);
 

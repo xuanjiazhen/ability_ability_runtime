@@ -21,6 +21,7 @@
 #include "js_ability_delegator_utils.h"
 #include "js_context_utils.h"
 #include "js_error_utils.h"
+#include "js_interop_ability_monitor.h"
 #include "napi_common_want.h"
 #include "napi_common_util.h"
 #include "napi_remote_object.h"
@@ -53,6 +54,9 @@ std::map<std::shared_ptr<NativeReference>, std::shared_ptr<AbilityStageMonitor>>
 std::map<std::weak_ptr<NativeReference>, sptr<IRemoteObject>, std::owner_less<>> g_abilityRecord;
 std::mutex g_mutexAbilityRecord;
 std::mutex g_mtxStageMonitorRecord;
+
+std::map<napi_ref, std::shared_ptr<AppExecFwk::IInteropAbilityMonitor>> g_jsInteropMonitorRecord;
+std::mutex g_jsInteropMonitorMutex;
 
 enum ERROR_CODE {
     INCORRECT_PARAMETERS    = 401,
@@ -1557,6 +1561,115 @@ void JSAbilityDelegator::RemoveStageMonitorRecord(napi_env env, napi_value value
             break;
         }
     }
+}
+
+napi_value JSAbilityDelegator::AddInteropAbilityMonitor(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JSAbilityDelegator, OnAddInteropAbilityMonitor);
+}
+
+napi_value JSAbilityDelegator::RemoveInteropAbilityMonitor(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JSAbilityDelegator, OnRemoveInteropAbilityMonitor);
+}
+
+napi_value JSAbilityDelegator::OnAddInteropAbilityMonitor(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    HandleEscape handleEscape(env);
+    if (info.argc < ARGC_ONE) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "invalid argc");
+        return ThrowJsError(env, INCORRECT_PARAMETERS, "callback is required.");
+    }
+
+    napi_value callbackValue = info.argv[INDEX_ZERO];
+    if (callbackValue == nullptr || !AppExecFwk::IsTypeForNapiValue(env, callbackValue, napi_object)) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "invalid callback");
+        return ThrowJsError(env, INCORRECT_PARAMETERS, "callback must be object.");
+    }
+
+    auto delegator = AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
+    if (!delegator) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null ets delegator");
+        napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[INDEX_ONE] : nullptr;
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("JSAbilityDelegator::OnAddInteropAbilityMonitor",
+            env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr,
+            [](napi_env env, NapiAsyncTask &task, int32_t status) {
+                task.Reject(env, CreateJsError(env, COMMON_FAILED, "Calling AddInteropAbilityMonitor failed."));
+            }, &result));
+        return handleEscape.Escape(result);
+    }
+
+    auto monitor = std::make_shared<JsInteropAbilityMonitor>(env, callbackValue);
+    napi_ref ref = nullptr;
+    napi_create_reference(env, callbackValue, 1, &ref);
+    {
+        std::lock_guard<std::mutex> lock(g_jsInteropMonitorMutex);
+        g_jsInteropMonitorRecord[ref] = monitor;
+    }
+    delegator->AddInteropAbilityMonitor(monitor);
+
+    napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[INDEX_ONE] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JSAbilityDelegator::OnAddInteropAbilityMonitor",
+        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr,
+        [](napi_env env, NapiAsyncTask &task, int32_t status) {
+            ResolveWithNoError(env, task);
+        }, &result));
+    return handleEscape.Escape(result);
+}
+
+napi_value JSAbilityDelegator::OnRemoveInteropAbilityMonitor(napi_env env, NapiCallbackInfo& info)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    HandleEscape handleEscape(env);
+
+    auto delegator = AbilityDelegatorRegistry::GetAbilityDelegator(AbilityRuntime::Runtime::Language::ETS);
+    if (!delegator) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null ets delegator");
+        napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[INDEX_ONE] : nullptr;
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("JSAbilityDelegator::OnRemoveInteropAbilityMonitor",
+            env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr,
+            [](napi_env env, NapiAsyncTask &task, int32_t status) {
+                task.Reject(env, CreateJsError(env, COMMON_FAILED, "Calling RemoveInteropAbilityMonitor failed."));
+            }, &result));
+        return handleEscape.Escape(result);
+    }
+
+    std::lock_guard<std::mutex> lock(g_jsInteropMonitorMutex);
+    if (info.argc < ARGC_ONE || info.argv[INDEX_ZERO] == nullptr) {
+        // Remove all
+        for (auto &[ref, monitor] : g_jsInteropMonitorRecord) {
+            delegator->RemoveInteropAbilityMonitor(monitor);
+            napi_delete_reference(env, ref);
+        }
+        g_jsInteropMonitorRecord.clear();
+    } else {
+        napi_value callbackValue = info.argv[INDEX_ZERO];
+        for (auto iter = g_jsInteropMonitorRecord.begin(); iter != g_jsInteropMonitorRecord.end(); ++iter) {
+            napi_value refValue = nullptr;
+            napi_get_reference_value(env, iter->first, &refValue);
+            bool isEquals = false;
+            napi_strict_equals(env, callbackValue, refValue, &isEquals);
+            if (isEquals) {
+                delegator->RemoveInteropAbilityMonitor(iter->second);
+                napi_delete_reference(env, iter->first);
+                g_jsInteropMonitorRecord.erase(iter);
+                break;
+            }
+        }
+    }
+
+    napi_value lastParam = (info.argc > ARGC_ONE) ? info.argv[INDEX_ONE] : nullptr;
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JSAbilityDelegator::OnRemoveInteropAbilityMonitor",
+        env, CreateAsyncTaskWithLastParam(env, lastParam, nullptr,
+        [](napi_env env, NapiAsyncTask &task, int32_t status) {
+            ResolveWithNoError(env, task);
+        }, &result));
+    return handleEscape.Escape(result);
 }
 }  // namespace AbilityDelegatorJs
 }  // namespace OHOS
