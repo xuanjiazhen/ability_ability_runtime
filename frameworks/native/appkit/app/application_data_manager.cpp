@@ -313,6 +313,5 @@ void ApplicationDataManager::NotifyAppTelemetry(AppTelemetryLeakType atLeakType)
     TAG_LOGI(AAFwkTag::APPKIT, "start callback resource overlimit");
     resourceOverlimitCB_(atObj);
 }
-
 }  // namespace AppExecFwk
 }  // namespace OHOS
