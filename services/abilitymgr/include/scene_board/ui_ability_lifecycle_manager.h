@@ -560,7 +560,7 @@ public:
      * @param abilityRecord The ability record to start
      * @return Returns ERR_OK on success, others on failure
      */
-    int StartSelf(const UIAbilityRecordPtr &abilityRecord);
+    int32_t StartSelf(const UIAbilityRecordPtr &abilityRecord);
 
 private:
     /**
