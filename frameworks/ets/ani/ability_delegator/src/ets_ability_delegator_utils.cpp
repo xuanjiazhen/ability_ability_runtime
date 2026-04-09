@@ -53,6 +53,8 @@ constexpr const char* RECORD_GET_NAME =
     "X{C{std.core.BaseEnum}C{std.core.Numeric}C{std.core.String}}:Y";
 constexpr const char* RECORD_SET_NAME =
     "X{C{std.core.BaseEnum}C{std.core.Numeric}C{std.core.String}}Y:";
+constexpr const char* INTEROP_CALLBACK_VOID =
+    "C{std.core.Object}:";
 }
 
 bool BindFunctions(ani_env *aniEnv, ani_class abilityDelegator)
@@ -109,7 +111,11 @@ bool BindFunctions(ani_env *aniEnv, ani_class abilityDelegator)
         ani_native_function {"getAbilityState", STRING_UIABILITY_NUMBER,
             reinterpret_cast<void *>(EtsAbilityDelegator::GetAbilityState)},
         ani_native_function {"nativeGetCurrentTopAbility", STRING_CALLBACK_UIABILITY,
-            reinterpret_cast<void *>(EtsAbilityDelegator::GetCurrentTopAbility)}
+            reinterpret_cast<void *>(EtsAbilityDelegator::GetCurrentTopAbility)},
+        ani_native_function {"addInteropAbilityMonitorSync", INTEROP_CALLBACK_VOID,
+            reinterpret_cast<void *>(EtsAbilityDelegator::AddInteropAbilityMonitorSync)},
+        ani_native_function {"removeInteropAbilityMonitorSync", INTEROP_CALLBACK_VOID,
+            reinterpret_cast<void *>(EtsAbilityDelegator::RemoveInteropAbilityMonitorSync)}
     };
     ani_status status = aniEnv->Class_BindNativeMethods(abilityDelegator, functions.data(), functions.size());
     if (status != ANI_OK) {
