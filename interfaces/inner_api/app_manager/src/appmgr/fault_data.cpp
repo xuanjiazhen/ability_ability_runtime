@@ -141,6 +141,9 @@ bool FaultData::ReadLeakContent(Parcel &parcel)
         TAG_LOGE(AAFwkTag::APPMGR, "callback log read string failed.");
         return false;
     }
+
+
+
     return true;
 }
 
@@ -198,6 +201,9 @@ bool FaultData::WriteLeakContent(Parcel &parcel) const
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteString(callbackLog),
         "CallbackLog [%{public}s] write int32 failed.", callbackLog.c_str()
     );
+
+
+
     return true;
 }
 
@@ -437,6 +443,10 @@ bool AppFaultDataBySA::ReadLeakContent(Parcel &parcel)
 
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(sizeValue), "LeakDetailInfo otherSize read uint64 failed.");
     leakObject.detailInfo.otherSize = sizeValue;
+
+
+
+
     return true;
 }
 
@@ -490,6 +500,10 @@ bool AppFaultDataBySA::WriteLeakContent(Parcel &parcel) const
     RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(otherSize),
         "LeakDetailInfo otherSize [%{public}" PRIu64 "] write uint64 failed.", otherSize
     );
+
+
+
+
     return true;
 }
 
