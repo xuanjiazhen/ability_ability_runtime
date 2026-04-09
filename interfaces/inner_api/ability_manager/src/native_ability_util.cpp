@@ -41,7 +41,6 @@ const AppExecFwk::Metadata* FindMetadata(
         [&name](const AppExecFwk::Metadata& meta) {
             return meta.name == name;
         });
-
     if (it != abilityInfo.metadata.end()) {
         return &(*it);
     }
