@@ -94,11 +94,13 @@ public:
         return abilityNativeState_;
     }
 
+    void AttachNative();
+
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;
     std::atomic_bool isKillPrecedeStart_ = false;
-    AbilityNativeState abilityNativeState_ = AbilityNativeState::NONE;
+    std::atomic<AbilityNativeState> abilityNativeState_ = AbilityNativeState::NONE;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
