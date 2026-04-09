@@ -32,6 +32,7 @@
 #include "configuration.h"
 #include "js_runtime.h"
 #include "js_system_configuration_updated_callback.h"
+#include "native_ability_util.h"
 using namespace testing::ext;
 
 
@@ -2119,6 +2120,569 @@ HWTEST_F(ApplicationContextTest, RegisterSystemConfigurationUpdatedCallback_0300
     context_->RegisterSystemConfigurationUpdatedCallback(weakCallback2);
     EXPECT_EQ(context_->systemConfigurationUpdatedCallbacks_.size(), 2);
     GTEST_LOG_(INFO) << "RegisterSystemConfigurationUpdatedCallback_0300 end";
+}
+
+/**
+ * @tc.number: CreateNativeThread_0100
+ * @tc.name: CreateNativeThread
+ * @tc.desc: withNativeModule is false, should return false
+ */
+HWTEST_F(ApplicationContextTest, CreateNativeThread_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CreateNativeThread_0100 start";
+    ASSERT_NE(context_, nullptr);
+    AAFwk::NativeAbilityMetaData metaData;
+    metaData.withNativeModule = false;
+    bool ret = context_->CreateNativeThread(metaData, "bundleName", "moduleName");
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(context_->abilityNativeThread_, nullptr);
+    GTEST_LOG_(INFO) << "CreateNativeThread_0100 end";
+}
+
+/**
+ * @tc.number: CreateNativeThread_0200
+ * @tc.name: CreateNativeThread
+ * @tc.desc: withNativeModule is true, nativeModuleSource is empty, LoadNativeModule should fail
+ */
+HWTEST_F(ApplicationContextTest, CreateNativeThread_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CreateNativeThread_0200 start";
+    ASSERT_NE(context_, nullptr);
+    AAFwk::NativeAbilityMetaData metaData;
+    metaData.withNativeModule = true;
+    metaData.nativeModuleSource = "";
+    metaData.nativeModuleFunc = "OHMain";
+    bool ret = context_->CreateNativeThread(metaData, "bundleName", "moduleName");
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(context_->abilityNativeThread_, nullptr);
+    GTEST_LOG_(INFO) << "CreateNativeThread_0200 end";
+}
+
+/**
+ * @tc.number: CreateNativeThread_0300
+ * @tc.name: CreateNativeThread
+ * @tc.desc: withNativeModule is true, nativeModuleFunc is empty, LoadNativeModule should fail
+ */
+HWTEST_F(ApplicationContextTest, CreateNativeThread_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CreateNativeThread_0300 start";
+    ASSERT_NE(context_, nullptr);
+    AAFwk::NativeAbilityMetaData metaData;
+    metaData.withNativeModule = true;
+    metaData.nativeModuleSource = "libtest.so";
+    metaData.nativeModuleFunc = "";
+    bool ret = context_->CreateNativeThread(metaData, "bundleName", "moduleName");
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(context_->abilityNativeThread_, nullptr);
+    GTEST_LOG_(INFO) << "CreateNativeThread_0300 end";
+}
+
+/**
+ * @tc.number: CreateNativeThread_0400
+ * @tc.name: CreateNativeThread
+ * @tc.desc: withNativeModule is true, library does not exist, LoadNativeModule should fail
+ */
+HWTEST_F(ApplicationContextTest, CreateNativeThread_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CreateNativeThread_0400 start";
+    ASSERT_NE(context_, nullptr);
+    AAFwk::NativeAbilityMetaData metaData;
+    metaData.withNativeModule = true;
+    metaData.nativeModuleSource = "libnonexistent_test.so";
+    metaData.nativeModuleFunc = "OHMain";
+    bool ret = context_->CreateNativeThread(metaData, "bundleName", "moduleName");
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(context_->abilityNativeThread_, nullptr);
+    GTEST_LOG_(INFO) << "CreateNativeThread_0400 end";
+}
+
+/**
+ * @tc.number: CreateNativeThread_0500
+ * @tc.name: CreateNativeThread
+ * @tc.desc: abilityNativeThread_ already exists, should return true directly
+ */
+HWTEST_F(ApplicationContextTest, CreateNativeThread_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CreateNativeThread_0500 start";
+    ASSERT_NE(context_, nullptr);
+    // Pre-set a non-null thread to simulate already initialized
+    context_->abilityNativeThread_ = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    AAFwk::NativeAbilityMetaData metaData;
+    metaData.withNativeModule = true;
+    metaData.nativeModuleSource = "libtest.so";
+    metaData.nativeModuleFunc = "OHMain";
+    bool ret = context_->CreateNativeThread(metaData, "bundleName", "moduleName");
+    EXPECT_TRUE(ret);
+    // Cleanup
+    context_->abilityNativeThread_ = nullptr;
+    GTEST_LOG_(INFO) << "CreateNativeThread_0500 end";
+}
+
+/**
+ * @tc.number: GetNativeThread_0100
+ * @tc.name: GetNativeThread
+ * @tc.desc: abilityNativeThread_ is null, should return nullptr
+ */
+HWTEST_F(ApplicationContextTest, GetNativeThread_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetNativeThread_0100 start";
+    ASSERT_NE(context_, nullptr);
+    context_->abilityNativeThread_ = nullptr;
+    auto ret = context_->GetNativeThread();
+    EXPECT_EQ(ret, nullptr);
+    GTEST_LOG_(INFO) << "GetNativeThread_0100 end";
+}
+
+/**
+ * @tc.number: GetNativeThread_0200
+ * @tc.name: GetNativeThread
+ * @tc.desc: abilityNativeThread_ is not null, should return the thread
+ */
+HWTEST_F(ApplicationContextTest, GetNativeThread_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetNativeThread_0200 start";
+    ASSERT_NE(context_, nullptr);
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    context_->abilityNativeThread_ = thread;
+    auto ret = context_->GetNativeThread();
+    EXPECT_NE(ret, nullptr);
+    EXPECT_EQ(ret, thread);
+    // Cleanup
+    context_->abilityNativeThread_ = nullptr;
+    GTEST_LOG_(INFO) << "GetNativeThread_0200 end";
+}
+
+/**
+ * @tc.number: AddNativeAbility_0100
+ * @tc.name: AddNativeAbility
+ * @tc.desc: Add a NativeAbilityWrapper and verify it exists in the map
+ */
+HWTEST_F(ApplicationContextTest, AddNativeAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AddNativeAbility_0100 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = 100;
+    wrapper->abilityName = "TestAbility";
+    context_->AddNativeAbility(100, wrapper);
+    EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
+    EXPECT_NE(context_->nativeAbilities_.find(100), context_->nativeAbilities_.end());
+    // Cleanup
+    context_->nativeAbilities_.clear();
+    GTEST_LOG_(INFO) << "AddNativeAbility_0100 end";
+}
+
+/**
+ * @tc.number: AddNativeAbility_0200
+ * @tc.name: AddNativeAbility
+ * @tc.desc: Add multiple NativeAbilityWrappers with different instanceIds
+ */
+HWTEST_F(ApplicationContextTest, AddNativeAbility_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AddNativeAbility_0200 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+    auto wrapper1 = std::make_shared<NativeAbilityWrapper>();
+    wrapper1->instanceId = 1;
+    wrapper1->abilityName = "Ability1";
+    auto wrapper2 = std::make_shared<NativeAbilityWrapper>();
+    wrapper2->instanceId = 2;
+    wrapper2->abilityName = "Ability2";
+    context_->AddNativeAbility(1, wrapper1);
+    context_->AddNativeAbility(2, wrapper2);
+    EXPECT_EQ(context_->nativeAbilities_.size(), 2u);
+    // Cleanup
+    context_->nativeAbilities_.clear();
+    GTEST_LOG_(INFO) << "AddNativeAbility_0200 end";
+}
+
+/**
+ * @tc.number: AddNativeAbility_0300
+ * @tc.name: AddNativeAbility
+ * @tc.desc: Add a NativeAbilityWrapper with same instanceId should overwrite
+ */
+HWTEST_F(ApplicationContextTest, AddNativeAbility_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AddNativeAbility_0300 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+    auto wrapper1 = std::make_shared<NativeAbilityWrapper>();
+    wrapper1->instanceId = 1;
+    wrapper1->abilityName = "Ability1";
+    auto wrapper2 = std::make_shared<NativeAbilityWrapper>();
+    wrapper2->instanceId = 1;
+    wrapper2->abilityName = "AbilityOverwritten";
+    context_->AddNativeAbility(1, wrapper1);
+    context_->AddNativeAbility(1, wrapper2);
+    EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
+    EXPECT_EQ(context_->nativeAbilities_[1]->abilityName, "AbilityOverwritten");
+    // Cleanup
+    context_->nativeAbilities_.clear();
+    GTEST_LOG_(INFO) << "AddNativeAbility_0300 end";
+}
+
+/**
+ * @tc.number: GetNativeAbility_0100
+ * @tc.name: GetNativeAbility
+ * @tc.desc: nativeAbilities_ is empty, should return nullptr
+ */
+HWTEST_F(ApplicationContextTest, GetNativeAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetNativeAbility_0100 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+    auto ret = context_->GetNativeAbility(0);
+    EXPECT_EQ(ret, nullptr);
+    GTEST_LOG_(INFO) << "GetNativeAbility_0100 end";
+}
+
+/**
+ * @tc.number: GetNativeAbility_0200
+ * @tc.name: GetNativeAbility
+ * @tc.desc: Get existing NativeAbilityWrapper by instanceId
+ */
+HWTEST_F(ApplicationContextTest, GetNativeAbility_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetNativeAbility_0200 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = 42;
+    wrapper->abilityName = "TestAbility";
+    context_->nativeAbilities_[42] = wrapper;
+    auto ret = context_->GetNativeAbility(42);
+    EXPECT_NE(ret, nullptr);
+    EXPECT_EQ(ret->instanceId, 42);
+    EXPECT_EQ(ret->abilityName, "TestAbility");
+    // Cleanup
+    context_->nativeAbilities_.clear();
+    GTEST_LOG_(INFO) << "GetNativeAbility_0200 end";
+}
+
+/**
+ * @tc.number: GetNativeAbility_0300
+ * @tc.name: GetNativeAbility
+ * @tc.desc: Get non-existing instanceId, should return nullptr
+ */
+HWTEST_F(ApplicationContextTest, GetNativeAbility_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetNativeAbility_0300 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = 1;
+    context_->nativeAbilities_[1] = wrapper;
+    auto ret = context_->GetNativeAbility(999);
+    EXPECT_EQ(ret, nullptr);
+    // Cleanup
+    context_->nativeAbilities_.clear();
+    GTEST_LOG_(INFO) << "GetNativeAbility_0300 end";
+}
+
+/**
+ * @tc.number: RemoveNativeAbility_0100
+ * @tc.name: RemoveNativeAbility
+ * @tc.desc: Remove existing NativeAbilityWrapper by instanceId
+ */
+HWTEST_F(ApplicationContextTest, RemoveNativeAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RemoveNativeAbility_0100 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = 42;
+    context_->nativeAbilities_[42] = wrapper;
+    EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
+    context_->RemoveNativeAbility(42);
+    EXPECT_TRUE(context_->nativeAbilities_.empty());
+    // Verify GetNativeAbility also returns nullptr
+    auto ret = context_->GetNativeAbility(42);
+    EXPECT_EQ(ret, nullptr);
+    GTEST_LOG_(INFO) << "RemoveNativeAbility_0100 end";
+}
+
+/**
+ * @tc.number: RemoveNativeAbility_0200
+ * @tc.name: RemoveNativeAbility
+ * @tc.desc: Remove non-existing instanceId, should not crash
+ */
+HWTEST_F(ApplicationContextTest, RemoveNativeAbility_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RemoveNativeAbility_0200 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+    // Remove from empty map, should not crash
+    context_->RemoveNativeAbility(999);
+    EXPECT_TRUE(context_->nativeAbilities_.empty());
+    GTEST_LOG_(INFO) << "RemoveNativeAbility_0200 end";
+}
+
+/**
+ * @tc.number: AddGetRemoveNativeAbility_0100
+ * @tc.name: Add/Get/Remove NativeAbility integration
+ * @tc.desc: Full lifecycle: add, get, verify, remove, verify removal
+ */
+HWTEST_F(ApplicationContextTest, AddGetRemoveNativeAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AddGetRemoveNativeAbility_0100 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+
+    // Add
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = 100;
+    wrapper->abilityName = "IntegrationTestAbility";
+    wrapper->env = reinterpret_cast<napi_env>(0x1234);
+    context_->AddNativeAbility(wrapper->instanceId, wrapper);
+
+    // Get and verify
+    auto ret = context_->GetNativeAbility(100);
+    ASSERT_NE(ret, nullptr);
+    EXPECT_EQ(ret->instanceId, 100);
+    EXPECT_EQ(ret->abilityName, "IntegrationTestAbility");
+    EXPECT_EQ(ret->env, reinterpret_cast<napi_env>(0x1234));
+
+    // Remove
+    context_->RemoveNativeAbility(100);
+    auto retAfterRemove = context_->GetNativeAbility(100);
+    EXPECT_EQ(retAfterRemove, nullptr);
+    EXPECT_TRUE(context_->nativeAbilities_.empty());
+
+    GTEST_LOG_(INFO) << "AddGetRemoveNativeAbility_0100 end";
+}
+
+// ==================== AbilityNativeThread Tests ====================
+
+/**
+ * @tc.number: AbilityNativeThread_Destructor_0100
+ * @tc.name: AbilityNativeThread destructor
+ * @tc.desc: Destroy with no thread and no module, should not crash
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_Destructor_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_Destructor_0100 start";
+    {
+        auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+        EXPECT_NE(thread, nullptr);
+        // Destructor called here, nativeThread_ not joinable, moduleHandle_ null
+    }
+    GTEST_LOG_(INFO) << "AbilityNativeThread_Destructor_0100 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_LoadNativeModule_0100
+ * @tc.name: AbilityNativeThread LoadNativeModule
+ * @tc.desc: nativeModuleSource is empty, should return false
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_LoadNativeModule_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_LoadNativeModule_0100 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    AAFwk::NativeAbilityMetaData metaData;
+    metaData.withNativeModule = true;
+    metaData.nativeModuleSource = "";
+    metaData.nativeModuleFunc = "OHMain";
+    bool ret = thread->LoadNativeModule(metaData, "bundleName", "moduleName");
+    EXPECT_FALSE(ret);
+    GTEST_LOG_(INFO) << "AbilityNativeThread_LoadNativeModule_0100 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_LoadNativeModule_0200
+ * @tc.name: AbilityNativeThread LoadNativeModule
+ * @tc.desc: nativeModuleFunc is empty, should return false
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_LoadNativeModule_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_LoadNativeModule_0200 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    AAFwk::NativeAbilityMetaData metaData;
+    metaData.withNativeModule = true;
+    metaData.nativeModuleSource = "libtest.so";
+    metaData.nativeModuleFunc = "";
+    bool ret = thread->LoadNativeModule(metaData, "bundleName", "moduleName");
+    EXPECT_FALSE(ret);
+    GTEST_LOG_(INFO) << "AbilityNativeThread_LoadNativeModule_0200 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_LoadNativeModule_0300
+ * @tc.name: AbilityNativeThread LoadNativeModule
+ * @tc.desc: Non-existent library, OpenNativeLibrary should fail
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_LoadNativeModule_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_LoadNativeModule_0300 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    AAFwk::NativeAbilityMetaData metaData;
+    metaData.withNativeModule = true;
+    metaData.nativeModuleSource = "libnonexistent_abc_xyz.so";
+    metaData.nativeModuleFunc = "OHMain";
+    bool ret = thread->LoadNativeModule(metaData, "bundleName", "moduleName");
+    EXPECT_FALSE(ret);
+    // Verify moduleHandle_ stays null after failure
+    EXPECT_EQ(thread->moduleHandle_, nullptr);
+    GTEST_LOG_(INFO) << "AbilityNativeThread_LoadNativeModule_0300 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_RunMain_0100
+ * @tc.name: AbilityNativeThread RunMain
+ * @tc.desc: OHMain_ is null, should not create thread
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_RunMain_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_RunMain_0100 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    thread->OHMain_ = nullptr;
+    thread->RunMain();
+    EXPECT_FALSE(thread->nativeThread_.joinable());
+    GTEST_LOG_(INFO) << "AbilityNativeThread_RunMain_0100 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_RunMain_0200
+ * @tc.name: AbilityNativeThread RunMain
+ * @tc.desc: OHMain_ is set, should create and run thread
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_RunMain_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_RunMain_0200 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+
+    std::atomic<bool> mainCalled{false};
+    // Use a static variable to pass the flag pointer to the lambda
+    static std::atomic<bool>* flagPtr = &mainCalled;
+    thread->OHMain_ = []() {
+        if (flagPtr) {
+            flagPtr->store(true);
+        }
+    };
+
+    thread->RunMain();
+    EXPECT_TRUE(thread->nativeThread_.joinable());
+
+    // Wait for thread to finish
+    thread->nativeThread_.join();
+    EXPECT_TRUE(mainCalled.load());
+
+    // Clear OHMain_ so destructor won't try to detach a joined thread
+    thread->OHMain_ = nullptr;
+    GTEST_LOG_(INFO) << "AbilityNativeThread_RunMain_0200 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_PostAbility_0100
+ * @tc.name: AbilityNativeThread PostAbility
+ * @tc.desc: nativeAbilityWrapper is nullptr, should not crash
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_PostAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_PostAbility_0100 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    thread->PostAbility(nullptr);
+    // No crash, early return
+    GTEST_LOG_(INFO) << "AbilityNativeThread_PostAbility_0100 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_PostAbility_0200
+ * @tc.name: AbilityNativeThread PostAbility
+ * @tc.desc: postAbilityFunc_ is nullptr, should not crash
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_PostAbility_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_PostAbility_0200 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    thread->postAbilityFunc_ = nullptr;
+    NativeAbilityWrapper wrapper;
+    wrapper.instanceId = 1;
+    wrapper.abilityName = "Test";
+    thread->PostAbility(&wrapper);
+    // No crash, early return
+    GTEST_LOG_(INFO) << "AbilityNativeThread_PostAbility_0200 end";
+}
+
+namespace {
+const NativeAbilityWrapper* receivedWrapper = nullptr;
+void MockPostAbility(const NativeAbilityWrapper* wrapper)
+{
+    receivedWrapper = wrapper;
+}
+}
+
+/**
+ * @tc.number: AbilityNativeThread_PostAbility_0300
+ * @tc.name: AbilityNativeThread PostAbility
+ * @tc.desc: Valid wrapper and postAbilityFunc, should call the function
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_PostAbility_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_PostAbility_0300 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+
+    thread->postAbilityFunc_ = MockPostAbility;
+
+    NativeAbilityWrapper wrapper;
+    wrapper.instanceId = 42;
+    wrapper.abilityName = "TestPostAbility";
+    wrapper.env = reinterpret_cast<napi_env>(0x1234);
+
+    thread->PostAbility(&wrapper);
+
+    EXPECT_NE(receivedWrapper, nullptr);
+    EXPECT_EQ(receivedWrapper->instanceId, 42);
+    EXPECT_EQ(receivedWrapper->abilityName, "TestPostAbility");
+
+    // Cleanup
+    thread->postAbilityFunc_ = nullptr;
+    thread->OHMain_ = nullptr;
+    GTEST_LOG_(INFO) << "AbilityNativeThread_PostAbility_0300 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_OpenNativeLibrary_0100
+ * @tc.name: AbilityNativeThread OpenNativeLibrary
+ * @tc.desc: Open non-existent library should return nullptr
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_OpenNativeLibrary_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_OpenNativeLibrary_0100 start";
+    auto result = AppExecFwk::AbilityNativeThread::OpenNativeLibrary(
+        "nonexistent/bundle", "lib_nonexistent_999.so");
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "AbilityNativeThread_OpenNativeLibrary_0100 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_Destructor_0200
+ * @tc.name: AbilityNativeThread destructor
+ * @tc.desc: Destroy with running thread, should detach and not crash
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_Destructor_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_Destructor_0200 start";
+    {
+        auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+        // Set up a long-running main function
+        std::atomic<bool> keepRunning{true};
+        static std::atomic<bool>* runFlag = &keepRunning;
+        thread->OHMain_ = []() {
+            if (runFlag) {
+                while (runFlag->load()) {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+                }
+            }
+        };
+        thread->RunMain();
+        EXPECT_TRUE(thread->nativeThread_.joinable());
+
+        // Stop the main function so thread can exit after destructor detaches it
+        keepRunning.store(false);
+        // Destructor will detach the thread since it's joinable
+    }
+    GTEST_LOG_(INFO) << "AbilityNativeThread_Destructor_0200 end";
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
