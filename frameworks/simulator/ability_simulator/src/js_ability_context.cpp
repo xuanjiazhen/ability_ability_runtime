@@ -28,6 +28,8 @@ namespace AbilityRuntime {
 namespace {
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
+constexpr const int32_t API26 = 26;
+constexpr const int32_t API_VERSION_MOD = 100;
 }
 void JsAbilityContext::Finalizer(napi_env env, void *data, void *hint)
 {
@@ -102,6 +104,17 @@ napi_value JsAbilityContext::ConnectAbilityWithAccount(napi_env env, napi_callba
 
 napi_value JsAbilityContext::DisconnectAbility(napi_env env, napi_callback_info info)
 {
+    return nullptr;
+}
+
+napi_value JsAbilityContext::DisconnectAbilityRestricted(napi_env env, napi_callback_info info)
+{
+    if (CheckSatisfyTargetAPIVersion(context_, API26)) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "disconnectAbility is not supported for API 26+");
+        ThrowInvalidParamError(env, "disconnectAbility is not supported for API 26+, "
+            "please use disconnectServiceExtensionAbility instead.");
+        return nullptr;
+    }
     return nullptr;
 }
 
@@ -262,7 +275,7 @@ napi_value CreateJsAbilityContext(napi_env env, const std::shared_ptr<AbilityCon
         JsAbilityContext::ConnectAbilityWithAccount);
     BindNativeFunction(env, object, "connectServiceExtensionAbilityWithAccount", moduleName,
         JsAbilityContext::ConnectAbilityWithAccount);
-    BindNativeFunction(env, object, "disconnectAbility", moduleName, JsAbilityContext::DisconnectAbility);
+    BindNativeFunction(env, object, "disconnectAbility", moduleName, JsAbilityContext::DisconnectAbilityRestricted);
     BindNativeFunction(
         env, object, "disconnectServiceExtensionAbility", moduleName, JsAbilityContext::DisconnectAbility);
     BindNativeFunction(env, object, "terminateSelf", moduleName, JsAbilityContext::TerminateSelf);
@@ -277,5 +290,25 @@ napi_value CreateJsAbilityContext(napi_env env, const std::shared_ptr<AbilityCon
 
     return object;
 }
+
+bool JsAbilityContext::CheckSatisfyTargetAPIVersion(
+    const std::weak_ptr<AbilityContext>& context, int32_t version)
+{
+    auto abilityContext = context.lock();
+    if (!abilityContext) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "null context when check api version");
+        return false;
+    }
+
+    auto applicationInfo = abilityContext->GetApplicationInfo();
+    if (!applicationInfo) {
+        TAG_LOGE(AAFwkTag::ABILITY_SIM, "null applicationInfo");
+        return false;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITY_SIM, "targetAPIVersion: %{public}d", applicationInfo->apiTargetVersion);
+    return applicationInfo->apiTargetVersion % API_VERSION_MOD >= version;
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS

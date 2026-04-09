@@ -48,6 +48,7 @@ public:
     static napi_value ConnectAbility(napi_env env, napi_callback_info info);
     static napi_value ConnectAbilityWithAccount(napi_env env, napi_callback_info info);
     static napi_value DisconnectAbility(napi_env env, napi_callback_info info);
+    static napi_value DisconnectAbilityRestricted(napi_env env, napi_callback_info info);
     static napi_value TerminateSelf(napi_env env, napi_callback_info info);
     static napi_value TerminateSelfWithResult(napi_env env, napi_callback_info info);
     static napi_value RestoreWindowStage(napi_env env, napi_callback_info info);
@@ -61,6 +62,8 @@ private:
     napi_value OnTerminateSelf(napi_env env, NapiCallbackInfo &info);
     napi_value OnIsTerminating(napi_env env, NapiCallbackInfo &info);
     napi_value OnTerminateSelfWithResult(napi_env env, NapiCallbackInfo &info);
+    static bool CheckSatisfyTargetAPIVersion(
+        const std::weak_ptr<AbilityContext>& context, int32_t version);
 
     std::weak_ptr<AbilityContext> context_;
 };
