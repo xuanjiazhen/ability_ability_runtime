@@ -243,6 +243,10 @@ public:
      */
     static napi_value SetMockList(napi_env env, napi_callback_info info);
 
+    static napi_value AddInteropAbilityMonitorSync(napi_env env, napi_callback_info info);
+
+    static napi_value RemoveInteropAbilityMonitorSync(napi_env env, napi_callback_info info);
+
 private:
     napi_value OnAddAbilityMonitor(napi_env env, NapiCallbackInfo& info);
     napi_value OnAddAbilityMonitorSync(napi_env env, NapiCallbackInfo& info);
@@ -265,6 +269,8 @@ private:
     napi_value OnDoAbilityBackground(napi_env env, NapiCallbackInfo& info);
     napi_value OnFinishTest(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetMockList(napi_env env, NapiCallbackInfo& info);
+    napi_value OnAddInteropAbilityMonitorSync(napi_env env, NapiCallbackInfo& info);
+    napi_value OnRemoveInteropAbilityMonitorSync(napi_env env, NapiCallbackInfo& info);
 
 private:
     napi_value CreateAbilityObject(napi_env env, const sptr<IRemoteObject> &remoteObject);

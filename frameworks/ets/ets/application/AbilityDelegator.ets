@@ -97,6 +97,10 @@ export interface AbilityDelegator {
   getCurrentTopAbility(callback: AsyncCallback<UIAbility>);
 
   getCurrentTopAbility(): Promise<UIAbility>;
+
+  addInteropAbilityMonitorSync(callback: Object): void;
+
+  removeInteropAbilityMonitorSync(callback: Object): void;
 }
 
 class AbilityDelegatorInner implements AbilityDelegator {
@@ -156,11 +160,20 @@ class AbilityDelegatorInner implements AbilityDelegator {
 
   public native nativeStartAbility(want: Want, callback: AsyncCallbackWrapper<void>): void;
 
+  public native addInteropAbilityMonitorSync(callback: Object): void;
+
+  public native removeInteropAbilityMonitorSync(callback: Object): void;
+
   finishTest(msg: string, code: long, callback: AsyncCallback<void>): void {
     let myCall = new AsyncCallbackWrapper<void>(callback);
     taskpool.execute((): void => {
       this.nativeFinishTest(msg, code, myCall);
     });
+    });
+    return p;
+  }
+}
+
   }
   finishTest(msg: string, code: long): Promise<void> {
     let p: Promise<void> =
