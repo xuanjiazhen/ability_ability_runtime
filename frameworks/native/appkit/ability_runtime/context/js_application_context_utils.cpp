@@ -1065,13 +1065,13 @@ napi_value JsApplicationContextUtils::OnGetUIAbilityByInstanceId(napi_env env, N
     }
 
     // Return the jsAbilityObj from NativeAbilityWrapper
-    if (nativeAbility->jsAbilityObj_ == nullptr) {
+    if (nativeAbility->jsAbilityObj == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "jsAbilityObj is null for instanceId: %{public}d", instanceId);
         AbilityRuntimeErrorUtil::Throw(env, ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER);
         return CreateJsUndefined(env);
     }
 
-    napi_value result = nativeAbility->jsAbilityObj_;
+    napi_value result = nativeAbility->jsAbilityObj;
     TAG_LOGD(AAFwkTag::APPKIT, "Get UIAbility for instanceId: %{public}d", instanceId);
     return result;
 }

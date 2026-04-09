@@ -2499,7 +2499,7 @@ void JsUIAbility::HandleNativeModule(napi_env env)
     wrapper->instanceId = GetAbilityRecordId();
     wrapper->abilityName = GetAbilityName();
     wrapper->env = env;
-    wrapper->jsAbilityObj_ = jsAbilityObj;
+    wrapper->jsAbilityObj = jsAbilityObj;
 
     // Get ApplicationContext
     auto appContext = AbilityRuntime::Context::GetApplicationContext();
