@@ -53,5 +53,12 @@ void UIAbilityRecord::ScheduleCollaborate(const Want &want)
     CHECK_POINTER(lifecycleDeal_);
     lifecycleDeal_->ScheduleCollaborate(want);
 }
+
+void UIAbilityRecord::AttachNative()
+{
+    if (GetNativeState() == AbilityNativeState::INIT) {
+        SetNativeState(AbilityNativeState::ATTACH);
+    }
+}
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -30,7 +30,7 @@ struct NativeAbilityWrapper {
     int32_t instanceId = 0;
     std::string abilityName;
     napi_env env = nullptr;
-    napi_value jsAbilityObj_ = nullptr;
+    napi_value jsAbilityObj = nullptr;
 };
 
 typedef void(*PostAbilityType)(const NativeAbilityWrapper* nativeAbilityWrapper);
