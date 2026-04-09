@@ -3214,8 +3214,8 @@ int AbilityManagerService::StartUIAbilityBySCBDefault(sptr<SessionInfo> sessionI
     abilityRequest.specifyTokenId = specifyTokenId;
 
     auto abilityInfo = abilityRequest.abilityInfo;
-    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall() &&
-        abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
+    // 只允许启动 PAGE 类型的 Ability
+    if (abilityInfo.type != AppExecFwk::AbilityType::PAGE) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "only support page type ability");
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_VALUE,
             "only support page type ability", true);
