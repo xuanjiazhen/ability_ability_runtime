@@ -34,6 +34,7 @@ enum class LeakType {
     GPU_MEMORY = 4,
     FD = 5,
     THREAD = 6,
+    
 };
 
 struct LeakDetailInfo {
@@ -50,6 +51,8 @@ struct LeakObject {
     unsigned long leakSize = 0;
     LeakDetailInfo detailInfo;
 };
+
+
 
 class IErrorObserver {
 public:

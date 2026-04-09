@@ -3806,6 +3806,7 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
 
 void MainThread::NotifyAppFault(const FaultData &faultData)
 {
+    
     if (faultData.notifyApp) {
         ErrorObject faultErrorObj = {
             .name = faultData.errorObject.name,

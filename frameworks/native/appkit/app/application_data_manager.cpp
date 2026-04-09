@@ -15,6 +15,8 @@
 
 #include "application_data_manager.h"
 
+
+
 #include "app_recovery.h"
 #include "hilog_tag_wrapper.h"
 #include "native_engine.h"
@@ -25,6 +27,8 @@ namespace {
     constexpr size_t STACK_MAX_SZIE = 1024;
     constexpr size_t AT_SKIP_SZIE = 3;
     constexpr const char* TASK_POOL_THREAD = "Taskpool Thread";
+    
+    
     enum class InstanceType {
         DEFAULT_TYPE = -1,
         WORKER_THREAD_TYPE = 1,
@@ -271,6 +275,7 @@ bool ApplicationDataManager::GetHasOnErrorCallback()
     }
     return false;
 }
+
 
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+
 #define private public
 #define protected public
 #include "application_data_manager.h"
@@ -289,5 +290,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyLeakObject_002
     EXPECT_EQ(result, expectedCallbackResult);
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyLeakObject_002 end";
 }
+
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

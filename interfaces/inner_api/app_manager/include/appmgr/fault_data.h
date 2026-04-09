@@ -39,6 +39,7 @@ enum class FaultDataType {
     SLEEP_CLEAN,
     PERFORMANCE_CONTROL,
     RESOURCE_CONTROL
+    
 };
 
 enum AppStatus {
@@ -107,6 +108,7 @@ struct FaultData : public Parcelable {
     int32_t dispatchedEventId = 0;
     LeakObject leakObject;
     std::string callbackLog;
+    
 };
 
 /**
@@ -146,6 +148,7 @@ struct AppFaultDataBySA : public Parcelable {
     std::string applicationHeapInfo;
     std::string processLifeTime;
     LeakObject leakObject;
+    
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

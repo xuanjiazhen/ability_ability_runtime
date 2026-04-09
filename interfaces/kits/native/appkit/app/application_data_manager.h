@@ -30,6 +30,7 @@ typedef void (*EtsErrorCallback)(const AppExecFwk::ErrorObject &errorObj);
 class ApplicationDataManager {
 using LeakObserverFunction = std::function<bool(const LeakObject &obj)>;
 using HasOnErrorCallback = std::function<bool()>;
+
 public:
     struct ExceptionParams {
         napi_env env;
@@ -55,6 +56,8 @@ public:
     static bool NotifyUncaughtException(const ExceptionParams &params, const AppExecFwk::ErrorObject &errorObj);
     bool NotifyLeakObject(const LeakObject &leakObj);
     void SetLeakObserver(LeakObserverFunction leakCallback);
+    
+    
 
     void SetErrorHandlerCallback(EtsErrorCallback errorCallback);
     bool NotifyETSErrorObject(const AppExecFwk::ErrorObject &errorObj);
@@ -65,6 +68,7 @@ private:
     ~ApplicationDataManager();
     static std::string GetFuncNameFromError(napi_env env, napi_value error);
     DISALLOW_COPY_AND_MOVE(ApplicationDataManager);
+    
     std::shared_ptr<IErrorObserver> errorObserver_;
     std::atomic_bool isUncatchable_;
     LeakObserverFunction leakObserver_ = nullptr;
@@ -72,6 +76,8 @@ private:
     std::mutex hasOnErrorCallbackMutex_;
     EtsErrorCallback errorCallback_ = nullptr;
     HasOnErrorCallback hasOnErrorCallback_ = nullptr;
+    
+    
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
