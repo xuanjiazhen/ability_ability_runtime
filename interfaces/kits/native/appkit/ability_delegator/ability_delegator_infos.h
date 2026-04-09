@@ -26,6 +26,8 @@ namespace OHOS {
 namespace AppExecFwk {
 struct ETSNativeReference;
 struct BaseDelegatorAbilityProperty {
+    enum class PropertyType : uint8_t { JS, ETS };
+    PropertyType propertyType {PropertyType::JS};
     // token of ability
     sptr<IRemoteObject> token_;
     // name of ability
@@ -38,10 +40,12 @@ struct BaseDelegatorAbilityProperty {
     AbilityLifecycleExecutor::LifecycleState lifecycleState_ {AbilityLifecycleExecutor::LifecycleState::UNINITIALIZED};
 };
 struct ADelegatorAbilityProperty : public BaseDelegatorAbilityProperty {
+    ADelegatorAbilityProperty() { propertyType = PropertyType::JS; }
     std::weak_ptr<NativeReference> object_;
 };
 
 struct EtsDelegatorAbilityProperty  : public BaseDelegatorAbilityProperty {
+    EtsDelegatorAbilityProperty() { propertyType = PropertyType::ETS; }
     std::weak_ptr<AppExecFwk::ETSNativeReference> object_;
 };
 

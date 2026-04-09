@@ -24,6 +24,7 @@
 #include "ets_ability_monitor.h"
 #include "ets_context_utils.h"
 #include "ets_error_utils.h"
+#include "ets_interop_ability_monitor.h"
 #include "ets_native_reference.h"
 #include "hilog_tag_wrapper.h"
 #include "shell_cmd_result.h"
@@ -39,6 +40,9 @@ std::map<std::weak_ptr<ETSNativeReference>, sptr<IRemoteObject>, std::owner_less
 std::mutex g_mtxMonitorRecord;
 std::mutex g_mtxStageMonitorRecord;
 std::mutex g_mutexAbilityRecord;
+
+std::map<ani_ref, std::shared_ptr<EtsInteropAbilityMonitor>> g_interopMonitorRecord;
+std::mutex g_interopMonitorMutex;
 
 namespace {
 constexpr const char* CONTEXT_CLASS_NAME = "application.Context.Context";
@@ -1266,6 +1270,101 @@ void EtsAbilityDelegator::CleanAndFindMonitorRecord(ani_env *env, ani_object mon
             break;
         }
         ++iter;
+    }
+}
+
+void EtsAbilityDelegator::AddInteropAbilityMonitorSync(ani_env *env, [[maybe_unused]]ani_class aniClass,
+    ani_object callback)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null env");
+        return;
+    }
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null callback");
+        AbilityRuntime::EtsErrorUtil::ThrowError(env,
+            static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM),
+            "callback is null.");
+        return;
+    }
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(Runtime::Language::JS);
+    if (delegator == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, COMMON_FAILED,
+            "Calling AddInteropAbilityMonitorSync failed.");
+        return;
+    }
+    std::string abilityName;
+    ani_ref abilityNameRef = nullptr;
+    if (env->Object_GetPropertyByName_Ref(callback, "abilityName", &abilityNameRef) == ANI_OK
+        && abilityNameRef != nullptr) {
+        ani_string abilityNameStr;
+        if (env->Reference_GetValue_String(abilityNameRef, &abilityNameStr) == ANI_OK) {
+            AppExecFwk::GetStdString(env, abilityNameStr, abilityName);
+        }
+    }
+    std::string moduleName;
+    ani_ref moduleNameRef = nullptr;
+    if (env->Object_GetPropertyByName_Ref(callback, "moduleName", &moduleNameRef) == ANI_OK
+        && moduleNameRef != nullptr) {
+        ani_string moduleNameStr;
+        if (env->Reference_GetValue_String(moduleNameRef, &moduleNameStr) == ANI_OK) {
+            AppExecFwk::GetStdString(env, moduleNameStr, moduleName);
+        }
+    }
+    auto monitor = std::make_shared<EtsInteropAbilityMonitor>(env, callback, abilityName, moduleName);
+    ani_ref trackingRef = nullptr;
+    ani_status status = env->GlobalReference_Create(callback, &trackingRef);
+    if (status != ANI_OK || trackingRef == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "GlobalReference_Create failed: %{public}d", status);
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, COMMON_FAILED,
+            "create global reference failed.");
+        return;
+    }
+    {
+        std::lock_guard<std::mutex> lock(g_interopMonitorMutex);
+        g_interopMonitorRecord[trackingRef] = monitor;
+    }
+    delegator->AddInteropAbilityMonitorSync(monitor);
+}
+
+void EtsAbilityDelegator::RemoveInteropAbilityMonitorSync(ani_env *env, [[maybe_unused]]ani_class aniClass,
+    ani_object callback)
+{
+    TAG_LOGI(AAFwkTag::DELEGATOR, "called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null env");
+        return;
+    }
+    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(Runtime::Language::JS);
+    if (delegator == nullptr) {
+        TAG_LOGE(AAFwkTag::DELEGATOR, "null delegator");
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, COMMON_FAILED,
+            "Calling RemoveInteropAbilityMonitorSync failed.");
+        return;
+    }
+    ani_boolean isUndefined = true;
+    env->Reference_IsUndefined(callback, &isUndefined);
+    std::lock_guard<std::mutex> lock(g_interopMonitorMutex);
+    if (isUndefined) {
+        for (auto &[ref, monitor] : g_interopMonitorRecord) {
+            delegator->RemoveInteropAbilityMonitorSync(monitor);
+            env->GlobalReference_Delete(ref);
+        }
+        g_interopMonitorRecord.clear();
+    } else {
+        for (auto iter = g_interopMonitorRecord.begin();
+             iter != g_interopMonitorRecord.end(); ++iter) {
+            ani_boolean isEqual = false;
+            env->Reference_StrictEquals(callback, iter->first, &isEqual);
+            if (isEqual) {
+                delegator->RemoveInteropAbilityMonitorSync(iter->second);
+                env->GlobalReference_Delete(iter->first);
+                g_interopMonitorRecord.erase(iter);
+                break;
+            }
+        }
     }
 }
 } // namespace AbilityDelegatorEts
