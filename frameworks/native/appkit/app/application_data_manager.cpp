@@ -15,8 +15,8 @@
 
 #include "application_data_manager.h"
 
-
-
+#include <dfx_signal_handler.h>
+#include <sys/xattr.h>
 #include "app_recovery.h"
 #include "hilog_tag_wrapper.h"
 #include "native_engine.h"
