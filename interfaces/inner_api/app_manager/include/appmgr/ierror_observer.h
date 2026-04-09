@@ -66,7 +66,6 @@ struct AppTelemetryObject {
     std::string runningId;
 };
 
-
 class IErrorObserver {
 public:
     IErrorObserver() = default;
