@@ -49,7 +49,8 @@ public:
 class AbilityRecord : public std::enable_shared_from_this<AbilityRecord> {
 public:
     AbilityRecord(const Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        const AppExecFwk::ApplicationInfo &applicationInfo, int32_t requestCode) {}
+        const AppExecFwk::ApplicationInfo &applicationInfo, int32_t requestCode)
+            : abilityInfo_(abilityInfo) {}
     virtual ~AbilityRecord() = default;
 
     virtual void Init(const AbilityRequest &abilityRequest);
