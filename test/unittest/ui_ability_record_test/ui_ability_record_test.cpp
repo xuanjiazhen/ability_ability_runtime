@@ -16,6 +16,7 @@
 #include <gtest/gtest.h>
 
 #include "ui_ability_record.h"
+#include "native_ability_util.h"
 
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
@@ -55,6 +56,205 @@ HWTEST_F(UIAbilityRecordTest, ScheduleCollaborate_0010, TestSize.Level2)
     abilityRecord->lifecycleDeal_ = lifecycleDeal;
     EXPECT_CALL(*lifecycleDeal, ScheduleCollaborate).Times(1);
     abilityRecord->ScheduleCollaborate(abilityRequest.want);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0100
+ * @tc.desc: No metadata, abilityNativeState should be NONE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    // No metadata configured, default state
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0200
+ * @tc.desc: withNativeModule=true, startupPhase=PRE_WINDOW, abilityNativeState should be INIT.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0200, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    AppExecFwk::Metadata metaWithNative;
+    metaWithNative.name = "ohos.ability.withNativeModule";
+    metaWithNative.value = "true";
+    abilityRequest.abilityInfo.metadata.push_back(metaWithNative);
+
+    AppExecFwk::Metadata metaSource;
+    metaSource.name = "ohos.ability.nativeModuleSource";
+    metaSource.value = "libtest.so";
+    abilityRequest.abilityInfo.metadata.push_back(metaSource);
+
+    AppExecFwk::Metadata metaFunc;
+    metaFunc.name = "ohos.ability.nativeModuleFun";
+    metaFunc.value = "OHMain";
+    abilityRequest.abilityInfo.metadata.push_back(metaFunc);
+
+    // startupPhase defaults to PRE_WINDOW when not specified
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0300
+ * @tc.desc: withNativeModule=true, startupPhase=PRE_FOREGROUND, abilityNativeState should be INIT.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0300, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+
+    AppExecFwk::Metadata metaWithNative;
+    metaWithNative.name = "ohos.ability.withNativeModule";
+    metaWithNative.value = "true";
+    abilityRequest.abilityInfo.metadata.push_back(metaWithNative);
+
+    AppExecFwk::Metadata metaPhase;
+    metaPhase.name = "ohos.ability.startupPhase";
+    metaPhase.value = "pre_foreground";
+    abilityRequest.abilityInfo.metadata.push_back(metaPhase);
+
+    AppExecFwk::Metadata metaSource;
+    metaSource.name = "ohos.ability.nativeModuleSource";
+    metaSource.value = "libtest.so";
+    abilityRequest.abilityInfo.metadata.push_back(metaSource);
+
+    AppExecFwk::Metadata metaFunc;
+    metaFunc.name = "ohos.ability.nativeModuleFun";
+    metaFunc.value = "OHMain";
+    abilityRequest.abilityInfo.metadata.push_back(metaFunc);
+
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0400
+ * @tc.desc: withNativeModule=true, startupPhase=FOREGROUND, abilityNativeState should be NORMAL.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0400, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+
+    AppExecFwk::Metadata metaWithNative;
+    metaWithNative.name = "ohos.ability.withNativeModule";
+    metaWithNative.value = "true";
+    abilityRequest.abilityInfo.metadata.push_back(metaWithNative);
+
+    AppExecFwk::Metadata metaPhase;
+    metaPhase.name = "ohos.ability.startupPhase";
+    metaPhase.value = "foreground";
+    abilityRequest.abilityInfo.metadata.push_back(metaPhase);
+
+    AppExecFwk::Metadata metaSource;
+    metaSource.name = "ohos.ability.nativeModuleSource";
+    metaSource.value = "libtest.so";
+    abilityRequest.abilityInfo.metadata.push_back(metaSource);
+
+    AppExecFwk::Metadata metaFunc;
+    metaFunc.name = "ohos.ability.nativeModuleFun";
+    metaFunc.value = "OHMain";
+    abilityRequest.abilityInfo.metadata.push_back(metaFunc);
+
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0500
+ * @tc.desc: withNativeModule=false (explicit), abilityNativeState should remain NONE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0500, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+
+    AppExecFwk::Metadata metaWithNative;
+    metaWithNative.name = "ohos.ability.withNativeModule";
+    metaWithNative.value = "false";
+    abilityRequest.abilityInfo.metadata.push_back(metaWithNative);
+
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+}
+
+/**
+ * @tc.name: CreateAbilityRecord_0600
+ * @tc.desc: withNativeModule=true but nativeModuleSource missing, InitData disables native module.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_0600, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+
+    AppExecFwk::Metadata metaWithNative;
+    metaWithNative.name = "ohos.ability.withNativeModule";
+    metaWithNative.value = "true";
+    abilityRequest.abilityInfo.metadata.push_back(metaWithNative);
+
+    // No nativeModuleSource metadata — InitData will set withNativeModule=false
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    // Source not specified, InitData disables native module
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+}
+
+/**
+ * @tc.name: SetNativeState_0100
+ * @tc.desc: Set and Get NativeState.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, SetNativeState_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    // Default is NONE
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+
+    // Set to INIT
+    abilityRecord->SetNativeState(AbilityNativeState::INIT);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
+
+    // Set to ATTACH
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACH);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ATTACH);
+
+    // Set to ON_CREATE
+    abilityRecord->SetNativeState(AbilityNativeState::ON_CREATE);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ON_CREATE);
+
+    // Set to ON_FOREGROUND
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ON_FOREGROUND);
+
+    // Set to NORMAL
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
+}
+
+/**
+ * @tc.name: GetAbilityRecordType_0100
+ * @tc.desc: Verify UIAbilityRecord returns UI_ABILITY type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, GetAbilityRecordType_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+    EXPECT_EQ(abilityRecord->GetAbilityRecordType(), AbilityRecordType::UI_ABILITY);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

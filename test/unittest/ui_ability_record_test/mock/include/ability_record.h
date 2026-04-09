@@ -19,16 +19,12 @@
 #include <atomic>
 #include <memory>
 #include <mutex>
-#include <string>
 #include <gmock/gmock.h>
 
+#include "ability_info.h"
+#include "ability_state.h"
+
 namespace OHOS {
-namespace AppExecFwk {
-struct ApplicationInfo {};
-struct AbilityInfo {
-    ApplicationInfo applicationInfo;
-};
-}
 namespace AAFwk {
 enum class AbilityRecordType {
     BASE_ABILITY,
@@ -64,7 +60,9 @@ protected:
     std::atomic_bool isLastWantBackgroundDriven_ = false;
     std::mutex collaborateWantLock_;
     std::shared_ptr<LifecycleDeal> lifecycleDeal_;
+
+    AppExecFwk::AbilityInfo abilityInfo_;
 };
-} // namespace OHOS
 } // namespace AAFwk
+} // namespace OHOS
 #endif
