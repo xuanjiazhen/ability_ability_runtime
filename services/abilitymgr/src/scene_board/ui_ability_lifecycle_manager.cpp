@@ -561,13 +561,13 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
         abilityRecord->ReportAbilityConnectionRelations();
     }
 
-    auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetEventHandler();
-    CHECK_POINTER_AND_RETURN_LOG(handler, ERR_INVALID_VALUE, "Fail to get AbilityEventHandler.");
     abilityRecord->RemoveLoadTimeoutTask();
     abilityRecord->SetLoading(false);
     FreezeUtil::GetInstance().DeleteLifecycleEvent(token);
 
     abilityRecord->SetScheduler(scheduler);
+    // Check if this is a NativeModule and set native state
+    abilityRecord->AttachNative();
     if (processAttachResult != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "process attachment failed, close ability");
         TerminateSession(abilityRecord);
@@ -588,11 +588,6 @@ int UIAbilityLifecycleManager::AttachAbilityThread(const sptr<IAbilityScheduler>
     }
     if (abilityRecord->IsNeedToCallRequest()) {
         abilityRecord->CallRequest();
-    }
-
-    // Check if this is a NativeModule and set native state
-    if (abilityRecord->GetNativeState() == AbilityNativeState::INIT) {
-       abilityRecord->SetNativeState(AbilityNativeState::ATTACH);
     }
 
     abilityRecord->PostForegroundTimeoutTask();
