@@ -7325,10 +7325,6 @@ void AbilityManagerService::DumpSysInner(
     DumpSysStateInner(args, info, isClient, isUserID, userId);
     DumpSysPendingInner(args, info, isClient, isUserID, userId);
     DumpSysProcess(args, info, isClient, isUserID, userId);
-    auto timeoutMonitor = DelayedSingleton<AAFwk::ExtensionRunningTimeoutMonitor>::GetInstance();
-    if (timeoutMonitor != nullptr) {
-        timeoutMonitor->Dump(info);
-    }
 }
 
 void AbilityManagerService::DumpSysMissionListInner(
