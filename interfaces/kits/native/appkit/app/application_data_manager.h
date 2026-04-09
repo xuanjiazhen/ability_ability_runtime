@@ -30,6 +30,7 @@ typedef void (*EtsErrorCallback)(const AppExecFwk::ErrorObject &errorObj);
 class ApplicationDataManager {
 using LeakObserverFunction = std::function<bool(const LeakObject &obj)>;
 using HasOnErrorCallback = std::function<bool()>;
+using ResourceOverlimitCB = std::function<void(const AppTelemetryObject& atObj)>;
 public:
     struct ExceptionParams {
         napi_env env;
@@ -55,6 +56,8 @@ public:
     static bool NotifyUncaughtException(const ExceptionParams &params, const AppExecFwk::ErrorObject &errorObj);
     bool NotifyLeakObject(const LeakObject &leakObj);
     void SetLeakObserver(LeakObserverFunction leakCallback);
+    bool RegisterResourceObserver(uint64_t appTelemetryLeakType, ResourceOverlimitCB cb);
+    void NotifyAppTelemetry(AppTelemetryLeakType atLeakType);
 
     void SetErrorHandlerCallback(EtsErrorCallback errorCallback);
     bool NotifyETSErrorObject(const AppExecFwk::ErrorObject &errorObj);
@@ -65,6 +68,7 @@ private:
     ~ApplicationDataManager();
     static std::string GetFuncNameFromError(napi_env env, napi_value error);
     DISALLOW_COPY_AND_MOVE(ApplicationDataManager);
+    bool WriteSandBoxXattr(uint64_t appTelemetryLeakType);
     std::shared_ptr<IErrorObserver> errorObserver_;
     std::atomic_bool isUncatchable_;
     LeakObserverFunction leakObserver_ = nullptr;
@@ -72,6 +76,8 @@ private:
     std::mutex hasOnErrorCallbackMutex_;
     EtsErrorCallback errorCallback_ = nullptr;
     HasOnErrorCallback hasOnErrorCallback_ = nullptr;
+    ResourceOverlimitCB resourceOverlimitCB_ = nullptr;
+    std::mutex resourceMutex_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

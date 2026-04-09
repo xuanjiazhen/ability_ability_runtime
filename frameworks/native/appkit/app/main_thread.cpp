@@ -3806,25 +3806,28 @@ int32_t MainThread::ScheduleNotifyAppFault(const FaultData &faultData)
 
 void MainThread::NotifyAppFault(const FaultData &faultData)
 {
-    if (faultData.notifyApp) {
-        ErrorObject faultErrorObj = {
-            .name = faultData.errorObject.name,
-            .message = faultData.errorObject.message,
-            .stack = faultData.errorObject.stack
-        };
-
+    if (!faultData.notifyApp) {
+        return;
+    }
+    if (faultData.faultType == FaultDataType::APP_TELEMETRY) {
+        ApplicationDataManager::GetInstance().NotifyAppTelemetry(faultData.atLeakType);
+        return;
+    }
+    if (faultData.faultType == FaultDataType::RESOURCE_CONTROL) {
         LeakObject leakObj = {
             .leakType = faultData.leakObject.leakType,
             .leakSize = faultData.leakObject.leakSize,
             .detailInfo = faultData.leakObject.detailInfo,
         };
-
-        if (faultData.faultType == FaultDataType::RESOURCE_CONTROL) {
-            ApplicationDataManager::GetInstance().NotifyLeakObject(leakObj);
-        } else {
-            ApplicationDataManager::GetInstance().NotifyExceptionObject(faultErrorObj);
-        }
+        ApplicationDataManager::GetInstance().NotifyLeakObject(leakObj);
+        return;
     }
+    ErrorObject faultErrorObj = {
+        .name = faultData.errorObject.name,
+        .message = faultData.errorObject.message,
+        .stack = faultData.errorObject.stack
+    };
+    ApplicationDataManager::GetInstance().NotifyExceptionObject(faultErrorObj);
 }
 
 void MainThread::LoadExtensionBlockList(const std::shared_ptr<AbilityLocalRecord> &abilityRecord)

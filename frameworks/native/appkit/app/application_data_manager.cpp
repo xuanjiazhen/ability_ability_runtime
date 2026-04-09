@@ -15,6 +15,8 @@
 
 #include "application_data_manager.h"
 
+#include <dfx_signal_handler.h>
+#include <sys/xattr.h>
 #include "app_recovery.h"
 #include "hilog_tag_wrapper.h"
 #include "native_engine.h"
@@ -25,6 +27,8 @@ namespace {
     constexpr size_t STACK_MAX_SZIE = 1024;
     constexpr size_t AT_SKIP_SZIE = 3;
     constexpr const char* TASK_POOL_THREAD = "Taskpool Thread";
+    constexpr const char *RSRC_OBSV_PATH = "/data/storage/el2/base/cache/rawheap";
+    constexpr const char *RSRC_OBSV_XATTR = "user.resource_observer";
     enum class InstanceType {
         DEFAULT_TYPE = -1,
         WORKER_THREAD_TYPE = 1,
@@ -270,6 +274,44 @@ bool ApplicationDataManager::GetHasOnErrorCallback()
         return hasOnErrorCallback_();
     }
     return false;
+}
+
+bool ApplicationDataManager::RegisterResourceObserver(uint64_t appTelemetryLeakType, ResourceOverlimitCB cb)
+{
+    std::lock_guard<std::mutex> lock(resourceMutex_);
+    if (cb == nullptr || appTelemetryLeakType == 0) {
+        cb = nullptr;
+        appTelemetryLeakType = 0;
+        TAG_LOGI(AAFwkTag::APPKIT, "will unregister");
+    }
+ 
+    resourceOverlimitCB_ = cb;
+    bool ret = WriteSandBoxXattr(appTelemetryLeakType);
+    TAG_LOGI(AAFwkTag::APPKIT, "result: %{public}d", ret);
+    return ret;
+}
+ 
+bool ApplicationDataManager::WriteSandBoxXattr(uint64_t appTelemetryLeakType)
+{
+    std::string xattrValue = DFX_GetAppRunningUniqueId();
+    xattrValue += "," + std::to_string(appTelemetryLeakType);
+    TAG_LOGI(AAFwkTag::APPKIT, "xattrValue: %{public}s", xattrValue.c_str());
+    return setxattr(RSRC_OBSV_PATH, RSRC_OBSV_XATTR, xattrValue.c_str(), strlen(xattrValue.c_str()), 0) == 0;
+}
+ 
+void ApplicationDataManager::NotifyAppTelemetry(AppTelemetryLeakType atLeakType)
+{
+    std::lock_guard<std::mutex> lock(resourceMutex_);
+    if (resourceOverlimitCB_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "resourceOverlimitCB_ is nullptr");
+        return;
+    }
+    AppTelemetryObject atObj {
+        .atLeakType = atLeakType,
+        .runningId = DFX_GetAppRunningUniqueId(),
+    };
+    TAG_LOGI(AAFwkTag::APPKIT, "start callback resource overlimit");
+    resourceOverlimitCB_(atObj);
 }
 
 }  // namespace AppExecFwk
