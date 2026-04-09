@@ -334,6 +334,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObse
  
     GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_002 end";
 }
+
 /**
 * @tc.number: ApplicationDataManager_RegisterResourceObserver_003
 * @tc.name: ApplicationDataManager RegisterResourceObserver Unregister ZeroType
