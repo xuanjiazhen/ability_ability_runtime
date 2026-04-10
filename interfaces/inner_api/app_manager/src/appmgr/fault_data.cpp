@@ -142,7 +142,9 @@ bool FaultData::ReadLeakContent(Parcel &parcel)
         return false;
     }
 
-
+    uint64_t atltValue = 0;
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(atltValue), "atLeakType read uint64 failed.");
+    atLeakType = static_cast<AppTelemetryLeakType>(atltValue);
 
     return true;
 }
