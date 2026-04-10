@@ -60,7 +60,7 @@ void UpdateCallerInfoUtil::UpdateByIndirectCallerInfo(std::shared_ptr<IndirectCa
     int32_t &tokenId, int32_t &callerUid, int32_t &callerPid)
 {
     if (indirectCallerInfo != nullptr) {
-        tokenId = indirectCallerInfo->tokenId;
+        tokenId = static_cast<int32_t>(indirectCallerInfo->tokenId);
         callerUid = indirectCallerInfo->callerUid;
         callerPid = indirectCallerInfo->callerPid;
     }
