@@ -4076,8 +4076,61 @@ int AbilityManagerService::RequestModalUIExtension(const Want &want)
 
 int AbilityManagerService::RequestModalUIExtensionInner(Want want)
 {
+    // 获取调用者的 userId
+    int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+
+    // 从 want 参数中读取 accountId（如果存在）
+    // accountId 表示要为哪个用户创建模态弹窗（可能由调用者如窗口系统设置）
+    int32_t targetUserId = DEFAULT_INVAL_VALUE;
+    bool hasAccountId = want.HasParameter("ohos.params.accountId");
+    if (hasAccountId) {
+        targetUserId = want.GetIntParam("ohos.params.accountId", DEFAULT_INVAL_VALUE);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "RequestModalUIExtensionInner, got accountId=%{public}d from want", targetUserId);
+    }
+
+    // 权限校验：
+    // 如果 want 中存在 accountId，说明可能存在跨用户场景，需要权限校验
+    // 使用 VerifyAccountPermission 进行判断：
+    // 1. 原始 callerUser 是 U0/U1 → 放行
+    // 2. 原始 callerUser == targetUserId → 放行（同用户）
+    // 3. 否则检查跨用户权限
+    if (hasAccountId) {
+        auto permissionResult = VerifyAccountPermission(targetUserId);
+        if (permissionResult != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "RequestModalUIExtensionInner: permission verification failed, targetUserId=%{public}d",
+                targetUserId);
+            return ERR_INVALID_VALUE;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "RequestModalUIExtensionInner: permission check passed for targetUserId=%{public}d",
+            targetUserId);
+    }
+
+    // 在车机多前台场景下，根据 accountId 获取对应的 displayId
+    // 只有当 want 中有 accountId 时，才需要根据 accountId 查找 displayId
+    uint64_t displayId = 0;
+    bool foundDisplay = false;
+
+    if (hasAccountId && targetUserId != U0_USER_ID && targetUserId != U1_USER_ID) {
+        // 窗口系统代理调用场景：根据 accountId 查找对应的 displayId
+        foundDisplay = AbilityRuntime::UserController::GetInstance().GetDisplayIdByForegroundUserId(targetUserId, displayId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "RequestModalUIExtensionInner, accountId=%{public}d -> displayId=%{public}llu, found=%{public}d",
+            targetUserId, displayId, foundDisplay);
+    }
+
     sptr<IRemoteObject> token = nullptr;
-    int ret = IN_PROCESS_CALL(GetTopAbility(token));
+    int ret = ERR_OK;
+    if (foundDisplay && diGetTopAbilityInnersplayId != 0) {
+        // 车机多前台场景：使用 displayId 获取对应 Display 上获焦的应用
+        ret = (token, displayId);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "RequestModalUIExtensionInner, GetTopAbilityInner by displayId=%{public}llu, ret=%{public}d",
+            displayId, ret);
+    } else {
+        // 正常场景或 U0/U1：使用默认的 GetTopAbility
+        ret = IN_PROCESS_CALL(GetTopAbility(token));
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "RequestModalUIExtensionInner, GetTopAbility (default), ret=%{public}d", ret);
+    }
+
     if (ret == ERR_OK && token != nullptr) {
         // Gets the record corresponding to the current focus appliaction
         auto record = Token::GetAbilityRecordByToken(token);
@@ -4102,6 +4155,8 @@ int AbilityManagerService::RequestModalUIExtensionInner(Want want)
         if (record->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE &&
             focusName == callerName) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "CreateModalUIExtension is called!");
+            // record->CreateModalUIExtension 不需要传递 userId
+            // 它内部已有 userId 上下文
             return record->CreateModalUIExtension(want);
         }
     } else {
@@ -4111,7 +4166,15 @@ int AbilityManagerService::RequestModalUIExtensionInner(Want want)
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Window Modal System Create UIExtension is called!");
     want.SetParam(UIEXTENSION_MODAL_TYPE, 1);
     auto connection = std::make_shared<Rosen::ModalSystemUiExtension>();
-    return connection->CreateModalUIExtension(want) ? ERR_OK : INNER_ERR;
+
+    // Rosen 侧提供了新的重载函数，接受 userId 参数用于 SCB 实例选择
+    // 在车机多前台场景下，不同 Display 对应不同用户的 SCB 实例
+    // userId 参数用于确保系统弹窗在正确的 SCB 实例中启动
+    // 根据 hasAccountId 决定使用的 userId：有 accountId 用 targetUserId，否则用 callerUserId
+    int32_t finalUserId = hasAccountId ? targetUserId : callerUserId;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Rosen::CreateModalUIExtension with userId=%{public}d for SCB instance selection, hasAccountId=%{public}d",
+        finalUserId, hasAccountId);
+    return connection->CreateModalUIExtension(want, finalUserId) ? ERR_OK : INNER_ERR;
 }
 
 int AbilityManagerService::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
@@ -4556,9 +4619,9 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
 
     sptr<IRemoteObject> callerToken = extensionSessionInfo->callerToken;
 
-    if (!DlpUtils::AccessCheck(callerToken, extensionSessionInfo->want) ||
-        VerifyAccountPermission(userId) == CHECK_PERMISSION_FAILED) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "startUIExtensionAbility: permission verification failed");
+    // DLP 检查不豁免（跨用户权限检查已在 RequestModalUIExtension 中完成）
+    if (!DlpUtils::AccessCheck(callerToken, extensionSessionInfo->want)) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "startUIExtensionAbility: DLP permission verification failed");
         return CHECK_PERMISSION_FAILED;
     }
 
@@ -4590,8 +4653,20 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         return result;
     }
 
-    int32_t validUserId = GetValidUserId(userId);
-    if (!JudgeMultiUserConcurrency(validUserId)) {
+    // accountId 替代 userId 逻辑
+    int32_t targetUserId;
+    if (extensionSessionInfo->want.HasParameter("ohos.params.accountId")) {
+        // accountId 存在：这是透传的原始调用者上下文，替代 userId 参数
+        targetUserId = extensionSessionInfo->want.GetIntParam("ohos.params.accountId", DEFAULT_INVAL_VALUE);
+        TAG_LOGI(AAFwkTag::UI_EXT, "Use accountId (original caller context): %{public}d, replacing userId param: %{public}d",
+            targetUserId, userId);
+    } else {
+        // accountId 不存在：使用原有逻辑
+        targetUserId = GetValidUserId(userId);
+        TAG_LOGI(AAFwkTag::UI_EXT, "No accountId, use GetValidUserId: %{public}d", targetUserId);
+    }
+
+    if (!JudgeMultiUserConcurrency(targetUserId)) {
         TAG_LOGE(AAFwkTag::UI_EXT, "multi-user non-concurrent unsatisfied");
         eventInfo.errReason = "multi-user non-concurrent unsatisfied";
         SendExtensionReport(eventInfo, ERR_CROSS_USER);
@@ -4610,7 +4685,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     if (AbilityRuntime::StartupUtil::IsStartPlugin(extensionSessionInfo->want)) {
         abilityRequest.isTargetPlugin = true;
     }
-    result = GenerateEmbeddableUIAbilityRequest(extensionSessionInfo->want, abilityRequest, callerToken, validUserId);
+    result = GenerateEmbeddableUIAbilityRequest(extensionSessionInfo->want, abilityRequest, callerToken, targetUserId);
     CHECK_POINTER_AND_RETURN(abilityRequest.sessionInfo, ERR_INVALID_VALUE);
     abilityRequest.sessionInfo->uiExtensionComponentId = (
         static_cast<uint64_t>(callerRecord->GetRecordId()) << OFFSET) |
@@ -4635,15 +4710,20 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         abilityRequest.moduleProcess = hapModuleInfo.process;
     }
 
-    abilityRequest.userId = validUserId;
+    abilityRequest.userId = targetUserId;
     if (!HandleExecuteSAInterceptor(extensionSessionInfo->want, callerToken, abilityRequest, result)) {
         return result;
     }
     auto abilityInfo = abilityRequest.abilityInfo;
     threadLocalInfo.SetStartAbilityInfo(abilityInfo);
-    validUserId = abilityInfo.applicationInfo.singleton ? U0_USER_ID : validUserId;
+    // singleton 应用特殊处理
+    int32_t finalUserId = targetUserId;
+    if (abilityInfo.applicationInfo.singleton) {
+        finalUserId = U0_USER_ID;
+        TAG_LOGD(AAFwkTag::UI_EXT, "Singleton app, use U0_USER_ID instead of targetUserId=%{public}d", targetUserId);
+    }
     TAG_LOGD(AAFwkTag::UI_EXT, "userId is : %{public}d, singleton is : %{public}d",
-        validUserId, static_cast<int>(abilityInfo.applicationInfo.singleton));
+        finalUserId, static_cast<int>(abilityInfo.applicationInfo.singleton));
 
     result = ProcessUdmfKey(extensionSessionInfo->want, abilityInfo.applicationInfo.accessTokenId, extensionType);
     if (result != ERR_OK) {
@@ -4651,7 +4731,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         return result;
     }
 
-    result = CheckOptExtensionAbility(extensionSessionInfo->want, abilityRequest, validUserId, extensionType);
+    result = CheckOptExtensionAbility(extensionSessionInfo->want, abilityRequest, finalUserId, extensionType);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "checkOptExtensionAbility error");
         eventInfo.errReason = "checkOptExtensionAbility error";
@@ -4670,7 +4750,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         return result;
     }
 
-    AbilityInterceptorParam afterCheckParam = AbilityInterceptorParam(abilityRequest.want, 0, validUserId,
+    AbilityInterceptorParam afterCheckParam = AbilityInterceptorParam(abilityRequest.want, 0, finalUserId,
         true, callerToken, std::make_shared<AppExecFwk::AbilityInfo>(abilityInfo));
     result = afterCheckExecuter_ == nullptr ? ERR_INVALID_VALUE :
         afterCheckExecuter_->DoProcess(afterCheckParam);
@@ -4681,9 +4761,9 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
         return result;
     }
 
-    auto connectManager = GetUIExtensionAbilityManagerByUserId(validUserId);
+    auto connectManager = GetUIExtensionAbilityManagerByUserId(finalUserId);
     if (!connectManager) {
-        TAG_LOGE(AAFwkTag::UI_EXT, "connectManager null userId=%{public}d", validUserId);
+        TAG_LOGE(AAFwkTag::UI_EXT, "connectManager null userId=%{public}d", finalUserId);
         eventInfo.errReason = "get connectManager by userId failed";
         SendExtensionReport(eventInfo, CONNECT_MAMAGER_NOT_FIND_BY_USERID);
         return ERR_INVALID_VALUE;
@@ -12447,7 +12527,25 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
     auto sessionInfo = abilityRequest.sessionInfo;
     CHECK_POINTER_AND_RETURN(sessionInfo, false);
     auto hostWindowId = sessionInfo->hostWindowId;
-    auto callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+
+    // 区分跨用户场景和正常场景
+    bool isCrossUserScene = abilityRequest.want.HasParameter("ohos.params.accountId");
+    int32_t callerUserId;
+
+    if (isCrossUserScene) {
+        // 跨用户场景（车机多前台）：使用 accountId 所在用户的 SCB
+        // 场景：用户A应用(userId=100) → 窗口系统(U0) → StartUIExtensionAbility
+        // 需要在用户100的 SCB 实例中进行校验和创建弹窗
+        callerUserId = abilityRequest.want.GetIntParam("ohos.params.accountId", validUserId);
+        TAG_LOGI(AAFwkTag::UI_EXT, "Cross-user scene: use accountId=%{public}d for SCB selection", callerUserId);
+    } else {
+        // 正常场景：使用 IPC caller 的 SCB（原设计）
+        // 场景：用户A应用 → 直接调用 StartUIExtensionAbility
+        // 在调用者所在用户的 SCB 中进行校验
+        callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+        TAG_LOGD(AAFwkTag::UI_EXT, "Normal scene: use IPC caller userId=%{public}d for SCB selection", callerUserId);
+    }
+
     auto sceneSessionManager = Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(callerUserId);
     CHECK_POINTER_AND_RETURN(sceneSessionManager, false);
     pid_t hostPid = 0;
@@ -12473,17 +12571,32 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
     if (callerAbility->IsSceneBoard()) {
         return true;
     }
-    if (hostPid != 0 && callerAbility->GetPid() == hostPid) {
+
+    // 在跨用户场景下，IPC caller 可能是窗口系统（代理调用）
+    // 需要使用 Want 中保存的原始调用者的 PID 进行比较
+    pid_t callerPid = callerAbility->GetPid();
+    if (isCrossUserScene) {
+        // 跨用户场景：从 Want 中获取原始调用者的 PID
+        callerPid = abilityRequest.want.GetIntParam(AAFwk::Want::PARAM_RESV_CALLER_PID, -1);
+        TAG_LOGD(AAFwkTag::UI_EXT, "Cross-user scene: use original caller PID=%{public}d from Want, IPC caller PID=%{public}d",
+            callerPid, callerAbility->GetPid());
+    }
+
+    if (hostPid != 0 && callerPid == hostPid) {
         return true;
     }
 
     if (UIExtensionWrapper::IsUIExtension(callerAbility->GetAbilityInfo().extensionAbilityType)) {
         TAG_LOGD(AAFwkTag::UI_EXT, "caller is nested uiextability");
-        if (validUserId == U0_USER_ID || validUserId == U1_USER_ID) {
-            validUserId =
+        // 嵌套 UIExtension 场景下，使用 validUserId 进行后续处理
+        // 注意：这里使用的是传入的 validUserId，而不是 callerUserId
+        // 因为后续需要获取对应 UIExtensionAbilityManager
+        int32_t targetUserId = validUserId;
+        if (targetUserId == U0_USER_ID || targetUserId == U1_USER_ID) {
+            targetUserId =
                 AbilityRuntime::UserController::GetInstance().GetForegroundUserId(ServerConstant::DEFAULT_DISPLAY_ID);
         }
-        auto connectManager = GetUIExtensionAbilityManagerByUserId(validUserId);
+        auto connectManager = GetUIExtensionAbilityManagerByUserId(targetUserId);
 
         CHECK_POINTER_AND_RETURN(connectManager, false);
         bool matched = false;
@@ -14277,10 +14390,18 @@ void AbilityManagerService::RemoveLauncherDeathRecipient(int32_t userId)
 int32_t AbilityManagerService::GenerateEmbeddableUIAbilityRequest(
     const Want &want, AbilityRequest &request, const sptr<IRemoteObject> &callerToken, int32_t userId)
 {
+    // accountId 替代 userId
+    int32_t targetUserId = userId;
+    if (want.HasParameter("ohos.params.accountId")) {
+        targetUserId = want.GetIntParam("ohos.params.accountId", userId);
+        TAG_LOGD(AAFwkTag::UI_EXT, "GenerateEmbeddableUIAbilityRequest: use accountId=%{public}d instead of userId=%{public}d",
+            targetUserId, userId);
+    }
+
     int32_t screenMode = want.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
     int32_t result = ERR_OK;
     if (IsEmbeddableStart(screenMode)) {
-        result = GenerateAbilityRequest(want, -1, request, callerToken, userId);
+        result = GenerateAbilityRequest(want, -1, request, callerToken, targetUserId);
         request.abilityInfo.isModuleJson = true;
         request.abilityInfo.isStageBasedModel = true;
         request.abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
@@ -14290,7 +14411,7 @@ int32_t AbilityManagerService::GenerateEmbeddableUIAbilityRequest(
         int64_t times = static_cast<int64_t>(time.tv_sec);
         request.abilityInfo.process = request.abilityInfo.bundleName + PROCESS_SUFFIX + std::to_string(times);
     } else {
-        result = GenerateExtensionAbilityRequest(want, request, callerToken, userId);
+        result = GenerateExtensionAbilityRequest(want, request, callerToken, targetUserId);
     }
     return result;
 }
