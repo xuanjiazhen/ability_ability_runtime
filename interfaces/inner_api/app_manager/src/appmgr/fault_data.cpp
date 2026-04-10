@@ -204,8 +204,10 @@ bool FaultData::WriteLeakContent(Parcel &parcel) const
         "CallbackLog [%{public}s] write int32 failed.", callbackLog.c_str()
     );
 
-
-
+    uint64_t atltValue = static_cast<uint64_t>(atLeakType);
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(atltValue),
+        "LeakDetailInfo atltValue [%{public}" PRIu64 "] write uint64 failed.", atltValue
+    );
     return true;
 }
 
@@ -446,8 +448,8 @@ bool AppFaultDataBySA::ReadLeakContent(Parcel &parcel)
     RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(sizeValue), "LeakDetailInfo otherSize read uint64 failed.");
     leakObject.detailInfo.otherSize = sizeValue;
 
-
-
+    RETURN_FALSE_AND_WRITE_LOG_IF_TRUE(!parcel.ReadUint64(sizeValue), "LeakDetailInfo otherSize read uint64 failed.");
+    atLeakType = static_cast<AppTelemetryLeakType>(sizeValue);
 
     return true;
 }
