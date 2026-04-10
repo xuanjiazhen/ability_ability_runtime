@@ -240,5 +240,37 @@ bool ApplicationDataManager::NotifyUncaughtException(const ExceptionParams &para
     }
     return false;
 }
+
+bool ApplicationDataManager::NotifyLeakObject(const LeakObject &leakObj)
+{
+    std::lock_guard<std::mutex> lock(leakObserverMutex_);
+    if (leakObserver_) {
+        return leakObserver_(leakObj);
+    }
+    return false;
+}
+
+void ApplicationDataManager::SetLeakObserver(LeakObserverFunction leakCallback)
+{
+    std::lock_guard<std::mutex> lock(leakObserverMutex_);
+    leakObserver_ = leakCallback;
+}
+
+void ApplicationDataManager::RegisterHasOnErrorCallback(HasOnErrorCallback hasOnErrorCallback)
+{
+    std::lock_guard<std::mutex> lock(hasOnErrorCallbackMutex_);
+    hasOnErrorCallback_ = hasOnErrorCallback;
+}
+
+
+bool ApplicationDataManager::GetHasOnErrorCallback()
+{
+    std::lock_guard<std::mutex> lock(hasOnErrorCallbackMutex_);
+    if (hasOnErrorCallback_) {
+        return hasOnErrorCallback_();
+    }
+    return false;
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

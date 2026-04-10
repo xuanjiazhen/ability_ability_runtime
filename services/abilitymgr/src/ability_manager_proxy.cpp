@@ -371,6 +371,50 @@ int32_t AbilityManagerProxy::StartAbilityByInsightIntent(const Want &want, const
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::StartAbilityByOEExt(const Want &want,
+    sptr<IRemoteObject> callerToken, int32_t hostPid, const std::string &specifiedFlag)
+{
+    MessageParcel data;
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid callertoken");
+        return INVALID_CALLER_TOKEN;
+    }
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteParcelable(&want)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteBool(true) || !data.WriteRemoteObject(callerToken)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken write fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteInt32(hostPid)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "hostPid write fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString(specifiedFlag)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag write fail");
+        return INNER_ERR;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::START_ABILITY_BY_OE_EXT, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SendRequest error: %{public}d", error);
+        return error;
+    }
+    return reply.ReadInt32();
+}
+
 int AbilityManagerProxy::StartAbility(const Want &want, const StartOptions &startOptions,
     const sptr<IRemoteObject> &callerToken, int32_t userId, int requestCode)
 {
@@ -652,6 +696,29 @@ ErrCode AbilityManagerProxy::StartUIAbilities(const std::vector<AAFwk::Want> &wa
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
         return error;
     }
+    return reply.ReadInt32();
+}
+
+ErrCode AbilityManagerProxy::RecordAppWithReasonByUserId(int32_t userId, const ExitReasonCompability &exitReason)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return ERR_WRITE_INTERFACE_TOKEN_FAILED;
+    }
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Int32, userId);
+    PROXY_WRITE_PARCEL_AND_RETURN_IF_FAIL(data, Parcelable, &exitReason);
+
+    int32_t error = SendRequest(AbilityManagerInterfaceCode::RECORD_APP_WITH_REASON_BY_USERID, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request err:%{public}d", error);
+        return error;
+    }
+
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "end.");
     return reply.ReadInt32();
 }
 
@@ -2575,6 +2642,37 @@ int AbilityManagerProxy::GetPendingRequestWant(const sptr<IWantSender> &target, 
         return INNER_ERR;
     }
     auto error = SendRequest(AbilityManagerInterfaceCode::GET_PENDING_REQUEST_WANT, data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "request error:%{public}d", error);
+        return error;
+    }
+    std::unique_ptr<Want> wantInfo(reply.ReadParcelable<Want>());
+    if (!wantInfo) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "readParcelableInfo fail");
+        return INNER_ERR;
+    }
+    want = std::move(wantInfo);
+
+    return NO_ERROR;
+}
+
+int AbilityManagerProxy::GetPendingRequestWantFromProxy(const sptr<IWantSender> &target, std::shared_ptr<Want> &want)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+    if (target == nullptr || !data.WriteRemoteObject(target->AsObject())) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "target write fail");
+        return INNER_ERR;
+    }
+    if (want == nullptr || !data.WriteParcelable(want.get())) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "want write fail");
+        return INNER_ERR;
+    }
+    auto error = SendRequest(AbilityManagerInterfaceCode::GET_PENDING_REQUEST_WANT_FROM_PROXY, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "request error:%{public}d", error);
         return error;
@@ -4823,7 +4921,7 @@ int32_t AbilityManagerProxy::KillAppWithReason(const int32_t pid, const ExitReas
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start.");
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
+    MessageOption option;
 
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
@@ -4848,7 +4946,7 @@ int32_t AbilityManagerProxy::KillBundleWithReason(
     TAG_LOGD(AAFwkTag::ABILITYMGR, "start.");
     MessageParcel data;
     MessageParcel reply;
-    MessageOption option(MessageOption::TF_ASYNC);
+    MessageOption option;
 
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
@@ -7649,6 +7747,37 @@ int32_t AbilityManagerProxy::UnRegisterPreloadUIExtensionHostClient(int32_t call
     }
     int32_t result = reply.ReadInt32();
     return result;
+}
+
+int32_t AbilityManagerProxy::QuerySelfModularObjectExtensionInfos(
+    std::vector<ModularObjectExtensionInfo> &extensionInfos)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    if (!WriteInterfaceToken(data)) {
+        return INNER_ERR;
+    }
+
+    auto error = SendRequest(AbilityManagerInterfaceCode::QUERY_SELF_MODULAR_OBJECT_EXTENSION_INFOS,
+        data, reply, option);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
+        return error;
+    }
+
+    error = reply.ReadInt32();
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "query failed");
+        return error;
+    }
+    error = GetParcelableInfos<ModularObjectExtensionInfo>(reply, extensionInfos);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "getParcelableInfos fail, error:%{public}d", error);
+        return error;
+    }
+    return NO_ERROR;
 }
 
 int32_t AbilityManagerProxy::GetUserLockedBundleList(int32_t userId,

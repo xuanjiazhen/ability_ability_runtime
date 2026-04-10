@@ -221,6 +221,15 @@ enum class AbilityErrorCode {
     // Maximum connections from the same caller have been reached.
     ERROR_CODE_MAX_CONNECTIONS_REACHED = 35600003,
 
+    // The specified agent card version is older than the existing version.
+    ERROR_CODE_AGENT_CARD_VERSION_TOO_OLD = 35600004,
+
+    // The specified agent card version is invalid.
+    ERROR_CODE_AGENT_CARD_VERSION_INVALID = 35600005,
+
+    // The specified agent card has already been registered.
+    ERROR_CODE_AGENT_CARD_DUPLICATE_REGISTER = 35600006,
+
     // invalid caller.
     ERROR_CODE_INVALID_CALLER = 16200001,
 
@@ -302,6 +311,8 @@ enum class AbilityErrorCode {
     ERROR_CODE_MAIN_WINDOW_NOT_EXIST = 16000135,
 
     ERROR_CODE_SELF_REDIRECTION_DISALLOWED = 16000136,
+
+    ERROR_CODE_SEND_REQUEST_TO_SYSTEM_FAIL = 16000150,
 
     // target bundle is not in u1
     ERROR_CODE_NO_U1 = 16000204,
