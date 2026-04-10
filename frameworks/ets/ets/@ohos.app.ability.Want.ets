@@ -43,7 +43,7 @@ class RecordWriter {
   private buffer = new StringBuilder();
   private store = new Set<Object>();
   private wantParams: NativeWantParams | null = null;
-  private static readonly GETTER_PREFIX = '<get>'
+  private static readonly GETTER_PREFIX = '%%get-'
 
   private static asFixedArray<E>(obj: object): FixedArray<E> {
     return obj as FixedArray<E>
@@ -696,47 +696,37 @@ class RecordWriter {
     return fields.findIndex((writableField) => writableField[0]  == fieldName);
   }
 
-  private addWritableProperty(cls: Class, obj: object, propName: string, writableFields: Array<[string, Any]>): void {
-      const getterName = RecordWriter.GETTER_PREFIX + propName
-      const getter = cls.getInstanceMethod(getterName)
-      if (getter === undefined) {
-          return
-      }
-
-      const propVal = getter.invoke(obj)
-
-      const propNameValuePair: [string, Any] = [propName, propVal]
-      writableFields.push(propNameValuePair)
-  }
-
   private addWritableProperties(cls: Class, obj: object, writableFields: Array<[string, Any]>): void {
-      for (const method of cls.getInstanceMethods()) {
+      for (const method of reflect.getInstanceGettersRecursive(cls)) {
           const methodName = method.getName()
           if (methodName.startsWith(RecordWriter.GETTER_PREFIX)) {
               const propName = methodName.substring(RecordWriter.GETTER_PREFIX.length)
               const propValue = method.invoke(obj)
               const fieldNameValuePair: [string, Any] = [propName, propValue]
-              writableFields.push(fieldNameValuePair)
+              const index: int = this.findKeyIndex(propName, writableFields).toInt();
+              if (index == -1) {
+                writableFields.push(fieldNameValuePair)
+              } else {
+                writableFields[index] = fieldNameValuePair;
+              }
           }
       }
   }
 
   private getWritableFields(cls: Class, obj: object): Array<[string, Any]> {
     const writableFields = new Array<[string, Any]>();
-    let fieldRename : string | undefined = undefined;
 
-    for (const field of cls.getInstanceFields()) {
+    for (const field of reflect.getInstanceFieldsRecursive(cls)) {
       const index: int = this.findKeyIndex(field.getName(), writableFields).toInt();
       const fieldNameValuePair: [string, Any] = [field.getName(), field.getValue(obj)];
-      if (fieldRename != undefined || index == -1) {
+      if (index == -1) {
         writableFields.push(fieldNameValuePair);
       } else {
         writableFields[index] = fieldNameValuePair;
       }
-      if (reflect.isLiteralInitializedInterface(obj)) {
-        this.addWritableProperties(cls, obj, writableFields)
-      }
     }
+
+    this.addWritableProperties(cls, obj, writableFields)
 
     return writableFields;
   }
