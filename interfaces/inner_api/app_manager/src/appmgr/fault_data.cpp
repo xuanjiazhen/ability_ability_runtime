@@ -501,8 +501,10 @@ bool AppFaultDataBySA::WriteLeakContent(Parcel &parcel) const
         "LeakDetailInfo otherSize [%{public}" PRIu64 "] write uint64 failed.", otherSize
     );
 
-
-
+    uint64_t atltValue = static_cast<uint64_t>(atLeakType);
+    RETURN_FALSE_AND_WRITE_LOG_WITH_ONE_ARG_IF_TRUE(!parcel.WriteUint64(atltValue),
+        "atltValue [%{public}" PRIu64 "] write uint64 failed.", atltValue
+    );
 
     return true;
 }

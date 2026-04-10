@@ -26,6 +26,14 @@
 
 namespace OHOS {
 namespace AppExecFwk {
+struct RegisterResourceParams {
+    uint64_t appTelemetryLeakType { 0 };
+    int thresholdPss { INT_MAX };
+    int thresholdGpu { INT_MAX };
+    int thresholdFd { INT_MAX };
+    int thresholdRAT { INT_MAX };  // rss_ark_ts
+    int thresholdRNH { INT_MAX };  // rss_native_heap
+};
 typedef void (*EtsErrorCallback)(const AppExecFwk::ErrorObject &errorObj);
 class ApplicationDataManager {
 using LeakObserverFunction = std::function<bool(const LeakObject &obj)>;
@@ -56,7 +64,7 @@ public:
     static bool NotifyUncaughtException(const ExceptionParams &params, const AppExecFwk::ErrorObject &errorObj);
     bool NotifyLeakObject(const LeakObject &leakObj);
     void SetLeakObserver(LeakObserverFunction leakCallback);
-    bool RegisterResourceObserver(uint64_t appTelemetryLeakType, ResourceOverlimitCB cb);
+    bool RegisterResourceObserver(RegisterResourceParams params, ResourceOverlimitCB cb);
     void NotifyAppTelemetry(AppTelemetryLeakType atLeakType);
 
     void SetErrorHandlerCallback(EtsErrorCallback errorCallback);

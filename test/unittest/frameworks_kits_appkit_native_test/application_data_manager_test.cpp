@@ -296,7 +296,8 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyLeakObject_002
 * @tc.name: ApplicationDataManager RegisterResourceObserver Normal
 * @tc.desc: Test RegisterResourceObserver with valid callback and leak type
 */
-HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObserver_001, Function | MediumTest | Level1)
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObserver_001,
+         Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_001 start";
  
@@ -323,7 +324,8 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObse
 * @tc.name: ApplicationDataManager RegisterResourceObserver Unregister NullCallback
 * @tc.desc: Test RegisterResourceObserver with null callback to unregister
 */
-HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObserver_002, Function | MediumTest | Level1)
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObserver_002,
+         Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_002 start";
  
@@ -340,7 +342,8 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObse
 * @tc.name: ApplicationDataManager RegisterResourceObserver Unregister ZeroType
 * @tc.desc: Test RegisterResourceObserver with zero leak type to unregister
 */
-HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObserver_003, Function | MediumTest | Level1)
+HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObserver_003,
+         Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_003 start";
  
@@ -496,7 +499,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
  
     int callbackCount = 0;
  
-    auto callback = [&](const AppTelemetryObject& atObj) {
+    auto callback = [callbackCount&](const AppTelemetryObject& atObj) {
         callbackCount++;
     };
  
@@ -523,16 +526,16 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_007 start";
  
     int callbackCount = 0;
-    auto callback = [&](const AppTelemetryObject& atObj) {
+    auto callback = [callbackCount&](const AppTelemetryObject& atObj) {
         callbackCount++;
     };
  
     uint64_t appTelemetryLeakType = static_cast<uint64_t>(ATLT_PSS);
     ApplicationDataManager::GetInstance().RegisterResourceObserver(appTelemetryLeakType, callback);
  
-    std::thread t1([&]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS); });
-    std::thread t2([&]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS); });
-    std::thread t3([&]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS); });
+    std::thread t1([]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS); });
+    std::thread t2([]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS); });
+    std::thread t3([]() { ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_PSS); });
  
     t1.join();
     t2.join();
