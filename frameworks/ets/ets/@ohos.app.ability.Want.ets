@@ -725,13 +725,15 @@ class RecordWriter {
     const writableFields = new Array<[string, Any]>();
     let fieldRename : string | undefined = undefined;
 
-    for (const field of cls.getInstanceFields()) {
-      const index: int = this.findKeyIndex(field.getName(), writableFields).toInt();
-      const fieldNameValuePair: [string, Any] = [field.getName(), field.getValue(obj)];
-      if (fieldRename != undefined || index == -1) {
-        writableFields.push(fieldNameValuePair);
-      } else {
-        writableFields[index] = fieldNameValuePair;
+    for (let curCls: Class | undefined; curCls != undefined; curCls = curCls!.getSuper()) {
+      for (const field of curCls!.getInstanceFields()) {
+        const index: int = this.findKeyIndex(field.getName(), writableFields).toInt();
+        const fieldNameValuePair: [string, Any] = [field.getName(), field.getValue(obj)];
+        if (fieldRename != undefined || index == -1) {
+          writableFields.push(fieldNameValuePair);
+        } else {
+          writableFields[index] = fieldNameValuePair;
+        }
       }
       if (reflect.isLiteralInitializedInterface(obj)) {
         this.addWritableProperties(cls, obj, writableFields)
