@@ -14,6 +14,7 @@
  */
 
 #include "cli_tool_data_manager.h"
+#include "cli_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 #include <chrono>
 #include <fstream>
@@ -218,7 +219,7 @@ int32_t CliToolDataManager::GetToolByName(const std::string &name, ToolInfo &too
     }
 
     TAG_LOGW(AAFwkTag::ABILITYMGR, "Tool not found: %{public}s", name.c_str());
-    return -1;
+    return ERR_CLI_TOOL_NOT_FOUND;
 }
 
 int32_t CliToolDataManager::GetToolsByPermission(const std::string &permission, std::vector<ToolInfo> &tools)
