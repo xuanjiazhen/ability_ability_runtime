@@ -849,5 +849,89 @@ HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_005, Test
     AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_005 end");
 }
+
+/**
+ * @tc.name: RemoveAtomicServiceShareRouterIfNeeded_006
+ * @tc.desc: test RemoveAtomicServiceShareRouterIfNeeded with callerTokenId and permission granted
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_006 start");
+    Want want;
+    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, std::string("test_router"));
+    AppExecFwk::AbilityInfo targetAbilityInfo;
+    targetAbilityInfo.applicationInfo.bundleType = AppExecFwk::BundleType::APP;
+    AAFwk::MyFlag::retVerifyAccessTokenId_ = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
+
+    StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo, 12345);
+
+    EXPECT_TRUE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
+    AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_006 end");
+}
+
+/**
+ * @tc.name: RemoveAtomicServiceShareRouterIfNeeded_007
+ * @tc.desc: test RemoveAtomicServiceShareRouterIfNeeded with callerTokenId and permission denied
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_007 start");
+    Want want;
+    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, std::string("test_router"));
+    AppExecFwk::AbilityInfo targetAbilityInfo;
+    targetAbilityInfo.applicationInfo.bundleType = AppExecFwk::BundleType::APP;
+    AAFwk::MyFlag::retVerifyAccessTokenId_ = Security::AccessToken::PermissionState::PERMISSION_DENIED;
+
+    StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo, 12345);
+
+    EXPECT_FALSE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
+    AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_007 end");
+}
+
+/**
+ * @tc.name: RemoveAtomicServiceShareRouterIfNeeded_008
+ * @tc.desc: test RemoveAtomicServiceShareRouterIfNeeded with callerTokenId=0 and permission granted
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_008, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_008 start");
+    Want want;
+    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, std::string("test_router"));
+    AppExecFwk::AbilityInfo targetAbilityInfo;
+    targetAbilityInfo.applicationInfo.bundleType = AppExecFwk::BundleType::APP;
+    AAFwk::MyFlag::retVerifyAccessTokenId_ = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
+
+    StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo, 0);
+
+    EXPECT_TRUE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
+    AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_008 end");
+}
+
+/**
+ * @tc.name: RemoveAtomicServiceShareRouterIfNeeded_009
+ * @tc.desc: test RemoveAtomicServiceShareRouterIfNeeded with atomic service and callerTokenId
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_009, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_009 start");
+    Want want;
+    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, std::string("test_router"));
+    AppExecFwk::AbilityInfo targetAbilityInfo;
+    targetAbilityInfo.applicationInfo.bundleType = AppExecFwk::BundleType::ATOMIC_SERVICE;
+    AAFwk::MyFlag::retVerifyAccessTokenId_ = Security::AccessToken::PermissionState::PERMISSION_DENIED;
+
+    StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo, 12345);
+
+    EXPECT_TRUE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
+    AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
+    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_009 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS
