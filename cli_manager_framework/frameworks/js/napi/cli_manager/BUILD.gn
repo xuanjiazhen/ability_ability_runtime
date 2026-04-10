@@ -26,6 +26,7 @@ ohos_shared_library("climanager") {
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
 
   sources = [
+    "cli_manager_error_utils.cpp",
     "cli_manager_module.cpp",
     "js_cli_callback.cpp",
     "js_cli_manager.cpp",
