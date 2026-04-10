@@ -81,7 +81,7 @@ public:
     /**
      * @brief Get tool timeout value
      * @param name Tool name
-     * @param timeout Output timeout in milliseconds
+     * @param timeout Output timeout in seconds
      * @return int32_t ERR_OK on success, error code otherwise
      */
     int32_t GetToolTimeout(const std::string &name, int32_t &timeout);
