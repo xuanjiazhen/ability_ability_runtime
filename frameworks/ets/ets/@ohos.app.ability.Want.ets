@@ -43,7 +43,7 @@ class RecordWriter {
   private buffer = new StringBuilder();
   private store = new Set<Object>();
   private wantParams: NativeWantParams | null = null;
-  private static readonly GETTER_PREFIX = '<get>'
+  private static readonly GETTER_PREFIX = '%%get-'
 
   private static asFixedArray<E>(obj: object): FixedArray<E> {
     return obj as FixedArray<E>
@@ -698,7 +698,7 @@ class RecordWriter {
 
   private addWritableProperty(cls: Class, obj: object, propName: string, writableFields: Array<[string, Any]>): void {
       const getterName = RecordWriter.GETTER_PREFIX + propName
-      const getter = cls.getInstanceMethod(getterName)
+      const getter = cls.getInstanceMethodsRecursiveByName(getterName)
       if (getter === undefined) {
           return
       }
@@ -710,7 +710,7 @@ class RecordWriter {
   }
 
   private addWritableProperties(cls: Class, obj: object, writableFields: Array<[string, Any]>): void {
-      for (const method of cls.getInstanceMethods()) {
+      for (const method of reflect.getInstanceGettersRecursive(cls)) {
           const methodName = method.getName()
           if (methodName.startsWith(RecordWriter.GETTER_PREFIX)) {
               const propName = methodName.substring(RecordWriter.GETTER_PREFIX.length)
@@ -725,7 +725,7 @@ class RecordWriter {
     const writableFields = new Array<[string, Any]>();
     let fieldRename : string | undefined = undefined;
 
-    for (const field of cls.getInstanceFields()) {
+    for (const field of cls.getInstanceFieldsRecursive()) {
       const index: int = this.findKeyIndex(field.getName(), writableFields).toInt();
       const fieldNameValuePair: [string, Any] = [field.getName(), field.getValue(obj)];
       if (fieldRename != undefined || index == -1) {
