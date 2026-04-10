@@ -75,7 +75,8 @@ int32_t CliManagerStub::QueryToolsInner(MessageParcel &data, MessageParcel &repl
 
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "QueryTools failed: %{public}d", result);
-        reply.WriteInt32(result);
+        reply.WriteInt32(0);  // toolCount = 0
+        reply.WriteInt32(result);  // error code
         return result;
     }
 
@@ -111,6 +112,8 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
     std::string name;
     if (!data.ReadString(name)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Read tool name failed");
+        SessionInfo emptySession;
+        reply.WriteParcelable(&emptySession);
         reply.WriteInt32(ERROR_CODE);
         return ERROR_CODE;
     }
@@ -121,6 +124,8 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
     uint32_t argsSize = 0;
     if (!data.ReadUint32(argsSize)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Read args size failed");
+        SessionInfo emptySession;
+        reply.WriteParcelable(&emptySession);
         reply.WriteInt32(ERROR_CODE);
         return ERROR_CODE;
     }
@@ -132,11 +137,15 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
         std::string value;
         if (!data.ReadString(key)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Read arg key failed");
+            SessionInfo emptySession;
+            reply.WriteParcelable(&emptySession);
             reply.WriteInt32(ERROR_CODE);
             return ERROR_CODE;
         }
         if (!data.ReadString(value)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Read arg value failed");
+            SessionInfo emptySession;
+            reply.WriteParcelable(&emptySession);
             reply.WriteInt32(ERROR_CODE);
             return ERROR_CODE;
         }
@@ -149,6 +158,8 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
     std::unique_ptr<ExecOptions> options(data.ReadParcelable<ExecOptions>());
     if (!options) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Read options failed");
+        SessionInfo emptySession;
+        reply.WriteParcelable(&emptySession);
         reply.WriteInt32(ERROR_CODE);
         return ERROR_CODE;
     }
@@ -159,6 +170,8 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
     std::string challenge;
     if (!data.ReadString(challenge)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Read challenge failed");
+        SessionInfo emptySession;
+        reply.WriteParcelable(&emptySession);
         reply.WriteInt32(ERROR_CODE);
         return ERROR_CODE;
     }
@@ -173,6 +186,8 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
 
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecTool failed: %{public}d", ret);
+        SessionInfo emptySession;
+        reply.WriteParcelable(&emptySession);
         reply.WriteInt32(ret);
         return ret;
     }
@@ -180,6 +195,8 @@ int32_t CliManagerStub::ExecToolInner(MessageParcel &data, MessageParcel &reply)
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliManagerStub: writing session to reply");
     if (!reply.WriteParcelable(&session)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write session failed");
+        SessionInfo emptySession;
+        reply.WriteParcelable(&emptySession);
         reply.WriteInt32(ERROR_CODE);
         return ERROR_CODE;
     }

@@ -41,7 +41,6 @@ namespace AbilityRuntime {
 
 namespace {
 constexpr int32_t CLI_MANAGER_SA_ID = 8899;
-constexpr int32_t ERROR_CODE = -1;
 constexpr int32_t ERR_OK = 0;
 constexpr int32_t DEFAULT_TIMEOUT_SEC = 30 * 60;
 
@@ -112,7 +111,7 @@ public:
         if (callerPid <= 0 || scheduler == nullptr || scheduler->AsObject() == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "RegisterScheduler failed: invalid callerPid=%{public}d or scheduler remote is null", callerPid);
-            return ERROR_CODE;
+            return ERR_CLI_INVALID_SCHEDULER_PARAMS;
         }
 
         auto remote = scheduler->AsObject();
@@ -174,7 +173,7 @@ public:
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "RegisterSubscriber failed: invalid args sessionId='%{public}s', subscriptionId='%{public}s', "
                 "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
-            return ERROR_CODE;
+            return ERR_CLI_INVALID_SUBSCRIBER_PARAMS;
         }
 
         {
@@ -184,7 +183,7 @@ public:
                 TAG_LOGE(AAFwkTag::ABILITYMGR,
                     "RegisterSubscriber failed: scheduler not found for pid %{public}d, sessionId='%{public}s', "
                     "subscriptionId='%{public}s'", callerPid, sessionId.c_str(), subscriptionId.c_str());
-                return ERROR_CODE;
+                return ERR_CLI_SCHEDULER_NOT_FOUND;
             }
             auto &subscribers = sessionSubscribers_[sessionId];
             SubscriberKey key {callerPid, subscriptionId};
@@ -199,7 +198,7 @@ public:
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "UnregisterSubscriber failed: invalid args sessionId='%{public}s', subscriptionId='%{public}s', "
                 "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
-            return ERROR_CODE;
+            return ERR_CLI_INVALID_SUBSCRIBER_PARAMS;
         }
 
         std::lock_guard<std::mutex> lock(mutex_);
@@ -702,7 +701,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "ExecTool failed: ioMonitor registration for sessionId='%{public}s', pid=%{public}d",
                 record->sessionId.c_str(), pid);
-            return ERROR_CODE;
+            return ERR_CLI_IO_MONITOR_REGISTER_FAILED;
         }
         if (processMonitor_.RegisterSession(pid, record->sessionId, startTimeMs, timeoutMs) != ERR_OK) {
             ioMonitor_.UnregisterSession(record->sessionId);
@@ -716,7 +715,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "ExecTool failed: processMonitor registration for sessionId='%{public}s', pid=%{public}d",
                 record->sessionId.c_str(), pid);
-            return ERROR_CODE;
+            return ERR_CLI_PROCESS_MONITOR_REGISTER_FAILED;
         }
 
         session.result = nullptr;
@@ -805,7 +804,7 @@ int32_t CliManagerService::SubscribeSession(const std::string &sessionId, const 
         TAG_LOGE(AAFwkTag::ABILITYMGR,
             "SubscribeSession failed: invalid args sessionId='%{public}s', subscriptionId='%{public}s'",
             sessionId.c_str(), subscriptionId.c_str());
-        return ERROR_CODE;
+        return ERR_CLI_INVALID_SUBSCRIBER_PARAMS;
     }
     if (GetSessionRecord(sessionId) == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR,
