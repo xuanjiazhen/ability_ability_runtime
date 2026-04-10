@@ -252,8 +252,15 @@ void TimeoutManager::TerminateProcess(pid_t pid)
     // Send SIGTERM first (graceful shutdown)
     TAG_LOGI(AAFwkTag::ABILITYMGR, "Sending SIGTERM to process %{public}d", pid);
     if (kill(pid, SIGTERM) == -1) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to send SIGTERM to %{public}d: %{public}s",
-            pid, strerror(errno));
+        if (errno == ESRCH) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Process %{public}d already terminated", pid);
+            return;
+        } else if (errno == EPERM) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "SIGTERM permission denied for pid=%{public}d, possibly running in sandbox (claw_sandbox)", pid);
+        } else {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to send SIGTERM to %{public}d: %{public}s",
+                pid, strerror(errno));
+        }
     }
 
     // Wait for grace period
@@ -268,8 +275,14 @@ void TimeoutManager::TerminateProcess(pid_t pid)
     // Force kill with SIGKILL
     TAG_LOGW(AAFwkTag::ABILITYMGR, "Force killing process %{public}d with SIGKILL", pid);
     if (kill(pid, SIGKILL) == -1) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to send SIGKILL to %{public}d: %{public}s",
-            pid, strerror(errno));
+        if (errno == ESRCH) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Process %{public}d already terminated", pid);
+        } else if (errno == EPERM) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "SIGKILL permission denied for pid=%{public}d, possibly running in sandbox (claw_sandbox)", pid);
+        } else {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to send SIGKILL to %{public}d: %{public}s",
+                pid, strerror(errno));
+        }
     }
 
     // Wait to ensure process is reaped

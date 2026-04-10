@@ -115,6 +115,36 @@ enum {
      * The specified session cannot be cancelled because it is not active
      */
     ERR_CLI_SESSION_NOT_RUNNING = 2100016,
+
+    /**
+     * Result(2100017) Invalid scheduler registration parameters
+     * RegisterScheduler called with invalid callerPid or null scheduler
+     */
+    ERR_CLI_INVALID_SCHEDULER_PARAMS = 2100017,
+
+    /**
+     * Result(2100018) Scheduler not found
+     * No scheduler registered for the given callerPid
+     */
+    ERR_CLI_SCHEDULER_NOT_FOUND = 2100018,
+
+    /**
+     * Result(2100019) Invalid subscriber registration parameters
+     * RegisterSubscriber called with invalid sessionId, subscriptionId, or callerPid
+     */
+    ERR_CLI_INVALID_SUBSCRIBER_PARAMS = 2100019,
+
+    /**
+     * Result(2100020) IO monitor registration failed
+     * Failed to register session with IO monitor
+     */
+    ERR_CLI_IO_MONITOR_REGISTER_FAILED = 2100020,
+
+    /**
+     * Result(2100021) Process monitor registration failed
+     * Failed to register session with process monitor
+     */
+    ERR_CLI_PROCESS_MONITOR_REGISTER_FAILED = 2100021,
 };
 
 }  // namespace AbilityRuntime
