@@ -1,0 +1,45 @@
+{
+  "name": "pkg-manager",
+  "version": "1.0.0",
+  "description": "Package management tool with subcommands",
+  "executablePath": "/usr/bin/pkg-mgr",
+  "timeout": 300000,
+  "hasSubcommands": true,
+  "subcommands": {
+    "install": {
+      "description": "Install a package",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "package": {
+            "type": "string"
+          },
+          "force": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": ["package"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "eventTypes": ["result"],
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "package": "{value}",
+          "force": {
+            "if_true": "--force",
+            "if_false": ""
+          }
+        }
+      }
+    }
+  }
+}

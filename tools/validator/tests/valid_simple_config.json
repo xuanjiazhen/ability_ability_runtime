@@ -1,0 +1,58 @@
+{
+  "name": "network-scanner",
+  "version": "1.0.0",
+  "description": "Network scanning utility tool",
+  "executablePath": "/usr/bin/net-scan",
+  "timeout": 30000,
+  "eventTypes": ["progress", "result"],
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string",
+        "format": "ipv4"
+      },
+      "ports": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      }
+    },
+    "required": ["target"]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "object",
+        "properties": {
+          "totalPorts": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "ports": "--port={value}"
+    }
+  },
+  "eventSchemas": {
+    "progress": {
+      "type": "object",
+      "properties": {
+        "percentage": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": ["percentage", "status"]
+    }
+  }
+}
