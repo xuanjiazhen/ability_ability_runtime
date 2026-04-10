@@ -102,5 +102,25 @@ void GetPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNativ
         patchLibPath.c_str());
     appLibPaths[appLibPathKey].emplace_back(patchLibPath);
 }
+
+void GetLibrarySupportDirectory(
+    const std::vector<HapModuleInfo> &hapModuleInfos,
+    const std::vector<BaseSharedBundleInfo> &hspList,
+    const std::string nativeLibraryPath,
+    AppLibPathMap &appLibPaths)
+{
+    std::string libPath = AbilityBase::Constants::LOCAL_CODE_PATH;
+    for (auto &hapInfo : hapModuleInfos) {
+        if (hapInfo.librarySupportDirectory.empty()) {
+            continue;
+        }
+        libPath += (libPath.back() == '/') ? nativeLibraryPath : "/" + nativeLibraryPath;
+        for (const auto &dir : hapInfo.librarySupportDirectory) {
+            std::string supportLibPath = libPath + "/" + dir;
+            appLibPaths["default"].emplace_back(supportLibPath);
+            TAG_LOGD(AAFwkTag::APPKIT, "supportLibPath: %{public}s", supportLibPath.c_str());
+        }
+    }
+}
 } // AppExecFwk
 } // namespace OHOS
