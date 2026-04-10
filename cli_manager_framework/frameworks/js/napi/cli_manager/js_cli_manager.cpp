@@ -20,6 +20,7 @@
 
 #include "ability_business_error.h"
 #include "cli_manager_client.h"
+#include "cli_manager_error_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "js_cli_manager_utils.h"
 #include "js_cli_subscription_manager.h"
@@ -99,7 +100,7 @@ private:
                 napi_value jsTools = CreateJsToolInfoArray(env, *tools);
                 task.ResolveWithNoError(env, jsTools);
             } else {
-                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
             }
         };
 
@@ -158,7 +159,7 @@ private:
             HandleScope handleScope(env);
 
             if (*innerErrCode != ERR_OK) {
-                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
                 return;
             }
 
@@ -214,7 +215,7 @@ private:
             int32_t status) {
             HandleScope handleScope(env);
             if (*innerErrCode != ERR_OK) {
-                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
                 return;
             }
             task.ResolveWithNoError(env, CreateJsValue(env, *cancelled));
@@ -266,7 +267,7 @@ private:
             HandleScope handleScope(env);
             if (*innerErrCode != ERR_OK) {
                 CliSessionSubscriptionManager::GetInstance().RemoveSubscription(subscriptionId);
-                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
                 return;
             }
             task.ResolveWithNoError(env, CreateJsValue(env, *subscribed));
@@ -311,7 +312,7 @@ private:
             int32_t status) {
             HandleScope handleScope(env);
             if (*innerErrCode != ERR_OK) {
-                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+                task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
                 return;
             }
             task.ResolveWithNoError(env, CreateJsSessionStatus(env, *sessionStatus));

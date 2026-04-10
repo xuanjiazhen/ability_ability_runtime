@@ -41,7 +41,6 @@ namespace AbilityRuntime {
 
 namespace {
 constexpr int32_t CLI_MANAGER_SA_ID = 8899;
-constexpr int32_t ERROR_CODE = -1;
 constexpr int32_t ERR_OK = 0;
 constexpr int32_t DEFAULT_TIMEOUT_SEC = 30 * 60;
 
@@ -112,7 +111,7 @@ public:
         if (callerPid <= 0 || scheduler == nullptr || scheduler->AsObject() == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "RegisterScheduler failed: invalid callerPid=%{public}d or scheduler remote is null", callerPid);
-            return ERROR_CODE;
+            return ERR_CLI_INVALID_SCHEDULER_PARAMS;
         }
 
         auto remote = scheduler->AsObject();
@@ -174,7 +173,7 @@ public:
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "RegisterSubscriber failed: invalid args sessionId='%{public}s', subscriptionId='%{public}s', "
                 "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
-            return ERROR_CODE;
+            return ERR_CLI_INVALID_SUBSCRIBER_PARAMS;
         }
 
         {
@@ -184,7 +183,7 @@ public:
                 TAG_LOGE(AAFwkTag::ABILITYMGR,
                     "RegisterSubscriber failed: scheduler not found for pid %{public}d, sessionId='%{public}s', "
                     "subscriptionId='%{public}s'", callerPid, sessionId.c_str(), subscriptionId.c_str());
-                return ERROR_CODE;
+                return ERR_CLI_SCHEDULER_NOT_FOUND;
             }
             auto &subscribers = sessionSubscribers_[sessionId];
             SubscriberKey key {callerPid, subscriptionId};
@@ -199,7 +198,7 @@ public:
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "UnregisterSubscriber failed: invalid args sessionId='%{public}s', subscriptionId='%{public}s', "
                 "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
-            return ERROR_CODE;
+            return ERR_CLI_INVALID_SUBSCRIBER_PARAMS;
         }
 
         std::lock_guard<std::mutex> lock(mutex_);
@@ -586,7 +585,13 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     session.result->executionTime = 0;
 
     std::string sandboxConfig = GenerateSandBoxConfig(challenge);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecTool: options.timeout=%{public}d sec", options.timeout);
     int32_t timeoutMs = static_cast<int32_t>(ResolveTimeout(options, name));
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecTool: resolved timeoutMs=%{public}d ms (%{public}.2f sec)",
+        timeoutMs, timeoutMs / 1000.0);
+    if (timeoutMs == 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "ExecTool: timeoutMs is 0, NO timeout monitoring will be applied!");
+    }
 
     int stdoutPipe[2];
     int stderrPipe[2];
@@ -702,7 +707,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "ExecTool failed: ioMonitor registration for sessionId='%{public}s', pid=%{public}d",
                 record->sessionId.c_str(), pid);
-            return ERROR_CODE;
+            return ERR_CLI_IO_MONITOR_REGISTER_FAILED;
         }
         if (processMonitor_.RegisterSession(pid, record->sessionId, startTimeMs, timeoutMs) != ERR_OK) {
             ioMonitor_.UnregisterSession(record->sessionId);
@@ -716,7 +721,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
             TAG_LOGE(AAFwkTag::ABILITYMGR,
                 "ExecTool failed: processMonitor registration for sessionId='%{public}s', pid=%{public}d",
                 record->sessionId.c_str(), pid);
-            return ERROR_CODE;
+            return ERR_CLI_PROCESS_MONITOR_REGISTER_FAILED;
         }
 
         session.result = nullptr;
@@ -805,7 +810,7 @@ int32_t CliManagerService::SubscribeSession(const std::string &sessionId, const 
         TAG_LOGE(AAFwkTag::ABILITYMGR,
             "SubscribeSession failed: invalid args sessionId='%{public}s', subscriptionId='%{public}s'",
             sessionId.c_str(), subscriptionId.c_str());
-        return ERROR_CODE;
+        return ERR_CLI_INVALID_SUBSCRIBER_PARAMS;
     }
     if (GetSessionRecord(sessionId) == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR,
@@ -867,19 +872,51 @@ std::string CliManagerService::GenerateSandBoxConfig(const std::string &challeng
 
 uint32_t CliManagerService::ResolveTimeout(const ExecOptions &options, const std::string &toolName)
 {
-    if (options.timeout > 0 && options.timeout <= DEFAULT_TIMEOUT_SEC) {
-        return static_cast<uint32_t>(options.timeout) * 1000;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ResolveTimeout: options.timeout=%{public}d, DEFAULT_TIMEOUT_SEC=%{public}d",
+        options.timeout, DEFAULT_TIMEOUT_SEC);
+
+    // Priority 1: Use options.timeout if set, capped at DEFAULT_TIMEOUT_SEC
+    if (options.timeout > 0) {
+        int32_t effectiveTimeout = (options.timeout > DEFAULT_TIMEOUT_SEC) ?
+            DEFAULT_TIMEOUT_SEC : options.timeout;
+        uint32_t result = static_cast<uint32_t>(effectiveTimeout) * 1000;
+        if (options.timeout > DEFAULT_TIMEOUT_SEC) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR,
+                "ResolveTimeout: options.timeout=%{public}d sec exceeds max, capped to %{public}d sec",
+                options.timeout, DEFAULT_TIMEOUT_SEC);
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ResolveTimeout: using options timeout: %{public}u ms (%{public}d sec)",
+            result, effectiveTimeout);
+        return result;
     }
 
+    // Priority 2: Use tool config timeout if available, capped at DEFAULT_TIMEOUT_SEC
     std::lock_guard<std::mutex> lock(mutex_);
     if (cliToolManager_ != nullptr && !toolName.empty()) {
         int32_t toolTimeout = 0;
-        if (cliToolManager_->GetToolTimeout(toolName, toolTimeout) == ERR_OK && toolTimeout > 0) {
-            return static_cast<uint32_t>(toolTimeout) * 1000;
+        int32_t ret = cliToolManager_->GetToolTimeout(toolName, toolTimeout);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ResolveTimeout: GetToolTimeout returned %{public}d, toolTimeout=%{public}d",
+            ret, toolTimeout);
+        if (ret == ERR_OK && toolTimeout > 0) {
+            int32_t effectiveTimeout = (toolTimeout > DEFAULT_TIMEOUT_SEC) ?
+                DEFAULT_TIMEOUT_SEC : toolTimeout;
+            uint32_t result = static_cast<uint32_t>(effectiveTimeout) * 1000;
+            if (toolTimeout > DEFAULT_TIMEOUT_SEC) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "ResolveTimeout: tool timeout=%{public}d sec exceeds max, capped to %{public}d sec",
+                    toolTimeout, DEFAULT_TIMEOUT_SEC);
+            }
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "ResolveTimeout: using tool timeout: %{public}u ms (%{public}d sec)",
+                result, effectiveTimeout);
+            return result;
         }
     }
 
-    return DEFAULT_TIMEOUT_SEC * 1000;
+    // Priority 3: Use default timeout
+    uint32_t result = DEFAULT_TIMEOUT_SEC * 1000;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ResolveTimeout: using default timeout: %{public}u ms (%{public}d sec)",
+        result, DEFAULT_TIMEOUT_SEC);
+    return result;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

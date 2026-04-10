@@ -64,6 +64,11 @@ int32_t ProcessMonitor::RegisterSession(pid_t pid, const std::string &sessionId,
 {
     std::lock_guard<std::mutex> lock(entriesMutex_);
     entries_[pid] = ProcessEntry {sessionId, startTimeMs, timeoutMs, false, false};
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ProcessMonitor: registered sessionId='%{public}s', pid=%{public}d, timeoutMs=%{public}d ms",
+        sessionId.c_str(), pid, timeoutMs);
+    if (timeoutMs <= 0) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "ProcessMonitor: timeoutMs=%{public}d, NO timeout monitoring will be applied!", timeoutMs);
+    }
     return ERR_OK;
 }
 
@@ -139,22 +144,39 @@ void ProcessMonitor::CheckTimeouts()
     {
         std::lock_guard<std::mutex> lock(entriesMutex_);
         for (auto &[pid, entry] : entries_) {
-            if (entry.timeoutMs <= 0 || entry.timedOut) {
+            if (entry.timeoutMs <= 0) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "ProcessMonitor: skipping timeout check for sessionId='%{public}s', pid=%{public}d, timeoutMs=%{public}d (<= 0)",
+                    entry.sessionId.c_str(), pid, entry.timeoutMs);
                 continue;
             }
-            if (nowMs - entry.startTimeMs >= entry.timeoutMs) {
+            if (entry.timedOut) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR,
+                    "ProcessMonitor: skipping timeout check for sessionId='%{public}s', pid=%{public}d (already timed out)",
+                    entry.sessionId.c_str(), pid);
+                continue;
+            }
+            int64_t elapsedMs = nowMs - entry.startTimeMs;
+            if (elapsedMs >= entry.timeoutMs) {
                 entry.timedOut = true;
                 expired.emplace_back(pid, entry.sessionId);
+                TAG_LOGW(AAFwkTag::ABILITYMGR,
+                    "ProcessMonitor: TIMEOUT! sessionId='%{public}s', pid=%{public}d, elapsed=%{public}lld ms, timeout=%{public}d ms",
+                    entry.sessionId.c_str(), pid, elapsedMs, entry.timeoutMs);
             }
         }
     }
 
     for (const auto &[pid, sessionId] : expired) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ProcessMonitor: killing timed out process pid=%{public}d, sessionId='%{public}s'",
+            pid, sessionId.c_str());
         if (kill(pid, SIGKILL) != 0 && errno != ESRCH) {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "Timeout kill failed for %{public}s: %{public}s",
                 sessionId.c_str(), strerror(errno));
         }
         if (timeoutCallback_) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "ProcessMonitor: calling timeout callback for sessionId='%{public}s'",
+                sessionId.c_str());
             timeoutCallback_(sessionId);
         }
     }
