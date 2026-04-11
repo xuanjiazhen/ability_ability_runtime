@@ -76,7 +76,7 @@ private:
     ~ApplicationDataManager();
     static std::string GetFuncNameFromError(napi_env env, napi_value error);
     DISALLOW_COPY_AND_MOVE(ApplicationDataManager);
-    bool WriteSandBoxXattr(uint64_t appTelemetryLeakType);
+    bool WriteSandBoxXattr(RegisterResourceParams params);
     std::shared_ptr<IErrorObserver> errorObserver_;
     std::atomic_bool isUncatchable_;
     LeakObserverFunction leakObserver_ = nullptr;

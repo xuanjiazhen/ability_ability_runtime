@@ -281,7 +281,7 @@ bool ApplicationDataManager::GetHasOnErrorCallback()
     return false;
 }
 
-bool ApplicationDataManager::RegisterResourceObserver(uint64_t appTelemetryLeakType, ResourceOverlimitCB cb)
+bool ApplicationDataManager::RegisterResourceObserver(RegisterResourceParams params, ResourceOverlimitCB cb)
 {
     std::lock_guard<std::mutex> lock(resourceMutex_);
     if (cb == nullptr || appTelemetryLeakType == 0) {
