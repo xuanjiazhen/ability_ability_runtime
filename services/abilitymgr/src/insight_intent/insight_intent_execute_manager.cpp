@@ -534,6 +534,15 @@ int32_t InsightIntentExecuteManager::GenerateWant(
         TAG_LOGD(AAFwkTag::INTENT, "Generate want with displayId: %{public}d", param->displayId_);
     }
 
+    if (param->insightIntentParam_ != nullptr &&
+        param->insightIntentParam_->HasParam(Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        int32_t appIndex = param->insightIntentParam_->GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+        if (appIndex >= 0) {
+            want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
+            TAG_LOGI(AAFwkTag::INTENT, "Generate want with appIndex: %{public}d", appIndex);
+        }
+    }
+
     auto intRet = AddWantUirsAndFlagsFromParam(param, want);
     if (intRet != ERR_OK) {
         return intRet;
