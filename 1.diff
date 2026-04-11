@@ -1,0 +1,502 @@
+diff --git a/frameworks/ets/ani/ui_ability/include/ets_ui_ability.h b/frameworks/ets/ani/ui_ability/include/ets_ui_ability.h
+index 84e0dc13e17b98d9e397d3a0c0232397f35a03e5..753b07278669c883dea3284da1a2522235ef4e74 100644
+--- a/frameworks/ets/ani/ui_ability/include/ets_ui_ability.h
++++ b/frameworks/ets/ani/ui_ability/include/ets_ui_ability.h
+@@ -348,7 +348,6 @@ private:
+         const std::string &moduleName, const std::string &srcPath);
+     void CreateEtsContext(int32_t screenMode);
+     bool BindNativeMethods();
+-    void RemoveShareRouterByBundleType(const Want &want);
+     bool CheckSatisfyTargetAPIVersion(int32_t targetAPIVersion);
+     bool BackPressDefaultValue();
+     void WriteLifecycleSwitchLog(const std::string lifecycleName);
+diff --git a/frameworks/ets/ani/ui_ability/src/ets_ui_ability.cpp b/frameworks/ets/ani/ui_ability/src/ets_ui_ability.cpp
+index 94ecebbb42c7a61fc23b52c606053a5f9ed5db36..c5b87450a61012c80985d06b9cc7bbd6de505e4f 100644
+--- a/frameworks/ets/ani/ui_ability/src/ets_ui_ability.cpp
++++ b/frameworks/ets/ani/ui_ability/src/ets_ui_ability.cpp
+@@ -1251,7 +1251,6 @@ void EtsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
+     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, "scene_->Init");
+     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken != nullptr) {
+         abilityContext_->SetWeakSessionToken(sessionToken);
+-        RemoveShareRouterByBundleType(want);
+         std::string navDestinationInfo = want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+         if (!navDestinationInfo.empty()) {
+             TAG_LOGD(AAFwkTag::UIABILITY, "SetNavDestinationInfo :%{public}s", navDestinationInfo.c_str());
+@@ -1280,16 +1279,6 @@ void EtsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
+     TAG_LOGD(AAFwkTag::UIABILITY, "DoOnForegroundForSceneIsNull end");
+ }
+ 
+-void EtsUIAbility::RemoveShareRouterByBundleType(const Want &want)
+-{
+-    auto abilityInfo = abilityContext_ ? abilityContext_->GetAbilityInfo() : nullptr;
+-    if (abilityInfo == nullptr ||
+-        abilityInfo->applicationInfo.bundleType != OHOS::AppExecFwk::BundleType::ATOMIC_SERVICE) {
+-        TAG_LOGD(AAFwkTag::UIABILITY, "not atomicService");
+-        const_cast<Want &>(want).RemoveParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+-    }
+-    return;
+-}
+ void EtsUIAbility::ContinuationRestore(const Want &want)
+ {
+     TAG_LOGD(AAFwkTag::UIABILITY, "called");
+diff --git a/frameworks/native/ability/native/ability_runtime/js_ui_ability.cpp b/frameworks/native/ability/native/ability_runtime/js_ui_ability.cpp
+index 57597dc252de6e467045829dbd0701f170904909..293e3a7ba3652d4bfbec68d89f194299603b58b3 100644
+--- a/frameworks/native/ability/native/ability_runtime/js_ui_ability.cpp
++++ b/frameworks/native/ability/native/ability_runtime/js_ui_ability.cpp
+@@ -1229,7 +1229,6 @@ void JsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
+         abilityContext_->SetWeakSessionToken(sessionToken);
+         ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken, identityToken,
+             reusingWindow_);
+-        RemoveShareRouterByBundleType(want);
+         std::string navDestinationInfo = want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+         if (!navDestinationInfo.empty()) {
+             TAG_LOGD(AAFwkTag::UIABILITY, "SetNavDestinationInfo :%{public}s", navDestinationInfo.c_str());
+@@ -1907,17 +1906,6 @@ void JsUIAbility::UpdateContextConfiguration()
+     abilityContext_->NotifyBindingObjectConfigUpdate();
+ }
+ 
+-void JsUIAbility::RemoveShareRouterByBundleType(const Want &want)
+-{
+-    auto abilityInfo = abilityContext_ ? abilityContext_->GetAbilityInfo() : nullptr;
+-    if (abilityInfo == nullptr ||
+-        abilityInfo->applicationInfo.bundleType != OHOS::AppExecFwk::BundleType::ATOMIC_SERVICE) {
+-        TAG_LOGD(AAFwkTag::UIABILITY, "not atomicService");
+-        const_cast<Want &>(want).RemoveParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
+-    }
+-    return;
+-}
+-
+ void JsUIAbility::OnNewWant(const Want &want)
+ {
+     TAG_LOGD(AAFwkTag::UIABILITY, "called");
+@@ -1925,7 +1913,6 @@ void JsUIAbility::OnNewWant(const Want &want)
+ 
+ #ifdef SUPPORT_SCREEN
+     if (scene_) {
+-        RemoveShareRouterByBundleType(want);
+         scene_->OnNewWant(want);
+     }
+     HandleCollaboration(want);
+diff --git a/interfaces/kits/native/ability/native/ability_runtime/js_ui_ability.h b/interfaces/kits/native/ability/native/ability_runtime/js_ui_ability.h
+index 3be1abb27c197ab35e35cf2f98abda8153b325c6..f43bc55ec886c4eb28a371328acc143b01cff520 100644
+--- a/interfaces/kits/native/ability/native/ability_runtime/js_ui_ability.h
++++ b/interfaces/kits/native/ability/native/ability_runtime/js_ui_ability.h
+@@ -437,7 +437,6 @@ private:
+         const std::string &moduleName, const std::string &srcPath);
+     void ReleaseOnContinueAsset(const napi_env env, napi_value &promise,
+         napi_ref &jsWantParamsRef, AppExecFwk::AbilityTransactionCallbackInfo<int32_t> *callbackInfo);
+-    void RemoveShareRouterByBundleType(const Want &want);
+     void WriteLifecycleSwitchLog(const std::string lifecycleName);
+     void HandleAbilityDelegatorStart();
+ 
+diff --git a/services/abilitymgr/include/utils/start_ability_utils.h b/services/abilitymgr/include/utils/start_ability_utils.h
+index 87faaf51b884cae6f9825405f3ccefb5044219ba..8a30e630549b9f1cf8336321366ddf9425942e27 100644
+--- a/services/abilitymgr/include/utils/start_ability_utils.h
++++ b/services/abilitymgr/include/utils/start_ability_utils.h
+@@ -66,6 +66,7 @@ struct StartAbilityUtils {
+     static int32_t HandleSelfRedirection(bool isFromOpenLink,
+         const std::vector<AppExecFwk::AbilityInfo> &abilityInfos);
+     static std::string GenerateAsCallerForAncoSessionId();
++    static void RemoveAtomicServiceShareRouterIfNeeded(Want &want, const AppExecFwk::AbilityInfo &targetAbilityInfo);
+ 
+     static thread_local std::shared_ptr<StartAbilityInfo> startAbilityInfo;
+     static thread_local std::shared_ptr<StartAbilityInfo> callerAbilityInfo;
+diff --git a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp
+index dd92fd8de54b2e150a9e3ba8e7e6861ee4950bc0..771275c596ba091db0f8678262371cefc0164c50 100644
+--- a/services/abilitymgr/src/ability_manager_service.cpp
++++ b/services/abilitymgr/src/ability_manager_service.cpp
+@@ -1420,6 +1420,11 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
+         }
+     }
+     StartAbilityInfoWrap threadLocalInfo(param.want, validUserId, appIndex, param.callerToken);
++    // Remove ATOMIC_SERVICE_SHARE_ROUTER if target is not atomic service or caller doesn't have permission
++    if (StartAbilityUtils::startAbilityInfo != nullptr) {
++        StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(param.want,
++            StartAbilityUtils::startAbilityInfo->abilityInfo);
++    }
+     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
+     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(param.want, param.requestCode, validUserId,
+         true, nullptr, shouldBlockFunc);
+@@ -2216,6 +2221,11 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
+         return checkRet;
+     }
+     StartAbilityInfoWrap threadLocalInfo(want, validUserId, appIndex, callerToken);
++    // Remove ATOMIC_SERVICE_SHARE_ROUTER if target is not atomic service or caller doesn't have permission
++    if (StartAbilityUtils::startAbilityInfo != nullptr) {
++        StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(const_cast<Want &>(want),
++            StartAbilityUtils::startAbilityInfo->abilityInfo);
++    }
+     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
+     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, requestCode, validUserId,
+         true, nullptr, shouldBlockFunc);
+diff --git a/services/abilitymgr/src/utils/start_ability_utils.cpp b/services/abilitymgr/src/utils/start_ability_utils.cpp
+index 5e19f0e9576e4ad6d86dcea56819d24133d13877..5218bda3d5f3ec683d6fe2c43601ca39ceebb185 100644
+--- a/services/abilitymgr/src/utils/start_ability_utils.cpp
++++ b/services/abilitymgr/src/utils/start_ability_utils.cpp
+@@ -23,6 +23,9 @@
+ #include "global_constant.h"
+ #include "hitrace_meter.h"
+ #include "startup_util.h"
++#include "permission_verification.h"
++#include "permission_constants.h"
++#include "ipc_skeleton.h"
+ 
+ namespace OHOS {
+ namespace AAFwk {
+@@ -473,5 +476,29 @@ std::string StartAbilityUtils::GenerateAsCallerForAncoSessionId()
+     std::string asCallerForAncoSessionId = std::to_string(time) + "_" + std::to_string(randomDigit);
+     return asCallerForAncoSessionId;
+ }
++
++void StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(Want &want,
++    const AppExecFwk::AbilityInfo &targetAbilityInfo)
++{
++    if (!want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER)) {
++        TAG_LOGD(AAFwkTag::ABILITYMGR, "No ATOMIC_SERVICE_SHARE_ROUTER parameter, skip check");
++        return;
++    }
++
++    bool isAtomicService = (targetAbilityInfo.applicationInfo.bundleType ==
++        AppExecFwk::BundleType::ATOMIC_SERVICE);
++    if (isAtomicService) {
++        TAG_LOGD(AAFwkTag::ABILITYMGR, "Keep ATOMIC_SERVICE_SHARE_ROUTER");
++        return;
++    }
++
++    bool hasStartAbilityToPagePermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
++        PermissionConstants::PERMISSION_START_ABILITY_TO_PAGE);
++    if (!hasStartAbilityToPagePermission) {
++        TAG_LOGD(AAFwkTag::ABILITYMGR, "Remove ATOMIC_SERVICE_SHARE_ROUTER: hasPermission=%{public}d",
++            hasStartAbilityToPagePermission);
++        want.RemoveParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
++    }
++}
+ }
+ }
+\ No newline at end of file
+diff --git a/services/common/include/permission_constants.h b/services/common/include/permission_constants.h
+index b96f1c54ca783dc4cbbe05beb01641cd218595c2..bec7a5b4f7e97b55a5f0d615195f349dc249e64e 100644
+--- a/services/common/include/permission_constants.h
++++ b/services/common/include/permission_constants.h
+@@ -86,6 +86,7 @@ constexpr const char* PERMISSION_GET_EDM_CONFIG = "ohos.permission.GET_EDM_CONFI
+ constexpr const char* PERMISSION_ALL_DEBUG = "ohos.permission.kernel.ALLOW_DEBUG";
+ constexpr const char* PERMISSION_GET_AGENT_CARD = "ohos.permission.GET_AGENT_CARD";
+ constexpr const char* PERMISSION_MODIFY_AGENT_CARD = "ohos.permission.MODIFY_AGENT_CARD";
++constexpr const char* PERMISSION_START_ABILITY_TO_PAGE = "ohos.permission.START_ABILITY_TO_PAGE";
+ } // namespace PermissionConstants
+ } // namespace AAFwk
+ } // namespace OHOS
+diff --git a/test/unittest/dialog_session_manager_test/BUILD.gn b/test/unittest/dialog_session_manager_test/BUILD.gn
+index 5db1923b934ebdf7f505abb570ea1229e175a04a..a8a0b899756bd38520689827cd9a2d7a13ab12a9 100644
+--- a/test/unittest/dialog_session_manager_test/BUILD.gn
++++ b/test/unittest/dialog_session_manager_test/BUILD.gn
+@@ -53,6 +53,7 @@ ohos_unittest("dialog_session_manager_test") {
+     "${ability_runtime_path}/utils/server/startup:startup_util",
+     "${ability_runtime_services_path}/abilitymgr:abilityms",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:perm_verification",
+     "${ability_runtime_services_path}/common:task_handler_wrap",
+   ]
+ 
+diff --git a/test/unittest/js_ui_ability_test/js_ui_ability_test.cpp b/test/unittest/js_ui_ability_test/js_ui_ability_test.cpp
+index 3c84d0c06d9f8b793bd46ce990fe90a0ffbe74df..c71ec2e333421cfd69c39388fbda1b8a27d70787 100644
+--- a/test/unittest/js_ui_ability_test/js_ui_ability_test.cpp
++++ b/test/unittest/js_ui_ability_test/js_ui_ability_test.cpp
+@@ -270,7 +270,7 @@ HWTEST_F(JsUiAbilityTest, JSUIAbility_OnNewWant_0100, TestSize.Level1)
+     std::string navDestinationInfo = "testNavDestinationInfo";
+     want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, navDestinationInfo);
+     ability->OnNewWant(want);
+-    EXPECT_NE(want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER), navDestinationInfo);
++    EXPECT_EQ(want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER), navDestinationInfo);
+     GTEST_LOG_(INFO) << "JSUIAbility_OnNewWant_0100 end";
+ }
+ 
+diff --git a/test/unittest/start_ability_utils_test/BUILD.gn b/test/unittest/start_ability_utils_test/BUILD.gn
+index 2541213a33715e6a39a15a1ad92158fa515753ba..f8925be4a10f45334e9154a9d8c3d5b8fa651960 100644
+--- a/test/unittest/start_ability_utils_test/BUILD.gn
++++ b/test/unittest/start_ability_utils_test/BUILD.gn
+@@ -37,6 +37,8 @@ ohos_unittest("start_ability_utils_test") {
+     "mock/src/mock_app_scheduler.cpp",
+     "mock/src/mock_bundle_mgr_helper.cpp",
+     "mock/src/mock_my_status.cpp",
++    "mock/src/mock_my_flag.cpp",
++    "mock/src/mock_accesstoken_kit.cpp",
+     "start_ability_utils_test.cpp",
+   ]
+ 
+@@ -54,6 +56,7 @@ ohos_unittest("start_ability_utils_test") {
+     "${ability_runtime_path}/utils/server/startup:startup_util",
+     "${ability_runtime_services_path}/abilitymgr:abilityms",
+     "${ability_runtime_services_path}/common:app_util",
++    "${ability_runtime_services_path}/common:perm_verification",
+   ]
+ 
+   external_deps = [
+diff --git a/test/unittest/start_ability_utils_test/mock/include/accesstoken_kit.h b/test/unittest/start_ability_utils_test/mock/include/accesstoken_kit.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..838c59ae6d259bb656c7b53d594fc01466729b47
+--- /dev/null
++++ b/test/unittest/start_ability_utils_test/mock/include/accesstoken_kit.h
+@@ -0,0 +1,34 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef MOCK_ACCESSTOKEN_KIT_H
++#define MOCK_ACCESSTOKEN_KIT_H
++
++#include <string>
++
++#include "access_token.h"
++
++namespace OHOS {
++namespace Security {
++namespace AccessToken {
++class AccessTokenKit {
++public:
++    static int VerifyAccessToken(int32_t tokenID, const std::string &permissionName, bool crossIpc);
++};
++} // namespace AccessToken
++} // namespace Security
++} // namespace OHOS
++
++#endif // MOCK_ACCESSTOKEN_KIT_H
+diff --git a/test/unittest/start_ability_utils_test/mock/include/mock_my_flag.h b/test/unittest/start_ability_utils_test/mock/include/mock_my_flag.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca9aec85698f7dbb27a3afcf9754ebf4426cc5ca
+--- /dev/null
++++ b/test/unittest/start_ability_utils_test/mock/include/mock_my_flag.h
+@@ -0,0 +1,34 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#ifndef MOCK_MY_FLAG_H
++#define MOCK_MY_FLAG_H
++
++#include <vector>
++#include <memory>
++#include "ability_info.h"
++#include "iremote_object.h"
++#include "want.h"
++
++namespace OHOS {
++namespace AAFwk {
++class MyFlag {
++public:
++    static int retVerifyAccessTokenId_;
++    static bool retValue_;
++};
++}  // namespace AAFwk
++}  // namespace OHOS
++#endif // MOCK_MY_FLAG_H
+diff --git a/test/unittest/start_ability_utils_test/mock/src/mock_accesstoken_kit.cpp b/test/unittest/start_ability_utils_test/mock/src/mock_accesstoken_kit.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..b997443c09d97027446e571dee9ce51616feaa3c
+--- /dev/null
++++ b/test/unittest/start_ability_utils_test/mock/src/mock_accesstoken_kit.cpp
+@@ -0,0 +1,30 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "accesstoken_kit.h"
++#include "mock_my_flag.h"
++
++namespace OHOS {
++namespace Security {
++namespace AccessToken {
++
++int AccessTokenKit::VerifyAccessToken(int32_t tokenID, const std::string &permissionName, bool crossIpc)
++{
++    return AAFwk::MyFlag::retVerifyAccessTokenId_;
++}
++
++} // namespace AccessToken
++} // namespace Security
++} // namespace OHOS
+diff --git a/test/unittest/start_ability_utils_test/mock/src/mock_my_flag.cpp b/test/unittest/start_ability_utils_test/mock/src/mock_my_flag.cpp
+new file mode 100644
+index 0000000000000000000000000000000000000000..cee0be94933e5fa3eb102b5e3b8182b7e9a4c3df
+--- /dev/null
++++ b/test/unittest/start_ability_utils_test/mock/src/mock_my_flag.cpp
+@@ -0,0 +1,23 @@
++/*
++ * Copyright (c) 2026 Huawei Device Co., Ltd.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include "mock_my_flag.h"
++
++namespace OHOS {
++namespace AAFwk {
++int MyFlag::retVerifyAccessTokenId_ = 0;
++bool MyFlag::retValue_ = false;
++} // namespace AAFwk
++} // namespace OHOS
+diff --git a/test/unittest/start_ability_utils_test/start_ability_utils_test.cpp b/test/unittest/start_ability_utils_test/start_ability_utils_test.cpp
+index d6690edfb3e7bf24c5c94f63ed4df38a27e6f98e..d7fa4d970957db0a473fcd196c2239a24749b378 100644
+--- a/test/unittest/start_ability_utils_test/start_ability_utils_test.cpp
++++ b/test/unittest/start_ability_utils_test/start_ability_utils_test.cpp
+@@ -22,8 +22,10 @@
+ #undef protected
+ 
+ #include "ability_manager_errors.h"
++#include "accesstoken_kit.h"
+ #include "extension_ability_info.h"
+ #include "hilog_tag_wrapper.h"
++#include "mock_my_flag.h"
+ #include "mock_my_status.h"
+ #include "start_ability_utils.h"
+ #include "want.h"
+@@ -745,5 +747,107 @@ HWTEST_F(StartAbilityUtilsTest, FindExtensionInfo_002, TestSize.Level1)
+     EXPECT_EQ(abilityInfo->status, RESOLVE_ABILITY_ERR);
+     TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest FindExtensionInfo_002 end");
+ }
++
++/**
++ * @tc.name: RemoveAtomicServiceShareRouterIfNeeded_001
++ * @tc.desc: test RemoveAtomicServiceShareRouterIfNeeded when want has no ATOMIC_SERVICE_SHARE_ROUTER parameter
++ * @tc.type: FUNC
++ */
++HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_001, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_001 start");
++    Want want;
++    AppExecFwk::AbilityInfo targetAbilityInfo;
++    targetAbilityInfo.applicationInfo.bundleType = AppExecFwk::BundleType::APP;
++
++    StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo);
++
++    EXPECT_FALSE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_001 end");
++}
++
++/**
++ * @tc.name: RemoveAtomicServiceShareRouterIfNeeded_002
++ * @tc.desc: test RemoveAtomicServiceShareRouterIfNeeded when target is atomic service (keep parameter)
++ * @tc.type: FUNC
++ */
++HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_002, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_002 start");
++    Want want;
++    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, std::string("test_router"));
++    AppExecFwk::AbilityInfo targetAbilityInfo;
++    targetAbilityInfo.applicationInfo.bundleType = AppExecFwk::BundleType::ATOMIC_SERVICE;
++    AAFwk::MyFlag::retVerifyAccessTokenId_ = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
++
++    StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo);
++
++    EXPECT_TRUE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
++    AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_002 end");
++}
++
++/**
++ * @tc.name: RemoveAtomicServiceShareRouterIfNeeded_003
++ * @tc.desc: test RemoveAtomicServiceShareRouterIfNeeded when target is not atomic service and has permission
++ * @tc.type: FUNC
++ */
++HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_003, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_003 start");
++    Want want;
++    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, std::string("test_router"));
++    AppExecFwk::AbilityInfo targetAbilityInfo;
++    targetAbilityInfo.applicationInfo.bundleType = AppExecFwk::BundleType::APP;
++    AAFwk::MyFlag::retVerifyAccessTokenId_ = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
++
++    StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo);
++
++    EXPECT_TRUE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
++    AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_003 end");
++}
++
++/**
++ * @tc.name: RemoveAtomicServiceShareRouterIfNeeded_004
++ * @tc.desc: test RemoveAtomicServiceShareRouterIfNeeded when target is not atomic service and no permission
++ * @tc.type: FUNC
++ */
++HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_004, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_004 start");
++    Want want;
++    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, std::string("test_router"));
++    AppExecFwk::AbilityInfo targetAbilityInfo;
++    targetAbilityInfo.applicationInfo.bundleType = AppExecFwk::BundleType::APP;
++    AAFwk::MyFlag::retVerifyAccessTokenId_ = Security::AccessToken::PermissionState::PERMISSION_DENIED;
++
++    StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo);
++
++    EXPECT_FALSE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
++    AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_004 end");
++}
++
++/**
++ * @tc.name: RemoveAtomicServiceShareRouterIfNeeded_005
++ * @tc.desc: test RemoveAtomicServiceShareRouterIfNeeded when target is atomic service and no permission
++ * @tc.type: FUNC
++ */
++HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_005, TestSize.Level1)
++{
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_005 start");
++    Want want;
++    want.SetParam(Want::ATOMIC_SERVICE_SHARE_ROUTER, std::string("test_router"));
++    AppExecFwk::AbilityInfo targetAbilityInfo;
++    targetAbilityInfo.applicationInfo.bundleType = AppExecFwk::BundleType::ATOMIC_SERVICE;
++    AAFwk::MyFlag::retVerifyAccessTokenId_ = Security::AccessToken::PermissionState::PERMISSION_DENIED;
++
++    StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo);
++
++    EXPECT_TRUE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
++    AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
++    TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_005 end");
++}
+ }  // namespace AAFwk
+ }  // namespace OHOS
