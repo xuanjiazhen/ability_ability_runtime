@@ -18,6 +18,7 @@ group("unittest") {
     "insight_intent_execute_callback_stub_test:unittest",
     "insight_intent_execute_manager_second_test:unittest",
     "insight_intent_execute_manager_test:unittest",
+    "insight_intent_execute_manager_third_test:unittest",
     "insight_intent_execute_param_second_test:unittest",
     "insight_intent_execute_param_test:unittest",
     "insight_intent_execute_result_test:unittest",
@@ -31,5 +32,7 @@ group("unittest") {
     "js_insight_intent_page_test:unittest",
     "js_insight_intent_utils_test:unittest",
     "insight_intent_sys_event_receiver_test:unittest",
+    "insight_intent_event_mgr_test:unittest",
+    "ets_insight_intent_context_test:unittest",
   ]
 }
