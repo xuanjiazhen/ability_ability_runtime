@@ -491,13 +491,13 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_005 start";
 
-    bool g_callbackInvoked = false;
-    AppTelemetryLeakType g_receivedLeakType;
+    bool gCallbackInvoked = false;
+    AppTelemetryLeakType gReceivedLeakType;
 
-    auto callback = [&g_callbackInvoked, &g_receivedLeakType]
+    auto callback = [&gCallbackInvoked, &gReceivedLeakType]
                     (const AppTelemetryObject& atObj) {
-        g_callbackInvoked = true;
-        g_receivedLeakType = atObj.atLeakType;
+        gCallbackInvoked = true;
+        gReceivedLeakType = atObj.atLeakType;
     };
 
     RegisterResourceParams params;
@@ -507,8 +507,8 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
 
     ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_RSS_ARK_TS);
 
-    EXPECT_TRUE(g_callbackInvoked);
-    EXPECT_EQ(g_receivedLeakType, ATLT_RSS_ARK_TS);
+    EXPECT_TRUE(gCallbackInvoked);
+    EXPECT_EQ(gReceivedLeakType, ATLT_RSS_ARK_TS);
 
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_005 end";
 }
@@ -523,10 +523,10 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_006 start";
 
-    int g_callbackCount = 0;
+    int gCallbackCount = 0;
 
-    auto callback = [&g_callbackCount](const AppTelemetryObject& atObj) {
-        g_callbackCount++;
+    auto callback = [&gCallbackCount](const AppTelemetryObject& atObj) {
+        gCallbackCount++;
     };
 
     RegisterResourceParams params;
@@ -540,7 +540,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
     ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_GPU);
     ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_FD);
 
-    EXPECT_EQ(g_callbackCount, 3);
+    EXPECT_EQ(gCallbackCount, 3);
 
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_006 end";
 }
@@ -555,9 +555,9 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_007 start";
 
-    int g_callbackCount = 0;
-    auto callback = [&g_callbackCount](const AppTelemetryObject& atObj) {
-        g_callbackCount++;
+    int gCallbackCount = 0;
+    auto callback = [&gCallbackCount](const AppTelemetryObject& atObj) {
+        gCallbackCount++;
     };
 
     RegisterResourceParams params;
@@ -573,7 +573,7 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
     t2.join();
     t3.join();
 
-    EXPECT_EQ(g_callbackCount, 3);
+    EXPECT_EQ(gCallbackCount, 3);
 
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_007 end";
 }
