@@ -284,15 +284,15 @@ bool ApplicationDataManager::GetHasOnErrorCallback()
 bool ApplicationDataManager::RegisterResourceObserver(RegisterResourceParams params, ResourceOverlimitCB cb)
 {
     std::lock_guard<std::mutex> lock(resourceMutex_);
-    if (cb == nullptr || appTelemetryLeakType == 0) {
+    if (cb == nullptr || params.appTelemetryLeakType == 0) {
         cb = nullptr;
-        appTelemetryLeakType = 0;
+        params.appTelemetryLeakType = 0;
         TAG_LOGI(AAFwkTag::APPKIT, "will unregister");
     }
- 
+
     resourceOverlimitCB_ = cb;
-    bool ret = WriteSandBoxXattr(appTelemetryLeakType);
-    TAG_LOGI(AAFwkTag::APPKIT, "result: %{public}d", ret);
+    bool ret = WriteSandBoxXattr(params);
+    TAG_LOGI(AAFwkTag::APPKIT, "RegisterResourceObserver execute result: %{public}d", ret);
     return ret;
 }
  
