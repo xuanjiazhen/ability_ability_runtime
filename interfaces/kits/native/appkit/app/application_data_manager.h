@@ -63,11 +63,8 @@ public:
     void SetIsUncatchable(bool isUncatchable);
     bool GetIsUncatchable();
     static bool NotifyUncaughtException(const ExceptionParams &params, const AppExecFwk::ErrorObject &errorObj);
-
     void SetLeakObserver(LeakObserverFunction leakCallback);
     bool RegisterResourceObserver(RegisterResourceParams params, ResourceOverlimitCB cb);
-
-
     void SetErrorHandlerCallback(EtsErrorCallback errorCallback);
     bool NotifyETSErrorObject(const AppExecFwk::ErrorObject &errorObj);
     void RegisterHasOnErrorCallback(HasOnErrorCallback hasOnErrorCallback);
