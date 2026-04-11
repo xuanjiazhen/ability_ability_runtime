@@ -302,7 +302,8 @@ bool ApplicationDataManager::WriteSandBoxXattr(RegisterResourceParams params)
     xattrValue += "," + std::to_string(params.appTelemetryLeakType);
     bool ret = (setxattr(RSRC_OBSV_PATH, RSRC_OBSV_XATTR, xattrValue.c_str(), strlen(xattrValue.c_str()), 0) == 0);
     if (!ret) {
-        TAG_LOGE(AAFwkTag::APPKIT, "failed write atlt, path: %{public}s, xattr: %{public}s, err: %{public}s", RSRC_OBSV_PATH, RSRC_OBSV_XATTR, strerror(errno));
+        TAG_LOGE(AAFwkTag::APPKIT, "failed write atlt, path: %{public}s, xattr: %{public}s, err: %{public}s",
+                 RSRC_OBSV_PATH, RSRC_OBSV_XATTR, strerror(errno));
         return false;
     }
     string threshold = std::to_string(params.thresholdPss);
@@ -316,7 +317,8 @@ bool ApplicationDataManager::WriteSandBoxXattr(RegisterResourceParams params)
     threshold = std::to_string(params.thresholdRNH);
     ret = ret && (setxattr(RSRC_OBSV_PATH, RSRC_OBSV_TRSHD_XATTR_RNH, threshold.c_str(), threshold.length(), 0) == 0);
     if (!ret) {
-        TAG_LOGE(AAFwkTag::APPKIT, "failed write threshold, path: %{public}s, err: %{public}s", RSRC_OBSV_PATH, strerror(errno));
+        TAG_LOGE(AAFwkTag::APPKIT, "failed write threshold, path: %{public}s, err: %{public}s",
+                 RSRC_OBSV_PATH, strerror(errno));
     }
     return ret;
 }
