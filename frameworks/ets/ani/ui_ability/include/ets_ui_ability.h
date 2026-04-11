@@ -274,6 +274,16 @@ public:
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
 
     /**
+     * @brief Execute insight intent when an ability starts with page insight intent.
+     *
+     * @param want Want.
+     * @param executeParam insight intent execute param.
+     * @param callback insight intent async callback.
+     */
+    void ExecuteInsightIntentPage(const Want &want, const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
+        std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
+
+    /**
      * @brief Execute insight intent when an ability didn't started, schedule it to background.
      *
      * @param want Want.
@@ -319,6 +329,7 @@ public:
 protected:
     void DoOnForeground(const Want &want) override;
     void ContinuationRestore(const Want &want) override;
+    void RequestFocus(const Want &want) override;
 
 private:
     bool IsRestorePageStack(const Want &want);
@@ -328,9 +339,10 @@ private:
     void UpdateEtsWindowStage(ani_ref windowStage);
     std::unique_ptr<NativeReference> CreateJsAppWindowStage();
     inline bool GetInsightIntentExecutorInfo(const Want &want,
-        const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
-        InsightIntentExecutorInfo& executeInfo, std::string arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2);
-    
+        const std::shared_ptr<InsightIntentExecuteParam> &executeParam, InsightIntentExecutorInfo &executeInfo,
+        std::string arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2);
+    void SetInsightIntentParam(const Want &want, bool coldStart);
+
     std::shared_ptr<AppExecFwk::ETSNativeReference> etsWindowStageObj_;
     std::shared_ptr<NativeReference> jsWindowStageObj_;
     int32_t windowMode_ = 0;

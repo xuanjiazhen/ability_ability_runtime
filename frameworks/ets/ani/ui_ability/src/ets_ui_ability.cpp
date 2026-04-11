@@ -34,17 +34,19 @@
 #include "ets_ability_context.h"
 #include "ets_ability_lifecycle_callback.h"
 #include "ets_data_struct_converter.h"
+#include "execute_ohmurl_operator.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "insight_intent_delay_result_callback_mgr.h"
+#include "insight_intent_execute_param.h"
 #include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
-#include "insight_intent_execute_param.h"
 #include "interop_object_instance.h"
+#include "js_insight_intent_utils.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
-#include "napi_common_want.h"
 #include "napi/native_api.h"
+#include "napi_common_want.h"
 #include "ohos_application.h"
 #include "page_switch_log.h"
 #include "string_wrapper.h"
@@ -1174,6 +1176,7 @@ void EtsUIAbility::DoOnForeground(const Want &want)
             windowMode_ = windowMode;
             TAG_LOGD(AAFwkTag::UIABILITY, "set window mode: %{public}d", windowMode);
         }
+        SetInsightIntentParam(want, false);
     }
 
     auto window = scene_->GetMainWindow();
@@ -1265,6 +1268,7 @@ void EtsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
         return;
     }
 
+    SetInsightIntentParam(want, true);
     AbilityContinuationOrRecover(want);
     auto window = scene_->GetMainWindow();
     if (window) {
@@ -1523,6 +1527,49 @@ void EtsUIAbility::ExecuteInsightIntentMoveToForeground(const Want &want,
     intentId_ = executeInfo.executeParam->insightIntentId_;
 }
 
+void EtsUIAbility::ExecuteInsightIntentPage(const Want &want,
+    const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
+{
+    TAG_LOGD(AAFwkTag::INTENT, "execute intent page");
+    if (abilityInfo_ == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid ability info");
+        InsightIntentExecutorMgr::TriggerCallbackInner(
+            std::move(callback), static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+        return;
+    }
+
+    const WantParams &wantParams = want.GetParams();
+    std::string arkTSMode = wantParams.GetStringParam(AppExecFwk::INSIGHT_INTENT_ARKTS_MODE);
+    if (arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2) {
+        InsightIntentExecutorInfo executeInfo;
+        executeInfo.hapPath = abilityInfo_->hapPath;
+        executeInfo.executeParam = executeParam;
+        auto ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
+            etsRuntime_, executeInfo, std::move(callback));
+        if (!ret) {
+            TAG_LOGE(AAFwkTag::INTENT, "execute insightIntent failed");
+        }
+        return;
+    }
+
+    auto &jsRuntime = etsRuntime_.GetJsRuntime();
+    if (jsRuntime == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null jsRuntime");
+        InsightIntentExecutorMgr::TriggerCallbackInner(
+            std::move(callback), static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
+        return;
+    }
+    InsightIntentExecutorInfo executeInfo;
+    executeInfo.hapPath = abilityInfo_->hapPath;
+    executeInfo.executeParam = executeParam;
+    auto ret = DelayedSingleton<InsightIntentExecutorMgr>::GetInstance()->ExecuteInsightIntent(
+        *jsRuntime, executeInfo, std::move(callback));
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::INTENT, "execute insightIntent failed");
+    }
+}
+
 void EtsUIAbility::ExecuteInsightIntentBackground(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
@@ -1610,6 +1657,7 @@ bool EtsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
 
     const WantParams &wantParams = want.GetParams();
     executeInfo.srcEntry = wantParams.GetStringParam("ohos.insightIntent.srcEntry");
+    executeInfo.decoratorClass = wantParams.GetStringParam("ohos.insightIntent.decoratorClass");
     executeInfo.hapPath = abilityInfo_->hapPath;
     executeInfo.esmodule = abilityInfo_->compileMode == AppExecFwk::CompileMode::ES_MODULE;
     executeInfo.windowMode = windowMode_;
@@ -1625,6 +1673,77 @@ bool EtsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
     }
     executeInfo.executeParam = executeParam;
     return true;
+}
+
+void EtsUIAbility::SetInsightIntentParam(const Want &want, bool coldStart)
+{
+#ifdef SUPPORT_GRAPHICS
+    if (scene_ == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "scene invalid");
+        return;
+    }
+    auto window = scene_->GetMainWindow();
+    if (window == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "window invalid");
+        return;
+    }
+    if (abilityInfo_ == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "abilityInfo invalid");
+        return;
+    }
+    if (!AppExecFwk::InsightIntentExecuteParam::IsInsightIntentPage(want)) {
+        return;
+    }
+
+    AppExecFwk::InsightIntentExecuteParam executeParam;
+    if (!AppExecFwk::InsightIntentExecuteParam::GenerateFromWant(want, executeParam)) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid params");
+        return;
+    }
+
+    Want newWant;
+    auto insightIntentParam = executeParam.insightIntentParam_;
+    if (insightIntentParam != nullptr) {
+        sptr<AAFwk::IWantParams> executeParams = AAFwk::WantParamWrapper::Box(*insightIntentParam);
+        if (executeParams != nullptr) {
+            WantParams wantParams;
+            wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM, executeParams);
+            newWant.SetParams(wantParams);
+        }
+    }
+    newWant.SetParam(AppExecFwk::INSIGHT_INTENT_PAGE_PARAM_PAGEPATH, executeParam.pagePath_);
+    newWant.SetParam(AppExecFwk::INSIGHT_INTENT_PAGE_PARAM_NAVIGATIONID, executeParam.navigationId_);
+    newWant.SetParam(AppExecFwk::INSIGHT_INTENT_PAGE_PARAM_NAVDESTINATIONNAME, executeParam.navDestinationName_);
+    newWant.SetParam("ohos.insightIntent.bundleName", executeParam.bundleName_);
+    newWant.SetParam("ohos.insightIntent.moduleName", executeParam.moduleName_);
+    newWant.SetParam("ohos.insightIntent.hapPath", abilityInfo_->hapPath);
+
+    auto &jsRuntime = etsRuntime_.GetJsRuntime();
+    if (jsRuntime == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "null jsRuntime for page load callback");
+        return;
+    }
+    auto &jsRuntimePoint = static_cast<AbilityRuntime::JsRuntime &>(*jsRuntime);
+    auto *env = jsRuntimePoint.GetNapiEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "env nullptr");
+        return;
+    }
+    HandleScope handleScope(env);
+    napi_value paramNapiVal = AppExecFwk::WrapWantParams(env, newWant.GetParams());
+    std::string paramStr = JsInsightIntentUtils::StringifyObject(env, paramNapiVal);
+    TAG_LOGD(AAFwkTag::INTENT, "param string %{private}s", paramStr.c_str());
+
+    Rosen::WMError ret = window->SetIntentParam(paramStr,
+        ExecuteOhmUrlOperator(jsRuntimePoint, executeParam.moduleName_, abilityInfo_->hapPath, executeParam.pagePath_),
+        coldStart);
+    if (ret != Rosen::WMError::WM_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "Set intent param failed %{public}d", ret);
+    }
+#else
+    (void)want;
+    (void)coldStart;
+#endif
 }
 
 int32_t EtsUIAbility::OnCollaborate(WantParams &wantParam)

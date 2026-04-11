@@ -114,8 +114,9 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
     std::string srcEntry;
     std::string arkTSMode;
     std::string intentName = want.GetStringParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME);
+    std::string decoratorClass;
     auto ret = AbilityRuntime::InsightIntentUtils::GetSrcEntry(
-        elementName, intentName, executeMode, srcEntry, &arkTSMode);
+        elementName, intentName, executeMode, srcEntry, &arkTSMode, DEFAULT_INVAL_VALUE, &decoratorClass);
     if (ret != ERR_OK || srcEntry.empty()) {
         TAG_LOGW(AAFwkTag::INTENT, "empty srcEntry");
         if (UpdateEntryDecoratorParams(want, executeMode, userId) != ERR_OK) {
@@ -506,15 +507,20 @@ int32_t InsightIntentExecuteManager::GenerateWant(
 
     std::string srcEntry;
     std::string arkTSMode;
+    std::string decoratorClass;
     auto ret = AbilityRuntime::InsightIntentUtils::GetSrcEntry(want.GetElement(), param->insightIntentName_,
-        static_cast<AppExecFwk::ExecuteMode>(param->executeMode_), srcEntry, &arkTSMode, param->userId_);
+        static_cast<AppExecFwk::ExecuteMode>(param->executeMode_), srcEntry, &arkTSMode, param->userId_,
+        &decoratorClass);
     if (!arkTSMode.empty()) {
         want.SetParam(INSIGHT_INTENT_ARKTS_MODE, arkTSMode);
+    }
+    if (!decoratorClass.empty()) {
+        want.SetParam(INSIGHT_INTENT_DECORATOR_CLASS, decoratorClass);
     }
     if (!srcEntry.empty()) {
         want.SetParam(INSIGHT_INTENT_SRC_ENTRY, srcEntry);
     } else if (decoratorInfo.decoratorType == "" && ret == ERR_INSIGHT_INTENT_GET_PROFILE_FAILED &&
-        param->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND && !param->isServiceMatch_) {
+               param->executeMode_ == AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND && !param->isServiceMatch_) {
         TAG_LOGI(AAFwkTag::INTENT, "insight intent srcEntry invalid, try free install ondemand");
         std::string startTime = std::to_string(std::chrono::duration_cast<std::chrono::milliseconds>(
             std::chrono::system_clock::now().time_since_epoch()).count());
