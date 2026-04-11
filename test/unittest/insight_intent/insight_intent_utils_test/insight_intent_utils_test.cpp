@@ -562,5 +562,125 @@ HWTEST_F(InsightIntentUtilsTest, ConvertConfigInsightIntentInfo_0300, TestSize.L
     EXPECT_EQ(queryInfo.formIntentInfo.formName, "MusicForm");
     EXPECT_EQ(queryInfo.cfgEntities, "cfgEntity");
 }
+
+/**
+ * @tc.name: ConvertExtractInsightIntentProfile_0100
+ * @tc.desc: Test ConvertExtractInsightIntentProfile with malformed JSON.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentProfile_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ConvertExtractInsightIntentProfile_0100 begin.");
+
+    AbilityRuntime::InsightIntentUtils utils;
+
+    std::string malformedJson = "{invalid json content";
+    ExtractInsightIntentProfileInfoVec profileInfos;
+
+    auto ret = AbilityRuntime::ExtractInsightIntentProfile::TransformTo(malformedJson, profileInfos);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(profileInfos.insightIntents.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "ConvertExtractInsightIntentProfile_0100 end.");
+}
+
+/**
+ * @tc.name: ConvertExtractInsightIntentProfile_0200
+ * @tc.desc: Test ConvertExtractInsightIntentProfile with empty JSON.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertExtractInsightIntentProfile_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ConvertExtractInsightIntentProfile_0200 begin.");
+
+    AbilityRuntime::InsightIntentUtils utils;
+
+    std::string emptyJson = "";
+    ExtractInsightIntentProfileInfoVec profileInfos;
+
+    auto ret = AbilityRuntime::ExtractInsightIntentProfile::TransformTo(emptyJson, profileInfos);
+    EXPECT_FALSE(ret);
+    // Verify output is empty when parsing fails
+    EXPECT_EQ(profileInfos.insightIntents.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "ConvertExtractInsightIntentProfile_0200 end.");
+}
+
+/**
+ * @tc.name: ExtractInsightIntentGenericInfo_0100
+ * @tc.desc: Test ExtractInsightIntentGenericInfo with Link type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ExtractInsightIntentGenericInfo_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExtractInsightGenericInfo_0100 begin.");
+
+    ExtractInsightIntentGenericInfo genericInfo;
+    genericInfo.bundleName = TEST_BUNDLE_NAME;
+    genericInfo.moduleName = TEST_MODULE_NAME;
+    genericInfo.intentName = TEST_INTENT_NAME;
+    genericInfo.decoratorType = INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
+
+    genericInfo.set<InsightIntentLinkInfo>();
+    auto& linkInfo = genericInfo.get<InsightIntentLinkInfo>();
+    linkInfo.uri = "https://example.com/action";
+    linkInfo.parameters = "{\"type\":\"object\"}";
+
+    EXPECT_EQ(genericInfo.decoratorType, INSIGHT_INTENTS_DECORATOR_TYPE_LINK);
+    EXPECT_EQ(genericInfo.bundleName, TEST_BUNDLE_NAME);
+    EXPECT_EQ(linkInfo.uri, "https://example.com/action");
+
+    TAG_LOGI(AAFwkTag::TEST, "ExtractInsightGenericInfo_0100 end.");
+}
+
+/**
+ * @tc.name: ExtractInsightIntentGenericInfo_0200
+ * @tc.desc: Test ExtractInsightIntentGenericInfo with Function type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ExtractInsightIntentGenericInfo_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExtractInsightGenericInfo_0200 begin.");
+
+    ExtractInsightIntentGenericInfo genericInfo;
+    genericInfo.bundleName = TEST_BUNDLE_NAME;
+    genericInfo.moduleName = TEST_MODULE_NAME;
+    genericInfo.intentName = TEST_INTENT_NAME;
+    genericInfo.decoratorType = INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION;
+
+    genericInfo.set<InsightIntentFunctionInfo>();
+    auto& functionInfo = genericInfo.get<InsightIntentFunctionInfo>();
+    functionInfo.functionName = "testFunction";
+    functionInfo.functionParams = {"param1", "param2", "param3"};
+
+    EXPECT_EQ(genericInfo.decoratorType, INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION);
+    EXPECT_EQ(functionInfo.functionParams.size(), 3);
+    EXPECT_EQ(functionInfo.functionName, "testFunction");
+
+    TAG_LOGI(AAFwkTag::TEST, "ExtractInsightGenericInfo_0200 end.");
+}
+
+/**
+ * @tc.name: ConvertConfigInsightIntentInfo_0400
+ * @tc.desc: Test ConvertConfigInsightIntentInfo with UIExtension.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentUtilsTest, ConvertConfigInsightIntentInfo_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ConvertConfigInsightIntentInfo_0400 begin.");
+
+    AbilityRuntime::InsightIntentUtils utils;
+    InsightIntentInfoForQuery queryInfo;
+    InsightIntentInfo intentInfo;
+    intentInfo.uiExtensionIntentInfo.abilityName = "TestUIExtension";
+    intentInfo.uiAbilityIntentInfo.supportExecuteMode = {AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND};
+
+    uint32_t ret = utils.ConvertConfigInsightIntentInfo(intentInfo, queryInfo, false);
+
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(queryInfo.uiExtensionIntentInfo.abilityName, "TestUIExtension");
+
+    TAG_LOGI(AAFwkTag::TEST, "ConvertConfigInsightIntentInfo_0400 end.");
+}
 } // namespace AAFwk
 } // namespace OHOS
