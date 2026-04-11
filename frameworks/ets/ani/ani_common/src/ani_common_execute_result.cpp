@@ -25,6 +25,10 @@
 namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
+namespace {
+constexpr const char *INTENT_RESULT_WRAPPER_CLASS_NAME = "utils.AbilityUtils.IntentResultWrapper";
+}
+
 bool UnwrapResultOfExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
 {
     if (env == nullptr) {
@@ -53,7 +57,32 @@ bool UnwrapResultOfExecuteResult(ani_env *env, ani_object &param, InsightIntentE
     return true;
 }
 
-bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
+bool UnwrapResultOfDecoratorExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null env");
+        return false;
+    }
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "decorator param is nullptr");
+        return false;
+    }
+
+    auto wantParams = std::make_shared<AAFwk::WantParams>();
+    if (!UnwrapWantParams(env, param, *wantParams)) {
+        TAG_LOGE(AAFwkTag::INTENT, "failed to unwrap want parameter");
+        return false;
+    }
+
+    if (!executeResult.CheckResult(wantParams)) {
+        TAG_LOGE(AAFwkTag::INTENT, "Check wp fail");
+        return false;
+    }
+    executeResult.result = wantParams;
+    return true;
+}
+
+bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult, bool isDecorator)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null env");
@@ -63,6 +92,15 @@ bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteRe
     if (param == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "param is nullptr");
         return false;
+    }
+
+    if (isDecorator) {
+        executeResult.isDecorator = true;
+        if (!UnwrapResultOfDecoratorExecuteResult(env, param, executeResult)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap decorator result fail");
+            return false;
+        }
+        return true;
     }
 
     int32_t code = 0;
@@ -105,6 +143,41 @@ ani_object WrapExecuteResult(ani_env *env, const AppExecFwk::InsightIntentExecut
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null env");
         return nullptr;
+    }
+
+    if (executeResult.isDecorator) {
+        if (executeResult.result == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "decorator result is null");
+            return nullptr;
+        }
+
+        ani_ref recordRef = WrapWantParams(env, *executeResult.result);
+        if (recordRef == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "WrapWantParams failed");
+            return nullptr;
+        }
+
+        ani_class wrapperCls = nullptr;
+        ani_status wrapperStatus = env->FindClass(INTENT_RESULT_WRAPPER_CLASS_NAME, &wrapperCls);
+        if (wrapperStatus != ANI_OK || wrapperCls == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "FindClass failed, status: %{public}d", wrapperStatus);
+            return nullptr;
+        }
+
+        ani_static_method fromRecordMethod = nullptr;
+        wrapperStatus = env->Class_FindStaticMethod(wrapperCls, "fromRecord", nullptr, &fromRecordMethod);
+        if (wrapperStatus != ANI_OK || fromRecordMethod == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "Class_FindStaticMethod failed, status: %{public}d", wrapperStatus);
+            return nullptr;
+        }
+
+        ani_ref intentResultRef = nullptr;
+        wrapperStatus = env->Class_CallStaticMethod_Ref(wrapperCls, fromRecordMethod, &intentResultRef, recordRef);
+        if (wrapperStatus != ANI_OK || intentResultRef == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "Class_CallStaticMethod_Ref failed, status: %{public}d", wrapperStatus);
+            return nullptr;
+        }
+        return static_cast<ani_object>(intentResultRef);
     }
 
     ani_class cls = nullptr;
