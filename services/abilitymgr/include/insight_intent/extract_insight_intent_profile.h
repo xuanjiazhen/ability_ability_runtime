@@ -216,6 +216,7 @@ struct ExtractInsightIntentProfileInfo {
     std::string abilityName;
     std::string functionName;
     std::string formName;
+    std::string arkTSMode;
 };
 
 struct ExtractInsightIntentProfileInfoVec {
