@@ -261,5 +261,247 @@ HWTEST_F(InsightIntentExecuteParamTest, UpdateInsightIntentCallerInfo_0100, Test
 
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
+
+/**
+ * @tc.name: GenerateFromWant_0200
+ * @tc.desc: Test GenerateFromWant with empty want params.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, GenerateFromWant_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GenerateFromWant_0200 begin.");
+
+    Want want;
+    InsightIntentExecuteParam executeParam;
+    auto ret = InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
+    EXPECT_FALSE(ret);  // Should fail without proper params
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateFromWant_0300
+ * @tc.desc: Test GenerateFromWant with missing required fields.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, GenerateFromWant_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GenerateFromWant_0300 begin.");
+
+    Want want;
+    WantParams wantParams;
+    // Missing INSIGHT_INTENT_EXECUTE_PARAM_NAME
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_TOKEN, Integer::Box(1000));
+    want.SetParams(wantParams);
+
+    InsightIntentExecuteParam executeParam;
+    auto ret = InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
+    EXPECT_FALSE(ret);
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: RemoveInsightIntent_0100
+ * @tc.desc: Test RemoveInsightIntent removes insight intent params from want.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, RemoveInsightIntent_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveInsightIntent_0100 begin.");
+
+    Want want;
+    WantParams wantParams;
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NANE));
+    want.SetParams(wantParams);
+
+    // Verify it's an insight intent want
+    EXPECT_TRUE(InsightIntentExecuteParam::IsInsightIntentExecute(want));
+
+    // Remove insight intent params
+    auto ret = InsightIntentExecuteParam::RemoveInsightIntent(want);
+    EXPECT_TRUE(ret);
+
+    // Verify it's no longer an insight intent want
+    EXPECT_FALSE(InsightIntentExecuteParam::IsInsightIntentExecute(want));
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: RemoveInsightIntent_0200
+ * @tc.desc: Test RemoveInsightIntent with non-insight intent want.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, RemoveInsightIntent_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveInsightIntent_0200 begin.");
+
+    Want want;
+    // Normal want without insight intent params
+    want.SetElementName("", TEST_BUNDLE_NANE, TEST_ABILITY_NANE, TEST_MODULE_NANE);
+
+    // Verify it's not an insight intent want
+    EXPECT_FALSE(InsightIntentExecuteParam::IsInsightIntentExecute(want));
+
+    // Remove should still succeed
+    auto ret = InsightIntentExecuteParam::RemoveInsightIntent(want);
+    EXPECT_TRUE(ret);
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: Marshalling_0200
+ * @tc.desc: Test Marshalling with all fields set.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, Marshalling_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+
+    Parcel parcel;
+    auto param = std::make_shared<InsightIntentExecuteParam>();
+
+    // Set all fields
+    param->bundleName_ = TEST_BUNDLE_NANE;
+    param->moduleName_ = TEST_MODULE_NANE;
+    param->abilityName_ = TEST_ABILITY_NANE;
+    param->insightIntentName_ = TEST_INSIGHT_INTENT_NANE;
+    param->displayId_ = 1;
+    param->flags_ = 2;
+    param->userId_ = 100;
+    param->insightIntentId_ = 12345;
+    param->decoratorType_ = static_cast<int8_t>(InsightIntentType::DECOR_PAGE);
+    param->srcEntrance_ = "./entry";
+    param->className_ = "TestClass";
+    param->methodName_ = "testMethod";
+    param->pagePath_ = "pages/test";
+
+    auto ret = param->Marshalling(parcel);
+    EXPECT_TRUE(ret);
+
+    // Verify parcel size is reasonable
+    EXPECT_GT(parcel.GetDataSize(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: ReadFromParcel_0200
+ * @tc.desc: Test ReadFromParcel after Marshalling.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, ReadFromParcel_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+
+    Parcel parcelWrite;
+    auto paramWrite = std::make_shared<InsightIntentExecuteParam>();
+
+    paramWrite->bundleName_ = TEST_BUNDLE_NANE;
+    paramWrite->moduleName_ = TEST_MODULE_NANE;
+    paramWrite->abilityName_ = TEST_ABILITY_NANE;
+    paramWrite->insightIntentName_ = TEST_INSIGHT_INTENT_NANE;
+    paramWrite->displayId_ = 1;
+
+    auto ret = paramWrite->Marshalling(parcelWrite);
+    ASSERT_TRUE(ret);
+
+    // Read back
+    Parcel parcelRead(parcelWrite.GetData(), parcelWrite.GetDataSize());
+    auto paramRead = std::make_shared<InsightIntentExecuteParam>();
+    ret = paramRead->ReadFromParcel(parcelRead);
+    EXPECT_TRUE(ret);
+
+    // Verify values match
+    EXPECT_EQ(paramRead->bundleName_, TEST_BUNDLE_NANE);
+    EXPECT_EQ(paramRead->moduleName_, TEST_MODULE_NANE);
+    EXPECT_EQ(paramRead->abilityName_, TEST_ABILITY_NANE);
+    EXPECT_EQ(paramRead->insightIntentName_, TEST_INSIGHT_INTENT_NANE);
+    EXPECT_EQ(paramRead->displayId_, 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: IsInsightIntentPage_0300
+ * @tc.desc: Test IsInsightIntentPage with page type want.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, IsInsightIntentPage_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+
+    Want want;
+    WantParams wantParams;
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NANE));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_PAGE_PARAM_PAGEPATH, AAFwk::String::Box("pages/test"));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_TOKEN, Integer::Box(1000));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_UID, Integer::Box(1001));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_PID, Integer::Box(1002));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, AAFwk::String::Box(TEST_CALLER_BUNDLE_NANE));
+    WantParams insightIntentParam;
+    insightIntentParam.SetParam("dummy", Integer::Box(-1));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM, WantParamWrapper::Box(insightIntentParam));
+    want.SetElementName("", TEST_BUNDLE_NANE, TEST_ABILITY_NANE, TEST_MODULE_NANE);
+    want.SetParams(wantParams);
+
+    auto ret = InsightIntentExecuteParam::IsInsightIntentPage(want);
+    EXPECT_TRUE(ret);
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: UpdateInsightIntentCallerInfo_0200
+ * @tc.desc: Test UpdateInsightIntentCallerInfo with empty params.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, UpdateInsightIntentCallerInfo_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+
+    WantParams wantParams;
+    WantParams insightIntentParam;
+
+    // Empty want params
+    InsightIntentExecuteParam::UpdateInsightIntentCallerInfo(wantParams, insightIntentParam);
+
+    // Verify no caller info is set (defaults to 0/empty)
+    EXPECT_EQ(insightIntentParam.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), 0);
+    EXPECT_TRUE(insightIntentParam.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME).empty());
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: UpdateInsightIntentCallerInfo_0300
+ * @tc.desc: Test UpdateInsightIntentCallerInfo with partial params.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, UpdateInsightIntentCallerInfo_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+
+    WantParams wantParams;
+    // Only set some caller info
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_UID, Integer::Box(2001));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, AAFwk::String::Box("partial.caller"));
+
+    WantParams insightIntentParam;
+    InsightIntentExecuteParam::UpdateInsightIntentCallerInfo(wantParams, insightIntentParam);
+
+    // Verify set fields
+    EXPECT_EQ(insightIntentParam.GetIntParam(Want::PARAM_RESV_CALLER_UID, 0), 2001);
+    EXPECT_EQ(insightIntentParam.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME), "partial.caller");
+
+    // Verify unset fields remain default
+    EXPECT_EQ(insightIntentParam.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0), 0);
+    EXPECT_EQ(insightIntentParam.GetIntParam(Want::PARAM_RESV_CALLER_PID, 0), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
 } // namespace AAFwk
 } // namespace OHOS
