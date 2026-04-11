@@ -1427,12 +1427,12 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
         }
     }
     // Get caller token ID before StartAbilityInfoWrap constructor
-    int32_t callerTokenId = static_cast<int32_t>(IPCskeleton::GetCallingTokenID());
+    int32_t callerTokenIdForPermission = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
     StartAbilityInfoWrap threadLocalInfo(param.want, validUserId, appIndex, param.callerToken);
     // Remove ATOMIC_SERVICE_SHARE_ROUTER if target is not atomic service or caller doesn't have permission
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
         StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(param.want,
-            StartAbilityUtils::startAbilityInfo->abilityInfo, callerTokenId);
+            StartAbilityUtils::startAbilityInfo->abilityInfo, callerTokenIdForPermission);
     }
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(param.want, param.requestCode, validUserId,
@@ -2230,12 +2230,12 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         return checkRet;
     }
     // Get caller token ID before StartAbilityInfoWrap constructor
-    int32_t callerTokenId = static_cast<int32_t>(IPCskeleton::GetCallingTokenID());
+    int32_t callerTokenIdForPermission = static_cast<int32_t>(IPCSkeleton::GetCallingTokenID());
     StartAbilityInfoWrap threadLocalInfo(want, validUserId, appIndex, callerToken);
     // Remove ATOMIC_SERVICE_SHARE_ROUTER if target is not atomic service or caller doesn't have permission
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
         StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(const_cast<Want &>(want),
-            StartAbilityUtils::startAbilityInfo->abilityInfo, callerTokenId);
+            StartAbilityUtils::startAbilityInfo->abilityInfo, callerTokenIdForPermission);
     }
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, requestCode, validUserId,
