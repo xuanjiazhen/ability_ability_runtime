@@ -95,6 +95,7 @@ public:
     std::string pagePath_;
     std::string navigationId_;
     std::string navDestinationName_;
+    std::string deviceId_;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

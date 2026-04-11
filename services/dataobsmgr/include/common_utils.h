@@ -51,6 +51,15 @@ public:
         }
         return result;
     }
+
+    static std::string AnonymizeDeviceId(const std::string& deviceId)
+    {
+        static constexpr size_t NON_ANONYMIZE_LENGTH = 6;
+        if (deviceId.length() < NON_ANONYMIZE_LENGTH) {
+            return "";
+        }
+        return deviceId.substr(0, NON_ANONYMIZE_LENGTH) + "******";
+    }
 };
 }
 } // namespace OHOS

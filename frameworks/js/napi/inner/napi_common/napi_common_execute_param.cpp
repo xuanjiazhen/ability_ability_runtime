@@ -119,6 +119,16 @@ bool UnwrapExecuteParam(napi_env env, napi_value param, InsightIntentExecutePara
         executeParam.userId_ = userId;
     }
 
+    std::string deviceId {""};
+    if (IsExistsByPropertyName(env, param, "deviceId")) {
+        if (!UnwrapStringByPropertyName(env, param, "deviceId", deviceId)) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "parse deviceId failed");
+            return false;
+        }
+        TAG_LOGI(AAFwkTag::JSNAPI, "deviceId %{public}s", deviceId.c_str());
+        executeParam.deviceId_ = deviceId;
+    }
+
     return true;
 }
 }  // namespace AbilityRuntime

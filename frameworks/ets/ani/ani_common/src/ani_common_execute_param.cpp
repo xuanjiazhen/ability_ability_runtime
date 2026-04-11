@@ -99,6 +99,16 @@ bool UnwrapExecuteParam(ani_env *env, ani_object param, AppExecFwk::InsightInten
             executeParam.displayId_ = displayId;
         }
     }
+
+    std::string deviceId {""};
+    if (IsExistsProperty(env, param, "deviceId")) {
+        if (!GetStringProperty(env, param, "deviceId", deviceId)) {
+            TAG_LOGE(AAFwkTag::INTENT, "parse deviceId failed");
+            return false;
+        }
+        TAG_LOGI(AAFwkTag::INTENT, "deviceId %{public}s", deviceId.c_str());
+        executeParam.deviceId_ = deviceId;
+    }
     if (IsExistsProperty(env, param, "uris")) {
         std::vector<std::string> uris;
         if (!GetStringArrayProperty(env, param, "uris", uris)) {

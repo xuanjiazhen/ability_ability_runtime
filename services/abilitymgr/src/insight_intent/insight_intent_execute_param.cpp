@@ -52,6 +52,7 @@ bool InsightIntentExecuteParam::ReadFromParcel(Parcel &parcel)
     navigationId_ = Str16ToStr8(parcel.ReadString16());
     navDestinationName_ = Str16ToStr8(parcel.ReadString16());
     isServiceMatch_ = parcel.ReadBool();
+    deviceId_ = Str16ToStr8(parcel.ReadString16());
     return true;
 }
 
@@ -91,6 +92,7 @@ bool InsightIntentExecuteParam::Marshalling(Parcel &parcel) const
     parcel.WriteString16(Str8ToStr16(navigationId_));
     parcel.WriteString16(Str8ToStr16(navDestinationName_));
     parcel.WriteBool(isServiceMatch_);
+    parcel.WriteString16(Str8ToStr16(deviceId_));
     return true;
 }
 

@@ -1,4 +1,4 @@
-/*
+D:\2026\AMS\ability_ability_runtime\interfaces\kits\native\ability\native\distributed_ability_runtime\distributed_client.h/*
  * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 
 
 #include <string>
+#include <mutex>
 
 #include "dms_continueInfo.h"
 #include "mission_info.h"
@@ -25,6 +26,7 @@
 #include "want_params.h"
 #include "want.h"
 #include "iremote_broker.h"
+#include "distributed_sched_types.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -63,6 +65,15 @@ public:
     int32_t SetMissionContinueState(int32_t missionId, const AAFwk::ContinueState &state, int32_t callingUid);
     int32_t OnCollaborateDone(
         const std::string &collabToken, int32_t result, int32_t pid, int32_t uid, int32_t accessTokenId);
+    int32_t StartRemoteIntent(const OHOS::AAFwk::Want& want,
+        DistributedSchedule::DistributedIntentSessionInfo& sessionInfo,
+        const DistributedSchedule::IntentCallerInfo& callerInfo,
+        const sptr<IRemoteObject>& resultCallback);
+    int32_t DisconnectRemoteIntent(
+        const DistributedSchedule::DistributedIntentSessionInfo& sessionInfo);
+    int32_t SendRemoteIntentResult(int32_t requestCode, const std::string& deviceId,
+        int32_t resultCode, const std::string& resultMsg);
+
     enum {
         START_REMOTE_ABILITY = 1,
         CONNECT_REMOTE_ABILITY = 6,
@@ -84,7 +95,10 @@ public:
         REGISTER_ON_LISTENER = 260,
         REGISTER_OFF_LISTENER = 261,
         SET_MISSION_CONTINUE_STATE = 300,
-        NOTIFY_ON_COLLABORATE_DONE = 334
+        NOTIFY_ON_COLLABORATE_DONE = 334,
+        START_REMOTE_INTENT = 400,
+        DISCONNECT_REMOTE_INTENT = 401,
+        SEND_INTENT_RESULT = 402,
     };
 private:
     sptr<IRemoteObject> GetDmsProxy();

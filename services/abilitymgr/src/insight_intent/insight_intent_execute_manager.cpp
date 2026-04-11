@@ -18,6 +18,7 @@
 #include "ability_config.h"
 #include "ability_util.h"
 #include "ability_manager_errors.h"
+#include "common_utils.h"
 #include "extract_insight_intent_profile.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_callback_interface.h"
@@ -532,6 +533,10 @@ int32_t InsightIntentExecuteManager::GenerateWant(
     if (param->displayId_ != INVALID_DISPLAY_ID) {
         want.SetParam(Want::PARAM_RESV_DISPLAY_ID, param->displayId_);
         TAG_LOGD(AAFwkTag::INTENT, "Generate want with displayId: %{public}d", param->displayId_);
+    }
+    if (!param->deviceId_.empty()) {
+        want.SetDeviceId(param->deviceId_);
+        TAG_LOGD(AAFwkTag::INTENT, "Generate want with deviceId: %{public}s", CommonUtils::AnonymizeDeviceId(param->deviceId_).c_str());
     }
 
     auto intRet = AddWantUirsAndFlagsFromParam(param, want);

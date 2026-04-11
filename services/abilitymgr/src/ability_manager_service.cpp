@@ -43,6 +43,7 @@
 #include "display_manager.h"
 #include "display_util.h"
 #include "distributed_client.h"
+#include "remote_intent_result_callback_interface.h"
 #include "dlp_utils.h"
 #include "exit_info_data_manager.h"
 #include "ffrt.h"
@@ -13741,6 +13742,19 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (ret != ERR_OK) {
         return ret;
     }
+    if (CheckIfOperateRemote(want)) {
+        TAG_LOGI(AAFwkTag::INTENT, "remote intent, dispatch to DMS");
+        auto callback = sptr<RemoteIntentResultCallback>::MakeSptr(paramPtr->insightIntentId_);
+        DistributedSchedule::DistributedIntentSessionInfo sessionInfo;
+        DistributedSchedule::IntentCallerInfo callerInfo;
+        callerInfo.callerUid = IPCSkeleton::GetCallingUid();
+        callerInfo.requestCode = static_cast<int32_t>(paramPtr->insightIntentId_);
+        callerInfo.accessToken = IPCSkeleton::GetCallingTokenID();
+        DistributedClient distributedClient;
+        int32_t dmsRet = distributedClient.StartRemoteIntent(want, sessionInfo, callerInfo, callback);
+        TAG_LOGI(AAFwkTag::INTENT, "StartRemoteIntent result=%{public}d, socketFd=%{public}d", dmsRet, sessionInfo.socketFd);
+        return dmsRet;
+    }
     int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
     EventInfo eventInfo = BuildEventInfo(want, callerUserId);
     switch (param.executeMode_) {
@@ -13804,6 +13818,49 @@ bool AbilityManagerService::IsAbilityStarted(AbilityRequest &abilityRequest,
         return false;
     }
     return missionListMgr->IsAbilityStarted(abilityRequest, targetRecord);
+}
+
+namespace {
+class RemoteIntentResultCallback : public IRemoteStub<DistributedSchedule::IRemoteIntentResultCallback> {
+public:
+    explicit RemoteIntentResultCallback(uint64_t intentId) : intentId_(intentId) {}
+    ~RemoteIntentResultCallback() = default;
+    int32_t OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) override
+    {
+        if (data.ReadInterfaceToken(GetDescriptor()) != GetDescriptor()) {
+            return ERR_INVALID_STATE;
+        }
+        if (code == static_cast<uint32_t>(DistributedSchedule::IRemoteIntentResultCallback::ON_INTENT_RESULT)) {
+            OnIntentResult(data.ReadInt32(), data.ReadInt32(), data.ReadString());
+            return ERR_OK;
+        }
+        if (code == static_cast<uint32_t>(DistributedSchedule::IRemoteIntentResultCallback::ON_LINK_DISCONNECTED)) {
+            OnLinkDisconnected(data.ReadInt32(), data.ReadInt32());
+            return ERR_OK;
+        }
+        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+    }
+    void OnIntentResult(int32_t requestCode, int32_t resultCode, const std::string &resultMsg) override
+    {
+        TAG_LOGI(AAFwkTag::INTENT, "OnIntentResult, intentId=%{public}" PRIu64 ", requestCode=%{public}d, resultCode=%{public}d",
+            intentId_, requestCode, resultCode);
+        AppExecFwk::InsightIntentExecuteResult result;
+        result.innerErr = resultCode;
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->ExecuteIntentDone(intentId_, resultCode, result);
+    }
+    void OnLinkDisconnected(int32_t requestCode, int32_t reason) override
+    {
+        TAG_LOGI(AAFwkTag::INTENT,
+            "OnLinkDisconnected, intentId=%{public}" PRIu64 ", requestCode=%{public}d, reason=%{public}d",
+            intentId_, requestCode, reason);
+        AppExecFwk::InsightIntentExecuteResult result;
+        result.innerErr = AbilityRuntime::InsightIntentInnerErr::INSIGHT_INTENT_INTERNAL_ERROR;
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->ExecuteIntentDone(
+            intentId_, ERR_DMS_START_REMOTE_FAILED, result);
+    }
+private:
+    uint64_t intentId_ = 0;
+};
 }
 
 int32_t AbilityManagerService::OnExecuteIntent(AbilityRequest &abilityRequest,

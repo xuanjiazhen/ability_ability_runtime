@@ -2113,7 +2113,8 @@ public:
      * @brief Execute intent.
      * @param abilityRequest The abilityRequest.
      */
-    int32_t OnExecuteIntent(AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord);
+    int32_t OnExecuteIntent(AbilityRequest &abilityRequest,
+        std::shared_ptr<AbilityRecord> &targetRecord);
 
     int32_t StartAbilityWithInsightIntent(const Want &want, int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE);

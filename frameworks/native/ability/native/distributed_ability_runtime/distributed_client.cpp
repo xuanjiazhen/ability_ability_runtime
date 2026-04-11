@@ -22,6 +22,7 @@
 #include "iservice_registry.h"
 #include "string_ex.h"
 #include "system_ability_definition.h"
+#include "system_ability_manager_client.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -570,5 +571,82 @@ int32_t DistributedClient::OnCollaborateDone(
     PARCEL_TRANSACT_SYNC_RET_INT(remote,
         static_cast<uint32_t>(NOTIFY_ON_COLLABORATE_DONE), data, reply);
 }
+
+int32_t DistributedClient::StartRemoteIntent(const OHOS::AAFwk::Want& want,
+    DistributedSchedule::DistributedIntentSessionInfo& sessionInfo,
+    const DistributedSchedule::IntentCallerInfo& callerInfo,
+    const sptr<IRemoteObject>& resultCallback)
+{
+    sptr<IRemoteObject> remote = GetDmsProxy();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "null remote");
+        return ERR_NULL_OBJECT;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, Parcelable, &want);
+    PARCEL_WRITE_HELPER(data, Int32, callerInfo.callerUid);
+    PARCEL_WRITE_HELPER(data, Int32, callerInfo.requestCode);
+    PARCEL_WRITE_HELPER(data, Uint32, callerInfo.accessToken);
+    PARCEL_WRITE_HELPER(data, Uint32, callerInfo.specifyTokenId);
+    PARCEL_WRITE_HELPER(data, RemoteObject, resultCallback);
+
+    MessageParcel reply;
+    MessageOption option;
+    int32_t err = remote->SendRequest(START_REMOTE_INTENT, data, reply, option);
+    if (err != ERR_NONE) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "SendRequest err=%{public}d", err);
+        return err;
+    }
+    int32_t result = reply.ReadInt32();
+    if (result == ERR_OK) {
+        sessionInfo.socketFd = reply.ReadInt32();
+        sessionInfo.deviceId = reply.ReadString();
+    }
+    return result;
+}
+
+int32_t DistributedClient::DisconnectRemoteIntent(
+    const DistributedSchedule::DistributedIntentSessionInfo& sessionInfo)
+{
+    sptr<IRemoteObject> remote = GetDmsProxy();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "null remote");
+        return ERR_NULL_OBJECT;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, Int32, sessionInfo.socketFd);
+    data.WriteString(sessionInfo.deviceId);
+
+    MessageParcel reply;
+    PARCEL_TRANSACT_SYNC_RET_INT(remote, DISCONNECT_REMOTE_INTENT, data, reply);
+}
+
+int32_t DistributedClient::SendRemoteIntentResult(int32_t requestCode, const std::string& deviceId,
+    int32_t resultCode, const std::string& resultMsg)
+{
+    sptr<IRemoteObject> remote = GetDmsProxy();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "null remote");
+        return ERR_NULL_OBJECT;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, Int32, requestCode);
+    data.WriteString(deviceId);
+    PARCEL_WRITE_HELPER(data, Int32, resultCode);
+    data.WriteString(resultMsg);
+
+    MessageParcel reply;
+    PARCEL_TRANSACT_SYNC_RET_INT(remote, SEND_INTENT_RESULT, data, reply);
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
