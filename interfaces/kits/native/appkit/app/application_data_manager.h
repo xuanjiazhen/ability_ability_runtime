@@ -23,6 +23,7 @@
 
 #include "ierror_observer.h"
 #include "nocopyable.h"
+#include "fault_data.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -62,10 +63,10 @@ public:
     void SetIsUncatchable(bool isUncatchable);
     bool GetIsUncatchable();
     static bool NotifyUncaughtException(const ExceptionParams &params, const AppExecFwk::ErrorObject &errorObj);
-    bool NotifyLeakObject(const LeakObject &leakObj);
+
     void SetLeakObserver(LeakObserverFunction leakCallback);
     bool RegisterResourceObserver(RegisterResourceParams params, ResourceOverlimitCB cb);
-    void NotifyAppTelemetry(AppTelemetryLeakType atLeakType);
+
 
     void SetErrorHandlerCallback(EtsErrorCallback errorCallback);
     bool NotifyETSErrorObject(const AppExecFwk::ErrorObject &errorObj);
@@ -77,6 +78,8 @@ private:
     static std::string GetFuncNameFromError(napi_env env, napi_value error);
     DISALLOW_COPY_AND_MOVE(ApplicationDataManager);
     bool WriteSandBoxXattr(RegisterResourceParams params);
+    void NotifyAppTelemetry(AppTelemetryLeakType atLeakType);
+    bool NotifyLeakObject(const LeakObject &leakObj);
     std::shared_ptr<IErrorObserver> errorObserver_;
     std::atomic_bool isUncatchable_;
     LeakObserverFunction leakObserver_ = nullptr;

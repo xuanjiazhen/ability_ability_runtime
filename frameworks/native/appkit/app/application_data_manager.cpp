@@ -337,5 +337,31 @@ void ApplicationDataManager::NotifyAppTelemetry(AppTelemetryLeakType atLeakType)
     TAG_LOGI(AAFwkTag::APPKIT, "start callback resource overlimit");
     resourceOverlimitCB_(atObj);
 }
+
+void ApplicationDataManager::NotifyAppFault(const FaultData &faultData)
+{
+    if (!faultData.notifyApp) {
+        return;
+    }
+    if (faultData.faultType == FaultDataType::APP_TELEMETRY) {
+        NotifyAppTelemetry(faultData.atLeakType);
+        return;
+    }
+    if (faultData.faultType == FaultDataType::RESOURCE_CONTROL) {
+        LeakObject leakObj = {
+            .leakType = faultData.leakObject.leakType,
+            .leakSize = faultData.leakObject.leakSize,
+            .detailInfo = faultData.leakObject.detailInfo,
+        };
+        NotifyLeakObject(leakObj);
+        return;
+    }
+    ErrorObject faultErrorObj = {
+        .name = faultData.errorObject.name,
+        .message = faultData.errorObject.message,
+        .stack = faultData.errorObject.stack
+    };
+    NotifyExceptionObject(faultErrorObj);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
