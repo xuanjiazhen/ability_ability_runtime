@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_ETS_INSIGHT_INTENT_EXECUTOR_INSTANCE_H
 #define OHOS_ABILITY_RUNTIME_ETS_INSIGHT_INTENT_EXECUTOR_INSTANCE_H
 
+#include <cstdint>
+
 #include "insight_intent_executor.h"
 
 namespace OHOS {
@@ -24,6 +26,8 @@ class InsightIntentExecutor;
 class Runtime;
 
 InsightIntentExecutor *CreateETSInsightIntentExecutor(Runtime &runtime);
+InsightIntentExecutor *CreateETSInsightIntentEntry(Runtime &runtime);
+InsightIntentExecutor *CreateETSInsightIntentFunc(Runtime &runtime);
 } // namespace AbilityRuntime
 } // namespace OHOS
 #endif // OHOS_ABILITY_RUNTIME_ETS_INSIGHT_INTENT_EXECUTOR_INSTANCE_H

@@ -67,6 +67,7 @@ const std::string INSIGHT_INTENT_ENTITY_ID = "entityId";
 const std::string INSIGHT_INTENT_ENTITY_CATEGORY = "entityCategory";
 const std::string INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME = "parentClassName";
 const std::string INSIGHT_INTENT_ENTITY_PARAMETERS = "parameters";
+const std::string INSIGHT_INTENT_ARKTS_MODE = "arkTsMode";
 
 enum DecoratorType {
     DECORATOR_LINK = 0,
@@ -349,6 +350,12 @@ void from_json(const nlohmann::json &jsonObject, ExtractInsightIntentProfileInfo
         insightIntentInfo.formName,
         false,
         g_extraParseResult);
+    AppExecFwk::BMSJsonUtil::GetStrValueIfFindKey(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ARKTS_MODE,
+        insightIntentInfo.arkTSMode,
+        false,
+        g_extraParseResult);
 
     if (jsonObject.find(INSIGHT_INTENT_PARAMETERS) != jsonObjectEnd) {
         if (jsonObject.at(INSIGHT_INTENT_PARAMETERS).is_object()) {
@@ -446,7 +453,8 @@ void to_json(nlohmann::json& jsonObject, const ExtractInsightIntentProfileInfo& 
         {INSIGHT_INTENT_FUNCTION_NAME, info.functionName},
         {INSIGHT_INTENT_FUNCTION_PARAMS, info.functionParams},
         {INSIGHT_INTENT_FORM_NAME, info.formName},
-        {INSIGHT_INTENT_ENTITES, info.entities}
+        {INSIGHT_INTENT_ENTITES, info.entities},
+        {INSIGHT_INTENT_ARKTS_MODE, info.arkTSMode}
     };
 
     if (!info.parameters.empty()) {

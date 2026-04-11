@@ -53,6 +53,7 @@ constexpr char INSIGHT_INTENT_FUNC_PARAM_METHODPARAMS[] = "ohos.insightIntent.fu
 constexpr char INSIGHT_INTENT_PAGE_PARAM_PAGEPATH[] = "ohos.insightIntent.pageParam.pagePath";
 constexpr char INSIGHT_INTENT_PAGE_PARAM_NAVIGATIONID[] = "ohos.insightIntent.pageParam.navigationId";
 constexpr char INSIGHT_INTENT_PAGE_PARAM_NAVDESTINATIONNAME[] = "ohos.insightIntent.pageParam.navDestinationName";
+constexpr char INSIGHT_INTENT_DECORATOR_CLASS[] = "ohos.insightIntent.decoratorClass";
 
 constexpr int32_t INVALID_DISPLAY_ID = -1;
 
