@@ -295,7 +295,7 @@ bool ApplicationDataManager::RegisterResourceObserver(RegisterResourceParams par
     TAG_LOGI(AAFwkTag::APPKIT, "RegisterResourceObserver execute result: %{public}d", ret);
     return ret;
 }
- 
+
 bool ApplicationDataManager::WriteSandBoxXattr(RegisterResourceParams params)
 {
     std::string xattrValue = DFX_GetAppRunningUniqueId();

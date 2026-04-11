@@ -69,6 +69,7 @@ public:
     bool NotifyETSErrorObject(const AppExecFwk::ErrorObject &errorObj);
     void RegisterHasOnErrorCallback(HasOnErrorCallback hasOnErrorCallback);
     bool GetHasOnErrorCallback();
+    void NotifyAppFault(const FaultData &faultData);
 private:
     ApplicationDataManager();
     ~ApplicationDataManager();
