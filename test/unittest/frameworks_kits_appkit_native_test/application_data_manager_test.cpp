@@ -427,13 +427,13 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_003 start";
 
-    bool g_callbackInvoked = false;
-    AppTelemetryLeakType g_receivedLeakType;
+    bool gCallbackInvoked = false;
+    AppTelemetryLeakType gReceivedLeakType;
 
-    auto callback = [&g_callbackInvoked, &g_receivedLeakType]
+    auto callback = [&gCallbackInvoked, &gReceivedLeakType]
                     (const AppTelemetryObject& atObj) {
-        g_callbackInvoked = true;
-        g_receivedLeakType = atObj.atLeakType;
+        gCallbackInvoked = true;
+        gReceivedLeakType = atObj.atLeakType;
     };
 
     RegisterResourceParams params;
@@ -443,8 +443,8 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
 
     ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_GPU);
 
-    EXPECT_TRUE(g_callbackInvoked);
-    EXPECT_EQ(g_receivedLeakType, ATLT_GPU);
+    EXPECT_TRUE(gCallbackInvoked);
+    EXPECT_EQ(gReceivedLeakType, ATLT_GPU);
 
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_003 end";
 }
@@ -459,13 +459,13 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_004 start";
 
-    bool g_callbackInvoked = false;
-    AppTelemetryLeakType g_receivedLeakType;
+    bool gCallbackInvoked = false;
+    AppTelemetryLeakType gReceivedLeakType;
 
-    auto callback = [&g_callbackInvoked, &g_receivedLeakType]
+    auto callback = [&gCallbackInvoked, &gReceivedLeakType]
                     (const AppTelemetryObject& atObj) {
-        g_callbackInvoked = true;
-        g_receivedLeakType = atObj.atLeakType;
+        gCallbackInvoked = true;
+        gReceivedLeakType = atObj.atLeakType;
     };
 
     RegisterResourceParams params;
@@ -475,8 +475,8 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_NotifyAppTelemetry_0
 
     ApplicationDataManager::GetInstance().NotifyAppTelemetry(ATLT_FD);
 
-    EXPECT_TRUE(g_callbackInvoked);
-    EXPECT_EQ(g_receivedLeakType, ATLT_FD);
+    EXPECT_TRUE(gCallbackInvoked);
+    EXPECT_EQ(gReceivedLeakType, ATLT_FD);
 
     GTEST_LOG_(INFO) << "ApplicationDataManager_NotifyAppTelemetry_004 end";
 }
