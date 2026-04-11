@@ -301,15 +301,15 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObse
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_001 start";
 
-    bool g_callbackInvoked = false;
-    AppTelemetryLeakType g_receivedLeakType = ATLT_PSS;
-    std::string g_receivedRunningId;
+    bool gCallbackInvoked  = false;
+    AppTelemetryLeakType gReceivedLeakType = ATLT_PSS;
+    std::string gReceivedRunningId;
 
-    auto callback = [&g_callbackInvoked, &g_receivedLeakType, &g_receivedRunningId]
+    auto callback = [&gCallbackInvoked, &gReceivedLeakType, &gReceivedRunningId]
                     (const AppTelemetryObject& atObj) {
-        g_callbackInvoked = true;
-        g_receivedLeakType = atObj.atLeakType;
-        g_receivedRunningId = atObj.runningId;
+        gCallbackInvoked = true;
+        gReceivedLeakType = atObj.atLeakType;
+        gReceivedRunningId = atObj.runningId;
     };
 
     RegisterResourceParams params;
@@ -353,9 +353,9 @@ HWTEST_F(ApplicationDataManagerTest, ApplicationDataManager_RegisterResourceObse
 {
     GTEST_LOG_(INFO) << "ApplicationDataManager_RegisterResourceObserver_003 start";
 
-    bool g_callbackInvoked = false;
-    auto callback = [&g_callbackInvoked](const AppTelemetryObject& atObj) {
-        g_callbackInvoked = true;
+    bool gCallbackInvoked = false;
+    auto callback = [&gCallbackInvoked](const AppTelemetryObject& atObj) {
+        gCallbackInvoked = true;
     };
 
     RegisterResourceParams params;
