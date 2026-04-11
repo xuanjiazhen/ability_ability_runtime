@@ -33,6 +33,11 @@ namespace insightIntent {
     flags?: int;
   }
 
+  export interface IntentResult<T> {
+    code: int;
+    result?: T;
+  }
+
   export class ExecuteResultInner implements ExecuteResult{
     code: int;
     result?: Record<string, RecordData>;

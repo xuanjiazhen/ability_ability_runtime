@@ -50,7 +50,20 @@ std::shared_ptr<InsightIntentExecutor> InsightIntentExecutor::Create(Runtime& ru
                 }
             }
         case Runtime::Language::ETS:
-            return std::shared_ptr<InsightIntentExecutor>(CreateETSInsightIntentExecutor(runtime));
+            switch (type) {
+                case InsightIntentType::DECOR_NONE:
+                    return std::shared_ptr<InsightIntentExecutor>(CreateETSInsightIntentExecutor(runtime));
+                case InsightIntentType::DECOR_ENTRY:
+                    return std::shared_ptr<InsightIntentExecutor>(CreateETSInsightIntentEntry(runtime));
+                case InsightIntentType::DECOR_FUNC:
+                    return std::shared_ptr<InsightIntentExecutor>(CreateETSInsightIntentFunc(runtime));
+                case InsightIntentType::DECOR_PAGE:
+                    return std::shared_ptr<InsightIntentExecutor>(CreateETSInsightIntentPage(runtime));
+                case InsightIntentType::DECOR_LINK:
+                case InsightIntentType::DECOR_FORM:
+                default:
+                    return nullptr;
+            }
         default:
             return nullptr;
     }

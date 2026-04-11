@@ -54,7 +54,7 @@ const std::string INSIGHT_INTENTS_DEVELOP_TYPE_DECORATOR = "decorator";
 } // namespace
 
 uint32_t InsightIntentUtils::GetSrcEntry(const AppExecFwk::ElementName &elementName, const std::string &intentName,
-    const AppExecFwk::ExecuteMode &executeMode, std::string &srcEntry, std::string *arkTSMode, int32_t userId)
+    const AppExecFwk::ExecuteMode &executeMode, std::string &srcEntry, std::string *arkTSMode, int32_t userId, std::string *decoratorClass)
 {
     TAG_LOGD(AAFwkTag::INTENT, "get srcEntry, elementName: %{public}s, intentName: %{public}s, mode: %{public}d",
         elementName.GetURI().c_str(), intentName.c_str(), executeMode);
@@ -86,12 +86,37 @@ uint32_t InsightIntentUtils::GetSrcEntry(const AppExecFwk::ElementName &elementN
     // Transform json string
     std::vector<InsightIntentInfo> infos;
     if (!InsightIntentProfile::TransformTo(profile, infos)) {
-        TAG_LOGE(AAFwkTag::INTENT, "transform profile failed");
+        TAG_LOGE(AAFwkTag::INTENT, "transform profile to InsightIntentInfo failed");
+        return ERR_INVALID_VALUE;
+    }
+    ExtractInsightIntentProfileInfoVec extractInfos;
+    if (!ExtractInsightIntentProfile::TransformTo(profile, extractInfos)) {
+        TAG_LOGE(AAFwkTag::INTENT, "testtag transform profile to ExtractInsightIntentInfo failed");
         return ERR_INVALID_VALUE;
     }
 
     // Get srcEntry when intentName matched
+    for (const auto &info: extractInfos.insightIntents) {
+            TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.intentName: %{public}s, abilityName: %{public}s, mode: %{public}d",
+                info.intentName.c_str(), abilityName.c_str(), executeMode);
+            TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.decoratorFile: %{public}s,  info.decoratorClass: %{public}s",
+                info.decoratorFile.c_str(), info.decoratorClass.c_str());
+            TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.arkTSMode: %{public}s", info.arkTSMode.c_str());    
+            if (info.intentName == intentName) {
+                *arkTSMode = "static";
+                TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.decoratorType: %{public}s", info.decoratorType.c_str());
+                if (info.decoratorType == "@InsightIntentEntry") {
+                    *decoratorClass = info.decoratorClass;
+                }
+                return ERR_OK;
+            }
+    }
+
     for (const auto &info: infos) {
+            TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.intentName: %{public}s, abilityName: %{public}s, mode: %{public}d",
+                info.intentName.c_str(), abilityName.c_str(), executeMode);
+            TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.srcEntry: %{public}s, info.arkTSMode: %{public}s",
+                info.srcEntry.c_str(), info.arkTSMode.c_str());
         if (info.intentName == intentName && CheckAbilityName(info, abilityName, executeMode)) {
             srcEntry = info.srcEntry;
             if (arkTSMode != nullptr) {

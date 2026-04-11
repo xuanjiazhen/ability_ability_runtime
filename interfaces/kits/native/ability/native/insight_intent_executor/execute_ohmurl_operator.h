@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_EXECUTE_OHMURL_OPERATOR_H
 #define OHOS_ABILITY_RUNTIME_EXECUTE_OHMURL_OPERATOR_H
 
+#include "file_mapper.h"
 #include "hilog_tag_wrapper.h"
 #include "js_runtime.h"
 
