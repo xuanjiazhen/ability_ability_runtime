@@ -856,7 +856,8 @@ HWTEST_F(InsightIntentExecuteManagerSecondTest, GetMainElementName_0100, TestSiz
     param.executeMode_ = AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND;
     auto paramPtr = std::make_shared<AppExecFwk::InsightIntentExecuteParam>(param);
     paramPtr->moduleName_ = "test.entry";
-    std::string retString = InsightIntentExecuteManager::GetMainElementName(paramPtr);
+    std::string retString = InsightIntentExecuteManager::GetMainElementName(paramPtr->bundleName_,
+        paramPtr->moduleName_);
     EXPECT_EQ(retString, "");
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
