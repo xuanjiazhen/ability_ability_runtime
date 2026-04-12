@@ -1,0 +1,113 @@
+{
+  "name": "cli-aa",
+  "version": "1.0.0",
+  "description": "Ability 启动 CLI 工具，提供标准化的 Ability 启动功能",
+  "executablePath": "/etc/cli/tools/cli-aa",
+  "timeout": 30,
+  "eventTypes": ["result", "error", "stdout", "progress"],
+  "inputSchema": {
+    "type": "object",
+    "description": "Ability 启动参数",
+    "properties": {
+      "ability": {
+        "type": "string",
+        "description": "Ability 名称"
+      },
+      "bundle": {
+        "type": "string",
+        "description": "Bundle 名称"
+      },
+      "module": {
+        "type": "string",
+        "description": "Module 名称"
+      },
+      "action": {
+        "type": "string",
+        "description": "Action 名称"
+      },
+      "uri": {
+        "type": "string",
+        "description": "URI"
+      },
+      "entity": {
+        "type": "string",
+        "description": "Entity"
+      },
+      "type": {
+        "type": "string",
+        "description": "MIME 类型"
+      },
+      "userId": {
+        "type": "integer",
+        "description": "用户 ID"
+      },
+      "wait": {
+        "type": "boolean",
+        "description": "等待启动完成",
+        "default": false
+      },
+      "paramString": {
+        "type": "object",
+        "description": "字符串参数"
+      },
+      "paramInt": {
+        "type": "object",
+        "description": "整数参数"
+      },
+      "paramBool": {
+        "type": "object",
+        "description": "布尔参数"
+      },
+      "windowLeft": {
+        "type": "integer",
+        "description": "窗口左边距"
+      },
+      "windowTop": {
+        "type": "integer",
+        "description": "窗口上边距"
+      },
+      "windowHeight": {
+        "type": "integer",
+        "description": "窗口高度"
+      },
+      "windowWidth": {
+        "type": "integer",
+        "description": "窗口宽度"
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "description": "启动结果",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "执行状态",
+        "enum": ["success", "error"]
+      },
+      "message": {
+        "type": "string",
+        "description": "结果消息"
+      },
+      "errorCode": {
+        "type": "integer",
+        "description": "错误码"
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "ability": "-a {value}",
+      "bundle": "-b {value}",
+      "module": "-m {value}",
+      "action": "-A {value}",
+      "uri": "-U {value}",
+      "entity": "-e {value}",
+      "type": "-t {value}",
+      "userId": "-u {value}",
+      "wait": "-W",
+      "help": "-h"
+    }
+  }
+}
