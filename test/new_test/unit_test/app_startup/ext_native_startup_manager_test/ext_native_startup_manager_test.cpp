@@ -207,6 +207,7 @@ HWTEST_F(ExtNativeStartupManagerTest, RegisterExtStartupTask_001, TestSize.Level
 HWTEST_F(ExtNativeStartupManagerTest, RegisterExtStartupTask_002, TestSize.Level1)
 {
     ExtNativeStartupManager::GetInstance().extNativeStartupTasks_.clear();
+    ExtNativeStartupManager::GetInstance().phaseFlag_ = SchedulerPhase::None;
     auto &tasks = ExtNativeStartupManager::GetInstance().extNativeStartupTasks_[SchedulerPhase::PostLaunchApplication];
     ASSERT_EQ(tasks.size(), 0);
     auto extNativeStartupTask1 = std::make_shared<TestExtNativeStartupTask>(TEST_EXT_NATIVE_STARTUP_TASK_NAME);
@@ -222,6 +223,23 @@ HWTEST_F(ExtNativeStartupManagerTest, RegisterExtStartupTask_002, TestSize.Level
     tasks = ExtNativeStartupManager::GetInstance().extNativeStartupTasks_[SchedulerPhase::PostLaunchApplication];
     ASSERT_EQ(tasks.size(), 2);
     tasks.clear();
+}
+
+/**
+ * @tc.name: RegisterExtStartupTask_003
+ * @tc.desc: Verify RegisterExtStartupTask call.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ExtNativeStartupManagerTest, RegisterExtStartupTask_003, TestSize.Level1)
+{
+    ExtNativeStartupManager::GetInstance().extNativeStartupTasks_.clear();
+    ExtNativeStartupManager::GetInstance().phaseFlag_ = SchedulerPhase::PostLaunchApplication;
+    auto extNativeStartupTask1 = std::make_shared<TestExtNativeStartupTask>(TEST_EXT_NATIVE_STARTUP_TASK_NAME);
+    EXPECT_CALL(extNativeStartupTask1, GetName()).Times(1).WillOnce(ReturnRef(TEST_EXT_NATIVE_STARTUP_TASK_NAME));
+    int32_t res = ExtNativeStartupManager::GetInstance().RegisterExtStartupTask(
+        extNativeStartupTask1, SchedulerPhase::PostLaunchApplication);
+    EXPECT_EQ(res, ERR_OK);
+    ExtNativeStartupManager::GetInstance().extNativeStartupTasks_.clear();
 }
 
 /**
