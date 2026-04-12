@@ -51,6 +51,7 @@ InsightIntentExecutor *CreateEtsInsightIntentBySymbol(
 CreateETSInsightIntentFunc g_etsCreateExecutorFunc = nullptr;
 CreateETSInsightIntentFunc g_etsCreateEntryFunc = nullptr;
 CreateETSInsightIntentFunc g_etsCreateFuncFunc = nullptr;
+CreateETSInsightIntentFunc g_etsCreateQueryEntityFunc = nullptr;
 } // namespace
 
 InsightIntentExecutor *CreateETSInsightIntentExecutor(Runtime &runtime)
@@ -66,6 +67,12 @@ InsightIntentExecutor *CreateETSInsightIntentEntry(Runtime &runtime)
 InsightIntentExecutor *CreateETSInsightIntentFunc(Runtime &runtime)
 {
     return CreateEtsInsightIntentBySymbol(runtime, "OHOS_ETS_Insight_Intent_Func_Create", g_etsCreateFuncFunc);
+}
+
+InsightIntentExecutor *CreateETSInsightIntentQueryEntity(Runtime &runtime)
+{
+    return CreateEtsInsightIntentBySymbol(runtime, "OHOS_ETS_Insight_Intent_QueryEntity_Create",
+        g_etsCreateQueryEntityFunc);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

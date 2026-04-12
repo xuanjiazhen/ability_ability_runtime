@@ -29,6 +29,7 @@
 #include "ani_common_execute_param.h"
 #include "ani_common_execute_result.h"
 #include "ani_common_intent_info_filter.h"
+#include "ani_common_query_entity_param.h"
 #include "ani_common_util.h"
 #include "ets_error_utils.h"
 
@@ -459,6 +460,71 @@ public:
         }
         return;
     }
+
+    static void OnQueryEntityInfo(ani_env *env, ani_object aniParam, ani_object callback)
+    {
+        TAG_LOGD(AAFwkTag::INTENT, "OnQueryEntityInfo called");
+        if (env == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "null env");
+            return;
+        }
+        ani_object error;
+        if (aniParam == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "invalid param");
+            error = EtsErrorUtil::CreateInvalidParamError(env, "invalid param");
+            AsyncCallback(env, callback, error, CreateEmptyArray(env));
+            return;
+        }
+
+        InsightIntentQueryParam param;
+        if (!UnwrapQueryEntityParam(env, aniParam, param)) {
+            TAG_LOGE(AAFwkTag::INTENT, "parse query entity param failed");
+            error = EtsErrorUtil::CreateInvalidParamError(env,
+                "Parameter error: Parse param failed, param must be a QueryEntityParam.");
+            AsyncCallback(env, callback, error, CreateEmptyArray(env));
+            return;
+        }
+
+        TAG_LOGD(AAFwkTag::INTENT, "UnwrapQueryParam, bundleName %{public}s, moduleName %{public}s,"
+            "intentName %{public}s, className %{public}s, userId %{public}d, queryType %{public}s",
+            param.bundleName_.c_str(), param.moduleName_.c_str(), param.intentName_.c_str(),
+            param.className_.c_str(), param.userId_, param.queryEntityParam_.queryType_.c_str());
+
+        ani_ref callbackRef = nullptr;
+        if (env->GlobalReference_Create(callback, &callbackRef) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GlobalReference_Create failed");
+            error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
+                AbilityErrorCode::ERROR_CODE_INNER));
+            AsyncCallback(env, callback, error, CreateEmptyArray(env));
+            return;
+        }
+
+        ani_vm *vm = nullptr;
+        if (env->GetVM(&vm) != ANI_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GetVM failed");
+            error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
+                AbilityErrorCode::ERROR_CODE_INNER));
+            AsyncCallback(env, callback, error, CreateEmptyArray(env));
+            return;
+        }
+
+        std::shared_ptr<EtsInsightIntentExecuteCallbackClient> client;
+        client = std::make_shared<EtsInsightIntentExecuteCallbackClient>(vm, nullptr, callbackRef);
+        uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(client);
+        auto err = AbilityManagerClient::GetInstance()->QueryEntityInfo(key,
+            InsightIntentHostClient::GetInstance(), param);
+        if (err == INTENT_NOT_EXIST) {
+            error = EtsErrorUtil::CreateErrorByNativeErr(env, err);
+            AsyncCallback(env, callback, nullptr, CreateEmptyArray(env));
+            InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
+        }
+        else if (err != 0) {
+            error = EtsErrorUtil::CreateErrorByNativeErr(env, err);
+            AsyncCallback(env, callback, error, CreateEmptyArray(env));
+            InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
+        }
+        return;
+    }
 };
 
 void EtsInsightIntentDriverInit(ani_env *env)
@@ -495,6 +561,8 @@ void EtsInsightIntentDriverInit(ani_env *env)
             reinterpret_cast<void *>(EtsInsightIntentDriver::OnGetInsightIntentInfoByFilterCheck)},
         ani_native_function {"nativeGetInsightIntentInfoByFilter", nullptr,
             reinterpret_cast<void *>(EtsInsightIntentDriver::OnGetInsightIntentInfoByFilter)},
+        ani_native_function {"nativeQueryEntityInfo", nullptr,
+            reinterpret_cast<void *>(EtsInsightIntentDriver::OnQueryEntityInfo)},
     };
 
     status = env->Namespace_BindNativeFunctions(ns, kitFunctions.data(), kitFunctions.size());
