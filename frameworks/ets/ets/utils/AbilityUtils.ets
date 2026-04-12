@@ -120,3 +120,37 @@ export class IntentResultWrapper {
     return intentResult;
   }
 }
+
+export class AppIntentEntityWrapper {
+  public static toRecord<T>(intentResult:T): Record<string, RecordData> {
+    let record: Record<string, RecordData> = new Record<string, RecordData>();
+    let jsonStr: string = JSON.stringify(intentResult);
+    hilog.debug(DOMAIN_ID, TAG, `jsonStr: ${jsonStr}`);
+    let jsonValue = JSON.parseJsonElement(jsonStr);
+    if (jsonValue.jsonType == jsonx.JsonType.JsonObject) {
+      let iterVal: IterableIterat or<[string, jsonx.JsonElement]> = jsonValue.$_iterator();
+      for (let t of iterVal) {
+        let key = t[0];
+        let value = t[1];
+        hilog.debug(DOMAIN_ID, TAG, `key: ${key}, keyType: ${key.jsonType}, valueType: ${value.jsonType}`);
+        if (key == 'nativeExecutor') {
+          continue;
+        }
+        if (value.jsonType == jsonx.JsonType.JsonString) {
+          record[key] = value.asString();
+        } else if (value.jsonType == jsonx.JsonType.JsonNumber) {
+          record[key] = value.asDouble();
+        } else if (value.jsonType == jsonx.JsonType.JsonTrue) {
+          record[key] = true;
+        } else if (value.jsonType == jsonx.JsonType.JsonFalse) {
+          record[key] = false;
+        } else if (value.jsonType == jsonx.JsonType.JsonNull) {
+          record[key] = null;
+        }
+      }
+    } else {
+      hilog.error(DOMAIN_ID, TAG, `toRecord: jsonValue.jsonType != jsonx.JsonType.JsonObject`);
+    }
+    return record;
+  }
+}

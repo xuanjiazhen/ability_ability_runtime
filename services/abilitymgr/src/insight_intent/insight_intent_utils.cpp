@@ -201,6 +201,8 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
             insightInfo.entityId = entityInfo.entityId;
             insightInfo.parameters = entityInfo.parameters;
             insightInfo.parentClassName = entityInfo.parentClassName;
+            insightInfo.isQueryable = entityInfo.isQueryable();
+            insightInfo.supportedQueryProperties = entityInfo.supportedQueryProperties;
             queryInfo.entities.emplace_back(insightInfo);
         }
     }
@@ -258,6 +260,8 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentEntityInfo(
         insightInfo.entityId = entityInfo.entityId;
         insightInfo.parameters = entityInfo.parameters;
         insightInfo.parentClassName = entityInfo.parentClassName;
+        insightInfo.supportedQueryProperties = entityInfo.supportedQueryProperties;
+        insightInfo.isQueryable = entityInfo.isQueryable();
         queryInfo.entities.emplace_back(insightInfo);
     }
 

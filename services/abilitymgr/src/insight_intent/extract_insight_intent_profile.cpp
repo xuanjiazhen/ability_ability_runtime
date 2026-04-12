@@ -68,6 +68,7 @@ const std::string INSIGHT_INTENT_ENTITY_CATEGORY = "entityCategory";
 const std::string INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME = "parentClassName";
 const std::string INSIGHT_INTENT_ENTITY_PARAMETERS = "parameters";
 const std::string INSIGHT_INTENT_ARKTS_MODE = "arkTsMode";
+const std::string INSIGHT_INTENT_ENTITY_SUPPORTED_QUERY_PROPERTIES = "supportedQueryProperties";
 
 enum DecoratorType {
     DECORATOR_LINK = 0,
@@ -163,6 +164,14 @@ void from_json(const nlohmann::json &jsonObject, InsightIntentEntityInfo &entity
         entityInfo.parentClassName,
         false,
         g_extraParseResult);
+    AppExecFwk::GetValueIfFindKey<std::vector<std::string>>(jsonObject,
+        jsonObjectEnd,
+        INSIGHT_INTENT_ENTITY_SUPPORTED_QUERY_PROPERTIES,
+        entityInfo.supportedQueryProperties,
+        JsonType::ARRAY,
+        false,
+        g_extraParseResult,
+        ArrayType::STRING);
 
     if (jsonObject.find(INSIGHT_INTENT_ENTITY_PARAMETERS) != jsonObjectEnd) {
         if (jsonObject.at(INSIGHT_INTENT_ENTITY_PARAMETERS).is_object()) {
@@ -408,7 +417,8 @@ void to_json(nlohmann::json& jsonObject, const InsightIntentEntityInfo &info)
         {INSIGHT_INTENT_ENTITY_DECORETOR_TYPE, info.decoratorType},
         {INSIGHT_INTENT_ENTITY_ID, info.entityId},
         {INSIGHT_INTENT_ENTITY_CATEGORY, info.entityCategory},
-        {INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME, info.parentClassName}
+        {INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME, info.parentClassName},
+        {INSIGHT_INTENT_ENTITY_SUPPORTED_QUERY_PROPERTIES, info.supportedQueryProperties},
     };
 
     if (!info.parameters.empty()) {
@@ -704,10 +714,10 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
     for (auto iter = info.entities.begin(); iter != info.entities.end(); iter++) {
         TAG_LOGD(AAFwkTag::INTENT, "entity decoratorFile: %{public}s, className: %{public}s, "
             "decoratorType: %{public}s, entityId: %{public}s, entityCategory: %{public}s, "
-            "parentClassName: %{public}s, parameters: %{public}s",
+            "parentClassName: %{public}s, parameters: %{public}s, supportedQueryProperties: %{public}d",
             (*iter).decoratorFile.c_str(), (*iter).className.c_str(), (*iter).decoratorType.c_str(),
             (*iter).entityId.c_str(), (*iter).entityCategory.c_str(), (*iter).parentClassName.c_str(),
-            (*iter).parameters.c_str());
+            (*iter).parameters.c_str(), (*iter).supportedQueryProperties.size());
     }
 
     info.genericInfo.bundleName = insightIntent.bundleName;
