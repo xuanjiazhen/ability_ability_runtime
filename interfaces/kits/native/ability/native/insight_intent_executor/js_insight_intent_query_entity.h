@@ -31,7 +31,7 @@ class JsInsightIntentQueryEntityCallback {
 public:
     std::string queryType_;
     std::shared_ptr<AAFwk::WantParams> paramters_;
-    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;  
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;
 };
 class JsInsightIntentQueryEntity final : public InsightIntentExecutor,
                                   public std::enable_shared_from_this<JsInsightIntentQueryEntity> {

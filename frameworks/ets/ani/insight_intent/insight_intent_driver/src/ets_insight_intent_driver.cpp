@@ -471,8 +471,7 @@ public:
         ani_object error;
         if (aniParam == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "invalid param");
-            error = EtsErrorUtil::CreateInvalidParamError(env, "invalid param");
-            AsyncCallback(env, callback, error, CreateEmptyArray(env));
+            EtsErrorUtil::ThrowInvalidParamError(env, "invalid param");
             return;
         }
 
@@ -485,16 +484,10 @@ public:
             return;
         }
 
-        TAG_LOGD(AAFwkTag::INTENT, "UnwrapQueryParam, bundleName %{public}s, moduleName %{public}s,"
-            "intentName %{public}s, className %{public}s, userId %{public}d, queryType %{public}s",
-            param.bundleName_.c_str(), param.moduleName_.c_str(), param.intentName_.c_str(),
-            param.className_.c_str(), param.userId_, param.queryEntityParam_.queryType_.c_str());
-
         ani_ref callbackRef = nullptr;
         if (env->GlobalReference_Create(callback, &callbackRef) != ANI_OK) {
             TAG_LOGE(AAFwkTag::INTENT, "GlobalReference_Create failed");
-            error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
-                AbilityErrorCode::ERROR_CODE_INNER));
+            error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
             AsyncCallback(env, callback, error, CreateEmptyArray(env));
             return;
         }
@@ -502,23 +495,19 @@ public:
         ani_vm *vm = nullptr;
         if (env->GetVM(&vm) != ANI_OK) {
             TAG_LOGE(AAFwkTag::INTENT, "GetVM failed");
-            error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
-                AbilityErrorCode::ERROR_CODE_INNER));
+            error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
             AsyncCallback(env, callback, error, CreateEmptyArray(env));
             return;
         }
 
-        std::shared_ptr<EtsInsightIntentExecuteCallbackClient> client;
-        client = std::make_shared<EtsInsightIntentExecuteCallbackClient>(vm, nullptr, callbackRef);
+        auto client = std::make_shared<EtsInsightIntentExecuteCallbackClient>(vm, nullptr, callbackRef);
         uint64_t key = InsightIntentHostClient::GetInstance()->AddInsightIntentExecute(client);
         auto err = AbilityManagerClient::GetInstance()->QueryEntityInfo(key,
             InsightIntentHostClient::GetInstance(), param);
         if (err == INTENT_NOT_EXIST) {
-            error = EtsErrorUtil::CreateErrorByNativeErr(env, err);
             AsyncCallback(env, callback, nullptr, CreateEmptyArray(env));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
-        }
-        else if (err != 0) {
+        } else if (err != 0) {
             error = EtsErrorUtil::CreateErrorByNativeErr(env, err);
             AsyncCallback(env, callback, error, CreateEmptyArray(env));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);

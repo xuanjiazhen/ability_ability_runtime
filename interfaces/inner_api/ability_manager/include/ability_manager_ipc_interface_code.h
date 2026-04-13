@@ -726,7 +726,7 @@ enum class AbilityManagerInterfaceCode {
     QUERY_SELF_MODULAR_OBJECT_EXTENSION_INFOS = 6162,
 
     // query entity
-    INSIGHT_INTENT_QUERY_ENTITY = 6163,
+    INSIGHT_INTENT_QUERY_ENTITY = 6165,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

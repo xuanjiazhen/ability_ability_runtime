@@ -15,6 +15,8 @@
 
 #include "insight_intent_query_param.h"
 
+#include "hilog_tag_wrapper.h"
+
 namespace OHOS {
 namespace AppExecFwk {
 using WantParams = OHOS::AAFwk::WantParams;
@@ -39,10 +41,12 @@ InsightIntentQueryParam *InsightIntentQueryParam::Unmarshalling(Parcel &parcel)
 {
     InsightIntentQueryParam *param = new (std::nothrow) InsightIntentQueryParam();
     if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "new InsightIntentQueryParam failed");
         return nullptr;
     }
 
     if (!param->ReadFromParcel(parcel)) {
+        TAG_LOGE(AAFwkTag::INTENT, "ReadFromParcel failed");
         delete param;
         param = nullptr;
     }
@@ -51,14 +55,38 @@ InsightIntentQueryParam *InsightIntentQueryParam::Unmarshalling(Parcel &parcel)
 
 bool InsightIntentQueryParam::Marshalling(Parcel &parcel) const
 {
-    parcel.WriteString16(Str8ToStr16(bundleName_));
-    parcel.WriteString16(Str8ToStr16(moduleName_));
-    parcel.WriteString16(Str8ToStr16(intentName_));
-    parcel.WriteString16(Str8ToStr16(className_));
-    parcel.WriteString16(Str8ToStr16(queryEntityParam_.queryType_));
-    parcel.WriteParcelable(queryEntityParam_.parameters_.get());
-    parcel.WriteInt32(userId_);
-    parcel.WriteUint64(intentId_);
+    if (!parcel.WriteString16(Str8ToStr16(bundleName_))) {
+        TAG_LOGE(AAFwkTag::INTENT, "write bundleName error");
+        return false;
+    }
+    if (!parcel.WriteString16(Str8ToStr16(moduleName_))) {
+        TAG_LOGE(AAFwkTag::INTENT, "write moduleName error");
+        return false;
+    }
+    if (!parcel.WriteString16(Str8ToStr16(intentName_))) {
+        TAG_LOGE(AAFwkTag::INTENT, "write intentName error");
+        return false;
+    }
+    if (!parcel.WriteString16(Str8ToStr16(className_))) {
+        TAG_LOGE(AAFwkTag::INTENT, "write className error");
+        return false;
+    }
+    if (!parcel.WriteString16(Str8ToStr16(queryEntityParam_.queryType_))) {
+        TAG_LOGE(AAFwkTag::INTENT, "write queryType error");
+        return false;
+    }
+    if (!parcel.WriteParcelable(queryEntityParam_.parameters_.get())) {
+        TAG_LOGE(AAFwkTag::INTENT, "write parameters error");
+        return false;
+    }
+    if (!parcel.WriteInt32(userId_)) {
+        TAG_LOGE(AAFwkTag::INTENT, "write userId error");
+        return false;
+    }
+    if (!parcel.WriteUint64(intentId_)) {
+        TAG_LOGE(AAFwkTag::INTENT, "write intentId error");
+        return false;
+    }
     return true;
 }
 

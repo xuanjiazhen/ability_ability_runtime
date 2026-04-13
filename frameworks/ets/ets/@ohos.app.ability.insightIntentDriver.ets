@@ -219,6 +219,8 @@ export default namespace insightIntentDriver {
     readonly entityCategory: string;
     readonly parameters: Record<string, RecordData>;
     readonly parentClassName: string;
+    readonly isQueryable?: boolean;
+    readonly supportedQueryProperties?: string[];
   }
 
   class EntityInfoInner implements EntityInfo {
@@ -227,6 +229,8 @@ export default namespace insightIntentDriver {
     readonly entityCategory: string;
     readonly parameters: Record<string, RecordData>;
     readonly parentClassName: string;
+    readonly isQueryable?: boolean;
+    readonly supportedQueryProperties?: string[];
   }
 
   export native function nativeExecuteSync(param: ExecuteParam,

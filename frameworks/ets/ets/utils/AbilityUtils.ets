@@ -128,11 +128,11 @@ export class AppIntentEntityWrapper {
     hilog.debug(DOMAIN_ID, TAG, `jsonStr: ${jsonStr}`);
     let jsonValue = JSON.parseJsonElement(jsonStr);
     if (jsonValue.jsonType == jsonx.JsonType.JsonObject) {
-      let iterVal: IterableIterat or<[string, jsonx.JsonElement]> = jsonValue.$_iterator();
+      let iterVal: IterableIterator<[string, jsonx.JsonElement]> = jsonValue.$_iterator();
       for (let t of iterVal) {
         let key = t[0];
         let value = t[1];
-        hilog.debug(DOMAIN_ID, TAG, `key: ${key}, keyType: ${key.jsonType}, valueType: ${value.jsonType}`);
+        hilog.debug(DOMAIN_ID, TAG, `key: ${key}, valueType: ${value.jsonType}`);
         if (key == 'nativeExecutor') {
           continue;
         }
