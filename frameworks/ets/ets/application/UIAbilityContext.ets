@@ -154,6 +154,10 @@ export default class UIAbilityContext extends Context {
 
   private native nativeStartSelfUIAbilityInCurrentProcessSync(want: Want, specifiedFlag: string, options: StartOptions, callback: AsyncCallbackWrapper<void>): void;
 
+  private native nativeStartSelfUIAbilityInSubProcessSync(want: Want, specifiedFlag: string, callback: AsyncCallbackWrapper<void>): void;
+
+  private native nativeStartSelfUIAbilityInSubProcessSync(want: Want, specifiedFlag: string, options: StartOptions, callback: AsyncCallbackWrapper<void>): void;
+
   private native nativeOnSetRestoreEnabled(enabled: boolean): void;
 
   private native nativeConnectServiceExtensionAbilityWithAccount(want: Want, accountId: int,
@@ -706,6 +710,27 @@ hideAbility(): Promise<void> {
           this.nativeStartSelfUIAbilityInCurrentProcessSync(want, specifiedFlag, myCall);
         } else {
           this.nativeStartSelfUIAbilityInCurrentProcessSync(want, specifiedFlag, options, myCall);
+        }
+      }).catch((err: Error): void => {
+        reject(err as BusinessError);
+      });
+    });
+  }
+
+  startSelfUIAbilityInSubProcess(want: Want, specifiedFlag: string, options?: StartOptions): Promise<void> {
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        if (options == null) {
+          this.nativeStartSelfUIAbilityInSubProcessSync(want, specifiedFlag, myCall);
+        } else {
+          this.nativeStartSelfUIAbilityInSubProcessSync(want, specifiedFlag, options, myCall);
         }
       }).catch((err: Error): void => {
         reject(err as BusinessError);

@@ -532,6 +532,12 @@ public:
     virtual ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
         const AAFwk::StartOptions &startOptions, bool hasOptions) = 0;
 
+    virtual ErrCode StartSelfUIAbilityInSubProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool hasOptions)
+    {
+        return ERR_INVALID_VALUE;
+    }
+
 protected:
     bool IsContext(size_t contextTypeId) override
     {

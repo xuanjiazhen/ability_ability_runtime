@@ -2563,6 +2563,21 @@ public:
     }
 
     /**
+     * Start self UIAbility in sub process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @param startOptions Indicates the options used to start.
+     * @param hasOptions Is have start options.
+     * @param callerToken The caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken)
+    {
+        return ERR_OK;
+    }
+
+    /**
      * Check if the app is restart-limited.
      * @return Returns true on being limited.
      */

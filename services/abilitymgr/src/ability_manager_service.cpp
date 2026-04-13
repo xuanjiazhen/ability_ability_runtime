@@ -17000,6 +17000,72 @@ ErrCode AbilityManagerService::StartSelfUIAbilityInCurrentProcess(const Want &wa
     return StartAbility(useWant, useStartOptions, callerToken);
 }
 
+ErrCode AbilityManagerService::StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
+    const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken)
+{
+    if (!AppUtils::GetInstance().IsStartUIAbilityInCurrentProcess()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "device not supported");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (callerRecord == nullptr || !JudgeSelfCalled(callerRecord)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not self call");
+        return ERR_INVALID_VALUE;
+    }
+
+    std::string targetBundleName = want.GetBundle();
+    std::string targetAbilityName = want.GetElement().GetAbilityName();
+    if (targetBundleName.empty() || targetAbilityName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "implicit start not allowed");
+        return START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START;
+    }
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    AppExecFwk::RunningProcessInfo processInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByChildProcessPid(callingPid, processInfo);
+    CHECK_TRUE_RETURN_RET(processInfo.bundleNames.empty(), INNER_ERR, "failed to get by child process pid");
+    auto iter = std::find(processInfo.bundleNames.begin(), processInfo.bundleNames.end(), targetBundleName);
+    CHECK_TRUE_RETURN_RET(iter == processInfo.bundleNames.end(), ERROR_UIABILITY_NOT_BELONG_TO_CALLER,
+        "The UIAbility not belog to caller");
+    int32_t appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, -1);
+    if (IsAppCloneOrMultiInstance(want, callerRecord, appIndex, processInfo.instanceKey)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "not support app clone and multi instance");
+        return ERROR_UIABILITY_NOT_BELONG_TO_CALLER;
+    }
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
+    AppExecFwk::AbilityInfo abilityInfo;
+    auto callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    CHECK_TRUE_RETURN_RET(IN_PROCESS_CALL(bundleMgrHelper->QueryCloneAbilityInfo(want.GetElement(),
+        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, appIndex, abilityInfo, callerUserId)) != ERR_OK,
+        TARGET_BUNDLE_NOT_EXIST, "The specified ability not exist");
+
+    CHECK_TRUE_RETURN_RET(abilityInfo.type != AppExecFwk::AbilityType::PAGE,
+        TARGET_BUNDLE_NOT_EXIST, "not UIAbility");
+    auto ret = IsUIAbilityAlreadyExist(want, specifiedFlag, appIndex, processInfo.instanceKey, abilityInfo.launchMode);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility already exist");
+        return ret;
+    }
+
+    CHECK_TRUE_RETURN_RET(processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND,
+        NOT_TOP_ABILITY, "caller not foreground");
+
+    auto useStartOptions = startOptions;
+    if (useStartOptions.processOptions == nullptr) {
+        useStartOptions.processOptions = std::make_shared<ProcessOptions>();
+    }
+    useStartOptions.processOptions->processMode = ProcessMode::NEW_PROCESS_ATTACH_TO_PARENT;
+    useStartOptions.processOptions->processName.clear();
+    useStartOptions.processOptions->selfPid = -1;
+    useStartOptions.processOptions->callingPid = callingPid;
+
+    auto useWant = want;
+    if (abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
+        useWant.SetParam(KEY_SPECIFIED_FLAG, specifiedFlag);
+    }
+    return StartAbility(useWant, useStartOptions, callerToken);
+}
+
 int32_t AbilityManagerService::ClearPreloadedUIExtensionAbility(int32_t extensionAbilityId, int32_t userId)
 {
     TAG_LOGD(AAFwkTag::UI_EXT, "ClearPreloadedUIExtensionAbility called, id: %{public}d, userId: %{public}d",
