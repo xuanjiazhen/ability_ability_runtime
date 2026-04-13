@@ -208,9 +208,9 @@ void UIAbilityImpl::HandleAbilityTransaction(
     }
 
     // Check if native module startup phase is PRE_WINDOW
-    if (nativeModuleMetaData_.withNativeModule &&
-        nativeModuleMetaData_.startupPhase == AAFwk::StartupPhase::PRE_WINDOW) {
+    if (localNativeState_ == LocalNativeState::INIT_PRE_WINDOW) {
         TAG_LOGI(AAFwkTag::UIABILITY, "Native module startPhase is PRE_WINDOW, skip AbilityTransaction");
+        localNativeState_ = LocalNativeState::HALF_FOREGROUND;
         AbilityTransactionCallback(targetState.state);
         return;
     }
@@ -590,15 +590,16 @@ void UIAbilityImpl::Foreground(const AAFwk::Want &want)
     }
 
     // Check if native module startup phase is PRE_FOREGROUND
-    if (nativeModuleMetaData_.withNativeModule &&
-        nativeModuleMetaData_.startupPhase == AAFwk::StartupPhase::PRE_FOREGROUND) {
+    if (localNativeState_ == LocalNativeState::INIT_PRE_FOREGROUND) {
         TAG_LOGI(AAFwkTag::UIABILITY, "Native module startPhase is PRE_FOREGROUND, skip OnForeground");
+        localNativeState_ = LocalNativeState::HALF_FOREGROUND;
         std::lock_guard<std::mutex> lock(notifyForegroundLock_);
         notifyForegroundByAbility_ = true;
         return;
     }
 
     ability_->OnForeground(want);
+    localNativeState_ = LocalNativeState::NONE;
     if (ability_->CheckIsSilentForeground()) {
         TAG_LOGI(AAFwkTag::UIABILITY, "is silent foreground");
         std::lock_guard<std::mutex> lock(notifyForegroundLock_);
@@ -716,7 +717,8 @@ void UIAbilityImpl::HandleInitialState(bool &ret)
 #ifdef SUPPORT_SCREEN
 void UIAbilityImpl::HandleForegroundNewState(const AAFwk::Want &want, bool &bflag)
 {
-    if (lifecycleState_ == AAFwk::ABILITY_STATE_FOREGROUND_NEW) {
+    if (lifecycleState_ == AAFwk::ABILITY_STATE_FOREGROUND_NEW &&
+        localNativeState_ == LocalNativeState::NONE) {
         if (ability_) {
             ability_->RequestFocus(want);
         }
@@ -992,6 +994,18 @@ void UIAbilityImpl::ScheduleAbilityRequestSuccess(const std::string &requestId, 
         { JSON_KEY_ERR_MSG, "Succeeded" },
     };
     ability_->OnAbilityRequestSuccess(requestId, element, jsonObject.dump());
+}
+
+void UIAbilityImpl::SetNativeModuleMetaData(const AAFwk::NativeAbilityMetaData& metaData)
+{
+    nativeModuleMetaData_ = metaData;
+    if (metaData.withNativeModule) {
+        if (metaData.startupPhase == AAFwk::StartupPhase::PRE_WINDOW) {
+            localNativeState_ = LocalNativeState::INIT_PRE_WINDOW;
+        } else if (metaData.startupPhase == AAFwk::StartupPhase::PRE_FOREGROUND) {
+            localNativeState_ = LocalNativeState::INIT_PRE_FOREGROUND;
+        }
+    }
 }
 
 #ifdef SUPPORT_SCREEN

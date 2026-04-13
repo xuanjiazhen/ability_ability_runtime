@@ -29,6 +29,14 @@ class OHOSApplication;
 } // namespace AppExecFwk
 namespace AbilityRuntime {
 class UIAbility;
+
+enum class LocalNativeState : uint8_t {
+    NONE,
+    INIT_PRE_WINDOW,
+    INIT_PRE_FOREGROUND,
+    HALF_FOREGROUND
+};
+
 class UIAbilityImpl : public std::enable_shared_from_this<UIAbilityImpl> {
 public:
     UIAbilityImpl() = default;
@@ -177,10 +185,7 @@ public:
     }
 
     // Native Module related methods
-    void SetNativeModuleMetaData(const AAFwk::NativeAbilityMetaData& metaData)
-    {
-        nativeModuleMetaData_ = metaData;
-    }
+    void SetNativeModuleMetaData(const AAFwk::NativeAbilityMetaData& metaData);
 
     void ScheduleCollaborate(const Want &want);
 
@@ -259,6 +264,7 @@ private:
     bool needSaveDate_ = false;
     AppExecFwk::PacMap restoreData_;
     AAFwk::NativeAbilityMetaData nativeModuleMetaData_;
+    LocalNativeState localNativeState_ = LocalNativeState::NONE;
 
 #ifdef SUPPORT_SCREEN
 private:

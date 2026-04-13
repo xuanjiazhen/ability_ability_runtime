@@ -14,8 +14,10 @@
  */
 
 #include "native_ability_util.h"
-#include "hilog_tag_wrapper.h"
+
 #include <algorithm>
+#include "hilog_tag_wrapper.h"
+#include "hitrace_meter.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -149,5 +151,18 @@ void NativeAbilityMetaData::InitData(
         abilityInfo.name.c_str());
 }
 
+bool NativeAbilityMetaData::HideWindowOnStartup(const AppExecFwk::AbilityInfo& abilityInfo)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    NativeAbilityMetaData data;
+    InitData(abilityInfo, data);
+
+    if (!data.withNativeModule) {
+        return false;
+    }
+
+    return data.startupPhase == StartupPhase::PRE_WINDOW ||
+           data.startupPhase == StartupPhase::PRE_FOREGROUND;
+}
 } // namespace AAFwk
 } // namespace OHOS
