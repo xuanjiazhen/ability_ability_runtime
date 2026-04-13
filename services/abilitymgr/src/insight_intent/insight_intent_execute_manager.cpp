@@ -726,8 +726,8 @@ bool InsightIntentExecuteManager::CheckCanQueryEntity(const ExtractInsightIntent
         // 查询参数若不在该entity支持查询的属性中，则直接拦截掉查询
         for (const std::string& key : queryKeys) {
             TAG_LOGD(AAFwkTag::INTENT, "start check query key %{public}s", key.c_str());
-            auto itFind = std::find(entity.supportedQueryProperties.begin(), entity.supportedQueryProperties.end(), key);
-            if (itFind == entity.supportedQueryProperties.end()) {
+            auto it = std::find(entity.supportedQueryProperties.begin(), entity.supportedQueryProperties.end(), key);
+            if (it == entity.supportedQueryProperties.end()) {
                 TAG_LOGW(AAFwkTag::INTENT, "query key %{public}s not found in supportedQueryProperties", key.c_str());
                 continue;
             }
