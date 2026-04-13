@@ -15,6 +15,8 @@
 
 #include "ability_native_thread.h"
 
+#include <pthread.h>
+
 #include "hilog_tag_wrapper.h"
 #include "module_manager/native_module_manager.h"
 #include "native_ability_util.h"
@@ -98,6 +100,7 @@ void AbilityNativeThread::RunMain()
     // Capture OHMain_ by value to avoid capturing this
     OHMainType mainFunc = OHMain_;
     nativeThread_ = std::thread([mainFunc]() {
+        pthread_setname_np(pthread_self(), "native_main");
         TAG_LOGI(AAFwkTag::ABILITY, "Native thread started");
 
         // Call the main function
