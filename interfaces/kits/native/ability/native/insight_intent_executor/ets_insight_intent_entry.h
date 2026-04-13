@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -60,6 +60,8 @@ private:
     bool ExecuteInsightIntent(ani_env *env, bool &isAsync);
     bool HandleResultReturnedFromEtsFunc(ani_env *env, ani_ref result, bool isAsync);
     bool ExecuteIntentCheckError();
+    bool AssignObject(ani_env *env, const AAFwk::WantParams &wantParams);
+    bool HasDeclaredProperty(ani_env *env, const std::string &name);
 
     ETSRuntime &runtime_;
     State state_ = State::CREATED;
