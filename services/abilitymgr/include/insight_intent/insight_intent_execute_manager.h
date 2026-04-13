@@ -42,6 +42,9 @@ struct InsightIntentExecuteRecord {
     std::string bundleName;
     std::string callerBundleName;
     InsightIntentExecuteState state = InsightIntentExecuteState::UNKNOWN;
+    bool isDistributed = false;
+    std::string deviceId;
+    int32_t requestCode = 0;
 };
 
 class InsightIntentExecuteConnection : public AbilityConnectionStub {
@@ -76,7 +79,8 @@ DECLARE_DELAYED_SINGLETON(InsightIntentExecuteManager)
 public:
     int32_t CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, std::string callerBundleName = "",
-        const bool ignoreAbilityName = false);
+        const bool ignoreAbilityName = false, bool isDistributed = false,
+        const std::string &srcDeviceId = "", int32_t requestCode = 0);
 
     int32_t CheckAndUpdateWant(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId,
         std::string callerBundleName = "");
@@ -85,6 +89,9 @@ public:
 
     int32_t ExecuteIntentDone(uint64_t intentId, int32_t resultCode,
         const AppExecFwk::InsightIntentExecuteResult &result);
+
+    int32_t GetDistributedInfo(uint64_t intentId, std::string &srcDeviceId, 
+        int32_t &requestCode, uint64_t &callbackKey) const;
 
     int32_t RemoteDied(uint64_t intentId);
 
@@ -115,7 +122,8 @@ private:
     std::map<int32_t, int64_t> intentExemptionDeadlineTime_;
 
     int32_t AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken, const std::string &bundleName,
-        uint64_t &intentId, const std::string &callerBundleName);
+        uint64_t &intentId, const std::string &callerBundleName, bool isDistributed = false,
+        const std::string &deviceId = "", int32_t requestCode = 0);
 
     static int32_t IsValidCall(const Want &want);
 

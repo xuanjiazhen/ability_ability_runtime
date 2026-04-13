@@ -54,6 +54,10 @@ constexpr char INSIGHT_INTENT_PAGE_PARAM_PAGEPATH[] = "ohos.insightIntent.pagePa
 constexpr char INSIGHT_INTENT_PAGE_PARAM_NAVIGATIONID[] = "ohos.insightIntent.pageParam.navigationId";
 constexpr char INSIGHT_INTENT_PAGE_PARAM_NAVDESTINATIONNAME[] = "ohos.insightIntent.pageParam.navDestinationName";
 
+constexpr char INSIGHT_INTENT_DISTRIBUTED_CALLBACK_KEY[] = "ohos.insightIntent.distributed.callbackKey";
+constexpr char INSIGHT_INTENT_DISTRIBUTED_SRC_DEVICE_ID[] = "ohos.insightIntent.distributed.srcDeviceId";
+constexpr char INSIGHT_INTENT_DISTRIBUTED_REQUEST_CODE[] = "ohos.insightIntent.distributed.requestCode";
+
 constexpr int32_t INVALID_DISPLAY_ID = -1;
 
 class InsightIntentExecuteParam : public Parcelable {
@@ -95,6 +99,9 @@ public:
     std::string pagePath_;
     std::string navigationId_;
     std::string navDestinationName_;
+
+    // distributed intent params
+    int32_t deviceId_ = 0;
 };
 } // namespace AppExecFwk
 } // namespace OHOS
