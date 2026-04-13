@@ -23,6 +23,7 @@
 #include "hitrace_meter.h"
 #include "in_process_call_wrapper.h"
 #include "modal_system_ui_extension.h"
+#include "process_options.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -51,6 +52,12 @@ ErrCode DisposedRuleInterceptor::DoProcess(AbilityInterceptorParam param)
         if (!param.isWithUI || disposedRule.want == nullptr
             || disposedRule.disposedType == AppExecFwk::DisposedType::NON_BLOCK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "no dispose want");
+            return AbilityUtil::EdmErrorType(disposedRule.isEdm);
+        }
+        // Do not have spefied caller currently.
+        bool isSpecifiedCaller = false;
+        if (isSpecifiedCaller && IsHiddenStart(param)) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Hidden start, skip disposed rule");
             return AbilityUtil::EdmErrorType(disposedRule.isEdm);
         }
         if (disposedRule.want->GetBundle() == param.want.GetBundle()) {
@@ -269,6 +276,19 @@ void DisposedRuleInterceptor::SetInterceptInfo(const Want &want, AppExecFwk::Dis
         disposedRule.want->SetParam(INTERCEPT_ABILITY_NAME, want.GetElement().GetAbilityName());
         disposedRule.want->SetParam(INTERCEPT_MODULE_NAME, want.GetElement().GetModuleName());
     }
+}
+
+bool DisposedRuleInterceptor::IsHiddenStart(const AbilityInterceptorParam &param)
+{
+    if (param.startOptions == nullptr) {
+        return false;
+    }
+
+    if (param.startOptions->processOptions == nullptr) {
+        return false;
+    }
+
+    return param.startOptions->processOptions->startupVisibility == StartupVisibility::STARTUP_HIDE;
 }
 } // namespace AAFwk
 } // namespace OHOS

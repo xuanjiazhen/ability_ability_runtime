@@ -1132,7 +1132,7 @@ int AbilityManagerService::StartAbilityPrechainInterceptor(StartAbilityParams &p
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(params.want, params.requestCode,
-        params.GetValidUserId(), true, nullptr, shouldBlockFunc);
+        params.GetValidUserId(), true, nullptr, shouldBlockFunc, params.startOptions);
     auto interceptorResult = interceptorExecuter_ == nullptr ? ERR_INVALID_VALUE :
         interceptorExecuter_->DoProcess(interceptorParam);
     if (interceptorResult != ERR_OK) {
@@ -2210,7 +2210,7 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
     StartAbilityInfoWrap threadLocalInfo(want, validUserId, appIndex, callerToken);
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(want, requestCode, validUserId,
-        true, nullptr, shouldBlockFunc);
+        true, nullptr, shouldBlockFunc, &startOptions);
     auto result = interceptorExecuter_ == nullptr ? ERR_NULL_INTERCEPTOR_EXECUTER :
         interceptorExecuter_->DoProcess(interceptorParam);
     if (result != ERR_OK) {
