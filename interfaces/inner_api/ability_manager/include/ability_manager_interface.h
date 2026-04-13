@@ -1940,6 +1940,9 @@ public:
     virtual int32_t ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
         const InsightIntentExecuteParam &param) = 0;
 
+    virtual int32_t ExecuteIntentForDistributed(const sptr<IRemoteObject> &callerToken,
+        const InsightIntentExecuteParam &param) = 0;
+
     /**
      * @brief Check if ability controller can start.
      * @param want The want of ability to start.
