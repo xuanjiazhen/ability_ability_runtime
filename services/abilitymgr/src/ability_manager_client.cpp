@@ -2579,6 +2579,15 @@ ErrCode AbilityManagerClient::StartSelfUIAbilityInCurrentProcess(const Want &wan
     return abms->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, options, hasOptions, callerToken);
 }
 
+ErrCode AbilityManagerClient::StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
+    const StartOptions &options, bool hasOptions, sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StartSelfUIAbilityInSubProcess(want, specifiedFlag, options, hasOptions, callerToken);
+}
+
 bool AbilityManagerClient::IsRestartAppLimit()
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);

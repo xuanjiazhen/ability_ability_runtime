@@ -210,6 +210,17 @@ public:
         const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken) override;
 
     /**
+     * Start Self UIAbility In Sub Process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @param startOptions Indicates the options used to start.
+     * @param hasOptions Is have start options.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken) override;
+
+    /**
      * StartAbilityWithSpecifyTokenIdInner with want and specialId, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -3127,6 +3138,14 @@ private:
     
     bool IsAppCloneOrMultiInstance(const Want &want, const std::shared_ptr<AbilityRecord> callerRecord,
         int32_t &appIndex, const std::string &callerInstanceKey);
+
+    ErrCode CheckStartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
+        sptr<IRemoteObject> callerToken, AppExecFwk::RunningProcessInfo &processInfo,
+        AppExecFwk::AbilityInfo &abilityInfo);
+
+    ErrCode StartSelfUIAbilityInSubProcessInner(const Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, sptr<IRemoteObject> callerToken,
+        const AppExecFwk::AbilityInfo &abilityInfo);
 
 #ifdef WITH_DLP
     int CheckDlpForExtension(

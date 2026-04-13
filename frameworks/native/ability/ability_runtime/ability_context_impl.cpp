@@ -1736,5 +1736,17 @@ ErrCode AbilityContextImpl::StartSelfUIAbilityInCurrentProcess(const AAFwk::Want
     }
     return err;
 }
+
+ErrCode AbilityContextImpl::StartSelfUIAbilityInSubProcess(const AAFwk::Want &want,
+    const std::string &specifiedFlag, const AAFwk::StartOptions &startOptions, bool hasOptions)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartSelfUIAbilityInSubProcess(
+        want, specifiedFlag, startOptions, hasOptions, token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
+    }
+    return err;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS

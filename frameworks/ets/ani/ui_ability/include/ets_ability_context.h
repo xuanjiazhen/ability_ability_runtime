@@ -96,6 +96,10 @@ public:
         ani_env *env, ani_object aniObj, ani_object wantObj, ani_string aniSpecifiedFlag, ani_object call);
     static void StartSelfUIAbilityInCurrentProcessWithOptions(ani_env *env, ani_object aniObj,
         ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
+    static void StartSelfUIAbilityInSubProcess(
+        ani_env *env, ani_object aniObj, ani_object wantObj, ani_string aniSpecifiedFlag, ani_object call);
+    static void StartSelfUIAbilityInSubProcessWithOptions(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
     static void ConnectUIServiceExtension(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_object uiServiceExtConCallbackObj, ani_object callback);
     static void StartUIServiceExtension(ani_env *env, ani_object aniObj,
@@ -214,6 +218,8 @@ private:
     void OnOpenAtomicService(
         ani_env *env, ani_object aniObj, ani_string aniAppId, ani_object callbackObj, ani_object optionsObj);
     void OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_object aniObj,
+        ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
+    void OnStartSelfUIAbilityInSubProcess(ani_env *env, ani_object aniObj,
         ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
     ani_long OnConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_int aniAccountId, ani_object connectOptionsObj);
