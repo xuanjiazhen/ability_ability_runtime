@@ -1704,18 +1704,29 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode ExecuteIntent(uint64_t key, sptr<IRemoteObject> callerToken,
-        const InsightIntentExecuteParam &param);
+         const InsightIntentExecuteParam &param);
 
     /**
-     * @brief Called when insight intent execute finished.
-     *
-     * @param token ability's token.
-     * @param intentId insight intent id.
-     * @param result insight intent execute result.
-     * @return Returns ERR_OK on success, others on failure.
-     */
+      * @brief Execute intent for distributed scenario.
+      *
+      * @param want The want containing intent execution information.
+      * @param srcDeviceId The source device id.
+      * @param requestCode The request code.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+    ErrCode ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
+        int32_t requestCode);
+
+    /**
+      * @brief Called when insight intent execute finished.
+      *
+      * @param token ability's token.
+      * @param intentId insight intent id.
+      * @param result insight intent execute result.
+      * @return Returns ERR_OK on success, others on failure.
+      */
     ErrCode ExecuteInsightIntentDone(sptr<IRemoteObject> token, uint64_t intentId,
-        const InsightIntentExecuteResult &result);
+         const InsightIntentExecuteResult &result);
 
     /**
      * @brief Get foreground ui abilities.
