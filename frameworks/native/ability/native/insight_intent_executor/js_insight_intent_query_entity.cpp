@@ -88,7 +88,7 @@ bool JsInsightIntentQueryEntity::HandleExecuteIntent(
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
 
-    queryCallback_ = std::unique_ptr<JsInsightIntentQueryEntityCallback>(new JsInsightIntentQueryEntityCallback());
+    queryCallback_ = std::make_unique<JsInsightIntentQueryEntityCallback>();
     queryCallback_->queryType_ = executeParam->queryType_;
     queryCallback_->paramters_ = executeParam->queryParams_;
     queryCallback_->callback_ = std::move(callback);
@@ -298,13 +298,13 @@ napi_value JsInsightIntentQueryEntity::HandleJsResultReturned(napi_env env, napi
     }
 
     std::vector<std::shared_ptr<AAFwk::WantParams>> queryResults;
-    for(size_t i = 0; i < jsArrayResult.objectList.size(); i++) {
+    for (size_t i = 0; i < jsArrayResult.objectList.size(); i++) {
         auto item = std::make_shared<AAFwk::WantParams>();
-        if(!AppExecFwk::UnwrapWantParams(env, jsArrayResult.objectList[i], *item)) {
+        if (!AppExecFwk::UnwrapWantParams(env, jsArrayResult.objectList[i], *item)) {
             TAG_LOGE(AAFwkTag::INTENT, "UnwrapWantParams failed");
             continue;
         }
-        if(!QueryFilter(entityCallback->queryType_, entityCallback->paramters_, item)) {
+        if (!QueryFilter(entityCallback->queryType_, entityCallback->paramters_, item)) {
             TAG_LOGD(AAFwkTag::INTENT, "QueryFilter failed");
             continue;
         }
@@ -326,10 +326,9 @@ bool JsInsightIntentQueryEntity::QueryFilter(std::string queryType, std::shared_
         TAG_LOGE(AAFwkTag::INTENT, "input param empty");
         return false;
     }
-    if (queryType.compare("All") == 0) {
+    if (queryType.compare("all") == 0) {
         return true;
-    }
-    else if (queryType.compare("byProperty") == 0) {
+    } else if (queryType.compare("byProperty") == 0) {
         TAG_LOGE(AAFwkTag::INTENT, "testTag QueryFilter:%{public}s", wp->ToString().c_str());
         auto queryKeys = queryParam->KeySet();
         for (auto iter = queryKeys.begin(); iter != queryKeys.end(); iter++) {
@@ -340,14 +339,13 @@ bool JsInsightIntentQueryEntity::QueryFilter(std::string queryType, std::shared_
             }
             auto wpValue = wp->GetParam(queryKey);
             auto queryValue = queryParam->GetParam(queryKey);
-            if(!AAFwk::WantParams::CompareInterface(wpValue, queryValue, AAFwk::WantParams::GetDataType(wpValue))) {
+            if (!AAFwk::WantParams::CompareInterface(wpValue, queryValue, AAFwk::WantParams::GetDataType(wpValue))) {
                 TAG_LOGD(AAFwkTag::INTENT, "queryKey %{public}s different", queryKey.c_str());
                 return false;
             }
         }
         return true;
-    }
-    else {
+    } else {
         TAG_LOGD(AAFwkTag::INTENT, "invalid queryType");
         return false;
     }

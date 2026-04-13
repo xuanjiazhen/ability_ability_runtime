@@ -524,8 +524,7 @@ private:
         if (err == INTENT_NOT_EXIST) {
             asyncTask->ResolveWithNoError(env, nullptr);
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
-        }
-        else if (err != 0) {
+        } else if (err != 0) {
             asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
         }

@@ -185,7 +185,8 @@ napi_value CreateJsEntityInfo(napi_env env, const EntityInfoForQuery &info)
     napi_set_named_property(env, objValue, "parameters", CreateInsightIntentInfoParam(env, info.parameters));
     napi_set_named_property(env, objValue, "parentClassName", CreateJsValue(env, info.parentClassName));
     napi_set_named_property(env, objValue, "isQueryable", CreateJsValue(env, info.isQueryable));
-    napi_set_named_property(env, objValue, "supportedQueryProperties", CreateNativeArray(env, info.supportedQueryProperties));
+    napi_set_named_property(env, objValue, "supportedQueryProperties",
+        CreateNativeArray(env, info.supportedQueryProperties));
 
     return handleEscape.Escape(objValue);
 }
