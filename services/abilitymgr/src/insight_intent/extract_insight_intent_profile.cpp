@@ -714,7 +714,7 @@ bool ExtractInsightIntentProfile::ProfileInfoFormat(const ExtractInsightIntentPr
     for (auto iter = info.entities.begin(); iter != info.entities.end(); iter++) {
         TAG_LOGD(AAFwkTag::INTENT, "entity decoratorFile: %{public}s, className: %{public}s, "
             "decoratorType: %{public}s, entityId: %{public}s, entityCategory: %{public}s, "
-            "parentClassName: %{public}s, parameters: %{public}s, supportedQueryProperties: %{public}d",
+            "parentClassName: %{public}s, parameters: %{public}s, supportedQueryProperties: %{public}zu",
             (*iter).decoratorFile.c_str(), (*iter).className.c_str(), (*iter).decoratorType.c_str(),
             (*iter).entityId.c_str(), (*iter).entityCategory.c_str(), (*iter).parentClassName.c_str(),
             (*iter).parameters.c_str(), (*iter).supportedQueryProperties.size());
