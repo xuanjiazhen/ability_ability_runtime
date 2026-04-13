@@ -26,7 +26,7 @@ class EtsInsightIntentQueryEntityCallback {
 public:
     std::string queryType_;
     std::shared_ptr<AAFwk::WantParams> paramters_;
-    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;  
+    std::unique_ptr<InsightIntentExecutorAsyncCallback> callback_;
 };
 
 class EtsInsightIntentQueryEntity final : public InsightIntentExecutor {
