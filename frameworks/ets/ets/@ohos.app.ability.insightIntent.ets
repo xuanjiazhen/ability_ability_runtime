@@ -33,6 +33,11 @@ namespace insightIntent {
     flags?: int;
   }
 
+  export interface IntentResult<T> {
+    code: int;
+    result?: T;
+  }
+
   export class ExecuteResultInner implements ExecuteResult{
     code: int;
     result?: Record<string, RecordData>;
@@ -43,6 +48,38 @@ namespace insightIntent {
   export enum ReturnMode {  
     CALLBACK = 0,
     FUNCTION = 1
+  }
+
+  export enum QueryType {
+    ALL = 'all',
+    BY_PROPERTY = 'byProperty'
+  }
+
+  export interface QueryEntityParam {
+    queryType: QueryType;
+    parameters?: Record<string, RecordData>;
+  }
+
+  interface IntentEntity {
+    entityId: string;
+  }
+
+  abstract class AppIntentEntity<T> implements IntentEntity {
+    displayName: string;
+    abstract onQueryEntity(params: QueryEntityParam): Promise<Array<T>>;
+
+    public nativeExecutor: long = 0;
+    public native nativeOnQueryEntityResult(data: Array<Record<string, RecordData>>): void;
+    public native nativeOnQueryEntityError(err: Error): void;
+
+    public callPromise(p: Promise<Any>): void {
+      p.then((result: Any): void => {
+        let recordArr = result as Array<Record<string, RecordData>>;
+        this.nativeOnQueryEntityResult(recordArr);
+      }).catch((err: Error): void => {
+        this.nativeOnQueryEntityError(err);
+      });
+    }
   }
 }
 

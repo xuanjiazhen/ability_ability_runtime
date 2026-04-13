@@ -12,8 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { BusinessError, AsyncCallback } from '@ohos.base';
+import { BusinessError, AsyncCallback, RecordData } from '@ohos.base';
 import hilog from '@ohos.hilog'
+import insightIntent from '@ohos.app.ability.insightIntent';
 
 const DOMAIN_ID = 0xD001300;
 const TAG = 'AbilityUtils';
@@ -75,5 +76,81 @@ export class AbilityUtils {
     err.name = 'Error';
     err.message = message;
     return err;
+  }
+
+  public static isPromise(obj: Any): boolean {
+    return obj instanceof Promise;
+  }
+}
+
+export class InsightIntentFunctionUtils {
+  public nativeExecutor: long = 0;
+
+  public native nativeOnExecuteResult(data: Record<string, RecordData>): void;
+  public native nativeOnExecuteError(err: Error): void;
+
+  public callPromise(p: Promise<Any>): void {
+    p.then((result: Any): void => {
+      let record: Record<string, RecordData> = new Record<string, RecordData>();
+      record['methodResult'] = result as RecordData;
+      this.nativeOnExecuteResult(record);
+    }).catch((err: Error): void => {
+      this.nativeOnExecuteError(err);
+    });
+  }
+}
+
+export class IntentResultWrapper {
+  public static toRecord<T>(intentResult: insightIntent.IntentResult<T>): Record<string, RecordData> {
+    let record: Record<string, RecordData> = new Record<string, RecordData>();
+    record['code'] = intentResult.code;
+    if (intentResult.result !== undefined) {
+      record['result'] = intentResult.result as RecordData;
+    }
+    return record;
+  }
+
+  public static fromRecord<T>(record: Record<string, RecordData>): insightIntent.IntentResult<T> {
+    let intentResult: insightIntent.IntentResult<T> = {
+      code: record['code'] as int
+    };
+    if (record['result'] !== undefined) {
+      intentResult.result = record['result'] as T;
+    }
+    return intentResult;
+  }
+}
+
+export class AppIntentEntityWrapper {
+  public static toRecord<T>(intentResult:T): Record<string, RecordData> {
+    let record: Record<string, RecordData> = new Record<string, RecordData>();
+    let jsonStr: string = JSON.stringify(intentResult);
+    hilog.debug(DOMAIN_ID, TAG, `jsonStr: ${jsonStr}`);
+    let jsonValue = JSON.parseJsonElement(jsonStr);
+    if (jsonValue.jsonType == jsonx.JsonType.JsonObject) {
+      let iterVal: IterableIterator<[string, jsonx.JsonElement]> = jsonValue.$_iterator();
+      for (let t of iterVal) {
+        let key = t[0];
+        let value = t[1];
+        hilog.debug(DOMAIN_ID, TAG, `key: ${key}, valueType: ${value.jsonType}`);
+        if (key == 'nativeExecutor') {
+          continue;
+        }
+        if (value.jsonType == jsonx.JsonType.JsonString) {
+          record[key] = value.asString();
+        } else if (value.jsonType == jsonx.JsonType.JsonNumber) {
+          record[key] = value.asDouble();
+        } else if (value.jsonType == jsonx.JsonType.JsonTrue) {
+          record[key] = true;
+        } else if (value.jsonType == jsonx.JsonType.JsonFalse) {
+          record[key] = false;
+        } else if (value.jsonType == jsonx.JsonType.JsonNull) {
+          record[key] = null;
+        }
+      }
+    } else {
+      hilog.error(DOMAIN_ID, TAG, `toRecord: jsonValue.jsonType != jsonx.JsonType.JsonObject`);
+    }
+    return record;
   }
 }

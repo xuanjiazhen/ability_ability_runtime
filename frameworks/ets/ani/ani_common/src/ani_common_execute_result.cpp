@@ -25,6 +25,10 @@
 namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
+namespace {
+constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
+}
+
 bool UnwrapResultOfExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
 {
     if (env == nullptr) {
@@ -53,7 +57,33 @@ bool UnwrapResultOfExecuteResult(ani_env *env, ani_object &param, InsightIntentE
     return true;
 }
 
-bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
+bool UnwrapResultOfDecoratorExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null env");
+        return false;
+    }
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "decorator param is nullptr");
+        return false;
+    }
+
+    auto wantParams = std::make_shared<AAFwk::WantParams>();
+    if (!UnwrapWantParams(env, param, *wantParams)) {
+        TAG_LOGE(AAFwkTag::INTENT, "failed to unwrap want parameter");
+        return false;
+    }
+
+    if (!executeResult.CheckResult(wantParams)) {
+        TAG_LOGE(AAFwkTag::INTENT, "Check wp fail");
+        return false;
+    }
+    executeResult.result = wantParams;
+    executeResult.code = wantParams->GetIntParam("code", 0);
+    return true;
+}
+
+bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteResult &executeResult, bool isDecorator)
 {
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null env");
@@ -63,6 +93,15 @@ bool UnwrapExecuteResult(ani_env *env, ani_object &param, InsightIntentExecuteRe
     if (param == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "param is nullptr");
         return false;
+    }
+
+    if (isDecorator) {
+        executeResult.isDecorator = true;
+        if (!UnwrapResultOfDecoratorExecuteResult(env, param, executeResult)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap decorator result fail");
+            return false;
+        }
+        return true;
     }
 
     int32_t code = 0;
@@ -107,6 +146,10 @@ ani_object WrapExecuteResult(ani_env *env, const AppExecFwk::InsightIntentExecut
         return nullptr;
     }
 
+    if (executeResult.isQueryEntity) {
+        return WrapQueryEntityResult(env, executeResult);
+    }
+
     ani_class cls = nullptr;
     ani_status status = ANI_ERROR;
     ani_method ctor = nullptr;
@@ -141,6 +184,51 @@ ani_object WrapExecuteResult(ani_env *env, const AppExecFwk::InsightIntentExecut
     SetIntPropertyObject(env, objValue, "flags", executeResult.flags);
 
     return objValue;
+}
+
+ani_object WrapQueryEntityResult(ani_env *env, const AppExecFwk::InsightIntentExecuteResult &executeResult)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null env");
+        return nullptr;
+    }
+
+    ani_class arrayCls = nullptr;
+    ani_status status = ANI_OK;
+    status = env->FindClass(CLASSNAME_ARRAY, &arrayCls);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "FindClass failed status: %{public}d", status);
+        return nullptr;
+    }
+
+    ani_method arrayCtor;
+    status = env->Class_FindMethod(arrayCls, "<ctor>", "i:", &arrayCtor);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "find ctor failed status: %{public}d", status);
+        return nullptr;
+    }
+
+    ani_object arrayObj;
+    status = env->Object_New(arrayCls, arrayCtor, &arrayObj, executeResult.queryResults.size());
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "Object_New array status: %{public}d", status);
+        return arrayObj;
+    }
+    ani_size index = 0;
+    for (auto &queryResult : executeResult.queryResults) {
+        ani_object aniInfo = static_cast<ani_object>(WrapWantParams(env, *queryResult));
+        if (aniInfo == nullptr) {
+            TAG_LOGW(AAFwkTag::INTENT, "null aniInfo");
+            break;
+        }
+        status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniInfo);
+        if (status != ANI_OK) {
+            TAG_LOGW(AAFwkTag::INTENT, "Object_CallMethodByName_Void failed status: %{public}d", status);
+            break;
+        }
+        index++;
+    }
+    return arrayObj;
 }
 
 ani_object CreateNullExecuteResult(ani_env *env)
