@@ -37,15 +37,14 @@ constexpr const char *ENTRY_EXECUTOR_CLASS_NAME =
 constexpr const char *EXECUTE_MODE_ENUM_NAME = "@ohos.app.ability.insightIntent.insightIntent.ExecuteMode";
 constexpr const char *CHECK_PROMISE_SIGNATURE = "Y:z";
 constexpr const char *CALL_PROMISE_SIGNATURE = "C{std.core.Promise}:";
-}
+} // namespace
 
 InsightIntentExecutor *EtsInsightIntentEntry::Create(Runtime &runtime)
 {
     return new (std::nothrow) EtsInsightIntentEntry(static_cast<ETSRuntime &>(runtime));
 }
 
-EtsInsightIntentEntry::EtsInsightIntentEntry(ETSRuntime &runtime) : runtime_(runtime)
-{}
+EtsInsightIntentEntry::EtsInsightIntentEntry(ETSRuntime &runtime) : runtime_(runtime) {}
 
 EtsInsightIntentEntry::~EtsInsightIntentEntry()
 {
@@ -230,7 +229,8 @@ bool EtsInsightIntentEntry::ExecuteInsightIntent(ani_env *env, bool &isAsync)
     }
 
     ani_boolean isPromise = ANI_FALSE;
-    if (env->Object_CallMethod_Boolean(etsObj_->aniObj, method, &isPromise, reinterpret_cast<ani_object>(result)) != ANI_OK) {
+    if (env->Object_CallMethod_Boolean(etsObj_->aniObj, method, &isPromise,
+        reinterpret_cast<ani_object>(result)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "call checkPromise failed");
         return ExecuteIntentCheckError();
     }

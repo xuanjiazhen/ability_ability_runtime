@@ -54,8 +54,10 @@ struct EntityInfoForQuery {
     std::string entityCategory;
     std::string parameters;
     std::string parentClassName;
-    bool isQueryable = false;
     std::vector<std::string> supportedQueryProperties {};
+    bool isQueryable() const {
+        return parentClassName.compare("insightIntent.AppIntentEntity") == 0;
+    }
 };
 
 struct UIAbilityIntentInfoForQuery {
