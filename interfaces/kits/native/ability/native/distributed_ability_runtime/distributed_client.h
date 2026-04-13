@@ -25,6 +25,7 @@
 #include "want_params.h"
 #include "want.h"
 #include "iremote_broker.h"
+#include "distributed_sched_types.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -63,6 +64,11 @@ public:
     int32_t SetMissionContinueState(int32_t missionId, const AAFwk::ContinueState &state, int32_t callingUid);
     int32_t OnCollaborateDone(
         const std::string &collabToken, int32_t result, int32_t pid, int32_t uid, int32_t accessTokenId);
+    int32_t StartRemoteIntent(const AAFwk::Want& want, const std::string& deviceId,
+        const sptr<IRemoteObject>& callback);
+    int32_t DisconnectRemoteIntent(const std::string& deviceId, int32_t requestCode);
+    int32_t SendIntentResult(const std::string& deviceId,
+        const DistributedSchedule::DistributedIntentResultInfo& resultInfo);
     enum {
         START_REMOTE_ABILITY = 1,
         CONNECT_REMOTE_ABILITY = 6,
@@ -84,7 +90,10 @@ public:
         REGISTER_ON_LISTENER = 260,
         REGISTER_OFF_LISTENER = 261,
         SET_MISSION_CONTINUE_STATE = 300,
-        NOTIFY_ON_COLLABORATE_DONE = 334
+        NOTIFY_ON_COLLABORATE_DONE = 334,
+        START_REMOTE_INTENT = 400,
+        DISCONNECT_REMOTE_INTENT = 401,
+        SEND_INTENT_RESULT = 402
     };
 private:
     sptr<IRemoteObject> GetDmsProxy();
