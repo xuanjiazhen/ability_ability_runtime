@@ -26,7 +26,6 @@ namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 namespace {
-constexpr const char *INTENT_RESULT_WRAPPER_CLASS_NAME = "utils.AbilityUtils.IntentResultWrapper";
 constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
 }
 
@@ -80,6 +79,7 @@ bool UnwrapResultOfDecoratorExecuteResult(ani_env *env, ani_object &param, Insig
         return false;
     }
     executeResult.result = wantParams;
+    executeResult.code = wantParams->GetIntParam("code", 0);
     return true;
 }
 

@@ -74,15 +74,14 @@ ani_object CreateMethodResultRecord(ani_env *env, ani_ref result)
     }
     return recordObject;
 }
-}
+} // namespace
 
 InsightIntentExecutor *EtsInsightIntentFunc::Create(Runtime &runtime)
 {
     return new (std::nothrow) EtsInsightIntentFunc(static_cast<ETSRuntime &>(runtime));
 }
 
-EtsInsightIntentFunc::EtsInsightIntentFunc(ETSRuntime &runtime) : runtime_(runtime)
-{}
+EtsInsightIntentFunc::EtsInsightIntentFunc(ETSRuntime &runtime) : runtime_(runtime) {}
 
 EtsInsightIntentFunc::~EtsInsightIntentFunc()
 {
@@ -399,7 +398,7 @@ bool EtsInsightIntentFunc::HandleResultReturnedFromEtsFunc(ani_env *env, ani_ref
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
     }
 
-    ani_object resultRecord = CreateMethodResultRecord(env, result);
+    ani_object resultRecord = isAsync ? static_cast<ani_object>(result) : CreateMethodResultRecord(env, result);
     if (resultRecord == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "create method result record failed");
         STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);

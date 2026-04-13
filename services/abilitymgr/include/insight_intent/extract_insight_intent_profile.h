@@ -158,7 +158,10 @@ struct InsightIntentEntityInfo {
     std::string parentClassName;
     std::vector<std::string> supportedQueryProperties;
     InsightIntentEntityInfo() = default;
-    bool isQueryable() const { return parentClassName.compare("insightIntent.AppIntentEntity") == 0; }
+    bool isQueryable() const
+    {
+        return parentClassName.compare("insightIntent.AppIntentEntity") == 0;
+    }
 };
 
 // 全量信息

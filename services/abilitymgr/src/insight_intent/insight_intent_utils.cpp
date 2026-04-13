@@ -92,40 +92,29 @@ uint32_t InsightIntentUtils::GetSrcEntry(const AppExecFwk::ElementName &elementN
     }
     ExtractInsightIntentProfileInfoVec extractInfos;
     if (!ExtractInsightIntentProfile::TransformTo(profile, extractInfos)) {
-        TAG_LOGE(AAFwkTag::INTENT, "testtag transform profile to ExtractInsightIntentInfo failed");
+        TAG_LOGE(AAFwkTag::INTENT, "transform profile to ExtractInsightIntentInfo failed");
         return ERR_INVALID_VALUE;
     }
 
     // Get srcEntry when intentName matched
-    for (const auto &info : extractInfos.insightIntents) {
-        TAG_LOGE(AAFwkTag::INTENT,
-            "get srcEntry, info.intentName: %{public}s, abilityName: %{public}s, mode: %{public}d",
-            info.intentName.c_str(), abilityName.c_str(), executeMode);
-        TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.decoratorFile: %{public}s,  info.decoratorClass: %{public}s",
-            info.decoratorFile.c_str(), info.decoratorClass.c_str());
-        TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.arkTSMode: %{public}s", info.arkTSMode.c_str());
-        if (info.intentName == intentName) {
-            *arkTSMode = "static";
-            TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.decoratorType: %{public}s", info.decoratorType.c_str());
-            if (info.decoratorType == "@InsightIntentEntry") {
-                *decoratorClass = info.decoratorClass;
-            }
-            return ERR_OK;
-        }
-    }
-
     for (const auto &info : infos) {
-        TAG_LOGE(AAFwkTag::INTENT,
-            "get srcEntry, info.intentName: %{public}s, abilityName: %{public}s, mode: %{public}d",
-            info.intentName.c_str(), abilityName.c_str(), executeMode);
-        TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.srcEntry: %{public}s, info.arkTSMode: %{public}s",
-            info.srcEntry.c_str(), info.arkTSMode.c_str());
         if (info.intentName == intentName && CheckAbilityName(info, abilityName, executeMode)) {
             srcEntry = info.srcEntry;
             if (arkTSMode != nullptr) {
                 *arkTSMode = info.arkTSMode;
             }
             TAG_LOGD(AAFwkTag::INTENT, "srcEntry: %{public}s", srcEntry.c_str());
+            return ERR_OK;
+        }
+    }
+
+    for (const auto &info : extractInfos.insightIntents) {
+        if (info.intentName == intentName) {
+            *arkTSMode = info.arkTSMode;
+            TAG_LOGE(AAFwkTag::INTENT, "get srcEntry, info.decoratorType: %{public}s", info.decoratorType.c_str());
+            if (info.decoratorType == "@InsightIntentEntry") {
+                *decoratorClass = info.decoratorClass;
+            }
             return ERR_OK;
         }
     }
@@ -201,7 +190,6 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentInfo(
             insightInfo.entityId = entityInfo.entityId;
             insightInfo.parameters = entityInfo.parameters;
             insightInfo.parentClassName = entityInfo.parentClassName;
-            insightInfo.isQueryable = entityInfo.isQueryable();
             insightInfo.supportedQueryProperties = entityInfo.supportedQueryProperties;
             queryInfo.entities.emplace_back(insightInfo);
         }
@@ -261,7 +249,6 @@ uint32_t InsightIntentUtils::ConvertExtractInsightIntentEntityInfo(
         insightInfo.parameters = entityInfo.parameters;
         insightInfo.parentClassName = entityInfo.parentClassName;
         insightInfo.supportedQueryProperties = entityInfo.supportedQueryProperties;
-        insightInfo.isQueryable = entityInfo.isQueryable();
         queryInfo.entities.emplace_back(insightInfo);
     }
 
