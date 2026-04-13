@@ -29,6 +29,7 @@ enum class StartupPhase : uint8_t {
 struct NativeAbilityMetaData {
 public:
     static void InitData(const AppExecFwk::AbilityInfo &abilityInfo, NativeAbilityMetaData &data);
+    static bool HideWindowOnStartup(const AppExecFwk::AbilityInfo &abilityInfo);
     bool withNativeModule = false;
     StartupPhase startupPhase = StartupPhase::PRE_WINDOW;
     std::string nativeModuleSource;

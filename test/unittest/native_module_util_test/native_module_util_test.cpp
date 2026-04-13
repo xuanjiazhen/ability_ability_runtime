@@ -595,5 +595,73 @@ HWTEST_F(NativeModuleUtilTest, InitData_2900, TestSize.Level1)
     EXPECT_EQ(data.startupPhase, StartupPhase::PRE_WINDOW);
 }
 
+// ==================== HideWindowOnStartup ====================
+
+/**
+ * @tc.number: HideWindowOnStartup_0100
+ * @tc.name: NativeAbilityMetaData::HideWindowOnStartup
+ * @tc.desc: No metadata at all, should return false
+ */
+HWTEST_F(NativeModuleUtilTest, HideWindowOnStartup_0100, TestSize.Level1)
+{
+    EXPECT_FALSE(NativeAbilityMetaData::HideWindowOnStartup(abilityInfo_));
+}
+
+/**
+ * @tc.number: HideWindowOnStartup_0200
+ * @tc.name: NativeAbilityMetaData::HideWindowOnStartup
+ * @tc.desc: withNativeModule=false, should return false
+ */
+HWTEST_F(NativeModuleUtilTest, HideWindowOnStartup_0200, TestSize.Level1)
+{
+    AddMetadata("ohos.ability.withNativeModule", "false");
+
+    EXPECT_FALSE(NativeAbilityMetaData::HideWindowOnStartup(abilityInfo_));
+}
+
+/**
+ * @tc.number: HideWindowOnStartup_0300
+ * @tc.name: NativeAbilityMetaData::HideWindowOnStartup
+ * @tc.desc: withNativeModule=true, startupPhase=pre_window, should return true
+ */
+HWTEST_F(NativeModuleUtilTest, HideWindowOnStartup_0300, TestSize.Level1)
+{
+    AddMetadata("ohos.ability.withNativeModule", "true");
+    AddMetadata("ohos.ability.startupPhase", "pre_window");
+    AddMetadata("ohos.ability.nativeModuleSource", "libtest.so");
+    AddMetadata("ohos.ability.nativeModuleFun", "OHMain");
+
+    EXPECT_TRUE(NativeAbilityMetaData::HideWindowOnStartup(abilityInfo_));
+}
+
+/**
+ * @tc.number: HideWindowOnStartup_0400
+ * @tc.name: NativeAbilityMetaData::HideWindowOnStartup
+ * @tc.desc: withNativeModule=true, startupPhase=pre_foreground, should return true
+ */
+HWTEST_F(NativeModuleUtilTest, HideWindowOnStartup_0400, TestSize.Level1)
+{
+    AddMetadata("ohos.ability.withNativeModule", "true");
+    AddMetadata("ohos.ability.startupPhase", "pre_foreground");
+    AddMetadata("ohos.ability.nativeModuleSource", "libtest.so");
+    AddMetadata("ohos.ability.nativeModuleFun", "OHMain");
+
+    EXPECT_TRUE(NativeAbilityMetaData::HideWindowOnStartup(abilityInfo_));
+}
+
+/**
+ * @tc.number: HideWindowOnStartup_0500
+ * @tc.name: NativeAbilityMetaData::HideWindowOnStartup
+ * @tc.desc: withNativeModule=true, startupPhase=foreground, should return false
+ */
+HWTEST_F(NativeModuleUtilTest, HideWindowOnStartup_0500, TestSize.Level1)
+{
+    AddMetadata("ohos.ability.withNativeModule", "true");
+    AddMetadata("ohos.ability.startupPhase", "foreground");
+    AddMetadata("ohos.ability.nativeModuleSource", "libtest.so");
+    AddMetadata("ohos.ability.nativeModuleFun", "OHMain");
+
+    EXPECT_FALSE(NativeAbilityMetaData::HideWindowOnStartup(abilityInfo_));
+}
 }  // namespace AAFwk
 }  // namespace OHOS

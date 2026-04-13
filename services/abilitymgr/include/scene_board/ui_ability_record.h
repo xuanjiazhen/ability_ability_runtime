@@ -96,6 +96,13 @@ public:
 
     void AttachNative();
 
+    inline CheckStartPendingState() const
+    {
+        auto pendingState = GetPendingState();
+        return pendingState == AbilityState::INITIAL ||
+            (pendingState == AbilityState::FOREGROUND && GetNativeState() == AbilityNativeState::ON_CREATE);
+    }
+
 private:
     bool exitReasonLoaded_ = false;
     bool hookOff_ = false;

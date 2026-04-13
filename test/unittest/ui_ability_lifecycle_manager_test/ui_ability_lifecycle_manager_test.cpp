@@ -8353,5 +8353,83 @@ HWTEST_F(UIAbilityLifecycleManagerTest, SetGamePreLaunchCompleteTime_003, TestSi
     auto result = mgr->SetGamePreLaunchCompleteTime(completeTime);
     EXPECT_EQ(result, ERR_OK);
 }
+
+/**
+ * @tc.name: StartSelf_001
+ * @tc.desc: Test StartSelf with null abilityRecord.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_001, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    EXPECT_EQ(mgr->StartSelf(nullptr), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: StartSelf_002
+ * @tc.desc: Test StartSelf when nativeState is NONE (not a NativeModule ability).
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_002, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    EXPECT_NE(abilityRecord, nullptr);
+    // Default nativeState is NONE
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NONE);
+    EXPECT_EQ(mgr->StartSelf(abilityRecord), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: StartSelf_003
+ * @tc.desc: Test StartSelf with null sessionInfo.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_003, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    EXPECT_EQ(mgr->StartSelf(abilityRecord), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: StartSelf_004
+ * @tc.desc: Test StartSelf with null sessionToken.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_004, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    abilityRecord->SetSessionInfo(sessionInfo);
+    EXPECT_EQ(mgr->StartSelf(abilityRecord), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: StartSelf_005
+ * @tc.desc: Test StartSelf success: nativeHideWindow is set to false and
+ *           PendingSessionActivation is called on the session.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_005, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->nativeHideWindow = true;
+    abilityRecord->SetSessionInfo(sessionInfo);
+
+    auto ret = mgr->StartSelf(abilityRecord);
+    EXPECT_EQ(ret, ERR_OK);
+    // Verify nativeHideWindow is set to false after StartSelf
+    EXPECT_EQ(sessionInfo->nativeHideWindow, false);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
