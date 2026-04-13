@@ -30,6 +30,7 @@
 #include "global_constant.h"
 #include "hidden_start_observer_manager.h"
 #include "hitrace_meter.h"
+#include "native_ability_util.h"
 #include "permission_constants.h"
 #include "process_options.h"
 #include "request_id_util.h"
@@ -1490,10 +1491,21 @@ int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRe
         return ERR_INVALID_VALUE;
     }
 
-    // Need foreground
+    auto sessionInfo = abilityRecord->GetSessionInfo();
+    CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
+    CHECK_POINTER_AND_RETURN(sessionInfo->sessionToken, ERR_INVALID_VALUE);
+
+    auto session = iface_cast<Rosen::ISession>(sessionInfo->sessionToken);
+    CHECK_POINTER_AND_RETURN(session, ERR_INVALID_VALUE);
+
+    sessionInfo->nativeHideWindow = false;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule completing foreground, ability: %{public}s",
         abilityRecord->GetAbilityInfo().name.c_str());
-    return ERR_OK;
+    auto ret = static_cast<int>(session->PendingSessionActivation(sessionInfo));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
+    }
+    return ret;
 }
 
 int UIAbilityLifecycleManager::PrelaunchAbilityLocked(const AbilityRequest &abilityRequest, const int32_t frameNum)
@@ -1834,6 +1846,8 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_MODE, 0),
         (sessionInfo->supportWindowModes).size(), sessionInfo->specifiedFlag.c_str());
+    sessionInfo->nativeHideWindow = (sessionInfo->persistentId == 0 &&
+        NativeAbilityMetaData::HideWindowOnStartup(abilityRequest.abilityInfo));
     if (abilityRequest.isStartInSplitMode) {
         return NotifySCBPendingActivationInSplitMode(sessionInfo, abilityRequest);
     }
