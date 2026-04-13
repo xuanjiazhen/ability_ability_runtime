@@ -2121,6 +2121,14 @@ public:
     int32_t StartAbilityByCallWithInsightIntent(const Want &want, const sptr<IRemoteObject> &callerToken,
         const InsightIntentExecuteParam &param, int32_t userId = DEFAULT_INVAL_VALUE);
 
+    int32_t ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
+        int32_t requestCode);
+
+    int32_t ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
+        const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
+        bool ignoreAbilityName, const AbilityRuntime::ExtractInsightIntentGenericInfo &infos,
+        uint64_t key, const std::string &srcDeviceId = "", int32_t requestCode = 0);
+
     /**
      * @brief Check if ability controller can start.
      * @param want The want of ability to start.

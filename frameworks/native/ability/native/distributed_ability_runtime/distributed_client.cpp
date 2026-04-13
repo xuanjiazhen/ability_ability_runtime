@@ -570,5 +570,77 @@ int32_t DistributedClient::OnCollaborateDone(
     PARCEL_TRANSACT_SYNC_RET_INT(remote,
         static_cast<uint32_t>(NOTIFY_ON_COLLABORATE_DONE), data, reply);
 }
+
+int32_t DistributedClient::StartRemoteIntent(const OHOS::AAFwk::Want& want, const std::string& deviceId,
+    const sptr<IRemoteObject>& callback)
+{
+    sptr<IRemoteObject> remote = GetDmsProxy();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "null remote");
+        return INVALID_PARAMETERS_ERR;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, Parcelable, &want);
+    PARCEL_WRITE_HELPER(data, String, deviceId);
+    PARCEL_WRITE_HELPER(data, RemoteObject, callback);
+    MessageParcel reply;
+    PARCEL_TRANSACT_SYNC_RET_INT(remote, START_REMOTE_INTENT, data, reply);
+}
+
+int32_t DistributedClient::DisconnectRemoteIntent(const std::string& deviceId, int32_t requestCode)
+{
+    sptr<IRemoteObject> remote = GetDmsProxy();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "null remote");
+        return INVALID_PARAMETERS_ERR;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, String, deviceId);
+    PARCEL_WRITE_HELPER(data, Int32, requestCode);
+    MessageParcel reply;
+    PARCEL_TRANSACT_SYNC_RET_INT(remote, DISCONNECT_REMOTE_INTENT, data, reply);
+}
+
+int32_t DistributedClient::SendIntentResult(const std::string& deviceId,
+    const DistributedSchedule::DistributedIntentResultInfo& resultInfo)
+{
+    sptr<IRemoteObject> remote = GetDmsProxy();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "null remote");
+        return INVALID_PARAMETERS_ERR;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, String, deviceId);
+    
+    if (!data.WriteUint64(resultInfo.callbackKey)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, Int32, resultInfo.resultCode);
+    PARCEL_WRITE_HELPER(data, Int32, resultInfo.requestCode);
+    
+    if (resultInfo.result != nullptr) {
+        if (!data.WriteBool(true)) {
+            return ERR_FLATTEN_OBJECT;
+        }
+        if (!resultInfo.result->Marshalling(data)) {
+            return ERR_FLATTEN_OBJECT;
+        }
+    } else {
+        if (!data.WriteBool(false)) {
+            return ERR_FLATTEN_OBJECT;
+        }
+    }
+    
+    MessageParcel reply;
+    PARCEL_TRANSACT_SYNC_RET_INT(remote, SEND_INTENT_RESULT, data, reply);
 }  // namespace AAFwk
 }  // namespace OHOS
