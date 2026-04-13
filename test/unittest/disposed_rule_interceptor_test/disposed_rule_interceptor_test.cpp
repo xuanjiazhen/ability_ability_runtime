@@ -18,6 +18,8 @@
 #include "ability_manager_errors.h"
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
+#include "process_options.h"
+#include "start_options.h"
 #define private public
 #define protected public
 #include "interceptor/disposed_rule_interceptor.h"
@@ -958,6 +960,252 @@ HWTEST_F(DisposedRuleInterceptorTest, DoProcess_009, TestSize.Level1)
     auto ret = interceptor.DoProcess(param);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "DoProcess_009 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_DoProcess_010
+ * @tc.desc: DoProcess with startOptions and IsSkipDisposeRule check
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, DoProcess_010, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DoProcess_010 start");
+    MyFlag::bundleMgrHelper_ = AppExecFwk::BundleMgrHelper::GetInstance();
+    auto appControlMgr = new (std::nothrow) AppControlProxy(nullptr);
+    MyFlag::mockAppControlManager_ = appControlMgr;
+    AppExecFwk::DisposedRule rule1;
+    rule1.disposedType = AppExecFwk::DisposedType::BLOCK_APPLICATION;
+    rule1.controlType = AppExecFwk::ControlType::DISALLOWED_LIST;
+    rule1.priority = 8;
+    rule1.want = std::make_shared<Want>();
+    rule1.want->SetElementName("", "bundle", "", "");
+    rule1.componentType = AppExecFwk::ComponentType::UI_ABILITY;
+    AppExecFwk::DisposedRule rule2;
+    rule2.disposedType = AppExecFwk::DisposedType::NON_BLOCK;
+    rule2.priority = 10;
+    std::vector<AppExecFwk::DisposedRule> rules = { rule1, rule2 };
+    MyFlag::mockDisposedRuleList_ = rules;
+    MyFlag::retGetAbilityRunningControlRule_ = ERR_OK;
+    MyFlag::edmCode_ = ERR_OK;
+    MyFlag::startAbilityRet_ = ERR_OK;
+
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
+
+    // Test with startOptions containing processOptions
+    AAFwk::startOptions startOpts;
+    startOpts.processOptions = std::make_shared<AppExecFwk::ProcessOptions>();
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc, &startOpts);
+    auto ret = interceptor.DoProcess(param);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "DoProcess_010 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_DoProcess_011
+ * @tc.desc: DoProcess with startOptions but skip condition not met
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, DoProcess_011, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DoProcess_011 start");
+    MyFlag::bundleMgrHelper_ = AppExecFwk::BundleMgrHelper::GetInstance();
+    auto appControlMgr = new (std::nothrow) AppControlProxy(nullptr);
+    MyFlag::mockAppControlManager_ = appControlMgr;
+    AppExecFwk::DisposedRule rule1;
+    rule1.disposedType = AppExecFwk::DisposedType::BLOCK_APPLICATION;
+    rule1.controlType = AppExecFwk::ControlType::DISALLOWED_LIST;
+    rule1.priority = 8;
+    rule1.want = std::make_shared<Want>();
+    rule1.want->SetElementName("", "bundle2", "", "");
+    rule1.componentType = AppExecFwk::ComponentType::UI_ABILITY;
+    AppExecFwk::DisposedRule rule2;
+    rule2.disposedType = AppExecFwk::DisposedType::NON_BLOCK;
+    rule2.priority = 10;
+    std::vector<AppExecFwk::DisposedRule> rules = { rule1, rule2 };
+    MyFlag::mockDisposedRuleList_ = rules;
+    MyFlag::retGetAbilityRunningControlRule_ = ERR_OK;
+    MyFlag::edmCode_ = ERR_OK;
+    MyFlag::startAbilityRet_ = ERR_OK;
+
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    want.SetElementName("", "bundle1", "", "");
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
+
+    // Test with startOptions containing processOptions but skip condition false
+    AAFwk::startOptions startOpts;
+    startOpts.processOptions = std::make_shared<AppExecFwk::ProcessOptions>();
+    startOpts.processOptions->startupVisibility = StartupVisibility::STARTUP_SHOW;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc, &startOpts);
+    auto ret = interceptor.DoProcess(param);
+    EXPECT_EQ(ret, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "DoProcess_011 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_001
+ * @tc.desc: IsSkipDisposeRule with null startOptions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_001 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc);
+    auto ret = interceptor.IsSkipDisposeRule(param);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_001 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_002
+ * @tc.desc: IsSkipDisposeRule with null processOptions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_002 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
+
+    AAFwk::startOptions startOpts;
+    startOpts.processOptions = nullptr;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc, &startOpts);
+    auto ret = interceptor.IsSkipDisposeRule(param);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_002 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_003
+ * @tc.desc: IsSkipDisposeRule with valid processOptions but condition not met
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_003 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
+
+    AAFwk::startOptions startOpts;
+    startOpts.processOptions = std::make_shared<AppExecFwk::ProcessOptions>();
+    startOpts.processOptions->startupVisibility = StartupVisibility::STARTUP_SHOW;
+    startOpts.processOptions->isPreloadStart = true;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc, &startOpts);
+    auto ret = interceptor.IsSkipDisposeRule(param);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_003 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_004
+ * @tc.desc: IsSkipDisposeRule with valid processOptions but isPreloadStart false
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_004 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
+
+    AAFwk::startOptions startOpts;
+    startOpts.processOptions = std::make_shared<AppExecFwk::ProcessOptions>();
+    startOpts.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
+    startOpts.processOptions->isPreloadStart = false;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc, &startOpts);
+    auto ret = interceptor.IsSkipDisposeRule(param);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_004 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_005
+ * @tc.desc: IsSkipDisposeRule with all conditions met (but still returns false due to isSpecifiedCaller)
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_005 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
+
+    AAFwk::startOptions startOpts;
+    startOpts.processOptions = std::make_shared<AppExecFwk::ProcessOptions>();
+    startOpts.processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
+    startOpts.processOptions->isPreloadStart = true;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc, &startOpts);
+    auto ret = interceptor.IsSkipDisposeRule(param);
+    // Should return false because isSpecifiedCaller is always false
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_005 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_006
+ * @tc.desc: IsSkipDisposeRule with empty processOptions
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_006 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    std::function<bool(void)> shouldDisposedRuleFunc = nullptr;
+
+    AAFwk::startOptions startOpts;
+    startOpts.processOptions = std::make_shared<AppExecFwk::ProcessOptions>();
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, shouldDisposedRuleFunc, &startOpts);
+    auto ret = interceptor.IsSkipDisposeRule(param);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_006 end");
 }
 #endif
 } // namespace AAFwk
