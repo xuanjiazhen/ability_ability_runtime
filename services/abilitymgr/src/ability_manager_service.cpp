@@ -13689,7 +13689,41 @@ int32_t AbilityManagerService::StartAbilityWithServiceMatch(const InsightIntentE
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", eventInfo.errCode);
     }
     return ret;
+}
 
+int32_t AbilityManagerService::ExecuteIntentDistributed(uint64_t key, const sptr<IRemoteObject> &callerToken,
+    const std::shared_ptr<InsightIntentExecuteParam>parame, const std::string &callerBundleName)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntentDistributed called, deviceId: %{public}d", param->deviceId_);
+    
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
+        key, callerToken, param, callerBundleName, false, true);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "CheckAndUpdateParam failed: %{public}d", ret);
+        return ret;
+    }
+
+    Want want;
+    AbilityRuntime::ExtractInsightIntentGenericInfo infos = GetInsightIntentGenericInfo(*param);
+    ret = InsightIntentExecuteManager::GenerateWant(param, infos, want);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "GenerateWant failed: %{public}d", ret);
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(param->insightIntentId_);
+        return ret;
+    }
+
+    auto callback = sptr<InsightIntentDistributedCallbackStub>::MakeSptr(key, param->insightIntentId_, callerToken);
+    DistributedClient dmsClient;
+    std::string deviceId = std::to_string(param->deviceId_);
+    ret = dmsClient.StartRemoteIntent(want, deviceId, callback);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "StartRemoteIntent failed: %{public}d", ret);
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(param->insightIntentId_);
+        return ret;
+    }
+
+    TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntentDistributed success, intentId: %{public}" PRIu64, param->insightIntentId_);
+    return ERR_OK;
 }
 
 int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
@@ -13699,6 +13733,17 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (param.isServiceMatch_) {
         return StartAbilityWithServiceMatch(param);
     }
+    
+    if (param.deviceId_ != 0) {
+        constexpr char EXECUTE_DISTRIBUTED_INTENT_PERMISSION[] = "ohos.permission.EXECUTE_DISTRIBUTED_INTENT";
+        bool hasDistributedPermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
+            EXECUTE_DISTRIBUTED_INTENT_PERMISSION);
+        if (!hasDistributedPermission) {
+            TAG_LOGE(AAFwkTag::INTENT, "distributed intent permission denied");
+            return ERR_ABILITY_RUNTIME_EXTERNAL_NO_ACCESS_PERMISSION;
+        }
+    }
+    
     auto callerBundlename = InsightIntentGetcallerBundleName();
     if (callerBundlename.empty()) {
         TAG_LOGD(AAFwkTag::INTENT, "callerBundlename is null");
@@ -13728,9 +13773,14 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     }
     TAG_LOGI(AAFwkTag::INTENT, "execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
         "intentName: %{public}s, intentId:%{public}" PRIu64", openLinkExecuteFlag: %{public}d, executeMode: %{public}d, "
-        "userId: %{public}d",
+        "userId: %{public}d, deviceId: %{public}d",
         param.bundleName_.c_str(), param.moduleName_.c_str(), param.insightIntentName_.c_str(), param.insightIntentId_,
-        openLinkExecuteFlag, param.executeMode_, param.userId_);
+        openLinkExecuteFlag, param.executeMode_, param.userId_, param.deviceId_);
+
+    if (param.deviceId_ != 0) {
+        TAG_LOGI(AAFwkTag::INTENT, "execute distributed intent, deviceId: %{public}d", param.deviceId_);
+        return ExecuteIntentDistributed(key, callerToken, paramPtr, callerBundlename);
+    }
 
     if (openLinkExecuteFlag) {
         return IntentOpenLinkInner(paramPtr, infos, param.userId_);

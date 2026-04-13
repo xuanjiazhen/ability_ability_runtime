@@ -60,7 +60,7 @@ InsightIntentExecuteManager::~InsightIntentExecuteManager() = default;
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, std::string callerBundleName,
-    const bool ignoreAbilityName)
+    const bool ignoreAbilityName, bool isDistributed)
 {
     int32_t result = CheckCallerPermission();
     if (result != ERR_OK && (param == nullptr || !param->isServiceMatch_)) {
@@ -80,7 +80,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         return ERR_INVALID_VALUE;
     }
     uint64_t intentId = 0;
-    result = AddRecord(key, callerToken, param->bundleName_, intentId, callerBundleName);
+    result = AddRecord(key, callerToken, param->bundleName_, intentId, callerBundleName, isDistributed, param->deviceId_);
     if (result != ERR_OK) {
         return result;
     }
@@ -163,7 +163,8 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
 }
 
 int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, uint64_t &intentId, const std::string &callerBundleName)
+    const std::string &bundleName, uint64_t &intentId, const std::string &callerBundleName,
+    bool isDistributed, const std::string &deviceId)
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
     intentId = ++intentIdCount_;
@@ -173,6 +174,8 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->callerToken = callerToken;
     record->bundleName = bundleName;
     record->callerBundleName = callerBundleName;
+    record->isDistributed = isDistributed;
+    record->deviceId = deviceId;
     if (callerToken != nullptr) {
         record->deathRecipient = sptr<InsightIntentExecuteRecipient>::MakeSptr(intentId);
         callerToken->AddDeathRecipient(record->deathRecipient);
@@ -184,7 +187,8 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
         // save the latest INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE records
         records_.erase(intentId - INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE);
     }
-    TAG_LOGI(AAFwkTag::INTENT, "init done, records_ size: %{public}zu", records_.size());
+    TAG_LOGI(AAFwkTag::INTENT, "init done, records_ size: %{public}zu, isDistributed: %{public}d, deviceId: %{public}s",
+        records_.size(), isDistributed, deviceId.c_str());
     return ERR_OK;
 }
 

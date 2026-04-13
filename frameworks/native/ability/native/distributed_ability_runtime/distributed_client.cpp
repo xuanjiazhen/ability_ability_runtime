@@ -570,5 +570,59 @@ int32_t DistributedClient::OnCollaborateDone(
     PARCEL_TRANSACT_SYNC_RET_INT(remote,
         static_cast<uint32_t>(NOTIFY_ON_COLLABORATE_DONE), data, reply);
 }
+
+int32_t DistributedClient::StartRemoteIntent(const OHOS::AAFwk::Want& want, const std::string& deviceId,
+    const sptr<IRemoteObject>& callback)
+{
+    sptr<IRemoteObject> remote = GetDmsProxy();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "null remote");
+        return INVALID_PARAMETERS_ERR;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, Parcelable, &want);
+    PARCEL_WRITE_HELPER(data, String, deviceId);
+    PARCEL_WRITE_HELPER(data, RemoteObject, callback);
+    MessageParcel reply;
+    PARCEL_TRANSACT_SYNC_RET_INT(remote, START_REMOTE_INTENT, data, reply);
+}
+
+int32_t DistributedClient::DisconnectRemoteIntent(const std::string& deviceId, int32_t requestCode)
+{
+    sptr<IRemoteObject> remote = GetDmsProxy();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "null remote");
+        return INVALID_PARAMETERS_ERR;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, String, deviceId);
+    PARCEL_WRITE_HELPER(data, Int32, requestCode);
+    MessageParcel reply;
+    PARCEL_TRANSACT_SYNC_RET_INT(remote, DISCONNECT_REMOTE_INTENT, data, reply);
+}
+
+int32_t DistributedClient::SendIntentResult(int32_t requestCode, const std::string& deviceId,
+    const std::string& msg)
+{
+    sptr<IRemoteObject> remote = GetDmsProxy();
+    if (remote == nullptr) {
+        TAG_LOGE(AAFwkTag::DISTRIBUTED, "null remote");
+        return INVALID_PARAMETERS_ERR;
+    }
+    MessageParcel data;
+    if (!data.WriteInterfaceToken(DMS_PROXY_INTERFACE_TOKEN)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    PARCEL_WRITE_HELPER(data, Int32, requestCode);
+    PARCEL_WRITE_HELPER(data, String, deviceId);
+    PARCEL_WRITE_HELPER(data, String, msg);
+    MessageParcel reply;
+    PARCEL_TRANSACT_SYNC_RET_INT(remote, SEND_INTENT_RESULT, data, reply);
 }  // namespace AAFwk
 }  // namespace OHOS
