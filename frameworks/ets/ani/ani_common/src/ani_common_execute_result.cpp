@@ -26,7 +26,6 @@ namespace OHOS {
 namespace AbilityRuntime {
 using namespace OHOS::AppExecFwk;
 namespace {
-constexpr const char *INTENT_RESULT_WRAPPER_CLASS_NAME = "utils.AbilityUtils.IntentResultWrapper";
 constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
 }
 
