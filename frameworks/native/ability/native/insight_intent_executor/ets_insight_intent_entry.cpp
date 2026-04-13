@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -37,6 +37,7 @@ constexpr const char *ENTRY_EXECUTOR_CLASS_NAME =
 constexpr const char *EXECUTE_MODE_ENUM_NAME = "@ohos.app.ability.insightIntent.insightIntent.ExecuteMode";
 constexpr const char *CHECK_PROMISE_SIGNATURE = "Y:z";
 constexpr const char *CALL_PROMISE_SIGNATURE = "C{std.core.Promise}:";
+constexpr const char *RECORD_CLASS_NAME = "std.core.Record";
 } // namespace
 
 InsightIntentExecutor *EtsInsightIntentEntry::Create(Runtime &runtime)
@@ -177,7 +178,90 @@ bool EtsInsightIntentEntry::HandleExecuteIntent(std::shared_ptr<InsightIntentExe
     if (!PrepareExecuteEnvironment(env, mode, pageLoader)) {
         return ExecuteIntentCheckError();
     }
+    if (!AssignObject(env, *executeParam->insightIntentParam_)) {
+        TAG_LOGE(AAFwkTag::INTENT, "assign object failed");
+        return ExecuteIntentCheckError();
+    }
     return ExecuteInsightIntent(env, isAsync);
+}
+
+bool EtsInsightIntentEntry::AssignObject(ani_env *env, const AAFwk::WantParams &wantParams)
+{
+    if (env == nullptr || etsObj_ == nullptr || etsObj_->aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid env or ets object");
+        return false;
+    }
+
+    ani_ref srcObj = AppExecFwk::WrapWantParams(env, wantParams);
+    if (srcObj == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "wrap want params failed");
+        return false;
+    }
+
+    ani_class recordCls = nullptr;
+    ani_method recordGetMethod = nullptr;
+    ani_status status = env->FindClass(RECORD_CLASS_NAME, &recordCls);
+    if (status != ANI_OK || recordCls == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "find record class failed, status: %{public}d", status);
+        return false;
+    }
+    status = env->Class_FindMethod(recordCls, "$_get", nullptr, &recordGetMethod);
+    if (status != ANI_OK || recordGetMethod == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "find $_get failed, status: %{public}d", status);
+        return false;
+    }
+
+    for (const auto &item : wantParams.GetParams()) {
+        if (!HasDeclaredProperty(env, item.first)) {
+            continue;
+        }
+
+        ani_string key = AppExecFwk::GetAniString(env, item.first);
+        if (key == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "create key failed, name: %{public}s", item.first.c_str());
+            return false;
+        }
+
+        ani_ref valueRef = nullptr;
+        status = env->Object_CallMethod_Ref(static_cast<ani_object>(srcObj), recordGetMethod, &valueRef, key);
+        if (status != ANI_OK || valueRef == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "get property failed, name: %{public}s, status: %{public}d",
+                item.first.c_str(), status);
+            return false;
+        }
+
+        status = env->Object_SetPropertyByName_Ref(etsObj_->aniObj, item.first.c_str(), valueRef);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "set property failed, name: %{public}s, status: %{public}d",
+                item.first.c_str(), status);
+            return false;
+        }
+    }
+    return true;
+}
+
+bool EtsInsightIntentEntry::HasDeclaredProperty(ani_env *env, const std::string &name)
+{
+    if (env == nullptr || etsObj_ == nullptr || etsObj_->aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid env or ets object");
+        return false;
+    }
+
+    ani_ref executorProp = nullptr;
+    ani_status status = env->Object_GetPropertyByName_Ref(etsObj_->aniObj, name.c_str(), &executorProp);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "get property failed, name: %{public}s, status: %{public}d", name.c_str(), status);
+        return false;
+    }
+
+    ani_boolean isUndefined = ANI_FALSE;
+    status = env->Reference_IsUndefined(executorProp, &isUndefined);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "check property failed, name: %{public}s, status: %{public}d",
+            name.c_str(), status);
+        return false;
+    }
+    return isUndefined != ANI_TRUE;
 }
 
 bool EtsInsightIntentEntry::PrepareExecuteEnvironment(ani_env *env, InsightIntentExecuteMode mode, void *pageLoader)

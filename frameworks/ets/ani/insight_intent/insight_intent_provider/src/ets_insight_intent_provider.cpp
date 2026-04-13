@@ -84,8 +84,8 @@ void EtsInsightIntentProviderInit(ani_env *env)
     }
 
     std::array nativeFunctions = {
-        ani_native_function { "nativeSendExecuteResult", nullptr,
-            reinterpret_cast<void *>(EtsInsightIntentProvider::OnSendExecuteResult) },
+        ani_native_function {"nativeSendExecuteResult", nullptr,
+            reinterpret_cast<void *>(EtsInsightIntentProvider::OnSendExecuteResult)},
         ani_native_function {
             "nativeSendIntentResult", nullptr, reinterpret_cast<void *>(EtsInsightIntentProvider::OnSendIntentResult) },
     };
