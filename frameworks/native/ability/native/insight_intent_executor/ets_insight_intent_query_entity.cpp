@@ -291,7 +291,7 @@ bool EtsInsightIntentQueryEntity::HandleEtsResultReturned(ani_env *env, ani_ref 
 bool EtsInsightIntentQueryEntity::CallPromise(ani_env *env, ani_ref promise)
 {
     TAG_LOGD(AAFwkTag::INTENT, "CallPromise");
-     if (env == nullptr) {
+    if (env == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null env");
         return false;
     }
@@ -356,11 +356,9 @@ bool EtsInsightIntentQueryEntity::QueryFilter(std::string queryType, std::shared
         TAG_LOGE(AAFwkTag::INTENT, "input param empty");
         return false;
     }
-    if (queryType.compare("All") == 0) {
+    if (queryType.compare("all") == 0) {
         return true;
-    }
-    else if (queryType.compare("byProperty") == 0) {
-        TAG_LOGE(AAFwkTag::INTENT, "testTag QueryFilter:%{public}s", wp->ToString().c_str());
+    } else if (queryType.compare("byProperty") == 0) {
         auto queryKeys = queryParam->KeySet();
         for (auto iter = queryKeys.begin(); iter != queryKeys.end(); iter++) {
             auto queryKey = *iter;
@@ -370,14 +368,13 @@ bool EtsInsightIntentQueryEntity::QueryFilter(std::string queryType, std::shared
             }
             auto wpValue = wp->GetParam(queryKey);
             auto queryValue = queryParam->GetParam(queryKey);
-            if(!AAFwk::WantParams::CompareInterface(wpValue, queryValue, AAFwk::WantParams::GetDataType(wpValue))) {
+            if (!AAFwk::WantParams::CompareInterface(wpValue, queryValue, AAFwk::WantParams::GetDataType(wpValue))) {
                 TAG_LOGD(AAFwkTag::INTENT, "queryKey %{public}s different", queryKey.c_str());
                 return false;
             }
         }
         return true;
-    }
-    else {
+    } else {
         TAG_LOGD(AAFwkTag::INTENT, "invalid queryType");
         return false;
     }

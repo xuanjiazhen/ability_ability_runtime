@@ -230,7 +230,7 @@ void to_json(nlohmann::json& jsonObject, const EntityInfoForQuery &info)
         {INSIGHT_INTENT_ENTITY_CLASS_NAME, info.className},
         {INSIGHT_INTENT_ENTITY_ID, info.entityId},
         {INSIGHT_INTENT_ENTITY_CATEGORY, info.entityCategory},
-        {INSIGHT_INTENT_PARAMETERS, info.parameters},
+        {INSIGHT_INTENT_ENTITY_PARAMETERS, info.parameters},
         {INSIGHT_INTENT_ENTITY_PARENT_CLASS_NAME, info.parentClassName},
         {INSIGHT_INTENT_ENTITY_SUPPORTED_QUERY_PROPERTIES, info.supportedQueryProperties},
     };
