@@ -55,9 +55,19 @@ public:
 
     virtual void Init(const AbilityRequest &abilityRequest);
     virtual AbilityRecordType GetAbilityRecordType();
+
+    inline void SetPendingState(AbilityState state)
+    {
+        pendingState_ = state;
+    }
+    inline AbilityState GetPendingState() const
+    {
+        return pendingState_;
+    }
 protected:
     bool isPrelaunch_ = false;
     bool isHook_ = false;
+    AbilityState pendingState_ = AbilityState::INITIAL;
     std::atomic_bool isLastWantBackgroundDriven_ = false;
     std::mutex collaborateWantLock_;
     std::shared_ptr<LifecycleDeal> lifecycleDeal_;

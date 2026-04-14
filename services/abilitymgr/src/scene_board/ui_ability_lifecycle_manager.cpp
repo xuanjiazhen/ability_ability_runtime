@@ -2992,6 +2992,8 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_WIDTH, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_MAX_WINDOW_HEIGHT, 0),
         sessionInfo->specifiedFlag.c_str());
+    sessionInfo->nativeHideWindow = (sessionInfo->persistentId == 0 &&
+        NativeAbilityMetaData::HideWindowOnStartup(abilityRequest.abilityInfo));
     auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession_);
     sptr<SessionInfo> callerSessionInfo = nullptr;
     if (callerAbility != nullptr && (callerSessionInfo = callerAbility->GetSessionInfo()) != nullptr &&

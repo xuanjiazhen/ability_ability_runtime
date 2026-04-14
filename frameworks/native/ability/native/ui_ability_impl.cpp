@@ -593,8 +593,12 @@ void UIAbilityImpl::Foreground(const AAFwk::Want &want)
     if (localNativeState_ == LocalNativeState::INIT_PRE_FOREGROUND) {
         TAG_LOGI(AAFwkTag::UIABILITY, "Native module startPhase is PRE_FOREGROUND, skip OnForeground");
         localNativeState_ = LocalNativeState::HALF_FOREGROUND;
+        auto oldSilent = ability_->CheckIsSilentForeground();
+        ability_->SetIsSilentForeground(true);
+        ability_->OnForeground(want);
+        ability_->SetIsSilentForeground(oldSilent);
         std::lock_guard<std::mutex> lock(notifyForegroundLock_);
-        notifyForegroundByAbility_ = true;
+        notifyForegroundByWindow_ = true;
         return;
     }
 
@@ -657,7 +661,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             break;
         }
         case AAFwk::ABILITY_STATE_FOREGROUND_NEW: {
-            if (targetState.isNewWant) {
+            if (targetState.isNewWant && localNativeState_ == LocalNativeState::NONE) {
                 NewWant(want);
             }
 #ifdef SUPPORT_SCREEN
