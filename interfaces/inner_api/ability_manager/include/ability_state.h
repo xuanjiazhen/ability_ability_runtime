@@ -18,8 +18,6 @@
 
 #include <string>
 
-#include "parcel.h"
-
 namespace OHOS {
 namespace AAFwk {
 /**
