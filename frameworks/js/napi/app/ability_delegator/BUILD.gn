@@ -31,10 +31,12 @@ template("delegator") {
 
     sources = [
       "ability_monitor.cpp",
+      "interop_ability_monitor.cpp",
       "js_ability_delegator.cpp",
       "js_ability_delegator_registry.cpp",
       "js_ability_delegator_utils.cpp",
       "js_ability_monitor.cpp",
+      "js_interop_ability_monitor.cpp",
       "native_module.cpp",
     ]
 

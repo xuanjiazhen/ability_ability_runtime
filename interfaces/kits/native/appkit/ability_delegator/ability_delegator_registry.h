@@ -65,9 +65,15 @@ public:
         const std::shared_ptr<IAbilityDelegator> &delegator, const std::shared_ptr<AbilityDelegatorArgs> &args,
         const AbilityRuntime::Runtime::Language &language);
 
+    static void SetRuntimeEnvs(void *napiEnv, void *aniVm);
+    static void *GetNapiEnv();
+    static void *GetAniVm();
+
 private:
     static std::map<AbilityRuntime::Runtime::Language, std::shared_ptr<IAbilityDelegator>> abilityDelegator_;
     static std::shared_ptr<AbilityDelegatorArgs> abilityDelegatorArgs_;
+    static void *napiEnv_;
+    static void *aniVm_;
 };
 } // namespace AppExecFwk
 } // namespace OHOS

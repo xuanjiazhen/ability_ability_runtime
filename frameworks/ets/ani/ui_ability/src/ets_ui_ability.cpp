@@ -564,13 +564,21 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
     }
     WriteLifecycleSwitchLog("onCreate");
     CallObjectMethod(false, "onCreate", nullptr, wantObj, launchParamObj);
-    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
-        AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
-    if (delegator && CreateProperty(abilityContext_, property)) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
+    if (CreateProperty(abilityContext_, property)) {
         property->object_ = etsAbilityObj_;
-        delegator->PostPerformStart(property);
+        auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::ETS);
+        if (delegator) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
+            delegator->PostPerformStart(property);
+        }
+        auto jsDelegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::JS);
+        if (jsDelegator && jsDelegator != delegator) {
+            jsDelegator->PostPerformStart(property);
+        }
     }
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
@@ -701,13 +709,21 @@ void EtsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callback
 
 void EtsUIAbility::OnStopCallback()
 {
-    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
-        AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
-    if (delegator && CreateProperty(abilityContext_, property)) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStop");
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
+    if (CreateProperty(abilityContext_, property)) {
         property->object_ = etsAbilityObj_;
-        delegator->PostPerformStop(property);
+        auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::ETS);
+        if (delegator) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStop");
+            delegator->PostPerformStop(property);
+        }
+        auto jsDelegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::JS);
+        if (jsDelegator && jsDelegator != delegator) {
+            jsDelegator->PostPerformStop(property);
+        }
     }
     bool ret = ConnectionManager::GetInstance().DisconnectCaller(AbilityContext::token_);
     if (ret) {
@@ -754,13 +770,21 @@ void EtsUIAbility::OnSceneCreated()
     }
     WriteLifecycleSwitchLog("onWindowStageCreate");
     CallObjectMethod(false, "onWindowStageCreate", nullptr, etsAppWindowStage);
-    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
-        AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
-    if (delegator && CreateProperty(abilityContext_, property)) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceCreated");
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
+    if (CreateProperty(abilityContext_, property)) {
         property->object_ = etsAbilityObj_;
-        delegator->PostPerformScenceCreated(property);
+        auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::ETS);
+        if (delegator) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceCreated");
+            delegator->PostPerformScenceCreated(property);
+        }
+        auto jsDelegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::JS);
+        if (jsDelegator && jsDelegator != delegator) {
+            jsDelegator->PostPerformScenceCreated(property);
+        }
     }
 
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
@@ -882,13 +906,21 @@ void EtsUIAbility::onSceneDestroyed()
             window->UnregisterDisplayMoveListener(abilityDisplayMoveListener_);
         }
     }
-    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
-        AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
-    if (delegator && CreateProperty(abilityContext_, property)) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceDestroyed");
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
+    if (CreateProperty(abilityContext_, property)) {
         property->object_ = etsAbilityObj_;
-        delegator->PostPerformScenceDestroyed(property);
+        auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::ETS);
+        if (delegator) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceDestroyed");
+            delegator->PostPerformScenceDestroyed(property);
+        }
+        auto jsDelegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::JS);
+        if (jsDelegator && jsDelegator != delegator) {
+            jsDelegator->PostPerformScenceDestroyed(property);
+        }
     }
 
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
@@ -943,13 +975,21 @@ void EtsUIAbility::CallOnForegroundFunc(const Want &want)
     }
     WriteLifecycleSwitchLog("onForeground");
     CallObjectMethod(false, "onForeground", nullptr, wantRef);
-    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
-        AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
-    if (delegator && CreateProperty(abilityContext_, property)) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformForeground");
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
+    if (CreateProperty(abilityContext_, property)) {
         property->object_ = etsAbilityObj_;
-        delegator->PostPerformForeground(property);
+        auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::ETS);
+        if (delegator) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformForeground");
+            delegator->PostPerformForeground(property);
+        }
+        auto jsDelegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::JS);
+        if (jsDelegator && jsDelegator != delegator) {
+            jsDelegator->PostPerformForeground(property);
+        }
     }
 
     applicationContext = AbilityRuntime::Context::GetApplicationContext();
@@ -974,13 +1014,21 @@ void EtsUIAbility::OnBackground()
     WriteLifecycleSwitchLog("onBackground");
     CallObjectMethod(false, "onBackground", nullptr);
     UIAbility::OnBackground();
-    auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
-        AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
-    if (delegator && CreateProperty(abilityContext_, property)) {
-        TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformBackground");
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
+    if (CreateProperty(abilityContext_, property)) {
         property->object_ = etsAbilityObj_;
-        delegator->PostPerformBackground(property);
+        auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::ETS);
+        if (delegator) {
+            TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformBackground");
+            delegator->PostPerformBackground(property);
+        }
+        auto jsDelegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
+            AbilityRuntime::Runtime::Language::JS);
+        if (jsDelegator && jsDelegator != delegator) {
+            jsDelegator->PostPerformBackground(property);
+        }
     }
 
     applicationContext = AbilityRuntime::Context::GetApplicationContext();

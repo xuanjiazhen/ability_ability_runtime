@@ -2650,6 +2650,29 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
         auto delegator = IAbilityDelegator::Create(application_->GetRuntime(), application_->GetAppContext(),
             std::move(testRunner), record->observer);
         AbilityDelegatorRegistry::RegisterInstance(delegator, args, application_->GetRuntime()->GetLanguage());
+        {
+            void *napiEnvVoid = nullptr;
+            void *aniVmVoid = nullptr;
+            auto &curRuntime = application_->GetRuntime();
+            if (curRuntime->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
+                auto &etsRuntime = static_cast<AbilityRuntime::ETSRuntime&>(*curRuntime);
+                auto aniEnv = etsRuntime.GetAniEnv();
+                if (aniEnv != nullptr) {
+                    ani_vm *vm = nullptr;
+                    aniEnv->GetVM(&vm);
+                    aniVmVoid = reinterpret_cast<void *>(vm);
+                }
+                const auto &jsRuntime = etsRuntime.GetJsRuntime();
+                if (jsRuntime) {
+                    napiEnvVoid = reinterpret_cast<void *>(
+                        static_cast<AbilityRuntime::JsRuntime &>(*jsRuntime).GetNapiEnv());
+                }
+            } else if (curRuntime->GetLanguage() == AbilityRuntime::Runtime::Language::JS) {
+                napiEnvVoid = reinterpret_cast<void *>(
+                    static_cast<AbilityRuntime::JsRuntime &>(*curRuntime).GetNapiEnv());
+            }
+            AbilityDelegatorRegistry::SetRuntimeEnvs(napiEnvVoid, aniVmVoid);
+        }
         delegator->SetApiTargetVersion(targetVersion);
         delegator->Prepare();
     } else { // FA model
