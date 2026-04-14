@@ -21,6 +21,10 @@ namespace AAFwk {
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int32_t DMS_UID = 5522;
 
+// Device ID anonymization constants
+constexpr int32_t NON_ANONYMIZE_LENGTH = 6;
+constexpr const char* EMPTY_DEVICE_ID = "";
+
 DmsUtil &DmsUtil::GetInstance()
 {
     static DmsUtil instance;
@@ -35,6 +39,16 @@ void DmsUtil::UpdateFlagForCollaboration(const Want &want)
     } else {
         (const_cast<Want &>(want)).RemoveParam(IS_CALLING_FROM_DMS);
     }
+}
+
+std::string DmsUtil::AnonymizeDeviceId(const std::string& deviceId)
+{
+    if (deviceId.length() < NON_ANONYMIZE_LENGTH) {
+        return EMPTY_DEVICE_ID;
+    }
+    std::string anonDeviceId = deviceId.substr(0, NON_ANONYMIZE_LENGTH);
+    anonDeviceId.append("******");
+    return anonDeviceId;
 }
 } // namespace AAFwk
 } // namespace OHOS
