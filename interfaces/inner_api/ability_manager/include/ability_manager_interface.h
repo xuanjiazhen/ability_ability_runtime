@@ -1966,16 +1966,6 @@ public:
         const InsightIntentExecuteParam &param) = 0;
 
     /**
-     * @brief Query entity.
-     * @param key The key of intent executing client.
-     * @param callerToken Caller ability token.
-     * @param param The Intent query param.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    virtual ErrCode QueryEntityInfo(uint64_t key, sptr<IRemoteObject> callerToken,
-        const InsightIntentQueryParam &param) = 0;
-
-    /**
      * @brief Check if ability controller can start.
      * @param want The want of ability to start.
      * @return Return true to allow ability to start, or false to reject.
@@ -2490,6 +2480,19 @@ public:
     {
         return 0;
     }
+
+    /**
+     * @brief Query entity.
+     * @param key The key of intent executing client.
+     * @param callerToken Caller ability token.
+     * @param param The Intent query param.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode QueryEntityInfo(uint64_t key, sptr<IRemoteObject> callerToken,
+        const InsightIntentQueryParam &param)
+    {
+        return 0;
+    };
 
     /**
      * StartAbilityWithWait, send want and abilityStartWithWaitObserver to abms.
