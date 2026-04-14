@@ -67,10 +67,10 @@ protected:
 };
 
 struct AaToolErrorInfo {
-    std::string code;
-    std::string message;
-    std::string cause;
-    std::vector<std::string> solutions;
+    std::string code = "";
+    std::string message = "";
+    std::string cause = "";
+    std::vector<std::string> solutions = {};
 
     std::string ToString()
     {
@@ -81,6 +81,15 @@ struct AaToolErrorInfo {
         oss << "  Try the following:\n";
         for (const auto& solution : solutions) {
             oss << "  > " << solution << "\n";
+        }
+        return oss.str();
+    }
+    
+    std::string SolutionsToString() const
+    {
+        std::ostringstream oss;
+        for (const auto& solution : solutions) {
+            oss << solution << "\n";
         }
         return oss.str();
     }
