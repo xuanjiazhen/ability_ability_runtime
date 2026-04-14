@@ -3932,16 +3932,22 @@ int32_t MainThread::ChangeAppGcState(int32_t state, uint64_t tid)
         TAG_LOGE(AAFwkTag::APPKIT, "null runtime");
         return ERR_INVALID_VALUE;
     }
-    if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::CJ) {
-        return NO_ERROR;
-    }
-
     NativeEngine* nativeEngine = nullptr;
 
     if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
         auto& etsRuntime = static_cast<AbilityRuntime::ETSRuntime&>(*runtime);
         auto& jsRuntime = static_cast<AbilityRuntime::JsRuntime&>(*etsRuntime.GetJsRuntime());
         nativeEngine = &jsRuntime.GetNativeEngine();
+#ifdef CJ_FRONTEND
+    } else if (runtime->GetLanguage() == AbilityRuntime::Runtime::Language::CJ) {
+        auto& cjRuntime = static_cast<AbilityRuntime::CJRuntime&>(*runtime);
+        const auto& jsRt = cjRuntime.GetJsRuntime();
+        if (jsRt == nullptr || jsRt.get() == nullptr) {
+            TAG_LOGW(AAFwkTag::APPKIT, "CJ runtime: null embedded JsRuntime");
+            return NO_ERROR;
+        }
+        nativeEngine = &(static_cast<AbilityRuntime::JsRuntime&>(*jsRt)).GetNativeEngine();
+#endif
     } else {
         nativeEngine = &(static_cast<AbilityRuntime::JsRuntime&>(*runtime)).GetNativeEngine();
     }

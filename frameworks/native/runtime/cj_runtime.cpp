@@ -56,10 +56,15 @@ AppLibPathVec CJRuntime::appLibPaths_;
 
 std::string CJRuntime::packageName_;
 
-std::unique_ptr<CJRuntime> CJRuntime::Create(const Options& options)
+std::unique_ptr<CJRuntime> CJRuntime::Create(const Options& options, std::unique_ptr<Runtime>& jsRuntime)
 {
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (jsRuntime == nullptr) {
+        TAG_LOGE(AAFwkTag::CJRUNTIME, "null jsRuntime");
+        return nullptr;
+    }
     auto instance = std::make_unique<CJRuntime>();
-    if (!instance || !instance->Initialize(options)) {
+    if (!instance || !instance->Initialize(options, jsRuntime)) {
         return nullptr;
     }
     return instance;
@@ -85,12 +90,17 @@ void CJRuntime::SetAppLibPath(const AppLibPathMap& appLibPaths)
     cjEnv->initCJAppNS(appPath);
 }
 
-bool CJRuntime::Initialize(const Options& options)
+bool CJRuntime::Initialize(const Options& options, std::unique_ptr<Runtime>& jsRuntime)
 {
     if (options.lang != GetLanguage()) {
         TAG_LOGE(AAFwkTag::CJRUNTIME, "language mismatch");
         return false;
     }
+    if (jsRuntime == nullptr) {
+        TAG_LOGE(AAFwkTag::CJRUNTIME, "null jsRuntime");
+        return false;
+    }
+    jsRuntime_ = std::move(jsRuntime);
     auto cjEnv = OHOS::CJEnv::LoadInstance();
     if (cjEnv == nullptr) {
         TAG_LOGE(AAFwkTag::CJRUNTIME, "null cjEnv");
@@ -372,4 +382,14 @@ void CJRuntime::ForceFullGC(uint32_t tid)
         return;
     }
     cjEnv->forceFullGC();
+}
+
+const std::unique_ptr<Runtime>& CJRuntime::GetJsRuntime() const
+{
+    return jsRuntime_;
+}
+
+std::unique_ptr<Runtime> CJRuntime::MoveJsRuntime()
+{
+    return std::move(jsRuntime_);
 }
