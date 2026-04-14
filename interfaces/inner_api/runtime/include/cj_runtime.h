@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_CJ_RUNTIME_H
 
 #include <functional>
+#include <memory>
 #include <unordered_map>
 #include <map>
 #include <string>
@@ -33,7 +34,7 @@ namespace AbilityRuntime {
 
 class CJRuntime : public Runtime {
 public:
-    static std::unique_ptr<CJRuntime> Create(const Options& options);
+    static std::unique_ptr<CJRuntime> Create(const Options& options, std::unique_ptr<Runtime>& jsRuntime);
     static void SetAppLibPath(const AppLibPathMap& appLibPaths);
     static bool IsCJAbility(const std::string& info);
     static void SetAppVersion(std::string& version);
@@ -80,10 +81,13 @@ public:
     void GetHeapPrepare() override {};
     void RegisterUncaughtExceptionHandler(const CJUncaughtExceptionInfo& uncaughtExceptionInfo);
 
+    const std::unique_ptr<Runtime>& GetJsRuntime() const;
+    std::unique_ptr<Runtime> MoveJsRuntime();
+
 private:
     bool StartDebugger();
     bool LoadCJAppLibrary(const AppLibPathVec& appLibPaths);
-    bool Initialize(const Options& options);
+    bool Initialize(const Options& options, std::unique_ptr<Runtime>& jsRuntime);
     std::string cjAppLibPath_;
     bool appLibLoaded_ = false;
     bool debugModel_ = false;
@@ -91,6 +95,7 @@ private:
     uint32_t instanceId_ = 0;
     static AppLibPathVec appLibPaths_;
     static std::string packageName_;
+    std::unique_ptr<Runtime> jsRuntime_ = nullptr;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -33,8 +33,13 @@ std::unique_ptr<Runtime> Runtime::Create(Runtime::Options &options)
         case Runtime::Language::JS:
             return JsRuntime::Create(options);
 #ifdef CJ_FRONTEND
-        case Runtime::Language::CJ:
-            return CJRuntime::Create(options);
+        case Runtime::Language::CJ: {
+            std::unique_ptr<Runtime> jsRuntime;
+            options.lang = Runtime::Language::JS;
+            jsRuntime = JsRuntime::Create(options);
+            options.lang = Runtime::Language::CJ;
+            return CJRuntime::Create(options, jsRuntime);
+        }
 #endif
         case Runtime::Language::ETS: {
             std::unique_ptr<Runtime> jsRuntime;

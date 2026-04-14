@@ -19,6 +19,9 @@
 #include <mutex>
 
 #include "ets_runtime.h"
+#ifdef CJ_FRONTEND
+#include "cj_runtime.h"
+#endif
 #include "hilog_tag_wrapper.h"
 #include "js_runtime.h"
 #include "js_startup_task.h"
@@ -42,6 +45,13 @@ const std::unique_ptr<Runtime> &StartupTaskInstance::GetSpecifiedRuntime(
         runtime->GetLanguage() == Runtime::Language::ETS) {
         return (static_cast<AbilityRuntime::ETSRuntime&>(*runtime)).GetJsRuntime();
     }
+#ifdef CJ_FRONTEND
+    if (arkTSMode != AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 &&
+        runtime != nullptr &&
+        runtime->GetLanguage() == Runtime::Language::CJ) {
+        return (static_cast<AbilityRuntime::CJRuntime&>(*runtime)).GetJsRuntime();
+    }
+#endif
     return runtime;
 }
 
