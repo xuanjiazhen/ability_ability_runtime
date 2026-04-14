@@ -33,6 +33,8 @@ constexpr const char* WANT_ASYNCCALLBACK = "C{@ohos.app.ability.Want.Want}C{util
 constexpr const char* ARGS_ABILITY_DELEGATOR_CLASS_NAME =
     "application.abilityDelegatorArgs.AbilityDelegatorArgsInner";
 constexpr const char* SIGNATURE_MONITOR_VOID = "C{application.AbilityMonitor.AbilityMonitor}:";
+constexpr const char* INTEROP_MONITOR_VOID =
+    "C{application.InteropAbilityMonitor.InteropAbilityMonitor}:";
 constexpr const char* SIGNATURE_MONITOR_NUMBER_ASYNCCALLBACK =
     "C{application.AbilityMonitor.AbilityMonitor}lC{utils.AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char* STAGEMONITOR_ASYNCCALLBACK_VOID =
@@ -109,7 +111,11 @@ bool BindFunctions(ani_env *aniEnv, ani_class abilityDelegator)
         ani_native_function {"getAbilityState", STRING_UIABILITY_NUMBER,
             reinterpret_cast<void *>(EtsAbilityDelegator::GetAbilityState)},
         ani_native_function {"nativeGetCurrentTopAbility", STRING_CALLBACK_UIABILITY,
-            reinterpret_cast<void *>(EtsAbilityDelegator::GetCurrentTopAbility)}
+            reinterpret_cast<void *>(EtsAbilityDelegator::GetCurrentTopAbility)},
+        ani_native_function {"addInteropAbilityMonitorSync", INTEROP_MONITOR_VOID,
+            reinterpret_cast<void *>(EtsAbilityDelegator::AddInteropAbilityMonitorSync)},
+        ani_native_function {"removeInteropAbilityMonitorSync", INTEROP_MONITOR_VOID,
+            reinterpret_cast<void *>(EtsAbilityDelegator::RemoveInteropAbilityMonitorSync)}
     };
     ani_status status = aniEnv->Class_BindNativeMethods(abilityDelegator, functions.data(), functions.size());
     if (status != ANI_OK) {
