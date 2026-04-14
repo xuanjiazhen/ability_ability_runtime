@@ -571,6 +571,10 @@ int32_t InsightIntentExecuteManager::CheckCallerPermission()
         TAG_LOGD(AAFwkTag::INTENT, "shell caller, skip permission check");
         return ERR_OK;
     }
+    if (PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGD(AAFwkTag::INTENT, "SA caller, skip permission check");
+        return ERR_OK;
+    }
 
     bool isSystemAppCall =
         PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
@@ -594,6 +598,10 @@ int32_t InsightIntentExecuteManager::CheckGetInsightIntenInfoPermission()
 {
     if (PermissionVerification::GetInstance()->IsShellCall()) {
         TAG_LOGD(AAFwkTag::INTENT, "shell caller, skip permission check");
+        return ERR_OK;
+    }
+    if (PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGD(AAFwkTag::INTENT, "SA caller, skip permission check");
         return ERR_OK;
     }
 

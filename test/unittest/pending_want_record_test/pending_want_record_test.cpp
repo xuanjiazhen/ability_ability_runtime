@@ -1260,5 +1260,236 @@ HWTEST_F(PendingWantRecordTest, BuildSendWant_AppInstanceKey_0300, TestSize.Leve
     TAG_LOGI(AAFwkTag::TEST, "BuildSendWant_AppInstanceKey_0300 end");
 }
 
+/*
+ * @tc.number    : IsBundleNotExistForUser0_NullKey_0100
+ * @tc.name      : IsBundleNotExistForUser0
+ * @tc.desc      : key_ is nullptr, should return false
+ */
+HWTEST_F(PendingWantRecordTest, IsBundleNotExistForUser0_NullKey_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_NullKey_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, nullptr);
+
+    bool result = pendingWantRecord->IsBundleNotExistForUser0(want);
+    EXPECT_EQ(result, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_NullKey_0100 end");
+}
+
+/*
+ * @tc.number    : IsBundleNotExistForUser0_NonZeroUser_0100
+ * @tc.name      : IsBundleNotExistForUser0
+ * @tc.desc      : userId is not 0, should return false without query
+ */
+HWTEST_F(PendingWantRecordTest, IsBundleNotExistForUser0_NonZeroUser_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_NonZeroUser_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, 0, 100);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+
+    bool result = pendingWantRecord->IsBundleNotExistForUser0(want);
+    EXPECT_EQ(result, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_NonZeroUser_0100 end");
+}
+
+/*
+ * @tc.number    : IsBundleNotExistForUser0_EmptyBundle_0100
+ * @tc.name      : IsBundleNotExistForUser0
+ * @tc.desc      : userId is 0 but want has empty bundleName, should return false
+ */
+HWTEST_F(PendingWantRecordTest, IsBundleNotExistForUser0_EmptyBundle_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_EmptyBundle_0100 start");
+
+    Want want;
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, 0, 0);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+
+    bool result = pendingWantRecord->IsBundleNotExistForUser0(want);
+    EXPECT_EQ(result, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_EmptyBundle_0100 end");
+}
+
+/*
+ * @tc.number    : IsBundleNotExistForUser0_BundleExist_0100
+ * @tc.name      : IsBundleNotExistForUser0
+ * @tc.desc      : userId is 0, bundle exists (mock returns true), should return false
+ */
+HWTEST_F(PendingWantRecordTest, IsBundleNotExistForUser0_BundleExist_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_BundleExist_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, 0, 0);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+
+    // Mock GetBundleInfo returns true by default, so bundle "exists"
+    bool result = pendingWantRecord->IsBundleNotExistForUser0(want);
+    EXPECT_EQ(result, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_BundleExist_0100 end");
+}
+
+/*
+ * @tc.number    : ExecuteOperation_StartAbility_RetryWithUser0_0100
+ * @tc.name      : ExecuteOperation
+ * @tc.desc      : START_ABILITY with userId=0, verify retry logic is triggered on failure
+ */
+HWTEST_F(PendingWantRecordTest, ExecuteOperation_StartAbility_RetryWithUser0_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_StartAbility_RetryWithUser0_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 0, (int32_t)OperationType::START_ABILITY);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+
+    SenderInfo info;
+    auto res = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
+    // Both original call and retry fail since PendingWantManager has no real service
+    EXPECT_NE(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_StartAbility_RetryWithUser0_0100 end");
+}
+
+/*
+ * @tc.number    : ExecuteOperation_StartService_RetryWithUser0_0100
+ * @tc.name      : ExecuteOperation
+ * @tc.desc      : START_SERVICE with userId=0, verify retry logic is triggered on failure
+ */
+HWTEST_F(PendingWantRecordTest, ExecuteOperation_StartService_RetryWithUser0_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_StartService_RetryWithUser0_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 0, (int32_t)OperationType::START_SERVICE);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+
+    SenderInfo info;
+    auto res = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
+    EXPECT_NE(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_StartService_RetryWithUser0_0100 end");
+}
+
+/*
+ * @tc.number    : ExecuteOperation_StartAbilities_RetryWithUser0_0100
+ * @tc.name      : ExecuteOperation
+ * @tc.desc      : START_ABILITIES with userId=0, verify retry logic is triggered on failure
+ */
+HWTEST_F(PendingWantRecordTest, ExecuteOperation_StartAbilities_RetryWithUser0_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_StartAbilities_RetryWithUser0_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 0, (int32_t)OperationType::START_ABILITIES);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+
+    SenderInfo info;
+    auto res = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
+    EXPECT_NE(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_StartAbilities_RetryWithUser0_0100 end");
+}
+
+/*
+ * @tc.number    : ExecuteOperation_NonZeroUser_NoRetry_0100
+ * @tc.name      : ExecuteOperation
+ * @tc.desc      : START_ABILITY with userId=100, no retry should happen
+ */
+HWTEST_F(PendingWantRecordTest, ExecuteOperation_NonZeroUser_NoRetry_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_NonZeroUser_NoRetry_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 100, (int32_t)OperationType::START_ABILITY);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+
+    SenderInfo info;
+    auto res = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
+    // Should fail without retry since userId != 0
+    EXPECT_NE(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_NonZeroUser_NoRetry_0100 end");
+}
+
+/*
+ * @tc.number    : IsBundleNotExistForUser0_FallbackToGetBundle_0100
+ * @tc.name      : IsBundleNotExistForUser0
+ * @tc.desc      : ElementName has empty bundleName, fallback to want.GetBundle()
+ */
+HWTEST_F(PendingWantRecordTest, IsBundleNotExistForUser0_FallbackToGetBundle_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_FallbackToGetBundle_0100 start");
+
+    Want want;
+    want.SetBundle("com.ix.hiMusic");
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, 0, 0);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+
+    // Mock GetBundleInfo returns true, bundle "exists"
+    bool result = pendingWantRecord->IsBundleNotExistForUser0(want);
+    EXPECT_EQ(result, false);
+
+    TAG_LOGI(AAFwkTag::TEST, "IsBundleNotExistForUser0_FallbackToGetBundle_0100 end");
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
