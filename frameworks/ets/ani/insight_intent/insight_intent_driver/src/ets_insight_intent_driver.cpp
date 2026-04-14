@@ -481,6 +481,13 @@ public:
                 "Parameter error: Parse param failed, param must be a QueryEntityParam.");
             return;
         }
+
+        if (param.queryEntityParam_.queryType_.compare("byProperty") == 0 &&
+            param.queryEntityParam_.parameters_ == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "byProperty queryType must have parameters.");
+            EtsErrorUtil::ThrowInvalidParamError(env, "Parameter error: byProperty queryType must have parameters.");
+            return;
+        }
     }
 
     static void OnQueryEntityInfo(ani_env *env, ani_object aniParam, ani_object callback)
@@ -500,6 +507,12 @@ public:
         InsightIntentQueryParam param;
         if (!UnwrapQueryEntityParam(env, aniParam, param)) {
             TAG_LOGE(AAFwkTag::INTENT, "parse query entity param failed");
+            return;
+        }
+
+        if (param.queryEntityParam_.queryType_.compare("byProperty") == 0 &&
+            param.queryEntityParam_.parameters_ == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "byProperty queryType must have parameters.");
             return;
         }
 

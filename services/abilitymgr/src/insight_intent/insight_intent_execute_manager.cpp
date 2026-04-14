@@ -675,6 +675,11 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateQueryEntityParam(uint64_t key
     std::string callerBundleName)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
+    int32_t result = CheckCallerPermission();
+    if (result != ERR_OK) {
+        return result;
+    }
+
     if (callerToken == nullptr || param == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null callerToken or param");
         return ERR_INVALID_VALUE;
@@ -692,7 +697,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateQueryEntityParam(uint64_t key
     }
 
     uint64_t intentId = 0;
-    int32_t result = AddRecord(key, callerToken, param->bundleName_, intentId, callerBundleName);
+    result = AddRecord(key, callerToken, param->bundleName_, intentId, callerBundleName);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "add record failed, result:%{public}d", result);
         return result;
@@ -701,16 +706,20 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateQueryEntityParam(uint64_t key
     return ERR_OK;
 }
 
-
-bool InsightIntentExecuteManager::CheckCanQueryEntity(const ExtractInsightIntentInfo& intentInfo,
-    const std::string& className, std::shared_ptr<AAFwk::WantParams> queryParams)
+bool InsightIntentExecuteManager::CheckEntityQueryable(const ExtractInsightIntentInfo& intentInfo,
+    const std::string& className, const AppExecFwk::InsightIntentQueryEntityParam& queryEntityParam)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
     if (className.empty()) {
         TAG_LOGW(AAFwkTag::INTENT, "className is empty");
         return false;
     }
-    auto queryKeys = queryParams->KeySet();
+
+    if (queryEntityParam.queryType_.compare("byProperty") == 0 && queryEntityParam.parameters_ == nullptr) {
+        TAG_LOGW(AAFwkTag::INTENT, "parameters is nullptr");
+        return false;
+    }
+
     for (size_t i = 0; i < intentInfo.entities.size(); i++) {
         const auto& entity = intentInfo.entities[i];
         TAG_LOGD(AAFwkTag::INTENT, "queryClassName:%{public}s, entityid:%{public}s, className:%{public}s,"
@@ -722,15 +731,22 @@ bool InsightIntentExecuteManager::CheckCanQueryEntity(const ExtractInsightIntent
             continue;
         }
 
+        if (queryEntityParam.queryType_.compare("all") == 0) {
+            return true;
+        }
+
+        bool found = true;
+        auto queryKeys = queryEntityParam.parameters_->KeySet();
         for (const std::string& key : queryKeys) {
             TAG_LOGD(AAFwkTag::INTENT, "start check query key %{public}s", key.c_str());
             auto it = std::find(entity.supportedQueryProperties.begin(), entity.supportedQueryProperties.end(), key);
             if (it == entity.supportedQueryProperties.end()) {
                 TAG_LOGW(AAFwkTag::INTENT, "query key %{public}s not found in supportedQueryProperties", key.c_str());
+                found = false;
                 break;
             }
         }
-        return true;
+        return found;
     }
     return false;
 }
@@ -747,7 +763,7 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
     ExtractInsightIntentInfo intentInfo;
     DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->GetInsightIntentInfo(
         param->bundleName_, param->moduleName_, param->intentName_, param->userId_, intentInfo);
-    if (!CheckCanQueryEntity(intentInfo, param->className_, param->queryEntityParam_.parameters_)) {
+    if (!CheckEntityQueryable(intentInfo, param->className_, param->queryEntityParam_)) {
         TAG_LOGW(AAFwkTag::INTENT, "target intent is not queryable, bundle:%{public}s, module:%{public}s,"
             "intent:%{public}s", param->bundleName_.c_str(), param->moduleName_.c_str(), param->intentName_.c_str());
         return INTENT_NOT_EXIST;
@@ -765,8 +781,8 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
     if (pExecuteParams != nullptr) {
         wantParams.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_PARAM, pExecuteParams);
     }
-    sptr<AAFwk::IWantParams> pQueryEntityParams = WantParamWrapper::Box(*param->queryEntityParam_.parameters_);
-    if (pQueryEntityParams != nullptr) {
+    if (param->queryEntityParam_.parameters_ != nullptr) {
+        sptr<AAFwk::IWantParams> pQueryEntityParams = WantParamWrapper::Box(*param->queryEntityParam_.parameters_);
         wantParams.SetParam(INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM, pQueryEntityParams);
     }
     want.SetParams(wantParams);

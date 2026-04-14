@@ -122,34 +122,43 @@ export class IntentResultWrapper {
 }
 
 export class AppIntentEntityWrapper {
-  public static toRecord<T>(intentResult:T): Record<string, RecordData> {
+  public static toRecord<T>(entity: T): Record<string, RecordData> {
     let record: Record<string, RecordData> = new Record<string, RecordData>();
-    let jsonStr: string = JSON.stringify(intentResult);
+    let jsonStr: string = JSON.stringify(entity);
     hilog.debug(DOMAIN_ID, TAG, `jsonStr: ${jsonStr}`);
     let jsonValue = JSON.parseJsonElement(jsonStr);
-    if (jsonValue.jsonType == jsonx.JsonType.JsonObject) {
-      let iterVal: IterableIterator<[string, jsonx.JsonElement]> = jsonValue.$_iterator();
-      for (let t of iterVal) {
-        let key = t[0];
-        let value = t[1];
-        hilog.debug(DOMAIN_ID, TAG, `key: ${key}, valueType: ${value.jsonType}`);
-        if (key == 'nativeExecutor') {
-          continue;
-        }
-        if (value.jsonType == jsonx.JsonType.JsonString) {
-          record[key] = value.asString();
-        } else if (value.jsonType == jsonx.JsonType.JsonNumber) {
-          record[key] = value.asDouble();
-        } else if (value.jsonType == jsonx.JsonType.JsonTrue) {
-          record[key] = true;
-        } else if (value.jsonType == jsonx.JsonType.JsonFalse) {
-          record[key] = false;
-        } else if (value.jsonType == jsonx.JsonType.JsonNull) {
-          record[key] = null;
-        }
+    if (jsonValue.jsonType != jsonx.JsonType.JsonObject) {
+      hilog.error(DOMAIN_ID, TAG, `toRecord: jsonValue is not JsonObject`);
+      return record;
+    }
+    let iterVal: IterableIterator<[string, jsonx.JsonElement]> = jsonValue.$_iterator();
+    for (let entry of iterVal) {
+      let key = entry[0];
+      let value = entry[1];
+      if (key == 'nativeExecutor') {
+        continue;
       }
-    } else {
-      hilog.error(DOMAIN_ID, TAG, `toRecord: jsonValue.jsonType != jsonx.JsonType.JsonObject`);
+      hilog.debug(DOMAIN_ID, TAG, `key: ${key}, valueType: ${value.jsonType}`);
+      switch (value.jsonType) {
+        case jsonx.JsonType.JsonString:
+          record[key] = value.asString();
+          break;
+        case jsonx.JsonType.JsonNumber:
+          record[key] = value.asDouble();
+          break;
+        case jsonx.JsonType.JsonTrue:
+          record[key] = true;
+          break;
+        case jsonx.JsonType.JsonFalse:
+          record[key] = false;
+          break;
+        case jsonx.JsonType.JsonNull:
+          record[key] = null;
+          break;
+        default:
+          record[key] = value;
+          break;
+      }
     }
     return record;
   }

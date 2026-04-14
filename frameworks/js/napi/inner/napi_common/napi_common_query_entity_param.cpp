@@ -48,6 +48,10 @@ bool UnwrapQueryEntityWantParamters(napi_env env, napi_value param, InsightInten
         TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type queryType");
         return false;
     }
+    if (queryType.compare("byProperty") != 0 && queryType.compare("all") != 0) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "queryType must be byProperty or all");
+        return false;
+    }
     queryParam.queryEntityParam_.queryType_ = queryType;
 
     napi_value napiParameters = nullptr;
@@ -57,12 +61,21 @@ bool UnwrapQueryEntityWantParamters(napi_env env, napi_value param, InsightInten
         return false;
     }
 
-    auto wp = std::make_shared<WantParams>();
-    if (!AppExecFwk::UnwrapWantParams(env, napiParameters, *wp)) {
-        TAG_LOGE(AAFwkTag::JSNAPI, "unwrap want fail");
-        return false;
+    if (IsExistsByPropertyName(env, napiIntentParam, "parameters")) {
+        napi_value napiParameters = nullptr;
+        napi_get_named_property(env, napiIntentParam, "parameters", &napiParameters);
+        if (napiParameters == nullptr) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "null parameters");
+            return false;
+        }
+        auto wp = std::make_shared<WantParams>();
+        if (!AppExecFwk::UnwrapWantParams(env, napiParameters, *wp)) {
+            TAG_LOGE(AAFwkTag::JSNAPI, "unwrap want fail");
+            return false;
+        }
+        queryParam.queryEntityParam_.parameters_ = wp;
     }
-    queryParam.queryEntityParam_.parameters_ = wp;
+
     return true;
 }
 

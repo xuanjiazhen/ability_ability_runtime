@@ -13859,11 +13859,9 @@ ErrCode AbilityManagerService::QueryEntityInfo(uint64_t key, sptr<IRemoteObject>
     const InsightIntentQueryParam &param)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "QueryEntityInfo called, key=%{public}" PRIu64 ", bundleName=%{public}s,"
-        "moduleName=%{public}s, intentName=%{public}s, className=%{public}s, userId=%{public}d,"
-        "queryType=%{public}s, param=%{public}s",
+        "moduleName=%{public}s, intentName=%{public}s, className=%{public}s, userId=%{public}d, queryType=%{public}s",
         key, param.bundleName_.c_str(), param.moduleName_.c_str(), param.intentName_.c_str(),
-        param.className_.c_str(), param.userId_, param.queryEntityParam_.queryType_.c_str(),
-        param.queryEntityParam_.parameters_->ToString().c_str());
+        param.className_.c_str(), param.userId_, param.queryEntityParam_.queryType_.c_str());
 
     if (IsCrossUserCall(param.userId_)) {
         if (VerifyAccountPermission(param.userId_) != ERR_OK) {

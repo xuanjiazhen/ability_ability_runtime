@@ -410,6 +410,9 @@ napi_value CreateQueryEntityResult(napi_env env, const std::vector<std::shared_p
     napi_create_array_with_length(env, queryResults.size(), &arrayValue);
     uint32_t index = 0;
     for (const auto &item : queryResults) {
+        if (item == nullptr) {
+            continue;
+        }
         napi_set_element(env, arrayValue, index++, OHOS::AppExecFwk::CreateJsWantParams(env, *item));
     }
     return handleEscape.Escape(arrayValue);

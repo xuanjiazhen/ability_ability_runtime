@@ -281,9 +281,8 @@ bool EtsInsightIntentQueryEntity::HandleEtsResultReturned(ani_env *env, ani_ref 
             continue;
         }
         auto wantParams = std::make_shared<AAFwk::WantParams>();
-        UnWrapQueryResult(env, ref, wantParams);
-        if (!QueryFilter(queryCallback_->queryType_, queryCallback_->paramters_, wantParams)) {
-            TAG_LOGD(AAFwkTag::INTENT, "queryFilter failed");
+        if (UnWrapQueryResult(env, ref, wantParams) == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap query result failed");
             continue;
         }
         queryResults.push_back(wantParams);
@@ -354,38 +353,6 @@ ani_object EtsInsightIntentQueryEntity::UnWrapQueryResult(ani_env *env, ani_ref 
 
     TAG_LOGD(AAFwkTag::INTENT, "UnWrapQueryResult success, wantParams: %{public}s", wantParams->ToString().c_str());
     return static_cast<ani_object>(intentResultRef);
-}
-
-bool EtsInsightIntentQueryEntity::QueryFilter(std::string queryType, std::shared_ptr<AAFwk::WantParams> queryParam,
-    std::shared_ptr<AAFwk::WantParams> wp)
-{
-    TAG_LOGD(AAFwkTag::INTENT, "called");
-    if (wp == nullptr || queryParam == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "input param empty");
-        return false;
-    }
-    if (queryType.compare("all") == 0) {
-        return true;
-    } else if (queryType.compare("byProperty") == 0) {
-        auto queryKeys = queryParam->KeySet();
-        for (auto iter = queryKeys.begin(); iter != queryKeys.end(); iter++) {
-            auto queryKey = *iter;
-            if (!wp->HasParam(queryKey)) {
-                TAG_LOGD(AAFwkTag::INTENT, "queryKey %{public}s not in wp", queryKey.c_str());
-                return false;
-            }
-            auto wpValue = wp->GetParam(queryKey);
-            auto queryValue = queryParam->GetParam(queryKey);
-            if (!AAFwk::WantParams::CompareInterface(wpValue, queryValue, AAFwk::WantParams::GetDataType(wpValue))) {
-                TAG_LOGD(AAFwkTag::INTENT, "queryKey %{public}s different", queryKey.c_str());
-                return false;
-            }
-        }
-        return true;
-    } else {
-        TAG_LOGD(AAFwkTag::INTENT, "invalid queryType");
-        return false;
-    }
 }
 } // namespace OHOS::AbilityRuntime
 

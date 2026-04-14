@@ -140,8 +140,8 @@ private:
         AbilityRuntime::ExtractInsightIntentInfo &info, Want &want);
     static int32_t UpdateEntryDecoratorParams(Want &want, AppExecFwk::ExecuteMode executeMode, int32_t userId);
     static std::string GetMainElementName(const std::string &bundleName, const std::string &moduleName);
-    static bool CheckCanQueryEntity(const AbilityRuntime::ExtractInsightIntentInfo& intentInfo,
-        const std::string& className, std::shared_ptr<AAFwk::WantParams> queryParams);
+    static bool CheckEntityQueryable(const AbilityRuntime::ExtractInsightIntentInfo& intentInfo,
+        const std::string& className, const AppExecFwk::InsightIntentQueryEntityParam& queryParams);
 
     void SendIntentReport(EventInfo &eventInfo, int32_t errCode);
 };

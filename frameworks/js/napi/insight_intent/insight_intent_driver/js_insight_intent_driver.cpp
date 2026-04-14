@@ -506,6 +506,13 @@ private:
             param.bundleName_.c_str(), param.moduleName_.c_str(), param.intentName_.c_str(), param.className_.c_str(),
             param.userId_, param.queryEntityParam_.queryType_.c_str());
 
+        if (param.queryEntityParam_.queryType_.compare("byProperty") == 0 &&
+            param.queryEntityParam_.parameters_ == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "byProperty queryType must have parameters.");
+            ThrowInvalidParamError(env, "Parameter error: byProperty queryType must have parameters.");
+            return CreateJsUndefined(env);
+        }
+
         napi_value result = nullptr;
         napi_deferred nativeDeferred = nullptr;
         napi_ref callbackRef = nullptr;
@@ -522,7 +529,8 @@ private:
         auto err = AbilityManagerClient::GetInstance()->QueryEntityInfo(key,
             InsightIntentHostClient::GetInstance(), param);
         if (err == INTENT_NOT_EXIST) {
-            asyncTask->ResolveWithNoError(env, nullptr);
+            std::vector<std::shared_ptr<AAFwk::WantParams>> queryResults;
+            asyncTask->ResolveWithNoError(env, CreateQueryEntityResult(env, queryResults));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
         } else if (err != 0) {
             asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));

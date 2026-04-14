@@ -61,8 +61,6 @@ private:
     napi_value GetTargetMethod(napi_env env, napi_value constructor, const std::string &methodName);
 
     static napi_value HandleJsResultReturned(napi_env env, napi_callback_info info);
-    static bool QueryFilter(std::string queryType, std::shared_ptr<AAFwk::WantParams> queryParam,
-        std::shared_ptr<AAFwk::WantParams> wp);
 
     JsRuntime& runtime_;
     State state_ = State::CREATED;

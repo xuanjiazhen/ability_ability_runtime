@@ -313,10 +313,6 @@ napi_value JsInsightIntentQueryEntity::HandleJsResultReturned(napi_env env, napi
             TAG_LOGE(AAFwkTag::INTENT, "UnwrapWantParams failed");
             continue;
         }
-        if (!QueryFilter(entityCallback->queryType_, entityCallback->paramters_, item)) {
-            TAG_LOGD(AAFwkTag::INTENT, "QueryFilter failed");
-            continue;
-        }
         queryResults.push_back(item);
     }
 
@@ -325,38 +321,6 @@ napi_value JsInsightIntentQueryEntity::HandleJsResultReturned(napi_env env, napi
     resultCpp->queryResults = queryResults;
     JsInsightIntentUtils::ReplySucceeded(entityCallback->callback_.release(), resultCpp);
     return nullptr;
-}
-
-bool JsInsightIntentQueryEntity::QueryFilter(std::string queryType, std::shared_ptr<AAFwk::WantParams> queryParam,
-    std::shared_ptr<AAFwk::WantParams> wp)
-{
-    TAG_LOGD(AAFwkTag::INTENT, "called");
-    if (wp == nullptr || queryParam == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "input param empty");
-        return false;
-    }
-    if (queryType.compare("all") == 0) {
-        return true;
-    } else if (queryType.compare("byProperty") == 0) {
-        auto queryKeys = queryParam->KeySet();
-        for (auto iter = queryKeys.begin(); iter != queryKeys.end(); iter++) {
-            auto queryKey = *iter;
-            if (!wp->HasParam(queryKey)) {
-                TAG_LOGD(AAFwkTag::INTENT, "queryKey %{public}s not in wp", queryKey.c_str());
-                return false;
-            }
-            auto wpValue = wp->GetParam(queryKey);
-            auto queryValue = queryParam->GetParam(queryKey);
-            if (!AAFwk::WantParams::CompareInterface(wpValue, queryValue, AAFwk::WantParams::GetDataType(wpValue))) {
-                TAG_LOGD(AAFwkTag::INTENT, "queryKey %{public}s different", queryKey.c_str());
-                return false;
-            }
-        }
-        return true;
-    } else {
-        TAG_LOGD(AAFwkTag::INTENT, "invalid queryType");
-        return false;
-    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

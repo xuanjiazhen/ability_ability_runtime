@@ -57,20 +57,25 @@ static bool UnwrapQueryEntityWantParamters(ani_env *env, ani_object param, Insig
         TAG_LOGE(AAFwkTag::INTENT, "GetStdString failed queryType");
         return false;
     }
+    if (queryType.compare("byProperty") != 0 && queryType.compare("all") != 0) {
+        TAG_LOGE(AAFwkTag::INTENT, "queryType must be byProperty or all");
+        return false;
+    }
     queryParam.queryEntityParam_.queryType_ = queryType;
 
-    ani_ref refParameters = nullptr;
-    if (!GetRefProperty(env, objQueryEntityParam, "parameters", refParameters)) {
-        TAG_LOGE(AAFwkTag::INTENT, "null parameters");
-        return false;
+    if (IsExistsProperty(env, objQueryEntityParam, "parameters")) {
+        ani_ref refParameters = nullptr;
+        if (!GetRefProperty(env, objQueryEntityParam, "parameters", refParameters)) {
+            TAG_LOGE(AAFwkTag::INTENT, "null parameters");
+            return false;
+        }
+        auto wpParam = std::make_shared<WantParams>();
+        if (!UnwrapWantParams(env, refParameters, *wpParam)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap want fail");
+            return false;
+        }
+        queryParam.queryEntityParam_.parameters_ = wpParam;
     }
-    auto wpParam = std::make_shared<WantParams>();
-    if (!UnwrapWantParams(env, refParameters, *wpParam)) {
-        TAG_LOGE(AAFwkTag::INTENT, "unwrap want fail");
-        return false;
-    }
-
-    queryParam.queryEntityParam_.parameters_ = wpParam;
     return true;
 }
 
@@ -112,14 +117,14 @@ bool UnwrapQueryEntityParam(ani_env *env, ani_object param, InsightIntentQueryPa
     if (IsExistsProperty(env, param, "userId")) {
         ani_int userId = DEFAULT_INVAL_VALUE;
         if (!GetIntPropertyObject(env, param, "userId", userId)) {
-            TAG_LOGE(AAFwkTag::INTENT, "Wrong argument userId fail");
+            TAG_LOGE(AAFwkTag::INTENT, "Wrong argument type userId");
             return false;
         }
         queryParam.userId_ = static_cast<int32_t>(userId);
     }
 
     if (!UnwrapQueryEntityWantParamters(env, param, queryParam)) {
-        TAG_LOGE(AAFwkTag::INTENT, "unwrap paramters fail");
+        TAG_LOGE(AAFwkTag::INTENT, "unwrap query entity want paramters failed");
         return false;
     }
 

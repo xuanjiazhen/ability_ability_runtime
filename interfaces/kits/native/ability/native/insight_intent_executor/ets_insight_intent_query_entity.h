@@ -68,8 +68,6 @@ private:
     bool ExecuteIntentCheckError();
     bool CallPromise(ani_env *env, ani_ref promise);
     ani_object UnWrapQueryResult(ani_env *env, ani_ref recordRef, std::shared_ptr<AAFwk::WantParams> wantParams);
-    bool QueryFilter(std::string queryType, std::shared_ptr<AAFwk::WantParams> queryParam,
-        std::shared_ptr<AAFwk::WantParams> wp);
 
     ETSRuntime &runtime_;
     State state_ = State::CREATED;
