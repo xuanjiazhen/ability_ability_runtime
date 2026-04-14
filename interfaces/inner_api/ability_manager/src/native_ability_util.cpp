@@ -16,6 +16,7 @@
 #include "native_ability_util.h"
 
 #include <algorithm>
+#include "app_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 
@@ -98,6 +99,9 @@ void NativeAbilityMetaData::InitData(
     data.startupPhase = StartupPhase::PRE_WINDOW;
     data.nativeModuleSource.clear();
     data.nativeModuleFunc.clear();
+    if (!AppUtils::GetInstance().IsSupportNativeAbility()) {
+        return;
+    }
 
     // Parse ohos.ability.withNativeModule
     const auto* withNativeModuleMeta = FindMetadata(abilityInfo, METADATA_KEY_WITH_NATIVE_MODULE);
@@ -107,13 +111,10 @@ void NativeAbilityMetaData::InitData(
 
     // Check if native module is enabled
     if (!data.withNativeModule) {
-        TAG_LOGD(AAFwkTag::ABILITY, "Native module disabled for ability: %{public}s",
-            abilityInfo.name.c_str());
         return;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITY, "Native module enabled for ability: %{public}s",
-        abilityInfo.name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITY, "Native module enabled for ability: %{public}s", abilityInfo.name.c_str());
 
     // Only parse other metadata if withNativeModule is true
     // Parse ohos.ability.startPhase
@@ -121,8 +122,6 @@ void NativeAbilityMetaData::InitData(
     if (startPhaseMeta != nullptr) {
         data.startupPhase = ParseStartupPhase(startPhaseMeta->value);
         TAG_LOGI(AAFwkTag::ABILITY, "Native module start phase: %{public}d", static_cast<int32_t>(data.startupPhase));
-    } else {
-        TAG_LOGD(AAFwkTag::ABILITY, "No startPhase metadata found, using default: pre_window");
     }
 
     // Parse ohos.ability.nativeModuleSource

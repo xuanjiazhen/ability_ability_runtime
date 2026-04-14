@@ -16,7 +16,12 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 ohos_unittest("ui_ability_record_test") {
   module_out_path = "ability_runtime/ability_runtime/ability_call_test"
-
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "../../cfi_blocklist.txt"
+  }
   include_dirs = [
     "mock/include",
     "${ability_runtime_services_path}/abilitymgr/include/scene_board",
@@ -34,6 +39,10 @@ ohos_unittest("ui_ability_record_test") {
   cflags = [
     "-Dprivate = public",
     "-Dprotected = public",
+  ]
+
+  deps = [
+    "${ability_runtime_services_path}/common:app_util",
   ]
 
   external_deps = [
