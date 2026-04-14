@@ -53,6 +53,7 @@ StartOptions::StartOptions(const StartOptions &other)
     requestId_ = other.requestId_;
     windowCreateParams_ = other.windowCreateParams_;
     currentProcessName_ = other.currentProcessName_;
+    splitRatio_ = other.splitRatio_;
 }
 
 StartOptions &StartOptions::operator=(const StartOptions &other)
@@ -85,6 +86,7 @@ StartOptions &StartOptions::operator=(const StartOptions &other)
         requestId_ = other.requestId_;
         windowCreateParams_ = other.windowCreateParams_;
         currentProcessName_ = other.currentProcessName_;
+        splitRatio_ = other.splitRatio_;
     }
     return *this;
 }
@@ -124,6 +126,7 @@ bool StartOptions::ReadFromParcel(Parcel &parcel)
     }
     requestId_ = parcel.ReadString();
     windowCreateParams_.reset(parcel.ReadParcelable<Rosen::WindowCreateParams>());
+    splitRatio_ = static_cast<SplitRatioPreference>(parcel.ReadInt32());
     return true;
 }
 
@@ -193,6 +196,7 @@ bool StartOptions::MarshallingTwo(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write windowCreateParams_ failed");
         return false;
     }
+    parcel.WriteInt32(static_cast<int32_t>(splitRatio_));
     return true;
 }
 
@@ -334,6 +338,16 @@ void StartOptions::SetCurrentProcessName(const std::string &processName)
 std::string StartOptions::GetCurrentProcessName() const
 {
     return currentProcessName_;
+}
+
+void StartOptions::SetSplitRatio(SplitRatioPreference splitRatio)
+{
+    splitRatio_ = splitRatio;
+}
+
+SplitRatioPreference StartOptions::GetSplitRatio() const
+{
+    return splitRatio_;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

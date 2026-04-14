@@ -62,6 +62,22 @@ enum class FailureCode {
 }
 
 namespace AAFwk {
+
+/**
+ * @brief Split ratio preference enum for smart multi-window split screen.
+ * If the developer inputs an invalid value, the default parameter is EQUAL.
+ *
+ * @since 26.0.0
+ */
+enum class SplitRatioPreference {
+    /** Equal split ratio (1:1) */
+    EQUAL = 0,
+    /** Primary dominant split ratio */
+    PRIMARY_DOMINANT = 1,
+    /** Secondary dominant split ratio */
+    SECONDARY_DOMINANT = 2,
+};
+
 class ProcessOptions;
 class StartWindowOption;
 
@@ -133,6 +149,9 @@ public:
 
     void SetCurrentProcessName(const std::string &processName);
     std::string GetCurrentProcessName() const;
+
+    void SetSplitRatio(SplitRatioPreference splitRatio);
+    SplitRatioPreference GetSplitRatio() const;
 private:
     bool withAnimation_ = true;
     bool windowFocused_ = true;
@@ -148,6 +167,7 @@ private:
     int32_t maxWindowWidth_ = 0;
     int32_t maxWindowHeight_ = 0;
     std::string currentProcessName_ = "";
+    SplitRatioPreference splitRatio_ = SplitRatioPreference::EQUAL;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
