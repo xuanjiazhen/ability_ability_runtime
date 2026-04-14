@@ -56,6 +56,7 @@ public:
 private:
     int32_t ExecuteOperation(
         std::shared_ptr<PendingWantManager> pendingWantManager, SenderInfo &senderInfo, Want &want);
+    bool IsBundleNotExistForUser0(const Want &want);
     void CheckAppInstanceKey(const std::string& bundleName, WantParams &wantParams);
 
 private:
