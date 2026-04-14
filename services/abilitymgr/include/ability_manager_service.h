@@ -1415,6 +1415,8 @@ public:
         bool isDlp = false,
         bool isStartAsCaller = false);
 
+    int GetDisplayIdByAccount(int32_t accountId, uint64_t &displayId);
+
     int RequestModalUIExtensionInner(Want want);
 
     int PreloadUIExtensionAbilityInner(const Want &want, std::string &bundleName,
@@ -2771,6 +2773,16 @@ protected:
 
 private:
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
+
+    /**
+     * @brief Get the top ability token for specified user.
+     * @param token Output parameter for the top ability token.
+     * @param userId The target user ID.
+     * @param displayId The display ID (default 0).
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    int GetTopAbilityByUserId(sptr<IRemoteObject> &token, int32_t userId, uint64_t displayId = 0);
+
     int TerminateAbilityWithFlag(const sptr<IRemoteObject> &token, int resultCode = DEFAULT_INVAL_VALUE,
         const Want *resultWant = nullptr, bool flag = true);
 

@@ -283,6 +283,8 @@ constexpr const char* UI_EXTENSION_CONTEXT_TRANSFER_ROOT_HOST_TOKEN = "ohos.abil
 constexpr int32_t INSTALL_TYPE_UPGRADE = 2;
 constexpr int64_t CLEAR_USER_LOCKED_BUNDLE_LIST_KEY_DELAY_TIME = 60 * 1000; // 60s
 constexpr const char* VPN_PERMISSION_IF = "libnet_vpn_permission_if.z.so";
+constexpr const char* UI_EXTENSION_TARGET_ACCOUNT_ID = "ohos.param.uiExtension.targetAccountId";
+
 using RequestVpnPermission = int32_t(*)(int32_t, const std::string&, const std::string&,bool &);
 
 void SendAbilityEvent(const EventName &eventName, HiSysEventEventType type, const EventInfo &eventInfo)
@@ -4096,10 +4098,49 @@ int AbilityManagerService::RequestModalUIExtension(const Want &want)
     return RequestModalUIExtensionInner(want);
 }
 
+int AbilityManagerService::GetDisplayIdByAccount(int32_t accountId, uint64_t &displayId)
+{
+    auto permissionResult = VerifyAccountPermission(accountId);
+    if (permissionResult != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission failed, accountId=%{public}d", accountId);
+        return ERR_INVALID_VALUE;
+    }
+
+    bool foundDisplay = AbilityRuntime::UserController::GetInstance()
+        .GetDisplayIdByForegroundUserId(accountId, displayId);
+
+    if (!foundDisplay) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "no display found for accountId=%{public}d", accountId);
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "accountId=%{public}d -> displayId=%{public}llu",
+        accountId, displayId);
+    return ERR_OK;
+}
+
 int AbilityManagerService::RequestModalUIExtensionInner(Want want)
 {
     sptr<IRemoteObject> token = nullptr;
-    int ret = IN_PROCESS_CALL(GetTopAbility(token));
+    int32_t finalUserId = INVALID_USER_ID;
+    int ret = ERR_OK;
+
+    bool hasAccountId = want.HasParameter(UI_EXTENSION_TARGET_ACCOUNT_ID);
+
+    if (hasAccountId) {
+        int32_t accountId = want.GetIntParam(UI_EXTENSION_TARGET_ACCOUNT_ID, INVALID_USER_ID);
+        uint64_t displayId = 0;
+        ret = GetDisplayIdByAccount(accountId, displayId);
+        if (ret != ERR_OK) {
+            return ret;
+        }
+        finalUserId = accountId;
+
+        ret = GetTopAbilityByUserId(token, accountId, displayId);
+    } else {
+        ret = IN_PROCESS_CALL(GetTopAbility(token));
+    }
+
     if (ret == ERR_OK && token != nullptr) {
         // Gets the record corresponding to the current focus appliaction
         auto record = Token::GetAbilityRecordByToken(token);
@@ -4133,7 +4174,10 @@ int AbilityManagerService::RequestModalUIExtensionInner(Want want)
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Window Modal System Create UIExtension is called!");
     want.SetParam(UIEXTENSION_MODAL_TYPE, 1);
     auto connection = std::make_shared<Rosen::ModalSystemUiExtension>();
-    return connection->CreateModalUIExtension(want) ? ERR_OK : INNER_ERR;
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Rosen::CreateModalUIExtension with userId=%{public}d for SCB instance selection, hasAccountId=%{public}d",
+        finalUserId, hasAccountId);
+    return connection->CreateModalUIExtension(want, finalUserId) ? ERR_OK : INNER_ERR;
 }
 
 int AbilityManagerService::ChangeAbilityVisibility(sptr<IRemoteObject> token, bool isShow)
@@ -11072,6 +11116,53 @@ int AbilityManagerService::GetTopAbilityInner(sptr<IRemoteObject> &token, uint64
         return ERR_INVALID_VALUE;
     }
 #endif
+    return ERR_OK;
+}
+
+int AbilityManagerService::GetTopAbilityByUserId(sptr<IRemoteObject> &token, int32_t userId, uint64_t displayId)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+
+    CHECK_CALLER_IS_SYSTEM_APP;
+
+    auto accountPermissionResult = VerifyAccountPermission(userId);
+    if (accountPermissionResult == CHECK_PERMISSION_FAILED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "account permission verification failed, userId=%{public}d", userId);
+        return CHECK_PERMISSION_FAILED;
+    }
+
+#ifdef SUPPORT_SCREEN
+    int32_t validUserId = GetValidUserId(userId);
+    if (validUserId < 0) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid userId: %{public}d", userId);
+        return ERR_INVALID_VALUE;
+    }
+
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        auto sceneSessionManager = Rosen::MockSessionManagerService::GetInstance()
+            .GetSceneSessionManagerLiteBySA(validUserId);
+        if (!sceneSessionManager) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "sceneSessionManager is null for userId=%{public}d", validUserId);
+            return ERR_INVALID_VALUE;
+        }
+
+        Rosen::FocusChangeInfo focusChangeInfo;
+        sceneSessionManager->GetFocusWindowInfo(focusChangeInfo, displayId);
+        token = focusChangeInfo.abilityToken_;
+    } else {
+        if (!GetWMSHandler()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "wmsHandler_ null");
+            return ERR_INVALID_VALUE;
+        }
+        GetWMSHandler()->GetFocusWindow(token);
+    }
+
+    if (!token) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "token null");
+        return ERR_INVALID_VALUE;
+    }
+#endif
+
     return ERR_OK;
 }
 
