@@ -54,6 +54,23 @@ void AbilityDelegator::AddAbilityMonitor(const std::shared_ptr<IAbilityMonitor> 
     abilityMonitors_.emplace_back(monitor);
 }
 
+void AbilityDelegator::AddInteropAbilityMonitor(const std::shared_ptr<IInteropAbilityMonitor> &monitor)
+{
+    if (!monitor) {
+        TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
+        return;
+    }
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    auto pos = std::find(interopAbilityMonitors_.begin(), interopAbilityMonitors_.end(), monitor);
+    if (pos != interopAbilityMonitors_.end()) {
+        TAG_LOGW(AAFwkTag::DELEGATOR, "interop monitor added");
+        return;
+    }
+
+    interopAbilityMonitors_.emplace_back(monitor);
+}
+
 void AbilityDelegator::AddAbilityStageMonitor(const std::shared_ptr<IAbilityStageMonitor> &monitor)
 {
     if (!monitor) {
@@ -83,6 +100,20 @@ void AbilityDelegator::RemoveAbilityMonitor(const std::shared_ptr<IAbilityMonito
     }
 }
 
+void AbilityDelegator::RemoveInteropAbilityMonitor(const std::shared_ptr<IInteropAbilityMonitor> &monitor)
+{
+    if (!monitor) {
+        TAG_LOGW(AAFwkTag::DELEGATOR, "invalid params");
+        return;
+    }
+
+    std::unique_lock<std::mutex> lck(mutexMonitor_);
+    auto pos = std::find(interopAbilityMonitors_.begin(), interopAbilityMonitors_.end(), monitor);
+    if (pos != interopAbilityMonitors_.end()) {
+        interopAbilityMonitors_.erase(pos);
+    }
+}
+
 void AbilityDelegator::RemoveAbilityStageMonitor(const std::shared_ptr<IAbilityStageMonitor> &monitor)
 {
     if (!monitor) {
@@ -100,6 +131,7 @@ void AbilityDelegator::ClearAllMonitors()
 {
     std::unique_lock<std::mutex> lck(mutexMonitor_);
     abilityMonitors_.clear();
+    interopAbilityMonitors_.clear();
 }
 
 size_t AbilityDelegator::GetMonitorsNum()
@@ -379,12 +411,16 @@ void AbilityDelegator::PostPerformStart(const std::shared_ptr<BaseDelegatorAbili
     ProcessAbilityProperties(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
-    if (abilityMonitors_.empty()) {
-        TAG_LOGW(AAFwkTag::DELEGATOR, "empty abilityMonitors");
-        return;
+    for (auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+        if (monitor->Match(ability, true)) {
+            monitor->OnAbilityStart(ability);
+        }
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (auto &monitor : interopAbilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -428,12 +464,16 @@ void AbilityDelegator::PostPerformScenceCreated(const std::shared_ptr<BaseDelega
     ProcessAbilityProperties(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
-    if (abilityMonitors_.empty()) {
-        TAG_LOGW(AAFwkTag::DELEGATOR, "invalid abilityMonitors");
-        return;
+    for (auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+        if (monitor->Match(ability, true)) {
+            monitor->OnWindowStageCreate(ability);
+        }
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (auto &monitor : interopAbilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -455,12 +495,16 @@ void AbilityDelegator::PostPerformScenceRestored(const std::shared_ptr<BaseDeleg
     ProcessAbilityProperties(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
-    if (abilityMonitors_.empty()) {
-        TAG_LOGW(AAFwkTag::DELEGATOR, "null abilityMonitors");
-        return;
+    for (auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+        if (monitor->Match(ability, true)) {
+            monitor->OnWindowStageRestore(ability);
+        }
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (auto &monitor : interopAbilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -482,12 +526,16 @@ void AbilityDelegator::PostPerformScenceDestroyed(const std::shared_ptr<BaseDele
     ProcessAbilityProperties(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
-    if (abilityMonitors_.empty()) {
-        TAG_LOGW(AAFwkTag::DELEGATOR, "null abilityMonitors");
-        return;
+    for (auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+        if (monitor->Match(ability, true)) {
+            monitor->OnWindowStageDestroy(ability);
+        }
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (auto &monitor : interopAbilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -509,12 +557,16 @@ void AbilityDelegator::PostPerformForeground(const std::shared_ptr<BaseDelegator
     ProcessAbilityProperties(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
-    if (abilityMonitors_.empty()) {
-        TAG_LOGW(AAFwkTag::DELEGATOR, "invalid abilityMonitors");
-        return;
+    for (auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+        if (monitor->Match(ability, true)) {
+            monitor->OnAbilityForeground(ability);
+        }
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (auto &monitor : interopAbilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -536,12 +588,16 @@ void AbilityDelegator::PostPerformBackground(const std::shared_ptr<BaseDelegator
     ProcessAbilityProperties(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
-    if (abilityMonitors_.empty()) {
-        TAG_LOGW(AAFwkTag::DELEGATOR, "invalid abilityMonitors");
-        return;
+    for (auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+        if (monitor->Match(ability, true)) {
+            monitor->OnAbilityBackground(ability);
+        }
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (auto &monitor : interopAbilityMonitors_) {
         if (!monitor) {
             continue;
         }
@@ -563,12 +619,16 @@ void AbilityDelegator::PostPerformStop(const std::shared_ptr<BaseDelegatorAbilit
     ProcessAbilityProperties(ability);
 
     std::unique_lock<std::mutex> lck(mutexMonitor_);
-    if (abilityMonitors_.empty()) {
-        TAG_LOGW(AAFwkTag::DELEGATOR, "invalid abilityMonitors");
-        return;
+    for (auto &monitor : abilityMonitors_) {
+        if (!monitor) {
+            continue;
+        }
+        if (monitor->Match(ability, true)) {
+            monitor->OnAbilityStop(ability);
+        }
     }
 
-    for (auto &monitor : abilityMonitors_) {
+    for (auto &monitor : interopAbilityMonitors_) {
         if (!monitor) {
             continue;
         }
