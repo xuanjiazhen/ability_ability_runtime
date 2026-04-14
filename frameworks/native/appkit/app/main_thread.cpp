@@ -22,6 +22,7 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <dlfcn.h>
 
 #include "resource_config_helper.h"
 #include "ability_manager_client.h"
@@ -687,7 +688,8 @@ void MainThread::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
             TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
             return;
         }
-        appThread->HandleCjHeapMemory(info);
+        // appThread->HandleCjHeapMemory(info);
+        appThread->HandleJsvmHeapMemory(info);
     };
     if (!mainHandler_->PostTask(task, "MainThread:HandleCjHeapMemory")) {
         TAG_LOGE(AAFwkTag::APPKIT, "PostTask HandleCjHeapMemory failed");
@@ -1080,6 +1082,33 @@ void MainThread::HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info
         TAG_LOGE(AAFwkTag::APPKIT, "DumpCjHeap failed: unknown exception");
         return;
     }
+}
+
+void MainThread::HandleJsvmHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
+{
+    TAG_LOGE(AAFwkTag::APPKIT, "jsvm MainThread::HandleJsvmHeapMemory");
+    TAG_LOGD(AAFwkTag::APPKIT, "called");
+    if (mainHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
+        return;
+    }
+    auto app = applicationForDump_.lock();
+    if (app == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null app");
+        return;
+    }
+    void* jsvmHandle = dlopen("libjsvm.so", RTLD_LAZY);
+    if (jsvmHandle == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "jsvm dlopen failed");
+        return;
+    }
+    using testFunc = void (*)();
+    auto jsvmTest = reinterpret_cast<testFunc>(dlsym(jsvmHandle, "JSVM_Test"));
+    if (jsvmTest == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "jsvm dlsym failed");
+        return false;
+    }
+    jsvmTest();
 }
 
 void MainThread::HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)

@@ -23,6 +23,7 @@
 #include "ability_record_mgr.h"
 #include "app_jsheap_mem_info.h"
 #include "app_cjheap_mem_info.h"
+#include "app_jsvmheap_mem_info.h"
 #include "app_malloc_info.h"
 #include "app_mgr_interface.h"
 #include "app_scheduler_host.h"
@@ -439,6 +440,8 @@ private:
     void HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
     void HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
+
+    void HandleJsvmHeapMemory(const OHOS::AppExecFwk::JsvmHeapDumpInfo &info);
 
     void HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
 
