@@ -56,6 +56,9 @@ void WindowOptionsUtils::SetWindowPositionAndSize(Want& want,
         abilityRecord->GetAbilityInfo().bundleName == want.GetBundle()) {
         want.SetParam(Want::PARAM_RESV_WITH_ANIMATION, withAnimation);
     }
+
+    // Set split ratio preference for smart multi-window
+    want.SetParam(Want::PARAM_RESV_SPLIT_RATIO, static_cast<int32_t>(startOptions.GetSplitRatio()));
 }
 
 std::pair<bool, AppExecFwk::SupportWindowMode> WindowOptionsUtils::WindowModeMap(int32_t windowMode)
