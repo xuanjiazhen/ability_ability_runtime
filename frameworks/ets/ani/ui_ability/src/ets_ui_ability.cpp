@@ -567,6 +567,7 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
     if (delegator && CreateProperty(abilityContext_, property)) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStart");
         property->object_ = etsAbilityObj_;
@@ -704,6 +705,7 @@ void EtsUIAbility::OnStopCallback()
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
     if (delegator && CreateProperty(abilityContext_, property)) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformStop");
         property->object_ = etsAbilityObj_;
@@ -757,6 +759,7 @@ void EtsUIAbility::OnSceneCreated()
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
     if (delegator && CreateProperty(abilityContext_, property)) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceCreated");
         property->object_ = etsAbilityObj_;
@@ -885,6 +888,7 @@ void EtsUIAbility::onSceneDestroyed()
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
     if (delegator && CreateProperty(abilityContext_, property)) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformScenceDestroyed");
         property->object_ = etsAbilityObj_;
@@ -946,6 +950,7 @@ void EtsUIAbility::CallOnForegroundFunc(const Want &want)
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
     if (delegator && CreateProperty(abilityContext_, property)) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformForeground");
         property->object_ = etsAbilityObj_;
@@ -977,6 +982,7 @@ void EtsUIAbility::OnBackground()
     auto delegator = AppExecFwk::AbilityDelegatorRegistry::GetAbilityDelegator(
         AbilityRuntime::Runtime::Language::ETS);
     auto property = std::make_shared<AppExecFwk::EtsDelegatorAbilityProperty>();
+    property->language_ = AbilityRuntime::Runtime::Language::ETS;
     if (delegator && CreateProperty(abilityContext_, property)) {
         TAG_LOGD(AAFwkTag::UIABILITY, "call PostPerformBackground");
         property->object_ = etsAbilityObj_;
