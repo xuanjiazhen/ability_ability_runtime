@@ -38,6 +38,9 @@
 #include "runtime.h"
 #include "js_runtime.h"
 #include "ets_runtime.h"
+#ifdef CJ_FRONTEND
+#include "cj_runtime.h"
+#endif
 #include "startup_manager.h"
 #include "system_ability_definition.h"
 #include "syspara/parameter.h"
@@ -863,6 +866,14 @@ const std::unique_ptr<AbilityRuntime::Runtime> &OHOSApplication::GetSpecifiedRun
         runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
         return (static_cast<AbilityRuntime::ETSRuntime&>(*runtime_)).GetJsRuntime();
     }
+#ifdef CJ_FRONTEND
+    if (arkTSMode != AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2 &&
+        arkTSMode != AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID &&
+        runtime_ != nullptr &&
+        runtime_->GetLanguage() == AbilityRuntime::Runtime::Language::CJ) {
+        return (static_cast<AbilityRuntime::CJRuntime&>(*runtime_)).GetJsRuntime();
+    }
+#endif
     return runtime_;
 }
 
