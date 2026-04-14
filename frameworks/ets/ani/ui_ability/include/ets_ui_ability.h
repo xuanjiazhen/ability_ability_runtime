@@ -351,6 +351,10 @@ private:
     bool CheckSatisfyTargetAPIVersion(int32_t targetAPIVersion);
     bool BackPressDefaultValue();
     void WriteLifecycleSwitchLog(const std::string lifecycleName);
+    void NotifyDelegatorProperty(
+        std::function<void(const std::shared_ptr<AppExecFwk::IAbilityDelegator> &,
+            const std::shared_ptr<AppExecFwk::BaseDelegatorAbilityProperty> &)> notifyFunc);
+    bool SetLastRequestWant(ani_env *env, ani_ref wantRef);
     int32_t CallSaveState(ani_value args[], WantParams &wantParams, AppExecFwk::StateReason stateReason,
         AppExecFwk::AbilityTransactionCallbackInfo<AppExecFwk::OnSaveStateResult> *callbackInfo);
 
