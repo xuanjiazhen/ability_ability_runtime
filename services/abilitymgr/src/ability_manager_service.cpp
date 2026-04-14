@@ -362,6 +362,8 @@ constexpr int64_t USER_SWITCH_TIMEOUT = 3 * 1000; // 3s
 constexpr const char* SUPPORT_LINKAGE_SCENE = "const.window.supportLinkageScene";
 constexpr const char* KEY_SPECIFIED_FLAG = "com.ohos.param.specifiedFlag";
 constexpr const char* KEY_SKIP_ABILITY_STAGE_LIFECYCLE = "ohos.ability.param.skipAbilityStageLifecycle";
+constexpr int32_t ATOMIC_URL = 1;
+constexpr int32_t NOT_ATOMIC_URL = 0;
 
 const bool REGISTER_RESULT =
     SystemAbility::MakeAndRegisterAbility(DelayedSingleton<AbilityManagerService>::GetInstance().get());
@@ -1356,11 +1358,13 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     std::string dialogSessionId = param.want.GetStringParam("dialogSessionId");
     bool isSendDialogResult = false;
     AAFwk::SelectorType selectorType = AAFwk::SelectorType::WITHOUT_SELECTOR;
+    int32_t isAtomicUrl = AtomicServicePreprocess(param.want);
 #ifdef SUPPORT_SCREEN
     auto dialogCallerInfo = DialogSessionManager::GetInstance().GetDialogCallerInfo(dialogSessionId);
     if (!dialogSessionId.empty() && dialogCallerInfo != nullptr) {
         isSendDialogResult = true;
         selectorType = dialogCallerInfo->type;
+        dialogCallerInfo->atomicServiceShortLink = isAtomicUrl;
     }
 #endif // SUPPORT_SCREEN
 
@@ -2173,6 +2177,15 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, ERR_INVALID_CALLER, "caller invalid");
         return ERR_INVALID_CALLER;
     }
+
+#ifdef SUPPORT_SCREEN
+    int32_t isAtomicUrl = AtomicServicePreprocess(want);
+    std::string dialogSessionId = want.GetStringParam("dialogSessionId");
+    auto dialogCallerInfo = DialogSessionManager::GetInstance().GetDialogCallerInfo(dialogSessionId);
+    if (!dialogSessionId.empty() && dialogCallerInfo != nullptr) {
+        dialogCallerInfo->atomicServiceShortLink = isAtomicUrl;
+    }
+#endif // SUPPORT_SCREEN
 
     bool startWithAccount = want.GetBoolParam(START_ABILITY_TYPE, false);
     if (startWithAccount || IsCrossUserCall(userId)) {
@@ -17236,6 +17249,31 @@ void AbilityManagerService::HandleAppDiedForRecovery(const sptr<IRemoteObject>& 
     if (remote != nullptr) {
         AppRecoveryMgr::AppRecoveryMgr::GetInstance().RemoveOnRemoteDieCallback(remote);
     }
+}
+
+int32_t AbilityManagerService::AtomicServicePreprocess(const Want &want)
+{
+#ifdef APP_DOMAIN_VERIFY_ENABLED
+    std::string url = want.GetUriString();
+    if (!AppDomainVerify::AppDomainVerifyMgrClient::GetInstance()->IsShortUrl(url)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "URL is not a atomic URL");
+        return NOT_ATOMIC_URL;
+    }
+    auto asyncTask = [want]() {
+        Want asyncWant = want;
+        ConvertCallbackTask task = [](int resultCode, AppDomainVerify::TargetInfo &targetInfo) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR,
+                "AtomicServicePreprocess async callback, resultCode=%{public}d, targetType=%{public}u",
+                resultCode, targetInfo.targetType);
+        };
+        sptr<ConvertCallbackImpl> callbackTask = new ConvertCallbackImpl(std::move(task));
+        sptr<OHOS::AppDomainVerify::IConvertCallback> callback = callbackTask;
+        AppDomainVerify::AppDomainVerifyMgrClient::GetInstance()->ConvertToExplicitWant(asyncWant, callback);
+    };
+    ffrt::submit(std::move(asyncTask));
+    return ATOMIC_URL;
+#endif
+    return NOT_ATOMIC_URL;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
