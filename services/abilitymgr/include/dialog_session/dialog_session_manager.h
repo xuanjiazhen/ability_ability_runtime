@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -47,6 +47,7 @@ struct DialogCallerInfo {
     // for app gallery selector
     bool needGrantUriPermission = false;
     sptr<IRemoteObject> sessionToken = nullptr;
+    int32_t atomicServiceShortLink = 0;
 };
 
 struct StartupSessionInfo {
@@ -96,7 +97,8 @@ public:
      * @param isAllowed Boolean flag indicating whether user granted permission.
      * @return int ERR_OK on success, or specific error codes for failure cases.
      */
-    int SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed);
+    int SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed,
+        int32_t atomicServiceShortLink = 0);
 
     /**
      * @brief Creates a modal dialog for ability jumping with specified parameters.

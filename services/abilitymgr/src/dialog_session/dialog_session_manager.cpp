@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -269,7 +269,8 @@ void DialogSessionManager::NotifyAbilityRequestFailure(const std::string &dialog
     abilityRecord->NotifyAbilityRequestFailure(requestId, want.GetElement(), message);
 }
 
-int DialogSessionManager::SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed)
+int DialogSessionManager::SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed,
+    int32_t atomicServiceShortLink)
 {
     if (NotifyQueryERMSFinished(dialogSessionId, isAllowed)) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "query ERMS finished");
@@ -311,9 +312,15 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
     sptr<IRemoteObject> callerToken = dialogCallerInfo->callerToken;
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
     CHECK_POINTER_AND_RETURN(abilityMgr, INNER_ERR);
-    int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
-        dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
-        dialogCallerInfo->callerAccessTokenId);
+    int32_t ret = ERR_OK;
+    if (atomicServiceShortLink) {
+        ret = abilityMgr->OpenLink(targetWant, callerToken, dialogCallerInfo->userId,
+            dialogCallerInfo->requestCode, false);
+    } else {
+        ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
+            dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
+            dialogCallerInfo->callerAccessTokenId);
+    }
     if (ret == ERR_OK) {
         ClearDialogContext(dialogSessionId);
         abilityMgr->RemoveSelectorIdentity(dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
