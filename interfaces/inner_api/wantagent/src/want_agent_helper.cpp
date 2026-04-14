@@ -533,7 +533,8 @@ std::shared_ptr<WantAgent> WantAgentHelper::FromString(const std::string &jsonSt
     }
 
     int userId = -1;
-    if (jsonObject.contains("userId") && jsonObject["userId"].is_number_integer()) {
+    if (jsonObject.contains("userId") && jsonObject["userId"].is_number_integer() &&
+        jsonObject.at("userId").get<int>() != 0) {
         userId = jsonObject.at("userId").get<int>();
     }
 
