@@ -27,6 +27,13 @@ public:
 
     void UpdateFlagForCollaboration(const Want &want);
 
+    /**
+     * Anonymize device ID for logging (show first 6 chars + 6 asterisks).
+     * @param deviceId The original device ID.
+     * @return Anonymized device ID string.
+     */
+    static std::string AnonymizeDeviceId(const std::string& deviceId);
+
 private:
     DmsUtil() = default;
     ~DmsUtil() = default;
