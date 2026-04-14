@@ -1,0 +1,21 @@
+{
+  "name": "invalid-template-tool",
+  "version": "1.0.0",
+  "description": "Invalid template field example",
+  "executablePath": "/usr/bin/invalid-template-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string"
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "port": "--port={value}"
+    }
+  }
+}

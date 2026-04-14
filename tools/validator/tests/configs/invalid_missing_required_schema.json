@@ -1,0 +1,21 @@
+{
+  "name": "invalid-schema-tool",
+  "version": "1.0.0",
+  "description": "Invalid schema example",
+  "executablePath": "/usr/bin/invalid-schema-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string"
+      }
+    },
+    "required": ["target", "port"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}"
+    }
+  }
+}

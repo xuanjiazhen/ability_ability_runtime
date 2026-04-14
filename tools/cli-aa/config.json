@@ -1,0 +1,179 @@
+{
+  "name": "cli-aa",
+  "version": "1.0.0",
+  "description": "Ability 启动 CLI 工具，顶层支持 version，子命令支持 help 和 start",
+  "executablePath": "/etc/cli/tools/cli-aa",
+  "hasSubcommands": true,
+  "timeout": 30,
+  "eventTypes": ["result"],
+  "inputSchema": {
+    "type": "object",
+    "description": "顶层命令参数",
+    "properties": {
+      "version": {
+        "type": "boolean",
+        "description": "显示版本信息",
+        "default": false
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "description": "版本信息",
+    "properties": {
+      "version": {
+        "type": "string",
+        "description": "工具版本号"
+      }
+    },
+    "required": ["version"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "version": {
+        "if_true": "--version",
+        "if_false": ""
+      }
+    }
+  },
+  "subcommands": {
+    "help": {
+      "description": "显示 cli-aa 帮助信息",
+      "inputSchema": {
+        "type": "object",
+        "description": "help 子命令参数",
+        "properties": {
+          "reserved": {
+            "type": "string",
+            "description": "预留占位参数，正常调用时无需传入"
+          }
+        }
+      },
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "reserved": "--reserved={value}"
+        }
+      }
+    },
+    "start": {
+      "description": "启动 Ability",
+      "inputSchema": {
+        "type": "object",
+        "description": "start 子命令参数",
+        "properties": {
+          "help": {
+            "type": "boolean",
+            "description": "显示 start 子命令帮助信息",
+            "default": false
+          },
+          "ability": {
+            "type": "string",
+            "description": "Ability 名称"
+          },
+          "bundle": {
+            "type": "string",
+            "description": "Bundle 名称"
+          },
+          "device": {
+            "type": "string",
+            "description": "设备 ID"
+          },
+          "module": {
+            "type": "string",
+            "description": "Module 名称"
+          },
+          "setting": {
+            "type": "string",
+            "description": "窗口模式设置"
+          },
+          "action": {
+            "type": "string",
+            "description": "Action 名称"
+          },
+          "uri": {
+            "type": "string",
+            "description": "URI"
+          },
+          "entity": {
+            "type": "string",
+            "description": "Entity"
+          },
+          "type": {
+            "type": "string",
+            "description": "MIME 类型"
+          },
+          "userId": {
+            "type": "integer",
+            "description": "用户 ID"
+          },
+          "wait": {
+            "type": "boolean",
+            "description": "等待启动完成",
+            "default": false
+          },
+          "windowLeft": {
+            "type": "integer",
+            "description": "窗口左边距"
+          },
+          "windowTop": {
+            "type": "integer",
+            "description": "窗口上边距"
+          },
+          "windowHeight": {
+            "type": "integer",
+            "description": "窗口高度"
+          },
+          "windowWidth": {
+            "type": "integer",
+            "description": "窗口宽度"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "启动结果",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "执行状态，成功时为 success"
+          },
+          "message": {
+            "type": "string",
+            "description": "结果消息"
+          }
+        },
+        "required": ["status", "message"]
+      },
+      "eventTypes": ["result"],
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "help": {
+            "if_true": "--help",
+            "if_false": ""
+          },
+          "ability": "--ability={value}",
+          "bundle": "--bundle={value}",
+          "device": "--device={value}",
+          "module": "--module={value}",
+          "setting": "--setting={value}",
+          "action": "--action={value}",
+          "uri": "--URI={value}",
+          "entity": "--entity={value}",
+          "type": "--type={value}",
+          "userId": "--user={value}",
+          "wait": {
+            "if_true": "--wait",
+            "if_false": ""
+          },
+          "windowLeft": "--wl={value}",
+          "windowTop": "--wt={value}",
+          "windowHeight": "--wh={value}",
+          "windowWidth": "--ww={value}"
+        }
+      }
+    }
+  }
+}
