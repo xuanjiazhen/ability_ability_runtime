@@ -2626,6 +2626,50 @@ void MainThread::LoadAllExtensions()
     application_->SetExtensionTypeMap(extensionTypeMap);
 }
 
+void MainThread::InitHybridRuntimeEnvs()
+{
+    void *napiEnvVoid = nullptr;
+    void *aniVmVoid = nullptr;
+    auto &curRuntime = application_->GetRuntime();
+    bool isHybrid = applicationInfo_ &&
+        applicationInfo_->arkTSMode == AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID;
+    if (isHybrid && curRuntime->GetLanguage() == AbilityRuntime::Runtime::Language::ETS) {
+        auto &etsRuntime = static_cast<AbilityRuntime::ETSRuntime &>(*curRuntime);
+        auto aniEnv = etsRuntime.GetAniEnv();
+        if (aniEnv != nullptr) {
+            aniVmVoid = reinterpret_cast<void *>(aniEnv);
+        }
+        const auto &jsRuntime = etsRuntime.GetJsRuntime();
+        if (jsRuntime) {
+            napiEnvVoid = reinterpret_cast<void *>(
+                static_cast<AbilityRuntime::JsRuntime &>(*jsRuntime).GetNapiEnv());
+        }
+    } else if (isHybrid && curRuntime->GetLanguage() == AbilityRuntime::Runtime::Language::JS) {
+        napiEnvVoid = reinterpret_cast<void *>(
+            static_cast<AbilityRuntime::JsRuntime &>(*curRuntime).GetNapiEnv());
+    }
+    AbilityDelegatorRegistry::SetRuntimeEnvs(napiEnvVoid, aniVmVoid);
+}
+
+void MainThread::CreateInteropDelegator(const std::shared_ptr<AbilityDelegatorArgs> &args,
+    const sptr<IRemoteObject> &observer, uint32_t targetVersion)
+{
+    if (!applicationInfo_ || applicationInfo_->arkTSMode != AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID) {
+        return;
+    }
+    auto currentLanguage = application_->GetRuntime()->GetLanguage();
+    auto targetLanguage = AbilityRuntime::Runtime::Language::JS;
+    if (currentLanguage == AbilityRuntime::Runtime::Language::JS) {
+        targetLanguage = AbilityRuntime::Runtime::Language::ETS;
+    }
+    auto interopTestRunner = TestRunner::Create(application_->GetRuntime(), args, false);
+    auto interopDelegator = IAbilityDelegator::Create(application_->GetRuntime(),
+        application_->GetAppContext(), std::move(interopTestRunner), observer);
+    AbilityDelegatorRegistry::RegisterInstance(interopDelegator, args, targetLanguage);
+    interopDelegator->SetApiTargetVersion(targetVersion);
+    interopDelegator->Prepare();
+}
+
 bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
     const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion)
 {
@@ -2635,56 +2679,71 @@ bool MainThread::PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &
         return false;
     }
     auto args = std::make_shared<AbilityDelegatorArgs>(record->want);
-    if (isStageBased) { // Stage model
-        TAG_LOGD(AAFwkTag::APPKIT, "Stage model");
-        if (args == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "test args is null");
-            return false;
-        }
-        AppExecFwk::ModuleTestRunner tsTestRunner;
-        if (!GetTestRunnerTypeAndPath(args->GetTestBundleName(), args->GetTestModuleName(), tsTestRunner)) {
-            TAG_LOGE(AAFwkTag::APPKIT, "query testrunner failed");
-        }
-        args->SetTestRunnerModeAndPath(tsTestRunner.arkTSMode, tsTestRunner.srcPath);
-        auto testRunner = TestRunner::Create(application_->GetRuntime(), args, false);
-        auto delegator = IAbilityDelegator::Create(application_->GetRuntime(), application_->GetAppContext(),
-            std::move(testRunner), record->observer);
-        AbilityDelegatorRegistry::RegisterInstance(delegator, args, application_->GetRuntime()->GetLanguage());
-        delegator->SetApiTargetVersion(targetVersion);
-        delegator->Prepare();
-    } else { // FA model
-        TAG_LOGD(AAFwkTag::APPKIT, "FA model");
-        AbilityRuntime::Runtime::Options options;
-        options.codePath = LOCAL_CODE_PATH;
-        options.eventRunner = mainHandler_->GetEventRunner();
-        options.hapPath = entryHapModuleInfo.hapPath;
-        options.loadAce = false;
-        options.isStageModel = false;
-        options.isTestFramework = true;
-        if (applicationInfo_) {
-            options.apiTargetVersion = applicationInfo_->apiTargetVersion;
-        }
-        if (entryHapModuleInfo.abilityInfos.empty()) {
-            TAG_LOGE(AAFwkTag::APPKIT, "abilityInfos failed");
-            return false;
-        }
-        bool isFaJsModel = entryHapModuleInfo.abilityInfos.front().srcLanguage == "js" ? true : false;
-        static auto runtime = AbilityRuntime::Runtime::Create(options);
-        auto testRunner = TestRunner::Create(runtime, args, isFaJsModel);
-        if (testRunner == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "null testRunner");
-            return false;
-        }
-        if (!testRunner->Initialize()) {
-            TAG_LOGE(AAFwkTag::APPKIT, "initialize testRunner failed");
-            return false;
-        }
-        auto delegator = std::make_shared<AbilityDelegator>(
-            application_->GetAppContext(), std::move(testRunner), record->observer);
-        AbilityDelegatorRegistry::RegisterInstance(delegator, args, runtime->GetLanguage());
-        delegator->SetApiTargetVersion(targetVersion);
-        delegator->Prepare();
+    if (isStageBased) {
+        return PrepareStageDelegator(args, record, targetVersion);
     }
+    return PrepareFADelegator(args, entryHapModuleInfo, record, targetVersion);
+}
+
+bool MainThread::PrepareStageDelegator(const std::shared_ptr<AbilityDelegatorArgs> &args,
+    const std::shared_ptr<UserTestRecord> &record, uint32_t targetVersion)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "Stage model");
+    if (args == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "test args is null");
+        return false;
+    }
+    AppExecFwk::ModuleTestRunner tsTestRunner;
+    if (!GetTestRunnerTypeAndPath(args->GetTestBundleName(), args->GetTestModuleName(), tsTestRunner)) {
+        TAG_LOGE(AAFwkTag::APPKIT, "query testrunner failed");
+    }
+    args->SetTestRunnerModeAndPath(tsTestRunner.arkTSMode, tsTestRunner.srcPath);
+    auto testRunner = TestRunner::Create(application_->GetRuntime(), args, false);
+    auto delegator = IAbilityDelegator::Create(application_->GetRuntime(), application_->GetAppContext(),
+        std::move(testRunner), record->observer);
+    AbilityDelegatorRegistry::RegisterInstance(delegator, args, application_->GetRuntime()->GetLanguage());
+    InitHybridRuntimeEnvs();
+    delegator->SetApiTargetVersion(targetVersion);
+    delegator->Prepare();
+    CreateInteropDelegator(args, record->observer, targetVersion);
+    return true;
+}
+
+bool MainThread::PrepareFADelegator(const std::shared_ptr<AbilityDelegatorArgs> &args,
+    const AppExecFwk::HapModuleInfo &entryHapModuleInfo,
+    const std::shared_ptr<UserTestRecord> &record, uint32_t targetVersion)
+{
+    TAG_LOGD(AAFwkTag::APPKIT, "FA model");
+    AbilityRuntime::Runtime::Options options;
+    options.codePath = LOCAL_CODE_PATH;
+    options.eventRunner = mainHandler_->GetEventRunner();
+    options.hapPath = entryHapModuleInfo.hapPath;
+    options.loadAce = false;
+    options.isStageModel = false;
+    options.isTestFramework = true;
+    if (applicationInfo_) {
+        options.apiTargetVersion = applicationInfo_->apiTargetVersion;
+    }
+    if (entryHapModuleInfo.abilityInfos.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "abilityInfos failed");
+        return false;
+    }
+    bool isFaJsModel = entryHapModuleInfo.abilityInfos.front().srcLanguage == "js";
+    static auto runtime = AbilityRuntime::Runtime::Create(options);
+    auto testRunner = TestRunner::Create(runtime, args, isFaJsModel);
+    if (testRunner == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null testRunner");
+        return false;
+    }
+    if (!testRunner->Initialize()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "initialize testRunner failed");
+        return false;
+    }
+    auto delegator = std::make_shared<AbilityDelegator>(
+        application_->GetAppContext(), std::move(testRunner), record->observer);
+    AbilityDelegatorRegistry::RegisterInstance(delegator, args, runtime->GetLanguage());
+    delegator->SetApiTargetVersion(targetVersion);
+    delegator->Prepare();
     return true;
 }
 

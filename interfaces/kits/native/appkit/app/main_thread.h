@@ -674,6 +674,14 @@ private:
      */
     bool PrepareAbilityDelegator(const std::shared_ptr<UserTestRecord> &record, bool isStageBased,
         const AppExecFwk::HapModuleInfo &entryHapModuleInfo, uint32_t targetVersion);
+    bool PrepareStageDelegator(const std::shared_ptr<AbilityDelegatorArgs> &args,
+        const std::shared_ptr<UserTestRecord> &record, uint32_t targetVersion);
+    bool PrepareFADelegator(const std::shared_ptr<AbilityDelegatorArgs> &args,
+        const AppExecFwk::HapModuleInfo &entryHapModuleInfo,
+        const std::shared_ptr<UserTestRecord> &record, uint32_t targetVersion);
+    void InitHybridRuntimeEnvs();
+    void CreateInteropDelegator(const std::shared_ptr<AbilityDelegatorArgs> &args,
+        const sptr<IRemoteObject> &observer, uint32_t targetVersion);
 
     void LoadExtensionBlockList(const std::shared_ptr<AbilityLocalRecord> &abilityRecord);
 
