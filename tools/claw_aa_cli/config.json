@@ -1,0 +1,258 @@
+{
+    "name": "ohos-aa",
+    "version": "1.0.0",
+    "description": "启动所指定应用的Ability或终止指定的应用进程",
+    "executablePath": "/system/bin/cli_tools/ohos-aa",
+    "requirePermissions": [],
+    "hasSubcommands": true,
+    
+    "subcommands": {
+        "help": {
+            "description": "查看ohos-aa相关子命令的信息",
+            "inputSchema": {
+            },
+            "outputSchema": {
+                "type": "object",
+                "description": "执行结果",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "code": {
+                    	"type": "string"
+                	},
+                    "cause": {
+                    	"type": "string"
+                	},
+                	"suggestion": {
+                    	"type": "string"
+                	}
+                } 
+            },
+            "argMapping": {}
+        },
+        "version": {
+            "description": "查看ohos-aa的版本信息",
+            "inputSchema": {
+            },
+            "outputSchema": {
+                "type": "object",
+                "description": "执行结果",
+                "properties": {
+                    "success": {
+	        			"type": "boolean"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "code": {
+                    	"type": "string"
+                	},
+                    "cause": {
+                    	"type": "string"
+                	},
+                	"suggestion": {
+                    	"type": "string"
+                	}
+                } 
+            },
+            "argMapping": {}
+        },
+        "start": {
+            "description": "启动指定应用的Ability",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "help": {
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "abilityName": {
+                        "type": "string",
+                        "description": "abilityName",
+                        "default": ""
+                    },
+                    "bundleName": {
+                        "type": "string",
+                        "description": "bundleName",
+                        "default": ""
+                    },
+                    "deviceId": {
+                        "type": "string",
+                        "description": "deviceId",
+                        "default": ""
+                    },
+                    "moduleName": {
+                        "type": "string",
+                        "description": "moduleName",
+                        "default": ""
+                    },
+                    "URI": {
+                        "type": "string",
+                        "description": "URI",
+                        "default": ""
+                    },
+                    "action": {
+                        "type": "string",
+                        "description": "action",
+                        "default": ""
+                    },
+                    "entity": {
+                        "type": "string",
+                        "description": "entity",
+                        "default": ""
+                    }, 
+                    "type": {
+                        "type": "string",
+                        "description": "type",
+                        "default": ""
+                    }, 
+                    "time": {
+                        "type": "boolean",
+                        "description": "time",
+                        "default": false
+                    },
+                    "pi": {
+                        "type": "array",
+                        "description": "pi",
+                        "item": {
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "type": "number"
+                                }
+                            }
+                        }
+                    },
+                    "pb": {
+                        "type": "array",
+                        "description": "pb",
+                        "item": {
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "type": "boolean"
+                                }
+                            }
+                        }
+                    },
+                    "ps": {
+                        "type": "array",
+                        "description": "ps",
+                        "item": {
+                            "type": "object",
+                            "properties": {
+                                "key": {
+                                    "type": "string"
+                                },
+                                "value": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    },
+                    "psn": {
+                        "type": "string",
+                        "description": "psn",
+                        "default": ""
+                    }
+                    
+                }
+            },
+            "outputSchema": {
+                "type": "object",
+                "description": "执行结果",
+                "properties": {
+                    "success": {
+	        			"type": "boolean"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "code": {
+                    	"type": "string"
+                	},
+                    "cause": {
+                    	"type": "string"
+                	},
+                	"suggestion": {
+                    	"type": "string"
+                	}
+                } 
+            },
+            "argMapping": {
+                "type": "flag",
+                "templates": {
+                    "help": {
+                        "if_true": "-h",
+                        "if_false": ""
+                    },
+                    "abilityName": "-a={value}",
+                    "bundleName": "-b={value}",
+                    "deviceId": "-d={value}",
+                    "moduleName": "-m={value}",
+                    "URI": "-U={value}",
+                    "action": "-A={value}",
+                    "entity": "-e={value}",
+                    "type": "-t={value}",
+                    "time": {
+                        "if_true": "-W",
+                        "if_false": ""
+                    },
+                    "pi": "--pi={key}{value}",
+                    "pb": "--pb={key}{value}",
+                    "ps": "--ps={key}{value}",
+                    "psn": "--psn={value}"
+                }
+            }
+        },
+        "force-stop": {
+            "description": "终止指定的应用进程",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "bundleName": {
+                        "type": "string",
+                        "description": "bundleName"
+                    }
+                }
+            },
+            "outputSchema": {
+                "type": "object",
+                "description": "执行结果",
+                "properties": {
+                    "success": {
+	        			"type": "boolean"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "code": {
+                    	"type": "string"
+                	},
+                    "cause": {
+                    	"type": "string"
+                	},
+                	"suggestion": {
+                    	"type": "string"
+                	}
+                } 
+            },
+            "argMapping": {
+                "type": "positional",
+                "order": ["bundleName"]
+            }
+        }
+    },
+    "timeout": 1800,
+    "eventSchemas": {}
+}
