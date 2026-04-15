@@ -807,16 +807,23 @@ ErrCode AbilityManagerShellCommand::RunAsForceStop()
     }
 
     TAG_LOGI(AAFwkTag::AA_TOOL, "pid %{public}d, reason %{public}s", pid, inputReason.c_str());
+
+    ErrCode result = OHOS::ERR_OK;
     if (pid != 0 && reason != Reason::REASON_UNKNOWN) {
         ExitReason exitReason = {reason, "aa force-stop"};
         exitReason.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP;
         if (AbilityManagerClient::GetInstance()->RecordProcessExitReason(pid, exitReason) != ERR_OK) {
             TAG_LOGE(AAFwkTag::AA_TOOL, "bundle %{public}s save reason %{public}d failed", bundleName.c_str(), reason);
         }
+        result = AbilityManagerClient::GetInstance()->KillProcess(bundleName, false, 0, inputReason);
+    } else {
+        int32_t userId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+        ExitReasonCompability exitReasonCompability(Reason::REASON_UNKNOWN, inputReason);
+        exitReasonCompability.killId = HiviewDFX::ProcessKillReason::KillEventId::REASON_AA_FORCE_STOP;
+        exitReasonCompability.killMsg = inputReason;
+        result = AbilityManagerClient::GetInstance()->KillBundleWithReason(
+            bundleName, userId, 0, exitReasonCompability);
     }
-
-    ErrCode result = OHOS::ERR_OK;
-    result = AbilityManagerClient::GetInstance()->KillProcess(bundleName, false, 0, inputReason);
     if (result == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_FORCE_STOP_OK.c_str());
         resultReceiver_ = STRING_FORCE_STOP_OK + "\n";
