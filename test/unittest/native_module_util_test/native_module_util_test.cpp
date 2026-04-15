@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "app_utils.h"
 #include "native_ability_util.h"
 
 using namespace testing::ext;
@@ -593,6 +594,58 @@ HWTEST_F(NativeModuleUtilTest, InitData_2900, TestSize.Level1)
     EXPECT_TRUE(data.withNativeModule);
     // "PRE_WINDOW" is not "pre_window", so falls through to default PRE_WINDOW
     EXPECT_EQ(data.startupPhase, StartupPhase::PRE_WINDOW);
+}
+
+// ==================== InitData IsSupportNativeAbility Gate ====================
+
+/**
+ * @tc.number: InitData_3000
+ * @tc.name: NativeAbilityMetaData::InitData
+ * @tc.desc: IsSupportNativeAbility disabled, all metadata should be ignored, defaults returned
+ */
+HWTEST_F(NativeModuleUtilTest, InitData_3000, TestSize.Level1)
+{
+    AppUtils::SetSupportNativeAbility(false);
+
+    AddMetadata("ohos.ability.withNativeModule", "true");
+    AddMetadata("ohos.ability.startupPhase", "foreground");
+    AddMetadata("ohos.ability.nativeModuleSource", "libtest.so");
+    AddMetadata("ohos.ability.nativeModuleFun", "OHMain");
+
+    NativeAbilityMetaData data;
+    NativeAbilityMetaData::InitData(abilityInfo_, data);
+
+    EXPECT_FALSE(data.withNativeModule);
+    EXPECT_EQ(data.startupPhase, StartupPhase::PRE_WINDOW);
+    EXPECT_TRUE(data.nativeModuleSource.empty());
+    EXPECT_TRUE(data.nativeModuleFunc.empty());
+
+    AppUtils::SetSupportNativeAbility(true);
+}
+
+/**
+ * @tc.number: InitData_3100
+ * @tc.name: NativeAbilityMetaData::InitData
+ * @tc.desc: IsSupportNativeAbility disabled, pre-initialized data should be reset to defaults
+ */
+HWTEST_F(NativeModuleUtilTest, InitData_3100, TestSize.Level1)
+{
+    AppUtils::SetSupportNativeAbility(false);
+
+    NativeAbilityMetaData data;
+    data.withNativeModule = true;
+    data.startupPhase = StartupPhase::FOREGROUND;
+    data.nativeModuleSource = "old.so";
+    data.nativeModuleFunc = "OldFunc";
+
+    NativeAbilityMetaData::InitData(abilityInfo_, data);
+
+    EXPECT_FALSE(data.withNativeModule);
+    EXPECT_EQ(data.startupPhase, StartupPhase::PRE_WINDOW);
+    EXPECT_TRUE(data.nativeModuleSource.empty());
+    EXPECT_TRUE(data.nativeModuleFunc.empty());
+
+    AppUtils::SetSupportNativeAbility(true);
 }
 
 // ==================== HideWindowOnStartup ====================
