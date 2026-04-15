@@ -33,6 +33,11 @@ namespace insightIntent {
     flags?: int;
   }
 
+  export interface IntentResult<T> {
+    code: int;
+    result?: T;
+  }
+
   export class ExecuteResultInner implements ExecuteResult{
     code: int;
     result?: Record<string, RecordData>;
@@ -40,9 +45,85 @@ namespace insightIntent {
     flags?: int;
   }
 
-  export enum ReturnMode {  
+  export enum ReturnMode {
     CALLBACK = 0,
     FUNCTION = 1
+  }
+
+  export enum QueryType {
+    ALL = 'all',
+    BY_PROPERTY = 'byProperty'
+  }
+
+  export interface QueryEntityParam {
+    queryType: QueryType;
+    parameters?: Record<string, RecordData>;
+  }
+
+  interface IntentEntity {
+    entityId: string;
+  }
+
+  abstract class AppIntentEntity<T> implements IntentEntity {
+    displayName: string;
+    abstract onQueryEntity(params: QueryEntityParam): Promise<Array<T>>;
+
+    public nativeExecutor: long = 0;
+    public native nativeOnQueryEntityResult(data: Array<Record<string, RecordData>>): void;
+    public native nativeOnQueryEntityError(err: Error): void;
+
+    public callPromise(p: Promise<Any>): void {
+      p.then((result: Any): void => {
+        let entityArr = result as Array<Any>;
+        let recordArr: Array<Record<string, RecordData>> = [];
+        for (let entity of entityArr) {
+          let record = this.entityToRecord(entity);
+          recordArr.push(record);
+        }
+        this.nativeOnQueryEntityResult(recordArr);
+      }).catch((err: Error): void => {
+        this.nativeOnQueryEntityError(err);
+      });
+    }
+
+    private entityToRecord(entity: Any): Record<string, RecordData> {
+      let record: Record<string, RecordData> = new Record<string, RecordData>();
+      let jsonStr: string = JSON.stringify(entity);
+      let jsonValue = JSON.parseJsonElement(jsonStr);
+      if (jsonValue.jsonType != jsonx.JsonType.JsonObject) {
+        return record;
+      }
+      let iterVal: IterableIterator<[string, jsonx.JsonElement]> = jsonValue.$_iterator();
+      for (let entry of iterVal) {
+        let key = entry[0];
+        let value = entry[1];
+        if (key == 'nativeExecutor') {
+          continue;
+        }
+        switch (value.jsonType) {
+          case jsonx.JsonType.JsonString:
+            record[key] = value.asString();
+            break;
+          case jsonx.JsonType.JsonNumber:
+            record[key] = value.asDouble();
+            break;
+          case jsonx.JsonType.JsonTrue:
+            record[key] = true;
+            break;
+          case jsonx.JsonType.JsonFalse:
+            record[key] = false;
+            break;
+          case jsonx.JsonType.JsonNull:
+            record[key] = null;
+            break;
+          default:
+            record[key] = value;
+            break;
+        }
+      }
+      return record;
+    }
+
   }
 }
 
