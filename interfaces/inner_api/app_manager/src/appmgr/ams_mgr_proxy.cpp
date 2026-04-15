@@ -165,9 +165,10 @@ void AmsMgrProxy::TerminateAbility(const sptr<IRemoteObject> &token, bool clearM
     TAG_LOGD(AAFwkTag::APPMGR, "end");
 }
 
-void AmsMgrProxy::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
+void AmsMgrProxy::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+    bool isFromScreenOffBackground)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "start");
+    TAG_LOGD(AAFwkTag::APPMGR, "start, isFromScreenOffBackground:%{public}d", isFromScreenOffBackground);
     MessageParcel data;
     MessageParcel reply;
     MessageOption option(MessageOption::TF_SYNC);
@@ -181,6 +182,10 @@ void AmsMgrProxy::UpdateAbilityState(const sptr<IRemoteObject> &token, const Abi
     }
     if (!data.WriteInt32(static_cast<int32_t>(state))) {
         TAG_LOGE(AAFwkTag::APPMGR, "Failed to write token");
+        return;
+    }
+    if (!data.WriteBool(isFromScreenOffBackground)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write isFromScreenOffBackground");
         return;
     }
     int32_t ret =

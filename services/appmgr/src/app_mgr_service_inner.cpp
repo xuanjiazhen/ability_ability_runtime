@@ -4520,10 +4520,12 @@ void AppMgrServiceInner::TerminateAbility(const sptr<IRemoteObject> &token, bool
     }
 }
 
-void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
+void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+    bool isFromScreenOffBackground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::APPMGR, "state %{public}d.", static_cast<int32_t>(state));
+    TAG_LOGD(AAFwkTag::APPMGR, "state %{public}d, isFromScreenOffBackground:%{public}d",
+        static_cast<int32_t>(state), isFromScreenOffBackground);
     CHECK_POINTER_AND_RETURN_LOG(token, "token null");
     if (state == AbilityState::ABILITY_STATE_FOREGROUND) {
         AbilityRuntime::FreezeUtil::GetInstance().AppendLifecycleEvent(token, "ServiceInner::UpdateAbilityState");
@@ -4563,6 +4565,10 @@ void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, co
     if (state > AbilityState::ABILITY_STATE_BACKGROUND || state < AbilityState::ABILITY_STATE_FOREGROUND) {
         TAG_LOGE(AAFwkTag::APPMGR, "state is not foreground or background");
         return;
+    }
+
+    if (state == AbilityState::ABILITY_STATE_BACKGROUND) {
+        appRecord->SetIsFromScreenOffBackground(isFromScreenOffBackground);
     }
 
     appRecord->UpdateAbilityState(token, state);
