@@ -685,10 +685,10 @@ void AppStateObserverManager::HandleStateChangedNotifyObserver(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
-        "Handle state change, module:%{public}s, bundle:%{public}s, ability:%{public}s, state:%{public}d,"
-        "pid:%{public}d ,uid:%{public}d, abilityType:%{public}d, isAbility:%{public}d, callerBundleName:%{public}s,"
-        "callerAbilityName:%{public}s, isAtomicService:%{public}d, callerUid:%{public}d, callerPid:%{public}d"
-        "pleloadMode:%{public}d",
+        "Handle state change, module:%{public}s, bundle:%{public}s, ability:%{public}s, state:%{public}d, "
+        "pid:%{public}d ,uid:%{public}d, abilityType:%{public}d, isAbility:%{public}d, callerBundleName:%{public}s, "
+        "callerAbilityName:%{public}s, isAtomicService:%{public}d, callerUid:%{public}d, callerPid:%{public}d, "
+        "preloadMode:%{public}d",
         abilityStateData.moduleName.c_str(), abilityStateData.bundleName.c_str(),
         abilityStateData.abilityName.c_str(), abilityStateData.abilityState, abilityStateData.pid, abilityStateData.uid,
         abilityStateData.abilityType, isAbility, abilityStateData.callerBundleName.c_str(),
@@ -1059,6 +1059,7 @@ ProcessData AppStateObserverManager::WrapProcessData(
     processData.callerUid = appRecord->GetCallerUid();
     processData.killReason = appRecord->GetKillReason();
     processData.isFromWindowFocusChanged = isFromWindowFocusChanged;
+    processData.isFromScreenOffBackground = appRecord->IsFromScreenOffBackground();
     processData.preloadMode = static_cast<int32_t>(appRecord->GetPreloadMode());
     processData.imageProcessType = static_cast<int32_t>(appRecord->GetImageProcessType());
     processData.isPreloadUIExtension = appRecord->GetUIExtensionPreloadState();
