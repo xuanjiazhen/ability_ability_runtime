@@ -480,6 +480,47 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ChangeFaultDateInfo_004, TestSize.Le
 }
 
 /**
+ * @tc.number: AppfreezeInner_GetMainStackDump_001
+ * @tc.name: GetMainStackDump
+ * @tc.desc: Verify that function GetMainStackDump.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetMainStackDump_001, TestSize.Level1)
+{
+    int pid = -1;
+    std::string ret = appfreezeInner->GetMainStackDump(pid);
+    EXPECT_TRUE(ret.empty());
+    pid = getpid();
+    appfreezeInner->GetMainStackDump(pid);
+    pid = 1;
+    appfreezeInner->GetMainStackDump(pid);
+}
+
+/**
+ * @tc.number: AppfreezeInner_GetMainStackDump_002
+ * @tc.name: GetMainStackDump
+ * @tc.desc: Verify that function GetMainStackDump.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetMainStackDump_002, TestSize.Level1)
+{
+    int pid = getpid();
+    std::string firstCall = appfreezeInner->GetMainStackDump(pid);
+    std::string secondCall = appfreezeInner->GetMainStackDump(pid);
+    EXPECT_EQ(firstCall, secondCall);
+}
+
+/**
+ * @tc.number: AppfreezeInner_GetMainStackDump_003
+ * @tc.name: GetMainStackDump
+ * @tc.desc: Verify that function GetMainStackDump.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_GetMainStackDump_003, TestSize.Level1)
+{
+    int pid = 999999;
+    std::string ret = appfreezeInner->GetMainStackDump(pid);
+    EXPECT_TRUE(ret.empty());
+}
+
+/**
  * @tc.number: AppfreezeInnerTest
  * @tc.name: add test
  * @tc.desc: Verify that function SetMainHandler.
