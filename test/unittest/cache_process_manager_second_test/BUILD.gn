@@ -57,6 +57,7 @@ ohos_unittest("cache_process_manager_second_test") {
     "${ability_runtime_services_path}/appmgr/src/app_native_spawn_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_preloader.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_refresh_recipient.cpp",
+    "${ability_runtime_services_path}/appmgr/src/app_running_record.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_running_manager.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_running_status_module.cpp",
     "${ability_runtime_services_path}/appmgr/src/app_spawn_client.cpp",
