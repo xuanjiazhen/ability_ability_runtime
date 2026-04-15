@@ -148,7 +148,8 @@ void AmsMgrScheduler::NotifyLoadAbilityFinished(pid_t callingPid, pid_t targetPi
     });
 }
 
-void AmsMgrScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
+void AmsMgrScheduler::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+    bool isFromScreenOffBackground)
 {
     if (!IsReady()) {
         return;
