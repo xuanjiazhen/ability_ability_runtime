@@ -613,19 +613,19 @@ bool AppRunningRecord::ScheduleForegroundRunning()
     return false;
 }
 
-void AppRunningRecord::ScheduleBackgroundRunning()
+void AppRunningRecord::ScheduleBackgroundRunning(bool isFromScreenOffBackground)
 {
     SetApplicationScheduleState(ApplicationScheduleState::SCHEDULE_BACKGROUNDING);
     int32_t recordId = GetRecordId();
     auto serviceInner = appMgrServiceInner_;
-    auto appbackgroundtask = [recordId, serviceInner]() {
+    auto appbackgroundtask = [recordId, serviceInner, isFromScreenOffBackground]() {
         auto serviceInnerObj = serviceInner.lock();
         if (serviceInnerObj == nullptr) {
             TAG_LOGW(AAFwkTag::APPMGR, "APPManager is invalid");
             return;
         }
         TAG_LOGE(AAFwkTag::APPMGR, "APPManager move timeout");
-        serviceInnerObj->ApplicationBackgrounded(recordId);
+        serviceInnerObj->ApplicationBackgrounded(recordId, isFromScreenOffBackground);
     };
     auto taskName = std::string("appbackground_") + std::to_string(recordId);
     if (taskHandler_) {
@@ -905,7 +905,8 @@ bool AppRunningRecord::UpdateAbilityFocusState(const sptr<IRemoteObject> &token,
     }
 }
 
-void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
+void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+    bool isFromScreenOffBackground)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "state is :%{public}d", static_cast<int32_t>(state));
     auto abilityRecord = GetAbilityRunningRecordByToken(token);
@@ -926,7 +927,7 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
     if (state == AbilityState::ABILITY_STATE_FOREGROUND) {
         AbilityForeground(abilityRecord);
     } else if (state == AbilityState::ABILITY_STATE_BACKGROUND) {
-        AbilityBackground(abilityRecord);
+        AbilityBackground(abilityRecord, isFromScreenOffBackground);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "wrong state");
     }
@@ -986,7 +987,8 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
     }
 }
 
-void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability)
+void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability,
+    bool isFromScreenOffBackground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!ability) {
@@ -1034,7 +1036,7 @@ void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRec
         auto pendingState = pendingState_;
         SetApplicationPendingState(ApplicationPendingState::BACKGROUNDING);
         if (pendingState == ApplicationPendingState::READY) {
-            ScheduleBackgroundRunning();
+            ScheduleBackgroundRunning(isFromScreenOffBackground);
         }
     }
 }

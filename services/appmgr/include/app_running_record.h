@@ -512,7 +512,7 @@ public:
      *
      * @return
      */
-    void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state);
+    void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state, bool isFromScreenOffBackground = false);
 
     /**
      * PopForegroundingAbilityTokens, Extract the token record from the foreground tokens list.
@@ -1099,7 +1099,7 @@ public:
      *
      * @return
      */
-    void ScheduleBackgroundRunning();
+    void ScheduleBackgroundRunning(bool isFromScreenOffBackground = false);
 
     /**
      * SetWatchdogBackgroundStatusRunning, Notify application to set watchdog background status.
@@ -1297,7 +1297,7 @@ private:
      *
      * @return
      */
-    void AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability);
+    void AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability, bool isFromScreenOffBackground = false);
     // drive application state changes when ability state changes.
 
     bool AbilityFocused(const std::shared_ptr<AbilityRunningRecord> &ability);
