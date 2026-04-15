@@ -62,7 +62,7 @@ void AppScheduler::MoveToForeground(const sptr<IRemoteObject>& token)
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::MoveToForeground()");
 }
 
-void AppScheduler::MoveToBackground(const sptr<IRemoteObject>& token)
+void AppScheduler::MoveToBackground(const sptr<IRemoteObject>& token, bool isFromScreenOffBackground)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::MoveToBackground()");
 }
@@ -166,7 +166,8 @@ void AppScheduler::RecordAppExitSignalReason(int32_t pid, int32_t uid, int32_t s
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::RecordAppExitSignalReason()");
 }
 
-void AppScheduler::UpdateAbilityState(const sptr<IRemoteObject>& token, const AppExecFwk::AbilityState state)
+void AppScheduler::UpdateAbilityState(const sptr<IRemoteObject>& token, const AppExecFwk::AbilityState state,
+    bool isFromScreenOffBackground)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::UpdateAbilityState()");
 }

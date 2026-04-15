@@ -2523,6 +2523,16 @@ bool AppRunningRecord::GetUIExtensionPreloadState() const
     return isUIExtensionPreload_.load(std::memory_order_relaxed);
 }
 
+void AppRunningRecord::SetIsFromScreenOffBackground(bool isFromScreenOffBackground)
+{
+    isFromScreenOffBackground_ = isFromScreenOffBackground;
+}
+
+bool AppRunningRecord::IsFromScreenOffBackground() const
+{
+    return isFromScreenOffBackground_;
+}
+
 void AppRunningRecord::SetPreloadModuleName(const std::string& preloadModuleName)
 {
     preloadModuleName_ = preloadModuleName;
