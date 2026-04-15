@@ -19,6 +19,7 @@
 #include <vector>
 #include <shared_mutex>
 
+#include "ability_transaction_callback_info.h"
 #include "ability_lifecycle_callback.h"
 #include "application_state_change_callback.h"
 #include "application_update_callback.h"
@@ -153,6 +154,9 @@ public:
     void KillProcessBySelf(const bool clearPageStack = false);
     int32_t GetProcessRunningInformation(AppExecFwk::RunningProcessInfo &info);
     int32_t RestartApp(const AAFwk::Want& want);
+    int32_t EnableDelayedProcessExit();
+    int32_t DisableDelayedProcessExit();
+    int32_t StartSelfUIAbility(const AAFwk::Want &want);
 
     void AttachContextImpl(const std::shared_ptr<ContextImpl> &contextImpl);
 
@@ -212,6 +216,10 @@ public:
     ConfigUpdateReason GetConfigUpdateReason() override;
     void SetConfigUpdateReason(ConfigUpdateReason reason);
 
+    static constexpr int32_t ERR_DELAYED_PROCESS_EXIT_NO_UIABILITY = -2;
+    static constexpr int32_t ERR_DELAYED_PROCESS_EXIT_NOT_PENDING = -3;
+    static constexpr int32_t ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY = -4;
+
 protected:
     bool IsContext(size_t contextTypeId) override
     {
@@ -220,6 +228,7 @@ protected:
 
 private:
     std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> GetInteropCallbacks();
+    bool HasCurrentProcessUIAbility() const;
 
 private:
     std::shared_ptr<ContextImpl> contextImpl_;

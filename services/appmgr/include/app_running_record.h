@@ -1226,9 +1226,20 @@ public:
     {
         isPrepareExit_ = true;
     }
+
     inline bool IsPrepareExit() const
     {
         return isPrepareExit_;
+    }
+
+    inline void SetDelayedProcessExitEnabled(bool enabled)
+    {
+        delayedProcessExitEnabled_ = enabled;
+    }
+
+    inline bool IsDelayedProcessExitEnabled() const
+    {
+        return delayedProcessExitEnabled_;
     }
 
     inline void SetTimeStamp(int64_t timeStamp)
@@ -1466,6 +1477,7 @@ private:
     bool isNativeStart_ = false;
     bool isNeedLimitPrio_ = false;
     bool isNeedPreloadModule_ = false;
+    bool delayedProcessExitEnabled_ = false;
     bool isPrepareExit_ = false;
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isSingleton_ = false;

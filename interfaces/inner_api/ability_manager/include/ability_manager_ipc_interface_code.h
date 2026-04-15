@@ -702,8 +702,11 @@ enum class AbilityManagerInterfaceCode {
     // start self uiability in current process
     START_SELF_UI_ABILITY_IN_CURRENT_PROCESS = 6153,
 
+    // start self uiability by application context in current process
+    START_SELF_UI_ABILITY_BY_APP_CONTEXT = 6154,
+
     // restart app limit check
-    IS_RESTART_APP_LIMIT = 6154,
+    IS_RESTART_APP_LIMIT = 6155,
 
     // ipc id for un preload UIExtension ability by want and receives the preload Id
     UN_PRELOAD_UI_EXTENSION_ABILITY = 6155,

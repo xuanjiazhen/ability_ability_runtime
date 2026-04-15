@@ -938,6 +938,10 @@ void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool 
                 appRecord->GetBundleName().c_str());
             return;
         }
+        if (appRecord->IsDelayedProcessExitEnabled()) {
+            appRecord->SetProcessCacheBlocked(true);
+            appRecord->SetPrepareExit();
+        }
         TAG_LOGI(AAFwkTag::APPMGR, "ability is the last:%{public}s", appRecord->GetName().c_str());
         appRecord->SetTerminating();
         std::string killReason = clearMissionFlag ? "Kill Reason:ClearSession" : "";
@@ -1018,6 +1022,9 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
         if ((clearMissionFlag || appRecord->IsPrepareExit()) && appMgrServiceInner != nullptr) {
             auto delayTime = appRecord->ExtensionAbilityRecordExists() ?
                 AMSEventHandler::DELAY_KILL_EXTENSION_PROCESS_TIMEOUT : AMSEventHandler::DELAY_KILL_PROCESS_TIMEOUT;
+            if (appRecord->IsDelayedProcessExitEnabled() && !appRecord->ExtensionAbilityRecordExists()) {
+                delayTime = AbilityRuntime::GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME;
+            }
             std::string taskName = std::string("DELAY_KILL_PROCESS_") + std::to_string(appRecord->GetRecordId());
             appRecord->PostTask(taskName, delayTime, killProcess);
         }

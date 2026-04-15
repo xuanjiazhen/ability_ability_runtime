@@ -1177,6 +1177,13 @@ public:
     {
         return 0;
     }
+
+    virtual int32_t SetDelayedProcessExitEnabled(int32_t pid, bool enabled)
+    {
+        return ERR_OK;
+    }
+
+    virtual void ClearProcessPrepareExit(int32_t pid) {}
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

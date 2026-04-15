@@ -16,9 +16,13 @@
 #include "application_context.h"
 
 #include <algorithm>
+#include <memory>
+#include <unistd.h>
 
+#include "ability_manager_client.h"
 #include "ability_manager_errors.h"
 #include "ability_util.h"
+#include "app_mgr_client.h"
 #include "app_image_observer_manager.h"
 #include "configuration_convertor.h"
 #include "exit_reason.h"
@@ -932,6 +936,83 @@ int32_t ApplicationContext::RestartApp(const AAFwk::Want& want)
     std::string bundleName = GetBundleName();
     const_cast<AAFwk::Want &>(want).SetBundle(bundleName);
     return (contextImpl_ != nullptr) ? contextImpl_->RestartApp(want) : ERR_INVALID_VALUE;
+}
+
+int32_t ApplicationContext::EnableDelayedProcessExit()
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl_");
+        return ERR_INVALID_VALUE;
+    }
+#ifndef SUPPORT_SCREEN
+    return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+#else
+    if (!HasCurrentProcessUIAbility()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no UIAbility in current process");
+        return ERR_DELAYED_PROCESS_EXIT_NO_UIABILITY;
+    }
+    auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
+    if (appMgrClient == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    TAG_LOGE(AAFwkTag::APPKIT, "EnableDelayedProcessExit in current process");
+    return appMgrClient->SetDelayedProcessExitEnabled(getpid(), true);
+#endif
+}
+
+int32_t ApplicationContext::DisableDelayedProcessExit()
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl_");
+        return ERR_INVALID_VALUE;
+    }
+#ifndef SUPPORT_SCREEN
+    return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+#else
+    bool allowDisable = HasCurrentProcessUIAbility();
+    auto appMgrClient = std::make_shared<AppExecFwk::AppMgrClient>();
+    if (appMgrClient == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    AppExecFwk::RunningProcessInfo processInfo;
+    (void)appMgrClient->GetRunningProcessInfoByChildProcessPid(getpid(), processInfo);
+    TAG_LOGE(AAFwkTag::APPKIT, "DisableDelayedProcessExit pid:%{public}d", processInfo.pid_);
+    if (!allowDisable) {
+        TAG_LOGE(AAFwkTag::APPKIT, "no UIAbility and no pending delayed exit");
+        return ERR_DELAYED_PROCESS_EXIT_NO_UIABILITY;
+    }
+    return appMgrClient->SetDelayedProcessExitEnabled(getpid(), false);
+#endif
+}
+
+int32_t ApplicationContext::StartSelfUIAbility(const AAFwk::Want &want)
+{
+    if (contextImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "null contextImpl_");
+        return ERR_INVALID_VALUE;
+    }
+#ifndef SUPPORT_SCREEN
+    return AAFwk::ERR_CAPABILITY_NOT_SUPPORT;
+#else
+    auto errCode = AAFwk::AbilityManagerClient::GetInstance()->StartSelfUIAbilityByAppContext(want);
+    if (errCode != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "StartSelfUIAbility failed, errCode:%{public}d", errCode);
+        return errCode;
+    }
+    return ERR_OK;
+#endif
+}
+
+bool ApplicationContext::HasCurrentProcessUIAbility() const
+{
+#ifdef SUPPORT_SCREEN
+    TAG_LOGE(AAFwkTag::APPKIT, "HasCurrentProcessUIAbility in current process");
+    std::vector<std::shared_ptr<UIAbility>> uiAbilities;
+    const_cast<ApplicationContext *>(this)->GetAllUIAbilities(uiAbilities);
+    return !uiAbilities.empty();
+#else
+    return false;
+#endif
 }
 
 std::string ApplicationContext::GetDistributedFilesDir()

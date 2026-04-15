@@ -2941,6 +2941,9 @@ void AppMgrServiceInner::ApplicationTerminated(const int32_t recordId)
         return;
     }
     appRecord->ApplicationTerminated();
+    if (appRecord->IsDelayedProcessExitEnabled()) {
+        return;
+    }
     if (appRecord->GetState() != ApplicationState::APP_STATE_READY &&
         appRecord->GetState() != ApplicationState::APP_STATE_BACKGROUND) {
         TAG_LOGD(AAFwkTag::APPMGR, "current state is not background or ready");
@@ -12585,6 +12588,34 @@ void AppMgrServiceInner::SetProcessPrepareExit(int32_t pid)
     appRecord->SetProcessCacheBlocked(true);
     appRecord->SetTerminating();
     appRecord->SetPrepareExit();
+}
+
+int32_t AppMgrServiceInner::SetDelayedProcessExitEnabled(int32_t pid, bool enabled)
+{
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        return ERR_INVALID_VALUE;
+    }
+    appRecord->SetDelayedProcessExitEnabled(enabled);
+    if (!enabled) {
+        ClearProcessPrepareExit(pid);
+    }
+    return ERR_OK;
+}
+
+void AppMgrServiceInner::ClearProcessPrepareExit(int32_t pid)
+{
+    TAG_LOGE(AAFwkTag::APPMGR, "ClearProcessPrepareExit %{public}d", pid);
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "ClearProcessPrepareExit appRecord null: %{public}d", pid);
+        return;
+    }
+    if (appRecord->IsDelayedProcessExitEnabled()) {
+        if (taskHandler_ != nullptr) {
+            taskHandler_->CancelTask("DELAY_KILL_PROCESS_" + std::to_string(appRecord->GetRecordId()));
+        }
+    }
 }
 
 void AppMgrServiceInner::PostRenderAttachTimeoutTask(std::shared_ptr<RenderRecord> renderRecord)

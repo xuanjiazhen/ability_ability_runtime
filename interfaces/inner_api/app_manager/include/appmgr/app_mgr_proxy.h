@@ -949,6 +949,9 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos) override;
+
+    int32_t SetDelayedProcessExitEnabled(int32_t pid, bool enabled) override;
+    void ClearProcessPrepareExit(int32_t pid) override;
 private:
     bool SendTransactCmd(AppMgrInterfaceCode code, MessageParcel &data, MessageParcel &reply);
     bool WriteInterfaceToken(MessageParcel &data);

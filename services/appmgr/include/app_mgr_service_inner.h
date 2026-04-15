@@ -1737,6 +1737,8 @@ public:
     void SetSpecifiedProcessRequestId(int32_t recordId, int32_t requestId);
 
     void SetProcessPrepareExit(int32_t pid);
+    int32_t SetDelayedProcessExitEnabled(int32_t pid, bool enabled);
+    void ClearProcessPrepareExit(int32_t pid);
 
     void AllowScbProcessMoveToBackground();
 

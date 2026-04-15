@@ -1125,6 +1125,8 @@ private:
     virtual void PreloadModuleFinished(const int32_t recordId) override;
 
     void SetProcessPrepareExit(int32_t pid) override;
+    int32_t SetDelayedProcessExitEnabled(int32_t pid, bool enabled) override;
+    void ClearProcessPrepareExit(int32_t pid) override;
 
     enum DumpIpcKey {
         KEY_DUMP_IPC_START = 0,

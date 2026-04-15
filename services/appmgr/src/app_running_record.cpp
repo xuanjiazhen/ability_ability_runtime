@@ -1195,6 +1195,9 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
         || AAFwk::UIExtensionWrapper::IsUIExtension(GetExtensionType())
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !isExtensionDebug
         && !needCache) {
+        if (IsDelayedProcessExitEnabled()) {
+            return;
+        }
         ScheduleTerminate();
     }
 }
