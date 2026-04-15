@@ -794,7 +794,6 @@ int32_t InsightIntentExecuteManager::GenerateQueryEntityWant(
 
     want.SetParam(INSIGHT_INTENT_ARKTS_MODE, intentInfo.arkTSMode);
     want.SetParam(INSIGHT_INTENT_SRC_ENTRANCE, intentInfo.decoratorFile);
-    want.SetParam(INSIGHT_INTENT_SRC_ENTRY, intentInfo.decoratorFile);
     want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_NAME, param->intentName_);
     want.SetParam(INSIGHT_INTENT_EXECUTE_PARAM_MODE,
         static_cast<int32_t>(AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND));

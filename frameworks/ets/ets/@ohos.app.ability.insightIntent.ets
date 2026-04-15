@@ -45,7 +45,7 @@ namespace insightIntent {
     flags?: int;
   }
 
-  export enum ReturnMode {  
+  export enum ReturnMode {
     CALLBACK = 0,
     FUNCTION = 1
   }
@@ -74,12 +74,56 @@ namespace insightIntent {
 
     public callPromise(p: Promise<Any>): void {
       p.then((result: Any): void => {
-        let recordArr = result as Array<Record<string, RecordData>>;
+        let entityArr = result as Array<Any>;
+        let recordArr: Array<Record<string, RecordData>> = [];
+        for (let entity of entityArr) {
+          let record = this.entityToRecord(entity);
+          recordArr.push(record);
+        }
         this.nativeOnQueryEntityResult(recordArr);
       }).catch((err: Error): void => {
         this.nativeOnQueryEntityError(err);
       });
     }
+
+    private entityToRecord(entity: Any): Record<string, RecordData> {
+      let record: Record<string, RecordData> = new Record<string, RecordData>();
+      let jsonStr: string = JSON.stringify(entity);
+      let jsonValue = JSON.parseJsonElement(jsonStr);
+      if (jsonValue.jsonType != jsonx.JsonType.JsonObject) {
+        return record;
+      }
+      let iterVal: IterableIterator<[string, jsonx.JsonElement]> = jsonValue.$_iterator();
+      for (let entry of iterVal) {
+        let key = entry[0];
+        let value = entry[1];
+        if (key == 'nativeExecutor') {
+          continue;
+        }
+        switch (value.jsonType) {
+          case jsonx.JsonType.JsonString:
+            record[key] = value.asString();
+            break;
+          case jsonx.JsonType.JsonNumber:
+            record[key] = value.asDouble();
+            break;
+          case jsonx.JsonType.JsonTrue:
+            record[key] = true;
+            break;
+          case jsonx.JsonType.JsonFalse:
+            record[key] = false;
+            break;
+          case jsonx.JsonType.JsonNull:
+            record[key] = null;
+            break;
+          default:
+            record[key] = value;
+            break;
+        }
+      }
+      return record;
+    }
+
   }
 }
 

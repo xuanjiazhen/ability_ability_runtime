@@ -35,7 +35,6 @@ using State = EtsInsightIntentUtils::State;
 
 namespace {
 constexpr const char *SIGNATURE_APP_INTENT_ENTITY = "@ohos.app.ability.insightIntent.insightIntent.AppIntentEntity";
-constexpr const char *APPINTENT_ENTITY_WRAPPER_CLASS = "utils.AbilityUtils.AppIntentEntityWrapper";
 }
 
 InsightIntentExecutor *EtsInsightIntentQueryEntity::Create(Runtime &runtime)
@@ -199,7 +198,7 @@ void EtsInsightIntentQueryEntity::OnQueryEntityResult(ani_env *env, ani_object a
         TAG_LOGE(AAFwkTag::INTENT, "null native executor");
         return;
     }
-    executor->HandleEtsResultReturned(env, result, true);
+    executor->HandleEtsResultReturned(env, result);
 }
 
 void EtsInsightIntentQueryEntity::OnQueryEntityError(ani_env *env, ani_object aniObj, ani_object err)
@@ -220,7 +219,7 @@ void EtsInsightIntentQueryEntity::OnQueryEntityError(ani_env *env, ani_object an
         TAG_LOGE(AAFwkTag::INTENT, "null native executor");
         return;
     }
-    executor->HandleEtsResultReturned(env, err, true);
+    executor->HandleEtsResultReturned(env, err);
 }
 
 void EtsInsightIntentQueryEntity::ReplyFailedInner(InsightIntentInnerErr innerErr)
@@ -249,7 +248,7 @@ bool EtsInsightIntentQueryEntity::ExecuteIntentCheckError()
     STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
 }
 
-bool EtsInsightIntentQueryEntity::HandleEtsResultReturned(ani_env *env, ani_ref result, bool isAsync)
+bool EtsInsightIntentQueryEntity::HandleEtsResultReturned(ani_env *env, ani_ref result)
 {
     TAG_LOGD(AAFwkTag::INTENT, "called");
     if (env == nullptr || result == nullptr) {
@@ -281,8 +280,8 @@ bool EtsInsightIntentQueryEntity::HandleEtsResultReturned(ani_env *env, ani_ref 
             continue;
         }
         auto wantParams = std::make_shared<AAFwk::WantParams>();
-        if (UnWrapQueryResult(env, ref, wantParams) == nullptr) {
-            TAG_LOGE(AAFwkTag::INTENT, "unwrap query result failed");
+        if (!AppExecFwk::UnwrapWantParams(env, ref, *wantParams)) {
+            TAG_LOGE(AAFwkTag::INTENT, "unwrap want parameter failed");
             continue;
         }
         queryResults.push_back(wantParams);
@@ -315,44 +314,6 @@ bool EtsInsightIntentQueryEntity::CallPromise(ani_env *env, ani_ref promise)
         return false;
     }
     return true;
-}
-
-ani_object EtsInsightIntentQueryEntity::UnWrapQueryResult(ani_env *env, ani_ref recordRef,
-    std::shared_ptr<AAFwk::WantParams> wantParams)
-{
-    if (env == nullptr || recordRef == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "null env or recordRef");
-        return nullptr;
-    }
-
-    ani_class cls = nullptr;
-    ani_status status = env->FindClass(APPINTENT_ENTITY_WRAPPER_CLASS, &cls);
-    if (status != ANI_OK || cls == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "FindClass failed, status: %{public}d", status);
-        return nullptr;
-    }
-
-    ani_static_method fromRecordMethod = nullptr;
-    status = env->Class_FindStaticMethod(cls, "toRecord", nullptr, &fromRecordMethod);
-    if (status != ANI_OK || fromRecordMethod == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "Class_FindStaticMethod failed, status: %{public}d", status);
-        return nullptr;
-    }
-
-    ani_ref intentResultRef = nullptr;
-    status = env->Class_CallStaticMethod_Ref(cls, fromRecordMethod, &intentResultRef, recordRef);
-    if (status != ANI_OK || intentResultRef == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "Class_CallStaticMethod_Ref failed, status: %{public}d", status);
-        return nullptr;
-    }
-
-    if (!AppExecFwk::UnwrapWantParams(env, intentResultRef, *wantParams)) {
-        TAG_LOGE(AAFwkTag::INTENT, "failed to unwrap want parameter");
-        return nullptr;
-    }
-
-    TAG_LOGD(AAFwkTag::INTENT, "UnWrapQueryResult success, wantParams: %{public}s", wantParams->ToString().c_str());
-    return static_cast<ani_object>(intentResultRef);
 }
 } // namespace OHOS::AbilityRuntime
 

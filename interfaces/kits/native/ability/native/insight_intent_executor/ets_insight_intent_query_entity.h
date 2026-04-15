@@ -64,10 +64,9 @@ private:
 
     void ReplyFailedInner(InsightIntentInnerErr innerErr = InsightIntentInnerErr::INSIGHT_INTENT_EXECUTE_REPLY_FAILED);
     void ReplySucceededInner(std::shared_ptr<AppExecFwk::InsightIntentExecuteResult> resultCpp);
-    bool HandleEtsResultReturned(ani_env *env, ani_ref result, bool isAsync);
+    bool HandleEtsResultReturned(ani_env *env, ani_ref result);
     bool ExecuteIntentCheckError();
     bool CallPromise(ani_env *env, ani_ref promise);
-    ani_object UnWrapQueryResult(ani_env *env, ani_ref recordRef, std::shared_ptr<AAFwk::WantParams> wantParams);
 
     ETSRuntime &runtime_;
     State state_ = State::CREATED;
