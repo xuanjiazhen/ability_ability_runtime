@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -41,6 +41,7 @@ constexpr int32_t ERMS_ISALLOW_RESULTCODE = 10;
 constexpr const char* SUPPORT_CLOSE_ON_BLUR = "supportCloseOnBlur";
 constexpr const char* DIALOG_SESSION_ID = "dialogSessionId";
 constexpr const char* PICKER_ERMS_POLICY = "ability.params.picker.erms.policy";
+constexpr const char* ATOMIC_SERVICE_SHORT_LINK = "atomicServiceShortLink";
 }
 
 DialogSessionManager &DialogSessionManager::GetInstance()
@@ -311,9 +312,16 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
     sptr<IRemoteObject> callerToken = dialogCallerInfo->callerToken;
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
     CHECK_POINTER_AND_RETURN(abilityMgr, INNER_ERR);
-    int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
-        dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
-        dialogCallerInfo->callerAccessTokenId);
+    int32_t ret = ERR_OK;
+    int32_t atomicServiceShortLink = want.GetIntParam(ATOMIC_SERVICE_SHORT_LINK, 0);
+    if (atomicServiceShortLink == 1) {
+        ret = abilityMgr->OpenLink(targetWant, callerToken, dialogCallerInfo->userId,
+            dialogCallerInfo->requestCode, false);
+    } else {
+        ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
+            dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
+            dialogCallerInfo->callerAccessTokenId);
+    }
     if (ret == ERR_OK) {
         ClearDialogContext(dialogSessionId);
         abilityMgr->RemoveSelectorIdentity(dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
@@ -369,6 +377,7 @@ std::string DialogSessionManager::GenerateDialogSessionRecordCommon(AbilityReque
     }
 
     dialogSessionInfo->parameters = parameters;
+    dialogSessionInfo->atomicServiceShortLink = abilityRequest.atomicServiceShortLink;
 
     std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
     GenerateDialogCallerInfo(abilityRequest, userId, dialogCallerInfo, type, needGrantUriPermission);

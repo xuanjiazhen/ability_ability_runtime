@@ -111,6 +111,7 @@ bool DialogSessionInfo::ReadFromParcel(Parcel &parcel)
         return false;
     }
     parameters = *params;
+    atomicServiceShortLink = parcel.ReadInt32();
     return true;
 }
 
@@ -129,6 +130,7 @@ bool DialogSessionInfo::Marshalling(Parcel &parcel) const
         WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(String16, parcel, Str8ToStr16(targetAbilityInfo.installSource));
     }
     WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Parcelable, parcel, &parameters);
+    WRITE_PARCEL_AND_RETURN_FALSE_IF_FAIL(Int32, parcel, atomicServiceShortLink);
     return true;
 }
 
