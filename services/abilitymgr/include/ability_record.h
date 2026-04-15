@@ -586,6 +586,8 @@ public:
     void UpdateSessionInfo(sptr<IRemoteObject> sessionToken);
     void SetMinimizeReason(bool fromUser);
     void SetSceneFlag(uint32_t sceneFlag);
+    void SetIsFromScreenOffBackground(bool isFromScreenOffBackground);
+    bool IsFromScreenOffBackground() const;
     bool IsMinimizeFromUser() const;
     void SetClearMissionFlag(bool clearMissionFlag);
     bool IsClearMissionFlag();
