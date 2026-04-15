@@ -231,7 +231,7 @@ ani_object WrapQueryEntityResult(ani_env *env, const AppExecFwk::InsightIntentEx
         }
         status = env->Object_CallMethodByName_Void(arrayObj, "$_set", "iY:", index, aniInfo);
         if (status != ANI_OK) {
-            TAG_LOGE(AAFwkTag::INTENT, "queryResult: %{public}zu SetObject failed status: %{public}zu", i, status);
+            TAG_LOGE(AAFwkTag::INTENT, "queryResult: %{public}zu SetObject failed status: %{public}d", i, status);
             continue;
         }
         index++;
