@@ -3614,7 +3614,7 @@ int32_t AbilityManagerService::RecordAppWithReasonByUserId(int32_t userId,
         return ERR_OK;
     }
 
-    appExitReasonHelper_->RecordAppsWithReasonByUserId(userId, exitReasonCompability, processInfoList);
+    appExitReasonHelper_->RecordAppsWithReasonByProcessInfoList(exitReasonCompability, processInfoList);
     return ERR_OK;
 }
 
@@ -3627,28 +3627,20 @@ int32_t AbilityManagerService::RecordAppWithReasonByAccessTokenId(uint32_t acces
         TAG_LOGE(AAFwkTag::ABILITYMGR, "exit reason is invalid");
         return ERR_INVALID_VALUE;
     }
-    Security::AccessToken::HapTokenInfo hapInfo;
-    int32_t ret = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(accessTokenId, hapInfo);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetHapTokenInfo failed: %{public}d", ret);
-        return ret;
-    }
-    int32_t userId = hapInfo.userID;
 
     std::vector<AppExecFwk::RunningProcessInfo> processInfoList;
-    ret = IN_PROCESS_CALL(GetProcessRunningInfosByUserId(processInfoList, userId));
+    int32_t ret = IN_PROCESS_CALL(GetProcessRunningInfosByAccessTokenId(accessTokenId, processInfoList));
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetProcessRunningInfosByUserId failed: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "GetProcessRunningInfosByAccessTokenId failed: %{public}d", ret);
         return ret;
     }
 
     if (processInfoList.empty()) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "no process info for userId: %{public}d", userId);
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "no process info for accessTokenId: %{public}d", accessTokenId);
         return ERR_OK;
     }
 
-    appExitReasonHelper_->RecordAppWithReasonByAccessTokenId(userId, accessTokenId, exitReasonCompability,
-        processInfoList);
+    appExitReasonHelper_->RecordAppsWithReasonByProcessInfoList(exitReasonCompability, processInfoList);
     return ERR_OK;
 }
 
@@ -10320,6 +10312,12 @@ int AbilityManagerService::GetProcessRunningInfosByUserId(
     std::vector<AppExecFwk::RunningProcessInfo> &info, int32_t userId)
 {
     return DelayedSingleton<AppScheduler>::GetInstance()->GetProcessRunningInfosByUserId(info, userId);
+}
+
+int AbilityManagerService::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+    std::vector<AppExecFwk::RunningProcessInfo> &info)
+{
+    return DelayedSingleton<AppScheduler>::GetInstance()->GetProcessRunningInfosByAccessTokenId(accessTokenId, info);
 }
 
 void AbilityManagerService::ClearUserData(int32_t userId)
