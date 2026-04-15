@@ -50,6 +50,7 @@ struct DialogSessionInfo : public Parcelable {
     DialogAbilityInfo callerAbilityInfo;
     std::vector<DialogAbilityInfo> targetAbilityInfos;
     AAFwk::WantParams parameters;
+    int32_t atomicServiceShortLink = 0;
 
     bool ReadFromParcel(Parcel &parcel);
     virtual bool Marshalling(Parcel &parcel) const override;
