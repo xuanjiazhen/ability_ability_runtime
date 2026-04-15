@@ -68,7 +68,7 @@ public:
     static constexpr int32_t START_SPECIFIED_ABILITY_TIMEOUT = 3000; // ms
     static constexpr int32_t START_PROCESS_SPECIFIED_ABILITY_TIMEOUT = 5000; // ms
     static constexpr int32_t START_SPECIFIED_PROCESS_TIMEOUT = 2000; // ms
-    static constexpr int32_t KILL_PROCESS_TIMEOUT = 3000; // ms
+    static constexpr int32_t KILL_PROCESS_TIMEOUT = 6000; // ms
 #endif
     static constexpr int32_t DELAY_KILL_PROCESS_TIMEOUT = 3000; // ms
     static constexpr int32_t DELAY_KILL_EXTENSION_PROCESS_TIMEOUT = 500; // ms
