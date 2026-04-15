@@ -395,7 +395,8 @@ void AppStateObserverManager::OnChildProcessDied(std::shared_ptr<ChildProcessRec
 #endif // SUPPORT_CHILD_PROCESS
 
 void AppStateObserverManager::OnProcessStateChanged(
-    const std::shared_ptr<AppRunningRecord> &appRecord, bool isFromWindowFocusChanged, bool isByCall)
+    const std::shared_ptr<AppRunningRecord> &appRecord, bool isFromWindowFocusChanged, bool isByCall,
+    bool isFromScreenOffBackground)
 {
     if (handler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null handler");
@@ -409,7 +410,7 @@ void AppStateObserverManager::OnProcessStateChanged(
             return;
         }
         TAG_LOGD(AAFwkTag::APPMGR, "OnProcessStateChanged come.");
-        self->HandleOnProcessStateChanged(appRecord, isFromWindowFocusChanged, isByCall);
+        self->HandleOnProcessStateChanged(appRecord, isFromWindowFocusChanged, isByCall, isFromScreenOffBackground);
     };
     handler_->SubmitTask(task);
 }
@@ -685,10 +686,10 @@ void AppStateObserverManager::HandleStateChangedNotifyObserver(
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::APPMGR,
-        "Handle state change, module:%{public}s, bundle:%{public}s, ability:%{public}s, state:%{public}d,"
-        "pid:%{public}d ,uid:%{public}d, abilityType:%{public}d, isAbility:%{public}d, callerBundleName:%{public}s,"
-        "callerAbilityName:%{public}s, isAtomicService:%{public}d, callerUid:%{public}d, callerPid:%{public}d"
-        "pleloadMode:%{public}d",
+        "Handle state change, module:%{public}s, bundle:%{public}s, ability:%{public}s, state:%{public}d, "
+        "pid:%{public}d ,uid:%{public}d, abilityType:%{public}d, isAbility:%{public}d, callerBundleName:%{public}s, "
+        "callerAbilityName:%{public}s, isAtomicService:%{public}d, callerUid:%{public}d, callerPid:%{public}d, "
+        "preloadMode:%{public}d",
         abilityStateData.moduleName.c_str(), abilityStateData.bundleName.c_str(),
         abilityStateData.abilityName.c_str(), abilityStateData.abilityState, abilityStateData.pid, abilityStateData.uid,
         abilityStateData.abilityType, isAbility, abilityStateData.callerBundleName.c_str(),
@@ -856,14 +857,15 @@ void AppStateObserverManager::HandleOnProcessCreated(const ProcessData &data, Bu
 }
 
 void AppStateObserverManager::HandleOnProcessStateChanged(
-    const std::shared_ptr<AppRunningRecord> &appRecord, bool isFromWindowFocusChanged, bool isByCall)
+    const std::shared_ptr<AppRunningRecord> &appRecord, bool isFromWindowFocusChanged, bool isByCall,
+    bool isFromScreenOffBackground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
         return;
     }
-    ProcessData data = WrapProcessData(appRecord, isFromWindowFocusChanged);
+    ProcessData data = WrapProcessData(appRecord, isFromWindowFocusChanged, isFromScreenOffBackground);
     if (data.bundleName == XIAOYI_BUNDLE_NAME && data.extensionType == ExtensionAbilityType::SERVICE) {
         TAG_LOGI(AAFwkTag::APPMGR, "change processType to NORMAL");
         data.processType = ProcessType::NORMAL;
@@ -1030,7 +1032,7 @@ void AppStateObserverManager::HandleOnProcessDied(const ProcessData &data, Bundl
 }
 
 ProcessData AppStateObserverManager::WrapProcessData(
-    const std::shared_ptr<AppRunningRecord> &appRecord, bool isFromWindowFocusChanged)
+    const std::shared_ptr<AppRunningRecord> &appRecord, bool isFromWindowFocusChanged, bool isFromScreenOffBackground)
 {
     ProcessData processData;
     processData.bundleName = appRecord->GetBundleName();
@@ -1059,6 +1061,7 @@ ProcessData AppStateObserverManager::WrapProcessData(
     processData.callerUid = appRecord->GetCallerUid();
     processData.killReason = appRecord->GetKillReason();
     processData.isFromWindowFocusChanged = isFromWindowFocusChanged;
+    processData.isFromScreenOffBackground = isFromScreenOffBackground;
     processData.preloadMode = static_cast<int32_t>(appRecord->GetPreloadMode());
     processData.imageProcessType = static_cast<int32_t>(appRecord->GetImageProcessType());
     processData.isPreloadUIExtension = appRecord->GetUIExtensionPreloadState();
