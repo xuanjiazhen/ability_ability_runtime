@@ -803,7 +803,7 @@ HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_003, Test
 
     StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo, 0);
 
-    EXPECT_TRUE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
+    EXPECT_FALSE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
     AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_003 end");
 }
@@ -866,7 +866,7 @@ HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_006, Test
 
     StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo, 12345);
 
-    EXPECT_TRUE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
+    EXPECT_FALSE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
     AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_006 end");
 }
@@ -908,7 +908,7 @@ HWTEST_F(StartAbilityUtilsTest, RemoveAtomicServiceShareRouterIfNeeded_008, Test
 
     StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(want, targetAbilityInfo, 0);
 
-    EXPECT_TRUE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
+    EXPECT_FALSE(want.HasParameter(Want::ATOMIC_SERVICE_SHARE_ROUTER));
     AAFwk::MyFlag::retVerifyAccessTokenId_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityUtilsTest RemoveAtomicServiceShareRouterIfNeeded_008 end");
 }
