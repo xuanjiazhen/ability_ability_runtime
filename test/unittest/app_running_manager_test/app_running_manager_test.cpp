@@ -216,7 +216,9 @@ HWTEST_F(AppRunningManagerTest, AppRunningManager_GetAppRunningRecordByChildProc
     EXPECT_NE(appRunningManager, nullptr);
 
     auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     ChildProcessRequest request;
     request.srcEntry = "./ets/AProcess.ts";
     auto childRecord = ChildProcessRecord::CreateChildProcessRecord(PID, request, appRecord);
@@ -759,7 +761,9 @@ HWTEST_F(AppRunningManagerTest, HandleChildRelation_0100, TestSize.Level1)
     ASSERT_NE(appRunningManager, nullptr);
     appRunningManager->HandleChildRelation(nullptr, nullptr);
     auto appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     appRunningManager->HandleChildRelation(nullptr, appRecord);
     ChildProcessRequest request;
     request.srcEntry = "./ets/AProcess.ts";

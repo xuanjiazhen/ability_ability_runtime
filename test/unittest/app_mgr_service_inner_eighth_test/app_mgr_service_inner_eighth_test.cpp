@@ -3757,8 +3757,10 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_001, Te
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
 
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     std::string processName;
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    appRecord->SetUid(100);
     ASSERT_NE(appRecord, nullptr);
 
     appRecord->SetDebugApp(true);
@@ -3784,8 +3786,10 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_002, Te
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
 
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     std::string processName;
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    appRecord->SetUid(100);
     ASSERT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -3810,8 +3814,10 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_003, Te
     appMgrServiceInner->SetEventHandler(nullptr);
 
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     std::string processName;
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    appRecord->SetUid(100);
     ASSERT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -3840,8 +3846,10 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_004, Te
     appMgrServiceInner->SetEventHandler(eventHandler);
 
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     std::string processName;
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, 0, processName);
+    appRecord->SetUid(100);
     ASSERT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;

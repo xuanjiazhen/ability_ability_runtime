@@ -55,7 +55,9 @@ HWTEST_F(ChildProcessRecordTest, ChildProcessRecord_0100, TestSize.Level1)
 {
     TAG_LOGD(AAFwkTag::TEST, "ChildProcessRecord_0100 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -74,7 +76,9 @@ HWTEST_F(ChildProcessRecordTest, ChildProcessRecord_0200, TestSize.Level1)
 {
     TAG_LOGD(AAFwkTag::TEST, "ChildProcessRecord_0200 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -110,7 +114,9 @@ HWTEST_F(ChildProcessRecordTest, ChildProcessRecord_0400, TestSize.Level1)
 {
     TAG_LOGD(AAFwkTag::TEST, "ChildProcessRecord_0400 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -145,7 +151,9 @@ HWTEST_F(ChildProcessRecordTest, ChildProcessRecord_0600, TestSize.Level1)
 {
     TAG_LOGD(AAFwkTag::TEST, "ChildProcessRecord_0600 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -164,7 +172,9 @@ HWTEST_F(ChildProcessRecordTest, ChildProcessRecord_0700, TestSize.Level1)
 {
     TAG_LOGD(AAFwkTag::TEST, "ChildProcessRecord_0700 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -322,7 +332,9 @@ HWTEST_F(ChildProcessRecordTest, ChildProcessRecord_1600, TestSize.Level1)
 {
     TAG_LOGD(AAFwkTag::TEST, "ChildProcessRecord_1600 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -340,7 +352,9 @@ HWTEST_F(ChildProcessRecordTest, ChildProcessRecord_1700, TestSize.Level1)
 {
     TAG_LOGD(AAFwkTag::TEST, "ChildProcessRecord_1700 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;

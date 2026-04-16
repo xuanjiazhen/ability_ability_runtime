@@ -120,8 +120,10 @@ std::shared_ptr<AppRunningRecord> AppStateObserverManagerTestSecond::MockAppReco
 {
     ApplicationInfo appInfo;
     appInfo.accessTokenId = 1;
+    appInfo.bundleName = "com.ohos.unittest";
     std::shared_ptr<ApplicationInfo> info = std::make_shared<ApplicationInfo>(appInfo);
     info->accessTokenId = 1;
+    info->bundleName = "com.ohos.unittest";
     std::shared_ptr<AppRunningRecord> appRecord = std::make_shared<AppRunningRecord>(info, 0, "process");
     std::shared_ptr<PriorityObject> priorityObject = std::make_shared<PriorityObject>();
     priorityObject->SetPid(1);

@@ -2169,6 +2169,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_StartChildPr
     loadParam->preToken = preToken_;
     auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    appRecord->SetUid(100);
     ChildProcessRequest childRequest;
     auto childProcessRecord = std::make_shared<ChildProcessRecord>(appRecord->GetRecordId(), childRequest, appRecord);
     childProcessRecord->SetPid(PID_1000);
@@ -2219,6 +2220,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_StartChildPr
     loadParam->preToken = preToken_;
     auto appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    appRecord->SetUid(100);
     ChildProcessRequest childRequest;
     childRequest.childProcessType = 1;
     auto childProcessRecord = std::make_shared<ChildProcessRecord>(appRecord->GetRecordId(), childRequest, appRecord);
@@ -2274,6 +2276,7 @@ HWTEST_F(AppMgrServiceInnerSecondTest, AppMgrServiceInnerSecondTest_KillChildPro
     childRequest.childProcessType = 1;
     auto childAppRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam, applicationInfo_, abilityInfo_,
         TEST_PROCESS_NAME, bundleInfo, hapModuleInfo, want_, false);
+    childAppRecord->SetUid(100);
     childAppRecord->GetPriorityObject()->SetPid(1);
     auto childProcessRecord = std::make_shared<ChildProcessRecord>(childAppRecord->GetRecordId(), childRequest,
         childAppRecord);
