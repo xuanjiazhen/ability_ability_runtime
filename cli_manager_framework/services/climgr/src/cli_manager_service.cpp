@@ -47,7 +47,7 @@ constexpr int32_t DEFAULT_TIMEOUT_SEC = 30 * 60;
 int64_t GetCurrentTimeMs()
 {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
-        std::chrono::steady_clock::now().time_since_epoch()).count();
+        std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
 class CallbackDeathRecipient final : public IRemoteObject::DeathRecipient {
@@ -562,7 +562,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         }
     }
 
-    auto startTimePoint = std::chrono::steady_clock::now();
+    auto startTimePoint = std::chrono::system_clock::now();
     int64_t startTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         startTimePoint.time_since_epoch()).count();
 
@@ -639,7 +639,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         close(stdoutPipe[1]);
         close(stderrPipe[1]);
 
-        std::vector<char *> execArgs;
+        std::vector<char*> execArgs;
         std::string clawSandbox = "/system/bin/claw_sandbox";
         std::string configPrompt = "--config";
         std::string cmdPrompt = "--cmd";
@@ -756,7 +756,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         return ERR_CLI_WAITPID_FAILED;
     }
 
-    auto endTimePoint = std::chrono::steady_clock::now();
+    auto endTimePoint = std::chrono::system_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTimePoint - startTimePoint);
     int64_t endTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
         endTimePoint.time_since_epoch()).count();

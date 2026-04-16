@@ -66,22 +66,5 @@
     "enabled": true,
     "hasSubcommands": false,
     "subcommands": ""
-  },
-  {
-    "name": "claw_sandbox",
-    "version": "1.0.0",
-    "description": "Sandbox tools",
-    "executablePath": "/usr/bin/claw_sandbox",
-    "permissions": [],
-    "inputSchema": "{}",
-    "outputSchema": "{}",
-    "argMapping": "{}",
-    "eventSchemas": "{}",
-    "timeout": 15000,
-    "eventTypes": ["stdout", "stderr", "exit"],
-    "registeredTime": 0,
-    "enabled": true,
-    "hasSubcommands": false,
-    "subcommands": ""
   }
 ]
