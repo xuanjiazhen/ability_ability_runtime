@@ -70,6 +70,9 @@ HWTEST_F(ModularObjectRdbDataManagerTest, ModularObjectRdbDataManager_0100, Func
     res = DelayedSingleton<ModularObjectExtensionRdbDataMgr>::GetInstance()->UpdateData(KEY_ONE, VALUE_TWO);
     EXPECT_EQ(res, NativeRdb::E_OK);
 
+    res = DelayedSingleton<ModularObjectExtensionRdbDataMgr>::GetInstance()->UpdateData(KEY_TWO, VALUE_TWO);
+    EXPECT_EQ(res, NativeRdb::E_OK);
+
     res = DelayedSingleton<ModularObjectExtensionRdbDataMgr>::GetInstance()->QueryData(KEY_ONE, value);
     EXPECT_EQ(res, NativeRdb::E_OK);
     EXPECT_TRUE(value == VALUE_TWO);
@@ -97,5 +100,23 @@ HWTEST_F(ModularObjectRdbDataManagerTest, ModularObjectRdbDataManager_0200, Func
         EXPECT_TRUE(rdbMgr->IsRetryErrCode(errCode));
     }
     EXPECT_FALSE(rdbMgr->IsRetryErrCode(NativeRdb::E_OK));
+}
+
+/**
+ * @tc.number: ModularObjectRdbDataManager_0300
+ * @tc.desc: Validate the retry predicate for transient Rdb errors.
+ * @tc.type: FUNC
+ */
+HWTEST_F(ModularObjectRdbDataManagerTest, ModularObjectRdbDataManager_0300, Function | SmallTest | Level1)
+{
+    std::vector<AAFwk::ModularObjectExtensionInfo> infos;
+    uint32_t versionCode = 1;
+    auto ret = DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->UpdateData(
+        KEY_ONE, infos, versionCode);
+    EXPECT_EQ(ret, NativeRdb::E_OK);
+    AAFwk::ModularObjectExtensionInfo info;
+    infos.push_back(info);
+    ret = DelayedSingleton<ModularObjectExtensionRdbStorageMgr>::GetInstance()->UpdateData(KEY_ONE, infos, versionCode);
+    EXPECT_EQ(ret, NativeRdb::E_OK);
 }
 }  // namespace
