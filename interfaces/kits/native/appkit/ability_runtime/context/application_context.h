@@ -108,6 +108,9 @@ public:
     void AddNativeAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper);
     std::shared_ptr<NativeAbilityWrapper> GetNativeAbility(int32_t instanceId);
     void RemoveNativeAbility(int32_t instanceId);
+    void PostAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper);
+    void DestroyAbility(int32_t instanceId);
+    void NotifyProcessExit();
 
     std::string GetBundleName() const override;
     std::shared_ptr<Context> CreateBundleContext(const std::string &bundleName) override;

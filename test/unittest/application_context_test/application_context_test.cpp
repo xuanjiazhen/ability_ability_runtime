@@ -2539,6 +2539,211 @@ HWTEST_F(ApplicationContextTest, AddGetRemoveNativeAbility_0100, TestSize.Level1
     GTEST_LOG_(INFO) << "AddGetRemoveNativeAbility_0100 end";
 }
 
+namespace {
+const NativeAbilityWrapper* receivedWrapper = nullptr;
+void MockPostAbility(const NativeAbilityWrapper* wrapper)
+{
+    receivedWrapper = wrapper;
+}
+} // namespace
+
+/**
+ * @tc.number: ApplicationContext_PostAbility_0100
+ * @tc.name: ApplicationContext PostAbility
+ * @tc.desc: PostAbility with null wrapper should return early
+ */
+HWTEST_F(ApplicationContextTest, ApplicationContext_PostAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationContext_PostAbility_0100 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+
+    context_->PostAbility(1, nullptr);
+    EXPECT_TRUE(context_->nativeAbilities_.empty());
+
+    GTEST_LOG_(INFO) << "ApplicationContext_PostAbility_0100 end";
+}
+
+/**
+ * @tc.number: ApplicationContext_PostAbility_0200
+ * @tc.name: ApplicationContext PostAbility
+ * @tc.desc: PostAbility with valid wrapper but no native thread, wrapper should still be added
+ */
+HWTEST_F(ApplicationContextTest, ApplicationContext_PostAbility_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationContext_PostAbility_0200 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = 42;
+    wrapper->abilityName = "TestAbility";
+
+    context_->PostAbility(42, wrapper);
+
+    EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
+    auto ret = context_->GetNativeAbility(42);
+    ASSERT_NE(ret, nullptr);
+    EXPECT_EQ(ret->abilityName, "TestAbility");
+
+    GTEST_LOG_(INFO) << "ApplicationContext_PostAbility_0200 end";
+}
+
+/**
+ * @tc.number: ApplicationContext_PostAbility_0300
+ * @tc.name: ApplicationContext PostAbility
+ * @tc.desc: PostAbility with valid wrapper and valid native thread, should add wrapper and call PostAbility
+ */
+HWTEST_F(ApplicationContextTest, ApplicationContext_PostAbility_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationContext_PostAbility_0300 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = 100;
+    wrapper->abilityName = "TestPostAbilityIntegration";
+
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    receivedWrapper = nullptr;
+    thread->postAbilityFunc_ = MockPostAbility;
+    context_->abilityNativeThread_ = thread;
+
+    context_->PostAbility(100, wrapper);
+
+    EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
+    auto ret = context_->GetNativeAbility(100);
+    ASSERT_NE(ret, nullptr);
+    EXPECT_EQ(ret->abilityName, "TestPostAbilityIntegration");
+    EXPECT_NE(receivedWrapper, nullptr);
+    EXPECT_EQ(receivedWrapper->instanceId, 100);
+
+    // Cleanup
+    thread->postAbilityFunc_ = nullptr;
+    context_->abilityNativeThread_ = nullptr;
+    GTEST_LOG_(INFO) << "ApplicationContext_PostAbility_0300 end";
+}
+
+/**
+ * @tc.number: ApplicationContext_DestroyAbility_0100
+ * @tc.name: ApplicationContext DestroyAbility
+ * @tc.desc: DestroyAbility with no native thread, should still remove the wrapper
+ */
+HWTEST_F(ApplicationContextTest, ApplicationContext_DestroyAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationContext_DestroyAbility_0100 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = 42;
+    wrapper->abilityName = "TestAbility";
+    context_->AddNativeAbility(42, wrapper);
+    EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
+
+    context_->DestroyAbility(42);
+
+    EXPECT_TRUE(context_->nativeAbilities_.empty());
+    auto ret = context_->GetNativeAbility(42);
+    EXPECT_EQ(ret, nullptr);
+
+    GTEST_LOG_(INFO) << "ApplicationContext_DestroyAbility_0100 end";
+}
+
+/**
+ * @tc.number: ApplicationContext_DestroyAbility_0200
+ * @tc.name: ApplicationContext DestroyAbility
+ * @tc.desc: DestroyAbility with valid native thread, should call DestroyAbility on thread and remove wrapper
+ */
+HWTEST_F(ApplicationContextTest, ApplicationContext_DestroyAbility_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationContext_DestroyAbility_0200 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = 100;
+    wrapper->abilityName = "TestDestroyAbility";
+    context_->AddNativeAbility(100, wrapper);
+
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    int32_t receivedInstanceId = -1;
+    thread->destroyAbilityFunc_ = [&receivedInstanceId](int32_t instanceId) {
+        receivedInstanceId = instanceId;
+    };
+    context_->abilityNativeThread_ = thread;
+
+    context_->DestroyAbility(100);
+
+    EXPECT_EQ(receivedInstanceId, 100);
+    EXPECT_TRUE(context_->nativeAbilities_.empty());
+
+    // Cleanup
+    thread->destroyAbilityFunc_ = nullptr;
+    context_->abilityNativeThread_ = nullptr;
+    GTEST_LOG_(INFO) << "ApplicationContext_DestroyAbility_0200 end";
+}
+
+/**
+ * @tc.number: ApplicationContext_DestroyAbility_0300
+ * @tc.name: ApplicationContext DestroyAbility
+ * @tc.desc: DestroyAbility with non-existent instanceId, should not crash
+ */
+HWTEST_F(ApplicationContextTest, ApplicationContext_DestroyAbility_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationContext_DestroyAbility_0300 start";
+    ASSERT_NE(context_, nullptr);
+    context_->nativeAbilities_.clear();
+
+    context_->DestroyAbility(999);
+
+    EXPECT_TRUE(context_->nativeAbilities_.empty());
+
+    GTEST_LOG_(INFO) << "ApplicationContext_DestroyAbility_0300 end";
+}
+
+/**
+ * @tc.number: ApplicationContext_NotifyProcessExit_0100
+ * @tc.name: ApplicationContext NotifyProcessExit
+ * @tc.desc: NotifyProcessExit with no native thread, should not crash
+ */
+HWTEST_F(ApplicationContextTest, ApplicationContext_NotifyProcessExit_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationContext_NotifyProcessExit_0100 start";
+    ASSERT_NE(context_, nullptr);
+
+    context_->NotifyProcessExit();
+
+    GTEST_LOG_(INFO) << "ApplicationContext_NotifyProcessExit_0100 end";
+}
+
+/**
+ * @tc.number: ApplicationContext_NotifyProcessExit_0200
+ * @tc.name: ApplicationContext NotifyProcessExit
+ * @tc.desc: NotifyProcessExit with valid native thread, should call NotifyProcessExit on thread
+ */
+HWTEST_F(ApplicationContextTest, ApplicationContext_NotifyProcessExit_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ApplicationContext_NotifyProcessExit_0200 start";
+    ASSERT_NE(context_, nullptr);
+
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    bool called = false;
+    thread->notifyProcessExitFunc_ = [&called]() {
+        called = true;
+    };
+    context_->abilityNativeThread_ = thread;
+
+    context_->NotifyProcessExit();
+
+    EXPECT_TRUE(called);
+
+    // Cleanup
+    thread->notifyProcessExitFunc_ = nullptr;
+    context_->abilityNativeThread_ = nullptr;
+    GTEST_LOG_(INFO) << "ApplicationContext_NotifyProcessExit_0200 end";
+}
+
 // ==================== AbilityNativeThread Tests ====================
 
 /**
@@ -2689,14 +2894,6 @@ HWTEST_F(ApplicationContextTest, AbilityNativeThread_PostAbility_0200, TestSize.
     thread->PostAbility(&wrapper);
     // No crash, early return
     GTEST_LOG_(INFO) << "AbilityNativeThread_PostAbility_0200 end";
-}
-
-namespace {
-const NativeAbilityWrapper* receivedWrapper = nullptr;
-void MockPostAbility(const NativeAbilityWrapper* wrapper)
-{
-    receivedWrapper = wrapper;
-}
 }
 
 /**

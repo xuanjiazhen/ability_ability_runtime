@@ -171,12 +171,12 @@ HWTEST_F(UIAbilityRecordTest, SetNativeState_0100, TestSize.Level1)
     EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
 
     // Set to ATTACH
-    abilityRecord->SetNativeState(AbilityNativeState::ATTACH);
-    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ATTACH);
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ATTACHED);
 
     // Set to ON_CREATE
-    abilityRecord->SetNativeState(AbilityNativeState::ON_CREATE);
-    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ON_CREATE);
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::CREATED);
 
     // Set to ON_FOREGROUND
     abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
@@ -227,7 +227,7 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0200, TestSize.Level1)
     ASSERT_NE(abilityRecord, nullptr);
 
     abilityRecord->SetPendingState(AbilityState::FOREGROUND);
-    abilityRecord->SetNativeState(AbilityNativeState::ON_CREATE);
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
     EXPECT_TRUE(abilityRecord->CheckStartPendingState());
 }
 
@@ -275,7 +275,7 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0500, TestSize.Level1)
     ASSERT_NE(abilityRecord, nullptr);
 
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
-    abilityRecord->SetNativeState(AbilityNativeState::ON_CREATE);
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
     EXPECT_FALSE(abilityRecord->CheckStartPendingState());
 }
 
@@ -297,7 +297,7 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0600, TestSize.Level1)
     abilityRecord->SetNativeState(AbilityNativeState::INIT);
     EXPECT_TRUE(abilityRecord->CheckStartPendingState());
 
-    abilityRecord->SetNativeState(AbilityNativeState::ATTACH);
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
     EXPECT_TRUE(abilityRecord->CheckStartPendingState());
 }
 
@@ -315,11 +315,11 @@ HWTEST_F(UIAbilityRecordTest, CreateAbilityRecord_NativeStateTransition_0100, Te
     ASSERT_NE(abilityRecord, nullptr);
     EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::INIT);
 
-    abilityRecord->SetNativeState(AbilityNativeState::ATTACH);
-    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ATTACH);
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ATTACHED);
 
-    abilityRecord->SetNativeState(AbilityNativeState::ON_CREATE);
-    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ON_CREATE);
+    abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::CREATED);
 
     abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
     EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ON_FOREGROUND);

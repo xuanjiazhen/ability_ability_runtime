@@ -72,8 +72,8 @@ enum class AbilityNativeState : int8_t {
     NONE,
     NORMAL,
     INIT,
-    ATTACH,
-    ON_CREATE,
+    ATTACHED,
+    CREATED,
     ON_FOREGROUND,
 };
 }  // namespace AAFwk

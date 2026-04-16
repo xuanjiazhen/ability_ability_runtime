@@ -708,6 +708,10 @@ void JsUIAbility::OnStopCallback()
         applicationContext->DispatchOnAbilityDestroy(ability);
         DISPATCH_ABILITY_INTEROP(OnAbilityDestroy, applicationContext, jsRuntime_, ability);
     }
+
+    if (IsWithNative() && applicationContext != nullptr) {
+        applicationContext->DestroyAbility(GetAbilityRecordId());
+    }
 }
 
 #ifdef SUPPORT_SCREEN
@@ -2504,17 +2508,7 @@ void JsUIAbility::HandleNativeModule(napi_env env)
     // Get ApplicationContext
     auto appContext = AbilityRuntime::Context::GetApplicationContext();
     if (appContext != nullptr) {
-        // Save wrapper to ApplicationContext
-        appContext->AddNativeAbility(wrapper->instanceId, wrapper);
-
-        // Get AbilityNativeThread and call PostAbility
-        auto nativeThreadInfo = appContext->GetNativeThread();
-        if (nativeThreadInfo != nullptr) {
-            nativeThreadInfo->PostAbility(wrapper.get());
-            TAG_LOGI(AAFwkTag::UIABILITY, "PostAbility called for instanceId: %{public}d", wrapper->instanceId);
-        } else {
-            TAG_LOGE(AAFwkTag::UIABILITY, "AbilityNativeThread is null");
-        }
+        appContext->PostAbility(wrapper->instanceId, wrapper);
     } else {
         TAG_LOGE(AAFwkTag::UIABILITY, "ApplicationContext is null");
     }

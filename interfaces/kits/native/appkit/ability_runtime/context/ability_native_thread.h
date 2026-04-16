@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_ABILITY_NATIVE_THREAD_H
 #define OHOS_ABILITY_RUNTIME_ABILITY_NATIVE_THREAD_H
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <thread>
@@ -33,8 +34,6 @@ struct NativeAbilityWrapper {
     napi_value jsAbilityObj = nullptr;
 };
 
-typedef void(*PostAbilityType)(const NativeAbilityWrapper* nativeAbilityWrapper);
-typedef void(*OHMainType)();
 #ifdef __cplusplus
 }
 #endif
@@ -77,11 +76,24 @@ public:
      */
     void PostAbility(const NativeAbilityWrapper* nativeAbilityWrapper);
 
+    /**
+     * @brief Notify the native module that the ability is being destroyed.
+     * @param instanceId The instance id of the ability to destroy.
+     */
+    void DestroyAbility(int32_t instanceId);
+
+    /**
+     * @brief Notify the native module that the process is exiting.
+     */
+    void NotifyProcessExit();
+
     static void* OpenNativeLibrary(const std::string& bundleModuleName, const std::string& fileName);
 private:
     void *moduleHandle_ = nullptr;
-    OHMainType OHMain_ = nullptr;
-    PostAbilityType postAbilityFunc_ = nullptr;
+    std::function<void()> OHMain_;
+    std::function<void(const NativeAbilityWrapper*)> postAbilityFunc_;
+    std::function<void(int32_t)> destroyAbilityFunc_;
+    std::function<void()> notifyProcessExitFunc_;
     std::thread nativeThread_;
 };
 }  // namespace AppExecFwk

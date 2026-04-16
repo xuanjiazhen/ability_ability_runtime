@@ -1346,5 +1346,42 @@ void ApplicationContext::RemoveNativeAbility(int32_t instanceId)
     nativeAbilities_.erase(instanceId);
 }
 
+void ApplicationContext::PostAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper)
+{
+    if (wrapper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "NativeAbilityWrapper is null");
+        return;
+    }
+
+    AddNativeAbility(instanceId, wrapper);
+
+    auto nativeThreadInfo = GetNativeThread();
+    if (nativeThreadInfo != nullptr) {
+        nativeThreadInfo->PostAbility(wrapper.get());
+        TAG_LOGI(AAFwkTag::ABILITY, "PostAbility called for instanceId: %{public}d", instanceId);
+    } else {
+        TAG_LOGE(AAFwkTag::ABILITY, "AbilityNativeThread is null");
+    }
+}
+
+void ApplicationContext::DestroyAbility(int32_t instanceId)
+{
+    auto nativeThreadInfo = GetNativeThread();
+    if (nativeThreadInfo != nullptr) {
+        nativeThreadInfo->DestroyAbility(instanceId);
+        TAG_LOGI(AAFwkTag::ABILITY, "DestroyAbility called for instanceId: %{public}d", instanceId);
+    }
+
+    RemoveNativeAbility(instanceId);
+}
+
+void ApplicationContext::NotifyProcessExit()
+{
+    auto nativeThreadInfo = GetNativeThread();
+    if (nativeThreadInfo != nullptr) {
+        nativeThreadInfo->NotifyProcessExit();
+    }
+}
+
 }  // namespace AbilityRuntime
 }  // namespace OHOS

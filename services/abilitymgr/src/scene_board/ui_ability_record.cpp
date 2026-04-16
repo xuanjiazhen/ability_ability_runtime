@@ -57,7 +57,7 @@ void UIAbilityRecord::ScheduleCollaborate(const Want &want)
 void UIAbilityRecord::AttachNative()
 {
     if (GetNativeState() == AbilityNativeState::INIT) {
-        SetNativeState(AbilityNativeState::ATTACH);
+        SetNativeState(AbilityNativeState::ATTACHED);
     }
 }
 }  // namespace AAFwk

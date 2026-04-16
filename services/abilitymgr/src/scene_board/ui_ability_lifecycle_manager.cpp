@@ -83,6 +83,7 @@ constexpr int32_t REQUEST_LIST_ID_INIT = -1;
 constexpr const char* IS_CALLING_FROM_DMS = "supportCollaborativeCallingFromDmsInAAFwk";
 constexpr int REMOVE_STARTING_BUNDLE_TIMEOUT_MICRO_SECONDS = 5000000; // 5s
 constexpr int32_t BY_CALL_TIMEOUT = 10 * 1000 * 1000; // 10s
+constexpr int32_t START_SELF_TIMEOUT = 10 * 1000 * 1000; // 10s
 constexpr int32_t SCENE_FLAG_BYCALL = 4;
 
 auto g_deleteLifecycleEventTask = [](const sptr<Token> &token) {
@@ -1079,10 +1080,20 @@ int UIAbilityLifecycleManager::DispatchForeground(const UIAbilityRecordPtr &abil
     FreezeUtil::GetInstance().DeleteAppLifecycleEvent(abilityRecord->GetPid());
 
     // Check if this is a NativeModule with
-    if (abilityRecord->GetNativeState() == AbilityNativeState::ATTACH) {
+    if (abilityRecord->GetNativeState() == AbilityNativeState::ATTACHED) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule foreground is pending");
-        abilityRecord->SetNativeState(AbilityNativeState::ON_CREATE);
+        abilityRecord->SetNativeState(AbilityNativeState::CREATED);
+        auto timeoutTask = [wThis = weak_from_this(), abilityRecord]() {
+            auto pThis = wThis.lock();
+            if (pThis != nullptr && abilityRecord->GetNativeState() == AbilityNativeState::CREATED) {
+                pThis->HandleForegroundTimeout(abilityRecord);
+            }
+        };
+        ffrt::submit(std::move(timeoutTask), ffrt::task_attr().delay(START_SELF_TIMEOUT));
         return ERR_OK;
+    }
+    if (abilityRecord->GetNativeState() == AbilityNativeState::ON_FOREGROUND) {
+        abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
     }
 
     if (success) {
@@ -1585,6 +1596,10 @@ int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRe
     if (abilityRecord->GetNativeState() == AbilityNativeState::NONE) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not a NativeModule ability");
         return ERR_INVALID_VALUE;
+    }
+
+    if (abilityRecord->GetNativeState() == AbilityNativeState::CREATED) {
+        abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
     }
 
     auto sessionInfo = abilityRecord->GetSessionInfo();
