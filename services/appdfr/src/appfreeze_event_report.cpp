@@ -142,10 +142,10 @@ int AppfreezeEventReport::LogLifeCycleTimeoutEvent(const std::string &name, HiSy
     hisyseventReport->InsertParam(EVENT_ENABLE_MAINTHREAD_SAMPLE, eventInfo.enableFreeze);
     hisyseventReport->InsertParam(EVENT_EXTERNAL_LOG, eventInfo.externalLog);
     hisyseventReport->InsertParam(EVENT_REPORT_LIFECYCLE_AS_APPFREEZE, eventInfo.reportLifecycleToFreeze);
+    hisyseventReport->InsertParam(EVENT_APPLICATION_HEAP_INFO, eventInfo.applicationHeapInfo);
+    hisyseventReport->InsertParam(EVENT_PROCESS_LIFECYCLE_INFO, eventInfo.processLifeTime);
     if (name == AppFreezeType::LIFECYCLE_TIMEOUT) {
         hisyseventReport->InsertParam(EVENT_FOREGROUND, eventInfo.foregroundState);
-        hisyseventReport->InsertParam(EVENT_APPLICATION_HEAP_INFO, eventInfo.applicationHeapInfo);
-        hisyseventReport->InsertParam(EVENT_PROCESS_LIFECYCLE_INFO, eventInfo.processLifeTime);
     }
     ret = hisyseventReport->Report("AAFWK", name.c_str(), type);
     return ret;
