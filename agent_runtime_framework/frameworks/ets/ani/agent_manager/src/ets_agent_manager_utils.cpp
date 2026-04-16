@@ -708,12 +708,15 @@ bool ParseEtsAgentCard(ani_env *env, ani_object object, AgentCard &card)
             TAG_LOGE(AAFwkTag::SER_ROUTER, "bad card.type");
             return false;
         }
-        int32_t typeValue = static_cast<int32_t>(AgentCardType::APP);
-        if (!IsValidAgentCardTypeValue(typeValue)) {
-            TAG_LOGE(AAFwkTag::SER_ROUTER, "invalid card.type %{public}d", typeValue);
+        if (!AAFwk::AniEnumConvertUtil::EnumConvert_EtsToNative(
+            env, reinterpret_cast<ani_enum_item>(obj), card.type)) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "convert failed for card.type");
             return false;
         }
-        card.type = static_cast<AgentCardType>(typeValue);
+        if (!IsValidAgentCardTypeValue(card.type)) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "invalid card.type %{public}d", card.type);
+            return false;
+        }
     }
 
     ani_ref ref = nullptr;
