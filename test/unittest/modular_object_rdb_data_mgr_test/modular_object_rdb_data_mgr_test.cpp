@@ -70,6 +70,9 @@ HWTEST_F(ModularObjectRdbDataManagerTest, ModularObjectRdbDataManager_0100, Func
     res = DelayedSingleton<ModularObjectExtensionRdbDataMgr>::GetInstance()->UpdateData(KEY_ONE, VALUE_TWO);
     EXPECT_EQ(res, NativeRdb::E_OK);
 
+    res = DelayedSingleton<ModularObjectExtensionRdbDataMgr>::GetInstance()->UpdateData(KEY_TWO, VALUE_TWO);
+    EXPECT_EQ(res, NativeRdb::E_OK);
+
     res = DelayedSingleton<ModularObjectExtensionRdbDataMgr>::GetInstance()->QueryData(KEY_ONE, value);
     EXPECT_EQ(res, NativeRdb::E_OK);
     EXPECT_TRUE(value == VALUE_TWO);
