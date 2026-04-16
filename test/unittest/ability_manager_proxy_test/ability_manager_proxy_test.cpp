@@ -3817,5 +3817,156 @@ HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_NotifyCompleteGamePreLaunc
     auto res = proxy_->NotifyCompleteGamePreLaunch(callerToken);
     EXPECT_EQ(res, NO_ERROR);
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy RequestModalUIExtensionWithAccount
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccount IPC call success
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RequestModalUIExtensionWithAccount_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_001 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    want.SetBundleName("com.test.demo");
+    want.SetAbilityName("TestAbility");
+    want.SetParam("bundleName", "com.test.demo");
+    int32_t accountId = 100;
+
+    auto res = proxy_->RequestModalUIExtensionWithAccount(want, accountId);
+
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REQUEST_MODAL_UI_EXTENSION_WITH_ACCOUNT), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy RequestModalUIExtensionWithAccount
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccount IPC call failure
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RequestModalUIExtensionWithAccount_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_002 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeErrorSendRequest));
+
+    Want want;
+    want.SetBundleName("com.test.demo");
+    want.SetAbilityName("TestAbility");
+    want.SetParam("bundleName", "com.test.demo");
+    int32_t accountId = 100;
+
+    auto res = proxy_->RequestModalUIExtensionWithAccount(want, accountId);
+
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REQUEST_MODAL_UI_EXTENSION_WITH_ACCOUNT), mock_->code_);
+    EXPECT_NE(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy RequestModalUIExtensionWithAccount
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccount with different accountIds
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RequestModalUIExtensionWithAccount_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_003 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(2)
+        .WillRepeatedly(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    want.SetBundleName("com.test.demo");
+    want.SetAbilityName("TestAbility");
+    want.SetParam("bundleName", "com.test.demo");
+
+    // Test with different accountIds
+    int32_t accountIds[] = {0, 100, 999};
+    for (const auto& accountId : accountIds) {
+        auto res = proxy_->RequestModalUIExtensionWithAccount(want, accountId);
+        EXPECT_EQ(res, NO_ERROR);
+    }
+
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REQUEST_MODAL_UI_EXTENSION_WITH_ACCOUNT), mock_->code_);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy RequestModalUIExtensionWithAccount
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccount with empty Want
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RequestModalUIExtensionWithAccount_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_004 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;  // Empty want
+    int32_t accountId = 100;
+
+    auto res = proxy_->RequestModalUIExtensionWithAccount(want, accountId);
+
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REQUEST_MODAL_UI_EXTENSION_WITH_ACCOUNT), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerProxy RequestModalUIExtensionWithAccount
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccount with negative accountId
+ */
+HWTEST_F(AbilityManagerProxyTest, AbilityManagerProxy_RequestModalUIExtensionWithAccount_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_005 start");
+
+    EXPECT_CALL(*mock_, SendRequest(_, _, _, _))
+        .Times(1)
+        .WillOnce(Invoke(mock_.GetRefPtr(), &AbilityManagerStubMock::InvokeSendRequest));
+
+    Want want;
+    want.SetBundleName("com.test.demo");
+    want.SetAbilityName("TestAbility");
+    want.SetParam("bundleName", "com.test.demo");
+    int32_t accountId = -1;  // Negative accountId
+
+    auto res = proxy_->RequestModalUIExtensionWithAccount(want, accountId);
+
+    EXPECT_EQ(static_cast<uint32_t>(AbilityManagerInterfaceCode::REQUEST_MODAL_UI_EXTENSION_WITH_ACCOUNT), mock_->code_);
+    EXPECT_EQ(res, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerProxy_RequestModalUIExtensionWithAccount_005 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS
