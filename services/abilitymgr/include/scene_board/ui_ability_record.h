@@ -100,7 +100,7 @@ public:
     {
         auto pendingState = GetPendingState();
         return pendingState == AbilityState::INITIAL ||
-            (pendingState == AbilityState::FOREGROUND && GetNativeState() == AbilityNativeState::CREATED);
+            (pendingState == AbilityState::FOREGROUND && GetNativeState() == AbilityNativeState::ON_FOREGROUND);
     }
 
 private:

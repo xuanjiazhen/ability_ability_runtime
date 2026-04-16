@@ -217,7 +217,7 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0100, TestSize.Level1)
 
 /**
  * @tc.name: CheckStartPendingState_0200
- * @tc.desc: pendingState=FOREGROUND, nativeState=ON_CREATE, should return true.
+ * @tc.desc: pendingState=FOREGROUND, nativeState=CREATED, should return false.
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0200, TestSize.Level1)
@@ -228,7 +228,7 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0200, TestSize.Level1)
 
     abilityRecord->SetPendingState(AbilityState::FOREGROUND);
     abilityRecord->SetNativeState(AbilityNativeState::CREATED);
-    EXPECT_TRUE(abilityRecord->CheckStartPendingState());
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState());
 }
 
 /**
@@ -249,7 +249,7 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0300, TestSize.Level1)
 
 /**
  * @tc.name: CheckStartPendingState_0400
- * @tc.desc: pendingState=FOREGROUND, nativeState=ON_FOREGROUND, should return false.
+ * @tc.desc: pendingState=FOREGROUND, nativeState=ON_FOREGROUND, should return true.
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0400, TestSize.Level1)
@@ -260,7 +260,7 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0400, TestSize.Level1)
 
     abilityRecord->SetPendingState(AbilityState::FOREGROUND);
     abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
-    EXPECT_FALSE(abilityRecord->CheckStartPendingState());
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState());
 }
 
 /**
