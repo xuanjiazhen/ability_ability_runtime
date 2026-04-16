@@ -1087,6 +1087,8 @@ int UIAbilityLifecycleManager::DispatchForeground(const UIAbilityRecordPtr &abil
         auto timeoutTask = [wThis = weak_from_this(), abilityRecord]() {
             auto pThis = wThis.lock();
             if (pThis != nullptr && abilityRecord->GetNativeState() == AbilityNativeState::CREATED) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "Start self Timeout");
+                std::lock_guard guard(pThis->sessionLock_);
                 pThis->HandleForegroundTimeout(abilityRecord);
             }
         };
