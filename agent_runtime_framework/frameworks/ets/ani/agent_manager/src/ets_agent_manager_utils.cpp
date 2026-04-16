@@ -703,12 +703,11 @@ bool ParseEtsAgentCard(ani_env *env, ani_object object, AgentCard &card)
         return false;
     }
     if (AppExecFwk::IsExistsProperty(env, object, "type")) {
-        ani_ref obj = nullptr;
-        if (!AppExecFwk::GetRefProperty(env, object, "type", obj)) {
+        int32_t typeValue = static_cast<int32_t>(AgentCardType::APP);
+        if (!AppExecFwk::GetIntPropertyObject(env, object, "type", typeValue)) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "bad card.type");
             return false;
         }
-        int32_t typeValue = static_cast<int32_t>(AgentCardType::APP);
         if (!IsValidAgentCardTypeValue(typeValue)) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "invalid card.type %{public}d", typeValue);
             return false;
