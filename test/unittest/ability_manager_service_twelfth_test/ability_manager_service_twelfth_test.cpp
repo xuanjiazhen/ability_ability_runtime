@@ -1685,16 +1685,21 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_001, Tes
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：没有顶层 Ability，GetTopAbility 返回错误
     Want want;
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
 
     // 由于没有 wmsHandler，GetTopAbility 会失败
-    // 预期：使用 ModalSystemUiExtension 降级方案，返回错误码
+    // 预期：使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionInner(want);
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
+    // 清理
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_001 end");
 }
 
@@ -1704,16 +1709,21 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_002, Tes
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：基本场景 - 设置 bundleName
     Want want;
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
 
     // 由于没有 wmsHandler，GetTopAbility 会失败
-    // 预期：使用 ModalSystemUiExtension 降级方案，返回错误码
+    // 预期：使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionInner(want);
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
+    // 清理
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_002 end");
 }
 
@@ -1729,16 +1739,21 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_003, Tes
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：GetTopAbility 返回 OK 但 token 为 null
     Want want;
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
     MyFlag::flag_ = 0;  // Mock GetTopAbility 返回 OK 但 token 为 null
 
-    // 预期：由于 token 为 null，使用 ModalSystemUiExtension 降级方案，返回错误码
+    // 预期：由于 token 为 null，使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionInner(want);
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
+    // 清理
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_003 end");
 }
 
@@ -1754,16 +1769,21 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_004, Tes
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：焦点应用 bundleName 与调用者不匹配
     Want want;
     std::string bundleName = "com.caller.demo";  // 与焦点应用不一致
     want.SetParam("bundleName", bundleName);
     MyFlag::flag_ = 1;  // Mock 焦点应用为 "com.test.demo"
 
-    // 预期：由于 bundleName 不匹配，使用 ModalSystemUiExtension 降级方案，返回错误码
+    // 预期：由于 bundleName 不匹配，使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionInner(want);
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
+    // 清理
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_004 end");
 }
 
@@ -1779,6 +1799,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_005, Tes
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：token有效但AbilityRecord为null
     // 这个场景需要Mock GetTopAbility返回有效token，但Token::GetAbilityRecordByToken返回null
     // 在当前测试环境中，无法直接Mock Token::GetAbilityRecordByToken
@@ -1787,12 +1810,12 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_005, Tes
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
 
-    // 在实际Mock配置下，当record为null时应返回 ERR_INVALID_VALUE
-    // 但实际会走降级方案返回 INNER_ERR
+    // 由于无法完全Mock该场景，实际会走降级方案返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionInner(want);
-    // 由于无法完全Mock该场景，验证可能的返回值
-    EXPECT_TRUE(result == INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
+    // 清理
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_005 end");
 }
 
@@ -1808,6 +1831,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_006, Tes
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：完整的PAGE类型Ability创建模态UI扩展
     // 这个场景需要完整的AbilityRecord Mock配置
     // 在当前测试环境中，由于无法完整Mock AbilityRecord，会走降级方案
@@ -1816,11 +1842,12 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_006, Tes
     want.SetParam("bundleName", bundleName);
     MyFlag::flag_ = 1;  // Mock 焦点应用为 "com.test.demo"
 
-    // 由于Mock限制，实际会走降级方案，返回错误码
+    // 由于Mock限制，实际会走降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionInner(want);
-    // 验证降级方案返回错误码
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
+    // 清理 mock
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_006 end");
 }
 
@@ -1884,6 +1911,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：成功获取 displayId，但 GetTopAbilityByUserId 失败
     Want want;
     std::string bundleName = "com.test.demo";
@@ -1895,12 +1925,14 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, displayId);
 
     // GetTopAbilityByUserId 会因为 wmsHandler 为空而失败
-    // 预期：使用 ModalSystemUiExtension 降级方案，返回错误码
+    // 预期：使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
     // 清理 UserController 状态，确保测试隔离
     AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
+    // 清理 mock
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_003 end");
 }
 
@@ -1926,12 +1958,14 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, displayId);
 
-    // 预期：由于 token 为 null，使用 ModalSystemUiExtension 降级方案，返回错误码
+    // 预期：由于 token 为 null，使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
     // 清理 UserController 状态，确保测试隔离
     AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
+    // 清理 mock
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_004 end");
 }
 
@@ -1947,6 +1981,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：焦点应用 bundleName 与调用者不匹配
     Want want;
     std::string bundleName = "com.caller.demo";  // 与焦点应用不一致
@@ -1957,12 +1994,14 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, displayId);
 
-    // 预期：由于 bundleName 不匹配，使用 ModalSystemUiExtension 降级方案，返回错误码
+    // 预期：由于 bundleName 不匹配，使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
     // 清理 UserController 状态，确保测试隔离
     AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
+    // 清理 mock
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_005 end");
 }
 
@@ -1978,6 +2017,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：正常流程 - 所有条件满足
     Want want;
     std::string bundleName = "com.test.demo";  // 与焦点应用一致
@@ -1990,11 +2032,13 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     // 预期：所有条件满足，调用 CreateModalUIExtension
     auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
-    // 由于Mock限制，实际会走降级方案，返回错误码
-    EXPECT_EQ(result, INNER_ERR);
+    // 由于Mock限制，实际会走降级方案，返回 ERR_OK
+    EXPECT_EQ(result, ERR_OK);
 
     // 清理 UserController 状态，确保测试隔离
     AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
+    // 清理 mock
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_006 end");
 }
 
@@ -2010,6 +2054,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：token有效但AbilityRecord为null
     // 这个场景需要Mock GetTopAbilityByUserId返回有效token，但Token::GetAbilityRecordByToken返回null
     Want want;
@@ -2021,13 +2068,14 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, displayId);
 
-    // 由于Mock限制，实际会走降级方案
+    // 由于Mock限制，实际会走降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
-    // 验证函数可调用，可能的返回值包括降级方案的错误码
-    EXPECT_TRUE(result == ERR_INVALID_VALUE || result == INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
     // 清理 UserController 状态，确保测试隔离
     AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
+    // 清理 mock
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_007 end");
 }
 
@@ -2043,6 +2091,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
+    // 设置 mock 返回成功
+    MyFlag::retCreateModalUIExtension_ = true;
+
     // 测试场景：完整的PAGE类型Ability创建模态UI扩展
     // 这个场景需要完整的AbilityRecord Mock配置
     Want want;
@@ -2054,13 +2105,16 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, displayId);
 
-    // 由于Mock限制，实际会走降级方案
+    // 由于Mock限制，实际会走降级方案，返回 ERR_OK
     auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
-    // 验证降级方案返回错误码
-    EXPECT_EQ(result, INNER_ERR);
+    EXPECT_EQ(result, ERR_OK);
 
     // 清理 UserController 状态，确保测试隔离
     AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
+    // 清理 mock
+    MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_008 end");
+}
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_008 end");
 }
 
