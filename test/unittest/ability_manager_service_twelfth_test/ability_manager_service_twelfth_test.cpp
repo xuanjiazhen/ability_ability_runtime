@@ -2115,8 +2115,5 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     MyFlag::retCreateModalUIExtension_ = true;  // 恢复默认值
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_008 end");
 }
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_008 end");
-}
-
 } // namespace AAFwk
 } // namespace OHOS

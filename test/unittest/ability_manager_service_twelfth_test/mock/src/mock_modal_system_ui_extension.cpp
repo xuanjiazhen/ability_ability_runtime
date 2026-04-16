@@ -19,8 +19,6 @@
 namespace OHOS {
 namespace Rosen {
 
-bool MyFlag::retCreateModalUIExtension_ = true;
-
 ModalSystemUiExtension::ModalSystemUiExtension()
 {}
 
@@ -29,13 +27,13 @@ ModalSystemUiExtension::~ModalSystemUiExtension()
 
 bool ModalSystemUiExtension::CreateModalUIExtension(const AAFwk::Want &want)
 {
-    return MyFlag::retCreateModalUIExtension_;
+    return AAFwk::MyFlag::retCreateModalUIExtension_;
 }
 
 bool ModalSystemUiExtension::CreateModalUIExtension(const AAFwk::Want &want, int32_t userId)
 {
     (void)userId;  // Unused parameter
-    return MyFlag::retCreateModalUIExtension_;
+    return AAFwk::MyFlag::retCreateModalUIExtension_;
 }
 
 } // namespace Rosen
