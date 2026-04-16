@@ -158,7 +158,7 @@ void JsTestRunner::Run()
     std::unique_lock<std::mutex> lck(mutexHasStop_);
     hasStop_ = false;
     TestRunner::Run();
-    CallObjectMethod("onRun");
+    CallObjectMethod("onRun");  
 }
 
 void JsTestRunner::Stop()
