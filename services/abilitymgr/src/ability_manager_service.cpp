@@ -8318,8 +8318,12 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     request.collaboratorType = GetCollaboratorType(request.abilityInfo.applicationInfo.codePath);
     request.isTargetPlugin = abilityInfo->isTargetPlugin;
 
+    AppExecFwk::HapModuleInfo hapModuleInfo;
+    bool isSkipLifecycleDisabled = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance()->GetHapModuleInfo(
+        request.abilityInfo, hapModuleInfo) && request.abilityInfo.process == hapModuleInfo.process &&
+        request.abilityInfo.applicationInfo.allowMultiProcess;
     if (request.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::BACKUP &&
-        !request.abilityInfo.applicationInfo.allowMultiProcess) {
+        !isSkipLifecycleDisabled) {
         request.want.SetParam(KEY_SKIP_ABILITY_STAGE_LIFECYCLE, abilityInfo->skipAbilityStageLifecycle);
         TAG_LOGD(AAFwkTag::ABILITYMGR, "set skipAbilityStageLifecycle for backup extension");
     }
