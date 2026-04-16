@@ -1134,11 +1134,6 @@ enum {
     ERR_PID_HAS_BEEN_REUSED = 2099220,
 
     /**
-     * Result (2099411) for not support screen.
-     */
-    ERR_NOT_SUPPORT_SCREEN = 2099411,
-
-    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,

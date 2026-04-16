@@ -616,7 +616,24 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0400, TestSize.Leve
     MissionInfo missionInfo;
     DisplayInfo displayInfo;
     auto result = client_->GetMissionInfo(deviceId, missionId, missionInfo, displayInfo);
-    EXPECT_NE(result, ERR_OK);
+    EXPECT_EQ(result, ERR_CAPABILITY_NOT_SUPPORT);
+    EXPECT_EQ(displayInfo.displayName.empty(), true);
+}
+
+/**
+ * @tc.name: AbilityManagerClient_GetMissionInfo_0500
+ * @tc.desc: GetMissionInfo with displayInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, GetMissionInfo_0500, TestSize.Level1)
+{
+    NormalTestBoardEnable();
+    std::string deviceId = "test_deviceId";
+    int32_t missionId = -1;
+    MissionInfo missionInfo;
+    DisplayInfo displayInfo;
+    auto result = client_->GetMissionInfo(deviceId, missionId, missionInfo, displayInfo);
+    EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(displayInfo.displayName.empty(), true);
 }
 
