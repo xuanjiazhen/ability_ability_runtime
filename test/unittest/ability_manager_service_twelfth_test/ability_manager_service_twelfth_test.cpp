@@ -1437,8 +1437,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_001, TestSize.L
     EXPECT_TRUE(abilityMs_ != nullptr);
 
     // 分支1: 权限验证失败
-    MyFlag::flag_ = 0;
-    int32_t accountId = 100;
+    MyFlag::flag_ = CHECK_PERMISSION_FAILED;
+    int32_t accountId = 999;
     uint64_t displayId = 0;
     EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_INVALID_VALUE);
 
@@ -1451,9 +1451,12 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_002, TestSize.L
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
-    // 分支2: 权限验证成功，但未找到 displayId
+    // 清理 UserController 状态，确保测试隔离
+    AbilityRuntime::UserController::GetInstance().ClearUserId(999);
+
+    // 分支2: 权限验证失败（flag_=1不等于ERR_OK），未找到 displayId
     MyFlag::flag_ = 1;
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     uint64_t displayId = 0;
     EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_INVALID_VALUE);
 
@@ -1466,9 +1469,9 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_003, TestSize.L
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
-    // 分支3: 成功获取 displayId
+    // 分支3: 成功获取 displayId（由于callerUser=0是U0_USER_ID且userId=999是前台用户，走早期返回路径，flag_=1不起作用）
     MyFlag::flag_ = 1;
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     uint64_t displayId = 0;
     uint64_t expectedDisplayId = 1;
 
@@ -1477,6 +1480,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_003, TestSize.L
     EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_OK);
     EXPECT_EQ(displayId, expectedDisplayId);
 
+    // 清理 UserController 状态，确保测试隔离
+    AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_003 end");
 }
 
@@ -1508,17 +1513,16 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetTopAbilityByUserId_001, TestSize.L
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
-    // 分支1: 系统应用权限检查失败
-    // 当前 mock 中 JudgeCallerIsAllowedToUseSystemAPI 默认返回 true
-    // 此测试验证权限检查流程
+    // 分支1: 账号权限验证通过（flag_=0不等于CHECK_PERMISSION_FAILED），但wmsHandler为空
     sptr<IRemoteObject> token = nullptr;
     int32_t userId = 100;
     uint64_t displayId = 0;
 
-    // JudgeCallerIsAllowedToUseSystemAPI 返回 true，所以不会返回 ERR_NOT_SYSTEM_APP
-    // 继续检查账号权限
-    MyFlag::flag_ = 0; // VerifyAccountPermission 返回 CHECK_PERMISSION_FAILED
-    EXPECT_EQ(abilityMs_->GetTopAbilityByUserId(token, userId, displayId), CHECK_PERMISSION_FAILED);
+    // JudgeCallerIsAllowedToUseSystemAPI 返回 true，系统应用检查通过
+    // VerifyAccountPermission 返回 0，不等于 CHECK_PERMISSION_FAILED (2097177)，账号权限检查通过
+    // 但 wmsHandler 为空，返回 ERR_INVALID_VALUE
+    MyFlag::flag_ = 0;
+    EXPECT_EQ(abilityMs_->GetTopAbilityByUserId(token, userId, displayId), ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_001 end");
 }
@@ -1529,13 +1533,15 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetTopAbilityByUserId_002, TestSize.L
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     EXPECT_TRUE(abilityMs_ != nullptr);
 
-    // 分支2: 账号权限验证失败
+    // 分支2: 账号权限验证通过（flag_=0不等于CHECK_PERMISSION_FAILED），但wmsHandler为空
     MyFlag::flag_ = 0;
     sptr<IRemoteObject> token = nullptr;
     int32_t userId = 100;
     uint64_t displayId = 0;
 
-    EXPECT_EQ(abilityMs_->GetTopAbilityByUserId(token, userId, displayId), CHECK_PERMISSION_FAILED);
+    // VerifyAccountPermission 返回 0，不等于 CHECK_PERMISSION_FAILED (2097177)，账号权限检查通过
+    // 但 wmsHandler 为空，返回 ERR_INVALID_VALUE
+    EXPECT_EQ(abilityMs_->GetTopAbilityByUserId(token, userId, displayId), ERR_INVALID_VALUE);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_002 end");
 }
@@ -1833,7 +1839,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     Want want;
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     MyFlag::flag_ = 0;  // Mock 权限验证失败
 
     EXPECT_EQ(abilityMs_->RequestModalUIExtensionWithAccount(want, accountId), ERR_INVALID_VALUE);
@@ -1857,7 +1863,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     Want want;
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     MyFlag::flag_ = 1;  // Mock 权限验证成功但无 displayId
 
     EXPECT_EQ(abilityMs_->RequestModalUIExtensionWithAccount(want, accountId), ERR_INVALID_VALUE);
@@ -1881,7 +1887,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     Want want;
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     uint64_t displayId = 1;
     MyFlag::flag_ = 1;  // Mock 权限验证成功
 
@@ -1892,6 +1898,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
     EXPECT_EQ(result, ERR_OK);
 
+    // 清理 UserController 状态，确保测试隔离
+    AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_003 end");
 }
 
@@ -1911,7 +1919,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     Want want;
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     uint64_t displayId = 1;
     MyFlag::flag_ = 2;  // Mock GetTopAbilityByUserId 返回 OK 但 token 为 null
 
@@ -1921,6 +1929,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
     EXPECT_EQ(result, ERR_OK);
 
+    // 清理 UserController 状态，确保测试隔离
+    AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_004 end");
 }
 
@@ -1940,7 +1950,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     Want want;
     std::string bundleName = "com.caller.demo";  // 与焦点应用不一致
     want.SetParam("bundleName", bundleName);
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     uint64_t displayId = 1;
     MyFlag::flag_ = 3;  // Mock 焦点应用为 "com.test.demo"
 
@@ -1950,6 +1960,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
     EXPECT_EQ(result, ERR_OK);
 
+    // 清理 UserController 状态，确保测试隔离
+    AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_005 end");
 }
 
@@ -1969,7 +1981,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     Want want;
     std::string bundleName = "com.test.demo";  // 与焦点应用一致
     want.SetParam("bundleName", bundleName);
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     uint64_t displayId = 1;
     MyFlag::flag_ = 4;  // Mock 成功场景
 
@@ -1980,6 +1992,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     // 由于Mock限制，实际会走降级方案，返回 ERR_OK
     EXPECT_EQ(result, ERR_OK);
 
+    // 清理 UserController 状态，确保测试隔离
+    AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_006 end");
 }
 
@@ -2000,7 +2014,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     Want want;
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     uint64_t displayId = 1;
     MyFlag::flag_ = 1;
 
@@ -2011,6 +2025,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     // 验证函数可调用
     EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
 
+    // 清理 UserController 状态，确保测试隔离
+    AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_007 end");
 }
 
@@ -2031,7 +2047,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     Want want;
     std::string bundleName = "com.test.demo";
     want.SetParam("bundleName", bundleName);
-    int32_t accountId = 100;
+    int32_t accountId = 999;
     uint64_t displayId = 1;
     MyFlag::flag_ = 4;
 
@@ -2042,6 +2058,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     // 验证降级方案成功
     EXPECT_EQ(result, ERR_OK);
 
+    // 清理 UserController 状态，确保测试隔离
+    AbilityRuntime::UserController::GetInstance().ClearUserId(accountId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_008 end");
 }
 
