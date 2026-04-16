@@ -8129,19 +8129,7 @@ void AppMgrServiceInner::AttachRenderProcess(const pid_t pid, const sptr<IRender
     auto appRecord = appRunningManager_->GetAppRunningRecordByRenderPid(pid);
     if (!appRecord) {
         TAG_LOGE(AAFwkTag::APPMGR, "no appRecord, pid:%{public}d", pid);
-        {
-            std::lock_guard<ffrt::mutex> lock(pendingRenderRecordMapLock_);
-            auto it = pendingRenderRecordMap_.find(pid);
-            if (it != pendingRenderRecordMap_.end()) {
-                renderRecord = it->second;
-                pendingRenderRecordMap_.erase(it);
-            }
-        }
-        if (renderRecord) {
-            TAG_LOGI(AAFwkTag::APPMGR, "found renderRecord in pending map, kill process, pid:%{public}d", pid);
-            KillProcessByPid(pid, "AttachRenderProcessFailed");
-            OnRenderProcessDied(renderRecord);
-        }
+        HandleRenderProcessAttachFailed(pid);
         return;
     }
 
@@ -8173,6 +8161,24 @@ void AppMgrServiceInner::AttachRenderProcess(const pid_t pid, const sptr<IRender
     } else {
         scheduler->NotifyBrowserFd(renderRecord->GetIpcFd(),
             renderRecord->GetSharedFd(), renderRecord->GetCrashFd(), nullptr);
+    }
+}
+
+void AppMgrServiceInner::HandleRenderProcessAttachFailed(pid_t pid)
+{
+    std::shared_ptr<RenderRecord> renderRecord;
+    {
+        std::lock_guard<ffrt::mutex> lock(pendingRenderRecordMapLock_);
+        auto it = pendingRenderRecordMap_.find(pid);
+        if (it != pendingRenderRecordMap_.end()) {
+            renderRecord = it->second;
+            pendingRenderRecordMap_.erase(it);
+        }
+    }
+    if (renderRecord) {
+        TAG_LOGI(AAFwkTag::APPMGR, "found renderRecord in pending map, kill process, pid:%{public}d", pid);
+        KillProcessByPid(pid, "AttachRenderProcessFailed");
+        OnRenderProcessDied(renderRecord);
     }
 }
 
