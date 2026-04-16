@@ -175,8 +175,10 @@ constexpr int64_t NANOSECONDS = 1000000000;
 constexpr int64_t MICROSECONDS = 1000000;
 // Kill process timeout setting
 constexpr int KILL_PROCESS_TIMEOUT_MICRO_SECONDS = 1000;
+constexpr int CLEAR_DATA_TIMEOUT_MICRO_SECONDS = 500;
 // Kill process delay time setting
 constexpr int KILL_PROCESS_DELAYTIME_MICRO_SECONDS = 200;
+constexpr int CLEAR_DATA_DELAYTIME_MICRO_SECONDS = 100;
 // kill process for logout user time out setting
 constexpr int LOGOUT_USER_TIMEOUT_MILLISION_SECONDS = 5000;
 // delay register focus listener to wms
@@ -3112,6 +3114,47 @@ int32_t AppMgrServiceInner::ForceKillApplicationInner(const std::string &bundleN
     return result;
 }
 
+bool AppMgrServiceInner::ForceKillApplicationWithWaitInner(const std::string &bundleName,
+    const int userId, const int appIndex)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "Called.");
+    if (!appRunningManager_) {
+        TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager_ null");
+        return true;
+    }
+
+    std::list<pid_t> pids;
+    int32_t result = ERR_OK;
+    if (!appRunningManager_->GetPidsByBundleNameUserIdAndAppIndex(bundleName, userId, appIndex, pids)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "unstart");
+        return true;
+    }
+    for (auto iter = pids.begin(); iter != pids.end(); ++iter) {
+        result = KillProcessByPid(*iter, "ForceKillApplicationByBundleName");
+        if (result < 0) {
+            TAG_LOGE(AAFwkTag::APPMGR,
+                "forceKillApplicationByBundleName fail for bundleName:%{public}s pid:%{public}d",
+                bundleName.c_str(), *iter);
+            return false;
+        }
+    }
+
+    if (ProcessUtil::CheckAllProcessExit(pids)) {
+        TAG_LOGI(AAFwkTag::APPMGR, "all processes exited");
+        return true;
+    }
+
+    while (delayTime < CLEAR_DATA_TIMEOUT_MICRO_SECONDS) {
+        usleep(CLEAR_DATA_DELAYTIME_MICRO_SECONDS);
+        if (ProcessUtil::CheckAllProcessExit(pids)) {
+            return true;
+        }
+        delayTime = SystemTimeMillisecond() - startTime;
+    }
+    TAG_LOGW(AAFwkTag::APPMGR, "processes did not exit after 500 ms");
+    return true;
+}
+
 int32_t AppMgrServiceInner::KillApplicationWithUserIdInner(const std::string &bundleName,
     const int userId, const int appIndex)
 {
@@ -3598,19 +3641,17 @@ int32_t AppMgrServiceInner::ClearUpApplicationDataByUserId(const std::string &bu
         TAG_LOGE(AAFwkTag::APPMGR, "clearUserGrantedPermissionState fail, ret:%{public}d", result);
         return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
     }
-    // 2.delete bundle side user data
-    if (!IN_PROCESS_CALL(bundleMgrHelper->CleanBundleDataFiles(bundleName, userId, appCloneIndex, callerUid))) {
-        TAG_LOGE(AAFwkTag::APPMGR, "delete user data fail");
-        return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
-    }
-    // 3.kill application
-    // 4.revoke user rights
-    result =
-        isBySelf ? KillApplicationSelf(false, reason)
-            : KillApplicationByUserId(bundleName, appCloneIndex, userId, false, reason);
+    // 2.kill application
+    // 3.revoke user rights
+    result = ForceKillApplicationWithWaitInner(bundleName, userId, appCloneIndex)
     if (result < 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "kill app fail");
         return ERR_INVALID_OPERATION;
+    }
+    // 4.delete bundle side user data
+    if (!IN_PROCESS_CALL(bundleMgrHelper->CleanBundleDataFiles(bundleName, userId, appCloneIndex, callerUid))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "delete user data fail");
+        return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
     }
     // 5.revoke uri permission rights
 #ifdef SUPPORT_UPMS
