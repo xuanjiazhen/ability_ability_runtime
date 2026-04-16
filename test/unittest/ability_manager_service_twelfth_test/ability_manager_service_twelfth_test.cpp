@@ -1681,7 +1681,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_001, Tes
 
     // 测试场景：没有顶层 Ability，GetTopAbility 返回错误
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
 
     // 由于没有 wmsHandler，GetTopAbility 会失败
     // 预期：使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
@@ -1699,7 +1700,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_002, Tes
 
     // 测试场景：基本场景 - 设置 bundleName
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
 
     // 由于没有 wmsHandler，GetTopAbility 会失败
     // 预期：使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
@@ -1723,7 +1725,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_003, Tes
 
     // 测试场景：GetTopAbility 返回 OK 但 token 为 null
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
     MyFlag::flag_ = 0;  // Mock GetTopAbility 返回 OK 但 token 为 null
 
     // 预期：由于 token 为 null，使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
@@ -1747,7 +1750,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_004, Tes
 
     // 测试场景：焦点应用 bundleName 与调用者不匹配
     Want want;
-    want.SetParam("bundleName", "com.caller.demo");  // 与焦点应用不一致
+    std::string bundleName = "com.caller.demo";  // 与焦点应用不一致
+    want.SetParam("bundleName", bundleName);
     MyFlag::flag_ = 1;  // Mock 焦点应用为 "com.test.demo"
 
     // 预期：由于 bundleName 不匹配，使用 ModalSystemUiExtension 降级方案，返回 ERR_OK
@@ -1774,7 +1778,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_005, Tes
     // 在当前测试环境中，无法直接Mock Token::GetAbilityRecordByToken
     // 此测试用例作为占位符，表明需要测试该分支
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
 
     // 在实际Mock配置下，当record为null时应返回 ERR_INVALID_VALUE
     auto result = abilityMs_->RequestModalUIExtensionInner(want);
@@ -1800,7 +1805,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_006, Tes
     // 这个场景需要完整的AbilityRecord Mock配置
     // 在当前测试环境中，由于无法完整Mock AbilityRecord，会走降级方案
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
     MyFlag::flag_ = 1;  // Mock 焦点应用为 "com.test.demo"
 
     // 由于Mock限制，实际会走降级方案
@@ -1825,7 +1831,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     // 测试场景：权限验证失败
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
     int32_t accountId = 100;
     MyFlag::flag_ = 0;  // Mock 权限验证失败
 
@@ -1848,7 +1855,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     // 测试场景：权限验证成功但未找到 displayId
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
     int32_t accountId = 100;
     MyFlag::flag_ = 1;  // Mock 权限验证成功但无 displayId
 
@@ -1871,7 +1879,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     // 测试场景：成功获取 displayId，但 GetTopAbilityByUserId 失败
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
     int32_t accountId = 100;
     uint64_t displayId = 1;
     MyFlag::flag_ = 1;  // Mock 权限验证成功
@@ -1900,7 +1909,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     // 测试场景：GetTopAbilityByUserId 返回 OK 但 token 为 null
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
     int32_t accountId = 100;
     uint64_t displayId = 1;
     MyFlag::flag_ = 2;  // Mock GetTopAbilityByUserId 返回 OK 但 token 为 null
@@ -1928,7 +1938,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     // 测试场景：焦点应用 bundleName 与调用者不匹配
     Want want;
-    want.SetParam("bundleName", "com.caller.demo");  // 与焦点应用不一致
+    std::string bundleName = "com.caller.demo";  // 与焦点应用不一致
+    want.SetParam("bundleName", bundleName);
     int32_t accountId = 100;
     uint64_t displayId = 1;
     MyFlag::flag_ = 3;  // Mock 焦点应用为 "com.test.demo"
@@ -1956,7 +1967,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
 
     // 测试场景：正常流程 - 所有条件满足
     Want want;
-    want.SetParam("bundleName", "com.test.demo");  // 与焦点应用一致
+    std::string bundleName = "com.test.demo";  // 与焦点应用一致
+    want.SetParam("bundleName", bundleName);
     int32_t accountId = 100;
     uint64_t displayId = 1;
     MyFlag::flag_ = 4;  // Mock 成功场景
@@ -1986,7 +1998,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     // 测试场景：token有效但AbilityRecord为null
     // 这个场景需要Mock GetTopAbilityByUserId返回有效token，但Token::GetAbilityRecordByToken返回null
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
     int32_t accountId = 100;
     uint64_t displayId = 1;
     MyFlag::flag_ = 1;
@@ -2016,7 +2029,8 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_00
     // 测试场景：完整的PAGE类型Ability创建模态UI扩展
     // 这个场景需要完整的AbilityRecord Mock配置
     Want want;
-    want.SetParam("bundleName", "com.test.demo");
+    std::string bundleName = "com.test.demo";
+    want.SetParam("bundleName", bundleName);
     int32_t accountId = 100;
     uint64_t displayId = 1;
     MyFlag::flag_ = 4;
