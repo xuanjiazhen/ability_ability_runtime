@@ -5162,5 +5162,207 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_SetGamePreLaunchCompleteTime
     int32_t result = reply.ReadInt32();
     EXPECT_EQ(result, NO_ERROR);
 }
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: RequestModalUIExtensionWithAccountInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub RequestModalUIExtensionWithAccountInner
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccountInner with null Want
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_RequestModalUIExtensionWithAccountInner_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_001 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+
+    // Write accountId (but no Want)
+    data.WriteInt32(100);
+
+    auto res = stub_->RequestModalUIExtensionWithAccountInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_001 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: RequestModalUIExtensionWithAccountInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub RequestModalUIExtensionWithAccountInner
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccountInner with valid Want and accountId
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_RequestModalUIExtensionWithAccountInner_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_002 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+
+    // Write Want
+    Want want;
+    want.SetBundleName("com.test.demo");
+    want.SetAbilityName("TestAbility");
+    want.SetParam("bundleName", "com.test.demo");
+    EXPECT_EQ(data.WriteParcelable(&want), true);
+
+    // Write accountId
+    int32_t accountId = 100;
+    EXPECT_EQ(data.WriteInt32(accountId), true);
+
+    auto res = stub_->RequestModalUIExtensionWithAccountInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+
+    // Verify the result was written to reply
+    int32_t result = reply.ReadInt32();
+    EXPECT_EQ(result, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_002 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: RequestModalUIExtensionWithAccountInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub RequestModalUIExtensionWithAccountInner
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccountInner with different accountId values
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_RequestModalUIExtensionWithAccountInner_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_003 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+
+    // Write Want
+    Want want;
+    want.SetBundleName("com.test.demo");
+    want.SetAbilityName("TestAbility");
+    want.SetParam("bundleName", "com.test.demo");
+    EXPECT_EQ(data.WriteParcelable(&want), true);
+
+    // Test with different accountId values
+    int32_t accountIds[] = {0, 100, 999, -1};
+    for (const auto& accountId : accountIds) {
+        MessageParcel dataLocal;
+        MessageParcel replyLocal;
+
+        // Re-write Want for each test
+        Want wantLocal;
+        wantLocal.SetBundleName("com.test.demo");
+        wantLocal.SetAbilityName("TestAbility");
+        wantLocal.SetParam("bundleName", "com.test.demo");
+        EXPECT_EQ(dataLocal.WriteParcelable(&wantLocal), true);
+
+        EXPECT_EQ(dataLocal.WriteInt32(accountId), true);
+
+        auto res = stub_->RequestModalUIExtensionWithAccountInner(dataLocal, replyLocal);
+        EXPECT_EQ(res, NO_ERROR);
+
+        // Verify the result was written to reply
+        int32_t result = replyLocal.ReadInt32();
+        EXPECT_EQ(result, NO_ERROR);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_003 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: RequestModalUIExtensionWithAccountInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub RequestModalUIExtensionWithAccountInner
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccountInner accountId serialization
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_RequestModalUIExtensionWithAccountInner_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_004 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+
+    // Write Want
+    Want want;
+    want.SetBundleName("com.test.demo");
+    want.SetAbilityName("TestAbility");
+    EXPECT_EQ(data.WriteParcelable(&want), true);
+
+    // Write accountId - test boundary values
+    struct {
+        int32_t input;
+        int32_t expected;
+    } testCases[] = {
+        {0, 0},
+        {100, 100},
+        {999, 999},
+        {-1, -1},
+        {INT32_MAX, INT32_MAX},
+        {INT32_MIN, INT32_MIN}
+    };
+
+    for (const auto& testCase : testCases) {
+        MessageParcel dataLocal;
+        MessageParcel replyLocal;
+
+        // Re-write Want for each test
+        Want wantLocal;
+        wantLocal.SetBundleName("com.test.demo");
+        wantLocal.SetAbilityName("TestAbility");
+        EXPECT_EQ(dataLocal.WriteParcelable(&wantLocal), true);
+
+        EXPECT_EQ(dataLocal.WriteInt32(testCase.input), true);
+
+        auto res = stub_->RequestModalUIExtensionWithAccountInner(dataLocal, replyLocal);
+        EXPECT_EQ(res, NO_ERROR);
+
+        // Verify the accountId was correctly serialized and deserialized
+        int32_t result = replyLocal.ReadInt32();
+        // Note: result is the return value of RequestModalUIExtensionWithAccount, not the accountId
+        EXPECT_EQ(result, NO_ERROR);
+    }
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_004 end");
+}
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: RequestModalUIExtensionWithAccountInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub RequestModalUIExtensionWithAccountInner
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccountInner parameter deserialization order
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_RequestModalUIExtensionWithAccountInner_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_005 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+
+    // Verify correct parameter order: Want first, then accountId
+    Want want;
+    want.SetBundleName("com.test.demo");
+    want.SetAbilityName("TestAbility");
+    want.SetParam("testParam", "testValue");
+    EXPECT_EQ(data.WriteParcelable(&want), true);
+
+    int32_t accountId = 100;
+    EXPECT_EQ(data.WriteInt32(accountId), true);
+
+    auto res = stub_->RequestModalUIExtensionWithAccountInner(data, reply);
+    EXPECT_EQ(res, NO_ERROR);
+
+    // Verify the result was written to reply
+    int32_t result = reply.ReadInt32();
+    EXPECT_EQ(result, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_005 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS

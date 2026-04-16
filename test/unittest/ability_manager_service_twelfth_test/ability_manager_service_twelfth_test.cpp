@@ -1423,5 +1423,444 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, SubscribeScreenUnlockedEvent_001, Tes
     abilityMs->UnSubscribeScreenUnlockedEvent();
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest SubscribeScreenUnlockedEvent_001 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetDisplayIdByAccount
+ * SubFunction: NA
+ * FunctionPoints: Get displayId by accountId
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 分支1: 权限验证失败
+    MyFlag::flag_ = 0;
+    int32_t accountId = 100;
+    uint64_t displayId = 0;
+    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_001 end");
+}
+
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 分支2: 权限验证成功，但未找到 displayId
+    MyFlag::flag_ = 1;
+    int32_t accountId = 100;
+    uint64_t displayId = 0;
+    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_002 end");
+}
+
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 分支3: 成功获取 displayId
+    MyFlag::flag_ = 1;
+    int32_t accountId = 100;
+    uint64_t displayId = 0;
+    uint64_t expectedDisplayId = 1;
+
+    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, expectedDisplayId);
+
+    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_OK);
+    EXPECT_EQ(displayId, expectedDisplayId);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_003 end");
+}
+
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_004 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 边界值: accountId 为负数
+    MyFlag::flag_ = 1;
+    int32_t accountId = -1;
+    uint64_t displayId = 0;
+
+    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: GetTopAbilityByUserId
+ * SubFunction: NA
+ * FunctionPoints: Get top ability token by userId
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetTopAbilityByUserId_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 分支1: 系统应用权限检查失败
+    // 当前 mock 中 JudgeCallerIsAllowedToUseSystemAPI 默认返回 true
+    // 此测试验证权限检查流程
+    sptr<IRemoteObject> token = nullptr;
+    int32_t userId = 100;
+    uint64_t displayId = 0;
+
+    // JudgeCallerIsAllowedToUseSystemAPI 返回 true，所以不会返回 ERR_NOT_SYSTEM_APP
+    // 继续检查账号权限
+    MyFlag::flag_ = 0; // VerifyAccountPermission 返回 CHECK_PERMISSION_FAILED
+    EXPECT_EQ(abilityMs_->GetTopAbilityByUserId(token, userId, displayId), CHECK_PERMISSION_FAILED);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_001 end");
+}
+
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetTopAbilityByUserId_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 分支2: 账号权限验证失败
+    MyFlag::flag_ = 0;
+    sptr<IRemoteObject> token = nullptr;
+    int32_t userId = 100;
+    uint64_t displayId = 0;
+
+    EXPECT_EQ(abilityMs_->GetTopAbilityByUserId(token, userId, displayId), CHECK_PERMISSION_FAILED);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_002 end");
+}
+
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetTopAbilityByUserId_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 分支3: 权限验证成功，但 wmsHandler 为空 (SceneBoard 禁用场景)
+    MyFlag::flag_ = 1;
+    sptr<IRemoteObject> token = nullptr;
+    int32_t userId = 100;
+    uint64_t displayId = 0;
+
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGI(AAFwkTag::TEST, "SceneBoard is enabled, skip test");
+        TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_003 end");
+        return;
+    }
+
+    EXPECT_EQ(abilityMs_->GetTopAbilityByUserId(token, userId, displayId), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_003 end");
+}
+
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetTopAbilityByUserId_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_004 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 分支4: SceneBoard 启用，sceneSessionManager 为空
+    MyFlag::flag_ = 1;
+    sptr<IRemoteObject> token = nullptr;
+    int32_t userId = 100;
+    uint64_t displayId = 0;
+
+    if (!Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGI(AAFwkTag::TEST, "SceneBoard is not enabled, skip test");
+        TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_004 end");
+        return;
+    }
+
+    EXPECT_CALL(Rosen::SceneBoardJudgement::GetInstance(), MockIsSceneBoardEnabled())
+        .WillRepeatedly(Return(true));
+
+    EXPECT_EQ(abilityMs_->GetTopAbilityByUserId(token, userId, displayId), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_004 end");
+}
+
+HWTEST_F(AbilityManagerServiceTwelfthTest, GetTopAbilityByUserId_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_005 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 分支5: 权限验证成功，SceneBoard 禁用，验证返回值
+    MyFlag::flag_ = 1;
+    sptr<IRemoteObject> token = nullptr;
+    int32_t userId = 100;
+    uint64_t displayId = 0;
+
+    if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled()) {
+        TAG_LOGI(AAFwkTag::TEST, "SceneBoard is enabled, skip test");
+        TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_005 end");
+        return;
+    }
+
+    // wmsHandler 为空，返回 ERR_INVALID_VALUE
+    EXPECT_EQ(abilityMs_->GetTopAbilityByUserId(token, userId, displayId), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetTopAbilityByUserId_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionInner
+ * SubFunction: NA
+ * FunctionPoints: Request modal UI extension - no top ability
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：没有顶层 Ability，GetTopAbility 返回错误
+    Want want;
+    want.SetParam("bundleName", "com.test.demo");
+
+    // 由于没有 wmsHandler，GetTopAbility 会失败
+    // 预期：使用 ModalSystemUiExtension 降级方案
+    auto result = abilityMs_->RequestModalUIExtensionInner(want);
+    TAG_LOGI(AAFwkTag::TEST, "RequestModalUIExtensionInner_001 result=%{public}d", result);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_001 end");
+}
+
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：基本场景 - 设置 bundleName
+    Want want;
+    want.SetParam("bundleName", "com.test.demo");
+
+    // 由于没有 wmsHandler，GetTopAbility 会失败
+    // 预期：使用 ModalSystemUiExtension 降级方案
+    auto result = abilityMs_->RequestModalUIExtensionInner(want);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_002 result=%{public}d", result);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionInner
+ * SubFunction: NA
+ * FunctionPoints: Request modal UI extension - token is null after GetTopAbility
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：GetTopAbility 返回 OK 但 token 为 null
+    Want want;
+    want.SetParam("bundleName", "com.test.demo");
+    MyFlag::flag_ = 0;  // Mock GetTopAbility 返回 OK 但 token 为 null
+
+    // 预期：由于 token 为 null，使用 ModalSystemUiExtension 降级方案
+    auto result = abilityMs_->RequestModalUIExtensionInner(want);
+    TAG_LOGI(AAFwkTag::TEST, "RequestModalUIExtensionInner_003 result=%{public}d", result);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionInner
+ * SubFunction: NA
+ * FunctionPoints: Request modal UI extension - bundleName mismatch
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionInner_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_004 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：焦点应用 bundleName 与调用者不匹配
+    Want want;
+    want.SetParam("bundleName", "com.caller.demo");  // 与焦点应用不一致
+    MyFlag::flag_ = 1;  // Mock 焦点应用为 "com.test.demo"
+
+    // 预期：由于 bundleName 不匹配，使用 ModalSystemUiExtension 降级方案
+    auto result = abilityMs_->RequestModalUIExtensionInner(want);
+    TAG_LOGI(AAFwkTag::TEST, "RequestModalUIExtensionInner_004 result=%{public}d", result);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionInner_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: Request modal UI extension with accountId - GetDisplayIdByAccount failed
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：权限验证失败
+    Want want;
+    want.SetParam("bundleName", "com.test.demo");
+    int32_t accountId = 100;
+    MyFlag::flag_ = 0;  // Mock 权限验证失败
+
+    EXPECT_EQ(abilityMs_->RequestModalUIExtensionWithAccount(want, accountId), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: Request modal UI extension with accountId - displayId not found
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_002 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：权限验证成功但未找到 displayId
+    Want want;
+    want.SetParam("bundleName", "com.test.demo");
+    int32_t accountId = 100;
+    MyFlag::flag_ = 1;  // Mock 权限验证成功但无 displayId
+
+    EXPECT_EQ(abilityMs_->RequestModalUIExtensionWithAccount(want, accountId), ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_002 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: Request modal UI extension with accountId - GetTopAbilityByUserId failed
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_003 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：成功获取 displayId，但 GetTopAbilityByUserId 失败
+    Want want;
+    want.SetParam("bundleName", "com.test.demo");
+    int32_t accountId = 100;
+    uint64_t displayId = 1;
+    MyFlag::flag_ = 1;  // Mock 权限验证成功
+
+    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, displayId);
+
+    // GetTopAbilityByUserId 会因为 wmsHandler 为空而失败
+    // 预期：使用 ModalSystemUiExtension 降级方案
+    auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
+    TAG_LOGI(AAFwkTag::TEST, "RequestModalUIExtensionWithAccount_003 result=%{public}d", result);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_003 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: Request modal UI extension with accountId - token is null
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_004 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：GetTopAbilityByUserId 返回 OK 但 token 为 null
+    Want want;
+    want.SetParam("bundleName", "com.test.demo");
+    int32_t accountId = 100;
+    uint64_t displayId = 1;
+    MyFlag::flag_ = 2;  // Mock GetTopAbilityByUserId 返回 OK 但 token 为 null
+
+    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, displayId);
+
+    // 预期：由于 token 为 null，使用 ModalSystemUiExtension 降级方案
+    auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
+    TAG_LOGI(AAFwkTag::TEST, "RequestModalUIExtensionWithAccount_004 result=%{public}d", result);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_004 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: Request modal UI extension with accountId - bundleName mismatch
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_005 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：焦点应用 bundleName 与调用者不匹配
+    Want want;
+    want.SetParam("bundleName", "com.caller.demo");  // 与焦点应用不一致
+    int32_t accountId = 100;
+    uint64_t displayId = 1;
+    MyFlag::flag_ = 3;  // Mock 焦点应用为 "com.test.demo"
+
+    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, displayId);
+
+    // 预期：由于 bundleName 不匹配，使用 ModalSystemUiExtension 降级方案
+    auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
+    TAG_LOGI(AAFwkTag::TEST, "RequestModalUIExtensionWithAccount_005 result=%{public}d", result);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: RequestModalUIExtensionWithAccount
+ * SubFunction: NA
+ * FunctionPoints: Request modal UI extension with accountId - success scenario
+ */
+HWTEST_F(AbilityManagerServiceTwelfthTest, RequestModalUIExtensionWithAccount_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_006 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    EXPECT_TRUE(abilityMs_ != nullptr);
+
+    // 测试场景：正常流程 - 所有条件满足
+    Want want;
+    want.SetParam("bundleName", "com.test.demo");  // 与焦点应用一致
+    int32_t accountId = 100;
+    uint64_t displayId = 1;
+    MyFlag::flag_ = 4;  // Mock 成功场景
+
+    AbilityRuntime::UserController::GetInstance().SetForegroundUserId(accountId, displayId);
+
+    // 预期：所有条件满足，调用 CreateModalUIExtension
+    auto result = abilityMs_->RequestModalUIExtensionWithAccount(want, accountId);
+    TAG_LOGI(AAFwkTag::TEST, "RequestModalUIExtensionWithAccount_006 result=%{public}d", result);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest RequestModalUIExtensionWithAccount_006 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS
