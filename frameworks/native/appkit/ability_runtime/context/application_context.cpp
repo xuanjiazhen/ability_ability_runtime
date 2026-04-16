@@ -1367,8 +1367,9 @@ void ApplicationContext::PostAbility(int32_t instanceId, std::shared_ptr<NativeA
 void ApplicationContext::DestroyAbility(int32_t instanceId)
 {
     auto nativeThreadInfo = GetNativeThread();
-    if (nativeThreadInfo != nullptr) {
-        nativeThreadInfo->DestroyAbility(instanceId);
+    auto nativeAbility = GetNativeAbility(instanceId);
+    if (nativeThreadInfo != nullptr && nativeAbility != nullptr) {
+        nativeThreadInfo->DestroyAbility(nativeAbility.get());
         TAG_LOGI(AAFwkTag::ABILITY, "DestroyAbility called for instanceId: %{public}d", instanceId);
     }
 

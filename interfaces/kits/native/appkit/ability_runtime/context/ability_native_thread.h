@@ -23,6 +23,7 @@
 
 typedef struct napi_env__* napi_env;
 typedef struct napi_value__* napi_value;
+typedef class __ani_object* ani_object;
 
 #ifdef __cplusplus
 extern "C" {
@@ -32,6 +33,7 @@ struct NativeAbilityWrapper {
     std::string abilityName;
     napi_env env = nullptr;
     napi_value jsAbilityObj = nullptr;
+    ani_object etsAbilityObj = nullptr;
 };
 
 #ifdef __cplusplus
@@ -78,9 +80,9 @@ public:
 
     /**
      * @brief Notify the native module that the ability is being destroyed.
-     * @param instanceId The instance id of the ability to destroy.
+     * @param nativeAbilityWrapper The pointer to the native ability wrapper.
      */
-    void DestroyAbility(int32_t instanceId);
+    void DestroyAbility(const NativeAbilityWrapper* nativeAbilityWrapper);
 
     /**
      * @brief Notify the native module that the process is exiting.
@@ -92,7 +94,7 @@ private:
     void *moduleHandle_ = nullptr;
     std::function<void()> OHMain_;
     std::function<void(const NativeAbilityWrapper*)> postAbilityFunc_;
-    std::function<void(int32_t)> destroyAbilityFunc_;
+    std::function<void(const NativeAbilityWrapper*)> destroyAbilityFunc_;
     std::function<void()> notifyProcessExitFunc_;
     std::thread nativeThread_;
 };

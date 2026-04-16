@@ -42,13 +42,8 @@ AbilityNativeThread::~AbilityNativeThread()
 bool AbilityNativeThread::LoadNativeModule(const AAFwk::NativeAbilityMetaData& metaData,
     const std::string &bundleName, const std::string &moduleName)
 {
-    if (metaData.nativeModuleSource.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Native module source is empty");
-        return false;
-    }
-
-    if (metaData.nativeModuleFunc.empty()) {
-        TAG_LOGE(AAFwkTag::ABILITY, "Native module function is empty");
+    if (metaData.nativeModuleSource.empty() || metaData.nativeModuleFunc.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Native config source or OHMain is empty");
         return false;
     }
 
@@ -81,21 +76,14 @@ bool AbilityNativeThread::LoadNativeModule(const AAFwk::NativeAbilityMetaData& m
     // Find the PostAbility function (optional but recommended)
     auto rawPostAbility = reinterpret_cast<void(*)(const NativeAbilityWrapper*)>(dlsym(moduleHandle_, "PostAbility"));
     if (rawPostAbility == nullptr) {
-        char* error = dlerror();
-        TAG_LOGW(AAFwkTag::ABILITY, "PostAbility function not found (optional): %{public}s",
-            error ? error : "null");
-    } else {
         postAbilityFunc_ = rawPostAbility;
         TAG_LOGI(AAFwkTag::ABILITY, "PostAbility function found");
     }
 
     // Find the DestroyAbility function (optional)
-    auto rawDestroyAbility = reinterpret_cast<void(*)(int32_t)>(dlsym(moduleHandle_, "DestroyAbility"));
-    if (rawDestroyAbility == nullptr) {
-        char* error = dlerror();
-        TAG_LOGW(AAFwkTag::ABILITY, "DestroyAbility function not found (optional): %{public}s",
-            error ? error : "null");
-    } else {
+    auto rawDestroyAbility = reinterpret_cast<void(*)(const NativeAbilityWrapper*)>(
+        dlsym(moduleHandle_, "DestroyAbility"));
+    if (rawDestroyAbility != nullptr) {
         destroyAbilityFunc_ = rawDestroyAbility;
         TAG_LOGI(AAFwkTag::ABILITY, "DestroyAbility function found");
     }
@@ -103,14 +91,10 @@ bool AbilityNativeThread::LoadNativeModule(const AAFwk::NativeAbilityMetaData& m
     // Find the NotifyProcessExit function (optional)
     auto rawNotifyProcessExit = reinterpret_cast<void(*)()>(dlsym(moduleHandle_, "NotifyProcessExit"));
     if (rawNotifyProcessExit == nullptr) {
-        char* error = dlerror();
-        TAG_LOGW(AAFwkTag::ABILITY, "NotifyProcessExit function not found (optional): %{public}s",
-            error ? error : "null");
-    } else {
         notifyProcessExitFunc_ = rawNotifyProcessExit;
         TAG_LOGI(AAFwkTag::ABILITY, "NotifyProcessExit function found");
     }
-
+    dlerror();
     return true;
 }
 
@@ -155,15 +139,20 @@ void AbilityNativeThread::PostAbility(const NativeAbilityWrapper* nativeAbilityW
     postAbilityFunc_(nativeAbilityWrapper);
 }
 
-void AbilityNativeThread::DestroyAbility(int32_t instanceId)
+void AbilityNativeThread::DestroyAbility(const NativeAbilityWrapper* nativeAbilityWrapper)
 {
     if (destroyAbilityFunc_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "DestroyAbility function is null");
         return;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITY, "Destroying ability with instanceId: %{public}d", instanceId);
-    destroyAbilityFunc_(instanceId);
+    if (nativeAbilityWrapper == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITY, "nativeAbilityWrapper is null");
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITY, "Destroying ability with instanceId: %{public}d", nativeAbilityWrapper->instanceId);
+    destroyAbilityFunc_(nativeAbilityWrapper);
 }
 
 void AbilityNativeThread::NotifyProcessExit()

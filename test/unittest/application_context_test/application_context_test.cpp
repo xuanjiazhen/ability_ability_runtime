@@ -2668,8 +2668,8 @@ HWTEST_F(ApplicationContextTest, ApplicationContext_DestroyAbility_0200, TestSiz
 
     auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
     int32_t receivedInstanceId = -1;
-    thread->destroyAbilityFunc_ = [&receivedInstanceId](int32_t instanceId) {
-        receivedInstanceId = instanceId;
+    thread->destroyAbilityFunc_ = [&receivedInstanceId](const NativeAbilityWrapper* nativeAbilityWrapper) {
+        receivedInstanceId = nativeAbilityWrapper->instanceId;
     };
     context_->abilityNativeThread_ = thread;
 
@@ -2923,6 +2923,110 @@ HWTEST_F(ApplicationContextTest, AbilityNativeThread_PostAbility_0300, TestSize.
     thread->postAbilityFunc_ = nullptr;
     thread->OHMain_ = nullptr;
     GTEST_LOG_(INFO) << "AbilityNativeThread_PostAbility_0300 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_DestroyAbility_0100
+ * @tc.name: AbilityNativeThread DestroyAbility
+ * @tc.desc: destroyAbilityFunc_ is nullptr, should not crash
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_DestroyAbility_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_DestroyAbility_0100 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    NativeAbilityWrapper wrapper;
+    wrapper.instanceId = 1;
+    wrapper.abilityName = "Test";
+    thread->DestroyAbility(&wrapper);
+    // No crash, early return
+    GTEST_LOG_(INFO) << "AbilityNativeThread_DestroyAbility_0100 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_DestroyAbility_0200
+ * @tc.name: AbilityNativeThread DestroyAbility
+ * @tc.desc: nativeAbilityWrapper is nullptr, should not crash
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_DestroyAbility_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_DestroyAbility_0200 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    int32_t receivedInstanceId = -1;
+    thread->destroyAbilityFunc_ = [&receivedInstanceId](const NativeAbilityWrapper* nativeAbilityWrapper) {
+        receivedInstanceId = nativeAbilityWrapper->instanceId;
+    };
+    thread->DestroyAbility(nullptr);
+    EXPECT_EQ(receivedInstanceId, -1);
+    // No crash, early return
+    GTEST_LOG_(INFO) << "AbilityNativeThread_DestroyAbility_0200 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_DestroyAbility_0300
+ * @tc.name: AbilityNativeThread DestroyAbility
+ * @tc.desc: Valid wrapper and destroyAbilityFunc, should call the function with correct wrapper
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_DestroyAbility_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_DestroyAbility_0300 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+
+    const NativeAbilityWrapper* receivedWrapper = nullptr;
+    thread->destroyAbilityFunc_ = [&receivedWrapper](const NativeAbilityWrapper* nativeAbilityWrapper) {
+        receivedWrapper = nativeAbilityWrapper;
+    };
+
+    NativeAbilityWrapper wrapper;
+    wrapper.instanceId = 42;
+    wrapper.abilityName = "TestDestroyAbility";
+
+    thread->DestroyAbility(&wrapper);
+
+    ASSERT_NE(receivedWrapper, nullptr);
+    EXPECT_EQ(receivedWrapper->instanceId, 42);
+    EXPECT_EQ(receivedWrapper->abilityName, "TestDestroyAbility");
+
+    // Cleanup
+    thread->destroyAbilityFunc_ = nullptr;
+    GTEST_LOG_(INFO) << "AbilityNativeThread_DestroyAbility_0300 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_NotifyProcessExit_0100
+ * @tc.name: AbilityNativeThread NotifyProcessExit
+ * @tc.desc: notifyProcessExitFunc_ is nullptr, should not crash
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_NotifyProcessExit_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_NotifyProcessExit_0100 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    thread->NotifyProcessExit();
+    // No crash, early return
+    GTEST_LOG_(INFO) << "AbilityNativeThread_NotifyProcessExit_0100 end";
+}
+
+/**
+ * @tc.number: AbilityNativeThread_NotifyProcessExit_0200
+ * @tc.name: AbilityNativeThread NotifyProcessExit
+ * @tc.desc: Valid notifyProcessExitFunc, should call the function
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_NotifyProcessExit_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_NotifyProcessExit_0200 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+
+    bool called = false;
+    thread->notifyProcessExitFunc_ = [&called]() {
+        called = true;
+    };
+
+    thread->NotifyProcessExit();
+
+    EXPECT_TRUE(called);
+
+    // Cleanup
+    thread->notifyProcessExitFunc_ = nullptr;
+    GTEST_LOG_(INFO) << "AbilityNativeThread_NotifyProcessExit_0200 end";
 }
 
 /**
