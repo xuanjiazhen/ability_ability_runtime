@@ -1087,6 +1087,8 @@ int UIAbilityLifecycleManager::DispatchForeground(const UIAbilityRecordPtr &abil
         auto timeoutTask = [wThis = weak_from_this(), abilityRecord]() {
             auto pThis = wThis.lock();
             if (pThis != nullptr && abilityRecord->GetNativeState() == AbilityNativeState::CREATED) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "Start self Timeout");
+                std::lock_guard guard(pThis->sessionLock_);
                 pThis->HandleForegroundTimeout(abilityRecord);
             }
         };
@@ -1094,6 +1096,7 @@ int UIAbilityLifecycleManager::DispatchForeground(const UIAbilityRecordPtr &abil
         return ERR_OK;
     }
     if (abilityRecord->GetNativeState() == AbilityNativeState::ON_FOREGROUND) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule foreground complete");
         abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
     }
 
@@ -1600,6 +1603,7 @@ int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRe
     }
 
     if (abilityRecord->GetNativeState() == AbilityNativeState::CREATED) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule foregroud StartSelf");
         abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
     }
 
