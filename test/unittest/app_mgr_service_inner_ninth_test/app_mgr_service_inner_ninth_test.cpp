@@ -2359,6 +2359,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, KillChildProcessByPid_0100, TestSize.Level
     const int32_t hostPid = 1234;
     const std::string processName = "test_process";
     auto appRecord = std::make_shared<AppRunningRecord>(applicationInfo, 1, processName);
+    appRecord->SetUid(100);
     ASSERT_NE(appRecord, nullptr);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
     int32_t childPid = 1;
@@ -2389,6 +2390,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, KillChildProcessByPid_0200, TestSize.Level
     const int32_t hostPid = 1234;
     const std::string processName = "test_process";
     auto appRecord = std::make_shared<AppRunningRecord>(applicationInfo, 1, processName);
+    appRecord->SetUid(100);
     ASSERT_NE(appRecord, nullptr);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = appRecord;
     int32_t childPid = 1;
@@ -2419,6 +2421,7 @@ HWTEST_F(AppMgrServiceInnerNinthTest, KillChildProcessByPid_0300, TestSize.Level
     const int32_t hostPid = 1234;
     const std::string processName = "test_process";
     auto appRecord = std::make_shared<AppRunningRecord>(applicationInfo, 1, processName);
+    appRecord->SetUid(100);
     ASSERT_NE(appRecord, nullptr);
     AAFwk::MyStatus::GetInstance().getAppRunningRecordByPid_ = nullptr;
     int32_t childPid = 1;

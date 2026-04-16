@@ -362,7 +362,9 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_AddChildProcessRecord_0100, Test
 {
     TAG_LOGD(AAFwkTag::TEST, "AppRunningRecord_AddChildProcessRecord_0100 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -386,7 +388,9 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_RemoveChildProcessRecord_0100, T
 {
     TAG_LOGD(AAFwkTag::TEST, "AppRunningRecord_RemoveChildProcessRecord_0100 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -411,7 +415,9 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_GetChildProcessRecordByPid_0100,
 {
     TAG_LOGD(AAFwkTag::TEST, "AppRunningRecord_GetChildProcessRecordByPid_0100 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     ChildProcessRequest request;
@@ -434,7 +440,9 @@ HWTEST_F(AppRunningRecordTest, AppRunningRecord_GetChildProcessRecordMap_0100, T
 {
     TAG_LOGD(AAFwkTag::TEST, "AppRunningRecord_GetChildProcessRecordMap_0100 called.");
     std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->bundleName = "com.example.child";
     auto appRecord = std::make_shared<AppRunningRecord>(appInfo, RECORD_ID, "com.example.child");
+    appRecord->SetUid(100);
     EXPECT_NE(appRecord, nullptr);
 
     auto childProcessRecordMap = appRecord->GetChildProcessRecordMap();

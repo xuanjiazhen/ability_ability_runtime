@@ -1457,7 +1457,9 @@ HWTEST_F(AppMgrServiceInnerTest, KillSubProcessBypid_003, TestSize.Level1)
     std::map<pid_t, std::shared_ptr<ChildProcessRecord>> childProcessRecordMap;
     std::string subProcessName = "subTestProcess";
     std::shared_ptr<ApplicationInfo> subAppInfo = std::make_shared<ApplicationInfo>();
+    subAppInfo->bundleName = "com.example.subprocess";
     auto subAppRecord = std::make_shared<AppRunningRecord>(subAppInfo, recordId, subProcessName);
+    subAppRecord->SetUid(100);
     ChildProcessRequest request;
     auto childProcessRecord = std::make_shared<ChildProcessRecord>(pid, request, subAppRecord);
 
