@@ -5162,5 +5162,30 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_SetGamePreLaunchCompleteTime
     int32_t result = reply.ReadInt32();
     EXPECT_EQ(result, NO_ERROR);
 }
+
+/*
+ * Feature: AbilityManagerStub
+ * Function: RequestModalUIExtensionWithAccountInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerStub RequestModalUIExtensionWithAccountInner
+ * EnvConditions: NA
+ * CaseDescription: Verify RequestModalUIExtensionWithAccountInner with null Want
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_RequestModalUIExtensionWithAccountInner_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_001 start");
+
+    MessageParcel data;
+    MessageParcel reply;
+
+    // Write accountId (but no Want)
+    data.WriteInt32(100);
+
+    auto res = stub_->RequestModalUIExtensionWithAccountInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerStub_RequestModalUIExtensionWithAccountInner_001 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS
