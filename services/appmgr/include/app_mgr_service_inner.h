@@ -1767,7 +1767,10 @@ public:
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
-    
+
+    bool ForceKillApplicationWithWaitInner(const std::string &bundleName, const int userId = -1,
+        const int appIndex = 0);
+
     int32_t KillApplicationWithUserIdInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
 
