@@ -35,17 +35,11 @@ ohos_shared_library("climgr") {
     debug = false
   }
   shlib_type = "sa"
+  configs = [ ":clisa_config" ]
+  sources = [ "src/cli_tool_manager_service.cpp" ]
+  defines = [ "AMS_LOG_TAG = \"CliToolManager\"" ]
 
-  configs = [
-    ":clisa_config",
-  ]
-
-  sources = [
-    "src/cli_tool_mgr_service.cpp",
-    "src/cli_tool_mgr_stub.cpp",
-  ]
-
-  deps = []
+  deps = [ "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client" ]
 
   external_deps = [
     "c_utils:utils",
