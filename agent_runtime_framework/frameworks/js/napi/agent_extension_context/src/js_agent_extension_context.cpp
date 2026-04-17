@@ -24,36 +24,16 @@
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
+#include "napi_base_context.h"
 
 namespace OHOS {
 namespace AgentRuntime {
 using namespace OHOS::AbilityRuntime;
-namespace {
-class JsAgentExtensionContext final {
-public:
-    explicit JsAgentExtensionContext(
-        const std::shared_ptr<AgentExtensionContext>& context) : context_(context) {}
-    ~JsAgentExtensionContext() = default;
-
-    static void Finalizer(napi_env env, void* data, void* hint)
-    {
-        TAG_LOGD(AAFwkTag::SER_ROUTER, "called");
-        std::unique_ptr<JsAgentExtensionContext>(static_cast<JsAgentExtensionContext*>(data));
-    }
-
-    std::shared_ptr<AgentExtensionContext> GetContext() const
-    {
-        return context_.lock();
-    }
-
-private:
-    std::weak_ptr<AgentExtensionContext> context_;
-};
-}
 
 napi_value CreateJsAgentExtensionContext(napi_env env, std::shared_ptr<AgentExtensionContext> context)
 {
-    TAG_LOGD(AAFwkTag::SER_ROUTER, "called");
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "called CreateJsAgentExtensionContext");
+    HandleEscape handleEscape(env);
     std::shared_ptr<OHOS::AppExecFwk::AbilityInfo> abilityInfo = nullptr;
     std::shared_ptr<AgentCard> agentCard;
     if (context) {
@@ -61,15 +41,13 @@ napi_value CreateJsAgentExtensionContext(napi_env env, std::shared_ptr<AgentExte
         agentCard = context->GetAgentCard();
     }
     napi_value object = CreateJsExtensionContext(env, context, abilityInfo);
-    std::unique_ptr<JsAgentExtensionContext> jsContext = std::make_unique<JsAgentExtensionContext>(context);
-    napi_wrap(env, object, jsContext.release(), JsAgentExtensionContext::Finalizer, nullptr, nullptr);
     if (agentCard == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentCard");
-        return object;
+        return handleEscape.Escape(object);
     }
     napi_set_named_property(env, object, "agentCard", CreateJsAgentCard(env, *agentCard));
     TAG_LOGD(AAFwkTag::SER_ROUTER, "end");
-    return object;
+    return handleEscape.Escape(object);
 }
 
 bool UnwrapJsAgentExtensionContext(napi_env env, napi_value value, std::shared_ptr<AgentExtensionContext> &context)
@@ -80,14 +58,12 @@ bool UnwrapJsAgentExtensionContext(napi_env env, napi_value value, std::shared_p
         return false;
     }
 
-    JsAgentExtensionContext *jsContext = nullptr;
-    napi_status status = napi_unwrap(env, value, reinterpret_cast<void **>(&jsContext));
-    if (status != napi_ok || jsContext == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "unwrap JsAgentExtensionContext failed");
-        return false;
+    auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, value);
+    if (stageContext != nullptr) {
+        context = AbilityRuntime::Context::ConvertTo<AgentExtensionContext>(stageContext);
+        return context != nullptr;
     }
-    context = jsContext->GetContext();
-    return true;
+    return false;
 }
 }
 }
