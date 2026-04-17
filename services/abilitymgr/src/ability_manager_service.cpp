@@ -14331,7 +14331,8 @@ int AbilityManagerService::CreateCloneSelectorDialog(AbilityRequest &request, in
     const std::string &replaceWantString)
 {
     CHECK_POINTER_AND_RETURN(implicitStartProcessor_, ERR_IMPLICIT_START_ABILITY_FAIL);
-    auto ret = implicitStartProcessor_->ImplicitStartAbility(request, userId, 0, replaceWantString, true);
+    auto ret = implicitStartProcessor_->ImplicitStartAbility(request, userId,
+        request.want.GetIntParam(Want::PARAM_RESV_WINDOW_MODE, 0), replaceWantString, true);
     return AbilityErrorUtil::ConvertToOriginErrorCode(ret);
 }
 #endif // SUPPORT_SCREEN
