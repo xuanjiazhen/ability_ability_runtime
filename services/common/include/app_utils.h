@@ -363,6 +363,8 @@ public:
 
     bool IsSupportModularObjectExtension();
 
+    bool IsSupportDelayedProcessExit();
+
     bool IsProductAppbootSettingEnabled();
 
     void LoadAppTransferList();
@@ -461,6 +463,7 @@ private:
     volatile DeviceConfiguration<bool> isSupportModularObjectExtension_ = {false, false};
     volatile DeviceConfiguration<bool> isProductAppbootSettingEnabled_ = {false, false};
     volatile DeviceConfiguration<bool> isHybridSpawnUnified_ = {false, false};
+    volatile DeviceConfiguration<bool> isSupportDelayedProcessExit_ = {false, false};
     DeviceConfiguration<std::vector<std::pair<std::string, std::string>>>
         residentProcessInExtremeMemory_ = {false, {}};
     std::mutex residentProcessInExtremeMemoryMutex_;

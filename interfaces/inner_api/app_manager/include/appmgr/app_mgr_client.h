@@ -455,6 +455,10 @@ public:
     virtual int32_t GetRunningProcessInfoByChildProcessPid(const pid_t childPid,
         OHOS::AppExecFwk::RunningProcessInfo &info) const;
 
+    virtual int32_t SetDelayedProcessExitEnabled(int32_t pid, bool enabled) const;
+
+    virtual void ClearProcessPrepareExit(int32_t pid) const;
+
     /**
      * Notify that the ability stage has been updated
      * @param recordId, the app record.

@@ -17,8 +17,9 @@
 #define OHOS_ABILITY_RUNTIME_APPLICATION_CONTEXT_H
 
 #include <vector>
-#include <shared_mutex>
+#include <mutex>
 
+#include "ability_transaction_callback_info.h"
 #include "ability_lifecycle_callback.h"
 #include "application_state_change_callback.h"
 #include "application_update_callback.h"
@@ -153,6 +154,9 @@ public:
     void KillProcessBySelf(const bool clearPageStack = false);
     int32_t GetProcessRunningInformation(AppExecFwk::RunningProcessInfo &info);
     int32_t RestartApp(const AAFwk::Want& want);
+    int32_t EnableDelayedProcessExit();
+    int32_t DisableDelayedProcessExit();
+    int32_t StartSelfUIAbility(const AAFwk::Want &want);
 
     void AttachContextImpl(const std::shared_ptr<ContextImpl> &contextImpl);
 
@@ -219,6 +223,8 @@ protected:
     }
 
 private:
+    bool IsDelayedProcessExitPending() const;
+    bool HasOtherUIAbility() const;
     std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> GetInteropCallbacks();
 
 private:
@@ -244,6 +250,8 @@ private:
     std::string dataDir_;
     std::mutex dataDirMutex_;
     std::mutex systemConfigurationUpdatedCallbackLock_;
+    mutable std::mutex delayedProcessExitStateLock_;
+    bool delayedProcessExitEnabled_ = false;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

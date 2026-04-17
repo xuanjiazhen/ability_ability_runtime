@@ -16278,6 +16278,76 @@ int AbilityManagerService::StartSelfUIAbility(const Want &want)
     return StartSelfUIAbilityInner(param);
 }
 
+int AbilityManagerService::StartSelfUIAbilityByAppContext(const Want &want)
+{    
+    if (!AppUtils::GetInstance().IsSupportDelayedProcessExit()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "device not supported");
+        return ERR_CAPABILITY_NOT_SUPPORT;
+    }
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
+        return INNER_ERR;
+    }
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+
+    StartSelfUIAbilityParam param;
+    param.want = want;
+    auto targetBundleName = param.want.GetBundle();
+    CHECK_TRUE_RETURN_RET(targetBundleName.empty(), ERR_NOT_ALLOW_IMPLICIT_START, "implicit start not allowed");
+
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    AppExecFwk::RunningProcessInfo processInfo;
+    DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByChildProcessPid(callingPid, processInfo);
+    CHECK_TRUE_RETURN_RET(processInfo.bundleNames.empty(), INNER_ERR, "failed to get by child process pid");
+    auto iter = std::find_if(processInfo.bundleNames.begin(), processInfo.bundleNames.end(),
+        [targetBundleName](const std::string &bundleName) { return bundleName == targetBundleName; });
+    CHECK_TRUE_RETURN_RET(iter == processInfo.bundleNames.end(), ERR_START_OTHER_APP_FAILED, "cannot start other app");
+
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
+    AppExecFwk::AbilityInfo abilityInfo;
+    auto callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    CHECK_TRUE_RETURN_RET(!IN_PROCESS_CALL(bundleMgrHelper->QueryAbilityInfo(param.want,
+        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, callerUserId, abilityInfo)),
+        TARGET_BUNDLE_NOT_EXIST, "bundle or ability not exist");
+
+    CHECK_TRUE_RETURN_RET(abilityInfo.type != AppExecFwk::AbilityType::PAGE,
+        RESOLVE_CALL_ABILITY_TYPE_ERR, "not UIAbility");
+
+    param.want.RemoveParam(Want::PARAM_APP_CLONE_INDEX_KEY);
+    if (processInfo.appMode == AppExecFwk::MultiAppModeType::APP_CLONE) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "set appIndex: %{public}d", processInfo.appCloneIndex);
+        param.want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, processInfo.appCloneIndex);
+    }
+
+    if (processInfo.appMode == AppExecFwk::MultiAppModeType::MULTI_INSTANCE &&
+        !param.want.HasParameter(Want::APP_INSTANCE_KEY) &&
+        !param.want.GetBoolParam(Want::CREATE_APP_INSTANCE_KEY, false)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "set instanceKey: %{public}s", processInfo.instanceKey.c_str());
+        param.want.SetParam(Want::APP_INSTANCE_KEY, processInfo.instanceKey);
+    }
+
+    auto targetProcessName = abilityInfo.process.empty() ? abilityInfo.applicationInfo.process : abilityInfo.process;
+    param.options.SetCurrentProcessName(processInfo.processName_);
+    if (param.options.processOptions == nullptr) {
+        param.options.processOptions = std::make_shared<ProcessOptions>();
+    }
+    auto tokenId = abilityInfo.applicationInfo.accessTokenId;
+    StartSelfUIAbilityRecordGuard startSelfUIAbilityRecordGuard(callingPid, tokenId);
+    param.options.processOptions->selfPid = callingPid;
+    param.hasStartOptions = true;
+    
+    int32_t result = ERR_OK;
+    result = StartAbility(param.want, param.options, nullptr);
+    if (result == ERR_OK && (targetProcessName.empty() || targetProcessName == processInfo.processName_)) {
+        auto appMgr = AppMgrUtil::GetAppMgr();
+        if (appMgr != nullptr) {
+            appMgr->ClearProcessPrepareExit(callingPid);
+        }
+    }
+    return result;
+}
+
 int AbilityManagerService::StartSelfUIAbilityWithStartOptions(const Want &want, const StartOptions &options)
 {
     if (AppUtils::GetInstance().IsForbidStart()) {

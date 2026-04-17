@@ -98,6 +98,9 @@ public:
     napi_value OnSetFont(napi_env env, NapiCallbackInfo& info);
     napi_value OnClearUpApplicationData(napi_env env, NapiCallbackInfo& info);
     napi_value OnRestartApp(napi_env env, NapiCallbackInfo& info);
+    napi_value OnEnableDelayedProcessExit(napi_env env, NapiCallbackInfo& info);
+    napi_value OnDisableDelayedProcessExit(napi_env env, NapiCallbackInfo& info);
+    napi_value OnStartSelfUIAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetSupportedProcessCacheSelf(napi_env env, NapiCallbackInfo& info);
     napi_value OnPreloadUIExtensionAbility(napi_env env, NapiCallbackInfo& info);
     napi_value OnGetCurrentAppCloneIndex(napi_env env, NapiCallbackInfo& info);
@@ -127,6 +130,9 @@ public:
     static napi_value GetRunningProcessInformation(napi_env env, napi_callback_info info);
     static napi_value CreateJsApplicationContext(napi_env env);
     static napi_value RestartApp(napi_env env, napi_callback_info info);
+    static napi_value EnableDelayedProcessExit(napi_env env, napi_callback_info info);
+    static napi_value DisableDelayedProcessExit(napi_env env, napi_callback_info info);
+    static napi_value StartSelfUIAbility(napi_env env, napi_callback_info info);
     static napi_value SetSupportedProcessCacheSelf(napi_env env, napi_callback_info info);
     static napi_value PreloadUIExtensionAbility(napi_env env, napi_callback_info info);
     static napi_value GetCurrentAppCloneIndex(napi_env env, napi_callback_info info);

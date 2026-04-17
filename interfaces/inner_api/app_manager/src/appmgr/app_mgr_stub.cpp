@@ -50,8 +50,6 @@ AppMgrStub::~AppMgrStub() {}
 
 int AppMgrStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
-    TAG_LOGD(AAFwkTag::APPMGR, "AppMgrStub::OnReceived, code = %{public}u, flags= %{public}d.", code,
-        option.GetFlags());
     std::u16string descriptor = AppMgrStub::GetDescriptor();
     std::u16string remoteDescriptor = data.ReadInterfaceToken();
     if (descriptor != remoteDescriptor) {
@@ -433,6 +431,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleLockProcessCache(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::SET_PROCESS_PREPARE_EXIT):
             return HandleSetProcessPrepareExit(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::SET_DELAYED_PROCESS_EXIT_ENABLED):
+            return HandleSetDelayedProcessExitEnabled(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::CLEAR_PROCESS_PREPARE_EXIT):
+            return HandleClearProcessPrepareExit(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::MAKE_IMAGE):
             return HandleMakeImage(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::DESTROY_IMAGE):
@@ -2411,6 +2413,23 @@ int32_t AppMgrStub::HandleGetAllAbilityInfos(MessageParcel &data, MessageParcel 
             return ERR_APPEXECFWK_PARCEL_ERROR;
         }
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleSetDelayedProcessExitEnabled(MessageParcel &data, MessageParcel &reply)
+{
+    pid_t pid = data.ReadInt32();
+    bool enabled = data.ReadBool();
+    auto result = SetDelayedProcessExitEnabled(pid, enabled);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleClearProcessPrepareExit(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleClearProcessPrepareExit call");
+    pid_t pid = data.ReadInt32();
+    ClearProcessPrepareExit(pid);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

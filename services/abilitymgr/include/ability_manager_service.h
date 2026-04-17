@@ -149,6 +149,14 @@ public:
     virtual int StartSelfUIAbility(const Want &want) override;
 
     /**
+     * StartSelfUIAbility from ApplicationContext and force launch in current process.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbilityByAppContext(const Want &want) override;
+
+    /**
      * StartSelfUIAbility with want and startOptions, start self uiability only on 2-in-1 devices.
      *
      * @param want, the want of the ability to start.

@@ -2372,6 +2372,14 @@ ErrCode AbilityManagerClient::StartSelfUIAbility(const Want &want)
     return abms->StartSelfUIAbility(want);
 }
 
+ErrCode AbilityManagerClient::StartSelfUIAbilityByAppContext(const Want &want)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call StartSelfUIAbilityByAppContext");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StartSelfUIAbilityByAppContext(want);
+}
+
 ErrCode AbilityManagerClient::StartSelfUIAbilityWithStartOptions(const Want &want,
     const StartOptions &options)
 {
