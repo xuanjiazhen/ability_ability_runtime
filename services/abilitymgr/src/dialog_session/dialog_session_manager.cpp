@@ -311,12 +311,26 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
     sptr<IRemoteObject> callerToken = dialogCallerInfo->callerToken;
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
     CHECK_POINTER_AND_RETURN(abilityMgr, INNER_ERR);
+    auto windowMode = targetWant.GetIntParam(Want::PARAM_RESV_WINDOW_MODE, 0);
+    if (windowMode != 0 && dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR) {
+        AAFwk::StartOptions startOptions;
+        startOptions.SetWindowMode(windowMode);
+        int ret = abilityMgr->StartAbilityAsCaller(targetWant, startOptions, callerToken, callerToken,
+            dialogCallerInfo->userId, dialogCallerInfo->requestCode);
+        if (ret == ERR_OK) {
+            ClearDialogContext(dialogSessionId);
+            abilityMgr->RemoveSelectorIdentity(
+                dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+        }
+        return ret;
+    }
     int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
         dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
         dialogCallerInfo->callerAccessTokenId);
     if (ret == ERR_OK) {
         ClearDialogContext(dialogSessionId);
-        abilityMgr->RemoveSelectorIdentity(dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+        abilityMgr->RemoveSelectorIdentity(
+            dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
     }
     return ret;
 }
