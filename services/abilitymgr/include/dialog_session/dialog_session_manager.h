@@ -187,6 +187,12 @@ private:
     void HandleUserRejected(const std::string &dialogSessionId, const Want &want,
         const std::shared_ptr<DialogCallerInfo> &dialogCallerInfo);
 
+    Want BuildTargetWant(const Want &want, const std::shared_ptr<DialogCallerInfo> &dialogCallerInfo,
+        const std::string &dialogSessionId);
+
+    int StartTargetAbility(const Want &targetWant, const std::shared_ptr<DialogCallerInfo> &dialogCallerInfo,
+        const std::string &dialogSessionId);
+
     mutable ffrt::mutex dialogSessionRecordLock_;
     std::unordered_map<std::string, sptr<DialogSessionInfo>> dialogSessionInfoMap_;
     std::unordered_map<std::string, std::shared_ptr<DialogCallerInfo>> dialogCallerInfoMap_;

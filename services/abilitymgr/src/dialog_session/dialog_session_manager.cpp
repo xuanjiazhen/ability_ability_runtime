@@ -269,6 +269,59 @@ void DialogSessionManager::NotifyAbilityRequestFailure(const std::string &dialog
     abilityRecord->NotifyAbilityRequestFailure(requestId, want.GetElement(), message);
 }
 
+Want DialogSessionManager::BuildTargetWant(const Want &want, const std::shared_ptr<DialogCallerInfo> &dialogCallerInfo,
+    const std::string &dialogSessionId)
+{
+    auto targetWant = dialogCallerInfo->targetWant;
+    if (dialogCallerInfo->type != SelectorType::INTERCEPTOR_SELECTOR) {
+        targetWant.SetElement(want.GetElement());
+    }
+    targetWant.SetParam("isSelector", dialogCallerInfo->type != SelectorType::WITHOUT_SELECTOR);
+    targetWant.SetParam(DIALOG_SESSION_ID, dialogSessionId);
+    if (want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        int32_t appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+        targetWant.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
+    }
+    targetWant.RemoveParam(PICKER_ERMS_POLICY);
+    if (want.HasParameter(PICKER_ERMS_POLICY)) {
+        targetWant.SetParam(PICKER_ERMS_POLICY, want.GetParams().GetIntParam(PICKER_ERMS_POLICY, 1));
+    }
+    if (!targetWant.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        targetWant.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
+    }
+    return targetWant;
+}
+
+int DialogSessionManager::StartTargetAbility(const Want &targetWant,
+    const std::shared_ptr<DialogCallerInfo> &dialogCallerInfo, const std::string &dialogSessionId)
+{
+    sptr<IRemoteObject> callerToken = dialogCallerInfo->callerToken;
+    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
+    CHECK_POINTER_AND_RETURN(abilityMgr, INNER_ERR);
+    auto windowMode = targetWant.GetIntParam(Want::PARAM_RESV_WINDOW_MODE, 0);
+    if (windowMode != 0 && dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR) {
+        AAFwk::StartOptions startOptions;
+        startOptions.SetWindowMode(windowMode);
+        int ret = abilityMgr->StartAbilityAsCaller(targetWant, startOptions, callerToken, callerToken,
+            dialogCallerInfo->userId, dialogCallerInfo->requestCode);
+        if (ret == ERR_OK) {
+            ClearDialogContext(dialogSessionId);
+            abilityMgr->RemoveSelectorIdentity(
+                dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+        }
+        return ret;
+    }
+    int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken,
+        dialogCallerInfo->userId, dialogCallerInfo->requestCode, false,
+        dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR, dialogCallerInfo->callerAccessTokenId);
+    if (ret == ERR_OK) {
+        ClearDialogContext(dialogSessionId);
+        abilityMgr->RemoveSelectorIdentity(
+            dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
+    }
+    return ret;
+}
+
 int DialogSessionManager::SendDialogResult(const Want &want, const std::string &dialogSessionId, bool isAllowed)
 {
     if (NotifyQueryERMSFinished(dialogSessionId, isAllowed)) {
@@ -291,34 +344,8 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
         ClearDialogContext(dialogSessionId);
         return ERR_INVALID_VALUE;
     }
-    auto targetWant = dialogCallerInfo->targetWant;
-    if (dialogCallerInfo->type != SelectorType::INTERCEPTOR_SELECTOR) {
-        targetWant.SetElement(want.GetElement());
-    }
-    targetWant.SetParam("isSelector", dialogCallerInfo->type != SelectorType::WITHOUT_SELECTOR);
-    targetWant.SetParam(DIALOG_SESSION_ID, dialogSessionId);
-    if (want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
-        int32_t appIndex = want.GetIntParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-        targetWant.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, appIndex);
-    }
-    targetWant.RemoveParam(PICKER_ERMS_POLICY);
-    if (want.HasParameter(PICKER_ERMS_POLICY)) {
-        targetWant.SetParam(PICKER_ERMS_POLICY, want.GetParams().GetIntParam(PICKER_ERMS_POLICY, 1));
-    }
-    if (!targetWant.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
-        targetWant.SetParam(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY, 0);
-    }
-    sptr<IRemoteObject> callerToken = dialogCallerInfo->callerToken;
-    auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
-    CHECK_POINTER_AND_RETURN(abilityMgr, INNER_ERR);
-    int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
-        dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
-        dialogCallerInfo->callerAccessTokenId);
-    if (ret == ERR_OK) {
-        ClearDialogContext(dialogSessionId);
-        abilityMgr->RemoveSelectorIdentity(dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
-    }
-    return ret;
+    auto targetWant = BuildTargetWant(want, dialogCallerInfo, dialogSessionId);
+    return StartTargetAbility(targetWant, dialogCallerInfo, dialogSessionId);
 }
 
 void DialogSessionManager::HandleUserRejected(const std::string &dialogSessionId, const Want &want,
