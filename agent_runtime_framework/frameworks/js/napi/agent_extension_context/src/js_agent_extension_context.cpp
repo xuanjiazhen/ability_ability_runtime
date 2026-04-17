@@ -24,6 +24,7 @@
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "napi/native_api.h"
+#include "napi_base_context.h"
 
 namespace OHOS {
 namespace AgentRuntime {
@@ -80,14 +81,12 @@ bool UnwrapJsAgentExtensionContext(napi_env env, napi_value value, std::shared_p
         return false;
     }
 
-    JsAgentExtensionContext *jsContext = nullptr;
-    napi_status status = napi_unwrap(env, value, reinterpret_cast<void **>(&jsContext));
-    if (status != napi_ok || jsContext == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "unwrap JsAgentExtensionContext failed");
-        return false;
+    auto stageContext = OHOS::AbilityRuntime::GetStageModeContext(env, value);
+    if (stageContext != nullptr) {
+        context = AbilityRuntime::Context::ConvertTo<AgentExtensionContext>(stageContext);
+        return context != nullptr;
     }
-    context = jsContext->GetContext();
-    return true;
+    return false;
 }
 }
 }
