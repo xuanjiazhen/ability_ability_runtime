@@ -1,0 +1,71 @@
+{
+  "name": "ohos-pkgmgr",
+  "version": "1.0.0",
+  "description": "Package management tool with subcommands",
+  "executable": "/usr/bin/pkg-mgr",
+  "timeout": 300.25,
+  "input": {
+    "type": "object",
+    "properties": {
+      "verbose": {
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "verbose": {
+        "if_true": "--verbose",
+        "if_false": ""
+      }
+    }
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      }
+    }
+  },
+  "hasSubcommands": true,
+  "subcommands": {
+    "install": {
+      "description": "Install a package",
+      "input": {
+        "type": "object",
+        "properties": {
+          "package": {
+            "type": "string"
+          },
+          "force": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": ["package"]
+      },
+      "output": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "events": ["result"],
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "package": "{value}",
+          "force": {
+            "if_true": "--force",
+            "if_false": ""
+          }
+        }
+      }
+    }
+  }
+}

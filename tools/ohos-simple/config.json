@@ -1,0 +1,62 @@
+{
+  "name": "ohos-simple",
+  "version": "1.0.0",
+  "description": "简单 CLI 工具，支持消息输出、重复次数和详细模式",
+  "executable": "/system/bin/cli_tool/tools/ohos-simple",
+  "timeout": 30,
+  "events": ["result"],
+  "input": {
+    "type": "object",
+    "description": "工具输入参数",
+    "properties": {
+      "message": {
+        "type": "string",
+        "description": "要输出的消息内容",
+        "default": "Hello from ohos-simple",
+        "minLength": 1
+      },
+      "count": {
+        "type": "integer",
+        "description": "消息重复次数，实际实现会限制在 1 到 10 之间",
+        "default": 1,
+        "minimum": 1,
+        "maximum": 10
+      },
+      "verbose": {
+        "type": "boolean",
+        "description": "是否输出详细过程信息",
+        "default": false
+      }
+    }
+  },
+  "output": {
+    "type": "object",
+    "description": "工具执行结果",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "执行状态，成功时为 success"
+      },
+      "message": {
+        "type": "string",
+        "description": "处理后的输出消息"
+      },
+      "repeat_count": {
+        "type": "integer",
+        "description": "实际重复次数"
+      }
+    },
+    "required": ["status", "message", "repeat_count"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "message": "--message={value}",
+      "count": "--count={value}",
+      "verbose": {
+        "if_true": "--verbose",
+        "if_false": ""
+      }
+    }
+  }
+}

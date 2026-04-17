@@ -1,0 +1,83 @@
+{
+  "name": "ohos-timer",
+  "version": "1.0.0",
+  "description": "定时器工具示例，支持进度事件输出",
+  "executable": "/system/bin/cli_tool/tools/ohos-timer",
+  "timeout": 30,
+  "events": ["progress", "result"],
+  "input": {
+    "type": "object",
+    "description": "工具输入参数",
+    "properties": {
+      "duration": {
+        "type": "integer",
+        "description": "运行时长（秒）",
+        "minimum": 1
+      },
+      "interval": {
+        "type": "integer",
+        "description": "进度更新间隔（秒）",
+        "default": 1,
+        "minimum": 1
+      },
+      "showProgress": {
+        "type": "boolean",
+        "description": "显示进度事件",
+        "default": false
+      },
+      "verbose": {
+        "type": "boolean",
+        "description": "详细模式",
+        "default": false
+      }
+    },
+    "required": ["duration"]
+  },
+  "output": {
+    "type": "object",
+    "description": "工具输出结果",
+    "properties": {
+      "status": {
+        "type": "string",
+        "description": "执行状态"
+      },
+      "duration": {
+        "type": "integer",
+        "description": "计划时长（秒）"
+      },
+      "actual_duration": {
+        "type": "integer",
+        "description": "实际时长（秒）"
+      }
+    },
+    "required": ["status", "duration", "actual_duration"]
+  },
+  "eventSchemas": {
+    "progress": {
+      "type": "object",
+      "description": "进度事件",
+      "properties": {
+        "percentage": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100,
+          "description": "完成百分比"
+        },
+        "status": {
+          "type": "string",
+          "description": "当前状态"
+        }
+      },
+      "required": ["percentage", "status"]
+    }
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "duration": "--duration={value}",
+      "interval": "--interval={value}",
+      "showProgress": "--progress",
+      "verbose": "--verbose"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "ohos-schema",
+  "version": "1.0.0",
+  "description": "Invalid schema example",
+  "executable": "/usr/bin/invalid-schema-tool",
+  "input": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string"
+      }
+    },
+    "required": ["target", "port"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}"
+    }
+  }
+}

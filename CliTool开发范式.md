@@ -1,0 +1,1510 @@
+# 3. 参数设计
+
+## 3.1 参数类型支持
+
+### 3.1.1 基于标准 JSON Schema
+
+工具描述文件的 `input` 和 `output` 采用 JSON Schema 的受限子集，用于描述参数结构、基本约束和结果格式。
+
+当前支持的基础类型共 6 种：
+
+- `string`
+- `number`
+- `integer`
+- `boolean`
+- `array`
+- `object`
+
+### 3.1.2 通用字段说明
+
+以下字段可用于多种类型：
+
+| 字段 | 适用类型 | 含义 |
+|------|---------|------|
+| `type` | 全部 | 参数类型标识 |
+| `description` | 全部 | 参数说明，用于文档展示和动态构造 UI |
+| `default` | 多数类型 | 默认值提示，不等价于框架自动补值 |
+
+补充说明：
+
+- `default` 仅用于文档展示和 UI 提示
+- 框架不会因为调用方未传入参数而自动填充 `default`
+- 参数是否必填应通过 `required` 明确声明
+
+### 3.1.3 String（字符串）
+
+**支持字段：**
+
+| 字段 | 含义 |
+|------|------|
+| `type: "string"` | 声明该参数是字符串 |
+| `description` | 字符串参数说明 |
+| `default` | 默认字符串值 |
+| `minLength` | 最小长度 |
+| `maxLength` | 最大长度 |
+| `pattern` | 正则表达式约束 |
+| `format` | 标准格式提示或校验约束 |
+
+**支持的 `format`：**
+
+- `ipv4`：应符合 JSON Schema 定义的 IPv4 地址格式
+- `ipv6`：应符合 JSON Schema 定义的 IPv6 地址格式
+- `hostname`：应符合 JSON Schema 定义的主机名格式
+- `email`：应符合 JSON Schema 定义的邮箱地址格式
+- `uri`：应符合 JSON Schema 定义的 URI 格式
+- `date`：应符合 RFC 3339 中 `full-date` 定义，即 `YYYY-MM-DD`
+- `date-time`：应符合 RFC 3339 中 `date-time` 定义，即完整日期时间表示，包含时间和时区信息
+
+说明：
+
+- `date` 和 `date-time` 的语义采用 JSON Schema 对 RFC 3339 的引用定义
+- `date` 不是“看起来像日期字符串”即可，还应是合法日历日期
+- `date-time` 应包含时区信息，例如 `Z` 或 `+08:00`
+
+实现建议：
+
+- `format` 校验应尽量遵循 JSON Schema 的标准语义，不建议随意自定义解释
+- 对 `date`、`date-time`、`uri`、`ipv6` 这类规则较复杂的格式，优先使用标准库或成熟解析器校验
+- 若实现中同时支持 `pattern` 和 `format`，建议要求字符串同时满足两者约束
+
+**示例：**
+
+```json
+{
+  "properties": {
+    "target": {
+      "type": "string",
+      "description": "目标地址",
+      "minLength": 1,
+      "maxLength": 255,
+      "pattern": "^[a-zA-Z0-9.-]+$",
+      "format": "ipv4",
+      "default": "127.0.0.1"
+    }
+  }
+}
+```
+
+### 3.1.4 Number（数字）
+
+**支持字段：**
+
+| 字段 | 含义 |
+|------|------|
+| `type: "number"` | 可包含小数的数字 |
+| `description` | 参数说明 |
+| `default` | 默认数值 |
+| `minimum` | 最小值，包含边界 |
+| `maximum` | 最大值，包含边界 |
+| `exclusiveMinimum` | 严格大于某值 |
+| `exclusiveMaximum` | 严格小于某值 |
+| `multipleOf` | 必须是指定数值的倍数 |
+
+**示例：**
+
+```json
+{
+  "properties": {
+    "ratio": {
+      "type": "number",
+      "description": "采样比例",
+      "minimum": 0,
+      "maximum": 1,
+      "default": 0.5,
+      "multipleOf": 0.1
+    }
+  }
+}
+```
+
+### 3.1.5 Integer（整数）
+
+**支持字段：**
+
+| 字段 | 含义 |
+|------|------|
+| `type: "integer"` | 整数参数 |
+| `description` | 参数说明 |
+| `default` | 默认整数值 |
+| `minimum` | 最小值，包含边界 |
+| `maximum` | 最大值，包含边界 |
+| `exclusiveMinimum` | 严格大于某值 |
+| `exclusiveMaximum` | 严格小于某值 |
+| `multipleOf` | 必须是指定整数的倍数 |
+
+**示例：**
+
+```json
+{
+  "properties": {
+    "count": {
+      "type": "integer",
+      "description": "重复次数",
+      "minimum": 1,
+      "maximum": 100,
+      "default": 1,
+      "multipleOf": 1
+    }
+  }
+}
+```
+
+### 3.1.6 Boolean（布尔值）
+
+**支持字段：**
+
+| 字段 | 含义 |
+|------|------|
+| `type: "boolean"` | 布尔参数 |
+| `description` | 参数说明 |
+| `default` | 默认布尔值 |
+
+**示例：**
+
+```json
+{
+  "properties": {
+    "verbose": {
+      "type": "boolean",
+      "description": "是否开启详细输出",
+      "default": false
+    }
+  }
+}
+```
+
+### 3.1.7 Array（数组）
+
+**支持字段：**
+
+| 字段 | 含义 |
+|------|------|
+| `type: "array"` | 数组参数 |
+| `description` | 参数说明 |
+| `default` | 默认数组值 |
+| `items` | 数组元素的 Schema 定义 |
+| `minItems` | 最少元素个数 |
+| `maxItems` | 最多元素个数 |
+| `uniqueItems` | 是否要求元素唯一 |
+
+**示例：**
+
+```json
+{
+  "properties": {
+    "ports": {
+      "type": "array",
+      "description": "待扫描端口列表",
+      "items": {"type": "integer", "minimum": 1, "maximum": 65535},
+      "minItems": 1,
+      "maxItems": 100,
+      "uniqueItems": true,
+      "default": [80, 443]
+    }
+  }
+}
+```
+
+### 3.1.8 Object（对象）
+
+**支持字段：**
+
+| 字段 | 含义 |
+|------|------|
+| `type: "object"` | 对象参数 |
+| `description` | 参数说明 |
+| `properties` | 对象内部字段定义 |
+| `required` | 必填字段列表 |
+| `minProperties` | 最少属性个数 |
+| `maxProperties` | 最多属性个数 |
+
+**示例：**
+
+```json
+{
+  "properties": {
+    "config": {
+      "type": "object",
+      "description": "连接配置",
+      "properties": {
+        "host": {"type": "string"},
+        "port": {"type": "integer"},
+        "ssl": {"type": "boolean"}
+      },
+      "required": ["host", "port"],
+      "minProperties": 2,
+      "maxProperties": 3
+    }
+  }
+}
+```
+
+### 3.1.9 `enum` 与 `union` 预留设计
+
+当前版本不支持 `enum` 和 `union`，但文档保留其 JSON Schema 风格设计，供后续扩展使用。
+
+`enum` 设计格式：
+
+```json
+{
+  "type": "string",
+  "enum": ["bm", "pm"]
+}
+```
+
+语义说明：
+
+- 值必须落在 `enum` 列出的候选集合中
+- `enum` 中每个元素应与当前节点 `type` 保持一致
+
+`union` 设计格式：
+
+```json
+{
+  "oneOf": [
+    { "type": "string" },
+    { "type": "integer" }
+  ]
+}
+```
+
+语义说明：
+
+- `union` 采用 JSON Schema 常见联合类型表达
+- 推荐使用 `oneOf`
+- 后续若启用，表示入参或出参满足其中一个分支即可
+
+当前版本限制：
+
+- 校验器一旦发现 `enum`，直接报错
+- 校验器一旦发现 `oneOf`、`anyOf`、`allOf`，直接报错
+- 当前运行链路只支持 `string`、`number`、`integer`、`boolean`、`array`、`object`
+
+## 3.2 参数映射规则
+
+### 3.2.1 支持的映射类型
+
+工具描述文件通过 `argumentMapping` 将抽象参数对象转换为命令行参数。
+
+当前正式支持以下 4 种映射类型；`mixed` 为预留设计，不属于当前支持集：
+
+| 映射类型 | 说明 | 典型输出 |
+|----------|------|----------|
+| `flag` | 标志模式 | `--key=value`、`-v` |
+| `positional` | 位置参数模式 | `arg1 arg2 arg3` |
+| `flattened` | 展平嵌套对象 | `app.name -> --app-name=value` |
+| `json-string` | 对象序列化为 JSON 字符串 | `--config='{"key":"value"}'` |
+| `mixed` | 混合映射模式，组合多种映射策略 | 预留设计，当前禁止使用 |
+
+### 3.2.2 通用规则
+
+`argumentMapping` 的目标是生成进程启动时使用的 `argv[1...]`，其中：
+
+- `argv[0]` 固定为工具的 `executable`
+- 映射规则只负责参数组织，不替代 `input` 的合法性校验
+- 只处理调用参数中实际出现且映射规则中定义过的字段
+- 当前实现和校验器仅支持 `flag`、`positional`、`flattened`、`json-string`
+- 若配置中使用 `argumentMapping.type: "mixed"`，应判定为非法配置
+
+模板语法：
+
+| 写法 | 含义 | 示例 |
+|------|------|------|
+| `{value}` | 参数值占位符 | `--target={value}` |
+| `if_true` | 布尔值为 `true` 时使用的模板 | `{ "if_true": "-v" }` |
+| `if_false` | 布尔值为 `false` 时使用的模板 | `{ "if_false": "" }` |
+
+### 3.2.3 flag 模式
+
+适用于大多数标准 CLI 工具。
+
+**处理规则：**
+
+| 输入类型 | 处理方式 |
+|---------|---------|
+| `string` | 替换 `{value}` |
+| `number` / `integer` | 转成字符串后替换 `{value}` |
+| `boolean` | 必须使用 `if_true` / `if_false` |
+| `array` | 遍历数组，每个元素生成一个参数 |
+| `object` | 禁止直接使用，应改用 `flattened` 或 `json-string` |
+
+**工具描述：**
+
+```json
+{
+  "name": "ohos-scanner",
+  "executable": "/usr/bin/net-scan",
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "ports": "--port={value}",
+      "timeout": "--timeout={value}",
+      "verbose": {
+        "if_true": "-v",
+        "if_false": ""
+      }
+    }
+  }
+}
+```
+
+**JS 输入：**
+
+```javascript
+{
+  target: "192.168.1.1",
+  ports: [80, 443],
+  timeout: 5,
+  verbose: true
+}
+```
+
+**最终 `argv`：**
+
+```cpp
+argv[0] = "/usr/bin/net-scan"
+argv[1] = "--target=192.168.1.1"
+argv[2] = "--port=80"
+argv[3] = "--port=443"
+argv[4] = "--timeout=5"
+argv[5] = "-v"
+argv[6] = nullptr
+```
+
+**执行命令：**
+
+```bash
+/usr/bin/net-scan --target=192.168.1.1 --port=80 --port=443 --timeout=5 -v
+```
+
+### 3.2.4 positional 模式
+
+按 `order` 定义的顺序依次追加参数值，不生成参数名。
+
+**适用场景：**
+
+- 传统 Unix 风格工具
+- 参数顺序固定的脚本
+- 参数较少且含义明确的场景
+
+**处理规则：**
+
+- `string` 直接作为位置参数追加
+- `number`、`integer`、`boolean` 等非字符串标量统一先转换为字符串，再按顺序追加
+- `boolean` 转换结果必须为 `"true"` 或 `"false"`
+- `array`、`object` 禁止用于 `positional`
+
+**工具描述：**
+
+```json
+{
+  "name": "ohos-copy",
+  "executable": "/usr/bin/cp-tool",
+  "argumentMapping": {
+    "type": "positional",
+    "order": ["source", "destination", "verbose"]
+  }
+}
+```
+
+**JS 输入：**
+
+```javascript
+{
+  source: "/data/file.txt",
+  destination: "/backup/file.txt",
+  verbose: true
+}
+```
+
+**最终 `argv`：**
+
+```cpp
+argv[0] = "/usr/bin/cp-tool"
+argv[1] = "/data/file.txt"
+argv[2] = "/backup/file.txt"
+argv[3] = "true"
+argv[4] = nullptr
+```
+
+**执行命令：**
+
+```bash
+/usr/bin/cp-tool /data/file.txt /backup/file.txt true
+```
+
+### 3.2.5 flattened 模式
+
+将嵌套对象递归展平为路径形式，再按路径匹配模板。
+
+**分隔符：**
+
+- 支持 `.`
+- 支持 `_`
+- 支持 `-`
+
+**处理规则：**
+
+| 输入类型 | 处理方式 |
+|---------|---------|
+| `string` | 替换 `{value}` |
+| `number` / `integer` | 转成字符串后替换 `{value}` |
+| `boolean` | 必须使用 `if_true` / `if_false` |
+| `array` | 禁止直接使用 |
+| `object` | 继续按路径递归展平 |
+
+补充约束：
+
+- `separator` 只用于字段路径解析
+- 模板中的参数名写法由配置显式指定，不从字段路径自动推导
+
+**工具描述：**
+
+```json
+{
+  "name": "ohos-deploy",
+  "executable": "/usr/bin/app-deploy",
+  "argumentMapping": {
+    "type": "flattened",
+    "separator": ".",
+    "templates": {
+      "app.name": "--app-name={value}",
+      "app.env.production": {
+        "if_true": "--env-prod",
+        "if_false": ""
+      },
+      "server.host": "--host={value}",
+      "server.port": "--port={value}"
+    }
+  }
+}
+```
+
+**JS 输入：**
+
+```javascript
+{
+  app: {
+    name: "myapp",
+    env: {
+      production: true
+    }
+  },
+  server: {
+    host: "192.168.1.100",
+    port: 8080
+  }
+}
+```
+
+**最终 `argv`：**
+
+```cpp
+argv[0] = "/usr/bin/app-deploy"
+argv[1] = "--app-name=myapp"
+argv[2] = "--env-prod"
+argv[3] = "--host=192.168.1.100"
+argv[4] = "--port=8080"
+argv[5] = nullptr
+```
+
+**执行命令：**
+
+```bash
+/usr/bin/app-deploy --app-name=myapp --env-prod --host=192.168.1.100 --port=8080
+```
+
+### 3.2.6 json-string 模式
+
+保留对象或数组的完整结构，序列化为 JSON 字符串后传递给工具。
+
+**适用场景：**
+
+- 配置对象层级较深
+- 工具本身支持 `--config=<json>`
+- 不希望使用路径展开
+
+**工具描述：**
+
+```json
+{
+  "name": "ohos-cloud",
+  "executable": "/usr/bin/cloud-deploy",
+  "argumentMapping": {
+    "type": "json-string",
+    "templates": {
+      "config": "--config={value}"
+    }
+  }
+}
+```
+
+**JS 输入：**
+
+```javascript
+{
+  config: {
+    application: {
+      name: "webapp",
+      replicas: 3
+    },
+    resources: {
+      cpu: "2",
+      memory: "4Gi"
+    }
+  },
+}
+```
+
+**最终 `argv`：**
+
+```cpp
+argv[0] = "/usr/bin/cloud-deploy"
+argv[1] = "--config={\"application\":{\"name\":\"webapp\",\"replicas\":3},\"resources\":{\"cpu\":\"2\",\"memory\":\"4Gi\"}}"
+argv[2] = nullptr
+```
+
+**执行命令：**
+
+```bash
+/usr/bin/cloud-deploy --config='{"application":{"name":"webapp","replicas":3},"resources":{"cpu":"2","memory":"4Gi"}}'
+```
+
+### 3.2.7 mixed 模式（预留设计，当前暂不支持）
+
+`mixed` 模式用于在一个工具中组合多种参数映射策略。它不是新的底层参数编码方式，而是对已有映射类型的组合调度：
+
+- 一部分字段走 `flag`
+- 一部分字段走 `positional`
+- 一部分字段走 `flattened`
+- 一部分字段走 `json-string`
+
+该模式适用于同一个 CLI 工具同时存在以下场景：
+
+- 固定顺序的位置参数
+- 常规的 `--key=value` 标志参数
+- 需要从嵌套对象中提取的路径参数
+- 需要整体序列化为 JSON 的复杂对象参数
+
+当前文档保留 `mixed` 的设计定义，用于后续扩展；`mixed` 不属于当前支持集。若配置中使用 `argumentMapping.type: "mixed"`，应视为非法配置。
+
+#### 设计目标
+
+- 复用已有四种映射模式的语义，不引入额外的值编码规则
+- 在一个 `argumentMapping` 中表达复杂 CLI 工具的混合参数风格
+- 保证配置可静态校验，避免不同字段映射规则互相冲突
+
+#### 设计原则
+
+- `mixed` 是组合器，不是新的模板语言
+- 每个字段只能归属于一种子映射方式
+- 每种子映射方式仍然沿用自身既有规则
+- 参数输出顺序必须稳定，不能依赖对象遍历顺序
+
+#### 推荐结构
+
+```json
+{
+  "argumentMapping": {
+    "type": "mixed",
+    "positional": {
+      "order": ["action", "target"]
+    },
+    "flag": {
+      "templates": {
+        "force": {"if_true": "--force", "if_false": ""},
+        "timeout": "--timeout={value}"
+      }
+    },
+    "flattened": {
+      "separator": ".",
+      "templates": {
+        "server.host": "--host={value}",
+        "server.port": "--port={value}"
+      }
+    },
+    "json-string": {
+      "templates": {
+        "config": "--config={value}"
+      }
+    }
+  }
+}
+```
+
+#### 语义说明
+
+| 子映射块 | 作用 | 沿用规则 |
+|---------|------|---------|
+| `positional` | 处理固定顺序的位置参数 | 与 `3.2.4 positional 模式` 一致 |
+| `flag` | 处理常规标志参数 | 与 `3.2.3 flag 模式` 一致 |
+| `flattened` | 处理嵌套对象路径参数 | 与 `3.2.5 flattened 模式` 一致 |
+| `json-string` | 处理整体序列化参数 | 与 `3.2.6 json-string 模式` 一致 |
+
+#### 输入输出示例
+
+**工具描述：**
+
+```json
+{
+  "name": "ohos-service",
+  "executable": "/usr/bin/service-deploy",
+  "argumentMapping": {
+    "type": "mixed",
+    "positional": {
+      "order": ["action", "service"]
+    },
+    "flag": {
+      "templates": {
+        "verbose": {"if_true": "-v", "if_false": ""},
+        "replicas": "--replicas={value}"
+      }
+    },
+    "flattened": {
+      "separator": ".",
+      "templates": {
+        "server.host": "--host={value}",
+        "server.port": "--port={value}"
+      }
+    },
+    "json-string": {
+      "templates": {
+        "config": "--config={value}"
+      }
+    }
+  }
+}
+```
+
+**JS 输入：**
+
+```javascript
+{
+  action: "deploy",
+  service: "gateway",
+  verbose: true,
+  replicas: 3,
+  server: {
+    host: "10.0.0.8",
+    port: 8080
+  },
+  config: {
+    resources: {
+      cpu: "2",
+      memory: "4Gi"
+    }
+  }
+}
+```
+
+**预期 `argv`：**
+
+```cpp
+argv[0] = "/usr/bin/service-deploy"
+argv[1] = "deploy"
+argv[2] = "gateway"
+argv[3] = "-v"
+argv[4] = "--replicas=3"
+argv[5] = "--host=10.0.0.8"
+argv[6] = "--port=8080"
+argv[7] = "--config={\"resources\":{\"cpu\":\"2\",\"memory\":\"4Gi\"}}"
+argv[8] = nullptr
+```
+
+**预期执行命令：**
+
+```bash
+/usr/bin/service-deploy deploy gateway -v --replicas=3 --host=10.0.0.8 --port=8080 --config='{"resources":{"cpu":"2","memory":"4Gi"}}'
+```
+
+#### 冲突约束
+
+若后续实现 `mixed`，应至少满足以下约束：
+
+- 同一个字段不能同时出现在多个子映射块中
+- `flattened` 中的路径字段不能再被 `flag` 或 `json-string` 重复引用
+- `positional.order` 中出现的字段不能再出现在其他映射块中
+- 任一子映射块引用的字段，都必须存在于 `input` 中
+
+#### 建议执行顺序
+
+为保证输出稳定，建议固定顺序如下：
+
+1. `positional`
+2. `flag`
+3. `flattened`
+4. `json-string`
+
+该顺序应作为未来若实现 `mixed` 时的默认行为，避免不同实现生成不同的 `argv` 顺序。
+
+#### 当前约束
+
+- 设计文档中保留 `mixed`
+- 当前配置文件不应使用 `mixed`
+- 当前校验器应将 `mixed` 视为未支持类型并报错
+- 当前实现不需要为 `mixed` 提供运行时处理逻辑
+
+### 3.2.8 `input` 与 `argumentMapping` 的协同关系
+
+`input` 和 `argumentMapping` 分别解决两个不同问题：
+
+- `input` 定义“参数长什么样”
+- `argumentMapping` 定义“参数如何变成命令行”
+
+两者需要配合使用，但职责不能混淆。
+
+#### 职责划分
+
+| 组件 | 作用 |
+|------|------|
+| `input` | 描述参数类型、结构、必填项和基础约束 |
+| `argumentMapping` | 描述参数到命令行参数的转换方式 |
+
+#### 协同原则
+
+- `input` 中定义的字段，才允许在 `argumentMapping` 中被引用
+- `argumentMapping` 不负责定义字段类型，只负责组织命令行参数
+- `input.required` 表示调用方必须提供哪些字段，但是否最终映射到命令行由 `argumentMapping` 决定
+- `input` 中的嵌套结构会影响应选择哪种映射方式
+
+#### 常见对应关系
+
+| `input` 中的字段类型 | 推荐映射方式 | 说明 |
+|--------------------------|-------------|------|
+| 顶层 `string` / `number` / `integer` | `flag` 或 `positional` | 最常见 |
+| 顶层 `boolean` | `flag` | 常与 `if_true` / `if_false` 配合 |
+| 顶层 `array` | `flag` | 通常展开为多个同名参数 |
+| 嵌套 `object` | `flattened` | 将路径映射为命令行参数 |
+| 复杂 `object` / `array` | `json-string` | 保留结构整体传递 |
+
+#### 设计示例
+
+```json
+{
+  "input": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string",
+        "format": "ipv4"
+      },
+      "ports": {
+        "type": "array",
+        "items": {"type": "integer"}
+      },
+      "verbose": {
+        "type": "boolean",
+        "default": false
+      }
+    },
+    "required": ["target"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "ports": "--port={value}",
+      "verbose": {"if_true": "-v", "if_false": ""}
+    }
+  }
+}
+```
+
+在这个例子中：
+
+- `input` 决定 `target` 是必填字符串，且应符合 IPv4 格式
+- `ports` 是整数数组，因此在 `flag` 模式下会展开为多个 `--port`
+- `verbose` 是布尔值，因此映射为条件开关 `-v`
+
+#### 设计建议
+
+- 先设计 `input`，再设计 `argumentMapping`
+- 若字段无法自然映射到命令行，优先调整映射方式，而不是弱化 `input`
+- 对嵌套对象，不要勉强使用 `flag`，应优先考虑 `flattened` 或 `json-string`
+- 文档、校验器和实现应统一保证：`argumentMapping` 只能引用 `input` 中真实存在的字段
+
+## 3.3 参数传递流程
+
+### 3.3.1 总流程
+
+从调用方传参到最终进程启动，完整流程如下：
+
+```text
+1. 调用方根据 input 构造参数对象
+   ↓
+2. CLIManager 读取目标工具信息
+   ↓
+3. 读取 argumentMapping 配置
+   ↓
+4. 根据 argumentMapping.type 选择映射策略
+   ↓
+5. 将参数对象转换为 argv[1...n]
+   ↓
+6. 在 argv[0] 填入 executable
+   ↓
+7. 启动工具进程
+```
+
+### 3.3.2 映射方式对比
+
+| 映射类型 | 适用场景 | 数组处理 | 嵌套对象处理 | 配置复杂度 |
+|---------|---------|---------|-------------|-----------|
+| `flag` | 标准命令行工具 | 展开为多个参数 | 不支持 | 低 |
+| `positional` | 传统位置参数 | 不支持 | 不支持 | 低 |
+| `flattened` | 层级配置 | 不支持 | 展平为路径后处理 | 中 |
+| `json-string` | 复杂配置 | 保持数组结构 | 序列化为 JSON 字符串 | 中 |
+| `mixed` | 复合型 CLI 工具 | 由子映射方式决定 | 由子映射方式决定 | 高，当前暂不支持 |
+
+# 4. 工具注册表设计
+
+## 4.1 目录结构
+
+CLI 服务的工具与注册表统一安装在 `/system/bin/cli_tool/` 目录下：
+
+```text
+/system/bin/cli_tool/
+├── cli_tools.json      # 工具注册表
+└── tools/              # 工具可执行文件目录
+    ├── net-scan
+    ├── log-mon
+    ├── app-deploy
+    ├── pkg-mgr
+    └── sysctl
+```
+
+## 4.2 注册表格式
+
+`cli_tools.json` 是一个 JSON 数组，每个元素都是一个工具的完整描述信息。
+
+```json
+[
+  { "name": "ohos-toola", "...": "..." },
+  { "name": "ohos-toolb", "...": "..." }
+]
+```
+
+## 4.3 基本约束
+
+- 每个工具都必须有唯一 `name`
+- 每个工具都必须有 `executable`
+- 注册表中的每个工具必须符合第 5 章的工具描述格式
+
+### 4.3.1 工具命名规范
+
+- 工具名必须采用 `prefix-toolName` 形式
+- `prefix` 和 `toolName` 都必须非空
+- `prefix` 和 `toolName` 都允许使用大写字母
+- `toolName` 长度不能超过 `16`
+- 当前不限制 `prefix` 白名单，但推荐使用稳定产品前缀
+- 合法示例：`ohos-bm`、`ohos-xx`
+
+# 5. CLI 工具描述设计
+
+## 5.1 概述
+
+当前支持两种工具格式：
+
+| 格式类型 | 适用场景 | 特征 |
+|---------|---------|------|
+| 无子命令工具 | 单一功能工具 | 顶层定义 `input`、`output`、`argumentMapping` |
+| 有子命令工具 | 多功能集合工具 | 在顶层工具定义基础上增加 `hasSubcommands: true` 和 `subcommands` |
+
+说明：
+
+- 有子命令工具可视为无子命令工具的扩展形态
+- 顶层 `input`、`output`、`argumentMapping`、`events`、`eventSchemas` 在有子命令工具中仍然允许定义
+- `subcommands` 用于定义子命令域内的独立工具配置
+- 顶层配置与子命令配置相互独立，不回退、不合并、不继承
+- 有子命令工具可以同时定义父命令；未指定 `subcommand` 时执行顶层父命令配置
+- 父命令名与所有子命令名进入同一命名空间，不能重复
+- 调用时若指定 `subcommand`，则只使用对应子命令定义；未指定时只使用顶层定义
+
+## 5.2 无子命令工具格式
+
+### 5.2.1 结构要求
+
+无子命令工具必须满足：
+
+- `hasSubcommands` 不存在或为 `false`
+- 顶层必须存在 `input`
+- 顶层必须存在 `argumentMapping`
+- 顶层可选 `output`
+- 顶层不应存在 `subcommands`
+
+### 5.2.2 字段表
+
+无子命令工具使用完整顶层字段集合，其中 `subcommands` 不应出现：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `name` | string | 是 | 工具唯一标识 |
+| `version` | string | 是 | 工具版本号 |
+| `description` | string | 是 | 工具描述 |
+| `executable` | string | 是 | 可执行文件绝对路径 |
+| `permissions` | string[] | 否 | 所需权限列表 |
+| `timeout` | number | 否 | 超时时间，单位秒，`0` 表示不限制 |
+| `events` | string[] | 否 | 顶层事件类型声明，用于声明 `result` 和自定义事件 |
+| `eventSchemas` | object | 否 | 顶层自定义事件 `data` 的 Schema 集合 |
+| `hasSubcommands` | boolean | 否 | 缺省或 `false` |
+| `input` | object | 是 | 输入参数 Schema |
+| `output` | object | 否 | 结果 Schema |
+| `argumentMapping` | object | 是 | 参数映射规则 |
+| `subcommands` | object | 否 | 无子命令工具中不应定义 |
+
+### 5.2.3 最小示例
+
+```json
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Network scanning utility tool",
+  "executable": "/usr/bin/net-scan",
+  "permissions": [
+    "ohos.permission.INTERNET",
+    "ohos.permission.GET_NETWORK_INFO"
+  ],
+  "timeout": 30,
+  "events": ["progress", "result"],
+  "input": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string",
+        "format": "ipv4",
+        "description": "Target IP address"
+      },
+      "ports": {
+        "type": "array",
+        "items": {"type": "integer"},
+        "description": "Ports to scan"
+      }
+    },
+    "required": ["target"]
+  },
+  "output": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "object",
+        "properties": {
+          "totalPorts": {"type": "integer"},
+          "openPorts": {"type": "integer"}
+        }
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "ports": "--port={value}"
+    }
+  },
+  "eventSchemas": {
+    "progress": {
+      "type": "object",
+      "properties": {
+        "percentage": {"type": "integer"},
+        "status": {"type": "string"}
+      },
+      "required": ["percentage", "status"]
+    }
+  }
+}
+```
+
+## 5.3 有子命令工具格式
+
+### 5.3.1 结构要求
+
+有子命令工具必须满足：
+
+- `hasSubcommands` 必须为 `true`
+- 顶层必须存在 `subcommands`
+- 顶层仍可定义 `input`、`output`、`argumentMapping`、`events`、`eventSchemas`
+- 每个子命令是子命令域内的独立工具定义
+- 每个子命令必须定义自己的 `input` 和 `argumentMapping`
+- 每个子命令可按需定义自己的 `permissions`、`timeout`、`output`、`events`、`eventSchemas`
+- 每个子命令名必须与顶层 `name` 不同
+
+推荐理解方式：
+
+- 顶层定义描述工具本身或无 `subcommand` 调用时的输入输出与参数映射
+- `subcommands.<name>` 描述特定子命令在子命令域内的独立输入输出与参数映射
+
+### 5.3.2 字段表
+
+有子命令工具由“顶层字段 + `subcommands` 扩展字段”组成。
+
+**顶层字段：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `name` | string | 是 | 工具唯一标识 |
+| `version` | string | 是 | 工具版本号 |
+| `description` | string | 是 | 工具描述 |
+| `executable` | string | 是 | 可执行文件绝对路径 |
+| `permissions` | string[] | 否 | 所需权限列表 |
+| `timeout` | number | 否 | 超时时间，单位秒，`0` 表示不限制 |
+| `events` | string[] | 否 | 顶层事件类型声明，用于声明 `result` 和自定义事件 |
+| `eventSchemas` | object | 否 | 顶层自定义事件 `data` 的 Schema 集合 |
+| `hasSubcommands` | boolean | 是 | 必须为 `true` |
+| `input` | object | 否 | 顶层默认输入参数 Schema |
+| `output` | object | 否 | 顶层默认结果 Schema |
+| `argumentMapping` | object | 否 | 顶层默认参数映射规则 |
+| `subcommands` | object | 是 | 子命令定义集合 |
+
+**`subcommands.<name>` 字段：**
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `description` | string | 是 | 子命令描述 |
+| `permissions` | string[] | 否 | 子命令所需权限列表 |
+| `timeout` | number | 否 | 子命令超时时间，单位秒 |
+| `input` | object | 是 | 子命令输入参数 Schema，含义与顶层 `input` 一致，但作用域限定在当前子命令 |
+| `output` | object | 否 | 子命令结果 Schema |
+| `events` | string[] | 否 | 子命令事件类型声明，用于声明 `result` 和自定义事件 |
+| `eventSchemas` | object | 否 | 子命令自定义事件 `data` 的 Schema 集合 |
+| `argumentMapping` | object | 是 | 子命令参数映射规则，含义与顶层 `argumentMapping` 一致，但作用域限定在当前子命令 |
+
+说明：
+
+- 子命令字段与顶层字段语义一致，只是作用域从“整个工具”变为“当前子命令”
+- 子命令配置与顶层配置相互独立，不回退、不合并、不继承
+- `input` 和 `argumentMapping` 在子命令中是必填字段
+- `eventSchemas` 中出现的事件类型，必须同时出现在同作用域的 `events` 中
+- `description` 应在每个子命令中单独定义，不应从顶层继承
+- 当调用指定 `subcommand` 时，只使用该子命令自己的 `input`、`argumentMapping`、`permissions`、`timeout`、`output`、`events`、`eventSchemas`
+- 当调用未指定 `subcommand` 时，只使用顶层定义，不应隐式选择某个子命令定义
+
+### 5.3.3 最小示例
+
+```json
+{
+  "name": "ohos-pkgmgr",
+  "version": "1.0.0",
+  "description": "Package management tool with subcommands",
+  "executable": "/usr/bin/pkg-mgr",
+  "permissions": [
+    "ohos.permission.INSTALL_BUNDLE",
+    "ohos.permission.ACCESS_BUNDLE"
+  ],
+  "timeout": 300,
+  "input": {
+    "type": "object",
+    "properties": {
+      "verbose": {"type": "boolean", "default": false}
+    }
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "verbose": {
+        "if_true": "--verbose",
+        "if_false": ""
+      }
+    }
+  },
+  "hasSubcommands": true,
+  "subcommands": {
+    "install": {
+      "description": "Install a package",
+      "input": {
+        "type": "object",
+        "properties": {
+          "package": {"type": "string"},
+          "force": {"type": "boolean", "default": false}
+        },
+        "required": ["package"]
+      },
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "package": "{value}",
+          "force": {
+            "if_true": "--force",
+            "if_false": ""
+          }
+        }
+      }
+    },
+    "list": {
+      "description": "List installed packages",
+      "input": {
+        "type": "object",
+        "properties": {
+          "verbose": {"type": "boolean", "default": false}
+        }
+      },
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "verbose": {
+            "if_true": "--verbose",
+            "if_false": ""
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+### 5.3.4 调用方式
+
+```javascript
+await CLI.CLIManager.execTool('pkg-manager', {
+  subcommand: 'install',
+  package: '/path/to/app.hap',
+  force: true
+});
+```
+
+生成命令：
+
+```bash
+/usr/bin/pkg-mgr install /path/to/app.hap --force
+```
+
+若不传 `subcommand`，则按顶层定义调用，例如：
+
+```javascript
+await CLI.CLIManager.execTool('pkg-manager', {
+  verbose: true
+});
+```
+
+对应命令：
+
+```bash
+/usr/bin/pkg-mgr --verbose
+```
+
+说明：
+
+- 指定 `subcommand` 时，只使用该子命令自己的配置，不与顶层配置合并
+- 顶层配置仅用于未指定 `subcommand` 的调用
+
+## 5.4 事件输出约定
+
+### 5.4.1 `events` 与 `eventSchemas`
+
+`events` 和 `eventSchemas` 用于声明工具的事件能力。这一层解决的是“工具允许输出什么事件，以及这些事件的数据结构是什么”，不负责描述事件如何通过 stdout/stderr 传输。
+
+| 字段 | 作用 | 典型对象 |
+|------|------|----------|
+| `events` | 声明工具主动对外暴露的事件类型 | `result` 与自定义事件 |
+| `eventSchemas` | 定义自定义事件 `data` 的结构 | `progress` 等自定义事件 |
+| `output` | 定义最终结果 `data` 的结构 | `result` |
+
+框架中的标准事件分为两类：
+
+- 框架内置事件：`stdout`、`stderr`、`exit`、`error`
+- 保留的标准业务事件：`result`
+
+其中：
+
+- `stdout`、`stderr`、`exit`、`error` 由框架内置支持
+- `result` 是保留的标准业务事件，工具若使用必须显式声明
+
+除标准事件外，工具还可以声明自定义事件类型。`progress` 是一种典型的自定义事件示例，但它不是标准事件类型。
+
+自定义事件名称约束：
+
+- 仅允许字母和数字
+- 首字符必须是字母
+- 推荐正则：`[A-Za-z][A-Za-z0-9]*`
+
+建议按下面的方式理解：
+
+- `stdout`、`stderr`、`exit`、`error` 是框架级事件，不由工具主动输出，也不需要单独定义 Schema
+- `result` 是最终业务结果事件，其 `data` 必须由 `output` 描述，不应在 `eventSchemas` 中重复定义
+- 自定义事件用于业务过程反馈或中间状态传递，例如 `progress`
+- `progress` 这类自定义事件，建议通过 `eventSchemas.progress` 定义其 `data` 结构
+
+约束关系：
+
+- `stdout`、`stderr`、`exit`、`error` 由框架天然支持，不需要显式写入 `events`
+- 工具主动输出的事件 JSON 中，`event` 不应为 `exit` 或 `error`
+- `eventSchemas` 中出现的事件类型，必须同时出现在同作用域的 `events` 中
+- `events` 中声明的每个自定义事件，也必须在同作用域的 `eventSchemas` 中有对应定义
+- 自定义事件若需要结构化校验，应同时定义对应的 `eventSchemas.<eventName>`
+- 若声明了 `result`，应同时定义 `output`
+- `eventSchemas` 只描述事件 `data` 的结构，不描述最外层事件包装对象
+- 在有子命令工具中，顶层和子命令层都可以定义 `events` / `eventSchemas`；指定 `subcommand` 时只使用子命令级事件声明，未指定 `subcommand` 时只使用顶层事件声明
+
+### 5.4.2 核心原则
+
+工具进程通过标准输出和标准错误输出向框架发送运行信息：
+
+| 输出内容 | 处理方式 |
+|---------|---------|
+| 包含 `event` 和 `data` 字段的合法事件 JSON 对象 | 按事件处理 |
+| 普通文本行 | 作为 `stdout` 事件处理 |
+| 合法 JSON，但不是合法事件对象 | 作为 `error` 事件处理 |
+| 无法解析或结构不完整的事件行 | 作为 `error` 事件处理 |
+| stderr 输出 | 作为 `stderr` 事件处理 |
+
+事件机制的核心目的是：
+
+- 让调用方在工具执行过程中接收实时状态或过程事件
+- 让框架对结构化事件进行格式校验
+- 将“普通文本输出”和“业务事件输出”统一接入同一分发机制
+
+### 5.4.3 事件 JSON 格式
+
+事件 JSON 行必须包含：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `event` | string | 是 | 事件类型 |
+| `data` | any | 是 | 事件数据 |
+| `timestamp` | number | 否 | 时间戳，框架可补充 |
+
+推荐输出形式：
+
+```json
+{"event": "progress", "data": {"percentage": 50, "status": "scanning"}}
+```
+
+其中：
+
+- `event` 决定事件类型
+- `data` 是实际业务负载
+- 若工具未输出 `timestamp`，可由框架补充
+- 工具主动输出的事件 JSON 中，`event` 不应为 `exit` 或 `error`
+- 当 `event` 不是标准事件类型时，它应满足自定义事件名称规则 `[A-Za-z][A-Za-z0-9]*`
+- 上述示例中的 `progress` 是自定义事件类型示例，不是标准事件类型
+
+### 5.4.4 事件类型与 Schema
+
+| 事件类型 | 来源 | Schema 位置 |
+|---------|------|------------|
+| `stdout` | 非 JSON stdout 文本 | 不需要 Schema |
+| `stderr` | stderr 文本 | 不需要 Schema |
+| `exit` | 进程退出 | 框架生成 |
+| `error` | 执行失败、解析失败或校验失败 | 框架生成 |
+| `result` | 工具输出事件 JSON | `output` |
+| 自定义事件，如 `progress` | 工具输出事件 JSON | `eventSchemas.<eventName>` |
+
+补充说明：
+
+- `result` 适用于最终业务结果，例如安装结果、扫描摘要、查询结果
+- `progress` 是自定义事件示例，适用于过程性反馈，例如百分比、阶段、当前对象
+- 一个工具可以同时产生 `stdout`、自定义事件、`result`
+- `result` 一般应作为最终结构化结果，不建议用普通文本替代
+
+### 5.4.5 示例
+
+以下示例分别覆盖几种常见场景。
+
+#### 示例 1：普通文本 + 自定义事件 + 最终结果
+
+工具输出：
+
+```text
+Starting scan...
+{"event": "progress", "data": {"percentage": 50, "status": "scanning"}}
+{"event": "result", "data": {"summary": {"totalPorts": 2, "openPorts": 1}}}
+```
+
+框架处理结果：
+
+- `Starting scan...` -> `stdout`
+- `progress` 自定义事件 -> 使用 `eventSchemas.progress` 验证
+- `result` 事件 -> 使用 `output` 验证
+
+#### 示例 2：多次自定义事件
+
+工具输出：
+
+```text
+initializing...
+{"event": "progress", "data": {"percentage": 10, "status": "starting"}}
+{"event": "progress", "data": {"percentage": 90, "status": "running"}}
+{"event": "result", "data": {"status": "success", "message": "done"}}
+```
+
+调用方可在同一会话中依次收到：
+
+- 普通 `stdout` 文本
+- 多次自定义事件
+- 一次 `result` 事件
+
+#### 示例 3：自定义事件不一定是 `progress`
+
+工具描述：
+
+```json
+{
+  "events": ["phaseChanged", "result"],
+  "eventSchemas": {
+    "phaseChanged": {
+      "type": "object",
+      "properties": {
+        "phase": {"type": "string"},
+        "message": {"type": "string"}
+      },
+      "required": ["phase"]
+    }
+  }
+}
+```
+
+工具输出：
+
+```text
+{"event": "phaseChanged", "data": {"phase": "prepare", "message": "loading config"}}
+{"event": "phaseChanged", "data": {"phase": "deploy", "message": "creating resources"}}
+{"event": "result", "data": {"status": "success"}}
+```
+
+框架处理结果：
+
+- `phaseChanged` 自定义事件 -> 使用 `eventSchemas.phaseChanged` 验证
+- `result` 事件 -> 使用 `output` 验证
+
+#### 示例 4：标准错误输出与框架生成的错误事件
+
+工具输出：
+
+```text
+checking environment...
+permission denied
+```
+
+处理方式：
+
+- `checking environment...` -> `stdout`
+- `permission denied` 若来自 stderr -> `stderr`
+- 若执行阶段发生失败，框架可生成 `error` 事件
+
+说明：
+
+- `stdout` / `stderr` / `exit` / `error` 是标准事件类型
+- 这四类事件不需要显式写入 `events`
+- `error` 和 `exit` 由框架生成，工具不应主动输出这两类事件
+
+#### 示例 5：有子命令工具中的事件作用域
+
+工具描述：
+
+```json
+{
+  "events": ["result"],
+  "subcommands": {
+    "install": {
+      "events": ["progress", "result"],
+      "eventSchemas": {
+        "progress": {
+          "type": "object",
+          "properties": {
+            "percentage": {"type": "integer"}
+          },
+          "required": ["percentage"]
+        }
+      }
+    }
+  }
+}
+```
+
+作用域说明：
+
+- 顶层定义表示工具默认调用支持 `result`
+- `install` 子命令额外声明了 `progress`
+- 当调用 `install` 时，只使用该子命令自己的 `events` / `eventSchemas`
+- 当调用未指定 `subcommand` 的顶层能力时，应只使用顶层事件定义
+
+### 5.4.6 错误处理
+
+- 事件行无法解析、结构不完整或不符合事件对象要求时，框架必须生成 `error` 事件
+- 事件数据不符合 Schema 时，框架必须生成 `error` 事件
+- 工具异常退出时，框架必须生成 `exit` 或 `error` 事件
+
+常见错误场景：
+
+- `events` 未声明某个自定义事件，例如 `progress`，但工具输出了该事件
+- `events` 声明了某个自定义事件，例如 `progress`，但 `eventSchemas.progress` 未定义
+- 自定义事件名称不满足“字母开头，只包含字母和数字”的规则
+- `eventSchemas.progress` 要求 `percentage` 为整数，但工具输出了字符串
+- `result` 事件的数据与 `output` 不匹配
+- 工具输出了合法 JSON，但缺少 `event` 或 `data`
+- 工具输出了看似 JSON 但结构不完整的事件行
+- 工具主动输出了 `error` 或 `exit` 事件
+
+设计建议：
+
+- 工具若计划输出自定义结构化事件，应先在描述文件中声明 `events`
+- 对需要被调用方稳定消费的自定义事件，应提供明确的 `eventSchemas`
+- 对最终结果，应优先使用 `result + output`，避免调用方解析普通文本
+
+## 5.5 两种格式对比
+
+| 特性 | 无子命令工具 | 有子命令工具 |
+|------|-------------|-------------|
+| `hasSubcommands` | 缺省或 `false` | `true` |
+| `subcommands` | 不存在 | 必填 |
+| 顶层 `input` | 必填 | 仍然支持 |
+| 顶层 `argumentMapping` | 必填 | 仍然支持 |
+| 参数定义位置 | 顶层 | 顶层 + 子命令 |
+| 调用时是否传 `subcommand` | 否 | 可选，传入时只使用子命令定义 |
+
+## 5.6 选择建议
+
+- 单一功能工具：优先使用无子命令工具格式
+- 多功能工具：统一使用子命令工具格式
+- 参数层级较深时：优先考虑 `flattened` 或 `json-string`
+- 需要结构化事件回传时：显式定义 `events` 和 `eventSchemas`
+- 需要最终结果结构化返回时：在 `events` 中声明 `result`，并定义 `output`
+
+# 附录 A. 实现提示
+
+以下内容用于指导实现，不属于配置格式规范本身。
+
+## A.1 参数映射实现思路
+
+```cpp
+std::vector<std::string> MapToCommandLine(const ToolInfo& toolInfo,
+                                          const Json::Value& abstractArgs)
+{
+    std::vector<std::string> argv;
+    argv.push_back(toolInfo.executable);
+
+    const ToolScope* scope = &toolInfo.topLevel;
+
+    if (toolInfo.hasSubcommands) {
+        std::string subcommandName = abstractArgs.get("subcommand", "").asString();
+        if (!subcommandName.empty()) {
+            argv.push_back(subcommandName);
+            scope = &ResolveSubcommandScope(toolInfo, subcommandName);
+        }
+    }
+
+    ApplyArgumentMapping(scope->argMapping, abstractArgs, argv);
+    // timeout / permissions / output / events / eventSchemas
+    // should be resolved from the same effective scope.
+    return argv;
+}
+```
+
+## A.2 建议的校验方向
+
+- 校验有子命令工具是否在顶层与子命令层都具备一致的字段语义
+- 校验 `argumentMapping` 引用的字段是否真实存在于 `input`
+- 校验 `eventSchemas` 与 `events` 是否匹配
+- 校验 `input` 是否只使用当前支持的 JSON Schema 子集
+
+## 更新说明
+
+更新时间2026年04月16日：
+
+- 配置字段统一从 `executablePath`、`inputSchema`、`outputSchema` 调整为 `executable`、`input`、`output`
+- 事件字段从 `eventTypes` 调整为 `events`
+- 工具名新增 `prefix-toolName` 约束，`toolName` 长度不超过 `16`，允许使用大小写字母
+- 有子命令工具允许同时定义父命令；未指定 `subcommand` 时执行父命令配置
+- 父命令名与所有子命令名进入同一命名空间，不能重复
+- `enum` 与 `union` 保留 JSON Schema 风格设计说明，但当前版本仍然不支持使用
+- CLI 工具注册表路径调整为 `/system/bin/cli_tool/cli_tools.json`，工具可执行文件路径调整为 `/system/bin/cli_tool/tools/`
+- events 自定义事件 与eventSchemas中定义的事件一致。
