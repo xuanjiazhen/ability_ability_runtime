@@ -560,6 +560,8 @@ int32_t AppSpawnClient::AppspawnCreateDefaultMsg(const AppSpawnStartMsg &startMs
         }
         if (startMsg.code == MSG_SPAWN_WORKER_PROCESS) {
             ret = AppSpawnReqMsgSetCheckpointInfo(reqHandle, startMsg.imagePid, startMsg.checkpointId);
+            // ret = AppSpawnReqMsgSetCheckpointInfo(reqHandle, startMsg.imagePid, startMsg.checkpointId,
+            //     startMsg.iamgeName);
             if (ret != ERR_OK) {
                 TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
                 break;
@@ -567,6 +569,8 @@ int32_t AppSpawnClient::AppspawnCreateDefaultMsg(const AppSpawnStartMsg &startMs
         }
         if (startMsg.code == MSG_SPAWN_IMAGE_PROCESS) {
             ret = AppSpawnReqMsgSetCheckpointInfo(reqHandle, startMsg.templatePid, 0);
+            // ret = AppSpawnReqMsgSetCheckpointInfo(reqHandle, startMsg.templatePid, 0,
+            //     startMsg.iamgeName);
             if (ret != ERR_OK) {
                 TAG_LOGE(AAFwkTag::APPMGR, "fail, ret: %{public}d", ret);
                 break;

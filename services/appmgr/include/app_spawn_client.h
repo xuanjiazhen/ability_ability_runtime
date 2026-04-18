@@ -62,6 +62,7 @@ struct AppSpawnStartMsg {
     std::string processType = "";
     std::string extensionTypeName;
     std::string appSignType;
+    std::string imageName;
     HspList hspList; // list of harmony shared package
     std::set<std::string> permissions;
     std::map<std::string, std::string> appEnv; // environment variable to be set to the process
