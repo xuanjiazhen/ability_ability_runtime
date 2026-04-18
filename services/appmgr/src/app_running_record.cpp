@@ -407,6 +407,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetAppPreloadMode(preloadMode_);
     launchData.SetNWebPreload(isAllowedNWebPreload_);
     launchData.SetPreloadModuleName(preloadModuleName_);
+    launchData.SetPreloadAbilityName(preloadAbilityName_);
     launchData.SetDebugFromLocal(isDebugFromLocal_);
     launchData.SetStartupTaskData(startupTaskData_);
     launchData.SetImageProcessType(static_cast<int32_t>(imageProcessType_));
@@ -2486,6 +2487,16 @@ void AppRunningRecord::SetPreloadModuleName(const std::string& preloadModuleName
 std::string AppRunningRecord::GetPreloadModuleName() const
 {
     return preloadModuleName_;
+}
+
+void AppRunningRecord::SetPreloadAbilityName(const std::string &abilityName)
+{
+    preloadAbilityName_ = abilityName;
+}
+
+std::string AppRunningRecord::GetPreloadAbilityName() const
+{
+    return preloadAbilityName_;
 }
 
 void AppRunningRecord::SetPreloadState(PreloadState state)
