@@ -75,7 +75,7 @@ bool AbilityNativeThread::LoadNativeModule(const AAFwk::NativeAbilityMetaData& m
 
     // Find the PostAbility function (optional but recommended)
     auto rawPostAbility = reinterpret_cast<void(*)(const NativeAbilityWrapper*)>(dlsym(moduleHandle_, "PostAbility"));
-    if (rawPostAbility == nullptr) {
+    if (rawPostAbility != nullptr) {
         postAbilityFunc_ = rawPostAbility;
         TAG_LOGI(AAFwkTag::ABILITY, "PostAbility function found");
     }
@@ -90,7 +90,7 @@ bool AbilityNativeThread::LoadNativeModule(const AAFwk::NativeAbilityMetaData& m
 
     // Find the NotifyProcessExit function (optional)
     auto rawNotifyProcessExit = reinterpret_cast<void(*)()>(dlsym(moduleHandle_, "NotifyProcessExit"));
-    if (rawNotifyProcessExit == nullptr) {
+    if (rawNotifyProcessExit != nullptr) {
         notifyProcessExitFunc_ = rawNotifyProcessExit;
         TAG_LOGI(AAFwkTag::ABILITY, "NotifyProcessExit function found");
     }
