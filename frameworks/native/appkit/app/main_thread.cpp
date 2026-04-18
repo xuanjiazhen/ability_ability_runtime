@@ -2138,7 +2138,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
     if (!IsEtsAPP(appInfo) &&
         (appLaunchData.IsNeedPreloadModule() ||
         appLaunchData.GetAppPreloadMode() == AppExecFwk::PreloadMode::PRELOAD_MODULE)) {
-        PreloadModule(entryHapModuleInfo, application_->GetRuntime());
+        PreloadModule(bundleInfo, appLaunchData, entryHapModuleInfo, application_->GetRuntime());
         if (appMgr_ == nullptr) {
             TAG_LOGE(AAFwkTag::APPKIT, "null appMgr");
             return;
@@ -2339,18 +2339,33 @@ void MainThread::ProcessMainAbility(const AbilityInfo &info, const std::unique_p
     runtime->PreloadMainAbility(moduleName, srcPath, info.hapPath, isEsmode, info.srcEntrance);
 }
 
-void MainThread::PreloadModule(const AppExecFwk::HapModuleInfo &entryHapModuleInfo,
-    const std::unique_ptr<AbilityRuntime::Runtime> &runtime)
+void MainThread::PreloadModule(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData,
+    const AppExecFwk::HapModuleInfo &entryHapModuleInfo, const std::unique_ptr<AbilityRuntime::Runtime> &runtime)
 {
-    TAG_LOGI(AAFwkTag::APPKIT, "preload module %{public}s", entryHapModuleInfo.moduleName.c_str());
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    const AppExecFwk::HapModuleInfo* preloadModuleInfo = nullptr;
+    for (const auto& hapModuleInfo: bundleInfo.hapModuleInfos) {
+        if (hapModuleInfo.moduleName == appLaunchData.GetPreloadModuleName()) {
+            preloadModuleInfo = &hapModuleInfo;
+            break;
+        }
+    }
+    if (preloadModuleInfo == nullptr) {
+        preloadModuleInfo = &entryHapModuleInfo;
+    }
+    std::string preloadAbilityName = appLaunchData.GetPreloadAbilityName();
+    if (preloadAbilityName.empty()) {
+        preloadAbilityName = preloadModuleInfo->mainAbility;
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "preload module %{public}s", preloadModuleInfo->moduleName.c_str());
     auto callback = []() {};
     bool isAsyncCallback = false;
-    application_->AddAbilityStage(entryHapModuleInfo, callback, isAsyncCallback);
+    application_->AddAbilityStage(*preloadModuleInfo, callback, isAsyncCallback);
     if (isAsyncCallback) {
         return;
     }
-    for (const auto &info : entryHapModuleInfo.abilityInfos) {
-        if (info.name == entryHapModuleInfo.mainAbility) {
+    for (const auto& info : preloadModuleInfo->abilityInfos) {
+        if (info.name == preloadAbilityName) {
             ProcessMainAbility(info, runtime);
             return;
         }

@@ -1738,6 +1738,7 @@ std::shared_ptr<ImageProcessStateData> AppStateObserverManager::WrapImageProcess
     data->uid = imageInfo->baseAppRecord->GetUid();
     data->state = static_cast<int32_t>(state);
     data->bundleName = imageInfo->baseAppRecord->GetBundleName();
+    data->imageName = imageInfo->imageName;
     return data;
 }
 
