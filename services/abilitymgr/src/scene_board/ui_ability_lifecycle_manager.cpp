@@ -1933,6 +1933,10 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         if (!requestId.empty()) {
             abilityRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
         }
+        if (abilityRequest.requestCallback != nullptr) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "callback request ability");
+            abilityRequest.requestCallback->OnRequestStartAbilityResult(true);
+        }
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s"
             "requestId:%{public}s", sessionInfo->want.GetElement().GetAbilityName().c_str(), requestId.c_str());
