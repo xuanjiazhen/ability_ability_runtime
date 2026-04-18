@@ -40,6 +40,7 @@ ohos_unittest("multi_user_config_mgr_test") {
 
   external_deps = [
     "ability_base:base",
+    "ability_base:want",
     "appspawn:appspawn_client",
     "c_utils:utils",
     "ffrt:libffrt",
@@ -50,6 +51,7 @@ ohos_unittest("multi_user_config_mgr_test") {
     "i18n:i18n_sa_client",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "os_account:libaccountkits",
     "os_account:os_account_innerkits",
     "window_manager:libwm",

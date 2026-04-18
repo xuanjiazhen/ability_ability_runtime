@@ -62,6 +62,7 @@ ohos_unittest("AmsWorkFlowTest") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:configuration",
     "ability_base:want",
     "ability_runtime:ability_deps_wrapper",
@@ -77,6 +78,7 @@ ohos_unittest("AmsWorkFlowTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "memmgr:memmgrclient",
     "memory_utils:libmeminfo",

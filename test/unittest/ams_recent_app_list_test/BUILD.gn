@@ -73,6 +73,7 @@ ohos_unittest("AmsRecentAppListTest") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "ability_runtime:ability_deps_wrapper",
     "access_token:libaccesstoken_sdk",
@@ -90,6 +91,7 @@ ohos_unittest("AmsRecentAppListTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "kv_store:distributeddata_mgr",
     "memmgr:memmgrclient",

@@ -40,11 +40,14 @@ ohos_fuzztest("MultiUserConfigMgrFuzzTest") {
   configs = [ "${ability_runtime_services_path}/appmgr:appmgr_config" ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:configuration",
+    "ability_base:want",
     "c_utils:utils",
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "i18n:i18n_sa_client",
+    "ipc:ipc_single",
     "os_account:libaccountkits",
     "os_account:os_account_innerkits",
   ]

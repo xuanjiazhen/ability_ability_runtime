@@ -54,6 +54,7 @@ ohos_fuzztest("AbilityAutoStartupDataManagerbFuzzTest") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
@@ -67,6 +68,7 @@ ohos_fuzztest("AbilityAutoStartupDataManagerbFuzzTest") {
     "hisysevent:libhisysevent",
     "input:libmmi-client",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "os_account:os_account_innerkits",

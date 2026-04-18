@@ -52,6 +52,7 @@ ohos_shared_library("libsrms") {
   ]
   deps += [ "${srms_inner_api_path}:service_router_mgr_stub" ]
   external_deps = [
+    "ability_base:base",
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",

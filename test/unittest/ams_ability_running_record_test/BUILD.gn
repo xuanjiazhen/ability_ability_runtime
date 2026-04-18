@@ -76,6 +76,8 @@ ohos_unittest("AmsAbilityRunningRecordTest") {
   ]
 
   external_deps = [
+    "ability_base:base",
+    "ability_base:want",
     "access_token:libaccesstoken_sdk",
     "appspawn:appspawn_client",
     "bundle_framework:appexecfwk_core",
@@ -92,6 +94,7 @@ ohos_unittest("AmsAbilityRunningRecordTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "memmgr:memmgrclient",
     "memory_utils:libmeminfo",

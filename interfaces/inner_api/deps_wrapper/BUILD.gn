@@ -48,6 +48,7 @@ ohos_shared_library("ability_deps_wrapper") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "samgr:samgr_proxy",
   ]
 

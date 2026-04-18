@@ -56,6 +56,7 @@ ohos_fuzztest("BundleMgrHelperThirdFuzzTest") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:want",
     "ability_base:zuri",
     "access_token:libaccesstoken_sdk",
@@ -69,6 +70,7 @@ ohos_fuzztest("BundleMgrHelperThirdFuzzTest") {
     "ffrt:libffrt",
     "hilog:libhilog",
     "hisysevent:libhisysevent",
+    "ipc:ipc_single",
     "safwk:system_ability_fwk",
     "hitrace:hitrace_meter",
     "hitrace:libhitracechain",

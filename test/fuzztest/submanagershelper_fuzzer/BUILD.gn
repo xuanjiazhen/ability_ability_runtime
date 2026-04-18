@@ -96,6 +96,7 @@ ohos_fuzztest("SubManagersHelperFuzzTest") {
     "init:libbeget_proxy",
     "init:libbegetutil",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "os_account:os_account_innerkits",
     "qos_manager:concurrent_task_client",

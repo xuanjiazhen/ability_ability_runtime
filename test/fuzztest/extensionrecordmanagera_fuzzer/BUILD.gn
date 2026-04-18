@@ -76,6 +76,7 @@ ohos_fuzztest("ExtensionRecordManageraFuzzTest") {
   ]
 
   external_deps = [
+    "ability_base:base",
     "ability_base:session_info",
     "ability_base:want",
     "ability_base:zuri",
@@ -96,6 +97,7 @@ ohos_fuzztest("ExtensionRecordManageraFuzzTest") {
     "init:libbegetutil",
     "input:libmmi-client",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "os_account:os_account_innerkits",
     "relational_store:native_dataability",
