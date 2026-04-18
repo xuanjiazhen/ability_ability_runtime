@@ -1740,5 +1740,49 @@ HWTEST_F(AbilityManagerServiceFourthTest, AddToUserLockedBundleList_001, TestSiz
     AbilityRuntime::UserController::GetInstance().DeleteUserLockedBundleListByUserId(userId);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest AddToUserLockedBundleList_001 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilityWithCallback
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartUIAbilityWithCallback with SA check failed
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityWithCallback_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityWithCallback_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    sptr<RequestAbilityImplCallback> callback = new RequestAbilityImplCallback();
+    MyFlag::flag_ = 0;
+    auto result = abilityMs->StartUIAbilityWithCallback(want, nullptr, callback);
+    EXPECT_EQ(result, CHECK_PERMISSION_FAILED);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityWithCallback_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilityWithCallback
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartUIAbilityWithCallback with SA check passed but ability not exist
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityWithCallback_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityWithCallback_002 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    Want want;
+    want.SetElementName("com.test.bundle", "NonExistAbility");
+    sptr<IRemoteObject> callerToken = MockToken(AbilityType::PAGE);
+    sptr<RequestAbilityImplCallback> callback = new RequestAbilityImplCallback();
+    IPCSkeleton::SetCallingUid(FOUNDATION_UID);
+    MyFlag::flag_ = 1;
+    auto result = abilityMs->StartUIAbilityWithCallback(want, callerToken, callback);
+    EXPECT_NE(result, ERR_OK);
+    result = abilityMs->StartUIAbilityWithCallback(want, callerToken, nullptr);
+    EXPECT_NE(result, ERR_OK);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityWithCallback_002 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
