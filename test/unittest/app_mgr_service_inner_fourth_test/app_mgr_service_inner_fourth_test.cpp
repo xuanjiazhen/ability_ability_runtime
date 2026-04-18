@@ -679,7 +679,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, IsImageInfoExist_ShouldReturnFalseWhenIma
     std::string bundleName = "com.acts.imagetest";
     int32_t userId = 1;
     int32_t appIndex = 0;
-    bool exist = appMgrServiceInner->IsImageInfoExist(bundleName, userId, appIndex);
+    bool exist = appMgrServiceInner->IsImageInfoExist(bundleName, "", userId, appIndex);
     EXPECT_FALSE(exist);
     TAG_LOGI(AAFwkTag::TEST, "IsImageInfoExist_ShouldReturnFalseWhenImageInfoNotExist end");
 }
@@ -699,7 +699,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, IsImageInfoExist_ShouldReturnTrueWhenImag
     int32_t appIndex = 0;
     PreloadRequest preloadRequest;
     appMgrServiceInner->PreAddImageInfo(bundleName, userId, appIndex, nullptr, preloadRequest);
-    bool exist = appMgrServiceInner->IsImageInfoExist(bundleName, userId, appIndex);
+    bool exist = appMgrServiceInner->IsImageInfoExist(bundleName, "", userId, appIndex);
     EXPECT_TRUE(exist);
     TAG_LOGI(AAFwkTag::TEST, "IsImageInfoExist_ShouldReturnTrueWhenImageInfoExist end");
 }
@@ -718,13 +718,13 @@ HWTEST_F(AppMgrServiceInnerFourthTest, RemoveImageInfo_ShouldRemoveImageWhenKeyI
     int32_t userId = 1;
     int32_t appIndex = 0;
     PreloadRequest preloadRequest;
-    appMgrServiceInner->RemoveImageInfo(bundleName, userId, appIndex);
-    EXPECT_FALSE(appMgrServiceInner->IsImageInfoExist(bundleName, userId, appIndex));
+    appMgrServiceInner->RemoveImageInfo(bundleName, "", userId, appIndex);
+    EXPECT_FALSE(appMgrServiceInner->IsImageInfoExist(bundleName, "", userId, appIndex));
     appMgrServiceInner->PreAddImageInfo(bundleName, userId, appIndex, nullptr, preloadRequest);
-    bool exist = appMgrServiceInner->IsImageInfoExist(bundleName, userId, appIndex);
+    bool exist = appMgrServiceInner->IsImageInfoExist(bundleName, "", userId, appIndex);
     EXPECT_TRUE(exist);
-    appMgrServiceInner->RemoveImageInfo(bundleName, userId, appIndex);
-    EXPECT_FALSE(appMgrServiceInner->IsImageInfoExist(bundleName, userId, appIndex));
+    appMgrServiceInner->RemoveImageInfo(bundleName, "", userId, appIndex);
+    EXPECT_FALSE(appMgrServiceInner->IsImageInfoExist(bundleName, "", userId, appIndex));
     TAG_LOGI(AAFwkTag::TEST, "RemoveImageInfo_ShouldRemoveImageWhenKeyIsExist end");
 }
 
@@ -774,7 +774,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, GetImageInfoByUid_ShouldReturnNullptrWhen
     };
     appMgrServiceInner->imageInfoMap_.emplace(request, nullptr);
     int32_t uid = 1;
-    EXPECT_EQ(appMgrServiceInner->GetImageInfoByUid(uid), nullptr);
+    EXPECT_EQ(appMgrServiceInner->GetImageInfosByUid(uid).size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "GetImageInfoByUid_ShouldReturnNullptrWhenForkImageInfoIsNullptr end");
 }
 
@@ -802,7 +802,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, UpdateImageInfo_ShouldDoNothingWhenReques
     appRecord->SetAppIndex(appIndex);
     int32_t imagePid = 100;
     appMgrServiceInner->UpdateImageInfo(imagePid, 0, appRecord);
-    auto imageInfo = appMgrServiceInner->GetImageInfo(bundleName, userId, appIndex);
+    auto imageInfo = appMgrServiceInner->GetImageInfo(bundleName, "", userId, appIndex);
     EXPECT_NE(imageInfo, nullptr);
     EXPECT_NE(imageInfo->baseAppRecord, appRecord);
     TAG_LOGI(AAFwkTag::TEST, "UpdateImageInfo_ShouldDoNothingWhenRequestNotMatch end");
@@ -832,7 +832,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, UpdateImageInfo_ShouldUpdateWhenAppRecord
     appRecord->SetAppIndex(appIndex);
     int32_t imagePid = 100;
     appMgrServiceInner->UpdateImageInfo(imagePid, 0, appRecord);
-    auto imageInfo = appMgrServiceInner->GetImageInfo(bundleName, userId, appIndex);
+    auto imageInfo = appMgrServiceInner->GetImageInfo(bundleName, "", userId, appIndex);
     EXPECT_NE(imageInfo, nullptr);
     EXPECT_EQ(imageInfo->baseAppRecord, appRecord);
     EXPECT_EQ(imageInfo->imagePid, imagePid);
@@ -920,8 +920,8 @@ HWTEST_F(AppMgrServiceInnerFourthTest, HandleMakeImageFailed_ShouldDonothingWhen
     int32_t userId = 100;
     int32_t appIndex = 0;
     ImageError imageErr = ImageError::ERR_OK;
-    appMgrServiceInner->HandleMakeImageFailed(bundleName, userId, appIndex, imageErr);
-    EXPECT_EQ(appMgrServiceInner->GetImageInfo(bundleName, userId, appIndex), nullptr);
+    appMgrServiceInner->HandleMakeImageFailed(bundleName, "", userId, appIndex, imageErr);
+    EXPECT_EQ(appMgrServiceInner->GetImageInfo(bundleName, "", userId, appIndex), nullptr);
     TAG_LOGI(AAFwkTag::TEST, "HandleMakeImageFailed_ShouldDonothingWhenImageInfoNotExist end");
 }
 
