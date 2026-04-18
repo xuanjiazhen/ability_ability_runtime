@@ -30,6 +30,7 @@
 #include "json_utils.h"
 #include "remote_object_wrapper.h"
 #include "request_constants.h"
+#include "request_start_ability_callback_stub.h"
 #include "session_info.h"
 #include "string_wrapper.h"
 #ifdef SUPPORT_SCREEN
@@ -77,6 +78,15 @@ struct RequestResult {
     int32_t resultCode {0};
     AAFwk::Want resultWant;
     RequestDialogResultTask task;
+};
+
+class MyUIAbilityStartCallback : public AAFwk::RequestStartAbilityCallbackStub {
+public:
+    void OnRequestStartAbilityResult(bool result) override
+    {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt UIAbility start request result: %{public}s",
+            result ? "success" : "failed");
+    }
 };
 
 AbilityContextImpl::AbilityContextImpl()
@@ -200,6 +210,8 @@ ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, int requestCod
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, token_, requestCode);
+    sptr<MyUIAbilityStartCallback> callback = new MyUIAbilityStartCallback();
+    AAFwk::AbilityManagerClient::GetInstance()->StartUIAbilityWithCallback(want, token_, callback);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
@@ -234,6 +246,8 @@ ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, const AAFwk::S
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, requestCode);
+    sptr<MyUIAbilityStartCallback> callback = new MyUIAbilityStartCallback();
+    AAFwk::AbilityManagerClient::GetInstance()->StartUIAbilityWithCallback(want, nullptr, callback);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
     }
