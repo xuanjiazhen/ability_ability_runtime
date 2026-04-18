@@ -136,6 +136,11 @@ bool AppLaunchData::MarshallingExtend(Parcel &parcel) const
         return false;
     }
 
+    if (!parcel.WriteString(preloadAbilityName_)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write preloadAbilityName.");
+        return false;
+    }
+
     if (!parcel.WriteBool(isDebugFromLocal_)) {
         TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write isDebugFromLocal");
         return false;
@@ -202,6 +207,7 @@ bool AppLaunchData::ReadFromParcel(Parcel &parcel)
     appPreloadMode_ = static_cast<PreloadMode>(parcel.ReadInt32());
     isAllowedNWebPreload_ = parcel.ReadBool();
     preloadModuleName_ = parcel.ReadString();
+    preloadAbilityName_ = parcel.ReadString();
     isDebugFromLocal_ = parcel.ReadBool();
     if (!ReadStartupTaskDataFromParcel(parcel)) {
         return false;
