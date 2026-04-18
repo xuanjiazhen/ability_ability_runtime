@@ -629,13 +629,12 @@ HWTEST_F(AppPreloaderTest, AppPreloaderTest_GeneratePreloadExtensionRequest_0100
     std::string abilityName = "InputService";
     AAFwk::Want want;
     want.SetElementName(bundleName, abilityName);
-    AbilityInfo abilityInfo;
 
     int32_t userId = -9; // failed GetBundleAndHapInfo
     int32_t appIndex = 0;
     PreloadRequest request;
 
-    auto ret = manager->GeneratePreloadExtensionRequest(want, abilityInfo, userId, appIndex, request);
+    auto ret = manager->GeneratePreloadExtensionRequest(want, userId, appIndex, request);
     EXPECT_EQ(ret, AAFwk::GET_BUNDLE_INFO_FAILED);
 }
 
@@ -657,13 +656,12 @@ HWTEST_F(AppPreloaderTest, AppPreloaderTest_GeneratePreloadExtensionRequest_0300
     std::string abilityName = "InputService";
     AAFwk::Want want;
     want.SetElementName(bundleName, abilityName);
-    AbilityInfo abilityInfo;
 
     int32_t userId = 1;
     int32_t appIndex = 0;
     PreloadRequest request;
 
-    auto ret = manager->GeneratePreloadExtensionRequest(want, abilityInfo, userId, appIndex, request);
+    auto ret = manager->GeneratePreloadExtensionRequest(want, userId, appIndex, request);
     EXPECT_EQ(ret, ERR_OK);
 }
 }  // namespace AppExecFwk
