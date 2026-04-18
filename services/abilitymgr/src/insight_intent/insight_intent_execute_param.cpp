@@ -21,6 +21,7 @@
 #include "hitrace_meter.h"
 #include "insight_intent_constant.h"
 #include "int_wrapper.h"
+#include "nlohmann/json.hpp"
 #include "string_wrapper.h"
 
 namespace OHOS {
@@ -52,6 +53,29 @@ bool InsightIntentExecuteParam::ReadFromParcel(Parcel &parcel)
     navigationId_ = Str16ToStr8(parcel.ReadString16());
     navDestinationName_ = Str16ToStr8(parcel.ReadString16());
     isServiceMatch_ = parcel.ReadBool();
+
+    std::string paramInfosStr = Str16ToStr8(parcel.ReadString16());
+    if (!paramInfosStr.empty()) {
+        auto jsonObj = nlohmann::json::parse(paramInfosStr, nullptr, false);
+        if (!jsonObj.is_discarded() && jsonObj.is_array()) {
+            for (const auto &item : jsonObj) {
+                if (!item.is_object()) {
+                    continue;
+                }
+                InsightIntentParam param;
+                if (item.contains("paramName") && item["paramName"].is_string()) {
+                    param.paramName = item["paramName"].get<std::string>();
+                }
+                if (item.contains("type") && item["type"].is_number_unsigned()) {
+                    param.type = static_cast<ParamType>(item["type"].get<uint8_t>());
+                }
+                if (item.contains("isRequired") && item["isRequired"].is_boolean()) {
+                    param.isRequired = item["isRequired"].get<bool>();
+                }
+                functionParamInfos_.push_back(param);
+            }
+        }
+    }
     return true;
 }
 
@@ -91,6 +115,16 @@ bool InsightIntentExecuteParam::Marshalling(Parcel &parcel) const
     parcel.WriteString16(Str8ToStr16(navigationId_));
     parcel.WriteString16(Str8ToStr16(navDestinationName_));
     parcel.WriteBool(isServiceMatch_);
+
+    nlohmann::json paramsJson = nlohmann::json::array();
+    for (const auto &param : functionParamInfos_) {
+        nlohmann::json paramJson;
+        paramJson["paramName"] = param.paramName;
+        paramJson["type"] = static_cast<uint8_t>(param.type);
+        paramJson["isRequired"] = param.isRequired;
+        paramsJson.push_back(paramJson);
+    }
+    parcel.WriteString16(Str8ToStr16(paramsJson.dump()));
     return true;
 }
 
@@ -158,6 +192,29 @@ bool InsightIntentExecuteParam::GenerateFromWant(const AAFwk::Want &want,
     executeParam.queryType_ = wantParams.GetStringParam(INSIGHT_INTENT_QUERY_TYPE);
     auto queryParams = wantParams.GetWantParams(INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM);
     executeParam.queryParams_ = std::make_shared<WantParams>(queryParams);
+
+    std::string paramInfosStr = wantParams.GetStringParam(INSIGHT_INTENT_FUNC_PARAM_SCHEMAS);
+    if (!paramInfosStr.empty()) {
+        auto jsonObj = nlohmann::json::parse(paramInfosStr, nullptr, false);
+        if (!jsonObj.is_discarded() && jsonObj.is_array()) {
+            for (const auto &item : jsonObj) {
+                if (!item.is_object()) {
+                    continue;
+                }
+                InsightIntentParam param;
+                if (item.contains("paramName") && item["paramName"].is_string()) {
+                    param.paramName = item["paramName"].get<std::string>();
+                }
+                if (item.contains("type") && item["type"].is_number_unsigned()) {
+                    param.type = static_cast<ParamType>(item["type"].get<uint8_t>());
+                }
+                if (item.contains("isRequired") && item["isRequired"].is_boolean()) {
+                    param.isRequired = item["isRequired"].get<bool>();
+                }
+                executeParam.functionParamInfos_.push_back(param);
+            }
+        }
+    }
     return true;
 }
 
@@ -217,6 +274,9 @@ bool InsightIntentExecuteParam::RemoveInsightIntent(AAFwk::Want &want)
     }
     if (want.HasParameter(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME)) {
         want.RemoveParam(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME);
+    }
+    if (want.HasParameter(INSIGHT_INTENT_FUNC_PARAM_SCHEMAS)) {
+        want.RemoveParam(INSIGHT_INTENT_FUNC_PARAM_SCHEMAS);
     }
     return true;
 }

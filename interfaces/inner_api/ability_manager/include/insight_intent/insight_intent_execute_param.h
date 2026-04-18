@@ -25,6 +25,33 @@
 namespace OHOS {
 namespace AppExecFwk {
 using WantParams = OHOS::AAFwk::WantParams;
+
+/**
+ * @enum ParamType
+ * ParamType defines the parameter type for function intent validation.
+ */
+enum class ParamType : uint8_t {
+    STRING = 0,
+    NUMBER,
+    BOOLEAN,
+    OBJECT,
+    ARRAY,
+    UNKNOWN
+};
+
+/**
+ * @struct InsightIntentParam
+ * InsightIntentParam defines the parameter info for function intent.
+ */
+struct InsightIntentParam {
+    std::string paramName;
+    std::string paramSchema;
+    ParamType type = ParamType::UNKNOWN;
+    bool isRequired = false;
+
+    InsightIntentParam() = default;
+};
+
 /**
  * @enum ExecuteMode
  * ExecuteMode defines the supported execute mode.
@@ -57,6 +84,7 @@ constexpr char INSIGHT_INTENT_DECORATOR_CLASS[] = "ohos.insightIntent.decoratorC
 constexpr char INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME[] = "ohos.insightIntent.queryEntity.className";
 constexpr char INSIGHT_INTENT_QUERY_TYPE[] = "ohos.insightIntent.queryEntity.queryType";
 constexpr char INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM[] = "ohos.insightIntent.queryEntity.param";
+constexpr char INSIGHT_INTENT_FUNC_PARAM_SCHEMAS[] = "ohos.insightIntent.funcParam.paramSchemas";
 
 constexpr int32_t INVALID_DISPLAY_ID = -1;
 
@@ -94,6 +122,7 @@ public:
     std::string className_;
     std::string methodName_;
     std::vector<std::string> methodParams_;
+    std::vector<InsightIntentParam> functionParamInfos_;
 
     // params below belongs to InsightIntentPage
     std::string pagePath_;

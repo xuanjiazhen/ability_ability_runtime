@@ -15,6 +15,8 @@
 
 #include "ets_insight_intent_func.h"
 
+#include <algorithm>
+
 #include "ability_transaction_callback_info.h"
 #include "ani_common_want.h"
 #include "hilog_tag_wrapper.h"
@@ -37,6 +39,79 @@ constexpr const char *FUNCTION_UTILS_CLASS_NAME = "utils.AbilityUtils.InsightInt
 constexpr const char *METHOD_RESULT_KEY = "methodResult";
 constexpr const char *CALL_PROMISE_SIGNATURE = "C{std.core.Promise}:";
 constexpr int ANI_ALREADY_BINDED = 8;
+constexpr const char *CLASSNAME_STRING = "std.core.String";
+constexpr const char *CLASSNAME_INT = "std.core.Int";
+constexpr const char *CLASSNAME_FLOAT = "std.core.Float";
+constexpr const char *CLASSNAME_DOUBLE = "std.core.Double";
+constexpr const char *CLASSNAME_BOOLEAN = "std.core.Boolean";
+constexpr const char *CLASSNAME_ARRAY = "std.core.Array";
+
+bool ValidateParamType(ani_env *env, ani_ref value, AppExecFwk::ParamType expectedType)
+{
+    if (expectedType == AppExecFwk::ParamType::UNKNOWN) {
+        TAG_LOGD(AAFwkTag::INTENT, "unknown type, skip validation");
+        return true;
+    }
+
+    if (value == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "null value for validation");
+        return false;
+    }
+
+    auto isInstanceOf = [env, value](const char *className) {
+        ani_class cls = nullptr;
+        ani_status status = env->FindClass(className, &cls);
+        if (status != ANI_OK || cls == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "find class failed, className: %{public}s, status: %{public}d",
+                className, status);
+            return false;
+        }
+        ani_boolean result = ANI_FALSE;
+        status = env->Object_InstanceOf(static_cast<ani_object>(value), cls, &result);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "instanceof failed, className: %{public}s, status: %{public}d",
+                className, status);
+            return false;
+        }
+        return static_cast<bool>(result);
+    };
+
+    switch (expectedType) {
+        case AppExecFwk::ParamType::STRING:
+            if (!isInstanceOf(CLASSNAME_STRING)) {
+                TAG_LOGE(AAFwkTag::INTENT, "type mismatch: expected string");
+                return false;
+            }
+            break;
+        case AppExecFwk::ParamType::NUMBER:
+            if (!isInstanceOf(CLASSNAME_INT) &&
+                !isInstanceOf(CLASSNAME_FLOAT) &&
+                !isInstanceOf(CLASSNAME_DOUBLE)) {
+                TAG_LOGE(AAFwkTag::INTENT, "type mismatch: expected number");
+                return false;
+            }
+            break;
+        case AppExecFwk::ParamType::BOOLEAN:
+            if (!isInstanceOf(CLASSNAME_BOOLEAN)) {
+                TAG_LOGE(AAFwkTag::INTENT, "type mismatch: expected boolean");
+                return false;
+            }
+            break;
+        case AppExecFwk::ParamType::OBJECT:
+            TAG_LOGD(AAFwkTag::INTENT, "object type validation passed");
+            break;
+        case AppExecFwk::ParamType::ARRAY:
+            if (!isInstanceOf(CLASSNAME_ARRAY)) {
+                TAG_LOGE(AAFwkTag::INTENT, "type mismatch: expected array");
+                return false;
+            }
+            break;
+        default:
+            TAG_LOGD(AAFwkTag::INTENT, "unknown type, skip validation");
+            break;
+    }
+    return true;
+}
 
 ani_object CreateMethodResultRecord(ani_env *env, ani_ref result)
 {
@@ -286,6 +361,20 @@ bool EtsInsightIntentFunc::BuildMethodArgs(ani_env *env,
                 paramName.c_str(), status);
             return false;
         }
+
+        auto paramIt = std::find_if(executeParam->functionParamInfos_.begin(), executeParam->functionParamInfos_.end(),
+            [&paramName](const AppExecFwk::InsightIntentParam &paramInfo) {
+                return paramInfo.paramName == paramName;
+            });
+        if (paramIt != executeParam->functionParamInfos_.end()) {
+            if (!ValidateParamType(env, valueRef, paramIt->type)) {
+                TAG_LOGE(AAFwkTag::INTENT, "param type validation failed, name: %{public}s", paramName.c_str());
+                return false;
+            }
+        } else {
+            TAG_LOGD(AAFwkTag::INTENT, "no param info found for: %{public}s, skip validation", paramName.c_str());
+        }
+
         ani_value arg { .r = valueRef };
         args.emplace_back(arg);
     }

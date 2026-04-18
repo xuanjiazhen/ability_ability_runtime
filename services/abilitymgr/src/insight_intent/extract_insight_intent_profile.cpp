@@ -15,6 +15,8 @@
 
 #include "extract_insight_intent_profile.h"
 
+#include <algorithm>
+
 #include "hilog_tag_wrapper.h"
 #include "json_util.h"
 
@@ -78,6 +80,70 @@ enum DecoratorType {
     DECORATOR_FORM,
     DECORATOR_UNKNOWN
 };
+
+ParamType StringToParamType(const std::string &typeStr)
+{
+    static const std::unordered_map<std::string, ParamType> typeMapping = {
+        {"string", ParamType::STRING},
+        {"number", ParamType::NUMBER},
+        {"integer", ParamType::NUMBER},
+        {"boolean", ParamType::BOOLEAN},
+        {"object", ParamType::OBJECT},
+        {"array", ParamType::ARRAY}
+    };
+    auto it = typeMapping.find(typeStr);
+    return (it != typeMapping.end()) ? it->second : ParamType::UNKNOWN;
+}
+
+bool ParseFunctionParams(const std::string &parameters, std::vector<InsightIntentParam> &params)
+{
+    if (parameters.empty()) {
+        return true;
+    }
+    auto jsonObj = nlohmann::json::parse(parameters, nullptr, false);
+    if (jsonObj.is_discarded() || !jsonObj.is_object()) {
+        TAG_LOGW(AAFwkTag::INTENT, "parameters parse failed or not object");
+        return true;
+    }
+
+    if (!jsonObj.contains("properties") || !jsonObj["properties"].is_object()) {
+        TAG_LOGD(AAFwkTag::INTENT, "no properties in parameters");
+        return true;
+    }
+
+    const auto &properties = jsonObj["properties"];
+    std::vector<std::string> requiredList;
+    if (jsonObj.contains("required") && jsonObj["required"].is_array()) {
+        for (const auto &item : jsonObj["required"]) {
+            if (item.is_string()) {
+                requiredList.push_back(item.get<std::string>());
+            }
+        }
+    }
+
+    for (auto it = properties.begin(); it != properties.end(); ++it) {
+        InsightIntentParam param;
+        param.paramName = it.key();
+        TAG_LOGD(AAFwkTag::INTENT, "parse param: %{public}s", param.paramName.c_str());
+
+        if (it.value().is_object() && it.value().contains("type")) {
+            std::string typeStr;
+            if (it.value()["type"].is_string()) {
+                typeStr = it.value()["type"].get<std::string>();
+            }
+            param.type = StringToParamType(typeStr);
+            TAG_LOGD(AAFwkTag::INTENT, "param %{public}s type: %{public}u", param.paramName.c_str(),
+                static_cast<uint8_t>(param.type));
+        }
+
+        param.isRequired = std::find(requiredList.begin(), requiredList.end(), param.paramName) != requiredList.end();
+        TAG_LOGD(AAFwkTag::INTENT, "param %{public}s isRequired: %{public}d", param.paramName.c_str(),
+            param.isRequired);
+
+        params.push_back(param);
+    }
+    return true;
+}
 
 DecoratorType StringToEnum(const std::string& input)
 {
@@ -634,6 +700,8 @@ bool TransformToFunctionInfo(const ExtractInsightIntentProfileInfo &insightInten
     }
     info.parameters = insightIntent.parameters;
     TAG_LOGD(AAFwkTag::INTENT, "function parameters: %{public}s", info.parameters.c_str());
+    ParseFunctionParams(info.parameters, info.functionParamInfos);
+    TAG_LOGD(AAFwkTag::INTENT, "functionParamInfos size: %{public}zu", info.functionParamInfos.size());
     return true;
 }
 
