@@ -1,0 +1,14 @@
+{
+  "test_case": "Mixed模式 - 所有模式组合",
+  "executable": "/usr/bin/deployer",
+  "expected_argv": [
+    "deploy",
+    "api-gateway",
+    "--replicas=5",
+    "--host=api.example.com",
+    "--port=8443",
+    "--config={\"env\": [\"production\", \"secure\"], \"resources\": {\"cpu\": \"4\", \"memory\": \"8Gi\"}}"
+  ],
+  "expected_command": "/usr/bin/deployer deploy api-gateway --replicas=5 --host=api.example.com --port=8443 --config='{\"env\": [\"production\", \"secure\"], \"resources\": {\"cpu\": \"4\", \"memory\": \"8Gi\"}}'",
+  "note": "positional按order先输出，其余按定义顺序；dryRun为false被跳过"
+}

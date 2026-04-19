@@ -1,0 +1,41 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Deep object with nested array passed by json-string",
+  "executable": "/usr/bin/net-scan",
+  "input": {
+    "type": "object",
+    "properties": {
+      "config": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "object",
+            "properties": {
+              "routes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "policy": {
+                "type": "object",
+                "properties": {
+                  "mode": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "json-string",
+    "templates": {
+      "config": "--config={value}"
+    }
+  }
+}

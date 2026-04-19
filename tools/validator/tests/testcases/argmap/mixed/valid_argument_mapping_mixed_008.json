@@ -1,0 +1,35 @@
+{
+  "name": "ohos-mixed-flattened",
+  "version": "1.0.0",
+  "description": "Valid mixed flattened mapping",
+  "executable": "/usr/bin/mixed-tool",
+  "input": {
+    "type": "object",
+    "properties": {
+      "server": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "mixed",
+    "mappings": {
+      "server": {
+        "mode": "flattened",
+        "template": {
+          "server.host": "--host={value}",
+          "server.port": "--port={value}"
+        },
+        "separator": "."
+      }
+    }
+  }
+}

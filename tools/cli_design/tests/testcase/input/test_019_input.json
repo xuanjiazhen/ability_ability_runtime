@@ -1,0 +1,14 @@
+{
+  "verbose": false,
+  "service": {
+    "name": "backend",
+    "port": 9443,
+    "tls": {
+      "enabled": true
+    }
+  },
+  "features": {
+    "cache": true,
+    "monitoring": false
+  }
+}

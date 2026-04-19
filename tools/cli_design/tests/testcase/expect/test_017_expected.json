@@ -1,0 +1,11 @@
+{
+  "test_case": "Mixed模式 - positional与json-string组合",
+  "executable": "/usr/bin/pipeline",
+  "expected_argv": [
+    "run",
+    "myapp",
+    "--stages={\"build\": true, \"test\": false, \"deploy\": true}"
+  ],
+  "expected_command": "/usr/bin/pipeline run myapp --stages='{\"build\": true, \"test\": false, \"deploy\": true}'",
+  "note": "验证positional按order先输出，json-string按定义顺序输出"
+}

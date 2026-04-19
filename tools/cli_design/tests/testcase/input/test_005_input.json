@@ -1,0 +1,10 @@
+{
+  "config": {
+    "resources": {
+      "cpu": "2",
+      "memory": "4Gi"
+    },
+    "tags": ["production", "v1.0"]
+  },
+  "mode": "rolling"
+}

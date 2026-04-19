@@ -1,0 +1,5 @@
+{
+  "source": "/data/important_file.txt",
+  "dest": "/backup/important_file.txt",
+  "verbose": true
+}

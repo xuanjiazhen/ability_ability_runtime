@@ -1,0 +1,35 @@
+{
+  "name": "ohos-test-006",
+  "version": "1.0.0",
+  "description": "Mixed模式 - 简单组合",
+  "executable": "/usr/bin/service",
+  "input": {
+    "type": "object",
+    "properties": {
+      "action": {"type": "string"},
+      "name": {"type": "string"},
+      "verbose": {"type": "boolean"}
+    },
+    "required": ["action", "name"]
+  },
+  "argumentMapping": {
+    "type": "mixed",
+    "mappings": {
+      "action": {
+        "mode": "positional",
+        "order": 1
+      },
+      "name": {
+        "mode": "positional",
+        "order": 2
+      },
+      "verbose": {
+        "mode": "flag",
+        "template": {
+          "if_true": "-v",
+          "if_false": ""
+        }
+      }
+    }
+  }
+}

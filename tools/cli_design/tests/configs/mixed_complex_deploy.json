@@ -1,0 +1,164 @@
+{
+  "name": "ohos-deploy-complex",
+  "version": "1.0.0",
+  "description": "Complex deployment tool with mixed mapping modes",
+  "executable": "/system/bin/cli_tool/executable/ohos-deploy",
+  "input": {
+    "type": "object",
+    "description": "Deployment tool input parameters",
+    "properties": {
+      "action": {
+        "type": "string",
+        "description": "Deployment action",
+        "enum": ["deploy", "scale", "restart"]
+      },
+      "service": {
+        "type": "string",
+        "description": "Service name"
+      },
+      "replicas": {
+        "type": "integer",
+        "description": "Number of replicas",
+        "minimum": 1,
+        "maximum": 100
+      },
+      "verbose": {
+        "type": "boolean",
+        "description": "Enable verbose output",
+        "default": false
+      },
+      "dryRun": {
+        "type": "boolean",
+        "description": "Dry run mode",
+        "default": false
+      },
+      "server": {
+        "type": "object",
+        "description": "Server configuration",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "Server host"
+          },
+          "port": {
+            "type": "integer",
+            "description": "Server port",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "tls": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "TLS enabled"
+              },
+              "certPath": {
+                "type": "string",
+                "description": "Certificate path"
+              }
+            }
+          }
+        }
+      },
+      "config": {
+        "type": "object",
+        "description": "Application configuration",
+        "properties": {
+          "resources": {
+            "type": "object",
+            "properties": {
+              "cpu": {
+                "type": "string",
+                "description": "CPU request"
+              },
+              "memory": {
+                "type": "string",
+                "description": "Memory request"
+              },
+              "storage": {
+                "type": "string",
+                "description": "Storage request"
+              }
+            }
+          },
+          "logging": {
+            "type": "object",
+            "properties": {
+              "level": {
+                "type": "string",
+                "description": "Log level"
+              },
+              "path": {
+                "type": "string",
+                "description": "Log path"
+              }
+            }
+          },
+          "env": {
+            "type": "array",
+            "description": "Environment variables",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "value": {
+                  "type": "string"
+                }
+              },
+              "required": ["name", "value"]
+            }
+          }
+        }
+      }
+    },
+    "required": ["action", "service"]
+  },
+  "argumentMapping": {
+    "type": "mixed",
+    "mappings": {
+      "action": {
+        "mode": "positional",
+        "order": 1
+      },
+      "service": {
+        "mode": "positional",
+        "order": 2
+      },
+      "replicas": {
+        "mode": "flag",
+        "template": "--replicas={value}"
+      },
+      "verbose": {
+        "mode": "flag",
+        "template": {
+          "if_true": "--verbose",
+          "if_false": ""
+        }
+      },
+      "dryRun": {
+        "mode": "flag",
+        "template": {
+          "if_true": "--dry-run",
+          "if_false": ""
+        }
+      },
+      "server": {
+        "mode": "flattened",
+        "template": {
+          "server.host": "--host={value}",
+          "server.port": "--port={value}",
+          "server.tls.enabled": "--tls={value}",
+          "server.tls.certPath": "--cert={value}"
+        },
+        "separator": "."
+      },
+      "config": {
+        "mode": "json-string",
+        "template": "--config={value}"
+      }
+    }
+  }
+}

@@ -1,0 +1,42 @@
+{
+    "name": "ohos-scanner",
+    "version": "1.0.0",
+    "description": "Network scanning utility tool",
+    "executable": "/usr/bin/net-scan",
+    "timeout": 30,
+    "requirePermissions": [
+        "ohos.permission.INTERNET"
+    ],
+    "events": [],
+    "input": {
+        "type": "object",
+        "properties": {
+            "config": {
+                "type": "object",
+                "properties": {
+                    "target": {
+                        "type": "string",
+                        "format": "ipv4"
+                    },
+                    "ports": {
+                        "type": "array",
+                        "items": {
+                            "type": "integer"
+                        }
+                    }
+                },
+                "required": ["target"]
+            },
+            "option": {
+              "type": "string"  
+            }
+        }
+    },
+    "argumentMapping": {
+        "type": "json-string",
+        "templates": {
+            "config": "--config={value}",
+            "option": "--option={value}"
+        }
+    }
+}

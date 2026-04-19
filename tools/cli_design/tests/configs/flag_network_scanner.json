@@ -1,0 +1,65 @@
+{
+  "name": "ohos-netscan",
+  "version": "1.0.0",
+  "description": "Network scanning utility tool - Flag mode configuration",
+  "executable": "/system/bin/cli_tool/executable/ohos-netscan",
+  "requirePermissions": [
+    "ohos.permission.INTERNET",
+    "ohos.permission.GET_NETWORK_INFO"
+  ],
+  "timeout": 300,
+  "hasSubcommands": false,
+  "input": {
+    "type": "object",
+    "description": "网络扫描工具的输入参数定义",
+    "properties": {
+      "target": {
+        "type": "string",
+        "description": "目标IP地址或主机名",
+        "minLength": 1,
+        "maxLength": 255,
+        "format": "ipv4",
+        "default": "127.0.0.1"
+      },
+      "ports": {
+        "type": "array",
+        "description": "待扫描的端口列表",
+        "items": {
+          "type": "integer",
+          "description": "端口号",
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "minItems": 1,
+        "maxItems": 100,
+        "uniqueItems": true,
+        "default": [80, 443]
+      },
+      "timeout": {
+        "type": "integer",
+        "description": "连接超时时间（秒）",
+        "minimum": 1,
+        "maximum": 300,
+        "default": 5
+      },
+      "verbose": {
+        "type": "boolean",
+        "description": "是否开启详细输出模式",
+        "default": false
+      }
+    },
+    "required": ["target"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "ports": "--port={value}",
+      "timeout": "--timeout={value}",
+      "verbose": {
+        "if_true": "-v",
+        "if_false": ""
+      }
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Deep flattened mapping with dot separator",
+  "executable": "/usr/bin/net-scan",
+  "input": {
+    "type": "object",
+    "properties": {
+      "cfg": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "object",
+            "properties": {
+              "endpoint": {
+                "type": "object",
+                "properties": {
+                  "host": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "flattened",
+    "separator": ".",
+    "templates": {
+      "cfg.network.endpoint.host": "--host={value}",
+      "cfg.network.endpoint.port": "--port={value}"
+    }
+  }
+}

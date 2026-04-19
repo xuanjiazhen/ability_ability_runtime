@@ -1,0 +1,46 @@
+{
+  "name": "ohos-test-018",
+  "version": "1.0.0",
+  "description": "Mixed模式 - positional与flattened组合",
+  "executable": "/usr/bin/installer",
+  "input": {
+    "type": "object",
+    "properties": {
+      "operation": {"type": "string"},
+      "target": {"type": "string"},
+      "settings": {
+        "type": "object",
+        "properties": {
+          "install": {
+            "type": "object",
+            "properties": {
+              "path": {"type": "string"},
+              "mode": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "mixed",
+    "mappings": {
+      "operation": {
+        "mode": "positional",
+        "order": 1
+      },
+      "target": {
+        "mode": "positional",
+        "order": 2
+      },
+      "settings": {
+        "mode": "flattened",
+        "template": {
+          "settings.install.path": "--install-path={value}",
+          "settings.install.mode": "--mode={value}"
+        },
+        "separator": "."
+      }
+    }
+  }
+}

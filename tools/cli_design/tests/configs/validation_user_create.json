@@ -1,0 +1,61 @@
+{
+  "name": "ohos-usercreate",
+  "version": "1.0.0",
+  "description": "User creation tool - Demonstrating input validation failures",
+  "executable": "/system/bin/cli_tool/executable/ohos-usercreate",
+  "requirePermissions": [
+    "ohos.permission.MANAGE_USERS"
+  ],
+  "timeout": 60,
+  "hasSubcommands": false,
+  "input": {
+    "type": "object",
+    "description": "用户创建工具的输入参数定义（包含严格验证约束）",
+    "properties": {
+      "username": {
+        "type": "string",
+        "description": "用户名",
+        "minLength": 3,
+        "maxLength": 20,
+        "pattern": "^[a-zA-Z][a-zA-Z0-9_]*$"
+      },
+      "email": {
+        "type": "string",
+        "description": "电子邮件地址",
+        "format": "email"
+      },
+      "age": {
+        "type": "integer",
+        "description": "用户年龄",
+        "minimum": 18,
+        "maximum": 120
+      },
+      "role": {
+        "type": "string",
+        "description": "用户角色",
+        "pattern": "^(admin|user|guest)$"
+      },
+      "tags": {
+        "type": "array",
+        "description": "用户标签",
+        "items": {
+          "type": "string"
+        },
+        "minItems": 1,
+        "maxItems": 5,
+        "uniqueItems": true
+      }
+    },
+    "required": ["username", "email", "age"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "username": "--username={value}",
+      "email": "--email={value}",
+      "age": "--age={value}",
+      "role": "--role={value}",
+      "tags": "--tag={value}"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "test_case": "边界场景 - 空对象和空数组",
+  "executable": "/usr/bin/processor",
+  "expected_argv": [
+    "myapp",
+    "--metadata={}"
+  ],
+  "expected_command": "/usr/bin/processor myapp --metadata={}",
+  "note": "验证空数组不生成参数，空对象序列化为{}"
+}

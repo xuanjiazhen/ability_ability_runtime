@@ -1,0 +1,11 @@
+{
+  "test_case": "Positional模式 - 固定顺序参数",
+  "executable": "/usr/bin/copy",
+  "expected_argv": [
+    "/data/source.txt",
+    "/backup/dest.txt",
+    "true"
+  ],
+  "expected_command": "/usr/bin/copy /data/source.txt /backup/dest.txt true",
+  "note": "布尔值转换为字符串'true'"
+}

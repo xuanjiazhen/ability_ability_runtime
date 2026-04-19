@@ -1,0 +1,19 @@
+{
+  "name": "ohos-test-011",
+  "version": "1.0.0",
+  "description": "Positional模式 - number类型参数",
+  "executable": "/usr/bin/calculator",
+  "input": {
+    "type": "object",
+    "properties": {
+      "value1": {"type": "number"},
+      "value2": {"type": "number"},
+      "operation": {"type": "string"}
+    },
+    "required": ["value1", "value2", "operation"]
+  },
+  "argumentMapping": {
+    "type": "positional",
+    "order": ["value1", "value2", "operation"]
+  }
+}

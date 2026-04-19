@@ -1,0 +1,11 @@
+{
+  "test_case": "Mixed模式 - 简单组合",
+  "executable": "/usr/bin/service",
+  "expected_argv": [
+    "start",
+    "database",
+    "-v"
+  ],
+  "expected_command": "/usr/bin/service start database -v",
+  "note": "positional先按order输出，flag按定义顺序输出"
+}

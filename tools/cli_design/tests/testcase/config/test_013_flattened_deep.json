@@ -1,0 +1,31 @@
+{
+  "name": "ohos-test-013",
+  "version": "1.0.0",
+  "description": "Flattened模式 - 三层嵌套对象",
+  "executable": "/usr/bin/config-tool",
+  "input": {
+    "type": "object",
+    "properties": {
+      "cluster": {
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "object",
+            "properties": {
+              "name": {"type": "string"},
+              "replicas": {"type": "integer"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "flattened",
+    "separator": ".",
+    "templates": {
+      "cluster.node.name": "--node-name={value}",
+      "cluster.node.replicas": "--replicas={value}"
+    }
+  }
+}

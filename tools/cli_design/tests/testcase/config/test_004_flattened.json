@@ -1,0 +1,39 @@
+{
+  "name": "ohos-test-004",
+  "version": "1.0.0",
+  "description": "Flattened模式 - 嵌套对象展平",
+  "executable": "/usr/bin/deploy",
+  "input": {
+    "type": "object",
+    "properties": {
+      "app": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "replicas": {"type": "integer"},
+          "env": {
+            "type": "object",
+            "properties": {
+              "production": {"type": "boolean"},
+              "region": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "required": ["app"]
+  },
+  "argumentMapping": {
+    "type": "flattened",
+    "separator": ".",
+    "templates": {
+      "app.name": "--app-name={value}",
+      "app.replicas": "--replicas={value}",
+      "app.env.production": {
+        "if_true": "--prod",
+        "if_false": "--dev"
+      },
+      "app.env.region": "--region={value}"
+    }
+  }
+}

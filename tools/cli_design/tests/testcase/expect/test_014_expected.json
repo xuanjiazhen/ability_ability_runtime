@@ -1,0 +1,10 @@
+{
+  "test_case": "JSON-String模式 - 布尔值条件模板",
+  "executable": "/usr/bin/optimizer",
+  "expected_argv": [
+    "--options={\"enabled\": true, \"level\": \"verbose\"}",
+    "--debug"
+  ],
+  "expected_command": "/usr/bin/optimizer --options='{\"enabled\": true, \"level\": \"verbose\"}' --debug",
+  "note": "验证json-string模式下的布尔条件模板"
+}

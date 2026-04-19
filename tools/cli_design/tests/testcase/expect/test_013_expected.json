@@ -1,0 +1,10 @@
+{
+  "test_case": "Flattened模式 - 三层嵌套对象",
+  "executable": "/usr/bin/config-tool",
+  "expected_argv": [
+    "--node-name=worker-1",
+    "--replicas=5"
+  ],
+  "expected_command": "/usr/bin/config-tool --node-name=worker-1 --replicas=5",
+  "note": "验证三层嵌套对象的展平：cluster.node.name"
+}

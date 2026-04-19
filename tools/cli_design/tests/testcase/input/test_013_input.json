@@ -1,0 +1,8 @@
+{
+  "cluster": {
+    "node": {
+      "name": "worker-1",
+      "replicas": 5
+    }
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "config_file": "positional_file_copy.json",
+  "input_file": "positional_file_copy_input.json",
+  "executable_path": "/system/bin/cli_tool/executable/ohos-filecopy",
+  "mapping_type": "positional",
+  "description": "文件复制工具 - Positional模式配置示例",
+  "config": {
+    "executable": "/system/bin/cli_tool/executable/ohos-filecopy",
+    "type": "positional",
+    "order": [
+      "source",
+      "dest",
+      "verbose"
+    ],
+    "description": "文件复制工具 - Positional模式配置示例"
+  },
+  "input": {
+    "source": "/data/important_file.txt",
+    "dest": "/backup/important_file.txt",
+    "verbose": true
+  },
+  "output": {
+    "argv": [
+      "/system/bin/cli_tool/executable/ohos-filecopy",
+      "/data/important_file.txt",
+      "true"
+    ],
+    "command": "/system/bin/cli_tool/executable/ohos-filecopy /data/important_file.txt true",
+    "argc": 3,
+    "executable_path": "/system/bin/cli_tool/executable/ohos-filecopy",
+    "mapped_args": [
+      "/data/important_file.txt",
+      "true"
+    ],
+    "mapped_args_count": 2
+  },
+  "success": true,
+  "error": null
+}

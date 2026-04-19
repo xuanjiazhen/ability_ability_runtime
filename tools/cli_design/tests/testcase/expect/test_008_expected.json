@@ -1,0 +1,10 @@
+{
+  "test_case": "特殊场景 - 只提供部分可选参数",
+  "executable": "/usr/bin/tool",
+  "expected_argv": [
+    "--required=value1",
+    "--opt2=42"
+  ],
+  "expected_command": "/usr/bin/tool --required=value1 --opt2=42",
+  "note": "只映射输入中实际存在的字段"
+}

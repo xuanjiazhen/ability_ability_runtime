@@ -1,0 +1,12 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "builtin events allowed in events",
+  "executable": "/usr/bin/event-tool",
+  "input": {
+    "type": "object",
+    "properties": {}
+  },
+  "argumentMapping": {},
+  "events": ["stdout", "stderr", "exit", "error"]
+}

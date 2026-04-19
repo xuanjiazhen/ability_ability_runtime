@@ -1,0 +1,8 @@
+{
+  "verbose": true,
+  "output": "json",
+  "config": {
+    "format": "detailed",
+    "details": true
+  }
+}

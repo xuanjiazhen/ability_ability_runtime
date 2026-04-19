@@ -1,0 +1,7 @@
+{
+  "username": "john_doe",
+  "email": "john.doe@example.com",
+  "age": 25,
+  "role": "admin",
+  "tags": ["developer", "tester"]
+}

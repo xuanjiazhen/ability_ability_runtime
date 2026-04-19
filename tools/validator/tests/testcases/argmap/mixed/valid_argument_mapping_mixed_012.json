@@ -1,0 +1,22 @@
+{
+  "name": "ohos-mixed-json",
+  "version": "1.0.0",
+  "description": "Missing mixed flag template",
+  "executable": "/usr/bin/mixed-tool",
+  "input": {
+    "type": "object",
+    "properties": {
+      "verbose": {
+        "type": "boolean"
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "mixed",
+    "mappings": {
+      "verbose": {
+        "mode": "flag"
+      }
+    }
+  }
+}

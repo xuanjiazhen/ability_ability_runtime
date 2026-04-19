@@ -1,0 +1,40 @@
+{
+  "name": "ohos-test-020",
+  "version": "1.0.0",
+  "description": "边界场景 - 空对象和空数组",
+  "executable": "/usr/bin/processor",
+  "input": {
+    "type": "object",
+    "properties": {
+      "name": {"type": "string"},
+      "tags": {
+        "type": "array",
+        "items": {"type": "string"}
+      },
+      "metadata": {
+        "type": "object",
+        "properties": {
+          "version": {"type": "string"},
+          "author": {"type": "string"}
+        }
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "mixed",
+    "mappings": {
+      "name": {
+        "mode": "positional",
+        "order": 1
+      },
+      "tags": {
+        "mode": "flag",
+        "template": "--tag={value}"
+      },
+      "metadata": {
+        "mode": "json-string",
+        "template": "--metadata={value}"
+      }
+    }
+  }
+}

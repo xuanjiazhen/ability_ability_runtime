@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "deploy",
+    "gateway",
+    "--replicas=3",
+    "--verbose",
+    "--host=api.example.com",
+    "--port=443",
+    "--tls=true",
+    "--cert=/etc/tls/cert.pem",
+    "--config={\"resources\": {\"cpu\": \"2\", \"memory\": \"4Gi\", \"storage\": \"20Gi\"}, \"logging\": {\"level\": \"info\", \"path\": \"/var/log/app.log\"}, \"env\": [{\"name\": \"DATABASE_URL\", \"value\": \"postgres://db\"}, {\"name\": \"CACHE_URL\", \"value\": \"redis://cache\"}, {\"name\": \"LOG_LEVEL\", \"value\": \"info\"}]}"
+  ],
+  "command": "/system/bin/cli_tool/executable/ohos-deploy deploy gateway --replicas=3 --verbose --host=api.example.com --port=443 --tls=true --cert=/etc/tls/cert.pem --config='{\"resources\": {\"cpu\": \"2\", \"memory\": \"4Gi\", \"storage\": \"20Gi\"}, \"logging\": {\"level\": \"info\", \"path\": \"/var/log/app.log\"}, \"env\": [{\"name\": \"DATABASE_URL\", \"value\": \"postgres://db\"}, {\"name\": \"CACHE_URL\", \"value\": \"redis://cache\"}, {\"name\": \"LOG_LEVEL\", \"value\": \"info\"}]}'"
+}

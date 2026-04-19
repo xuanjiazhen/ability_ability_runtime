@@ -1,0 +1,10 @@
+{
+  "app": {
+    "name": "webapp",
+    "replicas": 3,
+    "env": {
+      "production": true,
+      "region": "us-west-1"
+    }
+  }
+}

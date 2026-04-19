@@ -1,0 +1,18 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "valid custom event name in events",
+  "executable": "/usr/bin/event-tool",
+  "input": {
+    "type": "object",
+    "properties": {}
+  },
+  "argumentMapping": {},
+  "events": ["good_Event-1.ok"],
+  "eventSchemas": {
+    "good_Event-1.ok": {
+      "type": "object",
+      "properties": {}
+    }
+  }
+}

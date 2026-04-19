@@ -1,0 +1,22 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "result output and custom event valid together",
+  "executable": "/usr/bin/event-tool",
+  "input": {
+    "type": "object",
+    "properties": {}
+  },
+  "argumentMapping": {},
+  "events": ["result", "progress"],
+  "eventSchemas": {
+    "progress": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  "output": {
+    "type": "object",
+    "properties": {}
+  }
+}

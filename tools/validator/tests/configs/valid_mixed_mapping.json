@@ -1,0 +1,64 @@
+{
+  "name": "ohos-mixed",
+  "version": "1.0.0",
+  "description": "Valid mixed mapping example",
+  "executable": "/usr/bin/mixed-tool",
+  "input": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string"
+      },
+      "verbose": {
+        "type": "boolean",
+        "default": false
+      },
+      "server": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          }
+        }
+      },
+      "config": {
+        "type": "object",
+        "properties": {}
+      }
+    },
+    "required": [
+      "action"
+    ]
+  },
+  "argumentMapping": {
+    "type": "mixed",
+    "mappings": {
+      "action": {
+        "mode": "positional",
+        "order": 1
+      },
+      "verbose": {
+        "mode": "flag",
+        "template": {
+          "if_true": "--verbose",
+          "if_false": ""
+        }
+      },
+      "server": {
+        "mode": "flattened",
+        "template": {
+          "server.host": "--host={value}",
+          "server.port": "--port={value}"
+        },
+        "separator": "."
+      },
+      "config": {
+        "mode": "json-string",
+        "template": "--config={value}"
+      }
+    }
+  }
+}

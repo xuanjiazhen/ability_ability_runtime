@@ -1,0 +1,23 @@
+{
+  "name": "ohos-test-001",
+  "version": "1.0.0",
+  "description": "Flag模式 - 基础字符串和数字参数",
+  "executable": "/usr/bin/test-tool",
+  "input": {
+    "type": "object",
+    "properties": {
+      "host": {"type": "string"},
+      "port": {"type": "integer"},
+      "timeout": {"type": "integer"}
+    },
+    "required": ["host"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "host": "--host={value}",
+      "port": "--port={value}",
+      "timeout": "--timeout={value}"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "custom event declared with schema",
+  "executable": "/usr/bin/event-tool",
+  "input": {
+    "type": "object",
+    "properties": {}
+  },
+  "argumentMapping": {},
+  "events": ["progress"],
+  "eventSchemas": {
+    "progress": {
+      "type": "object",
+      "properties": {}
+    }
+  }
+}

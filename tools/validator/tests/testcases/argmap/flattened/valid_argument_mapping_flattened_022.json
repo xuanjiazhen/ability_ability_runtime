@@ -1,0 +1,38 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Deep flattened path with array leaf",
+  "executable": "/usr/bin/net-scan",
+  "input": {
+    "type": "object",
+    "properties": {
+      "cfg": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "object",
+            "properties": {
+              "endpoint": {
+                "type": "object",
+                "properties": {
+                  "ports": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "flattened",
+    "templates": {
+      "cfg.network.endpoint.ports": "--ports={value}"
+    }
+  }
+}

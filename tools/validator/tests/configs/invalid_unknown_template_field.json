@@ -1,0 +1,21 @@
+{
+  "name": "ohos-template",
+  "version": "1.0.0",
+  "description": "Invalid template field example",
+  "executable": "/usr/bin/invalid-template-tool",
+  "input": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string"
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "port": "--port={value}"
+    }
+  }
+}

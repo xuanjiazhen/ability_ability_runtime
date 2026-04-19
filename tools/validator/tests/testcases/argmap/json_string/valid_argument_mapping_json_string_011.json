@@ -1,0 +1,20 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Boolean json-string template missing value placeholder",
+  "executable": "/usr/bin/net-scan",
+  "input": {
+    "type": "object",
+    "properties": {
+      "flag": {
+        "type": "boolean"
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "json-string",
+    "templates": {
+      "flag": "--flag"
+    }
+  }
+}

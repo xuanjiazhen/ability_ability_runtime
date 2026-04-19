@@ -1,0 +1,32 @@
+{
+  "name": "ohos-test-002",
+  "version": "1.0.0",
+  "description": "Flag模式 - 数组展开和布尔条件",
+  "executable": "/usr/bin/scanner",
+  "input": {
+    "type": "object",
+    "properties": {
+      "targets": {
+        "type": "array",
+        "items": {"type": "string"}
+      },
+      "verbose": {"type": "boolean"},
+      "debug": {"type": "boolean"}
+    },
+    "required": ["targets"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "targets": "--target={value}",
+      "verbose": {
+        "if_true": "-v",
+        "if_false": ""
+      },
+      "debug": {
+        "if_true": "--debug",
+        "if_false": ""
+      }
+    }
+  }
+}

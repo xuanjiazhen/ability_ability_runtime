@@ -1,0 +1,56 @@
+{
+  "config_file": "flag_network_scanner.json",
+  "input_file": "flag_network_scanner_input.json",
+  "executable_path": "/system/bin/cli_tool/executable/ohos-netscan",
+  "mapping_type": "flag",
+  "description": "网络扫描工具 - Flag模式配置示例",
+  "config": {
+    "executable": "/system/bin/cli_tool/executable/ohos-netscan",
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "ports": "--port={value}",
+      "timeout": "--timeout={value}",
+      "verbose": {
+        "if_true": "-v",
+        "if_false": ""
+      }
+    },
+    "description": "网络扫描工具 - Flag模式配置示例"
+  },
+  "input": {
+    "target": "192.168.1.1",
+    "ports": [
+      80,
+      443,
+      8080
+    ],
+    "timeout": 30,
+    "verbose": true
+  },
+  "output": {
+    "argv": [
+      "/system/bin/cli_tool/executable/ohos-netscan",
+      "--target=192.168.1.1",
+      "--port=80",
+      "--port=443",
+      "--port=8080",
+      "--timeout=30",
+      "-v"
+    ],
+    "command": "/system/bin/cli_tool/executable/ohos-netscan --target=192.168.1.1 --port=80 --port=443 --port=8080 --timeout=30 -v",
+    "argc": 7,
+    "executable_path": "/system/bin/cli_tool/executable/ohos-netscan",
+    "mapped_args": [
+      "--target=192.168.1.1",
+      "--port=80",
+      "--port=443",
+      "--port=8080",
+      "--timeout=30",
+      "-v"
+    ],
+    "mapped_args_count": 6
+  },
+  "success": true,
+  "error": null
+}

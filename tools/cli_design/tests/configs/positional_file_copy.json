@@ -1,0 +1,40 @@
+{
+  "name": "ohos-filecopy",
+  "version": "1.0.0",
+  "description": "File copy utility - Positional mode with complete input definition",
+  "executable": "/system/bin/cli_tool/executable/ohos-filecopy",
+  "requirePermissions": [
+    "ohos.permission.READ_WRITE_DOWNLOAD_DIRECTORY",
+    "ohos.permission.FILE_ACCESS_MANAGER"
+  ],
+  "timeout": 60,
+  "hasSubcommands": false,
+  "input": {
+    "type": "object",
+    "description": "文件复制工具的输入参数定义",
+    "properties": {
+      "source": {
+        "type": "string",
+        "description": "源文件路径",
+        "minLength": 1,
+        "maxLength": 4096
+      },
+      "dest": {
+        "type": "string",
+        "description": "目标文件路径",
+        "minLength": 1,
+        "maxLength": 4096
+      },
+      "verbose": {
+        "type": "boolean",
+        "description": "是否显示详细输出",
+        "default": false
+      }
+    },
+    "required": ["source", "dest"]
+  },
+  "argumentMapping": {
+    "type": "positional",
+    "order": ["source", "dest", "verbose"]
+  }
+}

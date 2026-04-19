@@ -1,0 +1,42 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Deep object and scalar parameters passed by json-string",
+  "executable": "/usr/bin/net-scan",
+  "input": {
+    "type": "object",
+    "properties": {
+      "config": {
+        "type": "object",
+        "properties": {
+          "runtime": {
+            "type": "object",
+            "properties": {
+              "limits": {
+                "type": "object",
+                "properties": {
+                  "cpu": {
+                    "type": "integer"
+                  },
+                  "memory": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "target": {
+        "type": "string"
+      }
+    }
+  },
+  "argumentMapping": {
+    "type": "json-string",
+    "templates": {
+      "config": "--config={value}",
+      "target": "--target={value}"
+    }
+  }
+}

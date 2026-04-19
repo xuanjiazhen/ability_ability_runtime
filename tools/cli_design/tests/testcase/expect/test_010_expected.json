@@ -1,0 +1,10 @@
+{
+  "test_case": "Flag模式 - number类型参数",
+  "executable": "/usr/bin/scaler",
+  "expected_argv": [
+    "--ratio=0.75",
+    "--threshold=3.14"
+  ],
+  "expected_command": "/usr/bin/scaler --ratio=0.75 --threshold=3.14",
+  "note": "验证number类型参数（浮点数）正确处理"
+}

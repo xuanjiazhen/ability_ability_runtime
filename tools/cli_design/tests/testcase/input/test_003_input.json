@@ -1,0 +1,5 @@
+{
+  "source": "/data/source.txt",
+  "destination": "/backup/dest.txt",
+  "overwrite": true
+}

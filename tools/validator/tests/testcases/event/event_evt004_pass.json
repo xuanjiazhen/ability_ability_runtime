@@ -1,0 +1,16 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "result with output valid",
+  "executable": "/usr/bin/event-tool",
+  "input": {
+    "type": "object",
+    "properties": {}
+  },
+  "argumentMapping": {},
+  "events": ["result"],
+  "output": {
+    "type": "object",
+    "properties": {}
+  }
+}
