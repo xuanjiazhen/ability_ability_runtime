@@ -649,7 +649,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
                 HandleExecuteInsightIntentForeground(want, ret);
             }
             if (ability_ != nullptr) {
-                TAG_LOGD(AAFwkTag::UIABILITY, "pageConfig size:%{public}zu", targetState.pageConfig.size());
+                TAG_LOGI(AAFwkTag::UIABILITY, "pageConfigSize:%{public}zu", targetState.pageConfig.size());
                 PageConfigManager::GetInstance().Initialize(targetState.pageConfig, ability_->GetWindow());
             }
 #endif
@@ -990,3 +990,25 @@ std::shared_ptr<UIAbility> UIAbilityImpl::GetUIAbility()
 #endif
 } // namespace AbilityRuntime
 } // namespace OHOS
+
+
+
+struct Command {
+    std::string toolName;
+    std::string subCommand;
+};
+
+struct CommandPermission {
+    Command cmd;
+    std::vector<std::string> permissions;
+    int32_t queryRet;
+};
+
+int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds, std::vector<CommandPermission> &cmdPermissions);
+
+其中CommandPermission中的queryRet有3个状态：查询成功、查询失败、命令不存在
+
+cli命令的主命令可以单独配置权限，并非为子命令权限的并集。
+针对subCommand传空的情况，查询结果的处理逻辑为：
+1、如果主命令配置了权限值，则返回相应的配置值（可能为空，表示不需要权限）
+2、如果数据库中未配置主命令，仅配置了主+子命令的权限值，则返回命令不存在

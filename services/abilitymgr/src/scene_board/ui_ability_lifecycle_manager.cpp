@@ -2544,6 +2544,7 @@ void UIAbilityLifecycleManager::SetRootSceneSession(const sptr<IRemoteObject> &r
     }
     std::lock_guard guard(sessionLock_);
     rootSceneSession_ = rootSceneSession;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetRootSceneSession end");
 }
 
 void UIAbilityLifecycleManager::NotifySCBToHandleException(const UIAbilityRecordPtr &abilityRecord,
