@@ -1892,7 +1892,7 @@ ErrCode AbilityManagerClient::RecordAppWithReason(
 
 void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSession)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetRootSceneSession");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN(abms);
     abms->SetRootSceneSession(rootSceneSession);

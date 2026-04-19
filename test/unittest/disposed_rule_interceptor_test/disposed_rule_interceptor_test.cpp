@@ -984,6 +984,108 @@ HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_001, TestSize.Level1)
     EXPECT_EQ(ret, false);
     TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_001 end");
 }
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_002
+ * @tc.desc: IsSkipDisposeRule with startOptions not null but processOptions null
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_002 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    auto startOptions = std::make_shared<StartOptions>();
+    startOptions->processOptions = nullptr;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, nullptr, false, 0, startOptions.get());
+    std::string callerName = "7007";
+    auto ret = interceptor.IsSkipDisposeRule(callerName, param);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_002 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_003
+ * @tc.desc: IsSkipDisposeRule with callerName not matching SKIP_DISPOSE_RULE_NAME
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_003 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    auto startOptions = std::make_shared<StartOptions>();
+    auto processOptions = std::make_shared<ProcessOptions>();
+    processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
+    startOptions->processOptions = processOptions;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, nullptr, false, 0, startOptions.get());
+    std::string callerName = "7008"; // Not "7007"
+    auto ret = interceptor.IsSkipDisposeRule(callerName, param);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_003 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_004
+ * @tc.desc: IsSkipDisposeRule with startupVisibility not STARTUP_HIDE
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_004 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    auto startOptions = std::make_shared<StartOptions>();
+    auto processOptions = std::make_shared<ProcessOptions>();
+    processOptions->startupVisibility = StartupVisibility::STARTUP_SHOW; // Not STARTUP_HIDE
+    startOptions->processOptions = processOptions;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, nullptr, false, 0, startOptions.get());
+    std::string callerName = "7007";
+    auto ret = interceptor.IsSkipDisposeRule(callerName, param);
+    EXPECT_EQ(ret, false);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_004 end");
+}
+
+/**
+ * @tc.name: DisposedRuleInterceptorTest_IsSkipDisposeRule_005
+ * @tc.desc: IsSkipDisposeRule with all conditions met, should return true
+ * @tc.type: FUNC
+ * @tc.require:
+ */
+HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_005 start");
+    DisposedRuleInterceptor interceptor;
+    Want want;
+    int requestCode = 123;
+    int32_t userId = 1001;
+    bool isWithUI = true;
+    sptr<IRemoteObject> callerToken = nullptr;
+    auto startOptions = std::make_shared<StartOptions>();
+    auto processOptions = std::make_shared<ProcessOptions>();
+    processOptions->startupVisibility = StartupVisibility::STARTUP_HIDE;
+    startOptions->processOptions = processOptions;
+    AbilityInterceptorParam param(want, requestCode, userId, isWithUI, callerToken, nullptr, false, 0, startOptions.get());
+    std::string callerName = "7007";
+    auto ret = interceptor.IsSkipDisposeRule(callerName, param);
+    EXPECT_EQ(ret, true);
+    TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_005 end");
+}
 #endif
 } // namespace AAFwk
 } // namespace OHOS
