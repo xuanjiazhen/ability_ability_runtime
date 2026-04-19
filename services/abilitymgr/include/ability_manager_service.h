@@ -2564,7 +2564,11 @@ public:
     virtual int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex) override;
 
     int StartAbilityWithRemoveIntentFlag(const StartAbilityWrapParam &param);
-    
+
+    std::shared_ptr<UIAbilityLifecycleManager> GetUIAbilityManagerByUserId(int32_t userId) const;
+
+    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByUserId(int32_t userId);
+
     // MSG 0 - 20 represents timeout message
     static constexpr uint32_t LOAD_TIMEOUT_MSG = 0;
     static constexpr uint32_t ACTIVE_TIMEOUT_MSG = 1;
@@ -2724,6 +2728,25 @@ protected:
      */
     virtual int32_t QuerySelfModularObjectExtensionInfos(
         std::vector<ModularObjectExtensionInfo> &extensionInfos) override;
+
+    /**
+     * @brief Connect modular object extension ability.
+     * @param want Special want for modular object extension ability.
+     * @param connect Callback used to notify caller the result of connecting or disconnecting.
+     * @param callerToken Caller ability token.
+     * @param userId Designation User ID.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ConnectModularObjectExtension(const Want &want,
+        sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken,
+        int32_t userId = DEFAULT_INVAL_VALUE) override;
+
+    /**
+     * @brief Disconnect modular object extension ability.
+     * @param connect Callback used to notify caller the result of disconnecting.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t DisconnectModularObjectExtension(sptr<IAbilityConnection> connect) override;
 
     /**
      * @brief Get list of applications launched before the first unlock.
@@ -2912,7 +2935,6 @@ private:
 
     std::unordered_map<int, std::shared_ptr<UIExtensionAbilityManager>> GetUIExtensionAbilityManagers();
     std::shared_ptr<UIExtensionAbilityManager> GetCurrentUIExtensionAbilityManager();
-    std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByUserId(int32_t userId);
     std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByToken(const sptr<IRemoteObject> &token);
     std::shared_ptr<UIExtensionAbilityManager> GetUIExtensionAbilityManagerByAbilityRecordId(
         const int64_t &abilityRecordId);
@@ -2929,7 +2951,6 @@ private:
     std::shared_ptr<MissionListManagerInterface> GetCurrentMissionListManager();
     std::unordered_map<int, std::shared_ptr<UIAbilityLifecycleManager>> GetUIAbilityManagers();
     std::shared_ptr<UIAbilityLifecycleManager> GetCurrentUIAbilityManager();
-    std::shared_ptr<UIAbilityLifecycleManager> GetUIAbilityManagerByUserId(int32_t userId) const;
     std::shared_ptr<UIAbilityLifecycleManager> GetUIAbilityManagerByUid(int32_t uid);
     bool JudgeSelfCalled(const std::shared_ptr<AbilityRecord> &abilityRecord);
     bool IsAppSelfCalled(const std::shared_ptr<AbilityRecord> &abilityRecord);

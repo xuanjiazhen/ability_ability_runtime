@@ -80,6 +80,7 @@
 #include "mock_session_manager_service.h"
 #include "modal_system_dialog/modal_system_dialog_ui_extension.h"
 #include "modal_system_ui_extension.h"
+#include "modular_object_connection_handler_impl.h"
 #include "multi_app_utils.h"
 #include "os_account_manager_wrapper.h"
 #include "permission_constants.h"
@@ -467,6 +468,8 @@ bool AbilityManagerService::Init()
     insightIntentEventMgr_->SubscribeSysEventReceiver();
     modularObjectExtensionEventMgr_ = std::make_shared<AbilityRuntime::ModularObjectExtensionEventMgr>();
     modularObjectExtensionEventMgr_->SubscribeSysEventReceiver();
+    auto handler = std::make_shared<ModularObjectConnectionHandlerImpl>(shared_from_this());
+    DelayedSingleton<ModularObjectManager>::GetInstance()->SetConnectionHandler(handler);
     ReportDataPartitionUsageManager::SendReportDataPartitionUsageEvent();
 #ifdef RESOURCE_SCHEDULE_SERVICE_ENABLE
     ResourceSchedule::ResSchedClient::GetInstance().InitKillReasonListener();
@@ -12239,6 +12242,9 @@ int AbilityManagerService::CheckCallOtherExtensionPermission(const AbilityReques
     if (extensionType == AppExecFwk::ExtensionAbilityType::CALLER_INFO_QUERY) {
         return CheckCallerInfoQueryExtensionPermission(abilityRequest);
     }
+    if (extensionType == AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        return ERR_OK; // todo 权限检验
+    }
     TAG_LOGE(AAFwkTag::ABILITYMGR, "not SA, can't start other extension");
     return CHECK_PERMISSION_FAILED;
 }
@@ -17083,6 +17089,18 @@ int32_t AbilityManagerService::QuerySelfModularObjectExtensionInfos(
     int32_t userId = callinguid / BASE_USER_RANGE;
     return DelayedSingleton<ModularObjectManager>::GetInstance()->QuerySelfModularObjectExtensionInfos(userId,
         callerBundleName, callerAppIndex, extensionInfos);
+}
+
+int32_t AbilityManagerService::ConnectModularObjectExtension(const Want &want,
+    sptr<IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId)
+{
+    return DelayedSingleton<ModularObjectManager>::GetInstance()->ConnectModularObjectExtension(
+        want, connect, callerToken, userId);
+}
+
+int32_t AbilityManagerService::DisconnectModularObjectExtension(sptr<IAbilityConnection> connect)
+{
+    return DelayedSingleton<ModularObjectManager>::GetInstance()->DisconnectModularObjectExtension(connect);
 }
 
 int32_t AbilityManagerService::GetUserLockedBundleList(int32_t userId,

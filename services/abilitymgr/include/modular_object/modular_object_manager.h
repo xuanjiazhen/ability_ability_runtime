@@ -17,15 +17,41 @@
 #define OHOS_MODULAR_OBJECT_MANAGER_H
 
 #include <singleton.h>
+#include "modular_object_connection_handler.h"
 #include "modular_object_extension_info.h"
+#include "ability_connect_callback_interface.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
 class ModularObjectManager : public std::enable_shared_from_this<ModularObjectManager> {
     DECLARE_DELAYED_SINGLETON(ModularObjectManager)
 public:
+    void SetConnectionHandler(const std::shared_ptr<ModularObjectConnectionHandler> &handler);
+
     int32_t QuerySelfModularObjectExtensionInfos(int32_t userId, const std::string &bundleName,
         int32_t appIndex, std::vector<AAFwk::ModularObjectExtensionInfo> &infos);
+
+    int32_t ConnectModularObjectExtension(const AAFwk::Want &want,
+        sptr<AAFwk::IAbilityConnection> connect, sptr<IRemoteObject> callerToken, int32_t userId);
+
+    int32_t DisconnectModularObjectExtension(sptr<AAFwk::IAbilityConnection> connect);
+
+private:
+    int32_t ValidateConnectRequest(const std::string &targetBundleName, int32_t targetAppIndex,
+        const AAFwk::ModularObjectExtensionInfo &extensionInfo, int32_t userId);
+
+    int32_t CheckExtensionEnabled(const AAFwk::ModularObjectExtensionInfo &info);
+
+    int32_t CheckCallerForeground();
+
+    int32_t CheckAppDistributionType(const std::string &callerAppDistributionType,
+        const std::string &targetAppDistributionType);
+
+    int32_t CheckTargetHasRunningAbility(int32_t targetUid, int32_t userId,
+        const std::string &targetBundleName);
+
+    std::shared_ptr<ModularObjectConnectionHandler> connectionHandler_;
 };
 }
 }
