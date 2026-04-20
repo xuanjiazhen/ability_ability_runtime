@@ -8410,8 +8410,8 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_004, TestSize.Level1)
 
 /**
  * @tc.name: StartSelf_005
- * @tc.desc: Test StartSelf success: nativeHideWindow is set to false and
- *           PendingSessionActivation is called on the session.
+ * @tc.desc: Test StartSelf success: nativeHideWindow is set to false,
+ *           requestId is assigned, and PendingSessionActivation is called on the session.
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_005, TestSize.Level1)
@@ -8430,11 +8430,14 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_005, TestSize.Level1)
     EXPECT_EQ(ret, ERR_OK);
     // Verify nativeHideWindow is set to false after StartSelf
     EXPECT_EQ(sessionInfo->nativeHideWindow, false);
+    // Verify requestId is assigned (non-zero)
+    EXPECT_NE(sessionInfo->requestId, 0);
 }
 
 /**
  * @tc.name: StartSelf_006
- * @tc.desc: Test StartSelf when nativeState is CREATED, should transition to ON_FOREGROUND.
+ * @tc.desc: Test StartSelf when nativeState is CREATED, should transition to ON_FOREGROUND
+ *           and set requestId on sessionInfo.
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_006, TestSize.Level1)
@@ -8452,6 +8455,31 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_006, TestSize.Level1)
     auto ret = mgr->StartSelf(abilityRecord);
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::ON_FOREGROUND);
+    EXPECT_NE(sessionInfo->requestId, 0);
+}
+
+/**
+ * @tc.name: StartSelf_007
+ * @tc.desc: Test StartSelf when nativeState is already ON_FOREGROUND, should return ERR_OK
+ *           without calling PendingSessionActivation.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_007, TestSize.Level1)
+{
+    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->nativeHideWindow = true;
+    abilityRecord->SetSessionInfo(sessionInfo);
+
+    auto ret = mgr->StartSelf(abilityRecord);
+    EXPECT_EQ(ret, ERR_OK);
+    // nativeHideWindow should remain true since PendingSessionActivation was not called
+    EXPECT_EQ(sessionInfo->nativeHideWindow, true);
 }
 
 /**

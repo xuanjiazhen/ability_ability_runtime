@@ -271,9 +271,9 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     }
     auto scenarios = static_cast<uint32_t>(uiAbilityRecord->GetOnNewWantSkipScenarios()) &
         static_cast<uint32_t>(sessionInfo->scenarios);
-    if (!uiAbilityRecord->CheckStartPendingState()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state dropped START: %{public}d",
-            static_cast<int32_t>(uiAbilityRecord->GetPendingState()));
+    if (!uiAbilityRecord->CheckStartPendingState(sessionInfo->requestId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state dropped START: %{public}d, %{public}d",
+            static_cast<int32_t>(uiAbilityRecord->GetPendingState()), sessionInfo->requestId);
         uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
         uiAbilityRecord->lifeCycleStateInfo_.sceneFlagBak = params.sceneFlag;
         if (scenarios == 0 && sessionInfo->isNewWant) {
@@ -1602,6 +1602,11 @@ int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRe
         return ERR_CAPABILITY_NOT_SUPPORT;
     }
 
+    if (abilityRecord->GetNativeState() == AbilityNativeState::ON_FOREGROUND) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "state ON_FOREGROUND");
+        return ERR_OK;
+    }
+
     if (abilityRecord->GetNativeState() == AbilityNativeState::CREATED) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule foregroud StartSelf");
         abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
@@ -1613,10 +1618,11 @@ int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRe
 
     auto session = iface_cast<Rosen::ISession>(sessionInfo->sessionToken);
     CHECK_POINTER_AND_RETURN(session, ERR_INVALID_VALUE);
-
     sessionInfo->nativeHideWindow = false;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule completing foreground, ability: %{public}s",
-        abilityRecord->GetAbilityInfo().name.c_str());
+    sessionInfo->requestId = RequestIdUtil::GetRequestId();
+    abilityRecord->SetStartSelfRequestId(sessionInfo->requestId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "NativeModule completing foreground: %{public}s--%{public}d",
+        abilityRecord->GetAbilityInfo().name.c_str(), sessionInfo->requestId);
     auto ret = static_cast<int>(session->PendingSessionActivation(sessionInfo));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
