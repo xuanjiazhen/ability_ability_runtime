@@ -54,5 +54,38 @@ void CliToolManagerService::OnStart()
 void CliToolManagerService::OnStop()
 {
 }
+
+ErrCode CliToolManagerService::QueryTools(std::vector<ToolInfo> &tools)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolManagerService QueryTools called");
+    auto& dataManager = CliToolDataManager::GetInstance();
+    dataManager.GetAllTools(tools);
+    return ERR_OK;
+}
+
+ErrCode CliToolManagerService::QueryToolSummaries(std::vector<ToolSummary> &summaries)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolManagerService QueryToolSummaries called");
+    auto& dataManager = CliToolDataManager::GetInstance();
+    dataManager.QueryToolSummaries(summaries);
+    return ERR_OK;
+}
+
+ErrCode CliToolManagerService::GetToolInfoByName(const std::string &name, ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolManagerService GetToolInfoByName called, name='%{public}s'", name.c_str());
+    auto& dataManager = CliToolDataManager::GetInstance();
+    dataManager.GetToolByName(name, tool);
+    return ERR_OK;
+}
+
+ErrCode CliToolManagerService::RegisterCliTool(const ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolManagerService RegisterCliTool called, tool name='%{public}s'", tool.name.c_str());
+    auto& dataManager = CliToolDataManager::GetInstance();
+    dataManager.RegisterTool(tool);
+    return ERR_OK;
+}
+
 } // namespace CliTool
 } // namespace OHOS
