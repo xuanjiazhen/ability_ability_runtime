@@ -20,6 +20,7 @@
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
+#include "mem_dump_callback_interface.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -247,20 +248,19 @@ int32_t AppSchedulerHost::HandleScheduleCjHeapMemory(MessageParcel &data, Messag
 
 int32_t AppSchedulerHost::HandleScheduleMem(MessageParcel &data, MessageParcel &reply)
 {
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppSchedulerHost::HandleScheduleMem enter");
     HITRACE_METER(HITRACE_TAG_APP);
     std::unique_ptr<MemDumpInfo> info(data.ReadParcelable<MemDumpInfo>());
     if (!info) {
         TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<MemDumpInfo> failed");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
-    std::string dumpResult;
-    ScheduleMem(*info, dumpResult);
-    if (info->isSync) {
-        if (!reply.WriteString(dumpResult)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "write dumpResult failed");
-            return ERR_APPEXECFWK_PARCEL_ERROR;
-        }
-    }
+    sptr<IRemoteObject> remoteCallback = data.ReadRemoteObject();
+    sptr<IMemDumpCallback> callback = (remoteCallback != nullptr) ?
+        iface_cast<IMemDumpCallback>(remoteCallback) : nullptr;
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppSchedulerHost before ScheduleMem");
+    ScheduleMem(*info, callback);
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppSchedulerHost after ScheduleMem");
     return NO_ERROR;
 }
 

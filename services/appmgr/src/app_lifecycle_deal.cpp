@@ -219,15 +219,22 @@ void AppLifeCycleDeal::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     appThread->ScheduleCjHeapMemory(info);
 }
 
-void AppLifeCycleDeal::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void AppLifeCycleDeal::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppLifeCycleDeal::ScheduleMem enter");
     auto appThread = GetApplicationClient();
     if (!appThread) {
+        TAG_LOGE(AAFwkTag::APPMGR, "wjl0420 AppLifeCycleDeal null appThread");
         TAG_LOGE(AAFwkTag::APPMGR, "null appThread");
+        if (callback) {
+            callback->OnMemDumpDone(ERR_INVALID_VALUE, "");
+        }
         return;
     }
 
-    appThread->ScheduleMem(info, dumpResult);
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppLifeCycleDeal before appThread->ScheduleMem");
+    appThread->ScheduleMem(info, callback);
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppLifeCycleDeal after appThread->ScheduleMem");
 }
 
 void AppLifeCycleDeal::LowMemoryWarning()
