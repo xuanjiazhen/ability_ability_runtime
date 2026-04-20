@@ -2819,6 +2819,26 @@ HWTEST_F(ApplicationContextTest, AbilityNativeThread_LoadNativeModule_0300, Test
 }
 
 /**
+ * @tc.number: AbilityNativeThread_LoadNativeModule_4300
+ * @tc.name: AbilityNativeThread LoadNativeModule
+ * @tc.desc: double load retrun true
+ */
+HWTEST_F(ApplicationContextTest, AbilityNativeThread_LoadNativeModule_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityNativeThread_LoadNativeModule_0300 start";
+    auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
+    AAFwk::NativeAbilityMetaData metaData;
+    metaData.withNativeModule = true;
+    metaData.nativeModuleSource = "libnonexistent_abc_xyz.so";
+    metaData.nativeModuleFunc = "OHMain";
+    thread->moduleHandle_ = reinterpret_cast<void*>(1);
+    bool ret = thread->LoadNativeModule(metaData, "bundleName", "moduleName");
+    EXPECT_TRUE(ret);
+    thread->moduleHandle_ = nullptr;
+    GTEST_LOG_(INFO) << "AbilityNativeThread_LoadNativeModule_0300 end";
+}
+
+/**
  * @tc.number: AbilityNativeThread_RunMain_0100
  * @tc.name: AbilityNativeThread RunMain
  * @tc.desc: OHMain_ is null, should not create thread
