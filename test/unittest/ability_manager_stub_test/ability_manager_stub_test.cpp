@@ -1321,6 +1321,22 @@ HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartAbilityByUIContentSessi
 
 /*
  * Feature: AbilityManagerService
+ * Function: StartUIAbilityWithCallbackInner
+ * SubFunction: NA
+ * FunctionPoints: AbilityManagerService StartUIAbilityWithCallbackInner
+ * EnvConditions: NA
+ * CaseDescription: Verify the function StartUIAbilityWithCallbackInner is normal flow.
+ */
+HWTEST_F(AbilityManagerStubTest, AbilityManagerStub_StartUIAbilityWithCallbackInner_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    auto res = stub_->StartUIAbilityWithCallbackInner(data, reply);
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
+}
+
+/*
+ * Feature: AbilityManagerService
  * Function: StartExtensionAbilityInner
  * SubFunction: NA
  * FunctionPoints: AbilityManagerService StartExtensionAbilityInner
