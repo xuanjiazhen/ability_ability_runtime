@@ -263,7 +263,7 @@ public:
         return 0;
     }
 
-    int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+    int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
     {
         return 0;
     }

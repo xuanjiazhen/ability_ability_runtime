@@ -41,6 +41,7 @@
 #include "task_handler_wrap.h"
 #include "app_jsheap_mem_info.h"
 #include "app_cjheap_mem_info.h"
+#include "mem_dump_callback_interface.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -305,10 +306,10 @@ public:
      * triggerGC and dump application's memory info.
      *
      * @param info The information to be dumped
-     * @param dumpResult The dump result string
+     * @param callback The callback to receive dump result
      * @return ERR_OK ,return back success, others fail.
      */
-    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult) override;
+    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) override;
 
     // the function about service running info
     /**

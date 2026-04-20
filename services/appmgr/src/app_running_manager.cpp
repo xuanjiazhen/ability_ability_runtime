@@ -1452,14 +1452,21 @@ int32_t AppRunningManager::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     return ERR_OK;
 }
 
-int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppRunningManager::DumpMem enter, pid:%{public}d", info.pid);
     auto appRecord = GetAppRunningRecordByPid(info.pid);
     if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "wjl0420 AppRunningManager null appRecord");
         TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
+        if (callback) {
+            callback->OnMemDumpDone(ERR_INVALID_VALUE, "");
+        }
         return ERR_INVALID_VALUE;
     }
-    appRecord->ScheduleMem(info, dumpResult);
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppRunningManager before ScheduleMem");
+    appRecord->ScheduleMem(info, callback);
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppRunningManager after ScheduleMem");
     return ERR_OK;
 }
 
