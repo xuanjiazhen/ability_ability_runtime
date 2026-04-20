@@ -202,7 +202,7 @@ HWTEST_F(UIAbilityRecordTest, GetAbilityRecordType_0100, TestSize.Level1)
 
 /**
  * @tc.name: CheckStartPendingState_0100
- * @tc.desc: pendingState=INITIAL, should return true regardless of nativeState.
+ * @tc.desc: pendingState=INITIAL, should return true regardless of requestId.
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0100, TestSize.Level1)
@@ -212,7 +212,8 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0100, TestSize.Level1)
     ASSERT_NE(abilityRecord, nullptr);
 
     abilityRecord->SetPendingState(AbilityState::INITIAL);
-    EXPECT_TRUE(abilityRecord->CheckStartPendingState());
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(100));
 }
 
 /**
@@ -228,7 +229,7 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0200, TestSize.Level1)
 
     abilityRecord->SetPendingState(AbilityState::FOREGROUND);
     abilityRecord->SetNativeState(AbilityNativeState::CREATED);
-    EXPECT_FALSE(abilityRecord->CheckStartPendingState());
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState(0));
 }
 
 /**
@@ -244,12 +245,13 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0300, TestSize.Level1)
 
     abilityRecord->SetPendingState(AbilityState::FOREGROUND);
     // nativeState defaults to NONE
-    EXPECT_FALSE(abilityRecord->CheckStartPendingState());
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState(0));
 }
 
 /**
  * @tc.name: CheckStartPendingState_0400
- * @tc.desc: pendingState=FOREGROUND, nativeState=ON_FOREGROUND, should return true.
+ * @tc.desc: pendingState=FOREGROUND, nativeState=ON_FOREGROUND, requestId matches startSelfRequestId,
+ *           should return true.
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0400, TestSize.Level1)
@@ -260,12 +262,13 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0400, TestSize.Level1)
 
     abilityRecord->SetPendingState(AbilityState::FOREGROUND);
     abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
-    EXPECT_TRUE(abilityRecord->CheckStartPendingState());
+    abilityRecord->SetStartSelfRequestId(42);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(42));
 }
 
 /**
  * @tc.name: CheckStartPendingState_0500
- * @tc.desc: pendingState=BACKGROUND, should return false regardless of nativeState.
+ * @tc.desc: pendingState=BACKGROUND, should return false regardless of nativeState and requestId.
  * @tc.type: FUNC
  */
 HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0500, TestSize.Level1)
@@ -276,7 +279,7 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0500, TestSize.Level1)
 
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
     abilityRecord->SetNativeState(AbilityNativeState::CREATED);
-    EXPECT_FALSE(abilityRecord->CheckStartPendingState());
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState(0));
 }
 
 /**
@@ -292,13 +295,50 @@ HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0600, TestSize.Level1)
 
     abilityRecord->SetPendingState(AbilityState::INITIAL);
     abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
-    EXPECT_TRUE(abilityRecord->CheckStartPendingState());
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
 
     abilityRecord->SetNativeState(AbilityNativeState::INIT);
-    EXPECT_TRUE(abilityRecord->CheckStartPendingState());
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
 
     abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
-    EXPECT_TRUE(abilityRecord->CheckStartPendingState());
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
+}
+
+/**
+ * @tc.name: CheckStartPendingState_0700
+ * @tc.desc: pendingState=FOREGROUND, nativeState=ON_FOREGROUND, requestId does NOT match
+ *           startSelfRequestId_, should return false.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, CheckStartPendingState_0700, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetPendingState(AbilityState::FOREGROUND);
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    abilityRecord->SetStartSelfRequestId(42);
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState(99));
+}
+
+/**
+ * @tc.name: SetStartSelfRequestId_0100
+ * @tc.desc: Set and verify startSelfRequestId value.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityRecordTest, SetStartSelfRequestId_0100, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    auto abilityRecord = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    ASSERT_NE(abilityRecord, nullptr);
+
+    abilityRecord->SetStartSelfRequestId(0);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(0));
+
+    abilityRecord->SetStartSelfRequestId(12345);
+    EXPECT_TRUE(abilityRecord->CheckStartPendingState(12345));
+    EXPECT_FALSE(abilityRecord->CheckStartPendingState(99999));
 }
 
 /**
