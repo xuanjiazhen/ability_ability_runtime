@@ -698,10 +698,12 @@ void AppRunningRecord::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     }
 }
 
-void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     if (appLifeCycleDeal_) {
-        appLifeCycleDeal_->ScheduleMem(info, dumpResult);
+        appLifeCycleDeal_->ScheduleMem(info, callback);
+    } else if (callback) {
+        callback->OnMemDumpDone(ERR_INVALID_VALUE, "");
     }
 }
 

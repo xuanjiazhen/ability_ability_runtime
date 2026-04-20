@@ -37,6 +37,7 @@
 #include "irender_scheduler.h"
 #include "irender_state_observer.h"
 #include "istart_specified_ability_response.h"
+#include "mem_dump_callback_interface.h"
 #include "refbase.h"
 #include "render_process_info.h"
 #include "running_process_info.h"
@@ -400,15 +401,15 @@ public:
      */
     virtual AppMgrResultCode DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
-    /**
+/**
      * DumpMem, call DumpMem() through proxy project.
      * triggerGC and dump application's memory info.
      *
      * @param info, pid tid needGc needSnapshot
-     * @param dumpResult, the dump result string
+     * @param callback The callback to receive dump result
      * @return ERR_OK ,return back success, others fail.
      */
-    virtual AppMgrResultCode DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
+    virtual AppMgrResultCode DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback);
 
     /**
      * GetConfiguration
