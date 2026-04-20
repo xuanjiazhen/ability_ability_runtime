@@ -44,6 +44,20 @@ public:
         ani_status arrayNewRefStatus { ANI_OK };
         ani_status arraySetRefStatus { ANI_OK };
         ani_status classCallStaticMethodStatus { ANI_OK };
+        ani_status existUnhandledErrorStatus { ANI_OK };
+        ani_status getUnhandledErrorStatus { ANI_OK };
+        ani_status resetErrorStatus { ANI_OK };
+        ani_status objectGetTypeStatus { ANI_OK };
+        ani_status classFindGetterStatus { ANI_OK };
+        ani_status objectCallMethodRefStatus { ANI_OK };
+        ani_status stringGetUtf8SizeStatus { ANI_OK };
+        ani_status stringGetUtf8SubStringStatus { ANI_OK };
+        ani_boolean unhandledErrorExists { ANI_FALSE };
+        std::string errorName;
+        std::string errorMessage;
+        std::string errorStack;
+        std::vector<ani_status> callMethodStatusSequence;
+        size_t callMethodStatusIndex { 0 };
     };
 
     MockAniEnv();
@@ -69,11 +83,21 @@ private:
         const char *sig, va_list args);
     static ani_status ClassFindField(ani_env *env, ani_class cls, const char *name, ani_field *field);
     static ani_status ObjectNew(ani_env *env, ani_class cls, ani_method method, ani_object *result, va_list args);
+    static ani_status ObjectGetType(ani_env *env, ani_object obj, ani_type *result);
+    static ani_status ClassFindGetter(ani_env *env, ani_class cls, const char *name, ani_method *result);
+    static ani_status ObjectCallMethodRef(ani_env *env, ani_object obj, ani_method method, ani_ref *result,
+        va_list args);
+    static ani_status StringGetUtf8Size(ani_env *env, ani_string string, ani_size *result);
+    static ani_status StringGetUtf8SubString(ani_env *env, ani_string string, ani_size substrOffset,
+        ani_size substrSize, char *buffer, ani_size bufferSize, ani_size *result);
     static ani_status ObjectGetFieldLong(ani_env *env, ani_object obj, ani_field field, ani_long *result);
     static ani_status ObjectSetFieldLong(ani_env *env, ani_object obj, ani_field field, ani_long value);
     static ani_status GlobalReferenceCreate(ani_env *env, ani_ref ref, ani_ref *result);
     static ani_status GlobalReferenceDelete(ani_env *env, ani_ref ref);
-    
+    static ani_status ExistUnhandledError(ani_env *env, ani_boolean *result);
+    static ani_status GetUnhandledError(ani_env *env, ani_error *result);
+    static ani_status ResetError(ani_env *env);
+
     __ani_interaction_api api_ {};
     ani_env env_ {};
     static State state_;
