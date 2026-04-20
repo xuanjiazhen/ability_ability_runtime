@@ -22,6 +22,7 @@
 #include <nlohmann/json.hpp>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
@@ -76,6 +77,7 @@ const char ETS_SYS_NSNAME[] = "ets_system";
 constexpr const char* CLASSNAME_LINKER = "std.core.AbcRuntimeLinker";
 constexpr const int32_t ARG_ZERO = 0;
 constexpr const int32_t ARG_ONE = 1;
+constexpr std::string_view SAFE_DATA_ERROR_PREFIX = "Failed to get safe data for ABC file: ";
 } // namespace
 
 static void PostTaskWrapper(void(*task)(void *), void *data, const char *taskName, int64_t delayMs);
@@ -194,9 +196,10 @@ void ETSEnvironment::RegisterUncaughtExceptionHandler(const ETSUncaughtException
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "RegisterUncaughtExceptionHandler called");
     uncaughtExceptionInfo_ = handle;
     auto callback = [handle] (ani_error aniError) {
-        std::string errorMsg = ETSEnvironment::GetInstance()->GetErrorProperty(aniError, "message");
-        std::string errorName = ETSEnvironment::GetInstance()->GetErrorProperty(aniError, "name");
-        std::string errorStack = ETSEnvironment::GetInstance()->GetErrorProperty(aniError, "stack");
+        auto *aniEnv = ETSEnvironment::GetInstance()->GetAniEnv();
+        std::string errorMsg = ETSEnvironment::GetInstance()->GetErrorProperty(aniEnv, aniError, "message");
+        std::string errorName = ETSEnvironment::GetInstance()->GetErrorProperty(aniEnv, aniError, "name");
+        std::string errorStack = ETSEnvironment::GetInstance()->GetErrorProperty(aniEnv, aniError, "stack");
         std::string summary = "Error name:" + errorName + "\n";
         summary += "Error message:" + errorMsg + "\n";
         summary += "Stacktrace:\n";
@@ -323,7 +326,7 @@ ani_env *ETSEnvironment::GetAniEnv()
 bool ETSEnvironment::HandleUncaughtError()
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "HandleUncaughtError called");
-    const EtsEnv::ETSErrorObject errorObj = GetETSErrorObject();
+    const EtsEnv::ETSErrorObject errorObj = GetETSErrorObject(GetAniEnv());
     std::string errorStack = errorObj.stack;
     if (errorStack.empty()) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "errorStack is empty");
@@ -352,12 +355,11 @@ bool ETSEnvironment::HandleUncaughtError()
     return false;
 }
 
-EtsEnv::ETSErrorObject ETSEnvironment::GetETSErrorObject()
+EtsEnv::ETSErrorObject ETSEnvironment::GetETSErrorObject(ani_env *aniEnv)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "GetETSErrorObject called");
     ani_boolean errorExists = ANI_FALSE;
     ani_status status = ANI_ERROR;
-    auto aniEnv = GetAniEnv();
     if (aniEnv == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
         return EtsEnv::ETSErrorObject();
@@ -379,9 +381,9 @@ EtsEnv::ETSErrorObject ETSEnvironment::GetETSErrorObject()
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "ResetError failed, status : %{public}d", status);
         return EtsEnv::ETSErrorObject();
     }
-    std::string errorMsg = GetErrorProperty(aniError, "message");
-    std::string errorName = GetErrorProperty(aniError, "name");
-    std::string errorStack = GetErrorProperty(aniError, "stack");
+    std::string errorMsg = GetErrorProperty(aniEnv, aniError, "message");
+    std::string errorName = GetErrorProperty(aniEnv, aniError, "name");
+    std::string errorStack = GetErrorProperty(aniEnv, aniError, "stack");
     const EtsEnv::ETSErrorObject errorObj = {
         .name = errorName,
         .message = errorMsg,
@@ -390,10 +392,16 @@ EtsEnv::ETSErrorObject ETSEnvironment::GetETSErrorObject()
     return errorObj;
 }
 
-std::string ETSEnvironment::GetErrorProperty(ani_error aniError, const char *property)
+bool ETSEnvironment::IsSafeDataMissingError(const ETSErrorObject &errorObj)
+{
+    return errorObj.name == "AbcFileNotFoundError" &&
+        errorObj.message.compare(
+            0, SAFE_DATA_ERROR_PREFIX.length(), SAFE_DATA_ERROR_PREFIX.data(), SAFE_DATA_ERROR_PREFIX.length()) == 0;
+}
+
+std::string ETSEnvironment::GetErrorProperty(ani_env *aniEnv, ani_error aniError, const char *property)
 {
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "GetErrorProperty called");
-    auto aniEnv = GetAniEnv();
     if (aniEnv == nullptr) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "null env");
         return "";
@@ -497,34 +505,56 @@ bool ETSEnvironment::AddAbcFiles(ani_env *env, const std::string &modulePath)
         return false;
     }
 
+    auto result = AddSingleAbcFile(env, static_cast<ani_object>(vmEntry_.abcLinkerRef_), modulePath);
+    if (result == AddAbcFileResult::LOADED) {
+        return true;
+    }
+    if (result == AddAbcFileResult::SAFE_DATA_MISSING) {
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "safe data missing for ABC file: %{public}s", modulePath.c_str());
+    }
+    return false;
+}
+
+ETSEnvironment::AddAbcFileResult ETSEnvironment::AddSingleAbcFile(ani_env *env, ani_object abcObj,
+    const std::string &modulePath)
+{
     ani_status status = ANI_ERROR;
 
     ani_string modulePathAni = nullptr;
     if ((status = env->String_NewUTF8(modulePath.c_str(), modulePath.size(), &modulePathAni)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "String_NewUTF8 failed, status: %{public}d", status);
-        return false;
+        return AddAbcFileResult::FAILURE;
     }
     ani_ref undefinedRef = nullptr;
     if ((status = env->GetUndefined(&undefinedRef)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "GetUndefined failed, status: %{public}d", status);
-        return false;
+        return AddAbcFileResult::FAILURE;
     }
     ani_array refArray = nullptr;
     if ((status = env->Array_New(ARG_ONE, undefinedRef, &refArray)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_New_Ref failed, status: %{public}d", status);
-        return false;
+        return AddAbcFileResult::FAILURE;
     }
     if ((status = env->Array_Set(refArray, ARG_ZERO, modulePathAni)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "Array_Set_Ref failed, status: %{public}d", status);
-        return false;
+        return AddAbcFileResult::FAILURE;
     }
-    if ((status = env->Object_CallMethodByName_Void(static_cast<ani_object>(vmEntry_.abcLinkerRef_),
-        "addAbcFiles", "C{std.core.Array}:", refArray)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethodByName_Void failed, status: %{public}d", status);
-        return false;
+    if ((status = env->Object_CallMethodByName_Void(abcObj, "addAbcFiles", "C{std.core.Array}:", refArray)) ==
+        ANI_OK) {
+        return AddAbcFileResult::LOADED;
     }
-
-    return true;
+    if (status == ANI_PENDING_ERROR) {
+        const auto errorObj = GetETSErrorObject(env);
+        if (IsSafeDataMissingError(errorObj)) {
+            return AddAbcFileResult::SAFE_DATA_MISSING;
+        }
+        TAG_LOGE(AAFwkTag::ETSRUNTIME,
+            "Object_CallMethodByName_Void raised ETS error, name: %{public}s, message: %{public}s",
+            errorObj.name.c_str(), errorObj.message.c_str());
+        return AddAbcFileResult::FAILURE;
+    }
+    TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethodByName_Void failed, status: %{public}d", status);
+    return AddAbcFileResult::FAILURE;
 }
 
 bool ETSEnvironment::LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj)
@@ -998,24 +1028,19 @@ bool ETSEnvironment::SetHspAbcFiles(ani_env *env, ani_object abcObj)
         return true;
     }
 
-    ani_status status = ANI_ERROR;
-    ani_array strRefArray = nullptr;
-    if (ConvertHspPathToAniArray(env, hspPathListAdd, strRefArray) == false) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "ConvertHspPathToAniArray failed");
-        return false;
-    }
-
-    if ((status = env->Object_CallMethodByName_Void(abcObj,
-        "addAbcFiles", "C{std.core.Array}:", strRefArray)) != ANI_OK) {
-        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Object_CallMethodByName_Void failed, status: %{public}d", status);
-        return false;
-    }
-
-    {
-        std::lock_guard<std::mutex> lock(vmEntry_.abcCacheMutex_);
-        for (auto &hspPath : hspPathListAdd) {
+    for (const auto &hspPath : hspPathListAdd) {
+        auto result = AddSingleAbcFile(env, abcObj, hspPath);
+        if (result == AddAbcFileResult::LOADED) {
+            std::lock_guard<std::mutex> lock(vmEntry_.abcCacheMutex_);
             vmEntry_.abcCacheMap_.emplace(hspPath, true);
+            continue;
         }
+        if (result == AddAbcFileResult::SAFE_DATA_MISSING) {
+            TAG_LOGW(AAFwkTag::ETSRUNTIME, "Skip HSP ABC file with missing safe data: %{public}s", hspPath.c_str());
+            continue;
+        }
+        TAG_LOGE(AAFwkTag::ETSRUNTIME, "Failed to add HSP ABC file: %{public}s", hspPath.c_str());
+        return false;
     }
     return true;
 }

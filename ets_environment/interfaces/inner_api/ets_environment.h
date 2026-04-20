@@ -96,6 +96,12 @@ public:
     };
 
 private:
+    enum class AddAbcFileResult {
+        LOADED,
+        SAFE_DATA_MISSING,
+        FAILURE
+    };
+
     struct ProfilePathInfo {
         std::string abcPath;
         std::string curProfilePath;
@@ -110,14 +116,16 @@ private:
     bool SetHspAbcFiles(ani_env *env, ani_object abcObj);
     bool InitAbcLinker(ani_env *env);
     bool AddAbcFiles(ani_env *env, const std::string &modulePath);
+    AddAbcFileResult AddSingleAbcFile(ani_env *env, ani_object abcObj, const std::string &modulePath);
+    static bool IsSafeDataMissingError(const ETSErrorObject &errorObj);
     ani_object CreateRuntimeLinker(ani_env *aniEnv, ani_class cls, ani_ref undefinedRef, ani_array &refArray);
     bool LoadRuntimeApis();
     bool LoadSymbolCreateVM(void *handle, ETSRuntimeAPI &apis);
     bool LoadSymbolANIGetCreatedVMs(void *handle, ETSRuntimeAPI &apis);
     bool LoadBootPathFile(std::string &bootfiles);
     std::string GetBuildId(std::string stack);
-    EtsEnv::ETSErrorObject GetETSErrorObject();
-    std::string GetErrorProperty(ani_error aniError, const char *property);
+    EtsEnv::ETSErrorObject GetETSErrorObject(ani_env *aniEnv);
+    std::string GetErrorProperty(ani_env *aniEnv, ani_error aniError, const char *property);
     bool LoadAbcLinker(ani_env *env, const std::string &modulePath, ani_class &abcCls, ani_object &abcObj);
     void InitEventHandler(const std::shared_ptr<AppExecFwk::EventRunner> &eventRunner);
     int32_t ParseHdcRegisterOption(std::string& option);
