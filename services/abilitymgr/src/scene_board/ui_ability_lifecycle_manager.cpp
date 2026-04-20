@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -732,6 +732,7 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
         if (abilityRecord != nullptr && abilityRecord->IsHook() && !abilityRecord->GetHookOff()) {
             AbilityRequest request;
             request.callerToken = abilityRequest.callerToken;
+            request.requestCallback = abilityRequest.requestCallback;
             sptr<SessionInfo> hookSessionInfo = abilityRecord->GetSessionInfo();
             if (hookSessionInfo != nullptr) {
                 hookSessionInfo->want = abilityRequest.want;
@@ -1933,6 +1934,10 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         if (!requestId.empty()) {
             abilityRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
         }
+        if (abilityRequest.requestCallback != nullptr) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "callback request ability");
+            abilityRequest.requestCallback->OnRequestStartAbilityResult(true);
+        }
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s"
             "requestId:%{public}s", sessionInfo->want.GetElement().GetAbilityName().c_str(), requestId.c_str());
@@ -1956,6 +1961,10 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
             callerRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
         }
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
+    }
+    if (abilityRequest.requestCallback != nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "callback request ability");
+        abilityRequest.requestCallback->OnRequestStartAbilityResult(true);
     }
     sessionInfo->canStartAbilityFromBackground = true;
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s",
