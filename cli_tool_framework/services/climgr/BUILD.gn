@@ -36,7 +36,10 @@ ohos_shared_library("climgr") {
   }
   shlib_type = "sa"
   configs = [ ":clisa_config" ]
-  sources = [ "src/cli_tool_manager_service.cpp" ]
+  sources = [
+    "src/cli_tool_manager_service.cpp",
+    "src/cli_tool_data_manager.cpp",
+  ]
   defines = [ "AMS_LOG_TAG = \"CliToolManager\"" ]
 
   deps = [ "${cli_tool_framework_path}/interfaces/cli_tool:cli_tool_client" ]
@@ -45,6 +48,8 @@ ohos_shared_library("climgr") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "json:nlohmann_json_static",
+    "kv_store:distributeddata_inner",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
