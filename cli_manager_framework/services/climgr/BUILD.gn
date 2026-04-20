@@ -74,12 +74,21 @@ group("climgr_target") {
   deps = [
     ":climgr",
     ":cli_tools_config",
+    ":get_current_time",
   ]
 }
 
 ohos_prebuilt_etc("cli_tools_config") {
   source = "${cli_manager_framework_path}/resources/cli_tools.json"
   relative_install_dir = "cli"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
+
+# Deploy get_current_time.sh script to /system/bin/
+ohos_prebuilt_etc("get_current_time") {
+  source = "${cli_manager_framework_path}/resources/scripts/get_current_time.sh"
+  relative_install_dir = "../bin"
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }

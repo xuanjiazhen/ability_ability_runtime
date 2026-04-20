@@ -15,6 +15,7 @@
 
 #include "io_monitor.h"
 
+#include <chrono>
 #include <cstring>
 #include <cerrno>
 #include <fcntl.h>
@@ -31,6 +32,15 @@ namespace {
 constexpr int32_t ERR_OK = 0;
 constexpr int32_t MAX_EVENTS = 16;
 constexpr int32_t EPOLL_WAIT_MS = 100;
+
+// 时间戳日志宏
+#define LOG_TIMESTAMP(tag, desc) \
+    do { \
+        auto nowMs = std::chrono::duration_cast<std::chrono::milliseconds>( \
+            std::chrono::system_clock::now().time_since_epoch()).count(); \
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "[TIMESTAMP] [%{public}s] %{public}lld - %{public}s", \
+            tag, static_cast<long long>(nowMs), desc); \
+    } while(0)
 }
 
 IOMonitor::~IOMonitor()
@@ -169,6 +179,7 @@ void IOMonitor::MonitorLoop()
 
 void IOMonitor::HandleReadableFd(int fd)
 {
+    LOG_TIMESTAMP("IO-Monitor", "HandleReadableFd START");
     FdInfo info;
     {
         std::lock_guard<std::mutex> lock(fdMutex_);
@@ -183,6 +194,7 @@ void IOMonitor::HandleReadableFd(int fd)
     while (true) {
         ssize_t bytesRead = read(fd, buffer, sizeof(buffer));
         if (bytesRead > 0) {
+            LOG_TIMESTAMP("IO-Monitor", "Data received from fd, calling outputCallback");
             if (outputCallback_) {
                 outputCallback_(info.sessionId, info.isStdout, std::string(buffer, bytesRead));
             }

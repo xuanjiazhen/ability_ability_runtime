@@ -66,5 +66,22 @@
     "enabled": true,
     "hasSubcommands": false,
     "subcommands": ""
+  },
+  {
+    "name": "get_current_time.sh",
+    "version": "1.0.0",
+    "description": "Get current time and save to file",
+    "executablePath": "/system/bin/get_current_time.sh",
+    "permissions": [],
+    "inputSchema": "{}",
+    "outputSchema": "{}",
+    "argMapping": "{}",
+    "eventSchemas": "{}",
+    "timeout": 5000,
+    "eventTypes": ["stdout", "stderr", "exit"],
+    "registeredTime": 0,
+    "enabled": true,
+    "hasSubcommands": false,
+    "subcommands": ""
   }
 ]
