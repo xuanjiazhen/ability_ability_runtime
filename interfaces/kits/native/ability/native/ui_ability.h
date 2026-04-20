@@ -195,6 +195,12 @@ public:
     std::string GetModuleName();
 
     /**
+     * @brief Obtains the instance id of this ability.
+     * @return Returns the instance id string of this ability.
+     */
+    std::string GetInstanceId() const;
+
+    /**
      * @brief Called when startAbilityForResult(ohos.aafwk.content.Want,int) is called to start an ability and the
      * result is returned. This method is called only on Page abilities. You can start a new ability to perform some
      * calculations and use setResult (int,ohos.aafwk.content.Want) to return the calculation result. Then the system
@@ -419,6 +425,7 @@ private:
     bool startUpNewRule_ = false;
     bool isSilentForeground_ = false;
     std::atomic<bool> useAppSettedRecoveryValue_ = false;
+    std::string instanceId_;
 
 #ifdef SUPPORT_SCREEN
 public:

@@ -645,7 +645,7 @@ void EtsUIAbility::HandleNativeModule()
 
     // Create NativeAbilityWrapper
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = GetAbilityRecordId();
+    wrapper->instanceId = GetInstanceId();
     wrapper->abilityName = GetAbilityName();
     wrapper->etsAbilityObj = reinterpret_cast<ani_object>(etsAbilityObj_->aniRef);
 

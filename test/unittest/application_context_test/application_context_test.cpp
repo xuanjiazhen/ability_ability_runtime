@@ -2350,11 +2350,11 @@ HWTEST_F(ApplicationContextTest, AddNativeAbility_0100, TestSize.Level1)
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = 100;
+    wrapper->instanceId = "100";
     wrapper->abilityName = "TestAbility";
-    context_->AddNativeAbility(100, wrapper);
+    context_->AddNativeAbility("100", wrapper);
     EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
-    EXPECT_NE(context_->nativeAbilities_.find(100), context_->nativeAbilities_.end());
+    EXPECT_NE(context_->nativeAbilities_.find("100"), context_->nativeAbilities_.end());
     // Cleanup
     context_->nativeAbilities_.clear();
     GTEST_LOG_(INFO) << "AddNativeAbility_0100 end";
@@ -2371,13 +2371,13 @@ HWTEST_F(ApplicationContextTest, AddNativeAbility_0200, TestSize.Level1)
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
     auto wrapper1 = std::make_shared<NativeAbilityWrapper>();
-    wrapper1->instanceId = 1;
+    wrapper1->instanceId = "1";
     wrapper1->abilityName = "Ability1";
     auto wrapper2 = std::make_shared<NativeAbilityWrapper>();
-    wrapper2->instanceId = 2;
+    wrapper2->instanceId = "2";
     wrapper2->abilityName = "Ability2";
-    context_->AddNativeAbility(1, wrapper1);
-    context_->AddNativeAbility(2, wrapper2);
+    context_->AddNativeAbility("1", wrapper1);
+    context_->AddNativeAbility("2", wrapper2);
     EXPECT_EQ(context_->nativeAbilities_.size(), 2u);
     // Cleanup
     context_->nativeAbilities_.clear();
@@ -2395,15 +2395,15 @@ HWTEST_F(ApplicationContextTest, AddNativeAbility_0300, TestSize.Level1)
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
     auto wrapper1 = std::make_shared<NativeAbilityWrapper>();
-    wrapper1->instanceId = 1;
+    wrapper1->instanceId = "1";
     wrapper1->abilityName = "Ability1";
     auto wrapper2 = std::make_shared<NativeAbilityWrapper>();
-    wrapper2->instanceId = 1;
+    wrapper2->instanceId = "1";
     wrapper2->abilityName = "AbilityOverwritten";
-    context_->AddNativeAbility(1, wrapper1);
-    context_->AddNativeAbility(1, wrapper2);
+    context_->AddNativeAbility("1", wrapper1);
+    context_->AddNativeAbility("1", wrapper2);
     EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
-    EXPECT_EQ(context_->nativeAbilities_[1]->abilityName, "AbilityOverwritten");
+    EXPECT_EQ(context_->nativeAbilities_["1"]->abilityName, "AbilityOverwritten");
     // Cleanup
     context_->nativeAbilities_.clear();
     GTEST_LOG_(INFO) << "AddNativeAbility_0300 end";
@@ -2419,7 +2419,7 @@ HWTEST_F(ApplicationContextTest, GetNativeAbility_0100, TestSize.Level1)
     GTEST_LOG_(INFO) << "GetNativeAbility_0100 start";
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
-    auto ret = context_->GetNativeAbility(0);
+    auto ret = context_->GetNativeAbility("0");
     EXPECT_EQ(ret, nullptr);
     GTEST_LOG_(INFO) << "GetNativeAbility_0100 end";
 }
@@ -2435,12 +2435,12 @@ HWTEST_F(ApplicationContextTest, GetNativeAbility_0200, TestSize.Level1)
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = 42;
+    wrapper->instanceId = "42";
     wrapper->abilityName = "TestAbility";
-    context_->nativeAbilities_[42] = wrapper;
-    auto ret = context_->GetNativeAbility(42);
+    context_->nativeAbilities_["42"] = wrapper;
+    auto ret = context_->GetNativeAbility("42");
     EXPECT_NE(ret, nullptr);
-    EXPECT_EQ(ret->instanceId, 42);
+    EXPECT_EQ(ret->instanceId, "42");
     EXPECT_EQ(ret->abilityName, "TestAbility");
     // Cleanup
     context_->nativeAbilities_.clear();
@@ -2458,9 +2458,9 @@ HWTEST_F(ApplicationContextTest, GetNativeAbility_0300, TestSize.Level1)
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = 1;
-    context_->nativeAbilities_[1] = wrapper;
-    auto ret = context_->GetNativeAbility(999);
+    wrapper->instanceId = "1";
+    context_->nativeAbilities_["1"] = wrapper;
+    auto ret = context_->GetNativeAbility("999");
     EXPECT_EQ(ret, nullptr);
     // Cleanup
     context_->nativeAbilities_.clear();
@@ -2478,13 +2478,13 @@ HWTEST_F(ApplicationContextTest, RemoveNativeAbility_0100, TestSize.Level1)
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = 42;
-    context_->nativeAbilities_[42] = wrapper;
+    wrapper->instanceId = "42";
+    context_->nativeAbilities_["42"] = wrapper;
     EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
-    context_->RemoveNativeAbility(42);
+    context_->RemoveNativeAbility("42");
     EXPECT_TRUE(context_->nativeAbilities_.empty());
     // Verify GetNativeAbility also returns nullptr
-    auto ret = context_->GetNativeAbility(42);
+    auto ret = context_->GetNativeAbility("42");
     EXPECT_EQ(ret, nullptr);
     GTEST_LOG_(INFO) << "RemoveNativeAbility_0100 end";
 }
@@ -2500,7 +2500,7 @@ HWTEST_F(ApplicationContextTest, RemoveNativeAbility_0200, TestSize.Level1)
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
     // Remove from empty map, should not crash
-    context_->RemoveNativeAbility(999);
+    context_->RemoveNativeAbility("999");
     EXPECT_TRUE(context_->nativeAbilities_.empty());
     GTEST_LOG_(INFO) << "RemoveNativeAbility_0200 end";
 }
@@ -2518,21 +2518,21 @@ HWTEST_F(ApplicationContextTest, AddGetRemoveNativeAbility_0100, TestSize.Level1
 
     // Add
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = 100;
+    wrapper->instanceId = "100";
     wrapper->abilityName = "IntegrationTestAbility";
     wrapper->env = reinterpret_cast<napi_env>(0x1234);
     context_->AddNativeAbility(wrapper->instanceId, wrapper);
 
     // Get and verify
-    auto ret = context_->GetNativeAbility(100);
+    auto ret = context_->GetNativeAbility("100");
     ASSERT_NE(ret, nullptr);
-    EXPECT_EQ(ret->instanceId, 100);
+    EXPECT_EQ(ret->instanceId, "100");
     EXPECT_EQ(ret->abilityName, "IntegrationTestAbility");
     EXPECT_EQ(ret->env, reinterpret_cast<napi_env>(0x1234));
 
     // Remove
-    context_->RemoveNativeAbility(100);
-    auto retAfterRemove = context_->GetNativeAbility(100);
+    context_->RemoveNativeAbility("100");
+    auto retAfterRemove = context_->GetNativeAbility("100");
     EXPECT_EQ(retAfterRemove, nullptr);
     EXPECT_TRUE(context_->nativeAbilities_.empty());
 
@@ -2558,7 +2558,7 @@ HWTEST_F(ApplicationContextTest, ApplicationContext_PostAbility_0100, TestSize.L
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
 
-    context_->PostAbility(1, nullptr);
+    context_->PostAbility("1", nullptr);
     EXPECT_TRUE(context_->nativeAbilities_.empty());
 
     GTEST_LOG_(INFO) << "ApplicationContext_PostAbility_0100 end";
@@ -2576,13 +2576,13 @@ HWTEST_F(ApplicationContextTest, ApplicationContext_PostAbility_0200, TestSize.L
     context_->nativeAbilities_.clear();
 
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = 42;
+    wrapper->instanceId = "42";
     wrapper->abilityName = "TestAbility";
 
-    context_->PostAbility(42, wrapper);
+    context_->PostAbility("42", wrapper);
 
     EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
-    auto ret = context_->GetNativeAbility(42);
+    auto ret = context_->GetNativeAbility("42");
     ASSERT_NE(ret, nullptr);
     EXPECT_EQ(ret->abilityName, "TestAbility");
 
@@ -2601,7 +2601,7 @@ HWTEST_F(ApplicationContextTest, ApplicationContext_PostAbility_0300, TestSize.L
     context_->nativeAbilities_.clear();
 
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = 100;
+    wrapper->instanceId = "100";
     wrapper->abilityName = "TestPostAbilityIntegration";
 
     auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
@@ -2609,14 +2609,14 @@ HWTEST_F(ApplicationContextTest, ApplicationContext_PostAbility_0300, TestSize.L
     thread->postAbilityFunc_ = MockPostAbility;
     context_->abilityNativeThread_ = thread;
 
-    context_->PostAbility(100, wrapper);
+    context_->PostAbility("100", wrapper);
 
     EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
-    auto ret = context_->GetNativeAbility(100);
+    auto ret = context_->GetNativeAbility("100");
     ASSERT_NE(ret, nullptr);
     EXPECT_EQ(ret->abilityName, "TestPostAbilityIntegration");
     EXPECT_NE(receivedWrapper, nullptr);
-    EXPECT_EQ(receivedWrapper->instanceId, 100);
+    EXPECT_EQ(receivedWrapper->instanceId, "100");
 
     // Cleanup
     thread->postAbilityFunc_ = nullptr;
@@ -2636,15 +2636,15 @@ HWTEST_F(ApplicationContextTest, ApplicationContext_DestroyAbility_0100, TestSiz
     context_->nativeAbilities_.clear();
 
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = 42;
+    wrapper->instanceId = "42";
     wrapper->abilityName = "TestAbility";
-    context_->AddNativeAbility(42, wrapper);
+    context_->AddNativeAbility("42", wrapper);
     EXPECT_EQ(context_->nativeAbilities_.size(), 1u);
 
-    context_->DestroyAbility(42);
+    context_->DestroyAbility("42");
 
     EXPECT_TRUE(context_->nativeAbilities_.empty());
-    auto ret = context_->GetNativeAbility(42);
+    auto ret = context_->GetNativeAbility("42");
     EXPECT_EQ(ret, nullptr);
 
     GTEST_LOG_(INFO) << "ApplicationContext_DestroyAbility_0100 end";
@@ -2662,20 +2662,20 @@ HWTEST_F(ApplicationContextTest, ApplicationContext_DestroyAbility_0200, TestSiz
     context_->nativeAbilities_.clear();
 
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = 100;
+    wrapper->instanceId = "100";
     wrapper->abilityName = "TestDestroyAbility";
-    context_->AddNativeAbility(100, wrapper);
+    context_->AddNativeAbility("100", wrapper);
 
     auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
-    int32_t receivedInstanceId = -1;
+    std::string receivedInstanceId;
     thread->destroyAbilityFunc_ = [&receivedInstanceId](const NativeAbilityWrapper* nativeAbilityWrapper) {
         receivedInstanceId = nativeAbilityWrapper->instanceId;
     };
     context_->abilityNativeThread_ = thread;
 
-    context_->DestroyAbility(100);
+    context_->DestroyAbility("100");
 
-    EXPECT_EQ(receivedInstanceId, 100);
+    EXPECT_EQ(receivedInstanceId, "100");
     EXPECT_TRUE(context_->nativeAbilities_.empty());
 
     // Cleanup
@@ -2695,7 +2695,7 @@ HWTEST_F(ApplicationContextTest, ApplicationContext_DestroyAbility_0300, TestSiz
     ASSERT_NE(context_, nullptr);
     context_->nativeAbilities_.clear();
 
-    context_->DestroyAbility(999);
+    context_->DestroyAbility("999");
 
     EXPECT_TRUE(context_->nativeAbilities_.empty());
 
@@ -2909,7 +2909,7 @@ HWTEST_F(ApplicationContextTest, AbilityNativeThread_PostAbility_0200, TestSize.
     auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
     thread->postAbilityFunc_ = nullptr;
     NativeAbilityWrapper wrapper;
-    wrapper.instanceId = 1;
+    wrapper.instanceId = "1";
     wrapper.abilityName = "Test";
     thread->PostAbility(&wrapper);
     // No crash, early return
@@ -2929,14 +2929,14 @@ HWTEST_F(ApplicationContextTest, AbilityNativeThread_PostAbility_0300, TestSize.
     thread->postAbilityFunc_ = MockPostAbility;
 
     NativeAbilityWrapper wrapper;
-    wrapper.instanceId = 42;
+    wrapper.instanceId = "42";
     wrapper.abilityName = "TestPostAbility";
     wrapper.env = reinterpret_cast<napi_env>(0x1234);
 
     thread->PostAbility(&wrapper);
 
     EXPECT_NE(receivedWrapper, nullptr);
-    EXPECT_EQ(receivedWrapper->instanceId, 42);
+    EXPECT_EQ(receivedWrapper->instanceId, "42");
     EXPECT_EQ(receivedWrapper->abilityName, "TestPostAbility");
 
     // Cleanup
@@ -2955,7 +2955,7 @@ HWTEST_F(ApplicationContextTest, AbilityNativeThread_DestroyAbility_0100, TestSi
     GTEST_LOG_(INFO) << "AbilityNativeThread_DestroyAbility_0100 start";
     auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
     NativeAbilityWrapper wrapper;
-    wrapper.instanceId = 1;
+    wrapper.instanceId = "1";
     wrapper.abilityName = "Test";
     thread->DestroyAbility(&wrapper);
     // No crash, early return
@@ -2971,12 +2971,12 @@ HWTEST_F(ApplicationContextTest, AbilityNativeThread_DestroyAbility_0200, TestSi
 {
     GTEST_LOG_(INFO) << "AbilityNativeThread_DestroyAbility_0200 start";
     auto thread = std::make_shared<AppExecFwk::AbilityNativeThread>();
-    int32_t receivedInstanceId = -1;
+    std::string receivedInstanceId;
     thread->destroyAbilityFunc_ = [&receivedInstanceId](const NativeAbilityWrapper* nativeAbilityWrapper) {
         receivedInstanceId = nativeAbilityWrapper->instanceId;
     };
     thread->DestroyAbility(nullptr);
-    EXPECT_EQ(receivedInstanceId, -1);
+    EXPECT_TRUE(receivedInstanceId.empty());
     // No crash, early return
     GTEST_LOG_(INFO) << "AbilityNativeThread_DestroyAbility_0200 end";
 }
@@ -2997,13 +2997,13 @@ HWTEST_F(ApplicationContextTest, AbilityNativeThread_DestroyAbility_0300, TestSi
     };
 
     NativeAbilityWrapper wrapper;
-    wrapper.instanceId = 42;
+    wrapper.instanceId = "42";
     wrapper.abilityName = "TestDestroyAbility";
 
     thread->DestroyAbility(&wrapper);
 
     ASSERT_NE(receivedWrapper, nullptr);
-    EXPECT_EQ(receivedWrapper->instanceId, 42);
+    EXPECT_EQ(receivedWrapper->instanceId, "42");
     EXPECT_EQ(receivedWrapper->abilityName, "TestDestroyAbility");
 
     // Cleanup

@@ -133,8 +133,8 @@ void AbilityNativeThread::PostAbility(const NativeAbilityWrapper* nativeAbilityW
         return;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITY, "Posting ability to native thread: %{public}s (instanceId: %{public}d)",
-        nativeAbilityWrapper->abilityName.c_str(), nativeAbilityWrapper->instanceId);
+    TAG_LOGI(AAFwkTag::ABILITY, "Posting ability to native thread: %{public}s (instanceId: %{public}s)",
+        nativeAbilityWrapper->abilityName.c_str(), nativeAbilityWrapper->instanceId.c_str());
 
     // Call the PostAbility function from the native module
     postAbilityFunc_(nativeAbilityWrapper);
@@ -152,7 +152,8 @@ void AbilityNativeThread::DestroyAbility(const NativeAbilityWrapper* nativeAbili
         return;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITY, "Destroying ability with instanceId: %{public}d", nativeAbilityWrapper->instanceId);
+    TAG_LOGI(AAFwkTag::ABILITY, "Destroying ability with instanceId: %{public}s",
+        nativeAbilityWrapper->instanceId.c_str());
     destroyAbilityFunc_(nativeAbilityWrapper);
 }
 

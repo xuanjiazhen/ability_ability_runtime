@@ -29,15 +29,33 @@ extern "C" {
  * @brief Get ability instance ID from NativeAbilityWrapper.
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityInstanceId(
-    const NativeAbilityWrapper* nativeAbilityWrapper, int32_t* instanceId)
+    const NativeAbilityWrapper* nativeAbilityWrapper, char* buffer, const int32_t bufferSize)
 {
-    if (nativeAbilityWrapper == nullptr || instanceId == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Invalid parameter: nativeAbilityWrapper or instanceId is null");
+    constexpr int32_t MIN_BUFFER_SIZE = 37; // UUID format: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx + '\0'
+    if (nativeAbilityWrapper == nullptr || buffer == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Invalid parameter: nativeAbilityWrapper or buffer is null");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
 
-    *instanceId = nativeAbilityWrapper->instanceId;
-    TAG_LOGD(AAFwkTag::APPKIT, "Get ability instance id: %{public}d", *instanceId);
+    if (bufferSize < MIN_BUFFER_SIZE) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Invalid parameter: bufferSize %{public}d is less than %{public}d",
+            bufferSize, MIN_BUFFER_SIZE);
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+
+    if (nativeAbilityWrapper->instanceId.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Instance ID is empty");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+
+    errno_t err = strncpy_s(buffer, bufferSize, nativeAbilityWrapper->instanceId.c_str(),
+        nativeAbilityWrapper->instanceId.length());
+    if (err != 0) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Failed to copy instance id to buffer, errno: %{public}d", err);
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+
+    TAG_LOGD(AAFwkTag::APPKIT, "Get ability instance id: %{public}s", buffer);
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
