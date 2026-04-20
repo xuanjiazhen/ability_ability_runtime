@@ -284,7 +284,13 @@ public:
         return 0;
     }
 
-    int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+    int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
+    {
+        return 0;
+    }
+
+    int32_t ReportDumpMemResult(sptr<IMemDumpCallback> callback, int32_t resultCode,
+        const std::string &dumpResult)
     {
         return 0;
     }
