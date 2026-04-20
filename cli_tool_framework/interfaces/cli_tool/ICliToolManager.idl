@@ -13,5 +13,13 @@
  * limitations under the License.
  */
 
+sequenceable OHOS.CliTool.ToolInfo;
+sequenceable OHOS.CliTool.ToolSummary;
+rawdata OHOS.CliTool.ToolsRawData;
+
 interface OHOS.CliTool.ICliToolManager {
+    void QueryTools([out] ToolInfo[] tools);
+    void QueryToolSummaries([out] ToolSummary[] summaries);
+    void GetToolInfoByName([in] String name, [out] ToolInfo tool);
+    void RegisterCliTool([in] ToolInfo tool);
 }
