@@ -83,6 +83,7 @@ ohos_fuzztest("AbilityAutoStartupServiceFirstFuzzTest") {
     "hisysevent:libhisysevent",
     "input:libmmi-client",
     "ipc:ipc_core",
+    "ipc:ipc_single",
     "kv_store:distributeddata_inner",
     "napi:ace_napi",
     "os_account:os_account_innerkits",
