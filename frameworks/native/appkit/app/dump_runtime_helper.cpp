@@ -342,6 +342,8 @@ void DumpRuntimeHelper::DumpCjHeap(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 
 void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
 {
+    TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 DumpRuntimeHelper::DumpMem enter, dumpType:%{public}d",
+        static_cast<uint32_t>(info.dumpType));
     TAG_LOGI(AAFwkTag::APPKIT, "dump type: %{public}d", static_cast<uint32_t>(info.dumpType));
     if (info.dumpType == MemDumpType::NATIVE) {
         DumpNativeHeap(info, dumpResult);

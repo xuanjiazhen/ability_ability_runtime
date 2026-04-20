@@ -239,14 +239,14 @@ HWTEST_F(AppMgrServiceThirdTest, DumpMem_001, TestSize.Level1)
     appMgrService->SetInnerService(nullptr);
     OHOS::AppExecFwk::MemDumpInfo info;
     info.pid = 1;
-    std::string dumpResult;
-    int32_t res = appMgrService->DumpMem(info, dumpResult);
+    sptr<IMemDumpCallback> callback = nullptr;
+    int32_t res = appMgrService->DumpMem(info, callback);
     EXPECT_EQ(res, ERR_INVALID_OPERATION);
 
     appMgrService->SetInnerService(std::make_shared<AppMgrServiceInner>());
     appMgrService->taskHandler_ = taskHandler_;
     appMgrService->eventHandler_ = std::make_shared<AMSEventHandler>(taskHandler_, appMgrService->appMgrServiceInner_);
-    res = appMgrService->DumpMem(info, dumpResult);
+    res = appMgrService->DumpMem(info, callback);
     EXPECT_NE(res, ERR_INVALID_OPERATION);
 }
 
