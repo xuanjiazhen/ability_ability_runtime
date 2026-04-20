@@ -113,7 +113,7 @@ typedef struct __AsyncParamEx {
 
 typedef struct __ComplexArrayData {
     std::vector<int> intList;
-    std::vector<long> longList;
+    std::vector<int64_t> longList;
     std::vector<bool> boolList;
     std::vector<double> doubleList;
     std::vector<std::string> stringList;
