@@ -735,30 +735,30 @@ napi_value JsApplication::OnGetUIAbilityByInstanceId(napi_env env, NapiCallbackI
         return CreateJsUndefined(env);
     }
 
-    int32_t instanceId = 0;
+    std::string instanceId;
     if (!ConvertFromJsValue(env, info.argv[0], instanceId)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Parse instanceId failed");
-        ThrowInvalidParamError(env, "Parse param instanceId failed, instanceId must be number.");
+        ThrowInvalidParamError(env, "Parse param instanceId failed, instanceId must be string.");
         return CreateJsUndefined(env);
     }
 
     // Get NativeAbilityWrapper from ApplicationContext
     auto nativeAbility = applicationContext->GetNativeAbility(instanceId);
     if (nativeAbility == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "NativeAbility not found for instanceId: %{public}d", instanceId);
+        TAG_LOGE(AAFwkTag::APPKIT, "NativeAbility not found for instanceId: %{public}s", instanceId.c_str());
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_ID);
         return CreateJsUndefined(env);
     }
 
     // Return the jsAbilityObj from NativeAbilityWrapper
     if (nativeAbility->jsAbilityObj == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "jsAbilityObj is null for instanceId: %{public}d", instanceId);
+        TAG_LOGE(AAFwkTag::APPKIT, "jsAbilityObj is null for instanceId: %{public}s", instanceId.c_str());
         ThrowError(env, AbilityErrorCode::ERROR_CODE_INVALID_ID);
         return CreateJsUndefined(env);
     }
 
     napi_value result = nativeAbility->jsAbilityObj;
-    TAG_LOGD(AAFwkTag::APPKIT, "Get UIAbility for instanceId: %{public}d", instanceId);
+    TAG_LOGD(AAFwkTag::APPKIT, "Get UIAbility for instanceId: %{public}s", instanceId.c_str());
     return result;
 }
 

@@ -51,14 +51,16 @@ struct NativeAbilityWrapper;
  * @brief Get ability instance ID from NativeAbilityWrapper.
  *
  * @param nativeAbilityWrapper The native ability wrapper pointer.
- * @param instanceId A pointer to the instance ID.
+ * @param buffer A pointer to a buffer that receives the instance ID string (UUID format, 36 chars including '\0').
+ * @param bufferSize The length of the buffer, must be at least 37.
  * @return The error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the nativeAbilityWrapper or instanceId is null.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the nativeAbilityWrapper or buffer is null,
+ *         or the buffer size is less than 37.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityInstanceId(
-    const NativeAbilityWrapper* nativeAbilityWrapper, int32_t* instanceId);
+    const NativeAbilityWrapper* nativeAbilityWrapper, char* buffer, const int32_t bufferSize);
 
 /**
  * @brief Get ability name from NativeAbilityWrapper.

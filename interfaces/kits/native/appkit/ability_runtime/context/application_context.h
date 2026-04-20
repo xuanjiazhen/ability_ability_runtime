@@ -105,11 +105,11 @@ public:
     bool CreateNativeThread(const AAFwk::NativeAbilityMetaData &metaData, const std::string &bundleName,
         const std::string &moduleName);
     std::shared_ptr<AppExecFwk::AbilityNativeThread> GetNativeThread();
-    void AddNativeAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper);
-    std::shared_ptr<NativeAbilityWrapper> GetNativeAbility(int32_t instanceId);
-    void RemoveNativeAbility(int32_t instanceId);
-    void PostAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper);
-    void DestroyAbility(int32_t instanceId);
+    void AddNativeAbility(const std::string &instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper);
+    std::shared_ptr<NativeAbilityWrapper> GetNativeAbility(const std::string &instanceId);
+    void RemoveNativeAbility(const std::string &instanceId);
+    void PostAbility(const std::string &instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper);
+    void DestroyAbility(const std::string &instanceId);
     void NotifyProcessExit();
 
     std::string GetBundleName() const override;
@@ -261,7 +261,7 @@ private:
 
     // Native Module related members
     std::shared_ptr<AppExecFwk::AbilityNativeThread> abilityNativeThread_;
-    std::unordered_map<int32_t, std::shared_ptr<NativeAbilityWrapper>> nativeAbilities_;
+    std::unordered_map<std::string, std::shared_ptr<NativeAbilityWrapper>> nativeAbilities_;
     std::mutex nativeMutex_;
 };
 }  // namespace AbilityRuntime

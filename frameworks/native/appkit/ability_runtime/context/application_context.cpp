@@ -1325,13 +1325,13 @@ std::shared_ptr<AppExecFwk::AbilityNativeThread> ApplicationContext::GetNativeTh
     return abilityNativeThread_;
 }
 
-void ApplicationContext::AddNativeAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper)
+void ApplicationContext::AddNativeAbility(const std::string &instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper)
 {
     std::lock_guard<std::mutex> lock(nativeMutex_);
     nativeAbilities_[instanceId] = wrapper;
 }
 
-std::shared_ptr<NativeAbilityWrapper> ApplicationContext::GetNativeAbility(int32_t instanceId)
+std::shared_ptr<NativeAbilityWrapper> ApplicationContext::GetNativeAbility(const std::string &instanceId)
 {
     std::lock_guard<std::mutex> lock(nativeMutex_);
     auto it = nativeAbilities_.find(instanceId);
@@ -1341,13 +1341,13 @@ std::shared_ptr<NativeAbilityWrapper> ApplicationContext::GetNativeAbility(int32
     return nullptr;
 }
 
-void ApplicationContext::RemoveNativeAbility(int32_t instanceId)
+void ApplicationContext::RemoveNativeAbility(const std::string &instanceId)
 {
     std::lock_guard<std::mutex> lock(nativeMutex_);
     nativeAbilities_.erase(instanceId);
 }
 
-void ApplicationContext::PostAbility(int32_t instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper)
+void ApplicationContext::PostAbility(const std::string &instanceId, std::shared_ptr<NativeAbilityWrapper> wrapper)
 {
     if (wrapper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITY, "NativeAbilityWrapper is null");
@@ -1359,19 +1359,19 @@ void ApplicationContext::PostAbility(int32_t instanceId, std::shared_ptr<NativeA
     auto nativeThreadInfo = GetNativeThread();
     if (nativeThreadInfo != nullptr) {
         nativeThreadInfo->PostAbility(wrapper.get());
-        TAG_LOGI(AAFwkTag::ABILITY, "PostAbility called for instanceId: %{public}d", instanceId);
+        TAG_LOGI(AAFwkTag::ABILITY, "PostAbility called for instanceId: %{public}s", instanceId.c_str());
     } else {
         TAG_LOGE(AAFwkTag::ABILITY, "AbilityNativeThread is null");
     }
 }
 
-void ApplicationContext::DestroyAbility(int32_t instanceId)
+void ApplicationContext::DestroyAbility(const std::string &instanceId)
 {
     auto nativeThreadInfo = GetNativeThread();
     auto nativeAbility = GetNativeAbility(instanceId);
     if (nativeThreadInfo != nullptr && nativeAbility != nullptr) {
         nativeThreadInfo->DestroyAbility(nativeAbility.get());
-        TAG_LOGI(AAFwkTag::ABILITY, "DestroyAbility called for instanceId: %{public}d", instanceId);
+        TAG_LOGI(AAFwkTag::ABILITY, "DestroyAbility called for instanceId: %{public}s", instanceId.c_str());
     }
 
     RemoveNativeAbility(instanceId);

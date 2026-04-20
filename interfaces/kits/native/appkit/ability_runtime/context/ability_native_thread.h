@@ -29,7 +29,7 @@ typedef class __ani_object* ani_object;
 extern "C" {
 #endif
 struct NativeAbilityWrapper {
-    int32_t instanceId = 0;
+    std::string instanceId;
     std::string abilityName;
     napi_env env = nullptr;
     napi_value jsAbilityObj = nullptr;

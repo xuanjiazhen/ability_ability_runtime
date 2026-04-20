@@ -2550,7 +2550,7 @@ void JsUIAbility::HandleNativeModule(napi_env env)
 
     // Create NativeAbilityWrapper
     auto wrapper = std::make_shared<NativeAbilityWrapper>();
-    wrapper->instanceId = GetAbilityRecordId();
+    wrapper->instanceId = GetInstanceId();
     wrapper->abilityName = GetAbilityName();
     wrapper->env = env;
     wrapper->jsAbilityObj = jsAbilityObj;
