@@ -679,12 +679,25 @@ int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
     return appMgrServiceInner_->DumpCjHeapMemory(info);
 }
 
-int32_t AppMgrService::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppMgrService::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     if (!IsReady() || !HasDumpPermission()) {
+        if (callback) {
+            callback->OnMemDumpDone(ERR_INVALID_OPERATION, "");
+        }
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->DumpMem(info, dumpResult);
+    return appMgrServiceInner_->DumpMem(info, callback);
+}
+
+int32_t AppMgrService::ReportDumpMemResult(sptr<IMemDumpCallback> callback, int32_t resultCode,
+    const std::string &dumpResult)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->ReportDumpMemResult(callback, resultCode, dumpResult);
 }
 
 void AppMgrService::AddAbilityStageDone(const int32_t recordId)

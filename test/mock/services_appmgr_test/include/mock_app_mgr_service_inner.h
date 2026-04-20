@@ -89,6 +89,7 @@ public:
     MOCK_CONST_METHOD0(IsFoundationCall, bool());
     MOCK_METHOD2(QueryRunningSharedBundles, int32_t(pid_t pid, std::map<std::string, uint32_t> &sharedBundles));
     MOCK_METHOD2(GetAllAbilityInfos, int32_t(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos));
+    MOCK_METHOD3(ReportDumpMemResult, int32_t(sptr<IMemDumpCallback>, int32_t, const std::string&));
 
     void StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t, const std::string&, bool)
     {}

@@ -77,6 +77,7 @@ public:
     MOCK_METHOD2(RegisterApplicationStateObserver, int32_t(const sptr<IApplicationStateObserver>&,
         const std::vector<std::string>&));
     MOCK_METHOD1(UnregisterApplicationStateObserver, int32_t(const sptr<IApplicationStateObserver>&));
+    MOCK_METHOD3(ReportDumpMemResult, int32_t(sptr<IMemDumpCallback>, int32_t, const std::string&));
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

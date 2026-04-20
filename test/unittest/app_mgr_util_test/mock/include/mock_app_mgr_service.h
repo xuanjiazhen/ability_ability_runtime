@@ -51,7 +51,10 @@ private:
     DISALLOW_COPY_AND_MOVE(AppMgrProxy);
 };
 
-class MockAppMgrService : public AppMgrStub {};
+class MockAppMgrService : public AppMgrStub {
+public:
+    MOCK_METHOD3(ReportDumpMemResult, int32_t(sptr<IMemDumpCallback>, int32_t, const std::string&));
+};
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // MOCK_OHOS_ABILITY_RUNTIME_MOCK_APP_MGR_SERVICE_H
