@@ -4118,22 +4118,31 @@ int32_t AppMgrServiceInner::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &i
     return appRunningManager_->DumpCjHeapMemory(info);
 }
 
-int32_t AppMgrServiceInner::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppMgrServiceInner::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     if (!isSaCall) {
         TAG_LOGE(AAFwkTag::APPMGR, "callerToken not SA");
+        if (callback) {
+            callback->OnMemDumpDone(ERR_INVALID_VALUE, "");
+        }
         return ERR_INVALID_VALUE;
     }
     if (info.pid == 0) {
         TAG_LOGE(AAFwkTag::APPMGR, "pid illegal");
+        if (callback) {
+            callback->OnMemDumpDone(ERR_INVALID_VALUE, "");
+        }
         return ERR_INVALID_VALUE;
     }
     if (!appRunningManager_) {
         TAG_LOGE(AAFwkTag::APPMGR, "appRunningManager null");
+        if (callback) {
+            callback->OnMemDumpDone(ERR_INVALID_VALUE, "");
+        }
         return ERR_INVALID_VALUE;
     }
-    return appRunningManager_->DumpMem(info, dumpResult);
+    return appRunningManager_->DumpMem(info, callback);
 }
 
 void AppMgrServiceInner::GetRunningProcesses(const std::shared_ptr<AppRunningRecord> &appRecord,

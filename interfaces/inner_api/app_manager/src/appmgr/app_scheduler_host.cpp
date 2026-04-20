@@ -20,6 +20,7 @@
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_types.h"
+#include "mem_dump_callback_interface.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -253,14 +254,10 @@ int32_t AppSchedulerHost::HandleScheduleMem(MessageParcel &data, MessageParcel &
         TAG_LOGE(AAFwkTag::APPMGR, "ReadParcelable<MemDumpInfo> failed");
         return ERR_APPEXECFWK_PARCEL_ERROR;
     }
-    std::string dumpResult;
-    ScheduleMem(*info, dumpResult);
-    if (info->isSync) {
-        if (!reply.WriteString(dumpResult)) {
-            TAG_LOGE(AAFwkTag::APPMGR, "write dumpResult failed");
-            return ERR_APPEXECFWK_PARCEL_ERROR;
-        }
-    }
+    sptr<IRemoteObject> remoteCallback = data.ReadRemoteObject();
+    sptr<IMemDumpCallback> callback = (remoteCallback != nullptr) ?
+        iface_cast<IMemDumpCallback>(remoteCallback) : nullptr;
+    ScheduleMem(*info, callback);
     return NO_ERROR;
 }
 

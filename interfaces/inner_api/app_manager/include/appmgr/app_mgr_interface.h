@@ -44,6 +44,7 @@
 #include "iremote_broker.h"
 #include "iremote_object.h"
 #include "irender_state_observer.h"
+#include "mem_dump_callback_interface.h"
 #include "memory_level_info.h"
 #include "page_state_data.h"
 #include "process_memory_state.h"
@@ -346,10 +347,10 @@ public:
      * triggerGC and dump application's memory info.
      *
      * @param info The information to be dumped
-     * @param dumpResult The dump result string
+     * @param callback The callback to receive dump result
      * @return ERR_OK ,return back success, others fail.
      */
-    virtual int DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult) = 0;
+    virtual int DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) = 0;
 
     /**
      * Start a resident process
