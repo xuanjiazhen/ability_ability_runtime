@@ -1307,6 +1307,7 @@ bool ApplicationContext::CreateNativeThread(const AAFwk::NativeAbilityMetaData &
     }
     std::lock_guard lock(nativeMutex_);
     if (abilityNativeThread_ != nullptr) {
+        TAG_LOGI(AAFwkTag::ABILITY, "Native thread exist");
         return true;
     }
     auto nativeThread = std::make_shared<AppExecFwk::AbilityNativeThread>();

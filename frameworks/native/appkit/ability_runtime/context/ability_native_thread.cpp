@@ -47,6 +47,10 @@ bool AbilityNativeThread::LoadNativeModule(const AAFwk::NativeAbilityMetaData& m
         return false;
     }
 
+    if (moduleHandle_ != nullptr) {
+        return true;
+    }
+
     // Load the dynamic library
     std::string bundleModuleName = bundleName + "/" + moduleName;
     moduleHandle_ = OpenNativeLibrary(bundleModuleName, metaData.nativeModuleSource);
@@ -57,8 +61,6 @@ bool AbilityNativeThread::LoadNativeModule(const AAFwk::NativeAbilityMetaData& m
     }
 
     TAG_LOGI(AAFwkTag::ABILITY, "Native module loaded: %{public}s", metaData.nativeModuleSource.c_str());
-
-    dlerror(); // clear error
     // Find the OHMain function
     auto rawMain = reinterpret_cast<void(*)()>(dlsym(moduleHandle_, metaData.nativeModuleFunc.c_str()));
     if (rawMain == nullptr) {
@@ -94,7 +96,6 @@ bool AbilityNativeThread::LoadNativeModule(const AAFwk::NativeAbilityMetaData& m
         notifyProcessExitFunc_ = rawNotifyProcessExit;
         TAG_LOGI(AAFwkTag::ABILITY, "NotifyProcessExit function found");
     }
-    dlerror();
     return true;
 }
 
@@ -186,7 +187,12 @@ LIBHANDLE AbilityNativeThread::OpenNativeLibrary(const std::string& bundleModule
         return nullptr;
     }
     LIBHANDLE nativeHandle = nullptr;
-    nativeHandle = dlopen_ns(&ns, fileName.c_str(), RTLD_LAZY);
+    auto libName = fileName;
+    auto pos = fileName.find_last_of('/');
+    if (pos != std::string::npos) {
+        libName = fileName.substr(pos);
+    }
+    nativeHandle = dlopen_ns(&ns, libName.c_str(), RTLD_LAZY);
     return nativeHandle;
 }
 } // namespace AppExecFwk
