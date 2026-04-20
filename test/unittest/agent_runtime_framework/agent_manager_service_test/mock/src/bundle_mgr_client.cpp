@@ -15,6 +15,8 @@
 
 #include "bundle_mgr_client.h"
 
+#include <unordered_map>
+
 #include "hap_module_info.h"
 #include "mock_my_flag.h"
 
@@ -27,20 +29,39 @@ std::vector<AppExecFwk::HapModuleInfo> AgentRuntime::MyFlag::mockHapModuleInfos;
 std::vector<std::string> AgentRuntime::MyFlag::mockProfileInfos;
 
 namespace AppExecFwk {
+namespace {
+void PopulateBundleInfo(BundleInfo &bundleInfo)
+{
+    bundleInfo.extensionInfos = AgentRuntime::MyFlag::mockExtensionInfos;
+    bundleInfo.hapModuleInfos = AgentRuntime::MyFlag::mockHapModuleInfos;
+    if (bundleInfo.hapModuleInfos.empty() && !AgentRuntime::MyFlag::mockExtensionInfos.empty()) {
+        std::unordered_map<std::string, size_t> moduleIndexMap;
+        for (const auto &extensionInfo : AgentRuntime::MyFlag::mockExtensionInfos) {
+            auto [it, inserted] = moduleIndexMap.emplace(extensionInfo.moduleName, bundleInfo.hapModuleInfos.size());
+            if (inserted) {
+                HapModuleInfo hapModuleInfo;
+                hapModuleInfo.moduleName = extensionInfo.moduleName;
+                bundleInfo.hapModuleInfos.push_back(hapModuleInfo);
+            }
+            bundleInfo.hapModuleInfos[it->second].extensionInfos.push_back(extensionInfo);
+        }
+    }
+    bundleInfo.applicationInfo.isSystemApp = AgentRuntime::MyFlag::mockApplicationInfoIsSystemApp;
+}
+} // namespace
+
 BundleMgrClient::BundleMgrClient() {}
 
 BundleMgrClient::~BundleMgrClient() {}
 
-bool BundleMgrClient::GetBundleInfo(const std::string &bundleName, const BundleFlag flag, BundleInfo &bundleInfo,
+ErrCode BundleMgrClient::GetBundleInfoV9(const std::string &bundleName, int32_t flags, BundleInfo &bundleInfo,
     int32_t userId)
 {
     if (!AgentRuntime::MyFlag::retGetBundleInfo) {
-        return false;
+        return ERR_INVALID_VALUE;
     }
-    bundleInfo.extensionInfos = AgentRuntime::MyFlag::mockExtensionInfos;
-    bundleInfo.hapModuleInfos = AgentRuntime::MyFlag::mockHapModuleInfos;
-    bundleInfo.applicationInfo.isSystemApp = AgentRuntime::MyFlag::mockApplicationInfoIsSystemApp;
-    return true;
+    PopulateBundleInfo(bundleInfo);
+    return ERR_OK;
 }
 
 bool BundleMgrClient::GetResConfigFile(const ExtensionAbilityInfo &extensionInfo, const std::string &metadataName,
