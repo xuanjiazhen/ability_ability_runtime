@@ -22,6 +22,7 @@
 #include "app_mgr_interface.h"
 #include "bundle_info.h"
 #include "iremote_proxy.h"
+#include "mem_dump_callback_interface.h"
 #include "memory_level_info.h"
 #include "running_process_info.h"
 #include "want.h"
@@ -278,10 +279,10 @@ public:
      * triggerGC and dump application's memory info.
      *
      * @param info, pid tid needGc needSnapshot
-     * @param dumpResult The dump result string
+     * @param callback The callback to receive dump result
      * @return ERR_OK ,return back success, others fail.
      */
-    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult) override;
+    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback) override;
 
     /**
      * Notify that the ability stage has been updated
