@@ -50,6 +50,14 @@ int64_t GetCurrentTimeMs()
         std::chrono::system_clock::now().time_since_epoch()).count();
 }
 
+// 时间戳日志宏
+#define LOG_TIMESTAMP(tag, desc) \
+    do { \
+        auto nowMs = GetCurrentTimeMs(); \
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "[TIMESTAMP] [%{public}s] %{public}lld - %{public}s", \
+            tag, static_cast<long long>(nowMs), desc); \
+    } while(0)
+
 class CallbackDeathRecipient final : public IRemoteObject::DeathRecipient {
 public:
     using Handler = std::function<void(const wptr<IRemoteObject> &)>;
@@ -268,6 +276,7 @@ public:
 private:
     int32_t DispatchEvent(const std::string &sessionId, const ToolEvent &event)
     {
+        LOG_TIMESTAMP("Service-DispatchEvent", "DispatchEvent START");
         std::vector<SubscriberState> subscribers;
         {
             std::lock_guard<std::mutex> lock(mutex_);
@@ -285,6 +294,7 @@ private:
 
         std::vector<SubscriberKey> failedSubscribers;
         for (const auto &subscriber : subscribers) {
+            LOG_TIMESTAMP("Service-DispatchEvent", "Before ScheduleSessionEvent IPC call");
             if (subscriber.scheduler == nullptr ||
                 subscriber.scheduler->ScheduleSessionEvent(sessionId, subscriber.key.subscriptionId, event) != ERR_OK) {
                 TAG_LOGW(AAFwkTag::ABILITYMGR,
@@ -293,6 +303,7 @@ private:
                     subscriber.key.subscriptionId.c_str(), event.type.c_str());
                 failedSubscribers.push_back(subscriber.key);
             }
+            LOG_TIMESTAMP("Service-DispatchEvent", "After ScheduleSessionEvent IPC call");
         }
 
         if (!failedSubscribers.empty()) {
@@ -307,6 +318,7 @@ private:
                 }
             }
         }
+        LOG_TIMESTAMP("Service-DispatchEvent", "DispatchEvent END (Event dispatched to all subscribers)");
         return ERR_OK;
     }
 
@@ -369,11 +381,14 @@ void CliManagerService::Init()
         EventDispatcher::GetInstance().DispatchErrorEvent(sessionId, "session timed out");
     });
     ioMonitor_.SetOutputCallback([](const std::string &sessionId, bool isStdout, const std::string &data) {
+        LOG_TIMESTAMP("Service-OutputCallback", "Received data from IOMonitor");
         auto record = CliManagerService::GetInstance()->GetSessionRecord(sessionId);
         if (record != nullptr) {
             record->AppendOutput(isStdout, data);
         }
+        LOG_TIMESTAMP("Service-OutputCallback", "Before DispatchIOEvent");
         EventDispatcher::GetInstance().DispatchIOEvent(sessionId, isStdout ? "stdout" : "stderr", data);
+        LOG_TIMESTAMP("Service-OutputCallback", "After DispatchIOEvent (Service callback done)");
     });
     ioMonitor_.SetSessionClosedCallback([this](const std::string &sessionId, bool isStdout) {
         HandleOutputClosed(sessionId, isStdout);
@@ -529,12 +544,16 @@ void CliManagerService::FinalizeBackgroundSession(const std::shared_ptr<SessionR
 
 int32_t CliManagerService::QueryTools(std::vector<ToolInfo> &tools)
 {
+    LOG_TIMESTAMP("Service", "QueryTools ENTRY");
     std::lock_guard<std::mutex> lock(mutex_);
     if (cliToolManager_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "QueryTools failed: cliToolManager_ is null");
         return ERR_CLI_MANAGER_NOT_INITIALIZED;
     }
-    return cliToolManager_->QueryTools(tools);
+    LOG_TIMESTAMP("Service", "QueryTools Before Manager call");
+    int32_t ret = cliToolManager_->QueryTools(tools);
+    LOG_TIMESTAMP("Service", "QueryTools After Manager call (Service Done)");
+    return ret;
 }
 
 int32_t CliManagerService::ExecTool(const std::string &name,
@@ -543,6 +562,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     const std::string &challenge,
     SessionInfo &session)
 {
+    LOG_TIMESTAMP("Service", "ExecTool ENTRY");
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (cliToolManager_ == nullptr || !cliToolManager_->ValidateTool(name)) {
@@ -612,6 +632,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         return ERR_CLI_CREATE_STDERR_PIPE_FAILED;
     }
 
+    LOG_TIMESTAMP("Service", "Before fork");
     pid_t pid = fork();
     if (pid == -1) {
         close(stdoutPipe[0]);
@@ -626,6 +647,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     }
 
     if (pid == 0) {
+        LOG_TIMESTAMP("Service-Child", "After fork (child process)");
         if (prctl(PR_SET_PDEATHSIG, SIGTERM) != 0) {
             _exit(128);
         }
@@ -653,10 +675,12 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         }
         execArgs.push_back(const_cast<char *>(cmdline.c_str()));
         execArgs.push_back(nullptr);
+        LOG_TIMESTAMP("Service-Child", "Before execvp");
         execvp(execArgs[0], execArgs.data());
         _exit(127);
     }
 
+    LOG_TIMESTAMP("Service-Parent", "After fork (parent process)");
     close(stdoutPipe[1]);
     close(stderrPipe[1]);
 
@@ -725,6 +749,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
         }
 
         session.result = nullptr;
+        LOG_TIMESTAMP("Service", "ExecTool END (background task started)");
         return ERR_OK;
     }
 
@@ -771,6 +796,7 @@ int32_t CliManagerService::ExecTool(const std::string &name,
     session.result->executionTime = duration.count();
     session.status = (!session.result->timedOut && session.result->exitCode == 0) ? "completed" : "failed";
     session.endTime = endTimeMs;
+    LOG_TIMESTAMP("Service", "ExecTool END (foreground task completed)");
     return ERR_OK;
 }
 
