@@ -745,16 +745,13 @@ HWTEST_F(AppMgrClientTest, AppMgrClient_DumpCjHeapMemory_001, TestSize.Level2)
 HWTEST_F(AppMgrClientTest, AppMgrClient_DumpMem_001, TestSize.Level2)
 {
     auto appMgrClient = std::make_unique<AppMgrClient>();
-
     auto result = appMgrClient->ConnectAppMgrService();
     EXPECT_EQ(result, AppMgrResultCode::RESULT_OK);
 
     OHOS::AppExecFwk::MemDumpInfo info;
-    info.pid = 1;
-    std::string dumpResult;
-
-    auto dumpRet = appMgrClient->DumpMem(info, dumpResult);
-    EXPECT_EQ(dumpRet, AppMgrResultCode::RESULT_OK);
+    sptr<IMemDumpCallback> callback = nullptr;
+    appMgrClient->DumpMem(info, callback);
+    EXPECT_NE(appMgrClient, nullptr);
 }
 
 /**

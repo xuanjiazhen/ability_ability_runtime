@@ -696,28 +696,53 @@ void MainThread::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
 
 /**
  *
- * @brief application triggerGC and dump memory.
+ * @brief triggerGC and dump application's memory info.
  *
  * @param info, pid, tid, needGC, needSnapshot.
+ * @param callback The callback to receive dump result
  */
-void MainThread::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void MainThread::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
-    if (info.isSync) {
-        HandleMem(info, dumpResult);
-    } else {
-        wptr<MainThread> weak = this;
-        auto task = [weak, info]() {
-            auto appThread = weak.promote();
-            if (appThread == nullptr) {
-                TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
-                return;
+    TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 MainThread::ScheduleMem enter, pid:%{public}d", info.pid);
+    wptr<MainThread> weak = this;
+    auto task = [weak, info, callback]() {
+        auto appThread = weak.promote();
+        if (appThread == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "null appThread");
+            if (callback) {
+                auto appMgr = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->GetAppMgr();
+                if (appMgr) {
+                    appMgr->ReportDumpMemResult(callback, ERR_INVALID_VALUE, "");
+                }
             }
-            // async mode does not return dumpResult to caller
-            std::string asyncResult;
-            appThread->HandleMem(info, asyncResult);
-        };
-        if (!mainHandler_->PostTask(task, "MainThread:HandleMem")) {
-            TAG_LOGE(AAFwkTag::APPKIT, "PostTask HandleMem failed");
+            return;
+        }
+        TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 MainThread::ScheduleMem task running");
+        std::string dumpResult;
+        TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 MainThread before HandleMem");
+        appThread->HandleMem(info, dumpResult);
+        TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 MainThread after HandleMem, dumpResult size:%{public}zu", dumpResult.size());
+        if (callback) {
+            TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 MainThread before appMgr_->ReportDumpMemResult");
+            if (appThread->appMgr_) {
+                appThread->appMgr_->ReportDumpMemResult(callback, ERR_OK, dumpResult);
+            } else {
+                TAG_LOGE(AAFwkTag::APPKIT, "wjl0420 MainThread appMgr_ is nullptr");
+                auto appMgr = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->GetAppMgr();
+                if (appMgr) {
+                    appMgr->ReportDumpMemResult(callback, ERR_OK, dumpResult);
+                }
+            }
+            TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 MainThread after appMgr_->ReportDumpMemResult");
+        }
+    };
+    if (!mainHandler_->PostTask(task, "MainThread:HandleMem")) {
+        TAG_LOGE(AAFwkTag::APPKIT, "PostTask HandleMem failed");
+        if (callback) {
+            auto appMgr = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance()->GetAppMgr();
+            if (appMgr) {
+                appMgr->ReportDumpMemResult(callback, ERR_INVALID_VALUE, "");
+            }
         }
     }
 }
@@ -1084,6 +1109,7 @@ void MainThread::HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info
 
 void MainThread::HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
 {
+    TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 MainThread::HandleMem enter");
     TAG_LOGD(AAFwkTag::APPKIT, "called");
     if (mainHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null mainHandler");
@@ -1094,8 +1120,10 @@ void MainThread::HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::strin
         TAG_LOGE(AAFwkTag::APPKIT, "null app");
         return;
     }
+    TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 MainThread::HandleMem before helper->DumpMem");
     auto helper = std::make_shared<DumpRuntimeHelper>(app);
     helper->DumpMem(info, dumpResult);
+    TAG_LOGI(AAFwkTag::APPKIT, "wjl0420 MainThread::HandleMem after helper->DumpMem");
 }
 
 /**

@@ -34,6 +34,7 @@
 #include "ipc_skeleton.h"
 #include "ipc_types.h"
 #include "iremote_object.h"
+#include "mem_dump_callback_interface.h"
 #include "memory_level_info.h"
 #include "running_process_info.h"
 #include "want.h"
@@ -50,6 +51,7 @@ AppMgrStub::~AppMgrStub() {}
 
 int AppMgrStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppMgrStub::OnRemoteRequest enter, code:%{public}u", code);
     TAG_LOGD(AAFwkTag::APPMGR, "AppMgrStub::OnReceived, code = %{public}u, flags= %{public}d.", code,
         option.GetFlags());
     std::u16string descriptor = AppMgrStub::GetDescriptor();
@@ -70,6 +72,7 @@ int32_t AppMgrStub::OnRemoteRequestInner(uint32_t code, MessageParcel &data,
         return retCode;
     }
     retCode = OnRemoteRequestInnerSecond(code, data, reply, option);
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 OnRemoteRequestInnerSecond ret:%{public}d", retCode);
     if (retCode != INVALID_FD) {
         return retCode;
     }
@@ -148,6 +151,7 @@ int32_t AppMgrStub::OnRemoteRequestInnerFirst(uint32_t code, MessageParcel &data
 int32_t AppMgrStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &data,
     MessageParcel &reply, MessageOption &option)
 {
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 OnRemoteRequestInnerSecond enter, code:%{public}u", code);
     switch (static_cast<uint32_t>(code)) {
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_FOREGROUND_APPLICATIONS):
             return HandleGetForegroundApplications(data, reply);
@@ -186,7 +190,11 @@ int32_t AppMgrStub::OnRemoteRequestInnerSecond(uint32_t code, MessageParcel &dat
         case static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_CJHEAP_MEMORY_PROCESS):
             return HandleDumpCjHeapMemory(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::DUMP_MEM_PROCESS):
+            TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 OnRemoteRequestInnerSecond hit DUMP_MEM_PROCESS");
             return HandleDumpMem(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::REPORT_DUMP_MEM_RESULT):
+            TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 OnRemoteRequestInnerSecond hit REPORT_DUMP_MEM_RESULT");
+            return HandleReportDumpMemResult(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::GET_RUNNING_MULTIAPP_INFO_BY_BUNDLENAME):
             return HandleGetRunningMultiAppInfoByBundleName(data, reply);
     }
@@ -869,6 +877,7 @@ int32_t AppMgrStub::HandleDumpCjHeapMemory(MessageParcel &data, MessageParcel &r
 
 int32_t AppMgrStub::HandleDumpMem(MessageParcel &data, MessageParcel &reply)
 {
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppMgrStub::HandleDumpMem enter");
     TAG_LOGD(AAFwkTag::APPMGR, "AppMgrStub::HandleDumpMem.");
     HITRACE_METER(HITRACE_TAG_APP);
     std::unique_ptr<MemDumpInfo> info(data.ReadParcelable<MemDumpInfo>());
@@ -876,12 +885,32 @@ int32_t AppMgrStub::HandleDumpMem(MessageParcel &data, MessageParcel &reply)
         TAG_LOGE(AAFwkTag::APPMGR, "AppMgrStub read configuration error");
         return ERR_INVALID_VALUE;
     }
-    std::string dumpResult;
-    auto result = DumpMem(*info, dumpResult);
-    if (!reply.WriteString(dumpResult)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "write dumpResult error");
+    sptr<IRemoteObject> remoteCallback = data.ReadRemoteObject();
+    sptr<IMemDumpCallback> callback = (remoteCallback != nullptr) ?
+        iface_cast<IMemDumpCallback>(remoteCallback) : nullptr;
+    auto result = DumpMem(*info, callback);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result error");
         return ERR_INVALID_VALUE;
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleReportDumpMemResult(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 AppMgrStub::HandleReportDumpMemResult enter");
+    sptr<IRemoteObject> remoteCallback = data.ReadRemoteObject();
+    sptr<IMemDumpCallback> callback = (remoteCallback != nullptr) ?
+        iface_cast<IMemDumpCallback>(remoteCallback) : nullptr;
+    if (callback == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "wjl0420 HandleReportDumpMemResult callback is nullptr");
+        return ERR_INVALID_VALUE;
+    }
+    int32_t resultCode = data.ReadInt32();
+    std::string dumpResult = data.ReadString();
+    TAG_LOGI(AAFwkTag::APPMGR, "wjl0420 HandleReportDumpMemResult resultCode:%{public}d, dumpResult size:%{public}zu",
+        resultCode, dumpResult.size());
+    auto result = ReportDumpMemResult(callback, resultCode, dumpResult);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::APPMGR, "write result error");
         return ERR_INVALID_VALUE;
