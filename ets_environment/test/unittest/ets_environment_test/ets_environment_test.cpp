@@ -906,6 +906,63 @@ HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0600, TestSize.Level0)
 }
 
 /**
+ * @tc.name: SetHspAbcFiles_0700
+ * @tc.desc: Test SetHspAbcFiles skips safe-data missing HSP and continues loading remaining files.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0700, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->appInnerHspPathList_ = {"bad.hsp", "good.hsp"};
+    etsEnv->vmEntry_.abcCacheMap_.clear();
+    const auto hspPaths = etsEnv->GetHspPathList();
+    ASSERT_EQ(hspPaths.size(), 2);
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().callMethodStatusSequence = {ANI_PENDING_ERROR, ANI_OK};
+    mockEnv.GetState().unhandledErrorExists = ANI_TRUE;
+    mockEnv.GetState().errorName = "AbcFileNotFoundError";
+    mockEnv.GetState().errorMessage = "Failed to get safe data for ABC file: " + hspPaths[0];
+    mockEnv.GetState().errorStack = "mock stack";
+
+    ani_object mockObj = reinterpret_cast<ani_object>(0x1);
+    auto result = etsEnv->SetHspAbcFiles(mockEnv.GetEnv(), mockObj);
+    EXPECT_TRUE(result);
+    EXPECT_EQ(etsEnv->vmEntry_.abcCacheMap_.find(hspPaths[0]), etsEnv->vmEntry_.abcCacheMap_.end());
+    EXPECT_NE(etsEnv->vmEntry_.abcCacheMap_.find(hspPaths[1]), etsEnv->vmEntry_.abcCacheMap_.end());
+}
+
+/**
+ * @tc.name: SetHspAbcFiles_0800
+ * @tc.desc: Test SetHspAbcFiles aborts on non-safe-data pending ETS error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, SetHspAbcFiles_0800, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    etsEnv->commonHspBundleInfos_.clear();
+    etsEnv->appInnerHspPathList_ = {"bad.hsp", "good.hsp"};
+    etsEnv->vmEntry_.abcCacheMap_.clear();
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().callMethodStatus = ANI_PENDING_ERROR;
+    mockEnv.GetState().unhandledErrorExists = ANI_TRUE;
+    mockEnv.GetState().errorName = "Error";
+    mockEnv.GetState().errorMessage = "unexpected pending error";
+    mockEnv.GetState().errorStack = "mock stack";
+
+    ani_object mockObj = reinterpret_cast<ani_object>(0x1);
+    auto result = etsEnv->SetHspAbcFiles(mockEnv.GetEnv(), mockObj);
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(etsEnv->vmEntry_.abcCacheMap_.empty());
+}
+
+/**
  * @tc.name: InitAbcLinker_0100
  * @tc.desc: Test InitAbcLinker.
  * @tc.type: FUNC
@@ -1155,6 +1212,33 @@ HWTEST_F(EtsEnvironmentTest, AddAbcFiles_0800, TestSize.Level0)
     std::string obj;
     auto result = etsEnv->AddAbcFiles(mockEnv.GetEnv(), obj);
     EXPECT_TRUE(result);
+}
+
+/**
+ * @tc.name: AddAbcFiles_0900
+ * @tc.desc: Test AddAbcFiles returns false for safe-data missing ETS error and does not cache the path.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsEnvironmentTest, AddAbcFiles_0900, TestSize.Level0)
+{
+    auto etsEnv = std::make_shared<ETSEnvironment>();
+    ASSERT_NE(etsEnv, nullptr);
+
+    etsEnv->vmEntry_.abcLinkerRef_ = reinterpret_cast<ani_ref>(0x123);
+    etsEnv->vmEntry_.abcCacheMap_.clear();
+
+    MockAniEnv mockEnv;
+    mockEnv.GetState().callMethodStatus = ANI_PENDING_ERROR;
+    mockEnv.GetState().unhandledErrorExists = ANI_TRUE;
+    mockEnv.GetState().errorName = "AbcFileNotFoundError";
+    mockEnv.GetState().errorMessage = "Failed to get safe data for ABC file: modulePath";
+    mockEnv.GetState().errorStack = "mock stack";
+
+    std::string modulePath = "modulePath";
+    auto result = etsEnv->AddAbcFiles(mockEnv.GetEnv(), modulePath);
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(etsEnv->vmEntry_.abcCacheMap_.empty());
+    EXPECT_EQ(mockEnv.GetState().unhandledErrorExists, ANI_FALSE);
 }
 
 /**
