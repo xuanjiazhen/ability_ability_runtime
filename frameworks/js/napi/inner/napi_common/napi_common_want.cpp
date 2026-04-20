@@ -745,7 +745,7 @@ bool InnerSetWantParamsArrayInt(const std::string &key, const std::vector<int> &
     }
 }
 
-bool InnerSetWantParamsArrayLong(const std::string &key, const std::vector<long> &value, AAFwk::WantParams &wantParams)
+bool InnerSetWantParamsArrayLong(const std::string &key, const std::vector<int64_t> &value, AAFwk::WantParams &wantParams)
 {
     size_t size = value.size();
     sptr<AAFwk::IArray> ao = new (std::nothrow) AAFwk::Array(size, AAFwk::g_IID_ILong);
