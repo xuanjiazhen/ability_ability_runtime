@@ -26,6 +26,7 @@ namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr int32_t CLI_TOOL_MGR_SERVICE_ID = 186;
+constexpr int32_t ERROR_CODE = -1;
 }
 
 CliToolMGRClient& CliToolMGRClient::GetInstance()
@@ -102,5 +103,54 @@ void CliToolMGRClient::ResetProxy(const wptr<IRemoteObject>& remote)
         proxy_ = nullptr;
     }
 }
+
+int32_t CliToolMGRClient::QueryTools(std::vector<ToolInfo> &tools)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolMGRClient QueryTools called");
+    auto proxy = GetCliToolManager();
+    if (!proxy) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Proxy is null");
+        return ERROR_CODE;
+    }
+    proxy->QueryTools(tools);
+    return ERR_OK;
+}
+
+int32_t CliToolMGRClient::QueryToolSummaries(std::vector<ToolSummary> &summaries)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolMGRClient QueryToolSummaries called");
+    auto proxy = GetCliToolManager();
+    if (!proxy) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Proxy is null");
+        return ERROR_CODE;
+    }
+    proxy->QueryToolSummaries(summaries);
+    return ERR_OK;
+}
+
+int32_t CliToolMGRClient::GetToolInfoByName(const std::string &name, ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolMGRClient GetToolInfoByName called, name='%{public}s'", name.c_str());
+    auto proxy = GetCliToolManager();
+    if (!proxy) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Proxy is null");
+        return ERROR_CODE;
+    }
+    proxy->GetToolInfoByName(name, tool);
+    return ERR_OK;
+}
+
+int32_t CliToolMGRClient::RegisterCliTool(const ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolMGRClient RegisterCliTool called, tool name='%{public}s'", tool.name.c_str());
+    auto proxy = GetCliToolManager();
+    if (!proxy) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Proxy is null");
+        return ERROR_CODE;
+    }
+    proxy->RegisterCliTool(tool);
+    return ERR_OK;
+}
+
 } // namespace CliTool
 } // namespace OHOS

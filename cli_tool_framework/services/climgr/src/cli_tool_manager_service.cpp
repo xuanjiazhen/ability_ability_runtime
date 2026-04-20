@@ -39,7 +39,6 @@ sptr<CliToolManagerService> CliToolManagerService::GetInstance()
 void CliToolManagerService::OnStart()
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr start");
-    // Publish the service
     auto cliService = CliToolManagerService::GetInstance();
     if (cliService == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "cli service is nullptr");
@@ -49,10 +48,49 @@ void CliToolManagerService::OnStart()
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Publish failed");
         return;
     }
+
+    // Load tools from ability_tool.json on startup
+    auto& dataManager = CliToolDataManager::GetInstance();
+    int32_t ret = dataManager.LoadToolsFromFile("/etc/cli/ability_tool.json");
+    if (ret != 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to load tools from ability_tool.json: %{public}d", ret);
+    } else {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully loaded tools from ability_tool.json");
+    }
 }
 
 void CliToolManagerService::OnStop()
 {
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr stop");
 }
+
+void CliToolManagerService::QueryTools(std::vector<ToolInfo> &tools)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolManagerService QueryTools called");
+    auto& dataManager = CliToolDataManager::GetInstance();
+    dataManager.GetAllTools(tools);
+}
+
+void CliToolManagerService::QueryToolSummaries(std::vector<ToolSummary> &summaries)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolManagerService QueryToolSummaries called");
+    auto& dataManager = CliToolDataManager::GetInstance();
+    dataManager.QueryToolSummaries(summaries);
+}
+
+void CliToolManagerService::GetToolInfoByName(const std::string &name, ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolManagerService GetToolInfoByName called, name='%{public}s'", name.c_str());
+    auto& dataManager = CliToolDataManager::GetInstance();
+    dataManager.GetToolByName(name, tool);
+}
+
+void CliToolManagerService::RegisterCliTool(const ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolManagerService RegisterCliTool called, tool name='%{public}s'", tool.name.c_str());
+    auto& dataManager = CliToolDataManager::GetInstance();
+    dataManager.RegisterTool(tool);
+}
+
 } // namespace CliTool
 } // namespace OHOS

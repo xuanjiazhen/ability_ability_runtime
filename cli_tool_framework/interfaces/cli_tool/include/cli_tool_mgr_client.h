@@ -19,6 +19,7 @@
 #include <mutex>
 
 #include "icli_tool_manager.h"
+#include "cli_tool_manager_data.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -41,10 +42,39 @@ public:
      */
     ~CliToolMGRClient() = default;
 
+    /**
+     * @brief Query all available tools
+     * @param tools Output vector of tool information
+     * @return Returns ERR_OK on success, others on failure
+     */
+    int32_t QueryTools(std::vector<ToolInfo> &tools);
+
+    /**
+     * @brief Query tool summaries (lightweight for listing)
+     * @param summaries Output vector of tool summary information
+     * @return Returns ERR_OK on success, others on failure
+     */
+    int32_t QueryToolSummaries(std::vector<ToolSummary> &summaries);
+
+    /**
+     * @brief Get tool information by name
+     * @param name Tool name
+     * @param tool Output tool information
+     * @return Returns ERR_OK on success, others on failure
+     */
+    int32_t GetToolInfoByName(const std::string &name, ToolInfo &tool);
+
+    /**
+     * @brief Register a CLI tool
+     * @param tool Tool information to register
+     * @return Returns ERR_OK on success, others on failure
+     */
+    int32_t RegisterCliTool(const ToolInfo &tool);
+
 private:
     CliToolMGRClient() = default;
     DISALLOW_COPY_AND_MOVE(CliToolMGRClient);
-    
+
     class CliSaDeathRecipient : public IRemoteObject::DeathRecipient {
         public:
         CliSaDeathRecipient() = default;
@@ -53,7 +83,7 @@ private:
         private:
         DISALLOW_COPY_AND_MOVE(CliSaDeathRecipient);
     };
-    
+
     sptr<ICliToolManager> GetCliToolManager();
     ErrCode Connect();
     /**
