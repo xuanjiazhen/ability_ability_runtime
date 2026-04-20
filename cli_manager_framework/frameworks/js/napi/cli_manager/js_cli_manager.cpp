@@ -15,6 +15,7 @@
 
 #include "js_cli_manager.h"
 
+#include <chrono>
 #include <cstdint>
 #include <memory>
 
@@ -41,6 +42,15 @@ constexpr size_t INDEX_ZERO = 0;
 constexpr size_t INDEX_ONE = 1;
 constexpr size_t INDEX_TWO = 2;
 constexpr size_t INDEX_THREE = 3;
+
+// 时间戳日志宏（微秒级）
+#define LOG_TIMESTAMP(tag, desc) \
+    do { \
+        auto nowUs = std::chrono::duration_cast<std::chrono::microseconds>( \
+            std::chrono::system_clock::now().time_since_epoch()).count(); \
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "[TIMESTAMP] [%{public}s] %{public}lld - %{public}s", \
+            tag, static_cast<long long>(nowUs), desc); \
+    } while(0)
 }
 
 class JsCliManager final {
@@ -82,6 +92,7 @@ public:
 private:
     napi_value OnQueryTools(napi_env env, size_t argc, napi_value *argv)
     {
+        LOG_TIMESTAMP("NAPI", "OnQueryTools ENTRY");
         TAG_LOGI(AAFwkTag::ABILITYMGR, "OnQueryTools called");
 
         HandleEscape handleEscape(env);
@@ -89,12 +100,15 @@ private:
         auto tools = std::make_shared<std::vector<ToolInfo>>();
 
         NapiAsyncTask::ExecuteCallback execute = [innerErrCode, tools]() {
+            LOG_TIMESTAMP("NAPI-Execute", "QueryTools IPC client call START");
             *innerErrCode = CliManagerClient::GetInstance().QueryTools(*tools);
+            LOG_TIMESTAMP("NAPI-Execute", "QueryTools IPC client call END");
             TAG_LOGI(AAFwkTag::ABILITYMGR, "QueryTools returned errCode=%{public}d, tools.size()=%{public}zu",
                 *innerErrCode, tools->size());
         };
 
         NapiAsyncTask::CompleteCallback complete = [innerErrCode, tools](napi_env env, NapiAsyncTask &task, int32_t status) {
+            LOG_TIMESTAMP("NAPI-Complete", "QueryTools CompleteCallback START");
             HandleScope handleScope(env);
             if (*innerErrCode == ERR_OK) {
                 napi_value jsTools = CreateJsToolInfoArray(env, *tools);
@@ -102,6 +116,7 @@ private:
             } else {
                 task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
             }
+            LOG_TIMESTAMP("NAPI-Complete", "QueryTools CompleteCallback END (NAPI Execute Done)");
         };
 
         napi_value lastParam = (argc > 0) ? argv[argc - 1] : nullptr;
@@ -113,6 +128,7 @@ private:
 
     napi_value OnExecTool(napi_env env, size_t argc, napi_value *argv)
     {
+        LOG_TIMESTAMP("NAPI", "OnExecTool ENTRY");
         TAG_LOGI(AAFwkTag::ABILITYMGR, "OnExecTool called");
 
         HandleEscape handleEscape(env);
@@ -151,11 +167,14 @@ private:
         auto session = std::make_shared<SessionInfo>();
 
         NapiAsyncTask::ExecuteCallback execute = [innerErrCode, name, args, options, challenge, session]() {
+            LOG_TIMESTAMP("NAPI-Execute", "ExecTool IPC client call START");
             *innerErrCode = CliManagerClient::GetInstance().ExecTool(name, args, options, challenge, *session);
+            LOG_TIMESTAMP("NAPI-Execute", "ExecTool IPC client call END");
         };
 
         NapiAsyncTask::CompleteCallback complete = [innerErrCode, session](
             napi_env env, NapiAsyncTask &task, int32_t status) {
+            LOG_TIMESTAMP("NAPI-Complete", "ExecTool CompleteCallback START");
             HandleScope handleScope(env);
 
             if (*innerErrCode != ERR_OK) {
@@ -170,6 +189,7 @@ private:
             }
 
             task.ResolveWithNoError(env, jsSession);
+            LOG_TIMESTAMP("NAPI-Complete", "ExecTool CompleteCallback END (NAPI Execute Done)");
         };
 
         napi_value lastParam = nullptr;
