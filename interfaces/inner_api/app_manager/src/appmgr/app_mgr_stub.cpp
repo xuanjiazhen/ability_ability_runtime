@@ -443,6 +443,8 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleRegisterImageProcessStateObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_IMAGE_PROCESS_STATE_OBSERVER):
             return HandleUnregisterImageProcessStateObserver(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::ENABLE_DELAYED_PROCESS_EXIT):
+            return HandleEnableDelayedProcessExit(data, reply);
     }
     return INVALID_FD;
 }
@@ -2411,6 +2413,15 @@ int32_t AppMgrStub::HandleGetAllAbilityInfos(MessageParcel &data, MessageParcel 
             return ERR_APPEXECFWK_PARCEL_ERROR;
         }
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleEnableDelayedProcessExit(MessageParcel &data, MessageParcel &reply)
+{
+    pid_t pid = data.ReadInt32();
+    bool enabled = data.ReadBool();
+    auto result = EnableDelayedProcessExit(pid, enabled);
+    reply.WriteInt32(result);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk

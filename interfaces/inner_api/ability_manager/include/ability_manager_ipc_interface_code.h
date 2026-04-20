@@ -737,6 +737,9 @@ enum class AbilityManagerInterfaceCode {
 
     // query entity
     INSIGHT_INTENT_QUERY_ENTITY = 6165,
+
+    // start self uiability by application context in current process
+    START_SELF_UI_ABILITY_BY_APP_CONTEXT = 6166,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -994,6 +994,12 @@ void AppRunningManager::TerminateAbility(const sptr<IRemoteObject> &token, bool 
     auto isKeepAliveApp = appRecord->IsKeepAliveApp();
     TAG_LOGI(AAFwkTag::PROCESSMGR, "terminate isLast:%{public}d,isLastAgentAbility:%{public}d,keepAlive:%{public}d",
         isLastAbility, isLastAgentAbility, isKeepAliveApp);
+    if (isLastAbility && appRecord->IsDelayedProcessExitEnabled() && appMgrServiceInner != nullptr) {
+        auto delayedExitTime = AbilityRuntime::GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME;
+        std::string taskName = std::string("DELAY_EXIT_PROCESS_") + std::to_string(appRecord->GetRecordId());
+        appRecord->PostTask(taskName, delayedExitTime, killProcess);
+        return;
+    }
     if ((isLastAbility || isLastAgentAbility) && !isKeepAliveApp && !isLauncherApp) {
         auto cacheProcMgr = DelayedSingleton<CacheProcessManager>::GetInstance();
         if (cacheProcMgr != nullptr) {

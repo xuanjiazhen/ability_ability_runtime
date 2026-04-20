@@ -1271,6 +1271,16 @@ public:
         return isAllowScbProcessMoveToBackground_.load();
     }
 
+    inline void EnableDelayedProcessExit(bool enabled)
+    {
+        delayedProcessExitEnabled_ = enabled;
+    }
+
+    inline bool IsDelayedProcessExitEnabled() const
+    {
+        return delayedProcessExitEnabled_;
+    }
+
     bool IsLastAgentExtensionAbility(const sptr<IRemoteObject> &token);
 
 private:
@@ -1466,6 +1476,7 @@ private:
     bool isNativeStart_ = false;
     bool isNeedLimitPrio_ = false;
     bool isNeedPreloadModule_ = false;
+    bool delayedProcessExitEnabled_ = false;
     bool isPrepareExit_ = false;
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isSingleton_ = false;

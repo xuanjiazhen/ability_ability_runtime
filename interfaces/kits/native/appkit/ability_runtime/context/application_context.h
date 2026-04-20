@@ -153,6 +153,9 @@ public:
     void KillProcessBySelf(const bool clearPageStack = false);
     int32_t GetProcessRunningInformation(AppExecFwk::RunningProcessInfo &info);
     int32_t RestartApp(const AAFwk::Want& want);
+    int32_t EnableDelayedProcessExit();
+    int32_t DisableDelayedProcessExit();
+    int32_t StartSelfUIAbility(const AAFwk::Want &want);
 
     void AttachContextImpl(const std::shared_ptr<ContextImpl> &contextImpl);
 
@@ -219,6 +222,7 @@ protected:
     }
 
 private:
+    bool IsDelayedProcessExitPending() const;
     std::vector<std::shared_ptr<InteropAbilityLifecycleCallback>> GetInteropCallbacks();
 
 private:
@@ -244,6 +248,8 @@ private:
     std::string dataDir_;
     std::mutex dataDirMutex_;
     std::mutex systemConfigurationUpdatedCallbackLock_;
+    mutable std::mutex delayedProcessExitStateLock_;
+    bool delayedProcessExitEnabled_ = false;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS

@@ -2918,5 +2918,22 @@ int32_t AppMgrProxy::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFw
 
     return ret;
 }
+
+int32_t AppMgrProxy::EnableDelayedProcessExit(int32_t pid, bool enabled)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Write interface token failed.");
+        return ERR_INVALID_VALUE;
+    }
+
+    PARCEL_UTIL_WRITE_RET_INT(data, Int32, pid);
+    PARCEL_UTIL_WRITE_RET_INT(data, Bool, enabled);
+    PARCEL_UTIL_SENDREQ_RET_INT(AppMgrInterfaceCode::ENABLE_DELAYED_PROCESS_EXIT, data, reply, option);
+    return reply.ReadInt32();
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

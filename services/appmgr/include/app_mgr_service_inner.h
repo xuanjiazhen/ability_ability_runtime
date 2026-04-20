@@ -1764,6 +1764,7 @@ public:
      */
     int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos);
 
+    int32_t EnableDelayedProcessExit(int32_t pid, bool enabled);
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
