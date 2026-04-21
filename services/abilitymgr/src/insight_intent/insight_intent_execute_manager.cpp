@@ -27,6 +27,8 @@
 #include "want_params_wrapper.h"
 #include "time_util.h"
 #include "res_sched_util.h"
+#include "distributed_ability_runtime/distributed_client.h"
+#include "distributed_sched_types.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -60,7 +62,7 @@ InsightIntentExecuteManager::~InsightIntentExecuteManager() = default;
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const std::shared_ptr<AppExecFwk::InsightIntentExecuteParam> &param, std::string callerBundleName,
-    const bool ignoreAbilityName)
+    const bool ignoreAbilityName, bool isDistributed, const std::string &srcDeviceId, int32_t requestCode)
 {
     int32_t result = CheckCallerPermission();
     if (result != ERR_OK && (param == nullptr || !param->isServiceMatch_)) {
@@ -80,7 +82,8 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
         return ERR_INVALID_VALUE;
     }
     uint64_t intentId = 0;
-    result = AddRecord(key, callerToken, param->bundleName_, intentId, callerBundleName);
+    result = AddRecord(key, callerToken, param->bundleName_,
+        intentId, callerBundleName, isDistributed, srcDeviceId, requestCode);
     if (result != ERR_OK) {
         return result;
     }
@@ -167,7 +170,8 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
 }
 
 int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteObject> &callerToken,
-    const std::string &bundleName, uint64_t &intentId, const std::string &callerBundleName)
+    const std::string &bundleName, uint64_t &intentId, const std::string &callerBundleName,
+    bool isDistributed, const std::string &deviceId, int32_t requestCode)
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
     intentId = ++intentIdCount_;
@@ -177,6 +181,9 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
     record->callerToken = callerToken;
     record->bundleName = bundleName;
     record->callerBundleName = callerBundleName;
+    record->isDistributed = isDistributed;
+    record->deviceId = deviceId;
+    record->requestCode = requestCode;
     if (callerToken != nullptr) {
         record->deathRecipient = sptr<InsightIntentExecuteRecipient>::MakeSptr(intentId);
         callerToken->AddDeathRecipient(record->deathRecipient);
@@ -188,7 +195,9 @@ int32_t InsightIntentExecuteManager::AddRecord(uint64_t key, const sptr<IRemoteO
         // save the latest INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE records
         records_.erase(intentId - INSIGHT_INTENT_EXECUTE_RECORDS_MAX_SIZE);
     }
-    TAG_LOGI(AAFwkTag::INTENT, "init done, records_ size: %{public}zu", records_.size());
+    TAG_LOGI(AAFwkTag::INTENT, "init done, records_ size: %{public}zu,
+        isDistributed: %{public}d, deviceId: %{public}s, requestCode: %{public}d",
+        records_.size(), isDistributed, deviceId.c_str(), requestCode);
     return ERR_OK;
 }
 
@@ -230,13 +239,34 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
         return ERR_INVALID_OPERATION;
     }
     record->state = InsightIntentExecuteState::EXECUTE_DONE;
-    sptr<IInsightIntentExecuteCallback> remoteCallback = iface_cast<IInsightIntentExecuteCallback>(record->callerToken);
-    if (remoteCallback == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "intentExecuteCallback empty,"
-            " intentId: %{public}" PRIu64 ", records_ size: %{public}zu", intentId, records_.size());
-        return ERR_INVALID_VALUE;
+    
+    if (record->isDistributed) {
+        TAG_LOGI(AAFwkTag::INTENT, "distributed callback, intentId: %{public}" PRIu64 ",
+            deviceId: %{public}s, requestCode: %{public}d",
+            intentId, record->deviceId.c_str(), record->requestCode);
+        
+        DistributedSchedule::DistributedIntentResultInfo resultInfo;
+        resultInfo.resultCode = resultCode;
+        resultInfo.result = std::make_shared<AppExecFwk::InsightIntentExecuteResult>(result);
+        resultInfo.callbackKey = record->key;
+        resultInfo.requestCode = record->requestCode;
+        
+        DistributedClient dmsClient;
+        int32_t ret = dmsClient.SendIntentResult(record->deviceId, resultInfo);
+        if (ret != ERR_OK) {
+            TAGTAG_LOGE(AAFwkTag::INTENT, "SendIntentResult failed: %{public}d", ret);
+        }
+    } else {
+        sptr<IInsightIntentExecuteCallback> remoteCallback =
+            iface_cast<IInsightIntentExecuteCallback>(record->callerToken);
+        if (remoteCallback == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "intentExecuteCallback empty,"
+                " intentId: %{public}" PRIu64 ", records_ size: %{public}zu", intentId, records_.size());
+            return ERR_INVALID_VALUE;
+        }
+        remoteCallback->OnExecuteDone(record->key, resultCode, result);
     }
-    remoteCallback->OnExecuteDone(record->key, resultCode, result);
+    
     if (record->callerToken != nullptr) {
         record->callerToken->RemoveDeathRecipient(record->deathRecipient);
         record->callerToken = nullptr;
