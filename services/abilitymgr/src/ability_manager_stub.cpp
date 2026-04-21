@@ -999,6 +999,12 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::INSIGHT_INTENT_QUERY_ENTITY) {
         return QueryEntityInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_SKILL_BY_HDC) {
+        return StartSkillByHDCInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_SKILL_BY_HDC_DONE) {
+        return StartSkillByHDCDoneInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -5532,6 +5538,46 @@ int32_t AbilityManagerStub::SetAppRecoveryFlagInner(MessageParcel &data, Message
     }
     int flag = data.ReadInt32();
     int32_t result = SetAppRecoveryFlag(token, flag);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartSkillByHDCInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start skill by hdc stub");
+    std::string bundleName = Str16ToStr8(data.ReadString16());
+    std::string moduleName = Str16ToStr8(data.ReadString16());
+    std::string skillName = Str16ToStr8(data.ReadString16());
+
+    auto params = std::shared_ptr<WantParams>(data.ReadParcelable<WantParams>());
+    if (params == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read params fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    std::string srcEntrance = Str16ToStr8(data.ReadString16());
+    std::string funcName = Str16ToStr8(data.ReadString16());
+    int32_t result = StartSkillByHDC(bundleName, moduleName, skillName, params, srcEntrance, funcName);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartSkillByHDCDoneInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start skill by hdc done stub");
+    auto token = data.ReadRemoteObject();
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null token");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto executeResult = std::unique_ptr<SkillExecuteResult>(data.ReadParcelable<SkillExecuteResult>());
+    if (!executeResult) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read result fail");
+        return ERR_INVALID_VALUE;
+    }
+
+    int32_t result = StartSkillByHDCDone(token, *executeResult);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
