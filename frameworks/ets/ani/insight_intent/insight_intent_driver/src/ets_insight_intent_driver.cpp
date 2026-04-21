@@ -137,7 +137,7 @@ public:
         if (exparam == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "invalid param");
             error = EtsErrorUtil::CreateInvalidParamError(env, "invalid param");
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            AsyncCallback(env, callback, error, nullptr);
             return;
         }
 
@@ -146,7 +146,7 @@ public:
             TAG_LOGE(AAFwkTag::INTENT, "parse execute param failed");
             error = EtsErrorUtil::CreateInvalidParamError(env,
                 "Parameter error: Parse param failed, param must be a ExecuteParam.");
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            AsyncCallback(env, callback, error, nullptr);
             return;
         }
 
@@ -155,7 +155,7 @@ public:
             TAG_LOGE(AAFwkTag::INTENT, "GlobalReference_Create failed");
             error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
                 AbilityErrorCode::ERROR_CODE_INNER));
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            AsyncCallback(env, callback, error, nullptr);
             return;
         }
 
@@ -164,7 +164,7 @@ public:
             TAG_LOGE(AAFwkTag::INTENT, "GetVM failed");
             error = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(
                 AbilityErrorCode::ERROR_CODE_INNER));
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            AsyncCallback(env, callback, error, nullptr);
             return;
         }
 
@@ -179,7 +179,7 @@ public:
             InsightIntentHostClient::GetInstance(), param);
         if (err != 0) {
             error = EtsErrorUtil::CreateErrorByNativeErr(env, err);
-            AsyncCallback(env, callback, error, CreateNullExecuteResult(env));
+            AsyncCallback(env, callback, error, nullptr);
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
         }
         return;
