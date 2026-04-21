@@ -57,6 +57,7 @@
 #include "extension_running_timeout_monitor.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_db_cache.h"
+#include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
 #include "interceptor/ability_jump_interceptor.h"
 #include "interceptor/block_all_app_start_interceptor.h"
@@ -14211,6 +14212,102 @@ int32_t AbilityManagerService::ExecuteInsightIntentDone(const sptr<IRemoteObject
     ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->ExecuteIntentDone(
         intentId, result.innerErr, result);
     FreezeUtil::GetInstance().AddLifecycleEvent(token, "ExecuteInsightIntentDone end");
+    return ret;
+}
+
+int32_t AbilityManagerService::StartSkillByHDC(const std::string &bundleName, const std::string &moduleName,
+    const std::string &skillName, const std::shared_ptr<WantParams> &params, uint64_t skillId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "start skill by hdc, bundle:%{public}s module:%{public}s skill:%{public}s id:%{public}" PRIu64 "",
+        bundleName.c_str(), moduleName.c_str(), skillName.c_str(), skillId);
+
+    // Register the skill execution record
+    uint64_t registeredSkillId = skillId;
+    auto ret = DelayedSingleton<SkillExecuteManager>::GetInstance()->RegisterSkillExecution(
+        nullptr, bundleName, registeredSkillId);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "register skill execution failed");
+        return ret;
+    }
+
+    // Generate the Want with skill parameters embedded
+    Want want;
+    ret = DelayedSingleton<SkillExecuteManager>::GetInstance()->GenerateSkillWant(
+        bundleName, moduleName, skillName, params, registeredSkillId, want);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "generate skill want failed");
+        return ret;
+    }
+
+    return StartAbilityByCallWithSkillIntent(want, nullptr, IPCSkeleton::GetCallingUserId());
+}
+
+int32_t AbilityManagerService::StartAbilityByCallWithSkillIntent(const Want &want,
+    const sptr<IRemoteObject> &callerToken, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability by call with skill intent");
+    sptr<IAbilityConnection> connect = sptr<AbilityBackgroundConnection>::MakeSptr();
+    if (connect == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid connect");
+        return ERR_INVALID_VALUE;
+    }
+
+    AbilityRequest abilityRequest;
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
+    abilityRequest.callerUid = IPCSkeleton::GetCallingUid();
+    abilityRequest.callerToken = callerToken;
+    abilityRequest.startSetting = nullptr;
+    abilityRequest.want = want;
+    abilityRequest.connect = connect;
+    int32_t oriValidUserId = GetValidUserId(userId);
+    int32_t result = GenerateAbilityRequest(want, -1, abilityRequest, callerToken, oriValidUserId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request error");
+        return result;
+    }
+
+    std::shared_ptr<AbilityRecord> targetRecord;
+    if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ability already started");
+        UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
+        result = OnExecuteIntent(abilityRequest, targetRecord);
+    } else {
+        result = StartAbilityByCall(want, connect, callerToken, oriValidUserId);
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "startAbilityByCallWithSkillIntent result:%{public}d", result);
+    return result;
+}
+
+int32_t AbilityManagerService::StartSkillByHDCDone(const sptr<IRemoteObject> &token, uint64_t skillId,
+    const SkillExecuteResult &result)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "start skill by hdc done, skillId:%{public}" PRIu64 " code:%{public}d", skillId, result.code);
+
+    auto abilityRecord = Token::GetAbilityRecordByToken(token);
+    CHECK_POINTER_AND_RETURN_LOG(abilityRecord, ERR_INVALID_VALUE, "Ability record is nullptr.");
+    if (!JudgeSelfCalled(abilityRecord)) {
+        return CHECK_PERMISSION_FAILED;
+    }
+
+    // Verify bundleName matches the registered record
+    std::string bundleNameStored;
+    auto ret = DelayedSingleton<SkillExecuteManager>::GetInstance()->GetBundleName(skillId, bundleNameStored);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "skillId not found:%{public}" PRIu64 "", skillId);
+        return ERR_INVALID_VALUE;
+    }
+
+    std::string bundleName = abilityRecord->GetAbilityInfo().bundleName;
+    if (bundleNameStored != bundleName) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "bundleName %{public}s and %{public}s mismatch", bundleName.c_str(), bundleNameStored.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    ret = DelayedSingleton<SkillExecuteManager>::GetInstance()->ExecuteSkillDone(skillId, result);
     return ret;
 }
 

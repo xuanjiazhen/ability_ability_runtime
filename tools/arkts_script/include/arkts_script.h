@@ -43,6 +43,7 @@ enum class ExecutionMode {
     DIRECT_ABC,
     SKILL_BUNDLE,
     MODULE_FUNC,
+    HDC_SKILL,
 };
 
 struct ScriptArgs {
@@ -54,6 +55,7 @@ struct ScriptArgs {
     ExecutionMode mode = ExecutionMode::DIRECT_ABC;
     std::map<std::string, JsonValue> params;
     bool showHelp = false;
+    bool hdcMode = false;
 
     void Print() const;
 };

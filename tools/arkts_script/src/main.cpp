@@ -18,10 +18,13 @@
 #include "hilog_tag_wrapper.h"
 
 #include <atomic>
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 
+#include "ability_manager_client.h"
 #include "event_runner.h"
+#include "skill/skill_execute_param.h"
 
 namespace OHOS {
 namespace ArktsScript {
@@ -171,6 +174,35 @@ int RunSkillMode(const ScriptArgs& args, const std::shared_ptr<EventRunner>& run
     return EXIT_SUCCESS;
 }
 
+int RunHdcSkillMode(const ScriptArgs& args, const std::shared_ptr<EventRunner>& runner,
+    ExecutionContext& execContext)
+{
+    using namespace OHOS::AAFwk;
+
+    auto params = std::make_shared<WantParams>();
+    uint64_t skillId = static_cast<uint64_t>(std::chrono::steady_clock::now().time_since_epoch().count());
+
+    auto client = AbilityManagerClient::GetInstance();
+    if (client == nullptr) {
+        OutputError("failed to get AbilityManagerClient", "CLIENT_ERROR");
+        return EXIT_FAILURE;
+    }
+
+    TAG_LOGI(AAFwkTag::APPKIT,
+        "HDC skill mode: bundle=%{public}s module=%{public}s skill=%{public}s",
+        args.bundleName.c_str(), args.moduleName.c_str(), args.skillName.c_str());
+
+    auto ret = client->StartSkillByHDC(
+        args.bundleName, args.moduleName, args.skillName, params, skillId);
+    if (ret != ERR_OK) {
+        OutputError("StartSkillByHDC failed with code: " + std::to_string(ret), "IPC_ERROR");
+        return EXIT_FAILURE;
+    }
+
+    execContext.isPromise.store(true);
+    return EXIT_SUCCESS;
+}
+
 int WaitForAsyncResult(const std::unique_ptr<JsRuntime>& runtime,
     const std::shared_ptr<EventRunner>& runner, ExecutionContext& execContext)
 {
@@ -265,6 +297,9 @@ int main(int argc, char* argv[])
     if (args.mode == ExecutionMode::DIRECT_ABC) {
         TAG_LOGI(AAFwkTag::APPKIT, "Running in DIRECT_ABC mode");
         execRet = RunDirectAbcMode(args, runner, execContext, runtime);
+    } else if (args.mode == ExecutionMode::HDC_SKILL) {
+        TAG_LOGI(AAFwkTag::APPKIT, "Running in HDC_SKILL mode");
+        execRet = RunHdcSkillMode(args, runner, execContext);
     } else {
         TAG_LOGI(AAFwkTag::APPKIT, "Running in SKILL/MODULE mode");
         execRet = RunSkillMode(args, runner, execContext, runtime);
@@ -272,6 +307,15 @@ int main(int argc, char* argv[])
 
     if (execRet != EXIT_SUCCESS) {
         return execRet;
+    }
+
+    // HDC mode: the skill executes asynchronously in the target process.
+    // The IPC call returns immediately after triggering execution.
+    // Result is delivered back via StartSkillByHDCDone IPC callback.
+    if (args.mode == ExecutionMode::HDC_SKILL) {
+        TAG_LOGI(AAFwkTag::APPKIT, "HDC skill dispatched successfully");
+        OutputResult("{\"status\":\"dispatched\"}");
+        return EXIT_SUCCESS;
     }
 
     int result = WaitForAsyncResult(runtime, runner, execContext);

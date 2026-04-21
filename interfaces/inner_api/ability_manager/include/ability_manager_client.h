@@ -2211,6 +2211,12 @@ public:
      */
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
 
+    ErrCode StartSkillByHDC(const std::string &bundleName, const std::string &moduleName,
+        const std::string &skillName, const std::shared_ptr<WantParams> &params, uint64_t skillId);
+
+    int32_t StartSkillByHDCDone(const sptr<IRemoteObject> &token, uint64_t skillId,
+        const SkillExecuteResult &result);
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);

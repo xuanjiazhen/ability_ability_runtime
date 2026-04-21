@@ -47,6 +47,7 @@ class LifeCycle;
 class ContinuationHandlerStage;
 class ContinuationManagerStage;
 class InsightIntentExecuteParam;
+class SkillExecuteParam;
 struct BaseDelegatorAbilityProperty;
 struct InsightIntentExecuteResult;
 using InsightIntentExecutorAsyncCallback = AbilityTransactionCallbackInfo<InsightIntentExecuteResult>;
@@ -61,6 +62,7 @@ class Runtime;
 using InsightIntentExecuteResult = AppExecFwk::InsightIntentExecuteResult;
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 using InsightIntentExecutorAsyncCallback = AppExecFwk::InsightIntentExecutorAsyncCallback;
+using SkillExecuteParam = AppExecFwk::SkillExecuteParam;
 class UIAbility : public AppExecFwk::AbilityContext,
                   public AppExecFwk::ILifeCycle,
                   public AppExecFwk::IAbilityCallback,
@@ -635,6 +637,14 @@ public:
     virtual void ExecuteInsightIntentBackground(const AAFwk::Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback);
+
+    /**
+     * @brief Execute skill in background.
+     * @param want Want containing skill parameters.
+     * @param skillParam Skill execution parameters.
+     */
+    virtual void ExecuteSkillBackground(const AAFwk::Want &want,
+        const std::shared_ptr<SkillExecuteParam> &skillParam);
 
     /**
      * @brief create modal UIExtension.

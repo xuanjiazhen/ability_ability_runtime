@@ -126,7 +126,8 @@ void PrintUsage(const char* execName, bool isErrorLog)
     const std::string usage = std::string("Usage:\n  ") + execName +
         " --abcPath <path> --funcName <name> [--params '{...}']\n  " + execName +
         " --bundleName <name> --skillName <name> [--params '{...}']\n  " + execName +
-        " --bundleName <name> --moduleName <name> --funcName <name> [--params '{...}']\n"
+        " --bundleName <name> --moduleName <name> --funcName <name> [--params '{...}']\n  " + execName +
+        " --bundleName <name> --skillName <name> --hdc [--params '{...}']\n"
         "Options:\n"
         "  --abcPath: ABC file path (direct mode, mutually exclusive with --bundleName)\n"
         "  --bundleName: Target bundle name (skill/module mode)\n"
@@ -136,13 +137,15 @@ void PrintUsage(const char* execName, bool isErrorLog)
         "  --params: Function arguments as JSON object (optional)\n"
         "    Keys must be in format: argv1, argv2, ...\n"
         "    Values are standard JSON types (string, number, boolean, object, array, null)\n"
+        "  --hdc: Use HDC IPC mode to execute skill in target app process\n"
         "  -h, --help: Show this help message\n"
         "Examples:\n  " + execName +
         " --abcPath /data/scripts/test.abc --funcName add "
         "--params '{\"argv1\":10,\"argv2\":20}'\n  " + execName +
         " --bundleName com.example.myskill --skillName mySkill "
         "--params '{\"argv1\":\"test\"}'\n  " + execName +
-        " --bundleName com.example.myskill --moduleName entry --funcName execute";
+        " --bundleName com.example.myskill --moduleName entry --funcName execute\n  " + execName +
+        " --bundleName com.example.myskill --skillName weather --hdc --params '{\"argv1\":\"test\"}'";
     if (isErrorLog) {
         TAG_LOGE(AAFwkTag::APPKIT, "%{public}s", usage.c_str());
         return;
@@ -254,6 +257,11 @@ bool ParseOneOption(const std::string& option, int& i, int argc, char* argv[],
         return true;
     }
 
+    if (option == "--hdc") {
+        args.hdcMode = true;
+        return true;
+    }
+
     TAG_LOGE(AAFwkTag::APPKIT, "Unknown option: %{public}s", option.c_str());
     return false;
 }
@@ -263,6 +271,15 @@ bool DetermineExecutionMode(ScriptArgs& args)
     if (!args.path.empty() && !args.bundleName.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "--abcPath and --bundleName are mutually exclusive");
         return false;
+    }
+
+    if (args.hdcMode && !args.bundleName.empty()) {
+        if (args.skillName.empty()) {
+            TAG_LOGE(AAFwkTag::APPKIT, "--hdc mode requires --skillName");
+            return false;
+        }
+        args.mode = ExecutionMode::HDC_SKILL;
+        return true;
     }
 
     if (!args.bundleName.empty()) {
