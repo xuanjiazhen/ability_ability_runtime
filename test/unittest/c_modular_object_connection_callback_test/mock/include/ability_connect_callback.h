@@ -1,0 +1,31 @@
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ */
+
+#ifndef MOCK_ABILITY_CONNECT_CALLBACK_H
+#define MOCK_ABILITY_CONNECT_CALLBACK_H
+
+#include "element_name.h"
+#include "iremote_broker.h"
+#include "refbase.h"
+#include "iremote_object.h"
+
+namespace OHOS {
+namespace AbilityRuntime {
+
+class AbilityConnectCallback : public RefBase {
+public:
+    AbilityConnectCallback() = default;
+    virtual ~AbilityConnectCallback() = default;
+
+    virtual void OnAbilityConnectDone(const AppExecFwk::ElementName &element,
+        const sptr<IRemoteObject> &remoteObject, int resultCode) = 0;
+    virtual void OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode) = 0;
+};
+
+} // namespace AbilityRuntime
+} // namespace OHOS
+
+#endif // MOCK_ABILITY_CONNECT_CALLBACK_H
