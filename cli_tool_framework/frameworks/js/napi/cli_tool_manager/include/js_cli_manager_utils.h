@@ -39,6 +39,22 @@ bool UnwrapStringMap(napi_env env, napi_value obj,
     std::map<std::string, std::string> &values);
 
 /**
+ * @brief Unwrap a string property from JavaScript object.
+ */
+bool ParseStringProperty(napi_env env, napi_value obj, const char *name, std::string &out);
+
+/**
+ * @brief Unwrap a string array property from JavaScript object.
+ */
+bool ParseStringArrayProperty(napi_env env, napi_value obj,
+    const char *name, std::vector<std::string> &out);
+
+/**
+ * @brief Create JavaScript arkToolResult object.
+ */
+napi_value CreateJsArkToolResult(napi_env env, int32_t code);
+
+/**
  * @brief Unwrap ExecOptions from JavaScript object.
  * @param env The N-API environment.
  * @param obj The JavaScript object.
