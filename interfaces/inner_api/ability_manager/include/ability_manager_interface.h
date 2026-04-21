@@ -41,6 +41,8 @@
 #include "iacquire_share_data_callback_interface.h"
 #include "insight_intent/insight_intent_execute_param.h"
 #include "insight_intent/insight_intent_execute_result.h"
+#include "skill/skill_execute_param.h"
+
 #include "insight_intent/insight_intent_info_for_query.h"
 #include "insight_intent/insight_intent_query_param.h"
 #include "iprepare_terminate_callback_interface.h"
@@ -92,6 +94,7 @@ using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 using InsightIntentExecuteResult = AppExecFwk::InsightIntentExecuteResult;
 using InsightIntentQueryParam = AppExecFwk::InsightIntentQueryParam;
+using SkillExecuteParam = AppExecFwk::SkillExecuteParam;
 using UIExtensionAbilityConnectInfo = AbilityRuntime::UIExtensionAbilityConnectInfo;
 using UIExtensionHostInfo = AbilityRuntime::UIExtensionHostInfo;
 using UIExtensionSessionInfo = AbilityRuntime::UIExtensionSessionInfo;
@@ -2711,6 +2714,20 @@ public:
     {
         return ERR_OK;
     }
+
+    /**
+     * @brief Start skill by HDC, launch target ability.
+     * @param bundleName The target bundle name.
+     * @param moduleName The target module name.
+     * @param skillName The skill name to execute.
+     * @param arkTSPath The target ArkTS file path.
+     * @param funcName The target function name.
+     * @param argv The arguments for skill execution.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartInAppSkill(const std::string &bundleName, const std::string &moduleName,
+        const std::string &skillName, const std::string &arkTSPath = "",
+        const std::string &funcName = "", const std::vector<std::string> &argv = {}) = 0;
 
     /**
      * @brief Set app recovery galg.

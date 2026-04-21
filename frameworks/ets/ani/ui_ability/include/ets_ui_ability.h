@@ -286,7 +286,7 @@ public:
     virtual void ExecuteInsightIntentBackground(const AAFwk::Want &want,
         const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
-    
+
     /**
      * @brief Called when startAbility request failed.
      * @param requestId, the requestId.
