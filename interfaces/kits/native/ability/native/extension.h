@@ -26,6 +26,7 @@
 #include "launch_param.h"
 #include "ui_extension_window_command.h"
 #include "want.h"
+#include "skill/skill_execute_param.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -258,6 +259,15 @@ public:
         const AppExecFwk::InsightIntentExecuteResult &result);
 
     virtual bool HandleInsightIntent(const AAFwk::Want &want);
+
+    /**
+     * @brief Execute skill by loading ArkTS script and calling the target function.
+     *
+     * @param want Want.
+     * @param param Skill execute param containing abc path, function name and arguments.
+     */
+    virtual void ExecuteSkill(const AAFwk::Want &want,
+        const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param) {}
 
     virtual bool OnInsightIntentExecuteDone(uint64_t intentId, const AppExecFwk::InsightIntentExecuteResult &result);
 

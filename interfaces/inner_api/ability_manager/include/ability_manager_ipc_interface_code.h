@@ -739,6 +739,12 @@ enum class AbilityManagerInterfaceCode {
 
     // query entity
     INSIGHT_INTENT_QUERY_ENTITY = 6165,
+
+    // start in-app skill
+    START_IN_APP_SKILL = 6166,
+
+    // start in-app skill done callback
+    START_IN_APP_SKILL_DONE = 6167,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

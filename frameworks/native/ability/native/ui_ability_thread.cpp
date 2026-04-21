@@ -25,6 +25,7 @@
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
+#include "skill_execute_param.h"
 #include "time_util.h"
 
 namespace OHOS {
@@ -657,7 +658,11 @@ void UIAbilityThread::OnExecuteIntent(const Want &want)
             return;
         }
         if (abilityThread->abilityImpl_ != nullptr) {
-            abilityThread->abilityImpl_->HandleExecuteInsightIntentBackground(want, true);
+            if (AppExecFwk::SkillExecuteParam::IsSkillExecute(want)) {
+                abilityThread->abilityImpl_->HandleExecuteSkill(want, true);
+            } else {
+                abilityThread->abilityImpl_->HandleExecuteInsightIntentBackground(want, true);
+            }
             return;
         }
     };

@@ -534,7 +534,6 @@ bool ArktsScript::CallResolvedFunction(const ScriptArgs& args, napi_env env, nap
         return false;
     }
 
-    callResult;
     return true;
 }
 

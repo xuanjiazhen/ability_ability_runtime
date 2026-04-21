@@ -23,6 +23,7 @@
 #include "ipc_object_proxy.h"
 #include "extension_context.h"
 #include "hilog_tag_wrapper.h"
+#include "skill/skill_execute_param.h"
 #include "ui_extension_wrapper.h"
 
 
@@ -107,7 +108,15 @@ void ExtensionImpl::HandleExtensionTransaction(const Want &want, const AAFwk::Li
             break;
         }
         case AAFwk::ABILITY_STATE_BACKGROUND_NEW: {
+#ifdef SUPPORT_GRAPHICS
+            if (AppExecFwk::SkillExecuteParam::IsSkillExecute(want)) {
+                HandleExecuteSkill(want);
+            } else {
+                Background(want, sessionInfo);
+            }
+#else
             Background(want, sessionInfo);
+#endif
             break;
         }
         default: {
@@ -429,6 +438,34 @@ bool ExtensionImpl::HandleInsightIntent(const Want &want)
         return false;
     }
     TAG_LOGD(AAFwkTag::EXT, "ok");
+    return true;
+}
+
+bool ExtensionImpl::HandleExecuteSkill(const Want &want, bool onlyExecuteSkill)
+{
+    TAG_LOGI(AAFwkTag::EXT, "handle execute skill");
+    auto param = std::make_shared<AppExecFwk::SkillExecuteParam>();
+    if (!AppExecFwk::SkillExecuteParam::GenerateFromWant(want, *param)) {
+        TAG_LOGE(AAFwkTag::EXT, "generate skill param from want failed");
+        if (!onlyExecuteSkill) {
+            Background(want, nullptr);
+        }
+        return true;
+    }
+
+    TAG_LOGI(AAFwkTag::EXT,
+        "skill bundle:%{public}s module:%{public}s name:%{public}s "
+        "arkTSPath:%{public}s func:%{public}s",
+        param->bundleName_.c_str(), param->moduleName_.c_str(),
+        param->skillName_.c_str(), param->arkTSPath_.c_str(),
+        param->funcName_.c_str());
+
+    if (extension_ != nullptr) {
+        extension_->ExecuteSkill(want, param);
+    }
+    if (!onlyExecuteSkill) {
+        Background(want, nullptr);
+    }
     return true;
 }
 

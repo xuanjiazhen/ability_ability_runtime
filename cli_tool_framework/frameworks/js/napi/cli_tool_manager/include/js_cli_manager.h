@@ -77,6 +77,15 @@ public:
      */
     static napi_value QueryTools(napi_env env, napi_callback_info info);
 
+    /**
+     * @brief Native method for executing an ArkTS tool.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value ExecArkTSTool(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for executing a CLI tool.
@@ -117,6 +126,8 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnQueryTools(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnExecArkTSTool(napi_env env, size_t argc, napi_value *argv);
 };
 
 /**
