@@ -282,6 +282,12 @@ public:
         const InsightIntentExecuteResult &result));
     MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         uint32_t specifyTokenId, int32_t userId, int requestCode));
+    MOCK_METHOD7(ExecuteInAppSkill, int32_t(const std::string&, const std::string&, const std::string&,
+        const std::string&, const std::string&,
+        const std::shared_ptr<AAFwk::WantParams>&, const sptr<ISkillExecuteCallback>&));
+    MOCK_METHOD4(ExecuteSkillDone, int32_t(const sptr<IRemoteObject>&, const std::string&, int32_t,
+        const AppExecFwk::SkillExecuteResult&));
+    MOCK_METHOD4(QuerySkillType, int32_t(const std::string&, const std::string&, const std::string&, int32_t&));
 
 private:
     Semaphore sem_;
