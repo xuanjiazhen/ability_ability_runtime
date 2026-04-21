@@ -45,6 +45,42 @@ const int USER_ID = 100;
 const size_t SIZE_ZERO = 0;
 const std::string BUNDLE_NAME = "BUNDLE_NAME";
 const std::string EMPTY_STRING = "";
+
+class IRemoteObjectMocker : public IRemoteObject {
+public:
+    IRemoteObjectMocker() : IRemoteObject {u"IRemoteObjectMocker"}
+    {}
+    ~IRemoteObjectMocker()
+    {}
+    int32_t GetObjectRefCount()
+    {
+        return 0;
+    }
+    int SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+    {
+        return 0;
+    }
+    bool IsProxyObject() const
+    {
+        return true;
+    }
+    bool CheckObjectLegality() const
+    {
+        return true;
+    }
+    bool AddDeathRecipient(const sptr<DeathRecipient>& recipient)
+    {
+        return true;
+    }
+    bool RemoveDeathRecipient(const sptr<DeathRecipient>& recipient)
+    {
+        return true;
+    }
+    int Dump(int fd, const std::vector<std::u16string>& args) override
+    {
+        return 0;
+    }
+};
 }  // namespace
 
 class AbilityManagerClientBranchTest : public testing::Test {
@@ -2897,6 +2933,69 @@ HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInCurrentProcess_0100
     std::string specifiedFlag;
     StartOptions startOptions;
     EXPECT_EQ(client_->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false, nullptr), ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0100
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with normal parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0100, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken)).WillOnce(Return(ERR_OK));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken), ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0200
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with service return error
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0200, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken))
+        .WillOnce(Return(ERR_CAPABILITY_NOT_SUPPORT));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken),
+        ERR_CAPABILITY_NOT_SUPPORT);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0300
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with empty want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0300, TestSize.Level1)
+{
+    Want want;
+    std::string specifiedFlag = "";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken))
+        .WillOnce(Return(START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken),
+        START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0400
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with valid callerToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0400, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = new IRemoteObjectMocker();
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken)).WillOnce(Return(INNER_ERR));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken), INNER_ERR);
 }
 
 /**

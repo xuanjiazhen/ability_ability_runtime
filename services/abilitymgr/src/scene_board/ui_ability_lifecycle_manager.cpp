@@ -1596,6 +1596,11 @@ int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRe
         return ERR_INVALID_VALUE;
     }
 
+    if (abilityRecord->GetNativeState() == AbilityNativeState::ATTACHED) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "state error");
+        return ERR_UI_ABILITY_IS_STARTING;
+    }
+
     if (abilityRecord->GetNativeState() == AbilityNativeState::NONE) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "not a NativeModule ability");
         return ERR_CAPABILITY_NOT_SUPPORT;
@@ -4809,6 +4814,32 @@ ErrCode UIAbilityLifecycleManager::IsUIAbilityAlreadyExist(const Want &want,
             (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
             it->second->GetInstanceKey() == instanceKey && it->second->GetAppIndex() == appIndex) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "UIAbility already exists");
+            return ERROR_UIABILITY_IS_ALREADY_EXIST;
+        }
+    }
+    return ERR_OK;
+}
+
+ErrCode UIAbilityLifecycleManager::IsSpecifiedUIAbilityAlreadyExist(const Want &want,
+    const std::string &specifiedFlag, int32_t appIndex, const std::string &instanceKey)
+{
+    std::unordered_map<int32_t, UIAbilityRecordPtr> tempSessionAbilityMap;
+    {
+        std::lock_guard<ffrt::mutex> guard(sessionLock_);
+        tempSessionAbilityMap = sessionAbilityMap_;
+    }
+    std::string moduleName = want.GetElement().GetModuleName();
+    std::string abilityName = want.GetElement().GetAbilityName();
+
+    for (auto it = tempSessionAbilityMap.begin(); it != tempSessionAbilityMap.end(); it++) {
+        if (it->second == nullptr) {
+            continue;
+        }
+        if (it->second->GetSpecifiedFlag() == specifiedFlag &&
+            it->second->GetAbilityInfo().name == abilityName &&
+            (moduleName.empty() || it->second->GetAbilityInfo().moduleName == moduleName) &&
+            it->second->GetAppIndex() == appIndex && it->second->GetInstanceKey() == instanceKey) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "specifiedFlag already exists");
             return ERROR_UIABILITY_IS_ALREADY_EXIST;
         }
     }
