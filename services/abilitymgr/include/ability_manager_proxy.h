@@ -2045,6 +2045,15 @@ public:
     virtual int32_t SetGamePreLaunchCompleteTime(int32_t userId, int64_t completeTime) override;
 
     /**
+     * Start Self UIAbility In Sub Process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
+        sptr<IRemoteObject> callerToken) override;
+
+    /**
      * Check if the app is restart-limited.
      * @return Returns true on being limited.
      */

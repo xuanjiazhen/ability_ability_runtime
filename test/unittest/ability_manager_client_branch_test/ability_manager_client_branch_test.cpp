@@ -45,6 +45,42 @@ const int USER_ID = 100;
 const size_t SIZE_ZERO = 0;
 const std::string BUNDLE_NAME = "BUNDLE_NAME";
 const std::string EMPTY_STRING = "";
+
+class IRemoteObjectMocker : public IRemoteObject {
+public:
+    IRemoteObjectMocker() : IRemoteObject {u"IRemoteObjectMocker"}
+    {}
+    ~IRemoteObjectMocker()
+    {}
+    int32_t GetObjectRefCount()
+    {
+        return 0;
+    }
+    int SendRequest(uint32_t code, MessageParcel& data, MessageParcel& reply, MessageOption& option)
+    {
+        return 0;
+    }
+    bool IsProxyObject() const
+    {
+        return true;
+    }
+    bool CheckObjectLegality() const
+    {
+        return true;
+    }
+    bool AddDeathRecipient(const sptr<DeathRecipient>& recipient)
+    {
+        return true;
+    }
+    bool RemoveDeathRecipient(const sptr<DeathRecipient>& recipient)
+    {
+        return true;
+    }
+    int Dump(int fd, const std::vector<std::u16string>& args) override
+    {
+        return 0;
+    }
+};
 }  // namespace
 
 class AbilityManagerClientBranchTest : public testing::Test {
@@ -2814,6 +2850,63 @@ HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInCurrentProcess_0100
     std::string specifiedFlag;
     StartOptions startOptions;
     EXPECT_EQ(client_->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false, nullptr), ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcess_0100
+ * @tc.desc: Test StartSelfUIAbilityInSubProcess with normal parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInSubProcess_0100, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_EQ(client_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken), ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcess_0200
+ * @tc.desc: Test StartSelfUIAbilityInSubProcess with null proxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInSubProcess_0200, TestSize.Level1)
+{
+    client_->proxy_ = nullptr;
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_EQ(client_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken),
+        GET_ABILITY_SERVICE_FAILED);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcess_0300
+ * @tc.desc: Test StartSelfUIAbilityInSubProcess with empty want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInSubProcess_0300, TestSize.Level1)
+{
+    Want want;
+    std::string specifiedFlag = "";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_EQ(client_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken), ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcess_0400
+ * @tc.desc: Test StartSelfUIAbilityInSubProcess with valid callerToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInSubProcess_0400, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = new IRemoteObjectMocker();
+    EXPECT_EQ(client_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken), ERR_OK);
 }
 
 /**

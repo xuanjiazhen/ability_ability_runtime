@@ -210,6 +210,15 @@ public:
         const AAFwk::StartOptions &startOptions, bool hasOptions, sptr<IRemoteObject> callerToken) override;
 
     /**
+     * Start Self UIAbility In Sub Process.
+     * @param want Ability want.
+     * @param specifiedFlag specified flag.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual ErrCode StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
+        sptr<IRemoteObject> callerToken) override;
+
+    /**
      * StartAbilityWithSpecifyTokenIdInner with want and specialId, send want to ability manager service.
      *
      * @param want, the want of the ability to start.

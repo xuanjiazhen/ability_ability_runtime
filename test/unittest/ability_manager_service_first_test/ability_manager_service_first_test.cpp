@@ -2904,6 +2904,68 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_004, TestSiz
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckCallAbilityPermission_004 end");
 }
 
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcess_0100
+ * @tc.desc: Test StartSelfUIAbilityInSubProcess with device not supported
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0100, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    // Device not supported will return NOT_TOP_ABILITY
+    auto res = abilityMs_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken);
+    // The result depends on AppUtils::IsStartUIAbilityInCurrentProcess
+}
 
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcess_0200
+ * @tc.desc: Test StartSelfUIAbilityInSubProcess with null callerToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0200, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    auto res = abilityMs_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken);
+    // The result depends on various conditions
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcess_0300
+ * @tc.desc: Test StartSelfUIAbilityInSubProcess with empty specifiedFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0300, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "";
+    sptr<IRemoteObject> callerToken = nullptr;
+    auto res = abilityMs_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcess_0400
+ * @tc.desc: Test StartSelfUIAbilityInSubProcess with valid want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0400, TestSize.Level1)
+{
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    want.SetParam("testParam", std::string("testValue"));
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = MockToken(AbilityType::PAGE);
+    auto res = abilityMs_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken);
+}
 } // namespace AAFwk
 } // namespace OHOS

@@ -739,6 +739,9 @@ enum class AbilityManagerInterfaceCode {
 
     // query entity
     INSIGHT_INTENT_QUERY_ENTITY = 6165,
+
+    // start self uiability in sub process
+    START_SELF_UI_ABILITY_IN_SUB_PROCESS = 6166,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

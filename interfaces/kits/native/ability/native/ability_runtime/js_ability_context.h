@@ -86,6 +86,7 @@ public:
     static napi_value StartSelfUIAbilityInCurrentProcess(napi_env env, napi_callback_info info);
     static napi_value NotifyCancelGamePreLaunch(napi_env env, napi_callback_info info);
     static napi_value NotifyCompleteGamePreLaunch(napi_env env, napi_callback_info info);
+    static napi_value StartSelfUIAbilityInSubProcess(napi_env env, napi_callback_info info);
     static napi_value RestartAppWithWindow(napi_env env, napi_callback_info info);
     static napi_value SetMissionWindowIcon(napi_env env, napi_callback_info info);
 
@@ -178,6 +179,7 @@ private:
     napi_value OnStartSelfUIAbilityInCurrentProcess(napi_env env, NapiCallbackInfo &info);
     napi_value OnNotifyCancelGamePreLaunch(napi_env env, NapiCallbackInfo &info);
     napi_value OnNotifyCompleteGamePreLaunch(napi_env env, NapiCallbackInfo &info);
+    napi_value OnStartSelfUIAbilityInSubProcess(napi_env env, NapiCallbackInfo &info);
     napi_value OnSetMissionWindowIcon(napi_env env, NapiCallbackInfo &info);
 
     static bool UnWrapWant(napi_env env, napi_value argv, AAFwk::Want& want);

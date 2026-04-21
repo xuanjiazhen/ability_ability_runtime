@@ -1150,5 +1150,127 @@ HWTEST_F(AbilityManagerStubSecondTest, StartAbilityByOEExtInner_001, TestSize.Le
 
     TAG_LOGI(AAFwkTag::TEST, "StartAbilityByOEExtInner_001 end");
 }
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcessInner_0100
+ * @tc.desc: Test StartSelfUIAbilityInSubProcessInner with valid parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInSubProcessInner_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0100 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "com.test.TestAbility", "test");
+    data.WriteParcelable(&want);
+
+    data.WriteString("testFlag");
+
+    data.WriteBool(true);
+    auto token = sptr<IRemoteObject>(new AbilityScheduler());
+    data.WriteRemoteObject(token);
+
+    MessageParcel reply;
+    MessageOption option;
+
+    EXPECT_CALL(*stub_, StartSelfUIAbilityInSubProcess(_, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_SUB_PROCESS), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0100 end");
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcessInner_0200
+ * @tc.desc: Test StartSelfUIAbilityInSubProcessInner with invalid interface token
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInSubProcessInner_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0200 begin");
+
+    MessageParcel data;
+    // Not writing interface token
+
+    Want want;
+    want.SetElementName("com.test.bundle", "com.test.TestAbility", "test");
+    data.WriteParcelable(&want);
+
+    data.WriteString("testFlag");
+
+    MessageParcel reply;
+    MessageOption option;
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_SUB_PROCESS), data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0200 end");
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcessInner_0300
+ * @tc.desc: Test StartSelfUIAbilityInSubProcessInner with null want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInSubProcessInner_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0300 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    // Not writing want
+
+    MessageParcel reply;
+    MessageOption option;
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_SUB_PROCESS), data, reply, option);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0300 end");
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInSubProcessInner_0400
+ * @tc.desc: Test StartSelfUIAbilityInSubProcessInner without callerToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInSubProcessInner_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0400 begin");
+
+    MessageParcel data;
+    WriteInterfaceToken(data);
+
+    Want want;
+    want.SetElementName("com.test.bundle", "com.test.TestAbility", "test");
+    data.WriteParcelable(&want);
+
+    data.WriteString("testFlag");
+
+    data.WriteBool(false); // No callerToken
+
+    MessageParcel reply;
+    MessageOption option;
+
+    EXPECT_CALL(*stub_, StartSelfUIAbilityInSubProcess(_, _, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    auto ret = stub_->OnRemoteRequest(
+        static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_SUB_PROCESS), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0400 end");
+}
 } // namespace AAFwk
 } // namespace OHOS
