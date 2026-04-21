@@ -16,7 +16,6 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-
 enum {
     CONNECTION_STATE_DISCONNECTED = -1,
     CONNECTION_STATE_CONNECTED = 0,

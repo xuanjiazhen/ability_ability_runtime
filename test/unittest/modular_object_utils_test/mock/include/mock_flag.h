@@ -39,6 +39,7 @@ public:
     // ModularObjectExtensionRdbStorageMgr
     static int32_t queryDataRet;
     static bool extensionFound;
+    static bool extensionDisabled;
 
     // BundleMgrHelper
     static bool bundleMgrHelperNull;

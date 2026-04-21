@@ -24,6 +24,7 @@ bool MockFlag::isPreForeground = false;
 bool MockFlag::isDeveloperMode = false;
 int32_t MockFlag::queryDataRet = 0;
 bool MockFlag::extensionFound = true;
+bool MockFlag::extensionDisabled = false;
 bool MockFlag::bundleMgrHelperNull = false;
 int32_t MockFlag::getNameAndIndexRet = 0;
 int32_t MockFlag::getOsAccountRet = 0;

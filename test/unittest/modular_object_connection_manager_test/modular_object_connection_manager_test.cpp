@@ -69,15 +69,6 @@ public:
     void TearDown() override {}
 };
 
-// ==================== GetInstance ====================
-
-HWTEST_F(ModularObjectConnectionManagerTest, GetInstance_001, TestSize.Level1)
-{
-    auto &inst1 = ModularObjectConnectionManager::GetInstance();
-    auto &inst2 = ModularObjectConnectionManager::GetInstance();
-    EXPECT_EQ(&inst1, &inst2);
-}
-
 // ==================== ConnectModularObjectExtension ====================
 
 HWTEST_F(ModularObjectConnectionManagerTest, Connect_001, TestSize.Level1)

@@ -10,7 +10,7 @@ namespace OHOS {
 namespace AppExecFwk {
 
 class BundleMgrHelper {
-    DECLARE_DELAYED_SINGLETON(BundleMgrHelper)
+    DECLARE_DELAYED_SINGLETON(BundleMgrHelper);
 public:
     int32_t GetNameAndIndexForUid(int32_t uid, std::string &bundleName, int32_t &appIndex)
     {

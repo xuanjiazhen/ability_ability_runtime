@@ -8,6 +8,7 @@
 #define MOCK_ERRORS_H
 
 #include <cstdint>
+
 using ErrCode = int32_t;
 constexpr ErrCode ERR_OK = 0;
 

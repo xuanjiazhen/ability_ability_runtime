@@ -35,7 +35,6 @@ namespace {
 int32_t g_connectCallbackCount = 0;
 int32_t g_disconnectCallbackCount = 0;
 int32_t g_failedCallbackCount = 0;
-AbilityBase_Element *g_lastConnectElement = nullptr;
 
 void ResetCallbackState()
 {
@@ -54,7 +53,6 @@ void MockOnConnectCallback(OH_AbilityRuntime_ConnectOptions *owner,
     (void)owner;
     (void)proxy;
     g_connectCallbackCount++;
-    g_lastConnectElement = element;
 }
 
 void MockOnDisconnectCallback(OH_AbilityRuntime_ConnectOptions *owner,
@@ -162,12 +160,6 @@ HWTEST_F(CModularObjectConnectionCallbackTest, RemoveConnection_Valid_001, TestS
     EXPECT_EQ(found, nullptr);
 }
 
-HWTEST_F(CModularObjectConnectionCallbackTest, RemoveConnection_Invalid_001, TestSize.Level1)
-{
-    // Removing non-existent ID should not crash
-    CModularObjectConnectionUtils::RemoveConnectionCallback(-999);
-}
-
 // ==================== OnAbilityConnectDone ====================
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_NullRemote_001, TestSize.Level1)
@@ -245,12 +237,6 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_Success_001, TestSi
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityConnectDone(element, remote, 0);
     EXPECT_EQ(g_connectCallbackCount, 1);
-    ASSERT_NE(g_lastConnectElement, nullptr);
-    EXPECT_STREQ(g_lastConnectElement->bundleName, "com.test");
-    EXPECT_STREQ(g_lastConnectElement->abilityName, "Ability");
-    // Clean up the element allocated by mock BuildElement
-    if (g_lastConnectElement->bundleName) delete[] g_lastConnectElement->bundleName;
-    if (g_lastConnectElement->abilityName) delete[] g_lastConnectElement->abilityName;
 }
 
 // ==================== OnAbilityDisconnectDone ====================

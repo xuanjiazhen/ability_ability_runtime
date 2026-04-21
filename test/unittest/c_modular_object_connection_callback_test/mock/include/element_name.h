@@ -11,7 +11,6 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-
 class ElementName {
 public:
     ElementName() = default;

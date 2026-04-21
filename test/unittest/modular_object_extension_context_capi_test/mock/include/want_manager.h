@@ -21,7 +21,6 @@ struct AbilityBase_Want {
 
 namespace OHOS {
 namespace AAFwk {
-
 class CWantManager {
 public:
     static int TransformToWant(const AbilityBase_Want &cWant, bool flag, Want &abilityWant)

@@ -19,6 +19,7 @@
 #include <cstring>
 #include <memory>
 #include <string>
+#include <securec.h>
 
 #include "ability_manager_errors.h"
 #include "ability_runtime_common.h"
@@ -266,11 +267,11 @@ HWTEST_F(CModularObjectUtilsTest, DestroyElement_001, TestSize.Level1)
     // destroy populated element
     AbilityBase_Element element;
     element.bundleName = new char[5];
-    strcpy(element.bundleName, "test");
+    (void)strcpy_s(element.bundleName, 5, "test");
     element.moduleName = new char[4];
-    strcpy(element.moduleName, "mod");
+    (void)strcpy_s(element.moduleName, 4, "mod");
     element.abilityName = new char[4];
-    strcpy(element.abilityName, "abc");
+    (void)strcpy_s(element.abilityName, 4, "abc");
 
     CModularObjectUtils::DestroyElement(element);
     EXPECT_EQ(element.bundleName, nullptr);

@@ -203,7 +203,8 @@ HWTEST_F(ModularObjectExtensionManagerConnectTest, GetDisableState_Null_001, Tes
 
 HWTEST_F(ModularObjectExtensionManagerConnectTest, GetDisableState_NullOut_001, TestSize.Level1)
 {
-    OH_AbilityRuntime_ModObjExtensionInfoHandle handle = reinterpret_cast<OH_AbilityRuntime_ModObjExtensionInfoHandle>(1);
+    OH_AbilityRuntime_ModObjExtensionInfoHandle handle =
+        reinterpret_cast<OH_AbilityRuntime_ModObjExtensionInfoHandle>(1);
     auto ret = OH_AbilityRuntime_GetModularObjectExtensionInfoDisableState(handle, nullptr);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
 }

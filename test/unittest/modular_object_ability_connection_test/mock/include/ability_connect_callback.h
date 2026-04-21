@@ -13,7 +13,6 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
-
 class AbilityConnectCallback : public RefBase {
 public:
     AbilityConnectCallback() = default;

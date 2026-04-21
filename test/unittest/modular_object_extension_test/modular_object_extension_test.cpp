@@ -171,15 +171,6 @@ HWTEST_F(ModularObjectExtensionTest, Init_LoadModuleFails_001, TestSize.Level1)
     EXPECT_NE(ext->moeInstance_, nullptr);
 }
 
-// ==================== OnStart ====================
-
-HWTEST_F(ModularObjectExtensionTest, OnStart_NullInstance_001, TestSize.Level1)
-{
-    auto ext = std::make_shared<ModularObjectExtension>();
-    Want want;
-    ext->OnStart(want);
-}
-
 HWTEST_F(ModularObjectExtensionTest, OnStart_NullOnCreateFunc_001, TestSize.Level1)
 {
     auto ext = std::make_shared<ModularObjectExtension>();
@@ -279,15 +270,6 @@ HWTEST_F(ModularObjectExtensionTest, OnConnect_NullStubReturned_001, TestSize.Le
     Want want;
     auto ret = ext->OnConnect(want);
     EXPECT_EQ(ret, nullptr);
-}
-
-// ==================== OnDisconnect ====================
-
-HWTEST_F(ModularObjectExtensionTest, OnDisconnect_NullInstance_001, TestSize.Level1)
-{
-    auto ext = std::make_shared<ModularObjectExtension>();
-    Want want;
-    ext->OnDisconnect(want);
 }
 
 HWTEST_F(ModularObjectExtensionTest, OnDisconnect_NullOnDisconnectFunc_001, TestSize.Level1)

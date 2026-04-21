@@ -7,7 +7,9 @@
 #ifndef MOCK_C_MODULAR_OBJECT_UTILS_H
 #define MOCK_C_MODULAR_OBJECT_UTILS_H
 
+#include <securec.h>   
 #include <string>
+
 #include "element_name.h"
 #include "connect_options_impl.h"
 
@@ -34,10 +36,10 @@ public:
         }
         std::string bn = elementName.GetBundleName();
         element.bundleName = new char[bn.size() + 1];
-        std::strcpy(element.bundleName, bn.c_str());
+        (void)strcpy_s(element.bundleName, bn.size() + 1, bn.c_str());
         std::string an = elementName.GetAbilityName();
         element.abilityName = new char[an.size() + 1];
-        std::strcpy(element.abilityName, an.c_str());
+        (void)strcpy_s(element.abilityName, an.size() + 1, an.c_str());
         return true;
     }
 

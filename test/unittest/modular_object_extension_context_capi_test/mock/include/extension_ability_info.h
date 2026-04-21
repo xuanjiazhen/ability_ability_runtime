@@ -9,7 +9,6 @@
 
 namespace OHOS {
 namespace AppExecFwk {
-
 enum ExtensionAbilityType {
     UNSPECIFIED = 0,
     SERVICE = 1,

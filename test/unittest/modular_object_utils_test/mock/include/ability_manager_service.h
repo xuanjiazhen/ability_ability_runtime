@@ -45,7 +45,7 @@ public:
 };
 
 class AbilityManagerService {
-    DECLARE_DELAYED_SINGLETON(AbilityManagerService)
+    DECLARE_DELAYED_SINGLETON(AbilityManagerService);
 public:
     std::shared_ptr<UIAbilityLifecycleManager> GetUIAbilityManagerByUserId(int32_t userId)
     {

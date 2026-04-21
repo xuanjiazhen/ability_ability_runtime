@@ -8,7 +8,7 @@ namespace OHOS {
 namespace AppExecFwk {
 
 class AppMgrClient {
-    DECLARE_DELAYED_SINGLETON(AppMgrClient)
+    DECLARE_DELAYED_SINGLETON(AppMgrClient);
 public:
     int32_t GetRunningProcessInfoByPid(const pid_t pid, RunningProcessInfo &info)
     {

@@ -11,7 +11,7 @@ namespace AbilityRuntime {
 
 class ModularObjectExtensionRdbStorageMgr
     : public std::enable_shared_from_this<ModularObjectExtensionRdbStorageMgr> {
-    DECLARE_DELAYED_SINGLETON(ModularObjectExtensionRdbStorageMgr)
+    DECLARE_DELAYED_SINGLETON(ModularObjectExtensionRdbStorageMgr);
 public:
     int32_t QueryData(const std::string &key, std::vector<AAFwk::ModularObjectExtensionInfo> &infos)
     {
@@ -22,6 +22,7 @@ public:
             AAFwk::ModularObjectExtensionInfo info;
             info.bundleName = "com.test.bundle";
             info.abilityName = "TestAbility";
+            info.isDisabled = MockFlag::extensionDisabled;
             infos.push_back(info);
         }
         return 0;

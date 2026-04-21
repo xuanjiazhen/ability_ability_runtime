@@ -44,7 +44,7 @@ AbilityRuntime_ErrorCode CModularObjectUtils::ConvertConnectBusinessErrorCode(in
         case ERR_UPPER_LIMIT:
             return ABILITY_RUNTIME_ERROR_CODE_UPPER_CONNECTION_NUMBER_LIMIT;
         case ERR_MODULAR_OBJECT_DISABLED:
-            return ABILITY_RUNTIME_ERROR_CODE_MODULAR_OBJECT_EXTENSION_DISABLED; // todo新增错误码
+            return ABILITY_RUNTIME_ERROR_CODE_MODULAR_OBJECT_EXTENSION_DISABLED;
         case ERR_NO_RUNNING_ABILITIES_WITH_UI:
             return ABILITY_RUNTIME_ERROR_CODE_NO_RUNNING_ABILITIES_WITH_UI;
         default:

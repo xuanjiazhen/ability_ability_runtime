@@ -11,9 +11,9 @@
         return retVal;                                           \
     }())
 
-#define CHECK_POINTER_AND_RETURN(object, value) \
-    if (!object) {                              \
-        return value;                           \
+#define CHECK_POINTER_AND_RETURN(object, value)                \
+    if (!object) {                                             \
+        return value;                                          \
     }
 
 #endif // MOCK_ABILITY_UTIL_H

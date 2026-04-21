@@ -17,6 +17,6 @@ public:
 };
 
 #define DECLARE_DELAYED_SINGLETON(cls) \
-    friend class DelayedSingleton<cls>;
+    friend class DelayedSingleton<cls>
 
 #endif // MOCK_SINGLETON_H

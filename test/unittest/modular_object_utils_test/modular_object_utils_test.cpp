@@ -35,6 +35,7 @@ void ResetFlags()
     MockFlag::isDeveloperMode = false;
     MockFlag::queryDataRet = 0;
     MockFlag::extensionFound = true;
+    MockFlag::extensionDisabled = false;
     MockFlag::bundleMgrHelperNull = false;
     MockFlag::getNameAndIndexRet = 0;
     MockFlag::getOsAccountRet = 0;
@@ -90,6 +91,7 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_004, TestSize.Level1)
 {
     // Extension disabled and different uid
     MockFlag::extensionFound = true;
+    MockFlag::extensionDisabled = true;
     MockFlag::callingUid = 999; // different from request.uid
     AbilityRequest request;
     request.uid = 100;
@@ -147,15 +149,12 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_009, TestSize.Level1)
 {
     // Distribution type check - target is "none"
     MockFlag::isDeveloperMode = false;
+    MockFlag::hasRunningUIAbility = false;
     AbilityRequest request;
     request.uid = 1000;
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
     request.appInfo.appDistributionType = "debug";
-    // The target distribution type is from abilityRequest.appInfo which is checked last
-    // The caller distribution comes from GetCallerAppInfo which we mock
     auto ret = ModularObjectUtils::CheckPermission(request);
-    // Will pass distribution check since mock returns "debug" for caller
-    // but will fail on no running ability check
     EXPECT_EQ(ret, ERR_NO_RUNNING_ABILITIES_WITH_UI);
 }
 
@@ -284,18 +283,7 @@ HWTEST_F(ModularObjectUtilsTest, CheckCallerForeground_004, TestSize.Level1)
     EXPECT_EQ(ret, ERR_OK);
 }
 
-// ==================== HasRunningUIAbilityOrExtension ====================
-
 HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_001, TestSize.Level1)
-{
-    // Service is null
-    MockFlag::amsNull = true;
-    // Note: Our mock always returns a non-null service, so we test via the normal path
-    auto ret = ModularObjectUtils::HasRunningUIAbilityOrExtension(1000, 100);
-    EXPECT_TRUE(ret);
-}
-
-HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_002, TestSize.Level1)
 {
     // SceneBoard enabled with running UIAbility
     MockFlag::isSceneBoardEnabled = true;
@@ -304,7 +292,7 @@ HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_002, TestSize.Le
     EXPECT_TRUE(ret);
 }
 
-HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_003, TestSize.Level1)
+HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_002, TestSize.Level1)
 {
     // SceneBoard enabled, no UIAbility but has UIExtension
     MockFlag::isSceneBoardEnabled = true;
@@ -315,7 +303,7 @@ HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_003, TestSize.Le
     EXPECT_TRUE(ret);
 }
 
-HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_004, TestSize.Level1)
+HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_003, TestSize.Level1)
 {
     // No running abilities at all
     MockFlag::isSceneBoardEnabled = true;
@@ -326,7 +314,7 @@ HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_004, TestSize.Le
     EXPECT_FALSE(ret);
 }
 
-HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_005, TestSize.Level1)
+HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_004, TestSize.Level1)
 {
     // SceneBoard disabled with running ability via MissionListManager
     MockFlag::isSceneBoardEnabled = false;

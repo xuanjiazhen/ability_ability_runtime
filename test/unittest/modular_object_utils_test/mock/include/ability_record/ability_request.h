@@ -38,7 +38,7 @@ private:
 
 class Want {
 public:
-    static const std::string PARAM_APP_CLONE_INDEX_KEY;
+    inline static const std::string PARAM_APP_CLONE_INDEX_KEY = "appCloneIndex";
     ElementName GetElement() const { return element_; }
     void SetElement(const ElementName &element) { element_ = element; }
     int32_t GetIntParam(const std::string &key, int32_t defaultValue) const
