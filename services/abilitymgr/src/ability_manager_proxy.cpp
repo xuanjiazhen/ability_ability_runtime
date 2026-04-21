@@ -8123,5 +8123,87 @@ int32_t AbilityManagerProxy::SetAppRecoveryFlag(const sptr<IRemoteObject>& token
     }
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::StartInAppSkill(const std::string &bundleName, const std::string &moduleName,
+    const std::string &skillName, const std::string &arkTSPath,
+    const std::string &funcName, const std::vector<std::string> &argv)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start in-app skill proxy, bundleName:%{public}s", bundleName.c_str());
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString16(Str8ToStr16(bundleName)) ||
+        !data.WriteString16(Str8ToStr16(moduleName)) ||
+        !data.WriteString16(Str8ToStr16(skillName))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write string params fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString16(Str8ToStr16(arkTSPath)) ||
+        !data.WriteString16(Str8ToStr16(funcName))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write arkTSPath or funcName fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteInt32(static_cast<int32_t>(argv.size()))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write argv count fail");
+        return INNER_ERR;
+    }
+    for (const auto &arg : argv) {
+        if (!data.WriteString16(Str8ToStr16(arg))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write argv fail");
+            return INNER_ERR;
+        }
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::START_IN_APP_SKILL, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::ExecuteSkillDone(const sptr<IRemoteObject> &token, int32_t resultCode,
+    const AppExecFwk::SkillExecuteResult &result)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "execute skill done proxy, code:%{public}d", resultCode);
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null token");
+        return ERR_INVALID_VALUE;
+    }
+    if (!data.WriteRemoteObject(token)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteInt32(resultCode)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write resultCode fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteParcelable(&result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return INNER_ERR;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::START_IN_APP_SKILL_DONE, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS
