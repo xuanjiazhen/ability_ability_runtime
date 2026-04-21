@@ -20,6 +20,7 @@
 #include "cli_session_info.h"
 #include "exec_options.h"
 #include "hilog_tag_wrapper.h"
+#include "js_runtime_utils.h"
 #include "napi_common_util.h"
 
 using namespace OHOS::AbilityRuntime;
@@ -445,6 +446,52 @@ napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary)
     napi_set_named_property(env, jsObj, "description", jsDescription);
 
     return jsObj;
+}
+
+bool ParseStringProperty(napi_env env, napi_value obj, const char *name, std::string &out)
+{
+    napi_value value = nullptr;
+    napi_get_named_property(env, obj, name, &value);
+    if (value == nullptr) {
+        return false;
+    }
+    return OHOS::AbilityRuntime::ConvertFromJsValue(env, value, out);
+}
+
+bool ParseStringArrayProperty(napi_env env, napi_value obj,
+    const char *name, std::vector<std::string> &out)
+{
+    napi_value arr = nullptr;
+    napi_get_named_property(env, obj, name, &arr);
+    if (arr == nullptr) {
+        return false;
+    }
+    bool isArray = false;
+    napi_is_array(env, arr, &isArray);
+    if (!isArray) {
+        return false;
+    }
+    uint32_t length = 0;
+    napi_get_array_length(env, arr, &length);
+    for (uint32_t i = 0; i < length; i++) {
+        napi_value element = nullptr;
+        napi_get_element(env, arr, i, &element);
+        std::string str;
+        if (!OHOS::AbilityRuntime::ConvertFromJsValue(env, element, str)) {
+            return false;
+        }
+        out.push_back(str);
+    }
+    return true;
+}
+
+napi_value CreateJsArkToolResult(napi_env env, int32_t code)
+{
+    napi_value result = nullptr;
+    napi_create_object(env, &result);
+    napi_set_named_property(env, result, "code",
+        OHOS::AppExecFwk::WrapInt32ToJS(env, code));
+    return result;
 }
 
 } // namespace CliTool

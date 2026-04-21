@@ -45,6 +45,7 @@
 #include "napi_common_configuration.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
+#include "want_params.h"
 #include "permission_constants.h"
 #include "preload_ui_extension_host_client.h"
 #include "system_ability_definition.h"
@@ -65,6 +66,11 @@ OHOS::sptr<OHOS::AppExecFwk::IAppMgr> GetAppManagerInstance()
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+constexpr size_t ARGC_THREE = 3;
+constexpr size_t ARGC_FOUR = 4;
+constexpr size_t ARGC_FIVE = 5;
+constexpr size_t ARGC_SIX = 6;
+constexpr size_t ARGC_SEVEN = 7;
 constexpr size_t INDEX_ZERO = 0;
 constexpr size_t INDEX_ONE = 1;
 constexpr const char *ON_OFF_TYPE_ABILITY_FOREGROUND_STATE = "abilityForegroundState";
