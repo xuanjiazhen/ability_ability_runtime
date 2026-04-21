@@ -176,6 +176,7 @@ public:
 
     virtual void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override
     {}
+
 };
 
 class MockDataAbilityObserverStub : public DataAbilityObserverStub {

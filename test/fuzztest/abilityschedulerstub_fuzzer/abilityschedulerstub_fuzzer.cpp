@@ -152,6 +152,7 @@ public:
     }
     void OnExecuteIntent(const Want &want) override
     {}
+    void ExecuteSkill(const Want &want) override {}
 };
 
 uint32_t GetU32Data(const char* ptr)

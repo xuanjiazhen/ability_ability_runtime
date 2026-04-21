@@ -29,6 +29,8 @@
 #include "iservice_registry.h"
 #include "mission_snapshot.h"
 #include "bool_wrapper.h"
+#include "string_wrapper.h"
+#include "want_params.h"
 #include "parameters.h"
 #include "sa_mgr_client.h"
 #include "system_ability_definition.h"
@@ -252,6 +254,7 @@ constexpr struct option LONG_OPTIONS_PRESTART[] = {
     {"userId", required_argument, nullptr, 'u' },
     {nullptr, 0, nullptr, 0 },
 };
+
 }  // namespace
 
 AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
@@ -3041,5 +3044,6 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     return result;
 }
 #endif
+
 }  // namespace AAFwk
 }  // namespace OHOS

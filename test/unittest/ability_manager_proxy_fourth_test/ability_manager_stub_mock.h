@@ -438,6 +438,7 @@ public:
         const InsightIntentExecuteParam &param));
     MOCK_METHOD3(ExecuteInsightIntentDone, int32_t(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result));
+
 };
 }  // namespace AAFwk
 }  // namespace OHOS
