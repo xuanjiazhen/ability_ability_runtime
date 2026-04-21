@@ -1,0 +1,33 @@
+#ifndef MOCK_ABILITY_MANAGER_ERRORS_H
+#define MOCK_ABILITY_MANAGER_ERRORS_H
+
+#include <cstdint>
+
+using ErrCode = int32_t;
+
+constexpr int32_t SUBSYS_AAFWK = 4;
+constexpr int32_t ABILITY_MODULE_TYPE_SERVICE = 0;
+
+inline constexpr ErrCode ErrCodeOffset(int32_t subsysId, int32_t moduleId)
+{
+    return ((subsysId << 20) | (moduleId << 16));
+}
+
+constexpr ErrCode AAFWK_SERVICE_ERR_OFFSET = ErrCodeOffset(SUBSYS_AAFWK, ABILITY_MODULE_TYPE_SERVICE);
+
+enum {
+    RESOLVE_ABILITY_ERR = AAFWK_SERVICE_ERR_OFFSET,
+    INNER_ERR = AAFWK_SERVICE_ERR_OFFSET + 100,
+    ERR_CAPABILITY_NOT_SUPPORT = AAFWK_SERVICE_ERR_OFFSET + 125,
+    ERR_PERMISSION_DENIED = AAFWK_SERVICE_ERR_OFFSET + 6,
+    ERR_OK = 0,
+};
+
+enum {
+    NOT_TOP_ABILITY = 0x500001,
+};
+
+constexpr ErrCode ERR_MODULAR_OBJECT_DISABLED = 2099412;
+constexpr ErrCode ERR_NO_RUNNING_ABILITIES_WITH_UI = 2099413;
+
+#endif // MOCK_ABILITY_MANAGER_ERRORS_H
