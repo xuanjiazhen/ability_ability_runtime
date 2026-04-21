@@ -51,6 +51,21 @@ const std::string HELP_MSG = "usage: aa <command> <options>\n"
     "  process                     debug and tune\n";
 #endif
 
+const std::string HELP_MSG_EXEC_SKILL =
+    "usage: aa execSkill <options>\n"
+    "options list:\n"
+    "  -h, --help                       list available commands\n"
+    "  -b <bundle-name>                 bundle name of the target application (required)\n"
+    "  -m <module-name>                 module name of the target application (required)\n"
+    "  -s <skill-name>                  skill name identifier (required)\n"
+    "  -p <arkTS-path>                  abc bytecode file path to load (optional)\n"
+    "  -f <func-name>                   global function name to call (optional)\n"
+    "  -a <arg>                         argument to pass, repeatable (optional)\n"
+    "  execSkill loads an ArkTS abc file and calls a global function in the target process\n";
+
+const std::string STRING_EXEC_SKILL_OK = "execSkill successfully.";
+const std::string STRING_EXEC_SKILL_NG = "error: failed to execSkill.";
+
 const std::string HELP_ApplicationNotResponding =
     "usage: aa ApplicationNotResponding <options>\n"
     "options list:\n"
@@ -265,6 +280,7 @@ private:
     ErrCode RunAsDetachDebugCommand();
     ErrCode RunAsSendMemoryLevelCommand();
     ErrCode RunAsPreStartCommand();
+    ErrCode RunAsExecSkillCommand();
     ErrCode ParsePreStartOptions(int32_t& mode, std::string& bundleName, int32_t& userId);
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
     bool IsLongStartOption(const std::string &argv);

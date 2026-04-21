@@ -15,9 +15,11 @@
 
 #include "js_cli_manager.h"
 
+#include <cinttypes>
 #include <map>
 #include <string>
 
+#include "ability_manager_client.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"
@@ -42,6 +44,49 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
+
+std::string GetStringPropertyFromJs(napi_env env, napi_value obj, const std::string &key)
+{
+    napi_value value = nullptr;
+    napi_get_named_property(env, obj, key.c_str(), &value);
+    if (value == nullptr) {
+        return "";
+    }
+    std::string result;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, value, result)) {
+        return "";
+    }
+    return result;
+}
+
+std::vector<std::string> GetStringArrayFromJs(napi_env env, napi_value obj, const std::string &key)
+{
+    std::vector<std::string> result;
+    napi_value value = nullptr;
+    napi_get_named_property(env, obj, key.c_str(), &value);
+    if (value == nullptr) {
+        return result;
+    }
+    bool isArray = false;
+    napi_is_array(env, value, &isArray);
+    if (!isArray) {
+        return result;
+    }
+    uint32_t length = 0;
+    napi_get_array_length(env, value, &length);
+    for (uint32_t i = 0; i < length; i++) {
+        napi_value element = nullptr;
+        napi_get_element(env, value, i, &element);
+        if (element == nullptr) {
+            continue;
+        }
+        std::string str;
+        if (AppExecFwk::UnwrapStringFromJS2(env, element, str)) {
+            result.push_back(str);
+        }
+    }
+    return result;
+}
 } // namespace
 
 void JSCliManager::Finalizer(napi_env env, void *data, void *hint)
@@ -88,6 +133,11 @@ napi_value JSCliManager::QueryToolSummaries(napi_env env, napi_callback_info inf
 napi_value JSCliManager::QueryTools(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnQueryTools);
+}
+
+napi_value JSCliManager::ExecuteSkill(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnExecuteSkill);
 }
 
 napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
@@ -439,6 +489,73 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::OnExecuteSkill(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "JSCliManager::OnExecuteSkill called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    // argv[0]: skillParam (Record<string, Object>)
+    napi_valuetype valueType = napi_undefined;
+    napi_typeof(env, argv[INDEX_ZERO], &valueType);
+    if (valueType != napi_object) {
+        ThrowInvalidParamError(env, "skillParam must be an object");
+        return CreateJsUndefined(env);
+    }
+
+    auto cmd = GetStringPropertyFromJs(env, argv[INDEX_ZERO], "cmd");
+    if (cmd != "ohos-script") {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "invalid cmd:%{public}s", cmd.c_str());
+        ThrowInvalidParamError(env, "cmd must be 'ohos-script'");
+        return CreateJsUndefined(env);
+    }
+
+    auto bundleName = GetStringPropertyFromJs(env, argv[INDEX_ZERO], "bundleName");
+    auto moduleName = GetStringPropertyFromJs(env, argv[INDEX_ZERO], "moduleName");
+    auto skillName = GetStringPropertyFromJs(env, argv[INDEX_ZERO], "skillName");
+    if (bundleName.empty() || moduleName.empty() || skillName.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "missing required fields");
+        ThrowInvalidParamError(env, "bundleName, moduleName, skillName are required");
+        return CreateJsUndefined(env);
+    }
+
+    auto arkTSPath = GetStringPropertyFromJs(env, argv[INDEX_ZERO], "arkTSPath");
+    auto funcName = GetStringPropertyFromJs(env, argv[INDEX_ZERO], "funcName");
+    auto argvVec = GetStringArrayFromJs(env, argv[INDEX_ZERO], "argv");
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "executeSkill bundle:%{public}s module:%{public}s skill:%{public}s "
+        "path:%{public}s func:%{public}s argc:%{public}zu",
+        bundleName.c_str(), moduleName.c_str(), skillName.c_str(),
+        arkTSPath.c_str(), funcName.c_str(), argvVec.size());
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [innerErrCode, bundleName, moduleName, skillName, arkTSPath, funcName, argvVec]() {
+        *innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->StartInAppSkill(
+            bundleName, moduleName, skillName, arkTSPath, funcName, argvVec);
+    };
+
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "executeSkill error: %{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JSCliManager::OnExecuteSkill", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -460,6 +577,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "executeSkill", moduleName, JSCliManager::ExecuteSkill);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);
