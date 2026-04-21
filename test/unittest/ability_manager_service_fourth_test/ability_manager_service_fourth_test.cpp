@@ -1808,6 +1808,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, AddToUserLockedBundleList_001, TestSiz
 HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_001, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_001 start");
+    OHOS::system::SetBoolParameter("persist.sys.abilityms.support_native_ui_ability", true);
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     // token is nullptr, should return ERR_INVALID_VALUE
     sptr<IRemoteObject> token = nullptr;
@@ -1824,6 +1825,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_001, TestSize.Level1)
 HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_002, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_002 start");
+    OHOS::system::SetBoolParameter("persist.sys.abilityms.support_native_ui_ability", true);
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     // Use a non-ability token (plain IRemoteObject mock), should return ERR_INVALID_VALUE
     sptr<IRemoteObject> invalidToken = new IRemoteObjectMocker();
@@ -1840,6 +1842,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_002, TestSize.Level1)
 HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_003, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_003 start");
+    OHOS::system::SetBoolParameter("persist.sys.abilityms.support_native_ui_ability", true);
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     // MockToken creates an AbilityRecord with type BASE_ABILITY (not UI_ABILITY)
     // This should hit the "not supported for type" branch
@@ -1859,6 +1862,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_003, TestSize.Level1)
 HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_004, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_004 start");
+    OHOS::system::SetBoolParameter("persist.sys.abilityms.support_native_ui_ability", true);
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     // Use a real ability token, but subManagersHelper_ is not set
     // Even if the record type check passes, GetUIAbilityManagerByUserId will fail
@@ -1878,6 +1882,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_004, TestSize.Level1)
 HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_005, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_005 start");
+    OHOS::system::SetBoolParameter("persist.sys.abilityms.support_native_ui_ability", true);
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
     // Set subManagersHelper_ but without a real UIAbilityManager
     abilityMs_->subManagersHelper_ = std::make_shared<SubManagersHelper>(nullptr, nullptr);
@@ -1887,6 +1892,24 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_005, TestSize.Level1)
     // With BASE_ABILITY type, still falls to "not supported" branch
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_005 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartSelf
+ * FunctionPoints: AbilityManagerService StartSelf when IsSupportNativeUIAbility returns false
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_006 start");
+    OHOS::system::SetBoolParameter("persist.sys.abilityms.support_native_ui_ability", false);
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    // When IsSupportNativeUIAbility returns false, should return ERR_CAPABILITY_NOT_SUPPORT
+    auto callerToken = MockToken(AbilityType::PAGE);
+    ASSERT_NE(callerToken, nullptr);
+    auto ret = abilityMs_->StartSelf(callerToken);
+    EXPECT_EQ(ret, ERR_CAPABILITY_NOT_SUPPORT);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_006 end");
 }
 } // namespace AAFwk
 } // namespace OHOS
