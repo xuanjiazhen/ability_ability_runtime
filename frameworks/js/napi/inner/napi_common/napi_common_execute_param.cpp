@@ -57,6 +57,13 @@ bool UnwrapExecuteParam(napi_env env, napi_value param, InsightIntentExecutePara
     }
     executeParam.insightIntentName_ = insightIntentName;
 
+    std::string deviceId {""};
+    if (!UnwrapStringByPropertyName(env, param, "deviceId", deviceId)) {
+        TAG_LOGE(AAFwkTag::JSNAPI, "Wrong argument type deviceId");
+        return false;
+    }
+    executeParam.deviceId_ = deviceId;
+
     napi_value napiIntentParam = nullptr;
     napi_get_named_property(env, param, "insightIntentParam", &napiIntentParam);
     if (napiIntentParam == nullptr) {

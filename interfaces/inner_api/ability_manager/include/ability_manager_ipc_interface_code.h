@@ -250,6 +250,8 @@ enum class AbilityManagerInterfaceCode {
     // Back to caller.
     BACK_TO_CALLER_UIABILITY = 82,
 
+    EXECUTE_INTENT_FOR_DISTRIBUTED = 83,
+
     // ipc id 1001-2000 for DMS
     // ipc id for starting ability (1001)
     START_ABILITY = 1001,

@@ -13896,7 +13896,130 @@ int32_t AbilityManagerService::StartAbilityWithServiceMatch(const InsightIntentE
         TAG_LOGE(AAFwkTag::ABILITYMGR, "StartAbilityError:%{public}d", eventInfo.errCode);
     }
     return ret;
+}
 
+
+int32_t AbilityManagerService::ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId, 
+    int32_t requestCode)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntentForDistributed called, srcDeviceId: %{public}s, requestCode: %{public}d",
+        srcDeviceId.c_str(), requestCode);
+    
+    AppExecFwk::InsightIntentExecuteParam param;
+    if (!AppExecFwk::InsightIntentExecuteParam::GenerateFromWant(want, param)) {
+        TAG_LOGE(AAFwkTag::INTENT, "GenerateFromWant failed, not a valid insight intent");
+        return ERR_INVALID_VALUE;
+    }
+    
+    auto paramCopy = std::make_shared<InsightIntentExecuteParam>(param);
+    paramCopy->deviceId_ = 0;
+    
+    uint64_t key = requestCode;
+    
+    auto callerBundlename = InsightIntentGetcallerBundleName();
+    if (callerBundlename.empty()) {
+        TAG_LOGD(AAFwkTag::INTENT, "callerBundlename is null");
+    }
+    
+    AbilityRuntime::ExtractInsightIntentGenericInfo infos = GetInsightIntentGenericInfo(*paramCopy);
+    bool openLinkExecuteFlag = infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
+    bool ignoreAbilityName = openLinkExecuteFlag ||
+        (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE) ||
+        (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION);
+
+    return ExecuteIntentCommon(nullptr, paramCopy, callerBundlename, ignoreAbilityName, infos, key, srcDeviceId, requestCode);
+}
+
+int32_t AbilityManagerService::ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
+    const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
+    bool ignoreAbilityName, const AbilityRuntime::ExtractInsightIntentGenericInfo &infos,
+    uint64_t key, const std::string &srcDeviceId, int32_t requestCode)
+{
+    TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntentCommon called, srcDeviceId: %{public}s, requestCode: %{public}d",
+        srcDeviceId.c_str(), requestCode);
+    
+    bool openLinkExecuteFlag = infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
+    bool isDistributed = !srcDeviceId.empty();
+    
+    int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(
+        key, callerToken, param, callerBundleName, ignoreAbilityName, isDistributed, srcDeviceId, requestCode);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "CheckAndUpdateParam failed: %{public}d", ret);
+        return ret;
+    }
+    
+    TAG_LOGI(AAFwkTag::INTENT, "execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
+        "intentName: %{public}s, intentId:%{public}" PRIu64 ", openLinkExecuteFlag: %{public}d, executeMode: %{public}d, "
+        "userId: %{public}d, isDistributed: %{public}d",
+        param->bundleName_.c_str(), param->moduleName_.c_str(), param->insightIntentName_.c_str(),
+        param->insightIntentId_, openLinkExecuteFlag, param->executeMode_, param->userId_, isDistributed);
+
+    Want want;
+    ret = InsightIntentExecuteManager::GenerateWant(param, infos, want);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::INTENT, "GenerateWant failed: %{public}d", ret);
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(param->insightIntentId_);
+        return ret;
+    }
+
+    int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
+    EventInfo eventInfo = BuildEventInfo(want, callerUserId);
+    switch (param->executeMode_) {
+        case AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND:
+            TAG_LOGI(AAFwkTag::INTENT, "ExecuteMode UI_ABILITY_FOREGROUND.");
+            ret = StartAbilityWithInsightIntent(want, param->userId_);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartAbilityWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param->insightIntentName_);
+            }
+            break;
+        case AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND: {
+            TAG_LOGI(AAFwkTag::INTENT, "ExecuteMode UI_ABILITY_BACKGROUND.");
+            ret = StartAbilityByCallWithInsightIntent(want, callerToken, *param, param->userId_);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartAbilityByCallWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param->insightIntentName_);
+            }
+            break;
+        }
+        case AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY:
+            TAG_LOGI(AAFwkTag::INTENT, "ExecuteMode UI_EXTENSION_ABILITY.");
+            ret = StartUIExtensionWithInsightIntent(want, callerToken, *param, param->userId_);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartUIExtensionWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param->insightName_);
+            }
+            else {
+                TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntentCommon success, but wait for UIExtension callback");
+                return ERR_OK;
+            }
+            break;
+        case AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY:
+            TAG_LOGI(AAFwkTag::INTENT, "ExecuteMode SERVICE_EXTENSION_ABILITY.");
+            ret = StartServiceExtensionWithInsightIntent(want, callerToken, *param, param->userId_);
+            if (ret != ERR_OK) {
+                eventInfo.errReason = "StartServiceExtensionWithInsightIntent error";
+                SendIntentReport(eventInfo, ret, param->insightIntentName_);
+            }
+            else {
+                TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntentCommon success, but wait for ServiceExtension callback");
+                return ERR_OK;
+            }
+            break;
+        default:
+            TAG_LOGE(AAFwkTag::INTENT, "ExecuteMode invalid: %{public}d", param->executeMode_);
+            eventInfo.errReason = "ExecuteMode invalid";
+            SendIntentReport(eventInfo, ret, param->insightIntentName_);
+            ret = ERR_INVALID_VALUE;
+            break;
+    }
+
+    if (ret != ERR_OK) {
+        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(param->insightIntentId_);
+    }
+    
+    TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntentCommon done, ret: %{public}d.", ret);
+    return ret;
 }
 
 int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
@@ -13906,6 +14029,7 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     if (param.isServiceMatch_) {
         return StartAbilityWithServiceMatch(param);
     }
+    
     auto callerBundlename = InsightIntentGetcallerBundleName();
     if (callerBundlename.empty()) {
         TAG_LOGD(AAFwkTag::INTENT, "callerBundlename is null");
@@ -13927,6 +14051,27 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     bool ignoreAbilityName = openLinkExecuteFlag ||
         (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE) ||
         (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION);
+
+    if (!param.deviceId_.empty()) {
+        constexpr char EXECUTE_DISTRIBUTED_INTENT_PERMISSION[] = "ohos.permission.EXECUTE_DISTRIBUTED_INTENT";
+        bool hasDistributedPermission = PermissionVerification::GetInstance()->VerifyCallingPermission(
+            EXECUTE_DISTRIBUTED_INTENT_PERMISSION);
+        if (!hasDistributedPermission) {
+            TAG_LOGE(AAFwkTag::INTENT, "distributed intent permission denied");
+            return ERR_ABILITY_RUNTIME_EXTERNAL_NO_ACCESS_PERMISSION;
+        }
+        Want want;
+        ret = InsightIntentExecuteManager::GenerateWant(param, infos, want);
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "GenerateWant failed: %{public}d", ret);
+            DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(param->insightIntentId_);
+            return ret;
+        }
+        sptr<RemoteIntentResultCallback> callback = nullptr;
+        DistributedClient dmsClient;
+        return dmsClient.StartRemoteIntent(want, param.deviceId_, callback);
+    }
+
     auto paramPtr = std::make_shared<InsightIntentExecuteParam>(param);
     int32_t ret = DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->CheckAndUpdateParam(key, callerToken,
         paramPtr, callerBundlename, ignoreAbilityName);
@@ -13935,65 +14080,15 @@ int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObj
     }
     TAG_LOGI(AAFwkTag::INTENT, "execute insight intent, bundleName: %{public}s, moduleName: %{public}s, "
         "intentName: %{public}s, intentId:%{public}" PRIu64", openLinkExecuteFlag: %{public}d, executeMode: %{public}d, "
-        "userId: %{public}d",
+        "userId: %{public}d, deviceId: %{public}d",
         param.bundleName_.c_str(), param.moduleName_.c_str(), param.insightIntentName_.c_str(), param.insightIntentId_,
-        openLinkExecuteFlag, param.executeMode_, param.userId_);
+        openLinkExecuteFlag, param.executeMode_, param.userId_, param.deviceId_);
 
     if (openLinkExecuteFlag) {
         return IntentOpenLinkInner(paramPtr, infos, param.userId_);
     }
 
-    Want want;
-    ret = InsightIntentExecuteManager::GenerateWant(paramPtr, infos, want);
-    if (ret != ERR_OK) {
-        return ret;
-    }
-    int32_t callerUserId = AbilityRuntime::UserController::GetInstance().GetCallerUserId();
-    EventInfo eventInfo = BuildEventInfo(want, callerUserId);
-    switch (param.executeMode_) {
-        case AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND:
-            TAG_LOGI(AAFwkTag::INTENT, "ExecuteMode UI_ABILITY_FOREGROUND.");
-            ret = StartAbilityWithInsightIntent(want, param.userId_);
-            if (ret != ERR_OK) {
-                eventInfo.errReason = "StartAbilityWithInsightIntent error";
-                SendIntentReport(eventInfo, ret, param.insightIntentName_);
-            }
-            break;
-        case AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND: {
-            TAG_LOGI(AAFwkTag::INTENT, "ExecuteMode UI_ABILITY_BACKGROUND.");
-            ret = StartAbilityByCallWithInsightIntent(want, callerToken, param, param.userId_);
-            if (ret != ERR_OK) {
-                eventInfo.errReason = "StartAbilityByCallWithInsightIntent error";
-                SendIntentReport(eventInfo, ret, param.insightIntentName_);
-            }
-            break;
-        }
-        case AppExecFwk::ExecuteMode::UI_EXTENSION_ABILITY:
-            TAG_LOGE(AAFwkTag::INTENT, "executeMode UI_EXTENSION_ABILITY not supported");
-            ret = ERR_INVALID_OPERATION;
-            break;
-        case AppExecFwk::ExecuteMode::SERVICE_EXTENSION_ABILITY:
-            TAG_LOGI(AAFwkTag::INTENT, "ExecuteMode SERVICE_EXTENSION_ABILITY.");
-            ret = StartExtensionAbilityWithInsightIntent(want, AppExecFwk::ExtensionAbilityType::SERVICE, param.userId_);
-            if (ret != ERR_OK) {
-                eventInfo.errReason = "StartExtensionAbilityWithInsightIntent error";
-                SendIntentReport(eventInfo, ret, param.insightIntentName_);
-            }
-            break;
-        default:
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid executeMode");
-            ret = ERR_INVALID_OPERATION;
-            break;
-    }
-    if (ret == START_ABILITY_WAITING) {
-        TAG_LOGI(AAFwkTag::INTENT, "Top ability is foregrounding. The intent will be queued for execution");
-        ret = ERR_OK;
-    }
-    if (ret != ERR_OK) {
-        DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->RemoveExecuteIntent(paramPtr->insightIntentId_);
-    }
-    TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntent done, ret: %{public}d.", ret);
-    return ret;
+    return ExecuteIntentCommon(callerToken, paramPtr, callerBundlename, ignoreAbilityName, infos, key, "", 0);
 }
 
 ErrCode AbilityManagerService::QueryEntityInfo(uint64_t key, sptr<IRemoteObject> callerToken,

@@ -1736,6 +1736,17 @@ public:
         const InsightIntentExecuteParam &param);
 
     /**
+    * @brief Execute intent for distributed scenario.
+      *
+      * @param want The want containing intent execution information.
+      * @param srcDeviceId The source device id.
+      * @param requestCode The request code.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+    ErrCode ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
+        int32_t requestCode);
+    
+    /**
      * @brief Query entity info.
      * @param key The key of intent executing client.
      * @param callerToken Caller ability token.

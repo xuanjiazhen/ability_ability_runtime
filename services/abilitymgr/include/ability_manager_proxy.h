@@ -1520,14 +1520,15 @@ public:
         const InsightIntentExecuteParam &param) override;
 
     /**
-     * @brief Query entity.
-     * @param key The key of intent executing client.
-     * @param callerToken Caller ability token.
-     * @param param The Intent query param.
-     * @return Returns ERR_OK on success, others on failure.
-     */
-    ErrCode QueryEntityInfo(uint64_t key, sptr<IRemoteObject> callerToken,
-        const InsightIntentQueryParam &param) override;
+    * @brief Execute intent for distributed scenario.
+      *
+      * @param want The want containing intent execution information.
+      * @param srcDeviceId The source device id.
+      * @param requestCode The request code.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+    int32_t ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
+        int32_t requestCode) override;
 
     /**
      * @brief Check if ability controller can start.
