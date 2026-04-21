@@ -1070,7 +1070,13 @@ public:
     int GetApplicationInfoByProcessID(const int pid, AppExecFwk::ApplicationInfo &application, bool &debug);
 
     void SubmitDestroyImageTask(const std::shared_ptr<AppRunningRecord>,
-        const int32_t reason, const std::string &exitMsg);
+            const int32_t reason, const std::string &exitMsg);
+
+    void DestroyImageForAppExit(const std::shared_ptr<AppRunningRecord> appRecord,
+            const int32_t reason, const std::string &exitMsg);
+
+    void DestroyImageForAppExitCompatibility(const std::shared_ptr<AppRunningRecord> appRecord,
+            const int32_t killId, const std::string &exitMsg);
 
     /**
      * Record process exit reason to appRunningRecord
