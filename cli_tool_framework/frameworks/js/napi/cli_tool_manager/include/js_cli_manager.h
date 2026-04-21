@@ -113,6 +113,24 @@ public:
      */
     static napi_value QueryTools(napi_env env, napi_callback_info info);
 
+    /**
+     * @brief Native method for executing a skill.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value ExecSkillTool(napi_env env, napi_callback_info info);
+
+    /**
+     * @brief Native method for completing an ArkTS script in app.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value CompleteArkTSScriptInApp(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for executing a CLI tool.
@@ -193,6 +211,26 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnQueryTools(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for executing a skill.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnExecSkillTool(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for completing an ArkTS script in app.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnCompleteArkTSScriptInApp(napi_env env, size_t argc, napi_value *argv);
 };
 
 /**
