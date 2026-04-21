@@ -250,6 +250,53 @@ void UIAbilityImpl::ExecuteInsightIntentDone(uint64_t intentId, const InsightInt
         TAG_LOGE(AAFwkTag::UIABILITY, "notify execute done failed");
     }
 }
+
+bool UIAbilityImpl::HandleExecuteSkill(const AAFwk::Want &want)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "handle execute skill");
+    auto param = std::make_shared<SkillExecuteParam>();
+    if (!SkillExecuteParam::GenerateFromWant(want, *param)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "generate skill param from want failed");
+        Background();
+        return true;
+    }
+
+    TAG_LOGI(AAFwkTag::UIABILITY,
+        "skill bundle:%{public}s module:%{public}s name:%{public}s id:%{public}" PRIu64 "",
+        param->bundleName_.c_str(), param->moduleName_.c_str(),
+        param->skillName_.c_str(), param->skillId_);
+
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
+        Background();
+        return true;
+    }
+
+    auto callback = std::unique_ptr<SkillExecutorAsyncCallback>(SkillExecutorAsyncCallback::Create());
+    auto asyncCb = [weak = weak_from_this(), skillId = param->skillId_](SkillExecuteResult &result) {
+        auto impl = weak.lock();
+        if (impl == nullptr) {
+            return;
+        }
+        impl->NotifySkillExecuteDone(skillId, result.code);
+        impl->Background();
+    };
+    callback->Push(asyncCb);
+
+    ability_->ExecuteSkillBackground(want, param, std::move(callback));
+    return true;
+}
+
+void UIAbilityImpl::NotifySkillExecuteDone(uint64_t skillId, int32_t code)
+{
+    SkillExecuteResult result;
+    result.code = code;
+    result.result = std::make_shared<WantParams>();
+    auto ret = AbilityManagerClient::GetInstance()->StartSkillByHDCDone(token_, skillId, result);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "notify skill execute done failed");
+    }
+}
 #ifdef SUPPORT_SCREEN
 bool UIAbilityImpl::PrepareTerminateAbility(std::function<void(bool)> callback, bool &isAsync)
 {
@@ -661,7 +708,10 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             }
             OnWillBackground();
 #ifdef SUPPORT_GRAPHICS
-            if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
+            if (SkillExecuteParam::IsSkillExecute(want)) {
+                TAG_LOGD(AAFwkTag::UIABILITY, "handleExecuteSkill");
+                ret = HandleExecuteSkill(want);
+            } else if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 Background();
             } else {
                 TAG_LOGD(AAFwkTag::UIABILITY, "handleExecuteInsightIntentBackground");

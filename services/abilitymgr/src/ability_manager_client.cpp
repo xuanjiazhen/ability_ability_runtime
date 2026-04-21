@@ -2706,5 +2706,25 @@ int32_t AbilityManagerClient::SetAppRecoveryFlag(const sptr<IRemoteObject>& toke
     }
     return proxy->SetAppRecoveryFlag(token, flag);
 }
+
+ErrCode AbilityManagerClient::StartSkillByHDC(const std::string &bundleName, const std::string &moduleName,
+    const std::string &skillName, const std::shared_ptr<WantParams> &params, uint64_t skillId,
+    const std::string &srcEntrance, const std::string &hapPath, bool isEsModule)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StartSkillByHDC(bundleName, moduleName, skillName, params, skillId,
+        srcEntrance, hapPath, isEsModule);
+}
+
+int32_t AbilityManagerClient::StartSkillByHDCDone(const sptr<IRemoteObject> &token, uint64_t skillId,
+    const SkillExecuteResult &result)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StartSkillByHDCDone(token, skillId, result);
+}
 } // namespace AAFwk
 } // namespace OHOS

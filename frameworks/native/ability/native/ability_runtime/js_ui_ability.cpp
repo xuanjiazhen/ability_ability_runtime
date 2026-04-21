@@ -36,6 +36,8 @@
 #include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
 #include "insight_intent_execute_param.h"
+#include "skill_executor_info.h"
+#include "skill_executor_mgr.h"
 #include "interop_object_instance.h"
 #include "js_ability_context.h"
 #include "js_ability_lifecycle_callback.h"
@@ -1584,6 +1586,34 @@ void JsUIAbility::ExecuteInsightIntentBackground(const Want &want,
     if (!ret) {
         // callback has removed, release in insight intent executor.
         TAG_LOGE(AAFwkTag::INTENT, "execute insightIntent failed");
+    }
+}
+
+void JsUIAbility::ExecuteSkillBackground(const Want &want,
+    const std::shared_ptr<SkillExecuteParam> &skillParam,
+    std::unique_ptr<SkillExecutorAsyncCallback> callback)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ExecuteSkillBackground");
+    if (skillParam == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null skillParam");
+        SkillExecutorMgr::TriggerCallbackInner(std::move(callback), ERR_OK);
+        return;
+    }
+
+    if (abilityInfo_) {
+        jsRuntime_.UpdateModuleNameAndAssetPath(abilityInfo_->moduleName);
+    }
+
+    SkillExecutorInfo skillInfo;
+    skillInfo.srcEntry = skillParam->srcEntrance_;
+    skillInfo.hapPath = skillParam->hapPath_;
+    skillInfo.esmodule = skillParam->isEsModule_;
+    skillInfo.executeParam = skillParam;
+
+    auto ret = DelayedSingleton<SkillExecutorMgr>::GetInstance()->ExecuteSkill(
+        jsRuntime_, skillInfo, std::move(callback));
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "execute skill failed");
     }
 }
 
