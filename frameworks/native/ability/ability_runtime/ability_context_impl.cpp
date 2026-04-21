@@ -1768,5 +1768,16 @@ ErrCode AbilityContextImpl::NotifyCompleteGamePreLaunch()
     }
     return err;
 }
+
+ErrCode AbilityContextImpl::StartSelfUIAbilityInSubProcess(const AAFwk::Want &want, const std::string &specifiedFlag)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    ErrCode err =
+        AAFwk::AbilityManagerClient::GetInstance()->StartSelfUIAbilityInSubProcess(want, specifiedFlag, token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
+    }
+    return err;
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
