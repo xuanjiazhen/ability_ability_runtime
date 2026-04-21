@@ -259,6 +259,8 @@ public:
 
     virtual bool HandleInsightIntent(const AAFwk::Want &want);
 
+    virtual bool HandleExecuteSkill(const AAFwk::Want &want);
+
     virtual bool OnInsightIntentExecuteDone(uint64_t intentId, const AppExecFwk::InsightIntentExecuteResult &result);
 
     virtual void OnExtensionAbilityRequestFailure(const std::string &requestId, const AppExecFwk::ElementName &element,
