@@ -445,6 +445,10 @@ int32_t AppMgrStub::OnRemoteRequestInnerEighth(uint32_t code, MessageParcel &dat
             return HandleRegisterImageProcessStateObserver(data, reply);
         case static_cast<uint32_t>(AppMgrInterfaceCode::UNREGISTER_IMAGE_PROCESS_STATE_OBSERVER):
             return HandleUnregisterImageProcessStateObserver(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::ENABLE_DELAYED_PROCESS_EXIT):
+            return HandleEnableDelayedProcessExit(data, reply);
+        case static_cast<uint32_t>(AppMgrInterfaceCode::CANCEL_DELAYED_EXIT_TASK):
+            return HandleCancelDelayedExitTask(data, reply);
     }
     return INVALID_FD;
 }
@@ -2422,6 +2426,26 @@ int32_t AppMgrStub::HandleGetAllAbilityInfos(MessageParcel &data, MessageParcel 
             return ERR_APPEXECFWK_PARCEL_ERROR;
         }
     }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleEnableDelayedProcessExit(MessageParcel &data, MessageParcel &reply)
+{
+    pid_t pid = data.ReadInt32();
+    bool enabled = data.ReadBool();
+    auto result = EnableDelayedProcessExit(pid, enabled);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "write result fail");
+        return AAFwk::ERR_WRITE_RESULT_CODE_FAILED;
+    }
+    return NO_ERROR;
+}
+
+int32_t AppMgrStub::HandleCancelDelayedExitTask(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "HandleCancelDelayedExitTask call");
+    pid_t pid = data.ReadInt32();
+    CancelDelayedExitTask(pid);
     return NO_ERROR;
 }
 }  // namespace AppExecFwk
