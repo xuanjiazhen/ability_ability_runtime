@@ -752,6 +752,9 @@ enum class AbilityManagerInterfaceCode {
 
     // start self uiability with start options and caller token
     START_SELF_UI_ABILITY_WITH_OPTIONS_AND_TOKEN = 6168,
+
+    // start self uiability in sub process
+    START_SELF_UI_ABILITY_IN_SUB_PROCESS = 6169,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
