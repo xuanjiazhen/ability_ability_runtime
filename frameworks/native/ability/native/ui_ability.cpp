@@ -38,6 +38,7 @@
 #include "reverse_continuation_scheduler_primary_stage.h"
 #include "runtime.h"
 #include "resource_config_helper.h"
+#include "skill_executor_mgr.h"
 #ifdef WITH_DLP
 #include "set_dlp_config.h"
 #endif // WITH_DLP
@@ -1467,6 +1468,14 @@ void UIAbility::ExecuteInsightIntentBackground(const AAFwk::Want &want,
     std::unique_ptr<InsightIntentExecutorAsyncCallback> callback)
 {
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
+}
+
+void UIAbility::ExecuteSkillBackground(const AAFwk::Want &want,
+    const std::shared_ptr<SkillExecuteParam> &skillParam,
+    std::unique_ptr<SkillExecutorAsyncCallback> callback)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    AbilityRuntime::SkillExecutorMgr::TriggerCallbackInner(std::move(callback), ERR_OK);
 }
 
 int UIAbility::CreateModalUIExtension(const AAFwk::Want &want)
