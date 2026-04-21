@@ -47,6 +47,7 @@ class LifeCycle;
 class ContinuationHandlerStage;
 class ContinuationManagerStage;
 class InsightIntentExecuteParam;
+class SkillExecuteParam;
 struct BaseDelegatorAbilityProperty;
 struct InsightIntentExecuteResult;
 using InsightIntentExecutorAsyncCallback = AbilityTransactionCallbackInfo<InsightIntentExecuteResult>;
@@ -61,6 +62,7 @@ class Runtime;
 using InsightIntentExecuteResult = AppExecFwk::InsightIntentExecuteResult;
 using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 using InsightIntentExecutorAsyncCallback = AppExecFwk::InsightIntentExecutorAsyncCallback;
+using SkillExecuteParam = AppExecFwk::SkillExecuteParam;
 class UIAbility : public AppExecFwk::AbilityContext,
                   public AppExecFwk::ILifeCycle,
                   public AppExecFwk::IAbilityCallback,

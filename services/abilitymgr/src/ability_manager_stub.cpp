@@ -999,6 +999,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::INSIGHT_INTENT_QUERY_ENTITY) {
         return QueryEntityInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::START_IN_APP_SKILL) {
+        return StartInAppSkillInner(data, reply);
+    }
     return ERR_CODE_NOT_EXIST;
 }
 
@@ -5532,6 +5535,26 @@ int32_t AbilityManagerStub::SetAppRecoveryFlagInner(MessageParcel &data, Message
     }
     int flag = data.ReadInt32();
     int32_t result = SetAppRecoveryFlag(token, flag);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::StartInAppSkillInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start in-app skill stub");
+    std::string bundleName = Str16ToStr8(data.ReadString16());
+    std::string moduleName = Str16ToStr8(data.ReadString16());
+    std::string skillName = Str16ToStr8(data.ReadString16());
+    std::string arkTSPath = Str16ToStr8(data.ReadString16());
+    std::string funcName = Str16ToStr8(data.ReadString16());
+
+    std::vector<std::string> argv;
+    int32_t argc = data.ReadInt32();
+    for (int32_t i = 0; i < argc; i++) {
+        argv.push_back(Str16ToStr8(data.ReadString16()));
+    }
+
+    int32_t result = StartInAppSkill(bundleName, moduleName, skillName, arkTSPath, funcName, argv);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
