@@ -18,5 +18,7 @@ group("tools_target") {
   deps = [
     "aa:tools_aa",
     "cc:tools_cc",
+    "aa:tools_aa",
+    "arkts_script:ohos-arkts",
   ]
 }
