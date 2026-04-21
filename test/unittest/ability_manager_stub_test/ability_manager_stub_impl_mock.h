@@ -483,6 +483,13 @@ public:
         int32_t userId));
     MOCK_METHOD1(GetAutoStartupStatusForSelf, int32_t(bool &isAutoStartEnabled));
     MOCK_METHOD4(StartAbilityByOEExt, int32_t(const Want&, sptr<IRemoteObject>, int32_t, const std::string&));
+    MOCK_METHOD7(ExecuteInAppSkill, int32_t(const std::string&, const std::string&, const std::string&,
+        const std::string&, const std::string&,
+        const std::shared_ptr<AAFwk::WantParams>&, const sptr<ISkillExecuteCallback>&));
+    MOCK_METHOD3(ExecuteSkillDone, int32_t(int64_t, int32_t, const AppExecFwk::SkillExecuteResult&));
+    MOCK_METHOD4(ExecuteSkillDone, int32_t(const sptr<IRemoteObject>&, int64_t, int32_t,
+        const AppExecFwk::SkillExecuteResult&));
+    MOCK_METHOD4(QuerySkillType, int32_t(const std::string&, const std::string&, const std::string&, int32_t&));
 
 int32_t GetUserLockedBundleList(int32_t userId, std::unordered_set<std::string> &userLockedBundleList) override
 {
