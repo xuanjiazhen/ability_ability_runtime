@@ -59,6 +59,12 @@ public:
     static ani_string GetCurrentInstanceKey(ani_env *env, ani_object aniObj);
     static void GetAllRunningInstanceKeys(ani_env *env, ani_object aniObj, ani_object callback);
     static void GetAllWindowStages(ani_env *env, ani_object aniObj, ani_object callback);
+    static void EnableDelayedProcessExit(ani_env *env, ani_object aniObj, ani_object callback);
+    static void DisableDelayedProcessExit(ani_env *env, ani_object aniObj, ani_object callback);
+    static void StartSelfUIAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callback);
+    static void NativeEnableDelayedProcessExitCheck(ani_env *env, ani_object aniObj);
+    static void NativeDisableDelayedProcessExitCheck(ani_env *env, ani_object aniObj);
+    static void NativeStartSelfUIAbilityCheck(ani_env *env, ani_object aniObj);
     static ani_int NativeOnLifecycleCallbackSync(ani_env *env, ani_object aniObj, ani_string type,
         ani_object callback);
     static void NativeOffLifecycleCallbackSync(ani_env *env, ani_object aniObj, ani_string type,
@@ -101,6 +107,9 @@ private:
     ani_int OnNativeOnEnvironmentSync(ani_env *env, ani_object aniObj, ani_object envCallback);
     static void SetEventHubContextIsApplicationContext(ani_env *aniEnv, ani_ref eventHubRef);
     ani_object CreateWindowStageArray(ani_env *env, std::vector<std::shared_ptr<UIAbility>> uiAbility);
+    void OnEnableDelayedProcessExit(ani_env *env, ani_object aniObj, ani_object callback);
+    void OnDisableDelayedProcessExit(ani_env *env, ani_object aniObj, ani_object callback);
+    void OnStartSelfUIAbility(ani_env *env, ani_object aniObj, ani_object wantObj, ani_object callback);
     std::shared_ptr<EtsEnviromentCallback> etsEnviromentCallback_;
     std::shared_ptr<EtsApplicationStateChangeCallback> applicationStateCallback_;
     std::shared_ptr<EtsSystemConfigurationUpdatedCallback> systemConfigurationUpdatedCallback_;
