@@ -22,6 +22,7 @@
 #include "app_utils.h"
 #include "render_record.h"
 #include "app_mgr_service_inner.h"
+#include "app_state_observer_manager.h"
 #include "error_msg_util.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
@@ -409,6 +410,7 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetPreloadModuleName(preloadModuleName_);
     launchData.SetDebugFromLocal(isDebugFromLocal_);
     launchData.SetStartupTaskData(startupTaskData_);
+    launchData.SetImageProcessType(static_cast<int32_t>(imageProcessType_));
 
     TAG_LOGD(AAFwkTag::APPMGR, "%{public}s called,app is %{public}s.", __func__, GetName().c_str());
     AddAppLifecycleEvent("AppRunningRecord::LaunchApplication");
@@ -552,8 +554,14 @@ void AppRunningRecord::LaunchAbility(const std::shared_ptr<AbilityRunningRecord>
         TAG_LOGE(AAFwkTag::APPMGR, "null moduleRecord");
         return;
     }
-
-    moduleRecord->LaunchAbility(ability);
+    std::shared_ptr<AppUpdateInfo> updateInfo;
+    if (needUpdate_) {
+        updateInfo = std::make_shared<AppUpdateInfo>();
+        updateInfo->appRecordId = appRecordId_;
+        updateInfo->appRunningUniqueId = std::to_string(startTimeMillis_);
+        needUpdate_ = false;
+    }
+    moduleRecord->LaunchAbility(ability, updateInfo);
 }
 
 void AppRunningRecord::ScheduleTerminate()
@@ -679,6 +687,13 @@ void AppRunningRecord::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
 {
     if (appLifeCycleDeal_) {
         appLifeCycleDeal_->ScheduleCjHeapMemory(info);
+    }
+}
+
+void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    if (appLifeCycleDeal_) {
+        appLifeCycleDeal_->ScheduleMem(info, dumpResult);
     }
 }
 
@@ -890,7 +905,8 @@ bool AppRunningRecord::UpdateAbilityFocusState(const sptr<IRemoteObject> &token,
     }
 }
 
-void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
+void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+    bool isFromScreenOffBackground)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "state is :%{public}d", static_cast<int32_t>(state));
     auto abilityRecord = GetAbilityRunningRecordByToken(token);
@@ -911,7 +927,7 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
     if (state == AbilityState::ABILITY_STATE_FOREGROUND) {
         AbilityForeground(abilityRecord);
     } else if (state == AbilityState::ABILITY_STATE_BACKGROUND) {
-        AbilityBackground(abilityRecord);
+        AbilityBackground(abilityRecord, isFromScreenOffBackground);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "wrong state");
     }
@@ -924,7 +940,7 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         TAG_LOGE(AAFwkTag::APPMGR, "null ability");
         return;
     }
-
+    SetIsFromScreenOffBackground(false);
     AbilityState curAbilityState = ability->GetState();
     if (curAbilityState != AbilityState::ABILITY_STATE_READY &&
         curAbilityState != AbilityState::ABILITY_STATE_BACKGROUND) {
@@ -971,7 +987,8 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
     }
 }
 
-void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability)
+void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability,
+    bool isFromScreenOffBackground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!ability) {
@@ -1011,6 +1028,10 @@ void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRec
             foregroundSize++;
             break;
         }
+    }
+    
+    if (foregroundSize == 0 && (mainBundleName_ != LAUNCHER_NAME || IsAllowScbProcessMoveToBackground())) {
+        isFromScreenOffBackground_ = isFromScreenOffBackground;
     }
 
     // Then schedule application background when all ability is not foreground.
@@ -1126,6 +1147,11 @@ void AppRunningRecord::TerminateAbility(const sptr<IRemoteObject> &token, const 
             abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_TERMINATED), true, false);
     }
     moduleRecord->TerminateAbility(shared_from_this(), token, isForce);
+
+    if (GetProcessType() == ProcessType::NORMAL && HasOnlyOneExtensionType()) {
+        SetProcessType(ProcessType::EXTENSION);
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessTypeChanged(shared_from_this());
+    }
 }
 
 void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
@@ -1193,6 +1219,11 @@ std::list<std::shared_ptr<ModuleRunningRecord>> AppRunningRecord::GetAllModuleRe
 
 void AppRunningRecord::RemoveAppDeathRecipient() const
 {
+    TAG_LOGD(AAFwkTag::APPMGR, "RemoveAppDeathRecipient");
+    if (GetNeedRemoveDeathRecipient()) {
+        TAG_LOGD(AAFwkTag::APPMGR, "image exist, no need to remove");
+        return;
+    }
     if (appLifeCycleDeal_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
         return;
@@ -1227,6 +1258,11 @@ void AppRunningRecord::SetAppMgrServiceInner(const std::weak_ptr<AppMgrServiceIn
 void AppRunningRecord::SetAppDeathRecipient(const sptr<AppDeathRecipient> &appDeathRecipient)
 {
     appDeathRecipient_ = appDeathRecipient;
+}
+
+sptr<AppDeathRecipient> AppRunningRecord::GetAppDeathRecipient() const
+{
+    return appDeathRecipient_;
 }
 
 std::shared_ptr<PriorityObject> AppRunningRecord::GetPriorityObject()
@@ -1691,6 +1727,23 @@ bool AppRunningRecord::IsStartSpecifiedAbility() const
 {
     std::lock_guard lock(specifiedMutex_);
     return specifiedAbilityRequest_ != nullptr;
+}
+
+void AppRunningRecord::TryToUpdateWorkProcessInfo()
+{
+    if (imageProcessType_ != ImageProcessType::WORK || !needUpdate_) {
+        TAG_LOGD(AAFwkTag::APPMGR, "no need to update");
+        return;
+    }
+    if (appLifeCycleDeal_ == nullptr) {
+        TAG_LOGW(AAFwkTag::APPMGR, "null appLifeCycleDeal_");
+        return;
+    }
+    needUpdate_ = false;
+    auto updateInfo = std::make_shared<AppUpdateInfo>();
+    updateInfo->appRecordId = appRecordId_;
+    updateInfo->appRunningUniqueId = std::to_string(startTimeMillis_);
+    appLifeCycleDeal_->ScheduleUpdateWorkProcessInfo(updateInfo);
 }
 
 void AppRunningRecord::SchedulePrepareTerminate(const std::string &moduleName)
@@ -2233,6 +2286,38 @@ uint64_t AppRunningRecord::GenerateRunningId()
     return dist(engine);
 }
 
+bool AppRunningRecord::HasOnlyOneExtensionType()
+{
+    auto abilities = GetAbilities();
+    ExtensionAbilityType firstType = ExtensionAbilityType::UNSPECIFIED;
+    bool hasExtension = false;
+
+    for (const auto &item : abilities) {
+        const auto &ability = item.second;
+        if (!ability) {
+            continue;
+        }
+        auto abilityInfo = ability->GetAbilityInfo();
+        if (!abilityInfo) {
+            continue;
+        }
+
+        if (abilityInfo->type != AbilityType::EXTENSION) {
+            return false;
+        }
+
+        auto currentType = abilityInfo->extensionAbilityType;
+        if (!hasExtension) {
+            firstType = currentType;
+            hasExtension = true;
+        } else if (currentType != firstType) {
+            return false;
+        }
+    }
+
+    return hasExtension;
+}
+
 void AppRunningRecord::SetRequestProcCode(int32_t requestProcCode)
 {
     requestProcCode_ = requestProcCode;
@@ -2477,6 +2562,51 @@ bool AppRunningRecord::IsPreloading() const
 bool AppRunningRecord::IsPreloaded() const
 {
     return preloadState_ == PreloadState::PRELOADED;
+}
+
+void AppRunningRecord::SetMakeImageState(MakeImageState state)
+{
+    makeImageState_ = state;
+}
+
+MakeImageState AppRunningRecord::GetMakeImageState() const
+{
+    return makeImageState_;
+}
+
+void AppRunningRecord::SetIsCreateFromImage(bool flag)
+{
+    isCreateFromImage_ = flag;
+}
+
+bool AppRunningRecord::GetIsCreateFromImage() const
+{
+    return isCreateFromImage_;
+}
+
+void AppRunningRecord::SetImageProcessType(ImageProcessType type)
+{
+    imageProcessType_ = type;
+}
+
+ImageProcessType AppRunningRecord::GetImageProcessType() const
+{
+    return imageProcessType_;
+}
+
+void AppRunningRecord::SetNeedRemoveDeathRecipient(bool flag)
+{
+    needRemoveDeathRecipient_ = flag;
+}
+
+bool AppRunningRecord::GetNeedRemoveDeathRecipient() const
+{
+    return needRemoveDeathRecipient_;
+}
+
+void AppRunningRecord::SetNeedUpdate(bool needUpdate)
+{
+    needUpdate_ = needUpdate;
 }
 
 int32_t AppRunningRecord::GetAssignTokenId() const
@@ -2902,6 +3032,24 @@ void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
 {
     std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
     supportMultiProcessDeviceFeature_ = support;
+}
+
+void AppRunningRecord::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos)
+{
+    auto abilitiesMap = GetAbilities();
+    for (const auto &pair : abilitiesMap) {
+        const auto &abilityRecord = pair.second;
+        if (abilityRecord == nullptr || abilityRecord->GetAbilityInfo() == nullptr) {
+            continue;
+        }
+        AbilityStateData info;
+        info.abilityRecordId = abilityRecord->GetAbilityRecordId();
+        info.pid = GetPid();
+        info.uid = abilityRecord->GetAbilityInfo()->applicationInfo.uid;
+        info.abilityType = static_cast<int32_t>(abilityRecord->GetAbilityInfo()->type);
+        info.extensionAbilityType = static_cast<int32_t>(abilityRecord->GetAbilityInfo()->extensionAbilityType);
+        infos.emplace_back(info);
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

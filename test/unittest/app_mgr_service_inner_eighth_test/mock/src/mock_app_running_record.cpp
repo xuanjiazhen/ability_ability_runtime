@@ -275,6 +275,10 @@ void AppRunningRecord::ScheduleJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &in
 {
 }
 
+void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpresult)
+{
+}
+
 void AppRunningRecord::LowMemoryWarning()
 {
 }
@@ -331,7 +335,8 @@ bool AppRunningRecord::UpdateAbilityFocusState(const sptr<IRemoteObject> &token,
     return false;
 }
 
-void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
+void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+    bool isFromScreenOffBackground)
 {
 }
 
@@ -339,7 +344,8 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
 {
 }
 
-void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability)
+void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability,
+    bool isFromScreenOffBackground)
 {
 }
 
@@ -382,6 +388,11 @@ void AppRunningRecord::SetAppMgrServiceInner(const std::weak_ptr<AppMgrServiceIn
 void AppRunningRecord::SetAppDeathRecipient(const sptr<AppDeathRecipient> &appDeathRecipient)
 {
     appDeathRecipient_ = appDeathRecipient;
+}
+
+sptr<AppDeathRecipient> AppRunningRecord::GetAppDeathRecipient() const
+{
+    return appDeathRecipient_;
 }
 
 std::shared_ptr<PriorityObject> AppRunningRecord::GetPriorityObject()
@@ -567,6 +578,10 @@ int32_t AppRunningRecord::GetSpecifiedRequestId() const
 }
 
 void AppRunningRecord::ResetSpecifiedRequest()
+{
+}
+
+void AppRunningRecord::TryToUpdateWorkProcessInfo()
 {
 }
 
@@ -1029,6 +1044,51 @@ bool AppRunningRecord::IsPreloaded() const
     return preloadState_ == PreloadState::PRELOADED;
 }
 
+void AppRunningRecord::SetMakeImageState(MakeImageState state)
+{
+    makeImageState_ = state;
+}
+
+MakeImageState AppRunningRecord::GetMakeImageState() const
+{
+    return makeImageState_;
+}
+
+void AppRunningRecord::SetIsCreateFromImage(bool flag)
+{
+    isCreateFromImage_ = flag;
+}
+
+bool AppRunningRecord::GetIsCreateFromImage() const
+{
+    return isCreateFromImage_;
+}
+
+void AppRunningRecord::SetImageProcessType(ImageProcessType type)
+{
+    imageProcessType_ = type;
+}
+
+ImageProcessType AppRunningRecord::GetImageProcessType() const
+{
+    return imageProcessType_;
+}
+
+void AppRunningRecord::SetNeedRemoveDeathRecipient(bool flag)
+{
+    needRemoveDeathRecipient_ = flag;
+}
+
+bool AppRunningRecord::GetNeedRemoveDeathRecipient() const
+{
+    return needRemoveDeathRecipient_;
+}
+
+void AppRunningRecord::SetNeedUpdate(bool needUpdate)
+{
+    needUpdate_ = needUpdate;
+}
+
 int32_t AppRunningRecord::GetAssignTokenId() const
 {
     return assignTokenId_;
@@ -1364,6 +1424,10 @@ bool AppRunningRecord::IsPreForeground() const
 bool AppRunningRecord::HasAgentExtensionAbility()
 {
     return false;
+}
+
+void AppRunningRecord::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos)
+{
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

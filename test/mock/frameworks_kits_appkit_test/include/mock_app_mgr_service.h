@@ -35,7 +35,8 @@ public:
             const std::shared_ptr<AbilityInfo>& abilityInfo, const std::shared_ptr<ApplicationInfo>& appInfo,
             const std::shared_ptr<AAFwk::Want>& want, int32_t abilityRecordId));
     MOCK_METHOD2(TerminateAbility, void(const sptr<IRemoteObject>& token, bool isClearMissionFlag));
-    MOCK_METHOD2(UpdateAbilityState, void(const sptr<IRemoteObject>& token, const AbilityState state));
+    MOCK_METHOD3(UpdateAbilityState, void(const sptr<IRemoteObject>& token, const AbilityState state,
+        bool isFromScreenOffBackground));
     MOCK_METHOD1(SetAppFreezingTime, void(int time));
     MOCK_METHOD1(GetAppFreezingTime, void(int& time));
     MOCK_METHOD1(AddAbilityStageDone, void(const int32_t recordId));
@@ -299,10 +300,10 @@ public:
     }
 
     void ScheduleLaunchAbility(const AbilityInfo& abilityinf, const sptr<IRemoteObject>& token,
-        const std::shared_ptr<AAFwk::Want>& want)
+        const std::shared_ptr<AAFwk::Want>& want, std::shared_ptr<AppUpdateInfo> updateInfo = nullptr)
     {
         if (Appthread_ != nullptr) {
-            Appthread_->ScheduleLaunchAbility(abilityinf, token, want, 0);
+            Appthread_->ScheduleLaunchAbility(abilityinf, token, want, 0, updateInfo);
         }
     }
 
@@ -368,6 +369,11 @@ public:
         return true;
     }
 
+    int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+    {
+        return 0;
+    }
+    
     int32_t DumpJsHeapMemory(OHOS::AppExecFwk::JsHeapDumpInfo &info)
     {
         return 0;

@@ -64,7 +64,7 @@ void AppScheduler::MoveToForeground(const sptr<IRemoteObject>& token)
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::MoveToForeground()");
 }
 
-void AppScheduler::MoveToBackground(const sptr<IRemoteObject>& token)
+void AppScheduler::MoveToBackground(const sptr<IRemoteObject>& token, bool isFromScreenOffBackground)
 {
     TAG_LOGI(AAFwkTag::TEST, "Test AppScheduler::MoveToBackground()");
 }
@@ -225,7 +225,7 @@ bool AppScheduler::IsMemorySizeSufficient() const
 }
 
 void AppScheduler::StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t,
-    const std::string&) {}
+    const std::string&, bool) {}
 
 int AppScheduler::StartUserTest(
     const Want& want, const sptr<IRemoteObject>& observer, const AppExecFwk::BundleInfo& bundleInfo, int32_t userId)

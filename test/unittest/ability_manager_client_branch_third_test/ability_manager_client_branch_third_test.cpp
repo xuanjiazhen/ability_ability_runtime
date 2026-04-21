@@ -88,6 +88,16 @@ public:
         return true;
     }
 
+    bool AddRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+    {
+        return true;
+    }
+
+    bool RemoveRefreshRecipient(const sptr<RefreshRecipient> &recipient)
+    {
+        return true;
+    }
+
     sptr<IRemoteBroker> AsInterface()
     {
         return nullptr;
@@ -1312,6 +1322,27 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, StartAbilityByOEExt_0300, TestSize
     EXPECT_CALL(*mock_, StartAbilityByOEExt(_, _, _, _)).Times(1).WillOnce(Return(ERR_INVALID_VALUE));
     auto result = client_->StartAbilityByOEExt(want, nullptr, hostPid, specifiedFlag);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+
+/**
+ * @tc.name: MissionInfoTest_0100
+ * @tc.desc: MissionInfoTest_0100
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchThirdTest, MissionInfoTest_0100, TestSize.Level1)
+{
+    MissionInfo missionInfo;
+    missionInfo.id = 1;
+    missionInfo.runningState = 1;
+    missionInfo.time = "test";
+    Parcel parcel;
+    missionInfo.Marshalling(parcel);
+    MissionInfo* newMissionInfo = MissionInfo::Unmarshalling(parcel);
+    EXPECT_EQ(missionInfo.id, newMissionInfo->id);
+    EXPECT_EQ(missionInfo.runningState, newMissionInfo->runningState);
+    EXPECT_EQ(missionInfo.time, newMissionInfo->time);
+    delete newMissionInfo;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
