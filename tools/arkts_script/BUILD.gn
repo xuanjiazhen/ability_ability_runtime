@@ -48,6 +48,7 @@ ohos_executable("arktsScript") {
     "src/arkts_script.cpp",
     "src/js_arkts_script.cpp",
     "src/main.cpp",
+    "src/skill_resolver.cpp",
   ]
 
   public_configs = [

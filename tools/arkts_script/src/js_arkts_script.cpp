@@ -300,6 +300,60 @@ bool HandlePromiseResult(napi_env env, napi_value promise, ResultCallback callba
 
 } // namespace
 
+bool ConvertParamsToNapiArgs(napi_env env,
+    const std::map<std::string, JsonValue>& params,
+    std::vector<napi_value>& napiArgs, ResultCallback callback)
+{
+    std::vector<std::pair<std::string, JsonValue>> sortedParams(params.begin(), params.end());
+    std::sort(sortedParams.begin(), sortedParams.end(),
+        [](const auto& a, const auto& b) {
+            auto extractNumber = [](const std::string& key) -> int {
+                if (key.rfind("argv", 0) != 0) return 0;
+                std::string numStr = key.substr(4);
+                try { return std::stoi(numStr); } catch (...) { return 0; }
+            };
+            return extractNumber(a.first) < extractNumber(b.first);
+        });
+
+    napiArgs.reserve(sortedParams.size());
+    for (const auto& [key, jsonValue] : sortedParams) {
+        napi_value argValue = JsonToNapiValue(env, jsonValue);
+        if (argValue == nullptr) {
+            callback(false, "", "failed to convert argument " + key + ": " + jsonValue.dump());
+            return false;
+        }
+        napiArgs.push_back(argValue);
+    }
+    return true;
+}
+
+bool CallFunctionAndHandleResult(napi_env env, napi_value thisObj,
+    napi_value func, const std::string& funName,
+    const std::vector<napi_value>& napiArgs, ResultCallback callback)
+{
+    napi_value result = nullptr;
+    napi_status status = napi_call_function(env, thisObj, func, napiArgs.size(), napiArgs.data(), &result);
+    if (status != napi_ok) {
+        callback(false, "", "failed to call '" + funName + "': " + GetNapiErrorMessage(env));
+        return false;
+    }
+
+    bool isPromise = false;
+    status = napi_is_promise(env, result, &isPromise);
+    if (status != napi_ok) {
+        callback(false, "", "failed to check if result is Promise: " + GetNapiErrorMessage(env));
+        return false;
+    }
+
+    if (isPromise) {
+        TAG_LOGI(AAFwkTag::APPKIT, "Function returned a Promise, handling asynchronously");
+        return HandlePromiseResult(env, result, callback);
+    }
+    TAG_LOGI(AAFwkTag::APPKIT, "Function returned synchronously");
+    HandleSyncResult(env, result, callback);
+    return true;
+}
+
 bool BindContextToGlobal(napi_env env, const std::shared_ptr<ContextImpl>& context)
 {
     if (env == nullptr || context == nullptr) {
@@ -367,7 +421,7 @@ bool LoadAbcFile(JsRuntime* runtime, const std::string& path)
     return loaded;
 }
 
-bool ExecuteFunction(napi_env env, const std::string& funName, 
+bool ExecuteFunction(napi_env env, const std::string& funName,
     const std::map<std::string, JsonValue>& params, ResultCallback callback)
 {
     if (env == nullptr) {
@@ -410,59 +464,86 @@ bool ExecuteFunction(napi_env env, const std::string& funName,
         return false;
     }
 
-    // 将 map 转换为 vector，按照 argv1, argv2 的顺序排序
-    std::vector<std::pair<std::string, JsonValue>> sortedParams(params.begin(), params.end());
-    std::sort(sortedParams.begin(), sortedParams.end(),
-        [](const auto& a, const auto& b) {
-            // 提取数字部分进行比较
-            auto extractNumber = [](const std::string& key) -> int {
-                if (key.rfind("argv", 0) != 0) return 0;
-                std::string numStr = key.substr(4);
-                try {
-                    return std::stoi(numStr);
-                } catch (...) {
-                    return 0;
-                }
-            };
-            return extractNumber(a.first) < extractNumber(b.first);
-        });
+    std::vector<napi_value> napiArgs;
+    if (!ConvertParamsToNapiArgs(env, params, napiArgs, callback)) {
+        return false;
+    }
+
+    return CallFunctionAndHandleResult(env, globalObj, func, funName, napiArgs, callback);
+}
+
+bool LoadAndExecuteModule(JsRuntime* runtime,
+    const std::string& moduleName, const std::string& srcPath,
+    const std::string& hapPath, const std::string& srcEntrance,
+    bool isEsModule, const std::string& funcName,
+    const std::map<std::string, JsonValue>& params,
+    ResultCallback callback)
+{
+    if (runtime == nullptr) {
+        callback(false, "", "runtime is null");
+        return false;
+    }
+
+    TAG_LOGI(AAFwkTag::APPKIT,
+        "LoadAndExecuteModule: moduleName=%{public}s, srcPath=%{private}s, "
+        "hapPath=%{private}s, isEsModule=%{public}d, funcName=%{public}s",
+        moduleName.c_str(), srcPath.c_str(), hapPath.c_str(), isEsModule, funcName.c_str());
+
+    auto moduleRef = runtime->LoadModule(moduleName, srcPath, hapPath, isEsModule, false, srcEntrance);
+    if (moduleRef == nullptr) {
+        callback(false, "", "LoadModule failed for " + srcPath);
+        return false;
+    }
+
+    napi_env env = runtime->GetNapiEnv();
+    if (env == nullptr) {
+        callback(false, "", "napi_env is null after LoadModule");
+        return false;
+    }
+
+    napi_value moduleObj = moduleRef->GetNapiValue();
+    if (moduleObj == nullptr) {
+        callback(false, "", "module object is null");
+        return false;
+    }
+
+    return ExecuteModuleFunction(env, moduleObj, funcName, params, callback);
+}
+
+bool ExecuteModuleFunction(napi_env env, napi_value moduleObj,
+    const std::string& funcName, const std::map<std::string, JsonValue>& params,
+    ResultCallback callback)
+{
+    napi_value func = nullptr;
+    napi_status status = napi_get_named_property(env, moduleObj, funcName.c_str(), &func);
+    if (status != napi_ok || func == nullptr) {
+        callback(false, "", "failed to get '" + funcName + "' from module: " + GetNapiErrorMessage(env));
+        return false;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    status = napi_typeof(env, func, &valueType);
+    if (status != napi_ok) {
+        callback(false, "", "failed to inspect '" + funcName + "': " + GetNapiErrorMessage(env));
+        return false;
+    }
+
+    if (valueType == napi_undefined) {
+        callback(false, "", "function '" + funcName + "' not found in module exports");
+        return false;
+    }
+
+    if (valueType != napi_function) {
+        callback(false, "", "'" + funcName + "' is not a function in module exports");
+        return false;
+    }
 
     std::vector<napi_value> napiArgs;
-    napiArgs.reserve(sortedParams.size());
-    for (const auto& [key, jsonValue] : sortedParams) {
-        napi_value argValue = JsonToNapiValue(env, jsonValue);
-        if (argValue == nullptr) {
-            callback(false, "", "failed to convert argument " + key + ": " + jsonValue.dump());
-            return false;
-        }
-        napiArgs.push_back(argValue);
-    }
-
-    napi_value result = nullptr;
-    status = napi_call_function(env, globalObj, func, napiArgs.size(), napiArgs.data(), &result);
-    if (status != napi_ok) {
-        callback(false, "", "failed to call '" + funName + "': " + GetNapiErrorMessage(env));
+    if (!ConvertParamsToNapiArgs(env, params, napiArgs, callback)) {
         return false;
     }
 
-    // 检查是否为 Promise
-    bool isPromise = false;
-    status = napi_is_promise(env, result, &isPromise);
-    if (status != napi_ok) {
-        callback(false, "", "failed to check if result is Promise: " + GetNapiErrorMessage(env));
-        return false;
-    }
-
-    if (isPromise) {
-        // 异步处理 Promise
-        TAG_LOGI(AAFwkTag::APPKIT, "Function returned a Promise, handling asynchronously");
-        return HandlePromiseResult(env, result, callback);
-    } else {
-        // 同步处理
-        TAG_LOGI(AAFwkTag::APPKIT, "Function returned synchronously");
-        HandleSyncResult(env, result, callback);
-        return true;
-    }
+    return CallFunctionAndHandleResult(env, moduleObj, func, funcName, napiArgs, callback);
 }
 
 std::string NapiValueToJsonString(napi_env env, napi_value value)

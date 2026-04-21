@@ -39,9 +39,19 @@ namespace ArktsScript {
 
 using JsonValue = nlohmann::json;
 
+enum class ExecutionMode {
+    DIRECT_ABC,
+    SKILL_BUNDLE,
+    MODULE_FUNC,
+};
+
 struct ScriptArgs {
     std::string path;
     std::string funName;
+    std::string bundleName;
+    std::string skillName;
+    std::string moduleName;
+    ExecutionMode mode = ExecutionMode::DIRECT_ABC;
     std::map<std::string, JsonValue> params;
     bool showHelp = false;
 
@@ -64,6 +74,13 @@ bool LoadAbcFile(OHOS::AbilityRuntime::JsRuntime* runtime, const std::string& pa
 
 bool ExecuteFunction(napi_env env, const std::string& funName,
     const std::map<std::string, JsonValue>& params, ResultCallback callback);
+
+bool LoadAndExecuteModule(OHOS::AbilityRuntime::JsRuntime* runtime,
+    const std::string& moduleName, const std::string& srcPath,
+    const std::string& hapPath, const std::string& srcEntrance,
+    bool isEsModule, const std::string& funcName,
+    const std::map<std::string, JsonValue>& params,
+    ResultCallback callback);
 
 std::string NapiValueToJsonString(napi_env env, napi_value value);
 

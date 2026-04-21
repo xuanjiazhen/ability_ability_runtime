@@ -123,20 +123,26 @@ bool ValidateApplicationInfo(const std::shared_ptr<ApplicationInfo>& appInfo)
 
 void PrintUsage(const char* execName, bool isErrorLog)
 {
-    const std::string usage = std::string("Usage: ") + execName +
-        " --abcPath abcPath --funcName funName [--params \"{argv1:value1,...}\"]\n"
-        "  --abcPath: ABC file path (required)\n"
-        "  --funcName: Function name to call (required)\n"
+    const std::string usage = std::string("Usage:\n  ") + execName +
+        " --abcPath <path> --funcName <name> [--params '{...}']\n  " + execName +
+        " --bundleName <name> --skillName <name> [--params '{...}']\n  " + execName +
+        " --bundleName <name> --moduleName <name> --funcName <name> [--params '{...}']\n"
+        "Options:\n"
+        "  --abcPath: ABC file path (direct mode, mutually exclusive with --bundleName)\n"
+        "  --bundleName: Target bundle name (skill/module mode)\n"
+        "  --skillName: Skill name to execute (skill mode)\n"
+        "  --moduleName: Module name within the bundle (module mode)\n"
+        "  --funcName: Function name to call (required in direct/module mode)\n"
         "  --params: Function arguments as JSON object (optional)\n"
         "    Keys must be in format: argv1, argv2, ...\n"
         "    Values are standard JSON types (string, number, boolean, object, array, null)\n"
         "  -h, --help: Show this help message\n"
         "Examples:\n  " + execName +
-        " --abcPath /data/scripts/test.abc --funcName add --params \"{\\\"argv1\\\":10,\\\"argv2\\\":20}\"\n  " +
-        execName +
-        " --abcPath /data/scripts/test.abc --funcName configure --params \"{\\\"argv1\\\":\\\"prod\\\",\\\"argv2\\\":8080,\\\"argv3\\\":true}\"\n  " +
-        execName +
-        " --abcPath /data/scripts/test.abc --funcName process --params \"{\\\"argv1\\\":{\\\"key\\\":\\\"value\\\"}}\"";
+        " --abcPath /data/scripts/test.abc --funcName add "
+        "--params '{\"argv1\":10,\"argv2\":20}'\n  " + execName +
+        " --bundleName com.example.myskill --skillName mySkill "
+        "--params '{\"argv1\":\"test\"}'\n  " + execName +
+        " --bundleName com.example.myskill --moduleName entry --funcName execute";
     if (isErrorLog) {
         TAG_LOGE(AAFwkTag::APPKIT, "%{public}s", usage.c_str());
         return;
@@ -162,6 +168,126 @@ bool ValidateScriptFile(const std::string& path)
         TAG_LOGW(AAFwkTag::APPKIT, "script path does not end with .abc: %{private}s", path.c_str());
     }
 
+    return true;
+}
+
+bool StripQuotesAndParseParams(std::string& paramsJson, ScriptArgs& args)
+{
+    if (!paramsJson.empty()) {
+        size_t start = 0;
+        size_t end = paramsJson.length();
+        while (start < end && (paramsJson[start] == '\'' || paramsJson[start] == '"')) {
+            start++;
+        }
+        while (end > start && (paramsJson[end - 1] == '\'' || paramsJson[end - 1] == '"')) {
+            end--;
+        }
+        if (start > 0 || end < paramsJson.length()) {
+            paramsJson = paramsJson.substr(start, end - start);
+        }
+    }
+
+    if (!paramsJson.empty()) {
+        std::string errorMessage;
+        if (!ParseParamsFromJson(paramsJson, args.params, errorMessage)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Failed to parse params: %{public}s", errorMessage.c_str());
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ParseOneOption(const std::string& option, int& i, int argc, char* argv[],
+    ScriptArgs& args, std::string& paramsJson, bool& collectingParams)
+{
+    if (option == "--abcPath") {
+        if (i + 1 >= argc) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Missing value for --abcPath");
+            return false;
+        }
+        args.path = argv[++i];
+        return true;
+    }
+
+    if (option == "--funcName") {
+        if (i + 1 >= argc) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Missing value for --funcName");
+            return false;
+        }
+        args.funName = argv[++i];
+        return true;
+    }
+
+    if (option == "--bundleName") {
+        if (i + 1 >= argc) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Missing value for --bundleName");
+            return false;
+        }
+        args.bundleName = argv[++i];
+        return true;
+    }
+
+    if (option == "--skillName") {
+        if (i + 1 >= argc) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Missing value for --skillName");
+            return false;
+        }
+        args.skillName = argv[++i];
+        return true;
+    }
+
+    if (option == "--moduleName") {
+        if (i + 1 >= argc) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Missing value for --moduleName");
+            return false;
+        }
+        args.moduleName = argv[++i];
+        return true;
+    }
+
+    if (option == "--params") {
+        if (i + 1 >= argc) {
+            TAG_LOGE(AAFwkTag::APPKIT, "Missing value for --params");
+            return false;
+        }
+        collectingParams = true;
+        return true;
+    }
+
+    TAG_LOGE(AAFwkTag::APPKIT, "Unknown option: %{public}s", option.c_str());
+    return false;
+}
+
+bool DetermineExecutionMode(ScriptArgs& args)
+{
+    if (!args.path.empty() && !args.bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "--abcPath and --bundleName are mutually exclusive");
+        return false;
+    }
+
+    if (!args.bundleName.empty()) {
+        if (!args.skillName.empty()) {
+            args.mode = ExecutionMode::SKILL_BUNDLE;
+        } else if (!args.moduleName.empty()) {
+            args.mode = ExecutionMode::MODULE_FUNC;
+        } else {
+            TAG_LOGE(AAFwkTag::APPKIT,
+                "--bundleName requires either --skillName or --moduleName");
+            return false;
+        }
+    } else {
+        args.mode = ExecutionMode::DIRECT_ABC;
+    }
+
+    if (args.mode == ExecutionMode::DIRECT_ABC && args.path.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Missing required option: --abcPath");
+        return false;
+    }
+
+    if (args.mode != ExecutionMode::SKILL_BUNDLE && args.funName.empty()) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Missing required option: --funcName");
+        return false;
+    }
     return true;
 }
 
@@ -230,7 +356,6 @@ bool ParseArguments(int argc, char* argv[], ScriptArgs& args)
     for (int i = 1; i < argc; ++i) {
         const std::string option = argv[i];
 
-        // 如果正在收集 params JSON，将所有剩余参数拼接起来
         if (collectingParams) {
             if (!paramsJson.empty()) {
                 paramsJson += " ";
@@ -245,79 +370,22 @@ bool ParseArguments(int argc, char* argv[], ScriptArgs& args)
             return true;
         }
 
-        if (option == "--abcPath") {
-            if (i + 1 >= argc) {
-                TAG_LOGE(AAFwkTag::APPKIT, "Missing value for --abcPath");
-                PrintUsage(argv[0], true);
-                return false;
-            }
-            args.path = argv[++i];
-            continue;
-        }
-
-        if (option == "--funcName") {
-            if (i + 1 >= argc) {
-                TAG_LOGE(AAFwkTag::APPKIT, "Missing value for --funcName");
-                PrintUsage(argv[0], true);
-                return false;
-            }
-            args.funName = argv[++i];
-            continue;
-        }
-
-        if (option == "--params") {
-            if (i + 1 >= argc) {
-                TAG_LOGE(AAFwkTag::APPKIT, "Missing value for --params");
-                PrintUsage(argv[0], true);
-                return false;
-            }
-            // 开始收集 params JSON，处理 JSON 被空格分割的情况
-            collectingParams = true;
-            continue;
-        }
-
-        TAG_LOGE(AAFwkTag::APPKIT, "Unknown option: %{public}s", option.c_str());
-        PrintUsage(argv[0], true);
-        return false;
-    }
-
-    if (args.path.empty()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Missing required option: --abcPath");
-        PrintUsage(argv[0], true);
-        return false;
-    }
-
-    if (args.funName.empty()) {
-        TAG_LOGE(AAFwkTag::APPKIT, "Missing required option: --funcName");
-        PrintUsage(argv[0], true);
-        return false;
-    }
-
-    // 去除 params JSON 外围的单引号或双引号（如果存在）
-    if (!paramsJson.empty()) {
-        size_t start = 0;
-        size_t end = paramsJson.length();
-        while (start < end && (paramsJson[start] == '\'' || paramsJson[start] == '"')) {
-            start++;
-        }
-        while (end > start && (paramsJson[end - 1] == '\'' || paramsJson[end - 1] == '"')) {
-            end--;
-        }
-        if (start > 0 || end < paramsJson.length()) {
-            paramsJson = paramsJson.substr(start, end - start);
-        }
-    }
-
-    // 解析 params JSON
-    if (!paramsJson.empty()) {
-        std::string errorMessage;
-        if (!ParseParamsFromJson(paramsJson, args.params, errorMessage)) {
-            TAG_LOGE(AAFwkTag::APPKIT, "Failed to parse params: %{public}s", errorMessage.c_str());
+        if (!ParseOneOption(option, i, argc, argv, args, paramsJson, collectingParams)) {
+            PrintUsage(argv[0], true);
             return false;
         }
     }
 
-    if (!ValidateScriptFile(args.path)) {
+    if (!DetermineExecutionMode(args)) {
+        PrintUsage(argv[0], true);
+        return false;
+    }
+
+    if (!StripQuotesAndParseParams(paramsJson, args)) {
+        return false;
+    }
+
+    if (args.mode == ExecutionMode::DIRECT_ABC && !ValidateScriptFile(args.path)) {
         return false;
     }
 
@@ -333,8 +401,23 @@ void ScriptArgs::Print() const
         }
         paramStream << key << "=" << value.dump();
     }
-    TAG_LOGI(AAFwkTag::APPKIT, "  Path: %{private}s", path.c_str());
-    TAG_LOGI(AAFwkTag::APPKIT, "  Function: %{public}s", funName.c_str());
+
+    TAG_LOGI(AAFwkTag::APPKIT, "  Mode: %{public}d", static_cast<int>(mode));
+    if (!path.empty()) {
+        TAG_LOGI(AAFwkTag::APPKIT, "  Path: %{private}s", path.c_str());
+    }
+    if (!bundleName.empty()) {
+        TAG_LOGI(AAFwkTag::APPKIT, "  BundleName: %{public}s", bundleName.c_str());
+    }
+    if (!skillName.empty()) {
+        TAG_LOGI(AAFwkTag::APPKIT, "  SkillName: %{public}s", skillName.c_str());
+    }
+    if (!moduleName.empty()) {
+        TAG_LOGI(AAFwkTag::APPKIT, "  ModuleName: %{public}s", moduleName.c_str());
+    }
+    if (!funName.empty()) {
+        TAG_LOGI(AAFwkTag::APPKIT, "  Function: %{public}s", funName.c_str());
+    }
     TAG_LOGI(AAFwkTag::APPKIT, "  Params: [%{public}s]", paramStream.str().c_str());
 }
 
