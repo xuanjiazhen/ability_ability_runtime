@@ -252,6 +252,18 @@ constexpr struct option LONG_OPTIONS_PRESTART[] = {
     {"userId", required_argument, nullptr, 'u' },
     {nullptr, 0, nullptr, 0 },
 };
+
+const std::string SHORT_OPTIONS_EXEC_SKILL = "hb:m:s:p:f:a:";
+constexpr struct option LONG_OPTIONS_EXEC_SKILL[] = {
+    {"help", no_argument, nullptr, 'h'},
+    {"bundle", required_argument, nullptr, 'b'},
+    {"module", required_argument, nullptr, 'm'},
+    {"skill", required_argument, nullptr, 's'},
+    {"path", required_argument, nullptr, 'p'},
+    {"func", required_argument, nullptr, 'f'},
+    {"arg", required_argument, nullptr, 'a'},
+    {nullptr, 0, nullptr, 0},
+};
 }  // namespace
 
 AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
@@ -280,6 +292,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
         {"pre-start", [this]() { return this->RunAsPreStartCommand(); }},
+        {"execSkill", [this]() { return this->RunAsExecSkillCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
 #endif
@@ -3041,5 +3054,80 @@ ErrCode AbilityManagerShellCommand::RunAsNotifyAppFaultCommand()
     return result;
 }
 #endif
+
+ErrCode AbilityManagerShellCommand::RunAsExecSkillCommand()
+{
+    TAG_LOGI(AAFwkTag::AA_TOOL, "execSkill enter");
+    std::string bundleName;
+    std::string moduleName;
+    std::string skillName;
+    std::string arkTSPath;
+    std::string funcName;
+    std::vector<std::string> argv;
+    int option = -1;
+    int counter = 0;
+
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_EXEC_SKILL.c_str(),
+            LONG_OPTIONS_EXEC_SKILL, nullptr);
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_EXEC_SKILL + "\n");
+            }
+            break;
+        }
+
+        switch (option) {
+            case 'h':
+                resultReceiver_.append(HELP_MSG_EXEC_SKILL + "\n");
+                return OHOS::ERR_OK;
+            case 'b':
+                bundleName = optarg;
+                break;
+            case 'm':
+                moduleName = optarg;
+                break;
+            case 's':
+                skillName = optarg;
+                break;
+            case 'p':
+                arkTSPath = optarg;
+                break;
+            case 'f':
+                funcName = optarg;
+                break;
+            case 'a':
+                argv.push_back(optarg);
+                break;
+            default:
+                resultReceiver_.append(HELP_MSG_EXEC_SKILL + "\n");
+                return OHOS::ERR_INVALID_VALUE;
+        }
+    }
+
+    if (bundleName.empty() || moduleName.empty() || skillName.empty()) {
+        resultReceiver_.append("error: -b, -m, -s are required.\n");
+        resultReceiver_.append(HELP_MSG_EXEC_SKILL + "\n");
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::AA_TOOL,
+        "execSkill bundle:%{public}s module:%{public}s skill:%{public}s "
+        "path:%{public}s func:%{public}s argc:%{public}zu",
+        bundleName.c_str(), moduleName.c_str(), skillName.c_str(),
+        arkTSPath.c_str(), funcName.c_str(), argv.size());
+
+    ErrCode result = AbilityManagerClient::GetInstance()->StartInAppSkill(
+        bundleName, moduleName, skillName, arkTSPath, funcName, argv);
+    if (result == OHOS::ERR_OK) {
+        resultReceiver_ = STRING_EXEC_SKILL_OK + "\n";
+    } else {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "execSkill failed: %{public}d", result);
+        resultReceiver_ = STRING_EXEC_SKILL_NG + "\n";
+        resultReceiver_.append(GetMessageFromCode(result));
+    }
+    return result;
+}
 }  // namespace AAFwk
 }  // namespace OHOS
