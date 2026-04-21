@@ -44,7 +44,7 @@ export default namespace insightIntentDriver {
     userId?: int;
   }
 
-  interface QueryParam {
+  export interface QueryParam {
     bundleName: string;
     moduleName: string;
     intentName: string;
