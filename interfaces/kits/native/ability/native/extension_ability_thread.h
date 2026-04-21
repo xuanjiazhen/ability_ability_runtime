@@ -137,6 +137,12 @@ public:
 
     void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override;
 
+    /**
+     * @brief Handle execute intent from AMS (hot-start path for Skill execution).
+     * @param want The Want object with intent information.
+     */
+    void OnExecuteIntent(const Want &want) override;
+
     void HandleNativeExtensionAttach(
         const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
         const std::string &abilityName);

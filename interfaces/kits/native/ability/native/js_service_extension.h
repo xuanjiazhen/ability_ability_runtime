@@ -136,6 +136,15 @@ public:
     bool HandleInsightIntent(const AAFwk::Want &want) override;
 
     /**
+     * @brief Execute skill by loading ArkTS script and calling the target function.
+     *
+     * @param want Want.
+     * @param param Skill execute param containing abc path, function name and arguments.
+     */
+    void ExecuteSkill(const AAFwk::Want &want,
+        const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param) override;
+
+    /**
      * @brief Called when this extension enters the <b>STATE_STOP</b> state.
      *
      * The extension in the <b>STATE_STOP</b> is being destroyed.

@@ -21,6 +21,7 @@
 #include "ability_manager_client.h"
 #include "freeze_util.h"
 #include "hilog_tag_wrapper.h"
+#include "skill/skill_execute_param.h"
 #include "hitrace_meter.h"
 #include "js_start_abilities_observer.h"
 #include "ui_extension_wrapper.h"
@@ -773,6 +774,34 @@ void ExtensionAbilityThread::DumpOtherInfo(std::vector<std::string> &info)
     dumpInfo = "";
     runner->DumpRunnerInfo(dumpInfo);
     info.push_back(dumpInfo);
+}
+
+void ExtensionAbilityThread::OnExecuteIntent(const Want &want)
+{
+    TAG_LOGI(AAFwkTag::EXT, "on execute intent");
+    if (extensionImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
+        return;
+    }
+    if (abilityHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null abilityHandler_");
+        return;
+    }
+
+    wptr<ExtensionAbilityThread> weak = this;
+    auto task = [weak, want]() {
+        auto abilityThread = weak.promote();
+        if (abilityThread == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "null ExtensionAbilityThread");
+            return;
+        }
+        if (abilityThread->extensionImpl_ != nullptr) {
+            if (AppExecFwk::SkillExecuteParam::IsSkillExecute(want)) {
+                abilityThread->extensionImpl_->HandleExecuteSkill(want, true);
+            }
+        }
+    };
+    abilityHandler_->PostTask(task, "ExtensionAbilityThread:OnExecuteIntent");
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

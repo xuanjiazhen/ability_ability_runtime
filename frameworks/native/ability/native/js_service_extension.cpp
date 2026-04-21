@@ -24,6 +24,8 @@
 #include "freeze_util.h"
 #include "hitrace_meter.h"
 #include "hilog_tag_wrapper.h"
+#include "js_arkts_script.h"
+#include "skill/skill_execute_param.h"
 #include "insight_intent_execute_param.h"
 #include "insight_intent_execute_result.h"
 #include "insight_intent_executor_info.h"
@@ -561,6 +563,48 @@ bool JsServiceExtension::HandleInsightIntent(const AAFwk::Want &want)
         return false;
     }
     return true;
+}
+
+void JsServiceExtension::ExecuteSkill(const AAFwk::Want &want,
+    const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param)
+{
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "ExecuteSkill called");
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null param");
+        return;
+    }
+
+    napi_env env = jsRuntime_.GetNapiEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null napi env");
+        return;
+    }
+
+    if (!param->arkTSPath_.empty() && !jsRuntime_.RunScript(param->arkTSPath_, "", false)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "RunScript failed, path:%{public}s", param->arkTSPath_.c_str());
+        return;
+    }
+
+    napi_value receiver = nullptr;
+    napi_value func = nullptr;
+    if (!ArktsScript::JsArktsScript::ResolveFunction(env, "", param->funcName_, receiver, func)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "ResolveFunction failed, func:%{public}s", param->funcName_.c_str());
+        return;
+    }
+
+    napi_value argsArray = ArktsScript::JsArktsScript::ConvertArgumentsToNapi(env, param->argv_);
+    if (argsArray == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "ConvertArgumentsToNapi failed");
+        return;
+    }
+
+    napi_value result = nullptr;
+    napi_status status = napi_call_function(env, receiver, func, 1, &argsArray, &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "napi_call_function failed, status:%{public}d", status);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "ExecuteSkill completed successfully");
 }
 
 napi_value JsServiceExtension::CallObjectMethod(const char* name, napi_value const* argv, size_t argc)
