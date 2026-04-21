@@ -13,5 +13,10 @@
  * limitations under the License.
  */
 
+sequenceable ExecOptions..OHOS.CliTool.ExecOptions;
+sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
+
 interface OHOS.CliTool.ICliToolManager {
+    void ExecTool([in] String cliName, [in] OrderedMap<String, String> args,
+        [in] String challenge, [in] ExecOptions options, [out] CliSessionInfo session);
 }

@@ -18,6 +18,8 @@
 
 #include <mutex>
 
+#include "cli_session_info.h"
+#include "exec_options.h"
 #include "icli_tool_manager.h"
 
 namespace OHOS {
@@ -41,10 +43,25 @@ public:
      */
     ~CliToolMGRClient() = default;
 
+    /**
+     * @brief Execute a CLI tool with key-value pairs (convenience method).
+     * @param name The CLI tool name.
+     * @param args The tool arguments as key-value pairs.
+     * @param challenge Optional challenge string.
+     * @param options Execution options.
+     * @param session Output session information.
+     * @return Returns ERR_OK on success, error code otherwise.
+     */
+    int32_t ExecTool(const std::string &name,
+        const std::map<std::string, std::string> &args,
+        const std::string &challenge,
+        const ExecOptions &options,
+        CliSessionInfo &session);
+
 private:
     CliToolMGRClient() = default;
     DISALLOW_COPY_AND_MOVE(CliToolMGRClient);
-    
+
     class CliSaDeathRecipient : public IRemoteObject::DeathRecipient {
         public:
         CliSaDeathRecipient() = default;
@@ -53,7 +70,7 @@ private:
         private:
         DISALLOW_COPY_AND_MOVE(CliSaDeathRecipient);
     };
-    
+
     sptr<ICliToolManager> GetCliToolManager();
     ErrCode Connect();
     /**
