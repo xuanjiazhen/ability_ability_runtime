@@ -1415,6 +1415,21 @@ enum NativeFreeInstallError {
      */
     GET_CLI_TOOL_MGR_SERVICE_FAILED = 29360228,
 
+    /*
+     * Result (29360229) The current process has no UIAbility, cannot be called.
+     */
+    ERR_DELAYED_PROCESS_EXIT_NO_UIABILITY = 29360229,
+
+    /*
+     * Result (29360230) Delayed process exit is not pending in the current process, cannot be called.
+     */
+    ERR_DELAYED_PROCESS_EXIT_NOT_PENDING = 29360230,
+    
+    /*
+     * Result (29360231) The current process still has another UIAbility.
+     */
+    ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY = 29360231,
+
     /**
      * Undefine error code.
      */
