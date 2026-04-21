@@ -41,6 +41,8 @@
 #include "insight_intent_executor_info.h"
 #include "insight_intent_executor_mgr.h"
 #include "interop_object_instance.h"
+#include "skill_executor_info.h"
+#include "skill_executor_mgr.h"
 #include "js_insight_intent_utils.h"
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
@@ -1613,7 +1615,34 @@ void EtsUIAbility::ExecuteInsightIntentBackground(const Want &want,
     }
 }
 
-bool EtsUIAbility::GetInsightIntentExecutorInfo(const Want &want,
+void EtsUIAbility::ExecuteSkillBackground(const Want &want,
+    const std::shared_ptr<SkillExecuteParam> &skillParam,
+    std::unique_ptr<SkillExecutorAsyncCallback> callback)
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "ExecuteSkillBackground called");
+    if (skillParam == nullptr) {
+        TAG_LOGW(AAFwkTag::UIABILITY, "null skillParam");
+        SkillExecutorMgr::TriggerCallbackInner(std::move(callback), ERR_OK);
+        return;
+    }
+
+    SkillExecutorInfo skillInfo;
+    skillInfo.srcEntry = skillParam->srcEntrance_;
+    skillInfo.executeParam = skillParam;
+
+    auto &jsRuntime = etsRuntime_.GetJsRuntime();
+    if (jsRuntime == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null jsRuntime");
+        SkillExecutorMgr::TriggerCallbackInner(std::move(callback), ERR_INVALID_VALUE);
+        return;
+    }
+
+    auto ret = DelayedSingleton<SkillExecutorMgr>::GetInstance()->ExecuteSkill(
+        *jsRuntime, skillInfo, std::move(callback));
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "execute skill failed");
+    }
+}(const Want &want,
     const std::shared_ptr<InsightIntentExecuteParam> &executeParam, InsightIntentExecutorInfo &executeInfo,
     std::string arkTSMode)
 {

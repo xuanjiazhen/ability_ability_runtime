@@ -366,6 +366,16 @@ public:
         std::unique_ptr<InsightIntentExecutorAsyncCallback> callback) override;
 
     /**
+     * @brief Execute skill in background.
+     * @param want Want containing skill parameters.
+     * @param skillParam Skill execution parameters.
+     * @param callback Skill executor async callback.
+     */
+    virtual void ExecuteSkillBackground(const AAFwk::Want &want,
+        const std::shared_ptr<SkillExecuteParam> &skillParam,
+        std::unique_ptr<SkillExecutorAsyncCallback> callback) override;
+
+    /**
      * @brief Callback for collaboration event.
      *
      * @param wantParams Parameters for the collaboration event.
