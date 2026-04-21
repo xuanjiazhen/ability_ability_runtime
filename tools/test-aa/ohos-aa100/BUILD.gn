@@ -1,0 +1,77 @@
+# Copyright (c) 2025 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/ohos/cli/ohos_cli_executable.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+ohos_cli_executable("ohos-aa100") {
+  output_name = "ohos-aa100"
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+  cli_config_file = "config.json"
+
+  # 安装配置
+  install_enable = true
+  install_images = [ "system" ]
+
+  # 源文件
+  sources = [
+    "src/main.cpp",
+    "src/aa_start_command.cpp",
+  ]
+
+  # 头文件路径
+  include_dirs = [
+    "include",
+    "${ability_runtime_innerkits_path}/ability_manager/include",
+    "${ability_runtime_services_path}/abilitymgr/include/utils",
+  ]
+
+  # 内部依赖
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
+  ]
+
+  # 外部依赖
+  external_deps = [
+    "ability_base:base",
+    "ability_base:want",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "samgr:samgr_proxy",
+  ]
+
+  # 安全检查
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+  }
+
+  # ARM 架构特殊处理
+  cflags = []
+  if (target_cpu == "arm") {
+    cflags += [ "-DBINDER_IPC_32BIT" ]
+  }
+
+  # 异常支持
+  configs = [ ":cli_aa_exception_config" ]
+}
+
+config("cli_aa_exception_config") {
+  cflags_cc = [ "-fexceptions" ]
+}

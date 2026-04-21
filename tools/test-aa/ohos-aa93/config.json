@@ -1,0 +1,180 @@
+{
+  "name": "ohos-aa93",
+  "version": "1.0.0",
+  "description": "Ability startup CLI tool, supports version at top level, help and start subcommands",
+  "executable": "/system/bin/cli_tool/ohos-aa93",
+  "hasSubcommands": true,
+  "timeout": 30,
+  "requirePermissions": [],
+  "events": ["result"],
+  "input": {
+    "type": "object",
+    "description": "Top-level command parameters",
+    "properties": {
+      "version": {
+        "type": "boolean",
+        "description": "Display version information",
+        "default": false
+      }
+    }
+  },
+  "output": {
+    "type": "object",
+    "description": "Version information",
+    "properties": {
+      "version": {
+        "type": "string",
+        "description": "Tool version number"
+      }
+    },
+    "required": ["version"]
+  },
+  "argumentMapping": {
+    "type": "flag",
+    "templates": {
+      "version": {
+        "if_true": "--version",
+        "if_false": ""
+      }
+    }
+  },
+  "subcommands": {
+    "help": {
+      "description": "Display ohos-aa93 help information",
+      "input": {
+        "type": "object",
+        "description": "help subcommand parameters",
+        "properties": {
+          "reserved": {
+            "type": "string",
+            "description": "Reserved placeholder parameter, not required for normal calls"
+          }
+        }
+      },
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "reserved": "--reserved={value}"
+        }
+      }
+    },
+    "start": {
+      "description": "Start Ability",
+      "input": {
+        "type": "object",
+        "description": "start subcommand parameters",
+        "properties": {
+          "help": {
+            "type": "boolean",
+            "description": "Display start subcommand help information",
+            "default": false
+          },
+          "ability": {
+            "type": "string",
+            "description": "Ability name"
+          },
+          "bundle": {
+            "type": "string",
+            "description": "Bundle name"
+          },
+          "device": {
+            "type": "string",
+            "description": "Device ID"
+          },
+          "module": {
+            "type": "string",
+            "description": "Module name"
+          },
+          "setting": {
+            "type": "string",
+            "description": "Window mode setting"
+          },
+          "action": {
+            "type": "string",
+            "description": "Action name"
+          },
+          "uri": {
+            "type": "string",
+            "description": "URI"
+          },
+          "entity": {
+            "type": "string",
+            "description": "Entity"
+          },
+          "type": {
+            "type": "string",
+            "description": "MIME type"
+          },
+          "userId": {
+            "type": "integer",
+            "description": "User ID"
+          },
+          "wait": {
+            "type": "boolean",
+            "description": "Wait for startup to complete",
+            "default": false
+          },
+          "windowLeft": {
+            "type": "integer",
+            "description": "Window left margin"
+          },
+          "windowTop": {
+            "type": "integer",
+            "description": "Window top margin"
+          },
+          "windowHeight": {
+            "type": "integer",
+            "description": "Window height"
+          },
+          "windowWidth": {
+            "type": "integer",
+            "description": "Window width"
+          }
+        }
+      },
+      "output": {
+        "type": "object",
+        "description": "Startup result",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution status, success when completed successfully"
+          },
+          "message": {
+            "type": "string",
+            "description": "Result message"
+          }
+        },
+        "required": ["status", "message"]
+      },
+      "events": ["result"],
+      "argumentMapping": {
+        "type": "flag",
+        "templates": {
+          "help": {
+            "if_true": "--help",
+            "if_false": ""
+          },
+          "ability": "--ability={value}",
+          "bundle": "--bundle={value}",
+          "device": "--device={value}",
+          "module": "--module={value}",
+          "setting": "--setting={value}",
+          "action": "--action={value}",
+          "uri": "--URI={value}",
+          "entity": "--entity={value}",
+          "type": "--type={value}",
+          "userId": "--user={value}",
+          "wait": {
+            "if_true": "--wait",
+            "if_false": ""
+          },
+          "windowLeft": "--wl={value}",
+          "windowTop": "--wt={value}",
+          "windowHeight": "--wh={value}",
+          "windowWidth": "--ww={value}"
+        }
+      }
+    }
+  }
+}
