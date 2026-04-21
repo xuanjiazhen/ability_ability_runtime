@@ -57,6 +57,7 @@
 #include "extension_running_timeout_monitor.h"
 #include "insight_intent_execute_manager.h"
 #include "insight_intent_db_cache.h"
+#include "skill/skill_execute_manager.h"
 #include "insight_intent_utils.h"
 #include "interceptor/ability_jump_interceptor.h"
 #include "interceptor/block_all_app_start_interceptor.h"
@@ -14224,6 +14225,61 @@ int32_t AbilityManagerService::ExecuteInsightIntentDone(const sptr<IRemoteObject
         intentId, result.innerErr, result);
     FreezeUtil::GetInstance().AddLifecycleEvent(token, "ExecuteInsightIntentDone end");
     return ret;
+}
+
+int32_t AbilityManagerService::StartInAppSkill(const std::string &bundleName, const std::string &moduleName,
+    const std::string &skillName, const std::string &arkTSPath,
+    const std::string &funcName, const std::vector<std::string> &argv)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "start in-app skill, bundle:%{public}s module:%{public}s skill:%{public}s",
+        bundleName.c_str(), moduleName.c_str(), skillName.c_str());
+
+    Want want;
+    auto ret = DelayedSingleton<SkillExecuteManager>::GetInstance()->GenerateSkillWant(
+        bundleName, moduleName, skillName, want, arkTSPath, funcName, argv);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "generate skill want failed");
+        return ret;
+    }
+
+    return StartAbilityByCallWithSkillIntent(want, nullptr, IPCSkeleton::GetCallingUserId());
+}
+
+int32_t AbilityManagerService::StartAbilityByCallWithSkillIntent(const Want &want,
+    const sptr<IRemoteObject> &callerToken, int32_t userId)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability by call with skill intent");
+    sptr<IAbilityConnection> connect = sptr<AbilityBackgroundConnection>::MakeSptr();
+    if (connect == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid connect");
+        return ERR_INVALID_VALUE;
+    }
+
+    AbilityRequest abilityRequest;
+    abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
+    abilityRequest.callerUid = IPCSkeleton::GetCallingUid();
+    abilityRequest.callerToken = callerToken;
+    abilityRequest.startSetting = nullptr;
+    abilityRequest.want = want;
+    abilityRequest.connect = connect;
+    int32_t oriValidUserId = GetValidUserId(userId);
+    int32_t result = GenerateAbilityRequest(want, -1, abilityRequest, callerToken, oriValidUserId);
+    if (result != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request error");
+        return result;
+    }
+
+    std::shared_ptr<AbilityRecord> targetRecord;
+    if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "ability already started");
+        UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, callerToken);
+        result = OnExecuteIntent(abilityRequest, targetRecord);
+    } else {
+        result = StartAbilityByCall(want, connect, callerToken, oriValidUserId);
+    }
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "startAbilityByCallWithSkillIntent result:%{public}d", result);
+    return result;
 }
 
 int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupInfo &info, bool flag,
