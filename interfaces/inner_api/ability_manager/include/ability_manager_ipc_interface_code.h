@@ -764,6 +764,9 @@ enum class AbilityManagerInterfaceCode {
 
     // execute skill done with token for identity verification
     EXECUTE_SKILL_DONE_WITH_TOKEN = 6172,
+
+    // start self uiability in child process
+    START_SELF_UI_ABILITY_IN_CHILD_PROCESS = 6173,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
