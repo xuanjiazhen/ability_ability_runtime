@@ -297,6 +297,12 @@ public:
     virtual void OnExecuteIntent(const Want &want) = 0;
 
     /**
+     * @brief Called when a skill needs to be executed on an already-started ability.
+     * @param want The Want containing skill execution parameters.
+     */
+    virtual void ExecuteSkill(const Want &want) = 0;
+
+    /**
      * @brief Called when the UIAbility has been started by call.
      */
     virtual void CallRequest() = 0;
@@ -410,6 +416,8 @@ public:
         SCHEDULE_ABILITY_PREPARE_TERMINATE,
 
         SCHEDULE_ONEXECUTE_INTENT,
+
+        SCHEDULE_EXECUTE_SKILL,
 
         CREATE_MODAL_UI_EXTENSION,
 
