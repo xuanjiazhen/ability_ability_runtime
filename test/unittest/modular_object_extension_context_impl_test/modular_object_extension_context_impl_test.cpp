@@ -68,88 +68,108 @@ public:
 
 HWTEST_F(ModularObjectExtensionContextImplTest, StartSelfUIAbility_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_Success_001 start";
     auto context = std::make_shared<ModularObjectExtensionContext>();
     AAFwk::Want want;
     auto ret = context->StartSelfUIAbility(want);
     EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_Success_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextImplTest, StartSelfUIAbility_Error_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_Error_001 start";
     auto context = std::make_shared<ModularObjectExtensionContext>();
     AAFwk::AbilityManagerClient::g_startSelfUIAbilityResult = -1;
     AAFwk::Want want;
     auto ret = context->StartSelfUIAbility(want);
     EXPECT_EQ(ret, -1);
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_Error_001 end";
 }
 
 // ==================== StartSelfUIAbilityWithStartOptions ====================
 
 HWTEST_F(ModularObjectExtensionContextImplTest, StartSelfUIAbilityWithStartOptions_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbilityWithStartOptions_Success_001 start";
     auto context = std::make_shared<ModularObjectExtensionContext>();
     AAFwk::Want want;
     AAFwk::StartOptions options;
     auto ret = context->StartSelfUIAbilityWithStartOptions(want, options);
     EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "StartSelfUIAbilityWithStartOptions_Success_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextImplTest, StartSelfUIAbilityWithStartOptions_Error_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbilityWithStartOptions_Error_001 start";
     auto context = std::make_shared<ModularObjectExtensionContext>();
     AAFwk::AbilityManagerClient::g_startSelfUIAbilityWithStartOptionsResult = -2;
     AAFwk::Want want;
     AAFwk::StartOptions options;
     auto ret = context->StartSelfUIAbilityWithStartOptions(want, options);
     EXPECT_EQ(ret, -2);
+    GTEST_LOG_(INFO) << "StartSelfUIAbilityWithStartOptions_Error_001 end";
 }
 
 // ==================== TerminateSelf ====================
 
 HWTEST_F(ModularObjectExtensionContextImplTest, TerminateSelf_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TerminateSelf_Success_001 start";
     auto context = std::make_shared<ModularObjectExtensionContext>();
     auto ret = context->TerminateSelf();
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_TRUE(AAFwk::AbilityManagerClient::g_terminateCalled);
+    GTEST_LOG_(INFO) << "TerminateSelf_Success_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextImplTest, TerminateSelf_Error_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TerminateSelf_Error_001 start";
     auto context = std::make_shared<ModularObjectExtensionContext>();
     AAFwk::AbilityManagerClient::g_terminateResult = -3;
     auto ret = context->TerminateSelf();
     EXPECT_EQ(ret, -3);
+    GTEST_LOG_(INFO) << "TerminateSelf_Error_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextImplTest, TerminateSelf_TokenPassed_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TerminateSelf_TokenPassed_001 start";
     auto context = std::make_shared<ModularObjectExtensionContext>();
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new MockRemoteObject(u"test_token"));
     context->token_ = token;
     auto ret = context->TerminateSelf();
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(AAFwk::AbilityManagerClient::g_lastToken, token.GetRefPtr());
+    GTEST_LOG_(INFO) << "TerminateSelf_TokenPassed_001 end";
 }
 
 // ==================== CONTEXT_TYPE_ID ====================
 
 HWTEST_F(ModularObjectExtensionContextImplTest, ContextTypeId_NonZero_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ContextTypeId_NonZero_001 start";
     EXPECT_NE(ModularObjectExtensionContext::CONTEXT_TYPE_ID, static_cast<size_t>(0));
+    GTEST_LOG_(INFO) << "ContextTypeId_NonZero_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextImplTest, IsContext_SelfType_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "IsContext_SelfType_001 start";
     auto context = std::make_shared<ModularObjectExtensionContext>();
     EXPECT_TRUE(context->IsContext(ModularObjectExtensionContext::CONTEXT_TYPE_ID));
+    GTEST_LOG_(INFO) << "IsContext_SelfType_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextImplTest, IsContext_InvalidType_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "IsContext_InvalidType_001 start";
     auto context = std::make_shared<ModularObjectExtensionContext>();
     EXPECT_FALSE(context->IsContext(0));
     EXPECT_FALSE(context->IsContext(99999));
+    GTEST_LOG_(INFO) << "IsContext_InvalidType_001 end";
 }
 
 } // namespace AbilityRuntime

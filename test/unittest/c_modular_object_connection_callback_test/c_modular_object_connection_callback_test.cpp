@@ -92,12 +92,15 @@ public:
 
 HWTEST_F(CModularObjectConnectionCallbackTest, InsertConnection_NullCallback_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "InsertConnection_NullCallback_001 start";
     auto ret = CModularObjectConnectionUtils::InsertConnection(nullptr);
     EXPECT_EQ(ret, -1);
+    GTEST_LOG_(INFO) << "InsertConnection_NullCallback_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, InsertConnection_ValidCallback_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "InsertConnection_ValidCallback_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     auto callback = sptr<CModularObjectConnectionCallback>::MakeSptr(state);
     ASSERT_NE(callback, nullptr);
@@ -106,10 +109,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, InsertConnection_ValidCallback_00
     EXPECT_EQ(callback->GetConnectionId(), ret);
     // Clean up
     CModularObjectConnectionUtils::RemoveConnectionCallback(ret);
+    GTEST_LOG_(INFO) << "InsertConnection_ValidCallback_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, InsertConnection_Multiple_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "InsertConnection_Multiple_001 start";
     auto state1 = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     auto cb1 = sptr<CModularObjectConnectionCallback>::MakeSptr(state1);
     auto state2 = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
@@ -122,19 +127,23 @@ HWTEST_F(CModularObjectConnectionCallbackTest, InsertConnection_Multiple_001, Te
     // Clean up
     CModularObjectConnectionUtils::RemoveConnectionCallback(id1);
     CModularObjectConnectionUtils::RemoveConnectionCallback(id2);
+    GTEST_LOG_(INFO) << "InsertConnection_Multiple_001 end";
 }
 
 // ==================== FindConnection ====================
 
 HWTEST_F(CModularObjectConnectionCallbackTest, FindConnection_NotFound_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "FindConnection_NotFound_001 start";
     sptr<CModularObjectConnectionCallback> callback;
     CModularObjectConnectionUtils::FindConnection(-1, callback);
     EXPECT_EQ(callback, nullptr);
+    GTEST_LOG_(INFO) << "FindConnection_NotFound_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, FindConnection_Found_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "FindConnection_Found_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     auto cb = sptr<CModularObjectConnectionCallback>::MakeSptr(state);
     auto id = CModularObjectConnectionUtils::InsertConnection(cb);
@@ -144,12 +153,14 @@ HWTEST_F(CModularObjectConnectionCallbackTest, FindConnection_Found_001, TestSiz
     EXPECT_EQ(found->GetConnectionId(), id);
     // Clean up
     CModularObjectConnectionUtils::RemoveConnectionCallback(id);
+    GTEST_LOG_(INFO) << "FindConnection_Found_001 end";
 }
 
 // ==================== RemoveConnectionCallback ====================
 
 HWTEST_F(CModularObjectConnectionCallbackTest, RemoveConnection_Valid_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "RemoveConnection_Valid_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     auto cb = sptr<CModularObjectConnectionCallback>::MakeSptr(state);
     auto id = CModularObjectConnectionUtils::InsertConnection(cb);
@@ -158,12 +169,14 @@ HWTEST_F(CModularObjectConnectionCallbackTest, RemoveConnection_Valid_001, TestS
     sptr<CModularObjectConnectionCallback> found;
     CModularObjectConnectionUtils::FindConnection(id, found);
     EXPECT_EQ(found, nullptr);
+    GTEST_LOG_(INFO) << "RemoveConnection_Valid_001 end";
 }
 
 // ==================== OnAbilityConnectDone ====================
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_NullRemote_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnConnectDone_NullRemote_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = true;
     state->onConnectCallback = MockOnConnectCallback;
@@ -171,10 +184,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_NullRemote_001, Tes
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityConnectDone(element, nullptr, 0);
     EXPECT_EQ(g_connectCallbackCount, 0);
+    GTEST_LOG_(INFO) << "OnConnectDone_NullRemote_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_ExpiredState_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnConnectDone_ExpiredState_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = true;
     state->onConnectCallback = MockOnConnectCallback;
@@ -185,10 +200,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_ExpiredState_001, T
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityConnectDone(element, remote, 0);
     EXPECT_EQ(g_connectCallbackCount, 0);
+    GTEST_LOG_(INFO) << "OnConnectDone_ExpiredState_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_NotAlive_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnConnectDone_NotAlive_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = false;
     state->onConnectCallback = MockOnConnectCallback;
@@ -197,10 +214,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_NotAlive_001, TestS
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityConnectDone(element, remote, 0);
     EXPECT_EQ(g_connectCallbackCount, 0);
+    GTEST_LOG_(INFO) << "OnConnectDone_NotAlive_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_NullCallback_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnConnectDone_NullCallback_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = true;
     state->onConnectCallback = nullptr;
@@ -209,10 +228,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_NullCallback_001, T
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityConnectDone(element, remote, 0);
     EXPECT_EQ(g_connectCallbackCount, 0);
+    GTEST_LOG_(INFO) << "OnConnectDone_NullCallback_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_BuildElementFails_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnConnectDone_BuildElementFails_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = true;
     state->onConnectCallback = MockOnConnectCallback;
@@ -223,10 +244,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_BuildElementFails_0
     cb->OnAbilityConnectDone(element, remote, 0);
     EXPECT_EQ(g_connectCallbackCount, 0);
     EXPECT_TRUE(CModularObjectUtils::notifyFailedCalled);
+    GTEST_LOG_(INFO) << "OnConnectDone_BuildElementFails_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnConnectDone_Success_001 start";
     OH_AbilityRuntime_ConnectOptions owner;
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = true;
@@ -237,12 +260,14 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnConnectDone_Success_001, TestSi
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityConnectDone(element, remote, 0);
     EXPECT_EQ(g_connectCallbackCount, 1);
+    GTEST_LOG_(INFO) << "OnConnectDone_Success_001 end";
 }
 
 // ==================== OnAbilityDisconnectDone ====================
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_ExpiredState_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnDisconnectDone_ExpiredState_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = true;
     state->onDisconnectCallback = MockOnDisconnectCallback;
@@ -251,10 +276,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_ExpiredState_001
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityDisconnectDone(element, 0);
     EXPECT_EQ(g_disconnectCallbackCount, 0);
+    GTEST_LOG_(INFO) << "OnDisconnectDone_ExpiredState_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_NotAlive_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnDisconnectDone_NotAlive_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = false;
     state->onDisconnectCallback = MockOnDisconnectCallback;
@@ -263,10 +290,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_NotAlive_001, Te
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityDisconnectDone(element, 0);
     EXPECT_EQ(g_disconnectCallbackCount, 0);
+    GTEST_LOG_(INFO) << "OnDisconnectDone_NotAlive_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_NullCallback_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnDisconnectDone_NullCallback_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = true;
     state->onDisconnectCallback = nullptr;
@@ -274,10 +303,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_NullCallback_001
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityDisconnectDone(element, 0);
     EXPECT_EQ(g_disconnectCallbackCount, 0);
+    GTEST_LOG_(INFO) << "OnDisconnectDone_NullCallback_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnDisconnectDone_Success_001 start";
     OH_AbilityRuntime_ConnectOptions owner;
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = true;
@@ -287,10 +318,12 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_Success_001, Tes
     AppExecFwk::ElementName element("", "com.test", "Ability");
     cb->OnAbilityDisconnectDone(element, 0);
     EXPECT_EQ(g_disconnectCallbackCount, 1);
+    GTEST_LOG_(INFO) << "OnDisconnectDone_Success_001 end";
 }
 
 HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_BuildElementFails_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnDisconnectDone_BuildElementFails_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     state->alive = true;
     state->onDisconnectCallback = MockOnDisconnectCallback;
@@ -300,17 +333,20 @@ HWTEST_F(CModularObjectConnectionCallbackTest, OnDisconnectDone_BuildElementFail
     cb->OnAbilityDisconnectDone(element, 0);
     EXPECT_EQ(g_disconnectCallbackCount, 0);
     EXPECT_TRUE(CModularObjectUtils::notifyFailedCalled);
+    GTEST_LOG_(INFO) << "OnDisconnectDone_BuildElementFails_001 end";
 }
 
 // ==================== SetConnectionId / GetConnectionId ====================
 
 HWTEST_F(CModularObjectConnectionCallbackTest, ConnectionId_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConnectionId_001 start";
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
     auto cb = sptr<CModularObjectConnectionCallback>::MakeSptr(state);
     EXPECT_EQ(cb->GetConnectionId(), 0);
     cb->SetConnectionId(42);
     EXPECT_EQ(cb->GetConnectionId(), 42);
+    GTEST_LOG_(INFO) << "ConnectionId_001 end";
 }
 
 } // namespace AbilityRuntime

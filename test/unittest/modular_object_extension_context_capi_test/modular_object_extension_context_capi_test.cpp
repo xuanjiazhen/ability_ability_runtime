@@ -61,49 +61,60 @@ public:
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, GetBaseContext_NullContext_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetBaseContext_NullContext_001 start";
     AbilityRuntime_ContextHandle baseContext = nullptr;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_GetBaseContext(nullptr, &baseContext);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "GetBaseContext_NullContext_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, GetBaseContext_NullBaseContext_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetBaseContext_NullBaseContext_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_GetBaseContext(ctx.get(), nullptr);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "GetBaseContext_NullBaseContext_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, GetBaseContext_WrongType_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetBaseContext_WrongType_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::SERVICE;
     AbilityRuntime_ContextHandle baseContext = nullptr;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_GetBaseContext(ctx.get(), &baseContext);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+    GTEST_LOG_(INFO) << "GetBaseContext_WrongType_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, GetBaseContext_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetBaseContext_Success_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     AbilityRuntime_ContextHandle baseContext = nullptr;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_GetBaseContext(ctx.get(), &baseContext);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     EXPECT_NE(baseContext, nullptr);
+    GTEST_LOG_(INFO) << "GetBaseContext_Success_001 end";
 }
 
 // ==================== StartSelfUIAbility ====================
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_NullContext_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_NullContext_001 start";
     AbilityBase_Want want;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbility(nullptr, &want);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_NullContext_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_WrongType_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_WrongType_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::SERVICE;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
@@ -111,20 +122,24 @@ HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_WrongType_001
     AbilityBase_Want want;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbility(ctx.get(), &want);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_WrongType_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_ExpiredContext_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_ExpiredContext_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     // context is default-constructed weak_ptr, lock() returns nullptr
     AbilityBase_Want want;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbility(ctx.get(), &want);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_ExpiredContext_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_InvalidWant_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_InvalidWant_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
@@ -133,10 +148,12 @@ HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_InvalidWant_0
     AbilityBase_Want want;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbility(ctx.get(), &want);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_InvalidWant_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_TransformFail_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_TransformFail_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
@@ -145,10 +162,12 @@ HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_TransformFail
     AbilityBase_Want want;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbility(ctx.get(), &want);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_TransformFail_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_Success_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
@@ -156,10 +175,12 @@ HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_Success_001, 
     AbilityBase_Want want;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbility(ctx.get(), &want);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_Success_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_StartError_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_StartError_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
@@ -168,29 +189,35 @@ HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfUIAbility_StartError_00
     AbilityBase_Want want;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbility(ctx.get(), &want);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+    GTEST_LOG_(INFO) << "StartSelfUIAbility_StartError_001 end";
 }
 
 // ==================== StartSelfUIAbilityWithStartOptions ====================
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfWithOpts_NullOptions_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_NullOptions_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     AbilityBase_Want want;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbilityWithStartOptions(ctx.get(), &want, nullptr);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_NullOptions_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfWithOpts_NullContext_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_NullContext_001 start";
     AbilityBase_Want want;
     AbilityRuntime_StartOptions options;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbilityWithStartOptions(nullptr, &want, &options);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_NullContext_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfWithOpts_WrongType_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_WrongType_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::SERVICE;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
@@ -199,20 +226,24 @@ HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfWithOpts_WrongType_001,
     AbilityRuntime_StartOptions options;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbilityWithStartOptions(ctx.get(), &want, &options);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_WrongType_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfWithOpts_ExpiredContext_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_ExpiredContext_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     AbilityBase_Want want;
     AbilityRuntime_StartOptions options;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbilityWithStartOptions(ctx.get(), &want, &options);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_ExpiredContext_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfWithOpts_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_Success_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
@@ -221,10 +252,12 @@ HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfWithOpts_Success_001, T
     AbilityRuntime_StartOptions options;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbilityWithStartOptions(ctx.get(), &want, &options);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_Success_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfWithOpts_TransformFail_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_TransformFail_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
@@ -234,46 +267,56 @@ HWTEST_F(ModularObjectExtensionContextCapiTest, StartSelfWithOpts_TransformFail_
     AbilityRuntime_StartOptions options;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbilityWithStartOptions(ctx.get(), &want, &options);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "StartSelfWithOpts_TransformFail_001 end";
 }
 
 // ==================== TerminateSelf ====================
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, TerminateSelf_NullContext_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TerminateSelf_NullContext_001 start";
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_TerminateSelf(nullptr);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "TerminateSelf_NullContext_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, TerminateSelf_WrongType_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TerminateSelf_WrongType_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::SERVICE;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
     ctx->context = cppCtx;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_TerminateSelf(ctx.get());
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE);
+    GTEST_LOG_(INFO) << "TerminateSelf_WrongType_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, TerminateSelf_ExpiredContext_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TerminateSelf_ExpiredContext_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_TerminateSelf(ctx.get());
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    GTEST_LOG_(INFO) << "TerminateSelf_ExpiredContext_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, TerminateSelf_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TerminateSelf_Success_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
     ctx->context = cppCtx;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_TerminateSelf(ctx.get());
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    GTEST_LOG_(INFO) << "TerminateSelf_Success_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionContextCapiTest, TerminateSelf_Error_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TerminateSelf_Error_001 start";
     auto ctx = std::make_shared<OH_AbilityRuntime_ModularObjectExtensionContext>();
     ctx->type = OHOS::AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT;
     auto cppCtx = std::make_shared<OHOS::AbilityRuntime::ModularObjectExtensionContext>();
@@ -281,4 +324,5 @@ HWTEST_F(ModularObjectExtensionContextCapiTest, TerminateSelf_Error_001, TestSiz
     OHOS::AbilityRuntime::ModularObjectExtensionContext::g_terminateResult = -1;
     auto ret = OH_AbilityRuntime_ModObjExtensionContext_TerminateSelf(ctx.get());
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+    GTEST_LOG_(INFO) << "TerminateSelf_Error_001 end";
 }

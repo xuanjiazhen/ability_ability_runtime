@@ -83,15 +83,18 @@ public:
 
 HWTEST_F(ModularObjectExtensionTest, Create_ReturnsNonNull_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "Create_ReturnsNonNull_001 start";
     auto *ext = ModularObjectExtension::Create();
     EXPECT_NE(ext, nullptr);
     delete ext;
+    GTEST_LOG_(INFO) << "Create_ReturnsNonNull_001 end";
 }
 
 // ==================== BuildElement ====================
 
 HWTEST_F(ModularObjectExtensionTest, BuildElement_Success_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "BuildElement_Success_001 start";
     AppExecFwk::ElementName elementName("", "com.test", "entry", "MainAbility");
     AbilityBase_Element element = {nullptr, nullptr, nullptr};
     bool ret = ModularObjectExtension::BuildElement(elementName, element);
@@ -100,30 +103,36 @@ HWTEST_F(ModularObjectExtensionTest, BuildElement_Success_001, TestSize.Level1)
     EXPECT_STREQ(element.moduleName, "entry");
     EXPECT_STREQ(element.abilityName, "MainAbility");
     ModularObjectExtension::DestroyElement(element);
+    GTEST_LOG_(INFO) << "BuildElement_Success_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, BuildElement_EmptyStrings_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "BuildElement_EmptyStrings_001 start";
     AppExecFwk::ElementName elementName("", "", "", "");
     AbilityBase_Element element = {nullptr, nullptr, nullptr};
     bool ret = ModularObjectExtension::BuildElement(elementName, element);
     EXPECT_TRUE(ret);
     ModularObjectExtension::DestroyElement(element);
+    GTEST_LOG_(INFO) << "BuildElement_EmptyStrings_001 end";
 }
 
 // ==================== DestroyElement ====================
 
 HWTEST_F(ModularObjectExtensionTest, DestroyElement_NullPtrs_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "DestroyElement_NullPtrs_001 start";
     AbilityBase_Element element = {nullptr, nullptr, nullptr};
     ModularObjectExtension::DestroyElement(element);
     EXPECT_EQ(element.bundleName, nullptr);
     EXPECT_EQ(element.moduleName, nullptr);
     EXPECT_EQ(element.abilityName, nullptr);
+    GTEST_LOG_(INFO) << "DestroyElement_NullPtrs_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, DestroyElement_AllocatedPtrs_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "DestroyElement_AllocatedPtrs_001 start";
     AppExecFwk::ElementName elementName("", "bundle", "module", "ability");
     AbilityBase_Element element = {nullptr, nullptr, nullptr};
     ModularObjectExtension::BuildElement(elementName, element);
@@ -131,12 +140,14 @@ HWTEST_F(ModularObjectExtensionTest, DestroyElement_AllocatedPtrs_001, TestSize.
     EXPECT_EQ(element.bundleName, nullptr);
     EXPECT_EQ(element.moduleName, nullptr);
     EXPECT_EQ(element.abilityName, nullptr);
+    GTEST_LOG_(INFO) << "DestroyElement_AllocatedPtrs_001 end";
 }
 
 // ==================== Init ====================
 
 HWTEST_F(ModularObjectExtensionTest, Init_SetsUpInstance_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "Init_SetsUpInstance_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -145,10 +156,12 @@ HWTEST_F(ModularObjectExtensionTest, Init_SetsUpInstance_001, TestSize.Level1)
     ext->Init(record, app, handler, token);
     EXPECT_NE(ext->moeInstance_, nullptr);
     EXPECT_NE(ext->moeContext_, nullptr);
+    GTEST_LOG_(INFO) << "Init_SetsUpInstance_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, Init_SetsExtensionType_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "Init_SetsExtensionType_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -157,10 +170,12 @@ HWTEST_F(ModularObjectExtensionTest, Init_SetsExtensionType_001, TestSize.Level1
     ext->Init(record, app, handler, token);
     EXPECT_EQ(ext->moeInstance_->type, AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT);
     EXPECT_EQ(ext->moeContext_->type, AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT);
+    GTEST_LOG_(INFO) << "Init_SetsExtensionType_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, Init_LoadModuleFails_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "Init_LoadModuleFails_001 start";
     NativeRuntime::g_loadModuleResult = false;
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
@@ -169,10 +184,12 @@ HWTEST_F(ModularObjectExtensionTest, Init_LoadModuleFails_001, TestSize.Level1)
     sptr<OHOS::IRemoteObject> token;
     ext->Init(record, app, handler, token);
     EXPECT_NE(ext->moeInstance_, nullptr);
+    GTEST_LOG_(INFO) << "Init_LoadModuleFails_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, OnStart_NullOnCreateFunc_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnStart_NullOnCreateFunc_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -183,10 +200,12 @@ HWTEST_F(ModularObjectExtensionTest, OnStart_NullOnCreateFunc_001, TestSize.Leve
     Want want;
     ext->OnStart(want);
     EXPECT_FALSE(g_onCreateCalled);
+    GTEST_LOG_(INFO) << "OnStart_NullOnCreateFunc_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, OnStart_WithCallback_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnStart_WithCallback_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -197,18 +216,22 @@ HWTEST_F(ModularObjectExtensionTest, OnStart_WithCallback_001, TestSize.Level1)
     Want want;
     ext->OnStart(want);
     EXPECT_TRUE(g_onCreateCalled);
+    GTEST_LOG_(INFO) << "OnStart_WithCallback_001 end";
 }
 
 // ==================== OnStop ====================
 
 HWTEST_F(ModularObjectExtensionTest, OnStop_NullInstance_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnStop_NullInstance_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     ext->OnStop();
+    GTEST_LOG_(INFO) << "OnStop_NullInstance_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, OnStop_NullOnDestroyFunc_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnStop_NullOnDestroyFunc_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -218,10 +241,12 @@ HWTEST_F(ModularObjectExtensionTest, OnStop_NullOnDestroyFunc_001, TestSize.Leve
     ext->moeInstance_->onDestroyFunc = nullptr;
     ext->OnStop();
     EXPECT_FALSE(g_onDestroyCalled);
+    GTEST_LOG_(INFO) << "OnStop_NullOnDestroyFunc_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, OnStop_WithCallback_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnStop_WithCallback_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -231,20 +256,24 @@ HWTEST_F(ModularObjectExtensionTest, OnStop_WithCallback_001, TestSize.Level1)
     ext->moeInstance_->onDestroyFunc = OnDestroyCallback;
     ext->OnStop();
     EXPECT_TRUE(g_onDestroyCalled);
+    GTEST_LOG_(INFO) << "OnStop_WithCallback_001 end";
 }
 
 // ==================== OnConnect ====================
 
 HWTEST_F(ModularObjectExtensionTest, OnConnect_NullInstance_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnConnect_NullInstance_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     Want want;
     auto ret = ext->OnConnect(want);
     EXPECT_EQ(ret, nullptr);
+    GTEST_LOG_(INFO) << "OnConnect_NullInstance_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, OnConnect_NullOnConnectFunc_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnConnect_NullOnConnectFunc_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -255,10 +284,12 @@ HWTEST_F(ModularObjectExtensionTest, OnConnect_NullOnConnectFunc_001, TestSize.L
     Want want;
     auto ret = ext->OnConnect(want);
     EXPECT_EQ(ret, nullptr);
+    GTEST_LOG_(INFO) << "OnConnect_NullOnConnectFunc_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, OnConnect_NullStubReturned_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnConnect_NullStubReturned_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -270,10 +301,12 @@ HWTEST_F(ModularObjectExtensionTest, OnConnect_NullStubReturned_001, TestSize.Le
     Want want;
     auto ret = ext->OnConnect(want);
     EXPECT_EQ(ret, nullptr);
+    GTEST_LOG_(INFO) << "OnConnect_NullStubReturned_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, OnDisconnect_NullOnDisconnectFunc_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnDisconnect_NullOnDisconnectFunc_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -284,10 +317,12 @@ HWTEST_F(ModularObjectExtensionTest, OnDisconnect_NullOnDisconnectFunc_001, Test
     Want want;
     ext->OnDisconnect(want);
     EXPECT_FALSE(g_onDisconnectCalled);
+    GTEST_LOG_(INFO) << "OnDisconnect_NullOnDisconnectFunc_001 end";
 }
 
 HWTEST_F(ModularObjectExtensionTest, OnDisconnect_WithCallback_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnDisconnect_WithCallback_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -298,12 +333,14 @@ HWTEST_F(ModularObjectExtensionTest, OnDisconnect_WithCallback_001, TestSize.Lev
     Want want;
     ext->OnDisconnect(want);
     EXPECT_TRUE(g_onDisconnectCalled);
+    GTEST_LOG_(INFO) << "OnDisconnect_WithCallback_001 end";
 }
 
 // ==================== CreateAndInitContext ====================
 
 HWTEST_F(ModularObjectExtensionTest, CreateAndInitContext_ReturnsNullptr_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CreateAndInitContext_ReturnsNullptr_001 start";
     auto ext = std::make_shared<ModularObjectExtension>();
     auto record = std::make_shared<AbilityLocalRecord>();
     auto app = std::make_shared<OHOSApplication>();
@@ -311,4 +348,5 @@ HWTEST_F(ModularObjectExtensionTest, CreateAndInitContext_ReturnsNullptr_001, Te
     sptr<OHOS::IRemoteObject> token;
     auto ret = ext->CreateAndInitContext(record, app, handler, token);
     EXPECT_EQ(ret, nullptr);
+    GTEST_LOG_(INFO) << "CreateAndInitContext_ReturnsNullptr_001 end";
 }

@@ -62,33 +62,40 @@ public:
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_001 start";
     // Device not supported
     MockFlag::isSupportModularObjectExtension = false;
     AbilityRequest request;
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, ERR_CAPABILITY_NOT_SUPPORT);
+    GTEST_LOG_(INFO) << "CheckPermission_001 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_002 start";
     // GetTargetExtensionInfoFromDb fails
     MockFlag::queryDataRet = -1;
     AbilityRequest request;
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, -1);
+    GTEST_LOG_(INFO) << "CheckPermission_002 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_003 start";
     // Extension not found in db
     MockFlag::extensionFound = false;
     AbilityRequest request;
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, INNER_ERR);
+    GTEST_LOG_(INFO) << "CheckPermission_003 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_004, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_004 start";
     // Extension disabled and different uid
     MockFlag::extensionFound = true;
     MockFlag::extensionDisabled = true;
@@ -98,10 +105,12 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_004, TestSize.Level1)
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, ERR_MODULAR_OBJECT_DISABLED);
+    GTEST_LOG_(INFO) << "CheckPermission_004 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_005, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_005 start";
     // Caller not foreground
     MockFlag::processState = 4; // APP_STATE_BACKGROUND
     AbilityRequest request;
@@ -109,10 +118,12 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_005, TestSize.Level1)
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, NOT_TOP_ABILITY);
+    GTEST_LOG_(INFO) << "CheckPermission_005 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_006, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_006 start";
     // Caller is preForeground
     MockFlag::isPreForeground = true;
     AbilityRequest request;
@@ -120,10 +131,12 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_006, TestSize.Level1)
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, NOT_TOP_ABILITY);
+    GTEST_LOG_(INFO) << "CheckPermission_006 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_007, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_007 start";
     // GetCallerAppInfo fails - BundleMgrHelper GetNameAndIndexForUid fails
     MockFlag::getNameAndIndexRet = -1;
     AbilityRequest request;
@@ -131,10 +144,12 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_007, TestSize.Level1)
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, INNER_ERR);
+    GTEST_LOG_(INFO) << "CheckPermission_007 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_008, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_008 start";
     // Distribution type check - caller is "none", not developer mode
     MockFlag::isDeveloperMode = false;
     AbilityRequest request;
@@ -143,10 +158,12 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_008, TestSize.Level1)
     request.appInfo.appDistributionType = "none";
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    GTEST_LOG_(INFO) << "CheckPermission_008 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_009, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_009 start";
     // Distribution type check - target is "none"
     MockFlag::isDeveloperMode = false;
     MockFlag::hasRunningUIAbility = false;
@@ -156,10 +173,12 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_009, TestSize.Level1)
     request.appInfo.appDistributionType = "debug";
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, ERR_NO_RUNNING_ABILITIES_WITH_UI);
+    GTEST_LOG_(INFO) << "CheckPermission_009 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckPermission_010, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckPermission_010 start";
     // Target has no running ability
     MockFlag::hasRunningUIAbility = false;
     MockFlag::hasRunningUIExtension = false;
@@ -168,46 +187,56 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_010, TestSize.Level1)
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
     auto ret = ModularObjectUtils::CheckPermission(request);
     EXPECT_EQ(ret, ERR_NO_RUNNING_ABILITIES_WITH_UI);
+    GTEST_LOG_(INFO) << "CheckPermission_010 end";
 }
 
 // ==================== CheckAppDistributionType ====================
 
 HWTEST_F(ModularObjectUtilsTest, CheckAppDistributionType_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckAppDistributionType_001 start";
     // Developer mode - allow
     MockFlag::isDeveloperMode = true;
     auto ret = ModularObjectUtils::CheckAppDistributionType("none", "none");
     EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckAppDistributionType_001 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckAppDistributionType_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckAppDistributionType_002 start";
     // Caller distribution type is "none"
     MockFlag::isDeveloperMode = false;
     auto ret = ModularObjectUtils::CheckAppDistributionType("none", "debug");
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    GTEST_LOG_(INFO) << "CheckAppDistributionType_002 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckAppDistributionType_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckAppDistributionType_003 start";
     // Target distribution type is "none"
     MockFlag::isDeveloperMode = false;
     auto ret = ModularObjectUtils::CheckAppDistributionType("debug", "none");
     EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    GTEST_LOG_(INFO) << "CheckAppDistributionType_003 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckAppDistributionType_004, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckAppDistributionType_004 start";
     // Normal - both have valid distribution types
     MockFlag::isDeveloperMode = false;
     auto ret = ModularObjectUtils::CheckAppDistributionType("debug", "release");
     EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckAppDistributionType_004 end";
 }
 
 // ==================== CheckExtensionEnabled ====================
 
 HWTEST_F(ModularObjectUtilsTest, CheckExtensionEnabled_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckExtensionEnabled_001 start";
     // Disabled and different uid
     MockFlag::callingUid = 999;
     ModularObjectExtensionInfo info;
@@ -218,10 +247,12 @@ HWTEST_F(ModularObjectUtilsTest, CheckExtensionEnabled_001, TestSize.Level1)
     request.uid = 100;
     auto ret = ModularObjectUtils::CheckExtensionEnabled(info, request);
     EXPECT_EQ(ret, ERR_MODULAR_OBJECT_DISABLED);
+    GTEST_LOG_(INFO) << "CheckExtensionEnabled_001 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckExtensionEnabled_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckExtensionEnabled_002 start";
     // Disabled but same uid - should pass
     MockFlag::callingUid = 100;
     ModularObjectExtensionInfo info;
@@ -232,10 +263,12 @@ HWTEST_F(ModularObjectUtilsTest, CheckExtensionEnabled_002, TestSize.Level1)
     request.uid = 100;
     auto ret = ModularObjectUtils::CheckExtensionEnabled(info, request);
     EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckExtensionEnabled_002 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckExtensionEnabled_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckExtensionEnabled_003 start";
     // Not disabled - should pass regardless of uid
     MockFlag::callingUid = 999;
     ModularObjectExtensionInfo info;
@@ -246,54 +279,66 @@ HWTEST_F(ModularObjectUtilsTest, CheckExtensionEnabled_003, TestSize.Level1)
     request.uid = 100;
     auto ret = ModularObjectUtils::CheckExtensionEnabled(info, request);
     EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckExtensionEnabled_003 end";
 }
 
 // ==================== CheckCallerForeground ====================
 
 HWTEST_F(ModularObjectUtilsTest, CheckCallerForeground_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckCallerForeground_001 start";
     // GetRunningProcessInfoByPid fails
     MockFlag::getRunningProcessInfoRet = -1;
     auto ret = ModularObjectUtils::CheckCallerForeground();
     EXPECT_EQ(ret, -1);
+    GTEST_LOG_(INFO) << "CheckCallerForeground_001 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckCallerForeground_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckCallerForeground_002 start";
     // Caller not foreground (background state)
     MockFlag::processState = 4; // APP_STATE_BACKGROUND
     auto ret = ModularObjectUtils::CheckCallerForeground();
     EXPECT_EQ(ret, NOT_TOP_ABILITY);
+    GTEST_LOG_(INFO) << "CheckCallerForeground_002 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckCallerForeground_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckCallerForeground_003 start";
     // Caller is preForeground
     MockFlag::isPreForeground = true;
     auto ret = ModularObjectUtils::CheckCallerForeground();
     EXPECT_EQ(ret, NOT_TOP_ABILITY);
+    GTEST_LOG_(INFO) << "CheckCallerForeground_003 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckCallerForeground_004, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckCallerForeground_004 start";
     // Caller is foreground
     MockFlag::processState = 2; // APP_STATE_FOREGROUND
     MockFlag::isPreForeground = false;
     auto ret = ModularObjectUtils::CheckCallerForeground();
     EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckCallerForeground_004 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "HasRunningUIAbilityOrExtension_001 start";
     // SceneBoard enabled with running UIAbility
     MockFlag::isSceneBoardEnabled = true;
     MockFlag::hasRunningUIAbility = true;
     auto ret = ModularObjectUtils::HasRunningUIAbilityOrExtension(1000, 100);
     EXPECT_TRUE(ret);
+    GTEST_LOG_(INFO) << "HasRunningUIAbilityOrExtension_001 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "HasRunningUIAbilityOrExtension_002 start";
     // SceneBoard enabled, no UIAbility but has UIExtension
     MockFlag::isSceneBoardEnabled = true;
     MockFlag::hasRunningUIAbility = false;
@@ -301,10 +346,12 @@ HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_002, TestSize.Le
     MockFlag::uiExtMgrNull = false;
     auto ret = ModularObjectUtils::HasRunningUIAbilityOrExtension(1000, 100);
     EXPECT_TRUE(ret);
+    GTEST_LOG_(INFO) << "HasRunningUIAbilityOrExtension_002 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "HasRunningUIAbilityOrExtension_003 start";
     // No running abilities at all
     MockFlag::isSceneBoardEnabled = true;
     MockFlag::hasRunningUIAbility = false;
@@ -312,59 +359,71 @@ HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_003, TestSize.Le
     MockFlag::uiExtMgrNull = false;
     auto ret = ModularObjectUtils::HasRunningUIAbilityOrExtension(1000, 100);
     EXPECT_FALSE(ret);
+    GTEST_LOG_(INFO) << "HasRunningUIAbilityOrExtension_003 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, HasRunningUIAbilityOrExtension_004, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "HasRunningUIAbilityOrExtension_004 start";
     // SceneBoard disabled with running ability via MissionListManager
     MockFlag::isSceneBoardEnabled = false;
     MockFlag::hasRunningUIAbility = true;
     MockFlag::missionListMgrNull = false;
     auto ret = ModularObjectUtils::HasRunningUIAbilityOrExtension(1000, 100);
     EXPECT_TRUE(ret);
+    GTEST_LOG_(INFO) << "HasRunningUIAbilityOrExtension_004 end";
 }
 
 // ==================== CheckTargetHasRunningAbility ====================
 
 HWTEST_F(ModularObjectUtilsTest, CheckTargetHasRunningAbility_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckTargetHasRunningAbility_001 start";
     // No running ability
     MockFlag::hasRunningUIAbility = false;
     MockFlag::hasRunningUIExtension = false;
     auto ret = ModularObjectUtils::CheckTargetHasRunningAbility(1000, 100, "com.test");
     EXPECT_EQ(ret, ERR_NO_RUNNING_ABILITIES_WITH_UI);
+    GTEST_LOG_(INFO) << "CheckTargetHasRunningAbility_001 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, CheckTargetHasRunningAbility_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckTargetHasRunningAbility_002 start";
     // Has running ability
     MockFlag::hasRunningUIAbility = true;
     auto ret = ModularObjectUtils::CheckTargetHasRunningAbility(1000, 100, "com.test");
     EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckTargetHasRunningAbility_002 end";
 }
 
 // ==================== GetTargetExtensionInfoFromDb ====================
 
 HWTEST_F(ModularObjectUtilsTest, GetTargetExtensionInfoFromDb_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetTargetExtensionInfoFromDb_001 start";
     // QueryData fails
     MockFlag::queryDataRet = -1;
     ModularObjectExtensionInfo targetInfo;
     auto ret = ModularObjectUtils::GetTargetExtensionInfoFromDb("bundle", "ability", 0, 100, targetInfo);
     EXPECT_EQ(ret, -1);
+    GTEST_LOG_(INFO) << "GetTargetExtensionInfoFromDb_001 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, GetTargetExtensionInfoFromDb_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetTargetExtensionInfoFromDb_002 start";
     // Extension not found
     MockFlag::extensionFound = false;
     ModularObjectExtensionInfo targetInfo;
     auto ret = ModularObjectUtils::GetTargetExtensionInfoFromDb("bundle", "ability", 0, 100, targetInfo);
     EXPECT_EQ(ret, INNER_ERR);
+    GTEST_LOG_(INFO) << "GetTargetExtensionInfoFromDb_002 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, GetTargetExtensionInfoFromDb_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetTargetExtensionInfoFromDb_003 start";
     // Success - extension found
     MockFlag::extensionFound = true;
     ModularObjectExtensionInfo targetInfo;
@@ -373,42 +432,51 @@ HWTEST_F(ModularObjectUtilsTest, GetTargetExtensionInfoFromDb_003, TestSize.Leve
     EXPECT_EQ(ret, ERR_OK);
     EXPECT_EQ(targetInfo.bundleName, "com.test.bundle");
     EXPECT_EQ(targetInfo.abilityName, "TestAbility");
+    GTEST_LOG_(INFO) << "GetTargetExtensionInfoFromDb_003 end";
 }
 
 // ==================== GetCallerAppInfo ====================
 
 HWTEST_F(ModularObjectUtilsTest, GetCallerAppInfo_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetCallerAppInfo_001 start";
     // BundleMgrHelper is null - can't easily test since singleton always returns instance
     // GetNameAndIndexForUid fails
     MockFlag::getNameAndIndexRet = -1;
     ApplicationInfo callerAppInfo;
     auto ret = ModularObjectUtils::GetCallerAppInfo(callerAppInfo);
     EXPECT_EQ(ret, INNER_ERR);
+    GTEST_LOG_(INFO) << "GetCallerAppInfo_001 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, GetCallerAppInfo_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetCallerAppInfo_002 start";
     // GetOsAccountLocalIdFromUid fails
     MockFlag::getOsAccountRet = -1;
     ApplicationInfo callerAppInfo;
     auto ret = ModularObjectUtils::GetCallerAppInfo(callerAppInfo);
     EXPECT_EQ(ret, INNER_ERR);
+    GTEST_LOG_(INFO) << "GetCallerAppInfo_002 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, GetCallerAppInfo_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetCallerAppInfo_003 start";
     // GetApplicationInfoWithAppIndex fails
     MockFlag::getApplicationInfoRet = false;
     ApplicationInfo callerAppInfo;
     auto ret = ModularObjectUtils::GetCallerAppInfo(callerAppInfo);
     EXPECT_EQ(ret, INNER_ERR);
+    GTEST_LOG_(INFO) << "GetCallerAppInfo_003 end";
 }
 
 HWTEST_F(ModularObjectUtilsTest, GetCallerAppInfo_004, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "GetCallerAppInfo_004 start";
     // Success
     ApplicationInfo callerAppInfo;
     auto ret = ModularObjectUtils::GetCallerAppInfo(callerAppInfo);
     EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "GetCallerAppInfo_004 end";
 }

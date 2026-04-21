@@ -109,89 +109,112 @@ public:
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_001 start";
     // ABILITY_VISIBLE_FALSE_DENY_REQUEST -> VISIBILITY_VERIFICATION_FAILED
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(ABILITY_VISIBLE_FALSE_DENY_REQUEST);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_VISIBILITY_VERIFICATION_FAILED);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_001 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_002 start";
     // ERR_STATIC_CFG_PERMISSION -> STATIC_CFG_PERMISSION
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(ERR_STATIC_CFG_PERMISSION);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_STATIC_CFG_PERMISSION);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_002 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_003 start";
     // ERR_CROSS_USER -> CROSS_USER_OPERATION
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(ERR_CROSS_USER);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_CROSS_USER_OPERATION);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_003 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_004, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_004 start";
     // ERR_CHECK_CALL_FROM_BACKGROUND_FAILED -> NO_RUNNING_ABILITIES_WITH_UI
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(ERR_CHECK_CALL_FROM_BACKGROUND_FAILED);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_RUNNING_ABILITIES_WITH_UI);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_004 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_005, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_005 start";
     // ERR_FREQ_START_ABILITY -> UPPER_RATE_LIMIT
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(ERR_FREQ_START_ABILITY);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_UPPER_RATE_LIMIT);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_005 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_006, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_006 start";
     // ERR_REACH_UPPER_LIMIT -> UPPER_CONNECTION_NUMBER_LIMIT
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(ERR_REACH_UPPER_LIMIT);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_UPPER_CONNECTION_NUMBER_LIMIT);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_006 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_007, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_007 start";
     // ERR_UPPER_LIMIT -> UPPER_CONNECTION_NUMBER_LIMIT (same as ERR_REACH_UPPER_LIMIT)
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(ERR_UPPER_LIMIT);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_UPPER_CONNECTION_NUMBER_LIMIT);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_007 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_008, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_008 start";
     // ERR_MODULAR_OBJECT_DISABLED -> MODULAR_OBJECT_EXTENSION_DISABLED
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(ERR_MODULAR_OBJECT_DISABLED);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_MODULAR_OBJECT_EXTENSION_DISABLED);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_008 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_009, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_009 start";
     // ERR_NO_RUNNING_ABILITIES_WITH_UI -> NO_RUNNING_ABILITIES_WITH_UI
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(ERR_NO_RUNNING_ABILITIES_WITH_UI);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_RUNNING_ABILITIES_WITH_UI);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_009 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_010, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_010 start";
     // default case -> calls ConvertToCommonBusinessErrorCode
     MyFlag::retConvertToCommonBusinessErrorCode = ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED;
     int32_t unknownErrCode = 9999999;
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(unknownErrCode);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_010 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, ConvertConnectBusinessErrorCode_011, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_011 start";
     // default case with mock returning default value
     MyFlag::retConvertToCommonBusinessErrorCode = 0;
     int32_t unknownErrCode = 1;
     auto ret = CModularObjectUtils::ConvertConnectBusinessErrorCode(unknownErrCode);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_INTERNAL);
+    GTEST_LOG_(INFO) << "ConvertConnectBusinessErrorCode_011 end";
 }
 
 // ==================== CopyToCString ====================
 
 HWTEST_F(CModularObjectUtilsTest, CopyToCString_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CopyToCString_001 start";
     // success: normal string
     char *dst = nullptr;
     std::string src = "hello";
@@ -200,10 +223,12 @@ HWTEST_F(CModularObjectUtilsTest, CopyToCString_001, TestSize.Level1)
     ASSERT_NE(dst, nullptr);
     EXPECT_STREQ(dst, "hello");
     delete[] dst;
+    GTEST_LOG_(INFO) << "CopyToCString_001 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, CopyToCString_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CopyToCString_002 start";
     // success: empty string
     char *dst = nullptr;
     std::string src = "";
@@ -212,10 +237,12 @@ HWTEST_F(CModularObjectUtilsTest, CopyToCString_002, TestSize.Level1)
     ASSERT_NE(dst, nullptr);
     EXPECT_STREQ(dst, "");
     delete[] dst;
+    GTEST_LOG_(INFO) << "CopyToCString_002 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, CopyToCString_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CopyToCString_003 start";
     // success: string with special characters
     char *dst = nullptr;
     std::string src = "com.example.test/Module:Ability";
@@ -224,12 +251,14 @@ HWTEST_F(CModularObjectUtilsTest, CopyToCString_003, TestSize.Level1)
     ASSERT_NE(dst, nullptr);
     EXPECT_STREQ(dst, src.c_str());
     delete[] dst;
+    GTEST_LOG_(INFO) << "CopyToCString_003 end";
 }
 
 // ==================== BuildElement ====================
 
 HWTEST_F(CModularObjectUtilsTest, BuildElement_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "BuildElement_001 start";
     // success: all fields populated
     ElementName elementName("", "com.test.bundle", "com.test.module", "TestAbility");
     AbilityBase_Element element = {nullptr, nullptr, nullptr};
@@ -242,10 +271,12 @@ HWTEST_F(CModularObjectUtilsTest, BuildElement_001, TestSize.Level1)
     ASSERT_NE(element.abilityName, nullptr);
     EXPECT_STREQ(element.abilityName, "TestAbility");
     CModularObjectUtils::DestroyElement(element);
+    GTEST_LOG_(INFO) << "BuildElement_001 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, BuildElement_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "BuildElement_002 start";
     // success: fields with empty strings
     ElementName elementName("", "", "", "");
     AbilityBase_Element element = {nullptr, nullptr, nullptr};
@@ -258,12 +289,14 @@ HWTEST_F(CModularObjectUtilsTest, BuildElement_002, TestSize.Level1)
     ASSERT_NE(element.abilityName, nullptr);
     EXPECT_STREQ(element.abilityName, "");
     CModularObjectUtils::DestroyElement(element);
+    GTEST_LOG_(INFO) << "BuildElement_002 end";
 }
 
 // ==================== DestroyElement ====================
 
 HWTEST_F(CModularObjectUtilsTest, DestroyElement_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "DestroyElement_001 start";
     // destroy populated element
     AbilityBase_Element element;
     element.bundleName = new char[5];
@@ -277,16 +310,19 @@ HWTEST_F(CModularObjectUtilsTest, DestroyElement_001, TestSize.Level1)
     EXPECT_EQ(element.bundleName, nullptr);
     EXPECT_EQ(element.moduleName, nullptr);
     EXPECT_EQ(element.abilityName, nullptr);
+    GTEST_LOG_(INFO) << "DestroyElement_001 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, DestroyElement_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "DestroyElement_002 start";
     // destroy element with null fields (no crash)
     AbilityBase_Element element = {nullptr, nullptr, nullptr};
     CModularObjectUtils::DestroyElement(element);
     EXPECT_EQ(element.bundleName, nullptr);
     EXPECT_EQ(element.moduleName, nullptr);
     EXPECT_EQ(element.abilityName, nullptr);
+    GTEST_LOG_(INFO) << "DestroyElement_002 end";
 }
 
 // ==================== NotifyFailed ====================
@@ -314,14 +350,17 @@ void MockOnFailedCallback(OH_AbilityRuntime_ConnectOptions *owner, AbilityRuntim
 
 HWTEST_F(CModularObjectUtilsTest, NotifyFailed_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "NotifyFailed_001 start";
     // state is nullptr -> early return, no crash
     ResetCallbackState();
     CModularObjectUtils::NotifyFailed(nullptr, ERR_MODULAR_OBJECT_DISABLED);
     EXPECT_EQ(g_callbackCallCount, 0);
+    GTEST_LOG_(INFO) << "NotifyFailed_001 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, NotifyFailed_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "NotifyFailed_002 start";
     // state alive is false -> early return
     ResetCallbackState();
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
@@ -329,10 +368,12 @@ HWTEST_F(CModularObjectUtilsTest, NotifyFailed_002, TestSize.Level1)
     state->onFailedCallback = MockOnFailedCallback;
     CModularObjectUtils::NotifyFailed(state, ERR_MODULAR_OBJECT_DISABLED);
     EXPECT_EQ(g_callbackCallCount, 0);
+    GTEST_LOG_(INFO) << "NotifyFailed_002 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, NotifyFailed_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "NotifyFailed_003 start";
     // callback is nullptr -> no call
     ResetCallbackState();
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
@@ -340,10 +381,12 @@ HWTEST_F(CModularObjectUtilsTest, NotifyFailed_003, TestSize.Level1)
     state->onFailedCallback = nullptr;
     CModularObjectUtils::NotifyFailed(state, ERR_MODULAR_OBJECT_DISABLED);
     EXPECT_EQ(g_callbackCallCount, 0);
+    GTEST_LOG_(INFO) << "NotifyFailed_003 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, NotifyFailed_004, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "NotifyFailed_004 start";
     // callback is non-null -> callback invoked with correct error code
     ResetCallbackState();
     OH_AbilityRuntime_ConnectOptions owner;
@@ -358,10 +401,12 @@ HWTEST_F(CModularObjectUtilsTest, NotifyFailed_004, TestSize.Level1)
     EXPECT_EQ(g_callbackCallCount, 1);
     EXPECT_EQ(g_capturedOwner, &owner);
     EXPECT_EQ(g_capturedErrorCode, ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED);
+    GTEST_LOG_(INFO) << "NotifyFailed_004 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, NotifyFailed_005, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "NotifyFailed_005 start";
     // verify error code is cast correctly from int32_t
     ResetCallbackState();
     auto state = std::make_shared<OH_AbilityRuntime_ConnectOptionsState>();
@@ -373,12 +418,14 @@ HWTEST_F(CModularObjectUtilsTest, NotifyFailed_005, TestSize.Level1)
     CModularObjectUtils::NotifyFailed(state, businessCode);
     EXPECT_EQ(g_callbackCallCount, 1);
     EXPECT_EQ(g_capturedErrorCode, ABILITY_RUNTIME_ERROR_CODE_MODULAR_OBJECT_EXTENSION_DISABLED);
+    GTEST_LOG_(INFO) << "NotifyFailed_005 end";
 }
 
 // ==================== TransformWant ====================
 
 HWTEST_F(CModularObjectUtilsTest, TransformWant_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TransformWant_001 start";
     // CheckWant returns error -> propagate error
     MyFlag::retCheckWant = ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     AbilityBase_Want want;
@@ -386,10 +433,12 @@ HWTEST_F(CModularObjectUtilsTest, TransformWant_001, TestSize.Level1)
     AAFwk::Want abilityWant;
     auto ret = CModularObjectUtils::TransformWant(reinterpret_cast<AbilityBase_Want *>(&want), abilityWant);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "TransformWant_001 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, TransformWant_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TransformWant_002 start";
     // CheckWant succeeds, TransformToWant returns error
     MyFlag::retCheckWant = 0;
     MyFlag::retTransformToWant = ABILITY_BASE_ERROR_CODE_PARAM_INVALID;
@@ -398,10 +447,12 @@ HWTEST_F(CModularObjectUtilsTest, TransformWant_002, TestSize.Level1)
     AAFwk::Want abilityWant;
     auto ret = CModularObjectUtils::TransformWant(reinterpret_cast<AbilityBase_Want *>(&want), abilityWant);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "TransformWant_002 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, TransformWant_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "TransformWant_003 start";
     // success path
     MyFlag::retCheckWant = 0;
     MyFlag::retTransformToWant = 0;
@@ -410,20 +461,24 @@ HWTEST_F(CModularObjectUtilsTest, TransformWant_003, TestSize.Level1)
     AAFwk::Want abilityWant;
     auto ret = CModularObjectUtils::TransformWant(reinterpret_cast<AbilityBase_Want *>(&want), abilityWant);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    GTEST_LOG_(INFO) << "TransformWant_003 end";
 }
 
 // ==================== CheckContextAndToken ====================
 
 HWTEST_F(CModularObjectUtilsTest, CheckContextAndToken_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckContextAndToken_001 start";
     // context is nullptr
     sptr<IRemoteObject> token;
     auto ret = CModularObjectUtils::CheckContextAndToken(nullptr, token);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID);
+    GTEST_LOG_(INFO) << "CheckContextAndToken_001 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, CheckContextAndToken_002, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckContextAndToken_002 start";
     // context->context.lock() returns nullptr (expired weak_ptr)
     AbilityRuntime_Context context;
     context.type = 0;
@@ -433,10 +488,12 @@ HWTEST_F(CModularObjectUtilsTest, CheckContextAndToken_002, TestSize.Level1)
     sptr<IRemoteObject> token;
     auto ret = CModularObjectUtils::CheckContextAndToken(&context, token);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    GTEST_LOG_(INFO) << "CheckContextAndToken_002 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, CheckContextAndToken_003, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckContextAndToken_003 start";
     // GetToken returns nullptr
     auto mockContext = std::make_shared<MockContext>();
     EXPECT_CALL(*mockContext, GetToken()).Times(1).WillOnce(Return(sptr<IRemoteObject>(nullptr)));
@@ -448,10 +505,12 @@ HWTEST_F(CModularObjectUtilsTest, CheckContextAndToken_003, TestSize.Level1)
     sptr<IRemoteObject> token;
     auto ret = CModularObjectUtils::CheckContextAndToken(&context, token);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST);
+    GTEST_LOG_(INFO) << "CheckContextAndToken_003 end";
 }
 
 HWTEST_F(CModularObjectUtilsTest, CheckContextAndToken_004, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "CheckContextAndToken_004 start";
     // success path: GetToken returns valid token
     sptr<IRemoteObject> expectedToken = sptr<IRemoteObject>(new (std::nothrow) MockRemoteObject());
     ASSERT_NE(expectedToken, nullptr);
@@ -466,6 +525,7 @@ HWTEST_F(CModularObjectUtilsTest, CheckContextAndToken_004, TestSize.Level1)
     auto ret = CModularObjectUtils::CheckContextAndToken(&context, token);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     EXPECT_EQ(token.GetRefPtr(), expectedToken.GetRefPtr());
+    GTEST_LOG_(INFO) << "CheckContextAndToken_004 end";
 }
 
 } // namespace AbilityRuntime

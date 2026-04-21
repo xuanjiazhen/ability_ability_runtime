@@ -61,16 +61,19 @@ public:
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_EmptyCallbackList_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_EmptyCallbackList_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     AppExecFwk::ElementName element("device", "bundle", "module", "ability");
     sptr<IRemoteObject> remote;
     conn->OnAbilityConnectDone(element, remote, 0);
     // Should return early without crash
     EXPECT_EQ(conn->GetConnectionState(), CONNECTION_STATE_DISCONNECTED);
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_EmptyCallbackList_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_WithCallback_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_WithCallback_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb = sptr<MockConnectCallback>(new MockConnectCallback());
     conn->AddConnectCallback(cb);
@@ -81,10 +84,12 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_WithCallback_0
 
     EXPECT_TRUE(cb->connectCalled);
     EXPECT_EQ(conn->GetConnectionState(), CONNECTION_STATE_CONNECTED);
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_WithCallback_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_SetsResultCode_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_SetsResultCode_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb = sptr<MockConnectCallback>(new MockConnectCallback());
     conn->AddConnectCallback(cb);
@@ -95,10 +100,12 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_SetsResultCode
 
     EXPECT_EQ(cb->lastResultCode, 42);
     EXPECT_EQ(conn->GetResultCode(), 42);
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_SetsResultCode_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_SetsRemoteObject_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_SetsRemoteObject_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb = sptr<MockConnectCallback>(new MockConnectCallback());
     conn->AddConnectCallback(cb);
@@ -108,10 +115,12 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_SetsRemoteObje
     conn->OnAbilityConnectDone(element, remote, 0);
 
     EXPECT_EQ(conn->GetRemoteObject(), remote);
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_SetsRemoteObject_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_DisconnectNonexistent_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_DisconnectNonexistent_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb = sptr<MockConnectCallback>(new MockConnectCallback());
     conn->AddConnectCallback(cb);
@@ -123,10 +132,12 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_DisconnectNone
 
     // Should NOT call callback because DisconnectNonexistentService returns true
     EXPECT_FALSE(cb->connectCalled);
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_DisconnectNonexistent_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_MultipleCallbacks_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_MultipleCallbacks_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb1 = sptr<MockConnectCallback>(new MockConnectCallback());
     auto cb2 = sptr<MockConnectCallback>(new MockConnectCallback());
@@ -139,20 +150,24 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityConnectDone_MultipleCallba
 
     EXPECT_TRUE(cb1->connectCalled);
     EXPECT_TRUE(cb2->connectCalled);
+    GTEST_LOG_(INFO) << "OnAbilityConnectDone_MultipleCallbacks_001 end";
 }
 
 // ==================== OnAbilityDisconnectDone ====================
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_EmptyCallbackList_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_EmptyCallbackList_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     AppExecFwk::ElementName element("device", "bundle", "module", "ability");
     conn->OnAbilityDisconnectDone(element, 0);
     EXPECT_EQ(conn->GetConnectionState(), CONNECTION_STATE_DISCONNECTED);
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_EmptyCallbackList_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_WithCallback_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_WithCallback_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb = sptr<MockConnectCallback>(new MockConnectCallback());
     conn->AddConnectCallback(cb);
@@ -162,10 +177,12 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_WithCallbac
 
     EXPECT_TRUE(cb->disconnectCalled);
     EXPECT_EQ(conn->GetConnectionState(), CONNECTION_STATE_DISCONNECTED);
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_WithCallback_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_SetsDisconnectedState_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_SetsDisconnectedState_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb = sptr<MockConnectCallback>(new MockConnectCallback());
     conn->AddConnectCallback(cb);
@@ -179,10 +196,12 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_SetsDisconn
     // Then disconnect
     conn->OnAbilityDisconnectDone(element, 0);
     EXPECT_EQ(conn->GetConnectionState(), CONNECTION_STATE_DISCONNECTED);
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_SetsDisconnectedState_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_DiedResultCode_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_DiedResultCode_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb = sptr<MockConnectCallback>(new MockConnectCallback());
     conn->AddConnectCallback(cb);
@@ -193,10 +212,12 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_DiedResultC
     // DIED (-1) triggers RemoveConnection and changes resultCode to 0
     EXPECT_TRUE(ModularObjectConnectionManager::g_removeConnectionCalled);
     EXPECT_EQ(cb->lastResultCode, 0); // DIED + 1 = 0
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_DiedResultCode_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_NormalResultCode_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_NormalResultCode_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb = sptr<MockConnectCallback>(new MockConnectCallback());
     conn->AddConnectCallback(cb);
@@ -206,10 +227,12 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_NormalResul
 
     EXPECT_FALSE(ModularObjectConnectionManager::g_removeConnectionCalled);
     EXPECT_EQ(cb->lastResultCode, 5);
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_NormalResultCode_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_ClearsRemoteObject_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_ClearsRemoteObject_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb = sptr<MockConnectCallback>(new MockConnectCallback());
     conn->AddConnectCallback(cb);
@@ -220,10 +243,12 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_ClearsRemot
 
     conn->OnAbilityDisconnectDone(element, 0);
     EXPECT_EQ(conn->GetRemoteObject(), nullptr);
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_ClearsRemoteObject_001 end";
 }
 
 HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_MultipleCallbacks_001, TestSize.Level1)
 {
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_MultipleCallbacks_001 start";
     auto conn = sptr<ModularObjectAbilityConnection>(new ModularObjectAbilityConnection());
     auto cb1 = sptr<MockConnectCallback>(new MockConnectCallback());
     auto cb2 = sptr<MockConnectCallback>(new MockConnectCallback());
@@ -235,6 +260,7 @@ HWTEST_F(ModularObjectAbilityConnectionTest, OnAbilityDisconnectDone_MultipleCal
 
     EXPECT_TRUE(cb1->disconnectCalled);
     EXPECT_TRUE(cb2->disconnectCalled);
+    GTEST_LOG_(INFO) << "OnAbilityDisconnectDone_MultipleCallbacks_001 end";
 }
 
 } // namespace AbilityRuntime
