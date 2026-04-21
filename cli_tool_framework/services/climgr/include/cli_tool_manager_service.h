@@ -52,6 +52,16 @@ public:
      */
     int32_t RegisterCliTool(const ToolInfo &tool);
 
+    /**
+     * @brief Execute a CLI tool.
+     * Implements the ICliToolManager interface method.
+     */
+    int32_t ExecTool(const std::string &cliName,
+        const std::map<std::string, std::string> &args,
+        const std::string &challenge,
+        const ExecOptions &options,
+        CliSessionInfo &session) override;
+
 protected:
     void OnStart() override;
     void OnStop() override;
