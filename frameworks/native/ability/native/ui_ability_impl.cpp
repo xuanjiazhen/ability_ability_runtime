@@ -258,6 +258,32 @@ void UIAbilityImpl::ExecuteInsightIntentDone(uint64_t intentId, const InsightInt
         TAG_LOGE(AAFwkTag::UIABILITY, "notify execute done failed");
     }
 }
+
+bool UIAbilityImpl::HandleExecuteSkill(const AAFwk::Want &want, bool onlyExecuteSkill)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "handle execute skill");
+    auto param = std::make_shared<SkillExecuteParam>();
+    if (!SkillExecuteParam::GenerateFromWant(want, *param)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "generate skill param from want failed");
+        if (!onlyExecuteSkill) {
+            Background();
+        }
+        return true;
+    }
+
+    TAG_LOGI(AAFwkTag::UIABILITY,
+        "skill bundle:%{public}s module:%{public}s name:%{public}s "
+        "arkTSPath:%{public}s func:%{public}s",
+        param->bundleName_.c_str(), param->moduleName_.c_str(),
+        param->skillName_.c_str(), param->arkTSPath_.c_str(),
+        param->funcName_.c_str());
+    ability_->ExecuteSkill(want, param);
+    if (!onlyExecuteSkill) {
+        Background();
+    }
+    return true;
+}
+
 #ifdef SUPPORT_SCREEN
 bool UIAbilityImpl::PrepareTerminateAbility(std::function<void(bool)> callback, bool &isAsync)
 {
@@ -683,7 +709,10 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             }
             OnWillBackground();
 #ifdef SUPPORT_GRAPHICS
-            if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
+            if (SkillExecuteParam::IsSkillExecute(want)) {
+                TAG_LOGD(AAFwkTag::UIABILITY, "handleExecuteSkill");
+                ret = HandleExecuteSkill(want);
+            } else if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 Background();
             } else {
                 TAG_LOGD(AAFwkTag::UIABILITY, "handleExecuteInsightIntentBackground");

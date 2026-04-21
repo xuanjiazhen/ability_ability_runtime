@@ -2249,6 +2249,13 @@ public:
      */
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag);
 
+    ErrCode StartInAppSkill(const std::string &bundleName, const std::string &moduleName,
+        const std::string &skillName, const std::string &arkTSPath = "",
+        const std::string &funcName = "", const std::vector<std::string> &argv = {});
+
+    ErrCode ExecuteSkillDone(const sptr<IRemoteObject> &token, int32_t resultCode,
+        const AppExecFwk::SkillExecuteResult &result);
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);
