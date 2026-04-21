@@ -601,5 +601,70 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ContextType_0400, Tes
     GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ContextType_0400 end";
 }
 
+/**
+ * @tc.name: AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0100
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with normal parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0100, TestSize.Level1)
+{
+    auto contextImpl = std::make_shared<AbilityContextImpl>();
+    AAFwk::Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    auto errCode = contextImpl->StartSelfUIAbilityInChildProcess(want, specifiedFlag);
+    // The result depends on AbilityManagerClient
+}
+
+/**
+ * @tc.name: AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0200
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with empty want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0200, TestSize.Level1)
+{
+    auto contextImpl = std::make_shared<AbilityContextImpl>();
+    AAFwk::Want want;
+    std::string specifiedFlag = "";
+    auto errCode = contextImpl->StartSelfUIAbilityInChildProcess(want, specifiedFlag);
+}
+
+/**
+ * @tc.name: AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0300
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with specifiedFlag
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_StartSelfUIAbilityInChildProcess_0300, TestSize.Level1)
+{
+    auto contextImpl = std::make_shared<AbilityContextImpl>();
+    AAFwk::Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    want.SetParam("testKey", std::string("testValue"));
+    std::string specifiedFlag = "specifiedFlag123";
+    auto errCode = contextImpl->StartSelfUIAbilityInChildProcess(want, specifiedFlag);
+}
+
+/**
+ * @tc.name: AbilityRuntime_AbilityContext_OnStartSelfUIAbilityInChildProcess_0100
+ * @tc.desc: Test OnStartSelfUIAbilityInChildProcess JS binding
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_OnStartSelfUIAbilityInChildProcess_0100, TestSize.Level1)
+{
+    OHOS::AbilityRuntime::Runtime::Options options;
+    std::shared_ptr<OHOS::JsEnv::JsEnvironment> jsEnv = nullptr;
+    auto err = JsRuntimeLite::GetInstance().CreateJsEnv(options, jsEnv);
+    EXPECT_EQ(err, napi_status::napi_ok);
+    napi_env env = reinterpret_cast<napi_env>(jsEnv->GetNativeEngine());
+
+    NapiCallbackInfo info{2};
+    AAFwk::Want want;
+    info.argv[0] = OHOS::AppExecFwk::WrapWant(env, want);
+    napi_create_string_latin1(env, "testFlag", NAPI_AUTO_LENGTH, &info.argv[1]);
+    jsAbilityContext_->OnStartSelfUIAbilityInChildProcess(env, info);
+
+    JsRuntimeLite::GetInstance().RemoveJsEnv(reinterpret_cast<napi_env>(jsEnv->GetNativeEngine()));
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
