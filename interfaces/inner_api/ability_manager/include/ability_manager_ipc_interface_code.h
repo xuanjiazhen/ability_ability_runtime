@@ -744,6 +744,15 @@ enum class AbilityManagerInterfaceCode {
     // query entity
     INSIGHT_INTENT_QUERY_ENTITY = 6165,
 
+    // execute in-app skill
+    EXECUTE_IN_APP_SKILL = 6169,
+
+    // execute in-app skill done callback
+    EXECUTE_IN_APP_SKILL_DONE = 6170,
+
+    // query skill type (independent or in-app)
+    QUERY_SKILL_TYPE = 6171,
+
     // start self ability with token
     START_SELF = 6166,
 
