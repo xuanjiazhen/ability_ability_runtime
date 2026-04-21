@@ -8015,5 +8015,76 @@ int32_t AbilityManagerProxy::SetAppRecoveryFlag(const sptr<IRemoteObject>& token
     }
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::StartSkillByHDC(const std::string &bundleName, const std::string &moduleName,
+    const std::string &skillName, const std::shared_ptr<WantParams> &params, uint64_t skillId,
+    const std::string &srcEntrance, const std::string &hapPath, bool isEsModule)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start skill by hdc proxy, bundleName:%{public}s", bundleName.c_str());
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString16(Str8ToStr16(bundleName)) ||
+        !data.WriteString16(Str8ToStr16(moduleName)) ||
+        !data.WriteString16(Str8ToStr16(skillName))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write string params fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteParcelable(params.get())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write params fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteUint64(skillId) ||
+        !data.WriteString16(Str8ToStr16(srcEntrance)) ||
+        !data.WriteString16(Str8ToStr16(hapPath)) ||
+        !data.WriteBool(isEsModule)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write skill params fail");
+        return INNER_ERR;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::START_SKILL_BY_HDC, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::StartSkillByHDCDone(const sptr<IRemoteObject> &token, uint64_t skillId,
+    const SkillExecuteResult &result)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start skill by hdc done proxy, skillId:%{public}" PRIu64 "", skillId);
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteRemoteObject(token)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write remote object fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteUint64(skillId) || !data.WriteParcelable(&result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write params fail");
+        return INNER_ERR;
+    }
+
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    auto ret = SendRequest(AbilityManagerInterfaceCode::START_SKILL_BY_HDC_DONE, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS
