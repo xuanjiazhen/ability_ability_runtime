@@ -41,6 +41,35 @@ public:
      */
     ~CliToolMGRClient() = default;
 
+    /**
+     * @brief Query tool summaries (lightweight for listing)
+     * @param summaries Output vector of ToolSummary
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode QueryToolSummaries(std::vector<ToolSummary> &summaries);
+
+    /**
+     * @brief Get tool information by name
+     * @param name Tool name
+     * @param tool Output ToolInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetToolByName(const std::string &name, ToolInfo &tool);
+
+    /**
+     * @brief Get all tools
+     * @param tools Output vector of ToolInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetAllTools(std::vector<ToolInfo> &tools);
+
+    /**
+     * @brief Register a CLI tool
+     * @param tool ToolInfo to register
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode RegisterTool(const ToolInfo &tool);
+
 private:
     CliToolMGRClient() = default;
     DISALLOW_COPY_AND_MOVE(CliToolMGRClient);

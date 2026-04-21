@@ -90,5 +90,78 @@ HWTEST_F(CliToolMGRClientTest, ResetProxy_0100, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "CliToolMGRClient_ResetProxy_0100 end";
 }
+
+/**
+ * @tc.name: CliToolMGRClient_QueryToolSummaries_0100
+ * @tc.desc: Test QueryToolSummaries returns error when proxy is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, QueryToolSummaries_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_QueryToolSummaries_0100 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<ToolSummary> summaries;
+    ErrCode ret = client.QueryToolSummaries(summaries);
+
+    EXPECT_NE(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_QueryToolSummaries_0100 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_GetToolByName_0100
+ * @tc.desc: Test GetToolByName returns error when proxy is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, GetToolByName_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_GetToolByName_0100 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    ToolInfo tool;
+    ErrCode ret = client.GetToolByName("test_tool", tool);
+
+    EXPECT_NE(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_GetToolByName_0100 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_GetAllTools_0100
+ * @tc.desc: Test GetAllTools returns error when proxy is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, GetAllTools_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_GetAllTools_0100 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<ToolInfo> tools;
+    ErrCode ret = client.GetAllTools(tools);
+
+    EXPECT_NE(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_GetAllTools_0100 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_RegisterTool_0100
+ * @tc.desc: Test RegisterTool returns error when proxy is null
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, RegisterTool_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_RegisterTool_0100 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    ToolInfo tool;
+    tool.name = "test_tool";
+    ErrCode ret = client.RegisterTool(tool);
+
+    EXPECT_NE(ret, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_RegisterTool_0100 end";
+}
 } // namespace CliTool
 } // namespace OHOS
