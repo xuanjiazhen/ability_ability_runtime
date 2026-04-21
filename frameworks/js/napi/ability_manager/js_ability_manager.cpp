@@ -16,6 +16,7 @@
 #include "js_ability_manager.h"
 
 #include <cstdint>
+#include <cinttypes>
 #include <memory>
 #include <regex>
 #include <future>
@@ -45,6 +46,7 @@
 #include "napi_common_configuration.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
+#include "napi_common_skill_execute.h"
 #include "permission_constants.h"
 #include "preload_ui_extension_host_client.h"
 #include "system_ability_definition.h"
@@ -67,6 +69,8 @@ constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
 constexpr size_t INDEX_ZERO = 0;
 constexpr size_t INDEX_ONE = 1;
+constexpr size_t INDEX_TWO = 2;
+constexpr size_t ARG_THREE = 3;
 constexpr const char *ON_OFF_TYPE_ABILITY_FOREGROUND_STATE = "abilityForegroundState";
 const std::string MAX_UINT64_VALUE = "18446744073709551615";
 static std::shared_ptr<AppExecFwk::EventHandler> mainHandler_ = nullptr;
@@ -189,6 +193,11 @@ public:
     static napi_value ClearPreloadedUIExtensionAbilities(napi_env env, napi_callback_info info)
     {
         GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnClearPreloadedUIExtensionAbilities);
+    }
+
+    static napi_value CompleteArkTSScriptInApp(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnCompleteArkTSScriptInApp);
     }
 
 private:
@@ -1185,6 +1194,60 @@ private:
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
         return handleEscape.Escape(result);
     }
+
+    napi_value OnCompleteArkTSScriptInApp(napi_env env, NapiCallbackInfo &info)
+    {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "OnCompleteArkTSScriptInApp called");
+        if (info.argc < ARG_THREE) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        // argv[0]: context (AbilityContext) - used for authorization
+        // argv[1]: requestCode (bigint/number)
+        napi_value requestCodeVal = info.argv[INDEX_ONE];
+        int64_t requestCode = 0;
+        napi_valuetype valueType = napi_undefined;
+        napi_typeof(env, requestCodeVal, &valueType);
+        if (valueType == napi_bigint) {
+            bool lossless = true;
+            napi_get_value_bigint_int64(env, requestCodeVal, &requestCode, &lossless);
+        } else if (valueType == napi_number) {
+            double numVal = 0;
+            napi_get_value_double(env, requestCodeVal, &numVal);
+            requestCode = static_cast<int64_t>(numVal);
+        } else {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "requestCode type error");
+            ThrowInvalidParamError(env, "requestCode must be number or bigint");
+            return CreateJsUndefined(env);
+        }
+
+        // argv[2]: ExecuteResult { code, result?, uris?, flags? }
+        napi_value resultObj = info.argv[INDEX_TWO];
+        AppExecFwk::SkillExecuteResult result;
+        if (!UnwrapSkillExecuteResult(env, resultObj, result)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "unwrap ExecuteResult failed");
+            ThrowInvalidParamError(env, "Invalid ExecuteResult");
+            return CreateJsUndefined(env);
+        }
+
+        TAG_LOGI(AAFwkTag::ABILITYMGR,
+            "completeArkTSScriptInApp requestCode:%{public}" PRId64 " code:%{public}d",
+            requestCode, result.code);
+
+        auto execute = [requestCode, result](napi_env env, void *data) {};
+        auto complete = [requestCode, result](napi_env env, napi_status status, void *data) {
+            auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+            *innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(
+                requestCode, result.code, result);
+        };
+
+        napi_value resultNapi = nullptr;
+        NapiAsyncTask::ScheduleHighQos("JsAbilityManager::OnCompleteArkTSScriptInApp", env,
+            CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &resultNapi));
+        return resultNapi;
+    }
 };
 } // namespace
 
@@ -1236,6 +1299,8 @@ napi_value JsAbilityManagerInit(napi_env env, napi_value exportObj)
         JsAbilityManager::ClearPreloadedUIExtensionAbility);
     BindNativeFunction(env, exportObj, "clearPreloadedUIExtensionAbilities", moduleName,
         JsAbilityManager::ClearPreloadedUIExtensionAbilities);
+    BindNativeFunction(env, exportObj, "completeArkTSScriptInApp", moduleName,
+        JsAbilityManager::CompleteArkTSScriptInApp);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "end");
     return CreateJsUndefined(env);
 }
