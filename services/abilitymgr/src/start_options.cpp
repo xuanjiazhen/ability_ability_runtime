@@ -45,6 +45,7 @@ StartOptions::StartOptions(const StartOptions &other)
     minWindowHeightUsed_ = other.minWindowHeightUsed_;
     maxWindowWidthUsed_ = other.maxWindowWidthUsed_;
     maxWindowHeightUsed_ = other.maxWindowHeightUsed_;
+    splitRatioPreferenceUsed_ = other.splitRatioPreferenceUsed_;
     processOptions = other.processOptions;
     windowFocused_ = other.windowFocused_;
     hideStartWindow_ = other.hideStartWindow_;
@@ -52,6 +53,7 @@ StartOptions::StartOptions(const StartOptions &other)
     supportWindowModes_ = other.supportWindowModes_;
     requestId_ = other.requestId_;
     windowCreateParams_ = other.windowCreateParams_;
+    splitRatioPreferenceValue_ = other.splitRatioPreferenceValue_;
     currentProcessName_ = other.currentProcessName_;
 }
 
@@ -77,6 +79,7 @@ StartOptions &StartOptions::operator=(const StartOptions &other)
         minWindowHeightUsed_ = other.minWindowHeightUsed_;
         maxWindowWidthUsed_ = other.maxWindowWidthUsed_;
         maxWindowHeightUsed_ = other.maxWindowHeightUsed_;
+        splitRatioPreferenceUsed_ = other.splitRatioPreferenceUsed_;
         processOptions = other.processOptions;
         windowFocused_ = other.windowFocused_;
         hideStartWindow_ = other.hideStartWindow_;
@@ -84,6 +87,7 @@ StartOptions &StartOptions::operator=(const StartOptions &other)
         supportWindowModes_ = other.supportWindowModes_;
         requestId_ = other.requestId_;
         windowCreateParams_ = other.windowCreateParams_;
+        splitRatioPreferenceValue_ = other.splitRatioPreferenceValue_;
         currentProcessName_ = other.currentProcessName_;
     }
     return *this;
@@ -124,6 +128,8 @@ bool StartOptions::ReadFromParcel(Parcel &parcel)
     }
     requestId_ = parcel.ReadString();
     windowCreateParams_.reset(parcel.ReadParcelable<Rosen::WindowCreateParams>());
+    splitRatioPreferenceUsed_ = parcel.ReadBool();
+    SetSplitRatioPreferenceValue(parcel.ReadInt32());
     return true;
 }
 
@@ -191,6 +197,14 @@ bool StartOptions::MarshallingTwo(Parcel &parcel) const
 {
     if (!parcel.WriteParcelable(windowCreateParams_.get())) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Write windowCreateParams_ failed");
+        return false;
+    }
+    if (!parcel.WriteBool(splitRatioPreferenceUsed_)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write splitRatioPreferenceUsed_ failed");
+        return false;
+    }
+    if (!parcel.WriteInt32(GetSplitRatioPreferenceValue())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Write splitRatioPreferenceValue_ failed");
         return false;
     }
     return true;
@@ -334,6 +348,16 @@ void StartOptions::SetCurrentProcessName(const std::string &processName)
 std::string StartOptions::GetCurrentProcessName() const
 {
     return currentProcessName_;
+}
+
+void StartOptions::SetSplitRatioPreferenceValue(int32_t splitRatioPreferenceValue)
+{
+    splitRatioPreferenceValue_ = splitRatioPreferenceValue;
+}
+
+int32_t StartOptions::GetSplitRatioPreferenceValue() const
+{
+    return splitRatioPreferenceValue_;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

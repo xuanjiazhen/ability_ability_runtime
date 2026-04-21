@@ -2062,9 +2062,12 @@ HWTEST_F(UIAbilityLifecycleManagerTest, NotifySCBPendingActivation_001, TestSize
     auto token = abilityRecord->GetToken();
     EXPECT_NE(token, nullptr);
     abilityRequest.callerToken = token->AsObject();
+    abilityRequest.startOptions.splitRatioPreferenceUsed_ = true;
+    abilityRequest.startOptions.SetSplitRatioPreferenceValue(2);
     std::string errMsg;
     uiAbilityLifecycleManager->NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
-    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+    EXPECT_TRUE(sessionInfo->splitRatioPreferenceUsed);
+    EXPECT_EQ(sessionInfo->splitRatioPreferenceValue, 2);
 }
 
 /**

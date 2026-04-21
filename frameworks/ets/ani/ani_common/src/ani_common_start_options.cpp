@@ -120,6 +120,18 @@ void UnwrapStartOptionsWindowOptions(ani_env *env, ani_object param, AAFwk::Star
             startOptions.windowCreateParams_ = std::make_shared<Rosen::WindowCreateParams>(windowCreateParams);
         }
     }
+
+    ani_ref splitRatioRef = nullptr;
+    if (GetFieldRefByName(env, param, "splitRatio", splitRatioRef)) {
+        Rosen::SplitRatioPreference splitRatioPreference;
+        if (Rosen::ConvertSplitRatioPreferenceFromAniValue(
+            env, static_cast<ani_object>(splitRatioRef), splitRatioPreference)) {
+            startOptions.SetSplitRatioPreferenceValue(static_cast<int32_t>(splitRatioPreference));
+            startOptions.splitRatioPreferenceUsed_ = true;
+            TAG_LOGI(AAFwkTag::ANI, "splitRatio used, value:%{public}d",
+                static_cast<int32_t>(splitRatioPreference));
+        }
+    }
 }
 
 bool SetSupportWindowModes(ani_env *env, ani_object param, AAFwk::StartOptions &startOptions)

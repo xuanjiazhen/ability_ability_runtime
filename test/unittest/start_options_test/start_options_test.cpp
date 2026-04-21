@@ -194,5 +194,33 @@ HWTEST_F(StartOptionsTest, start_options_test_007, TestSize.Level1)
     startOptions.SetCurrentProcessName(processName);
     EXPECT_EQ(startOptions.GetCurrentProcessName(), processName);
 }
+
+/**
+ * @tc.name: start_options_test_008
+ * @tc.desc: test splitRatioPreference copy and marshalling
+ * @tc.type: FUNC
+ */
+HWTEST_F(StartOptionsTest, start_options_test_008, TestSize.Level1)
+{
+    StartOptions startOptions;
+    startOptions.splitRatioPreferenceUsed_ = true;
+    startOptions.SetSplitRatioPreferenceValue(2);
+
+    StartOptions copiedStartOptions(startOptions);
+    EXPECT_TRUE(copiedStartOptions.splitRatioPreferenceUsed_);
+    EXPECT_EQ(copiedStartOptions.GetSplitRatioPreferenceValue(), 2);
+
+    StartOptions assignedStartOptions;
+    assignedStartOptions = startOptions;
+    EXPECT_TRUE(assignedStartOptions.splitRatioPreferenceUsed_);
+    EXPECT_EQ(assignedStartOptions.GetSplitRatioPreferenceValue(), 2);
+
+    Parcel parcel;
+    EXPECT_TRUE(startOptions.Marshalling(parcel));
+    std::unique_ptr<StartOptions> unmarshalledOptions(startOptions.Unmarshalling(parcel));
+    ASSERT_NE(unmarshalledOptions, nullptr);
+    EXPECT_TRUE(unmarshalledOptions->splitRatioPreferenceUsed_);
+    EXPECT_EQ(unmarshalledOptions->GetSplitRatioPreferenceValue(), 2);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

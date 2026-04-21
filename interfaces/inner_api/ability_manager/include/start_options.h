@@ -76,6 +76,7 @@ public:
     bool minWindowHeightUsed_ = false;
     bool maxWindowWidthUsed_ = false;
     bool maxWindowHeightUsed_ = false;
+    bool splitRatioPreferenceUsed_ = false;
     std::shared_ptr<ProcessOptions> processOptions = nullptr;
     std::shared_ptr<StartWindowOption> startWindowOption = nullptr;
     std::vector<AppExecFwk::SupportWindowMode> supportWindowModes_;
@@ -133,6 +134,9 @@ public:
 
     void SetCurrentProcessName(const std::string &processName);
     std::string GetCurrentProcessName() const;
+
+    void SetSplitRatioPreferenceValue(int32_t splitRatioPreferenceValue);
+    int32_t GetSplitRatioPreferenceValue() const;
 private:
     bool withAnimation_ = true;
     bool windowFocused_ = true;
@@ -147,6 +151,7 @@ private:
     int32_t minWindowHeight_ = 0;
     int32_t maxWindowWidth_ = 0;
     int32_t maxWindowHeight_ = 0;
+    int32_t splitRatioPreferenceValue_ = 0;
     std::string currentProcessName_ = "";
 };
 }  // namespace AAFwk
