@@ -75,6 +75,11 @@ enum {
      * Result (35700011): The caller is not SA.
      */
     ERR_NOT_SA_CALLER = 35700011,
+
+    /*
+     * Result (35700012): Independent skill not supported.
+     */
+    ERR_SKILL_TYPE_INDEPENDENT_NOT_SUPPORTED = 35700012,
 };
 
 } // namespace CliTool

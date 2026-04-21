@@ -52,6 +52,7 @@
 #include "ohos_application.h"
 #include "madvise/madvise_utils.h"
 #include "napi_common_configuration.h"
+#include "napi_common_util.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
 #include "page_switch_log.h"
@@ -59,6 +60,8 @@
 #include "string_wrapper.h"
 #include "system_ability_definition.h"
 #include "time_util.h"
+#include "skill/skill_execute_param.h"
+#include "skill/skill_execute_result.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -2507,6 +2510,109 @@ void JsUIAbility::NotifyWindowDestroy()
     Rosen::WMError ret = scene_->GoDestroyHookWindow();
     if (ret != Rosen::WMError::WM_OK) {
         TAG_LOGW(AAFwkTag::UIABILITY, "scene return error.");
+    }
+}
+
+void JsUIAbility::ExecuteSkill(const AAFwk::Want &want,
+    const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "ExecuteSkill requestCode:%{public}" PRId64,
+        param != nullptr ? param->requestCode_ : -1);
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null param");
+        return;
+    }
+
+    napi_env env = jsRuntime_.GetNapiEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null napi env");
+        return;
+    }
+
+    // LoadModule returns cached reference if already loaded (same pattern as InsightIntent)
+    std::string modulePath = param->moduleName_ + "/ets/modules.abc";
+    auto moduleRef = jsRuntime_.LoadModule(param->moduleName_, modulePath, "", true);
+    if (moduleRef == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "LoadModule failed, path:%{public}s", modulePath.c_str());
+        ReportSkillDone(param->requestCode_, -1);
+        return;
+    }
+
+    napi_value jsObj = moduleRef->GetNapiValue();
+    napi_value method = AppExecFwk::GetPropertyValueByPropertyName(
+        env, jsObj, param->funcName_.c_str(), napi_valuetype::napi_function);
+    if (method == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "func not found:%{public}s", param->funcName_.c_str());
+        ReportSkillDone(param->requestCode_, -1);
+        return;
+    }
+
+    // Build ArkTSScriptInfo object { requestCode, context }
+    napi_value scriptInfo = CreateArkTSScriptInfo(env, param->requestCode_);
+    if (scriptInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "create ArkTSScriptInfo failed");
+        ReportSkillDone(param->requestCode_, -1);
+        return;
+    }
+
+    // Convert skillArgs WantParams to JS object preserving types
+    napi_value argsObj = nullptr;
+    if (param->skillArgs_ != nullptr && !param->skillArgs_->Params().empty()) {
+        argsObj = AppExecFwk::WrapWantParams(env, *param->skillArgs_);
+    }
+    if (argsObj == nullptr) {
+        napi_create_object(env, &argsObj);
+    }
+
+    size_t argc = 2;
+    napi_value args[2] = { scriptInfo, argsObj };
+
+    napi_value result = nullptr;
+    napi_status status = napi_call_function(env, jsObj, method, argc, args.data(), &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "napi_call_function failed, status:%{public}d func:%{public}s",
+            status, param->funcName_.c_str());
+        ReportSkillDone(param->requestCode_, -1);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY,
+        "ExecuteSkill dispatched, waiting completeArkTSScriptInApp, requestCode:%{public}" PRId64,
+        param->requestCode_);
+}
+
+napi_value JsUIAbility::CreateArkTSScriptInfo(napi_env env, int64_t requestCode)
+{
+    napi_value obj = nullptr;
+    napi_create_object(env, &obj);
+    if (obj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "create object failed");
+        return nullptr;
+    }
+
+    napi_value requestCodeVal = nullptr;
+    napi_create_bigint_int64(env, requestCode, &requestCodeVal);
+    napi_set_named_property(env, obj, "requestCode", requestCodeVal);
+
+    napi_value contextObj = nullptr;
+    if (shellContextRef_ != nullptr) {
+        contextObj = shellContextRef_->GetNapiValue();
+    }
+    napi_set_named_property(env, obj, "context", contextObj);
+
+    return obj;
+}
+
+void JsUIAbility::ReportSkillDone(int64_t requestCode, int32_t resultCode,
+    const AppExecFwk::SkillExecuteResult &result)
+{
+    AppExecFwk::SkillExecuteResult reportResult = result;
+    reportResult.code = resultCode;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(
+        requestCode, resultCode, reportResult);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY,
+            "ExecuteSkillDone failed, requestCode:%{public}" PRId64 " ret:%{public}d",
+            requestCode, ret);
     }
 }
 
