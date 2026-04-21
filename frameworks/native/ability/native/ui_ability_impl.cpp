@@ -250,6 +250,70 @@ void UIAbilityImpl::ExecuteInsightIntentDone(uint64_t intentId, const InsightInt
         TAG_LOGE(AAFwkTag::UIABILITY, "notify execute done failed");
     }
 }
+
+bool UIAbilityImpl::HandleExecuteSkill(const AAFwk::Want &want)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "handle execute skill");
+    auto param = std::make_shared<SkillExecuteParam>();
+    if (!SkillExecuteParam::GenerateFromWant(want, *param)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "generate skill param from want failed");
+        Background();
+        return true;
+    }
+
+    TAG_LOGI(AAFwkTag::UIABILITY,
+        "skill bundle:%{public}s module:%{public}s name:%{public}s",
+        param->bundleName_.c_str(), param->moduleName_.c_str(),
+        param->skillName_.c_str());
+
+    if (ability_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
+        Background();
+        return true;
+    }
+
+    auto callback = std::unique_ptr<SkillExecutorAsyncCallback>(SkillExecutorAsyncCallback::Create());
+    if (lifecycleState_ == AAFwk::ABILITY_STATE_INITIAL
+        || lifecycleState_ == AAFwk::ABILITY_STATE_STARTED_NEW) {
+        ExecuteSkillBackgroundByColdBoot(want, param, std::move(callback));
+        return false;
+    }
+    ExecuteSkillBackgroundAlreadyStart(want, param, std::move(callback));
+    return true;
+}
+
+void UIAbilityImpl::ExecuteSkillBackgroundByColdBoot(const AAFwk::Want &want,
+    const std::shared_ptr<SkillExecuteParam> &param,
+    std::unique_ptr<SkillExecutorAsyncCallback> callback)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "execute skill background by cold boot");
+    auto asyncCb = [weak = weak_from_this()](SkillExecuteResult &result) {
+        auto impl = weak.lock();
+        if (impl == nullptr) {
+            return;
+        }
+        impl->Background();
+        impl->AbilityTransactionCallback(AAFwk::ABILITY_STATE_BACKGROUND_NEW);
+    };
+    callback->Push(asyncCb);
+    ability_->ExecuteSkillBackground(want, param, std::move(callback));
+}
+
+void UIAbilityImpl::ExecuteSkillBackgroundAlreadyStart(const AAFwk::Want &want,
+    const std::shared_ptr<SkillExecuteParam> &param,
+    std::unique_ptr<SkillExecutorAsyncCallback> callback)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "execute skill background already start");
+    auto asyncCb = [weak = weak_from_this()](SkillExecuteResult &result) {
+        auto impl = weak.lock();
+        if (impl == nullptr) {
+            return;
+        }
+        impl->Background();
+    };
+    callback->Push(asyncCb);
+    ability_->ExecuteSkillBackground(want, param, std::move(callback));
+}
 #ifdef SUPPORT_SCREEN
 bool UIAbilityImpl::PrepareTerminateAbility(std::function<void(bool)> callback, bool &isAsync)
 {
@@ -661,7 +725,10 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
             }
             OnWillBackground();
 #ifdef SUPPORT_GRAPHICS
-            if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
+            if (SkillExecuteParam::IsSkillExecute(want)) {
+                TAG_LOGD(AAFwkTag::UIABILITY, "handleExecuteSkill");
+                ret = HandleExecuteSkill(want);
+            } else if (!InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
                 Background();
             } else {
                 TAG_LOGD(AAFwkTag::UIABILITY, "handleExecuteInsightIntentBackground");
