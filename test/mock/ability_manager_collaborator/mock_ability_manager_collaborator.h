@@ -46,6 +46,7 @@ public:
     {
         return {};
     }
+
 };
 } // AAFwk
 } // OHOS

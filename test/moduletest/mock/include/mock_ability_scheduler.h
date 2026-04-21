@@ -142,6 +142,8 @@ public:
 
     virtual void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override
     {}
+
+    MOCK_METHOD1(ExecuteSkill, void(const Want &want));
 };
 }  // namespace AAFwk
 }  // namespace OHOS
