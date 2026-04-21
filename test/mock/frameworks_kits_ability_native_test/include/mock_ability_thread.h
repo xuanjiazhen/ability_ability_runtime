@@ -30,6 +30,8 @@ public:
     MockAbilityThread() = default;
     virtual ~MockAbilityThread() = default;
 
+    void ExecuteSkill(const Want &want) override {}
+
 private:
     FAAbilityThread AbilityThread_;
 };
