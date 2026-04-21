@@ -440,6 +440,7 @@ private:
     int32_t IsRestartAppLimitInner(MessageParcel &data, MessageParcel &reply);
     int32_t QuerySelfModularObjectExtensionInfosInner(MessageParcel &data, MessageParcel &reply);
     int32_t GetUserLockedBundleListInner(MessageParcel &data, MessageParcel &reply);
+    int32_t StartSkillByHDCInner(MessageParcel &data, MessageParcel &reply);
 };
 }  // namespace AAFwk
 }  // namespace OHOS

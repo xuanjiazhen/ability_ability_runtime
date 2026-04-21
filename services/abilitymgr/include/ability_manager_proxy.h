@@ -1760,6 +1760,9 @@ public:
     virtual int32_t UpdateAssociateConfigList(const std::map<std::string, std::list<std::string>>& configs,
         const std::list<std::string>& exportConfigs, int32_t flag) override;
 
+    virtual int32_t StartSkillByHDC(const std::string &bundleName, const std::string &moduleName,
+        const std::string &skillName, const std::shared_ptr<WantParams> &params) override;
+
     /**
      * Set keep-alive flag for application under a specific user.
      * @param bundleName Bundle name.

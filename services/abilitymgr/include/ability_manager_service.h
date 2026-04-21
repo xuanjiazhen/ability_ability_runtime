@@ -2191,6 +2191,12 @@ public:
     int32_t ExecuteInsightIntentDone(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result) override;
 
+    int32_t StartSkillByHDC(const std::string &bundleName, const std::string &moduleName,
+        const std::string &skillName, const std::shared_ptr<WantParams> &params) override;
+
+    int32_t StartAbilityByCallWithSkillIntent(const Want &want,
+        const sptr<IRemoteObject> &callerToken, int32_t userId = DEFAULT_INVAL_VALUE);
+
     /**
      * @brief Open file by uri.
      * @param uri The file uri.

@@ -739,6 +739,12 @@ enum class AbilityManagerInterfaceCode {
 
     // query entity
     INSIGHT_INTENT_QUERY_ENTITY = 6165,
+
+    // start skill by hdc
+    START_SKILL_BY_HDC = 6166,
+
+    // start skill by hdc done callback
+    START_SKILL_BY_HDC_DONE = 6167,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
