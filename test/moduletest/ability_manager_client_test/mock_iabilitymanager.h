@@ -462,6 +462,21 @@ public:
     {
         mockFunctionExcuted = true;
     }
+    int32_t ExecuteInAppSkill(const std::string&, const std::string&, const std::string&,
+        const std::string&, const std::string&,
+        const std::shared_ptr<AAFwk::WantParams>&, const sptr<ISkillExecuteCallback>&) override
+    {
+        return 0;
+    }
+    int32_t ExecuteSkillDone(const sptr<IRemoteObject>&, const std::string&, int32_t,
+        const AppExecFwk::SkillExecuteResult&) override
+    {
+        return 0;
+    }
+    int32_t QuerySkillType(const std::string&, const std::string&, const std::string&, int32_t&) override
+    {
+        return 0;
+    }
     bool mockFunctionExcuted = false;
 };
 } // namespace AAFwk
