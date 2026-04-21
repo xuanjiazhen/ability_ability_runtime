@@ -740,6 +740,12 @@ enum class AbilityManagerInterfaceCode {
     // query entity
     INSIGHT_INTENT_QUERY_ENTITY = 6165,
 
+    // start in-app skill
+    START_IN_APP_SKILL = 6169,
+
+    // start in-app skill done callback
+    START_IN_APP_SKILL_DONE = 6170,
+
     // start self ability with token
     START_SELF = 6166,
 

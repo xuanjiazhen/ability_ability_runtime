@@ -59,6 +59,9 @@
 #include "string_wrapper.h"
 #include "system_ability_definition.h"
 #include "time_util.h"
+#include "js_arkts_script.h"
+#include "skill/skill_execute_param.h"
+#include "skill/skill_execute_result.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -2507,6 +2510,71 @@ void JsUIAbility::NotifyWindowDestroy()
     Rosen::WMError ret = scene_->GoDestroyHookWindow();
     if (ret != Rosen::WMError::WM_OK) {
         TAG_LOGW(AAFwkTag::UIABILITY, "scene return error.");
+    }
+}
+
+void JsUIAbility::ExecuteSkill(const AAFwk::Want &want,
+    const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "ExecuteSkill called");
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null param");
+        return;
+    }
+
+    napi_env env = jsRuntime_.GetNapiEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null napi env");
+        return;
+    }
+
+    if (!param->arkTSPath_.empty() && !jsRuntime_.RunScript(param->arkTSPath_, "", false)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "RunScript failed, path:%{public}s", param->arkTSPath_.c_str());
+        return;
+    }
+
+    napi_value receiver = nullptr;
+    napi_value func = nullptr;
+    if (!ArktsScript::JsArktsScript::ResolveFunction(env, "", param->funcName_, receiver, func)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "ResolveFunction failed, func:%{public}s", param->funcName_.c_str());
+        return;
+    }
+
+    // Build args: [context, arg0, arg1, ...]
+    napi_value contextObj = nullptr;
+    if (shellContextRef_ != nullptr) {
+        contextObj = shellContextRef_->GetNapiValue();
+    }
+
+    size_t argc = param->argv_.size() + 1; // +1 for context
+    std::vector<napi_value> args(argc);
+    args[0] = contextObj;
+    for (size_t i = 0; i < param->argv_.size(); i++) {
+        napi_create_string_utf8(env, param->argv_[i].c_str(), param->argv_[i].length(), &args[i + 1]);
+    }
+
+    napi_value result = nullptr;
+    napi_status status = napi_call_function(env, receiver, func, argc, args.data(), &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "napi_call_function failed, status:%{public}d", status);
+        ReportSkillDone(token_, -1);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY, "ExecuteSkill completed successfully");
+    ReportSkillDone(token_, 0);
+}
+
+void JsUIAbility::ReportSkillDone(const sptr<IRemoteObject> &token, int32_t resultCode)
+{
+    if (token == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null token");
+        return;
+    }
+    AppExecFwk::SkillExecuteResult result;
+    result.code = resultCode;
+    auto ret = AbilityManagerClient::GetInstance()->ExecuteSkillDone(token, resultCode, result);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "ExecuteSkillDone failed, ret:%{public}d", ret);
     }
 }
 
