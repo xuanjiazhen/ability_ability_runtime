@@ -53,6 +53,18 @@ void CliToolManagerService::OnStart()
 
 void CliToolManagerService::OnStop()
 {
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "climgr stop");
 }
+
+int32_t CliToolManagerService::ExecTool(const std::string &cliName,
+    const std::map<std::string, std::string> &args,
+    const std::string &challenge,
+    const ExecOptions &options,
+    CliSessionInfo &session)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: %{public}s", cliName.c_str());
+    return 0;
+}
+
 } // namespace CliTool
 } // namespace OHOS
