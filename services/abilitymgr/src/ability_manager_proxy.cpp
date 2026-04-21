@@ -434,6 +434,8 @@ int AbilityManagerProxy::StartAbility(const Want &want, const StartOptions &star
         TAG_LOGE(AAFwkTag::ABILITYMGR, "want write fail");
         return INNER_ERR;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "proxy write startOptions splitRatioPreference:%{public}d",
+        startOptions.GetSplitRatioPreference());
     if (!data.WriteParcelable(&startOptions)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "writeParcelable fail");
         return INNER_ERR;

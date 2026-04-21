@@ -2041,6 +2041,8 @@ int AbilityManagerStub::StartAbilityForOptionsInner(MessageParcel &data, Message
         TAG_LOGE(AAFwkTag::ABILITYMGR, "startOptions null");
         return ERR_INVALID_VALUE;
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "stub read startOptions splitRatioPreference:%{public}d",
+        startOptions->GetSplitRatioPreference());
     sptr<IRemoteObject> callerToken = nullptr;
     if (data.ReadBool()) {
         callerToken = data.ReadRemoteObject();

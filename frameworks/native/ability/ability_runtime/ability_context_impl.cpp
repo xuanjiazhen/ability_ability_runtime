@@ -232,7 +232,8 @@ ErrCode AbilityContextImpl::StartAbility(const AAFwk::Want& want, const AAFwk::S
     int requestCode)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    TAG_LOGD(AAFwkTag::CONTEXT, "called");
+    TAG_LOGD(AAFwkTag::CONTEXT, "called, splitRatioPreference:%{public}d",
+        startOptions.GetSplitRatioPreference());
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartAbility(want, startOptions, token_, requestCode);
     if (err != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "ret=%{public}d", err);
