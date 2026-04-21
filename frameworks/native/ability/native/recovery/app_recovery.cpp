@@ -33,6 +33,7 @@
 #include "js_runtime.h"
 #include "js_runtime_utils.h"
 #include "js_ui_ability.h"
+#include "jsnapi_expo.h"
 #include "mission_info.h"
 #include "napi/native_api.h"
 #include "napi/native_common.h"
@@ -245,6 +246,7 @@ bool AppRecovery::ExecuteFreezeCallbackWithVMSafety(const std::shared_ptr<OHOS::
     }
 #ifdef SUPPORT_SCREEN
     panda::ecmascript::EcmaVM* vm = GetVMFromAbility(abilityPtr);
+    panda::JSNApi::NotifyOnANR(vm);
     if (!panda::JSNApi::CheckAndSetAllowCrossThreadExecution(vm)) {
         TAG_LOGE(AAFwkTag::RECOVERY, "VM is in gc process");
         return false;
