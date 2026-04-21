@@ -69,3 +69,49 @@ ohos_executable("ohos-arkts") {
   subsystem_name = "ability"
   part_name = "ability_runtime"
 }
+
+config("arkts_script_lib_public_config") {
+  include_dirs = [
+    "include",
+  ]
+}
+
+ohos_shared_library("arkts_script_lib") {
+  sources = [
+    "src/js_arkts_script.cpp",
+  ]
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    cfi_policy = "adaptive"
+    debug = false
+  }
+  configs = [
+    ":ohos-arkts-config",
+  ]
+
+  public_configs = [
+    ":arkts_script_lib_public_config",
+  ]
+
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/appkit:app_context",
+  ]
+
+  external_deps = [
+    "ability_base:base",
+    "ability_base:configuration",
+    "bundle_framework:appexecfwk_core",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "napi:ace_napi",
+    "ipc:ipc_core",
+    "json:nlohmann_json_static",
+  ]
+
+  subsystem_name = "ability"
+  part_name = "ability_runtime"
+}
