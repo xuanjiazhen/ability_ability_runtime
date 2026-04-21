@@ -167,6 +167,8 @@ public:
 
     void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override
     {}
+
+    void ExecuteSkill(const Want &want) override {}
 };
 
 bool DoSomethingInterestingWithMyAPI(const uint8_t* data, size_t size)
