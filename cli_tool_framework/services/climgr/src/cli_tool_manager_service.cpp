@@ -62,15 +62,15 @@ void CliToolManagerService::OnStop()
 {
 }
 
-int32_t CliToolManagerService::QueryTools(std::vector<ToolInfo> &tools)
+int32_t CliToolManagerService::GetAllToolInfos(std::vector<ToolInfo> &tools)
 {
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "QueryTools called");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolInfos called");
     return CliToolDataManager::GetInstance().GetAllTools(tools);
 }
 
-int32_t CliToolManagerService::QueryToolSummaries(std::vector<ToolSummary> &summaries)
+int32_t CliToolManagerService::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
 {
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "QueryToolSummaries called");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummaries called");
     return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
 }
 
