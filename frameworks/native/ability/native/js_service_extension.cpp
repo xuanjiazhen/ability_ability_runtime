@@ -38,6 +38,9 @@
 #include "napi_common_configuration.h"
 #include "napi_common_want.h"
 #include "napi_remote_object.h"
+#include "napi_common_util.h"
+#include "skill/skill_execute_param.h"
+#include "skill/skill_execute_result.h"
 #ifdef SUPPORT_GRAPHICS
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
@@ -561,6 +564,124 @@ bool JsServiceExtension::HandleInsightIntent(const AAFwk::Want &want)
         return false;
     }
     return true;
+}
+
+bool JsServiceExtension::HandleExecuteSkill(const AAFwk::Want &want)
+{
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "called");
+    auto param = std::make_shared<AppExecFwk::SkillExecuteParam>();
+    bool ret = AppExecFwk::SkillExecuteParam::GenerateFromWant(want, *param);
+    if (!ret) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "GenerateFromWant failed");
+        return false;
+    }
+    ExecuteSkill(want, param);
+    return true;
+}
+
+void JsServiceExtension::ExecuteSkill(const AAFwk::Want &want,
+    const std::shared_ptr<AppExecFwk::SkillExecuteParam> &param)
+{
+    TAG_LOGI(AAFwkTag::SERVICE_EXT, "ExecuteSkill requestCode:%{public}" PRId64,
+        param != nullptr ? param->requestCode_ : -1);
+    if (param == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null param");
+        return;
+    }
+
+    napi_env env = jsRuntime_.GetNapiEnv();
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null napi env");
+        ReportSkillDone(param->requestCode_, -1);
+        return;
+    }
+
+    // Try loading from each srcEntry until funcName is found, same pattern as InsightIntent
+    std::unique_ptr<NativeReference> moduleRef = nullptr;
+    napi_value jsObj = nullptr;
+    napi_value method = nullptr;
+    for (const auto &srcEntry : param->srcEntries_) {
+        std::string srcPath(param->moduleName_ + "/" + srcEntry);
+        auto pos = srcPath.rfind('.');
+        if (pos == std::string::npos) {
+            TAG_LOGW(AAFwkTag::SERVICE_EXT, "skip srcEntry, no extension:%{public}s", srcEntry.c_str());
+            continue;
+        }
+        srcPath.erase(pos);
+        srcPath.append(".abc");
+
+        moduleRef = jsRuntime_.LoadModule(param->moduleName_, srcPath, "", true);
+        if (moduleRef == nullptr) {
+            TAG_LOGW(AAFwkTag::SERVICE_EXT, "LoadModule failed, path:%{public}s", srcPath.c_str());
+            continue;
+        }
+
+        jsObj = moduleRef->GetNapiValue();
+        method = AppExecFwk::GetPropertyValueByPropertyName(
+            env, jsObj, param->funcName_.c_str(), napi_valuetype::napi_function);
+        if (method != nullptr) {
+            TAG_LOGI(AAFwkTag::SERVICE_EXT, "func found in srcEntry:%{public}s", srcEntry.c_str());
+            break;
+        }
+        TAG_LOGW(AAFwkTag::SERVICE_EXT, "func not found:%{public}s in srcEntry:%{public}s",
+            param->funcName_.c_str(), srcEntry.c_str());
+    }
+
+    if (method == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "func not found in any srcEntry:%{public}s", param->funcName_.c_str());
+        ReportSkillDone(param->requestCode_, -1);
+        return;
+    }
+
+    // Build ArkTSScriptInfo { requestCode, context } as first argument
+    napi_value info = nullptr;
+    napi_create_object(env, &info);
+    napi_value requestCodeVal = nullptr;
+    napi_create_bigint_int64(env, param->requestCode_, &requestCodeVal);
+    napi_set_named_property(env, info, "requestCode", requestCodeVal);
+    napi_value contextObj = nullptr;
+    if (shellContextRef_ != nullptr) {
+        contextObj = shellContextRef_->GetNapiValue();
+    }
+    napi_set_named_property(env, info, "context", contextObj);
+
+    // Build args: [info, arg1, arg2, ...] — unpack WantParams into individual values
+    std::vector<napi_value> args;
+    args.push_back(info);
+    if (param->skillArgs_ != nullptr && !param->skillArgs_->GetParams().empty()) {
+        napi_value wrappedObj = AppExecFwk::WrapWantParams(env, *param->skillArgs_);
+        for (const auto &[key, value] : param->skillArgs_->GetParams()) {
+            napi_value val = nullptr;
+            napi_get_named_property(env, wrappedObj, key.c_str(), &val);
+            args.push_back(val);
+        }
+    }
+
+    size_t argc = args.size();
+    napi_value result = nullptr;
+    napi_status status = napi_call_function(env, jsObj, method, argc, args.data(), &result);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "napi_call_function failed, status:%{public}d func:%{public}s",
+            status, param->funcName_.c_str());
+        ReportSkillDone(param->requestCode_, -1);
+        return;
+    }
+    TAG_LOGI(AAFwkTag::SERVICE_EXT,
+        "ExecuteSkill dispatched, requestCode:%{public}" PRId64, param->requestCode_);
+}
+
+void JsServiceExtension::ReportSkillDone(int64_t requestCode, int32_t resultCode,
+    const AppExecFwk::SkillExecuteResult &result)
+{
+    AppExecFwk::SkillExecuteResult reportResult = result;
+    reportResult.code = resultCode;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(
+        requestCode, resultCode, reportResult);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT,
+            "ExecuteSkillDone failed, requestCode:%{public}" PRId64 " ret:%{public}d",
+            requestCode, ret);
+    }
 }
 
 napi_value JsServiceExtension::CallObjectMethod(const char* name, napi_value const* argv, size_t argc)
