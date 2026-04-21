@@ -189,6 +189,11 @@ public:
         code_ = ABILITY_SCHEDULER_MOCK_VALUE;
     }
 
+    virtual void ExecuteSkill(const Want &want) override
+    {
+        code_ = ABILITY_SCHEDULER_MOCK_VALUE;
+    }
+
     int code_ = 0;
 };
 }  // namespace AAFwk

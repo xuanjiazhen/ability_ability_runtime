@@ -172,6 +172,8 @@ public:
     {}
     void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override
     {}
+
+    void ExecuteSkill(const Want &want) override {}
 };
 }  // namespace AAFwk
 }  // namespace OHOS
