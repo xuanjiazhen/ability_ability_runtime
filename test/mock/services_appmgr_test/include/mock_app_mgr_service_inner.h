@@ -38,7 +38,8 @@ public:
     MOCK_METHOD1(ApplicationForegrounded, void(const int32_t recordId));
     MOCK_METHOD1(ApplicationBackgrounded, void(const int32_t recordId));
     MOCK_METHOD1(ApplicationTerminated, void(const int32_t recordId));
-    MOCK_METHOD2(UpdateAbilityState, void(const sptr<IRemoteObject>& token, const AbilityState state));
+    MOCK_METHOD3(UpdateAbilityState, void(const sptr<IRemoteObject>& token, const AbilityState state,
+        bool isFromScreenOffBackground));
     MOCK_METHOD2(TerminateAbility, void(const sptr<IRemoteObject>& token, bool clearMissionFlag));
     MOCK_METHOD4(UpdateApplicationInfoInstalled, int(const std::string&, const int uid, const std::string&, bool));
     MOCK_METHOD4(KillApplication, int32_t(const std::string& bundleName, const bool clearPageStack, int32_t appIndex,
@@ -87,8 +88,9 @@ public:
     MOCK_METHOD3(CheckPreloadAppRecordExist, bool(const std::string&, int32_t, int32_t));
     MOCK_CONST_METHOD0(IsFoundationCall, bool());
     MOCK_METHOD2(QueryRunningSharedBundles, int32_t(pid_t pid, std::map<std::string, uint32_t> &sharedBundles));
+    MOCK_METHOD2(GetAllAbilityInfos, int32_t(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos));
 
-    void StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t, const std::string&)
+    void StartSpecifiedAbility(const AAFwk::Want&, const AppExecFwk::AbilityInfo&, int32_t, const std::string&, bool)
     {}
 
     void Post()

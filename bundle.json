@@ -116,7 +116,8 @@
             "webview",
             "window_manager",
             "zlib",
-            "hiperf"
+            "hiperf",
+            "hiprofiler"
   ],
           "third_party": [
             "libjpeg-turbo"
@@ -126,6 +127,10 @@
         "sub_component": [
           "//foundation/ability/ability_runtime/agent_runtime_framework/interfaces/inner_api:agent_fwk",
           "//foundation/ability/ability_runtime/agent_runtime_framework/services:agent_services_target",
+          "//foundation/ability/ability_runtime/cli_tool_framework/interfaces/cli_tool:cli_tool_client",
+          "//foundation/ability/ability_runtime/cli_tool_framework/services/climgr:climgr",
+          "//foundation/ability/ability_runtime/cli_tool_framework/etc/profile:aimgr_cfg",
+          "//foundation/ability/ability_runtime/cli_tool_framework/etc/profile:aimgr_trust",
           "//foundation/ability/ability_runtime/services:ams_target",
           "//foundation/ability/ability_runtime/services/sa_profile:ams_sa_profile",
           "//foundation/ability/ability_runtime/services/quickfixmgr:quick_fix.cfg",
@@ -143,6 +148,8 @@
           "//foundation/ability/ability_runtime/frameworks/native/ability/native:ui_service_extension_ani",
           "//foundation/ability/ability_runtime/frameworks/native/appkit:ability_stage_ani",
           "//foundation/ability/ability_runtime/frameworks/native/appkit:test_runner_ani",
+          "//foundation/ability/ability_runtime/frameworks/native/appkit:appkit_child",
+          "//foundation/ability/ability_runtime/frameworks/native/appkit:appkit_child_entry",
           "//foundation/ability/ability_runtime/frameworks/native/child_process:child_process",
           "//foundation/ability/ability_runtime/frameworks/native/insight_intent:insight_intent_innerkits",
           "//foundation/ability/ability_runtime/frameworks/c/ability_runtime:ability_runtime",
@@ -501,6 +508,15 @@
           },
           {
             "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/appkit/app/",
+              "header_files": [
+                "child_process_api.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:appkit_child_entry"
+          },
+          {
+            "header": {
               "header_base": "//foundation/ability/ability_runtime/frameworks/js/napi/dialog_request_info/include",
               "header_files": [
                 "request_info.h"
@@ -525,6 +541,15 @@
               ]
             },
             "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:app_context"
+          },
+          {
+            "header": {
+              "header_base": "//foundation/ability/ability_runtime/interfaces/kits/native/appkit/app",
+              "header_files": [
+                "app_image_observer_manager.h"
+              ]
+            },
+            "name": "//foundation/ability/ability_runtime/frameworks/native/appkit:application_image_observer_manager"
           },
           {
             "header": {

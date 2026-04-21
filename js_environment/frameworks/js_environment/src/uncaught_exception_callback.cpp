@@ -85,7 +85,10 @@ void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
 
 void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
 {
-    HandleAndLogIfNotJsError(obj);
+    // Static objects cannot be dynamically serialized.
+    if (!isStatic_) {
+        HandleAndLogIfNotJsError(obj);
+    }
     std::string errorMsg = GetNativeStrFromJsTaggedObj(obj, "message");
     AppendExtraInfo(errorMsg);
     std::string errorName = GetNativeStrFromJsTaggedObj(obj, "name");
@@ -110,6 +113,11 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
 
     AppendStackTrace(errorStack, summary);
     AppendAsyncStack(obj, summary);
+    AppendModuleStack(obj, summary);
+
+    if (env_ != nullptr) {
+        summary += DFXJSNApi::GetExtraJSCrashMessage(reinterpret_cast<NativeEngine*>(env_)->GetEcmaVm());
+    }
 
     if (uncaughtTask_) {
         uncaughtTask_(summary, errorObj, env_, obj);
@@ -157,6 +165,24 @@ void NapiUncaughtExceptionCallback::AppendAsyncStack(const napi_value& obj, std:
         oss << "    " << line << "\n";
     }
     summary += oss.str();
+}
+
+void NapiUncaughtExceptionCallback::AppendModuleStack(const napi_value& obj, std::string& summary)
+{
+    std::string moduleStack = GetNativeStrFromJsTaggedObj(obj, "moduleImportStack");
+    if (moduleStack.empty()) {
+        TAG_LOGD(AAFwkTag::JSENV, "Module Import stack is empty");
+        return;
+    }
+    int lines = 0;
+    std::string line;
+    std::istringstream iss(moduleStack);
+    while (std::getline(iss, line)) {
+        summary += line + "\n";
+        TAG_LOGD(AAFwkTag::JSENV, "AppendModuleImportStack line: %s", line.c_str());
+    }
+    
+    TAG_LOGD(AAFwkTag::JSENV, "AppendModuleImportStack success, moduleStack: %s", moduleStack.c_str());
 }
 
 void NapiUncaughtExceptionCallback::AppendExtraInfo(std::string& errorMsg)

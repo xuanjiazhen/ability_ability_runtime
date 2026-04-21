@@ -14,7 +14,6 @@
  */
 
 #include "agent_card_mgr.h"
-
 #include "mock_my_flag.h"
 
 namespace OHOS {
@@ -25,6 +24,11 @@ int32_t AgentRuntime::MyFlag::retRegisterAgentCard = ERR_OK;
 int32_t AgentRuntime::MyFlag::retUpdateAgentCard = ERR_OK;
 int32_t AgentRuntime::MyFlag::retDeleteAgentCard = ERR_OK;
 std::string AgentRuntime::MyFlag::agentCardAgentId = "testAgent";
+std::string AgentRuntime::MyFlag::agentCardBundleName = "test.bundle";
+std::string AgentRuntime::MyFlag::agentCardModuleName;
+std::string AgentRuntime::MyFlag::agentCardAbilityName = "TestAbility";
+bool AgentRuntime::MyFlag::shouldCreateAgentCardAppInfo = true;
+int32_t AgentRuntime::MyFlag::agentCardType = 0;
 
 namespace AgentRuntime {
 AgentCardMgr &AgentCardMgr::GetInstance()
@@ -53,6 +57,15 @@ int32_t AgentCardMgr::GetAgentCardByAgentId(const std::string &bundleName, const
 {
     if (MyFlag::retGetAgentCardByAgentId == ERR_OK) {
         card.agentId = MyFlag::agentCardAgentId;
+        if (MyFlag::shouldCreateAgentCardAppInfo) {
+            card.appInfo = std::make_shared<AgentAppInfo>();
+            card.appInfo->bundleName = MyFlag::agentCardBundleName;
+            card.appInfo->moduleName = MyFlag::agentCardModuleName;
+            card.appInfo->abilityName = MyFlag::agentCardAbilityName;
+        } else {
+            card.appInfo = nullptr;
+        }
+        card.type = static_cast<AgentCardType>(MyFlag::agentCardType);
     }
     return MyFlag::retGetAgentCardByAgentId;
 }
