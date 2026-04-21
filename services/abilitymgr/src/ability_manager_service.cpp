@@ -2285,6 +2285,8 @@ int AbilityManagerService::StartAbilityForOptionInner(const Want &want, const St
 
     AbilityRequest abilityRequest;
     abilityRequest.startOptions = startOptions;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "service receive startOptions splitRatioPreference:%{public}d",
+        abilityRequest.startOptions.GetSplitRatioPreference());
 #ifdef SUPPORT_SCREEN
     if (ImplicitStartProcessor::IsImplicitStartAction(want)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "is implicit start action");
