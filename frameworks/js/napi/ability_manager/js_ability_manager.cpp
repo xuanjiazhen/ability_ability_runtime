@@ -45,6 +45,7 @@
 #include "napi_common_configuration.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
+#include "want_params.h"
 #include "permission_constants.h"
 #include "preload_ui_extension_host_client.h"
 #include "system_ability_definition.h"
@@ -65,6 +66,8 @@ OHOS::sptr<OHOS::AppExecFwk::IAppMgr> GetAppManagerInstance()
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
+constexpr size_t ARGC_THREE = 3;
+constexpr size_t ARGC_FOUR = 4;
 constexpr size_t INDEX_ZERO = 0;
 constexpr size_t INDEX_ONE = 1;
 constexpr const char *ON_OFF_TYPE_ABILITY_FOREGROUND_STATE = "abilityForegroundState";
@@ -189,6 +192,71 @@ public:
     static napi_value ClearPreloadedUIExtensionAbilities(napi_env env, napi_callback_info info)
     {
         GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnClearPreloadedUIExtensionAbilities);
+    }
+
+    static napi_value StartSkill(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsAbilityManager, OnStartSkill);
+    }
+
+    napi_value OnStartSkill(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+        HandleEscape handleEscape(env);
+        if (info.argc < ARGC_THREE) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid argc");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        std::string bundleName;
+        std::string moduleName;
+        std::string skillName;
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ZERO], bundleName)) {
+            ThrowInvalidParamError(env, "Parse param bundleName failed, must be a string.");
+            return CreateJsUndefined(env);
+        }
+        if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], moduleName)) {
+            ThrowInvalidParamError(env, "Parse param moduleName failed, must be a string.");
+            return CreateJsUndefined(env);
+        }
+        if (!ConvertFromJsValue(env, info.argv[ARGC_TWO], skillName)) {
+            ThrowInvalidParamError(env, "Parse param skillName failed, must be a string.");
+            return CreateJsUndefined(env);
+        }
+
+        auto wantParams = std::make_shared<AAFwk::WantParams>();
+        if (info.argc > ARGC_THREE && info.argv[ARGC_THREE] != nullptr) {
+            AAFwk::WantParams params;
+            if (!AppExecFwk::UnwrapWantParams(env, info.argv[ARGC_THREE], params)) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "parse params failed, using empty params");
+            } else {
+                wantParams = std::make_shared<AAFwk::WantParams>(params);
+            }
+        }
+
+        auto sharedResult = std::make_shared<int32_t>(ERR_OK);
+        NapiAsyncTask::ExecuteCallback execute =
+            [sharedResult, bundleName, moduleName, skillName, wantParams]() {
+            *sharedResult = AbilityManagerClient::GetInstance()->StartSkillByHDC(
+                bundleName, moduleName, skillName, wantParams);
+        };
+
+        NapiAsyncTask::CompleteCallback complete =
+            [sharedResult](napi_env env, NapiAsyncTask& task, int32_t status) {
+            HandleScope handleScope(env);
+            if (*sharedResult == ERR_OK) {
+                task.Resolve(env, CreateJsUndefined(env));
+            } else {
+                task.Reject(env, CreateJsError(env, *sharedResult, "StartSkill failed"));
+            }
+        };
+
+        napi_value lastParam = (info.argc > ARGC_FOUR) ? info.argv[ARGC_FOUR] : nullptr;
+        napi_value result = nullptr;
+        NapiAsyncTask::Schedule("JsAbilityManager::OnStartSkill", env,
+            CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+        return handleEscape.Escape(result);
     }
 
 private:
@@ -1236,6 +1304,7 @@ napi_value JsAbilityManagerInit(napi_env env, napi_value exportObj)
         JsAbilityManager::ClearPreloadedUIExtensionAbility);
     BindNativeFunction(env, exportObj, "clearPreloadedUIExtensionAbilities", moduleName,
         JsAbilityManager::ClearPreloadedUIExtensionAbilities);
+    BindNativeFunction(env, exportObj, "startSkill", moduleName, JsAbilityManager::StartSkill);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "end");
     return CreateJsUndefined(env);
 }

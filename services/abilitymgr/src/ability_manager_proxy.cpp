@@ -8015,5 +8015,37 @@ int32_t AbilityManagerProxy::SetAppRecoveryFlag(const sptr<IRemoteObject>& token
     }
     return reply.ReadInt32();
 }
+
+int32_t AbilityManagerProxy::StartSkillByHDC(const std::string &bundleName, const std::string &moduleName,
+    const std::string &skillName, const std::shared_ptr<WantParams> &params)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "start skill by hdc proxy, bundleName:%{public}s", bundleName.c_str());
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteString16(Str8ToStr16(bundleName)) ||
+        !data.WriteString16(Str8ToStr16(moduleName)) ||
+        !data.WriteString16(Str8ToStr16(skillName))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write string params fail");
+        return INNER_ERR;
+    }
+
+    if (!data.WriteParcelable(params.get())) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write params fail");
+        return INNER_ERR;
+    }
+
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::START_SKILL_BY_HDC, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request fail:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
 } // namespace AAFwk
 } // namespace OHOS
