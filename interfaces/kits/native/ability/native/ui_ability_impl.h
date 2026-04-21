@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_UI_ABILITY_IMPL_H
 
 #include "insight_intent_execute_result.h"
+#include "skill/skill_execute_param.h"
 #include "ui_ability.h"
 
 namespace OHOS {
@@ -167,6 +168,8 @@ public:
      * @return return true if the lifecycle background successfully, otherwise return false.
      */
     bool HandleExecuteInsightIntentBackground(const AAFwk::Want &want, bool onlyExecuteIntent = false);
+
+    bool HandleExecuteSkill(const AAFwk::Want &want, bool onlyExecuteSkill = false);
 
     void SetAbilityRecordId(int32_t abilityRecordId)
     {

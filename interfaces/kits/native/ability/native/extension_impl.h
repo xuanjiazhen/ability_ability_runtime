@@ -140,6 +140,15 @@ public:
      */
     bool HandleInsightIntent(const Want &want);
 
+    /**
+     * @brief Handle execute skill request.
+     *
+     * @param want Want containing skill parameters.
+     * @param onlyExecuteSkill If true, skip Background() call (hot-start).
+     * @return True if handled.
+     */
+    bool HandleExecuteSkill(const Want &want, bool onlyExecuteSkill = false);
+
     void CommandExtensionWindow(const Want &want, const sptr<AAFwk::SessionInfo> &sessionInfo,
         AAFwk::WindowCommand winCmd);
 
