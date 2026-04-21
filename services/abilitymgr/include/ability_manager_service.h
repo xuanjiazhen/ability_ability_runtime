@@ -2202,6 +2202,16 @@ public:
     int32_t ExecuteInsightIntentDone(const sptr<IRemoteObject> &token, uint64_t intentId,
         const InsightIntentExecuteResult &result) override;
 
+    int32_t StartInAppSkill(const std::string &bundleName, const std::string &moduleName,
+        const std::string &skillName, const std::string &arkTSPath = "",
+        const std::string &funcName = "", const std::vector<std::string> &argv = {}) override;
+
+    int32_t StartAbilityByCallWithSkill(const Want &want,
+        const sptr<IRemoteObject> &callerToken, int32_t userId = DEFAULT_INVAL_VALUE);
+
+    int32_t ExecuteSkillDone(int64_t requestCode, int32_t resultCode,
+        const AppExecFwk::SkillExecuteResult &result) override;
+
     /**
      * @brief Open file by uri.
      * @param uri The file uri.
