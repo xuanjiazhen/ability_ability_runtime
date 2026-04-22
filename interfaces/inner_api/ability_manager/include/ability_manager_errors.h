@@ -1138,6 +1138,10 @@ enum {
      */
     ERR_NOT_SUPPORT_SCREEN = 2099411,
 
+    ERR_MODULAR_OBJECT_DISABLED = 2099412,
+
+    ERR_NO_RUNNING_ABILITIES_WITH_UI = 2099413,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */
@@ -1404,6 +1408,16 @@ enum NativeFreeInstallError {
      * Result (29360226) Invalid pid.
      */
     ERR_INVALID_PID = 29360226,
+
+    /*
+     * Result (29360227) The current application is not in a game preloading state.
+     */
+    ERR_NOT_GAME_PRELOAD_STATE = 29360227,
+
+    /*
+     * Result (29360228) for Connect: An error of the get cli tool mgr service.
+     */
+    GET_CLI_TOOL_MGR_SERVICE_FAILED = 29360228,
 
     /**
      * Undefine error code.
