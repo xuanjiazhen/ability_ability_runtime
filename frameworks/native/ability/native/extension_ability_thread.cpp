@@ -243,18 +243,8 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
         TAG_LOGE(AAFwkTag::EXT, "null abilityInfo");
         return;
     }
-    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::CONTENT_EMBED) {
-        HandleNativeExtensionAttach(abilityRecord, abilityName);
-    } else {
-        HandleNormalExtensionAttach(abilityRecord, mainRunner, abilityName);
-    }
- 
-    if (abilityHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "Failed to create abilityHandler_");
-        return;
-    }
- 
-    // 2.new ability
+
+    // 1.new ability (create extension first to allow polymorphic handler)
     auto extension = AppExecFwk::AbilityLoader::GetInstance().GetExtensionByName(abilityName,
         abilityInfo->arkTSMode);
     if (extension == nullptr) {
@@ -262,6 +252,23 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
         return;
     }
     currentExtension_.reset(extension);
+
+    // 2.new AbilityHandler - try extension-provided handler first
+    abilityHandler_ = currentExtension_->GetAbilityHandler(abilityInfo);
+    if (abilityHandler_ == nullptr) {
+        // Extension didn't provide handler, use default per-type logic
+        if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::CONTENT_EMBED) {
+            HandleNativeExtensionAttach(abilityRecord, abilityName);
+        } else {
+            HandleNormalExtensionAttach(abilityRecord, mainRunner, abilityName);
+        }
+    }
+
+    if (abilityHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "Failed to create abilityHandler_");
+        return;
+    }
+
     token_ = abilityRecord->GetToken();
     abilityRecord->SetAbilityThread(this);
     HandleAttachInner(application, abilityRecord);
@@ -356,6 +363,7 @@ void ExtensionAbilityThread::HandleConnectExtension(const Want &want)
         TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
         return;
     }
+
     bool isAsyncCallback = false;
     sptr<IRemoteObject> service = extensionImpl_->ConnectExtension(want, isAsyncCallback);
     if (!isAsyncCallback) {
@@ -774,5 +782,6 @@ void ExtensionAbilityThread::DumpOtherInfo(std::vector<std::string> &info)
     runner->DumpRunnerInfo(dumpInfo);
     info.push_back(dumpInfo);
 }
+
 } // namespace AbilityRuntime
 } // namespace OHOS
