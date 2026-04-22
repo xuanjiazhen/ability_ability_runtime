@@ -2065,6 +2065,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         if (loadParam->isPreloadUIExtension) {
             UpdateUIExtensionPreloadState(appRecord, true);
         }
+        ReportAbilityStartInfoForSpecified(appRecord, *abilityInfo);
         LoadAbilityNoAppRecord(appRecord, loadParam->isShellCall, appInfo, abilityInfo, processName,
             specifiedProcessFlag, bundleInfo, hapModuleInfo, want, appExistFlag, false,
             AppExecFwk::PreloadMode::PRESS_DOWN, loadParam->token, customProcessFlag, loadParam->isStartupHide);
@@ -2074,6 +2075,7 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         }
     } else {
         isProcessReuse = true;
+        ReportAbilityStartInfoForSpecified(appRecord, *abilityInfo);
         HandleExistingAppRecordAfterFound(appRecord, abilityInfo, hapModuleInfo, want, isProcCache, loadParam);
         if (AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo->extensionAbilityType)) {
             AddUIExtensionBindItem(want, appRecord, loadParam->token);
@@ -2758,6 +2760,22 @@ void AppMgrServiceInner::LaunchApplication(const std::shared_ptr<AppRunningRecor
         appRecord->SetPreloadState(PreloadState::PRELOADED);
     }
     SendAppLaunchEvent(appRecord);
+}
+
+void AppMgrServiceInner::ReportAbilityStartInfoForSpecified(std::shared_ptr<AppRunningRecord> appRecord,
+    const AbilityInfo &abilityInfo)
+{
+    if (appRecord == nullptr || abilityInfo.launchMode != LaunchMode::SPECIFIED) {
+        return;
+    }
+    auto pid = appRecord->GetPid();
+    auto isSuggestCache = DelayedSingleton<CacheProcessManager>::GetInstance()->IsCachedProcess(appRecord);
+    auto preloadMode = appRecord->GetPreloadMode();
+    bool supportWarmSmartGC = (isSuggestCache ||
+            preloadMode == AppExecFwk::PreloadMode::PRE_MAKE ||
+            preloadMode == AppExecFwk::PreloadMode::PRELOAD_MODULE);
+    AAFwk::ResSchedUtil::GetInstance().ReportAbilityStartInfoToRSS(abilityInfo, pid,
+        pid > 0, supportWarmSmartGC, static_cast<int32_t>(preloadMode), isSuggestCache);
 }
 
 void AppMgrServiceInner::AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord)
@@ -4548,11 +4566,12 @@ void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, co
         OnAbilityStateChanged(abilityRecord, state);
         return;
     }
-    if (abilityRecord->GetAbilityInfo() == nullptr) {
+    auto abilityInfo = abilityRecord->GetAbilityInfo();
+    if (abilityInfo == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "info null");
         return;
     }
-    auto type = abilityRecord->GetAbilityInfo()->type;
+    auto type = abilityInfo->type;
     if (type == AppExecFwk::AbilityType::SERVICE &&
         (state == AbilityState::ABILITY_STATE_CREATE ||
         state == AbilityState::ABILITY_STATE_TERMINATED ||
@@ -4567,7 +4586,9 @@ void AppMgrServiceInner::UpdateAbilityState(const sptr<IRemoteObject> &token, co
         TAG_LOGE(AAFwkTag::APPMGR, "state is not foreground or background");
         return;
     }
-
+    if (state == AbilityState::ABILITY_STATE_FOREGROUND) {
+        ReportAbilityStartInfoForSpecified(appRecord, *abilityInfo);
+    }
     appRecord->UpdateAbilityState(token, state, isFromScreenOffBackground);
     CheckCleanAbilityByUserRequest(appRecord, abilityRecord, state);
 }
@@ -7229,6 +7250,7 @@ void AppMgrServiceInner::StartSpecifiedAbility(const AAFwk::Want &want, const Ap
             appRecord->AddAbilityStageBySpecifiedAbility(appInfo->bundleName);
         } else if (!appRecord->AddAbilityStageBySpecifiedAbility(appInfo->bundleName)) {
             TAG_LOGD(AAFwkTag::APPMGR, "schedule accept want");
+            ReportAbilityStartInfoForSpecified(appRecord, abilityInfo);
             appRecord->ScheduleAcceptWant(hapModuleInfo.moduleName);
         }
     }
