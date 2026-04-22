@@ -16,7 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_EXTENSION_ABILITY_THREAD_H
 #define OHOS_ABILITY_RUNTIME_EXTENSION_ABILITY_THREAD_H
 
+#include <mutex>
 #include "ability_thread.h"
+#include "event_handler.h"
 #include "extension_impl.h"
 #include "want.h"
 

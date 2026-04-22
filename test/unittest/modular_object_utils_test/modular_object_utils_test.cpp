@@ -58,6 +58,8 @@ void ResetFlags()
     Token::abilityRecord_ = nullptr;
     AbilityRecord::abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
     BaseExtensionRecord::clientPid = -1;
+    MockFlag::launchMode = MoeLaunchMode::CROSS_PROCESS;
+    MockFlag::callerBundleName = "com.caller.bundle";
 }
 } // namespace
 
@@ -635,4 +637,139 @@ HWTEST_F(ModularObjectUtilsTest, GetPidToCheckByCallerToken_006, TestSize.Level1
     EXPECT_TRUE(ret);
     EXPECT_EQ(outPid, 5678);
     GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_006 end";
+}
+
+// ==================== CheckPermission IN_PROCESS tests ====================
+
+/**
+ * @tc.name: CheckPermission_ShouldReturnErrorWhenInProcessCrossApp
+ * @tc.desc: IN_PROCESS with different caller bundleName returns ERR_INVALID_VALUE
+ */
+HWTEST_F(ModularObjectUtilsTest,
+    CheckPermission_ShouldReturnErrorWhenInProcessCrossApp, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnErrorWhenInProcessCrossApp start";
+    MockFlag::launchMode = MoeLaunchMode::IN_PROCESS;
+    // Default callerBundleName is "com.caller.bundle", target is "com.test.bundle"
+    AbilityRequest request;
+    request.uid = 100;
+    request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
+    auto ret = ModularObjectUtils::CheckPermission(request);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnErrorWhenInProcessCrossApp end";
+}
+
+/**
+ * @tc.name: CheckPermission_ShouldReturnErrorWhenInProcessGetNameFail
+ * @tc.desc: IN_PROCESS with GetNameAndIndexForUid failure returns INNER_ERR
+ */
+HWTEST_F(ModularObjectUtilsTest,
+    CheckPermission_ShouldReturnErrorWhenInProcessGetNameFail, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnErrorWhenInProcessGetNameFail start";
+    MockFlag::launchMode = MoeLaunchMode::IN_PROCESS;
+    MockFlag::getNameAndIndexRet = -1;
+    AbilityRequest request;
+    request.uid = 100;
+    request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
+    auto ret = ModularObjectUtils::CheckPermission(request);
+    EXPECT_EQ(ret, INNER_ERR);
+    GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnErrorWhenInProcessGetNameFail end";
+}
+
+/**
+ * @tc.name: CheckPermission_ShouldReturnOkWhenInProcessSameBundle
+ * @tc.desc: IN_PROCESS with same caller bundleName passes and reaches foreground check
+ */
+HWTEST_F(ModularObjectUtilsTest,
+    CheckPermission_ShouldReturnOkWhenInProcessSameBundle, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnOkWhenInProcessSameBundle start";
+    MockFlag::launchMode = MoeLaunchMode::IN_PROCESS;
+    MockFlag::callerBundleName = "com.test.bundle";
+    AbilityRequest request;
+    request.uid = 100;
+    request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
+    // Will fail at CheckCallerForeground, but passes IN_PROCESS check
+    MockFlag::getRunningProcessInfoRet = -1;
+    auto ret = ModularObjectUtils::CheckPermission(request);
+    EXPECT_EQ(ret, -1);
+    GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnOkWhenInProcessSameBundle end";
+}
+
+/**
+ * @tc.name: CheckPermission_ShouldReturnOkWhenCrossProcessDifferentCaller
+ * @tc.desc: CROSS_PROCESS mode skips IN_PROCESS check, allows different caller
+ */
+HWTEST_F(ModularObjectUtilsTest,
+    CheckPermission_ShouldReturnOkWhenCrossProcessDifferentCaller, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnOkWhenCrossProcessDifferentCaller start";
+    MockFlag::launchMode = MoeLaunchMode::CROSS_PROCESS;
+    // Default callerBundleName differs from target, but CROSS_PROCESS skips check
+    AbilityRequest request;
+    request.uid = 100;
+    request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
+    MockFlag::getRunningProcessInfoRet = -1;
+    auto ret = ModularObjectUtils::CheckPermission(request);
+    EXPECT_EQ(ret, -1);
+    GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnOkWhenCrossProcessDifferentCaller end";
+}
+
+// ==================== CheckInProcessLaunchMode ====================
+
+/**
+ * @tc.name: CheckInProcessLaunchMode_ShouldReturnErrorWhenGetNameFail
+ * @tc.desc: GetNameAndIndexForUid fails returns INNER_ERR
+ */
+HWTEST_F(ModularObjectUtilsTest,
+    CheckInProcessLaunchMode_ShouldReturnErrorWhenGetNameFail, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenGetNameFail start";
+    MockFlag::getNameAndIndexRet = -1;
+    auto ret = ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode::IN_PROCESS, "com.test.bundle");
+    EXPECT_EQ(ret, INNER_ERR);
+    GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenGetNameFail end";
+}
+
+/**
+ * @tc.name: CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget
+ * @tc.desc: Caller bundleName differs from target returns ERR_INVALID_VALUE
+ */
+HWTEST_F(ModularObjectUtilsTest,
+    CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget start";
+    // Default callerBundleName is "com.caller.bundle"
+    auto ret = ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode::IN_PROCESS, "com.test.bundle");
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget end";
+}
+
+/**
+ * @tc.name: CheckInProcessLaunchMode_ShouldReturnOkWhenCallerMatchesTarget
+ * @tc.desc: Caller bundleName matches target returns ERR_OK
+ */
+HWTEST_F(ModularObjectUtilsTest,
+    CheckInProcessLaunchMode_ShouldReturnOkWhenCallerMatchesTarget, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnOkWhenCallerMatchesTarget start";
+    MockFlag::callerBundleName = "com.test.bundle";
+    auto ret = ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode::IN_PROCESS, "com.test.bundle");
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnOkWhenCallerMatchesTarget end";
+}
+
+/**
+ * @tc.name: CheckInProcessLaunchMode_ShouldReturnOkWhenCrossProcessMode
+ * @tc.desc: CROSS_PROCESS mode skips the check and returns ERR_OK
+ */
+HWTEST_F(ModularObjectUtilsTest,
+    CheckInProcessLaunchMode_ShouldReturnOkWhenCrossProcessMode, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnOkWhenCrossProcessMode start";
+    // callerBundleName differs from target, but CROSS_PROCESS mode skips check
+    auto ret = ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode::CROSS_PROCESS, "com.test.bundle");
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnOkWhenCrossProcessMode end";
 }

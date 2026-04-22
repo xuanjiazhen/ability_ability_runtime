@@ -1145,6 +1145,16 @@ enum {
     ERR_INVALID_DISTRIBUTION_TYPE = 2099414,
 
     /**
+     * Result (2099414) for moe connection number per caller pid reached upper limit.
+     */
+    ERR_MOE_CONNECTION_LIMIT = 2099415,
+
+    /**
+     * Result (2099415) for moe instance number reached upper limit.
+     */
+    ERR_MOE_INSTANCE_LIMIT = 2099416,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,
