@@ -24,7 +24,7 @@ namespace OHOS {
 namespace AbilityRuntime {
 using AutoFillManagerFunc = std::function<void(int32_t)>;
 class JsAutoSaveRequestCallback : public ISaveRequestCallback,
-                              public std::enable_shared_from_this<JsAutoSaveRequestCallback> {
+                                  public std::enable_shared_from_this<JsAutoSaveRequestCallback> {
 public:
     JsAutoSaveRequestCallback(napi_env env, int32_t instanceId, AutoFillManagerFunc autoFillManagerFunc);
     virtual ~JsAutoSaveRequestCallback();
