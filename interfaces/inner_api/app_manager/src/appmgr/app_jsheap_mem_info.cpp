@@ -20,10 +20,22 @@ namespace OHOS {
 namespace AppExecFwk {
 bool JsHeapDumpInfo::Marshalling(Parcel &parcel) const
 {
-    return (parcel.WriteUint32(pid) && parcel.WriteUint32(tid)
-        && parcel.WriteBool(needGc) && parcel.WriteBool(needSnapshot)
-        && parcel.WriteBool(needLeakobj) && parcel.WriteBool(needBinary)
-        && parcel.WriteBool(needClearNodeIdCache) && parcel.WriteBool(needProcDump));
+    if (!parcel.WriteUint32(pid) || !parcel.WriteUint32(tid)
+        || !parcel.WriteBool(needGc) || !parcel.WriteBool(needSnapshot)
+        || !parcel.WriteBool(needLeakobj) || !parcel.WriteBool(needBinary)
+        || !parcel.WriteBool(needClearNodeIdCache) || !parcel.WriteBool(needProcDump)) {
+        return false;
+    }
+    if (callbackRemote != nullptr) {
+        if (!parcel.WriteBool(true) || !parcel.WriteRemoteObject(callbackRemote)) {
+            return false;
+        }
+    } else {
+        if (!parcel.WriteBool(false)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 JsHeapDumpInfo *JsHeapDumpInfo::Unmarshalling(Parcel &parcel)
@@ -41,6 +53,10 @@ JsHeapDumpInfo *JsHeapDumpInfo::Unmarshalling(Parcel &parcel)
     info->needBinary = parcel.ReadBool();
     info->needClearNodeIdCache = parcel.ReadBool();
     info->needProcDump = parcel.ReadBool();
+    bool hasCallback = parcel.ReadBool();
+    if (hasCallback) {
+        info->callbackRemote = parcel.ReadRemoteObject();
+    }
     return info;
 }
 } // namespace AppExecFwk

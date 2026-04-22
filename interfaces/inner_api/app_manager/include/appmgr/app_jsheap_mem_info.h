@@ -30,6 +30,7 @@ struct JsHeapDumpInfo : public Parcelable {
     bool needProcDump = false;
     uint32_t pid = 0;
     uint32_t tid = 0;
+    sptr<IRemoteObject> callbackRemote = nullptr;
     virtual bool Marshalling(Parcel &parcel) const override;
     static JsHeapDumpInfo *Unmarshalling(Parcel &parcel);
 };

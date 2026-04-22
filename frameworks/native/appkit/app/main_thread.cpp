@@ -1045,7 +1045,11 @@ void MainThread::HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info
         return;
     }
     auto helper = std::make_shared<DumpRuntimeHelper>(app, applicationInfo_);
-    helper->DumpJsHeap(info);
+    sptr<IMemDumpCallback> callback = nullptr;
+    if (info.callbackRemote != nullptr) {
+        callback = iface_cast<IMemDumpCallback>(info.callbackRemote);
+    }
+    helper->DumpJsHeap(info, callback);
 }
 
 void MainThread::HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
