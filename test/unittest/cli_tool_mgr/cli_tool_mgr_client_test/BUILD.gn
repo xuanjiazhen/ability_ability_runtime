@@ -36,6 +36,7 @@ ohos_unittest("cli_tool_mgr_client_test") {
     "googletest:gtest_main",
     "hilog:libhilog",
     "ipc:ipc_core",
+    "json:nlohmann_json_static",
   ]
 }
 
