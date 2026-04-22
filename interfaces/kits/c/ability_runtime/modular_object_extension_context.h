@@ -157,6 +157,31 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbi
 AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_TerminateSelf(
     OH_AbilityRuntime_ModObjExtensionContextHandle context);
 
+/**
+ * @brief Creates an IPC remote stub bound to the modular object extension thread.
+ *
+ * @param context Represents a pointer to a modular object extension ability context.
+ * @param descriptor Represents the descriptor of the IPC remote stub to create.
+ * @param requestCallback Represents the callback used to process remote requests.
+ * @param destroyCallback Represents the callback invoked when the IPC remote stub is destroyed.
+ * @param userData Represents the user data passed to the callbacks.
+ * @return Returns the created {@link OHIPCRemoteStub} pointer if successful; returns nullptr otherwise.
+ * @since 26.0.0
+ */
+OHIPCRemoteStub* OH_AbilityRuntime_ModObjExtensionContext_CreateIPCRemoteStub(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context, const char *descriptor,
+    OH_OnRemoteRequestCallback requestCallback, OH_OnRemoteDestroyCallback destroyCallback, void *userData);
+
+/**
+ * @brief Destroys an IPC remote stub created by the modular object extension context.
+ *
+ * @param context Represents a pointer to a modular object extension ability context.
+ * @param stub Represents the IPC remote stub to destroy.
+ * @since 26.0.0
+ */
+void OH_AbilityRuntime_ModObjExtensionContext_DestroyIPCRemoteStub(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context, OHIPCRemoteStub *stub);
+
 #ifdef __cplusplus
 }
 #endif
