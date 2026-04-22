@@ -735,7 +735,7 @@ hideAbility(): Promise<void> {
 
   startSelfUIAbilityInSubProcess(want: Want, specifiedFlag: string): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
-      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+      let syncCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
         if (err == null || err.code == 0) {
           resolve(undefined);
         } else {
@@ -743,7 +743,7 @@ hideAbility(): Promise<void> {
         }
       });
       taskpool.execute((): void => {
-        this.nativeStartSelfUIAbilityInSubProcessSync(want, specifiedFlag, myCall);
+        this.nativeStartSelfUIAbilityInSubProcessSync(want, specifiedFlag, syncCall);
       }).catch((err: Error): void => {
         reject(err as BusinessError);
       });

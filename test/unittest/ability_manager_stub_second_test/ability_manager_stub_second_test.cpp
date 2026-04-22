@@ -1183,6 +1183,7 @@ HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInSubProcessInner_0100,
     auto ret = stub_->OnRemoteRequest(
         static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_SUB_PROCESS), data, reply, option);
     EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0100 end");
 }
@@ -1269,6 +1270,7 @@ HWTEST_F(AbilityManagerStubSecondTest, StartSelfUIAbilityInSubProcessInner_0400,
     auto ret = stub_->OnRemoteRequest(
         static_cast<uint32_t>(AbilityManagerInterfaceCode::START_SELF_UI_ABILITY_IN_SUB_PROCESS), data, reply, option);
     EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
 
     TAG_LOGI(AAFwkTag::TEST, "StartSelfUIAbilityInSubProcessInner_0400 end");
 }

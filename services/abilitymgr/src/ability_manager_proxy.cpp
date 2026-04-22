@@ -7828,8 +7828,8 @@ int32_t AbilityManagerProxy::SetGamePreLaunchCompleteTime(int32_t userId, int64_
     return reply.ReadInt32();
 }
 
-int32_t AbilityManagerProxy::StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
-    sptr<IRemoteObject> callerToken)
+int32_t AbilityManagerProxy::StartSelfUIAbilityInSubProcess(
+    const Want &want, const std::string &specifiedFlag, sptr<IRemoteObject> callerToken)
 {
     MessageParcel data;
     MessageParcel reply;

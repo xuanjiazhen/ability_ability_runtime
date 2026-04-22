@@ -2640,8 +2640,8 @@ public:
      * @param callerToken The caller ability token.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual ErrCode StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
-        sptr<IRemoteObject> callerToken)
+    virtual ErrCode StartSelfUIAbilityInSubProcess(
+        const Want &want, const std::string &specifiedFlag, sptr<IRemoteObject> callerToken)
     {
         return ERR_OK;
     }

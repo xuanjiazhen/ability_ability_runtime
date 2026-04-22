@@ -462,12 +462,7 @@ public:
         const InsightIntentExecuteResult &result));
     MOCK_METHOD5(StartAbilityWithSpecifyTokenId, int(const Want& want, const sptr<IRemoteObject>& callerToken,
         uint32_t specifyTokenId, int32_t userId, int requestCode));
-
-    virtual ErrCode StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
-        sptr<IRemoteObject> callerToken)
-    {
-        return ERR_OK;
-    }
+    MOCK_METHOD3(StartSelfUIAbilityInSubProcess, ErrCode(const Want &, const std::string &, sptr<IRemoteObject>));
 };
 }  // namespace AAFwk
 }  // namespace OHOS

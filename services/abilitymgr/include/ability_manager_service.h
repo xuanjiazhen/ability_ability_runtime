@@ -215,8 +215,8 @@ public:
      * @param specifiedFlag specified flag.
      * @return Returns ERR_OK on success, others on failure.
      */
-    virtual ErrCode StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
-        sptr<IRemoteObject> callerToken) override;
+    virtual ErrCode StartSelfUIAbilityInSubProcess(
+        const Want &want, const std::string &specifiedFlag, sptr<IRemoteObject> callerToken) override;
 
     /**
      * StartAbilityWithSpecifyTokenIdInner with want and specialId, send want to ability manager service.

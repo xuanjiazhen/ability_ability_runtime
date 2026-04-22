@@ -2912,13 +2912,15 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckCallAbilityPermission_004, TestSiz
 HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0100, TestSize.Level1)
 {
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
     Want want;
     want.SetElementName("com.test.bundle", "TestAbility");
     std::string specifiedFlag = "testFlag";
     sptr<IRemoteObject> callerToken = nullptr;
-    // Device not supported will return NOT_TOP_ABILITY
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.isLoaded = true;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.value = false;
     auto res = abilityMs_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken);
-    // The result depends on AppUtils::IsStartUIAbilityInCurrentProcess
+    EXPECT_EQ(res, ERR_CAPABILITY_NOT_SUPPORT);
 }
 
 /**
@@ -2929,12 +2931,15 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0100, Te
 HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0200, TestSize.Level1)
 {
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
     Want want;
     want.SetElementName("com.test.bundle", "TestAbility");
     std::string specifiedFlag = "testFlag";
     sptr<IRemoteObject> callerToken = nullptr;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.isLoaded = true;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.value = true;
     auto res = abilityMs_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken);
-    // The result depends on various conditions
+    EXPECT_EQ(res, ERR_INVALID_VALUE);
 }
 
 /**
@@ -2945,11 +2950,19 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0200, Te
 HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0300, TestSize.Level1)
 {
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
     Want want;
-    want.SetElementName("com.test.bundle", "TestAbility");
     std::string specifiedFlag = "";
-    sptr<IRemoteObject> callerToken = nullptr;
+    AppExecFwk::AbilityInfo abilityInfo;
+    AppExecFwk::ApplicationInfo applicationInfo;
+    applicationInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    abilityRecord->Init(AbilityRequest());
+    sptr<IRemoteObject> callerToken = abilityRecord->token_;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.isLoaded = true;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.value = true;
     auto res = abilityMs_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken);
+    EXPECT_EQ(res, START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START);
 }
 
 /**
@@ -2960,12 +2973,21 @@ HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0300, Te
 HWTEST_F(AbilityManagerServiceFirstTest, StartSelfUIAbilityInSubProcess_0400, TestSize.Level1)
 {
     auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
     Want want;
     want.SetElementName("com.test.bundle", "TestAbility");
     want.SetParam("testParam", std::string("testValue"));
     std::string specifiedFlag = "testFlag";
-    sptr<IRemoteObject> callerToken = MockToken(AbilityType::PAGE);
+    AppExecFwk::AbilityInfo abilityInfo;
+    AppExecFwk::ApplicationInfo applicationInfo;
+    applicationInfo.accessTokenId = IPCSkeleton::GetCallingTokenID();
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    abilityRecord->Init(AbilityRequest());
+    sptr<IRemoteObject> callerToken = abilityRecord->token_;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.isLoaded = true;
+    AppUtils::GetInstance().isStartUIAbilityInCurrentProcess_.value = true;
     auto res = abilityMs_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken);
+    EXPECT_EQ(res, INNER_ERR);
 }
 } // namespace AAFwk
 } // namespace OHOS
