@@ -1440,7 +1440,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_001, TestSize.L
     MyFlag::flag_ = CHECK_PERMISSION_FAILED;
     int32_t accountId = 999;
     uint64_t displayId = 0;
-    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), CHECK_PERMISSION_FAILED);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_001 end");
 }
@@ -1458,7 +1458,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_002, TestSize.L
     MyFlag::flag_ = 1;
     int32_t accountId = 999;
     uint64_t displayId = 0;
-    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), CHECK_PERMISSION_FAILED);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_002 end");
 }
@@ -1496,7 +1496,7 @@ HWTEST_F(AbilityManagerServiceTwelfthTest, GetDisplayIdByAccount_004, TestSize.L
     int32_t accountId = -1;
     uint64_t displayId = 0;
 
-    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), ERR_INVALID_VALUE);
+    EXPECT_EQ(abilityMs_->GetDisplayIdByAccount(accountId, displayId), CHECK_PERMISSION_FAILED);
 
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceTwelfthTest GetDisplayIdByAccount_004 end");
 }
