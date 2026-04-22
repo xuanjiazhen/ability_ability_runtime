@@ -28,6 +28,55 @@
 
 namespace OHOS {
 namespace CliTool {
+
+/**
+ * @brief Enum for argument mapping type
+ */
+enum class ArgMappingType {
+    FLAG = 0,
+    POSITIONAL = 1,
+    FLATTENED = 2,
+    JSONSTRING = 3,
+    MIXED = 4
+};
+
+/**
+ * @brief Argument mapping structure
+ */
+class ArgMapping : public Parcelable {
+public:
+    ArgMappingType type = ArgMappingType::FLAG;
+    std::string separator;
+    std::string order;
+    std::string templates;      // JSON string
+
+    ArgMapping() = default;
+    ~ArgMapping() = default;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static ArgMapping *Unmarshalling(Parcel &parcel);
+};
+
+/**
+ * @brief Subcommand information structure
+ */
+class SubCommandInfo : public Parcelable {
+public:
+    std::string description;
+    std::vector<std::string> requirePermissions;
+    std::string inputSchema;    // JSON string
+    std::string outputSchema;   // JSON string
+    std::shared_ptr<ArgMapping> argMapping;
+    std::vector<std::string> eventTypes;
+    std::string eventSchemas;   // JSON string
+
+    SubCommandInfo() = default;
+    ~SubCommandInfo() = default;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static SubCommandInfo *Unmarshalling(Parcel &parcel);
+};
+
 /**
  * @brief Raw data type for IDL serialization
  */
@@ -66,16 +115,16 @@ public:
     std::string version;
     std::string description;
     std::string executablePath;
-    std::vector<std::string> permissions;
+    std::vector<std::string> requirePermissions;
     std::string inputSchema;       // JSON string
     std::string outputSchema;      // JSON string
-    std::string argMapping;        // JSON string
+    std::shared_ptr<ArgMapping> argMapping;
     std::string eventSchemas;      // JSON string (map of event type to schema)
     int32_t timeout = 0;
     std::vector<std::string> eventTypes;
     int64_t registeredTime = 0;
     bool enabled = true;
-    bool hasSubcommands = false;
+    bool hasSubCommand = false;
     std::string subcommands;       // JSON string (map of subcommand name to SubCommandInfo)
 
     ToolInfo() = default;

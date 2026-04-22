@@ -37,10 +37,84 @@ constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
 constexpr const char* DEFAULT_REGISTRY_PATH = "/system/bin/cli_tool/cli_tool.json";
 constexpr const char* KV_STORE_APP_ID = "cli_tools_db";
 constexpr const char* KV_STORE_STORE_ID = "cli_tools_store";
-constexpr const char* CLI_TOOLS_STORAGE_DIR = "/data/service/el1/public/database/cli_tool";
+constexpr const char* CLI_TOOLS_STORAGE_DIR = "/data/service/el1/public/database/aimgr/cli_tool";
 
 const DistributedKv::AppId APP_ID { KV_STORE_APP_ID };
 const DistributedKv::StoreId STORE_ID { KV_STORE_STORE_ID };
+
+/**
+ * @brief Parse ArgMapping from JSON object
+ */
+std::shared_ptr<ArgMapping> ParseArgMapping(const nlohmann::json &json)
+{
+    auto argMapping = std::make_shared<ArgMapping>();
+    if (json.contains("type") && json["type"].is_string()) {
+        std::string typeStr = json["type"];
+        if (typeStr == "flag") {
+            argMapping->type = ArgMappingType::FLAG;
+        } else if (typeStr == "positional") {
+            argMapping->type = ArgMappingType::POSITIONAL;
+        } else if (typeStr == "flattened") {
+            argMapping->type = ArgMappingType::FLATTENED;
+        } else if (typeStr == "jsonString") {
+            argMapping->type = ArgMappingType::JSONSTRING;
+        } else if (typeStr == "mixed") {
+            argMapping->type = ArgMappingType::MIXED;
+        }
+    }
+    if (json.contains("separator") && json["separator"].is_string()) {
+        argMapping->separator = json["separator"];
+    }
+    if (json.contains("order") && json["order"].is_string()) {
+        argMapping->order = json["order"];
+    }
+    if (json.contains("templates") && json["templates"].is_object()) {
+        argMapping->templates = json["templates"].dump();
+    } else if (json.contains("templates") && json["templates"].is_string()) {
+        argMapping->templates = json["templates"];
+    }
+    return argMapping;
+}
+
+/**
+ * @brief Convert ArgMapping to JSON object
+ */
+nlohmann::json ArgMappingToJson(const ArgMapping &argMapping)
+{
+    nlohmann::json j;
+    switch (argMapping.type) {
+        case ArgMappingType::FLAG:
+            j["type"] = "flag";
+            break;
+        case ArgMappingType::POSITIONAL:
+            j["type"] = "positional";
+            break;
+        case ArgMappingType::FLATTENED:
+            j["type"] = "flattened";
+            break;
+        case ArgMappingType::JSONSTRING:
+            j["type"] = "jsonString";
+            break;
+        case ArgMappingType::MIXED:
+            j["type"] = "mixed";
+            break;
+    }
+    if (!argMapping.separator.empty()) {
+        j["separator"] = argMapping.separator;
+    }
+    if (!argMapping.order.empty()) {
+        j["order"] = argMapping.order;
+    }
+    if (!argMapping.templates.empty()) {
+        nlohmann::json templatesJson = nlohmann::json::parse(argMapping.templates, nullptr, false);
+        if (!templatesJson.is_discarded()) {
+            j["templates"] = templatesJson;
+        } else {
+            j["templates"] = argMapping.templates;
+        }
+    }
+    return j;
+}
 }
 
 CliToolDataManager &CliToolDataManager::GetInstance()
@@ -267,10 +341,10 @@ int32_t CliToolDataManager::ParseJsonFile(const std::string &filePath, std::vect
         if (item.contains("description") && item["description"].is_string()) {
             tool.description = item["description"];
         }
-        if (item.contains("permissions") && item["permissions"].is_array()) {
-            for (const auto &perm : item["permissions"]) {
+        if (item.contains("requirePermissions") && item["requirePermissions"].is_array()) {
+            for (const auto &perm : item["requirePermissions"]) {
                 if (perm.is_string()) {
-                    tool.permissions.push_back(perm);
+                    tool.requirePermissions.push_back(perm);
                 }
             }
         }
@@ -283,8 +357,8 @@ int32_t CliToolDataManager::ParseJsonFile(const std::string &filePath, std::vect
         if (item.contains("outputSchema") && item["outputSchema"].is_string()) {
             tool.outputSchema = item["outputSchema"];
         }
-        if (item.contains("argMapping") && item["argMapping"].is_string()) {
-            tool.argMapping = item["argMapping"];
+        if (item.contains("argMapping") && item["argMapping"].is_object()) {
+            tool.argMapping = ParseArgMapping(item["argMapping"]);
         }
         if (item.contains("eventSchemas") && item["eventSchemas"].is_string()) {
             tool.eventSchemas = item["eventSchemas"];
@@ -310,12 +384,14 @@ int32_t CliToolDataManager::ParseJsonFile(const std::string &filePath, std::vect
         } else {
             tool.enabled = true;
         }
-        if (item.contains("hasSubcommands") && item["hasSubcommands"].is_boolean()) {
-            tool.hasSubcommands = item["hasSubcommands"];
+        if (item.contains("hasSubCommand") && item["hasSubCommand"].is_boolean()) {
+            tool.hasSubCommand = item["hasSubCommand"];
         } else {
-            tool.hasSubcommands = false;
+            tool.hasSubCommand = false;
         }
-        if (item.contains("subcommands") && item["subcommands"].is_string()) {
+        if (item.contains("subcommands") && item["subcommands"].is_object()) {
+            tool.subcommands = item["subcommands"].dump();
+        } else if (item.contains("subcommands") && item["subcommands"].is_string()) {
             tool.subcommands = item["subcommands"];
         }
 
@@ -334,17 +410,28 @@ std::string CliToolDataManager::ToolInfoToJson(const ToolInfo &tool)
     j["version"] = tool.version;
     j["description"] = tool.description;
     j["executablePath"] = tool.executablePath;
-    j["permissions"] = tool.permissions;
+    j["requirePermissions"] = tool.requirePermissions;
     j["inputSchema"] = tool.inputSchema;
     j["outputSchema"] = tool.outputSchema;
-    j["argMapping"] = tool.argMapping;
+    // Convert argMapping to JSON object
+    if (tool.argMapping != nullptr) {
+        j["argMapping"] = ArgMappingToJson(*tool.argMapping);
+    }
     j["eventSchemas"] = tool.eventSchemas;
     j["timeout"] = tool.timeout;
     j["eventTypes"] = tool.eventTypes;
     j["registeredTime"] = tool.registeredTime;
     j["enabled"] = tool.enabled;
-    j["hasSubcommands"] = tool.hasSubcommands;
-    j["subcommands"] = tool.subcommands;
+    j["hasSubCommand"] = tool.hasSubCommand;
+    // Parse subcommands as JSON object if not empty
+    if (!tool.subcommands.empty()) {
+        nlohmann::json subcommandsJson = nlohmann::json::parse(tool.subcommands, nullptr, false);
+        if (!subcommandsJson.is_discarded()) {
+            j["subcommands"] = subcommandsJson;
+        } else {
+            j["subcommands"] = tool.subcommands;
+        }
+    }
     return j.dump();
 }
 
@@ -368,8 +455,8 @@ int32_t CliToolDataManager::JsonToToolInfo(const std::string &jsonStr, ToolInfo 
     if (j.contains("executablePath") && j["executablePath"].is_string()) {
         tool.executablePath = j["executablePath"];
     }
-    if (j.contains("permissions") && j["permissions"].is_array()) {
-        tool.permissions = j["permissions"];
+    if (j.contains("requirePermissions") && j["requirePermissions"].is_array()) {
+        tool.requirePermissions = j["requirePermissions"];
     }
     if (j.contains("inputSchema") && j["inputSchema"].is_string()) {
         tool.inputSchema = j["inputSchema"];
@@ -377,8 +464,8 @@ int32_t CliToolDataManager::JsonToToolInfo(const std::string &jsonStr, ToolInfo 
     if (j.contains("outputSchema") && j["outputSchema"].is_string()) {
         tool.outputSchema = j["outputSchema"];
     }
-    if (j.contains("argMapping") && j["argMapping"].is_string()) {
-        tool.argMapping = j["argMapping"];
+    if (j.contains("argMapping") && j["argMapping"].is_object()) {
+        tool.argMapping = ParseArgMapping(j["argMapping"]);
     }
     if (j.contains("eventSchemas") && j["eventSchemas"].is_string()) {
         tool.eventSchemas = j["eventSchemas"];
@@ -395,10 +482,12 @@ int32_t CliToolDataManager::JsonToToolInfo(const std::string &jsonStr, ToolInfo 
     if (j.contains("enabled") && j["enabled"].is_boolean()) {
         tool.enabled = j["enabled"];
     }
-    if (j.contains("hasSubcommands") && j["hasSubcommands"].is_boolean()) {
-        tool.hasSubcommands = j["hasSubcommands"];
+    if (j.contains("hasSubCommand") && j["hasSubCommand"].is_boolean()) {
+        tool.hasSubCommand = j["hasSubCommand"];
     }
-    if (j.contains("subcommands") && j["subcommands"].is_string()) {
+    if (j.contains("subcommands") && j["subcommands"].is_object()) {
+        tool.subcommands = j["subcommands"].dump();
+    } else if (j.contains("subcommands") && j["subcommands"].is_string()) {
         tool.subcommands = j["subcommands"];
     }
 
@@ -414,17 +503,28 @@ std::string CliToolDataManager::ToolsToJsonArray(const std::vector<ToolInfo> &to
         item["version"] = tool.version;
         item["description"] = tool.description;
         item["executablePath"] = tool.executablePath;
-        item["permissions"] = tool.permissions;
+        item["requirePermissions"] = tool.requirePermissions;
         item["inputSchema"] = tool.inputSchema;
         item["outputSchema"] = tool.outputSchema;
-        item["argMapping"] = tool.argMapping;
+        // Convert argMapping to JSON object
+        if (tool.argMapping != nullptr) {
+            item["argMapping"] = ArgMappingToJson(*tool.argMapping);
+        }
         item["eventSchemas"] = tool.eventSchemas;
         item["timeout"] = tool.timeout;
         item["eventTypes"] = tool.eventTypes;
         item["registeredTime"] = tool.registeredTime;
         item["enabled"] = tool.enabled;
-        item["hasSubcommands"] = tool.hasSubcommands;
-        item["subcommands"] = tool.subcommands;
+        item["hasSubCommand"] = tool.hasSubCommand;
+        // Parse subcommands as JSON object if not empty
+        if (!tool.subcommands.empty()) {
+            nlohmann::json subcommandsJson = nlohmann::json::parse(tool.subcommands, nullptr, false);
+            if (!subcommandsJson.is_discarded()) {
+                item["subcommands"] = subcommandsJson;
+            } else {
+                item["subcommands"] = tool.subcommands;
+            }
+        }
         j.push_back(item);
     }
     return j.dump();
