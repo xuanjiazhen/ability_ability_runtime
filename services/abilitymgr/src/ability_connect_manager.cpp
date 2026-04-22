@@ -36,6 +36,7 @@
 #include "init_reboot.h"
 #include "int_wrapper.h"
 #include "multi_instance_utils.h"
+#include "modular_object_manager.h"
 #include "param.h"
 #include "request_id_util.h"
 #include "res_sched_util.h"
@@ -354,8 +355,14 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 #endif // SUPPORT_UPMS
     std::lock_guard guard(serialMutex_);
 
+    // ModularObject pre-check
+    int32_t ret = CheckModularObjectPreCondition(abilityRequest);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
     // 1. get target service ability record, and check whether it has been loaded.
-    int32_t ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
+    ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
     if (ret != ERR_OK) {
         //  Do not distinguishing specific error codes
         return ERR_INVALID_VALUE;
@@ -2495,6 +2502,12 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
         serviceKey = serviceKey + std::to_string(service->GetWant().GetIntParam(FRS_APP_INDEX, 0));
     } else if (service->GetAbilityInfo().extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
         serviceKey = serviceKey + service->GetWant().GetStringParam(AgentRuntime::AGENTID_KEY);
+    } else if (service->GetAbilityInfo().extensionAbilityType ==
+               AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        std::string connectId = service->GetWant().GetStringParam("modularObjectConnectId");
+        if (!connectId.empty()) {
+            serviceKey = serviceKey + "_" + connectId;
+        }
     }
     return serviceKey;
 }
@@ -2508,6 +2521,9 @@ std::string AbilityConnectManager::GetServiceKey(const AbilityRequest &abilityRe
         serviceKey = serviceKey + std::to_string(abilityRequest.want.GetIntParam(FRS_APP_INDEX, 0));
     } else if (abilityRequest.abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::AGENT) {
         serviceKey = serviceKey + abilityRequest.want.GetStringParam(AgentRuntime::AGENTID_KEY);
+    } else if (abilityRequest.abilityInfo.extensionAbilityType ==
+               AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        serviceKey = GenerateModularObjectServiceKey(abilityRequest, serviceKey);
     }
     return serviceKey;
 }
@@ -3270,6 +3286,9 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         AddToServiceMap(serviceKey, targetService);
         isLoadedAbility = false;
 
+        // ModularObject: set processName and connectId for newly created record
+        HandleModularObjectNewRecord(abilityRequest, targetService, serviceKey);
+
         // Notify running timeout monitor about service extension start
         auto &newAbilityInfo = abilityRequest.abilityInfo;
         auto recordId = targetService->GetRecordId();
@@ -3305,6 +3324,120 @@ void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abili
         TAG_LOGI(AAFwkTag::EXT, "create sceneboard");
         sceneBoardTokenId_ = abilityRequest.appInfo.accessTokenId;
     }
+}
+
+int32_t AbilityConnectManager::CheckModularObjectPreCondition(const AbilityRequest &abilityRequest)
+{
+    if (abilityRequest.abilityInfo.extensionAbilityType !=
+        AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        return ERR_OK;
+    }
+    auto config = AbilityConnectManager::QueryModularObjectConfig(abilityRequest);
+    if (config == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "modular object config not found");
+        return ERR_INVALID_VALUE;
+    }
+    if (config->isDisabled) {
+        TAG_LOGE(AAFwkTag::EXT, "modular object extension is disabled");
+        return ERR_INVALID_VALUE;
+    }
+    if (config->launchMode == MoeLaunchMode::IN_PROCESS) {
+        std::string callerBundleName =
+            abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
+        if (callerBundleName != abilityRequest.abilityInfo.bundleName) {
+            TAG_LOGE(AAFwkTag::EXT, "IN_PROCESS not support cross-app connect");
+            return ERR_INVALID_VALUE;
+        }
+    }
+    return ERR_OK;
+}
+
+void AbilityConnectManager::HandleModularObjectNewRecord(const AbilityRequest &abilityRequest,
+    std::shared_ptr<BaseExtensionRecord> &targetService, const std::string &serviceKey)
+{
+    if (abilityRequest.abilityInfo.extensionAbilityType !=
+        AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        return;
+    }
+    auto config = AbilityConnectManager::QueryModularObjectConfig(abilityRequest);
+    if (config == nullptr) {
+        return;
+    }
+    // Set processName based on launchMode and process/thread model
+    std::string process;
+    if (config->launchMode == MoeLaunchMode::IN_PROCESS) {
+        process = abilityRequest.abilityInfo.bundleName;
+        if (!abilityRequest.appInfo.process.empty()) {
+            process = abilityRequest.appInfo.process;
+        }
+    } else {
+        switch (config->processMode) {
+            case MoeProcessMode::BUNDLE:
+                process = abilityRequest.abilityInfo.bundleName;
+                break;
+            case MoeProcessMode::TYPE:
+                process = abilityRequest.abilityInfo.bundleName + ":" +
+                    abilityRequest.abilityInfo.name;
+                break;
+            case MoeProcessMode::INSTANCE:
+                process = abilityRequest.abilityInfo.bundleName + ":" +
+                    abilityRequest.abilityInfo.name + ":" +
+                    std::to_string(targetService->GetRecordId());
+                break;
+            default:
+                break;
+        }
+    }
+    if (!process.empty()) {
+        targetService->SetProcessName(process);
+        TAG_LOGI(AAFwkTag::EXT, "ModularObject processName: %{public}s", process.c_str());
+    }
+    // Save connectId to Want for disconnect serviceKey reconstruction
+    auto pos = serviceKey.rfind('_');
+    if (pos != std::string::npos) {
+        targetService->GetWant().SetParam("modularObjectConnectId", serviceKey.substr(pos + 1));
+    }
+    // Pass threadMode to extension process via Want (avoids DB dependency on extension side)
+    targetService->GetWant().SetParam("modularObjectThreadMode",
+        static_cast<int32_t>(config->threadMode));
+}
+
+std::string AbilityConnectManager::GenerateModularObjectServiceKey(
+    const AbilityRequest &abilityRequest, const std::string &baseUri)
+{
+    auto config = AbilityConnectManager::QueryModularObjectConfig(abilityRequest);
+    if (config == nullptr) {
+        TAG_LOGW(AAFwkTag::EXT, "modular object config not found, use baseUri");
+        return baseUri;
+    }
+    // Every connect creates a new BaseExtensionRecord with unique key
+    auto connectId = std::to_string(RequestIdUtil::GetRequestId());
+    return baseUri + "_" + connectId;
+}
+
+std::shared_ptr<AAFwk::ModularObjectExtensionInfo>
+AbilityConnectManager::QueryModularObjectConfig(const AbilityRequest &abilityRequest)
+{
+    auto mgr = DelayedSingleton<AbilityRuntime::ModularObjectManager>::GetInstance();
+    if (mgr == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "ModularObjectManager is null");
+        return nullptr;
+    }
+    std::vector<AAFwk::ModularObjectExtensionInfo> infos;
+    int32_t userId = abilityRequest.userId;
+    const auto &bundleName = abilityRequest.abilityInfo.bundleName;
+    int32_t appIndex = abilityRequest.appInfo.appIndex;
+    if (mgr->QuerySelfModularObjectExtensionInfos(userId, bundleName, appIndex, infos) != ERR_OK) {
+        TAG_LOGD(AAFwkTag::EXT, "query modular object infos failed");
+        return nullptr;
+    }
+    const auto &abilityName = abilityRequest.abilityInfo.name;
+    for (const auto &info : infos) {
+        if (info.abilityName == abilityName) {
+            return std::make_shared<AAFwk::ModularObjectExtensionInfo>(info);
+        }
+    }
+    return nullptr;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
