@@ -249,8 +249,13 @@ bool DumpRuntimeHelper::Check2DQuota(bool needDecreaseQuota)
     return true;
 }
 
-void DumpRuntimeHelper::DumpJsHeap(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
+void DumpRuntimeHelper::DumpJsHeap(const OHOS::AppExecFwk::JsHeapDumpInfo &info,
+    sptr<IMemDumpCallback> callback)
 {
+    if (callback != nullptr) {
+        callback->OnMemDumpDone(ERR_OK, "JsHeap dump test result");
+        TAG_LOGI(AAFwkTag::APPKIT, "DumpJsHeap callback invoked");
+    }
     if (application_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null application");
         return;
