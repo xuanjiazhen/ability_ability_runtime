@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,10 +26,13 @@ import _AutoFillPopupConfig from 'application.AutoFillPopupConfig';
 import { PopupSize as _PopupSize } from 'application.AutoFillPopupConfig';
 import { AutoFillType as _AutoFillType } from 'application.AutoFillType';
 import { PopupPlacement as _PopupPlacement } from 'application.AutoFillPopupConfig';
+import { FillFailureResult as _FillFailureResult } from 'application.AutoFillRequest';
 
 namespace autoFillManager {
   export type OnSuccessFn = () => void;
   export type OnFailureFn = () => void;
+  export type OnFillSuccessFn = (viewData: ViewData) => void;
+  export type OnFillFailureFn = (result: FillFailureResult) => void;
 
   loadLibraryWithPermissionCheck("ability_auto_fill_manager_ani_kit.z", "@ohos.app.ability.autoFillManager");
 
@@ -43,10 +46,35 @@ namespace autoFillManager {
     onFailure: OnFailureFn = () => {};
   }
 
+  export interface AutoFillCallback {
+    onSuccess: OnFillSuccessFn;
+    onFailure: OnFillFailureFn;
+  }
+
+  class AutoFillCallbackInner implements AutoFillCallback {
+    onSuccess: OnFillSuccessFn = (viewData: ViewData) => {};
+    onFailure: OnFillFailureFn = (result: FillFailureResult) => {};
+  }
+
   export native function requestAutoSaveWithScope(callback?: AutoSaveCallback): void;
+  export native function requestAutoSaveWithRequest(request: SaveRequest, callback?: AutoSaveCallback): void;
+  export native function requestAutoFillWithScope(request: FillRequest, callback?: AutoFillCallback): void;
+
   export function requestAutoSave(context: UIContext, callback?: AutoSaveCallback): void {
     context.runScopedTask(() => {
       requestAutoSaveWithScope(callback);
+    });
+  }
+
+  export function requestAutoSave(context: UIContext, request: SaveRequest, callback?: AutoSaveCallback): void {
+    context.runScopedTask(() => {
+      requestAutoSaveWithRequest(request, callback);
+    });
+  }
+
+  export function requestAutoFill(context: UIContext, request: FillRequest, callback?: AutoFillCallback): void {
+    context.runScopedTask(() => {
+      requestAutoFillWithScope(request, callback);
     });
   }
 
@@ -59,6 +87,7 @@ namespace autoFillManager {
   export type FillResponse = _FillResponse;
   export type FillRequestCallback = _FillRequestCallback;
   export type SaveRequestCallback = _SaveRequestCallback;
+  export type FillFailureResult = _FillFailureResult;
   export type CustomData = _CustomData;
   export type AutoFillRect = _AutoFillRect;
   export type AutoFillPopupConfig = _AutoFillPopupConfig;
