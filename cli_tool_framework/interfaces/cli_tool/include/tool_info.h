@@ -28,6 +28,55 @@
 
 namespace OHOS {
 namespace CliTool {
+
+/**
+ * @brief Enum for argument mapping type
+ */
+enum class ArgMappingType {
+    FLAG = 0,
+    POSITIONAL = 1,
+    FLATTENED = 2,
+    JSONSTRING = 3,
+    MIXED = 4
+};
+
+/**
+ * @brief Argument mapping structure
+ */
+class ArgMapping : public Parcelable {
+public:
+    ArgMappingType type = ArgMappingType::FLAG;
+    std::string separator;
+    std::string order;
+    std::string templates;      // JSON string
+
+    ArgMapping() = default;
+    ~ArgMapping() = default;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static ArgMapping *Unmarshalling(Parcel &parcel);
+};
+
+/**
+ * @brief Subcommand information structure
+ */
+class SubCommandInfo : public Parcelable {
+public:
+    std::string description;
+    std::vector<std::string> requirePermissions;
+    std::string inputSchema;    // JSON string
+    std::string outputSchema;   // JSON string
+    std::shared_ptr<ArgMapping> argMapping;
+    std::vector<std::string> eventTypes;
+    std::string eventSchemas;   // JSON string
+
+    SubCommandInfo() = default;
+    ~SubCommandInfo() = default;
+
+    bool Marshalling(Parcel &parcel) const override;
+    static SubCommandInfo *Unmarshalling(Parcel &parcel);
+};
+
 /**
  * @brief Raw data type for IDL serialization
  */
@@ -66,16 +115,16 @@ public:
     std::string version;
     std::string description;
     std::string executablePath;
-    std::vector<std::string> permissions;
+    std::vector<std::string> requirePermissions;
     std::string inputSchema;       // JSON string
     std::string outputSchema;      // JSON string
-    std::string argMapping;        // JSON string
+    std::shared_ptr<ArgMapping> argMapping;
     std::string eventSchemas;      // JSON string (map of event type to schema)
     int32_t timeout = 0;
     std::vector<std::string> eventTypes;
     int64_t registeredTime = 0;
     bool enabled = true;
-    bool hasSubcommands = false;
+    bool hasSubCommand = false;
     std::string subcommands;       // JSON string (map of subcommand name to SubCommandInfo)
 
     ToolInfo() = default;
@@ -83,98 +132,6 @@ public:
 
     bool Marshalling(Parcel &parcel) const override;
     static ToolInfo *Unmarshalling(Parcel &parcel);
-};
-
-/**
- * @brief Tool execution options
- */
-class ExecOptions : public Parcelable {
-public:
-    bool background = false;       // true: async, false: sync with yieldMs timeout
-    int32_t yieldMs = 30000;       // foreground wait timeout (only when background=false)
-    int32_t timeout = 0;           // total execution timeout (0 = use tool default)
-    std::map<std::string, std::string> env;
-    std::string workingDir;
-
-    ExecOptions() = default;
-    ~ExecOptions() = default;
-
-    bool Marshalling(Parcel &parcel) const override;
-    static ExecOptions *Unmarshalling(Parcel &parcel);
-};
-
-/**
- * @brief Tool execution result
- */
-class ExecResult : public Parcelable {
-public:
-    int32_t exitCode = 0;
-    std::string outputText;
-    std::string errorText;
-    int32_t signalNumber = 0;
-    bool timedOut = false;
-    int64_t executionTime = 0;
-
-    ExecResult() = default;
-    ~ExecResult() = default;
-
-    bool Marshalling(Parcel &parcel) const override;
-    static ExecResult *Unmarshalling(Parcel &parcel);
-};
-
-/**
- * @brief Session information
- */
-class SessionInfo : public Parcelable {
-public:
-    std::string sessionId;
-    std::string toolName;
-    std::string status;            // "running", "completed", "failed"
-    int64_t startTime = 0;
-    int64_t endTime = 0;
-    std::shared_ptr<ExecResult> result;  // optional, only when status="completed"
-
-    SessionInfo() = default;
-    ~SessionInfo() = default;
-
-    bool Marshalling(Parcel &parcel) const override;
-    static SessionInfo *Unmarshalling(Parcel &parcel);
-};
-
-/**
- * @brief Tool event (for async mode)
- */
-class ToolEvent : public Parcelable {
-public:
-    std::string type;              // "stdout", "stderr", "exit", "error"
-    std::string eventData;
-    int32_t exitCode = 0;
-    int64_t timestamp = 0;
-
-    ToolEvent() = default;
-    ~ToolEvent() = default;
-
-    bool Marshalling(Parcel &parcel) const override;
-    static ToolEvent *Unmarshalling(Parcel &parcel);
-};
-
-/**
- * @brief Session status (for query)
- */
-class SessionStatus : public Parcelable {
-public:
-    std::string sessionId;
-    std::string toolName;
-    std::string status;            // "running", "completed", "failed"
-    int64_t startTime = 0;
-    int64_t endTime = 0;
-    std::shared_ptr<ExecResult> result;  // optional, only when status="completed"
-
-    SessionStatus() = default;
-    ~SessionStatus() = default;
-
-    bool Marshalling(Parcel &parcel) const override;
-    static SessionStatus *Unmarshalling(Parcel &parcel);
 };
 } // namespace CliTool
 } // namespace OHOS
