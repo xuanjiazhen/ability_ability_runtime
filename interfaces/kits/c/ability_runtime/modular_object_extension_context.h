@@ -157,6 +157,37 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_StartSelfUIAbi
 AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjExtensionContext_TerminateSelf(
     OH_AbilityRuntime_ModObjExtensionContextHandle context);
 
+/**
+ * @brief Creates an <b>OHIPCRemoteStub</b> object, supporting requestCallback and destroyCallback running
+ * according to a specified threading model of the modular object extension ability.
+ * The caller is responsible for destroying the returned object by calling
+ * {@link OH_AbilityRuntime_ModObjExtensionContext_DestroyIPCRemoteStub} to avoid memory leaks.
+ *
+ * @param context Represents a pointer to a modular object extension ability context.
+ * @param descriptor Pointer to the descriptor of the <b>OHIPCRemoteStub</b> object to create. It cannot be NULL.
+ * @param requestCallback Callback used to process the data request. It cannot be NULL.
+ * @param destroyCallback Callback to be invoked when the object is destroyed. It can be NULL.
+ * @param userData Pointer to the user data. It can be NULL.
+ * @return Returns the pointer to the <b>OHIPCRemoteStub</b> object created if the operation is successful;
+ * returns NULL otherwise.
+ * @since 26.0.0
+ */
+OHIPCRemoteStub *OH_AbilityRuntime_ModObjExtensionContext_CreateIPCRemoteStub(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context,
+    const char *descriptor, OH_OnRemoteRequestCallback requestCallback,
+    OH_OnRemoteDestroyCallback destroyCallback, void *userData);
+
+/**
+ * @brief Destroys an <b>OHIPCRemoteStub</b> object.
+ *
+ * @param context Represents a pointer to a modular object extension ability context.
+ * @param stub Pointer to the <b>OHIPCRemoteStub</b> object to destroy.
+ * @since 26.0.0
+ */
+void OH_AbilityRuntime_ModObjExtensionContext_DestroyIPCRemoteStub(
+    OH_AbilityRuntime_ModObjExtensionContextHandle context,
+    OHIPCRemoteStub *stub);
+
 #ifdef __cplusplus
 }
 #endif
