@@ -83,6 +83,10 @@ const std::map<AppExecFwk::ExtensionAbilityType, std::string> UI_EXTENSION_NAME_
 };
 
 std::shared_ptr<AppExecFwk::EventRunner> ExtensionAbilityThread::contentEmbedEventRunner_ = nullptr;
+std::mutex ExtensionAbilityThread::modularObjectWorkerMutex_;
+std::unordered_map<std::string, std::shared_ptr<AppExecFwk::AbilityHandler>>
+    ExtensionAbilityThread::modularObjectWorkerMap_;
+std::atomic<uint32_t> ExtensionAbilityThread::modularObjectInstanceId_{0};
 
 ExtensionAbilityThread::ExtensionAbilityThread() : extensionImpl_(nullptr), currentExtension_(nullptr) {}
 
@@ -245,15 +249,18 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
     }
     if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::CONTENT_EMBED) {
         HandleNativeExtensionAttach(abilityRecord, abilityName);
+    } else if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        InitModularObjectThreadConfig(abilityRecord);
+        HandleModularObjectAttach(abilityRecord, mainRunner, abilityInfo);
     } else {
         HandleNormalExtensionAttach(abilityRecord, mainRunner, abilityName);
     }
- 
+
     if (abilityHandler_ == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "Failed to create abilityHandler_");
         return;
     }
- 
+
     // 2.new ability
     auto extension = AppExecFwk::AbilityLoader::GetInstance().GetExtensionByName(abilityName,
         abilityInfo->arkTSMode);
@@ -309,6 +316,63 @@ void ExtensionAbilityThread::HandleNormalExtensionAttach(
     }
 }
 
+void ExtensionAbilityThread::HandleModularObjectAttach(
+    const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
+    const std::shared_ptr<AppExecFwk::EventRunner> &mainRunner,
+    const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo)
+{
+    if (!isModularObjectExtension_) {
+        // Not a recognized modular object, fallback to normal attach
+        HandleNormalExtensionAttach(abilityRecord, mainRunner, abilityInfo->name);
+        return;
+    }
+
+    switch (modularObjectThreadMode_) {
+        case AAFwk::MoeThreadMode::BUNDLE: {
+            // BUNDLE mode: share one thread per bundle, reuse via static map
+            std::string threadKey = abilityInfo->bundleName;
+            auto worker = GetOrCreateModularObjectWorkerThread(threadKey);
+            if (worker != nullptr) {
+                abilityHandler_ = worker;
+                TAG_LOGI(AAFwkTag::EXT, "ModularObject BUNDLE mode, threadKey: %{public}s", threadKey.c_str());
+            } else {
+                TAG_LOGE(AAFwkTag::EXT, "Failed to get/create worker for BUNDLE mode");
+            }
+            break;
+        }
+        case AAFwk::MoeThreadMode::TYPE: {
+            // TYPE mode: create or reuse worker thread by bundleName_abilityName
+            std::string threadKey = abilityInfo->bundleName + "_" + abilityInfo->name;
+            auto worker = GetOrCreateModularObjectWorkerThread(threadKey);
+            if (worker != nullptr) {
+                abilityHandler_ = worker;
+                TAG_LOGI(AAFwkTag::EXT, "ModularObject TYPE mode, threadKey: %{public}s", threadKey.c_str());
+            } else {
+                TAG_LOGE(AAFwkTag::EXT, "Failed to get/create worker for TYPE mode");
+            }
+            break;
+        }
+        case AAFwk::MoeThreadMode::INSTANCE: {
+            // INSTANCE mode: create a new dedicated thread for this instance
+            uint32_t instanceId = modularObjectInstanceId_.fetch_add(1);
+            std::string threadKey = abilityInfo->bundleName + "_" + abilityInfo->name + "_" +
+                std::to_string(instanceId);
+            auto worker = GetOrCreateModularObjectWorkerThread(threadKey);
+            if (worker != nullptr) {
+                abilityHandler_ = worker;
+                TAG_LOGI(AAFwkTag::EXT, "ModularObject INSTANCE mode, threadKey: %{public}s", threadKey.c_str());
+            } else {
+                TAG_LOGE(AAFwkTag::EXT, "Failed to create worker for INSTANCE mode");
+            }
+            break;
+        }
+        default:
+            TAG_LOGW(AAFwkTag::EXT, "Unknown thread mode, fallback to normal attach");
+            HandleNormalExtensionAttach(abilityRecord, mainRunner, abilityInfo->name);
+            break;
+    }
+}
+
 void ExtensionAbilityThread::HandleAttachInner(const std::shared_ptr<AppExecFwk::OHOSApplication> &application,
     const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord)
 {
@@ -356,6 +420,7 @@ void ExtensionAbilityThread::HandleConnectExtension(const Want &want)
         TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
         return;
     }
+
     bool isAsyncCallback = false;
     sptr<IRemoteObject> service = extensionImpl_->ConnectExtension(want, isAsyncCallback);
     if (!isAsyncCallback) {
@@ -773,6 +838,67 @@ void ExtensionAbilityThread::DumpOtherInfo(std::vector<std::string> &info)
     dumpInfo = "";
     runner->DumpRunnerInfo(dumpInfo);
     info.push_back(dumpInfo);
+}
+
+std::shared_ptr<AppExecFwk::AbilityHandler> ExtensionAbilityThread::GetOrCreateModularObjectWorkerThread(
+    const std::string &threadKey)
+{
+    std::lock_guard<std::mutex> lock(modularObjectWorkerMutex_);
+    auto iter = modularObjectWorkerMap_.find(threadKey);
+    if (iter != modularObjectWorkerMap_.end()) {
+        TAG_LOGD(AAFwkTag::EXT, "reuse existing worker thread: %{public}s", threadKey.c_str());
+        return iter->second;
+    }
+    auto runner = AppExecFwk::EventRunner::Create(threadKey);
+    if (runner == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "failed to create event runner for: %{public}s", threadKey.c_str());
+        return nullptr;
+    }
+    auto handler = std::make_shared<AppExecFwk::AbilityHandler>(runner);
+    if (handler == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "failed to create ability handler for: %{public}s", threadKey.c_str());
+        return nullptr;
+    }
+    modularObjectWorkerMap_.emplace(threadKey, handler);
+    TAG_LOGI(AAFwkTag::EXT, "created new worker thread: %{public}s", threadKey.c_str());
+    return handler;
+}
+
+void ExtensionAbilityThread::RemoveModularObjectWorkerThread(const std::string &threadKey)
+{
+    std::lock_guard<std::mutex> lock(modularObjectWorkerMutex_);
+    auto iter = modularObjectWorkerMap_.find(threadKey);
+    if (iter != modularObjectWorkerMap_.end()) {
+        modularObjectWorkerMap_.erase(iter);
+        TAG_LOGI(AAFwkTag::EXT, "removed worker thread: %{public}s", threadKey.c_str());
+    }
+}
+
+void ExtensionAbilityThread::InitModularObjectThreadConfig(
+    const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord)
+{
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null abilityRecord");
+        return;
+    }
+    auto abilityInfo = abilityRecord->GetAbilityInfo();
+    if (abilityInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null abilityInfo");
+        return;
+    }
+    // Read threadMode from Want (passed by server side), not from DB
+    auto &want = abilityRecord->GetWant();
+    int32_t mode = want->GetIntParam("modularObjectThreadMode", -1);
+    if (mode < 0) {
+        TAG_LOGD(AAFwkTag::EXT, "no modularObjectThreadMode in Want");
+        return;
+    }
+    modularObjectThreadMode_ = static_cast<AAFwk::MoeThreadMode>(mode);
+    isModularObjectExtension_ = true;
+    TAG_LOGI(AAFwkTag::EXT, "modular object thread config from Want: threadMode=%{public}d", mode);
+    // Remove internal params to avoid leaking to application
+    want->RemoveParam("modularObjectThreadMode");
+    want->RemoveParam("modularObjectConnectId");
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
