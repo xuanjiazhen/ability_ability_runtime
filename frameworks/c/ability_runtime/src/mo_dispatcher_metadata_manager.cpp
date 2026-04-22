@@ -1,0 +1,1101 @@
+
+/*
+ * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ */
+
+#include "mo_dispatcher_metadata_manager.h"
+
+#include <algorithm>
+#include <cctype>
+#include <cstring>
+#include <fcntl.h>
+#include <optional>
+#include <sys/stat.h>
+#include <unistd.h>
+
+#include "ipc_inner_object.h"
+#include "message_option.h"
+#include "mo_dispatcher_complex_type_manager.h"
+#include "nlohmann/json.hpp"
+
+namespace OHOS::AbilityRuntime {
+namespace {
+using Json = nlohmann::json;
+
+bool ReadAllFromFd(int32_t fd, std::string* out)
+{
+    if (fd < 0 || out == nullptr) {
+        return false;
+    }
+    out->clear();
+    char buffer[4096] = {0};
+    ssize_t n = 0;
+    while ((n = read(fd, buffer, sizeof(buffer))) > 0) {
+        out->append(buffer, static_cast<size_t>(n));
+    }
+    close(fd);
+    return n == 0;
+}
+
+std::string ToLower(const std::string& v)
+{
+    std::string out = v;
+    std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+    return out;
+}
+
+void InsertNameMap(std::unordered_map<std::string, uint32_t>& map, const std::string& key, uint32_t value)
+{
+    if (!key.empty() && map.find(key) == map.end()) {
+        map.emplace(key, value);
+    }
+}
+
+void InsertIdMap(std::unordered_map<uint32_t, std::string>& map, uint32_t key, const std::string& value)
+{
+    if (!value.empty() && map.find(key) == map.end()) {
+        map.emplace(key, value);
+    }
+}
+
+uint32_t GetMemberId(const Json& obj)
+{
+    if (!obj.is_object() || !obj.contains("dispID")) {
+        return 0;
+    }
+    if (obj["dispID"].is_number_unsigned()) {
+        uint32_t memId = obj["dispID"].get<uint32_t>();
+        if (memId > 0) {
+            return memId;
+        }
+
+    }
+    return 0;
+}
+
+OH_AbilityRuntime_MoDispatcher_ValueType MapTypeStringToVt(const std::string& typeName)
+{
+    const std::string type = ToLower(typeName);
+    if (type == "void") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VOID;
+    if (type == "bool" || type == "boolean") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_BOOL;
+    if (type == "i8" || type == "int8") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_I8;
+    if (type == "i16" || type == "int16") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_I16;
+    if (type == "i32" || type == "int32") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_I32;
+    if (type == "i64" || type == "int64") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_I64;
+    if (type == "u8" || type == "uint8") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_U8;
+    if (type == "u16" || type == "uint16") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_U16;
+    if (type == "u32" || type == "uint32") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_U32;
+    if (type == "u64" || type == "uint64") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_U64;
+    if (type == "f32" || type == "float") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_F32;
+    if (type == "f64" || type == "double") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_F64;
+    if (type == "string") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRING;
+    if (type == "array") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ARRAY;
+    if (type == "vector") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VECTOR;
+    if (type == "set") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_SET;
+    if (type == "map") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_MAP;
+    if (type == "struct") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRUCT;
+    if (type == "interface") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_IPC_REMOTE_PROXY;
+    if (type == "enum") return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ENUM;
+    return OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_EMPTY;
+}
+
+bool IsSimpleVtType(OH_AbilityRuntime_MoDispatcher_ValueType vt)
+{
+    switch (vt) {
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_BOOL:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_I8:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_I16:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_I32:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_I64:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_U8:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_U16:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_U32:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_U64:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_F32:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_F64:
+        case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRING:
+            return true;
+        default:
+            return false;
+    }
+}
+
+std::optional<Json> FindInterface(const Json& descriptor, const std::string& interfaceName)
+{
+    auto match = [&interfaceName](const Json& node) {
+        return node.is_object() && node.contains("name") && node["name"].is_string() &&
+            (interfaceName.empty() || node["name"].get<std::string>() == interfaceName);
+    };
+
+    if (descriptor.is_object() && descriptor.contains("interfaces") && descriptor["interfaces"].is_array()) {
+        for (const auto& item : descriptor["interfaces"]) {
+            if (match(item)) {
+                return item;
+            }
+        }
+        return std::nullopt;
+    }
+    if (descriptor.is_array()) {
+        for (const auto& item : descriptor) {
+            if (match(item)) {
+                return item;
+            }
+        }
+        return std::nullopt;
+    }
+    if (match(descriptor)) {
+        return descriptor;
+    }
+    return std::nullopt;
+}
+
+std::optional<Json> FindMethod(const Json& interfaceObj, const std::string& methodName)
+{
+    if (!interfaceObj.is_object() || !interfaceObj.contains("methods") || !interfaceObj["methods"].is_array()) {
+        return std::nullopt;
+    }
+    for (const auto& method : interfaceObj["methods"]) {
+        if (method.is_object() && method.contains("name") && method["name"].is_string() &&
+            method["name"].get<std::string>() == methodName) {
+            return method;
+        }
+    }
+    return std::nullopt;
+}
+
+// Check whether a type string is a simple/primitive type name
+bool IsSimpleTypeString(const std::string& typeStr)
+{
+    return IsSimpleVtType(MapTypeStringToVt(typeStr));
+}
+
+} // namespace
+
+// -------- ParseTypeInfo: JSON object -> MoTypeInfo tree (no validation) --------
+
+std::shared_ptr<MoTypeInfo> MoDispatcherMetadataManager::ParseTypeInfo(const Json& typeInfoObj)
+{
+    if (!typeInfoObj.is_object() || !typeInfoObj.contains("type") || !typeInfoObj["type"].is_string()) {
+        return nullptr;
+    }
+
+    auto result = std::make_shared<MoTypeInfo>();
+    const std::string typeStr = typeInfoObj["type"].get<std::string>();
+    result->vt = MapTypeStringToVt(typeStr);
+
+    if (result->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_EMPTY) {
+        return nullptr;
+    }
+
+    if (ToLower(typeStr) == "map") {
+        // Parse key_type (must be simple type)
+        if (typeInfoObj.contains("key_type") && typeInfoObj["key_type"].is_object()) {
+            auto keyInfo = ParseTypeInfo(typeInfoObj["key_type"]);
+            if (keyInfo) {
+                result->mapKeyType = keyInfo->vt;
+            }
+        }
+        // Parse value_type (can be anything)
+        if (typeInfoObj.contains("value_type") && typeInfoObj["value_type"].is_object()) {
+            result->pMapValueType = ParseTypeInfo(typeInfoObj["value_type"]);
+        }
+    } else if (ToLower(typeStr) == "array" || ToLower(typeStr) == "vector" || ToLower(typeStr) == "set") {
+        // Parse element type
+        if (typeInfoObj.contains("value_type") && typeInfoObj["value_type"].is_object()) {
+            result->pElementType = ParseTypeInfo(typeInfoObj["value_type"]);
+        }
+    } else if (ToLower(typeStr) == "enum" || ToLower(typeStr) == "interface" || ToLower(typeStr) == "struct") {
+        // Store idl_type reference
+        if (typeInfoObj.contains("idl_type") && typeInfoObj["idl_type"].is_string()) {
+            result->idlType = typeInfoObj["idl_type"].get<std::string>();
+        }
+    }
+
+    return result;
+}
+
+// -------- ParseTypeInfo: simple string -> Vt (backward compat) --------
+
+OH_AbilityRuntime_MoDispatcher_ValueType MoDispatcherMetadataManager::ParseTypeInfo(const std::string& typeName)
+{
+    return MapTypeStringToVt(typeName);
+}
+
+// -------- ParseTypeInfoFromJson: validated parsing for metadata --------
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseTypeInfoFromJson(const Json& typeInfoObj,
+    std::shared_ptr<MoTypeInfo>& result)
+{
+    if (!typeInfoObj.is_object() || !typeInfoObj.contains("type") || !typeInfoObj["type"].is_string()) {
+        return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+    }
+
+    result = std::make_shared<MoTypeInfo>();
+    const std::string typeStr = typeInfoObj["type"].get<std::string>();
+    const std::string typeLower = ToLower(typeStr);
+    result->vt = MapTypeStringToVt(typeStr);
+
+    if (result->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_EMPTY) {
+        return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+    }
+
+    if (typeLower == "map") {
+        // key_type is mandatory and must be a simple type
+        if (!typeInfoObj.contains("key_type") || !typeInfoObj["key_type"].is_object()) {
+            return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+        }
+        auto keyInfo = std::make_shared<MoTypeInfo>();
+        auto ret = ParseTypeInfoFromJson(typeInfoObj["key_type"], keyInfo);
+        if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+            return ret;
+        }
+        if (!IsSimpleVtType(keyInfo->vt)) {
+            return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+        }
+        result->mapKeyType = keyInfo->vt;
+
+        // value_type is mandatory
+        if (!typeInfoObj.contains("value_type") || !typeInfoObj["value_type"].is_object()) {
+            return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+        }
+        auto valInfo = std::make_shared<MoTypeInfo>();
+        ret = ParseTypeInfoFromJson(typeInfoObj["value_type"], valInfo);
+        if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+            return ret;
+        }
+        result->pMapValueType = valInfo;
+    } else if (typeLower == "array" || typeLower == "vector" || typeLower == "set") {
+        // value_type is mandatory
+        if (!typeInfoObj.contains("value_type") || !typeInfoObj["value_type"].is_object()) {
+            return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+        }
+        auto elemInfo = std::make_shared<MoTypeInfo>();
+        auto ret = ParseTypeInfoFromJson(typeInfoObj["value_type"], elemInfo);
+        if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+            return ret;
+        }
+        result->pElementType = elemInfo;
+    } else if (typeLower == "enum" || typeLower == "interface" || typeLower == "struct") {
+        // idl_type is mandatory
+        if (!typeInfoObj.contains("idl_type") || !typeInfoObj["idl_type"].is_string()) {
+            return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+        }
+        result->idlType = typeInfoObj["idl_type"].get<std::string>();
+        // Note: idl_type reference validation is done later after all types are parsed
+    }
+
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+// -------- IsIdlTypeDeclared: check if idl_type references a known type --------
+
+bool MoDispatcherMetadataManager::IsIdlTypeDeclared(const std::string& idlType) const
+{
+    // Check enums
+    for (const auto& e : enums_) {
+        if (e.name == idlType) {
+            return true;
+        }
+    }
+    // Check structs
+    for (const auto& s : structs_) {
+        if (s.name == idlType) {
+            return true;
+        }
+    }
+    // Check interfaces
+    for (const auto& iface : interfaces_) {
+        if (iface.name == idlType) {
+            return true;
+        }
+    }
+    return false;
+}
+
+// -------- FillCTypeInfo: fill a C TypeInfo struct from MoTypeInfo (shallow) --------
+
+void MoDispatcherMetadataManager::FillCTypeInfo(OH_AbilityRuntime_MoDispatcher_TypeInfo* cType,
+    const std::shared_ptr<MoTypeInfo>& moType)
+{
+    if (cType == nullptr || moType == nullptr) {
+        return;
+    }
+    std::memset(cType, 0, sizeof(OH_AbilityRuntime_MoDispatcher_TypeInfo));
+    cType->vt = moType->vt;
+    if (moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_MAP) {
+        cType->u.mapType.keyType = moType->mapKeyType;
+        // Note: pValueType is not allocated here; caller handles deep allocation if needed
+    } else if (moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ARRAY ||
+               moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VECTOR ||
+               moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_SET) {
+        // Note: pElementType is not allocated here; caller handles deep allocation if needed
+    } else if (moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRUCT ||
+               moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ENUM ||
+               moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_IPC_REMOTE_PROXY) {
+        if (!moType->idlType.empty()) {
+            cType->u.idlType = strdup(moType->idlType.c_str());
+        }
+    }
+}
+
+// -------- EnsureLoaded --------
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::EnsureLoaded(OHOS::IRemoteObject* proxy)
+{
+    if (proxy == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+    }
+    std::string jsonText;
+    auto ret = RequestMetadataJson(proxy, &jsonText);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        return ret;
+    }
+    ret = ParseMetadata(jsonText);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        return ret;
+    }
+    loaded_ = true;
+    MoDispatcherComplexTypeManager::RegisterStructMetadata(structs_);
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+// -------- RequestMetadataJson --------
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::RequestMetadataJson(OHOS::IRemoteObject* proxy,
+    std::string* jsonText)
+{
+    if (proxy == nullptr || jsonText == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+
+    static const char* TLB_PATH = "/data/storage/el2/base/haps/entry/files/tlb.json";
+
+    int fd = open(TLB_PATH, O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd < 0) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+
+    MessageParcel dataParcel;
+    MessageParcel replyParcel;
+
+    if (!dataParcel.WriteInterfaceToken(INTERFACE_DESCRIPTOR)) {
+        close(fd);
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+
+    if (!dataParcel.WriteFileDescriptor(fd)) {
+        close(fd);
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+
+    MessageOption option(MessageOption::TF_SYNC);
+    int ipcRet = proxy->SendRequest(IPC_CODE_GET_TLB_FD, dataParcel, replyParcel, option);
+    if (ipcRet != 0) {
+        close(fd);
+        return ABILITY_RUNTIME_ERROR_CODE_SEND_REQUEST_FAILED;
+    }
+
+    // Server has written JSON to fd, now read it back from the local file
+    close(fd);
+
+    fd = open(TLB_PATH, O_RDONLY);
+    if (fd < 0) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    ReadAllFromFd(fd, jsonText);
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+// -------- ParseMetadata --------
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseMetadata(const std::string& jsonText)
+{
+    Json root = Json::parse(jsonText, nullptr, false);
+    if (root.is_discarded() || !root.is_object()) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+
+    interfaces_.clear();
+    enums_.clear();
+    structs_.clear();
+    nameToMemberId_.clear();
+    memberIdToName_.clear();
+    memberIdToMethod_.clear();
+    mainServiceInterface_.clear();
+
+    if (root.contains("bundle") && root["bundle"].is_string()) {
+        bundleName_ = root["bundle"].get<std::string>();
+    }
+    if (root.contains("version") && root["version"].is_string()) {
+        version_ = root["version"].get<std::string>();
+    }
+
+    // Track all dispID/memberId values to enforce uniqueness
+    std::unordered_set<uint32_t> usedIds;
+
+    if (root.contains("enums") && root["enums"].is_array()) {
+        for (const auto& enumObj : root["enums"]) {
+            if (!enumObj.is_object()) {
+                continue;
+            }
+            MoEnumMeta meta;
+            meta.name = enumObj.value("name", "");
+            meta.memberId = GetMemberId(enumObj);
+            if (meta.memberId == 0) {
+                return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+            }
+            if (usedIds.count(meta.memberId) > 0) {
+                return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+            }
+            usedIds.insert(meta.memberId);
+            InsertNameMap(nameToMemberId_, meta.name, meta.memberId);
+            InsertIdMap(memberIdToName_, meta.memberId, meta.name);
+            if (enumObj.contains("values") && enumObj["values"].is_array()) {
+                for (const auto& valueObj : enumObj["values"]) {
+                    MoEnumValueMeta value;
+                    value.name = valueObj.value("name", "");
+                    value.value = valueObj.value("value", 0);
+                    value.memberId = GetMemberId(valueObj);
+                    if (value.memberId > 0 && usedIds.count(value.memberId) > 0) {
+                        return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+                    }
+                    if (value.memberId > 0) {
+                        usedIds.insert(value.memberId);
+                    }
+                    meta.values.emplace_back(value);
+                    InsertNameMap(nameToMemberId_, meta.name + "." + value.name, value.memberId);
+                    InsertIdMap(memberIdToName_, value.memberId, meta.name + "." + value.name);
+                }
+            }
+            enums_.emplace_back(std::move(meta));
+        }
+    }
+
+    if (root.contains("structs") && root["structs"].is_array()) {
+        for (const auto& structObj : root["structs"]) {
+            if (!structObj.is_object()) {
+                continue;
+            }
+            MoStructMeta meta;
+            meta.name = structObj.value("name", "");
+            meta.memberId = GetMemberId(structObj);
+            if (meta.memberId == 0) {
+                return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+            }
+            if (usedIds.count(meta.memberId) > 0) {
+                return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+            }
+            usedIds.insert(meta.memberId);
+            InsertNameMap(nameToMemberId_, meta.name, meta.memberId);
+            InsertIdMap(memberIdToName_, meta.memberId, meta.name);
+            if (structObj.contains("fields") && structObj["fields"].is_array()) {
+                for (const auto& fieldObj : structObj["fields"]) {
+                    MoStructFieldMeta field;
+                    field.name = fieldObj.value("name", "");
+                    field.memberId = GetMemberId(fieldObj);
+                    if (field.memberId > 0 && usedIds.count(field.memberId) > 0) {
+                        return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+                    }
+                    if (field.memberId > 0) {
+                        usedIds.insert(field.memberId);
+                    }
+                    if (fieldObj.contains("type_info") && fieldObj["type_info"].is_object()) {
+                        std::shared_ptr<MoTypeInfo> fieldTypeInfo;
+                        auto ret = ParseTypeInfoFromJson(fieldObj["type_info"], fieldTypeInfo);
+                        if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                            return ret;
+                        }
+                        field.typeInfo = fieldTypeInfo;
+                    }
+                    meta.fields.emplace_back(field);
+                    InsertNameMap(nameToMemberId_, meta.name + "." + field.name, field.memberId);
+                    InsertIdMap(memberIdToName_, field.memberId, meta.name + "." + field.name);
+                }
+            }
+            structs_.emplace_back(std::move(meta));
+        }
+    }
+
+    if (root.contains("interfaces") && root["interfaces"].is_array()) {
+        for (const auto& interfaceObj : root["interfaces"]) {
+            if (!interfaceObj.is_object()) {
+                continue;
+            }
+            MoInterfaceMeta interfaceMeta;
+            interfaceMeta.name = interfaceObj.value("name", "");
+            interfaceMeta.descriptor = interfaceObj.value("descriptor", "");
+            interfaceMeta.memberId = GetMemberId(interfaceObj);
+            if (interfaceMeta.memberId == 0) {
+                return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+            }
+            if (usedIds.count(interfaceMeta.memberId) > 0) {
+                return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+            }
+            usedIds.insert(interfaceMeta.memberId);
+
+            // Parse interface_type field
+            uint32_t ifaceTypeVal = interfaceObj.value("interface_type", 0u);
+            if (ifaceTypeVal > 2) { // must be 0 (NORMAL), 1 (MAIN_SERVICE), or 2 (CALLBACK)
+                return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+            }
+            interfaceMeta.interfaceType = static_cast<MoInterfaceType>(ifaceTypeVal);
+            interfaceMeta.descriptorJson = interfaceObj.dump();
+            InsertNameMap(nameToMemberId_, interfaceMeta.name, interfaceMeta.memberId);
+            InsertIdMap(memberIdToName_, interfaceMeta.memberId, interfaceMeta.name);
+
+            if (interfaceObj.contains("methods") && interfaceObj["methods"].is_array()) {
+                for (const auto& methodObj : interfaceObj["methods"]) {
+                    MoMethodMeta method;
+                    method.interfaceName = interfaceMeta.name;
+                    method.name = methodObj.value("name", "");
+                    method.memberId = GetMemberId(methodObj);
+                    if (method.memberId == 0) {
+                        return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+                    }
+                    if (usedIds.count(method.memberId) > 0) {
+                        return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+                    }
+                    usedIds.insert(method.memberId);
+                    method.ipcCode = methodObj.value("code", 0);
+                    method.oneway = methodObj.value("oneway", false);
+                    if (methodObj.contains("return_type") && methodObj["return_type"].is_object()) {
+                        std::shared_ptr<MoTypeInfo> retTypeInfo;
+                        auto ret = ParseTypeInfoFromJson(methodObj["return_type"], retTypeInfo);
+                        if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                            return ret;
+                        }
+                        method.returnType = retTypeInfo;
+                    }
+                    if (methodObj.contains("parameters") && methodObj["parameters"].is_array()) {
+                        for (const auto& paramObj : methodObj["parameters"]) {
+                            MoMethodParamMeta param;
+                            param.name = paramObj.value("name", "");
+                            if (paramObj.contains("type_info") && paramObj["type_info"].is_object()) {
+                                std::shared_ptr<MoTypeInfo> paramTypeInfo;
+                                auto ret = ParseTypeInfoFromJson(paramObj["type_info"], paramTypeInfo);
+                                if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                                    return ret;
+                                }
+                                param.typeInfo = paramTypeInfo;
+                            }
+                            method.params.emplace_back(param);
+                            const uint32_t paramMemberId = GetMemberId(paramObj);
+                            if (paramMemberId > 0 && usedIds.count(paramMemberId) > 0) {
+                                return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+                            }
+                            if (paramMemberId > 0) {
+                                usedIds.insert(paramMemberId);
+                            }
+                            InsertNameMap(nameToMemberId_,
+                                interfaceMeta.name + "." + method.name + "." + param.name, paramMemberId);
+                            InsertIdMap(memberIdToName_, paramMemberId,
+                                interfaceMeta.name + "." + method.name + "." + param.name);
+                        }
+                    }
+                    interfaceMeta.methods.emplace_back(method);
+                    memberIdToMethod_[method.memberId] = method;
+                    InsertNameMap(nameToMemberId_, interfaceMeta.name + "." + method.name, method.memberId);
+                    InsertIdMap(memberIdToName_, method.memberId, interfaceMeta.name + "." + method.name);
+                }
+            }
+
+            if (interfaceMeta.IsMainService()) {
+                if (!mainServiceInterface_.empty()) {
+                    return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+                }
+                mainServiceInterface_ = interfaceMeta.name;
+            }
+            interfaces_.emplace_back(std::move(interfaceMeta));
+        }
+    }
+
+    if (mainServiceInterface_.empty()) {
+        return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+    }
+
+    // Validate idl_type references in all parsed type info
+    for (const auto& st : structs_) {
+        for (const auto& field : st.fields) {
+            if (field.typeInfo && !field.typeInfo->idlType.empty()) {
+                if (!IsIdlTypeDeclared(field.typeInfo->idlType)) {
+                    return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+                }
+            }
+        }
+    }
+    for (const auto& iface : interfaces_) {
+        for (const auto& method : iface.methods) {
+            if (method.returnType && !method.returnType->idlType.empty()) {
+                if (!IsIdlTypeDeclared(method.returnType->idlType)) {
+                    return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+                }
+            }
+            for (const auto& param : method.params) {
+                if (param.typeInfo && !param.typeInfo->idlType.empty()) {
+                    if (!IsIdlTypeDeclared(param.typeInfo->idlType)) {
+                        return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
+                    }
+                }
+            }
+        }
+    }
+
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+// -------- QueryMainServiceInterfaceMemberIds --------
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::QueryMainServiceInterfaceMemberIds(
+    const char** names, uint32_t count, uint32_t* memberIds) const
+{
+    if (names == nullptr || memberIds == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_ || mainServiceInterface_.empty()) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    for (uint32_t i = 0; i < count; i++) {
+        if (names[i] == nullptr) {
+            return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        }
+        std::string qualifiedName = mainServiceInterface_ + "." + names[i];
+        auto it = nameToMemberId_.find(qualifiedName);
+        if (it == nameToMemberId_.end()) {
+            return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+        }
+        memberIds[i] = it->second;
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodMeta(uint32_t memberId, MoMethodMeta* methodMeta) const
+{
+    if (methodMeta == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    auto it = memberIdToMethod_.find(memberId);
+    if (it == memberIdToMethod_.end()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    *methodMeta = it->second;
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetBundle(std::string* bundleName) const
+{
+    if (bundleName == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    *bundleName = bundleName_;
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetVersion(std::string* version) const
+{
+    if (version == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    *version = version_;
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMainServiceInterfaceName(std::string* interfaceName) const
+{
+    if (interfaceName == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    if (mainServiceInterface_.empty()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    *interfaceName = mainServiceInterface_;
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetInterfaceCount(uint32_t* count) const
+{
+    if (count == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    *count = static_cast<uint32_t>(interfaces_.size());
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetInterfaceName(uint32_t index, std::string* name) const
+{
+    if (name == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_ || index >= interfaces_.size()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    *name = interfaces_[index].name;
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetInterfaceDescriptor(const std::string& interfaceName,
+    std::string* descriptor) const
+{
+    if (descriptor == nullptr || interfaceName.empty()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    for (const auto& item : interfaces_) {
+        if (item.name == interfaceName) {
+            *descriptor = item.descriptorJson;
+            return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+        }
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetInterfaceIsCallback(const std::string& interfaceName,
+    bool* isCallback) const
+{
+    if (isCallback == nullptr || interfaceName.empty()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    for (const auto& item : interfaces_) {
+        if (item.name == interfaceName) {
+            *isCallback = item.IsCallback();
+            return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+        }
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetEnumCount(uint32_t* count) const
+{
+    if (count == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    *count = static_cast<uint32_t>(enums_.size());
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetEnumName(uint32_t index, std::string* name) const
+{
+    if (name == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_ || index >= enums_.size()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    *name = enums_[index].name;
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetEnumValueCount(const std::string& enumName, uint32_t* count) const
+{
+    if (count == nullptr || enumName.empty()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    for (const auto& item : enums_) {
+        if (item.name == enumName) {
+            *count = static_cast<uint32_t>(item.values.size());
+            return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+        }
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetEnumValueName(const std::string& enumName, uint32_t index,
+    std::string* valueName) const
+{
+    if (valueName == nullptr || enumName.empty()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    for (const auto& item : enums_) {
+        if (item.name == enumName) {
+            if (index >= item.values.size()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+            *valueName = item.values[index].name;
+            return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+        }
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetEnumValue(const std::string& enumName,
+    const std::string& valueName, int32_t* value) const
+{
+    if (value == nullptr || enumName.empty() || valueName.empty()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    for (const auto& item : enums_) {
+        if (item.name == enumName) {
+            for (const auto& enumValue : item.values) {
+                if (enumValue.name == valueName) {
+                    *value = enumValue.value;
+                    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+                }
+            }
+            return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+        }
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetStructCount(uint32_t* count) const
+{
+    if (count == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    *count = static_cast<uint32_t>(structs_.size());
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetStructName(uint32_t index, std::string* name) const
+{
+    if (name == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_ || index >= structs_.size()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    *name = structs_[index].name;
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetStructFieldCount(const std::string& structName,
+    uint32_t* count) const
+{
+    if (count == nullptr || structName.empty()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    for (const auto& item : structs_) {
+        if (item.name == structName) {
+            *count = static_cast<uint32_t>(item.fields.size());
+            return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+        }
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetStructFieldName(const std::string& structName, uint32_t index,
+    std::string* fieldName) const
+{
+    if (fieldName == nullptr || structName.empty()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    for (const auto& item : structs_) {
+        if (item.name == structName) {
+            if (index >= item.fields.size()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+            *fieldName = item.fields[index].name;
+            return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+        }
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetStructFieldType(const std::string& structName,
+    const std::string& fieldName, OH_AbilityRuntime_MoDispatcher_TypeInfo* fieldType) const
+{
+    if (fieldType == nullptr || structName.empty() || fieldName.empty()) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    for (const auto& item : structs_) {
+        if (item.name == structName) {
+            for (const auto& field : item.fields) {
+                if (field.name == fieldName) {
+                    FillCTypeInfo(fieldType, field.typeInfo);
+                    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+                }
+            }
+            return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+        }
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+}
+
+// -------- Static descriptor-based methods --------
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodCountFromDescriptor(const char* descriptorJson,
+    const char* interfaceName, uint32_t* count)
+{
+    if (descriptorJson == nullptr || interfaceName == nullptr || count == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    Json descriptor = Json::parse(descriptorJson, nullptr, false);
+    if (descriptor.is_discarded()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto interfaceObj = FindInterface(descriptor, interfaceName);
+    if (!interfaceObj.has_value()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    if (!interfaceObj->contains("methods") || !(*interfaceObj)["methods"].is_array()) {
+        *count = 0;
+        return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+    }
+    *count = static_cast<uint32_t>((*interfaceObj)["methods"].size());
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodNameFromDescriptor(const char* descriptorJson,
+    const char* interfaceName, uint32_t index, std::string* methodName)
+{
+    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    Json descriptor = Json::parse(descriptorJson, nullptr, false);
+    if (descriptor.is_discarded()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto interfaceObj = FindInterface(descriptor, interfaceName);
+    if (!interfaceObj.has_value() || !interfaceObj->contains("methods") || !(*interfaceObj)["methods"].is_array()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    const auto& methods = (*interfaceObj)["methods"];
+    if (index >= methods.size() || !methods[index].contains("name") || !methods[index]["name"].is_string()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    *methodName = methods[index]["name"].get<std::string>();
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodMemberIdFromDescriptor(const char* descriptorJson,
+    const char* interfaceName, const char* methodName, uint32_t* memberId)
+{
+    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || memberId == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    Json descriptor = Json::parse(descriptorJson, nullptr, false);
+    if (descriptor.is_discarded()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto interfaceObj = FindInterface(descriptor, interfaceName);
+    if (!interfaceObj.has_value()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto methodObj = FindMethod(*interfaceObj, methodName);
+    if (!methodObj.has_value()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    *memberId = GetMemberId(*methodObj);
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodReturnTypeFromDescriptor(const char* descriptorJson,
+    const char* interfaceName, const char* methodName,
+    OH_AbilityRuntime_MoDispatcher_TypeInfo* returnType)
+{
+    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || returnType == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    Json descriptor = Json::parse(descriptorJson, nullptr, false);
+    if (descriptor.is_discarded()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto interfaceObj = FindInterface(descriptor, interfaceName);
+    if (!interfaceObj.has_value()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto methodObj = FindMethod(*interfaceObj, methodName);
+    if (!methodObj.has_value() || !methodObj->contains("return_type") || !(*methodObj)["return_type"].is_object()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    auto typeInfo = ParseTypeInfo((*methodObj)["return_type"]);
+    FillCTypeInfo(returnType, typeInfo);
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodParamCountFromDescriptor(const char* descriptorJson,
+    const char* interfaceName, const char* methodName, uint32_t* count)
+{
+    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || count == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    Json descriptor = Json::parse(descriptorJson, nullptr, false);
+    if (descriptor.is_discarded()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto interfaceObj = FindInterface(descriptor, interfaceName);
+    if (!interfaceObj.has_value()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto methodObj = FindMethod(*interfaceObj, methodName);
+    if (!methodObj.has_value() || !methodObj->contains("parameters") || !(*methodObj)["parameters"].is_array()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    *count = static_cast<uint32_t>((*methodObj)["parameters"].size());
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodParamTypeFromDescriptor(const char* descriptorJson,
+    const char* interfaceName, const char* methodName, uint32_t paramIndex,
+    OH_AbilityRuntime_MoDispatcher_TypeInfo* paramType)
+{
+    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || paramType == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    Json descriptor = Json::parse(descriptorJson, nullptr, false);
+    if (descriptor.is_discarded()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto interfaceObj = FindInterface(descriptor, interfaceName);
+    auto methodObj = interfaceObj.has_value() ? FindMethod(*interfaceObj, methodName) : std::nullopt;
+    if (!methodObj.has_value() || !methodObj->contains("parameters") || !(*methodObj)["parameters"].is_array()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    const auto& params = (*methodObj)["parameters"];
+    if (paramIndex >= params.size() || !params[paramIndex].contains("type_info") ||
+        !params[paramIndex]["type_info"].is_object()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto typeInfo = ParseTypeInfo(params[paramIndex]["type_info"]);
+    FillCTypeInfo(paramType, typeInfo);
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodParamNameFromDescriptor(const char* descriptorJson,
+    const char* interfaceName, const char* methodName, uint32_t paramIndex, std::string* paramName)
+{
+    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || paramName == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    Json descriptor = Json::parse(descriptorJson, nullptr, false);
+    if (descriptor.is_discarded()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    auto interfaceObj = FindInterface(descriptor, interfaceName);
+    auto methodObj = interfaceObj.has_value() ? FindMethod(*interfaceObj, methodName) : std::nullopt;
+    if (!methodObj.has_value() || !methodObj->contains("parameters") || !(*methodObj)["parameters"].is_array()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    const auto& params = (*methodObj)["parameters"];
+    if (paramIndex >= params.size() || !params[paramIndex].contains("name") || !params[paramIndex]["name"].is_string()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    *paramName = params[paramIndex]["name"].get<std::string>();
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+} // namespace OHOS::AbilityRuntime
