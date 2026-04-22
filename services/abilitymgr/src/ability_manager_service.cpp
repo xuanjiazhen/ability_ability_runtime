@@ -17264,8 +17264,8 @@ ErrCode AbilityManagerService::StartSelfUIAbilityInCurrentProcess(const Want &wa
     return StartAbility(useWant, useStartOptions, callerToken);
 }
 
-ErrCode AbilityManagerService::StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
-    sptr<IRemoteObject> callerToken)
+ErrCode AbilityManagerService::StartSelfUIAbilityInSubProcess(
+    const Want &want, const std::string &specifiedFlag, sptr<IRemoteObject> callerToken)
 {
     // if (!AppUtils::GetInstance().IsSupportNativeAbility()) {
     if (!AppUtils::GetInstance().IsStartUIAbilityInCurrentProcess()) {

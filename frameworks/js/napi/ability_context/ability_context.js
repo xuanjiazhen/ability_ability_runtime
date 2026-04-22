@@ -277,8 +277,8 @@ class AbilityContext extends Context {
     return this.__context_impl__.startSelfUIAbilityInCurrentProcess(want, specifiedFlag, options);
   }
 
-  startSelfUIAbilityInSubProcess(want, specifiedFlag, options) {
-    return this.__context_impl__.startSelfUIAbilityInSubProcess(want, specifiedFlag, options);
+  startSelfUIAbilityInSubProcess(want, specifiedFlag) {
+    return this.__context_impl__.startSelfUIAbilityInSubProcess(want, specifiedFlag);
   }
 
   restartApp(want) {

@@ -2155,8 +2155,8 @@ public:
      * @param specifiedFlag specified flag.
      * @return Returns ERR_OK on success, others on failure.
      */
-    ErrCode StartSelfUIAbilityInSubProcess(const Want &want, const std::string &specifiedFlag,
-        sptr<IRemoteObject> callerToken);
+    ErrCode StartSelfUIAbilityInSubProcess(
+        const Want &want, const std::string &specifiedFlag, sptr<IRemoteObject> callerToken);
 
     /**
      * Check if the app is restart-limited.

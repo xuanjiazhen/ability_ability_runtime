@@ -620,7 +620,7 @@ void EtsAbilityContext::StartSelfUIAbilityInSubProcess(
         TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
         return;
     }
-    etsContext->OnStartSelfUIAbilityInSubProcess(env, aniObj, wantObj, aniSpecifiedFlag, nullptr, call);
+    etsContext->OnStartSelfUIAbilityInSubProcess(env, aniObj, wantObj, aniSpecifiedFlag, call);
 }
 
 void EtsAbilityContext::OpenAtomicServiceCheck(ani_env *env, ani_object aniObj)
@@ -1922,7 +1922,7 @@ void EtsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_o
 }
 
 void EtsAbilityContext::OnStartSelfUIAbilityInSubProcess(ani_env *env, ani_object aniObj,
-    ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call)
+    ani_object wantObj, ani_string aniSpecifiedFlag, ani_object call)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     AAFwk::Want want;
@@ -1935,10 +1935,6 @@ void EtsAbilityContext::OnStartSelfUIAbilityInSubProcess(ani_env *env, ani_objec
     if (!AppExecFwk::GetStdString(env, aniSpecifiedFlag, specifiedFlag)) {
         TAG_LOGE(AAFwkTag::CONTEXT, "Failed to parse specifiedFlag");
         EtsErrorUtil::ThrowInvalidParamError(env, "Failed to parse specifiedFlag.");
-        return;
-    }
-    if (opt != nullptr) {
-        EtsErrorUtil::ThrowInvalidParamError(env, "startOptions is not supported.");
         return;
     }
     ErrCode innerErrCode = ERR_OK;

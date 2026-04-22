@@ -222,7 +222,7 @@ private:
     void OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_object aniObj,
         ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
     void OnStartSelfUIAbilityInSubProcess(ani_env *env, ani_object aniObj,
-        ani_object wantObj, ani_string aniSpecifiedFlag, ani_object opt, ani_object call);
+        ani_object wantObj, ani_string aniSpecifiedFlag, ani_object call);
     ani_long OnConnectServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
         ani_int aniAccountId, ani_object connectOptionsObj);
     void OnStopServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,

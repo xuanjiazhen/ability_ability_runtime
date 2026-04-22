@@ -2863,6 +2863,7 @@ HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInSubProcess_0100, Te
     want.SetElementName("com.test.bundle", "TestAbility");
     std::string specifiedFlag = "testFlag";
     sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInSubProcess(_, specifiedFlag, callerToken)).WillOnce(Return(ERR_OK));
     EXPECT_EQ(client_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken), ERR_OK);
 }
 
@@ -2892,7 +2893,10 @@ HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInSubProcess_0300, Te
     Want want;
     std::string specifiedFlag = "";
     sptr<IRemoteObject> callerToken = nullptr;
-    EXPECT_EQ(client_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken), ERR_OK);
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInSubProcess(_, specifiedFlag, callerToken))
+        .WillOnce(Return(START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START));
+    EXPECT_EQ(client_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken),
+        START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START);
 }
 
 /**
@@ -2906,7 +2910,8 @@ HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInSubProcess_0400, Te
     want.SetElementName("com.test.bundle", "TestAbility");
     std::string specifiedFlag = "testFlag";
     sptr<IRemoteObject> callerToken = new IRemoteObjectMocker();
-    EXPECT_EQ(client_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken), ERR_OK);
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInSubProcess(_, specifiedFlag, callerToken)).WillOnce(Return(INNER_ERR));
+    EXPECT_EQ(client_->StartSelfUIAbilityInSubProcess(want, specifiedFlag, callerToken), INNER_ERR);
 }
 
 /**
