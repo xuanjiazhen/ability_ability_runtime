@@ -324,6 +324,16 @@ sptr<IRemoteObject> BaseExtensionRecord::GetConnRemoteObject() const
     return connRemoteObject_;
 }
 
+void BaseExtensionRecord::SetModularObjectRequestId(const std::string &requestId)
+{
+    modularObjectRequestId_ = requestId;
+}
+
+std::string BaseExtensionRecord::GetModularObjectRequestId() const
+{
+    return modularObjectRequestId_;
+}
+
 void BaseExtensionRecord::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)
 {
     if (IsDebug()) {
