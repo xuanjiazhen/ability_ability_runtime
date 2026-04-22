@@ -16,8 +16,13 @@
 #ifndef OHOS_ABILITY_RUNTIME_EXTENSION_ABILITY_THREAD_H
 #define OHOS_ABILITY_RUNTIME_EXTENSION_ABILITY_THREAD_H
 
+#include <atomic>
+#include <mutex>
+#include <unordered_map>
 #include "ability_thread.h"
+#include "event_handler.h"
 #include "extension_impl.h"
+#include "modular_object_extension_info.h"
 #include "want.h"
 
 namespace OHOS {
@@ -194,6 +199,37 @@ private:
     void HandleConnectExtension(const Want &want);
 
     /**
+     * @brief Initialize ModularObject thread config during attach phase.
+     * @param abilityRecord current running ability record.
+     */
+    void InitModularObjectThreadConfig(const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord);
+
+    /**
+     * @brief Handle ModularObject extension attach with thread model based creation.
+     * @param abilityRecord current running ability record.
+     * @param mainRunner The runner which main_thread holds.
+     * @param abilityInfo The ability info.
+     */
+    void HandleModularObjectAttach(
+        const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
+        const std::shared_ptr<AppExecFwk::EventRunner> &mainRunner,
+        const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo);
+
+    /**
+     * @brief Get or create a worker thread for modular object extension.
+     * @param threadKey The key to identify the worker thread.
+     * @return Returns the event handler for the worker thread.
+     */
+    static std::shared_ptr<AppExecFwk::EventHandler> GetOrCreateModularObjectWorkerThread(
+        const std::string &threadKey);
+
+    /**
+     * @brief Remove a worker thread for modular object extension when no connections remain.
+     * @param threadKey The key to identify the worker thread to remove.
+     */
+    static void RemoveModularObjectWorkerThread(const std::string &threadKey);
+
+    /**
      * @brief Handle the current disconnection of Extension.
      * @param want Indicates the structure containing connection information about the extension.
      */
@@ -245,6 +281,12 @@ private:
     std::shared_ptr<ExtensionImpl> extensionImpl_ = nullptr;
     std::shared_ptr<Extension> currentExtension_ = nullptr;
     static std::shared_ptr<AppExecFwk::EventRunner> contentEmbedEventRunner_;
+
+    static std::mutex modularObjectWorkerMutex_;
+    static std::unordered_map<std::string, std::shared_ptr<AppExecFwk::EventHandler>> modularObjectWorkerMap_;
+    static std::atomic<uint32_t> modularObjectInstanceId_;
+    AAFwk::MoeThreadMode modularObjectThreadMode_ = AAFwk::MoeThreadMode::TYPE;
+    bool isModularObjectExtension_ = false;
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
