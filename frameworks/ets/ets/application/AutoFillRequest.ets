@@ -121,3 +121,11 @@ class SaveRequestCallbackInner implements SaveRequestCallback {
   public native onSuccess(): void;
   public native onFailure(): void;
 }
+
+export interface FillFailureResult {
+  errCode: int;
+}
+
+class FillFailureResultInner implements FillFailureResult {
+  public errCode: int;
+}
