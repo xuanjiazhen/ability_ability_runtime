@@ -33,6 +33,8 @@
 #include "event_report.h"
 #include "extension_config.h"
 #include "extension_running_info.h"
+#include "modular_object_extension_info.h"
+#include "modular_object_manager.h"
 #include "connection_record.h"
 #include "element_name.h"
 #include "res_sched_util.h"
@@ -820,6 +822,13 @@ private:
     void ProcessEliminateAbilityRecord(std::shared_ptr<BaseExtensionRecord> eliminateRecord);
     static std::string GetServiceKey(const std::shared_ptr<BaseExtensionRecord> &service);
     static std::string GetServiceKey(const AbilityRequest &abilityRequest);
+    void HandleModularObjectNewRecord(const AbilityRequest &abilityRequest,
+        std::shared_ptr<BaseExtensionRecord> &targetService, const std::string &serviceKey);
+    int32_t CheckModularObjectLimits(const AbilityRequest &abilityRequest);
+    int32_t CheckModularObjectInstanceLimit(const std::string &baseServiceKey);
+    int32_t CheckModularObjectConnectionLimit(const std::string &baseServiceKey, int32_t callerPid);
+    static std::shared_ptr<AAFwk::ModularObjectExtensionInfo> QueryModularObjectConfig(
+        const AbilityRequest &abilityRequest);
 
     void SetExtensionLoadParam(AbilityRuntime::LoadParam &loadParam,
         std::shared_ptr<BaseExtensionRecord> abilityRecord);
