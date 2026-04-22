@@ -20,6 +20,7 @@ namespace OHOS {
 namespace AAFwk {
 namespace PermissionConstants {
 constexpr const char* PERMISSION_ACCESS_DLP = "ohos.permission.ACCESS_DLP_FILE";
+constexpr const char* PERMISSION_MANAGE_DLP_FILE = "ohos.permission.MANAGE_DLP_FILE";
 constexpr const char* PERMISSION_CLEAN_APPLICATION_DATA = "ohos.permission.CLEAN_APPLICATION_DATA";
 constexpr const char* PERMISSION_CLEAN_BACKGROUND_PROCESSES = "ohos.permission.CLEAN_BACKGROUND_PROCESSES";
 constexpr const char* PERMISSION_CONNECT_AGENT = "ohos.permission.CONNECT_AGENT";

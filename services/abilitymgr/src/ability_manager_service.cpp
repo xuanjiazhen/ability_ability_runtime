@@ -13263,7 +13263,7 @@ int32_t AbilityManagerService::NotifySaveAsResult(const Want &want, int resultCo
     CHECK_CALLER_IS_SYSTEM_APP;
 #ifdef WITH_DLP
     //caller check
-    if (!DlpUtils::CheckCallerIsDlpManager(AbilityUtil::GetBundleManagerHelper())) {
+    if (!DlpUtils::CheckCallerIsDlpManager()) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "caller check failed");
         return CHECK_PERMISSION_FAILED;
     }

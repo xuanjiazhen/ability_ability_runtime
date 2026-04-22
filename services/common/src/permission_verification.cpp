@@ -187,6 +187,22 @@ bool PermissionVerification::VerifyDlpPermission(Want &want) const
     return false;
 }
 
+bool PermissionVerification::VerifyDlpManagerPermission() const
+{
+    if (IsSACall()) { // 是否需要放行SA
+        return true;
+    }
+
+    if (!IsSystemAppCall()) { // 是否限制系统应用？
+        return false;
+    }
+
+    if (VerifyCallingPermission(PermissionConstants::PERMISSION_MANAGE_DLP_FILE)) {
+        return true;
+    }
+    return false;
+}
+
 int PermissionVerification::VerifyAccountPermission() const
 {
     if (VerifyCallingPermission(PermissionConstants::PERMISSION_INTERACT_ACROSS_LOCAL_ACCOUNTS)) {

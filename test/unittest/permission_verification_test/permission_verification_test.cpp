@@ -180,6 +180,18 @@ HWTEST_F(PermissionVerificationTest, VerifyDlpPermission_0100, TestSize.Level1)
     bool result = AAFwk::PermissionVerification::GetInstance()->VerifyDlpPermission(want);
     EXPECT_FALSE(result);
 }
+
+/**
+ * @tc.name: VerifyDlpManagerPermission_0100
+ * @tc.desc: VerifyDlpManagerPermission Test
+ * @tc.type: FUNC
+ * @tc.require: issueI581SE
+ */
+HWTEST_F(PermissionVerificationTest, VerifyDlpManagerPermission_0100, TestSize.Level1)
+{
+    bool result = AAFwk::PermissionVerification::GetInstance()->VerifyDlpManagerPermission();
+    EXPECT_FALSE(result);
+}
 #endif // WITH_DLP
 
 /**

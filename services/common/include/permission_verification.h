@@ -59,6 +59,8 @@ struct VerificationInfo {
 
     bool VerifyDlpPermission(Want &want) const;
 
+    bool VerifyDlpManagerPermission() const;
+
     int VerifyAccountPermission() const;
 
     bool VerifyMissionPermission() const;
