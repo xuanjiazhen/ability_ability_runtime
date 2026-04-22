@@ -90,6 +90,10 @@ int32_t ModularObjectUtils::CheckPermission(const AbilityRequest &abilityRequest
     if (ret != ERR_OK) {
         return ret;
     }
+    ret = CheckInProcessLaunchMode(targetExtensionInfo.launchMode, bundleName);
+    if (ret != ERR_OK) {
+        return ret;
+    }
     ret = CheckCallerForeground();
     if (ret != ERR_OK) {
         return ret;
@@ -114,6 +118,31 @@ int32_t ModularObjectUtils::CheckExtensionEnabled(const ModularObjectExtensionIn
         TAG_LOGE(AAFwkTag::EXT, "Extension is disabled: %{public}s/%{public}s. targetUid:%{public}d",
             info.bundleName.c_str(), info.abilityName.c_str(), abilityRequest.uid);
         return ERR_MODULAR_OBJECT_DISABLED;
+    }
+    return ERR_OK;
+}
+
+int32_t ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode launchMode, const std::string &targetBundleName)
+{
+    if (launchMode != MoeLaunchMode::IN_PROCESS) {
+        return ERR_OK;
+    }
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
+    std::string callerBundleName;
+    int32_t callerAppIndex = 0;
+    auto ret = IN_PROCESS_CALL(
+        bundleMgrHelper->GetNameAndIndexForUid(callingUid, callerBundleName, callerAppIndex));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::EXT, "Get caller bundleName failed, callingUid: %{public}d, ret: %{public}d",
+            callingUid, ret);
+        return INNER_ERR;
+    }
+    if (callerBundleName != targetBundleName) {
+        TAG_LOGE(AAFwkTag::EXT, "IN_PROCESS not support cross-app connect, caller: %{public}s, target: %{public}s",
+            callerBundleName.c_str(), targetBundleName.c_str());
+        return ERR_INVALID_VALUE;
     }
     return ERR_OK;
 }
