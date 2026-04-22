@@ -20,6 +20,7 @@
 #include <nlohmann/json.hpp>
 #include <unistd.h>
 
+#include "arg_mapping.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -41,80 +42,6 @@ constexpr const char* CLI_TOOLS_STORAGE_DIR = "/data/service/el1/public/database
 
 const DistributedKv::AppId APP_ID { KV_STORE_APP_ID };
 const DistributedKv::StoreId STORE_ID { KV_STORE_STORE_ID };
-
-/**
- * @brief Parse ArgMapping from JSON object
- */
-std::shared_ptr<ArgMapping> ParseArgMapping(const nlohmann::json &json)
-{
-    auto argMapping = std::make_shared<ArgMapping>();
-    if (json.contains("type") && json["type"].is_string()) {
-        std::string typeStr = json["type"];
-        if (typeStr == "flag") {
-            argMapping->type = ArgMappingType::FLAG;
-        } else if (typeStr == "positional") {
-            argMapping->type = ArgMappingType::POSITIONAL;
-        } else if (typeStr == "flattened") {
-            argMapping->type = ArgMappingType::FLATTENED;
-        } else if (typeStr == "jsonString") {
-            argMapping->type = ArgMappingType::JSONSTRING;
-        } else if (typeStr == "mixed") {
-            argMapping->type = ArgMappingType::MIXED;
-        }
-    }
-    if (json.contains("separator") && json["separator"].is_string()) {
-        argMapping->separator = json["separator"];
-    }
-    if (json.contains("order") && json["order"].is_string()) {
-        argMapping->order = json["order"];
-    }
-    if (json.contains("templates") && json["templates"].is_object()) {
-        argMapping->templates = json["templates"].dump();
-    } else if (json.contains("templates") && json["templates"].is_string()) {
-        argMapping->templates = json["templates"];
-    }
-    return argMapping;
-}
-
-/**
- * @brief Convert ArgMapping to JSON object
- */
-nlohmann::json ArgMappingToJson(const ArgMapping &argMapping)
-{
-    nlohmann::json j;
-    switch (argMapping.type) {
-        case ArgMappingType::FLAG:
-            j["type"] = "flag";
-            break;
-        case ArgMappingType::POSITIONAL:
-            j["type"] = "positional";
-            break;
-        case ArgMappingType::FLATTENED:
-            j["type"] = "flattened";
-            break;
-        case ArgMappingType::JSONSTRING:
-            j["type"] = "jsonString";
-            break;
-        case ArgMappingType::MIXED:
-            j["type"] = "mixed";
-            break;
-    }
-    if (!argMapping.separator.empty()) {
-        j["separator"] = argMapping.separator;
-    }
-    if (!argMapping.order.empty()) {
-        j["order"] = argMapping.order;
-    }
-    if (!argMapping.templates.empty()) {
-        nlohmann::json templatesJson = nlohmann::json::parse(argMapping.templates, nullptr, false);
-        if (!templatesJson.is_discarded()) {
-            j["templates"] = templatesJson;
-        } else {
-            j["templates"] = argMapping.templates;
-        }
-    }
-    return j;
-}
 }
 
 CliToolDataManager &CliToolDataManager::GetInstance()
