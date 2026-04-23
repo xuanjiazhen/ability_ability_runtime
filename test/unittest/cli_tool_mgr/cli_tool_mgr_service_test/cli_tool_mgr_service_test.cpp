@@ -106,9 +106,8 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0100, TestSize.Level1)
     param.challenge = "test_challenge";
 
     std::map<std::string, std::string> args;
-    CliSessionInfo session;
 
-    int32_t result = service_->ExecTool(param, args, session);
+    int32_t result = service_->ExecTool(param, args, "test");
 
     EXPECT_EQ(result, ERR_SESSION_LIMIT_EXCEEDED);
     EXPECT_EQ(service_->activeSessionCount_.load(), 8);
@@ -131,9 +130,8 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0200, TestSize.Level1)
     param.challenge = "test_challenge";
 
     std::map<std::string, std::string> args;
-    CliSessionInfo session;
 
-    int32_t result = service_->ExecTool(param, args, session);
+    int32_t result = service_->ExecTool(param, args, "test");
 
     EXPECT_EQ(result, ERR_TOOL_NOT_EXIST);
 
@@ -155,9 +153,8 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0300, TestSize.Level1)
     param.challenge = "test_challenge";
 
     std::map<std::string, std::string> args;
-    CliSessionInfo session;
 
-    int32_t result = service_->ExecTool(param, args, session);
+    int32_t result = service_->ExecTool(param, args, "test");
 
     EXPECT_EQ(result, ERR_TOOL_NOT_EXIST);
 
@@ -190,9 +187,7 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0500, TestSize.Level1)
 
     std::map<std::string, std::string> args;
 
-    CliSessionInfo session;
-
-    int32_t result = service_->ExecTool(param, args, session);
+    int32_t result = service_->ExecTool(param, args, "test");
 
     EXPECT_EQ(result, ERR_TOOL_NOT_EXIST);
 
