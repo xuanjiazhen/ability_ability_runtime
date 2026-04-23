@@ -33,6 +33,10 @@ public:
 
     static bool GenerateSandboxConfig(const std::string &challenge, std::string &sandboxConfig);
 
+    static bool VerifySystemApp();
+
+    static bool VerifyCallingPermission(const std::string &permissionName);
+
 private:
     static bool GetBundleInfoByTokenId(AppExecFwk::BundleInfo &bundleInfo);
 };
