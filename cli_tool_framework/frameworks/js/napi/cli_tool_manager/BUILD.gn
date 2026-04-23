@@ -31,6 +31,8 @@ ohos_shared_library("clitoolmanager_napi") {
     "src/cli_tool_manager_module.cpp",
     "src/js_cli_manager.cpp",
     "src/js_cli_manager_utils.cpp",
+    "src/js_cli_event_handler_manager.cpp",
+    "src/js_cli_session_event_callback.cpp",
   ]
 
   deps = [
@@ -43,6 +45,7 @@ ohos_shared_library("clitoolmanager_napi") {
   external_deps = [
     "ability_base:base",
     "c_utils:utils",
+    "eventhandler:libeventhandler",
     "hilog:libhilog",
     "napi:ace_napi",
   ]

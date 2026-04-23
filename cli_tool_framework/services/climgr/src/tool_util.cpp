@@ -26,6 +26,7 @@
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -72,55 +73,27 @@ bool ToolUtil::ValidateInputSchemaProperties(const std::string &inputSchema,
     return true;
 }
 
-bool ToolUtil::CreatePipe(int pipeFd[2])
+bool ToolUtil::VerifySystemApp()
 {
-    if (pipe(pipeFd) != 0) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create pipe: %{public}d", errno);
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "Called");
+    uint64_t accessTokenIdEx = IPCSkeleton::GetCallingFullTokenID();
+    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(accessTokenIdEx)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "non-system app calling system api");
         return false;
     }
-
-    // 设置读端为非阻塞
-    int flags = fcntl(pipeFd[0], F_GETFL);
-    if (flags == -1 || fcntl(pipeFd[0], F_SETFL, flags | O_NONBLOCK) == -1) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to set non-blocking: %{public}d", errno);
-        close(pipeFd[0]);
-        close(pipeFd[1]);
-        return false;
-    }
-
     return true;
 }
 
-void ToolUtil::ExecuteChildProcess(std::string &cmdLine, const std::string &sandboxConfig,
-    const std::map<std::string, std::string> &args, int stdoutPipe[], int stderrPipe[])
+bool ToolUtil::VerifyCallingPermission(const std::string &permissionName)
 {
-    close(stdoutPipe[0]);
-    close(stderrPipe[0]);
-
-    // 重定向标准输出和标准错误
-    dup2(stdoutPipe[1], STDOUT_FILENO);
-    dup2(stderrPipe[1], STDERR_FILENO);
-
-    close(stdoutPipe[1]);
-    close(stderrPipe[1]);
-
-    std::string clawSandbox = "/system/bin/claw_sandbox";
-    std::string configPrompt = "--config";
-    std::string cmdPrompt = "--cmd";
-    std::vector<char*> execArgs;
-    execArgs.push_back(const_cast<char *>(clawSandbox.c_str()));
-    execArgs.push_back(const_cast<char *>(configPrompt.c_str()));
-    execArgs.push_back(const_cast<char *>(sandboxConfig.c_str()));
-    execArgs.push_back(const_cast<char *>(cmdPrompt.c_str()));
-    for (const auto &[key, value] : args) {
-        cmdLine += " " + key + " " + value;
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "Verify: %{public}s", permissionName.c_str());
+    OHOS::Security::AccessToken::AccessTokenID callerToken = IPCSkeleton::GetCallingTokenID();
+    int32_t ret = OHOS::Security::AccessToken::AccessTokenKit::VerifyAccessToken(callerToken, permissionName);
+    if (ret != OHOS::Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "PERMISSION_DENIED: %{public}s", permissionName.c_str());
+        return false;
     }
-
-    execArgs.push_back(const_cast<char *>(cmdLine.c_str()));
-    execArgs.push_back(nullptr);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Before execvp");
-    execvp(execArgs[0], execArgs.data());
-    _exit(EXIT_FAILURE);
+    return true;
 }
 
 std::string ToolUtil::GenerateCliSessionId(const std::string &name, int64_t startTime, int32_t counter) const
@@ -128,14 +101,22 @@ std::string ToolUtil::GenerateCliSessionId(const std::string &name, int64_t star
     return name + "_" + std::to_string(startTime) + "_" + std::to_string(counter);
 }
 
-void ToolUtil::ConstructSessionInfo(CliSessionInfo &session, const std::string &toolName, int32_t counter)
-{
-    session.startTime = std::chrono::system_clock::now().time_since_epoch().count();
-    session.sessionId = GenerateCliSessionId(toolName, session.startTime, counter);
-    session.toolName = toolName;
-    session.status = "running";
-    session.endTime = 0;
-    session.result = std::make_shared<ExecResult>();
+std::shared_ptr<SessionRecord> ToolUtil::CreateSessionRecord(const ExecToolParam &param, int32_t counter)
+{   
+    auto record = std::make_shared<SessionRecord>();
+    if (record == nullptr) {
+        return nullptr;
+    }
+    int32_t timeoutMs = param.options.timeout;
+    record->startTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->sessionId = GenerateCliSessionId(param.toolName, record->startTime, counter);
+    record->toolName = param.toolName;
+    record->timeoutMs = timeoutMs;
+    record->SetState(SessionState::RUNNING);
+    record->SetBackground(param.options.background);
+    return record;
 }
 
 bool ToolUtil::GenerateSandboxConfig(const std::string &challenge, std::string &sandboxConfig) const
