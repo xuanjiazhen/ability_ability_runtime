@@ -46,6 +46,10 @@ public:
 
     static void TransferToCmdParam(const AAFwk::WantParams &args, std::string &cmdLine);
 
+    static bool VerifySystemApp();
+
+    static bool VerifyCallingPermission(const std::string &permissionName);
+
 private:
     static bool GetBundleInfoByTokenId(AccessToken::AccessTokenID tokenId,
         AppExecFwk::BundleInfo &bundleInfo);
