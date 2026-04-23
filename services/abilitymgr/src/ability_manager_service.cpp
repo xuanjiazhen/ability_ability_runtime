@@ -5898,7 +5898,7 @@ int AbilityManagerService::DisconnectAbility(sptr<IAbilityConnection> connect)
 bool AbilityManagerService::CheckSupportVpn(const AppExecFwk::AbilityInfo& abilityInfo) 
 {
     if(abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::VPN) {
-        return false;
+        return true;
     }
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "CHECK_CALLER_IS_SYSTEM_APP start uid: %{public}d", callerUid);
@@ -5976,11 +5976,18 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
             return ERR_WRONG_INTERFACE_CALL;
         }
         // not allow app to connect other extension by using connectServiceExtensionAbility
-        bool isVpn = CheckSupportVpn(abilityInfo);
+        bool isSupportVpn = CheckSupportVpn(abilityInfo);
+        // LCOV_EXCL_START
+        if (!isSupportVpn) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "not support vpn");
+            return TARGET_ABILITY_NOT_SERVICE;
+        }
+        bool isVpn = abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::VPN;
         if (callerToken && extensionType == AppExecFwk::ExtensionAbilityType::SERVICE && !isService && !isVpn) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "ability, type not service");
             return TARGET_ABILITY_NOT_SERVICE;
         }
+        // LCOV_EXCL_STOP
     }
     int32_t validUserId = abilityInfo.applicationInfo.uid / BASE_USER_RANGE;
     TAG_LOGD(AAFwkTag::SERVICE_EXT, "validUserId : %{public}d, singleton is : %{public}d",
