@@ -31,12 +31,15 @@ ohos_unittest("modular_object_connect_test") {
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
     "${ability_runtime_test_path}/mock/mock_sa_call",
     "${ability_runtime_test_path}/mock/task_handler_wrap_mock/include",
+    "${ability_runtime_services_path}/abilitymgr/include/modular_object",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
   ]
 
   sources = [
     # add mock file
     "${ability_runtime_test_path}/mock/services_abilitymgr_test/libs/appexecfwk_core/src/appmgr/mock_app_scheduler.cpp",
     "${ability_runtime_test_path}/mock/task_handler_wrap_mock/src/mock_task_handler_wrap.cpp",
+    "mock_modular_object_manager.cpp",
     "modular_object_connect_test.cpp",
   ]
 

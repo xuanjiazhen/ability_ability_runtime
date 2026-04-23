@@ -355,14 +355,8 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 #endif // SUPPORT_UPMS
     std::lock_guard guard(serialMutex_);
 
-    // ModularObject pre-check
-    int32_t ret = CheckModularObjectPreCondition(abilityRequest);
-    if (ret != ERR_OK) {
-        return ret;
-    }
-
     // 1. get target service ability record, and check whether it has been loaded.
-    ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
+    int32_t ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
     if (ret != ERR_OK) {
         //  Do not distinguishing specific error codes
         return ERR_INVALID_VALUE;
@@ -3325,32 +3319,6 @@ void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abili
         TAG_LOGI(AAFwkTag::EXT, "create sceneboard");
         sceneBoardTokenId_ = abilityRequest.appInfo.accessTokenId;
     }
-}
-
-int32_t AbilityConnectManager::CheckModularObjectPreCondition(const AbilityRequest &abilityRequest)
-{
-    if (abilityRequest.abilityInfo.extensionAbilityType !=
-        AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
-        return ERR_OK;
-    }
-    auto config = AbilityConnectManager::QueryModularObjectConfig(abilityRequest);
-    if (config == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "modular object config not found");
-        return ERR_INVALID_VALUE;
-    }
-    if (config->isDisabled) {
-        TAG_LOGE(AAFwkTag::EXT, "modular object extension is disabled");
-        return ERR_INVALID_VALUE;
-    }
-    if (config->launchMode == MoeLaunchMode::IN_PROCESS) {
-        std::string callerBundleName =
-            abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME);
-        if (callerBundleName != abilityRequest.abilityInfo.bundleName) {
-            TAG_LOGE(AAFwkTag::EXT, "IN_PROCESS not support cross-app connect");
-            return ERR_INVALID_VALUE;
-        }
-    }
-    return ERR_OK;
 }
 
 void AbilityConnectManager::HandleModularObjectNewRecord(const AbilityRequest &abilityRequest,

@@ -824,7 +824,6 @@ private:
     static std::string GetServiceKey(const AbilityRequest &abilityRequest);
     void HandleModularObjectNewRecord(const AbilityRequest &abilityRequest,
         std::shared_ptr<BaseExtensionRecord> &targetService, const std::string &serviceKey);
-    int32_t CheckModularObjectPreCondition(const AbilityRequest &abilityRequest);
     static std::shared_ptr<AAFwk::ModularObjectExtensionInfo> QueryModularObjectConfig(
         const AbilityRequest &abilityRequest);
 

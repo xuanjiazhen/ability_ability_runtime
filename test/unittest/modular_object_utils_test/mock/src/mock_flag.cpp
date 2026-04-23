@@ -15,6 +15,8 @@
 
 #include "mock_flag.h"
 
+#include <string>
+
 bool MockFlag::isSupportModularObjectExtension = true;
 int32_t MockFlag::callingUid = 1000;
 pid_t MockFlag::callingPid = 1234;
@@ -25,10 +27,12 @@ bool MockFlag::isDeveloperMode = false;
 int32_t MockFlag::queryDataRet = 0;
 bool MockFlag::extensionFound = true;
 bool MockFlag::extensionDisabled = false;
+OHOS::AAFwk::MoeLaunchMode MockFlag::launchMode = OHOS::AAFwk::MoeLaunchMode::CROSS_PROCESS;
 bool MockFlag::bundleMgrHelperNull = false;
 int32_t MockFlag::getNameAndIndexRet = 0;
 int32_t MockFlag::getOsAccountRet = 0;
 bool MockFlag::getApplicationInfoRet = true;
+std::string MockFlag::callerBundleName = "com.caller.bundle";
 bool MockFlag::amsNull = false;
 bool MockFlag::isSceneBoardEnabled = true;
 bool MockFlag::hasRunningUIAbility = true;

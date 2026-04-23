@@ -18,6 +18,7 @@
 
 #include <string>
 #include <cstdint>
+#include <map>
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -25,7 +26,9 @@ struct ApplicationInfo {
     std::string appDistributionType;
     int32_t uid = 0;
 };
-struct AbilityInfo {};
+struct AbilityInfo {
+    std::string bundleName;
+};
 } // namespace AppExecFwk
 
 namespace AAFwk {
@@ -54,6 +57,7 @@ private:
 class Want {
 public:
     inline static const std::string PARAM_APP_CLONE_INDEX_KEY = "appCloneIndex";
+    inline static const std::string PARAM_RESV_CALLER_BUNDLE_NAME = "callerBundleName";
     ElementName GetElement() const { return element_; }
     void SetElement(const ElementName &element) { element_ = element; }
     int32_t GetIntParam(const std::string &key, int32_t defaultValue) const
@@ -64,9 +68,22 @@ public:
         return defaultValue;
     }
     void SetAppCloneIndex(int32_t index) { appCloneIndex_ = index; }
+    std::string GetStringParam(const std::string &key) const
+    {
+        auto it = stringParams_.find(key);
+        if (it != stringParams_.end()) {
+            return it->second;
+        }
+        return "";
+    }
+    void SetParam(const std::string &key, const std::string &value)
+    {
+        stringParams_[key] = value;
+    }
 private:
     ElementName element_;
     int32_t appCloneIndex_ = 0;
+    std::map<std::string, std::string> stringParams_;
 };
 
 struct AbilityRequest {

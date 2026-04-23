@@ -33,6 +33,7 @@ public:
 
 private:
     static int32_t CheckExtensionEnabled(const ModularObjectExtensionInfo &info, const AbilityRequest &abilityRequest);
+    static int32_t CheckInProcessLaunchMode(MoeLaunchMode launchMode, const std::string &targetBundleName);
     static int32_t CheckCallerForeground();
     static int32_t CheckAppDistributionType(const std::string &callerAppDistributionType,
         const std::string &targetAppDistributionType);
