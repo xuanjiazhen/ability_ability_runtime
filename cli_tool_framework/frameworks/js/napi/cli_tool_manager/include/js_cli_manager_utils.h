@@ -20,6 +20,7 @@
 #include <string>
 
 #include "cli_session_info.h"
+#include "cli_tool_event.h"
 #include "exec_options.h"
 #include "exec_result.h"
 #include "native_engine/native_engine.h"
@@ -53,6 +54,16 @@ bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options);
  * @return Returns the JavaScript object.
  */
 napi_value CreateJsCliSessionInfo(napi_env env, const CliSessionInfo &session);
+
+bool IsValidToolEventCallback(napi_env env, napi_value obj);
+
+/**
+ * @brief Create JavaScript CliToolEvent object.
+ * @param env The N-API environment.
+ * @param session The CliToolEvent structure.
+ * @return Returns the JavaScript object.
+ */
+napi_value CreateJsCliToolEvent(napi_env env, const CliToolEvent &event);
 
 /**
  * @brief Create JavaScript error from native error code.
