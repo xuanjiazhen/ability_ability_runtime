@@ -122,5 +122,87 @@ HWTEST_F(MadviseUtilsTest, MadviseWithConfigFile_0100, TestSize.Level2)
 
     TAG_LOGI(AAFwkTag::TEST, "MadviseWithConfigFile_0100 end.");
 }
+
+/**
+ * @tc.number: GetReleasedRegions_0100
+ * @tc.desc: Test GetReleasedRegions and ClearReleasedRegions
+ * @tc.type: FUNC
+ */
+HWTEST_F(MadviseUtilsTest, GetReleasedRegions_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetReleasedRegions_0100 start.");
+
+    MadviseUtil::ClearReleasedRegions();
+    auto& regions = MadviseUtil::GetReleasedRegions();
+    EXPECT_EQ(regions.size(), 0);
+    MadviseUtil::ClearReleasedRegions();
+    EXPECT_EQ(regions.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "GetReleasedRegions_0100 end.");
+}
+
+/**
+ * @tc.number: DetectReloadedPages_0100
+ * @tc.desc: Test DetectReloadedPages returns empty when no regions released
+ * @tc.type: FUNC
+ */
+HWTEST_F(MadviseUtilsTest, DetectReloadedPages_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DetectReloadedPages_0100 start.");
+
+    MadviseUtil::ClearReleasedRegions();
+    auto result = MadviseUtil::DetectReloadedPages();
+    EXPECT_EQ(result.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "DetectReloadedPages_0100 end.");
+}
+
+/**
+ * @tc.number: MadviseFilePagesAtOffsets_0100
+ * @tc.desc: Test MadviseFilePagesAtOffsets with empty filename
+ * @tc.type: FUNC
+ */
+HWTEST_F(MadviseUtilsTest, MadviseFilePagesAtOffsets_0100, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "MadviseFilePagesAtOffsets_0100 start.");
+
+    std::vector<uint64_t> offsets = {0x1000};
+    int32_t result = MadviseUtil::MadviseFilePagesAtOffsets("", offsets);
+    EXPECT_EQ(result, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "MadviseFilePagesAtOffsets_0100 end.");
+}
+
+/**
+ * @tc.number: MadviseFilePagesAtOffsets_0200
+ * @tc.desc: Test MadviseFilePagesAtOffsets with empty offsets
+ * @tc.type: FUNC
+ */
+HWTEST_F(MadviseUtilsTest, MadviseFilePagesAtOffsets_0200, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "MadviseFilePagesAtOffsets_0200 start.");
+
+    std::vector<uint64_t> offsets;
+    int32_t result = MadviseUtil::MadviseFilePagesAtOffsets("test.so", offsets);
+    EXPECT_EQ(result, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "MadviseFilePagesAtOffsets_0200 end.");
+}
+
+/**
+ * @tc.number: MadviseFilePagesAtOffsets_0300
+ * @tc.desc: Test MadviseFilePagesAtOffsets with nonexistent file
+ * @tc.type: FUNC
+ */
+HWTEST_F(MadviseUtilsTest, MadviseFilePagesAtOffsets_0300, TestSize.Level2)
+{
+    TAG_LOGI(AAFwkTag::TEST, "MadviseFilePagesAtOffsets_0300 start.");
+
+    std::vector<uint64_t> offsets = {0x1000, 0x2000};
+    int32_t result = MadviseUtil::MadviseFilePagesAtOffsets("nonexistent_test.so", offsets);
+    EXPECT_EQ(result, 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "MadviseFilePagesAtOffsets_0300 end.");
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

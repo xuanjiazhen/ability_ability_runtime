@@ -947,14 +947,18 @@ void JsUIAbility::OnBackground()
     if (want != nullptr) {
         HandleCollaboration(*want);
     }
-    // Apply madvise optimization based on config file (only once per process)
-    static bool madviseApplied = false;
-    if (!madviseApplied && abilityInfo_ != nullptr) {
+    // Madvise cold page optimization: first background releases pages, subsequent ones detect reloaded pages
+    static int32_t madviseState = 0; // 0=not released, 1=released, detect reload on next
+    if (abilityInfo_ != nullptr) {
         bool enableMadvise = OHOS::system::GetBoolParameter("persist.sys.abilityms.enable_madvise", false);
         if (enableMadvise) {
-            MadviseUtil::MadviseWithConfigFile(abilityInfo_->bundleName.c_str());
+            if (madviseState == 0) {
+                MadviseUtil::MadviseWithConfigFile(abilityInfo_->bundleName.c_str());
+                madviseState = 1;
+            } else {
+                MadviseUtil::DetectReloadedPages();
+            }
         }
-        madviseApplied = true;
     }
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }

@@ -23,6 +23,19 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace MadviseUtil {
+
+struct ReleasedRegion {
+    std::string filename;
+    uintptr_t startAddr = 0;
+    size_t length = 0;
+    uint64_t fileOffset = 0;
+};
+
+struct ReloadedPageInfo {
+    std::string filename;
+    std::vector<uint64_t> pageOffsets;
+};
+
 bool MadviseSingleLibrary(const char* libName);
 
 int32_t MadviseGeneralFiles(const std::vector<std::string>& filenames);
@@ -30,6 +43,14 @@ int32_t MadviseGeneralFiles(const std::vector<std::string>& filenames);
 int32_t MadviseWithConfigFile(const char* bundleName);
 
 std::string GetConfigPath();
+
+std::vector<ReleasedRegion>& GetReleasedRegions();
+void ClearReleasedRegions();
+
+std::vector<ReloadedPageInfo> DetectReloadedPages();
+
+int32_t MadviseFilePagesAtOffsets(const std::string& filename,
+                                   const std::vector<uint64_t>& pageOffsets);
 
 } // namespace MadviseUtil
 } // namespace AbilityRuntime

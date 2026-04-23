@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <cstdio>
 #include <cstdlib>
+#include <unordered_map>
 #include <unordered_set>
 #include <string>
 #include <vector>
@@ -292,6 +293,12 @@ static int32_t MadvisePhdrCallback(struct dl_phdr_info *info, size_t size, void 
         if (result == 0) {
             TAG_LOGD(AAFwkTag::ABILITY, "madvise success: len=%{public}zu", alignedLen);
             madviseData->successCount++;
+            OHOS::AbilityRuntime::MadviseUtil::ReleasedRegion rr;
+            rr.filename = madviseData->targetLibName;
+            rr.startAddr = reinterpret_cast<uintptr_t>(alignedStart);
+            rr.length = alignedLen;
+            rr.fileOffset = phdr->p_offset;
+            OHOS::AbilityRuntime::MadviseUtil::GetReleasedRegions().push_back(rr);
         } else {
             TAG_LOGE(AAFwkTag::ABILITY, "madvise failed: len=%{public}zu, errno=%{public}d", alignedLen, errno);
             madviseData->failCount++;
@@ -341,6 +348,12 @@ static bool ApplyMadviseToRegion(const OHOS::AbilityRuntime::VmaUtil::VMARegion&
     int32_t result = madvise(alignedStart, alignedLen, MADV_DONTNEED);
     if (result == 0) {
         TAG_LOGD(AAFwkTag::ABILITY, "madvise success: len=%{public}zu", alignedLen);
+        ReleasedRegion rr;
+        rr.filename = region.pathname;
+        rr.startAddr = reinterpret_cast<uintptr_t>(alignedStart);
+        rr.length = alignedLen;
+        rr.fileOffset = region.offset;
+        GetReleasedRegions().push_back(rr);
         return true;
     } else {
         TAG_LOGE(AAFwkTag::ABILITY, "madvise failed: len=%{public}zu, errno=%{public}d", alignedLen, errno);
@@ -405,6 +418,106 @@ std::string GetConfigPath()
         return MADVISE_CONFIG_DEFAULT_FILE_PATH;
     }
     return configPath;
+}
+
+std::vector<ReleasedRegion>& GetReleasedRegions()
+{
+    static std::vector<ReleasedRegion> regions;
+    return regions;
+}
+
+void ClearReleasedRegions()
+{
+    GetReleasedRegions().clear();
+}
+
+std::vector<ReloadedPageInfo> DetectReloadedPages()
+{
+    std::vector<ReloadedPageInfo> result;
+    const auto& released = GetReleasedRegions();
+    if (released.empty()) {
+        return result;
+    }
+
+    size_t pageSize = static_cast<size_t>(getpagesize());
+    std::unordered_map<std::string, std::vector<uint64_t>> reloadedByFile;
+
+    for (const auto& region : released) {
+        size_t numPages = (region.length + pageSize - 1) / pageSize;
+        if (numPages == 0) {
+            continue;
+        }
+        std::vector<unsigned char> vec(numPages, 0);
+        int ret = mincore(reinterpret_cast<void*>(region.startAddr), region.length, vec.data());
+        if (ret != 0) {
+            TAG_LOGW(AAFwkTag::ABILITY, "mincore failed for %{public}s, errno=%{public}d",
+                region.filename.c_str(), errno);
+            continue;
+        }
+        for (size_t i = 0; i < numPages; i++) {
+            if (vec[i] & 1) {
+                uint64_t pageOffset = region.fileOffset + static_cast<uint64_t>(i) * pageSize;
+                reloadedByFile[region.filename].push_back(pageOffset);
+            }
+        }
+    }
+
+    for (auto& [filename, offsets] : reloadedByFile) {
+        TAG_LOGI(AAFwkTag::ABILITY, "Reloaded pages for %{public}s: %{public}zu pages",
+            filename.c_str(), offsets.size());
+        for (const auto& off : offsets) {
+            TAG_LOGD(AAFwkTag::ABILITY, "  reloaded page offset: %{public}p",
+                reinterpret_cast<void*>(off));
+        }
+        ReloadedPageInfo info;
+        info.filename = filename;
+        info.pageOffsets = std::move(offsets);
+        result.push_back(std::move(info));
+    }
+    return result;
+}
+
+int32_t MadviseFilePagesAtOffsets(const std::string& filename, const std::vector<uint64_t>& pageOffsets)
+{
+    if (filename.empty() || pageOffsets.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITY, "Invalid arguments: filename or offsets empty");
+        return 0;
+    }
+
+    size_t pageSize = static_cast<size_t>(getpagesize());
+    auto regions = VmaUtil::GetFileVmas({filename});
+    if (regions.empty()) {
+        TAG_LOGW(AAFwkTag::ABILITY, "No VMA regions found for %{public}s", filename.c_str());
+        return 0;
+    }
+
+    int32_t successCount = 0;
+    for (const auto& targetOffset : pageOffsets) {
+        for (const auto& region : regions) {
+            uint64_t regionFileStart = region.offset;
+            uint64_t regionFileEnd = region.offset + region.size;
+            if (targetOffset >= regionFileStart && targetOffset < regionFileEnd) {
+                uintptr_t vaddr = region.start + static_cast<uintptr_t>(targetOffset - region.offset);
+                void* addr = reinterpret_cast<void*>(vaddr & ~(pageSize - 1));
+                int32_t ret = madvise(addr, pageSize, MADV_DONTNEED);
+                if (ret == 0) {
+                    successCount++;
+                    TAG_LOGD(AAFwkTag::ABILITY,
+                        "madvise offset 0x%{public}08x -> vaddr 0x%{public}08x success",
+                        static_cast<uint32_t>(targetOffset), static_cast<uint32_t>(reinterpret_cast<uintptr_t>(addr)));
+                } else {
+                    TAG_LOGW(AAFwkTag::ABILITY,
+                        "madvise offset 0x%{public}08x failed, errno=%{public}d",
+                        static_cast<uint32_t>(targetOffset), errno);
+                }
+                break;
+            }
+        }
+    }
+    TAG_LOGI(AAFwkTag::ABILITY,
+        "MadviseFilePagesAtOffsets: %{public}s, %{public}d/%{public}zu pages released",
+        filename.c_str(), successCount, pageOffsets.size());
+    return successCount;
 }
 } // namespace MadviseUtil
 } // namespace AbilityRuntime
