@@ -232,6 +232,13 @@ public:
     int32_t GetUid() const;
 
     /**
+     * @brief Obtains the application accessTokenId.
+     *
+     * @return Returns the application accessTokenId.
+     */
+    uint32_t GetAccessTokenId() const;
+
+    /**
      * @brief Setting the application uid.
      *
      * @param state, the application uid.
@@ -484,6 +491,16 @@ public:
     void ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
+     * ScheduleMem, triggerGC and dump application's memory info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot
+     * @param dumpResult The dump result string
+     *
+     * @return
+     */
+    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
+
+    /**
      * GetAbilityRunningRecordByToken, Obtaining the ability record through token.
      *
      * @param token, the unique identification to the ability.
@@ -502,7 +519,8 @@ public:
      *
      * @return
      */
-    void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state);
+    void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+        bool isFromScreenOffBackground = false);
 
     /**
      * PopForegroundingAbilityTokens, Extract the token record from the foreground tokens list.
@@ -1261,6 +1279,16 @@ public:
         return isAllowScbProcessMoveToBackground_.load();
     }
 
+    inline void SetIsFromScreenOffBackground(bool isFromScreenOffBackground)
+    {
+        isFromScreenOffBackground_ = isFromScreenOffBackground;
+    }
+
+    inline bool IsFromScreenOffBackground() const
+    {
+        return isFromScreenOffBackground_;
+    }
+
     bool IsLastAgentExtensionAbility(const sptr<IRemoteObject> &token);
 
 private:
@@ -1287,7 +1315,8 @@ private:
      *
      * @return
      */
-    void AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability);
+    void AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability,
+        bool isFromScreenOffBackground = false);
     // drive application state changes when ability state changes.
 
     bool AbilityFocused(const std::shared_ptr<AbilityRunningRecord> &ability);
@@ -1321,6 +1350,8 @@ private:
      * - Collision probability is extremely low (approximately 2^-64)
      */
     uint64_t GenerateRunningId();
+
+    bool HasOnlyOneExtensionType();
 
     bool IsWindowIdsEmpty();
 
@@ -1469,6 +1500,7 @@ private:
     bool saEnableFlags_ = true;
     bool processCacheBlocked = false; // temporarily block process cache feature
     bool reasonExist_ = false;
+    bool isFromScreenOffBackground_ = false;
 
     ffrt::mutex appInfosLock_;
     ffrt::mutex renderRecordMapLock_; // render record lock

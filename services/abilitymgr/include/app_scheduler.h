@@ -274,7 +274,7 @@ public:
      *
      * @param token, the token of ability.
      */
-    void MoveToBackground(const sptr<IRemoteObject> &token);
+    void MoveToBackground(const sptr<IRemoteObject> &token, bool isFromScreenOffBackground = false);
 
     /**
      * Update ability state.
@@ -300,6 +300,15 @@ public:
      * @param token, the unique identification to the ability.
      */
     void KillProcessByAbilityToken(const sptr<IRemoteObject> &token);
+
+    /**
+     * SetGameSAPrelaunch, set game SA prelaunch flag through proxy object.
+     *
+     * @param token, the unique identification to the ability.
+     * @param isGameSAPrelaunch, the game SA prelaunch flag to set.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch);
 
     /**
      * KillProcessesByUserId, call KillProcessesByUserId() through proxy object,
@@ -468,7 +477,7 @@ public:
      * @param requestId request id to callback
      */
     void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0, const std::string &customProcess = "");
+        int32_t requestId = 0, const std::string &customProcess = "", bool isWindowStagePreload = false);
 
     /**
      * @brief Get running process information.
@@ -513,6 +522,18 @@ public:
      * @return ERR_OK ,return back success，others fail.
      */
     int GetProcessRunningInfosByUserId(std::vector<AppExecFwk::RunningProcessInfo> &info, int32_t userId);
+
+    /**
+     * GetProcessRunningInfosByAccessTokenId, call GetProcessRunningInfosByAccessTokenId() through proxy project.
+     * Obtains information about application processes that are running on the device by accessTokenId.
+     *
+     * @param accessTokenId, accessTokenId in Application record.
+     * @param info, Running process info.
+     * @return ERR_OK ,return back success，others fail.
+     */
+    int32_t GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+        std::vector<AppExecFwk::RunningProcessInfo> &info);
+
     std::string ConvertAppState(const AppState &state);
 
     /**

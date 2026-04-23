@@ -140,6 +140,11 @@ void AppRunningRecord::SetUid(const int32_t uid)
     mainUid_ = uid;
 }
 
+uint32_t AppRunningRecord::GetAccessTokenId() const
+{
+    return 0;
+}
+
 void AppRunningRecord::SetPreloadAttachTimeoutStartTime(const std::chrono::system_clock::time_point &time)
 {
     preloadAttachTimeoutStartTime_ = time;
@@ -295,6 +300,10 @@ void AppRunningRecord::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
 {
 }
 
+void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpresult)
+{
+}
+
 void AppRunningRecord::LowMemoryWarning()
 {
 }
@@ -350,7 +359,8 @@ bool AppRunningRecord::UpdateAbilityFocusState(const sptr<IRemoteObject> &token,
     return false;
 }
 
-void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
+void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+    bool isFromScreenOffBackground)
 {
 }
 
@@ -358,7 +368,8 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
 {
 }
 
-void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability)
+void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability,
+    bool isFromScreenOffBackground)
 {
 }
 

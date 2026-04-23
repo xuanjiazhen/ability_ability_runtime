@@ -44,6 +44,7 @@
 #include "app_mgr_service_dump_error_code.h"
 #include "cache_process_manager.h"
 #include "uri_permission_manager_client.h"
+#include "appfreeze_manager.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -64,6 +65,7 @@ constexpr const int MAX_DUMP_FFRT_PID_NUMBER = 3;
 constexpr const int BASE_TEN = 10;
 constexpr const char SIGN_TERMINAL = '\0';
 constexpr int32_t DEFAULT_CONCURRENT_NUMBER = 1;
+constexpr int32_t HIPROFILER_UID = 3063;
 namespace {
 #define CHECK_CALLER_IS_SYSTEM_APP                                                             \
     if (!AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) { \
@@ -602,6 +604,19 @@ int32_t AppMgrService::GetProcessRunningInfosByUserId(std::vector<RunningProcess
     return appMgrServiceInner_->GetProcessRunningInfosByUserId(info, userId);
 }
 
+int32_t AppMgrService::GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+    std::vector<RunningProcessInfo> &info)
+{
+    if (!IsReady()) {
+        return ERR_INVALID_OPERATION;
+    }
+    if (IPCSkeleton::GetCallingPid() != getprocpid()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "calling pid is not local process");
+        return ERR_PERMISSION_DENIED;
+    }
+    return appMgrServiceInner_->GetProcessRunningInfosByAccessTokenId(accessTokenId, info);
+}
+
 int32_t AppMgrService::GetProcessRunningInformation(RunningProcessInfo &info)
 {
     if (!IsReady()) {
@@ -662,6 +677,14 @@ int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
     static std::mutex mutex_;
     std::lock_guard<std::mutex> lock(mutex_);
     return appMgrServiceInner_->DumpCjHeapMemory(info);
+}
+
+int32_t AppMgrService::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    if (!IsReady() || !HasDumpPermission()) {
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->DumpMem(info, dumpResult);
 }
 
 void AppMgrService::AddAbilityStageDone(const int32_t recordId)
@@ -1504,6 +1527,19 @@ bool AppMgrService::SetAppFreezeFilter(int32_t pid)
         TAG_LOGE(AAFwkTag::APPMGR, "SetAppFreezeFilter fail");
     }
     return ret;
+}
+
+void AppMgrService::UpdateFreezeExcludedPid(bool isAdd, int32_t targetPid, int32_t profilerPid)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return;
+    }
+    if (IPCSkeleton::GetCallingUid() != HIPROFILER_UID) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Not hiprofiler call.");
+        return;
+    }
+    AppfreezeManager::GetInstance()->UpdateFreezeExcludedPid(isAdd, targetPid, profilerPid);
 }
 
 int32_t AppMgrService::GetProcessMemoryByPid(const int32_t pid, int32_t &memorySize)

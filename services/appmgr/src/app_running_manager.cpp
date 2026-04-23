@@ -761,10 +761,6 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::OnRemoteDied(const wptr<IRe
             TAG_LOGI(AAFwkTag::APPMGR, "pname: %{public}s, pid: %{public}d", appRecord->GetProcessName().c_str(),
                 priorityObject->GetPid());
             if (appMgrServiceInner != nullptr) {
-#ifdef APP_MGR_KILL_REASON_TAG
-                appMgrServiceInner->RecordAppWithReason(priorityObject->GetPid(), appRecord->GetUid(),
-                    HiviewDFX::ProcessKillReason::KillEventId::REASON_ON_REMOTE_DIED);
-#endif
                 appMgrServiceInner->KillProcessByPid(priorityObject->GetPid(), "OnRemoteDied");
             }
             AbilityRuntime::FreezeUtil::GetInstance().DeleteAppLifecycleEvent(priorityObject->GetPid());
@@ -1108,6 +1104,7 @@ int32_t AppRunningManager::AssignRunningProcessInfoByAppRecord(
     info.processName_ = appRecord->GetProcessName();
     info.pid_ = appRecord->GetPid();
     info.uid_ = appRecord->GetUid();
+    info.accessTokenId_ = appRecord->GetAccessTokenId();
     info.bundleNames.emplace_back(appRecord->GetBundleName());
     info.state_ = static_cast<AppExecFwk::AppProcessState>(appRecord->GetState());
     info.isContinuousTask = appRecord->IsContinuousTask();
@@ -1449,6 +1446,17 @@ int32_t AppRunningManager::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
         return ERR_INVALID_VALUE;
     }
     appRecord->ScheduleCjHeapMemory(info);
+    return ERR_OK;
+}
+
+int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    auto appRecord = GetAppRunningRecordByPid(info.pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
+        return ERR_INVALID_VALUE;
+    }
+    appRecord->ScheduleMem(info, dumpResult);
     return ERR_OK;
 }
 
