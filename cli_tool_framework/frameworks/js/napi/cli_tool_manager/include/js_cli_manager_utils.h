@@ -19,14 +19,12 @@
 #include <map>
 #include <string>
 
-#include "cli_session_info.h"
-#include "exec_options.h"
-#include "exec_result.h"
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
 namespace CliTool {
-
+class CliSessionInfo;
+class ExecOptions;
 /**
  * @brief Unwrap a string map from JavaScript object.
  * @param env The N-API environment.

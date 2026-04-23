@@ -15,7 +15,7 @@
 
 #include "cli_tool_mgr_client.h"
 
-#include "ability_manager_errors.h"
+#include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "if_system_ability_manager.h"
@@ -51,28 +51,28 @@ ErrCode CliToolMGRClient::Connect()
     sptr<ISystemAbilityManager> systemManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (systemManager == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "get registry failed");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     sptr<IRemoteObject> remoteObj = systemManager->GetSystemAbility(CLI_TOOL_MGR_SERVICE_ID);
     if (remoteObj == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
 
     deathRecipient_ = sptr<IRemoteObject::DeathRecipient>(new CliSaDeathRecipient());
     if (deathRecipient_ == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "create CliSaDeathRecipient failed");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     if ((remoteObj->IsProxyObject()) && (!remoteObj->AddDeathRecipient(deathRecipient_))) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "add deathRecipient failed");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
 
     proxy_ = iface_cast<ICliToolManager>(remoteObj);
     if (proxy_ == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "iface_cast failed");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Connect cli manager service success.");
     return ERR_OK;
@@ -90,7 +90,7 @@ int32_t CliToolMGRClient::ExecTool(const ExecToolParam &param, const std::map<st
     auto proxy = GetCliToolManager();
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     return proxy->ExecTool(param, args, session);
 }
@@ -116,7 +116,7 @@ ErrCode CliToolMGRClient::GetAllToolSummaries(std::vector<ToolSummary> &summarie
     auto proxy = GetCliToolManager();
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     return proxy->GetAllToolSummaries(summaries);
 }
@@ -127,7 +127,7 @@ ErrCode CliToolMGRClient::GetToolInfoByName(const std::string &name, ToolInfo &t
     auto proxy = GetCliToolManager();
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     return proxy->GetToolInfoByName(name, tool);
 }
@@ -138,7 +138,7 @@ ErrCode CliToolMGRClient::GetAllToolInfos(std::vector<ToolInfo> &tools)
     auto proxy = GetCliToolManager();
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     return proxy->GetAllToolInfos(tools);
 }
@@ -149,7 +149,7 @@ ErrCode CliToolMGRClient::RegisterTool(const ToolInfo &tool)
     auto proxy = GetCliToolManager();
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
-        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     return proxy->RegisterTool(tool);
 }
