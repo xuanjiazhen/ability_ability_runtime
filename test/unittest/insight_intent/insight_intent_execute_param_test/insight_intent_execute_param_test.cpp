@@ -261,5 +261,252 @@ HWTEST_F(InsightIntentExecuteParamTest, UpdateInsightIntentCallerInfo_0100, Test
 
     TAG_LOGI(AAFwkTag::TEST, "end.");
 }
+
+/**
+ * @tc.name: ReadFromParcel_0200
+ * @tc.desc: verify invalid function param type value in parcel is rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, ReadFromParcel_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    Parcel parcel;
+    WantParams insightIntentParam;
+    insightIntentParam.SetParam("dummy", Integer::Box(-1));
+    parcel.WriteString16(Str8ToStr16(TEST_BUNDLE_NANE));
+    parcel.WriteString16(Str8ToStr16(TEST_MODULE_NANE));
+    parcel.WriteString16(Str8ToStr16(TEST_ABILITY_NANE));
+    parcel.WriteString16(Str8ToStr16(TEST_INSIGHT_INTENT_NANE));
+    parcel.WriteParcelable(&insightIntentParam);
+    parcel.WriteInt32(0);
+    parcel.WriteUint64(1);
+    parcel.WriteInt32(0);
+    std::vector<std::string> emptyUris;
+    std::vector<std::string> emptyMethodParams;
+    parcel.WriteStringVector(emptyUris);
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(0);
+    parcel.WriteInt8(0);
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteStringVector(emptyMethodParams);
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteString16(Str8ToStr16(""));
+    parcel.WriteBool(false);
+    parcel.WriteString16(Str8ToStr16("[{\"paramName\":\"count\",\"type\":42,\"isRequired\":true}]"));
+
+    InsightIntentExecuteParam executeParam;
+    auto ret = executeParam.ReadFromParcel(parcel);
+    EXPECT_EQ(ret, false);
+    EXPECT_TRUE(executeParam.functionParamInfos_.empty());
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateFromWant_0200
+ * @tc.desc: verify function param infos can deserialize valid integer type.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, GenerateFromWant_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams wantParams;
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NANE));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, AAFwk::String::Box("1"));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_TOKEN, Integer::Box(1000));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_UID, Integer::Box(1001));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_PID, Integer::Box(1002));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, AAFwk::String::Box(TEST_CALLER_BUNDLE_NANE));
+
+    WantParams insightIntentParam;
+    insightIntentParam.SetParam("dummy", Integer::Box(-1));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM, WantParamWrapper::Box(insightIntentParam));
+
+    Want want;
+    want.SetElementName("", TEST_BUNDLE_NANE, TEST_ABILITY_NANE, TEST_MODULE_NANE);
+    want.SetParams(wantParams);
+    std::string paramInfos = "[{\"paramName\":\"count\",\"type\":" +
+        std::to_string(static_cast<uint8_t>(AppExecFwk::ParamType::INTEGER)) + ",\"isRequired\":true}]";
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_FUNC_PARAM_SCHEMAS, paramInfos);
+
+    InsightIntentExecuteParam executeParam;
+    auto ret = InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
+    EXPECT_EQ(ret, true);
+    ASSERT_EQ(executeParam.functionParamInfos_.size(), 1);
+    EXPECT_EQ(executeParam.functionParamInfos_[0].paramName, "count");
+    EXPECT_EQ(executeParam.functionParamInfos_[0].type, AppExecFwk::ParamType::INTEGER);
+    EXPECT_EQ(executeParam.functionParamInfos_[0].isRequired, true);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateFromWant_0300
+ * @tc.desc: verify invalid function param type value is rejected.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, GenerateFromWant_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams wantParams;
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NANE));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, AAFwk::String::Box("1"));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_TOKEN, Integer::Box(1000));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_UID, Integer::Box(1001));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_PID, Integer::Box(1002));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, AAFwk::String::Box(TEST_CALLER_BUNDLE_NANE));
+
+    WantParams insightIntentParam;
+    insightIntentParam.SetParam("dummy", Integer::Box(-1));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM, WantParamWrapper::Box(insightIntentParam));
+
+    Want want;
+    want.SetElementName("", TEST_BUNDLE_NANE, TEST_ABILITY_NANE, TEST_MODULE_NANE);
+    want.SetParams(wantParams);
+    std::string invalidParamInfos = "[{\"paramName\":\"count\",\"type\":42,\"isRequired\":true}]";
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_FUNC_PARAM_SCHEMAS, invalidParamInfos);
+
+    InsightIntentExecuteParam executeParam;
+    auto ret = InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
+    EXPECT_EQ(ret, false);
+    EXPECT_TRUE(executeParam.functionParamInfos_.empty());
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateFromWant_0400
+ * @tc.desc: verify function param infos can deserialize multiple types.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, GenerateFromWant_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams wantParams;
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NANE));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, AAFwk::String::Box("1"));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_TOKEN, Integer::Box(1000));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_UID, Integer::Box(1001));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_PID, Integer::Box(1002));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, AAFwk::String::Box(TEST_CALLER_BUNDLE_NANE));
+
+    WantParams insightIntentParam;
+    insightIntentParam.SetParam("dummy", Integer::Box(-1));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM, WantParamWrapper::Box(insightIntentParam));
+
+    Want want;
+    want.SetElementName("", TEST_BUNDLE_NANE, TEST_ABILITY_NANE, TEST_MODULE_NANE);
+    want.SetParams(wantParams);
+    std::string paramInfos = "[{\"paramName\":\"name\",\"type\":" +
+        std::to_string(static_cast<uint8_t>(AppExecFwk::ParamType::STRING)) + ",\"isRequired\":true}," +
+        "{\"paramName\":\"value\",\"type\":" +
+        std::to_string(static_cast<uint8_t>(AppExecFwk::ParamType::NUMBER)) + ",\"isRequired\":false}," +
+        "{\"paramName\":\"flag\",\"type\":" +
+        std::to_string(static_cast<uint8_t>(AppExecFwk::ParamType::BOOLEAN)) + ",\"isRequired\":false}]";
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_FUNC_PARAM_SCHEMAS, paramInfos);
+
+    InsightIntentExecuteParam executeParam;
+    auto ret = InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
+    EXPECT_EQ(ret, true);
+    ASSERT_EQ(executeParam.functionParamInfos_.size(), 3);
+    EXPECT_EQ(executeParam.functionParamInfos_[0].paramName, "name");
+    EXPECT_EQ(executeParam.functionParamInfos_[0].type, AppExecFwk::ParamType::STRING);
+    EXPECT_EQ(executeParam.functionParamInfos_[0].isRequired, true);
+    EXPECT_EQ(executeParam.functionParamInfos_[1].paramName, "value");
+    EXPECT_EQ(executeParam.functionParamInfos_[1].type, AppExecFwk::ParamType::NUMBER);
+    EXPECT_EQ(executeParam.functionParamInfos_[1].isRequired, false);
+    EXPECT_EQ(executeParam.functionParamInfos_[2].paramName, "flag");
+    EXPECT_EQ(executeParam.functionParamInfos_[2].type, AppExecFwk::ParamType::BOOLEAN);
+    EXPECT_EQ(executeParam.functionParamInfos_[2].isRequired, false);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: GenerateFromWant_0500
+ * @tc.desc: verify empty function param infos list works correctly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, GenerateFromWant_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    WantParams wantParams;
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_NAME, AAFwk::String::Box(TEST_INSIGHT_INTENT_NANE));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_ID, AAFwk::String::Box("1"));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_TOKEN, Integer::Box(1000));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_UID, Integer::Box(1001));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_PID, Integer::Box(1002));
+    wantParams.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, AAFwk::String::Box(TEST_CALLER_BUNDLE_NANE));
+
+    WantParams insightIntentParam;
+    insightIntentParam.SetParam("dummy", Integer::Box(-1));
+    wantParams.SetParam(AppExecFwk::INSIGHT_INTENT_EXECUTE_PARAM_PARAM, WantParamWrapper::Box(insightIntentParam));
+
+    Want want;
+    want.SetElementName("", TEST_BUNDLE_NANE, TEST_ABILITY_NANE, TEST_MODULE_NANE);
+    want.SetParams(wantParams);
+    std::string emptyParamInfos = "[]";
+    want.SetParam(AppExecFwk::INSIGHT_INTENT_FUNC_PARAM_SCHEMAS, emptyParamInfos);
+
+    InsightIntentExecuteParam executeParam;
+    auto ret = InsightIntentExecuteParam::GenerateFromWant(want, executeParam);
+    EXPECT_EQ(ret, true);
+    EXPECT_TRUE(executeParam.functionParamInfos_.empty());
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: MarshallingUnmarshalling_0100
+ * @tc.desc: verify Marshalling and Unmarshalling cycle works correctly.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteParamTest, MarshallingUnmarshalling_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "begin.");
+    InsightIntentExecuteParam originalParam;
+    originalParam.bundleName_ = TEST_BUNDLE_NANE;
+    originalParam.moduleName_ = TEST_MODULE_NANE;
+    originalParam.abilityName_ = TEST_ABILITY_NANE;
+    originalParam.insightIntentName_ = TEST_INSIGHT_INTENT_NANE;
+    originalParam.insightIntentParam_ = std::make_shared<WantParams>();
+    originalParam.insightIntentParam_->SetParam("testKey", Integer::Box(123));
+    originalParam.className_ = "TestClass";
+    originalParam.methodName_ = "testMethod";
+    originalParam.methodReturnType_ = "void";
+    originalParam.methodParams_ = {"param1", "param2"};
+
+    AppExecFwk::InsightIntentParam param1;
+    param1.paramName = "param1";
+    param1.type = AppExecFwk::ParamType::STRING;
+    param1.isRequired = true;
+    originalParam.functionParamInfos_.push_back(param1);
+
+    AppExecFwk::InsightIntentParam param2;
+    param2.paramName = "param2";
+    param2.type = AppExecFwk::ParamType::INTEGER;
+    param2.isRequired = false;
+    originalParam.functionParamInfos_.push_back(param2);
+
+    Parcel parcel;
+    auto marshallingRet = originalParam.Marshalling(parcel);
+    EXPECT_EQ(marshallingRet, true);
+
+    InsightIntentExecuteParam unmarshalledParam;
+    auto unmarshallingRet = unmarshalledParam.ReadFromParcel(parcel);
+    EXPECT_EQ(unmarshallingRet, true);
+
+    EXPECT_EQ(unmarshalledParam.bundleName_, originalParam.bundleName_);
+    EXPECT_EQ(unmarshalledParam.className_, originalParam.className_);
+    EXPECT_EQ(unmarshalledParam.methodName_, originalParam.methodName_);
+    EXPECT_EQ(unmarshalledParam.methodReturnType_, originalParam.methodReturnType_);
+    ASSERT_EQ(unmarshalledParam.functionParamInfos_.size(), 2);
+    EXPECT_EQ(unmarshalledParam.functionParamInfos_[0].paramName, "param1");
+    EXPECT_EQ(unmarshalledParam.functionParamInfos_[0].type, AppExecFwk::ParamType::STRING);
+    EXPECT_EQ(unmarshalledParam.functionParamInfos_[0].isRequired, true);
+    EXPECT_EQ(unmarshalledParam.functionParamInfos_[1].paramName, "param2");
+    EXPECT_EQ(unmarshalledParam.functionParamInfos_[1].type, AppExecFwk::ParamType::INTEGER);
+    EXPECT_EQ(unmarshalledParam.functionParamInfos_[1].isRequired, false);
+    TAG_LOGI(AAFwkTag::TEST, "end.");
+}
 } // namespace AAFwk
 } // namespace OHOS

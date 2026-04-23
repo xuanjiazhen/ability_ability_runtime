@@ -21,11 +21,115 @@
 #include "hitrace_meter.h"
 #include "insight_intent_constant.h"
 #include "int_wrapper.h"
+#include "nlohmann/json.hpp"
 #include "string_wrapper.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 using WantParams = OHOS::AAFwk::WantParams;
+
+namespace {
+constexpr const char *PARAM_INFO_NAME = "paramName";
+constexpr const char *PARAM_INFO_TYPE = "type";
+constexpr const char *PARAM_INFO_REQUIRED = "isRequired";
+
+bool IsValidParamType(ParamType type)
+{
+    switch (type) {
+        case ParamType::STRING:
+        case ParamType::NUMBER:
+        case ParamType::BOOLEAN:
+        case ParamType::OBJECT:
+        case ParamType::ARRAY:
+        case ParamType::INTEGER:
+        case ParamType::UNKNOWN:
+            return true;
+        default:
+            return false;
+    }
+}
+
+uint8_t GetParamTypeValue(ParamType type)
+{
+    if (IsValidParamType(type)) {
+        return static_cast<uint8_t>(type);
+    }
+    TAG_LOGW(AAFwkTag::INTENT, "invalid param type enum, fallback to unknown");
+    return static_cast<uint8_t>(ParamType::UNKNOWN);
+}
+
+bool ParseParamType(const nlohmann::json &item, ParamType &type)
+{
+    if (!item.contains(PARAM_INFO_TYPE)) {
+        return true;
+    }
+    if (!item[PARAM_INFO_TYPE].is_number_unsigned()) {
+        TAG_LOGE(AAFwkTag::INTENT, "param type is not unsigned number");
+        return false;
+    }
+    uint8_t typeValue = item[PARAM_INFO_TYPE].get<uint8_t>();
+    ParamType parsedType = static_cast<ParamType>(typeValue);
+    if (!IsValidParamType(parsedType)) {
+        TAG_LOGE(AAFwkTag::INTENT, "invalid param type value: %{public}u", typeValue);
+        return false;
+    }
+    type = parsedType;
+    return true;
+}
+
+bool ParseFunctionParamInfo(const nlohmann::json &item, InsightIntentParam &param)
+{
+    if (item.contains(PARAM_INFO_NAME) && item[PARAM_INFO_NAME].is_string()) {
+        param.paramName = item[PARAM_INFO_NAME].get<std::string>();
+    }
+    if (!ParseParamType(item, param.type)) {
+        return false;
+    }
+    if (item.contains(PARAM_INFO_REQUIRED) && item[PARAM_INFO_REQUIRED].is_boolean()) {
+        param.isRequired = item[PARAM_INFO_REQUIRED].get<bool>();
+    }
+    return true;
+}
+
+bool DeserializeFunctionParamInfos(const std::string &paramInfosStr, std::vector<InsightIntentParam> &params)
+{
+    params.clear();
+    if (paramInfosStr.empty()) {
+        return true;
+    }
+    auto jsonObj = nlohmann::json::parse(paramInfosStr, nullptr, false);
+    if (jsonObj.is_discarded() || !jsonObj.is_array()) {
+        TAG_LOGE(AAFwkTag::INTENT, "param infos parse failed or not array: %{public}s", paramInfosStr.c_str());
+        return false;
+    }
+    for (const auto &item : jsonObj) {
+        if (!item.is_object()) {
+            TAG_LOGW(AAFwkTag::INTENT, "skip non-object param info");
+            continue;
+        }
+        InsightIntentParam param;
+        if (!ParseFunctionParamInfo(item, param)) {
+            return false;
+        }
+        params.push_back(param);
+    }
+    return true;
+}
+
+std::string SerializeFunctionParamInfos(const std::vector<InsightIntentParam> &params)
+{
+    nlohmann::json paramsJson = nlohmann::json::array();
+    for (const auto &param : params) {
+        nlohmann::json paramJson;
+        paramJson[PARAM_INFO_NAME] = param.paramName;
+        paramJson[PARAM_INFO_TYPE] = GetParamTypeValue(param.type);
+        paramJson[PARAM_INFO_REQUIRED] = param.isRequired;
+        paramsJson.push_back(paramJson);
+    }
+    return paramsJson.dump();
+}
+} // namespace
+
 bool InsightIntentExecuteParam::ReadFromParcel(Parcel &parcel)
 {
     bundleName_ = Str16ToStr8(parcel.ReadString16());
@@ -47,11 +151,18 @@ bool InsightIntentExecuteParam::ReadFromParcel(Parcel &parcel)
     srcEntrance_ = Str16ToStr8(parcel.ReadString16());
     className_ = Str16ToStr8(parcel.ReadString16());
     methodName_ = Str16ToStr8(parcel.ReadString16());
+    methodReturnType_ = Str16ToStr8(parcel.ReadString16());
     parcel.ReadStringVector(&methodParams_);
     pagePath_ = Str16ToStr8(parcel.ReadString16());
     navigationId_ = Str16ToStr8(parcel.ReadString16());
     navDestinationName_ = Str16ToStr8(parcel.ReadString16());
     isServiceMatch_ = parcel.ReadBool();
+
+    std::string paramInfosStr = Str16ToStr8(parcel.ReadString16());
+    if (!DeserializeFunctionParamInfos(paramInfosStr, functionParamInfos_)) {
+        TAG_LOGE(AAFwkTag::INTENT, "read function param infos failed");
+        return false;
+    }
     return true;
 }
 
@@ -86,11 +197,13 @@ bool InsightIntentExecuteParam::Marshalling(Parcel &parcel) const
     parcel.WriteString16(Str8ToStr16(srcEntrance_));
     parcel.WriteString16(Str8ToStr16(className_));
     parcel.WriteString16(Str8ToStr16(methodName_));
+    parcel.WriteString16(Str8ToStr16(methodReturnType_));
     parcel.WriteStringVector(methodParams_);
     parcel.WriteString16(Str8ToStr16(pagePath_));
     parcel.WriteString16(Str8ToStr16(navigationId_));
     parcel.WriteString16(Str8ToStr16(navDestinationName_));
     parcel.WriteBool(isServiceMatch_);
+    parcel.WriteString16(Str8ToStr16(SerializeFunctionParamInfos(functionParamInfos_)));
     return true;
 }
 
@@ -150,6 +263,7 @@ bool InsightIntentExecuteParam::GenerateFromWant(const AAFwk::Want &want,
     executeParam.srcEntrance_ = wantParams.GetStringParam(INSIGHT_INTENT_SRC_ENTRANCE);
     executeParam.className_ = wantParams.GetStringParam(INSIGHT_INTENT_FUNC_PARAM_CLASSNAME);
     executeParam.methodName_ = wantParams.GetStringParam(INSIGHT_INTENT_FUNC_PARAM_METHODNAME);
+    executeParam.methodReturnType_ = wantParams.GetStringParam(INSIGHT_INTENT_FUNC_PARAM_RETURNTYPE);
     executeParam.methodParams_ = want.GetStringArrayParam(INSIGHT_INTENT_FUNC_PARAM_METHODPARAMS);
     executeParam.pagePath_ = wantParams.GetStringParam(INSIGHT_INTENT_PAGE_PARAM_PAGEPATH);
     executeParam.navigationId_ = wantParams.GetStringParam(INSIGHT_INTENT_PAGE_PARAM_NAVIGATIONID);
@@ -158,6 +272,12 @@ bool InsightIntentExecuteParam::GenerateFromWant(const AAFwk::Want &want,
     executeParam.queryType_ = wantParams.GetStringParam(INSIGHT_INTENT_QUERY_TYPE);
     auto queryParams = wantParams.GetWantParams(INSIGHT_INTENT_QUERY_ENTITY_PARAM_PARAM);
     executeParam.queryParams_ = std::make_shared<WantParams>(queryParams);
+
+    std::string paramInfosStr = wantParams.GetStringParam(INSIGHT_INTENT_FUNC_PARAM_SCHEMAS);
+    if (!DeserializeFunctionParamInfos(paramInfosStr, executeParam.functionParamInfos_)) {
+        TAG_LOGE(AAFwkTag::INTENT, "generate function param infos failed");
+        return false;
+    }
     return true;
 }
 
@@ -203,6 +323,9 @@ bool InsightIntentExecuteParam::RemoveInsightIntent(AAFwk::Want &want)
     if (want.HasParameter(INSIGHT_INTENT_FUNC_PARAM_METHODNAME)) {
         want.RemoveParam(INSIGHT_INTENT_FUNC_PARAM_METHODNAME);
     }
+    if (want.HasParameter(INSIGHT_INTENT_FUNC_PARAM_RETURNTYPE)) {
+        want.RemoveParam(INSIGHT_INTENT_FUNC_PARAM_RETURNTYPE);
+    }
     if (want.HasParameter(INSIGHT_INTENT_FUNC_PARAM_METHODPARAMS)) {
         want.RemoveParam(INSIGHT_INTENT_FUNC_PARAM_METHODPARAMS);
     }
@@ -217,6 +340,9 @@ bool InsightIntentExecuteParam::RemoveInsightIntent(AAFwk::Want &want)
     }
     if (want.HasParameter(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME)) {
         want.RemoveParam(INSIGHT_INTENT_QUERY_ENTITY_CLASS_NAME);
+    }
+    if (want.HasParameter(INSIGHT_INTENT_FUNC_PARAM_SCHEMAS)) {
+        want.RemoveParam(INSIGHT_INTENT_FUNC_PARAM_SCHEMAS);
     }
     return true;
 }
