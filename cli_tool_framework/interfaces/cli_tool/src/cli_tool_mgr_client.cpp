@@ -22,8 +22,29 @@
 #include "iservice_registry.h"
 #include "system_ability_definition.h"
 
+#include "cli_event_reply_manager.h"
+#include "cli_session_subscription_manager.h"
+
 namespace OHOS {
 namespace CliTool {
+
+namespace {
+constexpr int32_t ERR_OK = 0;
+constexpr int32_t ERR_NO_INIT = -1;
+
+std::string CliEventReplyTypeToString(const CliEventReplyType &type)
+{
+    switch (type) {
+        case CliEventReplyType::EXEC_TOOL:
+            return "-ExecTool-";
+        case CliEventReplyType::SEND_MESSAGE:
+            return "-SendMessage-";
+        default:
+            return "-Unknown-";
+    }
+}
+} // namespace
+
 CliToolMGRClient& CliToolMGRClient::GetInstance()
 {
     static CliToolMGRClient instance;
@@ -68,7 +89,7 @@ ErrCode CliToolMGRClient::Connect()
         TAG_LOGE(AAFwkTag::CLI_TOOL, "add deathRecipient failed");
         return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
-
+    schedulerRegistered_ = false;
     proxy_ = iface_cast<ICliToolManager>(remoteObj);
     if (proxy_ == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "iface_cast failed");
@@ -78,36 +99,110 @@ ErrCode CliToolMGRClient::Connect()
     return ERR_OK;
 }
 
+void CliToolMGRClient::SetServiceDeathHandler(const ServiceDeathHandler &handler)
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    serviceDeathHandlers_.emplace_back(std::move(handler));
+}
+
 void CliToolMGRClient::CliSaDeathRecipient::OnRemoteDied(const wptr<IRemoteObject>& remote)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "CliSaDeathRecipient handle remote died.");
     CliToolMGRClient::GetInstance().ResetProxy(remote);
 }
 
-int32_t CliToolMGRClient::ExecTool(const ExecToolParam &param, const std::map<std::string, std::string> &args,
-    CliSessionInfo &session)
+ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param,
+                                   const std::map<std::string, std::string> &args,
+                                   const ExecToolReplyCallback &callback)
 {
     auto proxy = GetCliToolManager();
     if (proxy == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
         return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
-    return proxy->ExecTool(param, args, session);
+    ErrCode ret = EnsureSchedulerRegistered(proxy);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    std::string prefix = name + CliEventReplyTypeToString(CliEventReplyType::EXEC_TOOL);
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback(prefix,
+        CliEventReplyType::EXEC_TOOL,
+        [cb = std::move(callback)](const CliEventReplyResult &result) {
+            if (cb) {
+                CliSessionInfo sessionInfo;
+                if (result.sessionInfo.has_value()) {
+                    sessionInfo = result.sessionInfo.value();
+                }
+                cb(result.code, sessionInfo);
+            }
+        });
+    ret = proxy->ExecTool(param, args, eventId);
+    if (ret != ERR_OK) {
+        CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
+    } else {
+        CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
+    }
+    return ret;
 }
 
 void CliToolMGRClient::ResetProxy(const wptr<IRemoteObject>& remote)
 {
-    std::lock_guard<std::recursive_mutex> lock(mutex_);
-    if (!proxy_) {
-        return;
+    std::vector<ServiceDeathHandler> serviceDeathHandlers;
+    {
+        std::lock_guard<std::recursive_mutex> lock(mutex_);
+        if (!proxy_) {
+            return;
+        }
+
+        auto serviceRemote = proxy_->AsObject();
+        if ((serviceRemote != nullptr) && (serviceRemote == remote.promote())) {
+            TAG_LOGD(AAFwkTag::CLI_TOOL, "To remove death recipient.");
+            serviceRemote->RemoveDeathRecipient(deathRecipient_);
+            proxy_ = nullptr;
+        }
+        schedulerRegistered_ = false;
+        serviceDeathHandlers = serviceDeathHandlers_;
     }
 
-    auto serviceRemote = proxy_->AsObject();
-    if ((serviceRemote != nullptr) && (serviceRemote == remote.promote())) {
-        TAG_LOGD(AAFwkTag::CLI_TOOL, "To remove death recipient.");
-        serviceRemote->RemoveDeathRecipient(deathRecipient_);
-        proxy_ = nullptr;
+    for (auto &handler : serviceDeathHandlers) {
+        if (handler) {
+            handler();
+        }
     }
+
+    CliEventReplyManager::GetInstance().ClearAllEvent();
+    CliSessionSubscriptionManager::GetInstance().ClearAllSubscriptions();
+}
+
+ErrCode CliToolMGRClient::EnsureSchedulerRegistered(const sptr<ICliToolManager> &proxy)
+{
+    std::lock_guard<std::recursive_mutex> lock(mutex_);
+    if (schedulerRegistered_) {
+        return ERR_OK;
+    }
+    if (schedulerStub_ == nullptr) {
+        schedulerStub_ = new (std::nothrow) CliToolManagerSchedulerRecipient(
+            [](const std::string &sessionId, const std::string &subscriptionId, const CliToolEvent &event) {
+                return CliSessionSubscriptionManager::GetInstance().HandleSessionEvent(
+                    sessionId, subscriptionId, event);
+            },
+            [](const std::string &eventId, const CliEventReplyResult &result) {
+                return CliEventReplyManager::GetInstance().HandleEventReply(eventId, result);
+            });
+    }
+
+    if (schedulerStub_ == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "EnsureSchedulerRegistered prerequisites are missing");
+        return ERR_NO_INIT;
+    }
+    ErrCode ret = proxy->RegisterScheduler(schedulerStub_->AsObject());
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterScheduler failed: %{public}d", ret);
+        return ret;
+    }
+    schedulerRegistered_ = true;
+    return ret;
 }
 
 ErrCode CliToolMGRClient::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
@@ -152,6 +247,100 @@ ErrCode CliToolMGRClient::RegisterTool(const ToolInfo &tool)
         return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     return proxy->RegisterTool(tool);
+}
+
+ErrCode CliToolMGRClient::SubscribeSession(const std::string &sessionId,
+                                           const std::shared_ptr<SessionEventCallback> &callback,
+                                           std::string &subscriptionId)
+{
+    auto proxy = GetCliToolManager();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    ErrCode ret = EnsureSchedulerRegistered(proxy);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    subscriptionId = CliSessionSubscriptionManager::GetInstance().AddProvisionalSubscription(sessionId,
+        [callback](const std::string &sessionId,
+            const std::string &subscriptionId, const CliToolEvent &event) {
+            if (callback) {
+                callback->OnToolEvent(sessionId, subscriptionId, event);
+            }
+        });
+    ret = proxy->SubscribeSession(sessionId, subscriptionId);
+    if (ret != ERR_OK) {
+        CliSessionSubscriptionManager::GetInstance().RemoveSubscription(subscriptionId);
+        subscriptionId = "";
+    } else {
+        CliSessionSubscriptionManager::GetInstance().ActivateSubscription(subscriptionId);
+    }
+    return ret;
+}
+
+ErrCode CliToolMGRClient::UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId)
+{
+    auto proxy = GetCliToolManager();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    CliSessionSubscriptionManager::GetInstance().RemoveSubscription(subscriptionId);
+
+    return proxy->UnsubscribeSession(sessionId, subscriptionId);
+}
+
+ErrCode CliToolMGRClient::ClearSession(const std::string &sessionId)
+{
+    auto proxy = GetCliToolManager();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->ClearSession(sessionId);
+}
+
+ErrCode CliToolMGRClient::QuerySession(const std::string &sessionId, CliSessionInfo &session)
+{
+    auto proxy = GetCliToolManager();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->QuerySession(sessionId, session);
+}
+
+ErrCode CliToolMGRClient::SendMessage(const std::string &sessionId,
+                                      const std::string &inputText,
+                                      const EventReplyCallback &callback)
+{
+    auto proxy = GetCliToolManager();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return AAFwk::GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    ErrCode ret = EnsureSchedulerRegistered(proxy);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    std::string prefix = sessionId + CliEventReplyTypeToString(CliEventReplyType::SEND_MESSAGE);
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback(prefix,
+        CliEventReplyType::SEND_MESSAGE,
+        [cb = std::move(callback)](const CliEventReplyResult &result) {
+            if (cb) {
+                cb(result.code);
+            }
+        });
+    ret = proxy->SendMessage(sessionId, inputText, eventId);
+    if (ret != ERR_OK) {
+        CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
+    } else {
+        CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
+    }
+    return ret;
 }
 } // namespace CliTool
 } // namespace OHOS

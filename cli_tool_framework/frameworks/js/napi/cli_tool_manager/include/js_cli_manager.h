@@ -55,6 +55,14 @@ public:
      */
     static napi_value ExecTool(napi_env env, napi_callback_info info);
 
+    static napi_value SubscribeSession(napi_env env, napi_callback_info info);
+
+    static napi_value ClearSession(napi_env env, napi_callback_info info);
+
+    static napi_value QuerySession(napi_env env, napi_callback_info info);
+
+    static napi_value SendMessage(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for executing a CLI tool.
@@ -65,6 +73,14 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnExecTool(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnSubscribeSession(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnClearSession(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnQuerySession(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnSendMessage(napi_env env, size_t argc, napi_value *argv);
 };
 
 /**
