@@ -235,5 +235,164 @@ napi_value CreateCliJsErrorByNativeErr(napi_env env, int32_t errCode)
     return CreateJsErrorByNativeErr(env, errCode);
 }
 
+napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool)
+{
+    napi_value jsObj = nullptr;
+    napi_status status = napi_create_object(env, &jsObj);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create JS object");
+        return nullptr;
+    }
+
+    // Set name
+    napi_value jsName = AppExecFwk::WrapStringToJS(env, tool.name);
+    napi_set_named_property(env, jsObj, "name", jsName);
+
+    // Set version
+    napi_value jsVersion = AppExecFwk::WrapStringToJS(env, tool.version);
+    napi_set_named_property(env, jsObj, "version", jsVersion);
+
+    // Set description
+    napi_value jsDescription = AppExecFwk::WrapStringToJS(env, tool.description);
+    napi_set_named_property(env, jsObj, "description", jsDescription);
+
+    // Set executablePath
+    napi_value jsExecutablePath = AppExecFwk::WrapStringToJS(env, tool.executablePath);
+    napi_set_named_property(env, jsObj, "executablePath", jsExecutablePath);
+
+    // Set requirePermissions (array)
+    napi_value jsPermissions = nullptr;
+    napi_create_array(env, &jsPermissions);
+    for (size_t i = 0; i < tool.requirePermissions.size(); i++) {
+        napi_value jsPerm = AppExecFwk::WrapStringToJS(env, tool.requirePermissions[i]);
+        napi_set_element(env, jsPermissions, i, jsPerm);
+    }
+    napi_set_named_property(env, jsObj, "requirePermissions", jsPermissions);
+
+    // Set inputSchema
+    napi_value jsInputSchema = AppExecFwk::WrapStringToJS(env, tool.inputSchema);
+    napi_set_named_property(env, jsObj, "inputSchema", jsInputSchema);
+
+    // Set outputSchema
+    napi_value jsOutputSchema = AppExecFwk::WrapStringToJS(env, tool.outputSchema);
+    napi_set_named_property(env, jsObj, "outputSchema", jsOutputSchema);
+
+    // Set argMapping
+    if (tool.argMapping != nullptr) {
+        napi_value jsArgMapping = nullptr;
+        status = napi_create_object(env, &jsArgMapping);
+        if (status == napi_ok) {
+            // Set type
+            napi_value jsType = AppExecFwk::WrapInt32ToJS(env, static_cast<int32_t>(tool.argMapping->type));
+            napi_set_named_property(env, jsArgMapping, "type", jsType);
+
+            // Set separator
+            napi_value jsSeparator = AppExecFwk::WrapStringToJS(env, tool.argMapping->separator);
+            napi_set_named_property(env, jsArgMapping, "separator", jsSeparator);
+
+            // Set order
+            napi_value jsOrder = AppExecFwk::WrapStringToJS(env, tool.argMapping->order);
+            napi_set_named_property(env, jsArgMapping, "order", jsOrder);
+
+            // Set templates
+            napi_value jsTemplates = AppExecFwk::WrapStringToJS(env, tool.argMapping->templates);
+            napi_set_named_property(env, jsArgMapping, "templates", jsTemplates);
+
+            napi_set_named_property(env, jsObj, "argMapping", jsArgMapping);
+        }
+    }
+
+    // Set eventTypes (array)
+    napi_value jsEventTypes = nullptr;
+    napi_create_array(env, &jsEventTypes);
+    for (size_t i = 0; i < tool.eventTypes.size(); i++) {
+        napi_value jsEventType = AppExecFwk::WrapStringToJS(env, tool.eventTypes[i]);
+        napi_set_element(env, jsEventTypes, i, jsEventType);
+    }
+    napi_set_named_property(env, jsObj, "eventTypes", jsEventTypes);
+
+    // Set eventSchemas
+    napi_value jsEventSchemas = AppExecFwk::WrapStringToJS(env, tool.eventSchemas);
+    napi_set_named_property(env, jsObj, "eventSchemas", jsEventSchemas);
+
+    // Set timeout
+    napi_value jsTimeout = AppExecFwk::WrapInt32ToJS(env, tool.timeout);
+    napi_set_named_property(env, jsObj, "timeout", jsTimeout);
+
+    // Set hasSubCommand
+    napi_value jsHasSubCommand = AppExecFwk::WrapBoolToJS(env, tool.hasSubCommand);
+    napi_set_named_property(env, jsObj, "hasSubCommand", jsHasSubCommand);
+
+    // Set subcommands (map)
+    napi_value jsSubcommands = nullptr;
+    napi_create_object(env, &jsSubcommands);
+    for (const auto &pair : tool.subcommands) {
+        napi_value jsSubcmd = nullptr;
+        status = napi_create_object(env, &jsSubcmd);
+        if (status == napi_ok) {
+            // Set description
+            napi_value jsSubcmdDesc = AppExecFwk::WrapStringToJS(env, pair.second.description);
+            napi_set_named_property(env, jsSubcmd, "description", jsSubcmdDesc);
+
+            // Set requirePermissions (array)
+            napi_value jsSubcmdPerms = nullptr;
+            napi_create_array(env, &jsSubcmdPerms);
+            for (size_t i = 0; i < pair.second.requirePermissions.size(); i++) {
+                napi_value jsPerm = AppExecFwk::WrapStringToJS(env, pair.second.requirePermissions[i]);
+                napi_set_element(env, jsSubcmdPerms, i, jsPerm);
+            }
+            napi_set_named_property(env, jsSubcmd, "requirePermissions", jsSubcmdPerms);
+
+            // Set inputSchema
+            napi_value jsSubcmdInput = AppExecFwk::WrapStringToJS(env, pair.second.inputSchema);
+            napi_set_named_property(env, jsSubcmd, "inputSchema", jsSubcmdInput);
+
+            // Set outputSchema
+            napi_value jsSubcmdOutput = AppExecFwk::WrapStringToJS(env, pair.second.outputSchema);
+            napi_set_named_property(env, jsSubcmd, "outputSchema", jsSubcmdOutput);
+
+            // Set argMapping
+            if (pair.second.argMapping != nullptr) {
+                napi_value jsSubcmdArgMapping = nullptr;
+                status = napi_create_object(env, &jsSubcmdArgMapping);
+                if (status == napi_ok) {
+                    napi_value jsSubcmdType = AppExecFwk::WrapInt32ToJS(
+                        env, static_cast<int32_t>(pair.second.argMapping->type));
+                    napi_set_named_property(env, jsSubcmdArgMapping, "type", jsSubcmdType);
+
+                    napi_value jsSubcmdSep = AppExecFwk::WrapStringToJS(env, pair.second.argMapping->separator);
+                    napi_set_named_property(env, jsSubcmdArgMapping, "separator", jsSubcmdSep);
+
+                    napi_value jsSubcmdOrder = AppExecFwk::WrapStringToJS(env, pair.second.argMapping->order);
+                    napi_set_named_property(env, jsSubcmdArgMapping, "order", jsSubcmdOrder);
+
+                    napi_value jsSubcmdTmpl = AppExecFwk::WrapStringToJS(env, pair.second.argMapping->templates);
+                    napi_set_named_property(env, jsSubcmdArgMapping, "templates", jsSubcmdTmpl);
+
+                    napi_set_named_property(env, jsSubcmd, "argMapping", jsSubcmdArgMapping);
+                }
+            }
+
+            // Set eventTypes (array)
+            napi_value jsSubcmdEventTypes = nullptr;
+            napi_create_array(env, &jsSubcmdEventTypes);
+            for (size_t i = 0; i < pair.second.eventTypes.size(); i++) {
+                napi_value jsEvtType = AppExecFwk::WrapStringToJS(env, pair.second.eventTypes[i]);
+                napi_set_element(env, jsSubcmdEventTypes, i, jsEvtType);
+            }
+            napi_set_named_property(env, jsSubcmd, "eventTypes", jsSubcmdEventTypes);
+
+            // Set eventSchemas
+            napi_value jsSubcmdEventSchemas = AppExecFwk::WrapStringToJS(env, pair.second.eventSchemas);
+            napi_set_named_property(env, jsSubcmd, "eventSchemas", jsSubcmdEventSchemas);
+
+            napi_set_named_property(env, jsSubcommands, pair.first.c_str(), jsSubcmd);
+        }
+    }
+    napi_set_named_property(env, jsObj, "subcommands", jsSubcommands);
+
+    return jsObj;
+}
+
 } // namespace CliTool
 } // namespace OHOS
