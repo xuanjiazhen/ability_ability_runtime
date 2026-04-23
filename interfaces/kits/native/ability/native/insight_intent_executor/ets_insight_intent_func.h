@@ -54,11 +54,15 @@ private:
     bool CreatePromiseHelper();
     bool BindPromiseHelperMethods(ani_env *env, ani_class helperCls);
     bool InitPromiseHelperReference(ani_env *env, ani_class helperCls);
+    bool GetMethodArg(ani_env *env, ani_object wantParams, ani_method recordGetMethod, const std::string &paramName,
+        const std::shared_ptr<InsightIntentExecuteParam> &executeParam, ani_ref &valueRef);
     bool BuildMethodArgs(ani_env *env, const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         std::vector<ani_value> &args);
+    bool IsVoidReturnType(const std::shared_ptr<InsightIntentExecuteParam> &executeParam) const;
     bool ExecuteInsightIntent(ani_env *env, const std::shared_ptr<InsightIntentExecuteParam> &executeParam,
         bool &isAsync);
     bool HandleExecuteResult(ani_env *env, ani_ref result, bool &isAsync);
+    bool HandleVoidExecuteResult();
     static void ResolvePromiseCbCpp(ani_env *env, ani_object aniObj, ani_ref result);
     static void RejectPromiseCbCpp(ani_env *env, ani_object aniObj, ani_ref error);
 

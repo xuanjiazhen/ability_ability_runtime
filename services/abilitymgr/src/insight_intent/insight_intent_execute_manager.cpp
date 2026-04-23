@@ -27,6 +27,7 @@
 #include "want_params_wrapper.h"
 #include "time_util.h"
 #include "res_sched_util.h"
+#include "nlohmann/json.hpp"
 
 namespace OHOS {
 namespace AAFwk {
@@ -42,6 +43,7 @@ using ExtractInsightIntentInfo = AbilityRuntime::ExtractInsightIntentInfo;
 using InsightIntentPageInfo = AbilityRuntime::InsightIntentPageInfo;
 using InsightIntentFunctionInfo = AbilityRuntime::InsightIntentFunctionInfo;
 using InsightIntentEntryInfo = AbilityRuntime::InsightIntentEntryInfo;
+using InsightIntentParam = AppExecFwk::InsightIntentParam;
 
 void InsightIntentExecuteRecipient::OnRemoteDied(const wptr<OHOS::IRemoteObject> &remote)
 {
@@ -340,6 +342,7 @@ int32_t InsightIntentExecuteManager::UpdateFuncDecoratorParams(
 
     std::string className = info.decoratorClass;
     std::string methodName = info.genericInfo.get<InsightIntentFunctionInfo>().functionName;
+    std::string methodReturnType = info.genericInfo.get<InsightIntentFunctionInfo>().functionReturnType;
     std::vector<std::string> methodParams = info.genericInfo.get<InsightIntentFunctionInfo>().functionParams;
     if (className.empty() || methodName.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid func param");
@@ -347,8 +350,21 @@ int32_t InsightIntentExecuteManager::UpdateFuncDecoratorParams(
     }
     want.SetParam(INSIGHT_INTENT_FUNC_PARAM_CLASSNAME, className);
     want.SetParam(INSIGHT_INTENT_FUNC_PARAM_METHODNAME, methodName);
+    want.SetParam(INSIGHT_INTENT_FUNC_PARAM_RETURNTYPE, methodReturnType);
     want.SetParam(INSIGHT_INTENT_FUNC_PARAM_METHODPARAMS, methodParams);
     want.SetParam(INSIGHT_INTENT_ARKTS_MODE, info.arkTSMode);
+
+    const auto &functionParamInfos = info.genericInfo.get<InsightIntentFunctionInfo>().functionParamInfos;
+    nlohmann::json paramsJson = nlohmann::json::array();
+    for (const auto &paramInfo : functionParamInfos) {
+        nlohmann::json paramJson;
+        paramJson["paramName"] = paramInfo.paramName;
+        paramJson["type"] = static_cast<uint8_t>(paramInfo.type);
+        paramJson["isRequired"] = paramInfo.isRequired;
+        paramsJson.push_back(paramJson);
+    }
+    want.SetParam(INSIGHT_INTENT_FUNC_PARAM_SCHEMAS, paramsJson.dump());
+    TAG_LOGD(AAFwkTag::INTENT, "functionParamInfos size: %{public}zu", functionParamInfos.size());
     return ERR_OK;
 }
 
