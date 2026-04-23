@@ -26,6 +26,7 @@
 #undef protected
 #include "mock_ability_thread.h"
 #include "mock_ability_token.h"
+#include "modular_object_worker_manager.h"
 #include "ohos_application.h"
 
 namespace OHOS {
@@ -1265,6 +1266,129 @@ HWTEST_F(ExtensionAbilityThreadTest, ExtensionAbilityThread_HandleNativeExtensio
     ExtensionAbilityThread thread;
     thread.HandleNativeExtensionAttach(abilityRecord, abilityName);
     EXPECT_NE(thread.contentEmbedEventRunner_, nullptr);
+}
+
+// ============================================================
+// ModularObjectWorkerManager tests
+// Tests for the singleton managing shared worker threads
+// ============================================================
+
+/**
+ * @tc.name  : ModularObjectWorkerManager_GetOrCreateWorkerThread_0100
+ * @tc.desc  : Test creating a new worker thread returns valid handler
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ModularObjectWorkerManager_GetOrCreateWorkerThread_0100,
+    Function | MediumTest | Level1)
+{
+    auto &mgr = ModularObjectWorkerManager::GetInstance();
+    auto handler = mgr.GetOrCreateWorkerThread("test_bundle_TestExt");
+    EXPECT_NE(handler, nullptr);
+    // Cleanup
+    mgr.ReleaseWorkerThread("test_bundle_TestExt");
+}
+
+/**
+ * @tc.name  : ModularObjectWorkerManager_GetOrCreateWorkerThread_0200
+ * @tc.desc  : Test reusing existing worker thread returns same handler
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ModularObjectWorkerManager_GetOrCreateWorkerThread_0200,
+    Function | MediumTest | Level1)
+{
+    auto &mgr = ModularObjectWorkerManager::GetInstance();
+    auto handler1 = mgr.GetOrCreateWorkerThread("test_reuse_key");
+    ASSERT_NE(handler1, nullptr);
+    auto handler2 = mgr.GetOrCreateWorkerThread("test_reuse_key");
+    EXPECT_EQ(handler1, handler2);
+    // Cleanup: release twice (two GetOrCreate calls)
+    mgr.ReleaseWorkerThread("test_reuse_key");
+    mgr.ReleaseWorkerThread("test_reuse_key");
+}
+
+/**
+ * @tc.name  : ModularObjectWorkerManager_GetOrCreateWorkerThread_0300
+ * @tc.desc  : Test different keys create different handlers
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ModularObjectWorkerManager_GetOrCreateWorkerThread_0300,
+    Function | MediumTest | Level1)
+{
+    auto &mgr = ModularObjectWorkerManager::GetInstance();
+    auto handler1 = mgr.GetOrCreateWorkerThread("test_key_A");
+    auto handler2 = mgr.GetOrCreateWorkerThread("test_key_B");
+    ASSERT_NE(handler1, nullptr);
+    ASSERT_NE(handler2, nullptr);
+    EXPECT_NE(handler1, handler2);
+    // Cleanup
+    mgr.ReleaseWorkerThread("test_key_A");
+    mgr.ReleaseWorkerThread("test_key_B");
+}
+
+/**
+ * @tc.name  : ModularObjectWorkerManager_ReleaseWorkerThread_0100
+ * @tc.desc  : Test releasing all refs removes handler, next create gives new instance
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ModularObjectWorkerManager_ReleaseWorkerThread_0100,
+    Function | MediumTest | Level1)
+{
+    auto &mgr = ModularObjectWorkerManager::GetInstance();
+    auto handler1 = mgr.GetOrCreateWorkerThread("test_release_key");
+    ASSERT_NE(handler1, nullptr);
+    mgr.ReleaseWorkerThread("test_release_key");
+    auto handler2 = mgr.GetOrCreateWorkerThread("test_release_key");
+    ASSERT_NE(handler2, nullptr);
+    // After full release+recreate, should be a new handler instance
+    EXPECT_NE(handler1, handler2);
+    // Cleanup
+    mgr.ReleaseWorkerThread("test_release_key");
+}
+
+/**
+ * @tc.name  : ModularObjectWorkerManager_ReleaseWorkerThread_0200
+ * @tc.desc  : Test releasing non-existent key does not crash
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ModularObjectWorkerManager_ReleaseWorkerThread_0200,
+    Function | MediumTest | Level1)
+{
+    auto &mgr = ModularObjectWorkerManager::GetInstance();
+    // Should not crash on non-existent key
+    mgr.ReleaseWorkerThread("non_existent_key");
+    EXPECT_TRUE(true);
+}
+
+/**
+ * @tc.name  : ModularObjectWorkerManager_ReleaseWorkerThread_0300
+ * @tc.desc  : Test ref counting: partial release keeps handler, full release removes it
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ModularObjectWorkerManager_ReleaseWorkerThread_0300,
+    Function | MediumTest | Level1)
+{
+    auto &mgr = ModularObjectWorkerManager::GetInstance();
+    auto handler1 = mgr.GetOrCreateWorkerThread("test_refcount_key");
+    ASSERT_NE(handler1, nullptr);
+    // Second acquire increments ref
+    auto handler2 = mgr.GetOrCreateWorkerThread("test_refcount_key");
+    EXPECT_EQ(handler1, handler2);
+    // Partial release (ref 2->1): handler should still be available
+    mgr.ReleaseWorkerThread("test_refcount_key");
+    auto handler3 = mgr.GetOrCreateWorkerThread("test_refcount_key");
+    EXPECT_EQ(handler1, handler3); // still same handler
+    // Full cleanup: release remaining refs (ref 2->1->0)
+    mgr.ReleaseWorkerThread("test_refcount_key");
+    mgr.ReleaseWorkerThread("test_refcount_key");
+}
+
+/**
+ * @tc.name  : ModularObjectWorkerManager_GenerateInstanceId_0100
+ * @tc.desc  : Test instance IDs are unique and monotonically increasing
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ModularObjectWorkerManager_GenerateInstanceId_0100,
+    Function | MediumTest | Level1)
+{
+    auto &mgr = ModularObjectWorkerManager::GetInstance();
+    uint32_t id1 = mgr.GenerateInstanceId();
+    uint32_t id2 = mgr.GenerateInstanceId();
+    uint32_t id3 = mgr.GenerateInstanceId();
+    EXPECT_LT(id1, id2);
+    EXPECT_LT(id2, id3);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
