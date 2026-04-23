@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "ability_record/ability_request.h"
+#include "iremote_object.h"
 #include "modular_object_extension_info.h"
 
 namespace OHOS {
@@ -30,6 +31,7 @@ public:
     ModularObjectUtils() = delete;
 
     static int32_t CheckPermission(const AbilityRequest &abilityRequest);
+    static bool GetPidToCheckByCallerToken(sptr<IRemoteObject> callerToken, pid_t &outPid);
 
 private:
     static int32_t CheckExtensionEnabled(const ModularObjectExtensionInfo &info, const AbilityRequest &abilityRequest);

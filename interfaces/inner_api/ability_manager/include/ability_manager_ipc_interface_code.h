@@ -739,6 +739,12 @@ enum class AbilityManagerInterfaceCode {
 
     // query entity
     INSIGHT_INTENT_QUERY_ENTITY = 6165,
+
+    // start self uiability with caller token
+    START_SELF_UI_ABILITY_WITH_TOKEN = 6166,
+
+    // start self uiability with start options and caller token
+    START_SELF_UI_ABILITY_WITH_OPTIONS_AND_TOKEN = 6167,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

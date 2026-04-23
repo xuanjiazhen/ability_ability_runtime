@@ -16456,8 +16456,18 @@ int AbilityManagerService::StartSelfUIAbilityInner(StartSelfUIAbilityParam param
     CHECK_TRUE_RETURN_RET(!PermissionVerification::GetInstance()->VerifyStartSelfUIAbility(tokenId),
         CHECK_PERMISSION_FAILED, "permission denied");
 
-    CHECK_TRUE_RETURN_RET(processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND,
-        NOT_TOP_ABILITY, "caller not foreground");
+    pid_t checkPid = callingPid;
+    if (param.callerToken && ModularObjectUtils::GetPidToCheckByCallerToken(param.callerToken, checkPid)) {
+        AppExecFwk::RunningProcessInfo checkProcessInfo;
+        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByChildProcessPid(
+            checkPid, checkProcessInfo);
+        CHECK_TRUE_RETURN_RET(checkProcessInfo.bundleNames.empty(), INNER_ERR, "failed to get by pid");
+        CHECK_TRUE_RETURN_RET(checkProcessInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND,
+            NOT_TOP_ABILITY, "caller not foreground");
+    } else {
+        CHECK_TRUE_RETURN_RET(processInfo.state_ != AppExecFwk::AppProcessState::APP_STATE_FOREGROUND,
+            NOT_TOP_ABILITY, "caller not foreground");
+    }
 
     if (!param.hasStartOptions) {
         return StartAbility(param.want);
@@ -16512,6 +16522,42 @@ int AbilityManagerService::StartSelfUIAbilityWithPidResult(const Want &want, Sta
         return ret;
     }
     return ERR_OK;
+}
+
+int AbilityManagerService::StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken)
+{
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
+        return INNER_ERR;
+    }
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+
+    StartSelfUIAbilityParam param;
+    param.want = want;
+    param.callerToken = callerToken;
+    return StartSelfUIAbilityInner(param);
+}
+
+int AbilityManagerService::StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+    const StartOptions &options, sptr<IRemoteObject> callerToken)
+{
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
+        return INNER_ERR;
+    }
+    XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSelfUIAbility with startOptions and token");
+
+    if (options.processOptions != nullptr) {
+        options.processOptions->isStartFromNDK = true;
+    }
+
+    StartSelfUIAbilityParam param;
+    param.want = want;
+    param.options = options;
+    param.hasStartOptions = true;
+    param.callerToken = callerToken;
+    return StartSelfUIAbilityInner(param);
 }
 
 bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::ExtensionAbilityType extensionType)
