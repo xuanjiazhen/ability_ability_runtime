@@ -5898,7 +5898,7 @@ int AbilityManagerService::DisconnectAbility(sptr<IAbilityConnection> connect)
 bool AbilityManagerService::CheckSupportVpn(const AppExecFwk::AbilityInfo& abilityInfo) 
 {
     if(abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::VPN) {
-        return false;
+        return true;
     }
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "CHECK_CALLER_IS_SYSTEM_APP start uid: %{public}d", callerUid);
@@ -5977,7 +5977,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
         }
         // not allow app to connect other extension by using connectServiceExtensionAbility
         bool isVpn = CheckSupportVpn(abilityInfo);
-        if (callerToken && extensionType == AppExecFwk::ExtensionAbilityType::SERVICE && !isService && !isVpn) {
+        if (!isVpn) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "ability, type not service");
             return TARGET_ABILITY_NOT_SERVICE;
         }
