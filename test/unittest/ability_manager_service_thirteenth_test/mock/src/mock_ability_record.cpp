@@ -284,6 +284,16 @@ void AbilityRecord::SetPid(pid_t pid)
     pid_ = pid;
 }
 
+void AbilityRecord::SetClientPid(pid_t clientPid)
+{
+    clientPid_ = clientPid;
+}
+
+pid_t AbilityRecord::GetClientPid() const
+{
+    return clientPid_;
+}
+
 void AbilityRecord::LoadUIAbility()
 {
     SetLoading(true);

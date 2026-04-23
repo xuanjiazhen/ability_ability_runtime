@@ -17,6 +17,9 @@
 
 #include "modular_object_utils.h"
 #include "ability_manager_errors.h"
+#include "ability_record.h"
+#include "ability_record/ability_record_utils.h"
+#include "ipc_object_stub.h"
 #include "mock_flag.h"
 
 using namespace testing::ext;
@@ -47,6 +50,10 @@ void ResetFlags()
     MockFlag::missionListMgrNull = false;
     MockFlag::uiAbilityMgrNull = false;
     MockFlag::uiExtMgrNull = false;
+    // Token and AbilityRecord mock state
+    Token::abilityRecord_ = nullptr;
+    AbilityRecord::abilityInfo.extensionAbilityType = ExtensionAbilityType::UNSPECIFIED;
+    AbilityRecord::clientPid = -1;
 }
 } // namespace
 
@@ -479,4 +486,90 @@ HWTEST_F(ModularObjectUtilsTest, GetCallerAppInfo_004, TestSize.Level1)
     auto ret = ModularObjectUtils::GetCallerAppInfo(callerAppInfo);
     EXPECT_EQ(ret, ERR_OK);
     GTEST_LOG_(INFO) << "GetCallerAppInfo_004 end";
+}
+
+// ==================== GetPidToCheckByCallerToken ====================
+
+HWTEST_F(ModularObjectUtilsTest, GetPidToCheckByCallerToken_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_001 start";
+    // callerToken is nullptr
+    pid_t outPid = -1;
+    auto ret = ModularObjectUtils::GetPidToCheckByCallerToken(nullptr, outPid);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(outPid, -1);
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_001 end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, GetPidToCheckByCallerToken_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_002 start";
+    // callerToken valid but GetAbilityRecordByToken returns nullptr
+    Token::abilityRecord_ = nullptr;
+    pid_t outPid = -1;
+    OHOS::sptr<OHOS::IRemoteObject> token(new OHOS::IPCObjectStub());
+    auto ret = ModularObjectUtils::GetPidToCheckByCallerToken(token, outPid);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(outPid, -1);
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_002 end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, GetPidToCheckByCallerToken_003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_003 start";
+    // extensionAbilityType is not MODULAR_OBJECT
+    Token::abilityRecord_ = std::make_shared<AbilityRecord>();
+    AbilityRecord::abilityInfo.extensionAbilityType = ExtensionAbilityType::SERVICE;
+    AbilityRecord::clientPid = 5678;
+    pid_t outPid = -1;
+    OHOS::sptr<OHOS::IRemoteObject> token(new OHOS::IPCObjectStub());
+    auto ret = ModularObjectUtils::GetPidToCheckByCallerToken(token, outPid);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(outPid, -1);
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_003 end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, GetPidToCheckByCallerToken_004, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_004 start";
+    // extensionAbilityType is MODULAR_OBJECT but clientPid <= 0
+    Token::abilityRecord_ = std::make_shared<AbilityRecord>();
+    AbilityRecord::abilityInfo.extensionAbilityType = ExtensionAbilityType::MODULAR_OBJECT;
+    AbilityRecord::clientPid = 0;
+    pid_t outPid = -1;
+    OHOS::sptr<OHOS::IRemoteObject> token(new OHOS::IPCObjectStub());
+    auto ret = ModularObjectUtils::GetPidToCheckByCallerToken(token, outPid);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(outPid, -1);
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_004 end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, GetPidToCheckByCallerToken_005, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_005 start";
+    // extensionAbilityType is MODULAR_OBJECT and clientPid < 0
+    Token::abilityRecord_ = std::make_shared<AbilityRecord>();
+    AbilityRecord::abilityInfo.extensionAbilityType = ExtensionAbilityType::MODULAR_OBJECT;
+    AbilityRecord::clientPid = -100;
+    pid_t outPid = -1;
+    OHOS::sptr<OHOS::IRemoteObject> token(new OHOS::IPCObjectStub());
+    auto ret = ModularObjectUtils::GetPidToCheckByCallerToken(token, outPid);
+    EXPECT_FALSE(ret);
+    EXPECT_EQ(outPid, -1);
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_005 end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, GetPidToCheckByCallerToken_006, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_006 start";
+    // Success: MODULAR_OBJECT type and valid clientPid
+    Token::abilityRecord_ = std::make_shared<AbilityRecord>();
+    AbilityRecord::abilityInfo.extensionAbilityType = ExtensionAbilityType::MODULAR_OBJECT;
+    AbilityRecord::clientPid = 5678;
+    pid_t outPid = -1;
+    OHOS::sptr<OHOS::IRemoteObject> token(new OHOS::IPCObjectStub());
+    auto ret = ModularObjectUtils::GetPidToCheckByCallerToken(token, outPid);
+    EXPECT_TRUE(ret);
+    EXPECT_EQ(outPid, 5678);
+    GTEST_LOG_(INFO) << "GetPidToCheckByCallerToken_006 end";
 }
