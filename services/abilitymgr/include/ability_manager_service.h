@@ -168,6 +168,11 @@ public:
      */
     virtual int StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options, uint64_t callbackId) override;
 
+    virtual int StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken) override;
+
+    virtual int StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+        const StartOptions &options, sptr<IRemoteObject> callerToken) override;
+
     /**
      * StartAbility with want, send want to ability manager service.
      *
@@ -3407,6 +3412,7 @@ private:
         Want want;
         StartOptions options;
         bool hasStartOptions = false;
+        sptr<IRemoteObject> callerToken = nullptr;
     };
     int StartSelfUIAbilityInner(StartSelfUIAbilityParam param);
 

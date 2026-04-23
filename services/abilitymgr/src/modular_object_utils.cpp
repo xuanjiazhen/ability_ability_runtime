@@ -19,6 +19,7 @@
 
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
+#include "ability_record/ability_record_utils.h"
 #include "ability_util.h"
 #include "app_mgr_client.h"
 #include "app_utils.h"
@@ -228,6 +229,29 @@ int32_t ModularObjectUtils::GetCallerAppInfo(AppExecFwk::ApplicationInfo &caller
         return INNER_ERR;
     }
     return ERR_OK;
+}
+
+bool ModularObjectUtils::GetPidToCheckByCallerToken(sptr<IRemoteObject> callerToken, pid_t &outPid)
+{
+    if (callerToken == nullptr) {
+        return false;
+    }
+    auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (callerRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::EXT, "callerToken invalid, use original PID");
+        return false;
+    }
+    auto &abilityInfo = callerRecord->GetAbilityInfo();
+    if (abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        return false;
+    }
+    auto clientPid = callerRecord->GetClientPid();
+    if (clientPid > 0) {
+        outPid = clientPid;
+        TAG_LOGD(AAFwkTag::EXT, "MOE: use client PID=%{public}d", clientPid);
+        return true;
+    }
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
