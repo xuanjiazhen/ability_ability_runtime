@@ -32,9 +32,7 @@ public:
     std::string sessionId;
     std::string toolName;
     std::string status;            // "running", "completed", "failed"
-    int64_t startTime;
-    int64_t endTime;
-    std::shared_ptr<ExecResult> result;  // optional, only when status="completed"
+    std::shared_ptr<ExecResult> result = nullptr;  // optional, only when status="completed"
 
     CliSessionInfo() = default;
 
