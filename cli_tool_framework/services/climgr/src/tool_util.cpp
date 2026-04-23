@@ -24,6 +24,7 @@
 #include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "tokenid_kit.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -113,6 +114,29 @@ bool ToolUtil::GetBundleInfoByTokenId(AppExecFwk::BundleInfo &bundleInfo)
     if (bundleMgrHelper->GetCloneBundleInfo(hapInfo.bundleName, flag, hapInfo.instIndex, bundleInfo, hapInfo.userID) !=
         ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Fail to get bundle info");
+        return false;
+    }
+    return true;
+}
+
+bool ToolUtil::VerifySystemApp()
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "Called");
+    uint64_t accessTokenIdEx = IPCSkeleton::GetCallingFullTokenID();
+    if (!Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(accessTokenIdEx)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "non-system app calling system api");
+        return false;
+    }
+    return true;
+}
+
+bool ToolUtil::VerifyCallingPermission(const std::string &permissionName)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "Verify: %{public}s", permissionName.c_str());
+    OHOS::Security::AccessToken::AccessTokenID callerToken = IPCSkeleton::GetCallingTokenID();
+    int32_t ret = OHOS::Security::AccessToken::AccessTokenKit::VerifyAccessToken(callerToken, permissionName);
+    if (ret != OHOS::Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "PERMISSION_DENIED: %{public}s", permissionName.c_str());
         return false;
     }
     return true;
