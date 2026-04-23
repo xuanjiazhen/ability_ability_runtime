@@ -22,6 +22,8 @@
 
 #include "bundle_info.h"
 #include "cli_session_info.h"
+#include "exec_tool_param.h"
+#include "session_record.h"
 #include "tool_info.h"
 
 namespace OHOS {
@@ -49,27 +51,13 @@ public:
         const std::string &toolName, const std::string &subcommand,
         const std::map<std::string, std::string> &args);
 
-    /**
-     * @brief 创建管道并设置非阻塞
-     * @param pipeFd 管道文件描述符数组 [0]=读端, [1]=写端
-     * @return 创建成功返回true，否则返回false
-     */
-    bool CreatePipe(int pipeFd[2]);
+    bool VerifySystemApp();
 
-    /**
-     * @brief 在子进程中执行工具
-     * @param toolInfo 工具信息
-     * @param subcommand 子命令
-     * @param args 参数map
-     * @param stdoutPipe 标准输出管道
-     * @param stderrPipe 标准错误管道
-     */
-    void ExecuteChildProcess(std::string &cmdLine, const std::string &sandboxConfig,
-        const std::map<std::string, std::string> &args, int stdoutPipe[], int stderrPipe[]);
+    bool VerifyCallingPermission(const std::string &permissionName);
 
     std::string GenerateCliSessionId(const std::string &name, int64_t startTime, int32_t counter) const;
 
-    void ConstructSessionInfo(CliSessionInfo &session, const std::string &toolName, int32_t counter);
+    std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, int32_t counter);
 
     bool GenerateSandboxConfig(const std::string &challenge, std::string &sandboxConfig) const;
 

@@ -19,11 +19,24 @@
 #include <mutex>
 
 #include "cli_session_info.h"
+#include "cli_tool_event.h"
+#include "cli_tool_mgr_scheduler_recipient.h"
 #include "exec_options.h"
 #include "icli_tool_manager.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace CliTool {
+
+class SessionEventCallback {
+public:
+    SessionEventCallback() = default;
+    virtual ~SessionEventCallback() = default;
+
+    virtual void OnToolEvent(const std::string &sessionId,
+                             const std::string &subscriptionId,
+                             const CliToolEvent &event) {}
+};
 
 /**
  * @class CliToolMGRClient
@@ -32,6 +45,12 @@ namespace CliTool {
  */
 class CliToolMGRClient {
 public:
+    using ExecToolReplyCallback = std::function<void(int32_t, const CliSessionInfo &)>;
+
+    using EventReplyCallback = std::function<void(int32_t)>;
+
+    using ServiceDeathHandler = std::function<void()>;
+
     /**
      * @brief Get the singleton instance of CliToolMGRClient.
      * @return Reference to the CliToolMGRClient instance.
@@ -42,6 +61,8 @@ public:
      * @brief Destructor.
      */
     ~CliToolMGRClient() = default;
+
+    void SetServiceDeathHandler(const ServiceDeathHandler &handler);
 
     /**
      * @brief Get all tool summaries (lightweight for listing)
@@ -76,11 +97,26 @@ public:
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param args The tool arguments as key-value pairs.
-     * @param session Output session information.
+     * @param callback reply callback.
      * @return Returns ERR_OK on success, error code otherwise.
      */
-    int32_t ExecTool(const ExecToolParam &param, const std::map<std::string, std::string> &args,
-        CliSessionInfo &session);
+    ErrCode ExecTool(const ExecToolParam &param,
+                     const std::map<std::string, std::string> &args,
+                     const ExecToolReplyCallback &callback);
+
+    ErrCode SubscribeSession(const std::string &sessionId,
+                             const std::shared_ptr<SessionEventCallback> &callback,
+                             std::string &subscriptionId);
+
+    ErrCode UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId);
+
+    ErrCode ClearSession(const std::string &sessionId);
+
+    ErrCode QuerySession(const std::string &sessionId, CliSessionInfo &session);
+
+    ErrCode SendMessage(const std::string &sessionId,
+                        const std::string &inputText,
+                        const EventReplyCallback &callback);
 
 private:
     CliToolMGRClient() = default;
@@ -103,9 +139,15 @@ private:
      */
     void ResetProxy(const wptr<IRemoteObject>& remote);
 
+    ErrCode EnsureSchedulerRegistered(const sptr<ICliToolManager> &proxy);
+
+private:
     std::recursive_mutex mutex_;
     sptr<ICliToolManager> proxy_;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
+    bool schedulerRegistered_ = false;
+    sptr<CliToolManagerSchedulerRecipient> schedulerStub_ = nullptr;
+    std::vector<ServiceDeathHandler> serviceDeathHandlers_;
 };
 
 } // namespace CliTool
