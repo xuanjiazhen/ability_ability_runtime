@@ -28,6 +28,11 @@
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
 
+// Declare mock control functions (defined in mock_modular_object_manager.cpp)
+extern void SetMockModularObjectConfigs(const std::vector<OHOS::AAFwk::ModularObjectExtensionInfo> &configs);
+extern void SetMockModularObjectConfigError();
+extern void ClearMockModularObjectConfig();
+
 namespace OHOS {
 namespace AAFwk {
 namespace {
@@ -64,6 +69,7 @@ void ModularObjectConnectTest::SetUp()
 void ModularObjectConnectTest::TearDown()
 {
     connectManager_ = nullptr;
+    ClearMockModularObjectConfig();
 }
 
 AbilityRequest ModularObjectConnectTest::MakeModularObjectRequest(
@@ -570,11 +576,12 @@ HWTEST_F(ModularObjectConnectTest, AtomicInstanceId_001, TestSize.Level1)
 // ============================================================
 
 /**
- * @tc.name: HandleModularObjectNewRecord_NonModularObject_001
+ * @tc.name: HandleModularObjectNewRecord_ShouldReturnEarlyWhenNotModularObject
  * @tc.desc: Test early return when extensionAbilityType is not MODULAR_OBJECT
  * @tc.type: FUNC
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_NonModularObject_001, TestSize.Level1)
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldReturnEarlyWhenNotModularObject, TestSize.Level1)
 {
     // Create a request with non-MODULAR_OBJECT type
     AbilityRequest request;
@@ -600,11 +607,12 @@ HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_NonModularObject
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_NullConfig_001
+ * @tc.name: HandleModularObjectNewRecord_ShouldReturnEarlyWhenConfigIsNull
  * @tc.desc: Test early return when QueryModularObjectConfig returns nullptr (no DB config)
  * @tc.type: FUNC
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_NullConfig_001, TestSize.Level1)
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldReturnEarlyWhenConfigIsNull, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
     auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
@@ -620,11 +628,12 @@ HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_NullConfig_001, 
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_NullService_001
+ * @tc.name: HandleModularObjectNewRecord_ShouldNotCrashWhenServiceIsNull
  * @tc.desc: Test behavior with nullptr targetService (should not crash)
  * @tc.type: FUNC
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_NullService_001, TestSize.Level1)
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldNotCrashWhenServiceIsNull, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
     std::shared_ptr<BaseExtensionRecord> nullService = nullptr;
@@ -636,11 +645,12 @@ HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_NullService_001,
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_EmptyServiceKey_001
+ * @tc.name: HandleModularObjectNewRecord_ShouldNotCrashWhenServiceKeyIsEmpty
  * @tc.desc: Test with empty serviceKey (no underscore, connectId not written)
  * @tc.type: FUNC
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EmptyServiceKey_001, TestSize.Level1)
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldNotCrashWhenServiceKeyIsEmpty, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
     auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
@@ -653,11 +663,12 @@ HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EmptyServiceKey_
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_NoUnderscoreKey_001
+ * @tc.name: HandleModularObjectNewRecord_ShouldNotCrashWhenNoUnderscoreInKey
  * @tc.desc: Test with serviceKey that has no underscore (rfind returns npos)
  * @tc.type: FUNC
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_NoUnderscoreKey_001, TestSize.Level1)
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldNotCrashWhenNoUnderscoreInKey, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
     auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
@@ -670,266 +681,17 @@ HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_NoUnderscoreKey_
 }
 
 // ============================================================
-// 12. HandleModularObjectNewRecord processName algorithmic tests
-// These tests verify the processName generation logic matches the
-// exact code in HandleModularObjectNewRecord for all config modes.
-// Since QueryModularObjectConfig returns nullptr in test env,
-// we test the algorithmic logic separately.
-// ============================================================
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ProcessName_InProcess_EmptyAppProcess_001
- * @tc.desc: Test IN_PROCESS mode with empty appInfo.process uses bundleName
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ProcessName_InProcess_EmptyAppProcess_001,
-    TestSize.Level1)
-{
-    // Replicate HandleModularObjectNewRecord logic: IN_PROCESS + empty appInfo.process
-    std::string bundleName = TEST_BUNDLE;
-    std::string process;
-    // config->launchMode == MoeLaunchMode::IN_PROCESS
-    process = bundleName;
-    // appInfo.process is empty, so process stays as bundleName
-    std::string appInfoProcess = "";
-    if (!appInfoProcess.empty()) {
-        process = appInfoProcess;
-    }
-    EXPECT_EQ(process, TEST_BUNDLE);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ProcessName_InProcess_NonEmptyAppProcess_001
- * @tc.desc: Test IN_PROCESS mode with non-empty appInfo.process overrides bundleName
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ProcessName_InProcess_NonEmptyAppProcess_001,
-    TestSize.Level1)
-{
-    // Replicate HandleModularObjectNewRecord logic: IN_PROCESS + non-empty appInfo.process
-    std::string bundleName = TEST_BUNDLE;
-    std::string process;
-    std::string appInfoProcess = "com.test.custom_process";
-    process = bundleName;
-    if (!appInfoProcess.empty()) {
-        process = appInfoProcess;
-    }
-    EXPECT_EQ(process, "com.test.custom_process");
-    EXPECT_NE(process, TEST_BUNDLE);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ProcessName_InProcess_AppProcessPriority_001
- * @tc.desc: Test IN_PROCESS mode: appInfo.process takes priority over bundleName
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ProcessName_InProcess_AppProcessPriority_001,
-    TestSize.Level1)
-{
-    // Verify priority: when both exist, appInfo.process wins
-    std::string bundleName = "bundle_a";
-    std::string appInfoProcess = "process_b";
-    std::string process = bundleName;
-    if (!appInfoProcess.empty()) {
-        process = appInfoProcess;
-    }
-    EXPECT_EQ(process, "process_b");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ProcessName_CrossProcess_Bundle_001
- * @tc.desc: Test CROSS_PROCESS + BUNDLE processMode uses bundleName
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ProcessName_CrossProcess_Bundle_001,
-    TestSize.Level1)
-{
-    // Replicate HandleModularObjectNewRecord logic: CROSS_PROCESS + BUNDLE
-    std::string bundleName = TEST_BUNDLE;
-    std::string abilityName = TEST_ABILITY;
-    std::string process;
-    // switch (config->processMode) case MoeProcessMode::BUNDLE:
-    process = bundleName;
-    EXPECT_EQ(process, TEST_BUNDLE);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ProcessName_CrossProcess_Type_001
- * @tc.desc: Test CROSS_PROCESS + TYPE processMode uses bundleName:abilityName
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ProcessName_CrossProcess_Type_001,
-    TestSize.Level1)
-{
-    // Replicate HandleModularObjectNewRecord logic: CROSS_PROCESS + TYPE
-    std::string bundleName = TEST_BUNDLE;
-    std::string abilityName = TEST_ABILITY;
-    std::string process;
-    // switch (config->processMode) case MoeProcessMode::TYPE:
-    process = bundleName + ":" + abilityName;
-    EXPECT_EQ(process, "com.test.modular:TestModularObjectExt");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ProcessName_CrossProcess_Instance_001
- * @tc.desc: Test CROSS_PROCESS + INSTANCE processMode uses bundleName:abilityName:recordId
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ProcessName_CrossProcess_Instance_001,
-    TestSize.Level1)
-{
-    // Replicate HandleModularObjectNewRecord logic: CROSS_PROCESS + INSTANCE
-    std::string bundleName = TEST_BUNDLE;
-    std::string abilityName = TEST_ABILITY;
-    int32_t recordId = 42;
-    std::string process;
-    // switch (config->processMode) case MoeProcessMode::INSTANCE:
-    process = bundleName + ":" + abilityName + ":" + std::to_string(recordId);
-    EXPECT_EQ(process, "com.test.modular:TestModularObjectExt:42");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ProcessName_CrossProcess_Instance_Unique_001
- * @tc.desc: Test CROSS_PROCESS + INSTANCE produces unique processName per recordId
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ProcessName_CrossProcess_Instance_Unique_001,
-    TestSize.Level1)
-{
-    // Verify different recordId → different processName
-    std::string bundleName = TEST_BUNDLE;
-    std::string abilityName = TEST_ABILITY;
-    auto makeProcess = [&](int32_t recordId) -> std::string {
-        return bundleName + ":" + abilityName + ":" + std::to_string(recordId);
-    };
-    EXPECT_NE(makeProcess(1), makeProcess(2));
-    EXPECT_NE(makeProcess(100), makeProcess(101));
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ProcessName_CrossProcess_Default_001
- * @tc.desc: Test CROSS_PROCESS + default (invalid) processMode produces empty processName
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ProcessName_CrossProcess_Default_001,
-    TestSize.Level1)
-{
-    // Replicate HandleModularObjectNewRecord logic: CROSS_PROCESS + default (falls through switch)
-    std::string process;
-    // switch (config->processMode) default: break; → process stays empty
-    // The function then checks: if (!process.empty()) { SetProcessName }
-    // So with empty process, SetProcessName is NOT called
-    EXPECT_TRUE(process.empty());
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ProcessName_CrossProcess_Default_NoSetProcess_001
- * @tc.desc: Test that empty processName does not trigger SetProcessName call
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ProcessName_CrossProcess_Default_NoSetProcess_001,
-    TestSize.Level1)
-{
-    // Verify the guard: if (!process.empty()) { SetProcessName }
-    std::string process;  // empty
-    bool wouldSetProcess = !process.empty();
-    EXPECT_FALSE(wouldSetProcess);
-}
-
-// ============================================================
-// 13. HandleModularObjectNewRecord connectId extraction tests
-// Tests the rfind('_') + SetParam logic for connectId.
-// ============================================================
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ConnectId_WithUnderscore_001
- * @tc.desc: Test connectId extraction when serviceKey contains underscore
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ConnectId_WithUnderscore_001,
-    TestSize.Level1)
-{
-    // Replicate HandleModularObjectNewRecord logic: rfind('_')
-    std::string serviceKey = "device#com.test.modular#TestModularObjectExt#entry_12345";
-    auto pos = serviceKey.rfind('_');
-    ASSERT_NE(pos, std::string::npos);
-    std::string connectId = serviceKey.substr(pos + 1);
-    EXPECT_EQ(connectId, "12345");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ConnectId_NoUnderscore_001
- * @tc.desc: Test connectId not extracted when serviceKey has no underscore
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ConnectId_NoUnderscore_001,
-    TestSize.Level1)
-{
-    // Replicate HandleModularObjectNewRecord logic: rfind('_')
-    std::string serviceKey = "deviceNoUnderscore";
-    auto pos = serviceKey.rfind('_');
-    EXPECT_EQ(pos, std::string::npos);
-    // When pos == npos, SetParam is NOT called
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ConnectId_EmptyKey_001
- * @tc.desc: Test connectId extraction with empty serviceKey
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ConnectId_EmptyKey_001,
-    TestSize.Level1)
-{
-    std::string serviceKey;
-    auto pos = serviceKey.rfind('_');
-    EXPECT_EQ(pos, std::string::npos);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ConnectId_MultipleUnderscores_001
- * @tc.desc: Test connectId extraction uses LAST underscore (rfind)
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ConnectId_MultipleUnderscores_001,
-    TestSize.Level1)
-{
-    // baseUri may contain underscores, rfind gets the LAST one
-    std::string serviceKey = "device_my_bundle#test#ability#entry_99999";
-    auto pos = serviceKey.rfind('_');
-    ASSERT_NE(pos, std::string::npos);
-    std::string connectId = serviceKey.substr(pos + 1);
-    EXPECT_EQ(connectId, "99999");
-    // Verify it's the LAST underscore, not the first
-    EXPECT_NE(connectId, "my_bundle#test#ability#entry_99999");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ConnectId_TrailingUnderscore_001
- * @tc.desc: Test connectId extraction when serviceKey ends with underscore
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_ConnectId_TrailingUnderscore_001,
-    TestSize.Level1)
-{
-    std::string serviceKey = "device#bundle#ability#entry_";
-    auto pos = serviceKey.rfind('_');
-    ASSERT_NE(pos, std::string::npos);
-    std::string connectId = serviceKey.substr(pos + 1);
-    EXPECT_EQ(connectId, "");  // Empty connectId after trailing underscore
-}
-
-// ============================================================
-// 14. HandleModularObjectNewRecord integration with GetOrCreateServiceRecord
+// 12. HandleModularObjectNewRecord integration with GetOrCreateServiceRecord
 // Tests the call path: GetOrCreateServiceRecord → HandleModularObjectNewRecord
 // ============================================================
 
 /**
- * @tc.name: HandleModularObjectNewRecord_Integration_NonModularObject_001
+ * @tc.name: GetOrCreateServiceRecord_ShouldCreateServiceWhenNonModularObject
  * @tc.desc: Test GetOrCreateServiceRecord with non-MODULAR_OBJECT doesn't call MO handler
  * @tc.type: FUNC
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_Integration_NonModularObject_001,
-    TestSize.Level1)
+HWTEST_F(ModularObjectConnectTest,
+    GetOrCreateServiceRecord_ShouldCreateServiceWhenNonModularObject, TestSize.Level1)
 {
     AbilityRequest request;
     ElementName element(TEST_DEVICE, TEST_BUNDLE, "TestServiceExt", TEST_MODULE);
@@ -948,12 +710,12 @@ HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_Integration_NonM
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_Integration_ModularObject_001
+ * @tc.name: GetOrCreateServiceRecord_ShouldCreateRecordWhenModularObject
  * @tc.desc: Test GetOrCreateServiceRecord with MODULAR_OBJECT creates record
  * @tc.type: FUNC
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_Integration_ModularObject_001,
-    TestSize.Level1)
+HWTEST_F(ModularObjectConnectTest,
+    GetOrCreateServiceRecord_ShouldCreateRecordWhenModularObject, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
     std::shared_ptr<BaseExtensionRecord> service = nullptr;
@@ -968,12 +730,12 @@ HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_Integration_Modu
 // ============================================================
 
 /**
- * @tc.name: HandleModularObjectNewRecord_EdgeCase_VariousExtensionTypes_001
+ * @tc.name: HandleModularObjectNewRecord_ShouldNotModifyNonModularObjectTypes
  * @tc.desc: Test early return for various non-MODULAR_OBJECT extension types
  * @tc.type: FUNC
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_VariousExtensionTypes_001,
-    TestSize.Level1)
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldNotModifyNonModularObjectTypes, TestSize.Level1)
 {
     auto testType = [&](AppExecFwk::ExtensionAbilityType type) {
         AbilityRequest request;
@@ -995,135 +757,221 @@ HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_Various
     testType(AppExecFwk::ExtensionAbilityType::FILESHARE);
 }
 
+// Helper: create a ModularObjectExtensionInfo with given fields
+static ModularObjectExtensionInfo MakeConfig(MoeLaunchMode launchMode = MoeLaunchMode::IN_PROCESS,
+    MoeProcessMode processMode = MoeProcessMode::BUNDLE,
+    bool isDisabled = false)
+{
+    ModularObjectExtensionInfo info;
+    info.bundleName = TEST_BUNDLE;
+    info.moduleName = TEST_MODULE;
+    info.abilityName = TEST_ABILITY;
+    info.launchMode = launchMode;
+    info.processMode = processMode;
+    info.isDisabled = isDisabled;
+    return info;
+}
+
+// ============================================================
+// 16. HandleModularObjectNewRecord white-box tests with injected config
+// Full branch coverage for processName and requestId logic
+// ============================================================
+
 /**
- * @tc.name: HandleModularObjectNewRecord_EdgeCase_EmptyBundleName_001
- * @tc.desc: Test processName calculation with empty bundleName
- * @tc.type: FUNC
+ * @tc.name: HandleModularObjectNewRecord_ShouldUseBundleNameWhenInProcessEmptyAppProcess
+ * @tc.desc: IN_PROCESS + empty appInfo.process → processName = bundleName
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_EmptyBundleName_001,
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldUseBundleNameWhenInProcessEmptyAppProcess,
     TestSize.Level1)
 {
-    // IN_PROCESS with empty bundleName and empty appInfo.process
-    std::string bundleName;
-    std::string process = bundleName;
-    EXPECT_TRUE(process.empty());
-    // !process.empty() → false → SetProcessName NOT called
+    auto config = MakeConfig(MoeLaunchMode::IN_PROCESS);
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    request.appInfo.process = "";
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
+    EXPECT_EQ(service->GetProcessName(), TEST_BUNDLE);
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_EdgeCase_SpecialChars_001
- * @tc.desc: Test processName with special characters in bundleName/abilityName
- * @tc.type: FUNC
+ * @tc.name: HandleModularObjectNewRecord_ShouldUseAppProcessWhenInProcessNonEmpty
+ * @tc.desc: IN_PROCESS + non-empty appInfo.process → processName = appInfo.process
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_SpecialChars_001,
-    TestSize.Level1)
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldUseAppProcessWhenInProcessNonEmpty, TestSize.Level1)
 {
-    std::string bundleName = "com.test.special_chars.v2";
-    std::string abilityName = "My-Extension_名称";
-    // TYPE mode
-    std::string process = bundleName + ":" + abilityName;
-    EXPECT_EQ(process, "com.test.special_chars.v2:My-Extension_名称");
-    // INSTANCE mode
-    int32_t recordId = 999;
-    std::string instanceProcess = bundleName + ":" + abilityName + ":" + std::to_string(recordId);
-    EXPECT_EQ(instanceProcess, "com.test.special_chars.v2:My-Extension_名称:999");
+    auto config = MakeConfig(MoeLaunchMode::IN_PROCESS);
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    request.appInfo.process = "com.test.custom_process";
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
+    EXPECT_EQ(service->GetProcessName(), "com.test.custom_process");
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_EdgeCase_ZeroRecordId_001
- * @tc.desc: Test INSTANCE mode with recordId=0
- * @tc.type: FUNC
+ * @tc.name: HandleModularObjectNewRecord_ShouldUseBundleNameWhenCrossProcessBundleMode
+ * @tc.desc: CROSS_PROCESS + BUNDLE processMode → processName = bundleName
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_ZeroRecordId_001,
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldUseBundleNameWhenCrossProcessBundleMode,
     TestSize.Level1)
 {
-    std::string bundleName = TEST_BUNDLE;
-    std::string abilityName = TEST_ABILITY;
-    int32_t recordId = 0;
-    std::string process = bundleName + ":" + abilityName + ":" + std::to_string(recordId);
-    EXPECT_EQ(process, "com.test.modular:TestModularObjectExt:0");
-    EXPECT_FALSE(process.empty());
+    auto config = MakeConfig(MoeLaunchMode::CROSS_PROCESS, MoeProcessMode::BUNDLE);
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
+    EXPECT_EQ(service->GetProcessName(), TEST_BUNDLE);
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_EdgeCase_NegativeRecordId_001
- * @tc.desc: Test INSTANCE mode with negative recordId
- * @tc.type: FUNC
+ * @tc.name: HandleModularObjectNewRecord_ShouldUseBundleColonAbilityWhenCrossProcessTypeMode
+ * @tc.desc: CROSS_PROCESS + TYPE processMode → processName = bundleName:abilityName
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_NegativeRecordId_001,
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldUseBundleColonAbilityWhenCrossProcessTypeMode,
     TestSize.Level1)
 {
-    std::string bundleName = TEST_BUNDLE;
-    std::string abilityName = TEST_ABILITY;
-    int32_t recordId = -1;
-    std::string process = bundleName + ":" + abilityName + ":" + std::to_string(recordId);
-    EXPECT_EQ(process, "com.test.modular:TestModularObjectExt:-1");
-    EXPECT_FALSE(process.empty());
+    auto config = MakeConfig(MoeLaunchMode::CROSS_PROCESS, MoeProcessMode::TYPE);
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
+    EXPECT_EQ(service->GetProcessName(), TEST_BUNDLE + ":" + TEST_ABILITY);
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_EdgeCase_ColonInBundleName_001
- * @tc.desc: Test processName when bundleName contains colons (edge case)
- * @tc.type: FUNC
+ * @tc.name: HandleModularObjectNewRecord_ShouldUseFullKeyWhenCrossProcessInstanceMode
+ * @tc.desc: CROSS_PROCESS + INSTANCE processMode → processName = bundleName:abilityName:recordId
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_ColonInBundleName_001,
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldUseFullKeyWhenCrossProcessInstanceMode,
     TestSize.Level1)
 {
-    std::string bundleName = "com.test:bundle";
-    std::string abilityName = TEST_ABILITY;
-    // TYPE mode - multiple colons in result
-    std::string process = bundleName + ":" + abilityName;
-    EXPECT_EQ(process, "com.test:bundle:TestModularObjectExt");
+    auto config = MakeConfig(MoeLaunchMode::CROSS_PROCESS, MoeProcessMode::INSTANCE);
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    int32_t recordId = service->GetRecordId();
+    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
+    std::string expected = TEST_BUNDLE + ":" + TEST_ABILITY + ":" + std::to_string(recordId);
+    EXPECT_EQ(service->GetProcessName(), expected);
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_EdgeCase_LargeRecordId_001
- * @tc.desc: Test INSTANCE mode with large recordId value
- * @tc.type: FUNC
+ * @tc.name: HandleModularObjectNewRecord_ShouldExtractRequestIdWhenUnderscoreExists
+ * @tc.desc: serviceKey with underscore → requestId extracted and saved
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_LargeRecordId_001,
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldExtractRequestIdWhenUnderscoreExists,
     TestSize.Level1)
 {
-    std::string bundleName = TEST_BUNDLE;
-    std::string abilityName = TEST_ABILITY;
-    int32_t recordId = INT32_MAX;
-    std::string process = bundleName + ":" + abilityName + ":" + std::to_string(recordId);
-    EXPECT_FALSE(process.empty());
-    // Verify the recordId portion is correct
-    EXPECT_NE(process.find(std::to_string(INT32_MAX)), std::string::npos);
+    auto config = MakeConfig();
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    std::string serviceKey = "device#bundle#ability#entry_42";
+    connectManager_->HandleModularObjectNewRecord(request, service, serviceKey);
+    EXPECT_EQ(service->GetModularObjectRequestId(), "42");
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_EdgeCase_AppProcessSameAsBundle_001
- * @tc.desc: Test IN_PROCESS when appInfo.process equals bundleName (no change in result)
- * @tc.type: FUNC
+ * @tc.name: HandleModularObjectNewRecord_ShouldNotSetRequestIdWhenNoUnderscore
+ * @tc.desc: serviceKey without underscore → requestId not set
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_AppProcessSameAsBundle_001,
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldNotSetRequestIdWhenNoUnderscore,
     TestSize.Level1)
 {
-    std::string bundleName = TEST_BUNDLE;
-    std::string appInfoProcess = TEST_BUNDLE;  // same as bundleName
-    std::string process = bundleName;
-    if (!appInfoProcess.empty()) {
-        process = appInfoProcess;
-    }
-    EXPECT_EQ(process, bundleName);
+    auto config = MakeConfig();
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    std::string serviceKey = "noUnderscoreKey";
+    connectManager_->HandleModularObjectNewRecord(request, service, serviceKey);
+    EXPECT_EQ(service->GetModularObjectRequestId(), "");
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_EdgeCase_VeryLongServiceKey_001
- * @tc.desc: Test connectId extraction from very long serviceKey
- * @tc.type: FUNC
+ * @tc.name: HandleModularObjectNewRecord_ShouldNotSetRequestIdWhenServiceKeyIsEmptyWithConfig
+ * @tc.desc: empty serviceKey with config → no crash, requestId not set
  */
-HWTEST_F(ModularObjectConnectTest, HandleModularObjectNewRecord_EdgeCase_VeryLongServiceKey_001,
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldNotSetRequestIdWhenServiceKeyIsEmptyWithConfig,
     TestSize.Level1)
 {
-    std::string baseUri(10000, 'a');
-    std::string serviceKey = baseUri + "_123456789";
-    auto pos = serviceKey.rfind('_');
-    ASSERT_NE(pos, std::string::npos);
-    std::string connectId = serviceKey.substr(pos + 1);
-    EXPECT_EQ(connectId, "123456789");
+    auto config = MakeConfig();
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    std::string serviceKey;
+    EXPECT_NO_FATAL_FAILURE(
+        connectManager_->HandleModularObjectNewRecord(request, service, serviceKey));
+    EXPECT_EQ(service->GetModularObjectRequestId(), "");
+}
+
+/**
+ * @tc.name: HandleModularObjectNewRecord_ShouldSetEmptyRequestIdWhenTrailingUnderscore
+ * @tc.desc: serviceKey ending with underscore → requestId is empty string
+ */
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldSetEmptyRequestIdWhenTrailingUnderscore,
+    TestSize.Level1)
+{
+    auto config = MakeConfig();
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    connectManager_->HandleModularObjectNewRecord(request, service, "key_");
+    EXPECT_EQ(service->GetModularObjectRequestId(), "");
+}
+
+/**
+ * @tc.name: HandleModularObjectNewRecord_ShouldNotSetProcessNameWhenDefaultProcessMode
+ * @tc.desc: CROSS_PROCESS with invalid processMode (default) → process empty, not set
+ */
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldNotSetProcessNameWhenDefaultProcessMode,
+    TestSize.Level1)
+{
+    auto config = MakeConfig(MoeLaunchMode::CROSS_PROCESS, static_cast<MoeProcessMode>(99));
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    ASSERT_NE(service, nullptr);
+    std::string processBefore = service->GetProcessName();
+    connectManager_->HandleModularObjectNewRecord(request, service, "key_123");
+    // Default case: process stays empty → SetProcessName not called
+    EXPECT_EQ(service->GetProcessName(), processBefore);
+}
+
+/**
+ * @tc.name: HandleModularObjectNewRecord_ShouldNotCrashWhenServiceIsNullWithConfig
+ * @tc.desc: nullptr service with valid config → should not crash
+ */
+HWTEST_F(ModularObjectConnectTest,
+    HandleModularObjectNewRecord_ShouldNotCrashWhenServiceIsNullWithConfig,
+    TestSize.Level1)
+{
+    auto config = MakeConfig();
+    SetMockModularObjectConfigs({config});
+    auto request = MakeModularObjectRequest();
+    std::shared_ptr<BaseExtensionRecord> nullService = nullptr;
+    // config is valid, but service is null → may crash when accessing service
+    // This tests defensive behavior
+    EXPECT_NO_FATAL_FAILURE(
+        connectManager_->HandleModularObjectNewRecord(request, nullService, "key_1"));
 }
 
 }  // namespace AAFwk

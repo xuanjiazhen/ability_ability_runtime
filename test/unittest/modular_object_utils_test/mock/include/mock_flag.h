@@ -19,6 +19,8 @@
 #include <stdint.h>
 #include <sys/types.h>
 
+#include "modular_object_extension_info.h"
+
 class MockFlag {
 public:
     // AppUtils
@@ -40,12 +42,14 @@ public:
     static int32_t queryDataRet;
     static bool extensionFound;
     static bool extensionDisabled;
+    static OHOS::AAFwk::MoeLaunchMode launchMode;
 
     // BundleMgrHelper
     static bool bundleMgrHelperNull;
     static int32_t getNameAndIndexRet;
     static int32_t getOsAccountRet;
     static bool getApplicationInfoRet;
+    static std::string callerBundleName;
 
     // AbilityManagerService
     static bool amsNull;
