@@ -59,6 +59,42 @@ public:
      */
     static napi_value GetToolInfoByName(napi_env env, napi_callback_info info);
 
+    /**
+     * @brief Native method for subscribe session by session id.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value SubscribeSession(napi_env env, napi_callback_info info);
+
+    /**
+     * @brief Native method for clear session by session id.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value ClearSession(napi_env env, napi_callback_info info);
+
+    /**
+     * @brief Native method for query session by session id.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value QuerySession(napi_env env, napi_callback_info info);
+
+    /**
+     * @brief Native method for send message by session id.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value SendMessage(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for executing a CLI tool.
@@ -79,6 +115,46 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnGetToolInfoByName(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for subscribe session by session id.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnSubscribeSession(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for clear session by session id.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnClearSession(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for query session by session id.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnQuerySession(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for send message by session id.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnSendMessage(napi_env env, size_t argc, napi_value *argv);
 };
 
 /**

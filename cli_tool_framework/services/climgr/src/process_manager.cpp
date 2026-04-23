@@ -15,7 +15,14 @@
 
 #include "process_manager.h"
 
+#include <cerrno>
+#include <chrono>
+#include <sys/prctl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <thread>
 #include <unistd.h>
+#include <utility>
 
 #include "cli_error_code.h"
 #include "exec_tool_param.h"
@@ -30,12 +37,64 @@ ProcessManager &ProcessManager::GetInstance()
     return instance;
 }
 
-int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std::string &sandboxConfig,
-    const std::map<std::string, std::string> &args) const
+bool ProcessManager::CreatePipes(SessionRecord &record)
 {
+    // Create pipes for stdin, stdout and stderr
+    if (pipe(record.stdinPipe) != 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create stdin pipe: %{public}d", errno);
+        return false;
+    }
+    if (pipe(record.stdoutPipe) != 0) {
+        close(record.stdinPipe[0]);
+        record.stdinPipe[0] = -1;
+        close(record.stdinPipe[1]);
+        record.stdinPipe[1] = -1;
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create stdout pipe: %{public}d", errno);
+        return false;
+    }
+    if (pipe(record.stderrPipe) != 0) {
+        close(record.stdinPipe[0]);
+        record.stdinPipe[0] = -1;
+        close(record.stdinPipe[1]);
+        record.stdinPipe[1] = -1;
+        close(record.stdoutPipe[0]);
+        record.stdoutPipe[0] = -1;
+        close(record.stdoutPipe[1]);
+        record.stdoutPipe[1] = -1;
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create stderr pipe: %{public}d", errno);
+        return false;
+    }
+    return true;
+}
+
+
+void ProcessManager::CloseAllPipes(SessionRecord &record)
+{
+    close(record.stdinPipe[0]);
+    record.stdinPipe[0] = -1;
+    close(record.stdinPipe[1]);
+    record.stdinPipe[1] = -1;
+    close(record.stdoutPipe[0]);
+    record.stdoutPipe[0] = -1;
+    close(record.stdoutPipe[1]);
+    record.stdoutPipe[1] = -1;
+    close(record.stderrPipe[0]);
+    record.stderrPipe[0] = -1;
+    close(record.stderrPipe[1]);
+    record.stderrPipe[1] = -1;
+}
+
+int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std::string &sandboxConfig,
+    const std::map<std::string, std::string> &args, std::shared_ptr<SessionRecord> record) const
+{
+    if (CreatePipes(*record) == false) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create pipes");
+        return ERR_NO_INIT;
+    }
     pid_t pid = fork();
     if (pid < 0) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to fork: %{public}d", errno);
+        CloseAllPipes(*record);
         return ERR_NO_INIT;
     }
 
@@ -61,7 +120,23 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         execvp(execArgs[0], execArgs.data());
         _exit(0);
     }
+
+    // Parent process: close write ends of pipes
+    close(record->stdoutPipe[1]);
+    close(record->stderrPipe[1]);
+
+    // close read
+    close(record->stdinPipe[0]);
+    record->processId = pid;
     return ERR_OK;
+}
+
+void ProcessManager::TerminateProcess(pid_t pid, int signal)
+{
+    if (pid > 0 && kill(pid, signal) != 0 && errno != ESRCH) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to kill process %{public}d: %{public}s",
+            pid, strerror(errno));
+    }
 }
 
 } // namespace CliTool
