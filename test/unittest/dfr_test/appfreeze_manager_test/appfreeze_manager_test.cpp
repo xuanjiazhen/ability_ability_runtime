@@ -962,5 +962,6 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_UpdateFreezeExcludedPid_002,
 
     appfreezeManager->freezeExcludedPidMap_.clear();
 }
+
 }  // namespace AppExecFwk
 }  // namespace OHOS
