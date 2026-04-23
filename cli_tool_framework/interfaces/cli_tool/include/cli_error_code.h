@@ -56,6 +56,14 @@ enum {
      * Result (35700006): Fail to crate js CliSessionInfo.
      */
     ERR_CREATE_CLI_SESSION_INFO = 35700006,
+
+    ERR_CLI_SESSION_NOT_FOUND = 35700007,
+
+    ERR_CLI_SEND_MESSAGE = 35700008,
+
+    ERR_CLI_NOT_SYSTEM_APP = 35700009,
+
+    ERR_CLI_NOT_PERMISSION = 35700010,
 };
 
 } // namespace CliTool
