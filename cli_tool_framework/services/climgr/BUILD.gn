@@ -42,6 +42,11 @@ ohos_shared_library("climgr") {
     "src/cli_tool_manager_service.cpp",
     "src/process_manager.cpp",
     "src/tool_util.cpp",
+    "src/event_dispatcher.cpp",
+    "src/io_monitor.cpp",
+    "src/process_monitor.cpp",
+    "src/process_manager.cpp",
+    "src/timeout_manager.cpp",
   ]
   defines = [ "AMS_LOG_TAG = \"CliToolManager\"" ]
 
@@ -56,6 +61,7 @@ ohos_shared_library("climgr") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "ffrt:libffrt",
     "hilog:libhilog",
     "ipc:ipc_single",
     "json:nlohmann_json_static",
