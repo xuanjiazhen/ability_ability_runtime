@@ -37,6 +37,16 @@
 
 namespace OHOS {
 namespace AbilityRuntime {
+namespace {
+constexpr char METHOD_PARAM_SEPARATOR = '\x1f';
+
+std::string GetMethodParamName(const std::string &encodedMethodParam)
+{
+    auto separatorPos = encodedMethodParam.find(METHOD_PARAM_SEPARATOR);
+    return separatorPos == std::string::npos ? encodedMethodParam : encodedMethodParam.substr(0, separatorPos);
+}
+} // namespace
+
 std::shared_ptr<JsInsightIntentFunc> JsInsightIntentFunc::Create(JsRuntime& runtime)
 {
     return std::make_shared<JsInsightIntentFunc>(runtime);
@@ -218,6 +228,25 @@ bool JsInsightIntentFunc::ExecuteIntentCheckError()
     STATE_PATTERN_NAIVE_STATE_SET_AND_RETURN(State::INVALID, false);
 }
 
+bool JsInsightIntentFunc::PrepareMethodParams(std::shared_ptr<InsightIntentExecuteParam> executeParam,
+    std::unordered_map<std::string, size_t> &paramMap)
+{
+    std::vector<std::string> methodParams;
+    methodParams.reserve(executeParam->methodParams_.size());
+    for (const auto &encodedMethodParam : executeParam->methodParams_) {
+        auto methodParamName = GetMethodParamName(encodedMethodParam);
+        if (methodParamName.empty()) {
+            TAG_LOGE(AAFwkTag::INTENT, "empty method param name");
+            return false;
+        }
+        methodParams.emplace_back(methodParamName);
+    }
+    for (size_t i = 0; i < methodParams.size(); i++) {
+        paramMap[methodParams[i]] = i;
+    }
+    return true;
+}
+
 bool JsInsightIntentFunc::ExecuteInsightIntent(std::shared_ptr<InsightIntentExecuteParam> executeParam)
 {
     if (executeParam == nullptr || executeParam->insightIntentParam_ == nullptr) {
@@ -238,10 +267,9 @@ bool JsInsightIntentFunc::ExecuteInsightIntent(std::shared_ptr<InsightIntentExec
     std::string srcEntrance = executeParam->srcEntrance_;
     std::string className = executeParam->className_;
     std::string methodName = executeParam->methodName_;
-    std::vector<std::string> methodParams = executeParam->methodParams_;
     std::unordered_map<std::string, size_t> paramMap;
-    for (size_t i = 0; i < methodParams.size(); i++) {
-        paramMap[methodParams[i]] = i;
+    if (!PrepareMethodParams(executeParam, paramMap)) {
+        return ExecuteIntentCheckError();
     }
 
     size_t argc = 0;
