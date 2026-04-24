@@ -16,6 +16,10 @@
 #ifndef OHOS_ABILITY_RUNTIME_CLI_TOOL_MGR_SERVICE_H
 #define OHOS_ABILITY_RUNTIME_CLI_TOOL_MGR_SERVICE_H
 
+#include <map>
+#include <string>
+#include <vector>
+
 #include "cli_tool_manager_stub.h"
 #include "cli_tool_data_manager.h"
 #include "system_ability.h"
@@ -35,22 +39,29 @@ public:
     /**
      * @brief Query all available tools
      */
-    int32_t QueryTools(std::vector<ToolInfo> &tools);
+    int32_t GetAllToolInfos(std::vector<ToolInfo> &tools) override;
 
     /**
      * @brief Query tool summaries (lightweight for listing)
      */
-    int32_t QueryToolSummaries(std::vector<ToolSummary> &summaries);
+    int32_t GetAllToolSummaries(std::vector<ToolSummary> &summaries) override;
 
     /**
      * @brief Get tool information by name
      */
-    int32_t GetToolInfoByName(const std::string &name, ToolInfo &tool);
+    int32_t GetToolInfoByName(const std::string &name, ToolInfo &tool) override;
 
     /**
      * @brief Register a CLI tool
      */
-    int32_t RegisterCliTool(const ToolInfo &tool);
+    int32_t RegisterTool(const ToolInfo &tool) override;
+
+    /**
+     * @brief Execute a CLI tool.
+     * Implements the ICliToolManager interface method.
+     */
+    int32_t ExecTool(const ExecToolParam &param, const std::map<std::string, std::string> &args,
+        CliSessionInfo &session) override;
 
 protected:
     void OnStart() override;
@@ -60,6 +71,7 @@ private:
     CliToolManagerService() : SystemAbility(CLI_TOOL_MGR_SERVICE_ID, false) {};
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
     static sptr<CliToolManagerService> instance_;
+    std::atomic<int32_t> activeSessionCount_ = 0;
 };
 
 } // namespace CliTool

@@ -961,7 +961,7 @@ void UIAbilityLifecycleManager::HandleAbilitiesRequestDone(int32_t requestId, in
         abilitiesRequestMap_.erase(it);
         auto callerRecord = Token::GetAbilityRecordByToken(abilitiesRequest->callerToken);
         if (callerRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
             return;
         }
         callerRecord->NotifyAbilitiesRequestDone(abilitiesRequest->requestKey,
@@ -983,7 +983,7 @@ void UIAbilityLifecycleManager::HandleAbilitiesRequestDone(int32_t requestId, in
         abilitiesRequestMap_.erase(it);
         auto callerRecord = Token::GetAbilityRecordByToken(abilitiesRequest->callerToken);
         if (callerRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
             return;
         }
         callerRecord->NotifyAbilitiesRequestDone(abilitiesRequest->requestKey, ret);
@@ -2338,6 +2338,11 @@ void UIAbilityLifecycleManager::DelayCompleteTerminate(const UIAbilityRecordPtr 
     auto timeoutTask = [self = shared_from_this(), abilityRecord]() {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "delay complete terminate task");
         self->CompleteTerminate(abilityRecord);
+        // set apprecord not support cache
+        auto appMgr = AppMgrUtil::GetAppMgr();
+        CHECK_POINTER(appMgr);
+        CHECK_POINTER(abilityRecord);
+        IN_PROCESS_CALL_WITHOUT_RET(appMgr->SetTerminateTimeOutFlag(abilityRecord->GetToken()));
     };
     int killTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * KILL_TIMEOUT_MULTIPLE;
     handler->SubmitTaskJust(timeoutTask, "DELAY_KILL_PROCESS", killTimeout);

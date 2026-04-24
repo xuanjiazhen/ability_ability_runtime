@@ -140,6 +140,11 @@ void AppRunningRecord::SetUid(const int32_t uid)
     mainUid_ = uid;
 }
 
+uint32_t AppRunningRecord::GetAccessTokenId() const
+{
+    return 0;
+}
+
 void AppRunningRecord::SetPreloadAttachTimeoutStartTime(const std::chrono::system_clock::time_point &time)
 {
     preloadAttachTimeoutStartTime_ = time;
@@ -1277,12 +1282,12 @@ bool AppRunningRecord::IsAttachedToStatusBar()
 void AppRunningRecord::SetProcessCacheBlocked(bool isBlocked)
 {
     AAFwk::MyStatus::GetInstance().setProcessCacheBlockedTimes_++;
-    processCacheBlocked = isBlocked;
+    processCacheBlocked_.store(isBlocked);
 }
 
 bool AppRunningRecord::GetProcessCacheBlocked()
 {
-    return processCacheBlocked;
+    return processCacheBlocked_.load();
 }
 
 void AppRunningRecord::SetProcessCacheLocked(bool isLock)

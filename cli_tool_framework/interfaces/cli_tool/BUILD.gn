@@ -49,8 +49,15 @@ ohos_shared_library("cli_tool_client") {
 
   output_values = get_target_outputs(":cli_tool_manager_interface")
   sources = [
+    "src/arg_mapping.cpp",
+    "src/cli_mgr_load_callback.cpp",
+    "src/cli_session_info.cpp",
     "src/cli_tool_mgr_client.cpp",
+    "src/exec_options.cpp",
+    "src/exec_result.cpp",
+    "src/exec_tool_param.cpp",
     "src/tool_info.cpp",
+    "src/tool_summary.cpp",
   ]
   sources += filter_include(output_values, [ "*.cpp" ])
   defines = [ "AMS_LOG_TAG = \"CliToolManager\"" ]
@@ -62,6 +69,7 @@ ohos_shared_library("cli_tool_client") {
     "hilog:libhilog",
     "hitrace:hitrace_meter",
     "ipc:ipc_core",
+    "json:nlohmann_json_static",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]

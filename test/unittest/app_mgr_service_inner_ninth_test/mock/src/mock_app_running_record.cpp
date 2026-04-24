@@ -1178,6 +1178,11 @@ void AppRunningRecord::SetAssignTokenId(int32_t assignTokenId)
     assignTokenId_ = assignTokenId;
 }
 
+uint32_t AppRunningRecord::GetAccessTokenId() const
+{
+    return 0;
+}
+
 void AppRunningRecord::SetRestartAppFlag(bool isRestartApp)
 {
     isRestartApp_ = isRestartApp;
@@ -1336,12 +1341,12 @@ bool AppRunningRecord::IsAttachedToStatusBar()
 
 void AppRunningRecord::SetProcessCacheBlocked(bool isBlocked)
 {
-    processCacheBlocked = isBlocked;
+    processCacheBlocked_.store(isBlocked);
 }
 
 bool AppRunningRecord::GetProcessCacheBlocked()
 {
-    return processCacheBlocked;
+    return processCacheBlocked_.load();
 }
 
 void AppRunningRecord::SetProcessCacheLocked(bool isLock)

@@ -232,6 +232,13 @@ public:
     int32_t GetUid() const;
 
     /**
+     * @brief Obtains the application accessTokenId.
+     *
+     * @return Returns the application accessTokenId.
+     */
+    uint32_t GetAccessTokenId() const;
+
+    /**
      * @brief Setting the application uid.
      *
      * @param state, the application uid.
@@ -657,6 +664,16 @@ public:
     bool IsMainElementRunning() const;
 
     void SetKeepAliveAppService(bool isKeepAliveAppService);
+
+    inline void SetStartedByCallStatus(int32_t byCallStatus)
+    {
+        byCallStatus_ = byCallStatus;
+    }
+
+    inline int32_t GetStartedByCallStatus() const
+    {
+        return byCallStatus_;
+    }
 
     /**
      * @brief roughly considered as a value from the process's bundle info.
@@ -1433,6 +1450,7 @@ private:
     int32_t killId_ = -1;
     int restartResidentProcCount_ = 0;
     pid_t gpuPid_ = 0;
+    int32_t byCallStatus_ = 0;
 
     std::string processName_;  // name of this process
     std::string specifiedProcessFlag_; // flag of specified Process
@@ -1491,7 +1509,7 @@ private:
     bool enableProcessCache_ = true;
     bool networkEnableFlags_ = true;
     bool saEnableFlags_ = true;
-    bool processCacheBlocked = false; // temporarily block process cache feature
+    std::atomic<bool>  processCacheBlocked_ = false; // temporarily block process cache feature
     bool reasonExist_ = false;
     bool isFromScreenOffBackground_ = false;
 

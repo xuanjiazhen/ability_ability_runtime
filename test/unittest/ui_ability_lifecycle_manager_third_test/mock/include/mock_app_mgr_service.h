@@ -52,6 +52,8 @@ public:
     MOCK_METHOD2(GetRunningProcessesByBundleType, int(const BundleType bundleType,
         std::vector<RunningProcessInfo>& info));
     MOCK_METHOD2(GetProcessRunningInfosByUserId, int(std::vector<RunningProcessInfo>& info, int32_t userId));
+    MOCK_METHOD2(GetProcessRunningInfosByAccessTokenId, int32_t(uint32_t accessTokenId,
+        std::vector<RunningProcessInfo>& info));
     MOCK_METHOD1(GetAllRenderProcesses, int(std::vector<RenderProcessInfo>& info));
     MOCK_METHOD1(GetAllChildrenProcesses, int(std::vector<ChildProcessInfo>&));
     MOCK_METHOD0(GetAmsMgr, sptr<IAmsMgr>());
@@ -134,6 +136,7 @@ public:
     MOCK_METHOD4(IsSpecifiedModuleLoaded, int32_t(const AAFwk::Want &, const AbilityInfo &, bool &, bool &));
     MOCK_METHOD1(LaunchAbility, int32_t(sptr<IRemoteObject>));
     MOCK_METHOD1(SetProcessPrepareExit, void(int32_t));
+    MOCK_METHOD1(SetTerminateTimeOutFlag, void(sptr<IRemoteObject>));
     virtual int StartUserTestProcess(
         const AAFwk::Want &want, const sptr<IRemoteObject> &observer, const BundleInfo &bundleInfo, int32_t userId)
     {

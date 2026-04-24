@@ -46,34 +46,36 @@ void CliToolDataManagerTest::SetUpTestCase()
             "version": "1.0.0",
             "description": "Test tool 1",
             "executablePath": "/bin/test1",
-            "permissions": ["ohos.permission.INTERNET"],
+            "requirePermissions": ["ohos.permission.INTERNET"],
             "inputSchema": "{}",
             "outputSchema": "{}",
-            "argMapping": "{}",
-            "eventSchemas": "{}",
+            "argMapping": {"type": "flag", "separator": " "},
+            "eventSchemas": {"stdout": {"type": "string"}},
             "timeout": 30000,
             "eventTypes": ["stdout", "stderr"],
-            "registeredTime": 1234567890,
-            "enabled": true,
-            "hasSubcommands": false,
-            "subcommands": "{}"
+            "hasSubCommand": false,
+            "subcommands": {}
         },
         {
             "name": "test_tool2",
             "version": "2.0.0",
             "description": "Test tool 2",
             "executablePath": "/bin/test2",
-            "permissions": ["ohos.permission.READ_STORAGE"],
+            "requirePermissions": ["ohos.permission.READ_STORAGE"],
             "inputSchema": "{}",
             "outputSchema": "{}",
-            "argMapping": "{}",
-            "eventSchemas": "{}",
+            "argMapping": {"type": "positional", "order": "arg1,arg2"},
+            "eventSchemas": {"stdout": {"type": "string"}},
             "timeout": 60000,
             "eventTypes": ["exit"],
-            "registeredTime": 1234567891,
-            "enabled": true,
-            "hasSubcommands": true,
-            "subcommands": "{\"subcmd1\": {\"description\": \"Subcommand 1\"}}"
+            "hasSubCommand": true,
+            "subcommands": {
+                "subcmd1": {
+                    "description": "Subcommand 1",
+                    "inputSchema": "{}",
+                    "outputSchema": "{}"
+                }
+            }
         }
     ])";
     file.close();
@@ -151,10 +153,12 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ToolInfoToJson_001, testing:
     tool.version = "1.0.0";
     tool.description = "Test description";
     tool.executablePath = "/bin/test";
-    tool.permissions = {"ohos.permission.INTERNET"};
+    tool.requirePermissions = {"ohos.permission.INTERNET"};
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.argMapping->type = ArgMappingType::FLAG;
+    tool.argMapping->separator = " ";
     tool.timeout = 30000;
-    tool.enabled = true;
-    tool.hasSubcommands = false;
+    tool.hasSubCommand = false;
 
     std::string jsonStr = dataManager.ToolInfoToJson(tool);
 
@@ -180,17 +184,15 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonToToolInfo_001, testing:
         "version": "1.0.0",
         "description": "JSON test tool",
         "executablePath": "/bin/jsontest",
-        "permissions": ["ohos.permission.INTERNET"],
-        "inputSchema": "{}",
-        "outputSchema": "{}",
-        "argMapping": "{}",
-        "eventSchemas": "{}",
+        "requirePermissions": ["ohos.permission.INTERNET"],
+        "inputSchema": {"type": "object"},
+        "outputSchema": {"type": "string"},
+        "argMapping": {"type": "flag", "separator": " "},
+        "eventSchemas": {"stdout": {"type": "string"}},
         "timeout": 30000,
         "eventTypes": ["stdout"],
-        "registeredTime": 1234567890,
-        "enabled": true,
-        "hasSubcommands": false,
-        "subcommands": "{}"
+        "hasSubCommand": false,
+        "subcommands": {}
     })";
 
     ToolInfo tool;
@@ -202,8 +204,9 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonToToolInfo_001, testing:
     EXPECT_EQ(tool.description, "JSON test tool");
     EXPECT_EQ(tool.executablePath, "/bin/jsontest");
     EXPECT_EQ(tool.timeout, 30000);
-    EXPECT_EQ(tool.enabled, true);
-    EXPECT_EQ(tool.hasSubcommands, false);
+    EXPECT_EQ(tool.hasSubCommand, false);
+    EXPECT_TRUE(tool.argMapping != nullptr);
+    EXPECT_EQ(tool.argMapping->type, ArgMappingType::FLAG);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonToToolInfo_001 end");
 }
@@ -226,41 +229,6 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonToToolInfo_002, testing:
     EXPECT_NE(ret, 0);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonToToolInfo_002 end");
-}
-
-/**
- * @tc.name: CliToolDataManager_ToolsToJsonArray_001
- * @tc.desc: Test converting tools vector to JSON array
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ToolsToJsonArray_001, testing::ext::TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ToolsToJsonArray_001 start");
-
-    auto& dataManager = CliToolDataManager::GetInstance();
-    std::vector<ToolInfo> tools;
-    ToolInfo tool1;
-    tool1.name = "tool1";
-    tool1.version = "1.0";
-    tool1.description = "Tool 1";
-    tool1.executablePath = "/bin/tool1";
-
-    ToolInfo tool2;
-    tool2.name = "tool2";
-    tool2.version = "2.0";
-    tool2.description = "Tool 2";
-    tool2.executablePath = "/bin/tool2";
-
-    tools.push_back(tool1);
-    tools.push_back(tool2);
-
-    std::string jsonStr = dataManager.ToolsToJsonArray(tools);
-
-    EXPECT_FALSE(jsonStr.empty());
-    EXPECT_NE(jsonStr.find("tool1"), std::string::npos);
-    EXPECT_NE(jsonStr.find("tool2"), std::string::npos);
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ToolsToJsonArray_001 end");
 }
 
 /**

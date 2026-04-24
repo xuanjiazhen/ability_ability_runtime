@@ -16,12 +16,18 @@
 #ifndef OHOS_ABILITY_RUNTIME_CLI_SA_CLIENT_H
 #define OHOS_ABILITY_RUNTIME_CLI_SA_CLIENT_H
 
+#include <condition_variable>
+#include <functional>
 #include <mutex>
 
+#include "cli_session_info.h"
+#include "exec_options.h"
 #include "icli_tool_manager.h"
 
 namespace OHOS {
 namespace CliTool {
+
+using ClearProxyCallback = std::function<void(const wptr<IRemoteObject>&)>;
 
 /**
  * @class CliToolMGRClient
@@ -41,30 +47,81 @@ public:
      */
     ~CliToolMGRClient() = default;
 
+    /**
+     * @brief Get all tool summaries (lightweight for listing)
+     * @param summaries Output vector of ToolSummary
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetAllToolSummaries(std::vector<ToolSummary> &summaries);
+
+    /**
+     * @brief Get tool information by name
+     * @param name Tool name
+     * @param tool Output ToolInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetToolInfoByName(const std::string &name, ToolInfo &tool);
+
+    /**
+     * @brief Get all tool infos
+     * @param tools Output vector of ToolInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetAllToolInfos(std::vector<ToolInfo> &tools);
+
+    /**
+     * @brief Register a CLI tool
+     * @param tool ToolInfo to register
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode RegisterTool(const ToolInfo &tool);
+
+    /**
+     * @brief Execute a CLI tool with key-value pairs (convenience method).
+     * @param param The CLI tool param.
+     * @param args The tool arguments as key-value pairs.
+     * @param session Output session information.
+     * @return Returns ERR_OK on success, error code otherwise.
+     */
+    int32_t ExecTool(const ExecToolParam &param, const std::map<std::string, std::string> &args,
+        CliSessionInfo &session);
+
+    /**
+     * @brief On load system ability success.
+     * @param remoteObject The remote object of system ability.
+     */
+    void OnLoadSystemAbilitySuccess(const sptr<IRemoteObject> &remoteObject);
+
+    /**
+     * @brief On load system ability fail.
+     */
+    void OnLoadSystemAbilityFail();
+
 private:
     CliToolMGRClient() = default;
     DISALLOW_COPY_AND_MOVE(CliToolMGRClient);
-    
-    class CliSaDeathRecipient : public IRemoteObject::DeathRecipient {
-        public:
-        CliSaDeathRecipient() = default;
-        ~CliSaDeathRecipient() = default;
-        void OnRemoteDied(const wptr<IRemoteObject>& remote) override;
-        private:
-        DISALLOW_COPY_AND_MOVE(CliSaDeathRecipient);
-    };
-    
-    sptr<ICliToolManager> GetCliToolManager();
-    ErrCode Connect();
-    /**
-     * @brief Reset the proxy when service dies.
-     * @param remote The remote object that died.
-     */
-    void ResetProxy(const wptr<IRemoteObject>& remote);
 
-    std::recursive_mutex mutex_;
-    sptr<ICliToolManager> proxy_;
-    sptr<IRemoteObject::DeathRecipient> deathRecipient_;
+    class CliMgrDeathRecipient : public IRemoteObject::DeathRecipient {
+    public:
+        explicit CliMgrDeathRecipient(const ClearProxyCallback &callback) : callback_(callback) {}
+        ~CliMgrDeathRecipient() override = default;
+        void OnRemoteDied(const wptr<IRemoteObject> &remote) override;
+
+    private:
+        ClearProxyCallback callback_;
+    };
+
+    sptr<ICliToolManager> GetCliToolMgrProxy();
+    bool LoadCliToolMgrService();
+    void ClearProxy();
+    void SetCliToolMgr(const sptr<IRemoteObject> &remoteObject);
+    sptr<ICliToolManager> GetCliToolMgr();
+
+    std::condition_variable loadSaCondation_;
+    std::mutex loadSaMutex_;
+    bool loadSaFinished_;
+    std::mutex proxyMutex_;
+    sptr<ICliToolManager> cliToolMgr_ = nullptr;
 };
 
 } // namespace CliTool
