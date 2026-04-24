@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 
+#include "ability_manager_client.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"
@@ -65,6 +66,11 @@ napi_value JSCliManager::QueryToolSummaries(napi_env env, napi_callback_info inf
 napi_value JSCliManager::QueryTools(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnQueryTools);
+}
+
+napi_value JSCliManager::ExecuteSkill(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnExecuteSkill);
 }
 
 napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
@@ -322,6 +328,86 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::OnExecuteSkill(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnExecuteSkill called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::map<std::string, std::string> params;
+    if (!UnwrapStringMap(env, argv[INDEX_ZERO], params)) {
+        ThrowInvalidParamError(env, "skillParam must be a Record<string, string>");
+        return CreateJsUndefined(env);
+    }
+
+    auto extractParam = [&params](const std::string &key, std::string &out) {
+        auto it = params.find(key);
+        if (it != params.end()) {
+            out = it->second;
+            params.erase(it);
+        }
+    };
+
+    std::string bundleName;
+    extractParam("bundleName", bundleName);
+    if (bundleName.empty()) {
+        ThrowInvalidParamError(env, "bundleName is required");
+        return CreateJsUndefined(env);
+    }
+
+    std::string moduleName;
+    extractParam("moduleName", moduleName);
+    if (moduleName.empty()) {
+        ThrowInvalidParamError(env, "moduleName is required");
+        return CreateJsUndefined(env);
+    }
+
+    std::string skillName;
+    extractParam("skillName", skillName);
+    if (skillName.empty()) {
+        ThrowInvalidParamError(env, "skillName is required");
+        return CreateJsUndefined(env);
+    }
+
+    std::string arkTSPath;
+    extractParam("arkTSPath", arkTSPath);
+
+    std::string funcName;
+    extractParam("funcName", funcName);
+
+    std::vector<std::string> skillArgv;
+    for (const auto &[k, v] : params) {
+        skillArgv.push_back(k + "=" + v);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [innerErrCode, bundleName, moduleName, skillName, arkTSPath, funcName, skillArgv]() {
+            *innerErrCode = AAFwk::AbilityManagerClient::GetInstance().StartInAppSkill(
+                bundleName, moduleName, skillName, arkTSPath, funcName, skillArgv);
+        };
+
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+            HandleScope handleScope(env);
+            if (*innerErrCode != ERR_OK) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "executeSkill error: %{public}d", *innerErrCode);
+                task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+                return;
+            }
+            napi_value jsResult = CreateJsExecuteResult(env, 0);
+            task.ResolveWithNoError(env, jsResult);
+        };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JsCliManager::OnExecuteSkill", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -339,6 +425,7 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "executeSkill", moduleName, JSCliManager::ExecuteSkill);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);

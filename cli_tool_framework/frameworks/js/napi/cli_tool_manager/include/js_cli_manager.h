@@ -77,6 +77,8 @@ public:
      */
     static napi_value QueryTools(napi_env env, napi_callback_info info);
 
+    static napi_value ExecuteSkill(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for executing a CLI tool.
@@ -117,6 +119,8 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnQueryTools(napi_env env, size_t argc, napi_value *argv);
+
+    napi_value OnExecuteSkill(napi_env env, size_t argc, napi_value *argv);
 
     static void ExecToolResultJSThreadWorker(uv_work_t* work, int status);
 };

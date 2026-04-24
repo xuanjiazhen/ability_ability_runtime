@@ -87,6 +87,8 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool);
  */
 napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary);
 
+napi_value CreateJsExecuteResult(napi_env env, int32_t code);
+
 } // namespace CliTool
 } // namespace OHOS
 

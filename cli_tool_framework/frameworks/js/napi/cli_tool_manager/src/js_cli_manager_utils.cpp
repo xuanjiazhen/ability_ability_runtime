@@ -463,5 +463,21 @@ napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary)
     return jsObj;
 }
 
+napi_value CreateJsExecuteResult(napi_env env, int32_t code)
+{
+    napi_value jsObj = nullptr;
+    napi_create_object(env, &jsObj);
+
+    napi_value jsCode = nullptr;
+    napi_create_int32(env, code, &jsCode);
+    napi_set_named_property(env, jsObj, "code", jsCode);
+
+    napi_value jsResult = nullptr;
+    napi_get_null(env, &jsResult);
+    napi_set_named_property(env, jsObj, "result", jsResult);
+
+    return jsObj;
+}
+
 } // namespace CliTool
 } // namespace OHOS
