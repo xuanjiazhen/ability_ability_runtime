@@ -123,7 +123,6 @@ int32_t CliToolDataManager::EnsureToolsLoaded()
     }
 
     toolsLoaded_ = true;
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolDataManager lazy initialization completed");
     return ERR_OK;
 }
 
@@ -136,14 +135,7 @@ int32_t CliToolDataManager::LoadToolsFromFile(const std::string &filePath)
         return ret;
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Parsed %{public}zu tools from file", tools.size());
-
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
-    if (!CheckKvStore()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
-        return ERR_KVSTORE_NOT_READY;
-    }
-
     // Insert tools one by one using StoreTool
     for (const auto &tool : tools) {
         ret = StoreTool(tool);
@@ -307,38 +299,7 @@ int32_t CliToolDataManager::ParseJsonFile(const std::string &filePath, std::vect
         }
         if (item.contains("subcommands") && item["subcommands"].is_object()) {
             for (auto it = item["subcommands"].begin(); it != item["subcommands"].end(); ++it) {
-                SubCommandInfo subCmd;
-                auto &subJson = it.value();
-                if (subJson.contains("description") && subJson["description"].is_string()) {
-                    subCmd.description = subJson["description"];
-                }
-                if (subJson.contains("requirePermissions") && subJson["requirePermissions"].is_array()) {
-                    for (const auto &perm : subJson["requirePermissions"]) {
-                        if (perm.is_string()) {
-                            subCmd.requirePermissions.push_back(perm);
-                        }
-                    }
-                }
-                if (subJson.contains("inputSchema") && subJson["inputSchema"].is_object()) {
-                    subCmd.inputSchema = subJson["inputSchema"].dump();
-                }
-                if (subJson.contains("outputSchema") && subJson["outputSchema"].is_object()) {
-                    subCmd.outputSchema = subJson["outputSchema"].dump();
-                }
-                if (subJson.contains("argMapping") && subJson["argMapping"].is_object()) {
-                    subCmd.argMapping = ArgMapping::ParseFromJson(subJson["argMapping"]);
-                }
-                if (subJson.contains("eventTypes") && subJson["eventTypes"].is_array()) {
-                    for (const auto &evt : subJson["eventTypes"]) {
-                        if (evt.is_string()) {
-                            subCmd.eventTypes.push_back(evt);
-                        }
-                    }
-                }
-                if (subJson.contains("eventSchemas") && subJson["eventSchemas"].is_object()) {
-                    subCmd.eventSchemas = subJson["eventSchemas"].dump();
-                }
-                tool.subcommands[it.key()] = subCmd;
+                tool.subcommands[it.key()] = SubCommandInfo::ParseFromJson(it.value());
             }
         }
 
@@ -372,17 +333,7 @@ std::string CliToolDataManager::ToolInfoToJson(const ToolInfo &tool)
     if (!tool.subcommands.empty()) {
         nlohmann::json subcommandsJson;
         for (const auto &pair : tool.subcommands) {
-            nlohmann::json subCmdJson;
-            subCmdJson["description"] = pair.second.description;
-            subCmdJson["requirePermissions"] = pair.second.requirePermissions;
-            subCmdJson["inputSchema"] = pair.second.inputSchema;
-            subCmdJson["outputSchema"] = pair.second.outputSchema;
-            subCmdJson["eventTypes"] = pair.second.eventTypes;
-            subCmdJson["eventSchemas"] = pair.second.eventSchemas;
-            if (pair.second.argMapping != nullptr) {
-                subCmdJson["argMapping"] = pair.second.argMapping->ParseToJson();
-            }
-            subcommandsJson[pair.first] = subCmdJson;
+            subcommandsJson[pair.first] = pair.second.ParseToJson();
         }
         j["subcommands"] = subcommandsJson;
     }
@@ -435,38 +386,7 @@ int32_t CliToolDataManager::JsonToToolInfo(const std::string &jsonStr, ToolInfo 
     }
     if (j.contains("subcommands") && j["subcommands"].is_object()) {
         for (auto it = j["subcommands"].begin(); it != j["subcommands"].end(); ++it) {
-            SubCommandInfo subCmd;
-            auto &subJson = it.value();
-            if (subJson.contains("description") && subJson["description"].is_string()) {
-                subCmd.description = subJson["description"];
-            }
-            if (subJson.contains("requirePermissions") && subJson["requirePermissions"].is_array()) {
-                for (const auto &perm : subJson["requirePermissions"]) {
-                    if (perm.is_string()) {
-                        subCmd.requirePermissions.push_back(perm);
-                    }
-                }
-            }
-            if (subJson.contains("inputSchema") && subJson["inputSchema"].is_object()) {
-                subCmd.inputSchema = subJson["inputSchema"].dump();
-            }
-            if (subJson.contains("outputSchema") && subJson["outputSchema"].is_object()) {
-                subCmd.outputSchema = subJson["outputSchema"].dump();
-            }
-            if (subJson.contains("argMapping") && subJson["argMapping"].is_object()) {
-                subCmd.argMapping = ArgMapping::ParseFromJson(subJson["argMapping"]);
-            }
-            if (subJson.contains("eventTypes") && subJson["eventTypes"].is_array()) {
-                for (const auto &evt : subJson["eventTypes"]) {
-                    if (evt.is_string()) {
-                        subCmd.eventTypes.push_back(evt);
-                    }
-                }
-            }
-            if (subJson.contains("eventSchemas") && subJson["eventSchemas"].is_string()) {
-                subCmd.eventSchemas = subJson["eventSchemas"];
-            }
-            tool.subcommands[it.key()] = subCmd;
+            tool.subcommands[it.key()] = SubCommandInfo::ParseFromJson(it.value());
         }
     }
 

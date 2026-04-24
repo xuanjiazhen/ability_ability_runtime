@@ -20,53 +20,6 @@
 namespace OHOS {
 namespace CliTool {
 
-// SubCommandInfo implementation
-bool SubCommandInfo::Marshalling(Parcel &parcel) const
-{
-    return parcel.WriteString(description) &&
-           parcel.WriteStringVector(requirePermissions) &&
-           parcel.WriteString(inputSchema) &&
-           parcel.WriteString(outputSchema) &&
-           parcel.WriteBool(argMapping != nullptr) &&
-           (argMapping == nullptr || argMapping->Marshalling(parcel)) &&
-           parcel.WriteStringVector(eventTypes) &&
-           parcel.WriteString(eventSchemas);
-}
-
-SubCommandInfo *SubCommandInfo::Unmarshalling(Parcel &parcel)
-{
-    auto *subCmd = new (std::nothrow) SubCommandInfo();
-    if (subCmd == nullptr) {
-        return nullptr;
-    }
-
-    bool hasArgMapping = false;
-    if (!parcel.ReadString(subCmd->description) ||
-        !parcel.ReadStringVector(&subCmd->requirePermissions) ||
-        !parcel.ReadString(subCmd->inputSchema) ||
-        !parcel.ReadString(subCmd->outputSchema) ||
-        !parcel.ReadBool(hasArgMapping)) {
-        delete subCmd;
-        return nullptr;
-    }
-
-    if (hasArgMapping) {
-        subCmd->argMapping.reset(ArgMapping::Unmarshalling(parcel));
-        if (subCmd->argMapping == nullptr) {
-            delete subCmd;
-            return nullptr;
-        }
-    }
-
-    if (!parcel.ReadStringVector(&subCmd->eventTypes) ||
-        !parcel.ReadString(subCmd->eventSchemas)) {
-        delete subCmd;
-        return nullptr;
-    }
-
-    return subCmd;
-}
-
 // ToolInfo implementation
 bool ToolInfo::Marshalling(Parcel &parcel) const
 {

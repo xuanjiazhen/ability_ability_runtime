@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_TOOL_INFO_H
 
 #include "arg_mapping.h"
+#include "sub_command_info.h"
 #include "tool_summary.h"
 
 #include <iremote_broker.h>
@@ -31,26 +32,6 @@
 
 namespace OHOS {
 namespace CliTool {
-
-/**
- * @brief Subcommand information structure
- */
-class SubCommandInfo : public Parcelable {
-public:
-    std::string description;
-    std::vector<std::string> requirePermissions;
-    std::string inputSchema;    // JSON string
-    std::string outputSchema;   // JSON string
-    std::shared_ptr<ArgMapping> argMapping;
-    std::vector<std::string> eventTypes;
-    std::string eventSchemas;   // JSON string
-
-    SubCommandInfo() = default;
-    ~SubCommandInfo() = default;
-
-    bool Marshalling(Parcel &parcel) const override;
-    static SubCommandInfo *Unmarshalling(Parcel &parcel);
-};
 
 /**
  * @brief Raw data type for IDL serialization
