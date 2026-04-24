@@ -4764,6 +4764,7 @@ int AbilityManagerService::StartUIExtensionAbility(const sptr<SessionInfo> &exte
     }
 
     result = CheckOptExtensionAbility(extensionSessionInfo->want, abilityRequest, validUserId, extensionType);
+    abilityRequest.want.RemoveParam(UI_EXTENSION_TARGET_USER_ID);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::UI_EXT, "checkOptExtensionAbility error");
         eventInfo.errReason = "checkOptExtensionAbility error";
@@ -12623,7 +12624,6 @@ bool AbilityManagerService::CheckUIExtensionCallerPidByHostWindowId(const Abilit
     if(callerUser == U0_USER_ID && abilityRequest.want.HasParameter(UI_EXTENSION_TARGET_USER_ID)){
         int32_t uiExtensionTargetUserId = abilityRequest.want.GetIntParam(UI_EXTENSION_TARGET_USER_ID, -1);
         callerUserId = uiExtensionTargetUserId == -1 ? callerUserId : uiExtensionTargetUserId;
-        abilityRequest.want.RemoveParam(UI_EXTENSION_TARGET_USER_ID);
     }
     auto sceneSessionManager = Rosen::MockSessionManagerService::GetInstance().GetSceneSessionManagerLiteBySA(callerUserId);
     CHECK_POINTER_AND_RETURN(sceneSessionManager, false);
