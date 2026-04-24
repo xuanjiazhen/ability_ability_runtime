@@ -18,7 +18,9 @@
 #include "ability_manager_errors.h"
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
+#include "iservice_registry.h"
 #include "permission_verification.h"
+#include "system_ability_definition.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -29,14 +31,19 @@ SkillExecuteManager::~SkillExecuteManager() {}
 
 sptr<AppExecFwk::IBundleSkillManager> SkillExecuteManager::GetSkillManagerProxy()
 {
-    auto bundleMgrHelper = AppExecFwk::BundleMgrHelper::GetInstance();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to get BundleMgrHelper");
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgr == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to get SystemAbilityManager");
         return nullptr;
     }
-    auto bundleMgr = bundleMgrHelper->Connect();
+    auto bmsObj = samgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (bmsObj == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to get BMS from samgr");
+        return nullptr;
+    }
+    auto bundleMgr = iface_cast<AppExecFwk::IBundleMgr>(bmsObj);
     if (bundleMgr == nullptr) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to connect to BundleMgr");
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to cast IBundleMgr");
         return nullptr;
     }
     return bundleMgr->GetSkillManagerProxy();
@@ -130,7 +137,7 @@ int32_t SkillExecuteManager::ExecuteSkillDone(const sptr<IRemoteObject> &token, 
 std::string SkillExecuteManager::ResolveDefaultAbilityName(const std::string &bundleName,
     const std::string &moduleName, int32_t userId)
 {
-    auto bundleMgrHelper = AppExecFwk::BundleMgrHelper::GetInstance();
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "failed to get BundleMgrHelper");
         return "";

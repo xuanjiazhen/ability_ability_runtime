@@ -2572,7 +2572,7 @@ void JsUIAbility::ReportSkillDone(const sptr<IRemoteObject> &token, int32_t resu
     }
     AppExecFwk::SkillExecuteResult result;
     result.code = resultCode;
-    auto ret = AbilityManagerClient::GetInstance()->ExecuteSkillDone(token, resultCode, result);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(token, resultCode, result);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "ExecuteSkillDone failed, ret:%{public}d", ret);
     }
