@@ -164,7 +164,7 @@ HWTEST_F(ModularObjectUtilsTest, CheckPermission_008, TestSize.Level1)
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
     request.appInfo.appDistributionType = "none";
     auto ret = ModularObjectUtils::CheckPermission(request);
-    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, ERR_INVALID_DISTRIBUTION_TYPE);
     GTEST_LOG_(INFO) << "CheckPermission_008 end";
 }
 
@@ -215,7 +215,7 @@ HWTEST_F(ModularObjectUtilsTest, CheckAppDistributionType_002, TestSize.Level1)
     // Caller distribution type is "none"
     MockFlag::isDeveloperMode = false;
     auto ret = ModularObjectUtils::CheckAppDistributionType("none", "debug");
-    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, ERR_INVALID_DISTRIBUTION_TYPE);
     GTEST_LOG_(INFO) << "CheckAppDistributionType_002 end";
 }
 
@@ -225,7 +225,7 @@ HWTEST_F(ModularObjectUtilsTest, CheckAppDistributionType_003, TestSize.Level1)
     // Target distribution type is "none"
     MockFlag::isDeveloperMode = false;
     auto ret = ModularObjectUtils::CheckAppDistributionType("debug", "none");
-    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
+    EXPECT_EQ(ret, ERR_INVALID_DISTRIBUTION_TYPE);
     GTEST_LOG_(INFO) << "CheckAppDistributionType_003 end";
 }
 
@@ -424,7 +424,7 @@ HWTEST_F(ModularObjectUtilsTest, GetTargetExtensionInfoFromDb_002, TestSize.Leve
     MockFlag::extensionFound = false;
     ModularObjectExtensionInfo targetInfo;
     auto ret = ModularObjectUtils::GetTargetExtensionInfoFromDb("bundle", "ability", 0, 100, targetInfo);
-    EXPECT_EQ(ret, INNER_ERR);
+    EXPECT_EQ(ret, RESOLVE_ABILITY_ERR);
     GTEST_LOG_(INFO) << "GetTargetExtensionInfoFromDb_002 end";
 }
 

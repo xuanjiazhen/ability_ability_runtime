@@ -119,11 +119,11 @@ int32_t ModularObjectUtils::CheckAppDistributionType(const std::string &callerAp
 
     if (callerAppDistributionType == "none") {
         TAG_LOGE(AAFwkTag::EXT, "Caller appDistributionType is none, not allowed");
-        return ERR_PERMISSION_DENIED;
+        return ERR_INVALID_DISTRIBUTION_TYPE;
     }
     if (targetAppDistributionType == "none") {
         TAG_LOGE(AAFwkTag::EXT, "Target appDistributionType is none, not allowed");
-        return ERR_PERMISSION_DENIED;
+        return ERR_INVALID_DISTRIBUTION_TYPE;
     }
     return ERR_OK;
 }
@@ -199,7 +199,7 @@ int32_t ModularObjectUtils::GetTargetExtensionInfoFromDb(const std::string &bund
     }
     if (!found) {
         TAG_LOGE(AAFwkTag::EXT, "Extension not found: %{public}s/%{public}s", bundleName.c_str(), abilityName.c_str());
-        return INNER_ERR;
+        return RESOLVE_ABILITY_ERR;
     }
     return ERR_OK;
 }
