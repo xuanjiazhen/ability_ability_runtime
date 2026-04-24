@@ -19,6 +19,7 @@ config("ohos-arkts-config") {
     "include",
     "${ability_runtime_innerkits_path}/runtime/include",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_innerkits_path}/ability_manager/include",
   ]
@@ -49,6 +50,7 @@ ohos_executable("ohos-arkts") {
 
   deps = [
     "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
   ]
@@ -73,6 +75,8 @@ ohos_executable("ohos-arkts") {
 config("arkts_script_lib_public_config") {
   include_dirs = [
     "include",
+    "${ability_runtime_innerkits_path}/runtime/include",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
   ]
 }
 
@@ -105,6 +109,7 @@ ohos_shared_library("arkts_script_lib") {
     "bundle_framework:appexecfwk_core",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
+    "ets_runtime:ets_runtime",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
     "napi:ace_napi",

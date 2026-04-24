@@ -2535,22 +2535,30 @@ void JsUIAbility::ExecuteSkill(const AAFwk::Want &want,
 
     napi_value receiver = nullptr;
     napi_value func = nullptr;
-    if (!ArktsScript::JsArktsScript::ResolveFunction(env, "", param->funcName_, receiver, func)) {
+    std::string abcPath;
+    if (!param->srcEntries_.empty()) {
+        abcPath = param->srcEntries_[0];
+    } else {
+        abcPath = param->arkTSPath_;
+    }
+    if (!ArktsScript::JsArktsScript::ResolveFunction(
+        &jsRuntime_, env, abcPath, "", param->funcName_, receiver, func)) {
         TAG_LOGE(AAFwkTag::UIABILITY, "ResolveFunction failed, func:%{public}s", param->funcName_.c_str());
+        ReportSkillDone(token_, -1);
         return;
     }
 
-    // Build args: [context, arg0, arg1, ...]
     napi_value contextObj = nullptr;
     if (shellContextRef_ != nullptr) {
         contextObj = shellContextRef_->GetNapiValue();
     }
 
-    size_t argc = param->argv_.size() + 1; // +1 for context
+    size_t argc = param->argv_.size() + 1;
     std::vector<napi_value> args(argc);
     args[0] = contextObj;
     for (size_t i = 0; i < param->argv_.size(); i++) {
-        napi_create_string_utf8(env, param->argv_[i].c_str(), param->argv_[i].length(), &args[i + 1]);
+        napi_create_string_utf8(env, param->argv_[i].c_str(),
+            param->argv_[i].length(), &args[i + 1]);
     }
 
     napi_value result = nullptr;
@@ -2572,7 +2580,7 @@ void JsUIAbility::ReportSkillDone(const sptr<IRemoteObject> &token, int32_t resu
     }
     AppExecFwk::SkillExecuteResult result;
     result.code = resultCode;
-    auto ret = AbilityManagerClient::GetInstance()->ExecuteSkillDone(token, resultCode, result);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(token, resultCode, result);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "ExecuteSkillDone failed, ret:%{public}d", ret);
     }
