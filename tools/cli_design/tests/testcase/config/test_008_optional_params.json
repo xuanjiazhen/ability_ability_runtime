@@ -1,0 +1,28 @@
+{
+  "name": "ohos-test-008",
+  "version": "1.0.0",
+  "description": "特殊场景 - 可选参数和部分输入",
+  "executablePath": "/usr/bin/tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "required_param": {"type": "string"},
+      "optional1": {"type": "string"},
+      "optional2": {"type": "integer"},
+      "optional3": {"type": "boolean"}
+    },
+    "required": ["required_param"]
+  },
+  "argMapping": {
+    "type": "flag",
+    "templates": {
+      "required_param": "--required={value}",
+      "optional1": "--opt1={value}",
+      "optional2": "--opt2={value}",
+      "optional3": {
+        "if_true": "--opt3",
+        "if_false": ""
+      }
+    }
+  }
+}

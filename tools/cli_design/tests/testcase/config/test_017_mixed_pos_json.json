@@ -1,0 +1,38 @@
+{
+  "name": "ohos-test-017",
+  "version": "1.0.0",
+  "description": "Mixed模式 - positional与jsonString组合",
+  "executablePath": "/usr/bin/pipeline",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {"type": "string"},
+      "name": {"type": "string"},
+      "stages": {
+        "type": "object",
+        "properties": {
+          "build": {"type": "boolean"},
+          "test": {"type": "boolean"},
+          "deploy": {"type": "boolean"}
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "action": {
+        "mode": "positional",
+        "order": 1
+      },
+      "name": {
+        "mode": "positional",
+        "order": 2
+      },
+      "stages": {
+        "mode": "jsonString",
+        "template": "--stages={value}"
+      }
+    }
+  }
+}

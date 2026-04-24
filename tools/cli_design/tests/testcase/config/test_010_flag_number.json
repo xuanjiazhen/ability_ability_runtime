@@ -1,0 +1,20 @@
+{
+  "name": "ohos-test-010",
+  "version": "1.0.0",
+  "description": "Flag模式 - number类型参数",
+  "executablePath": "/usr/bin/scaler",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "ratio": {"type": "number"},
+      "threshold": {"type": "number"}
+    }
+  },
+  "argMapping": {
+    "type": "flag",
+    "templates": {
+      "ratio": "--ratio={value}",
+      "threshold": "--threshold={value}"
+    }
+  }
+}

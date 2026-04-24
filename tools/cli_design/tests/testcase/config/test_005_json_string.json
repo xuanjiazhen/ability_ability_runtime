@@ -1,0 +1,36 @@
+{
+  "name": "ohos-test-005",
+  "version": "1.0.0",
+  "description": "JSON-String模式 - 复杂对象序列化",
+  "executablePath": "/usr/bin/cloud-deploy",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "config": {
+        "type": "object",
+        "properties": {
+          "resources": {
+            "type": "object",
+            "properties": {
+              "cpu": {"type": "string"},
+              "memory": {"type": "string"}
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      },
+      "mode": {"type": "string"}
+    },
+    "required": ["config"]
+  },
+  "argMapping": {
+    "type": "jsonString",
+    "templates": {
+      "config": "--config={value}",
+      "mode": "--mode={value}"
+    }
+  }
+}

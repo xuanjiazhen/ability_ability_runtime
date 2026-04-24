@@ -1,0 +1,30 @@
+{
+  "name": "ohos-mixed-complex",
+  "version": "1.0.0",
+  "description": "Duplicate positional order in mixed mapping",
+  "executablePath": "/usr/bin/mixed-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string"
+      },
+      "target": {
+        "type": "string"
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "action": {
+        "mode": "positional",
+        "order": 1
+      },
+      "target": {
+        "mode": "positional",
+        "order": 1
+      }
+    }
+  }
+}

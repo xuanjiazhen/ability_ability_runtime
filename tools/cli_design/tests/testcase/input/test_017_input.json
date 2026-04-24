@@ -1,0 +1,9 @@
+{
+  "action": "run",
+  "name": "myapp",
+  "stages": {
+    "build": true,
+    "test": false,
+    "deploy": true
+  }
+}

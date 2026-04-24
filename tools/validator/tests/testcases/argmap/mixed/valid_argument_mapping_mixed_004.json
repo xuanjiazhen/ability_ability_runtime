@@ -1,0 +1,26 @@
+{
+  "name": "ohos-mixed-flag",
+  "version": "1.0.0",
+  "description": "Valid mixed flag mapping",
+  "executablePath": "/usr/bin/mixed-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "verbose": {
+        "type": "boolean"
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "verbose": {
+        "mode": "flag",
+        "template": {
+          "if_true": "--verbose",
+          "if_false": ""
+        }
+      }
+    }
+  }
+}

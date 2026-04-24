@@ -1,0 +1,49 @@
+{
+  "name": "ohos-test-016",
+  "version": "1.0.0",
+  "description": "Mixed模式 - flag与flattened组合",
+  "executablePath": "/usr/bin/deployer",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "force": {"type": "boolean"},
+      "dryRun": {"type": "boolean"},
+      "app": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "namespace": {"type": "string"},
+          "replicas": {"type": "integer"}
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "force": {
+        "mode": "flag",
+        "template": {
+          "if_true": "--force",
+          "if_false": ""
+        }
+      },
+      "dryRun": {
+        "mode": "flag",
+        "template": {
+          "if_true": "--dry-run",
+          "if_false": ""
+        }
+      },
+      "app": {
+        "mode": "flattened",
+        "template": {
+          "app.name": "--app={value}",
+          "app.namespace": "--namespace={value}",
+          "app.replicas": "--replicas={value}"
+        },
+        "separator": "."
+      }
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "reserved event must not appear in eventSchemas",
+  "executablePath": "/usr/bin/event-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "argMapping": {},
+  "eventTypes": ["stdout"],
+  "eventSchemas": {
+    "stdout": {
+      "type": "object",
+      "properties": {}
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "invalid custom event name in events",
+  "executablePath": "/usr/bin/event-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "argMapping": {},
+  "eventTypes": ["-bad-event"]
+}

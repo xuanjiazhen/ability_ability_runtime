@@ -1,0 +1,19 @@
+{
+  "name": "ohos-test-003",
+  "version": "1.0.0",
+  "description": "Positional模式 - 固定顺序参数",
+  "executablePath": "/usr/bin/copy",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "source": {"type": "string"},
+      "destination": {"type": "string"},
+      "overwrite": {"type": "boolean"}
+    },
+    "required": ["source", "destination"]
+  },
+  "argMapping": {
+    "type": "positional",
+    "order": ["source", "destination", "overwrite"]
+  }
+}

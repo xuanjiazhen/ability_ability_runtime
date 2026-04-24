@@ -1,0 +1,11 @@
+{
+  "test_case": "Mixed模式 - flag与jsonString组合",
+  "executablePath": "/usr/bin/analyzer",
+  "expected_argv": [
+    "-v",
+    "--output=json",
+    "--config={\"format\": \"detailed\", \"details\": true}"
+  ],
+  "expected_command": "/usr/bin/analyzer -v --output=json --config='{\"format\": \"detailed\", \"details\": true}'",
+  "note": "验证flag和jsonString组合，flag按定义顺序输出"
+}

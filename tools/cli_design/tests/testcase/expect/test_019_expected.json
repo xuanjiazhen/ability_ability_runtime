@@ -1,0 +1,12 @@
+{
+  "test_case": "Mixed模式 - flattened与jsonString组合",
+  "executablePath": "/usr/bin/executor",
+  "expected_argv": [
+    "--service=backend",
+    "--port=9443",
+    "--tls",
+    "--features={\"cache\": true, \"monitoring\": false}"
+  ],
+  "expected_command": "/usr/bin/executor --service=backend --port=9443 --tls --features='{\"cache\": true, \"monitoring\": false}'",
+  "note": "验证flattened和jsonString组合，verbose=false被跳过"
+}

@@ -1,0 +1,26 @@
+{
+  "name": "ohos-test-009",
+  "version": "1.0.0",
+  "description": "Flag模式 - 布尔值if_false分支",
+  "executablePath": "/usr/bin/logger",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "debug": {"type": "boolean"},
+      "trace": {"type": "boolean"}
+    }
+  },
+  "argMapping": {
+    "type": "flag",
+    "templates": {
+      "debug": {
+        "if_true": "--debug",
+        "if_false": "--release"
+      },
+      "trace": {
+        "if_true": "--trace-enable",
+        "if_false": "--trace-disable"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "test_case": "Mixed模式 - flag与flattened组合",
+  "executablePath": "/usr/bin/deployer",
+  "expected_argv": [
+    "--force",
+    "--app=frontend",
+    "--namespace=default",
+    "--replicas=3"
+  ],
+  "expected_command": "/usr/bin/deployer --force --app=frontend --namespace=default --replicas=3",
+  "note": "验证flag和flattened组合，dryRun=false被跳过"
+}

@@ -1,0 +1,110 @@
+{
+  "name": "ohos-clouddeploy",
+  "version": "1.0.0",
+  "description": "Cloud deployment tool - Json-String mode for complex configuration",
+  "executablePath": "/system/bin/cli_tool/executable/ohos-clouddeploy",
+  "requirePermissions": [
+    "ohos.permission.INTERNET",
+    "ohos.permission.ACCESS_CLOUD"
+  ],
+  "timeout": 600,
+  "hasSubcommands": false,
+  "inputSchema": {
+    "type": "object",
+    "description": "云部署工具的输入参数定义（复杂配置对象）",
+    "properties": {
+      "config": {
+        "type": "object",
+        "description": "完整的部署配置对象",
+        "properties": {
+          "application": {
+            "type": "object",
+            "description": "应用配置",
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "应用名称",
+                "minLength": 1,
+                "maxLength": 100
+              },
+              "replicas": {
+                "type": "integer",
+                "description": "副本数量",
+                "minimum": 1,
+                "maximum": 100,
+                "default": 1
+              },
+              "version": {
+                "type": "string",
+                "description": "应用版本",
+                "pattern": "^\\d+\\.\\d+\\.\\d+$"
+              }
+            },
+            "required": ["name"]
+          },
+          "resources": {
+            "type": "object",
+            "description": "资源配置",
+            "properties": {
+              "cpu": {
+                "type": "string",
+                "description": "CPU配置"
+              },
+              "memory": {
+                "type": "string",
+                "description": "内存配置"
+              },
+              "storage": {
+                "type": "string",
+                "description": "存储大小"
+              }
+            }
+          },
+          "network": {
+            "type": "object",
+            "description": "网络配置",
+            "properties": {
+              "protocol": {
+                "type": "string",
+                "description": "协议类型"
+              },
+              "port": {
+                "type": "integer",
+                "description": "端口号",
+                "minimum": 1,
+                "maximum": 65535
+              }
+            }
+          }
+        },
+        "required": ["application"]
+      },
+      "metadata": {
+        "type": "object",
+        "description": "部署元数据",
+        "properties": {
+          "author": {
+            "type": "string",
+            "description": "部署者"
+          },
+          "created": {
+            "type": "string",
+            "description": "创建时间"
+          },
+          "environment": {
+            "type": "string",
+            "description": "部署环境"
+          }
+        }
+      }
+    },
+    "required": ["config"]
+  },
+  "argMapping": {
+    "type": "jsonString",
+    "templates": {
+      "config": "--config={value}",
+      "metadata": "--metadata={value}"
+    }
+  }
+}

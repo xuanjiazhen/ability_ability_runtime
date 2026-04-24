@@ -1,0 +1,126 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "multiple custom events with deep nested schemas",
+  "executablePath": "/usr/bin/event-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "argMapping": {},
+  "eventTypes": ["result", "progress", "phaseChanged", "resourceSnapshot"],
+  "eventSchemas": {
+    "result": {
+      "type": "object",
+      "properties": {
+        "summary": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "integer"
+            },
+            "detail": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string"
+                },
+                "retry": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "progress": {
+      "type": "object",
+      "properties": {
+        "stage": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "metrics": {
+              "type": "object",
+              "properties": {
+                "current": {
+                  "type": "integer"
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "phaseChanged": {
+      "type": "object",
+      "properties": {
+        "phase": {
+          "type": "string"
+        },
+        "context": {
+          "type": "object",
+          "properties": {
+            "workflow": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "step": {
+                  "type": "integer"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "resourceSnapshot": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "type": "object",
+          "properties": {
+            "nodes": {
+              "type": "object",
+              "properties": {
+                "ready": {
+                  "type": "integer"
+                },
+                "total": {
+                  "type": "integer"
+                }
+              }
+            },
+            "network": {
+              "type": "object",
+              "properties": {
+                "latency": {
+                  "type": "number"
+                },
+                "jitter": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      }
+    }
+  }
+}

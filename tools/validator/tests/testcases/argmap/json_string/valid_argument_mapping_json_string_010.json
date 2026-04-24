@@ -1,0 +1,20 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Boolean jsonString template with string form",
+  "executablePath": "/usr/bin/net-scan",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "flag": {
+        "type": "boolean"
+      }
+    }
+  },
+  "argMapping": {
+    "type": "jsonString",
+    "templates": {
+      "flag": "--flag={value}"
+    }
+  }
+}

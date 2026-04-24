@@ -1,0 +1,11 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "Minimal baseline without events",
+  "executablePath": "/usr/bin/event-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "argMapping": {}
+}

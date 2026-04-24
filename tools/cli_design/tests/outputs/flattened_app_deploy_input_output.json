@@ -1,0 +1,64 @@
+{
+  "config_file": "flattened_app_deploy.json",
+  "input_file": "flattened_app_deploy_input.json",
+  "executable_path": "/system/bin/cli_tool/executable/ohos-appdeploy",
+  "mapping_type": "flattened",
+  "description": "应用部署工具 - Flattened模式配置示例",
+  "config": {
+    "executablePath": "/system/bin/cli_tool/executable/ohos-appdeploy",
+    "type": "flattened",
+    "separator": ".",
+    "templates": {
+      "app.name": "--app-name={value}",
+      "app.env.production": {
+        "if_true": "--env-prod",
+        "if_false": "--env-dev"
+      },
+      "server.host": "--host={value}",
+      "server.port": "--port={value}",
+      "server.ssl.enabled": {
+        "if_true": "--ssl",
+        "if_false": ""
+      }
+    },
+    "description": "应用部署工具 - Flattened模式配置示例"
+  },
+  "inputSchema": {
+    "app": {
+      "name": "my-webapp",
+      "env": {
+        "production": true
+      }
+    },
+    "server": {
+      "host": "192.168.1.100",
+      "port": 8080,
+      "ssl": {
+        "enabled": true
+      }
+    }
+  },
+  "outputSchema": {
+    "argv": [
+      "/system/bin/cli_tool/executable/ohos-appdeploy",
+      "--app-name=my-webapp",
+      "--env-prod",
+      "--host=192.168.1.100",
+      "--port=8080",
+      "--ssl"
+    ],
+    "command": "/system/bin/cli_tool/executable/ohos-appdeploy --app-name=my-webapp --env-prod --host=192.168.1.100 --port=8080 --ssl",
+    "argc": 6,
+    "executable_path": "/system/bin/cli_tool/executable/ohos-appdeploy",
+    "mapped_args": [
+      "--app-name=my-webapp",
+      "--env-prod",
+      "--host=192.168.1.100",
+      "--port=8080",
+      "--ssl"
+    ],
+    "mapped_args_count": 5
+  },
+  "success": true,
+  "error": null
+}

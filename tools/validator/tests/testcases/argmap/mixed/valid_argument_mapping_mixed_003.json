@@ -1,0 +1,18 @@
+{
+  "name": "ohos-mixed-basic",
+  "version": "1.0.0",
+  "description": "Empty mappings in mixed mapping",
+  "executablePath": "/usr/bin/mixed-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string"
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {}
+  }
+}

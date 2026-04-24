@@ -1,0 +1,12 @@
+{
+  "test_case": "Flattened模式 - 嵌套对象展平",
+  "executablePath": "/usr/bin/deploy",
+  "expected_argv": [
+    "--app-name=webapp",
+    "--replicas=3",
+    "--prod",
+    "--region=us-west-1"
+  ],
+  "expected_command": "/usr/bin/deploy --app-name=webapp --replicas=3 --prod --region=us-west-1",
+  "note": "深层嵌套对象展平为路径参数"
+}

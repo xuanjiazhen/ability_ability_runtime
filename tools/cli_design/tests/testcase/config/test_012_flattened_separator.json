@@ -1,0 +1,33 @@
+{
+  "name": "ohos-test-012",
+  "version": "1.0.0",
+  "description": "Flattened模式 - 使用下划线分隔符",
+  "executablePath": "/usr/bin/deploy-v2",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "app_config": {
+        "type": "object",
+        "properties": {
+          "app_name": {"type": "string"},
+          "app_version": {"type": "string"},
+          "app_env": {
+            "type": "object",
+            "properties": {
+              "app_env_type": {"type": "string"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "flattened",
+    "separator": "_",
+    "templates": {
+      "app_config_app_name": "--name={value}",
+      "app_config_app_version": "--version={value}",
+      "app_config_app_env_app_env_type": "--env={value}"
+    }
+  }
+}

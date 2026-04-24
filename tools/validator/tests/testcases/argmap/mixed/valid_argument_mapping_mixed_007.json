@@ -1,0 +1,23 @@
+{
+  "name": "ohos-mixed-position",
+  "version": "1.0.0",
+  "description": "Invalid mixed positional order",
+  "executablePath": "/usr/bin/mixed-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string"
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "action": {
+        "mode": "positional",
+        "order": 0
+      }
+    }
+  }
+}

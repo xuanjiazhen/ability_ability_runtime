@@ -1,0 +1,29 @@
+{
+  "name": "ohos-test-014",
+  "version": "1.0.0",
+  "description": "JSON-String模式 - 布尔值条件模板",
+  "executablePath": "/usr/bin/optimizer",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "options": {
+        "type": "object",
+        "properties": {
+          "enabled": {"type": "boolean"},
+          "level": {"type": "string"}
+        }
+      },
+      "debug": {"type": "boolean"}
+    }
+  },
+  "argMapping": {
+    "type": "jsonString",
+    "templates": {
+      "options": "--options={value}",
+      "debug": {
+        "if_true": "--debug",
+        "if_false": ""
+      }
+    }
+  }
+}

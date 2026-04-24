@@ -1,0 +1,75 @@
+{
+  "name": "ohos-test-007",
+  "version": "1.0.0",
+  "description": "Mixed模式 - 所有模式组合",
+  "executablePath": "/usr/bin/deployer",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {"type": "string"},
+      "service": {"type": "string"},
+      "replicas": {"type": "integer"},
+      "dryRun": {"type": "boolean"},
+      "server": {
+        "type": "object",
+        "properties": {
+          "host": {"type": "string"},
+          "port": {"type": "integer"}
+        }
+      },
+      "config": {
+        "type": "object",
+        "properties": {
+          "env": {
+            "type": "array",
+            "items": {"type": "string"}
+          },
+          "resources": {
+            "type": "object",
+            "properties": {
+              "cpu": {"type": "string"},
+              "memory": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "required": ["action", "service"]
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "action": {
+        "mode": "positional",
+        "order": 1
+      },
+      "service": {
+        "mode": "positional",
+        "order": 2
+      },
+      "replicas": {
+        "mode": "flag",
+        "template": "--replicas={value}"
+      },
+      "dryRun": {
+        "mode": "flag",
+        "template": {
+          "if_true": "--dry-run",
+          "if_false": ""
+        }
+      },
+      "server": {
+        "mode": "flattened",
+        "template": {
+          "server.host": "--host={value}",
+          "server.port": "--port={value}"
+        },
+        "separator": "."
+      },
+      "config": {
+        "mode": "jsonString",
+        "template": "--config={value}"
+      }
+    }
+  }
+}

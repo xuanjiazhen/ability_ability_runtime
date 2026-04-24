@@ -1,0 +1,25 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Deep flattened path with non-object intermediate node",
+  "executablePath": "/usr/bin/net-scan",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "cfg": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "flattened",
+    "templates": {
+      "cfg.network.endpoint.host": "--host={value}"
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "operation": "install",
+  "target": "/opt/myapp",
+  "settings": {
+    "install": {
+      "path": "/usr/local/bin",
+      "mode": "symlink"
+    }
+  }
+}

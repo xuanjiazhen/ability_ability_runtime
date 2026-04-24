@@ -1,0 +1,11 @@
+{
+  "test_case": "Flattened模式 - 使用下划线分隔符",
+  "executablePath": "/usr/bin/deploy-v2",
+  "expected_argv": [
+    "--name=myapp",
+    "--version=v2.0",
+    "--env=production"
+  ],
+  "expected_command": "/usr/bin/deploy-v2 --name=myapp --version=v2.0 --env=production",
+  "note": "验证使用下划线(_)作为分隔符"
+}

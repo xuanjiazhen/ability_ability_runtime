@@ -1,0 +1,57 @@
+{
+  "name": "ohos-test-019",
+  "version": "1.0.0",
+  "description": "Mixed模式 - flattened与jsonString组合",
+  "executablePath": "/usr/bin/executor",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "verbose": {"type": "boolean"},
+      "service": {
+        "type": "object",
+        "properties": {
+          "name": {"type": "string"},
+          "port": {"type": "integer"},
+          "tls": {
+            "type": "object",
+            "properties": {
+              "enabled": {"type": "boolean"}
+            }
+          }
+        }
+      },
+      "features": {
+        "type": "object",
+        "properties": {
+          "cache": {"type": "boolean"},
+          "monitoring": {"type": "boolean"}
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "verbose": {
+        "mode": "flag",
+        "template": {
+          "if_true": "-v",
+          "if_false": ""
+        }
+      },
+      "service": {
+        "mode": "flattened",
+        "template": {
+          "service.name": "--service={value}",
+          "service.port": "--port={value}",
+          "service.tls.enabled": "--tls"
+        },
+        "separator": "."
+      },
+      "features": {
+        "mode": "jsonString",
+        "template": "--features={value}"
+      }
+    }
+  }
+}

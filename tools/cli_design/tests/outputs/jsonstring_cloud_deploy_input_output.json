@@ -1,0 +1,56 @@
+{
+  "config_file": "jsonstring_cloud_deploy.json",
+  "input_file": "jsonstring_cloud_deploy_input.json",
+  "executable_path": "/system/bin/cli_tool/executable/ohos-clouddeploy",
+  "mapping_type": "jsonString",
+  "description": "云部署工具 - Json-String模式配置示例",
+  "config": {
+    "executablePath": "/system/bin/cli_tool/executable/ohos-clouddeploy",
+    "type": "jsonString",
+    "templates": {
+      "config": "--config={value}",
+      "metadata": "--metadata={value}"
+    },
+    "description": "云部署工具 - Json-String模式配置示例"
+  },
+  "inputSchema": {
+    "config": {
+      "application": {
+        "name": "webapp",
+        "replicas": 3,
+        "version": "1.2.0"
+      },
+      "resources": {
+        "cpu": "2",
+        "memory": "4Gi",
+        "storage": "10Gi"
+      },
+      "network": {
+        "protocol": "https",
+        "port": 443
+      }
+    },
+    "metadata": {
+      "author": "devops-team",
+      "created": "2025-01-15",
+      "environment": "production"
+    }
+  },
+  "outputSchema": {
+    "argv": [
+      "/system/bin/cli_tool/executable/ohos-clouddeploy",
+      "--config={\"application\": {\"name\": \"webapp\", \"replicas\": 3, \"version\": \"1.2.0\"}, \"resources\": {\"cpu\": \"2\", \"memory\": \"4Gi\", \"storage\": \"10Gi\"}, \"network\": {\"protocol\": \"https\", \"port\": 443}}",
+      "--metadata={\"author\": \"devops-team\", \"created\": \"2025-01-15\", \"environment\": \"production\"}"
+    ],
+    "command": "/system/bin/cli_tool/executable/ohos-clouddeploy --config={\"application\": {\"name\": \"webapp\", \"replicas\": 3, \"version\": \"1.2.0\"}, \"resources\": {\"cpu\": \"2\", \"memory\": \"4Gi\", \"storage\": \"10Gi\"}, \"network\": {\"protocol\": \"https\", \"port\": 443}} --metadata={\"author\": \"devops-team\", \"created\": \"2025-01-15\", \"environment\": \"production\"}",
+    "argc": 3,
+    "executable_path": "/system/bin/cli_tool/executable/ohos-clouddeploy",
+    "mapped_args": [
+      "--config={\"application\": {\"name\": \"webapp\", \"replicas\": 3, \"version\": \"1.2.0\"}, \"resources\": {\"cpu\": \"2\", \"memory\": \"4Gi\", \"storage\": \"10Gi\"}, \"network\": {\"protocol\": \"https\", \"port\": 443}}",
+      "--metadata={\"author\": \"devops-team\", \"created\": \"2025-01-15\", \"environment\": \"production\"}"
+    ],
+    "mapped_args_count": 2
+  },
+  "success": true,
+  "error": null
+}

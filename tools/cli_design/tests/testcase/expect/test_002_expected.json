@@ -1,0 +1,12 @@
+{
+  "test_case": "Flag模式 - 数组展开和布尔条件",
+  "executablePath": "/usr/bin/scanner",
+  "expected_argv": [
+    "--target=10.0.0.1",
+    "--target=10.0.0.2",
+    "--target=10.0.0.3",
+    "-v"
+  ],
+  "expected_command": "/usr/bin/scanner --target=10.0.0.1 --target=10.0.0.2 --target=10.0.0.3 -v",
+  "note": "debug为false，空字符串被跳过"
+}

@@ -1,0 +1,40 @@
+{
+  "name": "ohos-test-015",
+  "version": "1.0.0",
+  "description": "Mixed模式 - flag与jsonString组合",
+  "executablePath": "/usr/bin/analyzer",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "verbose": {"type": "boolean"},
+      "outputSchema": {"type": "string"},
+      "config": {
+        "type": "object",
+        "properties": {
+          "format": {"type": "string"},
+          "details": {"type": "boolean"}
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "verbose": {
+        "mode": "flag",
+        "template": {
+          "if_true": "-v",
+          "if_false": ""
+        }
+      },
+      "outputSchema": {
+        "mode": "flag",
+        "template": "--output={value}"
+      },
+      "config": {
+        "mode": "jsonString",
+        "template": "--config={value}"
+      }
+    }
+  }
+}

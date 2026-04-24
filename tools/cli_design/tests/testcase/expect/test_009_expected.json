@@ -1,0 +1,10 @@
+{
+  "test_case": "Flag模式 - 布尔值if_false分支",
+  "executablePath": "/usr/bin/logger",
+  "expected_argv": [
+    "--release",
+    "--trace-disable"
+  ],
+  "expected_command": "/usr/bin/logger --release --trace-disable",
+  "note": "验证布尔值false使用if_false分支"
+}

@@ -1,0 +1,12 @@
+{
+  "test_case": "Mixed模式 - positional与flattened组合",
+  "executablePath": "/usr/bin/installer",
+  "expected_argv": [
+    "install",
+    "/opt/myapp",
+    "--install-path=/usr/local/bin",
+    "--mode=symlink"
+  ],
+  "expected_command": "/usr/bin/installer install /opt/myapp --install-path=/usr/local/bin --mode=symlink",
+  "note": "验证positional和flattened组合"
+}

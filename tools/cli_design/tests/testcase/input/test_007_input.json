@@ -1,0 +1,17 @@
+{
+  "action": "deploy",
+  "service": "api-gateway",
+  "replicas": 5,
+  "dryRun": false,
+  "server": {
+    "host": "api.example.com",
+    "port": 8443
+  },
+  "config": {
+    "env": ["production", "secure"],
+    "resources": {
+      "cpu": "4",
+      "memory": "8Gi"
+    }
+  }
+}

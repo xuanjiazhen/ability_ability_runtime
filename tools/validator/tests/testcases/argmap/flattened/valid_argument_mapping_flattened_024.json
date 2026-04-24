@@ -1,0 +1,44 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Deep flattened path with undeclared leaf",
+  "executablePath": "/usr/bin/net-scan",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "cfg": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "object",
+            "properties": {
+              "endpoint": {
+                "type": "object",
+                "properties": {
+                  "host": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          },
+          "network1": {
+            "type": "object",
+            "properties": {
+              "endpoint": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "flattened",
+    "templates": {
+      "cfg.network.endpoint.host": "--host={value}",
+      "cfg.network1.endpoint": "--host={value}"
+    }
+  }
+}

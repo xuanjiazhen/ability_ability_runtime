@@ -1,0 +1,120 @@
+{
+  "name": "ohos-pkgmgr",
+  "version": "1.0.0",
+  "description": "Package management tool with subcommands",
+  "executablePath": "/usr/bin/pkg-mgr",
+  "timeout": 300,
+  "requirePermissions":["ohos.permission.INSTALL_BUNDLE"],
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "verbose": {
+        "type": "boolean",
+        "default": false
+      },
+      "array": {
+        "type": "array",
+        "description": "dad",
+        "items": {
+          "type": "integer"
+        },
+        "maxItems": 3,
+        "minItems": 2,
+        "default": [12, 2, 3],
+        "uniqueItems": true
+      },
+      "str": {
+        "type": "string"
+      },
+      "num": {
+        "type": "number"
+      },
+      "int" : {
+        "type": "integer"
+      }
+    }
+  },
+  "argMapping": {
+    "type": "flag",
+    "templates": {
+      "verbose": {
+        "if_true": "--verbose",
+        "if_false": ""
+      },
+      "array": "--array={value}",
+      "num": "--num={value}",
+      "str": "--str={value}",
+      "int": "--int={value}"
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "string"
+      }
+    },
+    "required": ["status"]
+  },
+  "hasSubcommands": true,
+  "subcommands": {
+    "install": {
+      "description": "Install a package",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "package": {
+            "type": "string"
+          },
+          "force": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": ["package"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "eventSchemas": {
+        "result": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string"
+            }
+          }
+        },
+        "stdout1AS.ADDA-": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "trace": {
+              "type": "object",
+              "properties": {}
+            }
+          },
+          "required": ["trace"]
+        }
+      },
+      "eventTypes": ["result", "stdout","stderr","exit","error", "stdout1AS.ADDA-"],
+      "argMapping": {
+        "type": "flag",
+        "templates": {
+          "package": "{value}",
+          "force": {
+            "if_true": "--force",
+            "if_false": ""
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,88 @@
+{
+  "name": "ohos-appdeploy",
+  "version": "1.0.0",
+  "description": "Application deployment tool - Flattened mode with nested object support",
+  "executablePath": "/system/bin/cli_tool/executable/ohos-appdeploy",
+  "requirePermissions": [
+    "ohos.permission.INSTALL_BUNDLE",
+    "ohos.permission.ACCESS_BUNDLE"
+  ],
+  "timeout": 300,
+  "hasSubcommands": false,
+  "inputSchema": {
+    "type": "object",
+    "description": "应用部署工具的输入参数定义（支持嵌套对象）",
+    "properties": {
+      "app": {
+        "type": "object",
+        "description": "应用配置",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "应用名称",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "env": {
+            "type": "object",
+            "description": "环境配置",
+            "properties": {
+              "production": {
+                "type": "boolean",
+                "description": "是否为生产环境",
+                "default": false
+              }
+            }
+          }
+        },
+        "required": ["name"]
+      },
+      "server": {
+        "type": "object",
+        "description": "服务器配置",
+        "properties": {
+          "host": {
+            "type": "string",
+            "description": "服务器地址",
+            "minLength": 1
+          },
+          "port": {
+            "type": "integer",
+            "description": "服务器端口",
+            "minimum": 1,
+            "maximum": 65535
+          },
+          "ssl": {
+            "type": "object",
+            "description": "SSL配置",
+            "properties": {
+              "enabled": {
+                "type": "boolean",
+                "description": "是否启用SSL",
+                "default": false
+              }
+            }
+          }
+        }
+      }
+    },
+    "required": ["app", "server"]
+  },
+  "argMapping": {
+    "type": "flattened",
+    "separator": ".",
+    "templates": {
+      "app.name": "--app-name={value}",
+      "app.env.production": {
+        "if_true": "--env-prod",
+        "if_false": "--env-dev"
+      },
+      "server.host": "--host={value}",
+      "server.port": "--port={value}",
+      "server.ssl.enabled": {
+        "if_true": "--ssl",
+        "if_false": ""
+      }
+    }
+  }
+}

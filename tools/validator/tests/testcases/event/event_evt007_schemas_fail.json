@@ -1,0 +1,18 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "invalid custom event name in eventSchemas",
+  "executablePath": "/usr/bin/event-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "argMapping": {},
+  "eventTypes": ["progress"],
+  "eventSchemas": {
+    "1bad": {
+      "type": "object",
+      "properties": {}
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "test_case": "JSON-String模式 - 复杂对象序列化",
+  "executablePath": "/usr/bin/cloud-deploy",
+  "expected_argv": [
+    "--config={\"resources\": {\"cpu\": \"2\", \"memory\": \"4Gi\"}, \"tags\": [\"production\", \"v1.0\"]}",
+    "--mode=rolling"
+  ],
+  "expected_command": "/usr/bin/cloud-deploy --config='{\"resources\": {\"cpu\": \"2\", \"memory\": \"4Gi\"}, \"tags\": [\"production\", \"v1.0\"]}' --mode=rolling",
+  "note": "对象和数组序列化为JSON字符串"
+}

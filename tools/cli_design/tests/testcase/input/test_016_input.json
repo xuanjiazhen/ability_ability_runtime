@@ -1,0 +1,9 @@
+{
+  "force": true,
+  "dryRun": false,
+  "app": {
+    "name": "frontend",
+    "namespace": "default",
+    "replicas": 3
+  }
+}
