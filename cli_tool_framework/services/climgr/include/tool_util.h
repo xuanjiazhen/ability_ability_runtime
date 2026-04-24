@@ -16,18 +16,21 @@
 #ifndef OHOS_ABILITY_RUNTIME_TOOL_UTIL_H
 #define OHOS_ABILITY_RUNTIME_TOOL_UTIL_H
 
-#include <map>
 #include <string>
 
 namespace OHOS {
+namespace AAFwk {
+class WantParams;
+}
 namespace AppExecFwk {
 struct BundleInfo;
 }
 namespace CliTool {
+class ToolInfo;
 class ToolUtil {
 public:
-    static int32_t ValidateInputSchemaProperties(const std::string &inputSchema, const std::string &subcommand,
-        const std::map<std::string, std::string> &args);
+    static int32_t ValidateProperties(const ToolInfo &toolInfo, const std::string &subcommand,
+        const AAFwk::WantParams &args);
 
     static std::string GenerateCliSessionId(const std::string &name);
 
@@ -35,6 +38,7 @@ public:
 
 private:
     static bool GetBundleInfoByTokenId(AppExecFwk::BundleInfo &bundleInfo);
+    static int32_t ValidateInputSchemaProperties(const std::string &inputSchema, const AAFwk::WantParams &args);
 };
 
 } // namespace CliTool
