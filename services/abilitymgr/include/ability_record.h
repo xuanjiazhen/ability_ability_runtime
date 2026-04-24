@@ -651,6 +651,10 @@ public:
 
     std::string GetProcessName() const;
 
+    void SetClientPid(pid_t clientPid);
+
+    pid_t GetClientPid() const;
+
     void SetCustomProcessFlag(const std::string &process);
 
     std::string GetCustomProcessFlag() const;
@@ -971,6 +975,7 @@ protected:
     int32_t uiExtensionAbilityId_ = 0;                // uiextension ability id
     int32_t uid_ = 0;
     pid_t pid_ = 0;
+    pid_t clientPid_ = -1;
     int32_t missionId_ = -1;
     int32_t ownerMissionUserId_ = -1;
     uint32_t extensionProcessMode_ = 0;       // new version
