@@ -19,6 +19,7 @@
 
 #include "cli_error_code.h"
 #include "exec_tool_param.h"
+#include "string_wrapper.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -31,7 +32,7 @@ ProcessManager &ProcessManager::GetInstance()
 }
 
 int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std::string &sandboxConfig,
-    const std::map<std::string, std::string> &args) const
+    pid_t &childPid) const
 {
     pid_t pid = fork();
     if (pid < 0) {
@@ -52,8 +53,13 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         if (!param.subcommand.empty()) {
             cmdLine += " " + param.subcommand;
         }
-        for (const auto &[key, value] : args) {
-            cmdLine += " " + key + " " + value;
+        for (const auto &[key, value] : param.args.GetParams()) {
+            if (AAFwk::IString::Query(value) != nullptr) {
+                AAFwk::IString *ao = AAFwk::IString::Query(value);
+                if (ao != nullptr) {
+                    cmdLine += " " + key + " " + AAFwk::String::Unbox(ao);
+                }
+            }
         }
         execArgs.push_back(const_cast<char *>(cmdLine.c_str()));
         execArgs.push_back(nullptr);
@@ -61,6 +67,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         execvp(execArgs[0], execArgs.data());
         _exit(0);
     }
+    childPid = pid;
     return ERR_OK;
 }
 
