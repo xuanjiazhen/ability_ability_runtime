@@ -4148,7 +4148,7 @@ int AbilityManagerService::RequestModalUIExtensionInner(Want want)
 
         // Compare
         if (record->GetAbilityInfo().type == AppExecFwk::AbilityType::PAGE &&
-            focusName == callerName) {                
+            focusName == callerName) {
             TAG_LOGD(AAFwkTag::ABILITYMGR, "CreateModalUIExtension is called!");
             return record->CreateModalUIExtension(want);
         }
