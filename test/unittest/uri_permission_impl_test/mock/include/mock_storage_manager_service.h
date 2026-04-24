@@ -540,6 +540,18 @@ public:
     {
         return E_OK;
     }
+
+    virtual int32_t Erase(const std::string &volId, const std::string &diskType) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetOpticalDriveOpsProgress(const std::string &volId,
+                                               const std::string &filePath,
+                                               const std::string &fileType) override
+    {
+        return E_OK;
+    }
 };
 
 bool StorageManagerServiceMock::isZero = true;
