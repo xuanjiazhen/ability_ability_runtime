@@ -2841,5 +2841,30 @@ HWTEST_F(AbilityManagerClientBranchTest, StartAbilityForPrelaunch_001, TestSize.
     EXPECT_EQ(client_->StartAbilityForPrelaunch(want, 0), 0);
 }
 
+/**
+ * @tc.name: StartSelfUIAbilityWithToken_0100
+ * @tc.desc: StartSelfUIAbilityWithToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityWithToken_0100, TestSize.Level1)
+{
+    Want want;
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_EQ(client_->StartSelfUIAbilityWithToken(want, callerToken), ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityWithStartOptionsAndToken_0100
+ * @tc.desc: StartSelfUIAbilityWithStartOptionsAndToken
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityWithStartOptionsAndToken_0100, TestSize.Level1)
+{
+    Want want;
+    StartOptions options;
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_EQ(client_->StartSelfUIAbilityWithStartOptionsAndToken(want, options, callerToken), ERR_OK);
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
