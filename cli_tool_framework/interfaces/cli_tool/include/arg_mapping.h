@@ -60,6 +60,12 @@ public:
      * @brief Convert ArgMapping to JSON object
      */
     nlohmann::json ParseToJson() const;
+
+    /**
+     * @brief Validate ArgMapping
+     * @return true if valid, false otherwise
+     */
+    bool Validate() const;
 };
 
 } // namespace CliTool

@@ -15,6 +15,8 @@
 
 #include "arg_mapping.h"
 
+#include "hilog_tag_wrapper.h"
+
 namespace OHOS {
 namespace CliTool {
 
@@ -121,6 +123,19 @@ nlohmann::json ArgMapping::ParseToJson() const
         }
     }
     return j;
+}
+
+bool ArgMapping::Validate() const
+{
+    // templates需要为json格式的字符串
+    if (!templates.empty()) {
+        nlohmann::json templatesJson = nlohmann::json::parse(templates, nullptr, false);
+        if (templatesJson.is_discarded()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid templates JSON format");
+            return false;
+        }
+    }
+    return true;
 }
 
 } // namespace CliTool
