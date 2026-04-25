@@ -56,6 +56,21 @@ enum {
      * Result (35700006): Fail to crate js CliSessionInfo.
      */
     ERR_CREATE_CLI_SESSION_INFO = 35700006,
+
+    /*
+     * Result (35700007): Caller is not SA.
+     */
+    ERR_NOT_SA_CALLER = 35700007,
+
+    /*
+     * Result (35700008): Permission denied (missing ohos.permission.QUERY_CLI_TOOL).
+     */
+    ERR_PERMISSION_DENIED = 35700008,
+
+    /*
+     * Result (35700009): IPC communication failed.
+     */
+    ERR_IPC_FAILURE = 35700009,
 };
 
 } // namespace CliTool
