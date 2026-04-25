@@ -15,9 +15,11 @@
 
 #include "cli_tool_manager_service.h"
 
+#include "accesstoken_kit.h"
 #include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
+#include "ipc_skeleton.h"
 #include "iservice_registry.h"
 #include "process_manager.h"
 #include "tool_util.h"
@@ -135,6 +137,155 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::m
     session.status = "running";
     activeSessionCount_.fetch_add(1, std::memory_order_relaxed);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Tool executed successfully: sessionId=%{public}s", session.sessionId.c_str());
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::BatchQueryPermissionBySubCommand(
+    const std::vector<Command> &cmds,
+    std::vector<CommandPermission> &cmdPermissions)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "BatchQueryPermissionBySubCommand called, count=%{public}zu", cmds.size());
+
+    // 1. Parameter validation
+    if (cmds.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Commands is empty");
+        return ERR_INVALID_PARAM;
+    }
+
+    // 2. Verify caller is SA
+    Security::AccessToken::AccessTokenID callerToken = IPCSkeleton::GetCallingTokenID();
+    Security::AccessToken::ATokenTypeEnum tokenType =
+        Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(callerToken);
+
+    if (tokenType != Security::AccessToken::ATokenTypeEnum::TOKEN_SVC) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Caller is not SA, tokenType=%{public}d", static_cast<int>(tokenType));
+        return ERR_NOT_SA_CALLER;
+    }
+
+    // 3. Verify ohos.permission.QUERY_CLI_TOOL permission
+    int result = Security::AccessToken::AccessTokenKit::VerifyAccessToken(callerToken,
+        "ohos.permission.QUERY_CLI_TOOL");
+
+    if (result != Security::AccessToken::PermissionState::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Permission denied: ohos.permission.QUERY_CLI_TOOL, result=%{public}d", result);
+        return ERR_PERMISSION_DENIED;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "BatchQuery started by token=%{public}u, count=%{public}zu",
+        callerToken, cmds.size());
+
+    // 4. Batch query
+    cmdPermissions.clear();
+    cmdPermissions.reserve(cmds.size());
+
+    for (const auto &cmd : cmds) {
+        CommandPermission cmdPerm;
+        cmdPerm.cmd = cmd;
+        cmdPerm.permissions.clear();
+
+        // Validate toolName is not empty
+        if (cmd.toolName.empty()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Tool name is empty");
+            cmdPerm.queryRet = QUERY_COMMAND_NOT_EXIST;
+            cmdPermissions.push_back(std::move(cmdPerm));
+            continue;
+        }
+
+        // Query logic
+        int32_t ret = DoQueryPermission(cmd, cmdPerm.permissions);
+        if (ret == ERR_OK) {
+            cmdPerm.queryRet = QUERY_SUCCESS;
+        } else if (ret == ERR_TOOL_NOT_EXIST || ret == ERR_NAME_NOT_FOUND) {
+            cmdPerm.queryRet = QUERY_COMMAND_NOT_EXIST;
+            cmdPerm.permissions.clear();
+        } else if (ret == ERR_NO_INIT) {
+            cmdPerm.queryRet = QUERY_DB_ERROR;
+            cmdPerm.permissions.clear();
+        } else {
+            // Should not reach this branch
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Unexpected error code: %{public}d", ret);
+            cmdPerm.queryRet = QUERY_DB_ERROR;
+            cmdPerm.permissions.clear();
+        }
+
+        cmdPermissions.push_back(std::move(cmdPerm));
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Batch query completed, total=%{public}zu", cmdPermissions.size());
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::DoQueryPermission(
+    const Command &cmd,
+    std::vector<std::string> &permissions)
+{
+    // Determine if it's a main command or subcommand query
+    if (cmd.subCommand.empty()) {
+        // Query main command permissions
+        return QueryMainCommandPermission(cmd.toolName, permissions);
+    } else {
+        // Query subcommand permissions
+        return QuerySubCommandPermission(cmd.toolName, cmd.subCommand, permissions);
+    }
+}
+
+int32_t CliToolManagerService::QueryMainCommandPermission(
+    const std::string &toolName,
+    std::vector<std::string> &permissions)
+{
+    ToolInfo toolInfo;
+    int32_t ret = CliToolDataManager::GetInstance().GetToolByName(toolName, toolInfo);
+
+    if (ret == ERR_NO_INIT) {
+        // Database query failed
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "DB error when querying tool: %{public}s", toolName.c_str());
+        return ERR_NO_INIT;
+    } else if (ret != ERR_OK) {
+        // Tool not found
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Tool not found: %{public}s", toolName.c_str());
+        return ERR_TOOL_NOT_EXIST;
+    }
+
+    // Main command's requirePermissions is independently configured, return directly
+    permissions = toolInfo.requirePermissions;
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::QuerySubCommandPermission(
+    const std::string &toolName,
+    const std::string &subCommand,
+    std::vector<std::string> &permissions)
+{
+    ToolInfo toolInfo;
+    int32_t ret = CliToolDataManager::GetInstance().GetToolByName(toolName, toolInfo);
+
+    if (ret == ERR_NO_INIT) {
+        // Database query failed
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "DB error when querying tool: %{public}s", toolName.c_str());
+        return ERR_NO_INIT;
+    } else if (ret != ERR_OK) {
+        // Tool not found
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Tool not found: %{public}s", toolName.c_str());
+        return ERR_TOOL_NOT_EXIST;
+    }
+
+    // Check if tool has subcommands
+    if (!toolInfo.hasSubCommand) {
+        // Tool has no subcommands, subcommand not found
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Tool has no subcommand: %{public}s", toolName.c_str());
+        return ERR_TOOL_NOT_EXIST;
+    }
+
+    // Find subcommand
+    auto it = toolInfo.subcommands.find(subCommand);
+    if (it == toolInfo.subcommands.end()) {
+        // Subcommand not found
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Subcommand not found: %{public}s.%{public}s",
+            toolName.c_str(), subCommand.c_str());
+        return ERR_TOOL_NOT_EXIST;
+    }
+
+    permissions = it->second.requirePermissions;
     return ERR_OK;
 }
 } // namespace CliTool
