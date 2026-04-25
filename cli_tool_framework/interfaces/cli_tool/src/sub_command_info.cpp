@@ -115,10 +115,8 @@ SubCommandInfo *SubCommandInfo::Unmarshalling(Parcel &parcel)
     return subCmd;
 }
 
-SubCommandInfo SubCommandInfo::ParseFromJson(const nlohmann::json &json)
+bool SubCommandInfo::ParseFromJson(const nlohmann::json &json, SubCommandInfo &subCmd)
 {
-    SubCommandInfo subCmd;
-
     if (json.contains("description") && json["description"].is_string()) {
         subCmd.description = json["description"];
     }
@@ -135,8 +133,13 @@ SubCommandInfo SubCommandInfo::ParseFromJson(const nlohmann::json &json)
     if (json.contains("outputSchema") && json["outputSchema"].is_object()) {
         subCmd.outputSchema = json["outputSchema"].dump();
     }
-    if (json.contains("argMapping") && json["argMapping"].is_object()) {
-        subCmd.argMapping = ArgMapping::ParseFromJson(json["argMapping"]);
+    // argMapping is required
+    if (!json.contains("argMapping") || !json["argMapping"].is_object()) {
+        return false;
+    }
+    subCmd.argMapping = ArgMapping::ParseFromJson(json["argMapping"]);
+    if (subCmd.argMapping == nullptr) {
+        return false;  // argMapping parse failed
     }
     if (json.contains("eventTypes") && json["eventTypes"].is_array()) {
         for (const auto &evt : json["eventTypes"]) {
@@ -149,7 +152,7 @@ SubCommandInfo SubCommandInfo::ParseFromJson(const nlohmann::json &json)
         subCmd.eventSchemas = json["eventSchemas"].dump();
     }
 
-    return subCmd;
+    return true;
 }
 
 nlohmann::json SubCommandInfo::ParseToJson() const

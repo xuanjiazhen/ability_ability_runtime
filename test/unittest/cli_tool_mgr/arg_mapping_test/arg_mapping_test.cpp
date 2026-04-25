@@ -673,7 +673,7 @@ HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0500, TestSize.Level1)
 
 /**
  * @tc.name: ArgMapping_ParseFromJson_0600
- * @tc.desc: Test ArgMapping_ParseFromJson with empty json
+ * @tc.desc: Test ArgMapping_ParseFromJson with empty json (type is required)
  * @tc.type: FUNC
  */
 HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0600, TestSize.Level1)
@@ -684,10 +684,7 @@ HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0600, TestSize.Level1)
 
     auto result = ArgMapping::ParseFromJson(json);
 
-    ASSERT_NE(result, nullptr);
-    EXPECT_EQ(result->type, ArgMappingType::FLAG);  // default value
-    EXPECT_EQ(result->separator, "");
-    EXPECT_EQ(result->order, "");
+    ASSERT_EQ(result, nullptr);  // type is required
 
     GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0600 end";
 }
@@ -713,6 +710,174 @@ HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0700, TestSize.Level1)
     EXPECT_FALSE(result->templates.empty());
 
     GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0700 end";
+}
+
+// ==================== ArgMapping ParseFromJson Validation Tests ====================
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_0800
+ * @tc.desc: Test ArgMapping_ParseFromJson without type field (type is required)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0800, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0800 start";
+
+    nlohmann::json json = {
+        {"separator", ","},
+        {"order", "a,b"}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);  // type is required
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0800 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_0900
+ * @tc.desc: Test ArgMapping_ParseFromJson with type not string
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0900, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0900 start";
+
+    nlohmann::json json = {
+        {"type", 123}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0900 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1000
+ * @tc.desc: Test ArgMapping_ParseFromJson with invalid type value
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1000, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1000 start";
+
+    nlohmann::json json = {
+        {"type", "invalid_type"}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1000 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1100
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as string (must be object)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1100 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", "not a valid json string"}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);  // templates must be object, not string
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1100 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1200
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as valid JSON string (must be object)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1200 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", R"({"verbose": "-v"})"}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);  // templates must be object, not string
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1200 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1300
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as empty string (must be object)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1300 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", ""}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);  // templates must be object, not string
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1300 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1400
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as number (must be object)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1400 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", 123}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);  // templates must be object, not number
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1400 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1500
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as array (must be object)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1500 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", {"a", "b", "c"}}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);  // templates must be object, not array
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1500 end";
 }
 
 // ==================== ArgMapping ParseToJson Tests ====================
@@ -939,6 +1104,288 @@ HWTEST_F(ArgMappingTest, ArgMapping_JsonRoundTrip_0200, TestSize.Level1)
     }
 
     GTEST_LOG_(INFO) << "ArgMapping_JsonRoundTrip_0200 end";
+}
+
+// ==================== ArgMapping Validate Tests ====================
+
+/**
+ * @tc.name: ArgMapping_Validate_0100
+ * @tc.desc: Test ArgMapping::Validate with valid FLAG type
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0100 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.separator = " ";
+    mapping.order = "arg1";
+
+    EXPECT_TRUE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0100 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0200
+ * @tc.desc: Test ArgMapping::Validate with valid POSITIONAL type
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0200 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::POSITIONAL;
+    mapping.separator = ",";
+    mapping.order = "a,b,c";
+
+    EXPECT_TRUE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0200 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0300
+ * @tc.desc: Test ArgMapping::Validate with valid FLATTENED type
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0300 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLATTENED;
+    mapping.separator = ";";
+
+    EXPECT_TRUE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0300 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0400
+ * @tc.desc: Test ArgMapping::Validate with valid JSONSTRING type
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0400 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::JSONSTRING;
+
+    EXPECT_TRUE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0400 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0500
+ * @tc.desc: Test ArgMapping::Validate with valid MIXED type
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0500 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::MIXED;
+    mapping.separator = "|";
+    mapping.order = "x,y,z";
+
+    EXPECT_TRUE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0500 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0600
+ * @tc.desc: Test ArgMapping::Validate with invalid type (out of range)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0600, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0600 start";
+
+    ArgMapping mapping;
+    mapping.type = static_cast<ArgMappingType>(-1);
+
+    EXPECT_FALSE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0600 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0700
+ * @tc.desc: Test ArgMapping::Validate with invalid type (greater than MIXED)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0700, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0700 start";
+
+    ArgMapping mapping;
+    mapping.type = static_cast<ArgMappingType>(static_cast<int32_t>(ArgMappingType::MIXED) + 1);
+
+    EXPECT_FALSE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0700 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0800
+ * @tc.desc: Test ArgMapping::Validate with valid templates JSON object
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0800, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0800 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = R"({"verbose": {"if_true": "-v"}})";
+
+    EXPECT_TRUE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0800 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0900
+ * @tc.desc: Test ArgMapping::Validate with empty templates (valid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0900, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0900 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = "";
+
+    EXPECT_TRUE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0900 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_1000
+ * @tc.desc: Test ArgMapping::Validate with invalid templates (not JSON)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_1000, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1000 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = "not a valid json";
+
+    EXPECT_FALSE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1000 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_1100
+ * @tc.desc: Test ArgMapping::Validate with templates as JSON array (invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_1100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1100 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = R"(["a", "b", "c"])";
+
+    EXPECT_FALSE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1100 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_1200
+ * @tc.desc: Test ArgMapping::Validate with templates as JSON string (invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_1200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1200 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = R"("just a string")";
+
+    EXPECT_FALSE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1200 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_1300
+ * @tc.desc: Test ArgMapping::Validate with templates as JSON number (invalid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_1300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1300 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = "123";
+
+    EXPECT_FALSE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1300 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_1400
+ * @tc.desc: Test ArgMapping::Validate with empty JSON object templates (valid)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_1400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1400 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = "{}";
+
+    EXPECT_TRUE(ArgMapping::Validate(mapping));
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1400 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_1500
+ * @tc.desc: Test ArgMapping::Validate with all valid types
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_1500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1500 start";
+
+    std::vector<ArgMappingType> types = {
+        ArgMappingType::FLAG,
+        ArgMappingType::POSITIONAL,
+        ArgMappingType::FLATTENED,
+        ArgMappingType::JSONSTRING,
+        ArgMappingType::MIXED
+    };
+
+    for (auto type : types) {
+        ArgMapping mapping;
+        mapping.type = type;
+        mapping.templates = R"({"key": "value"})";
+
+        EXPECT_TRUE(ArgMapping::Validate(mapping));
+    }
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_1500 end";
 }
 
 } // namespace CliTool
