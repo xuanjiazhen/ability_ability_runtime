@@ -19,7 +19,9 @@
 
 #include "ability_manager_errors.h"
 #include "ability_manager_service.h"
+#include "ability_record/ability_record_utils.h"
 #include "ability_util.h"
+#include "base_extension_record.h"
 #include "app_mgr_client.h"
 #include "app_utils.h"
 #include "bundle_mgr_helper.h"
@@ -28,6 +30,8 @@
 #include "modular_object_rdb_storage_mgr.h"
 #include "os_account_manager_wrapper.h"
 #include "parameters.h"
+#include "permission_verification.h"
+#include "rate_limiter.h"
 #include "running_process_info.h"
 #include "scene_board_judgement.h"
 
@@ -35,6 +39,19 @@ using namespace OHOS::AppExecFwk;
 
 namespace OHOS {
 namespace AAFwk {
+int32_t ModularObjectUtils::CheckRateLimit()
+{
+    if (AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        return ERR_OK;
+    }
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    if (RateLimiter::GetInstance().CheckModularObjectLimit(callingUid)) {
+        TAG_LOGW(AAFwkTag::EXT, "moe rate limit exceeded, uid:%{public}d", callingUid);
+        return ERR_FREQ_START_ABILITY;
+    }
+    return ERR_OK;
+}
+
 int32_t ModularObjectUtils::CheckPermission(const AbilityRequest &abilityRequest)
 {
     if (!AppUtils::GetInstance().IsSupportModularObjectExtension()) {
@@ -118,11 +135,11 @@ int32_t ModularObjectUtils::CheckAppDistributionType(const std::string &callerAp
 
     if (callerAppDistributionType == "none") {
         TAG_LOGE(AAFwkTag::EXT, "Caller appDistributionType is none, not allowed");
-        return ERR_PERMISSION_DENIED;
+        return ERR_INVALID_DISTRIBUTION_TYPE;
     }
     if (targetAppDistributionType == "none") {
         TAG_LOGE(AAFwkTag::EXT, "Target appDistributionType is none, not allowed");
-        return ERR_PERMISSION_DENIED;
+        return ERR_INVALID_DISTRIBUTION_TYPE;
     }
     return ERR_OK;
 }
@@ -198,7 +215,7 @@ int32_t ModularObjectUtils::GetTargetExtensionInfoFromDb(const std::string &bund
     }
     if (!found) {
         TAG_LOGE(AAFwkTag::EXT, "Extension not found: %{public}s/%{public}s", bundleName.c_str(), abilityName.c_str());
-        return INNER_ERR;
+        return RESOLVE_ABILITY_ERR;
     }
     return ERR_OK;
 }
@@ -219,7 +236,7 @@ int32_t ModularObjectUtils::GetCallerAppInfo(AppExecFwk::ApplicationInfo &caller
     auto osAccountRet = DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()
         ->GetOsAccountLocalIdFromUid(callingUid, callerUserId);
     if (osAccountRet != 0) {
-        TAG_LOGE(AAFwkTag::EXT, "Get caller userId failed, callingUid: %{public}d", callingUid);
+        TAG_LOGE(AAFwkTag::EXT, "getUserId fail, callingUid: %{public}d, ret:%{public}d", callingUid, osAccountRet);
         return INNER_ERR;
     }
     if (!IN_PROCESS_CALL(bundleMgrHelper->GetApplicationInfoWithAppIndex(
@@ -228,6 +245,30 @@ int32_t ModularObjectUtils::GetCallerAppInfo(AppExecFwk::ApplicationInfo &caller
         return INNER_ERR;
     }
     return ERR_OK;
+}
+
+bool ModularObjectUtils::GetPidToCheckByCallerToken(sptr<IRemoteObject> callerToken, pid_t &outPid)
+{
+    if (callerToken == nullptr) {
+        return false;
+    }
+    auto callerRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (callerRecord == nullptr) {
+        TAG_LOGW(AAFwkTag::EXT, "callerToken invalid, use original PID");
+        return false;
+    }
+    auto &abilityInfo = callerRecord->GetAbilityInfo();
+    if (abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        return false;
+    }
+    auto extensionRecord = std::static_pointer_cast<BaseExtensionRecord>(callerRecord);
+    auto clientPid = extensionRecord->GetClientPid();
+    if (clientPid > 0) {
+        outPid = clientPid;
+        TAG_LOGD(AAFwkTag::EXT, "MOE: use client PID=%{public}d", clientPid);
+        return true;
+    }
+    return false;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
