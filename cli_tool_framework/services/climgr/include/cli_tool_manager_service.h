@@ -22,6 +22,7 @@
 
 #include "cli_tool_manager_stub.h"
 #include "cli_tool_data_manager.h"
+#include "command_permission.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
 
@@ -63,6 +64,12 @@ public:
     int32_t ExecTool(const ExecToolParam &param, const std::map<std::string, std::string> &args,
         CliSessionInfo &session) override;
 
+    /**
+     * @brief Batch query command permissions (Inner API, for SA only).
+     */
+    int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
+        std::vector<CommandPermission> &cmdPermissions) override;
+
 protected:
     void OnStart() override;
     void OnStop() override;
@@ -72,6 +79,24 @@ private:
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
     static sptr<CliToolManagerService> instance_;
     std::atomic<int32_t> activeSessionCount_ = 0;
+
+    /**
+     * @brief Execute single command permission query.
+     */
+    int32_t DoQueryPermission(const Command &cmd, std::vector<std::string> &permissions);
+
+    /**
+     * @brief Query main command permissions.
+     */
+    int32_t QueryMainCommandPermission(const std::string &toolName,
+        std::vector<std::string> &permissions);
+
+    /**
+     * @brief Query subcommand permissions.
+     */
+    int32_t QuerySubCommandPermission(const std::string &toolName,
+        const std::string &subCommand,
+        std::vector<std::string> &permissions);
 };
 
 } // namespace CliTool

@@ -18,6 +18,8 @@ sequenceable OHOS.CliTool.ToolSummary;
 sequenceable ExecOptions..OHOS.CliTool.ExecOptions;
 sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
+sequenceable Command..OHOS.CliTool.Command;
+sequenceable CommandPermission..OHOS.CliTool.CommandPermission;
 
 interface OHOS.CliTool.ICliToolManager {
     void GetAllToolSummaries([out] ToolSummary[] summaries);
@@ -25,4 +27,5 @@ interface OHOS.CliTool.ICliToolManager {
     void GetAllToolInfos([out] ToolInfo[] tools);
     void RegisterTool([in] ToolInfo tool);
     void ExecTool([in] ExecToolParam param, [in] OrderedMap<String, String> args, [out] CliSessionInfo session);
+    int BatchQueryPermissionBySubCommand([in] Command[] cmds, [out] CommandPermission[] cmdPermissions);
 }
