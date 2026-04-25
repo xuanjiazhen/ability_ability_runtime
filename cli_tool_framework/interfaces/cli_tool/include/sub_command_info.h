@@ -35,10 +35,10 @@ public:
     std::string description;
     std::vector<std::string> requirePermissions;
     std::string inputSchema;    // JSON string
-    std::string outputSchema;   // JSON string
+    std::string outputSchema;    // JSON string
     std::shared_ptr<ArgMapping> argMapping;
     std::vector<std::string> eventTypes;
-    std::string eventSchemas;   // JSON string
+    std::string eventSchemas;    // JSON string
 
     SubCommandInfo() = default;
     ~SubCommandInfo() = default;
@@ -55,6 +55,8 @@ public:
      * @brief Convert SubCommandInfo to JSON object
      */
     nlohmann::json ParseToJson() const;
+
+    bool Validate() const;
 };
 
 } // namespace CliTool

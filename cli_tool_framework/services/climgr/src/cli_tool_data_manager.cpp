@@ -20,6 +20,7 @@
 #include <nlohmann/json.hpp>
 #include <unistd.h>
 
+#include "ability_manager_errors.h"
 #include "arg_mapping.h"
 #include "hilog_tag_wrapper.h"
 
@@ -256,6 +257,11 @@ int32_t CliToolDataManager::ParseJsonFile(const std::string &filePath, std::vect
     for (const auto &item : root) {
         ToolInfo tool = ToolInfo::ParseFromJson(item);
 
+        if (!tool.Validate()) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "Invalid tool, skipping: %{public}s", tool.name.c_str());
+            continue;
+        }
+
         tools.push_back(tool);
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Parsed tool: %{public}s", tool.name.c_str());
     }
@@ -337,8 +343,14 @@ int32_t CliToolDataManager::QueryToolSummaries(std::vector<ToolSummary> &summari
 
 int32_t CliToolDataManager::RegisterTool(const ToolInfo &tool)
 {
-    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterTool called: %{public}s", tool.name.c_str());
+
+    if (!tool.Validate()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid tool parameters: %{public}s", tool.name.c_str());
+        return INVALID_PARAMETERS_ERR;
+    }
+
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
 
     if (!CheckKvStore()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
