@@ -250,12 +250,27 @@ nlohmann::json ToolInfo::ParseToJson() const
     j["description"] = description;
     j["executablePath"] = executablePath;
     j["requirePermissions"] = requirePermissions;
-    j["inputSchema"] = inputSchema;
-    j["outputSchema"] = outputSchema;
+    if (!inputSchema.empty()) {
+        nlohmann::json inputSchemaJson = nlohmann::json::parse(inputSchema, nullptr, false);
+        if (!inputSchemaJson.is_discarded()) {
+            j["inputSchema"] = inputSchemaJson;
+        }
+    }
+    if (!outputSchema.empty()) {
+        nlohmann::json outputSchemaJson = nlohmann::json::parse(outputSchema, nullptr, false);
+        if (!outputSchemaJson.is_discarded()) {
+            j["outputSchema"] = outputSchemaJson;
+        }
+    }
     if (argMapping != nullptr) {
         j["argMapping"] = argMapping->ParseToJson();
     }
-    j["eventSchemas"] = eventSchemas;
+    if (!eventSchemas.empty()) {
+        nlohmann::json eventSchemasJson = nlohmann::json::parse(eventSchemas, nullptr, false);
+        if (!eventSchemasJson.is_discarded()) {
+            j["eventSchemas"] = eventSchemasJson;
+        }
+    }
     j["timeout"] = timeout;
     j["eventTypes"] = eventTypes;
     j["hasSubCommand"] = hasSubCommand;
