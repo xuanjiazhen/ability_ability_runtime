@@ -941,5 +941,79 @@ HWTEST_F(ArgMappingTest, ArgMapping_JsonRoundTrip_0200, TestSize.Level1)
     GTEST_LOG_(INFO) << "ArgMapping_JsonRoundTrip_0200 end";
 }
 
+// ==================== ArgMapping Validate Tests ====================
+
+/**
+ * @tc.name: ArgMapping_Validate_0100
+ * @tc.desc: Test ArgMapping Validate with valid data
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0100 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = R"({"key": "value"})";
+
+    EXPECT_TRUE(mapping.Validate());
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0100 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0200
+ * @tc.desc: Test ArgMapping Validate with empty templates
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0200 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = "";
+
+    EXPECT_TRUE(mapping.Validate());
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0200 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0300
+ * @tc.desc: Test ArgMapping Validate with invalid templates
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0300 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = "not a json";
+
+    EXPECT_FALSE(mapping.Validate());
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0300 end";
+}
+
+/**
+ * @tc.name: ArgMapping_Validate_0400
+ * @tc.desc: Test ArgMapping Validate with valid empty object templates
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_Validate_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0400 start";
+
+    ArgMapping mapping;
+    mapping.type = ArgMappingType::FLAG;
+    mapping.templates = "{}";
+
+    EXPECT_TRUE(mapping.Validate());
+
+    GTEST_LOG_(INFO) << "ArgMapping_Validate_0400 end";
+}
+
 } // namespace CliTool
 } // namespace OHOS

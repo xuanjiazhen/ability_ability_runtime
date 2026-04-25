@@ -32,6 +32,7 @@ constexpr int32_t ERR_FILE_NOT_FOUND = -2;
 constexpr int32_t ERR_JSON_PARSE_FAILED = -3;
 constexpr int32_t ERR_KVSTORE_NOT_READY = -4;
 constexpr int32_t ERR_NAME_NOT_FOUND = -5;
+constexpr int32_t ERR_INVALID_PARAM = -6;
 constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
 
@@ -256,6 +257,11 @@ int32_t CliToolDataManager::ParseJsonFile(const std::string &filePath, std::vect
     for (const auto &item : root) {
         ToolInfo tool = ToolInfo::ParseFromJson(item);
 
+        if (!tool.Validate()) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "Invalid tool, skipping: %{public}s", tool.name.c_str());
+            continue;
+        }
+
         tools.push_back(tool);
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Parsed tool: %{public}s", tool.name.c_str());
     }
@@ -339,6 +345,11 @@ int32_t CliToolDataManager::RegisterTool(const ToolInfo &tool)
 {
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterTool called: %{public}s", tool.name.c_str());
+
+    if (!tool.Validate()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid tool parameters: %{public}s", tool.name.c_str());
+        return ERR_INVALID_PARAM;
+    }
 
     if (!CheckKvStore()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
