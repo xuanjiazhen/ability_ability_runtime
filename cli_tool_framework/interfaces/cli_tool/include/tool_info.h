@@ -74,11 +74,11 @@ public:
     std::string executablePath;
     std::vector<std::string> requirePermissions;
     std::string inputSchema;       // JSON string
-    std::string outputSchema;      // JSON string
+    std::string outputSchema;       // JSON string
     std::shared_ptr<ArgMapping> argMapping;
     std::vector<std::string> eventTypes;
-    std::string eventSchemas;      // JSON string (map of event type to schema)
-    int32_t timeout = 0;
+    std::string eventSchemas;       // JSON string
+    int32_t timeout = 30;
     bool hasSubCommand = false;
     std::map<std::string, SubCommandInfo> subcommands;
 
@@ -97,6 +97,8 @@ public:
      * @brief Convert ToolInfo to JSON object
      */
     nlohmann::json ParseToJson() const;
+
+    bool Validate() const;
 };
 } // namespace CliTool
 } // namespace OHOS
