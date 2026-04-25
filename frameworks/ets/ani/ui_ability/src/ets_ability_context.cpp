@@ -888,6 +888,17 @@ void EtsAbilityContext::SetOnNewWantSkipScenarios(ani_env *env, ani_object aniOb
     etsContext->OnSetOnNewWantSkipScenarios(env, aniObj, etsScenarios, callback);
 }
 
+void EtsAbilityContext::StartSelf(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "StartSelf called");
+    auto etsContext = GetEtsAbilityContext(env, aniObj);
+    if (etsContext == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null etsContext");
+        return;
+    }
+    etsContext->OnStartSelf(env, aniObj, callback);
+}
+
 int32_t EtsAbilityContext::GenerateRequestCode()
 {
     static int32_t curRequestCode_ = 0;
@@ -2989,6 +3000,35 @@ void EtsAbilityContext::OnSetOnNewWantSkipScenarios(ani_env *env, ani_object ani
     AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, ERR_OK), nullptr);
 }
 
+void EtsAbilityContext::OnStartSelf(ani_env *env, ani_object aniObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnStartSelf called");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null env");
+        ani_object aniObject = EtsErrorUtil::CreateInvalidParamError(env, "env null");
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+    auto context = context_.lock();
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        ani_object aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+    ErrCode innerErrCode = context->StartSelf();
+    TAG_LOGI(AAFwkTag::CONTEXT, "StartSelf result: %{public}d", innerErrCode);
+    ani_object aniObject = nullptr;
+    if (innerErrCode == ERR_OK) {
+        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, ERR_OK);
+    } else if (innerErrCode == static_cast<ErrCode>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+        aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(innerErrCode));
+    } else {
+        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    }
+    AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+}
+
 namespace {
 bool BindNativeMethods(ani_env *env, ani_class &cls)
 {
@@ -3158,6 +3198,9 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
             ani_native_function { "nativeSetOnNewWantSkipScenarios",
                 "iC{utils.AbilityUtils.AsyncCallbackWrapper}:",
                 reinterpret_cast<void*>(EtsAbilityContext::SetOnNewWantSkipScenarios) },
+            ani_native_function { "nativeStartSelf",
+                "C{utils.AbilityUtils.AsyncCallbackWrapper}:",
+                reinterpret_cast<void*>(EtsAbilityContext::StartSelf) },
         };
         if ((status = env->Class_BindNativeMethods(cls, functions.data(), functions.size())) != ANI_OK) {
             TAG_LOGE(AAFwkTag::CONTEXT, "Class_BindNativeMethods failed status: %{public}d", status);
