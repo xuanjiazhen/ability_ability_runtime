@@ -25,7 +25,15 @@ struct ApplicationInfo {
     std::string appDistributionType;
     int32_t uid = 0;
 };
-struct AbilityInfo {};
+enum ExtensionAbilityType {
+    UNSPECIFIED = 0,
+    SERVICE = 1,
+    MODULAR_OBJECT = 99,
+};
+
+struct AbilityInfo {
+    ExtensionAbilityType extensionAbilityType = UNSPECIFIED;
+};
 } // namespace AppExecFwk
 
 namespace AAFwk {
