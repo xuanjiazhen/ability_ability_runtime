@@ -465,9 +465,26 @@ std::vector<ReloadedPageInfo> DetectReloadedPages()
     for (auto& [filename, offsets] : reloadedByFile) {
         TAG_LOGI(AAFwkTag::ABILITY, "Reloaded pages for %{public}s: %{public}zu pages",
             filename.c_str(), offsets.size());
-        for (const auto& off : offsets) {
-            TAG_LOGD(AAFwkTag::ABILITY, "  reloaded page offset: %{public}p",
-                reinterpret_cast<void*>(off));
+        // merge consecutive offsets into ranges
+        std::sort(offsets.begin(), offsets.end());
+        size_t i = 0;
+        while (i < offsets.size()) {
+            uint64_t rangeStart = offsets[i];
+            uint64_t rangeEnd = rangeStart;
+            size_t count = 1;
+            while (i + count < offsets.size() && offsets[i + count] == rangeEnd + pageSize) {
+                rangeEnd = offsets[i + count];
+                count++;
+            }
+            if (count == 1) {
+                TAG_LOGD(AAFwkTag::ABILITY, "  reloaded page offset: %{public}p",
+                    reinterpret_cast<void*>(rangeStart));
+            } else {
+                TAG_LOGD(AAFwkTag::ABILITY, "  reloaded page range: %{public}p - %{public}p (%{public}zu pages)",
+                    reinterpret_cast<void*>(rangeStart), reinterpret_cast<void*>(rangeEnd), count);
+            }
+            i += count;
+        }
         }
         ReloadedPageInfo info;
         info.filename = filename;
