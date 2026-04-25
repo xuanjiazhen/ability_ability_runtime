@@ -2043,6 +2043,21 @@ HWTEST_F(UIAbilityLifecycleManagerTest, GetReusedStandardPersistentId_002, TestS
 }
 
 /**
+ * @tc.name: UIAbilityLifecycleManager_CreateSessionInfo_0100
+ * @tc.desc: Verify CreateSessionInfo sets splitRatioPreference correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, CreateSessionInfo_001, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_unique<UIAbilityLifecycleManager>();
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
+    AbilityRequest abilityRequest;
+    abilityRequest.startOptions.SetSplitRatioPreference(2);
+    sptr<SessionInfo> sessionInfo = uiAbilityLifecycleManager->CreateSessionInfo(abilityRequest, 0);
+    EXPECT_EQ(sessionInfo->splitRatioPreference, 2);
+}
+
+/**
  * @tc.name: UIAbilityLifecycleManager_NotifySCBPendingActivation_0100
  * @tc.desc: NotifySCBPendingActivation
  * @tc.type: FUNC
@@ -2062,10 +2077,9 @@ HWTEST_F(UIAbilityLifecycleManagerTest, NotifySCBPendingActivation_001, TestSize
     auto token = abilityRecord->GetToken();
     EXPECT_NE(token, nullptr);
     abilityRequest.callerToken = token->AsObject();
-    abilityRequest.startOptions.SetSplitRatioPreference(2);
     std::string errMsg;
     uiAbilityLifecycleManager->NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
-    EXPECT_EQ(sessionInfo->splitRatioPreference, 2);
+    EXPECT_NE(uiAbilityLifecycleManager, nullptr);
 }
 
 /**
