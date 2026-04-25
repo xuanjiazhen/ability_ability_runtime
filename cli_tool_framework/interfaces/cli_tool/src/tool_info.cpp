@@ -16,9 +16,124 @@
 #include "tool_info.h"
 
 #include <nlohmann/json.hpp>
+#include <set>
+
+#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
+
+namespace {
+constexpr size_t NAME_PREFIX_LEN = 5;  // "ohos-" or "hms-" length
+constexpr size_t NAME_MAX_SUFFIX_LEN = 16;
+constexpr int32_t TIMEOUT_MIN = 1;
+constexpr int32_t TIMEOUT_MAX = 300;
+
+bool IsValidName(const std::string &name)
+{
+    if (name.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "name is empty");
+        return false;
+    }
+    if (name.length() <= NAME_PREFIX_LEN) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "name too short: %{public}s", name.c_str());
+        return false;
+    }
+    std::string prefix = name.substr(0, NAME_PREFIX_LEN);
+    if (prefix != "ohos-" && prefix != "hms-") {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "name has invalid prefix: %{public}s", name.c_str());
+        return false;
+    }
+    if (name.length() > NAME_PREFIX_LEN + NAME_MAX_SUFFIX_LEN) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "name too long: %{public}s", name.c_str());
+        return false;
+    }
+    return true;
+}
+
+bool IsValidJsonSchema(const std::string &schema, const char *fieldName)
+{
+    if (schema.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s is empty", fieldName);
+        return false;
+    }
+    nlohmann::json json = nlohmann::json::parse(schema, nullptr, false);
+    if (json.is_discarded()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s is not valid JSON", fieldName);
+        return false;
+    }
+    return true;
+}
+
+bool HasDuplicatePermissions(const std::vector<std::string> &permissions)
+{
+    std::set<std::string> permSet;
+    for (const auto &perm : permissions) {
+        if (permSet.find(perm) != permSet.end()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "duplicate permission: %{public}s", perm.c_str());
+            return true;
+        }
+        permSet.insert(perm);
+    }
+    return false;
+}
+
+bool IsValidBasicFields(const ToolInfo &tool)
+{
+    if (!IsValidName(tool.name)) {
+        return false;
+    }
+    if (tool.version.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "version is empty");
+        return false;
+    }
+    if (tool.description.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "description is empty");
+        return false;
+    }
+    if (tool.executablePath.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "executablePath is empty");
+        return false;
+    }
+    if (tool.executablePath[0] != '/') {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "executablePath is not absolute path");
+        return false;
+    }
+    return true;
+}
+
+bool IsValidSchemas(const ToolInfo &tool)
+{
+    if (!IsValidJsonSchema(tool.inputSchema, "inputSchema")) {
+        return false;
+    }
+    if (!IsValidJsonSchema(tool.outputSchema, "outputSchema")) {
+        return false;
+    }
+    if (!IsValidJsonSchema(tool.eventSchemas, "eventSchemas")) {
+        return false;
+    }
+    return true;
+}
+
+bool IsValidSubCommands(const ToolInfo &tool)
+{
+    if (!tool.hasSubCommand) {
+        return true;
+    }
+    if (tool.subcommands.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "hasSubCommand is true but subcommands is empty");
+        return false;
+    }
+    for (const auto &pair : tool.subcommands) {
+        if (!pair.second.Validate()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "subcommand %{public}s validation failed", pair.first.c_str());
+            return false;
+        }
+    }
+    return true;
+}
+} // namespace
 
 // ToolInfo implementation
 bool ToolInfo::Marshalling(Parcel &parcel) const
@@ -28,44 +143,7 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
     if (!subcommands.empty()) {
         nlohmann::json j;
         for (const auto &pair : subcommands) {
-            nlohmann::json subCmdJson;
-            subCmdJson["description"] = pair.second.description;
-            subCmdJson["requirePermissions"] = pair.second.requirePermissions;
-            subCmdJson["inputSchema"] = pair.second.inputSchema;
-            subCmdJson["outputSchema"] = pair.second.outputSchema;
-            subCmdJson["eventTypes"] = pair.second.eventTypes;
-            subCmdJson["eventSchemas"] = pair.second.eventSchemas;
-            if (pair.second.argMapping != nullptr) {
-                nlohmann::json argMappingJson;
-                switch (pair.second.argMapping->type) {
-                    case ArgMappingType::FLAG:
-                        argMappingJson["type"] = "flag";
-                        break;
-                    case ArgMappingType::POSITIONAL:
-                        argMappingJson["type"] = "positional";
-                        break;
-                    case ArgMappingType::FLATTENED:
-                        argMappingJson["type"] = "flattened";
-                        break;
-                    case ArgMappingType::JSONSTRING:
-                        argMappingJson["type"] = "jsonString";
-                        break;
-                    case ArgMappingType::MIXED:
-                        argMappingJson["type"] = "mixed";
-                        break;
-                }
-                if (!pair.second.argMapping->separator.empty()) {
-                    argMappingJson["separator"] = pair.second.argMapping->separator;
-                }
-                if (!pair.second.argMapping->order.empty()) {
-                    argMappingJson["order"] = pair.second.argMapping->order;
-                }
-                if (!pair.second.argMapping->templates.empty()) {
-                    argMappingJson["templates"] = pair.second.argMapping->templates;
-                }
-                subCmdJson["argMapping"] = argMappingJson;
-            }
-            j[pair.first] = subCmdJson;
+            j[pair.first] = pair.second.ParseToJson();
         }
         subcommandsJson = j.dump();
     }
@@ -95,6 +173,7 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
 
     bool hasArgMapping = false;
     std::string subcommandsJson;
+
     if (!parcel.ReadString(tool->name) ||
         !parcel.ReadString(tool->version) ||
         !parcel.ReadString(tool->description) ||
@@ -129,62 +208,7 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         nlohmann::json j = nlohmann::json::parse(subcommandsJson, nullptr, false);
         if (!j.is_discarded() && j.is_object()) {
             for (auto it = j.begin(); it != j.end(); ++it) {
-                SubCommandInfo subCmd;
-                auto &subJson = it.value();
-                if (subJson.contains("description") && subJson["description"].is_string()) {
-                    subCmd.description = subJson["description"];
-                }
-                if (subJson.contains("requirePermissions") && subJson["requirePermissions"].is_array()) {
-                    for (const auto &perm : subJson["requirePermissions"]) {
-                        if (perm.is_string()) {
-                            subCmd.requirePermissions.push_back(perm);
-                        }
-                    }
-                }
-                if (subJson.contains("inputSchema") && subJson["inputSchema"].is_string()) {
-                    subCmd.inputSchema = subJson["inputSchema"];
-                }
-                if (subJson.contains("outputSchema") && subJson["outputSchema"].is_string()) {
-                    subCmd.outputSchema = subJson["outputSchema"];
-                }
-                if (subJson.contains("eventTypes") && subJson["eventTypes"].is_array()) {
-                    for (const auto &evt : subJson["eventTypes"]) {
-                        if (evt.is_string()) {
-                            subCmd.eventTypes.push_back(evt);
-                        }
-                    }
-                }
-                if (subJson.contains("eventSchemas") && subJson["eventSchemas"].is_string()) {
-                    subCmd.eventSchemas = subJson["eventSchemas"];
-                }
-                if (subJson.contains("argMapping") && subJson["argMapping"].is_object()) {
-                    subCmd.argMapping = std::make_shared<ArgMapping>();
-                    auto &argJson = subJson["argMapping"];
-                    if (argJson.contains("type") && argJson["type"].is_string()) {
-                        std::string typeStr = argJson["type"];
-                        if (typeStr == "flag") {
-                            subCmd.argMapping->type = ArgMappingType::FLAG;
-                        } else if (typeStr == "positional") {
-                            subCmd.argMapping->type = ArgMappingType::POSITIONAL;
-                        } else if (typeStr == "flattened") {
-                            subCmd.argMapping->type = ArgMappingType::FLATTENED;
-                        } else if (typeStr == "jsonString") {
-                            subCmd.argMapping->type = ArgMappingType::JSONSTRING;
-                        } else if (typeStr == "mixed") {
-                            subCmd.argMapping->type = ArgMappingType::MIXED;
-                        }
-                    }
-                    if (argJson.contains("separator") && argJson["separator"].is_string()) {
-                        subCmd.argMapping->separator = argJson["separator"];
-                    }
-                    if (argJson.contains("order") && argJson["order"].is_string()) {
-                        subCmd.argMapping->order = argJson["order"];
-                    }
-                    if (argJson.contains("templates") && argJson["templates"].is_string()) {
-                        subCmd.argMapping->templates = argJson["templates"];
-                    }
-                }
-                tool->subcommands[it.key()] = subCmd;
+                tool->subcommands[it.key()] = SubCommandInfo::ParseFromJson(it.value());
             }
         }
     }
@@ -209,7 +233,11 @@ ToolInfo ToolInfo::ParseFromJson(const nlohmann::json &json)
         tool.executablePath = json["executablePath"];
     }
     if (json.contains("requirePermissions") && json["requirePermissions"].is_array()) {
-        tool.requirePermissions = json["requirePermissions"];
+        for (const auto &perm : json["requirePermissions"]) {
+            if (perm.is_string()) {
+                tool.requirePermissions.push_back(perm);
+            }
+        }
     }
     if (json.contains("inputSchema") && json["inputSchema"].is_object()) {
         tool.inputSchema = json["inputSchema"].dump();
@@ -227,12 +255,16 @@ ToolInfo ToolInfo::ParseFromJson(const nlohmann::json &json)
         tool.timeout = json["timeout"];
     }
     if (json.contains("eventTypes") && json["eventTypes"].is_array()) {
-        tool.eventTypes = json["eventTypes"];
+        for (const auto &evt : json["eventTypes"]) {
+            if (evt.is_string()) {
+                tool.eventTypes.push_back(evt);
+            }
+        }
     }
     if (json.contains("hasSubCommand") && json["hasSubCommand"].is_boolean()) {
         tool.hasSubCommand = json["hasSubCommand"];
     }
-    if (json.contains("subcommands") && json["subcommands"].is_object()) {
+    if (tool.hasSubCommand && json.contains("subcommands") && json["subcommands"].is_object()) {
         for (auto it = json["subcommands"].begin(); it != json["subcommands"].end(); ++it) {
             tool.subcommands[it.key()] = SubCommandInfo::ParseFromJson(it.value());
         }
@@ -250,12 +282,18 @@ nlohmann::json ToolInfo::ParseToJson() const
     j["description"] = description;
     j["executablePath"] = executablePath;
     j["requirePermissions"] = requirePermissions;
-    j["inputSchema"] = inputSchema;
-    j["outputSchema"] = outputSchema;
+    if (!inputSchema.empty()) {
+        j["inputSchema"] = nlohmann::json::parse(inputSchema, nullptr, false);
+    }
+    if (!outputSchema.empty()) {
+        j["outputSchema"] = nlohmann::json::parse(outputSchema, nullptr, false);
+    }
     if (argMapping != nullptr) {
         j["argMapping"] = argMapping->ParseToJson();
     }
-    j["eventSchemas"] = eventSchemas;
+    if (!eventSchemas.empty()) {
+        j["eventSchemas"] = nlohmann::json::parse(eventSchemas, nullptr, false);
+    }
     j["timeout"] = timeout;
     j["eventTypes"] = eventTypes;
     j["hasSubCommand"] = hasSubCommand;
@@ -268,6 +306,35 @@ nlohmann::json ToolInfo::ParseToJson() const
     }
 
     return j;
+}
+
+bool ToolInfo::Validate() const
+{
+    if (!IsValidBasicFields(*this)) {
+        return false;
+    }
+    if (HasDuplicatePermissions(requirePermissions)) {
+        return false;
+    }
+    if (!IsValidSchemas(*this)) {
+        return false;
+    }
+    if (timeout < TIMEOUT_MIN || timeout > TIMEOUT_MAX) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "timeout invalid: %{public}d", timeout);
+        return false;
+    }
+    if (argMapping == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "argMapping is null");
+        return false;
+    }
+    if (!argMapping->Validate()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "argMapping validation failed");
+        return false;
+    }
+    if (!IsValidSubCommands(*this)) {
+        return false;
+    }
+    return true;
 }
 
 } // namespace CliTool
