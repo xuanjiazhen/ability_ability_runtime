@@ -1143,6 +1143,16 @@ enum {
     ERR_NO_RUNNING_ABILITIES_WITH_UI = 2099413,
 
     /**
+     * Result (2099414) for moe connection number per caller pid reached upper limit.
+     */
+    ERR_MOE_CONNECTION_LIMIT = 2099414,
+
+    /**
+     * Result (2099415) for moe instance number reached upper limit.
+     */
+    ERR_MOE_INSTANCE_LIMIT = 2099415,
+
+    /**
      * Native error(3000000) for target bundle not exist.
      */
     ERR_CODE_NOT_EXIST = 3000000,
