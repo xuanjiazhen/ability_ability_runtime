@@ -15,6 +15,8 @@
 
 #include "sub_command_info.h"
 
+#include <set>
+
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -66,6 +68,7 @@ SubCommandInfo *SubCommandInfo::Unmarshalling(Parcel &parcel)
     }
 
     bool hasArgMapping = false;
+
     if (!parcel.ReadString(subCmd->description)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read description");
         delete subCmd;
@@ -158,15 +161,75 @@ nlohmann::json SubCommandInfo::ParseToJson() const
 
     json["description"] = description;
     json["requirePermissions"] = requirePermissions;
-    json["inputSchema"] = inputSchema;
-    json["outputSchema"] = outputSchema;
+    if (!inputSchema.empty()) {
+        json["inputSchema"] = nlohmann::json::parse(inputSchema, nullptr, false);
+    }
+    if (!outputSchema.empty()) {
+        json["outputSchema"] = nlohmann::json::parse(outputSchema, nullptr, false);
+    }
     json["eventTypes"] = eventTypes;
-    json["eventSchemas"] = eventSchemas;
+    if (!eventSchemas.empty()) {
+        json["eventSchemas"] = nlohmann::json::parse(eventSchemas, nullptr, false);
+    }
     if (argMapping != nullptr) {
         json["argMapping"] = argMapping->ParseToJson();
     }
 
     return json;
+}
+
+bool SubCommandInfo::Validate() const
+{
+    // description非空
+    if (description.empty()) {
+        return false;
+    }
+
+    // requirePermissions里面的每一项不能重复
+    std::set<std::string> permSet;
+    for (const auto &perm : requirePermissions) {
+        if (permSet.find(perm) != permSet.end()) {
+            return false;
+        }
+        permSet.insert(perm);
+    }
+
+    // inputSchema是一个json格式的字符串，且必填
+    if (inputSchema.empty()) {
+        return false;
+    }
+    nlohmann::json inputSchemaJson = nlohmann::json::parse(inputSchema, nullptr, false);
+    if (inputSchemaJson.is_discarded()) {
+        return false;
+    }
+
+    // outputSchema是一个json格式的字符串，且必填
+    if (outputSchema.empty()) {
+        return false;
+    }
+    nlohmann::json outputSchemaJson = nlohmann::json::parse(outputSchema, nullptr, false);
+    if (outputSchemaJson.is_discarded()) {
+        return false;
+    }
+
+    // argMapping必须要有值
+    if (argMapping == nullptr) {
+        return false;
+    }
+    if (!argMapping->Validate()) {
+        return false;
+    }
+
+    // eventSchemas是一个json格式的字符串，且必填
+    if (eventSchemas.empty()) {
+        return false;
+    }
+    nlohmann::json eventSchemasJson = nlohmann::json::parse(eventSchemas, nullptr, false);
+    if (eventSchemasJson.is_discarded()) {
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace CliTool
