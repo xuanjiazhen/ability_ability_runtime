@@ -673,7 +673,7 @@ HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0500, TestSize.Level1)
 
 /**
  * @tc.name: ArgMapping_ParseFromJson_0600
- * @tc.desc: Test ArgMapping_ParseFromJson with empty json
+ * @tc.desc: Test ArgMapping_ParseFromJson with empty json (type is required)
  * @tc.type: FUNC
  */
 HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0600, TestSize.Level1)
@@ -684,10 +684,7 @@ HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0600, TestSize.Level1)
 
     auto result = ArgMapping::ParseFromJson(json);
 
-    ASSERT_NE(result, nullptr);
-    EXPECT_EQ(result->type, ArgMappingType::FLAG);  // default value
-    EXPECT_EQ(result->separator, "");
-    EXPECT_EQ(result->order, "");
+    ASSERT_EQ(result, nullptr);  // type is required
 
     GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0600 end";
 }
@@ -713,6 +710,180 @@ HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0700, TestSize.Level1)
     EXPECT_FALSE(result->templates.empty());
 
     GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0700 end";
+}
+
+// ==================== ArgMapping ParseFromJson Validation Tests ====================
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_0800
+ * @tc.desc: Test ArgMapping_ParseFromJson without type field (type is required)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0800, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0800 start";
+
+    nlohmann::json json = {
+        {"separator", ","},
+        {"order", "a,b"}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);  // type is required
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0800 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_0900
+ * @tc.desc: Test ArgMapping_ParseFromJson with type not string
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_0900, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0900 start";
+
+    nlohmann::json json = {
+        {"type", 123}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_0900 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1000
+ * @tc.desc: Test ArgMapping_ParseFromJson with invalid type value
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1000, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1000 start";
+
+    nlohmann::json json = {
+        {"type", "invalid_type"}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1000 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1100
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as invalid JSON string
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1100 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", "not a valid json string"}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);  // templates must be valid JSON
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1100 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1200
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as valid JSON string
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1200 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", R"({"verbose": "-v"})"}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->type, ArgMappingType::FLAG);
+    EXPECT_EQ(result->templates, R"({"verbose": "-v"})");
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1200 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1300
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as empty string (invalid JSON)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1300 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", ""}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_EQ(result, nullptr);  // empty string is not valid JSON
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1300 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1400
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as number (invalid type)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1400 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", 123}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_NE(result, nullptr);  // templates is optional, non-string/object types are ignored
+    EXPECT_EQ(result->type, ArgMappingType::FLAG);
+    EXPECT_TRUE(result->templates.empty());
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1400 end";
+}
+
+/**
+ * @tc.name: ArgMapping_ParseFromJson_1500
+ * @tc.desc: Test ArgMapping_ParseFromJson with templates as array (invalid type)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ArgMappingTest, ArgMapping_ParseFromJson_1500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1500 start";
+
+    nlohmann::json json = {
+        {"type", "flag"},
+        {"templates", {"a", "b", "c"}}
+    };
+
+    auto result = ArgMapping::ParseFromJson(json);
+
+    ASSERT_NE(result, nullptr);  // templates is optional, array type is ignored
+    EXPECT_EQ(result->type, ArgMappingType::FLAG);
+    EXPECT_TRUE(result->templates.empty());
+
+    GTEST_LOG_(INFO) << "ArgMapping_ParseFromJson_1500 end";
 }
 
 // ==================== ArgMapping ParseToJson Tests ====================

@@ -60,30 +60,52 @@ ArgMapping *ArgMapping::Unmarshalling(Parcel &parcel)
 std::shared_ptr<ArgMapping> ArgMapping::ParseFromJson(const nlohmann::json &json)
 {
     auto argMapping = std::make_shared<ArgMapping>();
-    if (json.contains("type") && json["type"].is_string()) {
-        std::string typeStr = json["type"];
-        if (typeStr == "flag") {
-            argMapping->type = ArgMappingType::FLAG;
-        } else if (typeStr == "positional") {
-            argMapping->type = ArgMappingType::POSITIONAL;
-        } else if (typeStr == "flattened") {
-            argMapping->type = ArgMappingType::FLATTENED;
-        } else if (typeStr == "jsonString") {
-            argMapping->type = ArgMappingType::JSONSTRING;
-        } else if (typeStr == "mixed") {
-            argMapping->type = ArgMappingType::MIXED;
-        }
-    }
-    if (json.contains("separator") && json["separator"].is_string()) {
-        argMapping->separator = json["separator"];
-    }
-    if (json.contains("order") && json["order"].is_string()) {
-        argMapping->order = json["order"];
-    }
-    if (json.contains("templates") && json["templates"].is_object()) {
-        argMapping->templates = json["templates"].dump();
+    if (!ParseFromJson(json, *argMapping)) {
+        return nullptr;
     }
     return argMapping;
+}
+
+bool ArgMapping::ParseFromJson(const nlohmann::json &json, ArgMapping &argMapping)
+{
+    // type is required
+    if (!json.contains("type") || !json["type"].is_string()) {
+        return false;
+    }
+
+    std::string typeStr = json["type"];
+    if (typeStr == "flag") {
+        argMapping.type = ArgMappingType::FLAG;
+    } else if (typeStr == "positional") {
+        argMapping.type = ArgMappingType::POSITIONAL;
+    } else if (typeStr == "flattened") {
+        argMapping.type = ArgMappingType::FLATTENED;
+    } else if (typeStr == "jsonString") {
+        argMapping.type = ArgMappingType::JSONSTRING;
+    } else if (typeStr == "mixed") {
+        argMapping.type = ArgMappingType::MIXED;
+    } else {
+        return false;  // invalid type value
+    }
+
+    if (json.contains("separator") && json["separator"].is_string()) {
+        argMapping.separator = json["separator"];
+    }
+    if (json.contains("order") && json["order"].is_string()) {
+        argMapping.order = json["order"];
+    }
+    if (json.contains("templates") && json["templates"].is_object()) {
+        argMapping.templates = json["templates"].dump();
+    } else if (json.contains("templates") && json["templates"].is_string()) {
+        // templates as string must be valid JSON
+        std::string templatesStr = json["templates"];
+        nlohmann::json templatesJson = nlohmann::json::parse(templatesStr, nullptr, false);
+        if (templatesJson.is_discarded()) {
+            return false;
+        }
+        argMapping.templates = templatesStr;
+    }
+    return true;
 }
 
 nlohmann::json ArgMapping::ParseToJson() const
