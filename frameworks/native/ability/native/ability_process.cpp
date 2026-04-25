@@ -74,7 +74,8 @@ ErrCode AbilityProcess::StartAbility(Ability *ability, CallAbilityParam param, C
     // inherit split mode
     auto windowMode = ability->GetCurrentWindowMode();
     if (windowMode == AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_PRIMARY ||
-        windowMode == AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY) {
+        windowMode == AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY ||
+        windowMode == AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SPLIT) {
         param.want.SetParam(Want::PARAM_RESV_WINDOW_MODE, windowMode);
     }
     TAG_LOGI(AAFwkTag::ABILITY, "window mode:%{public}d", windowMode);
