@@ -66,6 +66,7 @@ SubCommandInfo *SubCommandInfo::Unmarshalling(Parcel &parcel)
     }
 
     bool hasArgMapping = false;
+
     if (!parcel.ReadString(subCmd->description)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read description");
         delete subCmd;
@@ -158,10 +159,16 @@ nlohmann::json SubCommandInfo::ParseToJson() const
 
     json["description"] = description;
     json["requirePermissions"] = requirePermissions;
-    json["inputSchema"] = inputSchema;
-    json["outputSchema"] = outputSchema;
+    if (!inputSchema.empty()) {
+        json["inputSchema"] = nlohmann::json::parse(inputSchema, nullptr, false);
+    }
+    if (!outputSchema.empty()) {
+        json["outputSchema"] = nlohmann::json::parse(outputSchema, nullptr, false);
+    }
     json["eventTypes"] = eventTypes;
-    json["eventSchemas"] = eventSchemas;
+    if (!eventSchemas.empty()) {
+        json["eventSchemas"] = nlohmann::json::parse(eventSchemas, nullptr, false);
+    }
     if (argMapping != nullptr) {
         json["argMapping"] = argMapping->ParseToJson();
     }

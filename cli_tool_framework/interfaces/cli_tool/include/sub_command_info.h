@@ -34,11 +34,11 @@ class SubCommandInfo : public Parcelable {
 public:
     std::string description;
     std::vector<std::string> requirePermissions;
-    std::string inputSchema;    // JSON string
-    std::string outputSchema;   // JSON string
+    std::string inputSchema;
+    std::string outputSchema;
     std::shared_ptr<ArgMapping> argMapping;
     std::vector<std::string> eventTypes;
-    std::string eventSchemas;   // JSON string
+    std::string eventSchemas;
 
     SubCommandInfo() = default;
     ~SubCommandInfo() = default;
