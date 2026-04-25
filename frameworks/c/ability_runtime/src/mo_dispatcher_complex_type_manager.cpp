@@ -20,6 +20,7 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "hilog_tag_wrapper.h"
 #include "securec.h"
 
 namespace OHOS::AbilityRuntime {
@@ -67,6 +68,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::ArrayCreate(
     }
     auto* array = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Array();
     if (array == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "ArrayCreate: allocate failed");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
     array->elementTypeInfo = typeInfo;
@@ -104,6 +106,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::ArraySet(OH_AbilityRunt
     }
     auto ret = ValidateVariantType(pValue, pArray->elementTypeInfo->vt);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "ArraySet: type mismatch at index=%{public}u", index);
         return ret;
     }
     return StoreVariant(pValue, &pArray->elements[index]);
@@ -163,6 +166,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::VectorCreate(
     }
     auto* vector = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Vector();
     if (vector == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "VectorCreate: allocate failed");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
     vector->elementTypeInfo = typeInfo;
@@ -196,6 +200,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::VectorAdd(OH_AbilityRun
     }
     auto ret = ValidateVariantType(pValue, pVector->elementTypeInfo->vt);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "VectorAdd: type mismatch");
         return ret;
     }
     MoVariantStorage storage;
@@ -257,6 +262,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::SetCreate(
     }
     auto* set = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Set();
     if (set == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "SetCreate: allocate failed");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
     set->elementTypeInfo = typeInfo;
@@ -381,6 +387,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::MapCreate(
     }
     auto* map = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Map();
     if (map == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "MapCreate: allocate failed");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
     map->keyType = keyType;
@@ -425,10 +432,12 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::MapPut(OH_AbilityRuntim
     }
     auto ret = ValidateVariantType(pKey, pMap->keyType);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "MapPut: key type mismatch");
         return ret;
     }
     ret = ValidateVariantType(pValue, pMap->valueTypeInfo->vt);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "MapPut: value type mismatch");
         return ret;
     }
 
@@ -544,6 +553,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::StructCreate(const char
     }
     auto* object = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Struct();
     if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "StructCreate: allocate failed for '%{public}s'", structName);
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
     object->name = structName;
@@ -576,10 +586,13 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::StructSetField(
     }
     auto fieldTypeIter = pStruct->fieldTypes.find(szName);
     if (fieldTypeIter == pStruct->fieldTypes.end()) {
+        TAG_LOGE(AAFwkTag::EXT, "StructSetField: field '%{public}s' not found in struct '%{public}s'",
+            szName, pStruct->name.c_str());
         return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
     }
     auto ret = ValidateVariantType(pValue, fieldTypeIter->second->vt);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "StructSetField: type mismatch for field '%{public}s'", szName);
         return ret;
     }
     MoVariantStorage storage;
@@ -600,6 +613,8 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::StructGetField(
     }
     auto iter = pStruct->fields.find(szName);
     if (iter == pStruct->fields.end()) {
+        TAG_LOGE(AAFwkTag::EXT, "StructGetField: field '%{public}s' not found in struct '%{public}s'",
+            szName, pStruct->name.c_str());
         return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
     }
     return LoadVariant(iter->second, pValue);

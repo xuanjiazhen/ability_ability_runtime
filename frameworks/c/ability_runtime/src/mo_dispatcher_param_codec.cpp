@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "hilog_tag_wrapper.h"
 #include "ipc_inner_object.h"
 #include "mo_dispatcher_complex_type_manager.h"
 #include "securec.h"
@@ -40,12 +41,15 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::ValidateInputParams(const MoMet
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     if (inputParams->cArgs != methodMeta.params.size() || inputParams->rgvarg == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "ValidateInputParams: arg count mismatch, expected=%{public}zu, actual=%{public}u",
+            methodMeta.params.size(), inputParams->cArgs);
         return ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH;
     }
     for (uint32_t i = 0; i < inputParams->cArgs; i++) {
         auto ret = MoDispatcherComplexTypeManager::ValidateVariantType(&inputParams->rgvarg[i],
             methodMeta.params[i].typeInfo ? methodMeta.params[i].typeInfo->vt : OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_EMPTY);
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+            TAG_LOGE(AAFwkTag::EXT, "ValidateInputParams: param[%{public}u] type mismatch, ret=%{public}d", i, ret);
             return ret;
         }
     }
@@ -130,6 +134,7 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::WriteVariant(MessageParcel& par
     }
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ARRAY) {
         if (value->u.parrayVal == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "WriteVariant: array value is nullptr");
             return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
         }
         ret = CheckWrite(parcel.WriteInt32(static_cast<int32_t>(value->u.parrayVal->elementTypeInfo ? value->u.parrayVal->elementTypeInfo->vt : OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_EMPTY)));
@@ -145,7 +150,10 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::WriteVariant(MessageParcel& par
         return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
     }
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VECTOR) {
-        if (value->u.pvectorVal == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        if (value->u.pvectorVal == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "WriteVariant: vector value is nullptr");
+            return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        }
         ret = CheckWrite(parcel.WriteInt32(static_cast<int32_t>(value->u.pvectorVal->elementTypeInfo ? value->u.pvectorVal->elementTypeInfo->vt : OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_EMPTY)));
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) return ret;
         ret = CheckWrite(parcel.WriteInt32(static_cast<int32_t>(value->u.pvectorVal->elements.size())));
@@ -159,7 +167,10 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::WriteVariant(MessageParcel& par
         return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
     }
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_SET) {
-        if (value->u.psetVal == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        if (value->u.psetVal == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "WriteVariant: set value is nullptr");
+            return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        }
         ret = CheckWrite(parcel.WriteInt32(static_cast<int32_t>(value->u.psetVal->elementTypeInfo ? value->u.psetVal->elementTypeInfo->vt : OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_EMPTY)));
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) return ret;
         ret = CheckWrite(parcel.WriteInt32(static_cast<int32_t>(value->u.psetVal->elements.size())));
@@ -173,7 +184,10 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::WriteVariant(MessageParcel& par
         return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
     }
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_MAP) {
-        if (value->u.pmapVal == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        if (value->u.pmapVal == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "WriteVariant: map value is nullptr");
+            return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        }
         ret = CheckWrite(parcel.WriteInt32(static_cast<int32_t>(value->u.pmapVal->keyType)));
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) return ret;
         ret = CheckWrite(parcel.WriteInt32(static_cast<int32_t>(value->u.pmapVal->valueTypeInfo ? value->u.pmapVal->valueTypeInfo->vt : OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_EMPTY)));
@@ -193,7 +207,10 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::WriteVariant(MessageParcel& par
         return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
     }
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRUCT) {
-        if (value->u.pstructVal == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        if (value->u.pstructVal == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "WriteVariant: struct value is nullptr");
+            return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        }
         ret = CheckWrite(parcel.WriteString(value->u.pstructVal->name));
         if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) return ret;
         ret = CheckWrite(parcel.WriteInt32(static_cast<int32_t>(value->u.pstructVal->fields.size())));
@@ -209,13 +226,20 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::WriteVariant(MessageParcel& par
         return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
     }
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_IPC_REMOTE_PROXY) {
-        if (value->u.premoteProxyVal == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        if (value->u.premoteProxyVal == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "WriteVariant: remote proxy value is nullptr");
+            return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        }
         return CheckWrite(parcel.WriteRemoteObject(value->u.premoteProxyVal->remote));
     }
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_IPC_REMOTE_STUB) {
-        if (value->u.premoteStubVal == nullptr) return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        if (value->u.premoteStubVal == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "WriteVariant: remote stub value is nullptr");
+            return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+        }
         return CheckWrite(parcel.WriteRemoteObject(value->u.premoteStubVal->remote));
     }
+    TAG_LOGE(AAFwkTag::EXT, "WriteVariant: unknown value type=%{public}d", static_cast<int32_t>(value->vt));
     return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
 }
 
@@ -281,8 +305,12 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::ReadVariant(MessageParcel& parc
             std::string text = parcel.ReadString();
             const auto len = text.size();
             auto* mem = static_cast<char*>(std::malloc(len + 1));
-            if (mem == nullptr) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+            if (mem == nullptr) {
+                TAG_LOGE(AAFwkTag::EXT, "ReadVariant: malloc failed for string, len=%{public}zu", len);
+                return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+            }
             if (strcpy_s(mem, len + 1, text.c_str()) != EOK) {
+                TAG_LOGE(AAFwkTag::EXT, "ReadVariant: strcpy_s failed for string");
                 std::free(mem);
                 return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
             }
@@ -298,7 +326,10 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::ReadVariant(MessageParcel& parc
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ARRAY) {
         int32_t elemType = parcel.ReadInt32();
         int32_t size = parcel.ReadInt32();
-        if (size < 0) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        if (size < 0) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadVariant: array size is negative, size=%{public}d", size);
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
         OH_AbilityRuntime_MoDispatcher_ArrayHandle array = nullptr;
         OH_AbilityRuntime_MoDispatcher_TypeInfo elemTypeInfo;
         std::memset(&elemTypeInfo, 0, sizeof(elemTypeInfo));
@@ -319,7 +350,10 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::ReadVariant(MessageParcel& parc
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VECTOR) {
         int32_t elemType = parcel.ReadInt32();
         int32_t size = parcel.ReadInt32();
-        if (size < 0) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        if (size < 0) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadVariant: vector size is negative, size=%{public}d", size);
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
         OH_AbilityRuntime_MoDispatcher_VectorHandle vector = nullptr;
         OH_AbilityRuntime_MoDispatcher_TypeInfo elemTypeInfo;
         std::memset(&elemTypeInfo, 0, sizeof(elemTypeInfo));
@@ -339,7 +373,10 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::ReadVariant(MessageParcel& parc
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_SET) {
         int32_t elemType = parcel.ReadInt32();
         int32_t size = parcel.ReadInt32();
-        if (size < 0) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        if (size < 0) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadVariant: set size is negative, size=%{public}d", size);
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
         OH_AbilityRuntime_MoDispatcher_SetHandle setHandle = nullptr;
         OH_AbilityRuntime_MoDispatcher_TypeInfo elemTypeInfo;
         std::memset(&elemTypeInfo, 0, sizeof(elemTypeInfo));
@@ -360,7 +397,10 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::ReadVariant(MessageParcel& parc
         int32_t keyType = parcel.ReadInt32();
         int32_t valueType = parcel.ReadInt32();
         int32_t size = parcel.ReadInt32();
-        if (size < 0) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        if (size < 0) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadVariant: map size is negative, size=%{public}d", size);
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
         OH_AbilityRuntime_MoDispatcher_MapHandle map = nullptr;
         OH_AbilityRuntime_MoDispatcher_TypeInfo valueTypeInfo;
         std::memset(&valueTypeInfo, 0, sizeof(valueTypeInfo));
@@ -401,22 +441,35 @@ AbilityRuntime_ErrorCode MoDispatcherParamCodec::ReadVariant(MessageParcel& parc
     }
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_IPC_REMOTE_PROXY) {
         auto remoteObj = parcel.ReadRemoteObject();
-        if (!remoteObj) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        if (!remoteObj) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadVariant: read remote proxy object failed");
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
         auto* proxy = new (std::nothrow) OHIPCRemoteProxy();
-        if (proxy == nullptr) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        if (proxy == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadVariant: allocate OHIPCRemoteProxy failed");
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
         proxy->remote = remoteObj;
         value->u.premoteProxyVal = proxy;
         return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
     }
     if (value->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_IPC_REMOTE_STUB) {
         auto remoteObj = parcel.ReadRemoteObject();
-        if (!remoteObj) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        if (!remoteObj) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadVariant: read remote stub object failed");
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
         auto* stub = new (std::nothrow) OHIPCRemoteStub();
-        if (stub == nullptr) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        if (stub == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "ReadVariant: allocate OHIPCRemoteStub failed");
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
         stub->remote = remoteObj;
         value->u.premoteStubVal = stub;
         return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
     }
+    TAG_LOGE(AAFwkTag::EXT, "ReadVariant: unknown value type=%{public}d", static_cast<int32_t>(value->vt));
     return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
 }
 } // namespace OHOS::AbilityRuntime

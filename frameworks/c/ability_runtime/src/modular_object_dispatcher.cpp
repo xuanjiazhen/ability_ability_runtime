@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 
+#include "hilog_tag_wrapper.h"
 #include "ipc_inner_object.h"
 #include "message_option.h"
 #include "mo_dispatcher_complex_type_manager.h"
@@ -46,6 +47,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_CreateInstance(
     }
     auto* dispatcher = new (std::nothrow) OH_AbilityRuntime_MoDispatcher();
     if (dispatcher == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "Failed to allocate MoDispatcher instance");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
     dispatcher->proxy = remoteProxy->remote;
@@ -70,6 +72,9 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_HasTypeDescriptor(
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     auto ret = pMoDispatcher->metadataManager->EnsureLoaded(pMoDispatcher->proxy);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "HasTypeDescriptor: EnsureLoaded failed, ret=%{public}d", ret);
+    }
     *pctinfo = (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) ? 1 : 0;
     return (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) ? ABILITY_RUNTIME_ERROR_CODE_NO_ERROR :
         ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
@@ -83,10 +88,12 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_GetTypeDescriptor(
     }
     auto ret = pMoDispatcher->metadataManager->EnsureLoaded(pMoDispatcher->proxy);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "GetTypeDescriptor: EnsureLoaded failed, ret=%{public}d", ret);
         return ret;
     }
     auto* typeDesc = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_TypeDescriptor();
     if (typeDesc == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "GetTypeDescriptor: allocate TypeDescriptor failed");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
     typeDesc->metadataManager = pMoDispatcher->metadataManager;
@@ -104,6 +111,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_QueryMainServiceInterfac
     }
     auto ret = pMoDispatcher->metadataManager->EnsureLoaded(pMoDispatcher->proxy);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "QueryMemIDsOfNames: EnsureLoaded failed, ret=%{public}d", ret);
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
     return pMoDispatcher->metadataManager->QueryMainServiceInterfaceMemberIds(rgszNames, cNames, pMemID);
@@ -120,16 +128,20 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_CallMethod(
     }
     auto ret = pMoDispatcher->metadataManager->EnsureLoaded(pMoDispatcher->proxy);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "CallMethod: EnsureLoaded failed, ret=%{public}d", ret);
         return ret;
     }
 
     OHOS::AbilityRuntime::MoMethodMeta methodMeta;
     ret = pMoDispatcher->metadataManager->GetMethodMeta(memID, &methodMeta);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "CallMethod: GetMethodMeta failed, memID=%{public}u, ret=%{public}d", memID, ret);
         return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
     }
     ret = MoDispatcherParamCodec::ValidateInputParams(methodMeta, pInputParams);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "CallMethod: ValidateInputParams failed, memID=%{public}u, ret=%{public}d",
+            memID, ret);
         return ret;
     }
 
@@ -138,11 +150,14 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_CallMethod(
 
     if (!dataParcel.WriteInterfaceToken(
         MoDispatcherMetadataManager::INTERFACE_DESCRIPTOR)) {
+        TAG_LOGE(AAFwkTag::EXT, "CallMethod: WriteInterfaceToken failed");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
 
     ret = MoDispatcherParamCodec::MarshalCallRequest(memID, pInputParams, dataParcel);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "CallMethod: MarshalCallRequest failed, memID=%{public}u, ret=%{public}d",
+            memID, ret);
         return ret;
     }
 
@@ -150,10 +165,16 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_CallMethod(
     int ipcRet = pMoDispatcher->proxy->SendRequest(
         methodMeta.ipcCode, dataParcel, replyParcel, option);
     if (ipcRet != 0) {
+        TAG_LOGE(AAFwkTag::EXT, "CallMethod: SendRequest failed, memID=%{public}u, ipcCode=%{public}d, ipcRet=%{public}d",
+            memID, methodMeta.ipcCode, ipcRet);
         return ABILITY_RUNTIME_ERROR_CODE_SEND_REQUEST_FAILED;
     }
 
     ret = MoDispatcherParamCodec::UnmarshalCallResult(replyParcel, pResult);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "CallMethod: UnmarshalCallResult failed, memID=%{public}u, ret=%{public}d",
+            memID, ret);
+    }
     return ret;
 }
 
