@@ -20,6 +20,7 @@
 #include "cli_error_code.h"
 #include "exec_tool_param.h"
 #include "hilog_tag_wrapper.h"
+#include "ipc_skeleton.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -33,6 +34,12 @@ ProcessManager &ProcessManager::GetInstance()
 int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std::string &sandboxConfig,
     const std::map<std::string, std::string> &args) const
 {
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "CreateChildProcess before fork: processUid=%{public}d, processPid=%{public}d, callingUid=%{public}d, "
+        "callingPid=%{public}d, tokenId=%{public}u, fullTokenId=%{public}llu",
+        getuid(), getpid(), IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid(),
+        IPCSkeleton::GetCallingTokenID(), static_cast<unsigned long long>(IPCSkeleton::GetCallingFullTokenID()));
+
     pid_t pid = fork();
     if (pid < 0) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to fork: %{public}d", errno);
@@ -40,6 +47,12 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
     }
 
     if (pid == 0) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "CreateChildProcess child before exec: processUid=%{public}d, processPid=%{public}d, "
+            "callingUid=%{public}d, callingPid=%{public}d, tokenId=%{public}u, fullTokenId=%{public}llu",
+            getuid(), getpid(), IPCSkeleton::GetCallingUid(), IPCSkeleton::GetCallingPid(),
+            IPCSkeleton::GetCallingTokenID(), static_cast<unsigned long long>(IPCSkeleton::GetCallingFullTokenID()));
+
         std::string clawSandbox = "/system/bin/claw_sandbox";
         std::string configPrompt = "--config";
         std::string cmdPrompt = "--cmd";
@@ -61,6 +74,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         execvp(execArgs[0], execArgs.data());
         _exit(0);
     }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CreateChildProcess parent after fork: childPid=%{public}d", pid);
     return ERR_OK;
 }
 

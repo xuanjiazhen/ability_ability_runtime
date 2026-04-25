@@ -73,16 +73,25 @@ std::string ToolUtil::GenerateCliSessionId(const std::string &name)
 
 bool ToolUtil::GenerateSandboxConfig(const std::string &challenge, std::string &sandboxConfig)
 {
+    auto callingUid = IPCSkeleton::GetCallingUid();
+    auto callingPid = IPCSkeleton::GetCallingPid();
+    auto callingTokenId = IPCSkeleton::GetCallingTokenID();
+    auto callingFullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "GenerateSandboxConfig caller identity: uid=%{public}d, pid=%{public}d, tokenId=%{public}u, "
+        "fullTokenId=%{public}llu",
+        callingUid, callingPid, callingTokenId, static_cast<unsigned long long>(callingFullTokenId));
+
     AppExecFwk::BundleInfo bundleInfo;
     if (!ToolUtil::GetBundleInfoByTokenId(bundleInfo)) {
         return false;
     }
 
     nlohmann::json config;
-    config["callerTokenId"] = IPCSkeleton::GetCallingFullTokenID();
+    config["callerTokenId"] = callingFullTokenId;
     config["challenge"] = challenge;
-    config["uid"] = IPCSkeleton::GetCallingUid();
-    config["callerPid"] = IPCSkeleton::GetCallingPid();
+    config["uid"] = callingUid;
+    config["callerPid"] = callingPid;
     config["gid"] = bundleInfo.gid;
     config["appId"] = bundleInfo.appId;
     sandboxConfig = config.dump();
