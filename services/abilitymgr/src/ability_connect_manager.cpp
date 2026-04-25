@@ -61,6 +61,8 @@ const std::string DEBUG_APP = "debugApp";
 const std::string FRS_APP_INDEX = "ohos.extra.param.key.frs_index";
 const std::string FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 const std::string MAX_UINT64_VALUE = "18446744073709551615";
+constexpr int32_t MOE_MAX_CONNECTIONS_PER_CALLER = 5;
+constexpr int32_t MOE_MAX_INSTANCES = 20;
 #ifdef SUPPORT_ASAN
 const int LOAD_TIMEOUT_MULTIPLE = 150;
 const int CONNECT_TIMEOUT_MULTIPLE = 45;
@@ -355,8 +357,14 @@ int AbilityConnectManager::ConnectAbilityLocked(const AbilityRequest &abilityReq
 #endif // SUPPORT_UPMS
     std::lock_guard guard(serialMutex_);
 
+    // ModularObject instance and connection limit checks
+    int32_t ret = CheckModularObjectLimits(abilityRequest);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
     // 1. get target service ability record, and check whether it has been loaded.
-    int32_t ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
+    ret = AbilityPermissionUtil::GetInstance().CheckMultiInstanceKeyForExtension(abilityRequest);
     if (ret != ERR_OK) {
         //  Do not distinguishing specific error codes
         return ERR_INVALID_VALUE;
@@ -3321,11 +3329,76 @@ void AbilityConnectManager::SetServiceAfterNewCreate(const AbilityRequest &abili
     }
 }
 
+int32_t AbilityConnectManager::CheckModularObjectLimits(const AbilityRequest &abilityRequest)
+{
+    if (abilityRequest.abilityInfo.extensionAbilityType !=
+        AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        return ERR_OK;
+    }
+    AppExecFwk::ElementName element(abilityRequest.abilityInfo.deviceId,
+        GenerateBundleName(abilityRequest),
+        abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName);
+    std::string baseKey = element.GetURI();
+    auto ret = CheckModularObjectInstanceLimit(baseKey);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    return CheckModularObjectConnectionLimit(baseKey, IPCSkeleton::GetCallingPid());
+}
+
+int32_t AbilityConnectManager::CheckModularObjectInstanceLimit(const std::string &baseServiceKey)
+{
+    std::lock_guard lock(serviceMapMutex_);
+    std::string prefix = baseServiceKey + "_";
+    int32_t count = 0;
+    for (const auto &[key, value] : serviceMap_) {
+        if (key.compare(0, prefix.size(), prefix) == 0) {
+            count++;
+        }
+    }
+    if (count >= MOE_MAX_INSTANCES) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "MoeAbility instance limit reached, baseKey: %{public}s, count: %{public}d",
+            baseServiceKey.c_str(), count);
+        return ERR_MOE_INSTANCE_LIMIT;
+    }
+    return ERR_OK;
+}
+
+int32_t AbilityConnectManager::CheckModularObjectConnectionLimit(
+    const std::string &baseServiceKey, int32_t callerPid)
+{
+    std::lock_guard lock(serviceMapMutex_);
+    std::string prefix = baseServiceKey + "_";
+    int32_t count = 0;
+    for (const auto &[key, record] : serviceMap_) {
+        if (key.compare(0, prefix.size(), prefix) != 0) {
+            continue;
+        }
+        for (const auto &conn : record->GetConnectRecordList()) {
+            if (conn != nullptr && conn->GetCallerPid() == callerPid) {
+                count++;
+            }
+        }
+    }
+    if (count >= MOE_MAX_CONNECTIONS_PER_CALLER) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "MoeAbility connection limit reached for callerPid: %{public}d, baseKey: %{public}s, count: %{public}d",
+            callerPid, baseServiceKey.c_str(), count);
+        return ERR_MOE_CONNECTION_LIMIT;
+    }
+    return ERR_OK;
+}
+
 void AbilityConnectManager::HandleModularObjectNewRecord(const AbilityRequest &abilityRequest,
     std::shared_ptr<BaseExtensionRecord> &targetService, const std::string &serviceKey)
 {
     if (abilityRequest.abilityInfo.extensionAbilityType !=
         AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
+        return;
+    }
+    if (targetService == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "targetService is null");
         return;
     }
     auto config = AbilityConnectManager::QueryModularObjectConfig(abilityRequest);

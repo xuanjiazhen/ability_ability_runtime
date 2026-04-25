@@ -1268,11 +1268,6 @@ HWTEST_F(ExtensionAbilityThreadTest, ExtensionAbilityThread_HandleNativeExtensio
     EXPECT_NE(thread.contentEmbedEventRunner_, nullptr);
 }
 
-// ============================================================
-// ModularObjectWorkerManager tests
-// Tests for the singleton managing shared worker threads
-// ============================================================
-
 /**
  * @tc.name: GetOrCreateWorkerThread_ShouldReturnNonNullWhenFirstCreated
  * @tc.desc: Test creating a new worker thread returns valid handler
