@@ -232,6 +232,13 @@ public:
     int32_t GetUid() const;
 
     /**
+     * @brief Obtains the application accessTokenId.
+     *
+     * @return Returns the application accessTokenId.
+     */
+    uint32_t GetAccessTokenId() const;
+
+    /**
      * @brief Setting the application uid.
      *
      * @param state, the application uid.
@@ -512,7 +519,8 @@ public:
      *
      * @return
      */
-    void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state);
+    void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+        bool isFromScreenOffBackground = false);
 
     /**
      * PopForegroundingAbilityTokens, Extract the token record from the foreground tokens list.
@@ -656,6 +664,16 @@ public:
     bool IsMainElementRunning() const;
 
     void SetKeepAliveAppService(bool isKeepAliveAppService);
+
+    inline void SetStartedByCallStatus(int32_t byCallStatus)
+    {
+        byCallStatus_ = byCallStatus;
+    }
+
+    inline int32_t GetStartedByCallStatus() const
+    {
+        return byCallStatus_;
+    }
 
     /**
      * @brief roughly considered as a value from the process's bundle info.
@@ -1271,6 +1289,16 @@ public:
         return isAllowScbProcessMoveToBackground_.load();
     }
 
+    inline void SetIsFromScreenOffBackground(bool isFromScreenOffBackground)
+    {
+        isFromScreenOffBackground_ = isFromScreenOffBackground;
+    }
+
+    inline bool IsFromScreenOffBackground() const
+    {
+        return isFromScreenOffBackground_;
+    }
+
     bool IsLastAgentExtensionAbility(const sptr<IRemoteObject> &token);
 
 private:
@@ -1297,7 +1325,8 @@ private:
      *
      * @return
      */
-    void AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability);
+    void AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability,
+        bool isFromScreenOffBackground = false);
     // drive application state changes when ability state changes.
 
     bool AbilityFocused(const std::shared_ptr<AbilityRunningRecord> &ability);
@@ -1421,6 +1450,7 @@ private:
     int32_t killId_ = -1;
     int restartResidentProcCount_ = 0;
     pid_t gpuPid_ = 0;
+    int32_t byCallStatus_ = 0;
 
     std::string processName_;  // name of this process
     std::string specifiedProcessFlag_; // flag of specified Process
@@ -1479,8 +1509,9 @@ private:
     bool enableProcessCache_ = true;
     bool networkEnableFlags_ = true;
     bool saEnableFlags_ = true;
-    bool processCacheBlocked = false; // temporarily block process cache feature
+    std::atomic<bool>  processCacheBlocked_ = false; // temporarily block process cache feature
     bool reasonExist_ = false;
+    bool isFromScreenOffBackground_ = false;
 
     ffrt::mutex appInfosLock_;
     ffrt::mutex renderRecordMapLock_; // render record lock

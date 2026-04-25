@@ -24,6 +24,7 @@
 #include "app_exit_reason_data_manager.h"
 #include "app_mgr_util.h"
 #include "app_utils.h"
+#include "dms_util.h"
 #include "display_util.h"
 #include "ffrt.h"
 #include "foreground_app_connection_manager.h"
@@ -379,6 +380,16 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::HandleAbilityRecordReused(
         TAG_LOGE(AAFwkTag::ABILITYMGR, "sessionToken invalid");
         return nullptr;
     }
+    if (uiAbilityRecord->IsGameSAPreLaunch()) {
+        // Clear the game SA prelaunch flag in AbilityRecord and AppRecord when reusing AbilityRecord.
+        uiAbilityRecord->SetGameSAPreLaunch(false);
+        int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->SetGameSAPrelaunch(
+            uiAbilityRecord->GetToken(), false));
+        if (ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "AbilityRecordReused Failed to SetGameSAPrelaunch, ret=%{public}d", ret);
+            return nullptr;
+        }
+    }
     abilityRequest.want.RemoveParam(Want::PARAMS_REAL_CALLER_KEY);
     auto appMgr = AppMgrUtil::GetAppMgr();
     if (appMgr != nullptr && sessionInfo.reuseDelegatorWindow) {
@@ -516,8 +527,8 @@ void UIAbilityLifecycleManager::AddCallerRecord(AbilityRequest &abilityRequest, 
     if (abilityRequest.want.GetBoolParam(Want::PARAM_RESV_FOR_RESULT, false)) {
         std::string srcDeviceId = abilityRequest.want.GetStringParam(DMS_SRC_NETWORK_ID);
         int missionId = abilityRequest.want.GetIntParam(DMS_MISSION_ID, DEFAULT_DMS_MISSION_ID);
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Get srcNetWorkId = %{public}s, missionId = %{public}d", srcDeviceId.c_str(),
-            missionId);
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Get srcNetWorkId = %{public}s, missionId = %{public}d",
+            DmsUtil::AnonymizeDeviceId(srcDeviceId).c_str(), missionId);
         Want *newWant = const_cast<Want*>(&abilityRequest.want);
         newWant->RemoveParam(DMS_SRC_NETWORK_ID);
         newWant->RemoveParam(DMS_MISSION_ID);
@@ -950,7 +961,7 @@ void UIAbilityLifecycleManager::HandleAbilitiesRequestDone(int32_t requestId, in
         abilitiesRequestMap_.erase(it);
         auto callerRecord = Token::GetAbilityRecordByToken(abilitiesRequest->callerToken);
         if (callerRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
             return;
         }
         callerRecord->NotifyAbilitiesRequestDone(abilitiesRequest->requestKey,
@@ -972,7 +983,7 @@ void UIAbilityLifecycleManager::HandleAbilitiesRequestDone(int32_t requestId, in
         abilitiesRequestMap_.erase(it);
         auto callerRecord = Token::GetAbilityRecordByToken(abilitiesRequest->callerToken);
         if (callerRecord == nullptr) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "startUIAbilities callerRecord not exist.");
             return;
         }
         callerRecord->NotifyAbilitiesRequestDone(abilitiesRequest->requestKey, ret);
@@ -1126,6 +1137,68 @@ int UIAbilityLifecycleManager::DispatchTerminate(const UIAbilityRecordPtr &abili
     return ERR_OK;
 }
 
+int32_t UIAbilityLifecycleManager::NotifyCancelGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken is null");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get ability record by token");
+        return ERR_INVALID_VALUE;
+    }
+
+    if (!abilityRecord->IsGameSAPreLaunch()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Ability is not a game SA prelaunch");
+        return ERR_NOT_GAME_PRELOAD_STATE;
+    }
+
+    // Kill the process
+    auto pid = abilityRecord->GetPid();
+    std::vector<pid_t> pids = { pid };
+    int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->KillProcessesByPids(pids));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to kill process, ret=%{public}d", ret);
+        return ret;
+    }
+    return ERR_OK;
+}
+
+int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (callerToken == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "callerToken is null");
+        return ERR_INVALID_VALUE;
+    }
+    auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
+    if (abilityRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to get ability record by token");
+        return ERR_INVALID_VALUE;
+    }
+    if (!abilityRecord->IsGameSAPreLaunch()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Ability is not a game SA prelaunch");
+        return ERR_NOT_GAME_PRELOAD_STATE;
+    }
+
+    // Clear the game SA prelaunch flag in AbilityRecord and AppRecord
+    abilityRecord->SetGameSAPreLaunch(false);
+
+    int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->SetGameSAPrelaunch(callerToken,
+        false));
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to SetGameSAPrelaunch, ret=%{public}d", ret);
+        return ret;
+    }
+    // Notification SCB goes to the background
+    int32_t notifyScbBackgroundReason = static_cast<int32_t>(NotifyScbBackgroundReason::GAME_PRELAUNCH_BACKGROUND);
+    ret = NotifySCBToMinimizeUIAbility(callerToken, true, notifyScbBackgroundReason);
+    return ret;
+}
+
 void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordPtr &abilityRecord)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1145,6 +1218,22 @@ void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordP
         TAG_LOGD(AAFwkTag::ABILITYMGR, "call request after completing foreground state");
         abilityRecord->CallRequest();
         abilityRecord->SetStartToForeground(false);
+    }
+    if (abilityRecord->IsGameSAPreLaunch()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Game SA prelaunch detected, schedule NotifyCompleteGamePreLaunch task");
+        auto self(weak_from_this());
+        std::weak_ptr<UIAbilityRecord> weakAbilityRecord(abilityRecord);
+        auto task = [self, weakAbilityRecord]() {
+            auto selfObj = self.lock();
+            auto abilityRecordObj = weakAbilityRecord.lock();
+            if (selfObj == nullptr || abilityRecordObj == nullptr) {
+                TAG_LOGW(AAFwkTag::ABILITYMGR, "UIAbilityLifecycleManager or abilityRecord invalid");
+                return;
+            }
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Execute NotifyCompleteGamePreLaunch for game SA prelaunch");
+            selfObj->NotifyCompleteGamePreLaunch(abilityRecordObj->GetToken());
+        };
+        ffrt::submit(task, ffrt::task_attr().delay(gamePreLaunchCompleteTime_));
     }
 
     if (abilityRecord->HasLastWant()) {
@@ -1277,6 +1366,12 @@ bool UIAbilityLifecycleManager::IsContainsAbilityInner(const sptr<IRemoteObject>
     return false;
 }
 
+int32_t UIAbilityLifecycleManager::SetGamePreLaunchCompleteTime(int64_t completeTime)
+{
+    gamePreLaunchCompleteTime_ = completeTime;
+    return ERR_OK;
+}
+
 void UIAbilityLifecycleManager::EraseAbilityRecord(const UIAbilityRecordPtr &abilityRecord)
 {
     if (abilityRecord == nullptr) {
@@ -1401,13 +1496,15 @@ UIAbilityRecordPtr UIAbilityLifecycleManager::GetUIAbilityRecordBySessionInfo(
     return nullptr;
 }
 
-int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token)
+int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemoteObject> token,
+    bool shouldBackToCaller, int32_t notifyScbBackgroundReason)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "notifySCBToMinimizeUIAbility");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN(sceneSessionManager, ERR_NULL_OBJECT);
-    Rosen::WSError ret = sceneSessionManager->PendingSessionToBackgroundForDelegator(token);
+    Rosen::WSError ret = sceneSessionManager->PendingSessionToBackgroundForDelegator(token, shouldBackToCaller,
+        notifyScbBackgroundReason);
     if (ret != Rosen::WSError::WS_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "call error:%{public}d", ret);
     }
@@ -1415,7 +1512,7 @@ int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemo
 }
 
 int UIAbilityLifecycleManager::MinimizeUIAbility(const UIAbilityRecordPtr &abilityRecord, bool fromUser,
-    uint32_t sceneFlag)
+    uint32_t sceneFlag, int32_t backgroundReason)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1424,9 +1521,11 @@ int UIAbilityLifecycleManager::MinimizeUIAbility(const UIAbilityRecordPtr &abili
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
         return ERR_INVALID_VALUE;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "infoName:%{public}s", abilityRecord->GetAbilityInfo().name.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "infoName:%{public}s, backgroundReason:%{public}d",
+        abilityRecord->GetAbilityInfo().name.c_str(), backgroundReason);
     abilityRecord->SetMinimizeReason(fromUser);
     abilityRecord->SetSceneFlag(sceneFlag);
+    abilityRecord->SetIsFromScreenOffBackground(backgroundReason == BackgroundReason::BACKGROUND_REASON_SCREEN_OFF);
     if (abilityRecord->GetPendingState() != AbilityState::INITIAL) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "pending state dropped MINIMIZE: %{public}d",
             static_cast<int32_t>(abilityRecord->GetPendingState()));
@@ -1748,6 +1847,7 @@ sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequ
     sessionInfo->processOptions = abilityRequest.processOptions;
     sessionInfo->startWindowOption = abilityRequest.startWindowOption;
     sessionInfo->supportWindowModes = abilityRequest.supportWindowModes;
+    sessionInfo->splitRatioPreference = abilityRequest.startOptions.GetSplitRatioPreference();
     if (abilityRequest.startSetting != nullptr) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "Assign start setting to session.");
         sessionInfo->startSetting = abilityRequest.startSetting;
@@ -1798,12 +1898,13 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         errMsg = "sessionInfo is nullptr";
         return ERR_INVALID_VALUE;
     }
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "windowTop=%{public}d,windowHeight=%{public}d,"
-        "windowMode=%{public}d,supportWindowModes.size=%{public}zu,specifiedFlag=%{public}s",
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "windowTop=%{public}d,windowHeight=%{public}d,windowMode=%{public}d,"
+        "supportWindowModes.size=%{public}zu,splitRatio=%{public}d,specifiedFlag=%{public}s",
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_TOP, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_HEIGHT, 0),
         (sessionInfo->want).GetIntParam(Want::PARAM_RESV_WINDOW_MODE, 0),
-        (sessionInfo->supportWindowModes).size(), sessionInfo->specifiedFlag.c_str());
+        (sessionInfo->supportWindowModes).size(), abilityRequest.startOptions.GetSplitRatioPreference(),
+        sessionInfo->specifiedFlag.c_str());
     if (abilityRequest.isStartInSplitMode) {
         return NotifySCBPendingActivationInSplitMode(sessionInfo, abilityRequest);
     }
@@ -1813,10 +1914,10 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         hasStartWindowOption ? sessionInfo->startWindowOption->startWindowBackgroundColor : "";
     sessionInfo->hideStartWindow = abilityRequest.hideStartWindow;
     sessionInfo->windowCreateParams = abilityRequest.startOptions.windowCreateParams_;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "appCloneIndex:%{public}d, instanceKey:%{public}s, "
-        "hasStartWindow:%{public}d, backgroundColor:%{public}s, hideStartWindow: %{public}d",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "appCloneIndex:%{public}d, instanceKey:%{public}s, hasStartWindow:%{public}d, "
+        "backgroundColor:%{public}s, hideStartWindow: %{public}d, splitRatio:%{public}d",
         (sessionInfo->want).GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, 0), sessionInfo->instanceKey.c_str(),
-        hasStartWindow, backgroundColor.c_str(), sessionInfo->hideStartWindow);
+        hasStartWindow, backgroundColor.c_str(), sessionInfo->hideStartWindow, sessionInfo->splitRatioPreference);
     if (abilityRequest.isTargetPlugin) {
         sessionInfo->isTargetPlugin = abilityRequest.isTargetPlugin;
         auto callerRecord = Token::GetAbilityRecordByToken(abilityRequest.callerToken);
@@ -1838,7 +1939,8 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         }
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s"
-            "requestId:%{public}s", sessionInfo->want.GetElement().GetAbilityName().c_str(), requestId.c_str());
+            "requestId:%{public}s, splitRatio:%{public}d", sessionInfo->want.GetElement().GetAbilityName().c_str(),
+            requestId.c_str(), sessionInfo->splitRatioPreference);
         auto ret = static_cast<int>(callerSession->PendingSessionActivation(sessionInfo));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
@@ -1861,8 +1963,9 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
     }
     sessionInfo->canStartAbilityFromBackground = true;
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s",
-        sessionInfo->want.GetElement().GetAbilityName().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s, splitRatio:%{public}d",
+        sessionInfo->want.GetElement().GetAbilityName().c_str(), sessionInfo->splitRatioPreference);
     auto ret = static_cast<int>(tmpSceneSession->PendingSessionActivation(sessionInfo));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
@@ -2021,7 +2124,8 @@ void UIAbilityLifecycleManager::CompleteBackground(const UIAbilityRecordPtr &abi
     }
     abilityRecord->SetAbilityState(AbilityState::BACKGROUND);
     // notify AppMS to update application state.
-    DelayedSingleton<AppScheduler>::GetInstance()->MoveToBackground(abilityRecord->GetToken());
+    DelayedSingleton<AppScheduler>::GetInstance()->MoveToBackground(abilityRecord->GetToken(),
+        abilityRecord->IsFromScreenOffBackground());
 
     if (abilityRecord->GetPendingState() == AbilityState::FOREGROUND) {
         abilityRecord->PostForegroundTimeoutTask();
@@ -2238,6 +2342,11 @@ void UIAbilityLifecycleManager::DelayCompleteTerminate(const UIAbilityRecordPtr 
     auto timeoutTask = [self = shared_from_this(), abilityRecord]() {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "delay complete terminate task");
         self->CompleteTerminate(abilityRecord);
+        // set apprecord not support cache
+        auto appMgr = AppMgrUtil::GetAppMgr();
+        CHECK_POINTER(appMgr);
+        CHECK_POINTER(abilityRecord);
+        IN_PROCESS_CALL_WITHOUT_RET(appMgr->SetTerminateTimeOutFlag(abilityRecord->GetToken()));
     };
     int killTimeout = AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * KILL_TIMEOUT_MULTIPLE;
     handler->SubmitTaskJust(timeoutTask, "DELAY_KILL_PROCESS", killTimeout);
@@ -2865,8 +2974,9 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
             callerAbility->NotifyAbilityRequestSuccess(requestId, sessionInfo->want.GetElement());
         }
         sessionInfo->want.RemoveParam(KEY_REQUEST_ID);
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s",
-            sessionInfo->want.GetElement().GetAbilityName().c_str());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, "
+            "target: %{public}s, splitRatio:%{public}d",
+            sessionInfo->want.GetElement().GetAbilityName().c_str(), sessionInfo->splitRatioPreference);
         callerSession->PendingSessionActivation(sessionInfo);
         return ERR_OK;
     }
@@ -2881,8 +2991,9 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
         }
         sessionInfo->want.RemoveParam(KEY_REQUEST_ID);
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s",
-        sessionInfo->want.GetElement().GetAbilityName().c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, "
+        "target: %{public}s, splitRatio:%{public}d",
+        sessionInfo->want.GetElement().GetAbilityName().c_str(), sessionInfo->splitRatioPreference);
     tmpSceneSession->PendingSessionActivation(sessionInfo);
     return ERR_OK;
 }
@@ -3540,8 +3651,8 @@ int UIAbilityLifecycleManager::MoveMissionToFront(int32_t sessionId, std::shared
     CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
     if (startOptions != nullptr) {
         abilityRecord->SetWindowMode(startOptions->GetWindowMode());
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "MoveMissionToFront, setting displayId=%{public}d",
-            startOptions->GetDisplayID());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "MoveMissionToFront, setting displayId=%{public}d, splitRatio:%{public}d",
+            startOptions->GetDisplayID(), startOptions->GetSplitRatioPreference());
         (sessionInfo->want).SetParam(Want::PARAM_RESV_DISPLAY_ID, startOptions->GetDisplayID());
         (sessionInfo->want).SetParam(Want::PARAM_RESV_WINDOW_MODE, startOptions->GetWindowMode());
         if (startOptions->GetDisplayID() == 0) {

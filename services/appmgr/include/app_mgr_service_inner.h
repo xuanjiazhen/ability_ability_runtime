@@ -204,7 +204,8 @@ public:
      *
      * @return
      */
-    virtual void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state);
+    virtual void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+        bool isFromScreenOffBackground = false);
 
     /**
      * UpdateExtensionState, call UpdateExtensionState() through the proxy object, update the extension status.
@@ -242,6 +243,15 @@ public:
      * @return
      */
     virtual void KillProcessByAbilityToken(const sptr<IRemoteObject> &token);
+
+    /**
+     * SetGameSAPrelaunch, set game SA prelaunch flag.
+     *
+     * @param token, the unique identification to the ability.
+     * @param isGameSAPrelaunch, the game SA prelaunch flag to set.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch);
 
     /**
      * KillProcessesByUserId, kill the processes by userId.
@@ -550,6 +560,18 @@ public:
      * @return ERR_OK ,return back success，others fail.
      */
     virtual int32_t GetProcessRunningInfosByUserId(std::vector<RunningProcessInfo> &info, int32_t userId);
+
+    /**
+     * GetProcessRunningInfosByAccessTokenId, Obtains information about application processes
+     * that are running on the device by accessTokenId.
+     *
+     * @param accessTokenId, accessTokenId.
+     * @param info, Running process information list.
+     *
+     * @return ERR_OK ,return back success，others fail.
+     */
+    virtual int32_t GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+        std::vector<RunningProcessInfo> &info);
 
     /**
      * GetProcessRunningInformation, Obtains information about current application process
@@ -1074,9 +1096,12 @@ public:
     int32_t NotifyAppMgrRecordExitReasonCompability(
         int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg);
 #ifdef APP_MGR_KILL_REASON_TAG
-    void RecordAppWithReason(int32_t pid, int32_t uid, int32_t killId);
     void RecordAppWithReasonByUserId(int32_t userId, int32_t killId);
 #endif
+    void DestroyImageForAppExitCompatibility(const std::shared_ptr<AppRunningRecord> appRecord,
+        const int32_t killId, const std::string &exitMsg);
+    void DestroyImageForAppExit(const std::shared_ptr<AppRunningRecord> appRecord,
+        const int32_t reason, const std::string &exitMsg);
 
     /**
      * Notify application status.
@@ -1729,6 +1754,12 @@ public:
 
     void SetProcessPrepareExit(int32_t pid);
 
+    /**
+     * @brief set TerminateTimeOut flag.
+     * @param token Ability identify.
+     */
+    void SetTerminateTimeOutFlag(const sptr<IRemoteObject> token);
+
     void AllowScbProcessMoveToBackground();
 
     int32_t KillChildProcessByPid(int32_t pid);
@@ -2129,6 +2160,8 @@ private:
 
     void AppRecoveryNotifyApp(int32_t pid, const std::string& bundleName,
         FaultDataType faultType, const std::string& markers, int32_t recordId);
+    
+    void RecordAppRecoveryNotifyAppReason(int32_t pid);
 
     void ProcessAppDebug(const std::shared_ptr<AppRunningRecord> &appRecord, const bool &isDebugStart);
     AppDebugInfo MakeAppDebugInfo(const std::shared_ptr<AppRunningRecord> &appRecord, const bool &isDebugStart);

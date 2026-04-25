@@ -72,6 +72,21 @@ typedef enum {
      */
     ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE = 16000002,
     /**
+     * @error Cannot start an invisible component.
+     * @since 26.0.0
+     */
+    ABILITY_RUNTIME_ERROR_CODE_VISIBILITY_VERIFICATION_FAILED = 16000004,
+    /**
+     * @error The specified process does not have the permission.
+     * @since 26.0.0
+     */
+    ABILITY_RUNTIME_ERROR_CODE_STATIC_CFG_PERMISSION = 16000005,
+    /**
+     * @error Cross-user operations are not allowed.
+     * @since 26.0.0
+     */
+    ABILITY_RUNTIME_ERROR_CODE_CROSS_USER_OPERATION = 16000006,
+    /**
      * @error The crowdtesting application expires.
      * @since 15
      */
@@ -154,25 +169,45 @@ typedef enum {
      */
     ABILITY_RUNTIME_ERROR_CODE_MAIN_THREAD_NOT_SUPPORTED = 16000134,
     /**
+     * @error The target application does not have running abilities with UI.
+     * @since 26.0.0
+     */
+    ABILITY_RUNTIME_ERROR_CODE_NO_RUNNING_ABILITIES_WITH_UI = 16000160,
+    /**
+     * @error The API call frequency is too high and exceeds the rate control limit.
+     * @since 26.0.0
+     */
+    ABILITY_RUNTIME_ERROR_CODE_UPPER_RATE_LIMIT = 16000161,
+    /**
+     * @error The number of connection exceeds limit.
+     * @since 26.0.0
+     */
+    ABILITY_RUNTIME_ERROR_CODE_UPPER_CONNECTION_NUMBER_LIMIT = 16000162,
+    /**
+     * @error The modular object extension is disabled.
+     * @since 26.0.0
+     */
+    ABILITY_RUNTIME_ERROR_CODE_MODULAR_OBJECT_EXTENSION_DISABLED = 16000163,
+    /**
      * @error The requested property, method, enum, or struct member is not found.
      * @since 26
      */
-    ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND = 16000135,
+    ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND = 16000173,
     /**
      * @error The runtime value type does not match the expected metadata type.
      * @since 26
      */
-    ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH = 16000136,
+    ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH = 16000174,
     /**
      * @error The IPC request to the remote service fails.
      * @since 26
      */
-    ABILITY_RUNTIME_ERROR_CODE_SEND_REQUEST_FAILED = 16000137,
+    ABILITY_RUNTIME_ERROR_CODE_SEND_REQUEST_FAILED = 16000175,
     /**
      * @error The type library metadata is invalid, e.g. missing or duplicate main interface.
      * @since 26
      */
-    ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID = 16000138,
+    ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID = 16000177,
 } AbilityRuntime_ErrorCode;
 
 #ifdef __cplusplus
