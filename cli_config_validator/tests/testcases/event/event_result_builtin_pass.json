@@ -1,0 +1,22 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "result custom event can coexist with builtin events and output",
+  "executablePath": "/usr/bin/event-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "argMapping": {},
+  "eventTypes": ["result", "stdout", "stderr", "exit", "error"],
+  "eventSchemas": {
+    "result": {
+      "type": "object",
+      "properties": {}
+    }
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {}
+  }
+}

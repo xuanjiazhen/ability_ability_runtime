@@ -1,0 +1,12 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "events must be string array",
+  "executablePath": "/usr/bin/event-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "argMapping": {},
+  "eventTypes": [1]
+}

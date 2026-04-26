@@ -1,0 +1,22 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "event schema key present in events",
+  "executablePath": "/usr/bin/event-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "argMapping": {},
+  "eventTypes": ["progress", "other"],
+  "eventSchemas": {
+    "other": {
+      "type": "object",
+      "properties": {}
+    },
+    "progress": {
+      "type": "object",
+      "properties": {}
+    }
+  }
+}

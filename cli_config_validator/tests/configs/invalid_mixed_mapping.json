@@ -1,0 +1,17 @@
+{
+  "name": "ohos-invalid",
+  "version": "1.0.0",
+  "description": "Invalid mapping type example",
+  "executablePath": "/usr/bin/invalid-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string"
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "ohos-mixed-complex",
+  "version": "1.0.0",
+  "description": "Duplicate consumption in mixed mapping",
+  "executablePath": "/usr/bin/mixed-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "server": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          }
+        }
+      },
+      "server.host": {
+        "type": "string"
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "server": {
+        "mode": "flattened",
+        "template": {
+          "server.host": "--host={value}"
+        },
+        "separator": "."
+      },
+      "server.host": {
+        "mode": "flag",
+        "template": "--dup={value}"
+      }
+    }
+  }
+}

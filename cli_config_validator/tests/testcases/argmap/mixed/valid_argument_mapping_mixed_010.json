@@ -1,0 +1,31 @@
+{
+  "name": "ohos-mixed-flattened",
+  "version": "1.0.0",
+  "description": "Invalid mixed flattened root mismatch",
+  "executablePath": "/usr/bin/mixed-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "server": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "server": {
+        "mode": "flattened",
+        "template": {
+          "config.host": "--host={value}"
+        },
+        "separator": "."
+      }
+    }
+  }
+}

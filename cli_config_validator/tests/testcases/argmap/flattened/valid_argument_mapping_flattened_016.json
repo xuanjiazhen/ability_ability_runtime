@@ -1,0 +1,30 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Network scanning utility tool",
+  "executablePath": "/usr/bin/net-scan",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "cfg": {
+        "type": "object",
+        "properties": {
+          "host": {
+            "type": "string"
+          },
+          "port": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "flattened",
+    "separator": "_",
+    "templates": {
+      "cfg_host": "--host={value}",
+      "cfg_port": "--port={value}"
+    }
+  }
+}

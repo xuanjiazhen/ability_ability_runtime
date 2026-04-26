@@ -1,0 +1,23 @@
+{
+  "name": "ohos-mixed-basic",
+  "version": "1.0.0",
+  "description": "Minimal valid mixed mapping",
+  "executablePath": "/usr/bin/mixed-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "action": {
+        "type": "string"
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "action": {
+        "mode": "positional",
+        "order": 1
+      }
+    }
+  }
+}

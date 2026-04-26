@@ -1,0 +1,38 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Deep object parameter passed by jsonString",
+  "executablePath": "/usr/bin/net-scan",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "config": {
+        "type": "object",
+        "properties": {
+          "network": {
+            "type": "object",
+            "properties": {
+              "endpoint": {
+                "type": "object",
+                "properties": {
+                  "host": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "integer"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "jsonString",
+    "templates": {
+      "config": "--config={value}"
+    }
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "name": "ohos-scanner",
+  "version": "1.0.0",
+  "description": "Network scanning utility tool",
+  "executablePath": "/usr/bin/net-scan",
+  "timeout": 30,
+  "requirePermissions": ["ohos.permission.INTERNET"],
+  "eventTypes": ["progress"],
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "target": {
+        "type": "string",
+        "format": "ipv4"
+      },
+      "ports": {
+        "type": "array",
+        "items": {
+          "type": "integer"
+        }
+      }
+    },
+    "required": ["target"]
+  },
+  "outputSchema": {
+    "type": "object",
+    "properties": {
+      "summary": {
+        "type": "object",
+        "properties": {
+          "totalPorts": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "argMapping": {
+    "type": "flag",
+    "templates": {
+      "target": "--target={value}",
+      "ports": "--port={value}"
+    }
+  },
+  "eventSchemas": {
+    "progress": {
+      "type": "object",
+      "properties": {
+        "percentage": {
+          "type": "integer"
+        },
+        "status": {
+          "type": "string"
+        }
+      },
+      "required": ["percentage", "status"]
+    }
+  }
+}

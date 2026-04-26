@@ -1,0 +1,12 @@
+{
+  "name": "ohos-event",
+  "version": "1.0.0",
+  "description": "result event requires eventSchemas.result",
+  "executablePath": "/usr/bin/event-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {}
+  },
+  "argMapping": {},
+  "eventTypes": ["result"]
+}

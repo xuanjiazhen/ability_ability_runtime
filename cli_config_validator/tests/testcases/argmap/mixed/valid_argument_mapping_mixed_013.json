@@ -1,0 +1,25 @@
+{
+  "name": "ohos-mixed-json",
+  "version": "1.0.0",
+  "description": "Unknown field in mixed entry",
+  "executablePath": "/usr/bin/mixed-tool",
+  "inputSchema": {
+    "type": "object",
+    "properties": {
+      "config": {
+        "type": "object",
+        "properties": {}
+      }
+    }
+  },
+  "argMapping": {
+    "type": "mixed",
+    "mappings": {
+      "config": {
+        "mode": "jsonString",
+        "template": "--config={value}",
+        "extra": true
+      }
+    }
+  }
+}
