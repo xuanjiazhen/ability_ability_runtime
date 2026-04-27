@@ -17,7 +17,10 @@
 #define OHOS_ABILITY_RUNTIME_NATIVE_RUNTIME_H
 
 #include <string>
-#include "extension_ability.h"
+#include "runtime.h"
+
+struct AbilityRuntime_ExtensionInstance;
+typedef struct AbilityRuntime_ExtensionInstance* AbilityRuntime_ExtensionInstanceHandle;
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -25,6 +28,7 @@ class NativeRuntime {
 public:
     static bool LoadModule(const std::string& bundleModuleName, const std::string& fileName,
         const std::string& abilityName, AbilityRuntime_ExtensionInstance& instance);
+    static void StartDebugMode(const Runtime::DebugOption &dOption, const std::string &bundleName);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
