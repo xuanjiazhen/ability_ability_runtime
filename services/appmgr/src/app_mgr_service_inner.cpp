@@ -2625,6 +2625,13 @@ void AppMgrServiceInner::LaunchApplicationExt(const std::shared_ptr<AppRunningRe
 {
     auto isPreload = IsAllowedNWebPreload(appRecord->GetProcessName());
     appRecord->SetNWebPreload(isPreload);
+    bool isMultiProcessModel = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
+    bool isArkSupported = isMultiProcessModel || AllowChildProcessInMultiProcessFeatureApp(appRecord);
+    bool isNativeSupported = isMultiProcessModel ||
+        AllowNativeChildProcess(CHILD_PROCESS_TYPE_NATIVE, appRecord->GetAppIdentifier()) ||
+        AllowChildProcessInMultiProcessFeatureApp(appRecord);
+    appRecord->SetArkChildProcessSupported(isArkSupported);
+    appRecord->SetNativeChildProcessSupported(isNativeSupported);
     LaunchApplication(appRecord);
 }
 

@@ -628,9 +628,34 @@ ChildProcessManagerErrorCode ChildProcessManager::KillChildProcessByPid(int32_t 
     }
     return ChildProcessManagerErrorCode::ERR_OK;
 }
+
+void ChildProcessManager::SetArkChildProcessSupported(bool supported)
+{
+    isArkChildProcessSupported_ = supported;
+    isArkSupportedCached_ = true;
+}
+
+void ChildProcessManager::SetNativeChildProcessSupported(bool supported)
+{
+    isNativeChildProcessSupported_ = supported;
+    isNativeSupportedCached_ = true;
+}
+
 bool ChildProcessManager::IsChildProcessSupportedImpl(bool isNative)
 {
     TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
+    if (isNative && isNativeSupportedCached_) {
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "use cached native child process support: %{public}d",
+            isNativeChildProcessSupported_);
+        return isNativeChildProcessSupported_;
+    }
+    if (!isNative && isArkSupportedCached_) {
+        TAG_LOGD(AAFwkTag::PROCESSMGR, "use cached ark child process support: %{public}d",
+            isArkChildProcessSupported_);
+        return isArkChildProcessSupported_;
+    }
+
+    TAG_LOGW(AAFwkTag::PROCESSMGR, "child process support status not cached, fallback to local check");
     if (AAFwk::AppUtils::GetInstance().IsMultiProcessModel()) {
         TAG_LOGD(AAFwkTag::PROCESSMGR, "MultiProcessModel enabled, support %{public}s child process",
             isNative ? "native" : "ark");
