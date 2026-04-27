@@ -16,6 +16,9 @@
 #include "tool_info.h"
 
 #include <nlohmann/json.hpp>
+#include <set>
+
+#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace CliTool {
@@ -286,6 +289,112 @@ nlohmann::json ToolInfo::ParseToJson() const
     }
 
     return j;
+}
+
+bool ToolInfo::Validate(const ToolInfo &tool)
+{
+    // name must be valid
+    if (!ValidateName(tool.name)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: name %{public}s is invalid", tool.name.c_str());
+        return false;
+    }
+
+    // version is required and must be non-empty
+    if (tool.version.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: version is empty");
+        return false;
+    }
+
+    // description is required and must be non-empty
+    if (tool.description.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: description is empty");
+        return false;
+    }
+
+    // executablePath must be valid absolute path
+    if (!ValidateExecutablePath(tool.executablePath)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: executablePath %{public}s is invalid", tool.executablePath.c_str());
+        return false;
+    }
+
+    // requirePermissions: if not empty, all items must be unique
+    if (!tool.requirePermissions.empty()) {
+        std::set<std::string> seenPerms;
+        for (const auto &perm : tool.requirePermissions) {
+            if (seenPerms.find(perm) != seenPerms.end()) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: duplicate permission %{public}s", perm.c_str());
+                return false;
+            }
+            seenPerms.insert(perm);
+        }
+    }
+
+    // inputSchema is required and must be valid JSON string
+    if (tool.inputSchema.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: inputSchema is empty");
+        return false;
+    }
+    nlohmann::json inputSchemaJson = nlohmann::json::parse(tool.inputSchema, nullptr, false);
+    if (inputSchemaJson.is_discarded()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: inputSchema is not valid JSON");
+        return false;
+    }
+
+    // outputSchema is required and must be valid JSON string
+    if (tool.outputSchema.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: outputSchema is empty");
+        return false;
+    }
+    nlohmann::json outputSchemaJson = nlohmann::json::parse(tool.outputSchema, nullptr, false);
+    if (outputSchemaJson.is_discarded()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: outputSchema is not valid JSON");
+        return false;
+    }
+
+    // argMapping is required
+    if (tool.argMapping == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: argMapping is null");
+        return false;
+    }
+    if (!ArgMapping::Validate(*tool.argMapping)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: argMapping validation failed");
+        return false;
+    }
+
+    // timeout must be > 0 and <= 1800
+    if (tool.timeout <= 0 || tool.timeout > 1800) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: timeout %{public}d is out of range (0, 1800]", tool.timeout);
+        return false;
+    }
+
+    // eventTypes: if not empty, all items must be unique
+    if (!tool.eventTypes.empty()) {
+        std::set<std::string> seenEvents;
+        for (const auto &evt : tool.eventTypes) {
+            if (seenEvents.find(evt) != seenEvents.end()) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: duplicate eventType %{public}s", evt.c_str());
+                return false;
+            }
+            seenEvents.insert(evt);
+        }
+    }
+
+    // eventSchemas: if not empty, must be valid JSON string
+    if (!tool.eventSchemas.empty()) {
+        nlohmann::json eventSchemasJson = nlohmann::json::parse(tool.eventSchemas, nullptr, false);
+        if (eventSchemasJson.is_discarded()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: eventSchemas is not valid JSON");
+            return false;
+        }
+    }
+
+    // if hasSubCommand is true, subcommands must not be empty
+    if (tool.hasSubCommand && tool.subcommands.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: hasSubCommand is true but subcommands is empty");
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace CliTool

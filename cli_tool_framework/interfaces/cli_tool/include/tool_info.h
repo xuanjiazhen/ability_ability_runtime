@@ -78,7 +78,7 @@ public:
     std::shared_ptr<ArgMapping> argMapping;
     std::vector<std::string> eventTypes;
     std::string eventSchemas;      // JSON string (map of event type to schema)
-    int32_t timeout = 30;
+    int32_t timeout = 1800;
     bool hasSubCommand = false;
     std::map<std::string, SubCommandInfo> subcommands;
 
@@ -114,6 +114,13 @@ public:
      * @brief Convert ToolInfo to JSON object
      */
     nlohmann::json ParseToJson() const;
+
+    /**
+     * @brief Validate ToolInfo fields
+     * @param tool ToolInfo to validate
+     * @return bool true if valid
+     */
+    static bool Validate(const ToolInfo &tool);
 };
 } // namespace CliTool
 } // namespace OHOS

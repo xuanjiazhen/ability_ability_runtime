@@ -1449,5 +1449,612 @@ HWTEST_F(ToolInfoTest, ToolInfo_ParseFromJson_RequiredFields_0900, TestSize.Leve
     GTEST_LOG_(INFO) << "ToolInfo_ParseFromJson_RequiredFields_0900 end";
 }
 
+// ==================== Validate Tests ====================
+
+/**
+ * @tc.name: ToolInfo_Validate_0100
+ * @tc.desc: Test ToolInfo::Validate with valid data
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0100 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-valid_tool";
+    tool.version = "1.0.0";
+    tool.description = "A valid tool";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = R"({"type": "object"})";
+    tool.outputSchema = R"({"type": "string"})";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.argMapping->type = ArgMappingType::FLAG;
+    tool.timeout = 30;
+
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0100 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_0200
+ * @tc.desc: Test ToolInfo::Validate with invalid name
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0200 start";
+
+    ToolInfo tool;
+    tool.name = "invalid_name";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0200 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_0300
+ * @tc.desc: Test ToolInfo::Validate with empty version
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0300 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0300 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_0400
+ * @tc.desc: Test ToolInfo::Validate with empty description
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0400 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0400 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_0500
+ * @tc.desc: Test ToolInfo::Validate with invalid executablePath
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0500 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0500 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_0600
+ * @tc.desc: Test ToolInfo::Validate with duplicate requirePermissions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_0600, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0600 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.requirePermissions = {"ohos.permission.INTERNET", "ohos.permission.INTERNET"};
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0600 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_0700
+ * @tc.desc: Test ToolInfo::Validate with unique requirePermissions
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_0700, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0700 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.requirePermissions = {"ohos.permission.INTERNET", "ohos.permission.CAMERA"};
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0700 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_0800
+ * @tc.desc: Test ToolInfo::Validate with empty inputSchema
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_0800, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0800 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0800 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_0900
+ * @tc.desc: Test ToolInfo::Validate with invalid inputSchema JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_0900, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0900 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "not valid json";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_0900 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1000
+ * @tc.desc: Test ToolInfo::Validate with empty outputSchema
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1000, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1000 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1000 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1100
+ * @tc.desc: Test ToolInfo::Validate with invalid outputSchema JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1100 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{invalid}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1100 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1200
+ * @tc.desc: Test ToolInfo::Validate with null argMapping
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1200 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = nullptr;
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1200 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1300
+ * @tc.desc: Test ToolInfo::Validate with invalid argMapping
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1300 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.argMapping->type = static_cast<ArgMappingType>(-1);
+    tool.timeout = 30;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1300 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1400
+ * @tc.desc: Test ToolInfo::Validate with timeout <= 0
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1400 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 0;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1400 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1500
+ * @tc.desc: Test ToolInfo::Validate with timeout > 1800
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1500 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 1801;
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1500 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1600
+ * @tc.desc: Test ToolInfo::Validate with valid timeout range
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1600, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1600 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 1;
+
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    tool.timeout = 1800;
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1600 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1700
+ * @tc.desc: Test ToolInfo::Validate with duplicate eventTypes
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1700, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1700 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+    tool.eventTypes = {"stdout", "stdout"};
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1700 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1800
+ * @tc.desc: Test ToolInfo::Validate with unique eventTypes
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1800, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1800 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+    tool.eventTypes = {"stdout", "stderr", "exit"};
+
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1800 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_1900
+ * @tc.desc: Test ToolInfo::Validate with invalid eventSchemas JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_1900, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1900 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+    tool.eventSchemas = "invalid json";
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_1900 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_2000
+ * @tc.desc: Test ToolInfo::Validate with valid eventSchemas
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_2000, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2000 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+    tool.eventSchemas = R"({"stdout": {"type": "string"}})";
+
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2000 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_2100
+ * @tc.desc: Test ToolInfo::Validate with hasSubCommand true but empty subcommands
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_2100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2100 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+    tool.hasSubCommand = true;
+    tool.subcommands = {};
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2100 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_2200
+ * @tc.desc: Test ToolInfo::Validate with hasSubCommand true and non-empty subcommands
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_2200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2200 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+    tool.hasSubCommand = true;
+
+    SubCommandInfo subCmd;
+    subCmd.description = "Test subcommand";
+    subCmd.inputSchema = "{}";
+    subCmd.outputSchema = "{}";
+    subCmd.argMapping = std::make_shared<ArgMapping>();
+    tool.subcommands["sub1"] = subCmd;
+
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2200 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_2300
+ * @tc.desc: Test ToolInfo::Validate with hasSubCommand false and empty subcommands
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_2300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2300 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-test";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.timeout = 30;
+    tool.hasSubCommand = false;
+    tool.subcommands = {};
+
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2300 end";
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_2400
+ * @tc.desc: Test ToolInfo::Validate with all valid fields
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolInfoTest, ToolInfo_Validate_2400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2400 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-full_tool";
+    tool.version = "2.0.0";
+    tool.description = "Full valid tool";
+    tool.executablePath = "/usr/bin/fulltool";
+    tool.requirePermissions = {"ohos.permission.INTERNET", "ohos.permission.CAMERA"};
+    tool.inputSchema = R"({"type": "object", "properties": {"input": {"type": "string"}}})";
+    tool.outputSchema = R"({"type": "array", "items": {"type": "string"}})";
+    tool.argMapping = std::make_shared<ArgMapping>();
+    tool.argMapping->type = ArgMappingType::POSITIONAL;
+    tool.argMapping->order = "arg1,arg2";
+    tool.timeout = 60;
+    tool.eventTypes = {"stdout", "stderr", "exit"};
+    tool.eventSchemas = R"({"stdout": {"type": "string"}, "exit": {"type": "number"}})";
+    tool.hasSubCommand = false;
+
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    GTEST_LOG_(INFO) << "ToolInfo_Validate_2400 end";
+}
+
 } // namespace CliTool
 } // namespace OHOS
