@@ -76,11 +76,11 @@ private:
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
     static sptr<CliToolManagerService> instance_;
 
-    static void sigchld_handler(int sig);
+    static void sigchld_handler(int32_t sig);
 
     void PostExecToolTask(int32_t time, const std::string &sessionId, bool isTimeout);
     void TimeIsUp(const std::string &sessionId, bool isTimeout);
-    void WaitPid(pid_t pid, int32_t status);
+    void WaitPid(pid_t pid, int32_t status, int32_t sig);
 
     std::atomic<int32_t> activeSessionCount_ = 0;
     ffrt::mutex callbackMutex_;
