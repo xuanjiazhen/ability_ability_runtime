@@ -20,6 +20,8 @@
 #include "cli_tool_manager_service.h"
 #undef private
 
+#include "ability_manager_errors.h"
+#include "arg_mapping.h"
 #include "cli_error_code.h"
 #include "exec_options.h"
 #include "tool_info.h"
@@ -70,6 +72,54 @@ void CliToolManagerServiceTest::RegisterTestTool(const std::string& name, const 
     tool.executablePath = "/system/bin/" + name;
     tool.inputSchema = schema;
     CliToolDataManager::GetInstance().RegisterTool(tool);
+}
+
+/**
+ * @tc.name: CliToolManagerService_RegisterTool_0100
+ * @tc.desc: Test RegisterTool with valid tool info
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterTool_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterTool_0100 start";
+
+    ToolInfo tool;
+    tool.name = "ohos-testtool";
+    tool.version = "1.0.0";
+    tool.description = "Test tool for unit test";
+    tool.executablePath = "/system/bin/ohos-testtool";
+    tool.timeout = 1800;
+    tool.argMapping = std::make_shared<ArgMapping>();
+
+    int32_t result = service_->RegisterTool(tool);
+
+    EXPECT_EQ(result, ERR_OK);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterTool_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_RegisterTool_0200
+ * @tc.desc: Test RegisterTool with invalid name (no prefix)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterTool_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterTool_0200 start";
+
+    ToolInfo tool;
+    tool.name = "invalidtool";
+    tool.version = "1.0.0";
+    tool.description = "Test tool for unit test";
+    tool.executablePath = "/system/bin/invalidtool";
+    tool.timeout = 1800;
+    tool.argMapping = std::make_shared<ArgMapping>();
+
+    int32_t result = service_->RegisterTool(tool);
+
+    EXPECT_EQ(result, INVALID_PARAMETERS_ERR);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterTool_0200 end";
 }
 
 /**
