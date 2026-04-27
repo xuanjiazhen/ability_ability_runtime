@@ -20,6 +20,7 @@
 #include "cli_error_code.h"
 #include "exec_tool_param.h"
 #include "hilog_tag_wrapper.h"
+#include "tool_info.h"
 #include "tool_util.h"
 
 namespace OHOS {
@@ -32,7 +33,7 @@ ProcessManager &ProcessManager::GetInstance()
 }
 
 int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std::string &sandboxConfig,
-    const std::string &executablePath, pid_t &childPid) const
+    const ToolInfo &toolInfo, pid_t &childPid) const
 {
     pid_t pid = fork();
     if (pid < 0) {
@@ -49,11 +50,11 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         execArgs.push_back(const_cast<char *>(configPrompt.c_str()));
         execArgs.push_back(const_cast<char *>(sandboxConfig.c_str()));
         execArgs.push_back(const_cast<char *>(cmdPrompt.c_str()));
-        std::string cmdLine = executablePath;
+        std::string cmdLine = toolInfo.executablePath;
         if (!param.subcommand.empty()) {
             cmdLine += " " + param.subcommand;
         }
-        ToolUtil::TransferToCmdParam(param.args, cmdLine);
+        ToolUtil::TransferToCmdParam(toolInfo, param.args, cmdLine);
         execArgs.push_back(const_cast<char *>(cmdLine.c_str()));
         TAG_LOGI(AAFwkTag::CLI_TOOL, "cmd: %{public}s", cmdLine.c_str());
         execArgs.push_back(nullptr);
