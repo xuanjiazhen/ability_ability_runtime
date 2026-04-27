@@ -13,16 +13,15 @@
  * limitations under the License.
  */
 
-sequenceable ToolInfo..OHOS.CliTool.ToolInfo;
-sequenceable OHOS.CliTool.ToolSummary;
-sequenceable ExecOptions..OHOS.CliTool.ExecOptions;
-sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
+sequenceable OHOS.CliTool.ToolSummary;
+sequenceable OHOS.IRemoteObject;
+sequenceable ToolInfo..OHOS.CliTool.ToolInfo;
 
 interface OHOS.CliTool.ICliToolManager {
     void GetAllToolSummaries([out] ToolSummary[] summaries);
     void GetToolInfoByName([in] String name, [out] ToolInfo tool);
     void GetAllToolInfos([out] ToolInfo[] tools);
     void RegisterTool([in] ToolInfo tool);
-    void ExecTool([in] ExecToolParam param, [in] OrderedMap<String, String> args, [out] CliSessionInfo session);
+    void ExecTool([in] ExecToolParam param, [in] IRemoteObject objectCallback);
 }

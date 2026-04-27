@@ -17,12 +17,14 @@
 #define OHOS_ABILITY_RUNTIME_TOOL_INFO_H
 
 #include "arg_mapping.h"
+#include "sub_command_info.h"
 #include "tool_summary.h"
 
 #include <iremote_broker.h>
 #include <iremote_object.h>
 #include <map>
 #include <memory>
+#include <nlohmann/json.hpp>
 #include <parcel.h>
 #include <string>
 #include <vector>
@@ -31,26 +33,6 @@
 
 namespace OHOS {
 namespace CliTool {
-
-/**
- * @brief Subcommand information structure
- */
-class SubCommandInfo : public Parcelable {
-public:
-    std::string description;
-    std::vector<std::string> requirePermissions;
-    std::string inputSchema;    // JSON string
-    std::string outputSchema;   // JSON string
-    std::shared_ptr<ArgMapping> argMapping;
-    std::vector<std::string> eventTypes;
-    std::string eventSchemas;   // JSON string
-
-    SubCommandInfo() = default;
-    ~SubCommandInfo() = default;
-
-    bool Marshalling(Parcel &parcel) const override;
-    static SubCommandInfo *Unmarshalling(Parcel &parcel);
-};
 
 /**
  * @brief Raw data type for IDL serialization
@@ -96,7 +78,7 @@ public:
     std::shared_ptr<ArgMapping> argMapping;
     std::vector<std::string> eventTypes;
     std::string eventSchemas;      // JSON string (map of event type to schema)
-    int32_t timeout = 0;
+    int32_t timeout = 30;
     bool hasSubCommand = false;
     std::map<std::string, SubCommandInfo> subcommands;
 
@@ -105,6 +87,33 @@ public:
 
     bool Marshalling(Parcel &parcel) const override;
     static ToolInfo *Unmarshalling(Parcel &parcel);
+
+    /**
+     * @brief Validate tool name
+     * @param name Tool name to validate
+     * @return bool true if valid
+     */
+    static bool ValidateName(const std::string &name);
+
+    /**
+     * @brief Validate executable path (must be absolute path)
+     * @param path Executable path to validate
+     * @return bool true if valid
+     */
+    static bool ValidateExecutablePath(const std::string &path);
+
+    /**
+     * @brief Parse ToolInfo from JSON object
+     * @param json Input JSON object
+     * @param tool Output ToolInfo
+     * @return bool true if parse success and required fields are valid
+     */
+    static bool ParseFromJson(const nlohmann::json &json, ToolInfo &tool);
+
+    /**
+     * @brief Convert ToolInfo to JSON object
+     */
+    nlohmann::json ParseToJson() const;
 };
 } // namespace CliTool
 } // namespace OHOS

@@ -66,6 +66,11 @@ public:
      */
     virtual int StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options, uint64_t callbackId) override;
 
+    virtual int StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken) override;
+
+    virtual int StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+        const StartOptions &options, sptr<IRemoteObject> callerToken) override;
+
     /**
      * StartAbility with want, send want to ability manager service.
      *
@@ -144,6 +149,14 @@ public:
         sptr<IRemoteObject> callerToken,
         int32_t hostPid,
         const std::string &specifiedFlag) override;
+
+    /**
+     * StartSelf, start the ability itself with token.
+     *
+     * @param token, the token of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelf(sptr<IRemoteObject> token) override;
 
     /**
      * Starts a new ability with specific start settings.

@@ -158,6 +158,11 @@ public:
     virtual int StartSelfUIAbilityWithStartOptions(const Want &want,
         const StartOptions &options) override;
 
+    virtual int StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken) override;
+
+    virtual int StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+        const StartOptions &options, sptr<IRemoteObject> callerToken) override;
+
     /**
      * Starts self UIAbility with start options and receives the process ID. Supported only on 2-in-1 devices.
      *
@@ -167,6 +172,8 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options, uint64_t callbackId) override;
+
+    int StartSelf(sptr<IRemoteObject> token) override;
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -3417,6 +3424,7 @@ private:
         Want want;
         StartOptions options;
         bool hasStartOptions = false;
+        sptr<IRemoteObject> callerToken = nullptr;
     };
     int StartSelfUIAbilityInner(StartSelfUIAbilityParam param);
 

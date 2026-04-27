@@ -22,11 +22,14 @@
 
 #include "cli_tool_manager_stub.h"
 #include "cli_tool_data_manager.h"
+#include "ffrt.h"
+#include "iremote_object.h"
 #include "system_ability.h"
 #include "system_ability_definition.h"
 
 namespace OHOS {
 namespace CliTool {
+class SessionRecord;
 class CliToolManagerService : public SystemAbility,
                         public CliToolManagerStub,
                         public std::enable_shared_from_this<CliToolManagerService> {
@@ -57,11 +60,12 @@ public:
     int32_t RegisterTool(const ToolInfo &tool) override;
 
     /**
-     * @brief Execute a CLI tool.
-     * Implements the ICliToolManager interface method.
+     * @brief Execute a CLI tool with key-value pairs (convenience method).
+     * @param param The CLI tool param.
+     * @param objectCallback The callback RemoteObject.
+     * @return Returns ERR_OK on success, error code otherwise.
      */
-    int32_t ExecTool(const ExecToolParam &param, const std::map<std::string, std::string> &args,
-        CliSessionInfo &session) override;
+    int32_t ExecTool(const ExecToolParam &param, const sptr<IRemoteObject> &objectCallback) override;
 
 protected:
     void OnStart() override;
@@ -71,7 +75,16 @@ private:
     CliToolManagerService() : SystemAbility(CLI_TOOL_MGR_SERVICE_ID, false) {};
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
     static sptr<CliToolManagerService> instance_;
+
+    static void sigchld_handler(int sig);
+
+    void PostExecToolTask(int32_t time, const std::string &sessionId, bool isTimeout);
+    void TimeIsUp(const std::string &sessionId, bool isTimeout);
+    void WaitPid(pid_t pid, int32_t status);
+
     std::atomic<int32_t> activeSessionCount_ = 0;
+    ffrt::mutex callbackMutex_;
+    std::map<std::string, std::shared_ptr<SessionRecord>> sessionCallbacks_;
 };
 
 } // namespace CliTool

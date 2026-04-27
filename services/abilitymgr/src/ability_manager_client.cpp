@@ -239,9 +239,10 @@ ErrCode AbilityManagerClient::StartAbility(const Want &want, const StartOptions 
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartAbility ability:%{public}s/%{public}s, userId:%{public}d, "
-        "appCloneIndex:%{public}d, requestCode:%{public}d", want.GetElement().GetBundleName().c_str(),
+        "appCloneIndex:%{public}d, requestCode:%{public}d, splitRatioPreference:%{public}d",
+        want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetAbilityName().c_str(), userId, want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1),
-        requestCode);
+        requestCode, startOptions.GetSplitRatioPreference());
     HandleDlpApp(const_cast<Want &>(want));
     return abms->StartAbility(want, startOptions, callerToken, userId, requestCode);
 }
@@ -479,6 +480,14 @@ ErrCode AbilityManagerClient::TerminateAbility(sptr<IRemoteObject> token, int re
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     return abms->TerminateAbility(token, resultCode, resultWant);
+}
+
+ErrCode AbilityManagerClient::StartSelf(sptr<IRemoteObject> token)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "StartSelf call");
+    return abms->StartSelf(token);
 }
 
 ErrCode AbilityManagerClient::BackToCallerAbilityWithResult(const sptr<IRemoteObject> &token, int resultCode,
@@ -2406,6 +2415,23 @@ ErrCode AbilityManagerClient::StartSelfUIAbilityWithPidResult(const Want &want,
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     return abms->StartSelfUIAbilityWithPidResult(want, options, callbackId);
+}
+
+ErrCode AbilityManagerClient::StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StartSelfUIAbilityWithToken(want, callerToken);
+}
+
+ErrCode AbilityManagerClient::StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+    const StartOptions &options, sptr<IRemoteObject> callerToken)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->StartSelfUIAbilityWithStartOptionsAndToken(want, options, callerToken);
 }
 
 void AbilityManagerClient::PrepareTerminateAbilityDone(sptr<IRemoteObject> token, bool isTerminate)

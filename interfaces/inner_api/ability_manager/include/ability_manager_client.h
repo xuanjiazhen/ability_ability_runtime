@@ -74,6 +74,11 @@ public:
      */
     ErrCode StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options, uint64_t callbackId);
 
+    ErrCode StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken);
+
+    ErrCode StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+        const StartOptions &options, sptr<IRemoteObject> callerToken);
+
     /**
      * AttachAbilityThread, ability call this interface after loaded.
      *
@@ -502,6 +507,14 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode TerminateAbility(sptr<IRemoteObject> token, int resultCode, const Want *resultWant);
+
+    /**
+     * StartSelf, start the ability itself with token.
+     *
+     * @param token, the token of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSelf(sptr<IRemoteObject> token);
 
     /**
      * BackToCallerAbilityWithResult, return to the caller ability.

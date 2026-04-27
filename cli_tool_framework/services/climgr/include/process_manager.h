@@ -32,7 +32,7 @@ public:
     ProcessManager &operator=(ProcessManager &&) = delete;
 
     int32_t CreateChildProcess(const ExecToolParam &param, const std::string &sandboxConfig,
-        const std::map<std::string, std::string> &args) const;
+        const std::string &executablePath, pid_t &childPid) const;
 
 private:
     ProcessManager() = default;

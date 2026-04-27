@@ -155,6 +155,32 @@ public:
     }
 
     /**
+     * StartSelfUIAbility with want and callerToken.
+     *
+     * @param want, the want of the ability to start.
+     * @param callerToken, the caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken)
+    {
+        return 0;
+    }
+
+    /**
+     * StartSelfUIAbility with want, startOptions and callerToken.
+     *
+     * @param want, the want of the ability to start.
+     * @param options, the startOptions of the ability to start.
+     * @param callerToken, the caller ability token.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+        const StartOptions &options, sptr<IRemoteObject> callerToken)
+    {
+        return 0;
+    }
+
+    /**
      * StartAbility with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -593,6 +619,17 @@ public:
         bool isNeedLocalDeviceId = true)
     {
         return {};
+    }
+
+    /**
+     * StartSelf, start the ability itself with token.
+     *
+     * @param token, the token of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelf(sptr<IRemoteObject> token)
+    {
+        return 0;
     }
 
     /**
