@@ -649,7 +649,7 @@ bool UIAbilityImpl::AbilityTransaction(const AAFwk::Want &want, const AAFwk::Lif
                 HandleExecuteInsightIntentForeground(want, ret);
             }
             if (ability_ != nullptr) {
-                TAG_LOGD(AAFwkTag::UIABILITY, "pageConfig size:%{public}zu", targetState.pageConfig.size());
+                TAG_LOGI(AAFwkTag::UIABILITY, "pageConfigSize:%{public}zu", targetState.pageConfig.size());
                 PageConfigManager::GetInstance().Initialize(targetState.pageConfig, ability_->GetWindow());
             }
 #endif
