@@ -2732,5 +2732,13 @@ int32_t AbilityManagerClient::SetAppRecoveryFlag(const sptr<IRemoteObject>& toke
     }
     return proxy->SetAppRecoveryFlag(token, flag);
 }
+
+ErrCode AbilityManagerClient::StartSelfUIAbilityByAppContext(const Want &want)
+{
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    HandleDlpApp(const_cast<Want &>(want));
+    return abms->StartSelfUIAbilityByAppContext(want);
+}
 } // namespace AAFwk
 } // namespace OHOS
