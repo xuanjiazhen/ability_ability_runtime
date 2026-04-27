@@ -152,7 +152,7 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const sptr<I
 
     pid_t childPid = -1;
     auto createRet =
-        ProcessManager::GetInstance().CreateChildProcess(param, sandboxConfig, toolInfo.executablePath, childPid);
+        ProcessManager::GetInstance().CreateChildProcess(param, sandboxConfig, toolInfo.executablePath, toolInfo, childPid);
     if (createRet != ERR_OK) {
         return createRet;
     }
@@ -239,16 +239,24 @@ void CliToolManagerService::TimeIsUp(const std::string &sessionId, bool isTimeou
     }
 }
 
-void CliToolManagerService::WaitPid(pid_t pid, int32_t status)
+void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
 {
     std::lock_guard<ffrt::mutex> guard(callbackMutex_);
-    for (auto iter = sessionCallbacks_.begin(); iter != sessionCallbacks_.end(); ++iter) {
-        if (iter->second == nullptr || pid != iter->second->GetPid()) {
+    for (auto iter = sessionCallbacks_.begin(); iter != sessionCallbacks_.end();) {
+        auto sessionRecord = iter->second;
+        if (sessionRecord == nullptr) {
+            iter = sessionCallbacks_.erase(iter);
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak sessionId:%{public}s", iter->first.c_str());
             continue;
         }
-        auto sessionInfo = iter->second->GetCliSessionInfo();
-        if (sessionInfo == nullptr) {
+        if (pid != sessionRecord->GetPid()) {
+            ++iter;
             continue;
+        }
+        auto sessionInfo = sessionRecord->GetCliSessionInfo();
+        if (sessionInfo == nullptr) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "cli session is nullptr of sessionId:%{public}s", iter->first.c_str());
+            return;
         }
         if (status == 0) {
             sessionInfo->status = "completed";
@@ -258,26 +266,27 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status)
         auto result = std::make_shared<ExecResult>();
         auto timestamp = std::chrono::system_clock::now().time_since_epoch();
         auto endTime = std::chrono::duration_cast<std::chrono::milliseconds>(timestamp).count();
-        result->executionTime = endTime - iter->second->GetStartTime();
+        result->executionTime = endTime - sessionRecord->GetStartTime();
         result->exitCode = status;
+        result->signalNumber = sig;
         sessionInfo->result = result;
-        auto cbProxy = sptr<IExecToolCallback>(iface_cast<IExecToolCallback>(iter->second->GetCallback()));
+        auto cbProxy = sptr<IExecToolCallback>(iface_cast<IExecToolCallback>(sessionRecord->GetCallback()));
         if (cbProxy != nullptr) {
-            cbProxy->SendResult(*(iter->second->GetCliSessionInfo()));
+            cbProxy->SendResult(*(sessionRecord->GetCliSessionInfo()));
         }
         sessionCallbacks_.erase(iter);
         break;
     }
 }
 
-void CliToolManagerService::sigchld_handler(int sig)
+void CliToolManagerService::sigchld_handler(int32_t sig)
 {
     int32_t status;
     pid_t pid;
     while ((pid = waitpid(-1, &status, WNOHANG)) > 0) {
         auto instance = CliToolManagerService::GetInstance();
         if (instance != nullptr) {
-            instance->WaitPid(pid, status);
+            instance->WaitPid(pid, status, sig);
         }
         pid_t gPid = getpgid(pid);
         TAG_LOGI(AAFwkTag::CLI_TOOL, "gPid=%{public}d", gPid);
