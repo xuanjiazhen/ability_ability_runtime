@@ -61,8 +61,8 @@ namespace AbilityRuntime {
 class Runtime;
 }
 #ifdef SUPPORT_SCREEN
-class KeyEvent;
 namespace MMI {
+class KeyEvent;
 class PointerEvent;
 }
 namespace Ace {
