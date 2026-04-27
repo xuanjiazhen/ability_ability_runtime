@@ -64,8 +64,9 @@ napi_value CreateCliManagerError(napi_env env, int32_t errCode, const std::strin
     napi_value result = nullptr;
     napi_value codeValue = AbilityRuntime::CreateJsValue(env, errCode);
     napi_value msgValue = AbilityRuntime::CreateJsValue(env, errMsg);
-    napi_status status = napi_create_error(env, codeValue, msgValue, &result);
+    napi_status status = napi_create_error(env, nullptr, msgValue, &result);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "napi_create_error returned: %{public}d", status);
+    napi_set_named_property(env, result, "code", codeValue);
     return handleEscape.Escape(result);
 }
 
