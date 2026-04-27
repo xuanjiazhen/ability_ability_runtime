@@ -112,6 +112,20 @@ public:
     virtual void OnAbilityDisconnectDone(const AppExecFwk::ElementName& element, int resultCode) {};
 };
 
+class MockRequestStartAbilityCallback : public AAFwk::RequestStartAbilityCallbackStub {
+public:
+    bool isCallbackInvoked = false;
+    bool callbackResult = false;
+
+    void OnRequestStartAbilityResult(bool result) override
+    {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "UIAbility start request result: %{public}s",
+            result ? "true" : "false");
+        isCallbackInvoked = true;
+        callbackResult = result;
+    }
+};
+
 UIAbilityRecordPtr UIAbilityLifecycleManagerTest::InitAbilityRecord()
 {
     AbilityRequest abilityRequest;
@@ -8223,6 +8237,132 @@ HWTEST_F(UIAbilityLifecycleManagerTest, BatchNotifySCBPendingActivations_Various
     
     auto result = mgr->BatchNotifySCBPendingActivations(abilitiesRequest);
     EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_SendSessionInfoToSCB_RequestCallback_0100
+ * @tc.desc: SendSessionInfoToSCB callerAbility is valid, requestCallback exists, verification callback triggered
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, SendSessionInfoToSCB_RequestCallback_0100, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(uiAbilityLifecycleManager, nullptr);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    AbilityRequest abilityRequest;
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sptr<MockRequestStartAbilityCallback> mockCallback = new MockRequestStartAbilityCallback();
+    sessionInfo->requestCallback = mockCallback;
+    sessionInfo->want.SetParam(KEY_REQUEST_ID, std::string("callback_test_01"));
+
+    abilityRequest.sessionInfo = sessionInfo;
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    UIAbilityRecordPtr callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+
+    int res = uiAbilityLifecycleManager->SendSessionInfoToSCB(callerAbility, sessionInfo);
+    EXPECT_EQ(res, ERR_OK);
+    EXPECT_TRUE(mockCallback->isCallbackInvoked);
+    EXPECT_TRUE(mockCallback->callbackResult);
+    EXPECT_FALSE(sessionInfo->want.HasParameter(KEY_REQUEST_ID));
+    uiAbilityLifecycleManager.reset();
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_SendSessionInfoToSCB_RequestCallback_0200
+ * @tc.desc: SendSessionInfoToSCB rootSceneSession and callerToken valid; verification callback triggered
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, SendSessionInfoToSCB_RequestCallback_0200, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(uiAbilityLifecycleManager, nullptr);
+
+    Rosen::SessionInfo info;
+    uiAbilityLifecycleManager->rootSceneSession_ = new Rosen::Session(info);
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    AbilityRequest abilityRequest;
+    sessionInfo->sessionToken = new Rosen::Session(info);
+
+    sptr<MockRequestStartAbilityCallback> mockCallback = new MockRequestStartAbilityCallback();
+    sessionInfo->requestCallback = mockCallback;
+    sessionInfo->want.SetParam(KEY_REQUEST_ID, std::string("callback_test_02"));
+
+    abilityRequest.sessionInfo = sessionInfo;
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    UIAbilityRecordPtr callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+    sessionInfo->callerToken = callerAbility->GetToken();
+
+    UIAbilityRecordPtr nullCaller = nullptr;
+    int res = uiAbilityLifecycleManager->SendSessionInfoToSCB(nullCaller, sessionInfo);
+
+    EXPECT_EQ(res, ERR_OK);
+    EXPECT_TRUE(mockCallback->isCallbackInvoked);
+    EXPECT_TRUE(mockCallback->callbackResult);
+    EXPECT_FALSE(sessionInfo->want.HasParameter(KEY_REQUEST_ID));
+    uiAbilityLifecycleManager.reset();
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_SendSessionInfoToSCB_RequestCallback_0300
+ * @tc.desc: SendSessionInfoToSCB requestCallback is null, no verification callback triggered, process returns normally
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, SendSessionInfoToSCB_RequestCallback_0300, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(uiAbilityLifecycleManager, nullptr);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    AbilityRequest abilityRequest;
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->want.SetParam(KEY_REQUEST_ID, std::string("callback_test_03"));
+
+    abilityRequest.sessionInfo = sessionInfo;
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    UIAbilityRecordPtr callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+
+    int res = uiAbilityLifecycleManager->SendSessionInfoToSCB(callerAbility, sessionInfo);
+    EXPECT_EQ(res, ERR_OK);
+    EXPECT_FALSE(sessionInfo->want.HasParameter(KEY_REQUEST_ID));
+    uiAbilityLifecycleManager.reset();
+}
+
+/**
+ * @tc.name: UIAbilityLifecycleManager_SendSessionInfoToSCB_RequestCallback_0400
+ * @tc.desc: SendSessionInfoToSCB convert requestCallback failed and no verification callback triggered
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, SendSessionInfoToSCB_RequestCallback_0400, TestSize.Level1)
+{
+    auto uiAbilityLifecycleManager = std::make_shared<UIAbilityLifecycleManager>();
+    ASSERT_NE(uiAbilityLifecycleManager, nullptr);
+
+    Rosen::SessionInfo info;
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    AbilityRequest abilityRequest;
+    sessionInfo->sessionToken = new Rosen::Session(info);
+    sessionInfo->requestCallback = new UIAbilityLifecycleManagerTestStub();
+    sessionInfo->want.SetParam(KEY_REQUEST_ID, std::string("callback_test_04"));
+
+    abilityRequest.sessionInfo = sessionInfo;
+    abilityRequest.appInfo.bundleName = "com.example.unittest";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    abilityRequest.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    UIAbilityRecordPtr callerAbility = UIAbilityRecord::CreateAbilityRecord(abilityRequest);
+
+    int res = uiAbilityLifecycleManager->SendSessionInfoToSCB(callerAbility, sessionInfo);
+    EXPECT_EQ(res, ERR_OK);
+    EXPECT_FALSE(sessionInfo->want.HasParameter(KEY_REQUEST_ID));
+    uiAbilityLifecycleManager.reset();
 }
 
 /**
