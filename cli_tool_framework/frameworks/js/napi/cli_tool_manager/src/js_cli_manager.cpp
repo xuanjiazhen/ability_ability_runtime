@@ -18,6 +18,7 @@
 #include <map>
 #include <string>
 
+#include "accesstoken_kit.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"
@@ -28,6 +29,7 @@
 #include "js_error_utils.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
+#include "napi/native_api.h"
 
 using namespace OHOS::AbilityRuntime;
 
@@ -39,6 +41,25 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
+constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
+
+bool CheckQueryPermission(napi_env env)
+{
+    auto tokenId = AccessToken::AccessTokenKit::GetSelfTokenID();
+    if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(tokenId)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CheckQueryPermission: Not system app");
+        ThrowError(env, ERR_NOT_SYSTEM_APP, "Caller is not system app");
+        return false;
+    }
+
+    int32_t result = AccessToken::AccessTokenKit::VerifyAccessToken(tokenId, PERMISSION_QUERY_CLI_TOOL);
+    if (result != AccessToken::PermissionState::PERMISSION_GRANTED) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CheckQueryPermission: Permission denied");
+        ThrowError(env, ERR_PERMISSION_DENIED, "Permission denied");
+        return false;
+    }
+    return true;
+}
 } // namespace
 
 void JSCliManager::Finalizer(napi_env env, void *data, void *hint)
@@ -204,6 +225,9 @@ napi_value JSCliManager::OnGetToolInfoByName(napi_env env, size_t argc, napi_val
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnGetToolInfoByName called");
     HandleEscape handleEscape(env);
+    if (!CheckQueryPermission(env)) {
+        return CreateJsUndefined(env);
+    }
     if (argc < INDEX_ONE) {
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
@@ -250,6 +274,9 @@ napi_value JSCliManager::OnQueryToolSummaries(napi_env env, size_t argc, napi_va
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnQueryToolSummaries called");
     HandleEscape handleEscape(env);
+    if (!CheckQueryPermission(env)) {
+        return CreateJsUndefined(env);
+    }
 
     auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
     auto summaries = std::make_shared<std::vector<ToolSummary>>();
@@ -288,6 +315,9 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnQueryTools called");
     HandleEscape handleEscape(env);
+    if (!CheckQueryPermission(env)) {
+        return CreateJsUndefined(env);
+    }
 
     auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
     auto tools = std::make_shared<std::vector<ToolInfo>>();
