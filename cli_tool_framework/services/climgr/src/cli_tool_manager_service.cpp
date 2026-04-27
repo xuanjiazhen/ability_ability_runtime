@@ -15,12 +15,14 @@
 
 #include "cli_tool_manager_service.h"
 
+#include "ability_manager_errors.h"
 #include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
 #include "iexec_tool_callback.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
 #include "process_manager.h"
+#include "tool_info.h"
 #include "tool_util.h"
 
 namespace OHOS {
@@ -92,6 +94,12 @@ int32_t CliToolManagerService::GetToolInfoByName(const std::string &name, ToolIn
 int32_t CliToolManagerService::RegisterTool(const ToolInfo &tool)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterTool called, tool name='%{public}s'", tool.name.c_str());
+
+    if (!ToolInfo::Validate(tool)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterTool failed: ToolInfo validation failed");
+        return INVALID_PARAMETERS_ERR;
+    }
+
     return CliToolDataManager::GetInstance().RegisterTool(tool);
 }
 
