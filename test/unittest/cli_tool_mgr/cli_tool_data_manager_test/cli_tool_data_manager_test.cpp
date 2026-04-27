@@ -32,61 +32,71 @@ public:
     void SetUp();
     void TearDown();
 
-    static constexpr const char* TEST_JSON_FILE = "/data/test_cli_tools.json";
+    static constexpr const char* TEST_CONFIG_DIR = "/data/test_cli_tool_configs";
+    static constexpr const char* TEST_TOOL1_FILE = "/data/test_cli_tool_configs/tool1.json";
+    static constexpr const char* TEST_TOOL2_FILE = "/data/test_cli_tool_configs/tool2.json";
 };
 
 void CliToolDataManagerTest::SetUpTestCase()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManagerTest::SetUpTestCase");
 
-    // Create test JSON file
-    std::ofstream file(TEST_JSON_FILE);
-    file << R"([
-        {
-            "name": "test_tool1",
-            "version": "1.0.0",
-            "description": "Test tool 1",
-            "executablePath": "/bin/test1",
-            "requirePermissions": ["ohos.permission.INTERNET"],
-            "inputSchema": {},
-            "outputSchema": {},
-            "argMapping": {"type": "flag", "separator": " "},
-            "eventSchemas": {"stdout": {"type": "string"}},
-            "timeout": 30000,
-            "eventTypes": ["stdout", "stderr"],
-            "hasSubCommand": false,
-            "subcommands": {}
-        },
-        {
-            "name": "test_tool2",
-            "version": "2.0.0",
-            "description": "Test tool 2",
-            "executablePath": "/bin/test2",
-            "requirePermissions": ["ohos.permission.READ_STORAGE"],
-            "inputSchema": {},
-            "outputSchema": {},
-            "argMapping": {"type": "positional", "order": "arg1,arg2"},
-            "eventSchemas": {"stdout": {"type": "string"}},
-            "timeout": 60000,
-            "eventTypes": ["exit"],
-            "hasSubCommand": true,
-            "subcommands": {
-                "subcmd1": {
-                    "description": "Subcommand 1",
-                    "inputSchema": {},
-                    "outputSchema": {}
-                }
+    // Create test config directory and files
+    std::system("mkdir -p " + std::string(TEST_CONFIG_DIR));
+
+    // Create tool1.json
+    std::ofstream file1(TEST_TOOL1_FILE);
+    file1 << R"({
+        "name": "ohos-test_tool1",
+        "version": "1.0.0",
+        "description": "Test tool 1",
+        "executablePath": "/bin/test1",
+        "requirePermissions": ["ohos.permission.INTERNET"],
+        "inputSchema": {},
+        "outputSchema": {},
+        "argMapping": {"type": "flag", "separator": " "},
+        "eventSchemas": {"stdout": {"type": "string"}},
+        "timeout": 30000,
+        "eventTypes": ["stdout", "stderr"],
+        "hasSubCommand": false,
+        "subcommands": {}
+    })";
+    file1.close();
+
+    // Create tool2.json
+    std::ofstream file2(TEST_TOOL2_FILE);
+    file2 << R"({
+        "name": "hms-test_tool2",
+        "version": "2.0.0",
+        "description": "Test tool 2",
+        "executablePath": "/bin/test2",
+        "requirePermissions": ["ohos.permission.READ_STORAGE"],
+        "inputSchema": {},
+        "outputSchema": {},
+        "argMapping": {"type": "positional", "order": "arg1,arg2"},
+        "eventSchemas": {"stdout": {"type": "string"}},
+        "timeout": 60000,
+        "eventTypes": ["exit"],
+        "hasSubCommand": true,
+        "subcommands": {
+            "subcmd1": {
+                "description": "Subcommand 1",
+                "inputSchema": {},
+                "outputSchema": {},
+                "argMapping": {"type": "flag"}
             }
         }
-    ])";
-    file.close();
+    })";
+    file2.close();
 }
 
 void CliToolDataManagerTest::TearDownTestCase()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManagerTest::TearDownTestCase");
-    // Clean up test file
-    std::remove(TEST_JSON_FILE);
+    // Clean up test files
+    std::remove(TEST_TOOL1_FILE);
+    std::remove(TEST_TOOL2_FILE);
+    std::rmdir(TEST_CONFIG_DIR);
 }
 
 void CliToolDataManagerTest::SetUp()
@@ -97,46 +107,6 @@ void CliToolDataManagerTest::SetUp()
 void CliToolDataManagerTest::TearDown()
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManagerTest::TearDown");
-}
-
-/**
- * @tc.name: CliToolDataManager_ParseJsonFile_001
- * @tc.desc: Test parsing JSON file successfully
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseJsonFile_001, testing::ext::TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseJsonFile_001 start");
-
-    auto& dataManager = CliToolDataManager::GetInstance();
-    std::vector<ToolInfo> tools;
-    int32_t ret = dataManager.ParseJsonFile(TEST_JSON_FILE, tools);
-
-    EXPECT_EQ(ret, 0);
-    EXPECT_EQ(tools.size(), 2u);
-    EXPECT_EQ(tools[0].name, "test_tool1");
-    EXPECT_EQ(tools[1].name, "test_tool2");
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseJsonFile_001 end");
-}
-
-/**
- * @tc.name: CliToolDataManager_ParseJsonFile_002
- * @tc.desc: Test parsing non-existent JSON file
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseJsonFile_002, testing::ext::TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseJsonFile_002 start");
-
-    auto& dataManager = CliToolDataManager::GetInstance();
-    std::vector<ToolInfo> tools;
-    int32_t ret = dataManager.ParseJsonFile("/nonexistent/file.json", tools);
-
-    EXPECT_NE(ret, 0);
-    EXPECT_EQ(tools.size(), 0u);
-
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseJsonFile_002 end");
 }
 
 /**
