@@ -18,6 +18,7 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "event_report.h"
 #include "app_utils.h"
 #include "file_uri_distribution_utils.h"
 #include "hilog_tag_wrapper.h"
