@@ -343,7 +343,7 @@ void EventReport::SendAbilityEvent(
         case EventName::START_ABILITY_SYSTEM_ERROR:
             LogSystemErrorEvent(name, type, eventInfo);
             break;
-        case EventName::START_ABILITY:
+        case EventName::START_ABILITY: // 使用已有的，然后传入自己的想要的值，和标志值
             LogStartAbilityEvent(name, type, eventInfo);
             break;
         case EventName::TERMINATE_ABILITY:
@@ -916,7 +916,7 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         "USER_DATA_SIZE",
 
         // report snapshot info
-        "SNAPSHOT_REPORT"
+        "SNAPSHOT_REPORT",
     };
     uint32_t eventIndex = static_cast<uint32_t> (eventName);
     if (eventIndex >= sizeof(eventNames) / sizeof(const char*)) {
