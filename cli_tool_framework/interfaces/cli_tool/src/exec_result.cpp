@@ -34,6 +34,9 @@ bool ExecResult::Marshalling(Parcel &parcel) const
     if (!parcel.WriteBool(timedOut)) {
         return false;
     }
+    if (!parcel.WriteBool(callerProcessDied)) {
+        return false;
+    }
     if (!parcel.WriteInt64(executionTime)) {
         return false;
     }
@@ -60,6 +63,10 @@ ExecResult *ExecResult::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
     if (!parcel.ReadBool(result->timedOut)) {
+        delete result;
+        return nullptr;
+    }
+    if (!parcel.ReadBool(result->callerProcessDied)) {
         delete result;
         return nullptr;
     }
