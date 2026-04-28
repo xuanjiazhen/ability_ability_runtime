@@ -20,12 +20,66 @@
 #include <vector>
 
 #include "cj_utils_ffi.h"
+#include "int_wrapper.h"
+#include "string_wrapper.h"
 #include "want.h"
+#include "want_params.h"
 #include "want_params_wrapper.h"
 #include "hilog_tag_wrapper.h"
 
 using OHOS::AAFwk::Want;
 using OHOS::AppExecFwk::ElementName;
+
+static const char* FD = "FD";
+static const char* TYPE_PROPERTY = "type";
+static const char* VALUE_PROPERTY = "value";
+
+static std::string ExtractFdsFromWantParams(const OHOS::AAFwk::WantParams &wantParams)
+{
+    auto paramList = wantParams.GetParams();
+    std::string result = "{";
+    bool first = true;
+    for (auto it = paramList.begin(); it != paramList.end(); it++) {
+        auto value = wantParams.GetParam(it->first);
+        OHOS::AAFwk::IWantParams *o = OHOS::AAFwk::IWantParams::Query(value);
+        if (o == nullptr) {
+            continue;
+        }
+        OHOS::AAFwk::WantParams wp = OHOS::AAFwk::WantParamWrapper::Unbox(o);
+        auto valueMap = wp.GetParams();
+        if (valueMap.size() != 2) {
+            continue;
+        }
+        auto typeIt = valueMap.find(TYPE_PROPERTY);
+        if (typeIt == valueMap.end()) {
+            continue;
+        }
+        OHOS::AAFwk::IString *strValue = OHOS::AAFwk::IString::Query(typeIt->second);
+        if (strValue == nullptr) {
+            continue;
+        }
+        std::string typeString = OHOS::AAFwk::String::Unbox(strValue);
+        if (typeString != FD) {
+            continue;
+        }
+        auto valueIt = valueMap.find(VALUE_PROPERTY);
+        if (valueIt == valueMap.end()) {
+            continue;
+        }
+        OHOS::AAFwk::IInteger *intValue = OHOS::AAFwk::IInteger::Query(valueIt->second);
+        if (intValue == nullptr) {
+            continue;
+        }
+        int32_t fdValue = OHOS::AAFwk::Integer::Unbox(intValue);
+        if (!first) {
+            result += ",";
+        }
+        result += "\"" + it->first + "\":" + std::to_string(fdValue);
+        first = false;
+    }
+    result += "}";
+    return result;
+}
 
 // Attention: The function does not handle entities.
 WantHandle FFICJWantCreateWithWantInfo(CJWantParams params)
@@ -120,4 +174,50 @@ WantHandle FFICJWantParseUri(const char* uri)
         return nullptr;
     }
     return Want::ParseUri(uri);
+}
+
+CJWantParamsV2* FFICJWantGetWantInfoV2(WantHandle want)
+{
+    CJWantParamsV2* buffer = static_cast<CJWantParamsV2*>(malloc(sizeof(CJWantParamsV2)));
+    if (buffer == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "null buffer");
+        return nullptr;
+    }
+
+    auto actualWant = reinterpret_cast<Want*>(want);
+    auto element = actualWant->GetElement();
+    ElementNameHandle elementName = new ElementName(
+        element.GetDeviceID(), element.GetBundleName(), element.GetAbilityName(), element.GetModuleName());
+    if (elementName == nullptr) {
+        free(buffer);
+        TAG_LOGE(AAFwkTag::DEFAULT, "element name null");
+        return nullptr;
+    }
+    buffer->elementName = elementName;
+    buffer->flags = actualWant->GetFlags();
+    buffer->uri = CreateCStringFromString(actualWant->GetUriString());
+    buffer->action = CreateCStringFromString(actualWant->GetAction());
+    buffer->wantType = CreateCStringFromString(actualWant->GetType());
+    buffer->entities = const_cast<std::vector<std::string>*>(&(actualWant->GetEntities()));
+    buffer->parameters = CreateCStringFromString(OHOS::AAFwk::WantParamWrapper(actualWant->GetParams()).ToString());
+    buffer->fds = CreateCStringFromString(ExtractFdsFromWantParams(actualWant->GetParams()));
+    return buffer;
+}
+
+void FFICJWantParamsDeleteV2(CJWantParamsV2* params)
+{
+    if (params == nullptr) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "argc null");
+        return;
+    }
+    auto actualElementName = reinterpret_cast<ElementName*>(params->elementName);
+    delete actualElementName;
+    actualElementName = nullptr;
+
+    free(static_cast<void*>(params->uri));
+    free(static_cast<void*>(params->action));
+    free(static_cast<void*>(params->wantType));
+    free(static_cast<void*>(params->parameters));
+    free(static_cast<void*>(params->fds));
+    free(static_cast<void*>(params));
 }

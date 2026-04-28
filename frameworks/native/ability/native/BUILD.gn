@@ -680,6 +680,7 @@ ohos_shared_library("cj_extensionkit_native") {
     ":abilitykit_utils",
     ":configuration_helper",
     ":extensionkit_native",
+    ":uiabilitykit_native",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_innerkits_path}/runtime:runtime",
