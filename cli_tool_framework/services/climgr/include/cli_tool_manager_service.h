@@ -67,6 +67,12 @@ public:
      */
     int32_t ExecTool(const ExecToolParam &param, const sptr<IRemoteObject> &objectCallback) override;
 
+    /**
+     * @brief Batch query command permissions (Inner API, for SA only).
+     */
+    int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
+        std::vector<CommandPermission> &cmdPermissions) override;
+
 protected:
     void OnStart() override;
     void OnStop() override;
@@ -81,6 +87,22 @@ private:
     void PostExecToolTask(int32_t time, const std::string &sessionId, bool isTimeout);
     void TimeIsUp(const std::string &sessionId, bool isTimeout);
     void WaitPid(pid_t pid, int32_t status);
+
+    /**
+     * @brief Execute single command permission query.
+     */
+    int32_t DoQueryPermission(const Command &cmd, std::vector<std::string> &permissions);
+
+    /**
+     * @brief Query main command permissions.
+     */
+    int32_t QueryMainCommandPermission(const std::string &toolName, std::vector<std::string> &permissions);
+
+    /**
+     * @brief Query subcommand permissions.
+     */
+    int32_t QuerySubCommandPermission(const std::string &toolName, const std::string &subCommand,
+        std::vector<std::string> &permissions);
 
     std::atomic<int32_t> activeSessionCount_ = 0;
     ffrt::mutex callbackMutex_;

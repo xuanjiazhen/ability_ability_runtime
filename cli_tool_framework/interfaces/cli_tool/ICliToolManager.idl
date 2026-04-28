@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+import ICliToolCmd;
+
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
 sequenceable OHOS.CliTool.ToolSummary;
 sequenceable OHOS.IRemoteObject;
@@ -24,4 +26,5 @@ interface OHOS.CliTool.ICliToolManager {
     void GetAllToolInfos([out] ToolInfo[] tools);
     void RegisterTool([in] ToolInfo tool);
     void ExecTool([in] ExecToolParam param, [in] IRemoteObject objectCallback);
+    void BatchQueryPermissionBySubCommand([in] List<Command> cmds, [out] List<CommandPermission> cmdPermissions);
 }
