@@ -42,7 +42,7 @@ public:
     static std::string GenerateCliSessionId(const std::string &name, std::shared_ptr<SessionRecord> record);
 
     static bool GenerateSandboxConfig(const std::string &challenge, AccessToken::AccessTokenID tokenId,
-        std::string &sandboxConfig);
+        std::string &sandboxConfig, std::string &bundleName);
 
     static void TransferToCmdParam(const AAFwk::WantParams &args, std::string &cmdLine);
 

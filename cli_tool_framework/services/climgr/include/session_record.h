@@ -25,8 +25,10 @@ namespace OHOS {
 namespace CliTool {
 class SessionRecord {
 public:
-    SessionRecord(std::shared_ptr<CliSessionInfo> sessinInfo, pid_t cliPid, sptr<IRemoteObject> callback)
+    SessionRecord(std::shared_ptr<CliSessionInfo> sessinInfo, pid_t callerPid, pid_t cliPid,
+        sptr<IRemoteObject> callback)
         : callBack_(callback),
+          callerPid_(callerPid),
           cliPid_(cliPid),
           sessinInfo_(sessinInfo) {}
     ~SessionRecord() = default;
@@ -56,8 +58,14 @@ public:
         return cliPid_;
     }
 
+    inline pid_t GetCallerPid()
+    {
+        return callerPid_;
+    }
+
 private:
     sptr<IRemoteObject> callBack_;
+    pid_t callerPid_;
     pid_t cliPid_;
     std::shared_ptr<CliSessionInfo> sessinInfo_;
     int64_t startTime_ = 0;

@@ -133,7 +133,7 @@ std::string ToolUtil::GenerateCliSessionId(const std::string &name, std::shared_
 }
 
 bool ToolUtil::GenerateSandboxConfig(const std::string &challenge, AccessToken::AccessTokenID tokenId,
-    std::string &sandboxConfig)
+    std::string &sandboxConfig, std::string &bundleName)
 {
     AppExecFwk::BundleInfo bundleInfo;
     if (!ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
@@ -148,6 +148,7 @@ bool ToolUtil::GenerateSandboxConfig(const std::string &challenge, AccessToken::
     config["gid"] = bundleInfo.gid;
     config["appId"] = bundleInfo.appId;
     sandboxConfig = config.dump();
+    bundleName = bundleInfo.name;
     TAG_LOGE(AAFwkTag::CLI_TOOL, "sandboxConfig: %{public}s", sandboxConfig.c_str());
     return true;
 }

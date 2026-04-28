@@ -28,6 +28,9 @@
 #include "system_ability_definition.h"
 
 namespace OHOS {
+namespace AppExecFwk {
+class IApplicationStateObserver;
+}
 namespace CliTool {
 class SessionRecord;
 class CliToolManagerService : public SystemAbility,
@@ -78,13 +81,17 @@ private:
 
     static void sigchld_handler(int sig);
 
-    void PostExecToolTask(int32_t time, const std::string &sessionId, bool isTimeout);
+    void PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout);
     void TimeIsUp(const std::string &sessionId, bool isTimeout);
     void WaitPid(pid_t pid, int32_t status);
+    void Killpg(pid_t pid);
+    void RegisterAppStateObserver(const std::string &bundleName, pid_t callerPid);
+    void OnProcessDied(const std::string &bundleName, pid_t diedPid);
 
     std::atomic<int32_t> activeSessionCount_ = 0;
     ffrt::mutex callbackMutex_;
     std::map<std::string, std::shared_ptr<SessionRecord>> sessionCallbacks_;
+    std::map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
 };
 
 } // namespace CliTool
