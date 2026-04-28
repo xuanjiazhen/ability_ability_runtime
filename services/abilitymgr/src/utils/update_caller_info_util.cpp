@@ -21,6 +21,7 @@
 #include "accesstoken_kit.h"
 #include "app_scheduler.h"
 #include "ams_configuration_parameter.h"
+#include "event_report.h"
 #include "dialog_session_manager.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
@@ -48,7 +49,9 @@ constexpr const char* COMPONENT_STARTUP_NEW_RULES = "component.startup.newRules"
 constexpr const char* SPECIFIED_ABILITY_FLAG = "ohos.ability.params.specifiedAbilityFlag";
 constexpr const char* SHELL_ASSISTANT_BUNDLENAME = "com.ohos.shell_assistant";
 constexpr const char* UIEXTENSION_TYPE_KEY = "ability.want.params.uiExtensionType";
+constexpr const char* HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 constexpr int32_t BROKER_UID = 5557;
+constexpr int32_t APP_INDEX_HIDE_SENSITIVE_TYPE_INVALID = 521;
 }
 
 UpdateCallerInfoUtil &UpdateCallerInfoUtil::GetInstance()
@@ -385,6 +388,16 @@ void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want)
         eventInfo.callerBundleName = callerBundleName.empty() ? std::to_string(callerUid) : callerBundleName;
         AbilityEventUtil::SendStartAbilityErrorEvent(eventInfo, AAFwk::ERR_NOT_EXPECTED_NATIVE_CALLER_NAME,
             std::string("no expected caller native name: ") + want.GetStringParam(Want::PARAM_RESV_CALLER_NATIVE_NAME));
+    }
+    auto hideSensitiveType = want.GetIntParam(HIDE_SENSITIVE_TYPE, 0);
+    if (hideSensitiveType) {
+        // Report event when non-foundation call uses non-zero hideSensitiveType
+        EventInfo eventInfo;
+        eventInfo.userId = IPCSkeleton::GetCallingUid();  // map to EVENT_KEY_USERID
+        eventInfo.calleeId = hideSensitiveType;  // map to EVENT_KEY_CALLEE_ID
+        eventInfo.bundleName = want.GetElement().GetBundleName();
+        eventInfo.appIndex = APP_INDEX_HIDE_SENSITIVE_TYPE_INVALID;  // special marker
+        EventReport::SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
     }
     want.RemoveParam(Want::PARAM_RESV_CALLER_NATIVE_NAME);
     want.RemoveParam(COMPONENT_STARTUP_NEW_RULES);
