@@ -18,6 +18,7 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "event_report.h"
 #include "app_utils.h"
 #include "file_uri_distribution_utils.h"
 #include "hilog_tag_wrapper.h"
@@ -713,6 +714,15 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermissionPrivileged(const std::ve
         callerTokenId = initiatorTokenId;
     } else {
         // hideSensitiveType is only support for foundation
+        // Report event when non-foundation call uses non-zero hideSensitiveType
+        if (hideSensitiveType != 0) {
+            EventInfo eventInfo;
+            eventInfo.callerUid = IPCSkeleton::GetCallingUid();
+            eventInfo.bundleName = targetBundleName;
+            eventInfo.hideSensitiveType = hideSensitiveType;
+            EventReport::SendHideSensitiveTypeInvalidCallEvent(
+                EventName::HIDE_SENSITIVE_TYPE_INVALID_CALL, eventInfo);
+        }
         hideSensitiveType = 0;
     }
     std::string targetAlterBundleName = targetBundleName;
