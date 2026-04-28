@@ -18,6 +18,7 @@
 #include "ability_manager_errors.h"
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
+#include "event_report.h"
 #include "app_utils.h"
 #include "file_uri_distribution_utils.h"
 #include "hilog_tag_wrapper.h"
@@ -61,6 +62,7 @@ constexpr int32_t CAPABILITY_NOT_SUPPORT = 801;
 #ifdef ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
 constexpr int32_t SANDBOX_MANAGER_PERMISSION_DENIED = 1;
 #endif // ABILITY_RUNTIME_FEATURE_SANDBOXMANAGER
+constexpr int32_t APP_INDEX_HIDE_SENSITIVE_TYPE_INVALID = 521;
 }
 
 inline int32_t UriPermissionManagerStubImpl::WrapErrorCode(int32_t errorCode, int32_t &funcRet)
@@ -713,6 +715,15 @@ ErrCode UriPermissionManagerStubImpl::GrantUriPermissionPrivileged(const std::ve
         callerTokenId = initiatorTokenId;
     } else {
         // hideSensitiveType is only support for foundation
+        // Report event when non-foundation call uses non-zero hideSensitiveType
+        if (hideSensitiveType != 0) {
+            EventInfo eventInfo;
+            eventInfo.userId = IPCSkeleton::GetCallingUid();  // map to EVENT_KEY_USERID
+            eventInfo.calleeId = hideSensitiveType;  // map to EVENT_KEY_CALLEE_ID
+            eventInfo.bundleName = targetBundleName;
+            eventInfo.appIndex = APP_INDEX_HIDE_SENSITIVE_TYPE_INVALID;  // special falg
+            EventReport::SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
+        }
         hideSensitiveType = 0;
     }
     std::string targetAlterBundleName = targetBundleName;
