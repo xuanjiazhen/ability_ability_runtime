@@ -878,6 +878,18 @@ void EventReport::SendSnapshotEvent(const EventName &eventName, const SnapshotIn
     hisyseventReport->Report("HM_KERNEL", name.c_str(), HISYSEVENT_STATISTIC);
 }
 
+void EventReport::SendShellStartAbilityEvent(const EventName &eventName, const EventInfo &eventInfo)
+{
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "invalid eventName");
+        return;
+    }
+    auto hisyseventReport = std::make_shared<HisyseventReport>(1);
+    hisyseventReport->InsertParam(EVENT_KEY_CALLER_UID, eventInfo.callerUid);
+    hisyseventReport->Report("AAFWK", name.c_str(), HISYSEVENT_BEHAVIOR);
+}
+
 std::string EventReport::ConvertEventName(const EventName &eventName)
 {
     const char* eventNames[] = {
@@ -916,7 +928,10 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         "USER_DATA_SIZE",
 
         // report snapshot info
-        "SNAPSHOT_REPORT"
+        "SNAPSHOT_REPORT",
+
+        // shell call statistics
+        "SHELL_START_ABILITY",
     };
     uint32_t eventIndex = static_cast<uint32_t> (eventName);
     if (eventIndex >= sizeof(eventNames) / sizeof(const char*)) {
