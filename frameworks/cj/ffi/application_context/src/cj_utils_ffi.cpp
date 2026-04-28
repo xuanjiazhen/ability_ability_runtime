@@ -192,6 +192,45 @@ void FreeCConfiguration(CConfiguration configuration)
     free(configuration.mnc);
 }
 
+CConfigurationV2 CreateCConfigurationV2(const OHOS::AppExecFwk::Configuration &configuration)
+{
+    CConfigurationV2 cfg;
+    cfg.language = CreateCStringFromString(configuration.GetItem(
+        OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE));
+    cfg.colorMode = ConvertColorMode(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE));
+    std::string direction = configuration.GetItem(OHOS::AppExecFwk::ConfigurationInner::APPLICATION_DIRECTION);
+    cfg.direction = ConvertDirection(direction);
+    std::string density = configuration.GetItem(OHOS::AppExecFwk::ConfigurationInner::APPLICATION_DENSITYDPI);
+    cfg.screenDensity = ConvertDensity(density);
+    cfg.displayId = ConvertDisplayId(configuration.GetItem(
+        OHOS::AppExecFwk::ConfigurationInner::APPLICATION_DISPLAYID));
+    std::string hasPointerDevice = configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::INPUT_POINTER_DEVICE);
+    cfg.hasPointerDevice = hasPointerDevice == "true" ? true : false;
+    std::string fontSizeScale = configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_FONT_SIZE_SCALE);
+    double fontSizeScaleValue = 1.0;
+    ConvertToDouble(fontSizeScale, fontSizeScaleValue);
+    cfg.fontSizeScale = fontSizeScaleValue;
+    std::string fontWeightScale = configuration.GetItem(
+        OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_FONT_WEIGHT_SCALE);
+    double fontWeightScaleValue = 1.0;
+    ConvertToDouble(fontWeightScale, fontWeightScaleValue);
+    cfg.fontWeightScale = fontWeightScaleValue;
+    cfg.mcc = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_MCC));
+    cfg.mnc = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_MNC));
+    cfg.fontId = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_FONT_ID));
+    cfg.locale = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE));
+    return cfg;
+}
+
+void FreeCConfigurationV2(CConfigurationV2 configuration)
+{
+    free(configuration.language);
+    free(configuration.mcc);
+    free(configuration.mnc);
+    free(configuration.fontId);
+    free(configuration.locale);
+}
+
 extern "C" {
 CJ_EXPORT CConfiguration OHOS_ConvertConfiguration(void* param)
 {

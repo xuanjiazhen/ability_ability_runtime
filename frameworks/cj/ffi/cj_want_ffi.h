@@ -36,12 +36,25 @@ struct CJWantParams {
     char* parameters;
 };
 
+struct CJWantParamsV2 {
+    ElementNameHandle elementName;
+    uint32_t flags;
+    char* uri;
+    char* action;
+    VectorStringHandle entities;
+    char* wantType;
+    char* parameters;
+    char* fds;
+};
+
 CJ_EXPORT void FFICJWantDelete(WantHandle want);
 CJ_EXPORT CJWantParams* FFICJWantGetWantInfo(WantHandle want);
 CJ_EXPORT void FFICJWantParamsDelete(CJWantParams* params);
 CJ_EXPORT WantHandle FFICJWantCreateWithWantInfo(CJWantParams params);
 CJ_EXPORT WantHandle FFICJWantParseUri(const char* uri);
 CJ_EXPORT void FFICJWantAddEntity(WantHandle want, const char* entity);
+CJ_EXPORT CJWantParamsV2* FFICJWantGetWantInfoV2(WantHandle want);
+CJ_EXPORT void FFICJWantParamsDeleteV2(CJWantParamsV2* params);
 };
 
 #endif // OHOS_ABILITY_RUNTIME_CJ_WANT_FFI_H
