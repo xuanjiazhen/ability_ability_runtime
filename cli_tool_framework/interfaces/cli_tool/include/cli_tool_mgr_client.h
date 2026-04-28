@@ -21,6 +21,7 @@
 #include <mutex>
 
 #include "cli_session_info.h"
+#include "command_permission.h"
 #include "exec_options.h"
 #include "icli_tool_manager.h"
 
@@ -83,6 +84,17 @@ public:
      * @return Returns ERR_OK on success, error code otherwise.
      */
     int32_t ExecTool(const ExecToolParam &param, sptr<IRemoteObject> callback);
+
+    /**
+     * @brief Batch query command permissions (Inner API, for SA only).
+     * @param cmds Command list to query.
+     * @param cmdPermissions Query result list.
+     * @return ERR_OK Success
+     *         ERR_NOT_SA_CALLER Caller is not SA
+     *         ERR_PERMISSION_DENIED Missing ohos.permission.QUERY_CLI_TOOL permission
+     */
+    int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
+        std::vector<CommandPermission> &cmdPermissions);
 
     /**
      * @brief On load system ability success.

@@ -22,6 +22,7 @@ idl_interface_sources = [
 
 idl_gen_interface("cli_tool_manager_interface") {
   src_idl = rebase_path("ICliToolManager.idl")
+  sources_common = [ "ICliToolCmd.idl" ]
   dst_file = string_join(",", idl_interface_sources)
   hitrace = "HITRACE_TAG_ABILITY_MANAGER"
   log_domainid = "0xD001365"
@@ -65,6 +66,7 @@ ohos_shared_library("cli_tool_client") {
     "src/cli_mgr_load_callback.cpp",
     "src/cli_session_info.cpp",
     "src/cli_tool_mgr_client.cpp",
+    "src/command_permission.cpp",
     "src/exec_options.cpp",
     "src/exec_result.cpp",
     "src/exec_tool_callback_impl.cpp",

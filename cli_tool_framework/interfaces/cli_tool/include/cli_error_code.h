@@ -53,19 +53,24 @@ enum {
     ERR_TOOL_NOT_EXIST = 35700005,
 
     /*
-     * Result (35700007): Fail to crate js CliSessionInfo.
+     * Result (35700006): Fail to crate js CliSessionInfo.
      */
     ERR_INNER_PARAM_INVALID = 35700006,
 
     /*
-     * Result (35700008): Permission denied.
+     * Result (35700007): Permission denied.
      */
     ERR_PERMISSION_DENIED = 35700007,
 
     /*
-     * Result (35700009): The caller is not system hap.
+     * Result (35700008): The caller is not system hap.
      */
     ERR_NOT_SYSTEM_APP = 35700008,
+
+    /*
+     * Result (35700009): The caller is not SA.
+     */
+    ERR_NOT_SA_CALLER = 35700009,
 };
 
 } // namespace CliTool
