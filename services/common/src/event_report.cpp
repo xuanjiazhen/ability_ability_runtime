@@ -82,6 +82,7 @@ constexpr const char *EVENT_IMAGE_COND = "COND";
 constexpr const char *EVENT_IMAGE_EVENT = "EVENT";
 constexpr const char *EVENT_IMAGE_REASON = "REASON";
 constexpr const char *EVENT_IMAGE_RESULT = "RESULT";
+constexpr const char *EVENT_KEY_HIDE_SENSITIVE_TYPE = "HIDE_SENSITIVE_TYPE";
 
 constexpr const int32_t DEFAULT_EXTENSION_TYPE = -1;
 }
@@ -878,6 +879,32 @@ void EventReport::SendSnapshotEvent(const EventName &eventName, const SnapshotIn
     hisyseventReport->Report("HM_KERNEL", name.c_str(), HISYSEVENT_STATISTIC);
 }
 
+void EventReport::SendShellStartAbilityEvent(const EventName &eventName, const EventInfo &eventInfo)
+{
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "invalid eventName");
+        return;
+    }
+    auto hisyseventReport = std::make_shared<HisyseventReport>(1);
+    hisyseventReport->InsertParam(EVENT_KEY_CALLER_UID, eventInfo.callerUid);
+    hisyseventReport->Report("AAFWK", name.c_str(), HISYSEVENT_BEHAVIOR);
+}
+
+void EventReport::SendHideSensitiveTypeInvalidCallEvent(const EventName &eventName, const EventInfo &eventInfo)
+{
+    std::string name = ConvertEventName(eventName);
+    if (name == INVALID_EVENT_NAME) {
+        TAG_LOGE(AAFwkTag::DEFAULT, "invalid eventName");
+        return;
+    }
+    auto hisyseventReport = std::make_shared<HisyseventReport>(3);
+    hisyseventReport->InsertParam(EVENT_KEY_CALLER_UID, eventInfo.callerUid);
+    hisyseventReport->InsertParam(EVENT_KEY_BUNDLE_NAME, eventInfo.bundleName);
+    hisyseventReport->InsertParam(EVENT_KEY_HIDE_SENSITIVE_TYPE, eventInfo.hideSensitiveType);
+    hisyseventReport->Report("AAFWK", name.c_str(), HISYSEVENT_BEHAVIOR);
+}
+
 std::string EventReport::ConvertEventName(const EventName &eventName)
 {
     const char* eventNames[] = {
@@ -916,7 +943,13 @@ std::string EventReport::ConvertEventName(const EventName &eventName)
         "USER_DATA_SIZE",
 
         // report snapshot info
-        "SNAPSHOT_REPORT"
+        "SNAPSHOT_REPORT",
+
+        // shell call statistics
+        "SHELL_START_ABILITY",
+
+        // system api parameter violation
+        "HIDE_SENSITIVE_TYPE_INVALID_CALL",
     };
     uint32_t eventIndex = static_cast<uint32_t> (eventName);
     if (eventIndex >= sizeof(eventNames) / sizeof(const char*)) {
