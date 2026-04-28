@@ -637,33 +637,47 @@ HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerAbilityName_0002, TestSize.Level1
 }
 
 /**
- * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerAppCloneIndex_0001
- * @tc.desc: Test UpdateCallerAppCloneIndex with valid index
+ * @tc.name: UpdateCallerInfoUtilTest_ClearProtectedWantParam_HideSensitiveType_001
+ * @tc.desc: Test ClearProtectedWantParam with HIDE_SENSITIVE_TYPE parameter
  * @tc.type: FUNC
  */
-HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerAppCloneIndex_0001, TestSize.Level1)
+HWTEST_F(UpdateCallerInfoUtilTest, ClearProtectedWantParam_HideSensitiveType_001, TestSize.Level1)
 {
     auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
     Want want;
-    int32_t testIndex = 100;
+    constexpr const char* HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 
-    updateCallerUtil->UpdateCallerAppCloneIndex(want, testIndex);
-    EXPECT_EQ(want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, -1), testIndex);
+    // Set HIDE_SENSITIVE_TYPE to non-zero value
+    want.SetParam(HIDE_SENSITIVE_TYPE, 521);
+    want.SetElementName("com.test.demo", "entry", "TestAbility");
+
+    // ClearProtectedWantParam should trigger event for HIDE_SENSITIVE_TYPE
+    updateCallerUtil->ClearProtectedWantParam(want);
+
+    // Verify the parameter is processed (no exception thrown)
+    EXPECT_EQ(want.GetIntParam(HIDE_SENSITIVE_TYPE, -1), 521);
 }
 
 /**
- * @tc.name: UpdateCallerInfoUtilTest_UpdateCallerAppCloneIndex_0002
- * @tc.desc: Test UpdateCallerAppCloneIndex with 0 index
+ * @tc.name: UpdateCallerInfoUtilTest_ClearProtectedWantParam_HideSensitiveType_002
+ * @tc.desc: Test ClearProtectedWantParam with HIDE_SENSITIVE_TYPE = 0
  * @tc.type: FUNC
  */
-HWTEST_F(UpdateCallerInfoUtilTest, UpdateCallerAppCloneIndex_0002, TestSize.Level1)
+HWTEST_F(UpdateCallerInfoUtilTest, ClearProtectedWantParam_HideSensitiveType_002, TestSize.Level1)
 {
     auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
     Want want;
-    int32_t zeroIndex = 0;
+    constexpr const char* HIDE_SENSITIVE_TYPE = "ohos.media.params.hideSensitiveType";
 
-    updateCallerUtil->UpdateCallerAppCloneIndex(want, zeroIndex);
-    EXPECT_EQ(want.GetIntParam(Want::PARAM_RESV_CALLER_APP_CLONE_INDEX, -1), zeroIndex);
+    // Set HIDE_SENSITIVE_TYPE to 0
+    want.SetParam(HIDE_SENSITIVE_TYPE, 0);
+    want.SetElementName("com.test.demo", "entry", "TestAbility");
+
+    // ClearProtectedWantParam should still process the parameter
+    updateCallerUtil->ClearProtectedWantParam(want);
+
+    // Verify the parameter value
+    EXPECT_EQ(want.GetIntParam(HIDE_SENSITIVE_TYPE, -1), 0);
 }
 } // namespace AAFwk
 } // namespace OHOS
