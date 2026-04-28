@@ -79,7 +79,7 @@ ErrCode CliToolMGRClient::EnsureSchedulerRegistered()
         return ERR_OK;
     }
     if (schedulerStub_ == nullptr) {
-        schedulerStub_ = sptr<ICliToolManagerScheduler>(new (std::nothrow) CliToolManagerSchedulerRecipient());
+        schedulerStub_ = sptr<ICliToolManagerScheduler>::MakeSptr();
         if (schedulerStub_ == nullptr) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "EnsureSchedulerRegistered prerequisites are missing");
             return ERR_NO_INIT;
