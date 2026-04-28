@@ -36,6 +36,21 @@ struct CConfiguration {
     char* mnc;
 };
 
+struct CConfigurationV2 {
+    char* language;
+    int32_t colorMode;
+    int32_t direction;
+    int32_t screenDensity;
+    int32_t displayId;
+    bool hasPointerDevice;
+    double fontSizeScale;
+    double fontWeightScale;
+    char* mcc;
+    char* mnc;
+    char* fontId;
+    char* locale;
+};
+
 struct CArrString {
     char** head;
     int64_t size;
@@ -58,6 +73,8 @@ struct CArrProcessInformation {
 
 CConfiguration CreateCConfiguration(const OHOS::AppExecFwk::Configuration &configuration);
 void FreeCConfiguration(CConfiguration configuration);
+CConfigurationV2 CreateCConfigurationV2(const OHOS::AppExecFwk::Configuration &configuration);
+void FreeCConfigurationV2(CConfigurationV2 configuration);
 }
 }
 
