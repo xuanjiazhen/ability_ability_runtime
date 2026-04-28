@@ -16,6 +16,7 @@
 #include "permission_verification.h"
 
 #include "ability_manager_errors.h"
+#include "event_report.h"
 #include "accesstoken_kit.h"
 #include "hilog_tag_wrapper.h"
 #include "permission_constants.h"
@@ -432,6 +433,13 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
     if (specifyTokenId == 0 &&
         SupportSystemAbilityPermission::IsSupportSaCallPermission()) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Support SA call");
+        // Only report when: 1) shell call, 2) ability is invisible (exported=false)
+        if (IsShellCall() && !verificationInfo.visible) {
+            EventInfo eventInfo;
+            eventInfo.userId = IPCSkeleton::GetCallingUid(); // map to EVENT_KEY_USERID
+            eventInfo.appIndex = 520;  // special flag
+            EventReport::SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
+        }
         return ERR_OK;
     }
     if (!isCallByShortcut &&
