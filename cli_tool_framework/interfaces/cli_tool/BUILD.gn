@@ -22,6 +22,7 @@ idl_interface_sources = [
 
 idl_gen_interface("cli_tool_manager_interface") {
   src_idl = rebase_path("ICliToolManager.idl")
+  sources_common = [ "ICliToolCmd.idl" ]
   dst_file = string_join(",", idl_interface_sources)
   hitrace = "HITRACE_TAG_ABILITY_MANAGER"
   log_domainid = "0xD001365"

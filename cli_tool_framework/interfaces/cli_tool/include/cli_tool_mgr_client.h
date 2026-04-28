@@ -85,6 +85,17 @@ public:
     int32_t ExecTool(const ExecToolParam &param, sptr<IRemoteObject> callback);
 
     /**
+     * @brief Batch query command permissions (Inner API, for SA only).
+     * @param cmds Command list to query.
+     * @param cmdPermissions Query result list.
+     * @return ERR_OK Success
+     *         ERR_NOT_SA_CALLER Caller is not SA
+     *         ERR_PERMISSION_DENIED Missing ohos.permission.QUERY_CLI_TOOL permission
+     */
+    int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
+        std::vector<CommandPermission> &cmdPermissions);
+
+    /**
      * @brief On load system ability success.
      * @param remoteObject The remote object of system ability.
      */
