@@ -17,6 +17,7 @@
 
 #include "ability_manager_errors.h"
 #include "accesstoken_kit.h"
+#include "event_report.h"
 #include "hilog_tag_wrapper.h"
 #include "permission_constants.h"
 #include "server_constant.h"
@@ -33,6 +34,7 @@ namespace {
 const int32_t SHELL_START_EXTENSION_FLOOR = 0; // FORM
 const int32_t SHELL_START_EXTENSION_CEIL = 21; // EMBEDDED_UI
 const int32_t TOKEN_ID_BIT_SIZE = 32;
+const int32_t APP_INDEX_SHELL_BYPASS_INVISIBLE = 520;
 const std::string FOUNDATION_PROCESS_NAME = "foundation";
 const std::set<std::string> OBSERVER_NATIVE_CALLER = {
     "memmgrservice",
@@ -432,6 +434,13 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
     if (specifyTokenId == 0 &&
         SupportSystemAbilityPermission::IsSupportSaCallPermission()) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Support SA call");
+        // Only report when: 1) shell call, 2) ability is invisible (exported=false)
+        if (IsShellCall() && !verificationInfo.visible) {
+            EventInfo eventInfo;
+            eventInfo.userId = IPCSkeleton::GetCallingUid(); // map to EVENT_KEY_USERID
+            eventInfo.appIndex = APP_INDEX_SHELL_BYPASS_INVISIBLE;  // special falg
+            EventReport::SendAbilityEvent(EventName::START_ABILITY, HISYSEVENT_BEHAVIOR, eventInfo);
+        }
         return ERR_OK;
     }
     if (!isCallByShortcut &&
