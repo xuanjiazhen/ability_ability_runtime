@@ -73,6 +73,7 @@ struct EventInfo {
     int32_t calleeId = -1;
     bool isPreload = false;
     bool shouldKillForeground = true;
+    int32_t hideSensitiveType = 0;
 };
 
 struct SnapshotInfo {
@@ -167,7 +168,13 @@ enum class EventName {
     USER_DATA_SIZE,
 
     // report snapshot info
-    SNAPSHOT_REPORT
+    SNAPSHOT_REPORT,
+
+    // shell call statistics
+    SHELL_START_ABILITY,
+
+    // system api parameter violation
+    HIDE_SENSITIVE_TYPE_INVALID_CALL,
 };
 
 typedef enum {
@@ -205,6 +212,8 @@ public:
     static void SendAppStartupErrorEvent(
         const EventName &eventName, HiSysEventEventType type, const EventInfo &eventInfo);
     static void SendSnapshotEvent(const EventName &eventName, const SnapshotInfo &snapshotInfo);
+    static void SendShellStartAbilityEvent(const EventName &eventName, const EventInfo &eventInfo);
+    static void SendHideSensitiveTypeInvalidCallEvent(const EventName &eventName, const EventInfo &eventInfo);
 
 private:
     static std::string ConvertEventName(const EventName &eventName);

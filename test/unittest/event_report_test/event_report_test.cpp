@@ -97,6 +97,9 @@ HWTEST_F(EventReportTest, ConvertEventName_0100, TestSize.Level2)
     EXPECT_EQ(EventReport::ConvertEventName(EventName::SHARE_UNPRIVILEGED_FILE_URI),
         "SHARE_UNPRIVILEGED_FILE_URI");
     EXPECT_EQ(EventReport::ConvertEventName(EventName::USER_DATA_SIZE), "USER_DATA_SIZE");
+    EXPECT_EQ(EventReport::ConvertEventName(EventName::SHELL_START_ABILITY), "SHELL_START_ABILITY");
+    EXPECT_EQ(EventReport::ConvertEventName(EventName::HIDE_SENSITIVE_TYPE_INVALID_CALL),
+        "HIDE_SENSITIVE_TYPE_INVALID_CALL");
 }
 
 /**
@@ -732,6 +735,44 @@ HWTEST_F(EventReportTest, SendReportDataPartitionUsageEvent_0100, TestSize.Level
     eventName = EventName::USER_DATA_SIZE;
     EXPECT_EQ(EventReport::ConvertEventName(eventName), "USER_DATA_SIZE");
     EventReport::SendReportDataPartitionUsageEvent(eventName, HISYSEVENT_STATISTIC, eventInfo);
+}
+
+/**
+ * @tc.name: SendShellStartAbilityEvent_0100
+ * @tc.desc: Check SendShellStartAbilityEvent Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventReportTest, SendShellStartAbilityEvent_0100, TestSize.Level2)
+{
+    EventName eventName = static_cast<EventName>(-1);
+    EXPECT_EQ(EventReport::ConvertEventName(eventName), "INVALIDEVENTNAME");
+    EventInfo eventInfo;
+    EventReport::SendShellStartAbilityEvent(eventName, eventInfo);
+
+    eventName = EventName::SHELL_START_ABILITY;
+    EXPECT_EQ(EventReport::ConvertEventName(eventName), "SHELL_START_ABILITY");
+    eventInfo.callerUid = 1314;
+    EventReport::SendShellStartAbilityEvent(eventName, eventInfo);
+}
+
+/**
+ * @tc.name: SendHideSensitiveTypeInvalidCallEvent_0100
+ * @tc.desc: Check SendHideSensitiveTypeInvalidCallEvent Test
+ * @tc.type: FUNC
+ */
+HWTEST_F(EventReportTest, SendHideSensitiveTypeInvalidCallEvent_0100, TestSize.Level2)
+{
+    EventName eventName = static_cast<EventName>(-1);
+    EXPECT_EQ(EventReport::ConvertEventName(eventName), "INVALIDEVENTNAME");
+    EventInfo eventInfo;
+    EventReport::SendHideSensitiveTypeInvalidCallEvent(eventName, eventInfo);
+
+    eventName = EventName::HIDE_SENSITIVE_TYPE_INVALID_CALL;
+    EXPECT_EQ(EventReport::ConvertEventName(eventName), "HIDE_SENSITIVE_TYPE_INVALID_CALL");
+    eventInfo.callerUid = 1314;
+    eventInfo.bundleName = "com.hideSensitiveType.app";
+    eventInfo.hideSensitiveType = 4;
+    EventReport::SendHideSensitiveTypeInvalidCallEvent(eventName, eventInfo);
 }
 }  // namespace AAFwk
 }  // namespace OHOS
