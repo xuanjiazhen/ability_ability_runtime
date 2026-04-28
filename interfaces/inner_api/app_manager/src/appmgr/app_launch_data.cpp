@@ -102,42 +102,42 @@ bool AppLaunchData::Marshalling(Parcel &parcel) const
 bool AppLaunchData::MarshallingExtend(Parcel &parcel) const
 {
     if (!parcel.WriteBool(isMultiThread_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write is multi thread flag.");
         return false;
     }
 
     if (!parcel.WriteBool(isErrorInfoEnhance_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Failed to write is error info enhance flag.");
         return false;
     }
 
     if (!parcel.WriteString(instanceKey_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write instance key.");
         return false;
     }
 
     if (!parcel.WriteBool(isNeedPreloadModule_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write is need preload module.");
         return false;
     }
 
     if (!parcel.WriteInt32(static_cast<int32_t>(appPreloadMode_))) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write app preload mode");
         return false;
     }
 
     if (!parcel.WriteBool(isAllowedNWebPreload_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write isAllowedNWebPreload.");
         return false;
     }
 
     if (!parcel.WriteString(preloadModuleName_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write preloadModuleName.");
         return false;
     }
 
     if (!parcel.WriteBool(isDebugFromLocal_)) {
-        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write isDebugFromLocal");
+        return false;
+    }
+    if (!parcel.WriteBool(isArkChildProcessSupported_)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write isArkChildProcessSupported");
+        return false;
+    }
+    if (!parcel.WriteBool(isNativeChildProcessSupported_)) {
+        TAG_LOGE(AAFwkTag::APPMGR, "Marshalling, Failed to write isNativeChildProcessSupported");
         return false;
     }
     bool hasStartupTaskData = startupTaskData_ ? true : false;
@@ -160,20 +160,17 @@ bool AppLaunchData::ReadFromParcel(Parcel &parcel)
 {
     std::unique_ptr<ApplicationInfo> applicationInfoRead(parcel.ReadParcelable<ApplicationInfo>());
     if (!applicationInfoRead) {
-        TAG_LOGE(AAFwkTag::APPMGR, "failed, applicationInfoRead is nullptr");
         return false;
     }
     applicationInfo_ = *applicationInfoRead;
     std::unique_ptr<Profile> profileRead(parcel.ReadParcelable<Profile>());
     if (!profileRead) {
-        TAG_LOGE(AAFwkTag::APPMGR, "failed, profileRead is nullptr");
         return false;
     }
     profile_ = *profileRead;
 
     std::unique_ptr<ProcessInfo> processInfoRead(parcel.ReadParcelable<ProcessInfo>());
     if (!processInfoRead) {
-        TAG_LOGE(AAFwkTag::APPMGR, "failed, processInfoRead is nullptr");
         return false;
     }
     processInfo_ = *processInfoRead;
@@ -185,7 +182,6 @@ bool AppLaunchData::ReadFromParcel(Parcel &parcel)
     if (valid) {
         userTestRecord_ = std::shared_ptr<UserTestRecord>(parcel.ReadParcelable<UserTestRecord>());
         if (!userTestRecord_) {
-            TAG_LOGE(AAFwkTag::APPMGR, "failed, userTestRecord is nullptr");
             return false;
         }
     }
@@ -203,6 +199,8 @@ bool AppLaunchData::ReadFromParcel(Parcel &parcel)
     isAllowedNWebPreload_ = parcel.ReadBool();
     preloadModuleName_ = parcel.ReadString();
     isDebugFromLocal_ = parcel.ReadBool();
+    isArkChildProcessSupported_ = parcel.ReadBool();
+    isNativeChildProcessSupported_ = parcel.ReadBool();
     if (!ReadStartupTaskDataFromParcel(parcel)) {
         return false;
     }
