@@ -69,12 +69,10 @@ int32_t ToolUtil::ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &pa
         return ERR_INVALID_PARAM;
     }
 
+    // Use default timeout if not specified
     if (param.options.timeout == 0) {
-        param.options.timeout = toolInfo.timeout;
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "use toolInfo timeout");
-    } else if (param.options.timeout > toolInfo.timeout) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Excessively large timeout");
-        return ERR_INVALID_PARAM;
+        param.options.timeout = DEFAULT_TIMEOUT;
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "use default timeout");
     }
 
     if (!param.options.background) {
