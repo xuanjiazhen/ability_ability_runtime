@@ -70,6 +70,11 @@ enum {
     ERR_CLI_SESSION_NOT_FOUND = 35700009,
 
     ERR_CLI_SEND_MESSAGE = 35700010,
+
+    /*
+     * Result (35700011): Tool name not found.
+     */
+    ERR_NAME_NOT_FOUND = 35700011,
 };
 
 } // namespace CliTool

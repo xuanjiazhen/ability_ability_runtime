@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include "arg_mapping.h"
+#include "cli_error_code.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {
@@ -33,7 +34,6 @@ constexpr int32_t ERR_NO_INIT = -1;
 constexpr int32_t ERR_FILE_NOT_FOUND = -2;
 constexpr int32_t ERR_JSON_PARSE_FAILED = -3;
 constexpr int32_t ERR_KVSTORE_NOT_READY = -4;
-constexpr int32_t ERR_NAME_NOT_FOUND = -5;
 constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
 
