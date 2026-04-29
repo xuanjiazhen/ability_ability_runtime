@@ -53,6 +53,86 @@ MoVariantStorage CreateDefaultVariantStorage(OH_AbilityRuntime_MoDispatcher_Valu
     }
     return storage;
 }
+
+// Deep copy a MoVariantStorage into another. Handles strings and nested containers recursively.
+AbilityRuntime_ErrorCode DeepCopyStorage(const MoVariantStorage& src, MoVariantStorage& dst)
+{
+    dst.value = src.value;
+    dst.stringStorage.clear();
+    if (src.value.vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRING) {
+        dst.stringStorage = src.stringStorage;
+        dst.value.u.bstrVal = const_cast<char*>(dst.stringStorage.c_str());
+    } else if (src.value.vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ARRAY && src.value.u.parrayVal != nullptr) {
+        auto* oldArray = src.value.u.parrayVal;
+        auto* newArray = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Array();
+        if (newArray == nullptr) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        newArray->elementTypeInfo = oldArray->elementTypeInfo;
+        newArray->elements.reserve(oldArray->elements.size());
+        for (const auto& elem : oldArray->elements) {
+            MoVariantStorage elemCopy;
+            auto ret = DeepCopyStorage(elem, elemCopy);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) { delete newArray; return ret; }
+            newArray->elements.emplace_back(std::move(elemCopy));
+        }
+        dst.value.u.parrayVal = newArray;
+    } else if (src.value.vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VECTOR && src.value.u.pvectorVal != nullptr) {
+        auto* oldVector = src.value.u.pvectorVal;
+        auto* newVector = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Vector();
+        if (newVector == nullptr) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        newVector->elementTypeInfo = oldVector->elementTypeInfo;
+        newVector->elements.reserve(oldVector->elements.size());
+        for (const auto& elem : oldVector->elements) {
+            MoVariantStorage elemCopy;
+            auto ret = DeepCopyStorage(elem, elemCopy);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) { delete newVector; return ret; }
+            newVector->elements.emplace_back(std::move(elemCopy));
+        }
+        dst.value.u.pvectorVal = newVector;
+    } else if (src.value.vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_SET && src.value.u.psetVal != nullptr) {
+        auto* oldSet = src.value.u.psetVal;
+        auto* newSet = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Set();
+        if (newSet == nullptr) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        newSet->elementTypeInfo = oldSet->elementTypeInfo;
+        newSet->elements.reserve(oldSet->elements.size());
+        for (const auto& elem : oldSet->elements) {
+            MoVariantStorage elemCopy;
+            auto ret = DeepCopyStorage(elem, elemCopy);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) { delete newSet; return ret; }
+            newSet->elements.emplace_back(std::move(elemCopy));
+        }
+        dst.value.u.psetVal = newSet;
+    } else if (src.value.vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_MAP && src.value.u.pmapVal != nullptr) {
+        auto* oldMap = src.value.u.pmapVal;
+        auto* newMap = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Map();
+        if (newMap == nullptr) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        newMap->keyType = oldMap->keyType;
+        newMap->valueTypeInfo = oldMap->valueTypeInfo;
+        newMap->entries.reserve(oldMap->entries.size());
+        for (const auto& entry : oldMap->entries) {
+            std::pair<MoVariantStorage, MoVariantStorage> entryCopy;
+            auto ret = DeepCopyStorage(entry.first, entryCopy.first);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) { delete newMap; return ret; }
+            ret = DeepCopyStorage(entry.second, entryCopy.second);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) { delete newMap; return ret; }
+            newMap->entries.emplace_back(std::move(entryCopy));
+        }
+        dst.value.u.pmapVal = newMap;
+    } else if (src.value.vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRUCT && src.value.u.pstructVal != nullptr) {
+        auto* oldStruct = src.value.u.pstructVal;
+        auto* newStruct = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Struct();
+        if (newStruct == nullptr) return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        newStruct->name = oldStruct->name;
+        newStruct->fieldTypes = oldStruct->fieldTypes;
+        for (const auto& field : oldStruct->fields) {
+            MoVariantStorage fieldCopy;
+            auto ret = DeepCopyStorage(field.second, fieldCopy);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) { delete newStruct; return ret; }
+            newStruct->fields[field.first] = std::move(fieldCopy);
+        }
+        dst.value.u.pstructVal = newStruct;
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
 } // namespace
 
 AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::ArrayCreate(
@@ -89,12 +169,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::ArrayGetElementType(
     if (pArray->elementTypeInfo == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
-    auto* cType = pArray->elementTypeInfo->ToCTypeInfo();
-    if (cType == nullptr) {
-        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
-    }
-    *pElementType = *cType;
-    delete cType;
+    pArray->elementTypeInfo->FillCTypeInfo(pElementType);
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
@@ -183,12 +258,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::VectorGetElementType(
     if (pVector->elementTypeInfo == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
-    auto* cType = pVector->elementTypeInfo->ToCTypeInfo();
-    if (cType == nullptr) {
-        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
-    }
-    *pElementType = *cType;
-    delete cType;
+    pVector->elementTypeInfo->FillCTypeInfo(pElementType);
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
@@ -279,12 +349,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::SetGetElementType(
     if (pSet->elementTypeInfo == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
-    auto* cType = pSet->elementTypeInfo->ToCTypeInfo();
-    if (cType == nullptr) {
-        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
-    }
-    *pElementType = *cType;
-    delete cType;
+    pSet->elementTypeInfo->FillCTypeInfo(pElementType);
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
@@ -415,12 +480,7 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::MapGetValueType(
     if (pMap->valueTypeInfo == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
-    auto* cType = pMap->valueTypeInfo->ToCTypeInfo();
-    if (cType == nullptr) {
-        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
-    }
-    *pValueType = *cType;
-    delete cType;
+    pMap->valueTypeInfo->FillCTypeInfo(pValueType);
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
@@ -673,6 +733,11 @@ void MoDispatcherComplexTypeManager::Variant_Clear(OH_AbilityRuntime_MoDispatche
     pVariant->vt = OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_EMPTY;
 }
 
+void MoDispatcherComplexTypeManager::TypeInfo_Clear(OH_AbilityRuntime_MoDispatcher_TypeInfo* pTypeInfo)
+{
+    MoTypeInfo::ClearCTypeInfo(pTypeInfo);
+}
+
 AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::StoreVariant(
     const OH_AbilityRuntime_MoDispatcher_Variant* src, MoVariantStorage* dst)
 {
@@ -696,9 +761,140 @@ AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::LoadVariant(const MoVar
     }
     *dst = src.value;
     if (dst->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRING) {
-        dst->u.bstrVal = const_cast<char*>(src.stringStorage.c_str());
+        // Deep copy: allocate new string so caller can safely Variant_Clear
+        const char* srcStr = src.stringStorage.c_str();
+        size_t len = src.stringStorage.size();
+        auto* mem = static_cast<char*>(std::malloc(len + 1));
+        if (mem == nullptr) {
+            TAG_LOGE(AAFwkTag::EXT, "LoadVariant: malloc failed for string, len=%{public}zu", len);
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        if (strcpy_s(mem, len + 1, srcStr) != EOK) {
+            std::free(mem);
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        dst->u.bstrVal = mem;
+    } else if (dst->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ARRAY && dst->u.parrayVal != nullptr) {
+        // Deep copy: create a new array with copies of all elements
+        auto* oldArray = dst->u.parrayVal;
+        auto* newArray = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Array();
+        if (newArray == nullptr) {
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        newArray->elementTypeInfo = oldArray->elementTypeInfo;
+        newArray->elements.reserve(oldArray->elements.size());
+        for (const auto& elem : oldArray->elements) {
+            MoVariantStorage copy;
+            auto ret = DeepCopyStorage(elem, copy);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                delete newArray;
+                dst->u.parrayVal = nullptr;
+                return ret;
+            }
+            newArray->elements.emplace_back(std::move(copy));
+        }
+        dst->u.parrayVal = newArray;
+    } else if (dst->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VECTOR && dst->u.pvectorVal != nullptr) {
+        auto* oldVector = dst->u.pvectorVal;
+        auto* newVector = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Vector();
+        if (newVector == nullptr) {
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        newVector->elementTypeInfo = oldVector->elementTypeInfo;
+        newVector->elements.reserve(oldVector->elements.size());
+        for (const auto& elem : oldVector->elements) {
+            MoVariantStorage copy;
+            auto ret = DeepCopyStorage(elem, copy);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                delete newVector;
+                dst->u.pvectorVal = nullptr;
+                return ret;
+            }
+            newVector->elements.emplace_back(std::move(copy));
+        }
+        dst->u.pvectorVal = newVector;
+    } else if (dst->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_SET && dst->u.psetVal != nullptr) {
+        auto* oldSet = dst->u.psetVal;
+        auto* newSet = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Set();
+        if (newSet == nullptr) {
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        newSet->elementTypeInfo = oldSet->elementTypeInfo;
+        newSet->elements.reserve(oldSet->elements.size());
+        for (const auto& elem : oldSet->elements) {
+            MoVariantStorage copy;
+            auto ret = DeepCopyStorage(elem, copy);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                delete newSet;
+                dst->u.psetVal = nullptr;
+                return ret;
+            }
+            newSet->elements.emplace_back(std::move(copy));
+        }
+        dst->u.psetVal = newSet;
+    } else if (dst->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_MAP && dst->u.pmapVal != nullptr) {
+        auto* oldMap = dst->u.pmapVal;
+        auto* newMap = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Map();
+        if (newMap == nullptr) {
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        newMap->keyType = oldMap->keyType;
+        newMap->valueTypeInfo = oldMap->valueTypeInfo;
+        newMap->entries.reserve(oldMap->entries.size());
+        for (const auto& entry : oldMap->entries) {
+            std::pair<MoVariantStorage, MoVariantStorage> copy;
+            auto ret = DeepCopyStorage(entry.first, copy.first);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                delete newMap;
+                dst->u.pmapVal = nullptr;
+                return ret;
+            }
+            ret = DeepCopyStorage(entry.second, copy.second);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                delete newMap;
+                dst->u.pmapVal = nullptr;
+                return ret;
+            }
+            newMap->entries.emplace_back(std::move(copy));
+        }
+        dst->u.pmapVal = newMap;
+    } else if (dst->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRUCT && dst->u.pstructVal != nullptr) {
+        auto* oldStruct = dst->u.pstructVal;
+        auto* newStruct = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_Struct();
+        if (newStruct == nullptr) {
+            return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        }
+        newStruct->name = oldStruct->name;
+        newStruct->fieldTypes = oldStruct->fieldTypes;
+        for (const auto& field : oldStruct->fields) {
+            MoVariantStorage copy;
+            auto ret = DeepCopyStorage(field.second, copy);
+            if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+                delete newStruct;
+                dst->u.pstructVal = nullptr;
+                return ret;
+            }
+            newStruct->fields[field.first] = std::move(copy);
+        }
+        dst->u.pstructVal = newStruct;
     }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::DeepCopyVariant(
+    const OH_AbilityRuntime_MoDispatcher_Variant* src, OH_AbilityRuntime_MoDispatcher_Variant* dst)
+{
+    if (src == nullptr || dst == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    // Wrap the source in a temporary MoVariantStorage and delegate to LoadVariant
+    MoVariantStorage tempStorage;
+    tempStorage.value = *src;
+    if (src->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRING && src->u.bstrVal != nullptr) {
+        tempStorage.stringStorage = src->u.bstrVal;
+        tempStorage.value.u.bstrVal = const_cast<char*>(tempStorage.stringStorage.c_str());
+    }
+    return LoadVariant(tempStorage, dst);
 }
 
 AbilityRuntime_ErrorCode MoDispatcherComplexTypeManager::ValidateVariantType(

@@ -354,6 +354,23 @@ typedef struct {
 } OH_AbilityRuntime_MoDispatcher_InputParams;
 
 /**
+ * @brief Clear TypeInfo resources.
+ *
+ * Recursively release any heap resources held by a TypeInfo struct
+ * (idlType strings, child TypeInfo nodes for map/array/vector/set types).
+ * After clearing, all pointers are set to NULL but the TypeInfo struct itself is not freed
+ * (it is typically stack-allocated by the caller).
+ *
+ * TypeInfo_Clear must NOT be called on a shallow copy of another TypeInfo.
+ * If TypeInfo t2 = t1 is performed, only clear one of them.
+ *
+ * @param pTypeInfo Indicates a pointer to TypeInfo to clear.
+ * @since 26.0.0
+ */
+void OH_AbilityRuntime_MoDispatcher_TypeInfo_Clear(
+    OH_AbilityRuntime_MoDispatcher_TypeInfo* pTypeInfo);
+
+/**
  * @brief Clear variant resources.
  *
  * Release any resources held by the variant (strings, container handles, etc.).
@@ -536,23 +553,6 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetInterfaceName(
     OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor, uint32_t index, char* pbstrName, uint32_t cMaxName);
 
 /**
- * @brief Get interface descriptor by name.
- *
- * @param pTypeDescriptor Indicates TypeDescriptor handle.
- * @param pbstrName Indicates interface name.
- * @param pbstrDescriptor Indicates a buffer to receive interface descriptor JSON string.
- * @param cMaxDescriptor Indicates size of buffer.
- * @return Returns error code.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pTypeDescriptor or pbstrName or pbstrDescriptor is null, or cMaxDescriptor is 0.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if interface not found.
- * @since 26.0.0
- */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetInterfaceDescriptor(
-    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor, const char* pbstrName,
-    char* pbstrDescriptor, uint32_t cMaxDescriptor);
-
-/**
  * @brief Check if interface is a callback type.
  *
  * @param pTypeDescriptor Indicates TypeDescriptor handle.
@@ -583,108 +583,114 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMainServiceInterfac
     OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor, char* pbstrName, uint32_t cMaxName);
 
 /**
- * @brief Get method count from interface descriptor JSON string.
+ * @brief Get method count from interface.
  *
- * @param pbstrDescriptor Indicates interface descriptor JSON string.
+ * @param pTypeDescriptor Indicates TypeDescriptor handle.
  * @param pbstrInterfaceName Indicates interface name.
  * @param pcMethods Indicates a pointer to receive method count.
  * @return Returns error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pbstrDescriptor or pbstrInterfaceName or pcMethods is null.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pTypeDescriptor or pbstrInterfaceName or pcMethods is null.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if interface not found.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodCount(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, uint32_t* pcMethods);
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, uint32_t* pcMethods);
 
 /**
- * @brief Get method name by index from interface descriptor JSON string.
+ * @brief Get method name by index from interface.
  *
- * @param pbstrDescriptor Indicates interface descriptor JSON string.
+ * @param pTypeDescriptor Indicates TypeDescriptor handle.
  * @param pbstrInterfaceName Indicates interface name.
  * @param index Indicates method index.
  * @param pbstrName Indicates a buffer to receive method name.
  * @param cMaxName Indicates size of buffer.
  * @return Returns error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pbstrDescriptor or pbstrInterfaceName or pbstrName is null, or cMaxName is 0, or index is out of range.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pTypeDescriptor or pbstrInterfaceName or pbstrName is null, or cMaxName is 0, or index is out of range.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if interface not found.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodName(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, uint32_t index,
-    char* pbstrName, uint32_t cMaxName);
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, uint32_t index, char* pbstrName, uint32_t cMaxName);
 
 /**
- * @brief Get method MemberID by name from interface descriptor JSON string.
+ * @brief Get method MemberID by name from interface.
  *
- * @param pbstrDescriptor Indicates interface descriptor JSON string.
+ * @param pTypeDescriptor Indicates TypeDescriptor handle.
  * @param pbstrInterfaceName Indicates interface name.
  * @param pbstrMethodName Indicates method name.
  * @param pMemID Indicates a pointer to receive method MemberID.
  * @return Returns error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pbstrDescriptor or pbstrInterfaceName or pbstrMethodName or pMemID is null.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if method not found.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pTypeDescriptor or pbstrInterfaceName or pbstrMethodName or pMemID is null.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if interface or method not found.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodMemberId(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
-    uint32_t* pMemID);
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName, uint32_t* pMemID);
 
 /**
- * @brief Get method return type by name from interface descriptor JSON string.
+ * @brief Get method return type by name from interface.
  *
- * @param pbstrDescriptor Indicates interface descriptor JSON string.
+ * @param pTypeDescriptor Indicates TypeDescriptor handle.
  * @param pbstrInterfaceName Indicates interface name.
  * @param pbstrMethodName Indicates method name.
  * @param pReturnType Indicates a pointer to receive return type.
  * @return Returns error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pbstrDescriptor or pbstrInterfaceName or pbstrMethodName or pReturnType is null.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if method not found.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pTypeDescriptor or pbstrInterfaceName or pbstrMethodName or pReturnType is null.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if interface or method not found.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodReturnType(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName,
     OH_AbilityRuntime_MoDispatcher_TypeInfo* pReturnType);
 
 /**
- * @brief Get method parameter count by name from interface descriptor JSON string.
+ * @brief Get method parameter count by name from interface.
  *
- * @param pbstrDescriptor Indicates interface descriptor JSON string.
+ * @param pTypeDescriptor Indicates TypeDescriptor handle.
  * @param pbstrInterfaceName Indicates interface name.
  * @param pbstrMethodName Indicates method name.
  * @param pcParams Indicates a pointer to receive parameter count.
  * @return Returns error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pbstrDescriptor or pbstrInterfaceName or pbstrMethodName or pcParams is null.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if method not found.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pTypeDescriptor or pbstrInterfaceName or pbstrMethodName or pcParams is null.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if interface or method not found.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodParamCount(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
-    uint32_t* pcParams);
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName, uint32_t* pcParams);
 
 /**
- * @brief Get method parameter type by name and index from interface descriptor JSON string.
+ * @brief Get method parameter type by name and index from interface.
  *
- * @param pbstrDescriptor Indicates interface descriptor JSON string.
+ * @param pTypeDescriptor Indicates TypeDescriptor handle.
  * @param pbstrInterfaceName Indicates interface name.
  * @param pbstrMethodName Indicates method name.
  * @param iParamIndex Indicates parameter index.
  * @param pParamType Indicates a pointer to receive parameter type.
  * @return Returns error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pbstrDescriptor or pbstrInterfaceName or pbstrMethodName or pParamType is null, or iParamIndex is out of range.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pTypeDescriptor or pbstrInterfaceName or pbstrMethodName or pParamType is null, or iParamIndex is out of range.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if interface or method not found.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodParamType(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName,
     uint32_t iParamIndex, OH_AbilityRuntime_MoDispatcher_TypeInfo* pParamType);
 
 /**
- * @brief Get method parameter name by name and index from interface descriptor JSON string.
+ * @brief Get method parameter name by name and index from interface.
  *
- * @param pbstrDescriptor Indicates interface descriptor JSON string.
+ * @param pTypeDescriptor Indicates TypeDescriptor handle.
  * @param pbstrInterfaceName Indicates interface name.
  * @param pbstrMethodName Indicates method name.
  * @param iParamIndex Indicates parameter index.
@@ -692,11 +698,13 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodParamType(
  * @param cMaxName Indicates size of buffer.
  * @return Returns error code.
  *         {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.
- *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pbstrDescriptor or pbstrInterfaceName or pbstrMethodName or pbstrName is null, or iParamIndex is out of range.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pTypeDescriptor or pbstrInterfaceName or pbstrMethodName or pbstrName is null, or iParamIndex is out of range.
+ *         {@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if interface or method not found.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodParamName(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName,
     uint32_t iParamIndex, char* pbstrName, uint32_t cMaxName);
 
 // ========== Enum Queries ==========

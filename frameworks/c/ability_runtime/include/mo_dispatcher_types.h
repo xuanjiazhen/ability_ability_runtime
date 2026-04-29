@@ -46,28 +46,71 @@ struct MoTypeInfo {
     // For enum/interface/struct: idlType
     std::string idlType;
 
-    // Convert to C TypeInfo (caller must manage returned pointer tree)
-    OH_AbilityRuntime_MoDispatcher_TypeInfo* ToCTypeInfo() const
+    // Recursively fill an existing C TypeInfo (deep copy with strdup/new).
+    // Caller must eventually call OH_AbilityRuntime_MoDispatcher_TypeInfo_Clear to release.
+    void FillCTypeInfo(OH_AbilityRuntime_MoDispatcher_TypeInfo* cType) const
     {
-        auto* result = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_TypeInfo();
-        if (result == nullptr) return nullptr;
-        result->vt = vt;
-        std::memset(&result->u, 0, sizeof(result->u));
+        if (cType == nullptr) return;
+        std::memset(cType, 0, sizeof(OH_AbilityRuntime_MoDispatcher_TypeInfo));
+        cType->vt = vt;
         if (vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_MAP) {
-            result->u.mapType.keyType = mapKeyType;
-            result->u.mapType.pValueType = pMapValueType ? pMapValueType->ToCTypeInfo() : nullptr;
+            cType->u.mapType.keyType = mapKeyType;
+            if (pMapValueType) {
+                cType->u.mapType.pValueType = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_TypeInfo();
+                if (cType->u.mapType.pValueType != nullptr) {
+                    pMapValueType->FillCTypeInfo(cType->u.mapType.pValueType);
+                }
+            }
         } else if (vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ARRAY ||
                    vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VECTOR ||
                    vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_SET) {
-            result->u.pElementType = pElementType ? pElementType->ToCTypeInfo() : nullptr;
+            if (pElementType) {
+                cType->u.pElementType = new (std::nothrow) OH_AbilityRuntime_MoDispatcher_TypeInfo();
+                if (cType->u.pElementType != nullptr) {
+                    pElementType->FillCTypeInfo(cType->u.pElementType);
+                }
+            }
         } else if (vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ENUM ||
                    vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRUCT ||
                    vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_IPC_REMOTE_PROXY) {
             if (!idlType.empty()) {
-                result->u.idlType = strdup(idlType.c_str());
+                cType->u.idlType = strdup(idlType.c_str());
             }
         }
-        return result;
+    }
+
+    // Recursively release heap resources inside a C TypeInfo filled by FillCTypeInfo.
+    static void ClearCTypeInfo(OH_AbilityRuntime_MoDispatcher_TypeInfo* cType)
+    {
+        if (cType == nullptr) return;
+        switch (cType->vt) {
+            case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_MAP:
+                if (cType->u.mapType.pValueType != nullptr) {
+                    ClearCTypeInfo(cType->u.mapType.pValueType);
+                    delete cType->u.mapType.pValueType;
+                    cType->u.mapType.pValueType = nullptr;
+                }
+                break;
+            case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ARRAY:
+            case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VECTOR:
+            case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_SET:
+                if (cType->u.pElementType != nullptr) {
+                    ClearCTypeInfo(cType->u.pElementType);
+                    delete cType->u.pElementType;
+                    cType->u.pElementType = nullptr;
+                }
+                break;
+            case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ENUM:
+            case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRUCT:
+            case OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_IPC_REMOTE_PROXY:
+                if (cType->u.idlType != nullptr) {
+                    std::free(cType->u.idlType);
+                    cType->u.idlType = nullptr;
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     // Build from C TypeInfo (recursive)
