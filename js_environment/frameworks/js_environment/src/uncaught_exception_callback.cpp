@@ -83,6 +83,67 @@ void NapiUncaughtExceptionCallback::operator()(panda::TryCatch& trycatch)
     }
 }
 
+static bool IsCangjieError(napi_env env, napi_value obj)
+{
+    napi_value isCangjieError = nullptr;
+    auto status = napi_get_named_property(env, obj, "isCangjieErrorObject", &isCangjieError);
+    if (status != napi_ok) {
+        return false;
+    }
+    napi_valuetype type;
+    status = napi_typeof(env, isCangjieError, &type);
+    if (status != napi_ok) {
+        return false;
+    }
+    if (type != napi_boolean) {
+        return false;
+    }
+    bool result = false;
+    status = napi_get_value_bool(env, isCangjieError, &result);
+    if (status != napi_ok) {
+        return false;
+    }
+    return result;
+}
+
+static const char CJ_BACKTRACE_LIB[] = "libcj_backtrace.z.so";
+static const char CJ_HAS_BACKTRACE[] = "CJDFX_HasBacktrace";
+static const char CJ_GET_BACKTRACE[] = "CJDFX_GetHybirdTrace";
+
+static bool GetCangjieHybirdStack(std::string& stack,
+    const std::function<bool(std::string&, int&, int&, std::string&)>& translator)
+{
+    auto handle = dlopen(CJ_BACKTRACE_LIB, RTLD_LAZY);
+    if (!handle) {
+        return false;
+    }
+    auto symbol = dlsym(handle, CJ_GET_BACKTRACE);
+    if (!symbol) {
+        dlclose(handle);
+        return false;
+    }
+    auto getHybirdStack = reinterpret_cast<bool(*)(std::string*,
+        const std::function<bool(std::string&, int&, int&, std::string&)>*)>(symbol);
+    return getHybirdStack(&stack, &translator);
+}
+
+static bool HasCangjieHybirdStack()
+{
+    auto handle = dlopen(CJ_BACKTRACE_LIB, RTLD_LAZY);
+    if (!handle) {
+        return false;
+    }
+    auto symbol = dlsym(handle, CJ_HAS_BACKTRACE);
+    if (!symbol) {
+        dlclose(handle);
+        return false;
+    }
+    auto hasBybirdStack = reinterpret_cast<bool (*)()>(symbol);
+    auto result = hasBybirdStack();
+    dlclose(handle);
+    return result;
+}
+
 void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
 {
     // Static objects cannot be dynamically serialized.
@@ -111,7 +172,9 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
         return;
     }
 
-    AppendStackTrace(errorStack, summary);
+    bool isCangjieError = IsCangjieError(env_, obj);
+
+    AppendStackTrace(errorStack, summary, isCangjieError);
     AppendAsyncStack(obj, summary);
     AppendModuleStack(obj, summary);
 
@@ -124,8 +187,24 @@ void NapiUncaughtExceptionCallback::CallbackTask(napi_value& obj)
     }
 }
 
-void NapiUncaughtExceptionCallback::AppendStackTrace(const std::string& errorStack, std::string& summary)
+void NapiUncaughtExceptionCallback::AppendStackTrace(const std::string& errorStack, std::string& summary,
+    bool isCangjieError)
 {
+    std::string stackTraceStr;
+    if (isCangjieError && HasCangjieHybirdStack()) {
+        summary += "Stacktrace:\n" + errorStack;
+        std::function translator = [this](std::string& url, int& line, int& column, std::string& packageName)-> bool {
+            if (sourceMapOperator_) {
+                sourceMapOperator_->TranslateUrlPositionBySourceMap(url, line, column, packageName);
+                return true;
+            } else {
+                return false;
+            }
+        };
+        GetCangjieHybirdStack(stackTraceStr, translator);
+        summary += "HybirdStack:\n" + stackTraceStr;
+        return;
+    }
     if (errorStack.find(BACKTRACE) != std::string::npos) {
         summary += "Stacktrace:\n" + GetFuncNameAndBuildId(errorStack);
 #ifdef SUPPORT_GRAPHICS
@@ -142,7 +221,7 @@ void NapiUncaughtExceptionCallback::AppendStackTrace(const std::string& errorSta
         GetCurrentUIStackInfo(summary);
 #endif // SUPPORT_GRAPHICS
         NativeEngine *engine = reinterpret_cast<NativeEngine*>(env_);
-        std::string stackTraceStr;
+
         engine->GetHybridStackTraceForCrash(env_, stackTraceStr);
         if (!stackTraceStr.empty()) {
             summary += "HybridStack:\n" + stackTraceStr;
