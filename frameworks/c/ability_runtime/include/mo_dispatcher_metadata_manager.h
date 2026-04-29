@@ -29,7 +29,7 @@ namespace OHOS::AbilityRuntime {
 
 class MoDispatcherMetadataManager {
 public:
-    static constexpr uint32_t IPC_CODE_GET_TLB_FD = 0x00FFFF;
+    static constexpr uint32_t IPC_CODE_GET_TLB_FD = 1;
     static constexpr const char16_t INTERFACE_DESCRIPTOR[] = u"ohos.abilityruntime.ModularObjectService";
 
     AbilityRuntime_ErrorCode EnsureLoaded(OHOS::IRemoteObject* proxy);
@@ -45,8 +45,23 @@ public:
 
     AbilityRuntime_ErrorCode GetInterfaceCount(uint32_t* count) const;
     AbilityRuntime_ErrorCode GetInterfaceName(uint32_t index, std::string* name) const;
-    AbilityRuntime_ErrorCode GetInterfaceDescriptor(const std::string& interfaceName, std::string* descriptor) const;
     AbilityRuntime_ErrorCode GetInterfaceIsCallback(const std::string& interfaceName, bool* isCallback) const;
+    AbilityRuntime_ErrorCode GetInterfaceDescriptor(const std::string& interfaceName,
+        std::u16string* descriptor) const;
+
+    AbilityRuntime_ErrorCode GetMethodCount(const std::string& interfaceName, uint32_t* count) const;
+    AbilityRuntime_ErrorCode GetMethodName(const std::string& interfaceName, uint32_t index,
+        std::string* methodName) const;
+    AbilityRuntime_ErrorCode GetMethodMemberId(const std::string& interfaceName, const std::string& methodName,
+        uint32_t* memberId) const;
+    AbilityRuntime_ErrorCode GetMethodReturnType(const std::string& interfaceName, const std::string& methodName,
+        OH_AbilityRuntime_MoDispatcher_TypeInfo* returnType) const;
+    AbilityRuntime_ErrorCode GetMethodParamCount(const std::string& interfaceName, const std::string& methodName,
+        uint32_t* count) const;
+    AbilityRuntime_ErrorCode GetMethodParamType(const std::string& interfaceName, const std::string& methodName,
+        uint32_t paramIndex, OH_AbilityRuntime_MoDispatcher_TypeInfo* paramType) const;
+    AbilityRuntime_ErrorCode GetMethodParamName(const std::string& interfaceName, const std::string& methodName,
+        uint32_t paramIndex, std::string* paramName) const;
 
     AbilityRuntime_ErrorCode GetEnumCount(uint32_t* count) const;
     AbilityRuntime_ErrorCode GetEnumName(uint32_t index, std::string* name) const;
@@ -60,23 +75,6 @@ public:
     AbilityRuntime_ErrorCode GetStructFieldName(const std::string& structName, uint32_t index, std::string* fieldName) const;
     AbilityRuntime_ErrorCode GetStructFieldType(const std::string& structName, const std::string& fieldName,
         OH_AbilityRuntime_MoDispatcher_TypeInfo* fieldType) const;
-
-    static AbilityRuntime_ErrorCode GetMethodCountFromDescriptor(const char* descriptorJson,
-        const char* interfaceName, uint32_t* count);
-    static AbilityRuntime_ErrorCode GetMethodNameFromDescriptor(const char* descriptorJson,
-        const char* interfaceName, uint32_t index, std::string* methodName);
-    static AbilityRuntime_ErrorCode GetMethodMemberIdFromDescriptor(const char* descriptorJson,
-        const char* interfaceName, const char* methodName, uint32_t* memberId);
-    static AbilityRuntime_ErrorCode GetMethodReturnTypeFromDescriptor(const char* descriptorJson,
-        const char* interfaceName, const char* methodName,
-        OH_AbilityRuntime_MoDispatcher_TypeInfo* returnType);
-    static AbilityRuntime_ErrorCode GetMethodParamCountFromDescriptor(const char* descriptorJson,
-        const char* interfaceName, const char* methodName, uint32_t* count);
-    static AbilityRuntime_ErrorCode GetMethodParamTypeFromDescriptor(const char* descriptorJson,
-        const char* interfaceName, const char* methodName, uint32_t paramIndex,
-        OH_AbilityRuntime_MoDispatcher_TypeInfo* paramType);
-    static AbilityRuntime_ErrorCode GetMethodParamNameFromDescriptor(const char* descriptorJson,
-        const char* interfaceName, const char* methodName, uint32_t paramIndex, std::string* paramName);
 
 private:
     // Parse a JSON type_info object into a MoTypeInfo tree (recursive for nested types)

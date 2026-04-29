@@ -148,8 +148,14 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_CallMethod(
     MessageParcel dataParcel;
     MessageParcel replyParcel;
 
-    if (!dataParcel.WriteInterfaceToken(
-        MoDispatcherMetadataManager::INTERFACE_DESCRIPTOR)) {
+    std::u16string ifaceDescriptor;
+    ret = pMoDispatcher->metadataManager->GetInterfaceDescriptor(
+        methodMeta.interfaceName, &ifaceDescriptor);
+    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
+        TAG_LOGE(AAFwkTag::EXT, "CallMethod: GetInterfaceDescriptor failed, ret=%{public}d", ret);
+        return ret;
+    }
+    if (!dataParcel.WriteInterfaceToken(ifaceDescriptor)) {
         TAG_LOGE(AAFwkTag::EXT, "CallMethod: WriteInterfaceToken failed");
         return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
@@ -161,7 +167,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_CallMethod(
         return ret;
     }
 
-    MessageOption option(MessageOption::TF_SYNC);
+    MessageOption option(methodMeta.oneway ? MessageOption::TF_ASYNC : MessageOption::TF_SYNC);
     int ipcRet = pMoDispatcher->proxy->SendRequest(
         methodMeta.ipcCode, dataParcel, replyParcel, option);
     if (ipcRet != 0) {
@@ -181,6 +187,11 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_MoDispatcher_CallMethod(
 void OH_AbilityRuntime_MoDispatcher_Variant_Clear(OH_AbilityRuntime_MoDispatcher_Variant* pVariant)
 {
     MoDispatcherComplexTypeManager::Variant_Clear(pVariant);
+}
+
+void OH_AbilityRuntime_MoDispatcher_TypeInfo_Clear(OH_AbilityRuntime_MoDispatcher_TypeInfo* pTypeInfo)
+{
+    MoDispatcherComplexTypeManager::TypeInfo_Clear(pTypeInfo);
 }
 
 void OH_AbilityRuntime_TypeDescriptor_Release(OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle *pTypeDescriptor)
@@ -243,21 +254,6 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetInterfaceName(
     return CopyStringToBuffer(name, pbstrName, cMaxName);
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetInterfaceDescriptor(
-    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor, const char* pbstrName,
-    char* pbstrDescriptor, uint32_t cMaxDescriptor)
-{
-    if (pTypeDescriptor == nullptr || pbstrName == nullptr || pbstrDescriptor == nullptr || cMaxDescriptor == 0) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    std::string descriptor;
-    auto ret = pTypeDescriptor->metadataManager->GetInterfaceDescriptor(pbstrName, &descriptor);
-    if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
-        return ret;
-    }
-    return CopyStringToBuffer(descriptor, pbstrDescriptor, cMaxDescriptor);
-}
-
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetInterfaceIsCallback(
     OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor, const char* pbstrName, bool* pIsCallback)
 {
@@ -282,20 +278,24 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMainServiceInterfac
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodCount(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, uint32_t* pcMethods)
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, uint32_t* pcMethods)
 {
-    return MoDispatcherMetadataManager::GetMethodCountFromDescriptor(pbstrDescriptor, pbstrInterfaceName, pcMethods);
+    if (pTypeDescriptor == nullptr || pbstrInterfaceName == nullptr || pcMethods == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    return pTypeDescriptor->metadataManager->GetMethodCount(pbstrInterfaceName, pcMethods);
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodName(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, uint32_t index,
-    char* pbstrName, uint32_t cMaxName)
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, uint32_t index, char* pbstrName, uint32_t cMaxName)
 {
-    if (pbstrName == nullptr || cMaxName == 0) {
+    if (pTypeDescriptor == nullptr || pbstrInterfaceName == nullptr || pbstrName == nullptr || cMaxName == 0) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     std::string methodName;
-    auto ret = MoDispatcherMetadataManager::GetMethodNameFromDescriptor(pbstrDescriptor, pbstrInterfaceName, index, &methodName);
+    auto ret = pTypeDescriptor->metadataManager->GetMethodName(pbstrInterfaceName, index, &methodName);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         return ret;
     }
@@ -303,55 +303,65 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodName(
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodMemberId(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
-    uint32_t* pMemID)
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName, uint32_t* pMemID)
 {
-    return MoDispatcherMetadataManager::GetMethodMemberIdFromDescriptor(
-        pbstrDescriptor, pbstrInterfaceName, pbstrMethodName, pMemID);
+    if (pTypeDescriptor == nullptr || pbstrInterfaceName == nullptr || pbstrMethodName == nullptr
+        || pMemID == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    return pTypeDescriptor->metadataManager->GetMethodMemberId(pbstrInterfaceName, pbstrMethodName, pMemID);
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodReturnType(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName,
     OH_AbilityRuntime_MoDispatcher_TypeInfo* pReturnType)
 {
-    if (pbstrDescriptor == nullptr || pbstrInterfaceName == nullptr || pbstrMethodName == nullptr
+    if (pTypeDescriptor == nullptr || pbstrInterfaceName == nullptr || pbstrMethodName == nullptr
         || pReturnType == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    return MoDispatcherMetadataManager::GetMethodReturnTypeFromDescriptor(
-        pbstrDescriptor, pbstrInterfaceName, pbstrMethodName, pReturnType);
+    return pTypeDescriptor->metadataManager->GetMethodReturnType(
+        pbstrInterfaceName, pbstrMethodName, pReturnType);
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodParamCount(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
-    uint32_t* pcParams)
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName, uint32_t* pcParams)
 {
-    return MoDispatcherMetadataManager::GetMethodParamCountFromDescriptor(
-        pbstrDescriptor, pbstrInterfaceName, pbstrMethodName, pcParams);
+    if (pTypeDescriptor == nullptr || pbstrInterfaceName == nullptr || pbstrMethodName == nullptr
+        || pcParams == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    return pTypeDescriptor->metadataManager->GetMethodParamCount(pbstrInterfaceName, pbstrMethodName, pcParams);
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodParamType(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName,
     uint32_t iParamIndex, OH_AbilityRuntime_MoDispatcher_TypeInfo* pParamType)
 {
-    if (pbstrDescriptor == nullptr || pbstrInterfaceName == nullptr || pbstrMethodName == nullptr
+    if (pTypeDescriptor == nullptr || pbstrInterfaceName == nullptr || pbstrMethodName == nullptr
         || pParamType == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    return MoDispatcherMetadataManager::GetMethodParamTypeFromDescriptor(
-        pbstrDescriptor, pbstrInterfaceName, pbstrMethodName, iParamIndex, pParamType);
+    return pTypeDescriptor->metadataManager->GetMethodParamType(
+        pbstrInterfaceName, pbstrMethodName, iParamIndex, pParamType);
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetMethodParamName(
-    const char* pbstrDescriptor, const char* pbstrInterfaceName, const char* pbstrMethodName,
+    OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor,
+    const char* pbstrInterfaceName, const char* pbstrMethodName,
     uint32_t iParamIndex, char* pbstrName, uint32_t cMaxName)
 {
-    if (pbstrName == nullptr || cMaxName == 0) {
+    if (pTypeDescriptor == nullptr || pbstrInterfaceName == nullptr || pbstrMethodName == nullptr
+        || pbstrName == nullptr || cMaxName == 0) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
     std::string paramName;
-    auto ret = MoDispatcherMetadataManager::GetMethodParamNameFromDescriptor(
-        pbstrDescriptor, pbstrInterfaceName, pbstrMethodName, iParamIndex, &paramName);
+    auto ret = pTypeDescriptor->metadataManager->GetMethodParamName(
+        pbstrInterfaceName, pbstrMethodName, iParamIndex, &paramName);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         return ret;
     }
@@ -380,7 +390,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetEnumName(
     return CopyStringToBuffer(name, pbstrName, cMaxName);
 }
 
-AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetEnumEnumValueCount(
+AbilityRuntime_ErrorCode OH_AbilityRuntime_TypeDescriptor_GetEnumValueCount(
     OH_AbilityRuntime_MoDispatcher_TypeDescriptorHandle pTypeDescriptor, const char* pbstrEnumName, uint32_t* pcValues)
 {
     if (pTypeDescriptor == nullptr || pbstrEnumName == nullptr || pcValues == nullptr) {
