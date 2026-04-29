@@ -77,7 +77,9 @@ void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
             "HandleProcessTimeout skipped: sessionId=%{public}s not found", sessionId.c_str());
         return;
     }
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessTimeout: sessionId=%{public}s", sessionId.c_str());
+    AccessToken::AccessTokenKit::DeleteToolTokenByPid(record->processId);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessTimeout: sessionId=%{public}s, pid=%{public}d",
+        sessionId.c_str(), record->processId);
     record->SetTimedOut(true);
     record->SetState(SessionState::CANCELLING);
 
@@ -489,6 +491,8 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
             break;
         }
     }
+    AccessToken::AccessTokenKit::DeleteToolTokenByPid(pid);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "delete tool by pid:%{public}d", pid);
     if (record) {
         record->SetTerminalResult(status, sig);
         if (record->OutputDrained()) {
