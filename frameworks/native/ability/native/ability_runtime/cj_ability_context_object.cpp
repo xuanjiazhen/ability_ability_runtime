@@ -55,6 +55,7 @@ const std::string APP_LINKING_ONLY = "appLinkingOnly";
 
 const char* CJ_ABILITY_LIBNAME = "libcj_ability_ffi.z.so";
 const char* FUNC_CONVERT_CONFIGURATION = "OHOS_ConvertConfiguration";
+const char* FUNC_CONVERT_CONFIGURATION_V2 = "OHOS_ConvertConfigurationV2";
 const char* CJ_BUNDLE_MGR_LIBNAME = "libcj_bundle_manager_ffi.z.so";
 const char* FUNC_CONVERT_ABILITY_INFO = "OHOS_ConvertAbilityInfoV2";
 const char* FUNC_CONVERT_HAP_INFO = "OHOS_ConvertHapInfoV2";
@@ -608,6 +609,26 @@ CConfiguration CallConvertConfig(std::shared_ptr<AppExecFwk::Configuration> conf
     return cCfg;
 }
 
+CConfigurationV2 CallConvertConfigV2(std::shared_ptr<AppExecFwk::Configuration> configuration)
+{
+    CConfigurationV2 cCfg = {};
+    void* handle = dlopen(CJ_ABILITY_LIBNAME, RTLD_LAZY);
+    if (handle == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null handle");
+        return cCfg;
+    }
+    using ConvertConfigFuncV2 = CConfigurationV2 (*)(void*);
+    auto func = reinterpret_cast<ConvertConfigFuncV2>(dlsym(handle, FUNC_CONVERT_CONFIGURATION_V2));
+    if (func == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null func");
+        dlclose(handle);
+        return cCfg;
+    }
+    cCfg = func(configuration.get());
+    dlclose(handle);
+    return cCfg;
+}
+
 CConfiguration FFIAbilityContextPropConfiguration(int64_t id, int32_t* errCode)
 {
     CConfiguration cCfg = {};
@@ -624,6 +645,24 @@ CConfiguration FFIAbilityContextPropConfiguration(int64_t id, int32_t* errCode)
     }
     *errCode = SUCCESS_CODE;
     return CallConvertConfig(configuration);
+}
+
+CConfigurationV2 FFIAbilityContextPropConfigurationV2(int64_t id, int32_t* errCode)
+{
+    CConfigurationV2 cCfg = {};
+    auto context = FFIData::GetData<CJAbilityContext>(id);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null CJAbilityContext");
+        *errCode = ERR_INVALID_INSTANCE_CODE;
+        return cCfg;
+    }
+    auto configuration = context->GetConfiguration();
+    if (configuration == nullptr) {
+        *errCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        return cCfg;
+    }
+    *errCode = SUCCESS_CODE;
+    return CallConvertConfigV2(configuration);
 }
 
 RetAbilityInfoV2 CallConvertAbilityInfo(std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo)
