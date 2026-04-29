@@ -1714,6 +1714,7 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_ABILITY_NAME, std::string(""));
             abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, std::string(""));
         }
+        abilityRequest.requestCallback = param.requestCallback;
         CollaboratorUtil::HandleCallerIfNeed(param.callerToken, collaborator, abilityRequest.want, callerBundleName);
  	    abilityRequest.want.SetParam(AbilityRuntime::GlobalConstant::GAME_PRELAUNCH, param.isGamePrelaunch);
         auto uiAbilityManager = GetUIAbilityManagerByUserId(oriValidUserId);
@@ -5949,7 +5950,7 @@ int AbilityManagerService::DisconnectAbility(sptr<IAbilityConnection> connect)
 bool AbilityManagerService::CheckSupportVpn(const AppExecFwk::AbilityInfo& abilityInfo) 
 {
     if(abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::VPN) {
-        return false;
+        return true;
     }
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     TAG_LOGI(AAFwkTag::SERVICE_EXT, "CHECK_CALLER_IS_SYSTEM_APP start uid: %{public}d", callerUid);
@@ -6027,7 +6028,14 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
             return ERR_WRONG_INTERFACE_CALL;
         }
         // not allow app to connect other extension by using connectServiceExtensionAbility
-        bool isVpn = CheckSupportVpn(abilityInfo);
+        bool isSupportVpn = CheckSupportVpn(abilityInfo);
+        // LCOV_EXCL_START
+        if (!isSupportVpn) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "not support vpn");
+            return TARGET_ABILITY_NOT_SERVICE;
+        }
+        // LCOV_EXCL_STOP
+        bool isVpn = abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::VPN;
         if (callerToken && extensionType == AppExecFwk::ExtensionAbilityType::SERVICE && !isService && !isVpn) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "ability, type not service");
             return TARGET_ABILITY_NOT_SERVICE;
@@ -13979,6 +13987,32 @@ int32_t AbilityManagerService::StartAbilityWithServiceMatch(const InsightIntentE
 
 }
 
+int32_t AbilityManagerService::ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId, 
+    uint64_t requestCode, uint64_t specifiedFullTokenId)
+{
+    AppExecFwk::InsightIntentExecuteParam param;
+    if (!AppExecFwk::InsightIntentExecuteParam::GenerateFromWant(want, param)) {
+        TAG_LOGE(AAFwkTag::INTENT, "GenerateFromWant failed, not a valid insight intent");
+        return ERR_INVALID_VALUE;
+    }
+    auto paramCopy = std::make_shared<InsightIntentExecuteParam>(param);
+    
+    uint64_t key = requestCode;
+    
+    auto callerBundlename = InsightIntentGetcallerBundleName();
+    if (callerBundlename.empty()) {
+        TAG_LOGD(AAFwkTag::INTENT, "callerBundlename is null");
+    }
+    
+    AbilityRuntime::ExtractInsightIntentGenericInfo infos = GetInsightIntentGenericInfo(*paramCopy);
+    bool openLinkExecuteFlag = infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_LINK;
+    bool ignoreAbilityName = openLinkExecuteFlag ||
+        (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_PAGE) ||
+        (infos.decoratorType == AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_FUNCTION);
+ 
+    return ERR_OK;
+}
+
 int32_t AbilityManagerService::ExecuteIntent(uint64_t key, const sptr<IRemoteObject> &callerToken,
     const InsightIntentExecuteParam &param)
 {
@@ -16839,6 +16873,34 @@ int32_t AbilityManagerService::StartAbilityWithWait(Want &want, sptr<IAbilitySta
         return result;
     }
     return ERR_OK;
+}
+
+int32_t AbilityManagerService::StartUIAbilityWithCallback(const Want &want, sptr<IRemoteObject> callerToken,
+    sptr<IRequestStartAbilityCallback> callback)
+{
+    if (AppUtils::GetInstance().IsForbidStart()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "forbid start: %{public}s", want.GetElement().GetBundleName().c_str());
+        return INNER_ERR;
+    }
+    sptr<IRequestStartAbilityCallback> effectiveCallback = callback;
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "not sa call, callback invalid");
+        effectiveCallback = nullptr;
+    }
+
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    StartAbilityWrapParam startAbilityWrapParam = {
+        .want = want,
+        .callerToken = callerToken,
+        .isUIAbilityOnly = true,
+        .requestCallback = effectiveCallback,
+    };
+    int32_t ret = StartAbilityWrap(startAbilityWrapParam);
+    if (ret != ERR_OK && effectiveCallback != nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ret: %{public}d, callback request ability", ret);
+        effectiveCallback->OnRequestStartAbilityResult(false);
+    }
+    return ret;
 }
 
 int32_t AbilityManagerService::CheckStartPlugin(const Want& want, sptr<IRemoteObject> callerToken, bool &isTargetPlugin)

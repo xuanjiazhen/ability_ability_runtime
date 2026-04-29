@@ -47,6 +47,7 @@
 #include "insight_intent/insight_intent_info_for_query.h"
 #include "insight_intent/insight_intent_query_param.h"
 #include "iprepare_terminate_callback_interface.h"
+#include "irequest_start_ability_callback.h"
 #include "keep_alive_info.h"
 #include "mission_info.h"
 #include "modular_object_extension_info.h"
@@ -2020,6 +2021,21 @@ public:
         const InsightIntentExecuteParam &param) = 0;
 
     /**
+      * @brief Execute intent for distributed scenario.
+      *
+      * @param want The want containing intent execution information.
+      * @param srcDeviceId The source device id.
+      * @param requestCode The Intent id.
+      * @param specifiedFullTokenId The caller token id.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+    virtual int32_t ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
+        uint64_t requestCode, uint64_t specifiedFullTokenId = 0)
+    {
+        return 0;
+    }
+
+    /**
      * @brief Check if ability controller can start.
      * @param want The want of ability to start.
      * @return Return true to allow ability to start, or false to reject.
@@ -2556,6 +2572,20 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer)
+    {
+        return 0;
+    }
+
+    /**
+     * Start UIAbility with callback to receive the request result, the callback is valid only for SA callers.
+     *
+     * @param want Indicates the ability to start.
+     * @param callerToken Indicates the caller ability token.
+     * @param callback Indicates the callback used to receive the result of request start ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartUIAbilityWithCallback(const Want &want, sptr<IRemoteObject> callerToken,
+        sptr<IRequestStartAbilityCallback> callback)
     {
         return 0;
     }

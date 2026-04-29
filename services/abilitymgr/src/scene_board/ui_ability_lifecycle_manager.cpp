@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -735,6 +735,7 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
         if (abilityRecord != nullptr && abilityRecord->IsHook() && !abilityRecord->GetHookOff()) {
             AbilityRequest request;
             request.callerToken = abilityRequest.callerToken;
+            request.requestCallback = abilityRequest.requestCallback;
             sptr<SessionInfo> hookSessionInfo = abilityRecord->GetSessionInfo();
             if (hookSessionInfo != nullptr) {
                 hookSessionInfo->want = abilityRequest.want;
@@ -1255,8 +1256,10 @@ void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordP
                 TAG_LOGW(AAFwkTag::ABILITYMGR, "UIAbilityLifecycleManager or abilityRecord invalid");
                 return;
             }
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "Execute NotifyCompleteGamePreLaunch for game SA prelaunch");
-            selfObj->NotifyCompleteGamePreLaunch(abilityRecordObj->GetToken());
+            if (abilityRecordObj->IsGameSAPreLaunch()) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "Execute NotifyCompleteGamePreLaunch for game SA prelaunch");
+                selfObj->NotifyCompleteGamePreLaunch(abilityRecordObj->GetToken());
+            }
         };
         ffrt::submit(task, ffrt::task_attr().delay(gamePreLaunchCompleteTime_));
     }
@@ -2008,6 +2011,10 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         if (!requestId.empty()) {
             abilityRecord->NotifyAbilityRequestSuccess(requestId, abilityRequest.want.GetElement());
         }
+        if (abilityRequest.requestCallback != nullptr) {
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "callback request ability");
+            abilityRequest.requestCallback->OnRequestStartAbilityResult(true);
+        }
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s"
             "requestId:%{public}s, splitRatio:%{public}d, windowMode:%{public}d",
@@ -2035,11 +2042,16 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         }
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
     }
+    if (abilityRequest.requestCallback != nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "callback request ability");
+        abilityRequest.requestCallback->OnRequestStartAbilityResult(true);
+    }
     sessionInfo->canStartAbilityFromBackground = true;
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s, "
-        "splitRatio:%{public}d, windowMode:%{public}d",
-        sessionInfo->want.GetElement().GetAbilityName().c_str(), sessionInfo->splitRatioPreference,
+        "splitRatio:%{public}d, flags:%{public}u, windowMode:%{public}d",
+        sessionInfo->want.GetElement().GetAbilityName().c_str(),
+        sessionInfo->splitRatioPreference, sessionInfo->want.GetFlags(),
         sessionInfo->want.GetIntParam(Want::PARAM_RESV_WINDOW_MODE,
             AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED));
     auto ret = static_cast<int>(tmpSceneSession->PendingSessionActivation(sessionInfo));
@@ -2641,7 +2653,7 @@ void UIAbilityLifecycleManager::OnTimeOut(uint32_t msgId, int64_t abilityRecordI
 
 void UIAbilityLifecycleManager::SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetRootSceneSession begin");
     auto tmpSceneSession = iface_cast<Rosen::ISession>(rootSceneSession);
     if (tmpSceneSession == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "rootSceneSession invalid");
@@ -2649,6 +2661,7 @@ void UIAbilityLifecycleManager::SetRootSceneSession(const sptr<IRemoteObject> &r
     }
     std::lock_guard guard(sessionLock_);
     rootSceneSession_ = rootSceneSession;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetRootSceneSession end");
 }
 
 void UIAbilityLifecycleManager::NotifySCBToHandleException(const UIAbilityRecordPtr &abilityRecord,
@@ -3067,6 +3080,13 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
             TAG_LOGI(AAFwkTag::ABILITYMGR, "notify request success, requestId:%{public}s", requestId.c_str());
             callerAbility->NotifyAbilityRequestSuccess(requestId, sessionInfo->want.GetElement());
         }
+        if (sessionInfo->requestCallback != nullptr) {
+            auto requestCallback = iface_cast<IRequestStartAbilityCallback>(sessionInfo->requestCallback);
+            if (requestCallback != nullptr) {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "callback request ability");
+                requestCallback->OnRequestStartAbilityResult(true);
+            }
+        }
         sessionInfo->want.RemoveParam(KEY_REQUEST_ID);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, "
             "target: %{public}s, splitRatio:%{public}d, windowMode:%{public}d",
@@ -3086,6 +3106,13 @@ int UIAbilityLifecycleManager::SendSessionInfoToSCB(UIAbilityRecordPtr &callerAb
             abilityRecord->NotifyAbilityRequestSuccess(requestId, sessionInfo->want.GetElement());
         }
         sessionInfo->want.RemoveParam(KEY_REQUEST_ID);
+        if (sessionInfo->requestCallback != nullptr) {
+            auto requestCallback = iface_cast<IRequestStartAbilityCallback>(sessionInfo->requestCallback);
+            if (requestCallback != nullptr) {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "callback request ability");
+                requestCallback->OnRequestStartAbilityResult(true);
+            }
+        }
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for rootSceneSession, "
         "target: %{public}s, splitRatio:%{public}d, windowMode:%{public}d",

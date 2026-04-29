@@ -27,12 +27,19 @@
 #include "system_ability.h"
 #include "system_ability_definition.h"
 
+#include "io_monitor.h"
+#include "process_manager.h"
+#include "session_record.h"
+
 namespace OHOS {
+namespace AppExecFwk {
+class IApplicationStateObserver;
+}
 namespace CliTool {
 class SessionRecord;
 class CliToolManagerService : public SystemAbility,
-                        public CliToolManagerStub,
-                        public std::enable_shared_from_this<CliToolManagerService> {
+                              public CliToolManagerStub,
+                              public std::enable_shared_from_this<CliToolManagerService> {
     DECLARE_SYSTEM_ABILITY(CliToolManagerService);
 
 public:
@@ -59,13 +66,31 @@ public:
      */
     int32_t RegisterTool(const ToolInfo &tool) override;
 
+    int32_t RegisterScheduler(const sptr<ICliToolManagerScheduler> &scheduler) override;
+
+    int32_t UnregisterScheduler() override;
+
     /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param objectCallback The callback RemoteObject.
      * @return Returns ERR_OK on success, error code otherwise.
      */
-    int32_t ExecTool(const ExecToolParam &param, const sptr<IRemoteObject> &objectCallback) override;
+    int32_t ExecTool(const ExecToolParam &param, const std::string &eventId) override;
+
+    int32_t ClearSession(const std::string &sessionId) override;
+    int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
+    int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
+    
+    int32_t QuerySession(const std::string &sessionId, CliSessionInfo &session) override;
+    int32_t SendMessage(const std::string &sessionId,
+        const std::string &inputText, const std::string &eventId) override;
+
+    /**
+     * @brief Batch query command permissions (Inner API, for SA only).
+     */
+    int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
+        std::vector<CommandPermission> &cmdPermissions) override;
 
 protected:
     void OnStart() override;
@@ -73,18 +98,69 @@ protected:
 
 private:
     CliToolManagerService() : SystemAbility(CLI_TOOL_MGR_SERVICE_ID, false) {};
+
+    enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
+
+    void Init();
+
+    std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param);
+    void AddSessionRecord(const std::shared_ptr<SessionRecord> &record);
+    std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
+    void RemoveSessionRecord(const std::string &sessionId);
+
+    bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecToolParam &param);
+    void UnregisterSessionWithMonitors(const std::string &sessionId);
+
+    int32_t ValidateExecToolPermissions();
+    int32_t ValidateSessionLimit();
+    int32_t ValidateAndPrepareTool(const ExecToolParam &param, uint32_t tokenId,
+        ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName);
+    int32_t SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
+        const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName);
+    void HandleBackgroundSessionReply(const std::shared_ptr<SessionRecord> &record, const std::string &eventId);
+
+    void HandleProcessTimeout(const std::string &sessionId);
+    void HandleProcessYieldTimeout(const std::string &sessionId);
+    void HandleOutputClosed(const std::string &sessionId, bool isStdout);
+    void HandleOutputDrained(const std::string &sessionId);
+    void FinalizeBackgroundSession(const std::shared_ptr<SessionRecord> &record);
+
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
+
+private:
     static sptr<CliToolManagerService> instance_;
 
-    static void sigchld_handler(int sig);
+    static void sigchld_handler(int32_t sig);
 
-    void PostExecToolTask(int32_t time, const std::string &sessionId, bool isTimeout);
-    void TimeIsUp(const std::string &sessionId, bool isTimeout);
-    void WaitPid(pid_t pid, int32_t status);
+    void PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout);
+    void WaitPid(pid_t pid, int32_t status, int32_t sig);
+    void Killpg(pid_t pid);
+    void RegisterAppStateObserver(const std::string &bundleName, pid_t callerPid);
+    void OnProcessDied(const std::string &bundleName, pid_t diedPid);
+
+    bool initialized_ = false;
+    std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
+
+    /**
+     * @brief Execute single command permission query.
+     */
+    int32_t DoQueryPermission(const Command &cmd, std::vector<std::string> &permissions);
+
+    /**
+     * @brief Query main command permissions.
+     */
+    int32_t QueryMainCommandPermission(const std::string &toolName, std::vector<std::string> &permissions);
+
+    /**
+     * @brief Query subcommand permissions.
+     */
+    int32_t QuerySubCommandPermission(const std::string &toolName, const std::string &subCommand,
+        std::vector<std::string> &permissions);
 
     std::atomic<int32_t> activeSessionCount_ = 0;
-    ffrt::mutex callbackMutex_;
-    std::map<std::string, std::shared_ptr<SessionRecord>> sessionCallbacks_;
+    ffrt::mutex sessionsMutex_;
+    std::unordered_map<std::string, std::shared_ptr<SessionRecord>> sessionRecords_;
+    std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
 };
 
 } // namespace CliTool

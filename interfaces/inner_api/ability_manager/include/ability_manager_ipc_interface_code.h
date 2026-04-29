@@ -430,6 +430,8 @@ enum class AbilityManagerInterfaceCode {
     // ipc id for get want from proxy
     GET_PENDING_REQUEST_WANT_FROM_PROXY = 1075,
 
+    START_UI_ABILITY_WITH_CALLBACK = 1076,
+
     // ipc id for continue ability(1101)
     START_CONTINUATION = 1101,
 
@@ -490,6 +492,8 @@ enum class AbilityManagerInterfaceCode {
     START_PRELAUNCH_ABILITY = 1143,
     // ipc for request modal UIExtension with account
     REQUEST_MODAL_UI_EXTENSION_WITH_ACCOUNT = 1144,
+
+    EXECUTE_INTENT_FOR_DISTRIBUTED = 1145,
 
     // ipc id 2001-3000 for tools
     // ipc id for dumping state (2001)
