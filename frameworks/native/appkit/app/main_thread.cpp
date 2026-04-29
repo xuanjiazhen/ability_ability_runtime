@@ -1807,6 +1807,7 @@ void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, con
             AbilityRuntime::ETSRuntime::SetAppLibPath(etsAppLibPaths, abcPathsToBundleModuleNameMap, isSystemApp);
         } else {
             AbilityRuntime::JsRuntime::SetAppLibPath(appLibPaths, isSystemApp);
+            AbilityRuntime::CJRuntime::SetModuleInfo(bundleName, entryHapModuleInfo.moduleName);
             if (IsPluginNamespaceInherited()) {
                 AbilityRuntime::JsRuntime::InheritPluginNamespace(pluginModuleNames);
             }
