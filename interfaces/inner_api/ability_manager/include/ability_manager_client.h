@@ -74,6 +74,11 @@ public:
      */
     ErrCode StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options, uint64_t callbackId);
 
+    ErrCode StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken);
+
+    ErrCode StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+        const StartOptions &options, sptr<IRemoteObject> callerToken);
+
     /**
      * AttachAbilityThread, ability call this interface after loaded.
      *
@@ -394,6 +399,19 @@ public:
         uint32_t specifyTokenId);
 
     /**
+     * Start UIAbility with callback to receive the request result, the callback is valid only for SA callers.
+     *
+     * @param want Indicates the ability to start.
+     * @param callerToken Indicates the caller ability token.
+     * @param callback Indicates the callback used to receive the result of request start ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartUIAbilityWithCallback(
+        const Want &want,
+        sptr<IRemoteObject> callerToken,
+        sptr<IRequestStartAbilityCallback> callback);
+
+    /**
      * Start extension ability with want, send want to ability manager service.
      *
      * @param want, the want of the ability to start.
@@ -502,6 +520,14 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     ErrCode TerminateAbility(sptr<IRemoteObject> token, int resultCode, const Want *resultWant);
+
+    /**
+     * StartSelf, start the ability itself with token.
+     *
+     * @param token, the token of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSelf(sptr<IRemoteObject> token);
 
     /**
      * BackToCallerAbilityWithResult, return to the caller ability.
@@ -1734,6 +1760,18 @@ public:
      */
     ErrCode ExecuteIntent(uint64_t key, sptr<IRemoteObject> callerToken,
         const InsightIntentExecuteParam &param);
+
+    /**
+      * @brief Execute intent for distributed scenario.
+      *
+      * @param want The want containing intent execution information.
+      * @param srcDeviceId The source device id.
+      * @param requestCode The Intent id.
+      * @param specifiedFullTokenId The caller token id.
+      * @return Returns ERR_OK on success, others on failure.
+      */
+    ErrCode ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
+        uint64_t requestCode, uint64_t specifiedFullTokenId = 0);
 
     /**
      * @brief Query entity info.

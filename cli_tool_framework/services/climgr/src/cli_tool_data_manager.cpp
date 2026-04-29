@@ -16,8 +16,10 @@
 #include "cli_tool_data_manager.h"
 
 #include <chrono>
+#include <dirent.h>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <set>
 #include <unistd.h>
 
 #include "arg_mapping.h"
@@ -35,10 +37,11 @@ constexpr int32_t ERR_NAME_NOT_FOUND = -5;
 constexpr int32_t CHECK_INTERVAL = 100000; // 100ms
 constexpr int32_t MAX_TIMES = 5;           // 5 * 100ms = 500ms
 
-constexpr const char* DEFAULT_REGISTRY_PATH = "/system/bin/cli_tool/cli_tool.json";
+constexpr const char* DEFAULT_CONFIG_DIR = "/system/bin/cli_tool/configs";
 constexpr const char* KV_STORE_APP_ID = "cli_tools_db";
 constexpr const char* KV_STORE_STORE_ID = "cli_tools_store";
 constexpr const char* CLI_TOOLS_STORAGE_DIR = "/data/service/el1/public/database/aimgr/cli_tool";
+constexpr const char* ALL_CLI_TOOL_NAMES_KEY = "AllCliToolNames";
 
 const DistributedKv::AppId APP_ID { KV_STORE_APP_ID };
 const DistributedKv::StoreId STORE_ID { KV_STORE_STORE_ID };
@@ -116,43 +119,148 @@ int32_t CliToolDataManager::EnsureToolsLoaded()
         return ERR_KVSTORE_NOT_READY;
     }
 
-    int32_t ret = LoadToolsFromFile(DEFAULT_REGISTRY_PATH);
+    int32_t ret = LoadToolsFromDir(DEFAULT_CONFIG_DIR);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to load tools from default registry: %{public}d", ret);
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to load tools from config dir: %{public}d", ret);
         return ret;
     }
 
     toolsLoaded_ = true;
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolDataManager lazy initialization completed");
     return ERR_OK;
 }
 
-int32_t CliToolDataManager::LoadToolsFromFile(const std::string &filePath)
+int32_t CliToolDataManager::LoadToolsFromDir(const std::string &dirPath)
 {
-    std::vector<ToolInfo> tools;
-    int32_t ret = ParseJsonFile(filePath, tools);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to parse JSON file: %{public}d", ret);
-        return ret;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "LoadToolsFromDir: %{public}s", dirPath.c_str());
+
+    DIR *dir = opendir(dirPath.c_str());
+    if (dir == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to open directory: %{public}s", dirPath.c_str());
+        return ERR_FILE_NOT_FOUND;
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Parsed %{public}zu tools from file", tools.size());
+    std::vector<std::string> currentToolNames;
+    int32_t totalLoaded = 0;
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        std::string filename = entry->d_name;
+        if (filename.size() < 5 || filename.substr(filename.size() - 5) != ".json") {
+            continue;
+        }
 
+        std::string filePath = dirPath + "/" + filename;
+        ToolInfo tool;
+        int32_t ret = ParseToolFromJsonFile(filePath, tool);
+        if (ret == ERR_OK) {
+            std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+            ret = StoreTool(tool);
+            if (ret == ERR_OK) {
+                currentToolNames.push_back(tool.name);
+                totalLoaded++;
+                TAG_LOGI(AAFwkTag::CLI_TOOL, "Loaded tool: %{public}s", tool.name.c_str());
+            }
+        }
+    }
+    closedir(dir);
+
+    // Sync tool names and remove tools that no longer exist
+    SyncToolNames(currentToolNames);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully loaded %{public}d tools from %{public}s",
+        totalLoaded, dirPath.c_str());
+    return ERR_OK;
+}
+
+int32_t CliToolDataManager::SyncToolNames(const std::vector<std::string> &currentToolNames)
+{
     std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     if (!CheckKvStore()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready");
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "KVStore not ready for SyncToolNames");
         return ERR_KVSTORE_NOT_READY;
     }
 
-    // Insert tools one by one using StoreTool
-    for (const auto &tool : tools) {
-        ret = StoreTool(tool);
-        if (ret != ERR_OK) {
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to store tool: %{public}s", tool.name.c_str());
+    std::set<std::string> currentNameSet(currentToolNames.begin(), currentToolNames.end());
+
+    // Get previously stored tool names
+    DistributedKv::Key namesKey(ALL_CLI_TOOL_NAMES_KEY);
+    DistributedKv::Value namesValue;
+    DistributedKv::Status status = kvStorePtr_->Get(namesKey, namesValue);
+
+    if (status == DistributedKv::Status::SUCCESS) {
+        nlohmann::json namesJson = nlohmann::json::parse(namesValue.ToString(), nullptr, false);
+        if (!namesJson.is_discarded() && namesJson.is_array()) {
+            for (const auto &name : namesJson) {
+                if (name.is_string()) {
+                    std::string oldName = name.get<std::string>();
+                    if (currentNameSet.find(oldName) == currentNameSet.end()) {
+                        // Tool was removed, delete from KVStore
+                        DistributedKv::Key toolKey(oldName);
+                        DistributedKv::Status deleteStatus = kvStorePtr_->Delete(toolKey);
+                        if (deleteStatus == DistributedKv::Status::SUCCESS) {
+                            TAG_LOGI(AAFwkTag::CLI_TOOL, "Removed tool: %{public}s", oldName.c_str());
+                        } else {
+                            TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to remove tool: %{public}s", oldName.c_str());
+                        }
+                    }
+                }
+            }
         }
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully loaded and stored %{public}zu tools", tools.size());
+    // Store current tool names
+    nlohmann::json newNamesJson = currentToolNames;
+    DistributedKv::Value newNamesValue(newNamesJson.dump());
+    status = kvStorePtr_->Put(namesKey, newNamesValue);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to store AllCliToolNames");
+        return -1;
+    }
+
+    return ERR_OK;
+}
+
+int32_t CliToolDataManager::ParseToolFromJsonFile(const std::string &filePath, ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ParseToolFromJsonFile: %{public}s", filePath.c_str());
+
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to open file: %{public}s", filePath.c_str());
+        return ERR_FILE_NOT_FOUND;
+    }
+
+    std::string fileContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+    file.close();
+
+    if (fileContent.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "File is empty: %{public}s", filePath.c_str());
+        return ERR_JSON_PARSE_FAILED;
+    }
+
+    // Check for BOM
+    if (fileContent.size() >= 3 &&
+        (unsigned char)fileContent[0] == 0xEF &&
+        (unsigned char)fileContent[1] == 0xBB &&
+        (unsigned char)fileContent[2] == 0xBF) {
+        fileContent = fileContent.substr(3);
+    }
+
+    nlohmann::json root = nlohmann::json::parse(fileContent, nullptr, false);
+    if (root.is_discarded()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "JSON parse failed: %{public}s", filePath.c_str());
+        return ERR_JSON_PARSE_FAILED;
+    }
+
+    if (!root.is_object()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "JSON root is not an object: %{public}s", filePath.c_str());
+        return ERR_JSON_PARSE_FAILED;
+    }
+
+    if (!ToolInfo::ParseFromJson(root, tool)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to parse tool info: %{public}s", filePath.c_str());
+        return ERR_JSON_PARSE_FAILED;
+    }
+
     return ERR_OK;
 }
 
@@ -173,13 +281,15 @@ int32_t CliToolDataManager::GetAllTools(std::vector<ToolInfo> &tools)
 
     tools.clear();
     for (const auto &entry : allEntries) {
-        ToolInfo tool;
-        int32_t ret = JsonToToolInfo(entry.value.ToString(), tool);
-        if (ret != ERR_OK) {
+        nlohmann::json j = nlohmann::json::parse(entry.value.ToString(), nullptr, false);
+        if (j.is_discarded()) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to parse tool: %{public}s", entry.key.ToString().c_str());
             continue;
         }
-        tools.push_back(tool);
+        ToolInfo tool;
+        if (ToolInfo::ParseFromJson(j, tool)) {
+            tools.push_back(std::move(tool));
+        }
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Retrieved %{public}zu tools", tools.size());
@@ -207,269 +317,15 @@ int32_t CliToolDataManager::GetToolByName(const std::string &name, ToolInfo &too
         RestoreKvStore(status);
         return status;
     }
-    return JsonToToolInfo(value.ToString(), tool);
-}
-
-bool CliToolDataManager::ToolExists(const std::string &name)
-{
-    ToolInfo tool;
-    return GetToolByName(name, tool) == ERR_OK;
-}
-
-int32_t CliToolDataManager::ParseJsonFile(const std::string &filePath, std::vector<ToolInfo> &tools)
-{
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "ParseJsonFile: %{public}s", filePath.c_str());
-
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to open file: %{public}s", filePath.c_str());
-        return ERR_FILE_NOT_FOUND;
-    }
-
-    std::string fileContent((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-    file.close();
-
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "File size: %{public}zu bytes", fileContent.size());
-
-    if (fileContent.empty()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "File is empty");
-        return ERR_JSON_PARSE_FAILED;
-    }
-
-    // Check for BOM
-    if (fileContent.size() >= 3 &&
-        (unsigned char)fileContent[0] == 0xEF &&
-        (unsigned char)fileContent[1] == 0xBB &&
-        (unsigned char)fileContent[2] == 0xBF) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "UTF-8 BOM detected, removing");
-        fileContent = fileContent.substr(3);
-    }
-
-    nlohmann::json root = nlohmann::json::parse(fileContent, nullptr, false);
-    if (root.is_discarded()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "JSON parse failed: invalid JSON format");
-        return ERR_JSON_PARSE_FAILED;
-    }
-
-    if (!root.is_array()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "JSON root is not an array");
-        return ERR_JSON_PARSE_FAILED;
-    }
-
-    for (const auto &item : root) {
-        ToolInfo tool;
-
-        if (item.contains("name") && item["name"].is_string()) {
-            tool.name = item["name"];
-        }
-        if (item.contains("version") && item["version"].is_string()) {
-            tool.version = item["version"];
-        }
-        if (item.contains("description") && item["description"].is_string()) {
-            tool.description = item["description"];
-        }
-        if (item.contains("requirePermissions") && item["requirePermissions"].is_array()) {
-            for (const auto &perm : item["requirePermissions"]) {
-                if (perm.is_string()) {
-                    tool.requirePermissions.push_back(perm);
-                }
-            }
-        }
-        if (item.contains("executablePath") && item["executablePath"].is_string()) {
-            tool.executablePath = item["executablePath"];
-        }
-        if (item.contains("inputSchema") && item["inputSchema"].is_object()) {
-            tool.inputSchema = item["inputSchema"].dump();
-        }
-        if (item.contains("outputSchema") && item["outputSchema"].is_object()) {
-            tool.outputSchema = item["outputSchema"].dump();
-        }
-        if (item.contains("argMapping") && item["argMapping"].is_object()) {
-            tool.argMapping = ArgMapping::ParseFromJson(item["argMapping"]);
-        }
-        if (item.contains("eventSchemas") && item["eventSchemas"].is_object()) {
-            tool.eventSchemas = item["eventSchemas"].dump();
-        }
-        if (item.contains("timeout") && item["timeout"].is_number()) {
-            tool.timeout = item["timeout"];
-        }
-        if (item.contains("eventTypes") && item["eventTypes"].is_array()) {
-            for (const auto &event : item["eventTypes"]) {
-                if (event.is_string()) {
-                    tool.eventTypes.push_back(event);
-                }
-            }
-        }
-        if (item.contains("hasSubCommand") && item["hasSubCommand"].is_boolean()) {
-            tool.hasSubCommand = item["hasSubCommand"];
-        } else {
-            tool.hasSubCommand = false;
-        }
-        if (item.contains("subcommands") && item["subcommands"].is_object()) {
-            for (auto it = item["subcommands"].begin(); it != item["subcommands"].end(); ++it) {
-                SubCommandInfo subCmd;
-                auto &subJson = it.value();
-                if (subJson.contains("description") && subJson["description"].is_string()) {
-                    subCmd.description = subJson["description"];
-                }
-                if (subJson.contains("requirePermissions") && subJson["requirePermissions"].is_array()) {
-                    for (const auto &perm : subJson["requirePermissions"]) {
-                        if (perm.is_string()) {
-                            subCmd.requirePermissions.push_back(perm);
-                        }
-                    }
-                }
-                if (subJson.contains("inputSchema") && subJson["inputSchema"].is_object()) {
-                    subCmd.inputSchema = subJson["inputSchema"].dump();
-                }
-                if (subJson.contains("outputSchema") && subJson["outputSchema"].is_object()) {
-                    subCmd.outputSchema = subJson["outputSchema"].dump();
-                }
-                if (subJson.contains("argMapping") && subJson["argMapping"].is_object()) {
-                    subCmd.argMapping = ArgMapping::ParseFromJson(subJson["argMapping"]);
-                }
-                if (subJson.contains("eventTypes") && subJson["eventTypes"].is_array()) {
-                    for (const auto &evt : subJson["eventTypes"]) {
-                        if (evt.is_string()) {
-                            subCmd.eventTypes.push_back(evt);
-                        }
-                    }
-                }
-                if (subJson.contains("eventSchemas") && subJson["eventSchemas"].is_object()) {
-                    subCmd.eventSchemas = subJson["eventSchemas"].dump();
-                }
-                tool.subcommands[it.key()] = subCmd;
-            }
-        }
-
-        tools.push_back(tool);
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "Parsed tool: %{public}s", tool.name.c_str());
-    }
-
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully parsed %{public}zu tools", tools.size());
-    return ERR_OK;
-}
-
-std::string CliToolDataManager::ToolInfoToJson(const ToolInfo &tool)
-{
-    nlohmann::json j;
-    j["name"] = tool.name;
-    j["version"] = tool.version;
-    j["description"] = tool.description;
-    j["executablePath"] = tool.executablePath;
-    j["requirePermissions"] = tool.requirePermissions;
-    j["inputSchema"] = tool.inputSchema;
-    j["outputSchema"] = tool.outputSchema;
-    // Convert argMapping to JSON object
-    if (tool.argMapping != nullptr) {
-        j["argMapping"] = tool.argMapping->ParseToJson();
-    }
-    j["eventSchemas"] = tool.eventSchemas;
-    j["timeout"] = tool.timeout;
-    j["eventTypes"] = tool.eventTypes;
-    j["hasSubCommand"] = tool.hasSubCommand;
-    // Convert subcommands map to JSON object
-    if (!tool.subcommands.empty()) {
-        nlohmann::json subcommandsJson;
-        for (const auto &pair : tool.subcommands) {
-            nlohmann::json subCmdJson;
-            subCmdJson["description"] = pair.second.description;
-            subCmdJson["requirePermissions"] = pair.second.requirePermissions;
-            subCmdJson["inputSchema"] = pair.second.inputSchema;
-            subCmdJson["outputSchema"] = pair.second.outputSchema;
-            subCmdJson["eventTypes"] = pair.second.eventTypes;
-            subCmdJson["eventSchemas"] = pair.second.eventSchemas;
-            if (pair.second.argMapping != nullptr) {
-                subCmdJson["argMapping"] = pair.second.argMapping->ParseToJson();
-            }
-            subcommandsJson[pair.first] = subCmdJson;
-        }
-        j["subcommands"] = subcommandsJson;
-    }
-    return j.dump();
-}
-
-int32_t CliToolDataManager::JsonToToolInfo(const std::string &jsonStr, ToolInfo &tool)
-{
-    nlohmann::json j = nlohmann::json::parse(jsonStr, nullptr, false);
+    nlohmann::json j = nlohmann::json::parse(value.ToString(), nullptr, false);
     if (j.is_discarded()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "JSON parse failed: invalid JSON format");
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to parse JSON for tool: %{public}s", name.c_str());
         return ERR_JSON_PARSE_FAILED;
     }
-
-    if (j.contains("name") && j["name"].is_string()) {
-        tool.name = j["name"];
+    if (!ToolInfo::ParseFromJson(j, tool)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Invalid tool name for: %{public}s", name.c_str());
+        return ERR_JSON_PARSE_FAILED;
     }
-    if (j.contains("version") && j["version"].is_string()) {
-        tool.version = j["version"];
-    }
-    if (j.contains("description") && j["description"].is_string()) {
-        tool.description = j["description"];
-    }
-    if (j.contains("executablePath") && j["executablePath"].is_string()) {
-        tool.executablePath = j["executablePath"];
-    }
-    if (j.contains("requirePermissions") && j["requirePermissions"].is_array()) {
-        tool.requirePermissions = j["requirePermissions"];
-    }
-    if (j.contains("inputSchema") && j["inputSchema"].is_object()) {
-        tool.inputSchema = j["inputSchema"].dump();
-    }
-    if (j.contains("outputSchema") && j["outputSchema"].is_object()) {
-        tool.outputSchema = j["outputSchema"].dump();
-    }
-    if (j.contains("argMapping") && j["argMapping"].is_object()) {
-        tool.argMapping = ArgMapping::ParseFromJson(j["argMapping"]);
-    }
-    if (j.contains("eventSchemas") && j["eventSchemas"].is_object()) {
-        tool.eventSchemas = j["eventSchemas"].dump();
-    }
-    if (j.contains("timeout") && j["timeout"].is_number()) {
-        tool.timeout = j["timeout"];
-    }
-    if (j.contains("eventTypes") && j["eventTypes"].is_array()) {
-        tool.eventTypes = j["eventTypes"];
-    }
-    if (j.contains("hasSubCommand") && j["hasSubCommand"].is_boolean()) {
-        tool.hasSubCommand = j["hasSubCommand"];
-    }
-    if (j.contains("subcommands") && j["subcommands"].is_object()) {
-        for (auto it = j["subcommands"].begin(); it != j["subcommands"].end(); ++it) {
-            SubCommandInfo subCmd;
-            auto &subJson = it.value();
-            if (subJson.contains("description") && subJson["description"].is_string()) {
-                subCmd.description = subJson["description"];
-            }
-            if (subJson.contains("requirePermissions") && subJson["requirePermissions"].is_array()) {
-                for (const auto &perm : subJson["requirePermissions"]) {
-                    if (perm.is_string()) {
-                        subCmd.requirePermissions.push_back(perm);
-                    }
-                }
-            }
-            if (subJson.contains("inputSchema") && subJson["inputSchema"].is_object()) {
-                subCmd.inputSchema = subJson["inputSchema"].dump();
-            }
-            if (subJson.contains("outputSchema") && subJson["outputSchema"].is_object()) {
-                subCmd.outputSchema = subJson["outputSchema"].dump();
-            }
-            if (subJson.contains("argMapping") && subJson["argMapping"].is_object()) {
-                subCmd.argMapping = ArgMapping::ParseFromJson(subJson["argMapping"]);
-            }
-            if (subJson.contains("eventTypes") && subJson["eventTypes"].is_array()) {
-                for (const auto &evt : subJson["eventTypes"]) {
-                    if (evt.is_string()) {
-                        subCmd.eventTypes.push_back(evt);
-                    }
-                }
-            }
-            if (subJson.contains("eventSchemas") && subJson["eventSchemas"].is_string()) {
-                subCmd.eventSchemas = subJson["eventSchemas"];
-            }
-            tool.subcommands[it.key()] = subCmd;
-        }
-    }
-
     return ERR_OK;
 }
 
@@ -488,12 +344,9 @@ int32_t CliToolDataManager::JsonArrayToTools(const std::string &jsonStr, std::ve
     tools.clear();
     for (const auto &item : j) {
         ToolInfo tool;
-        int32_t ret = JsonToToolInfo(item.dump(), tool);
-        if (ret != ERR_OK) {
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to parse tool item");
-            continue;
+        if (ToolInfo::ParseFromJson(item, tool)) {
+            tools.push_back(std::move(tool));
         }
-        tools.push_back(tool);
     }
 
     return ERR_OK;
@@ -502,7 +355,7 @@ int32_t CliToolDataManager::JsonArrayToTools(const std::string &jsonStr, std::ve
 int32_t CliToolDataManager::StoreTool(const ToolInfo &tool)
 {
     DistributedKv::Key key(tool.name);
-    DistributedKv::Value value(ToolInfoToJson(tool));
+    DistributedKv::Value value(tool.ParseToJson().dump());
     DistributedKv::Status status = kvStorePtr_->Put(key, value);
 
     if (status != DistributedKv::Status::SUCCESS) {
@@ -532,10 +385,13 @@ int32_t CliToolDataManager::QueryToolSummaries(std::vector<ToolSummary> &summari
 
     summaries.clear();
     for (const auto &entry : allEntries) {
-        ToolInfo tool;
-        int32_t ret = JsonToToolInfo(entry.value.ToString(), tool);
-        if (ret != ERR_OK) {
+        nlohmann::json j = nlohmann::json::parse(entry.value.ToString(), nullptr, false);
+        if (j.is_discarded()) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to parse tool: %{public}s", entry.key.ToString().c_str());
+            continue;
+        }
+        ToolInfo tool;
+        if (!ToolInfo::ParseFromJson(j, tool)) {
             continue;
         }
 

@@ -36,13 +36,6 @@ public:
     static CliToolDataManager &GetInstance();
 
     /**
-     * @brief Load tools from JSON file and store in KVStore
-     * @param filePath Path to ability_tool.json
-     * @return int32_t ERR_OK on success, error code otherwise
-     */
-    int32_t LoadToolsFromFile(const std::string &filePath);
-
-    /**
      * @brief Get all tools from KVStore
      * @param tools Output vector of ToolInfo
      * @return int32_t ERR_OK on success, error code otherwise
@@ -72,36 +65,6 @@ public:
     int32_t RegisterTool(const ToolInfo &tool);
 
     /**
-     * @brief Check if tool exists
-     * @param name Tool name
-     * @return bool true if exists
-     */
-    bool ToolExists(const std::string &name);
-
-    /**
-     * @brief Parse JSON file to ToolInfo list
-     * @param filePath Path to JSON file
-     * @param tools Output vector of ToolInfo
-     * @return int32_t ERR_OK on success, error code otherwise
-     */
-    int32_t ParseJsonFile(const std::string &filePath, std::vector<ToolInfo> &tools);
-
-    /**
-     * @brief Convert ToolInfo to JSON string
-     * @param tool Input ToolInfo
-     * @return std::string JSON string
-     */
-    std::string ToolInfoToJson(const ToolInfo &tool);
-
-    /**
-     * @brief Convert JSON string to ToolInfo
-     * @param jsonStr Input JSON string
-     * @param tool Output ToolInfo
-     * @return int32_t ERR_OK on success, error code otherwise
-     */
-    int32_t JsonToToolInfo(const std::string &jsonStr, ToolInfo &tool);
-
-    /**
      * @brief Convert JSON array string to ToolInfo vector
      * @param jsonStr Input JSON array string
      * @param tools Output ToolInfo vector
@@ -110,10 +73,11 @@ public:
     int32_t JsonArrayToTools(const std::string &jsonStr, std::vector<ToolInfo> &tools);
 
     /**
-     * @brief Ensure tools are loaded from JSON file (lazy initialization)
+     * @brief Ensure tools are loaded from config directory (lazy initialization)
      * @return int32_t ERR_OK on success, error code otherwise
      */
     int32_t EnsureToolsLoaded();
+
 private:
     CliToolDataManager();
     ~CliToolDataManager();
@@ -139,11 +103,33 @@ private:
     int32_t StoreTool(const ToolInfo &tool);
 
     /**
+     * @brief Load tools from all JSON files in a directory
+     * @param dirPath Path to config directory
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t LoadToolsFromDir(const std::string &dirPath);
+
+    /**
+     * @brief Parse a single tool from JSON file
+     * @param filePath Path to JSON file
+     * @param tool Output ToolInfo
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t ParseToolFromJsonFile(const std::string &filePath, ToolInfo &tool);
+
+    /**
      * @brief Restore KVStore if corrupted
      * @param status The status code from KVStore operation
      * @return DistributedKv::Status The final status after restoration
      */
     DistributedKv::Status RestoreKvStore(DistributedKv::Status status);
+
+    /**
+     * @brief Sync tool names with KVStore, remove tools that no longer exist
+     * @param currentToolNames Vector of current tool names loaded from config directory
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t SyncToolNames(const std::vector<std::string> &currentToolNames);
 
     DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<DistributedKv::SingleKvStore> kvStorePtr_;

@@ -158,6 +158,11 @@ public:
     virtual int StartSelfUIAbilityWithStartOptions(const Want &want,
         const StartOptions &options) override;
 
+    virtual int StartSelfUIAbilityWithToken(const Want &want, sptr<IRemoteObject> callerToken) override;
+
+    virtual int StartSelfUIAbilityWithStartOptionsAndToken(const Want &want,
+        const StartOptions &options, sptr<IRemoteObject> callerToken) override;
+
     /**
      * Starts self UIAbility with start options and receives the process ID. Supported only on 2-in-1 devices.
      *
@@ -167,6 +172,8 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int StartSelfUIAbilityWithPidResult(const Want &want, StartOptions &options, uint64_t callbackId) override;
+
+    int StartSelf(sptr<IRemoteObject> token) override;
 
     /**
      * StartAbility with want, send want to ability manager service.
@@ -2174,6 +2181,8 @@ public:
 
     int32_t StartAbilityByCallWithInsightIntent(const Want &want, const sptr<IRemoteObject> &callerToken,
         const InsightIntentExecuteParam &param, int32_t userId = DEFAULT_INVAL_VALUE);
+    int32_t ExecuteIntentForDistributed(const Want &want, const std::string &srcDeviceId,
+        uint64_t requestCode, uint64_t specifiedFullTokenId = 0) override;
 
     /**
      * @brief Check if ability controller can start.
@@ -2568,6 +2577,17 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t StartAbilityWithWait(Want &want, sptr<IAbilityStartWithWaitObserver> &observer) override;
+
+    /**
+     * Start UIAbility with callback to receive the request result, the callback is valid only for SA callers.
+     *
+     * @param want Indicates the ability to start.
+     * @param callerToken Indicates the caller ability token.
+     * @param callback Indicates the callback used to receive the result of request start ability.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t StartUIAbilityWithCallback(const Want &want, sptr<IRemoteObject> callerToken,
+        sptr<IRequestStartAbilityCallback> callback) override;
 
     int32_t UpdateKioskApplicationList(const std::vector<std::string> &appList) override;
 
@@ -3407,6 +3427,7 @@ private:
         Want want;
         StartOptions options;
         bool hasStartOptions = false;
+        sptr<IRemoteObject> callerToken = nullptr;
     };
     int StartSelfUIAbilityInner(StartSelfUIAbilityParam param);
 
