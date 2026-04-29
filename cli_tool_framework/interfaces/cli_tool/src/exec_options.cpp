@@ -22,10 +22,10 @@ bool ExecOptions::Marshalling(Parcel &parcel) const
     if (!parcel.WriteBool(background)) {
         return false;
     }
-    if (!parcel.WriteInt32(yieldMs)) {
+    if (!parcel.WriteInt64(yieldMs)) {
         return false;
     }
-    if (!parcel.WriteInt32(timeout)) {
+    if (!parcel.WriteInt64(timeout)) {
         return false;
     }
     return true;
@@ -38,11 +38,11 @@ ExecOptions *ExecOptions::Unmarshalling(Parcel &parcel)
         delete options;
         return nullptr;
     }
-    if (!parcel.ReadInt32(options->yieldMs)) {
+    if (!parcel.ReadInt64(options->yieldMs)) {
         delete options;
         return nullptr;
     }
-    if (!parcel.ReadInt32(options->timeout)) {
+    if (!parcel.ReadInt64(options->timeout)) {
         delete options;
         return nullptr;
     }

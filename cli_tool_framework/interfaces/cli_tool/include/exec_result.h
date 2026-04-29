@@ -27,11 +27,12 @@ namespace CliTool {
  */
 class ExecResult : public Parcelable {
 public:
-    int32_t exitCode = -1;
+    int32_t exitCode = 1;
     std::string outputText = "";
     std::string errorText = "";
     int32_t signalNumber = 0;
     bool timedOut = false;
+    bool callerProcessDied = false;
     int64_t executionTime = 0;
 
     bool Marshalling(Parcel &parcel) const;
