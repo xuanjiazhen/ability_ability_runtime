@@ -1076,8 +1076,9 @@ int AbilityManagerService::ImplicitStartAbilityAsCaller(const Want &want, const 
 
 int AbilityManagerService::StartAbilityAsCallerDetails(const Want &want, const sptr<IRemoteObject> &callerToken,
     sptr<IRemoteObject> asCallerSourceToken, int32_t userId, int requestCode, bool isImplicit, bool isAppCloneSelector,
-    uint32_t callerAccessTokenId)
+    uint32_t callerAccessTokenId, sptr<IRequestStartAbilityCallback> callback)
 {
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt -- a");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     CHECK_CALLER_IS_SYSTEM_APP;
     auto flags = want.GetFlags();
@@ -1092,7 +1093,7 @@ int AbilityManagerService::StartAbilityAsCallerDetails(const Want &want, const s
             "continuation flags not allowed");
         return ERR_INVALID_CONTINUATION_FLAG;
     }
-
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt -- b");
     AAFwk::Want newWant = want;
     UpdateCallerInfoUtil::GetInstance().UpdateAsCallerSourceInfo(newWant, asCallerSourceToken, callerToken);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability come, ability:%{public}s, userId:%{public}d",
@@ -1114,11 +1115,18 @@ int AbilityManagerService::StartAbilityAsCallerDetails(const Want &want, const s
         .specifyTokenId = callerAccessTokenId,
         .isImplicit = isImplicit,
         .isAppCloneSelector = isAppCloneSelector,
+        .requestCallback = callback,
     };
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt -- c");
     int32_t ret = StartAbilityWrap(startAbilityWrapParam);
     if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::ABILITYMGR, "start ability as caller failed:%{public}d", ret);
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ttt -- start ability as caller failed:%{public}d", ret);
+        if (callback != nullptr) {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt -- callback request ability");
+            callback->OnRequestStartAbilityResult(false);
+        }
     }
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ttt -- d");
     return ret;
 }
 

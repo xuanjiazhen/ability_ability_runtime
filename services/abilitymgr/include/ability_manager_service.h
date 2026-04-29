@@ -1491,7 +1491,8 @@ public:
         int requestCode = DEFAULT_INVAL_VALUE,
         bool isImplicit = false,
         bool isAppCloneSelector = false,
-        uint32_t callerAccessTokenId = 0);
+        uint32_t callerAccessTokenId = 0,
+        sptr<IRequestStartAbilityCallback> callback = nullptr);
 
     int ImplicitStartAbilityAsCaller(
         const Want &want,

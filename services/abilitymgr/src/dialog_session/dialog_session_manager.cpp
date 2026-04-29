@@ -244,6 +244,7 @@ void DialogSessionManager::GenerateDialogCallerInfo(AbilityRequest &abilityReque
     dialogCallerInfo->userId = userId;
     dialogCallerInfo->needGrantUriPermission = needGrantUriPermission;
     dialogCallerInfo->callerAccessTokenId = abilityRequest.callerAccessTokenId;
+    dialogCallerInfo->requestCallback = abilityRequest.requestCallback;
 }
 
 void DialogSessionManager::NotifyAbilityRequestFailure(const std::string &dialogSessionId, const Want &want)
