@@ -62,11 +62,11 @@ void InsertIdMap(std::unordered_map<uint32_t, std::string>& map, uint32_t key, c
 
 uint32_t GetMemberId(const Json& obj)
 {
-    if (!obj.is_object() || !obj.contains("dispID")) {
+    if (!obj.is_object() || !obj.contains("memberID")) {
         return 0;
     }
-    if (obj["dispID"].is_number_unsigned()) {
-        uint32_t memId = obj["dispID"].get<uint32_t>();
+    if (obj["memberID"].is_number_unsigned()) {
+        uint32_t memId = obj["memberID"].get<uint32_t>();
         if (memId > 0) {
             return memId;
         }
@@ -321,7 +321,7 @@ bool MoDispatcherMetadataManager::IsIdlTypeDeclared(const std::string& idlType) 
     return false;
 }
 
-// -------- FillCTypeInfo: fill a C TypeInfo struct from MoTypeInfo (shallow) --------
+// -------- FillCTypeInfo: fill a C TypeInfo struct from MoTypeInfo (recursive deep copy) --------
 
 void MoDispatcherMetadataManager::FillCTypeInfo(OH_AbilityRuntime_MoDispatcher_TypeInfo* cType,
     const std::shared_ptr<MoTypeInfo>& moType)
@@ -329,22 +329,7 @@ void MoDispatcherMetadataManager::FillCTypeInfo(OH_AbilityRuntime_MoDispatcher_T
     if (cType == nullptr || moType == nullptr) {
         return;
     }
-    std::memset(cType, 0, sizeof(OH_AbilityRuntime_MoDispatcher_TypeInfo));
-    cType->vt = moType->vt;
-    if (moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_MAP) {
-        cType->u.mapType.keyType = moType->mapKeyType;
-        // Note: pValueType is not allocated here; caller handles deep allocation if needed
-    } else if (moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ARRAY ||
-               moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VECTOR ||
-               moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_SET) {
-        // Note: pElementType is not allocated here; caller handles deep allocation if needed
-    } else if (moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_STRUCT ||
-               moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_ENUM ||
-               moType->vt == OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_IPC_REMOTE_PROXY) {
-        if (!moType->idlType.empty()) {
-            cType->u.idlType = strdup(moType->idlType.c_str());
-        }
-    }
+    moType->FillCTypeInfo(cType);
 }
 
 // -------- EnsureLoaded --------
@@ -453,7 +438,7 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseMetadata(const std::s
         version_ = root["version"].get<std::string>();
     }
 
-    // Track all dispID/memberId values to enforce uniqueness
+    // Track all memberId values to enforce uniqueness
     std::unordered_set<uint32_t> usedIds;
 
     if (root.contains("enums") && root["enums"].is_array()) {
@@ -469,7 +454,7 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseMetadata(const std::s
                 return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
             }
             if (usedIds.count(meta.memberId) > 0) {
-                TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: enum '%{public}s' duplicate dispID=%{public}u",
+                TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: enum '%{public}s' duplicate memberID=%{public}u",
                     meta.name.c_str(), meta.memberId);
                 return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
             }
@@ -483,7 +468,7 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseMetadata(const std::s
                     value.value = valueObj.value("value", 0);
                     value.memberId = GetMemberId(valueObj);
                     if (value.memberId > 0 && usedIds.count(value.memberId) > 0) {
-                        TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: enum value '%{public}s.%{public}s' duplicate dispID=%{public}u",
+                        TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: enum value '%{public}s.%{public}s' duplicate memberID=%{public}u",
                             meta.name.c_str(), value.name.c_str(), value.memberId);
                         return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
                     }
@@ -512,7 +497,7 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseMetadata(const std::s
                 return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
             }
             if (usedIds.count(meta.memberId) > 0) {
-                TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: struct '%{public}s' duplicate dispID=%{public}u",
+                TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: struct '%{public}s' duplicate memberID=%{public}u",
                     meta.name.c_str(), meta.memberId);
                 return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
             }
@@ -525,7 +510,7 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseMetadata(const std::s
                     field.name = fieldObj.value("name", "");
                     field.memberId = GetMemberId(fieldObj);
                     if (field.memberId > 0 && usedIds.count(field.memberId) > 0) {
-                        TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: struct field '%{public}s.%{public}s' duplicate dispID=%{public}u",
+                        TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: struct field '%{public}s.%{public}s' duplicate memberID=%{public}u",
                             meta.name.c_str(), field.name.c_str(), field.memberId);
                         return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
                     }
@@ -566,7 +551,7 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseMetadata(const std::s
                 return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
             }
             if (usedIds.count(interfaceMeta.memberId) > 0) {
-                TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: interface '%{public}s' duplicate dispID=%{public}u",
+                TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: interface '%{public}s' duplicate memberID=%{public}u",
                     interfaceMeta.name.c_str(), interfaceMeta.memberId);
                 return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
             }
@@ -596,7 +581,7 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseMetadata(const std::s
                         return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
                     }
                     if (usedIds.count(method.memberId) > 0) {
-                        TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: method '%{public}s.%{public}s' duplicate dispID=%{public}u",
+                        TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: method '%{public}s.%{public}s' duplicate memberID=%{public}u",
                             interfaceMeta.name.c_str(), method.name.c_str(), method.memberId);
                         return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
                     }
@@ -630,7 +615,7 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::ParseMetadata(const std::s
                             method.params.emplace_back(param);
                             const uint32_t paramMemberId = GetMemberId(paramObj);
                             if (paramMemberId > 0 && usedIds.count(paramMemberId) > 0) {
-                                TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: param '%{public}s.%{public}s.%{public}s' duplicate dispID=%{public}u",
+                                TAG_LOGE(AAFwkTag::EXT, "ParseMetadata: param '%{public}s.%{public}s.%{public}s' duplicate memberID=%{public}u",
                                     interfaceMeta.name.c_str(), method.name.c_str(), param.name.c_str(), paramMemberId);
                                 return ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID;
                             }
@@ -815,25 +800,6 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetInterfaceName(uint32_t 
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetInterfaceDescriptor(const std::string& interfaceName,
-    std::string* descriptor) const
-{
-    if (descriptor == nullptr || interfaceName.empty()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    std::lock_guard<std::mutex> lock(mutex_);
-    if (!loaded_) {
-        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
-    }
-    for (const auto& item : interfaces_) {
-        if (item.name == interfaceName) {
-            *descriptor = item.descriptorJson;
-            return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
-        }
-    }
-    return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
-}
-
 AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetInterfaceIsCallback(const std::string& interfaceName,
     bool* isCallback) const
 {
@@ -990,166 +956,192 @@ AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetStructFieldType(const s
     return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
 }
 
-// -------- Static descriptor-based methods --------
+// -------- Method query instance methods --------
 
-AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodCountFromDescriptor(const char* descriptorJson,
-    const char* interfaceName, uint32_t* count)
+const MoInterfaceMeta* FindInterfaceByName(const std::vector<MoInterfaceMeta>& interfaces,
+    const std::string& name)
 {
-    if (descriptorJson == nullptr || interfaceName == nullptr || count == nullptr) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    for (const auto& item : interfaces) {
+        if (item.name == name) {
+            return &item;
+        }
     }
-    Json descriptor = Json::parse(descriptorJson, nullptr, false);
-    if (descriptor.is_discarded()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    auto interfaceObj = FindInterface(descriptor, interfaceName);
-    if (!interfaceObj.has_value()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    if (!interfaceObj->contains("methods") || !(*interfaceObj)["methods"].is_array()) {
-        *count = 0;
-        return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
-    }
-    *count = static_cast<uint32_t>((*interfaceObj)["methods"].size());
-    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+    return nullptr;
 }
 
-AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodNameFromDescriptor(const char* descriptorJson,
-    const char* interfaceName, uint32_t index, std::string* methodName)
+const MoMethodMeta* FindMethodByName(const std::vector<MoMethodMeta>& methods, const std::string& name)
 {
-    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    for (const auto& item : methods) {
+        if (item.name == name) {
+            return &item;
+        }
     }
-    Json descriptor = Json::parse(descriptorJson, nullptr, false);
-    if (descriptor.is_discarded()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    auto interfaceObj = FindInterface(descriptor, interfaceName);
-    if (!interfaceObj.has_value() || !interfaceObj->contains("methods") || !(*interfaceObj)["methods"].is_array()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    const auto& methods = (*interfaceObj)["methods"];
-    if (index >= methods.size() || !methods[index].contains("name") || !methods[index]["name"].is_string()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    *methodName = methods[index]["name"].get<std::string>();
-    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+    return nullptr;
 }
 
-AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodMemberIdFromDescriptor(const char* descriptorJson,
-    const char* interfaceName, const char* methodName, uint32_t* memberId)
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodCount(const std::string& interfaceName,
+    uint32_t* count) const
 {
-    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || memberId == nullptr) {
+    if (count == nullptr || interfaceName.empty()) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    Json descriptor = Json::parse(descriptorJson, nullptr, false);
-    if (descriptor.is_discarded()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
-    auto interfaceObj = FindInterface(descriptor, interfaceName);
-    if (!interfaceObj.has_value()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    auto methodObj = FindMethod(*interfaceObj, methodName);
-    if (!methodObj.has_value()) {
+    auto* iface = FindInterfaceByName(interfaces_, interfaceName);
+    if (iface == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
     }
-    *memberId = GetMemberId(*methodObj);
+    *count = static_cast<uint32_t>(iface->methods.size());
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodReturnTypeFromDescriptor(const char* descriptorJson,
-    const char* interfaceName, const char* methodName,
-    OH_AbilityRuntime_MoDispatcher_TypeInfo* returnType)
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodName(const std::string& interfaceName,
+    uint32_t index, std::string* methodName) const
 {
-    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || returnType == nullptr) {
+    if (methodName == nullptr || interfaceName.empty()) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    Json descriptor = Json::parse(descriptorJson, nullptr, false);
-    if (descriptor.is_discarded()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
-    auto interfaceObj = FindInterface(descriptor, interfaceName);
-    if (!interfaceObj.has_value()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    auto methodObj = FindMethod(*interfaceObj, methodName);
-    if (!methodObj.has_value() || !methodObj->contains("return_type") || !(*methodObj)["return_type"].is_object()) {
+    auto* iface = FindInterfaceByName(interfaces_, interfaceName);
+    if (iface == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
     }
-    auto typeInfo = ParseTypeInfo((*methodObj)["return_type"]);
-    FillCTypeInfo(returnType, typeInfo);
+    if (index >= iface->methods.size()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    *methodName = iface->methods[index].name;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodParamCountFromDescriptor(const char* descriptorJson,
-    const char* interfaceName, const char* methodName, uint32_t* count)
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodMemberId(const std::string& interfaceName,
+    const std::string& methodName, uint32_t* memberId) const
 {
-    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || count == nullptr) {
+    if (memberId == nullptr || interfaceName.empty() || methodName.empty()) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    Json descriptor = Json::parse(descriptorJson, nullptr, false);
-    if (descriptor.is_discarded()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
-    auto interfaceObj = FindInterface(descriptor, interfaceName);
-    if (!interfaceObj.has_value()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
-    }
-    auto methodObj = FindMethod(*interfaceObj, methodName);
-    if (!methodObj.has_value() || !methodObj->contains("parameters") || !(*methodObj)["parameters"].is_array()) {
+    auto* iface = FindInterfaceByName(interfaces_, interfaceName);
+    if (iface == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
     }
-    *count = static_cast<uint32_t>((*methodObj)["parameters"].size());
+    auto* method = FindMethodByName(iface->methods, methodName);
+    if (method == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    *memberId = method->memberId;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodParamTypeFromDescriptor(const char* descriptorJson,
-    const char* interfaceName, const char* methodName, uint32_t paramIndex,
-    OH_AbilityRuntime_MoDispatcher_TypeInfo* paramType)
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodReturnType(const std::string& interfaceName,
+    const std::string& methodName, OH_AbilityRuntime_MoDispatcher_TypeInfo* returnType) const
 {
-    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || paramType == nullptr) {
+    if (returnType == nullptr || interfaceName.empty() || methodName.empty()) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    Json descriptor = Json::parse(descriptorJson, nullptr, false);
-    if (descriptor.is_discarded()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
-    auto interfaceObj = FindInterface(descriptor, interfaceName);
-    auto methodObj = interfaceObj.has_value() ? FindMethod(*interfaceObj, methodName) : std::nullopt;
-    if (!methodObj.has_value() || !methodObj->contains("parameters") || !(*methodObj)["parameters"].is_array()) {
+    auto* iface = FindInterfaceByName(interfaces_, interfaceName);
+    if (iface == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
     }
-    const auto& params = (*methodObj)["parameters"];
-    if (paramIndex >= params.size() || !params[paramIndex].contains("type_info") ||
-        !params[paramIndex]["type_info"].is_object()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    auto* method = FindMethodByName(iface->methods, methodName);
+    if (method == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
     }
-    auto typeInfo = ParseTypeInfo(params[paramIndex]["type_info"]);
-    FillCTypeInfo(paramType, typeInfo);
+    if (method->returnType) {
+        method->returnType->FillCTypeInfo(returnType);
+    } else {
+        std::memset(returnType, 0, sizeof(OH_AbilityRuntime_MoDispatcher_TypeInfo));
+        returnType->vt = OH_ABILITY_RUNTIME_MO_DISPATCHER_VT_VOID;
+    }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 
-AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodParamNameFromDescriptor(const char* descriptorJson,
-    const char* interfaceName, const char* methodName, uint32_t paramIndex, std::string* paramName)
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodParamCount(const std::string& interfaceName,
+    const std::string& methodName, uint32_t* count) const
 {
-    if (descriptorJson == nullptr || interfaceName == nullptr || methodName == nullptr || paramName == nullptr) {
+    if (count == nullptr || interfaceName.empty() || methodName.empty()) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    Json descriptor = Json::parse(descriptorJson, nullptr, false);
-    if (descriptor.is_discarded()) {
-        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
-    auto interfaceObj = FindInterface(descriptor, interfaceName);
-    auto methodObj = interfaceObj.has_value() ? FindMethod(*interfaceObj, methodName) : std::nullopt;
-    if (!methodObj.has_value() || !methodObj->contains("parameters") || !(*methodObj)["parameters"].is_array()) {
+    auto* iface = FindInterfaceByName(interfaces_, interfaceName);
+    if (iface == nullptr) {
         return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
     }
-    const auto& params = (*methodObj)["parameters"];
-    if (paramIndex >= params.size() || !params[paramIndex].contains("name") || !params[paramIndex]["name"].is_string()) {
+    auto* method = FindMethodByName(iface->methods, methodName);
+    if (method == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    *count = static_cast<uint32_t>(method->params.size());
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodParamType(const std::string& interfaceName,
+    const std::string& methodName, uint32_t paramIndex,
+    OH_AbilityRuntime_MoDispatcher_TypeInfo* paramType) const
+{
+    if (paramType == nullptr || interfaceName.empty() || methodName.empty()) {
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    *paramName = params[paramIndex]["name"].get<std::string>();
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    auto* iface = FindInterfaceByName(interfaces_, interfaceName);
+    if (iface == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    auto* method = FindMethodByName(iface->methods, methodName);
+    if (method == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    if (paramIndex >= method->params.size()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    const auto& param = method->params[paramIndex];
+    if (param.typeInfo) {
+        param.typeInfo->FillCTypeInfo(paramType);
+    } else {
+        std::memset(paramType, 0, sizeof(OH_AbilityRuntime_MoDispatcher_TypeInfo));
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+AbilityRuntime_ErrorCode MoDispatcherMetadataManager::GetMethodParamName(const std::string& interfaceName,
+    const std::string& methodName, uint32_t paramIndex, std::string* paramName) const
+{
+    if (paramName == nullptr || interfaceName.empty() || methodName.empty()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (!loaded_) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    auto* iface = FindInterfaceByName(interfaces_, interfaceName);
+    if (iface == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    auto* method = FindMethodByName(iface->methods, methodName);
+    if (method == nullptr) {
+        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+    }
+    if (paramIndex >= method->params.size()) {
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    *paramName = method->params[paramIndex].name;
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }
 

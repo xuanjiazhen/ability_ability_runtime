@@ -190,12 +190,6 @@ typedef enum {
      */
     ABILITY_RUNTIME_ERROR_CODE_UPPER_CONNECTION_NUMBER_LIMIT = 16000172,
     /**
-     * The property was not found.
-     *
-     * @since 26.0.0
-     */
-    ABILITY_RUNTIME_ERROR_CODE_MODULAR_OBJECT_EXTENSION_DISABLED = 16000163,
-    /**
      * @error The requested property, method, enum, or struct member is not found.
      * @since 26
      */
