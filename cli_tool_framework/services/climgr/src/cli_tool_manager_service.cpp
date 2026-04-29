@@ -489,6 +489,8 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
             break;
         }
     }
+    AccessToken::AccessTokenKit::DeleteToolTokenByPid(pid);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "delete tool by pid:%{public}d", pid);
     if (record) {
         record->SetTerminalResult(status, sig);
         if (record->OutputDrained()) {
