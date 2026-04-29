@@ -231,7 +231,7 @@ void ToolUtil::TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantPar
         default:
             TAG_LOGW(AAFwkTag::CLI_TOOL, "Unknown argMapping type");
             break;
-    }
+     }
 }
 
 void ToolUtil::ApplyFlagMapping(const std::string &templates, const AAFwk::WantParams &args, std::string &cmdLine)
