@@ -89,5 +89,45 @@ HWTEST_F(NativeRuntimeTest, LoadModule_0300, TestSize.Level1)
     bool ret = NativeRuntime::LoadModule("testBundleName/moduleName", "test.so", "testAbilityName", instance);
     EXPECT_EQ(ret, false);
 }
+
+/**
+ * @tc.name: StartDebugMode_0100
+ * @tc.desc: StartDebugMode should return when both local debug and developer mode are false
+ * @tc.type: FUNC
+ */
+HWTEST_F(NativeRuntimeTest, StartDebugMode_0100, TestSize.Level1)
+{
+    Runtime::DebugOption debugOption;
+    debugOption.isDebugApp = false;
+    debugOption.isDebugFromLocal = false;
+    debugOption.isDeveloperMode = false;
+    NativeRuntime::StartDebugMode(debugOption, "com.test.bundle");
+
+    debugOption.isDebugFromLocal = false;
+    debugOption.isDeveloperMode = true;
+    NativeRuntime::StartDebugMode(debugOption, "com.test.bundle");
+
+    debugOption.isDebugFromLocal = true;
+    debugOption.isDeveloperMode = false;
+    NativeRuntime::StartDebugMode(debugOption, "com.test.bundle");
+
+    debugOption.isDebugFromLocal = true;
+    debugOption.isDeveloperMode = true;
+    NativeRuntime::StartDebugMode(debugOption, "com.test.bundle");
+
+    debugOption.isDebugApp = true;
+    NativeRuntime::StartDebugMode(debugOption, "com.test.bundle");
+
+    debugOption.isDebugApp = true;
+    debugOption.appProvisionType = AppExecFwk::Constants::APP_PROVISION_TYPE_RELEASE;
+    NativeRuntime::StartDebugMode(debugOption, "com.test.bundle");
+
+    debugOption.isDebugApp = true;
+    debugOption.appProvisionType = "testProvisionType";
+    NativeRuntime::StartDebugMode(debugOption, "com.test.bundle");
+
+    NativeRuntime::StopDebugMode();
+    EXPECT_EQ(debugOption.isDebugApp, true);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS
