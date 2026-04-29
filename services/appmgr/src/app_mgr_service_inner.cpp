@@ -5228,6 +5228,7 @@ int32_t AppMgrServiceInner::StartPerfProcessByStartMsg(AppSpawnStartMsg &startMs
         startMsg.flags |= (START_FLAG_BASE << StartFlags::NO_SANDBOX);
     } else {
         TAG_LOGI(AAFwkTag::APPMGR, "debuggablePipe sandbox: true");
+        startMsg.flags |= (START_FLAG_BASE << StartFlags::APP_FLAGS_DEBUGSERVER);
     }
     if (!perfCmd.empty()) {
         startMsg.renderParam = perfCmd;
@@ -10369,7 +10370,7 @@ int32_t AppMgrServiceInner::StartChildProcessPreCheck(pid_t callingPid, int32_t 
     }
     if (appRunningManager_->IsChildProcessReachLimit(applicationInfo->accessTokenId, useMultiFeatureMaxCount)) {
         TAG_LOGE(AAFwkTag::APPMGR, "child process count reach limit.");
-        return AAFwk::ERR_CHILD_PROCESS_REACH_LIMIT;
+        // return AAFwk::ERR_CHILD_PROCESS_REACH_LIMIT;
     }
     return ERR_OK;
 }
@@ -11712,7 +11713,7 @@ int32_t AppMgrServiceInner::CreateNativeChildProcess(const pid_t hostPid, const 
         !AllowNativeChildProcess(CHILD_PROCESS_TYPE_NATIVE, appRecord->GetAppIdentifier()) &&
         !AllowChildProcessInMultiProcessFeatureApp(appRecord)) {
         TAG_LOGE(AAFwkTag::APPMGR, "unSupport native child process");
-        return AAFwk::ERR_NOT_SUPPORT_NATIVE_CHILD_PROCESS;
+        // return AAFwk::ERR_NOT_SUPPORT_NATIVE_CHILD_PROCESS;
     }
 
     std::lock_guard<std::mutex> lock(childProcessRecordMapMutex_);
