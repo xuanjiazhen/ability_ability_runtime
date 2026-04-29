@@ -1115,7 +1115,6 @@ HWTEST_F(AppRunningManagerTest, GetAllAbilityInfos_0400, TestSize.Level1)
     auto appRunningManager = std::make_shared<AppRunningManager>();
     EXPECT_NE(appRunningManager, nullptr);
 
-    
     auto appInfo = std::make_shared<ApplicationInfo>();
     appInfo->name = "test.app";
     int32_t recordId = RECORD_ID;
