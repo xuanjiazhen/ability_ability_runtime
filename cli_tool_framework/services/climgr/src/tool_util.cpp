@@ -209,183 +209,32 @@ void ToolUtil::TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantPar
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Not has arg");
         return;
     }
-    if (toolInfo.argMapping == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "argMapping is nullptr");
-        return;
-    }
-
-    // Apply mapping based on type
-    switch (toolInfo.argMapping->type) {
-        case ArgMappingType::FLAG:
-            ApplyFlagMapping(toolInfo.argMapping->templates, args, cmdLine);
-            break;
-        case ArgMappingType::POSITIONAL:
-            ApplyPositionalMapping(toolInfo.argMapping->order, args, cmdLine);
-            break;
-        case ArgMappingType::FLATTENED:
-            ApplyFlattenedMapping(toolInfo.argMapping->separator, toolInfo.argMapping->templates, args, cmdLine);
-            break;
-        case ArgMappingType::JSONSTRING:
-            ApplyJsonStringMapping(toolInfo.argMapping->templates, args, cmdLine);
-            break;
-        default:
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "Unknown argMapping type");
-            break;
-    }
-}
-
-void ToolUtil::ApplyFlagMapping(const std::string &templates, const AAFwk::WantParams &args, std::string &cmdLine)
-{
-    if (templates.empty()) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "Flag templates is empty");
-        return;
-    }
-
-    nlohmann::json templatesJson = nlohmann::json::parse(templates, nullptr, false);
-    if (templatesJson.is_discarded() || !templatesJson.is_object()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to parse templates JSON");
-        return;
-    }
-
     for (const auto &[key, value] : args.GetParams()) {
-        if (!templatesJson.contains(key)) {
+        if (value == nullptr) {
             continue;
         }
 
-        auto &templateValue = templatesJson[key];
-        // Apply FLAG mode logic for this parameter
-        ApplyFlagModeLogic(value, templateValue, cmdLine);
-    }
-}
-
-void ToolUtil::ApplyPositionalMapping(const std::string &order, const AAFwk::WantParams &args, std::string &cmdLine)
-{
-    if (order.empty()) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "Positional order is empty");
-        return;
-    }
-
-    nlohmann::json orderJson = nlohmann::json::parse(order, nullptr, false);
-    if (orderJson.is_discarded() || !orderJson.is_array()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to parse order JSON");
-        return;
-    }
-
-    for (const auto &key : orderJson) {
-        if (!key.is_string()) {
-            continue;
-        }
-        std::string keyStr = key.get<std::string>();
-        auto it = args.GetParams().find(keyStr);
-        if (it != args.GetParams().end()) {
-            std::string strValue = GetParamStringValue(it->second);
-            if (!strValue.empty()) {
-                cmdLine += " " + strValue;
+        // 规则2：value是boolean类型，value是true，将[key, value]映射为 --key；value是false，不对[key, value]进行映射
+        if (IsBooleanType(value)) {
+            bool boolValue = false;
+            if (GetParamBoolValue(value, boolValue) && boolValue) {
+                cmdLine += " --" + key;
             }
-        }
-    }
-}
-
-void ToolUtil::ApplyFlattenedMapping(const std::string &separator, const std::string &templates,
-    const AAFwk::WantParams &args, std::string &cmdLine)
-{
-    std::string sep = separator.empty() ? "." : separator;
-
-    nlohmann::json templatesJson = nlohmann::json::parse(templates, nullptr, false);
-    if (templatesJson.is_discarded() || !templatesJson.is_object()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to parse templates JSON");
-        return;
-    }
-
-    // Process each template key (which contains the flattened path)
-    for (const auto &templateIt : templatesJson.items()) {
-        const std::string &flattenedKey = templateIt.key();
-        const auto &templateValue = templateIt.value();
-
-        // Query nested value and process in one step to reduce depth
-        ProcessFlattenedTemplate(flattenedKey, templateValue, sep, args, cmdLine);
-    }
-}
-
-void ToolUtil::ApplyJsonStringMapping(const std::string &templates, const AAFwk::WantParams &args, std::string &cmdLine)
-{
-    nlohmann::json templatesJson = nlohmann::json::parse(templates, nullptr, false);
-    if (templatesJson.is_discarded() || !templatesJson.is_object()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to parse templates JSON");
-        return;
-    }
-
-    for (const auto &[key, value] : args.GetParams()) {
-        if (!templatesJson.contains(key)) {
             continue;
         }
 
-        auto &templateValue = templatesJson[key];
+        // 规则3：value是Array类型，不支持Array嵌套，按照ProcessArrayExpansion进行映射
+        if (IsArrayType(value)) {
+            ProcessArrayExpansion(key, value, cmdLine);
+            continue;
+        }
 
-        if (templateValue.is_string()) {
-            ProcessJsonStringTemplate(key, value, templateValue, cmdLine);
-        } else if (templateValue.is_object()) {
-            ProcessBooleanTemplate(key, value, templateValue, cmdLine);
+        // 规则1：value是string、Integer、Long、Float、double类型，将[key, value]映射为 --key + " " + value转换为的string
+        std::string strValue = GetParamStringValue(value);
+        if (!strValue.empty()) {
+            cmdLine += " --" + key + " " + strValue;
         }
     }
-}
-
-std::string ToolUtil::FormatTemplate(const std::string &tmpl, const std::string &value)
-{
-    std::string result = tmpl;
-    size_t pos = result.find("{value}");
-    constexpr int32_t valueSize = 7;
-    if (pos != std::string::npos) {
-        result.replace(pos, valueSize, value);
-    }
-    pos = result.find("{json}");
-    constexpr int32_t jsonSize = 6;
-    if (pos != std::string::npos) {
-        result.replace(pos, jsonSize, value);
-    }
-    return result;
-}
-
-sptr<AAFwk::IInterface> ToolUtil::QueryNestedValue(const AAFwk::WantParams &args,
-    const std::string &path, const std::string &separator)
-{
-    if (path.empty()) {
-        return nullptr;
-    }
-
-    // Try direct lookup first
-    sptr<AAFwk::IInterface> result = TryDirectLookup(args, path);
-    if (result != nullptr) {
-        return result;
-    }
-
-    // Try nested path traversal
-    std::string sep = separator.empty() ? "." : separator;
-    return TryNestedPathTraversal(args, path, sep);
-}
-
-sptr<AAFwk::IInterface> ToolUtil::TryDirectLookup(const AAFwk::WantParams &args,
-    const std::string &path)
-{
-    auto &params = args.GetParams();
-    auto it = params.find(path);
-    if (it != params.end()) {
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "Found param with direct lookup: %{public}s", path.c_str());
-        return it->second;
-    }
-    return nullptr;
-}
-
-sptr<AAFwk::IInterface> ToolUtil::TryNestedPathTraversal(const AAFwk::WantParams &args,
-    const std::string &path, const std::string &separator)
-{
-    std::vector<std::string> pathSegments = SplitPathBySeparator(path, separator);
-    constexpr int32_t segmentSize = 2;
-    if (pathSegments.size() < segmentSize) {
-        return nullptr;
-    }
-
-    return QueryNestedPath(args, pathSegments, separator);
 }
 
 std::string ToolUtil::WantParamsToJson(const AAFwk::WantParams &wantParams)
@@ -616,30 +465,6 @@ bool ToolUtil::GetParamBoolValue(const sptr<AAFwk::IInterface> &value, bool &res
     return false;
 }
 
-bool ToolUtil::GetParamArrayValue(const sptr<AAFwk::IInterface> &value, std::vector<std::string> &result)
-{
-    if (value == nullptr) {
-        return false;
-    }
-
-    // Try to query as IArray
-    auto arrayValue = AAFwk::IArray::Query(value);
-    if (arrayValue == nullptr) {
-        return false;
-    }
-
-    bool foundAny = false;
-    IterateIArray(arrayValue, [&result, &foundAny](const sptr<AAFwk::IInterface>& element) {
-        std::string elementStr = GetParamStringValue(element);
-        if (!elementStr.empty()) {
-            result.push_back(elementStr);
-            foundAny = true;
-        }
-    });
-
-    return foundAny;
-}
-
 // ============================================================================
 // Helper methods for code reuse
 // ============================================================================
@@ -733,132 +558,7 @@ std::string ToolUtil::BuildJsonArrayFromIArray(sptr<AAFwk::IArray> arrayObj,
     return result;
 }
 
-// ============================================================================
-// Core FLAG mode logic (extracted for reuse)
-// ============================================================================
-
-void ToolUtil::ApplyFlagModeLogic(const sptr<AAFwk::IInterface> &value,
-    const nlohmann::json &templateValue, std::string &cmdLine)
-{
-    if (value == nullptr) {
-        return;
-    }
-
-    // Handle string template
-    if (templateValue.is_string()) {
-        std::string strValue = GetParamStringValue(value);
-        if (!strValue.empty()) {
-            std::string tmpl = templateValue.get<std::string>();
-            std::string formatted = FormatTemplate(tmpl, strValue);
-            cmdLine += " " + formatted;
-        }
-        return;
-    }
-
-    // Handle boolean template with if_true/if_false
-    if (templateValue.is_object()) {
-        bool boolValue = false;
-        if (GetParamBoolValue(value, boolValue)) {
-            std::string flag = "";
-            if (boolValue && templateValue.contains("if_true")) {
-                flag = templateValue["if_true"].get<std::string>();
-            } else if (!boolValue && templateValue.contains("if_false")) {
-                flag = templateValue["if_false"].get<std::string>();
-            }
-
-            if (!flag.empty()) {
-                cmdLine += " " + flag;
-            }
-        }
-        return;
-    }
-
-    // Handle array type - expand to multiple arguments
-    if (!templateValue.is_string()) {
-        return;
-    }
-
-    std::string tmpl = templateValue.get<std::string>();
-    ProcessArrayExpansion(value, tmpl, cmdLine);
-}
-
-void ToolUtil::ProcessJsonStringTemplate(const std::string &key, const sptr<AAFwk::IInterface> &value,
-    const nlohmann::json &templateValue, std::string &cmdLine)
-{
-    if (value == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "Param '%{public}s' value is null", key.c_str());
-        return;
-    }
-
-    std::string tmpl = templateValue.get<std::string>();
-    std::string jsonStr = ConvertValueToJson(key, value);
-
-    // Apply template with JSON string
-    std::string formatted = FormatTemplate(tmpl, jsonStr);
-    cmdLine += " " + formatted;
-}
-
-void ToolUtil::ProcessBooleanTemplate(const std::string &key, const sptr<AAFwk::IInterface> &value,
-    const nlohmann::json &templateValue, std::string &cmdLine)
-{
-    bool boolValue = false;
-    if (!GetParamBoolValue(value, boolValue)) {
-        return;
-    }
-
-    std::string flag = "";
-    if (boolValue && templateValue.contains("if_true")) {
-        flag = templateValue["if_true"].get<std::string>();
-    } else if (!boolValue && templateValue.contains("if_false")) {
-        flag = templateValue["if_false"].get<std::string>();
-    }
-
-    if (!flag.empty()) {
-        cmdLine += " " + flag;
-    }
-}
-
-std::string ToolUtil::ConvertValueToJson(const std::string &key, const sptr<AAFwk::IInterface> &value)
-{
-    // Check if value is a WantParams (nested object)
-    AAFwk::WantParams nestedWantParams;
-    if (ExtractWantParams(value, nestedWantParams)) {
-        // Recursively convert nested WantParams to JSON
-        std::string jsonStr = WantParamsToJson(nestedWantParams);
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "Param '%{public}s' is nested WantParams, converted to: %{public}s",
-            key.c_str(), jsonStr.c_str());
-        return jsonStr;
-    }
-
-    // Convert IInterface to JSON string
-    std::string jsonStr = GetParamJsonValue(value);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Param '%{public}s' converted to JSON: %{public}s",
-        key.c_str(), jsonStr.c_str());
-    return jsonStr;
-}
-
-void ToolUtil::ProcessFlattenedTemplate(const std::string &flattenedKey, const nlohmann::json &templateValue,
-    const std::string &separator, const AAFwk::WantParams &args, std::string &cmdLine)
-{
-    // Query nested value - simplifed version
-    sptr<AAFwk::IInterface> value = QueryNestedValue(args, flattenedKey, separator);
-    if (value == nullptr) {
-        return;
-    }
-
-    // Process template based on type
-    if (templateValue.is_string()) {
-        std::string strValue = GetParamStringValue(value);
-        if (!strValue.empty()) {
-            std::string formatted = FormatTemplate(templateValue.get<std::string>(), strValue);
-            cmdLine += " " + formatted;
-        }
-    } else if (templateValue.is_object()) {
-        ProcessBooleanTemplate(flattenedKey, value, templateValue, cmdLine);
-    }
-}
-
-void ToolUtil::ProcessArrayExpansion(const sptr<AAFwk::IInterface> &value, const std::string &tmpl,
+void ToolUtil::ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::IInterface> &value,
     std::string &cmdLine)
 {
     auto arrayValue = AAFwk::IArray::Query(value);
@@ -872,6 +572,7 @@ void ToolUtil::ProcessArrayExpansion(const sptr<AAFwk::IInterface> &value, const
     }
 
     // Iterate through array elements and expand to command line
+    // 规则3：Array类型展开为 --key value1 --key value2 ...
     for (long i = 0; i < arrayLength; ++i) {
         sptr<AAFwk::IInterface> elementValue;
         if (arrayValue->Get(i, elementValue) != ERR_OK || elementValue == nullptr) {
@@ -885,86 +586,9 @@ void ToolUtil::ProcessArrayExpansion(const sptr<AAFwk::IInterface> &value, const
 
         std::string elementStr = GetParamStringValue(elementValue);
         if (!elementStr.empty()) {
-            std::string formatted = FormatTemplate(tmpl, elementStr);
-            cmdLine += " " + formatted;
+            cmdLine += " --" + key + " " + elementStr;
         }
     }
-}
-
-std::vector<std::string> ToolUtil::SplitPathBySeparator(const std::string &path, const std::string &separator)
-{
-    std::vector<std::string> pathSegments;
-    if (path.empty()) {
-        return pathSegments;
-    }
-
-    std::string sep = separator.empty() ? "." : separator;
-    size_t start = 0;
-    size_t end = path.find(sep);
-
-    while (end != std::string::npos) {
-        std::string segment = path.substr(start, end - start);
-        if (!segment.empty()) {
-            pathSegments.push_back(segment);
-        }
-        start = end + sep.length();
-        end = path.find(sep, start);
-    }
-    std::string lastSegment = path.substr(start);
-    if (!lastSegment.empty()) {
-        pathSegments.push_back(lastSegment);
-    }
-
-    return pathSegments;
-}
-
-sptr<AAFwk::IInterface> ToolUtil::QueryNestedPath(const AAFwk::WantParams &args,
-    const std::vector<std::string> &pathSegments, const std::string &separator)
-{
-    auto &params = args.GetParams();
-
-    // First level: query from args
-    auto firstIt = params.find(pathSegments[0]);
-    if (firstIt == params.end()) {
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "First level key not found: %{public}s", pathSegments[0].c_str());
-        return nullptr;
-    }
-
-    sptr<AAFwk::IInterface> currentValue = firstIt->second;
-
-    // Nested levels: traverse through WantParams
-    for (size_t i = 1; i < pathSegments.size(); ++i) {
-        currentValue = QueryNextLevel(currentValue, pathSegments[i], separator);
-        if (currentValue == nullptr) {
-            TAG_LOGI(AAFwkTag::CLI_TOOL, "Nested key not found: %{public}s", pathSegments[i].c_str());
-            return nullptr;
-        }
-    }
-
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Found param with nested traversal: %{public}s",
-        pathSegments.size() > 1 ? pathSegments[0].c_str() : "N/A");
-    return currentValue;
-}
-
-sptr<AAFwk::IInterface> ToolUtil::QueryNextLevel(const sptr<AAFwk::IInterface> &currentValue,
-    const std::string &nextSegment, const std::string &separator)
-{
-    if (currentValue == nullptr) {
-        return nullptr;
-    }
-
-    AAFwk::WantParams nestedParams;
-    if (!ExtractWantParams(currentValue, nestedParams)) {
-        return nullptr;
-    }
-
-    auto &nestedMap = nestedParams.GetParams();
-    auto nestedIt = nestedMap.find(nextSegment);
-    if (nestedIt == nestedMap.end()) {
-        return nullptr;
-    }
-
-    return nestedIt->second;
 }
 
 // ============================================================================
