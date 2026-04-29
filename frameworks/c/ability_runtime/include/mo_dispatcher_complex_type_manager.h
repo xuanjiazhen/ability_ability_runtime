@@ -98,10 +98,13 @@ public:
     static void StructRelease(OH_AbilityRuntime_MoDispatcher_StructHandle* ppStruct);
 
     static void Variant_Clear(OH_AbilityRuntime_MoDispatcher_Variant* pVariant);
+    static void TypeInfo_Clear(OH_AbilityRuntime_MoDispatcher_TypeInfo* pTypeInfo);
 
     static AbilityRuntime_ErrorCode StoreVariant(const OH_AbilityRuntime_MoDispatcher_Variant* src,
         MoVariantStorage* dst);
     static AbilityRuntime_ErrorCode LoadVariant(const MoVariantStorage& src,
+        OH_AbilityRuntime_MoDispatcher_Variant* dst);
+    static AbilityRuntime_ErrorCode DeepCopyVariant(const OH_AbilityRuntime_MoDispatcher_Variant* src,
         OH_AbilityRuntime_MoDispatcher_Variant* dst);
     static AbilityRuntime_ErrorCode ValidateVariantType(const OH_AbilityRuntime_MoDispatcher_Variant* value,
         OH_AbilityRuntime_MoDispatcher_ValueType expectedType);
