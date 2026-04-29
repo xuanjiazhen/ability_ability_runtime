@@ -58,10 +58,6 @@
           },
           "required": ["percentage", "status"]
         }
-      },
-      "argMapping": {
-        "type": "positional",
-        "order": ["argLine"]
       }
     },
     "version": {
@@ -89,12 +85,6 @@
           }
         },
         "required": ["version"]
-      },
-      "argMapping": {
-        "type": "flag",
-        "templates": {
-          "reserved": "--reserved={value}"
-        }
       }
     }
   }

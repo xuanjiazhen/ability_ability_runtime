@@ -22,7 +22,6 @@
 #include <set>
 #include <unistd.h>
 
-#include "arg_mapping.h"
 #include "hilog_tag_wrapper.h"
 
 namespace OHOS {

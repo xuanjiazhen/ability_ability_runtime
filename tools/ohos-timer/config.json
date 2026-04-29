@@ -71,20 +71,5 @@
       },
       "required": ["percentage", "status"]
     }
-  },
-  "argMapping": {
-    "type": "flag",
-    "templates": {
-      "duration": "--duration={value}",
-      "interval": "--interval={value}",
-      "showProgress": {
-        "if_true": "--progress",
-        "if_false": ""
-      },
-      "verbose": {
-        "if_true": "--verbose",
-        "if_false": ""
-      }
-    }
   }
 }

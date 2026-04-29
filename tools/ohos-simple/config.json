@@ -69,16 +69,5 @@
       }
     },
     "required": ["status", "message", "repeat_count"]
-  },
-  "argMapping": {
-    "type": "flag",
-    "templates": {
-      "message": "--message={value}",
-      "count": "--count={value}",
-      "verbose": {
-        "if_true": "--verbose",
-        "if_false": ""
-      }
-    }
   }
 }

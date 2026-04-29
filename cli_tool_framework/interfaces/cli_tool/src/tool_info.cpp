@@ -43,8 +43,6 @@ bool ToolInfo::Marshalling(Parcel &parcel) const
            parcel.WriteStringVector(requirePermissions) &&
            parcel.WriteString(inputSchema) &&
            parcel.WriteString(outputSchema) &&
-           parcel.WriteBool(argMapping != nullptr) &&
-           (argMapping == nullptr || argMapping->Marshalling(parcel)) &&
            parcel.WriteString(eventSchemas) &&
            parcel.WriteInt32(timeout) &&
            parcel.WriteStringVector(eventTypes) &&
@@ -59,7 +57,6 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
 
-    bool hasArgMapping = false;
     std::string subcommandsJson;
     if (!parcel.ReadString(tool->name) ||
         !parcel.ReadString(tool->version) ||
@@ -68,20 +65,7 @@ ToolInfo *ToolInfo::Unmarshalling(Parcel &parcel)
         !parcel.ReadStringVector(&tool->requirePermissions) ||
         !parcel.ReadString(tool->inputSchema) ||
         !parcel.ReadString(tool->outputSchema) ||
-        !parcel.ReadBool(hasArgMapping)) {
-        delete tool;
-        return nullptr;
-    }
-
-    if (hasArgMapping) {
-        tool->argMapping.reset(ArgMapping::Unmarshalling(parcel));
-        if (tool->argMapping == nullptr) {
-            delete tool;
-            return nullptr;
-        }
-    }
-
-    if (!parcel.ReadString(tool->eventSchemas) ||
+        !parcel.ReadString(tool->eventSchemas) ||
         !parcel.ReadInt32(tool->timeout) ||
         !parcel.ReadStringVector(&tool->eventTypes) ||
         !parcel.ReadBool(tool->hasSubCommand) ||
@@ -275,16 +259,6 @@ bool ToolInfo::ParseFromJson(const nlohmann::json &json, ToolInfo &tool)
         }
         tool.outputSchema = json["outputSchema"].dump();
     }
-    if (!json.contains("argMapping") || !json["argMapping"].is_object()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: argMapping is required and must be an object");
-        return false;
-    }
-    tool.argMapping = std::make_shared<ArgMapping>();
-    if (!ArgMapping::ParseFromJson(json["argMapping"], *tool.argMapping)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: argMapping parse failed");
-        tool.argMapping = nullptr;
-        return false;
-    }
     if (json.contains("eventSchemas")) {
         if (!json["eventSchemas"].is_object()) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "ParseFromJson failed: eventSchemas is not a JSON object");
@@ -374,9 +348,6 @@ nlohmann::json ToolInfo::ParseToJson() const
             j["outputSchema"] = outputSchema;
         }
     }
-    if (argMapping != nullptr) {
-        j["argMapping"] = argMapping->ParseToJson();
-    }
     if (!eventSchemas.empty()) {
         nlohmann::json eventSchemasJson = nlohmann::json::parse(eventSchemas, nullptr, false);
         if (!eventSchemasJson.is_discarded()) {
@@ -442,16 +413,6 @@ bool ToolInfo::Validate(const ToolInfo &tool)
             TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: outputSchema is not valid JSON");
             return false;
         }
-    }
-
-    // argMapping is required
-    if (tool.argMapping == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: argMapping is null");
-        return false;
-    }
-    if (!ArgMapping::Validate(*tool.argMapping)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: argMapping validation failed");
-        return false;
     }
 
     // timeout must be > 0 and <= 1800
