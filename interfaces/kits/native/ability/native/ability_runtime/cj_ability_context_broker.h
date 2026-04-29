@@ -72,6 +72,8 @@ CJ_EXPORT int32_t FFIAbilityContextBackToCallerAbilityWithResult(int64_t id,
 CJ_EXPORT int32_t FFIAbilityContextSetMissionContinueState(int64_t id, int32_t state);
 CJ_EXPORT OHOS::AbilityRuntime::CConfiguration FFIAbilityContextPropConfiguration(
     int64_t id, int32_t *errCode);
+CJ_EXPORT OHOS::AbilityRuntime::CConfigurationV2 FFIAbilityContextPropConfigurationV2(
+    int64_t id, int32_t *errCode);
 CJ_EXPORT OHOS::AbilityRuntime::RetAbilityInfoV2 FFIAbilityContextPropAbilityInfo(
     int64_t id, int32_t *errCode);
 CJ_EXPORT OHOS::AbilityRuntime::RetHapModuleInfoV2 FFIAbilityContextPropCurrentHapModuleInfo(

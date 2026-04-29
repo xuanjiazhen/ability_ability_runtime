@@ -102,6 +102,17 @@ CJ_EXPORT CConfiguration FFICJGetConfiguration(int64_t id)
     return abilityStageContext->GetConfiguration();
 }
 
+CJ_EXPORT CConfigurationV2 FFICJGetConfigurationV2(int64_t id)
+{
+    auto abilityStageContext = OHOS::FFI::FFIData::GetData<CJAbilityStageContext>(id);
+    if (abilityStageContext == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "Get abilityStageContext failed. ");
+        return CConfigurationV2();
+    }
+
+    return abilityStageContext->GetConfigurationV2();
+}
+
 CJ_EXPORT int64_t FFIAbilityGetAbilityStageContext(AbilityStageHandle abilityStageHandle)
 {
     auto ability = static_cast<CJAbilityStage*>(abilityStageHandle);
