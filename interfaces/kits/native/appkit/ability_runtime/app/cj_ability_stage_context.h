@@ -39,6 +39,7 @@ public:
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo();
     RetHapModuleInfoV2 GetRetHapModuleInfo();
     CConfiguration GetConfiguration();
+    CConfigurationV2 GetConfigurationV2();
     std::shared_ptr<Context> GetContext()
     {
         return abilityStageContext_.lock();
