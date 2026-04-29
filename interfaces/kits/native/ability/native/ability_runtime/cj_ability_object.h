@@ -22,6 +22,7 @@
 #include "cj_runtime.h"
 #include "cj_utils_ffi.h"
 #include "configuration.h"
+#include "last_exit_detail_info.h"
 
 #ifdef WINDOWS_PLATFORM
 #define CJ_EXPORT __declspec(dllexport)
@@ -43,15 +44,38 @@ struct CJConfiguration {
     int32_t screenDensity;
     int32_t displayId;
 };
-}
 
-extern "C" {
+struct CJLastExitDetailInfo {
+    int32_t pid;
+    char* processName;
+    int32_t uid;
+    int32_t exitSubReason;
+    char* exitMsg;
+    int32_t rss;
+    int32_t pss;
+    int64_t timestamp;
+    int32_t processState;
+    char* killReason;
+    bool hasKillReason;
+};
+
 struct CJLaunchParam {
     int32_t launchReason;
     int32_t lastExitReason;
     char* lastExitMessage;
 };
 
+struct CJLaunchParamV2 {
+    int32_t launchReason;
+    int32_t lastExitReason;
+    char* lastExitMessage;
+    char* launchReasonMessage;
+    CJLastExitDetailInfo lastExitDetailInfo;
+    bool hasLastExitDetailInfo;
+};
+}
+
+extern "C" {
 struct CJNumberParmas {
     int32_t numberResult;
     char* params;
@@ -84,7 +108,13 @@ struct CJAbilityFuncs {
     void (*cjAbilityOnSetCalleeFlag)(int64_t id, bool flag);
 };
 
+struct CJAbilityFuncsV2 {
+    void (*cjAbilityOnStartV2)(int64_t id, WantHandle want, CJLaunchParamV2 launchParam);
+    void (*cjAbilityOnNewWantV2)(int64_t id, WantHandle want, CJLaunchParamV2 launchParam);
+};
+
 CJ_EXPORT void RegisterCJAbilityFuncs(void (*registerFunc)(CJAbilityFuncs*));
+CJ_EXPORT void RegisterCJAbilityFuncsV2(void (*registerFunc)(CJAbilityFuncsV2*));
 }
 
 namespace OHOS {

@@ -14,20 +14,16 @@
  */
 
 #include "cj_ui_extension_object.h"
+#include "ability_runtime/cj_ability_object.h"
 #include "configuration_utils.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "int_wrapper.h"
 #include "cj_utils_ffi.h"
+#include "last_exit_detail_info.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
-struct CJLaunchParam {
-    int32_t launchReason;
-    int32_t lastExitReason;
-    char* lastExitMessage;
-};
-
 struct CJExtAbilityFuncs {
     int64_t (*createCjExtAbility)(const char* name, int32_t type);
     void (*releaseCjExtAbility)(int64_t id, int32_t type);
@@ -43,11 +39,16 @@ struct CJExtAbilityFuncs {
     void (*cjExtAbilityOnStartContentEditing)(int64_t id, int32_t type, const char* imageUri, WantHandle want,
         int64_t sessionId);
 };
+
+struct CJExtAbilityFuncsV2 {
+    void (*cjExtAbilityOnCreateV2)(int64_t id, int32_t type, WantHandle want, CJLaunchParamV2 launchParam);
+};
 } // namespace AbilityRuntime
 } // namespace OHOS
 
 namespace {
 static OHOS::AbilityRuntime::CJExtAbilityFuncs g_cjFuncs {};
+static OHOS::AbilityRuntime::CJExtAbilityFuncsV2 g_cjFuncsV2 {};
 static const int32_t CJ_OBJECT_ERR_CODE = -1;
 } // namespace
 
@@ -95,14 +96,67 @@ int32_t CJUIExtensionObject::Init(const std::string& abilityName, CJExtensionAbi
     return 0;
 }
 
+CJLastExitDetailInfo CreateCJLastExitDetailInfo(const AAFwk::LastExitDetailInfo& lastExitDetailInfo)
+{
+    CJLastExitDetailInfo detailInfo = {};
+    detailInfo.pid = lastExitDetailInfo.pid;
+    detailInfo.processName = CreateCStringFromString(lastExitDetailInfo.processName);
+    detailInfo.uid = lastExitDetailInfo.uid;
+    detailInfo.exitSubReason = lastExitDetailInfo.exitSubReason;
+    detailInfo.exitMsg = CreateCStringFromString(lastExitDetailInfo.exitMsg);
+    detailInfo.rss = lastExitDetailInfo.rss;
+    detailInfo.pss = lastExitDetailInfo.pss;
+    detailInfo.timestamp = lastExitDetailInfo.timestamp;
+    detailInfo.processState = lastExitDetailInfo.processState;
+    if (!lastExitDetailInfo.killReason.empty()) {
+        detailInfo.killReason = CreateCStringFromString(lastExitDetailInfo.killReason);
+        detailInfo.hasKillReason = true;
+    } else {
+        detailInfo.killReason = nullptr;
+        detailInfo.hasKillReason = false;
+    }
+    return detailInfo;
+}
+
+void FreeCJLastExitDetailInfo(CJLastExitDetailInfo& detailInfo)
+{
+    if (detailInfo.processName != nullptr) {
+        free(detailInfo.processName);
+        detailInfo.processName = nullptr;
+    }
+    if (detailInfo.exitMsg != nullptr) {
+        free(detailInfo.exitMsg);
+        detailInfo.exitMsg = nullptr;
+    }
+    if (detailInfo.killReason != nullptr) {
+        free(detailInfo.killReason);
+        detailInfo.killReason = nullptr;
+    }
+}
+
 void CJUIExtensionObject::OnCreate(const AAFwk::Want &want, AAFwk::LaunchParam &launchParam)
 {
+    WantHandle wantHandle = const_cast<AAFwk::Want*>(&want);
+    if (g_cjFuncsV2.cjExtAbilityOnCreateV2 != nullptr) {
+        CJLaunchParamV2 param;
+        param.launchReason = launchParam.launchReason;
+        param.lastExitReason = launchParam.lastExitReason;
+        param.lastExitMessage = CreateCStringFromString(launchParam.lastExitMessage);
+        param.launchReasonMessage = CreateCStringFromString(launchParam.launchReasonMessage);
+        param.lastExitDetailInfo = CreateCJLastExitDetailInfo(launchParam.lastExitDetailInfo);
+        param.hasLastExitDetailInfo = true;
+
+        g_cjFuncsV2.cjExtAbilityOnCreateV2(cjID_, GetType(), wantHandle, param);
+        free(param.lastExitMessage);
+        free(param.launchReasonMessage);
+        FreeCJLastExitDetailInfo(param.lastExitDetailInfo);
+        return;
+    }
     if (g_cjFuncs.cjExtAbilityOnCreate == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "cjExtAbilityOnCreate is not registered");
         return;
     }
 
-    WantHandle wantHandle = const_cast<AAFwk::Want*>(&want);
     CJLaunchParam param;
     param.launchReason = launchParam.launchReason;
     param.lastExitReason = launchParam.lastExitReason;
@@ -218,6 +272,18 @@ CJ_EXPORT void FFIRegisterCJExtAbilityFuncs(void (*registerFunc)(CJExtAbilityFun
 
     registerFunc(&g_cjFuncs);
     TAG_LOGD(AAFwkTag::UI_EXT, "FFIRegisterCJExtAbilityFuncs end");
+}
+
+CJ_EXPORT void FFIRegisterCJExtAbilityFuncsV2(void (*registerFunc)(CJExtAbilityFuncsV2*))
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "FFIRegisterCJExtAbilityFuncsV2 start");
+    if (registerFunc == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "FFIRegisterCJExtAbilityFuncsV2 failed, registerFunc is nullptr");
+        return;
+    }
+
+    registerFunc(&g_cjFuncsV2);
+    TAG_LOGD(AAFwkTag::UI_EXT, "FFIRegisterCJExtAbilityFuncsV2 end");
 }
 } // extern "C"
 } // namespace AbilityRuntime

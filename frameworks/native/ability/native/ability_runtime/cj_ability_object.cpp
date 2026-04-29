@@ -30,6 +30,7 @@ namespace {
 // g_cjAbilityFuncs is used to save cj functions.
 // It is assigned by the global variable REGISTER_ABILITY on the cj side which invokes RegisterCJAbilityFuncs.
 CJAbilityFuncs g_cjAbilityFuncs {};
+CJAbilityFuncsV2 g_cjAbilityFuncsV2 {};
 
 const char* CJ_ABILITY_LIBNAME = "libcj_ability_ffi.z.so";
 const char* FUNC_CONVERT_CONFIGURATION = "OHOS_ConvertConfiguration";
@@ -52,6 +53,18 @@ void RegisterCJAbilityFuncs(void (*registerFunc)(CJAbilityFuncs*))
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
+void RegisterCJAbilityFuncsV2(void (*registerFunc)(CJAbilityFuncsV2*))
+{
+    TAG_LOGD(AAFwkTag::UIABILITY, "called");
+    if (registerFunc == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null registerFunc");
+        return;
+    }
+
+    registerFunc(&g_cjAbilityFuncsV2);
+    TAG_LOGD(AAFwkTag::UIABILITY, "end");
+}
+
 namespace OHOS {
 namespace AbilityRuntime {
 char* CreateCStringFromString(const std::string& source)
@@ -71,6 +84,44 @@ char* CreateCStringFromString(const std::string& source)
         return nullptr;
     }
     return res;
+}
+
+void FreeCJLastExitDetailInfo(CJLastExitDetailInfo& detailInfo)
+{
+    if (detailInfo.processName != nullptr) {
+        free(detailInfo.processName);
+        detailInfo.processName = nullptr;
+    }
+    if (detailInfo.exitMsg != nullptr) {
+        free(detailInfo.exitMsg);
+        detailInfo.exitMsg = nullptr;
+    }
+    if (detailInfo.killReason != nullptr) {
+        free(detailInfo.killReason);
+        detailInfo.killReason = nullptr;
+    }
+}
+
+CJLastExitDetailInfo CreateCJLastExitDetailInfo(const AAFwk::LastExitDetailInfo& lastExitDetailInfo)
+{
+    CJLastExitDetailInfo detailInfo = {};
+    detailInfo.pid = lastExitDetailInfo.pid;
+    detailInfo.processName = CreateCStringFromString(lastExitDetailInfo.processName);
+    detailInfo.uid = lastExitDetailInfo.uid;
+    detailInfo.exitSubReason = lastExitDetailInfo.exitSubReason;
+    detailInfo.exitMsg = CreateCStringFromString(lastExitDetailInfo.exitMsg);
+    detailInfo.rss = lastExitDetailInfo.rss;
+    detailInfo.pss = lastExitDetailInfo.pss;
+    detailInfo.timestamp = lastExitDetailInfo.timestamp;
+    detailInfo.processState = lastExitDetailInfo.processState;
+    if (!lastExitDetailInfo.killReason.empty()) {
+        detailInfo.killReason = CreateCStringFromString(lastExitDetailInfo.killReason);
+        detailInfo.hasKillReason = true;
+    } else {
+        detailInfo.killReason = nullptr;
+        detailInfo.hasKillReason = false;
+    }
+    return detailInfo;
 }
 
 CConfiguration CallConvertConfig(std::shared_ptr<AppExecFwk::Configuration> configuration)
@@ -117,11 +168,25 @@ CJAbilityObject::~CJAbilityObject()
 
 void CJAbilityObject::OnStart(const AAFwk::Want& want, const AAFwk::LaunchParam& launchParam) const
 {
+    WantHandle wantHandle = const_cast<AAFwk::Want*>(&want);
+    if (g_cjAbilityFuncsV2.cjAbilityOnStartV2 != nullptr) {
+        CJLaunchParamV2 param;
+        param.launchReason = launchParam.launchReason;
+        param.lastExitReason = launchParam.lastExitReason;
+        param.lastExitMessage = CreateCStringFromString(launchParam.lastExitMessage);
+        param.launchReasonMessage = CreateCStringFromString(launchParam.launchReasonMessage);
+        param.lastExitDetailInfo = CreateCJLastExitDetailInfo(launchParam.lastExitDetailInfo);
+        param.hasLastExitDetailInfo = true;
+        g_cjAbilityFuncsV2.cjAbilityOnStartV2(id_, wantHandle, param);
+        free(param.lastExitMessage);
+        free(param.launchReasonMessage);
+        FreeCJLastExitDetailInfo(param.lastExitDetailInfo);
+        return;
+    }
     if (g_cjAbilityFuncs.cjAbilityOnStart == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null cjAbilityFunc");
         return;
     }
-    WantHandle wantHandle = const_cast<AAFwk::Want*>(&want);
     CJLaunchParam param;
     param.launchReason = launchParam.launchReason;
     param.lastExitReason = launchParam.lastExitReason;
@@ -236,11 +301,25 @@ void CJAbilityObject::OnMemoryLevel(int32_t level) const
 
 void CJAbilityObject::OnNewWant(const AAFwk::Want& want, const AAFwk::LaunchParam& launchParam) const
 {
+    WantHandle wantHandle = const_cast<AAFwk::Want*>(&want);
+    if (g_cjAbilityFuncsV2.cjAbilityOnNewWantV2 != nullptr) {
+        CJLaunchParamV2 param;
+        param.launchReason = launchParam.launchReason;
+        param.lastExitReason = launchParam.lastExitReason;
+        param.lastExitMessage = CreateCStringFromString(launchParam.lastExitMessage);
+        param.launchReasonMessage = CreateCStringFromString(launchParam.launchReasonMessage);
+        param.lastExitDetailInfo = CreateCJLastExitDetailInfo(launchParam.lastExitDetailInfo);
+        param.hasLastExitDetailInfo = true;
+        g_cjAbilityFuncsV2.cjAbilityOnNewWantV2(id_, wantHandle, param);
+        free(param.lastExitMessage);
+        free(param.launchReasonMessage);
+        FreeCJLastExitDetailInfo(param.lastExitDetailInfo);
+        return;
+    }
     if (g_cjAbilityFuncs.cjAbilityOnNewWant == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null cjAbilityFunc");
         return;
     }
-    WantHandle wantHandle = const_cast<AAFwk::Want*>(&want);
     CJLaunchParam param;
     param.launchReason = launchParam.launchReason;
     param.lastExitReason = launchParam.lastExitReason;
