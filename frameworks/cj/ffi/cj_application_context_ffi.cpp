@@ -72,6 +72,18 @@ int32_t FfiCJApplicationContextOnOnEnvironment(int64_t id, void (*cfgCallback)(C
     return context->OnOnEnvironment(cfgCallback, memCallback, false, *errCode);
 }
 
+int32_t FfiCJApplicationContextOnOnEnvironmentV2(int64_t id, void (*cfgCallback)(CConfigurationV2),
+                                                 void (*memCallback)(int32_t), int32_t *errCode)
+{
+    auto context = FFI::FFIData::GetData<CJApplicationContext>(id);
+    if (context == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        *errCode = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+        return -1;
+    }
+    return context->OnOnEnvironmentV2(cfgCallback, memCallback, false, *errCode);
+}
+
 int32_t FfiCJApplicationContextOnOnAbilityLifecycle(int64_t id, CArrI64 cFuncIds, int32_t *errCode)
 {
     auto context = FFI::FFIData::GetData<CJApplicationContext>(id);

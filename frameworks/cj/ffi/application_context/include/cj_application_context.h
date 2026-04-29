@@ -116,6 +116,8 @@ public:
 
     int32_t OnOnEnvironment(void (*cfgCallback)(AbilityRuntime::CConfiguration),
         void (*memCallback)(int32_t), bool isSync, int32_t &errCode);
+    int32_t OnOnEnvironmentV2(void (*cfgCallback)(AbilityRuntime::CConfigurationV2),
+        void (*memCallback)(int32_t), bool isSync, int32_t &errCode);
     int32_t OnOnAbilityLifecycle(std::vector<int64_t> &cFuncIds, bool isSync, int32_t &errCode);
     int32_t OnOnApplicationStateChange(void (*foregroundCallback)(void),
         void (*backgroundCallback)(void), int32_t &errCode);
