@@ -27,6 +27,7 @@ namespace {
 // It is assigned by the global variable REGISTER_ABILITY_STAGE on the cj side which invokes
 // RegisterCJAbilityStageFuncs.
 CJAbilityStageFuncs g_cjAbilityStageFuncs {};
+CJAbilityStageFuncsV3 g_cjAbilityStageFuncsV3 {};
 } // namespace
 
 void RegisterCJAbilityStageFuncs(void (*registerFunc)(CJAbilityStageFuncs* result))
@@ -132,6 +133,10 @@ std::string CJAbilityStageObject::OnNewProcessRequest(const AAFwk::Want& want) c
 
 void CJAbilityStageObject::OnConfigurationUpdated(const std::shared_ptr<AppExecFwk::Configuration>& configuration) const
 {
+    if (g_cjAbilityStageFuncsV3.AbilityStageOnConfigurationUpdatedV2 != nullptr) {
+        g_cjAbilityStageFuncsV3.AbilityStageOnConfigurationUpdatedV2(id_, CallConvertConfigV2(configuration));
+    }
+
     if (g_cjAbilityStageFuncs.AbilityStageOnConfigurationUpdated2 == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null AbilityStageOnConfigurationUpdated2");
         return;
