@@ -39,6 +39,7 @@ public:
     std::shared_ptr<AppExecFwk::HapModuleInfo> GetHapModuleInfo();
     RetHapModuleInfoV2 GetRetHapModuleInfo();
     CConfiguration GetConfiguration();
+    CConfigurationV2 GetConfigurationV2();
     std::shared_ptr<Context> GetContext()
     {
         return abilityStageContext_.lock();
@@ -49,6 +50,7 @@ private:
 };
 
 CConfiguration CallConvertConfig(std::shared_ptr<AppExecFwk::Configuration> configuration);
+CConfigurationV2 CallConvertConfigV2(std::shared_ptr<AppExecFwk::Configuration> configuration);
 }
 }
 #endif //OHOS_ABILITY_RUNTIME_CJ_ABILITY_STAGE_CONTEXT_H

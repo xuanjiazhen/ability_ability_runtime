@@ -454,6 +454,26 @@ int32_t CJApplicationContext::OnOnEnvironment(void (*cfgCallback)(CConfiguration
     return callbackId;
 }
 
+int32_t CJApplicationContext::OnOnEnvironmentV2(void (*cfgCallback)(CConfigurationV2),
+    void (*memCallback)(int32_t), bool isSync, int32_t &errCode)
+{
+    auto context = applicationContext_.lock();
+    if (context == nullptr || cfgCallback == nullptr || memCallback == nullptr) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "null context");
+        errCode = ERR_ABILITY_RUNTIME_EXTERNAL_INVALID_PARAMETER;
+        return -1;
+    }
+    if (envCallback_ != nullptr) {
+        TAG_LOGD(AAFwkTag::CONTEXT, "envCallback_ is not nullptr.");
+        return envCallback_->RegisterV2(CJLambda::Create(cfgCallback), CJLambda::Create(memCallback), isSync);
+    }
+    envCallback_ = std::make_shared<CjEnvironmentCallback>();
+    int32_t callbackId = envCallback_->RegisterV2(CJLambda::Create(cfgCallback), CJLambda::Create(memCallback), isSync);
+    context->RegisterEnvironmentCallback(envCallback_);
+    TAG_LOGD(AAFwkTag::CONTEXT, "OnOnEnvironmentV2 is end");
+    return callbackId;
+}
+
 const size_t FUNC_NUM = 22;
 
 int32_t CJApplicationContext::OnOnAbilityLifecycle(std::vector<int64_t> &cFuncIds, bool isSync, int32_t &errCode)

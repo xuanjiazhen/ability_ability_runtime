@@ -53,7 +53,12 @@ struct CJAbilityStageFuncs {
     char* (*AbilityStageOnNewProcessRequest)(int64_t id, OHOS::AAFwk::Want* want);
 };
 
+struct CJAbilityStageFuncsV3 {
+    void (*AbilityStageOnConfigurationUpdatedV2)(int64_t id, OHOS::AbilityRuntime::CConfigurationV2 configuration);
+};
+
 CJ_EXPORT void RegisterCJAbilityStageFuncs(void (*registerFunc)(CJAbilityStageFuncs* result));
+CJ_EXPORT void RegisterCJAbilityStageFuncsV3(void (*registerFunc)(CJAbilityStageFuncsV3* result));
 }
 
 namespace OHOS {
