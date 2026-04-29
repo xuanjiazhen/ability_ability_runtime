@@ -209,29 +209,8 @@ void ToolUtil::TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantPar
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Not has arg");
         return;
     }
-    if (toolInfo.argMapping == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "argMapping is nullptr");
-        return;
-    }
-
-    // Apply mapping based on type
-    switch (toolInfo.argMapping->type) {
-        case ArgMappingType::FLAG:
-            ApplyFlagMapping(toolInfo.argMapping->templates, args, cmdLine);
-            break;
-        case ArgMappingType::POSITIONAL:
-            ApplyPositionalMapping(toolInfo.argMapping->order, args, cmdLine);
-            break;
-        case ArgMappingType::FLATTENED:
-            ApplyFlattenedMapping(toolInfo.argMapping->separator, toolInfo.argMapping->templates, args, cmdLine);
-            break;
-        case ArgMappingType::JSONSTRING:
-            ApplyJsonStringMapping(toolInfo.argMapping->templates, args, cmdLine);
-            break;
-        default:
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "Unknown argMapping type");
-            break;
-    }
+    // argMapping has been removed from ToolInfo, no parameter transformation applied
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "argMapping not configured, args not transformed to command line");
 }
 
 void ToolUtil::ApplyFlagMapping(const std::string &templates, const AAFwk::WantParams &args, std::string &cmdLine)

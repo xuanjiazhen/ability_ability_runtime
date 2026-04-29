@@ -38,14 +38,6 @@ bool SubCommandInfo::Marshalling(Parcel &parcel) const
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write outputSchema");
         return false;
     }
-    if (!parcel.WriteBool(argMapping != nullptr)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write hasArgMapping flag");
-        return false;
-    }
-    if (argMapping != nullptr && !argMapping->Marshalling(parcel)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write argMapping");
-        return false;
-    }
     if (!parcel.WriteStringVector(eventTypes)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to write eventTypes");
         return false;
@@ -65,7 +57,6 @@ SubCommandInfo *SubCommandInfo::Unmarshalling(Parcel &parcel)
         return nullptr;
     }
 
-    bool hasArgMapping = false;
     if (!parcel.ReadString(subCmd->description)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read description");
         delete subCmd;
@@ -86,21 +77,6 @@ SubCommandInfo *SubCommandInfo::Unmarshalling(Parcel &parcel)
         delete subCmd;
         return nullptr;
     }
-    if (!parcel.ReadBool(hasArgMapping)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read hasArgMapping flag");
-        delete subCmd;
-        return nullptr;
-    }
-
-    if (hasArgMapping) {
-        subCmd->argMapping.reset(ArgMapping::Unmarshalling(parcel));
-        if (subCmd->argMapping == nullptr) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to unmarshal argMapping");
-            delete subCmd;
-            return nullptr;
-        }
-    }
-
     if (!parcel.ReadStringVector(&subCmd->eventTypes)) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to read eventTypes");
         delete subCmd;
@@ -143,26 +119,20 @@ bool SubCommandInfo::ParseFromJson(const nlohmann::json &json, SubCommandInfo &s
         }
     }
 
-    // inputSchema is required and must be JSON object
-    if (!json.contains("inputSchema") || !json["inputSchema"].is_object()) {
-        return false;
+    // inputSchema is optional, but if present must be JSON object
+    if (json.contains("inputSchema")) {
+        if (!json["inputSchema"].is_object()) {
+            return false;
+        }
+        subCmd.inputSchema = json["inputSchema"].dump();
     }
-    subCmd.inputSchema = json["inputSchema"].dump();
 
-    // outputSchema is required and must be JSON object
-    if (!json.contains("outputSchema") || !json["outputSchema"].is_object()) {
-        return false;
-    }
-    subCmd.outputSchema = json["outputSchema"].dump();
-
-    // argMapping is required
-    if (!json.contains("argMapping") || !json["argMapping"].is_object()) {
-        return false;
-    }
-    subCmd.argMapping = std::make_shared<ArgMapping>();
-    if (!ArgMapping::ParseFromJson(json["argMapping"], *subCmd.argMapping)) {
-        subCmd.argMapping = nullptr;
-        return false;  // argMapping parse failed
+    // outputSchema is optional, but if present must be JSON object
+    if (json.contains("outputSchema")) {
+        if (!json["outputSchema"].is_object()) {
+            return false;
+        }
+        subCmd.outputSchema = json["outputSchema"].dump();
     }
 
     // eventTypes is optional, but if present must be array of strings
@@ -223,9 +193,6 @@ nlohmann::json SubCommandInfo::ParseToJson() const
             json["eventSchemas"] = eventSchemas;
         }
     }
-    if (argMapping != nullptr) {
-        json["argMapping"] = argMapping->ParseToJson();
-    }
 
     return json;
 }
@@ -238,36 +205,22 @@ bool SubCommandInfo::Validate(const SubCommandInfo &subCmd)
         return false;
     }
 
-    // inputSchema is required and must be valid JSON object
-    if (subCmd.inputSchema.empty()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: inputSchema is empty");
-        return false;
-    }
-    nlohmann::json inputSchemaJson = nlohmann::json::parse(subCmd.inputSchema, nullptr, false);
-    if (inputSchemaJson.is_discarded() || !inputSchemaJson.is_object()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: inputSchema is not a valid JSON object");
-        return false;
+    // inputSchema: if not empty, must be valid JSON object
+    if (!subCmd.inputSchema.empty()) {
+        nlohmann::json inputSchemaJson = nlohmann::json::parse(subCmd.inputSchema, nullptr, false);
+        if (inputSchemaJson.is_discarded() || !inputSchemaJson.is_object()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: inputSchema is not a valid JSON object");
+            return false;
+        }
     }
 
-    // outputSchema is required and must be valid JSON object
-    if (subCmd.outputSchema.empty()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: outputSchema is empty");
-        return false;
-    }
-    nlohmann::json outputSchemaJson = nlohmann::json::parse(subCmd.outputSchema, nullptr, false);
-    if (outputSchemaJson.is_discarded() || !outputSchemaJson.is_object()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: outputSchema is not a valid JSON object");
-        return false;
-    }
-
-    // argMapping is required
-    if (subCmd.argMapping == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: argMapping is null");
-        return false;
-    }
-    if (!ArgMapping::Validate(*subCmd.argMapping)) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: argMapping validation failed");
-        return false;
+    // outputSchema: if not empty, must be valid JSON object
+    if (!subCmd.outputSchema.empty()) {
+        nlohmann::json outputSchemaJson = nlohmann::json::parse(subCmd.outputSchema, nullptr, false);
+        if (outputSchemaJson.is_discarded() || !outputSchemaJson.is_object()) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: outputSchema is not a valid JSON object");
+            return false;
+        }
     }
 
     // eventSchemas: if not empty, must be valid JSON object
