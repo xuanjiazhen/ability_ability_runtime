@@ -529,7 +529,9 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
         jsWant,
         CreateJsLaunchParam(env, launchParam),
     };
-    std::string methodName = "OnStart";
+
+    // Handle NativeModule: Create NativeAbilityWrapper and call PostAbility
+    HandleNativeModule(env);
 
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr) {
@@ -539,6 +541,7 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     }
 
     WriteLifecycleSwitchLog("onCreate");
+    std::string methodName = "OnStart";
     AddLifecycleEventBeforeJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
     CallObjectMethod("onCreate", argv, ArraySize(argv));
     AddLifecycleEventAfterJSCall(FreezeUtil::TimeoutState::FOREGROUND, methodName);
@@ -549,6 +552,7 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
         applicationContext->DispatchOnAbilityCreate(ability);
         DISPATCH_ABILITY_INTEROP(OnAbilityCreate, applicationContext, jsRuntime_, ability);
     }
+
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
@@ -718,6 +722,10 @@ void JsUIAbility::OnStopCallback()
         JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
         applicationContext->DispatchOnAbilityDestroy(ability);
         DISPATCH_ABILITY_INTEROP(OnAbilityDestroy, applicationContext, jsRuntime_, ability);
+    }
+
+    if (IsWithNative() && applicationContext != nullptr) {
+        applicationContext->DestroyAbility(GetInstanceId());
     }
 }
 
@@ -1291,7 +1299,7 @@ void JsUIAbility::DoOnForegroundForSceneIsNull(const Want &want)
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken != nullptr) {
         abilityContext_->SetWeakSessionToken(sessionToken);
         ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken, identityToken,
-            reusingWindow_);
+            reusingWindow_, renderSession_);
         std::string navDestinationInfo = want.GetStringParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
         if (!navDestinationInfo.empty()) {
             TAG_LOGD(AAFwkTag::UIABILITY, "SetNavDestinationInfo :%{public}s", navDestinationInfo.c_str());
@@ -2518,6 +2526,36 @@ void JsUIAbility::RegisterDelayResultCallback(const std::shared_ptr<InsightInten
     bool isDecorator = executeParam->decoratorType_ != static_cast<int8_t>(InsightIntentType::DECOR_NONE);
     InsightIntentDelayResultCallbackMgr::GetInstance().AddDelayResultCallback(
         executeParam->insightIntentId_, {delayResultCallback, isDecorator});
+}
+
+void JsUIAbility::HandleNativeModule(napi_env env)
+{
+    if (!IsWithNative()) {
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "Creating NativeAbilityWrapper for native module");
+
+    // Get JS Ability object
+    if (jsAbilityObj_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "jsAbilityObj_ is null");
+        return;
+    }
+
+    // Create NativeAbilityWrapper
+    auto wrapper = std::make_shared<NativeAbilityWrapper>();
+    wrapper->instanceId = GetInstanceId();
+    wrapper->abilityName = GetAbilityName();
+    wrapper->env = env;
+    wrapper->jsAbilityObj = jsAbilityObj_;
+
+    // Get ApplicationContext
+    auto appContext = AbilityRuntime::Context::GetApplicationContext();
+    if (appContext != nullptr) {
+        appContext->PostAbility(wrapper->instanceId, wrapper);
+    } else {
+        TAG_LOGE(AAFwkTag::UIABILITY, "ApplicationContext is null");
+    }
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

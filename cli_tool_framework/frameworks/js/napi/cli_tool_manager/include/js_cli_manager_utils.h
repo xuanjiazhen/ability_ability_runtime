@@ -27,6 +27,7 @@
 namespace OHOS {
 namespace CliTool {
 class CliSessionInfo;
+class CliToolEvent;
 class ExecOptions;
 /**
  * @brief Unwrap a string map from JavaScript object.
@@ -54,6 +55,16 @@ bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options);
  * @return Returns the JavaScript object.
  */
 napi_value CreateJsCliSessionInfo(napi_env env, const CliSessionInfo &session);
+
+bool IsValidToolEventCallback(napi_env env, napi_value obj);
+
+/**
+ * @brief Create JavaScript CliToolEvent object.
+ * @param env The N-API environment.
+ * @param session The CliToolEvent structure.
+ * @return Returns the JavaScript object.
+ */
+napi_value CreateJsCliToolEvent(napi_env env, const CliToolEvent &event);
 
 /**
  * @brief Create JavaScript ArgMapping object.
@@ -86,6 +97,14 @@ napi_value CreateJsToolInfo(napi_env env, const ToolInfo &tool);
  * @return Returns the JavaScript object.
  */
 napi_value CreateJsToolSummary(napi_env env, const ToolSummary &summary);
+
+/**
+ * @brief Create JavaScript ExecuteResult object.
+ * @param env The N-API environment.
+ * @param code The result code.
+ * @return Returns the JavaScript object.
+ */
+napi_value CreateJsExecuteResult(napi_env env, int32_t code);
 
 } // namespace CliTool
 } // namespace OHOS

@@ -23,9 +23,6 @@
 
 namespace OHOS {
 namespace CliTool {
-namespace {
-constexpr int32_t TIME_OUT = 30 * 1000;
-}
 /**
  * @struct ExecOptions
  * @brief Options for executing CLI tools.
@@ -33,8 +30,8 @@ constexpr int32_t TIME_OUT = 30 * 1000;
 class ExecOptions : public Parcelable {
 public:
     bool background = false;
-    int32_t yieldMs = 0;
-    int32_t timeout = TIME_OUT;
+    int64_t yieldMs = 0;
+    int64_t timeout = 0;
 
     bool Marshalling(Parcel &parcel) const;
     static ExecOptions *Unmarshalling(Parcel &parcel);

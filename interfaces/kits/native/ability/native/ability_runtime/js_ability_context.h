@@ -54,9 +54,7 @@ public:
     static napi_value StopServiceExtensionAbilityWithAccount(napi_env env, napi_callback_info info);
     static napi_value ConnectAbility(napi_env env, napi_callback_info info);
     static napi_value ConnectAbilityWithAccount(napi_env env, napi_callback_info info);
-    static napi_value ConnectAbilityWithAccountRestricted(napi_env env, napi_callback_info info);
     static napi_value DisconnectAbility(napi_env env, napi_callback_info info);
-    static napi_value DisconnectAbilityRestricted(napi_env env, napi_callback_info info);
     static napi_value TerminateSelf(napi_env env, napi_callback_info info);
     static napi_value TerminateSelfWithResult(napi_env env, napi_callback_info info);
     static napi_value BackToCallerAbilityWithResult(napi_env env, napi_callback_info info);
@@ -86,6 +84,7 @@ public:
     static napi_value StartSelfUIAbilityInCurrentProcess(napi_env env, napi_callback_info info);
     static napi_value NotifyCancelGamePreLaunch(napi_env env, napi_callback_info info);
     static napi_value NotifyCompleteGamePreLaunch(napi_env env, napi_callback_info info);
+    static napi_value StartSelf(napi_env env, napi_callback_info info);
     static napi_value RestartAppWithWindow(napi_env env, napi_callback_info info);
     static napi_value SetMissionWindowIcon(napi_env env, napi_callback_info info);
 
@@ -112,8 +111,6 @@ private:
 private:
     static void ClearFailedCallConnection(
         const std::weak_ptr<AbilityContext>& abilityContext, const std::shared_ptr<CallerCallBack> &callback);
-    static bool CheckSatisfyTargetAPIVersion(
-        const std::weak_ptr<AbilityContext>& context, int32_t version);
     napi_value OnStartAbility(napi_env env, NapiCallbackInfo& info, bool isStartRecent = false);
     napi_value OnOpenLink(napi_env env, NapiCallbackInfo& info);
     napi_value OnOpenLinkInner(napi_env env, const AAFwk::Want &want, int requestCode, const std::string &startTime,
@@ -142,6 +139,7 @@ private:
     napi_value OnReportDrawnCompleted(napi_env env, NapiCallbackInfo& info);
     napi_value OnSetMissionContinueState(napi_env env, NapiCallbackInfo& info);
     napi_value OnStartAbilityByType(napi_env env, NapiCallbackInfo& info);
+    napi_value OnStartSelf(napi_env env, NapiCallbackInfo& info);
     napi_value OnRequestModalUIExtension(napi_env env, NapiCallbackInfo& info);
     napi_value OnRequestModalUIExtensionWithAccount(napi_env env, NapiCallbackInfo& info);
     napi_value OnShowAbility(napi_env env, NapiCallbackInfo& info);

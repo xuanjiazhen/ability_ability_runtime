@@ -13,16 +13,30 @@
  * limitations under the License.
  */
 
-sequenceable ToolInfo..OHOS.CliTool.ToolInfo;
-sequenceable OHOS.CliTool.ToolSummary;
-sequenceable ExecOptions..OHOS.CliTool.ExecOptions;
+package OHOS.CliTool;
+
+import ICliToolCmd;
+
+import ICliToolManagerScheduler;
 sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
+sequenceable OHOS.CliTool.ToolSummary;
+sequenceable OHOS.IRemoteObject;
+sequenceable ToolInfo..OHOS.CliTool.ToolInfo;
 
-interface OHOS.CliTool.ICliToolManager {
+interface ICliToolManager {
     void GetAllToolSummaries([out] ToolSummary[] summaries);
     void GetToolInfoByName([in] String name, [out] ToolInfo tool);
     void GetAllToolInfos([out] ToolInfo[] tools);
     void RegisterTool([in] ToolInfo tool);
-    void ExecTool([in] ExecToolParam param, [in] OrderedMap<String, String> args, [out] CliSessionInfo session);
+    void ExecTool([in] ExecToolParam param, [in] String eventId);
+    void SubscribeSession([in] String sessionId, [in] String subscriptionId);
+    void UnsubscribeSession([in] String sessionId, [in] String subscriptionId);
+    void ClearSession([in] String sessionId);
+    void QuerySession([in] String sessionId, [out] CliSessionInfo session);
+    void SendMessage([in] String sessionId, [in] String inputText, [in] String eventId);
+
+    void RegisterScheduler([in] ICliToolManagerScheduler scheduler);
+    void UnregisterScheduler();
+    void BatchQueryPermissionBySubCommand([in] List<Command> cmds, [out] List<CommandPermission> cmdPermissions);
 }

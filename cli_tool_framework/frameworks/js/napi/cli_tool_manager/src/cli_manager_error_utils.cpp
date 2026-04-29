@@ -23,19 +23,26 @@ namespace OHOS {
 namespace CliTool {
 namespace {
 static const std::map<CliManagerErrorCode, std::string> ERROR_MSG_MAP = {
+    {CliManagerErrorCode::ERROR_PERMISSION_DENIED, "Permission denied."},
+    {CliManagerErrorCode::ERROR_NOT_SYSTEM_APP, "Not system application."},
     {CliManagerErrorCode::ERROR_INVALID_PARAM, "Invalid input parameter."},
     {CliManagerErrorCode::ERROR_TOOL_NOT_FOUND, "The tool does not exist."},
     {CliManagerErrorCode::ERROR_REACH_LIMIT, "Maximum number of processes has been reached."},
+    {CliManagerErrorCode::ERROR_SESSION_NOT_FOUND, "The session not found."},
+    {CliManagerErrorCode::ERROR_SEND_MESSAGE, "Sending Message to failure."},
     {CliManagerErrorCode::ERROR_INNER, "Internal error."},
 };
 
 static const std::map<int32_t, CliManagerErrorCode> NATIVE_TO_BUSINESS_ERROR_MAP = {
+    {ERR_PERMISSION_DENIED, CliManagerErrorCode::ERROR_PERMISSION_DENIED},
+    {ERR_NOT_SYSTEM_APP, CliManagerErrorCode::ERROR_NOT_SYSTEM_APP},
+    {ERR_INVALID_PARAM, CliManagerErrorCode::ERROR_INVALID_PARAM},
     {ERR_TOOL_NOT_EXIST, CliManagerErrorCode::ERROR_TOOL_NOT_FOUND},
     {ERR_SESSION_LIMIT_EXCEEDED, CliManagerErrorCode::ERROR_REACH_LIMIT},
-    {ERR_INVALID_PARAM, CliManagerErrorCode::ERROR_INVALID_PARAM},
+    {ERR_CLI_SESSION_NOT_FOUND, CliManagerErrorCode::ERROR_SESSION_NOT_FOUND},
+    {ERR_CLI_SEND_MESSAGE, CliManagerErrorCode::ERROR_SEND_MESSAGE},
 };
 
-// 获取错误消息
 std::string GetErrorMsg(CliManagerErrorCode errCode)
 {
     auto it = ERROR_MSG_MAP.find(errCode);

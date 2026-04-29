@@ -20,11 +20,18 @@
 
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
+#include "cli_session_info.h"
 #include "cli_tool_mgr_client.h"
+#include "exec_tool_callback_impl.h"
 #include "hilog_tag_wrapper.h"
 #include "js_cli_manager_utils.h"
 #include "js_error_utils.h"
 #include "napi_common_util.h"
+#include "napi_common_want.h"
+
+#include "ability_manager_client.h"
+#include "js_cli_event_handler_manager.h"
+#include "js_cli_session_event_callback.h"
 
 using namespace OHOS::AbilityRuntime;
 
@@ -36,6 +43,40 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
+
+bool ExtractRequiredStringParam(std::map<std::string, std::string> &params,
+    const std::string &key, std::string &outValue)
+{
+    auto it = params.find(key);
+    if (it == params.end() || it->second.empty()) {
+        return false;
+    }
+    outValue = it->second;
+    params.erase(it);
+    return true;
+}
+
+std::string ExtractOptionalStringParam(std::map<std::string, std::string> &params,
+    const std::string &key)
+{
+    std::string value;
+    auto it = params.find(key);
+    if (it != params.end()) {
+        value = it->second;
+        params.erase(it);
+    }
+    return value;
+}
+
+std::vector<std::string> BuildSkillArgvFromRemain(
+    std::map<std::string, std::string> &params)
+{
+    std::vector<std::string> argv;
+    for (const auto &pair : params) {
+        argv.push_back(pair.first + "=" + pair.second);
+    }
+    return argv;
+}
 } // namespace
 
 void JSCliManager::Finalizer(napi_env env, void *data, void *hint)
@@ -47,6 +88,26 @@ void JSCliManager::Finalizer(napi_env env, void *data, void *hint)
 napi_value JSCliManager::ExecTool(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnExecTool);
+}
+
+napi_value JSCliManager::SubscribeSession(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnSubscribeSession);
+}
+
+napi_value JSCliManager::ClearSession(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnClearSession);
+}
+
+napi_value JSCliManager::QuerySession(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnQuerySession);
+}
+
+napi_value JSCliManager::SendMessage(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnSendMessage);
 }
 
 napi_value JSCliManager::GetToolInfoByName(napi_env env, napi_callback_info info)
@@ -62,6 +123,11 @@ napi_value JSCliManager::QueryToolSummaries(napi_env env, napi_callback_info inf
 napi_value JSCliManager::QueryTools(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnQueryTools);
+}
+
+napi_value JSCliManager::ExecuteSkill(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnExecuteSkill);
 }
 
 napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
@@ -84,8 +150,7 @@ napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
         return CreateJsUndefined(env);
     }
 
-    std::map<std::string, std::string> args;
-    if (!UnwrapStringMap(env, argv[INDEX_TWO], args)) {
+    if (!AppExecFwk::UnwrapWantParams(env, argv[INDEX_TWO], param.args)) {
         ThrowInvalidParamError(env, "Tool args is required");
         return CreateJsUndefined(env);
     }
@@ -102,11 +167,174 @@ napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
         }
     }
 
+    napi_value result = nullptr;
+    auto uasyncTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
+    std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
+
+    // Create callback task that will be invoked when ExecTool completes
+    CliToolMGRClient::ExecToolReplyCallback replyCallback =
+        [env, asyncTask](int32_t resultCode, const CliSessionInfo &session) {
+            JsCliEventHandlerManager::GetInstance().PostTask([env, asyncTask, resultCode, session]() {
+                HandleScope handleScope(env);
+                if (resultCode != ERR_OK) {
+                    asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, resultCode));
+                    return;
+                }
+                napi_value jsSession = CreateJsCliSessionInfo(env, session);
+                if (jsSession == nullptr) {
+                    asyncTask->Reject(env, CreateJsUndefined(env));
+                    return;
+                }
+                asyncTask->ResolveWithNoError(env, jsSession);
+            });
+        };
+    int32_t errCode = CliToolMGRClient::GetInstance().ExecTool(param, replyCallback);
+    if (errCode != ERR_OK) {
+        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, errCode));
+    }
+    return handleEscape.Escape(result);
+}
+
+napi_value JSCliManager::OnSubscribeSession(napi_env env, size_t argc, napi_value *argv)
+{
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_TWO) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string sessionId;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], sessionId) || sessionId.empty()) {
+        ThrowInvalidParamError(env, "sessionId is required");
+        return CreateJsUndefined(env);
+    }
+    if (!IsValidToolEventCallback(env, argv[INDEX_ONE])) {
+        ThrowInvalidParamError(env, "tool event callback is required");
+        return CreateJsUndefined(env);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    auto callback = std::make_shared<JsCliSessionEventCallbackImpl>(env, argv[INDEX_ONE]);
+    if (callback == nullptr || !callback->IsValid()) {
+        ThrowInvalidParamError(env, "callback must be a function");
+        return CreateJsUndefined(env);
+    }
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, callback, sessionId]() {
+        std::string subscriptionId;
+        *innerErrCode = CliToolMGRClient::GetInstance().SubscribeSession(sessionId, callback, subscriptionId);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env,
+        NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JSCliManager::OnSubscribeSession", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return handleEscape.Escape(result);
+}
+
+napi_value JSCliManager::OnClearSession(napi_env env, size_t argc, napi_value *argv)
+{
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string sessionId;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], sessionId) || sessionId.empty()) {
+        ThrowInvalidParamError(env, "sessionId is required");
+        return CreateJsUndefined(env);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, sessionId]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().ClearSession(sessionId);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task,
+        int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+        task.ResolveWithNoError(env, CreateJsUndefined(env));
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::Schedule("JSCliManager::OnClearSession", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return handleEscape.Escape(result);
+}
+
+napi_value JSCliManager::OnSendMessage(napi_env env, size_t argc, napi_value *argv)
+{
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_TWO) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+    std::string sessionId;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], sessionId) || sessionId.empty()) {
+        ThrowInvalidParamError(env, "sessionId is required");
+        return CreateJsUndefined(env);
+    }
+
+    std::string inputText;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ONE], inputText)) {
+        ThrowInvalidParamError(env, "inputText is required");
+        return CreateJsUndefined(env);
+    }
+
+    napi_value asyncResult = nullptr;
+    napi_value lastParam = nullptr;
+    std::unique_ptr<NapiAsyncTask> uasyncTask =
+        CreateAsyncTaskWithLastParam(env, lastParam, nullptr, nullptr, &asyncResult);
+    std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
+
+    CliToolMGRClient::EventReplyCallback replyCallback = [env, asyncTask](int32_t resultCode) {
+        JsCliEventHandlerManager::GetInstance().PostTask([env, asyncTask, resultCode]() {
+            HandleScope handleScope(env);
+            if (resultCode != ERR_OK) {
+                asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, resultCode));
+                return;
+            }
+            asyncTask->ResolveWithNoError(env, CreateJsUndefined(env));
+        });
+    };
+    int32_t errCode = CliToolMGRClient::GetInstance().SendMessage(sessionId, inputText, replyCallback);
+    if (errCode != ERR_OK) {
+        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, errCode));
+    }
+    return handleEscape.Escape(asyncResult);
+}
+
+napi_value JSCliManager::OnQuerySession(napi_env env, size_t argc, napi_value *argv)
+{
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string sessionId;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], sessionId) || sessionId.empty()) {
+        ThrowInvalidParamError(env, "sessionId is required");
+        return CreateJsUndefined(env);
+    }
+
     auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
     auto session = std::make_shared<CliSessionInfo>();
-
-    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, param, args, session]() {
-        *innerErrCode = CliToolMGRClient::GetInstance().ExecTool(param, args, *session);
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, sessionId, session]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().QuerySession(sessionId, *session);
     };
 
     NapiAsyncTask::CompleteCallback complete = [innerErrCode, session](
@@ -116,19 +344,16 @@ napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
             task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
             return;
         }
-
         napi_value jsSession = CreateJsCliSessionInfo(env, *session);
         if (jsSession == nullptr) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "Fail to create js CliSessionInfo");
-            task.Reject(env, CreateCliJsErrorByNativeErr(env, ERR_CREATE_CLI_SESSION_INFO));
+            task.Reject(env, CreateJsUndefined(env));
             return;
         }
-
         task.ResolveWithNoError(env, jsSession);
     };
-
     napi_value asyncResult = nullptr;
-    NapiAsyncTask::Schedule("JsCliManager::OnExecTool", env,
+    NapiAsyncTask::Schedule("JSCliManager::OnQuerySession", env,
         CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
     return handleEscape.Escape(asyncResult);
 }
@@ -141,7 +366,6 @@ napi_value JSCliManager::OnGetToolInfoByName(napi_env env, size_t argc, napi_val
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
     }
-
     std::string toolName;
     if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], toolName) || toolName.empty()) {
         ThrowInvalidParamError(env, "Tool name is required");
@@ -255,6 +479,67 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     return handleEscape.Escape(asyncResult);
 }
 
+napi_value JSCliManager::OnExecuteSkill(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnExecuteSkill called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::map<std::string, std::string> params;
+    if (!UnwrapStringMap(env, argv[INDEX_ZERO], params) || params.empty()) {
+        ThrowInvalidParamError(env, "skillParam is required");
+        return CreateJsUndefined(env);
+    }
+
+    std::string bundleName;
+    if (!ExtractRequiredStringParam(params, "bundleName", bundleName)) {
+        ThrowInvalidParamError(env, "bundleName is required");
+        return CreateJsUndefined(env);
+    }
+    std::string moduleName;
+    if (!ExtractRequiredStringParam(params, "moduleName", moduleName)) {
+        ThrowInvalidParamError(env, "moduleName is required");
+        return CreateJsUndefined(env);
+    }
+    std::string skillName;
+    if (!ExtractRequiredStringParam(params, "skillName", skillName)) {
+        ThrowInvalidParamError(env, "skillName is required");
+        return CreateJsUndefined(env);
+    }
+
+    std::string arkTSPath = ExtractOptionalStringParam(params, "arkTSPath");
+    std::string funcName = ExtractOptionalStringParam(params, "funcName");
+    std::vector<std::string> skillArgv = BuildSkillArgvFromRemain(params);
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute =
+        [innerErrCode, bundleName, moduleName, skillName,
+         arkTSPath, funcName, skillArgv]() {
+            *innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->StartInAppSkill(
+                bundleName, moduleName, skillName, arkTSPath, funcName, skillArgv);
+        };
+
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+            HandleScope handleScope(env);
+            if (*innerErrCode != ERR_OK) {
+                task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+                return;
+            }
+            napi_value jsResult = CreateJsExecuteResult(env, *innerErrCode);
+            task.ResolveWithNoError(env, jsResult);
+        };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JSCliManager::OnExecuteSkill", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute),
+            std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 {
     TAG_LOGD(AAFwkTag::CLI_TOOL, "Init JSCliManager");
@@ -269,9 +554,14 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
 
     const char *moduleName = "CliManager";
     BindNativeFunction(env, exportObj, "execTool", moduleName, JSCliManager::ExecTool);
+    BindNativeFunction(env, exportObj, "subscribeSession", moduleName, JSCliManager::SubscribeSession);
+    BindNativeFunction(env, exportObj, "clearSession", moduleName, JSCliManager::ClearSession);
+    BindNativeFunction(env, exportObj, "querySession", moduleName, JSCliManager::QuerySession);
+    BindNativeFunction(env, exportObj, "sendMsg", moduleName, JSCliManager::SendMessage);
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "executeSkill", moduleName, JSCliManager::ExecuteSkill);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);
