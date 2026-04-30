@@ -151,5 +151,16 @@ bool ProcessManager::TerminateProcess(pid_t pid, int signal) const
     return true;
 }
 
+void ProcessManager::Killpg(pid_t pid) const
+{
+    pid_t gPid = getpgid(pid);
+    if (gPid == -1) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "Fial to get gPid");
+        return;
+    }
+    int32_t killRet = killpg(gPid, SIGTERM);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "killpg result:%{public}d", killRet);
+}
+
 } // namespace CliTool
 } // namespace OHOS

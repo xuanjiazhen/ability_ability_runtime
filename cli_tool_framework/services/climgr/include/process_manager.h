@@ -42,6 +42,8 @@ public:
 
     bool TerminateProcess(pid_t pid, int signal = SIGTERM) const;
 
+    void Killpg(pid_t pid) const;
+
 private:
     ProcessManager() = default;
     ~ProcessManager() = default;
