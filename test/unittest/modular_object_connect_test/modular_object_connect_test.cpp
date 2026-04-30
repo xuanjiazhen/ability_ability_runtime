@@ -130,19 +130,6 @@ HWTEST_F(ModularObjectConnectTest, GetServiceKey_ModularObject_002, TestSize.Lev
 // Verify processName is set correctly based on launchMode + processMode
 
 /**
- * @tc.name: ProcessName_InProcess_001
- * @tc.desc: Test IN_PROCESS mode sets processName to bundleName
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, ProcessName_InProcess_001, TestSize.Level1)
-{
-    // Simulate the processName logic for IN_PROCESS
-    std::string bundleName = TEST_BUNDLE;
-    std::string process = bundleName;  // IN_PROCESS uses bundleName as processName
-    EXPECT_EQ(process, TEST_BUNDLE);
-}
-
-/**
  * @tc.name: ProcessName_CrossProcess_Bundle_001
  * @tc.desc: Test CROSS_PROCESS BUNDLE mode sets processName to bundleName:extensionTypeName
  * @tc.type: FUNC
@@ -733,13 +720,15 @@ static ModularObjectExtensionInfo MakeConfig(MoeLaunchMode launchMode = MoeLaunc
 // Full branch coverage for processName and requestId logic
 
 /**
- * @tc.name: HandleModularObjectNewRecord_ShouldUseBundleNameWhenInProcessEmptyAppProcess
- * @tc.desc: IN_PROCESS + empty appInfo.process → processName = bundleName
+ * @tc.name: HandleModularObjectNewRecord_ShouldFallbackToBundleNameWhenInProcessNoCallerInfo
+ * @tc.desc: IN_PROCESS + caller processInfo empty + empty appInfo.process → fallback to bundleName
  */
 HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldUseBundleNameWhenInProcessEmptyAppProcess,
+    HandleModularObjectNewRecord_ShouldFallbackToBundleNameWhenInProcessNoCallerInfo,
     TestSize.Level1)
 {
+    // Mock GetRunningProcessInfoByPid returns empty processName_,
+    // and appInfo.process is also empty → falls through to bundleName
     auto config = MakeConfig(MoeLaunchMode::IN_PROCESS);
     SetMockModularObjectConfigs({config});
     auto request = MakeModularObjectRequest();
@@ -751,12 +740,15 @@ HWTEST_F(ModularObjectConnectTest,
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_ShouldUseAppProcessWhenInProcessNonEmpty
- * @tc.desc: IN_PROCESS + non-empty appInfo.process → processName = appInfo.process
+ * @tc.name: HandleModularObjectNewRecord_ShouldFallbackToAppProcessWhenInProcessNoCallerInfo
+ * @tc.desc: IN_PROCESS + caller processInfo empty + non-empty appInfo.process → fallback to appInfo.process
  */
 HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldUseAppProcessWhenInProcessNonEmpty, TestSize.Level1)
+    HandleModularObjectNewRecord_ShouldFallbackToAppProcessWhenInProcessNoCallerInfo,
+    TestSize.Level1)
 {
+    // Mock GetRunningProcessInfoByPid returns empty processName_,
+    // falls through to appInfo.process check
     auto config = MakeConfig(MoeLaunchMode::IN_PROCESS);
     SetMockModularObjectConfigs({config});
     auto request = MakeModularObjectRequest();
