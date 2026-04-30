@@ -103,20 +103,24 @@ bool SubCommandInfo::ParseFromJson(const nlohmann::json &json, SubCommandInfo &s
     }
     subCmd.description = description;
 
-    // requirePermissions is optional, but if present must be array of strings
-    if (json.contains("requirePermissions")) {
-        if (!json["requirePermissions"].is_array()) {
+    // requirePermissions is required and must be non-empty array
+    if (!json.contains("requirePermissions") || !json["requirePermissions"].is_array()) {
+        return false;
+    }
+    if (json["requirePermissions"].empty()) {
+        return false;
+    }
+    for (const auto &perm : json["requirePermissions"]) {
+        if (!perm.is_string()) {
             return false;
         }
-        for (const auto &perm : json["requirePermissions"]) {
-            if (!perm.is_string()) {
-                return false;
-            }
-            std::string permStr = perm;
-            if (!permStr.empty()) {
-                subCmd.requirePermissions.push_back(std::move(permStr));
-            }
+        std::string permStr = perm;
+        if (!permStr.empty()) {
+            subCmd.requirePermissions.push_back(std::move(permStr));
         }
+    }
+    if (subCmd.requirePermissions.empty()) {
+        return false;
     }
 
     // inputSchema is required and must be JSON object
@@ -198,6 +202,12 @@ bool SubCommandInfo::Validate(const SubCommandInfo &subCmd)
     // description is required and must be non-empty
     if (subCmd.description.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: description is empty");
+        return false;
+    }
+
+    // requirePermissions is required and must be non-empty
+    if (subCmd.requirePermissions.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Validate failed: requirePermissions is empty");
         return false;
     }
 
