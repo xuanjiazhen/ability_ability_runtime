@@ -118,6 +118,12 @@ int32_t ToolUtil::ValidateInputSchemaProperties(const std::string &inputSchema,
     }
     auto properties = schema["properties"];
     for (auto &[key, value] : args.GetParams()) {
+        if (key == "help") {
+            if (args.Size() != 1) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "args size > 1");
+                return ERR_INVALID_PARAM;
+            }
+        }
         if (!properties.contains(key)) {
             TAG_LOGE(AAFwkTag::CLI_TOOL, "args key '%{public}s' not found in properties", key.c_str());
             return ERR_INVALID_PARAM;
@@ -218,6 +224,16 @@ void ToolUtil::TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantPar
     }
     for (const auto &[key, value] : args.GetParams()) {
         if (value == nullptr) {
+            continue;
+        }
+
+        if (key == "help") {
+            if (IsBooleanType(value)) {
+                bool boolValue = false;
+                if (GetParamBoolValue(value, boolValue) && boolValue) {
+                    cmdLine += " --" + key;
+                }
+            }
             continue;
         }
 
