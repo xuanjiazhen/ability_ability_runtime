@@ -4353,7 +4353,7 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
     }
 
     if (!JudgeMultiUserConcurrency(validUserId)) {
-        bool isSaCaller = SupportSystemAbilityPermission::IsSupportSaCallPermission();
+        bool isSaCaller = AAFwk::PermissionVerification::GetInstance()->IsSACall();
         bool isServiceOrDataShare = extensionType == AppExecFwk::ExtensionAbilityType::SERVICE ||
             extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE;
         if (!(isSaCaller && isServiceOrDataShare)) {
@@ -16915,7 +16915,7 @@ bool AbilityManagerService::CheckCrossUser(const int32_t userId, AppExecFwk::Ext
     if (extensionType == AppExecFwk::ExtensionAbilityType::DATASHARE
         || extensionType == AppExecFwk::ExtensionAbilityType::SERVICE) {
         if (AppUtils::GetInstance().IsConnectSupportCrossUser() ||
-            SupportSystemAbilityPermission::IsSupportSaCallPermission()) {
+            AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
             return true;
         }
     }
