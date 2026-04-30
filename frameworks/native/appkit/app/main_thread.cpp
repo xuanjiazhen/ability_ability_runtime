@@ -4300,6 +4300,14 @@ int32_t MainThread::ScheduleDumpFfrt(std::string& result)
 int32_t MainThread::ScheduleDumpArkWeb(const std::string &customArgs, std::string &result)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "ScheduleDumpArkWeb");
+    if (std::string prefix = "--jsmem";
+        customArgs.size() >= prefix.size() &&
+        customArgs.compare(0, prefix.size(), prefix) == 0) {
+        TAG_LOGI(AAFwkTag::APPKIT,
+               "ScheduleDumpArkWeb:customArgs starts with --jsmem");
+        DumpArkWebHelper::DumpArkWebJSHeap(customArgs);
+        return 0;
+    }
     return DumpArkWebHelper::DumpArkWeb(customArgs, result);
 }
 

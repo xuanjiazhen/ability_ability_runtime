@@ -17,9 +17,16 @@
 
 #include <cstdint>
 #include <cstring>
+#include "dfx_socket_request.h"
+#include <unistd.h>
+#include <errno.h>
+#include <string>
+#include <iostream>
 
 #if defined(NWEB)
 #include "nweb_helper.h"
+
+#include "hilog_tag_wrapper.h"
 #endif
 
 namespace OHOS {
@@ -40,5 +47,38 @@ int DumpArkWebHelper::DumpArkWeb(const std::string &customArgs, std::string &res
     result.resize(0);
     return -1;
 }
+
+extern "C" int32_t RequestFileDescriptor(int32_t type);
+void DumpArkWebHelper::DumpArkWebJSHeap(const std::string &customArgs) {
+#if defined(NWEB)
+  TAG_LOGI(AAFwkTag::APPKIT, "DumpArkWebHelper::DumpArkWebJSHeap");
+  OHOS::NWeb::NWebHelper &nWebHelper = OHOS::NWeb::NWebHelper::Instance();
+  // params
+  // todo: get args from info like dump js
+  int32_t renderPid = -1;
+  bool needSnapshot = true;
+  bool needGC = false;
+  bool needRaw = false;
+  size_t pos = customArgs.find('=');
+  // --jsmem=pid
+  if (pos == std::string::npos || customArgs.substr(0, pos) != "--jsmem") {
+    TAG_LOGE(AAFwkTag::APPKIT, "use --jsmem=pid");
+    return;
+  }
+  renderPid = std::atoi(customArgs.substr(pos + 1).c_str());
+  if (renderPid < 0) {
+    TAG_LOGE(AAFwkTag::APPKIT, "valid pid");
+    return;
+  }
+  int32_t fd = RequestFileDescriptor(
+      static_cast<int32_t>(FaultLoggerType::JS_HEAP_SNAPSHOT));
+  if (fd < 0) {
+    TAG_LOGE(AAFwkTag::APPKIT, "RequestFileDescriptor failed");
+    return;
+  }
+  nWebHelper.DumpArkWebJSHeap(fd, renderPid, needSnapshot, needGC, needRaw);
+#endif
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -27,6 +27,8 @@ public:
     ~DumpArkWebHelper();
     
     static int DumpArkWeb(const std::string &customArgs, std::string &result);
+    // use args such as DumpJsHeap;
+    static void DumpArkWebJSHeap(const std::string &customArgs);
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
