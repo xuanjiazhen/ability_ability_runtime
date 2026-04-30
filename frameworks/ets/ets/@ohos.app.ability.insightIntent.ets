@@ -19,12 +19,7 @@ import { RecordData } from '@ohos.base';
 
 namespace insightIntent {
 
-  export enum ExecuteMode {
-    UI_ABILITY_FOREGROUND = 0,
-    UI_ABILITY_BACKGROUND = 1,
-    UI_EXTENSION_ABILITY = 2,
-    SERVICE_EXTENSION_ABILITY = 3,
-  }
+  type ExecuteMode = "UI_ABILITY_FOREGROUND" | "UI_ABILITY_BACKGROUND" | "UI_EXTENSION_ABILITY" | "SERVICE_EXTENSION_ABILITY";
 
   export interface ExecuteResult {
     code: int;
