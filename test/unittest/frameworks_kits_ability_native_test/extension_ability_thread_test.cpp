@@ -1406,12 +1406,13 @@ HWTEST_F(ExtensionAbilityThreadTest,
             return new (std::nothrow) TestHandlerExtension();
         });
 
-    auto *thread = new (std::nothrow) AbilityRuntime::ExtensionAbilityThread();
+    sptr<AbilityRuntime::ExtensionAbilityThread> thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
     ASSERT_NE(thread, nullptr);
 
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
     abilityInfo->name = "TestHandlerExtension";
     abilityInfo->type = AbilityType::EXTENSION;
+    abilityInfo->isNativeAbility = true;
     abilityInfo->extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
 
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
@@ -1423,8 +1424,6 @@ HWTEST_F(ExtensionAbilityThreadTest,
 
     thread->Attach(application, abilityRecord, mainRunner, nullptr);
     EXPECT_NE(thread->abilityHandler_, nullptr);
-
-    delete thread;
 }
 
 /**
@@ -1439,12 +1438,13 @@ HWTEST_F(ExtensionAbilityThreadTest,
             return new (std::nothrow) AbilityRuntime::Extension();
         });
 
-    auto *thread = new (std::nothrow) AbilityRuntime::ExtensionAbilityThread();
+    sptr<AbilityRuntime::ExtensionAbilityThread> thread = sptr<AbilityRuntime::ExtensionAbilityThread>::MakeSptr();
     ASSERT_NE(thread, nullptr);
 
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
     abilityInfo->name = "DefaultHandlerExtension";
     abilityInfo->type = AbilityType::EXTENSION;
+    abilityInfo->isNativeAbility = true;
     abilityInfo->extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
 
     sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
@@ -1456,8 +1456,6 @@ HWTEST_F(ExtensionAbilityThreadTest,
 
     thread->Attach(application, abilityRecord, mainRunner, nullptr);
     EXPECT_NE(thread->abilityHandler_, nullptr);
-
-    delete thread;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

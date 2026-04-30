@@ -3413,9 +3413,15 @@ void AbilityConnectManager::HandleModularObjectNewRecord(const AbilityRequest &a
     // Set processName based on launchMode and process/thread model
     std::string process;
     if (config->launchMode == MoeLaunchMode::IN_PROCESS) {
-        process = abilityRequest.abilityInfo.bundleName;
-        if (!abilityRequest.appInfo.process.empty()) {
+        pid_t callingPid = IPCSkeleton::GetCallingPid();
+        AppExecFwk::RunningProcessInfo processInfo;
+        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callingPid, processInfo);
+        if (!processInfo.processName_.empty()) {
+            process = processInfo.processName_;
+        } else if (!abilityRequest.appInfo.process.empty()) {
             process = abilityRequest.appInfo.process;
+        } else {
+            process = abilityRequest.abilityInfo.bundleName;
         }
     } else {
         switch (config->processMode) {
