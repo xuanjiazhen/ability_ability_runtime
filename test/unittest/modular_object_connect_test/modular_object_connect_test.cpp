@@ -78,7 +78,7 @@ AbilityRequest ModularObjectConnectTest::MakeModularObjectRequest(
     const std::string &bundleName, const std::string &abilityName)
 {
     AbilityRequest request;
-    ElementName element(TEST_DEVICE, bundleName, abilityName, TEST_MODULE);
+    ElementName element(TEST_DEVICE, bundleName, TEST_MODULE, abilityName);
     request.want.SetElement(element);
     request.abilityInfo.name = abilityName;
     request.abilityInfo.bundleName = bundleName;
@@ -128,19 +128,6 @@ HWTEST_F(ModularObjectConnectTest, GetServiceKey_ModularObject_002, TestSize.Lev
 }
 
 // Verify processName is set correctly based on launchMode + processMode
-
-/**
- * @tc.name: ProcessName_InProcess_001
- * @tc.desc: Test IN_PROCESS mode sets processName to bundleName
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest, ProcessName_InProcess_001, TestSize.Level1)
-{
-    // Simulate the processName logic for IN_PROCESS
-    std::string bundleName = TEST_BUNDLE;
-    std::string process = bundleName;  // IN_PROCESS uses bundleName as processName
-    EXPECT_EQ(process, TEST_BUNDLE);
-}
 
 /**
  * @tc.name: ProcessName_CrossProcess_Bundle_001
@@ -424,15 +411,17 @@ HWTEST_F(ModularObjectConnectTest, GetOrCreateServiceRecord_002, TestSize.Level1
     bool loaded1 = false;
     connectManager_->GetOrCreateServiceRecord(request1, true, service1, loaded1);
     ASSERT_NE(service1, nullptr);
+    EXPECT_FALSE(loaded1);
 
     auto request2 = MakeModularObjectRequest();
     std::shared_ptr<BaseExtensionRecord> service2 = nullptr;
     bool loaded2 = false;
     connectManager_->GetOrCreateServiceRecord(request2, true, service2, loaded2);
     ASSERT_NE(service2, nullptr);
-    // Without DB config, GetServiceKey generates unique key each time,
-    // so second call creates a new record
-    EXPECT_TRUE(loaded2);
+    // MODULAR_OBJECT generates unique serviceKey each time via requestId,
+    // so second call creates a new record (isLoadedAbility = false)
+    EXPECT_FALSE(loaded2);
+    EXPECT_NE(service1, service2);
 }
 
 
@@ -550,7 +539,7 @@ HWTEST_F(ModularObjectConnectTest,
 {
     // Create a request with non-MODULAR_OBJECT type
     AbilityRequest request;
-    ElementName element(TEST_DEVICE, TEST_BUNDLE, TEST_ABILITY, TEST_MODULE);
+    ElementName element(TEST_DEVICE, TEST_BUNDLE, TEST_MODULE, TEST_ABILITY);
     request.want.SetElement(element);
     request.abilityInfo.name = TEST_ABILITY;
     request.abilityInfo.bundleName = TEST_BUNDLE;
@@ -656,7 +645,7 @@ HWTEST_F(ModularObjectConnectTest,
     GetOrCreateServiceRecord_ShouldCreateServiceWhenNonModularObject, TestSize.Level1)
 {
     AbilityRequest request;
-    ElementName element(TEST_DEVICE, TEST_BUNDLE, "TestServiceExt", TEST_MODULE);
+    ElementName element(TEST_DEVICE, TEST_BUNDLE, TEST_MODULE, "TestServiceExt");
     request.want.SetElement(element);
     request.abilityInfo.name = "TestServiceExt";
     request.abilityInfo.bundleName = TEST_BUNDLE;
@@ -733,13 +722,15 @@ static ModularObjectExtensionInfo MakeConfig(MoeLaunchMode launchMode = MoeLaunc
 // Full branch coverage for processName and requestId logic
 
 /**
- * @tc.name: HandleModularObjectNewRecord_ShouldUseBundleNameWhenInProcessEmptyAppProcess
- * @tc.desc: IN_PROCESS + empty appInfo.process → processName = bundleName
+ * @tc.name: HandleModularObjectNewRecord_ShouldFallbackToBundleNameWhenInProcessNoCallerInfo
+ * @tc.desc: IN_PROCESS + caller processInfo empty + empty appInfo.process → fallback to bundleName
  */
 HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldUseBundleNameWhenInProcessEmptyAppProcess,
+    HandleModularObjectNewRecord_ShouldFallbackToBundleNameWhenInProcessNoCallerInfo,
     TestSize.Level1)
 {
+    // Mock GetRunningProcessInfoByPid returns empty processName_,
+    // and appInfo.process is also empty → falls through to bundleName
     auto config = MakeConfig(MoeLaunchMode::IN_PROCESS);
     SetMockModularObjectConfigs({config});
     auto request = MakeModularObjectRequest();
@@ -751,12 +742,15 @@ HWTEST_F(ModularObjectConnectTest,
 }
 
 /**
- * @tc.name: HandleModularObjectNewRecord_ShouldUseAppProcessWhenInProcessNonEmpty
- * @tc.desc: IN_PROCESS + non-empty appInfo.process → processName = appInfo.process
+ * @tc.name: HandleModularObjectNewRecord_ShouldFallbackToAppProcessWhenInProcessNoCallerInfo
+ * @tc.desc: IN_PROCESS + caller processInfo empty + non-empty appInfo.process → fallback to appInfo.process
  */
 HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldUseAppProcessWhenInProcessNonEmpty, TestSize.Level1)
+    HandleModularObjectNewRecord_ShouldFallbackToAppProcessWhenInProcessNoCallerInfo,
+    TestSize.Level1)
 {
+    // Mock GetRunningProcessInfoByPid returns empty processName_,
+    // falls through to appInfo.process check
     auto config = MakeConfig(MoeLaunchMode::IN_PROCESS);
     SetMockModularObjectConfigs({config});
     auto request = MakeModularObjectRequest();
@@ -937,7 +931,7 @@ HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectInstanceLimit_ShouldReturnOkWhenBelowLimit, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_ABILITY + "/" + TEST_MODULE;
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
     // Add 19 instances (below limit of 20)
     for (int i = 0; i < 19; i++) {
         auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
@@ -956,7 +950,7 @@ HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectInstanceLimit_ShouldReturnErrorWhenAtLimit, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_ABILITY + "/" + TEST_MODULE;
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
     // Add 20 instances (at limit)
     for (int i = 0; i < 20; i++) {
         auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
@@ -975,9 +969,9 @@ HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectInstanceLimit_ShouldNotCountOtherAbilities, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_ABILITY + "/" + TEST_MODULE;
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
     // Add 20 instances of a DIFFERENT ability
-    std::string otherKey = TEST_DEVICE + "/" + TEST_BUNDLE + "/OtherAbility/" + TEST_MODULE;
+    std::string otherKey = TEST_DEVICE + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/OtherAbility";
     for (int i = 0; i < 20; i++) {
         auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
         ASSERT_NE(service, nullptr);
@@ -997,7 +991,7 @@ HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectConnectionLimit_ShouldReturnOkWhenBelowLimit, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_ABILITY + "/" + TEST_MODULE;
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
     // Create one service record with 4 connections from pid 100
     auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
     ASSERT_NE(service, nullptr);
@@ -1024,7 +1018,7 @@ HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectConnectionLimit_ShouldReturnErrorWhenAtLimit, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_ABILITY + "/" + TEST_MODULE;
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
     // Create service records with total 5 connections from pid 100
     for (int i = 0; i < 5; i++) {
         auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
@@ -1051,7 +1045,7 @@ HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectConnectionLimit_ShouldCountAcrossInstances, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_ABILITY + "/" + TEST_MODULE;
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
     // 3 connections on record 1, 2 on record 2 = total 5 → at limit
     for (int batch = 0; batch < 2; batch++) {
         auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
@@ -1081,7 +1075,7 @@ HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectConnectionLimit_ShouldNotCountOtherPid, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_ABILITY + "/" + TEST_MODULE;
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
     // 5 connections from pid 200
     auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
     ASSERT_NE(service, nullptr);
@@ -1134,7 +1128,7 @@ HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectLimits_ShouldReturnErrorWhenInstanceLimitReached, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_ABILITY + "/" + TEST_MODULE;
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
     for (int i = 0; i < 20; i++) {
         auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
         ASSERT_NE(service, nullptr);
@@ -1152,7 +1146,7 @@ HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectLimits_ShouldReturnErrorWhenConnectionLimitReached, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_ABILITY + "/" + TEST_MODULE;
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
     // Manually verify: create records with connections, then check via direct limit calls
     for (int i = 0; i < 5; i++) {
         auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
