@@ -928,7 +928,8 @@ public:
      */
     virtual int StartAbilityByCall(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId = DEFAULT_INVAL_VALUE,
-        bool isSilent = false, bool promotePriority = false, bool isVisible = false) override;
+        uint64_t specifiedFullTokenId = 0, bool isSilent = false,
+        bool promotePriority = false, bool isVisible = false) override;
 
     /**
      * Start Ability for prelauch.
@@ -953,7 +954,8 @@ public:
      */
     virtual int StartAbilityByCallWithErrMsg(const Want &want, const sptr<IAbilityConnection> &connect,
         const sptr<IRemoteObject> &callerToken, int32_t accountId, std::string &errMsg,
-        bool isSilent = false, bool promotePriority = false, bool isVisible = false) override;
+        bool isSilent = false, bool promotePriority = false,
+        bool isVisible = false, uint64_t specifiedFullTokenId = 0) override;
 
     /**
      * CallRequestDone, after invoke callRequest, ability will call this interface to return callee.

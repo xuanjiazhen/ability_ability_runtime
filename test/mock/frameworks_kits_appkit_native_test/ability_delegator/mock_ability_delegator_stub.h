@@ -139,6 +139,7 @@ public:
         const sptr<IRemoteMissionListener>& listener) override;
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
         const sptr<IRemoteObject>& callerToken, int32_t accountId = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0,
         bool isSilent = false, bool promotePriority = false, bool isVisible = false) override;
     int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
     void CallRequestDone(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& callStub) override;
@@ -325,6 +326,7 @@ public:
         const sptr<IRemoteMissionListener>& listener) override;
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
         const sptr<IRemoteObject>& callerToken, int32_t accountId = DEFAULT_INVAL_VALUE,
+        uint64_t specifiedFullTokenId = 0,
         bool isSilent = false, bool promotePriority = false, bool isVisible = false) override;
     int StartAbilityForPrelaunch(const Want &want, const int32_t frameNum) override;
     void CallRequestDone(const sptr<IRemoteObject>& token, const sptr<IRemoteObject>& callStub) override;
