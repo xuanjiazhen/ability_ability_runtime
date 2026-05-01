@@ -83,6 +83,7 @@ namespace AbilityRuntime {
 class IStatusBarDelegate;
 struct ExtractInsightIntentGenericInfo;
 struct LinkIntentParamMapping;
+struct ExecuteIntentCommonOptions;
 }
 namespace Rosen {
 class FocusChangeInfo;
@@ -2177,7 +2178,7 @@ public:
     int32_t OnExecuteIntent(AbilityRequest &abilityRequest, std::shared_ptr<AbilityRecord> &targetRecord);
 
     int32_t StartAbilityWithInsightIntent(const Want &want, int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE);
+        int requestCode = DEFAULT_INVAL_VALUE, uint64_t specifiedFullTokenId = 0);
 
     int32_t StartAbilityByCallWithInsightIntent(const Want &want, const sptr<IRemoteObject> &callerToken,
         const InsightIntentExecuteParam &param, int32_t userId = DEFAULT_INVAL_VALUE);
@@ -3551,6 +3552,10 @@ private:
     void HandleRecoveryRecipient(const std::shared_ptr<AbilityRecord>& abilityRecord,
         const sptr<IRemoteObject>& token);
     int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag) override;
+    int32_t ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
+        const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
+        const AbilityRuntime::ExecuteIntentCommonOptions &infos);
+
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
 #endif
