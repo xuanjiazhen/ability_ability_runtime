@@ -314,6 +314,28 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::FindMasterProcessAppRunning
     return resMasterRecord;
 }
 
+std::shared_ptr<AppRunningRecord> AppRunningManager::FindMainProcessAppRunningRecord(const int uid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "uid: %{public}d", uid);
+    auto appRunningMap = GetAppRunningRecordMap();
+    std::shared_ptr<AppRunningRecord> resMainRecord;
+    for (const auto &item : appRunningMap) {
+        const auto &appRecord = item.second;
+        if (!(appRecord && appRecord->GetUid() == uid)) {
+            continue;
+        }
+        if (!IsAppRunningRecordValid(appRecord)) {
+            continue;
+        }
+        if (appRecord->IsMainProcess()) {
+            resMainRecord = appRecord;
+            break;
+        }
+    }
+    return resMainRecord;
+}
+
 bool AppRunningManager::CheckMasterProcessAppRunningRecordIsExist(
     const std::string &appName, const AppExecFwk::AbilityInfo &abilityInfo, const int uid)
 {
