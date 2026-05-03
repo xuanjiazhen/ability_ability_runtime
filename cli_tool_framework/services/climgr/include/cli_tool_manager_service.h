@@ -102,6 +102,7 @@ private:
     enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
     void Init();
+    void DelayUnloadTask();
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
     void AddSessionRecord(const std::shared_ptr<SessionRecord> &record);
@@ -156,7 +157,7 @@ private:
     int32_t QuerySubCommandPermission(const std::string &toolName, const std::string &subCommand,
         std::vector<std::string> &permissions);
 
-    std::atomic<int32_t> activeSessionCount_ = 0;
+    std::atomic<int32_t> interfaceCalledCount_ = 0;
     ffrt::mutex sessionsMutex_;
     std::unordered_map<std::string, std::shared_ptr<SessionRecord>> sessionRecords_;
     std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
