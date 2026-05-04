@@ -186,7 +186,6 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0500, TestSize.Level1)
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0500 end";
 }
 
-// ==================== Permission Validation Tests ====================
 
 /**
  * @tc.name: CliToolManagerService_GetAllToolInfos_Permission_0100
@@ -270,5 +269,156 @@ HWTEST_F(CliToolManagerServiceTest, QueryPermission_Required_0100, TestSize.Leve
     GTEST_LOG_(INFO) << "CliToolManagerService_QueryPermission_Required_0100 end";
 }
 
+/**
+ * @tc.name: CliToolManagerService_QueryMainCommandPermission_0100
+ * @tc.desc: Test QueryMainCommandPermission with non-existent tool
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, QueryMainCommandPermission_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_QueryMainCommandPermission_0100 start";
+
+    std::vector<std::string> permissions;
+    int32_t result = service_->QueryMainCommandPermission("non_existent_tool", permissions);
+
+    EXPECT_EQ(result, ERR_TOOL_NOT_EXIST);
+    EXPECT_TRUE(permissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_QueryMainCommandPermission_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_QueryMainCommandPermission_0200
+ * @tc.desc: Test QueryMainCommandPermission with empty tool name
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, QueryMainCommandPermission_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_QueryMainCommandPermission_0200 start";
+
+    std::vector<std::string> permissions;
+    int32_t result = service_->QueryMainCommandPermission("", permissions);
+
+    EXPECT_EQ(result, ERR_TOOL_NOT_EXIST);
+    EXPECT_TRUE(permissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_QueryMainCommandPermission_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_QuerySubCommandPermission_0100
+ * @tc.desc: Test QuerySubCommandPermission with non-existent tool
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, QuerySubCommandPermission_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_QuerySubCommandPermission_0100 start";
+
+    std::vector<std::string> permissions;
+    int32_t result = service_->QuerySubCommandPermission("non_existent_tool", "build", permissions);
+
+    EXPECT_EQ(result, ERR_TOOL_NOT_EXIST);
+    EXPECT_TRUE(permissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_QuerySubCommandPermission_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchQueryPermissionBySubCommand_0100
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with empty command list
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchQueryPermissionBySubCommand_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermissionBySubCommand_0100 start";
+
+    std::vector<Command> cmds;
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t result = service_->BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(result, ERR_INVALID_PARAM);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermissionBySubCommand_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchQueryPermissionBySubCommand_0200
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with command list exceeding limit
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchQueryPermissionBySubCommand_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermissionBySubCommand_0200 start";
+    std::vector<Command> cmds(101);
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t result = service_->BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(result, ERR_INVALID_PARAM);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermissionBySubCommand_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchQueryPermissionBySubCommand_0300
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with empty tool name in command
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchQueryPermissionBySubCommand_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermissionBySubCommand_0300 start";
+
+    std::vector<Command> cmds;
+    Command cmd;
+    cmd.toolName = "";
+    cmd.subCommand = "";
+    cmds.push_back(cmd);
+
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t result = service_->BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(result, ERR_INVALID_PARAM);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermissionBySubCommand_0300 end";
+}
+
+
+/**
+ * @tc.name: CliToolManagerService_BatchQueryPermissionBySubCommand_0400
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with non-existent tools
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchQueryPermissionBySubCommand_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermissionBySubCommand_0400 start";
+
+    std::vector<Command> cmds;
+    Command cmd1;
+    cmd1.toolName = "non_existent_tool1";
+    cmd1.subCommand = "";
+    cmds.push_back(cmd1);
+
+    Command cmd2;
+    cmd2.toolName = "non_existent_tool2";
+    cmd2.subCommand = "build";
+    cmds.push_back(cmd2);
+
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t result = service_->BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_TRUE(result == ERR_OK || result == ERR_PERMISSION_DENIED || result == ERR_NOT_SA_CALLER);
+
+    if (result == ERR_OK) {
+        EXPECT_EQ(cmdPermissions.size(), 2);
+        // QUERY_COMMAND_NOT_EXIST
+        EXPECT_EQ(cmdPermissions[0].queryRet, 1);
+        EXPECT_EQ(cmdPermissions[1].queryRet, 1);
+    }
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermissionBySubCommand_0400 end";
+}
 } // namespace CliTool
 } // namespace OHOS
