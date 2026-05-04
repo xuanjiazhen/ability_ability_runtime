@@ -26,6 +26,7 @@
 #include "hitrace_meter.h"
 #include "string_wrapper.h"
 #include "ui_content.h"
+#include "ui_extension_modal_callback.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
