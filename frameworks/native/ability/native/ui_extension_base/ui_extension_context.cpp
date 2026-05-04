@@ -1001,10 +1001,10 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
     std::weak_ptr<UIExtensionModalCallback> modalCallbackWeak = modalCallback;
 
     // Setup Ace callbacks
-    Ace::ModalUIExtensionCallbacks callback = SetupModalCallbacks(modalCallbackWeak);
+    OHOS::Ace::ModalUIExtensionCallbacks callback = SetupModalCallbacks(modalCallbackWeak);
 
     // Configure modal UIExtension
-    Ace::ModalUIExtensionConfig config;
+    OHOS::Ace::ModalUIExtensionConfig config;
     config.prohibitedRemoveByRouter = true;  // Prevent router from removing
 
     // Support additional configuration parameters
@@ -1027,7 +1027,6 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
     modalCallback->SetSessionId(sessionId);
     modalCallback->SetUIContent(uiContent);
 
-    // P1 fix: Pass weak_ptr instead of raw pointer
     auto contextWeak = std::static_pointer_cast<UIExtensionContext>(shared_from_this());
     modalCallback->SetUIExtensionContext(contextWeak);
 
