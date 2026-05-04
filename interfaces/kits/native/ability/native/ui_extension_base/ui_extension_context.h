@@ -253,6 +253,14 @@ public:
     */
     ErrCode StartAbilityByType(const std::string &type,
         AAFwk::WantParams &wantParam, const std::shared_ptr<JsUIExtensionCallback> &uiExtensionCallbacks);
+
+    /**
+     * @brief Create modal UIExtension for embedded services.
+     * @param want The want of the modal UIExtension to create.
+     * @return Returns ERR_OK on success, error code on failure.
+     */
+    ErrCode CreateModalUIExtension(const AAFwk::Want &want);
+
     bool IsTerminating();
     void SetTerminating(bool state);
 

@@ -56,6 +56,7 @@ config("ability_config") {
 config("agent_extension_public_config") {
   include_dirs = [
     "${ability_runtime_napi_path}/inner/napi_ability_common",
+    "${ability_runtime_path}/interfaces/kits/native/ui_extension_ability",
     "${ability_runtime_path}/interfaces/kits/native/ability/native",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/distributed",

@@ -956,6 +956,42 @@ void UIExtensionContext::GetFailureInfoByMessage(
     }
 }
 
+ErrCode UIExtensionContext::CreateModalUIExtension(const AAFwk::Want &want)
+{
+    TAG_LOGD(AAFwkTag::UI_EXT, "UIExtensionContext::CreateModalUIExtension call");
+    auto uiContent = GetUIContent();
+    if (uiContent == nullptr) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "null uiContent");
+        return ERR_INVALID_VALUE;
+    }
+
+    // 创建简化的 callback（用于服务端发起的请求）
+    Ace::ModalUIExtensionCallbacks callback;
+    callback.onError = [](int32_t code, const std::string &str1, const std::string &str2) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Modal UIExtension error: %{public}d", code);
+    };
+    callback.onRelease = [](int32_t code) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension release: %{public}d", code);
+    };
+    callback.onResult = [](int32_t code, const AAFwk::Want &want) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension result: %{public}d", code);
+    };
+    callback.onDestroy = []() {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension destroy");
+    };
+
+    Ace::ModalUIExtensionConfig config;
+
+    int32_t sessionId = uiContent->CreateModalUIExtension(want, callback, config);
+    if (sessionId == 0) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "CreateModalUIExtension failed");
+        return ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::UI_EXT, "Created modal UIExtension, sessionId: %{public}d", sessionId);
+    return ERR_OK;
+}
+
 int32_t UIExtensionContext::curRequestCode_ = 0;
 std::mutex UIExtensionContext::requestCodeMutex_;
 }  // namespace AbilityRuntime
