@@ -36,6 +36,10 @@ namespace AppExecFwk {
 class EventHandler;
 }
 
+namespace Ace {
+struct ModalUIExtensionCallbacks;
+}
+
 namespace AbilityRuntime {
 class UIExtensionModalCallback;
 using RuntimeTask = std::function<void(int, const AAFwk::Want &, bool)>;

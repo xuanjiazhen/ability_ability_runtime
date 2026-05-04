@@ -1001,10 +1001,10 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
     std::weak_ptr<UIExtensionModalCallback> modalCallbackWeak = modalCallback;
 
     // Setup Ace callbacks
-    OHOS::Ace::ModalUIExtensionCallbacks callback = SetupModalCallbacks(modalCallbackWeak);
+    Ace::ModalUIExtensionCallbacks callback = SetupModalCallbacks(modalCallbackWeak);
 
     // Configure modal UIExtension
-    OHOS::Ace::ModalUIExtensionConfig config;
+    Ace::ModalUIExtensionConfig config;
     config.prohibitedRemoveByRouter = true;  // Prevent router from removing
 
     // Support additional configuration parameters
