@@ -100,7 +100,7 @@ void UIExtensionModalCallback::OnReceive(const AAFwk::WantParams& data)
     if (data.HasParameter(EMBEDDABLE_SERVICE_EXIT)) {
         bool shouldExit = data.GetBoolParam(EMBEDDABLE_SERVICE_EXIT, false);
         if (shouldExit) {
-            TAG_LOGI(AAFwkTag::UI_EXT, "Modal dialog notified embeddable meta service exit, trigger termination, sessionId: %{public}d", sessionId_);
+            TAG_LOGI(AAFwkTag::UI_EXT, "Modal dialog notified embeddable exit, sessionId: %{public}d", sessionId_);
             context->TerminateSelfWithAnimation(nullptr);
             return;
         }

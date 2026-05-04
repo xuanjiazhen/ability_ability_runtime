@@ -38,6 +38,10 @@ constexpr const char* FLAG_AUTH_READ_URI_PERMISSION = "ability.want.params.uriPe
 constexpr int32_t TERMINATE_SELF_ANIMATION_TIMEOUT_MS = 2000;
 
 namespace {
+constexpr const char* DISPOSED_PROHIBIT_BACK = "ohos.disposed.prohibitBack";
+constexpr const char* IS_WINDOWMODE_FOLLOWHOST = "ohos.window.mode.followHost";
+constexpr const char* USE_GLOBAL_UICONTENT = "ohos.uec.params.useGlobalUIContent";
+
 bool IsEmbeddableStart(int32_t screenMode)
 {
     return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
@@ -985,9 +989,6 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
         TAG_LOGE(AAFwkTag::UI_EXT, "null uiContent");
         return ERR_INVALID_VALUE;
     }
-    constexpr const char* DISPOSED_PROHIBIT_BACK = "ohos.disposed.prohibitBack";
-    constexpr const char* IS_WINDOWMODE_FOLLOWHOST = "ohos.window.mode.followHost";
-    constexpr const char* USE_GLOBAL_UICONTENT = "ohos.uec.params.useGlobalUIContent";
 
     // Check if UIExtension already exists
     if (IsUIExtensionExist(want) && !want.GetBoolParam(USE_GLOBAL_UICONTENT, false)) {
@@ -995,54 +996,12 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
         return ERR_OK;
     }
 
-    // Note: This method is renamed to CreateModalUIExtensionWithApp for consistency
-    // with AbilityContext, but the implementation remains the same.
-
-    // Create modal callbackUIExtensionModalCallback for lifecycle management
+    // Create modal callback
     auto modalCallback = std::make_shared<UIExtensionModalCallback>();
-    std::weak_ptr<> modalCallbackWeak = modalCallback;
+    std::weak_ptr<UIExtensionModalCallback> modalCallbackWeak = modalCallback;
 
-    // Setup ModalUIExtensModalUIExtensionCallbacksionCallbacks with lifecycle management
-    // P0 fix: Use weak_ptr to avoid memory leak when CreateModalUIExtension fails
-    Ace:: callback;
-    callback.onError = [modalCallbackWeak](int32_t code, const std::string &str1, const std::string &str2) {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "Modal UIExtension error: %{public}d, msg: %{public}s",
-                code, str2.c_str());
-            cb->OnError();
-        }
-    };
-    callback.onRelease = [modalCallbackWeak](int32_t code) {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension release: %{public}d", code);
-            cb->OnRelease();
-        }
-    };
-    callback.onResult = [modalCallbackWeak](int32_t code, const AAFwk::Want &resultWant) {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension result: %{public}d", code);
-        }
-        // onResult does not require lifecycle cleanup
-    };
-    callback.onDestroy = [modalCallbackWeak]() {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension destroy");
-            cb->OnDestroy();
-        }
-    };
-
-    // P0 fix: Add onReceive callback to handle business logic (e.g., TerminateSelfWithAnimation)
-    callback.onReceive = [modalCallbackWeak](const AAFwk::WantParams& data) {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension onReceive");
-            cb->OnReceive(data);
-        }
-    };
+    // Setup Ace callbacks
+    Ace::ModalUIExtensionCallbacks callback = SetupModalCallbacks(modalCallbackWeak);
 
     // Configure modal UIExtension
     Ace::ModalUIExtensionConfig config;
@@ -1080,6 +1039,48 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
 
     TAG_LOGI(AAFwkTag::UI_EXT, "Created modal UIExtension, sessionId: %{public}d", sessionId);
     return ERR_OK;
+}
+
+Ace::ModalUIExtensionCallbacks UIExtensionContext::SetupModalCallbacks(
+    std::weak_ptr<UIExtensionModalCallback> modalCallbackWeak)
+{
+    Ace::ModalUIExtensionCallbacks callback;
+    callback.onError = [modalCallbackWeak](int32_t code, const std::string &str1, const std::string &str2) {
+        auto cb = modalCallbackWeak.lock();
+        if (cb) {
+            TAG_LOGE(AAFwkTag::UI_EXT, "Modal UIExtension error: %{public}d, msg: %{public}s",
+                code, str2.c_str());
+            cb->OnError();
+        }
+    };
+    callback.onRelease = [modalCallbackWeak](int32_t code) {
+        auto cb = modalCallbackWeak.lock();
+        if (cb) {
+            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension release: %{public}d", code);
+            cb->OnRelease();
+        }
+    };
+    callback.onResult = [modalCallbackWeak](int32_t code, const AAFwk::Want &resultWant) {
+        auto cb = modalCallbackWeak.lock();
+        if (cb) {
+            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension result: %{public}d", code);
+        }
+    };
+    callback.onDestroy = [modalCallbackWeak]() {
+        auto cb = modalCallbackWeak.lock();
+        if (cb) {
+            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension destroy");
+            cb->OnDestroy();
+        }
+    };
+    callback.onReceive = [modalCallbackWeak](const AAFwk::WantParams& data) {
+        auto cb = modalCallbackWeak.lock();
+        if (cb) {
+            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension onReceive");
+            cb->OnReceive(data);
+        }
+    };
+    return callback;
 }
 
 ErrCode UIExtensionContext::EraseUIExtension(int32_t sessionId)

@@ -352,6 +352,9 @@ private:
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
     std::map<int32_t, AAFwk::Want> uiExtensionMap_;
     std::mutex uiExtensionMutex_;
+
+    // CreateModalUIExtensionWithApp 重构辅助方法
+    Ace::ModalUIExtensionCallbacks SetupModalCallbacks(std::weak_ptr<UIExtensionModalCallback> modalCallbackWeak);
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
