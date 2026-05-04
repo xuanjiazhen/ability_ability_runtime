@@ -97,7 +97,7 @@ void UIExtensionModalCallback::OnReceive(const AAFwk::WantParams& data)
         return;
     }
 
-    if (data.HasParameter(EMBEDDABLE_SERVICE_EXIT)) {
+    if (data.HasParam(EMBEDDABLE_SERVICE_EXIT)) {
         bool shouldExit = data.GetIntParam(EMBEDDABLE_SERVICE_EXIT, 0);
         if (shouldExit == 1) {
             TAG_LOGI(AAFwkTag::UI_EXT, "Modal dialog notified embeddable exit, sessionId: %{public}d", sessionId_);

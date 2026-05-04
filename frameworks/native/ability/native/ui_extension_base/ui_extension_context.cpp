@@ -1012,7 +1012,7 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
     if (want.GetBoolParam(DISPOSED_PROHIBIT_BACK, false)) {
         config.isProhibitBack = true;
     }
-    if (want.HasParam(IS_WINDOWMODE_FOLLOWHOST)) {
+    if (want.HasParameter(IS_WINDOWMODE_FOLLOWHOST)) {
         config.isWindowModeFollowHost = want.GetBoolParam(IS_WINDOWMODE_FOLLOWHOST, false);
     }
 
