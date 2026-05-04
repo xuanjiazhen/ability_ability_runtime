@@ -350,6 +350,8 @@ private:
 
     // ====== Timeout management (only for embeddable mode) ======
     std::shared_ptr<AppExecFwk::EventHandler> eventHandler_;
+    std::map<int32_t, AAFwk::Want> uiExtensionMap_;
+    std::mutex uiExtensionMutex_;
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
