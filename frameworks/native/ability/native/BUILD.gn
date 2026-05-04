@@ -562,6 +562,7 @@ config("extensionkit_public_config") {
   visibility = [ ":*" ]
   include_dirs = [
     "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/distributed",
+    "${ability_runtime_path}/interfaces/kits/native/ui_extension_ability",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/continuation/kits",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",

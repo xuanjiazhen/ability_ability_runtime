@@ -540,7 +540,7 @@ int ExtensionImpl::CreateModalUIExtension(const AAFwk::Want &want)
     }
 
     // Use dynamic_cast to convert to UIExtension
-    auto uiExtension = std::dynamic_pointer_cast<AbilityRuntime::UIExtension>(extension_);
+    auto uiExtension = std::static_pointer_cast<AbilityRuntime::UIExtension>(extension_);
     if (uiExtension == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "Failed to cast extension to UIExtension");
         return ERR_INVALID_VALUE;
