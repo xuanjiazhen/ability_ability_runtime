@@ -30,6 +30,11 @@ void UIExtensionModalCallback::OnRelease()
         TAG_LOGE(AAFwkTag::UI_EXT, "null context_ in OnRelease");
     }
 
+    if (context_ != nullptr) {
+        context_->TerminateSelfWithAnimation(nullptr);
+        TAG_LOGI(AAFwkTag::UI_EXT, "Erased modal UIExtension on destroy: %{public}d", sessionId_);
+    }
+
 #ifdef SUPPORT_SCREEN
     // Close the modal UIExtension
     if (uiContent_ != nullptr) {
@@ -76,14 +81,5 @@ void UIExtensionModalCallback::OnDestroy()
         TAG_LOGE(AAFwkTag::UI_EXT, "null context_ in OnDestroy");
     }
 }
-
-void UIExtensionModalCallback::OnRelease()
-{
-    if (context_ != nullptr) {
-        context_->TerminateSelfWithAnimation(nullptr);
-        TAG_LOGI(AAFwkTag::UI_EXT, "Erased modal UIExtension on destroy: %{public}d", sessionId_);
-    }
-}
-
 } // namespace AbilityRuntime
 } // namespace OHOS
