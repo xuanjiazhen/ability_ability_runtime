@@ -18,12 +18,20 @@
 #include "interceptor/disposed_rule_interceptor.h"
 #include "ability_record.h"
 #include "modal_system_ui_extension.h"
+#include "want_params.h"
 
 namespace OHOS {
 namespace AAFwk {
 namespace {
 constexpr const char* UIEXTENSION_MODAL_TYPE = "ability.want.params.modalType";
 constexpr const char* INTERCEPT_MISSION_ID = "intercept_missionId";
+constexpr const char* IS_EMBEDDABLE_SERVICE = "ohos.param.isEmbeddableService";
+
+bool IsEmbeddableStart(int32_t screenMode)
+{
+    return screenMode == AAFwk::EMBEDDED_FULL_SCREEN_MODE ||
+        screenMode == AAFwk::EMBEDDED_HALF_SCREEN_MODE;
+}
 }
 
 DisposedObserver::DisposedObserver(const AppExecFwk::DisposedRule &disposedRule,
@@ -77,9 +85,31 @@ void DisposedObserver::OnPageShow(const AppExecFwk::PageStateData &pageStateData
     }
     if (disposedRule_.componentType == AppExecFwk::ComponentType::UI_EXTENSION) {
         auto abilityRecord = Token::GetAbilityRecordByToken(token_);
-        if (abilityRecord == nullptr || abilityRecord->GetAbilityInfo().type != AppExecFwk::AbilityType::PAGE) {
+        Want want = *disposedRule_.want;
+
+        // Check if current ability is an embedded service (embeddable_ui_ability)
+        bool isEmbeddableService = false;
+        if (abilityRecord != nullptr) {
+            const auto& abilityWant = abilityRecord->GetWant();
+            if (abilityWant.HasParameter(AAFwk::SCREEN_MODE_KEY)) {
+                int32_t screenMode = abilityWant.GetIntParam(AAFwk::SCREEN_MODE_KEY, AAFwk::IDLE_SCREEN_MODE);
+                isEmbeddableService = IsEmbeddableStart(screenMode);
+            }
+        }
+
+        if (isEmbeddableService) {
+            // Embedded UIExtension service: use modal app path (no INTERCEPT_MISSION_ID)
+            TAG_LOGD(AAFwkTag::ABILITYMGR, "Handle embeddable UIExtension");
+            want.SetParam(IS_EMBEDDABLE_SERVICE, true);
+            int ret = abilityRecord->CreateModalUIExtension(want);
+            if (ret != ERR_OK) {
+                interceptor_->UnregisterObserver(pageStateData.uid);
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "Handle embeddable UIExtension failed");
+                return;
+            }
+        } else if (abilityRecord == nullptr || abilityRecord->GetAbilityInfo().type != AppExecFwk::AbilityType::PAGE) {
+            // Non-PAGE type: use modal system path
             auto systemUIExtension = std::make_shared<OHOS::Rosen::ModalSystemUiExtension>();
-            Want want = *disposedRule_.want;
             want.SetParam(UIEXTENSION_MODAL_TYPE, 1);
             TAG_LOGD(AAFwkTag::ABILITYMGR, "modal system");
             bool ret = IN_PROCESS_CALL(systemUIExtension->CreateModalUIExtension(want));
@@ -89,7 +119,7 @@ void DisposedObserver::OnPageShow(const AppExecFwk::PageStateData &pageStateData
                 return;
             }
         } else {
-            Want want = *disposedRule_.want;
+            // PAGE type (non-embedded): use modal app path with INTERCEPT_MISSION_ID
             auto sessionInfo = abilityRecord->GetSessionInfo();
             if (sessionInfo != nullptr) {
                 want.SetParam(INTERCEPT_MISSION_ID, sessionInfo->persistentId);
