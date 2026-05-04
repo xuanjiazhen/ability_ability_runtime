@@ -441,7 +441,6 @@ int UIExtension::CreateModalUIExtension(const AAFwk::Want &want)
         }
         (void)uiExtensionContextSptr->CreateModalUIExtensionWithApp(want);
     };
-
     if (!handler_->PostTask(task, "UIExtension:CreateModalUIExtensionWithApp")) {
         TAG_LOGE(AAFwkTag::UI_EXT, "PostTask failed");
         return ERR_INVALID_VALUE;
