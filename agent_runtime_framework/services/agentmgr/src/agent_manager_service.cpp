@@ -57,6 +57,13 @@ bool IsLowCodeTargetMatched(const AAFwk::Want &want, const AgentCard &card)
     }
     return true;
 }
+
+void CanonicalizeLowCodeConnectWant(AAFwk::Want &want, const AgentCard &card)
+{
+    const auto &element = want.GetElement();
+    want.SetElementName(element.GetDeviceID(), card.appInfo->bundleName,
+        card.appInfo->abilityName, card.appInfo->moduleName);
+}
 }
 
 std::mutex g_mutex;
@@ -459,6 +466,9 @@ int32_t AgentManagerService::ResolveConnectAgentTarget(const AAFwk::Want &want, 
     if (card.type == AgentCardType::LOW_CODE && !IsLowCodeTargetMatched(connectWant, card)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "low-code target mismatch");
         return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+    if (card.type == AgentCardType::LOW_CODE) {
+        CanonicalizeLowCodeConnectWant(connectWant, card);
     }
 
     // Capture the caller UID once the target metadata is known-good.
@@ -1170,7 +1180,8 @@ int32_t AgentManagerService::PrepareLowCodeConnectPlan(const AgentHostKey &hostK
         }
     }
 
-    auto ret = TryRegisterConnectionLocked(connection, callingUid, session->hostConnection, &hostKey);
+    auto ret = TryRegisterConnectionLocked(connection, callingUid, session->hostConnection, &hostKey,
+        plan.needRealConnect);
     if (ret != ERR_OK) {
         if (plan.needRealConnect) {
             agentHostSessions_.erase(hostKey);
