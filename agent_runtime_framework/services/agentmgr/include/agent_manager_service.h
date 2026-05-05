@@ -102,7 +102,7 @@ private:
     void Init();
     void RegisterBundleEventCallback();
     /**
-     * @brief Validates caller permission and reserves one slot from the per-caller connection quota.
+     * @brief Validates caller permission and foreground state before connect handling.
      */
     int32_t ValidateConnectAgentRequest(const sptr<AAFwk::IAbilityConnection> &connection, int32_t &callerUid);
     /**
@@ -146,6 +146,7 @@ private:
     std::map<sptr<IRemoteObject>, TrackedConnectionRecord>::iterator FindTrackedConnectionLocked(
         const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid);
     void ReleaseCallerConnectionCountByUidLocked(int32_t callerUid);
+    void ReleaseAgentHostSessionQuotaLocked(const std::shared_ptr<AgentHostSession> &session);
     /**
      * @brief Forwards connect/disconnect completion from the service-side wrapper back to the original caller.
      */
@@ -176,10 +177,14 @@ private:
      */
     void CleanupLowCodeConnectPlan(const AgentConnectPlan &plan, const std::string &agentId);
     /**
+     * @brief Fails every caller waiting on one in-flight low-code host connect.
+     */
+    void FailPendingLowCodeHostConnect(const AgentConnectPlan &plan, const AppExecFwk::ElementName &element,
+        int32_t resultCode);
+    /**
      * @brief Performs the real AMS connect for a newly created low-code shared host session.
      */
-    int32_t CompleteAgentHostConnect(const AAFwk::Want &want, const std::string &agentId,
-        AgentConnectPlan &plan);
+    int32_t CompleteAgentHostConnect(const AAFwk::Want &want, AgentConnectPlan &plan);
     /**
      * @brief Extracts the host-session identity from the target element and caller user context.
      */
@@ -219,6 +224,7 @@ private:
     std::map<sptr<IRemoteObject>, TrackedConnectionRecord> trackedConnections_;
     std::map<int32_t, size_t> callerConnectionCounts_;
     std::mutex agentHostMutex_;
+    std::mutex lowCodeConnectMutex_;
     std::map<AgentHostKey, std::shared_ptr<AgentHostSession>> agentHostSessions_;
     std::map<AgentOwnerKey, std::shared_ptr<AgentHostSession>> agentOwners_;
 };
