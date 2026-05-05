@@ -102,6 +102,9 @@ void AgentConnectionManagerTest::SetUp(void)
     MyFlag::retDisconnectAgentExtensionAbility = ERR_OK;
     MyFlag::retConnectServiceExtensionAbility = ERR_OK;
     MyFlag::retDisconnectServiceExtensionAbility = ERR_OK;
+    MyFlag::retGetCallerAgentCardByAgentId = ERR_OK;
+    MyFlag::connectAgentExtensionAbilityCallCount = 0;
+    MyFlag::isLowCodeAgentCard = false;
     MyFlag::isOnAbilityConnectDoneCalled = false;
     MyFlag::isOnAbilityDisconnectDoneCalled = false;
 }
@@ -1110,6 +1113,7 @@ HWTEST_F(AgentConnectionManagerTest, CreateConnection_001, TestSize.Level1)
 
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(1));
+    EXPECT_EQ(MyFlag::connectAgentExtensionAbilityCallCount, 1);
 }
 
 /**
@@ -1238,6 +1242,32 @@ HWTEST_F(AgentConnectionManagerTest, ConnectAbilityInner_002, TestSize.Level1)
 
     EXPECT_EQ(result, ERR_OK);
     EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(1));
+    EXPECT_EQ(MyFlag::connectAgentExtensionAbilityCallCount, 1);
+}
+
+/**
+* @tc.name  : ConnectAbilityInner_ShouldShareConnectingConnection_WhenAgentIdDiffers
+* @tc.number: ConnectAbilityInner_004
+* @tc.desc  : Test different low-code agentIds share one connecting AgentExtensionAbility connection
+*/
+HWTEST_F(AgentConnectionManagerTest, ConnectAbilityInner_004, TestSize.Level1)
+{
+    MyFlag::isLowCodeAgentCard = true;
+    Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "test.bundle", "test.ability", "test.module");
+    Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "test.bundle", "test.ability", "test.module");
+
+    sptr<MockAbilityConnectCallback> callbackA = new MockAbilityConnectCallback();
+    sptr<MockAbilityConnectCallback> callbackB = new MockAbilityConnectCallback();
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(wantA, callbackA), ERR_OK);
+    EXPECT_EQ(AgentConnectionManager::GetInstance().ConnectAgentExtensionAbility(wantB, callbackB), ERR_OK);
+
+    EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.size(), static_cast<size_t>(1));
+    EXPECT_EQ(AgentConnectionManager::GetInstance().agentConnections_.begin()->second.size(), static_cast<size_t>(2));
+    EXPECT_EQ(MyFlag::connectAgentExtensionAbilityCallCount, 2);
 }
 
 /**

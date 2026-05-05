@@ -31,6 +31,13 @@ namespace AgentRuntime {
 namespace {
 constexpr int64_t CONNECTING_TIMEOUT = 30000;
 constexpr int32_t DIED = -1;
+
+bool IsLowCodeAgent(const std::string &agentId)
+{
+    AgentCard card;
+    auto ret = AgentManagerClient::GetInstance().GetCallerAgentCardByAgentId(agentId, card);
+    return ret == ERR_OK && card.type == AgentCardType::LOW_CODE;
+}
 }
 
 AgentConnectionInfo::AgentConnectionInfo(const std::string &agentId,
@@ -260,37 +267,17 @@ bool AgentConnectionManager::MatchConnection(const std::string &agentId, const A
         connectReceiver.GetElement().GetAbilityName() == storedReceiver.GetAbilityName();
 }
 
-ErrCode AgentConnectionManager::CreateConnection(const AAFwk::Want &want,
-    const sptr<AbilityConnectCallback> &connectCallback)
+bool AgentConnectionManager::MatchConnectionTarget(const AAFwk::Want &connectReceiver,
+    const std::map<AgentConnectionInfo, std::vector<sptr<AbilityConnectCallback>>>::value_type &connection)
 {
-    sptr<AgentConnection> agentConnection = sptr<AgentConnection>::MakeSptr();
-    if (agentConnection == nullptr) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentConnection");
-        return AAFwk::ERR_INVALID_CALLER;
+    void *agentExtProxy = GetAgentExtProxyPtr(connectReceiver);
+    if (agentExtProxy != connection.first.agentExtProxy) {
+        return false;
     }
-    agentConnection->AddConnectCallback(connectCallback);
-    agentConnection->SetConnectionState(CONNECTION_STATE_CONNECTING);
-
-    // Extract agentId from Want
-    std::string agentId = want.GetStringParam(AGENTID_KEY);
-    // Create AgentConnectionInfo
-    AAFwk::Operation connectReceiver = want.GetOperation();
-    AgentConnectionInfo connectionInfo(agentId, connectReceiver, agentConnection);
-    connectionInfo.SetAgentExtProxyPtr(GetAgentExtProxyPtr(want));
-    connectionInfo.RecordConnectingTime();
-
-    {
-        std::lock_guard<std::mutex> lock(connectionsLock_);
-        agentConnections_[connectionInfo] = { connectCallback };
-    }
-
-    ErrCode ret = AgentManagerClient::GetInstance().ConnectAgentExtensionAbility(want, agentConnection);
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::SER_ROUTER, "error:%{public}d", ret);
-        std::lock_guard<std::mutex> lock(connectionsLock_);
-        agentConnections_.erase(connectionInfo);
-    }
-    return ret;
+    const AAFwk::Operation &storedReceiver = connection.first.connectReceiver;
+    return connectReceiver.GetElement().GetBundleName() == storedReceiver.GetBundleName() &&
+        connectReceiver.GetElement().GetModuleName() == storedReceiver.GetModuleName() &&
+        connectReceiver.GetElement().GetAbilityName() == storedReceiver.GetAbilityName();
 }
 
 bool AgentConnectionManager::IsConnectingTimeout(const AgentConnectionInfo &info)
@@ -337,6 +324,10 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
         agentId.c_str(), want.GetElement().GetBundleName().c_str(),
         want.GetElement().GetModuleName().c_str(), want.GetElement().GetAbilityName().c_str());
 
+    bool isLowCodeAgent = IsLowCodeAgent(agentId);
+    sptr<AgentConnection> newConnection = nullptr;
+    AgentConnectionInfo newConnectionInfo("", AAFwk::Operation(), nullptr);
+    sptr<AgentConnection> sharedConnectingConnection = nullptr;
     {
         std::lock_guard<std::mutex> lock(connectionsLock_);
         // Search for existing connection
@@ -345,6 +336,18 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
             if (MatchConnection(agentId, want, *iter) && !IsConnectingTimeout(iter->first)) {
                 connectionIter = iter;
                 break;
+            }
+        }
+
+        auto connectingTargetIter = agentConnections_.end();
+        if (isLowCodeAgent && connectionIter == agentConnections_.end()) {
+            for (auto iter = agentConnections_.begin(); iter != agentConnections_.end(); ++iter) {
+                if (MatchConnectionTarget(want, *iter) && !IsConnectingTimeout(iter->first) &&
+                    iter->first.agentConnection != nullptr &&
+                    iter->first.agentConnection->GetConnectionState() == CONNECTION_STATE_CONNECTING) {
+                    connectingTargetIter = iter;
+                    break;
+                }
             }
         }
 
@@ -372,10 +375,50 @@ ErrCode AgentConnectionManager::ConnectAbilityInner(const AAFwk::Want &want,
             }
             TAG_LOGE(AAFwkTag::SER_ROUTER, "agentConnection disconnected");
             agentConnections_.erase(connectionIter);
+        } else if (connectingTargetIter != agentConnections_.end()) {
+            std::vector<sptr<AbilityConnectCallback>> &callbacks = connectingTargetIter->second;
+            callbacks.push_back(connectCallback);
+            sharedConnectingConnection = connectingTargetIter->first.agentConnection;
+            sharedConnectingConnection->AddConnectCallback(connectCallback);
+        }
+
+        newConnection = sharedConnectingConnection;
+        if (newConnection == nullptr) {
+            newConnection = sptr<AgentConnection>::MakeSptr();
+        }
+        if (newConnection == nullptr) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "null agentConnection");
+            return AAFwk::ERR_INVALID_CALLER;
+        }
+        if (sharedConnectingConnection == nullptr) {
+            newConnection->AddConnectCallback(connectCallback);
+            newConnection->SetConnectionState(CONNECTION_STATE_CONNECTING);
+
+            newConnectionInfo = AgentConnectionInfo(agentId, want.GetOperation(), newConnection);
+            newConnectionInfo.SetAgentExtProxyPtr(GetAgentExtProxyPtr(want));
+            newConnectionInfo.RecordConnectingTime();
+            agentConnections_[newConnectionInfo] = { connectCallback };
         }
     }
-    // Create connection outside of lock
-    return CreateConnection(want, connectCallback);
+    auto ret = AgentManagerClient::GetInstance().ConnectAgentExtensionAbility(want, newConnection);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::SER_ROUTER, "error:%{public}d", ret);
+        std::lock_guard<std::mutex> lock(connectionsLock_);
+        if (sharedConnectingConnection == nullptr) {
+            agentConnections_.erase(newConnectionInfo);
+        } else {
+            for (auto &connection : agentConnections_) {
+                if (connection.first.agentConnection != sharedConnectingConnection) {
+                    continue;
+                }
+                auto &callbacks = connection.second;
+                callbacks.erase(std::remove(callbacks.begin(), callbacks.end(), connectCallback), callbacks.end());
+                sharedConnectingConnection->RemoveConnectCallback(connectCallback);
+                break;
+            }
+        }
+    }
+    return ret;
 }
 } // namespace AgentRuntime
 } // namespace OHOS
