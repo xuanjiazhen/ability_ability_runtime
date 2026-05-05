@@ -21,6 +21,7 @@
 #include "ui_ability.h"
 
 namespace OHOS {
+
 namespace AppExecFwk {
 class AbilityHandler;
 class AbilityLocalRecord;
