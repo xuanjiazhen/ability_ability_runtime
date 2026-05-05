@@ -1,0 +1,313 @@
+{
+  "analysis": {
+    "timestamp": "2026-05-05",
+    "branch": "master",
+    "base_commit": "f46b8a04e1",
+    "summary": {
+      "total_files_changed": 11,
+      "lines_added": 345,
+      "lines_removed": 27,
+      "net_change": 318
+    },
+    "changes": [
+      {
+        "path": "frameworks/native/ability/native/BUILD.gn",
+        "status": "modified",
+        "lines_added": 2,
+        "lines_removed": 0,
+        "description": "Added ui_extension_ability include dir and ui_extension_modal_callback.cpp source",
+        "changes": [
+          {
+            "type": "include_dir",
+            "addition": "ui_extension_ability"
+          },
+          {
+            "type": "source",
+            "addition": "ui_extension_modal_callback.cpp"
+          }
+        ]
+      },
+      {
+        "path": "frameworks/native/ability/native/extension_ability_thread.cpp",
+        "status": "modified",
+        "lines_added": 13,
+        "lines_removed": 0,
+        "description": "Added CreateModalUIExtension implementation",
+        "new_methods": [
+          "CreateModalUIExtension(const Want &want) -> int"
+        ],
+        "call_chain": ["called by IPC", "delegates to extensionImpl_->CreateModalUIExtension()"]
+      },
+      {
+        "path": "interfaces/kits/native/ability/native/extension_ability_thread.h",
+        "status": "modified",
+        "lines_added": 7,
+        "lines_removed": 0,
+        "description": "Added CreateModalUIExtension declaration with documentation"
+      },
+      {
+        "path": "frameworks/native/ability/native/extension_impl.cpp",
+        "status": "modified",
+        "lines_added": 26,
+        "lines_removed": 0,
+        "description": "Added CreateModalUIExtension with type checking",
+        "new_methods": [
+          "CreateModalUIExtension(const Want &want) -> int"
+        ],
+        "implementation_details": [
+          "Checks if extensionType_ is UIExtension",
+          "Uses static_pointer_cast to convert extension_ to UIExtension",
+          "Delegates to uiExtension->CreateModalUIExtension()"
+        ]
+      },
+      {
+        "path": "interfaces/kits/native/ability/native/extension_impl.h",
+        "status": "modified",
+        "lines_added": 7,
+        "lines_removed": 0,
+        "description": "Added CreateModalUIExtension declaration"
+      },
+      {
+        "path": "frameworks/native/ability/native/ui_extension_ability/ui_extension.cpp",
+        "status": "modified",
+        "lines_added": 40,
+        "lines_removed": 0,
+        "description": "Added CreateModalUIExtension and handler_ initialization",
+        "new_methods": [
+          "CreateModalUIExtension(const Want &want) -> int"
+        ],
+        "member_variables": [
+          "handler_ (std::shared_ptr<AbilityHandler>)"
+        ],
+        "implementation_details": [
+          "Init() now stores handler parameter",
+          "CreateModalUIExtension posts task to handler thread",
+          "Calls uiExtensionContext->CreateModalUIExtensionWithApp()"
+        ]
+      },
+      {
+        "path": "interfaces/kits/native/ability/native/ui_extension_ability/ui_extension.h",
+        "status": "modified",
+        "lines_added": 8,
+        "lines_removed": 0,
+        "description": "Added CreateModalUIExtension declaration and handler_ member"
+      },
+      {
+        "path": "frameworks/native/ability/native/ui_extension_base/ui_extension_context.cpp",
+        "status": "modified",
+        "lines_added": 143,
+        "lines_removed": 0,
+        "description": "Core modal UIExtension implementation",
+        "new_methods": [
+          "IsUIExtensionExist(const Want &want) -> bool",
+          "CreateModalUIExtensionWithApp(const Want &want) -> ErrCode",
+          "EraseUIExtension(int32_t sessionId) -> ErrCode",
+          "SetupModalCallbacks(std::weak_ptr<UIExtensionModalCallback>) -> Ace::ModalUIExtensionCallbacks"
+        ],
+        "member_variables": [
+          "uiExtensionMap_ (std::map<int32_t, Want>)",
+          "uiExtensionMutex_ (std::mutex)"
+        ],
+        "key_features": [
+          "Duplicate UIExtension detection",
+          "Modal callback lifecycle management",
+          "Session tracking and cleanup"
+        ]
+      },
+      {
+        "path": "interfaces/kits/native/ability/native/ui_extension_base/ui_extension_context.h",
+        "status": "modified",
+        "lines_added": 32,
+        "lines_removed": 0,
+        "description": "Added modal UIExtension method declarations and members"
+      },
+      {
+        "path": "services/abilitymgr/include/disposed_observer.h",
+        "status": "modified",
+        "lines_added": 2,
+        "lines_removed": 0,
+        "description": "Added ExecuteUIExtension declaration"
+      },
+      {
+        "path": "services/abilitymgr/src/disposed_observer.cpp",
+        "status": "modified",
+        "lines_added": 92,
+        "lines_removed": 27,
+        "description": "Refactored OnPageShow and added ExecuteUIExtension with embeddable mode support",
+        "refactoring": [
+          "Extracted UIExtension execution logic to ExecuteUIExtension()",
+          "Added IsEmbeddableStart() helper function",
+          "Added IS_EMBEDDABLE_SERVICE parameter handling"
+        ],
+        "implementation_details": [
+          "Detects embeddable mode from SCREEN_MODE_KEY",
+          "Routes to different paths based on ability type and embeddable status"
+        ]
+      },
+      {
+        "path": "frameworks/native/ability/native/ui_extension_base/ui_extension_modal_callback.cpp",
+        "status": "added",
+        "lines_added": 111,
+        "lines_removed": 0,
+        "description": "NEW: Modal UIExtension lifecycle callback implementation",
+        "methods": [
+          "OnRelease() - Closes modal UIExtension and erases from map",
+          "OnError() - Handles error conditions",
+          "OnDestroy() - Cleanup when UIExtension is destroyed",
+          "OnReceive() - Handles data messages, supports embeddableServiceExit"
+        ]
+      },
+      {
+        "path": "interfaces/kits/native/ability/native/ui_extension_base/ui_extension_modal_callback.h",
+        "status": "added",
+        "lines_added": 97,
+        "lines_removed": 0,
+        "description": "NEW: Modal UIExtension lifecycle callback header",
+        "design_notes": [
+          "Uses weak_ptr<UIExtensionContext> to avoid dangling pointers (P1 fix)",
+          "Does not depend on IAbilityCallback",
+          "Similar to DialogUIExtensionCallback but simplified"
+        ]
+      }
+    ],
+    "call_chain": [
+      {
+        "layer": "Service",
+        "component": "DisposedObserver::ExecuteUIExtension()",
+        "file": "services/abilitymgr/src/disposed_observer.cpp",
+        "line": 87
+      },
+      {
+        "layer": "Service (existing)",
+        "component": "AbilityRecord::CreateModalUIExtension()",
+        "note": "Already exists, calls through IPC"
+      },
+      {
+        "layer": "Thread",
+        "component": "ExtensionAbilityThread::CreateModalUIExtension()",
+        "file": "frameworks/native/ability/native/extension_ability_thread.cpp",
+        "line": 777
+      },
+      {
+        "layer": "Impl",
+        "component": "ExtensionImpl::CreateModalUIExtension()",
+        "file": "frameworks/native/ability/native/extension_impl.cpp",
+        "line": 528
+      },
+      {
+        "layer": "Component",
+        "component": "UIExtension::CreateModalUIExtension()",
+        "file": "frameworks/native/ability/native/ui_extension_ability/ui_extension.cpp",
+        "line": 412
+      },
+      {
+        "layer": "Context",
+        "component": "UIExtensionContext::CreateModalUIExtensionWithApp()",
+        "file": "frameworks/native/ability/native/ui_extension_base/ui_extension_context.cpp",
+        "line": 968
+      }
+    ],
+    "architecture": {
+      "pattern": "Chain of Responsibility with Task Posting",
+      "threading_model": "Main thread execution via handler PostTask",
+      "memory_management": {
+        "tracking": "uiExtensionMap_ with mutex protection",
+        "callback_pattern": "weak_ptr for context to prevent dangling pointers",
+        "cleanup": "Automatic via OnRelease/OnError/OnDestroy callbacks"
+      },
+      "error_handling": "ERR_OK on success, ERR_INVALID_VALUE on null checks or failure"
+    },
+    "new_features": {
+      "modal_uiextension_support": {
+        "description": "Enable modal dialog creation in UIExtension components",
+        "use_case": "Embedded (元服务) scenarios requiring modal dialogs",
+        "configuration": {
+          "prohibited_remove_by_router": true,
+          "prohibit_back": "controlled by DISPOSED_PROHIBIT_BACK parameter",
+          "window_mode_follow_host": "controlled by IS_WINDOWMODE_FOLLOWHOST parameter"
+        }
+      },
+      "embeddable_mode_detection": {
+        "description": "Detect and handle embeddable screen modes",
+        "modes": ["EMBEDDED_FULL_SCREEN_MODE", "EMBEDDED_HALF_SCREEN_MODE"],
+        "parameter": "IS_EMBEDDABLE_SERVICE"
+      },
+      "duplicate_prevention": {
+        "description": "Check for existing modal UIExtension before creating new one",
+        "method": "IsUIExtensionExist() by bundle/module/ability name"
+      }
+    },
+    "potential_issues": [
+      {
+        "severity": "medium",
+        "location": "ui_extension.cpp:111",
+        "issue": "handler_ member variable initialization",
+        "details": "handler_ must be set in Init() before CreateModalUIExtension() is called",
+        "mitigation": "Handler null check in CreateModalUIExtension()"
+      },
+      {
+        "severity": "low",
+        "location": "extension_impl.cpp:542",
+        "issue": "static_pointer_cast without type verification",
+        "details": "IsUIExtension() check is done but cast assumes type is correct",
+        "mitigation": "Type check before cast provides safety"
+      },
+      {
+        "severity": "low",
+        "location": "ui_extension_context.cpp:974",
+        "issue": "Duplicate check race condition",
+        "details": "IsUIExtensionExist() may miss concurrent creations under high load",
+        "mitigation": "Mutex protection on uiExtensionMap_"
+      }
+    ],
+    "testing_recommendations": [
+      {
+        "area": "Functional",
+        "tests": [
+          "Create modal UIExtension in embeddable mode (EMBEDDED_FULL_SCREEN_MODE)",
+          "Create modal UIExtension in embeddable mode (EMBEDDED_HALF_SCREEN_MODE)",
+          "Create modal UIExtension in non-embeddable mode",
+          "Duplicate UIExtension prevention",
+          "Modal dialog lifecycle (create, show, close)",
+          "Error handling when context is null",
+          "Error handling when handler is null"
+        ]
+      },
+      {
+        "area": "Memory",
+        "tests": [
+          "Verify UIExtensionModalCallback weak_ptr prevents dangling pointers",
+          "Confirm uiExtensionMap_ cleanup on all callback paths",
+          "Memory leak test with repeated create/destroy cycles"
+        ]
+      },
+      {
+        "area": "Concurrency",
+        "tests": [
+          "Concurrent CreateModalUIExtension() calls",
+          "Modal UIExtension creation during context destruction",
+          "Handler thread timing scenarios"
+        ]
+      }
+    ],
+    "related_code": {
+      "similar_implementations": [
+        {
+          "component": "UIAbility",
+          "method": "CreateModalUIExtension()",
+          "note": "Reference implementation for handler PostTask pattern"
+        },
+        {
+          "component": "DialogUIExtensionCallback",
+          "note": "Similar callback but depends on IAbilityCallback"
+        }
+      ],
+      "dependencies": [
+        "Ace::ModalUIExtensionCallbacks",
+        "Ace::ModalUIExtensionConfig",
+        "UIContent::CreateModalUIExtension()",
+        "UIContent::CloseModalUIExtension()"
+      ]
+    }
+  }
+}

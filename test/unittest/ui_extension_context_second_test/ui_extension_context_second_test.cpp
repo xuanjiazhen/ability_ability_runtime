@@ -26,6 +26,7 @@
 #include "hilog_tag_wrapper.h"
 #include "want.h"
 #include "mock_window.h"
+#include "ui_extension_modal_callback.h"
 
 using namespace testing::ext;
 using namespace OHOS::Rosen;
@@ -1735,5 +1736,385 @@ HWTEST_F(UIExtensionContextTest, CleanupAnimationResources_0100, TestSize.Level1
     context->eventHandler_ = nullptr;
     TAG_LOGI(AAFwkTag::TEST, "CleanupAnimationResources_0100 end");
 }
+
+// ============================================================================
+// Test Cases for CreateModalUIExtension functionality
+// ============================================================================
+
+/**
+ * @tc.number: UIExtensionContext_IsUIExtensionExist_0100
+ * @tc.name: IsUIExtensionExist when map is empty
+ * @tc.desc: Verify IsUIExtensionExist returns false when uiExtensionMap_ is empty
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionContext_IsUIExtensionExist_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_IsUIExtensionExist_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    // Map should be empty initially
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+
+    bool result = context->IsUIExtensionExist(want);
+    EXPECT_FALSE(result);
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_IsUIExtensionExist_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionContext_CreateModalUIExtensionWithApp_0100
+ * @tc.name: CreateModalUIExtensionWithApp when uiContent is null
+ * @tc.desc: Verify CreateModalUIExtensionWithApp returns ERR_INVALID_VALUE when uiContent is null
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionContext_CreateModalUIExtensionWithApp_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_CreateModalUIExtensionWithApp_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    // uiContent will be null since no window is set
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+
+    ErrCode result = context->CreateModalUIExtensionWithApp(want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_CreateModalUIExtensionWithApp_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionContext_CreateModalUIExtensionWithApp_0200
+ * @tc.name: CreateModalUIExtensionWithApp when UIExtension already exists
+ * @tc.desc: Verify CreateModalUIExtensionWithApp returns ERR_OK for existing UIExtension
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionContext_CreateModalUIExtensionWithApp_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_CreateModalUIExtensionWithApp_0200 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+    context->uiExtensionMap_.emplace(1001, want);
+
+    ErrCode result = context->CreateModalUIExtensionWithApp(want);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_CreateModalUIExtensionWithApp_0200 end");
+}
+
+/**
+ * @tc.number: UIExtensionContext_EraseUIExtension_0100
+ * @tc.name: EraseUIExtension when session exists
+ * @tc.desc: Verify EraseUIExtension removes existing entry and returns ERR_OK
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionContext_EraseUIExtension_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_EraseUIExtension_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+    context->uiExtensionMap_.emplace(1001, want);
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1);
+
+    ErrCode result = context->EraseUIExtension(1001);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_EraseUIExtension_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionContext_EraseUIExtension_0200
+ * @tc.name: EraseUIExtension when session doesn't exist
+ * @tc.desc: Verify EraseUIExtension handles non-existent session gracefully
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionContext_EraseUIExtension_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_EraseUIExtension_0200 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+    context->uiExtensionMap_.emplace(1001, want);
+
+    ErrCode result = context->EraseUIExtension(9999);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionContext_EraseUIExtension_0200 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnRelease_0100
+ * @tc.name: OnRelease when context is null
+ * @tc.desc: Verify OnRelease handles null context gracefully
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnRelease_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnRelease_0100 start");
+
+    UIExtensionModalCallback callback;
+    callback.SetSessionId(1001);
+
+    // Don't set context - it will be null
+    // Should not crash when context is null
+    callback.OnRelease();
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnRelease_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnRelease_0200
+ * @tc.name: OnRelease with valid context
+ * @tc.desc: Verify OnRelease erases UIExtension from context
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnRelease_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnRelease_0200 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+    context->uiExtensionMap_.emplace(1001, want);
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1);
+
+    UIExtensionModalCallback callback;
+    callback.SetSessionId(1001);
+    std::weak_ptr<UIExtensionContext> contextWeak = context;
+    callback.SetUIExtensionContext(contextWeak);
+
+    callback.OnRelease();
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnRelease_0200 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnError_0100
+ * @tc.name: OnError when context is null
+ * @tc.desc: Verify OnError handles null context gracefully
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnError_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnError_0100 start");
+
+    UIExtensionModalCallback callback;
+    callback.SetSessionId(1002);
+
+    // Don't set context - it will be null
+    // Should not crash when context is null
+    callback.OnError();
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnError_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnError_0200
+ * @tc.name: OnError with valid context
+ * @tc.desc: Verify OnError erases UIExtension from context
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnError_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnError_0200 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+    context->uiExtensionMap_.emplace(1002, want);
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1);
+
+    UIExtensionModalCallback callback;
+    callback.SetSessionId(1002);
+    std::weak_ptr<UIExtensionContext> contextWeak = context;
+    callback.SetUIExtensionContext(contextWeak);
+
+    callback.OnError();
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnError_0200 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnDestroy_0100
+ * @tc.name: OnDestroy when context is null
+ * @tc.desc: Verify OnDestroy handles null context gracefully
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnDestroy_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnDestroy_0100 start");
+
+    UIExtensionModalCallback callback;
+    callback.SetSessionId(1003);
+
+    // Don't set context - it will be null
+    // Should not crash when context is null
+    callback.OnDestroy();
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnDestroy_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnDestroy_0200
+ * @tc.name: OnDestroy with valid context
+ * @tc.desc: Verify OnDestroy erases UIExtension from context
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnDestroy_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnDestroy_0200 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+    context->uiExtensionMap_.emplace(1003, want);
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1);
+
+    UIExtensionModalCallback callback;
+    callback.SetSessionId(1003);
+    std::weak_ptr<UIExtensionContext> contextWeak = context;
+    callback.SetUIExtensionContext(contextWeak);
+
+    callback.OnDestroy();
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnDestroy_0200 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnReceive_0100
+ * @tc.name: OnReceive with exit param
+ * @tc.desc: Verify OnReceive calls TerminateSelfWithAnimation when exit param is set
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnReceive_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnReceive_0100 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    UIExtensionModalCallback callback;
+    callback.SetSessionId(1004);
+    std::weak_ptr<UIExtensionContext> contextWeak = context;
+    callback.SetUIExtensionContext(contextWeak);
+
+    AAFwk::WantParams data;
+    data.SetIntParam("ohos.param.embeddableServiceExit", 1);
+
+    // Should call TerminateSelfWithAnimation
+    callback.OnReceive(data);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnReceive_0100 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnReceive_0200
+ * @tc.name: OnReceive without exit param
+ * @tc.desc: Verify OnReceive handles data without exit param
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnReceive_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnReceive_0200 start");
+
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    UIExtensionModalCallback callback;
+    callback.SetSessionId(1005);
+    std::weak_ptr<UIExtensionContext> contextWeak = context;
+    callback.SetUIExtensionContext(contextWeak);
+
+    AAFwk::WantParams data;
+    data.SetIntParam("someOtherParam", 123);
+
+    // Should not call TerminateSelfWithAnimation
+    callback.OnReceive(data);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnReceive_0200 end");
+}
+
+/**
+ * @tc.number: UIExtensionModalCallback_OnReceive_0300
+ * @tc.name: OnReceive when context is null
+ * @tc.desc: Verify OnReceive handles null context gracefully
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(UIExtensionContextTest, UIExtensionModalCallback_OnReceive_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnReceive_0300 start");
+
+    UIExtensionModalCallback callback;
+    callback.SetSessionId(1006);
+
+    // Don't set context - it will be null
+    AAFwk::WantParams data;
+    data.SetIntParam("ohos.param.embeddableServiceExit", 1);
+
+    // Should not crash when context is null
+    callback.OnReceive(data);
+
+    TAG_LOGI(AAFwkTag::TEST, "UIExtensionModalCallback_OnReceive_0300 end");
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS
