@@ -94,6 +94,12 @@ public:
         auto service = AgentManagerService::GetInstance();
         service->trackedConnections_.clear();
         service->callerConnectionCounts_.clear();
+        service->nextLowCodeConnectRequestId_ = 0;
+        service->currentLowCodeConnectRequestId_ = 0;
+        service->isLowCodeConnectProcessing_ = false;
+        service->hasLowCodeConnectProcessingHostKey_ = false;
+        service->lowCodeConnectProcessingHostConnection_ = nullptr;
+        service->lowCodeConnectResults_.clear();
         service->agentHostSessions_.clear();
         service->agentOwners_.clear();
     }
@@ -315,7 +321,7 @@ HWTEST_F(AgentHostConnectionTest, OnAbilityDisconnectDone_001, TestSize.Level1)
     ASSERT_NE(hostConnection, nullptr);
     AppExecFwk::ElementName element("", "lowcode.bundle", "LowCodeExtAbility", "entry");
     sptr<TestAgentReceiver> receiver = new TestAgentReceiver();
-    service->HandleAgentHostConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
+    service->HandleAgentHostConnectDone(hostKey, hostConnection.GetRefPtr(), element, receiver->AsObject(), ERR_OK);
 
     hostConnection->OnAbilityDisconnectDone(element, ERR_OK);
 

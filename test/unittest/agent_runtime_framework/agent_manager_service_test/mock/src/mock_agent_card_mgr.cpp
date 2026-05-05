@@ -23,6 +23,7 @@ int32_t AgentRuntime::MyFlag::retGetAgentCardByAgentId = ERR_OK;
 int32_t AgentRuntime::MyFlag::retRegisterAgentCard = ERR_OK;
 int32_t AgentRuntime::MyFlag::retUpdateAgentCard = ERR_OK;
 int32_t AgentRuntime::MyFlag::retDeleteAgentCard = ERR_OK;
+std::string AgentRuntime::MyFlag::lastGetAgentCardBundleName;
 std::string AgentRuntime::MyFlag::agentCardAgentId = "testAgent";
 std::string AgentRuntime::MyFlag::agentCardBundleName = "test.bundle";
 std::string AgentRuntime::MyFlag::agentCardModuleName;
@@ -55,6 +56,7 @@ int32_t AgentCardMgr::GetAgentCardsByBundleName(const std::string &bundleName, s
 
 int32_t AgentCardMgr::GetAgentCardByAgentId(const std::string &bundleName, const std::string &agentId, AgentCard &card)
 {
+    MyFlag::lastGetAgentCardBundleName = bundleName;
     if (MyFlag::retGetAgentCardByAgentId == ERR_OK) {
         card.agentId = MyFlag::agentCardAgentId;
         if (MyFlag::shouldCreateAgentCardAppInfo) {
