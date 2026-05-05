@@ -26,6 +26,9 @@ public:
     static int32_t retDisconnectAgentExtensionAbility;
     static int32_t retConnectServiceExtensionAbility;
     static int32_t retDisconnectServiceExtensionAbility;
+    static int32_t retGetCallerAgentCardByAgentId;
+    static int32_t connectAgentExtensionAbilityCallCount;
+    static bool isLowCodeAgentCard;
     static bool isOnAbilityConnectDoneCalled;
     static bool isOnAbilityDisconnectDoneCalled;
 };
