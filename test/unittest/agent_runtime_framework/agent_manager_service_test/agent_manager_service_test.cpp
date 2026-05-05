@@ -13,6 +13,8 @@
  * limitations under the License.
  */
 
+#include <chrono>
+#include <future>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -102,6 +104,9 @@ void AgentManagerServiceTest::SetUp(void)
     auto service = AgentManagerService::GetInstance();
     service->trackedConnections_.clear();
     service->callerConnectionCounts_.clear();
+    service->nextLowCodeConnectRequestId_ = 0;
+    service->currentLowCodeConnectRequestId_ = 0;
+    service->isLowCodeConnectProcessing_ = false;
     MyFlag::connectAbilityWithExtensionTypeCallCount = 0;
     MyFlag::disconnectAbilityCallCount = 0;
     MyFlag::lastConnectAbilityConnection = nullptr;
@@ -805,6 +810,28 @@ public:
         return ERR_OK;
     }
 };
+
+class BlockingAgentReceiver : public TestAgentReceiver {
+public:
+    explicit BlockingAgentReceiver(std::shared_future<void> releaseFuture) : releaseFuture_(releaseFuture) {}
+    ~BlockingAgentReceiver() override = default;
+
+    std::promise<void> enteredPromise;
+
+    int32_t AgentInvoked(const std::string &agentId) override
+    {
+        if (shouldBlock_) {
+            shouldBlock_ = false;
+            enteredPromise.set_value();
+            releaseFuture_.wait();
+        }
+        return TestAgentReceiver::AgentInvoked(agentId);
+    }
+
+private:
+    std::shared_future<void> releaseFuture_;
+    bool shouldBlock_ = true;
+};
 }
 
 /**
@@ -1367,6 +1394,156 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_031, TestSize.Lev
 }
 
 /**
+ * @tc.name  : ConnectAgentExtensionAbility_032
+ * @tc.number: ConnectAgentExtensionAbility_032
+ * @tc.desc  : Test simultaneous low-code connects reuse the in-flight host session with canonical card target
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_032, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
+    MyFlag::agentCardBundleName = "lowcode.bundle";
+    MyFlag::agentCardAbilityName = "LowCodeExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "");
+    auto connectionA = sptr<MockAbilityConnection>::MakeSptr();
+
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+    EXPECT_EQ(MyFlag::lastConnectAbilityWant.GetElement().GetModuleName(), "entry");
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    auto connectionB = sptr<MockAbilityConnection>::MakeSptr();
+    auto queuedResult = std::async(std::launch::async, [service, wantB, connectionB]() {
+        return service->ConnectAgentExtensionAbility(wantB, connectionB);
+    });
+    EXPECT_EQ(queuedResult.wait_for(std::chrono::milliseconds(100)), std::future_status::timeout);
+
+    ASSERT_EQ(service->agentHostSessions_.size(), 1);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+
+    auto hostKey = service->agentHostSessions_.begin()->first;
+    sptr<TestAgentReceiver> receiver = new TestAgentReceiver();
+    AppExecFwk::ElementName element("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    service->HandleAgentHostConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
+    EXPECT_EQ(queuedResult.get(), ERR_OK);
+    EXPECT_EQ(connectionA->connectDoneCount, 1);
+    EXPECT_EQ(connectionB->connectDoneCount, 1);
+    EXPECT_EQ(receiver->agentInvokedCount, 2);
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_033
+ * @tc.number: ConnectAgentExtensionAbility_033
+ * @tc.desc  : Test queued low-code connects wait for the first host connect to finish
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_033, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
+    MyFlag::agentCardBundleName = "lowcode.bundle";
+    MyFlag::agentCardAbilityName = "LowCodeExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+    AAFwk::Want firstWant;
+    firstWant.SetParam(AGENTID_KEY, std::string("agent0"));
+    firstWant.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(firstWant, connection), ERR_OK);
+
+    ASSERT_EQ(service->agentHostSessions_.size(), 1);
+    auto hostKey = service->agentHostSessions_.begin()->first;
+    EXPECT_EQ(service->agentHostSessions_.begin()->second->agents.size(), static_cast<size_t>(1));
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
+    EXPECT_EQ(service->trackedConnections_.size(), 1);
+    EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
+
+    AAFwk::Want queuedWant;
+    queuedWant.SetParam(AGENTID_KEY, std::string("agent1"));
+    queuedWant.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    auto queuedResult = std::async(std::launch::async, [service, queuedWant, connection]() {
+        return service->ConnectAgentExtensionAbility(queuedWant, connection);
+    });
+    EXPECT_EQ(queuedResult.wait_for(std::chrono::milliseconds(100)), std::future_status::timeout);
+
+    sptr<TestAgentReceiver> receiver = new TestAgentReceiver();
+    AppExecFwk::ElementName element("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    service->HandleAgentHostConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
+    EXPECT_EQ(queuedResult.get(), ERR_OK);
+
+    for (size_t i = 2; i < AgentManagerService::MAX_CONNECTIONS_PER_CALLER + 1; i++) {
+        AAFwk::Want want;
+        want.SetParam(AGENTID_KEY, std::string("agent") + std::to_string(i));
+        want.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+        EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+    }
+
+    EXPECT_EQ(receiver->agentInvokedCount, static_cast<int32_t>(AgentManagerService::MAX_CONNECTIONS_PER_CALLER + 1));
+    EXPECT_EQ(connection->connectDoneCount, static_cast<int32_t>(AgentManagerService::MAX_CONNECTIONS_PER_CALLER + 1));
+    EXPECT_EQ(connection->lastConnectResultCode, ERR_OK);
+}
+
+/**
+ * @tc.name  : ConnectAgentExtensionAbility_034
+ * @tc.number: ConnectAgentExtensionAbility_034
+ * @tc.desc  : Test queued low-code connects are released only after the previous callback is delivered
+ */
+HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_034, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    MyFlag::retGetAgentCardByAgentId = ERR_OK;
+    MyFlag::agentCardType = static_cast<int32_t>(AgentCardType::LOW_CODE);
+    MyFlag::agentCardBundleName = "lowcode.bundle";
+    MyFlag::agentCardAbilityName = "LowCodeExtAbility";
+    MyFlag::agentCardModuleName = "entry";
+
+    AAFwk::Want wantA;
+    wantA.SetParam(AGENTID_KEY, std::string("agentA"));
+    wantA.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    auto connectionA = sptr<MockAbilityConnection>::MakeSptr();
+    EXPECT_EQ(service->ConnectAgentExtensionAbility(wantA, connectionA), ERR_OK);
+
+    ASSERT_EQ(service->agentHostSessions_.size(), 1);
+    auto hostKey = service->agentHostSessions_.begin()->first;
+
+    AAFwk::Want wantB;
+    wantB.SetParam(AGENTID_KEY, std::string("agentB"));
+    wantB.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    auto connectionB = sptr<MockAbilityConnection>::MakeSptr();
+    auto queuedResult = std::async(std::launch::async, [service, wantB, connectionB]() {
+        return service->ConnectAgentExtensionAbility(wantB, connectionB);
+    });
+    EXPECT_EQ(queuedResult.wait_for(std::chrono::milliseconds(100)), std::future_status::timeout);
+
+    std::promise<void> releasePromise;
+    auto releaseFuture = releasePromise.get_future().share();
+    sptr<BlockingAgentReceiver> receiver = sptr<BlockingAgentReceiver>::MakeSptr(releaseFuture);
+    auto enteredFuture = receiver->enteredPromise.get_future();
+    AppExecFwk::ElementName element("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    auto callbackResult = std::async(std::launch::async, [service, hostKey, element, receiver]() {
+        service->HandleAgentHostConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
+    });
+
+    EXPECT_EQ(enteredFuture.wait_for(std::chrono::seconds(1)), std::future_status::ready);
+    EXPECT_EQ(queuedResult.wait_for(std::chrono::milliseconds(100)), std::future_status::timeout);
+    releasePromise.set_value();
+    callbackResult.get();
+    EXPECT_EQ(queuedResult.get(), ERR_OK);
+    EXPECT_EQ(receiver->agentInvokedCount, 2);
+    EXPECT_EQ(connectionA->connectDoneCount, 1);
+    EXPECT_EQ(connectionB->connectDoneCount, 1);
+}
+
+/**
  * @tc.name  : ConnectAgentExtensionAbility_026
  * @tc.number: ConnectAgentExtensionAbility_026
  * @tc.desc  : Test low-code connect reuses one real host connection and notifies each invocation
@@ -1407,7 +1584,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_026, TestSize.Lev
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(wantB, connectionB), ERR_OK);
     EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
     ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
-    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 2);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
     EXPECT_EQ(receiver->agentInvokedCount, 2);
     ASSERT_EQ(receiver->invokedAgentIds.size(), 2);
     EXPECT_EQ(receiver->invokedAgentIds[1], "agentB");
@@ -1433,6 +1610,12 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_027, TestSize.Lev
     sptr<MockAbilityConnection> connectionB = new MockAbilityConnection();
 
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connectionA), ERR_OK);
+    auto service = AgentManagerService::GetInstance();
+    auto hostKey = service->agentHostSessions_.begin()->first;
+    sptr<TestAgentReceiver> receiver = new TestAgentReceiver();
+    AppExecFwk::ElementName element("", "lowcode.bundle", "LowCodeExtAbility", "entry");
+    service->HandleAgentHostConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
+
     EXPECT_EQ(AgentManagerService::GetInstance()->ConnectAgentExtensionAbility(want, connectionB),
         ERR_LOW_CODE_AGENT_ALREADY_ACTIVE);
     EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
@@ -1463,6 +1646,14 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_028, TestSize.Lev
         want.SetElementName("", bundleName, abilityName, "entry");
         auto connection = sptr<MockAbilityConnection>::MakeSptr();
         EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection), ERR_OK);
+        AgentHostKey hostKey;
+        hostKey.userId = IPCSkeleton::GetCallingUid() / 200000;
+        hostKey.bundleName = bundleName;
+        hostKey.moduleName = "entry";
+        hostKey.abilityName = abilityName;
+        sptr<TestAgentReceiver> receiver = new TestAgentReceiver();
+        AppExecFwk::ElementName element("", bundleName, abilityName, "entry");
+        service->HandleAgentHostConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
     }
 
     ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
@@ -1527,7 +1718,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_029, TestSize.Lev
 /**
  * @tc.name  : ConnectAgentExtensionAbility_030
  * @tc.number: ConnectAgentExtensionAbility_030
- * @tc.desc  : Test low-code shared host still enforces MAX_CONNECTIONS_PER_CALLER per caller
+ * @tc.desc  : Test low-code shared host allows MAX_AGENTS_PER_HOST_SESSION agents
  */
 HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_030, TestSize.Level1)
 {
@@ -1550,7 +1741,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_030, TestSize.Lev
     AppExecFwk::ElementName element("", "lowcode.bundle", "LowCodeExtAbility", "entry");
     service->HandleAgentHostConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
 
-    for (size_t i = 1; i < AgentManagerService::MAX_CONNECTIONS_PER_CALLER; i++) {
+    for (size_t i = 1; i < AgentManagerService::MAX_AGENTS_PER_HOST_SESSION; i++) {
         std::string index = std::to_string(i);
         std::string agentId = "agent" + index;
         AAFwk::Want want;
@@ -1560,9 +1751,9 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_030, TestSize.Lev
         EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection), ERR_OK);
     }
 
-    EXPECT_EQ(service->agentOwners_.size(), AgentManagerService::MAX_CONNECTIONS_PER_CALLER);
+    EXPECT_EQ(service->agentOwners_.size(), AgentManagerService::MAX_AGENTS_PER_HOST_SESSION);
     ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
-    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, AgentManagerService::MAX_CONNECTIONS_PER_CALLER);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
     EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
 
     AAFwk::Want overflowWant;
@@ -2338,7 +2529,7 @@ HWTEST_F(AgentManagerServiceTest, ValidateConnectAgentRequest_003, TestSize.Leve
 /**
 * @tc.name  : ValidateConnectAgentRequest_004
 * @tc.number: ValidateConnectAgentRequest_004
-* @tc.desc  : Test ValidateConnectAgentRequest rejects callers at the shared connection limit
+* @tc.desc  : Test ValidateConnectAgentRequest does not enforce the type-specific connection limit
 */
 HWTEST_F(AgentManagerServiceTest, ValidateConnectAgentRequest_004, TestSize.Level1)
 {
@@ -2348,8 +2539,10 @@ HWTEST_F(AgentManagerServiceTest, ValidateConnectAgentRequest_004, TestSize.Leve
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     int32_t outCallerUid = -1;
 
-    EXPECT_EQ(service->ValidateConnectAgentRequest(connection, outCallerUid),
-        AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED);
+    EXPECT_EQ(service->ValidateConnectAgentRequest(connection, outCallerUid), ERR_OK);
+    EXPECT_EQ(outCallerUid, callerUid);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_[callerUid], AgentManagerService::MAX_CONNECTIONS_PER_CALLER);
 }
 
 /**
@@ -2725,6 +2918,8 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_001, TestSize.Level1
     ASSERT_NE(plan.hostConnection, nullptr);
     ASSERT_EQ(service->agentHostSessions_.size(), 1);
     ASSERT_EQ(service->agentOwners_.size(), 1);
+    EXPECT_TRUE(service->agentHostSessions_.begin()->second->countTowardsCallerLimit);
+    EXPECT_EQ(service->agentHostSessions_.begin()->second->quotaCallerUid, callingUid);
     ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
     EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
 }
@@ -2934,6 +3129,40 @@ HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_003, TestSize.Level1
 }
 
 /**
+* @tc.name  : PrepareLowCodeConnectPlan_004
+* @tc.number: PrepareLowCodeConnectPlan_004
+* @tc.desc  : Test PrepareLowCodeConnectPlan allows same host reuse when caller quota is already full
+*/
+HWTEST_F(AgentManagerServiceTest, PrepareLowCodeConnectPlan_004, TestSize.Level1)
+{
+    auto service = AgentManagerService::GetInstance();
+    AgentConnectPlan plan;
+    int32_t callingUid = IPCSkeleton::GetCallingUid();
+    AgentHostKey hostKey;
+    hostKey.userId = callingUid / 200000;
+    hostKey.bundleName = "lowcode.bundle";
+    hostKey.moduleName = "entry";
+    hostKey.abilityName = "LowCodeExtAbility";
+    auto session = std::make_shared<AgentHostSession>();
+    session->key = hostKey;
+    session->hostUid = callingUid;
+    session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey);
+    session->quotaCallerUid = callingUid;
+    session->countTowardsCallerLimit = true;
+    service->agentHostSessions_[hostKey] = session;
+    service->callerConnectionCounts_[callingUid] = AgentManagerService::MAX_CONNECTIONS_PER_CALLER;
+    auto connection = sptr<MockAbilityConnection>::MakeSptr();
+
+    EXPECT_EQ(service->PrepareLowCodeConnectPlan(hostKey, callingUid, "agentA", connection, callingUid, plan),
+        ERR_OK);
+    EXPECT_FALSE(plan.needRealConnect);
+    ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
+    EXPECT_EQ(service->callerConnectionCounts_[callingUid], AgentManagerService::MAX_CONNECTIONS_PER_CALLER);
+    ASSERT_EQ(service->trackedConnections_.size(), 1);
+    EXPECT_FALSE(service->trackedConnections_.begin()->second.countTowardsCallerLimit);
+}
+
+/**
 * @tc.name  : NotifyExistingLowCodeConnection_001
 * @tc.number: NotifyExistingLowCodeConnection_001
 * @tc.desc  : Test NotifyExistingLowCodeConnection notifies the agent receiver and callback immediately
@@ -3101,14 +3330,19 @@ HWTEST_F(AgentManagerServiceTest, CompleteAgentHostConnect_001, TestSize.Level1)
     hostKey.abilityName = "LowCodeExtAbility";
     auto connection = sptr<MockAbilityConnection>::MakeSptr();
     auto callerRemote = connection->AsObject();
+    auto pendingConnection = sptr<MockAbilityConnection>::MakeSptr();
+    auto pendingRemote = pendingConnection->AsObject();
     auto session = std::make_shared<AgentHostSession>();
     session->key = hostKey;
     session->hostUid = callingUid;
     session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey);
     session->callerConnections[callerRemote] = connection;
+    session->callerConnections[pendingRemote] = pendingConnection;
     session->agents["agentA"] = LowCodeAgentRecord { callerRemote, true };
+    session->agents["agentB"] = LowCodeAgentRecord { pendingRemote, true };
     service->agentHostSessions_[hostKey] = session;
     service->agentOwners_[{callingUid, "agentA"}] = session;
+    service->agentOwners_[{callingUid, "agentB"}] = session;
     AgentManagerService::TrackedConnectionRecord record;
     record.callerUid = callingUid;
     record.callerRemote = callerRemote;
@@ -3116,6 +3350,9 @@ HWTEST_F(AgentManagerServiceTest, CompleteAgentHostConnect_001, TestSize.Level1)
     record.isLowCode = true;
     record.hostKey = hostKey;
     service->trackedConnections_[callerRemote] = record;
+    AgentManagerService::TrackedConnectionRecord pendingRecord = record;
+    pendingRecord.callerRemote = pendingRemote;
+    service->trackedConnections_[pendingRemote] = pendingRecord;
     service->callerConnectionCounts_[callingUid] = 1;
 
     AgentConnectPlan plan;
@@ -3128,11 +3365,14 @@ HWTEST_F(AgentManagerServiceTest, CompleteAgentHostConnect_001, TestSize.Level1)
 
     AAFwk::Want want;
     want.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
-    EXPECT_EQ(service->CompleteAgentHostConnect(want, "agentA", plan), ERR_INVALID_VALUE);
+    EXPECT_EQ(service->CompleteAgentHostConnect(want, plan), ERR_INVALID_VALUE);
     EXPECT_TRUE(service->agentHostSessions_.empty());
     EXPECT_TRUE(service->agentOwners_.empty());
     EXPECT_TRUE(service->callerConnectionCounts_.empty());
     EXPECT_TRUE(service->trackedConnections_.empty());
+    EXPECT_EQ(connection->connectDoneCount, 0);
+    EXPECT_EQ(pendingConnection->connectDoneCount, 1);
+    EXPECT_EQ(pendingConnection->lastConnectResultCode, ERR_INVALID_VALUE);
     MyFlag::retConnectAbilityWithExtensionType = ERR_OK;
 }
 
@@ -3156,7 +3396,7 @@ HWTEST_F(AgentManagerServiceTest, CompleteAgentHostConnect_002, TestSize.Level1)
     AAFwk::Want want;
     want.SetElementName("", "lowcode.bundle", "LowCodeExtAbility", "entry");
 
-    EXPECT_EQ(service->CompleteAgentHostConnect(want, "agentA", plan), ERR_OK);
+    EXPECT_EQ(service->CompleteAgentHostConnect(want, plan), ERR_OK);
     ASSERT_NE(MyFlag::lastConnectAbilityConnection, nullptr);
     EXPECT_EQ(MyFlag::lastConnectAbilityConnection->AsObject(), plan.hostConnection->AsObject());
 }
