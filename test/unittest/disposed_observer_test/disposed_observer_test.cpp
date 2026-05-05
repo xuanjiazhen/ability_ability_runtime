@@ -649,12 +649,10 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0600, Function | MediumTest | 
     AAFwk::Token::mockCreateModalResult = ERR_OK;
     AAFwk::Token::abilityRecord = abilityRecord;
 
-    // Create mock sessionInfo with persistentId
-    sptr<AAFwk::SessionInfo> sessionInfo = sptr<AAFwk::SessionInfo>(new (std::nothrow) AAFwk::SessionInfo());
-    EXPECT_NE(sessionInfo, nullptr);
-    sessionInfo->persistentId = 67890;
-    AAFwk::Token::mockSessionInfo = sessionInfo;
-    AAFwk::Token::mockMissionId = 0;
+    // Note: SessionInfo is from window_manager module, use nullptr here
+    // This tests the code path where sessionInfo is null and missionId is used instead
+    AAFwk::Token::mockSessionInfo = nullptr;
+    AAFwk::Token::mockMissionId = 67890;
 
     // Set token on observer
     AbilityStateData abilityStateData;

@@ -27,12 +27,8 @@ namespace OHOS {
 namespace AAFwk {
 class AbilityRecord;
 
-struct SessionInfo : public IRemoteObject::IObject {
-    int32_t persistentId = 0;
-
-    SessionInfo() = default;
-    ~SessionInfo() override = default;
-};
+// Forward declaration - SessionInfo is defined in window_manager module
+class SessionInfo;
 
 /**
  * @class Token
