@@ -266,14 +266,11 @@ private:
         const std::map<AgentConnectionInfo,
         std::vector<sptr<AbilityRuntime::AbilityConnectCallback>>>::value_type &connection);
     /**
-     * @brief Create a new connection to the agent extension.
-     *
-     * @param want The Want containing connection info.
-     * @param connectCallback The connection callback.
-     * @return Returns ERR_OK on success, error code otherwise.
+     * @brief Match only the target AgentExtensionAbility and agent extension proxy.
      */
-    ErrCode CreateConnection(const AAFwk::Want &want,
-        const sptr<AbilityRuntime::AbilityConnectCallback> &connectCallback);
+    bool MatchConnectionTarget(const AAFwk::Want &connectReceiver,
+        const std::map<AgentConnectionInfo,
+        std::vector<sptr<AbilityRuntime::AbilityConnectCallback>>>::value_type &connection);
     /**
      * @brief Check if a connection has timed out during connecting state.
      *
