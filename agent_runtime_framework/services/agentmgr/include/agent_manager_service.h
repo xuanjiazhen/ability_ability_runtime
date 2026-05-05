@@ -102,7 +102,7 @@ private:
     void Init();
     void RegisterBundleEventCallback();
     /**
-     * @brief Validates caller permission and reserves one slot from the per-caller connection quota.
+     * @brief Validates caller permission and foreground state before connect handling.
      */
     int32_t ValidateConnectAgentRequest(const sptr<AAFwk::IAbilityConnection> &connection, int32_t &callerUid);
     /**
@@ -146,6 +146,7 @@ private:
     std::map<sptr<IRemoteObject>, TrackedConnectionRecord>::iterator FindTrackedConnectionLocked(
         const sptr<AAFwk::IAbilityConnection> &connection, int32_t callerUid);
     void ReleaseCallerConnectionCountByUidLocked(int32_t callerUid);
+    void ReleaseAgentHostSessionQuotaLocked(const std::shared_ptr<AgentHostSession> &session);
     /**
      * @brief Forwards connect/disconnect completion from the service-side wrapper back to the original caller.
      */
