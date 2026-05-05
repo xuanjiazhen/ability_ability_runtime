@@ -1021,13 +1021,6 @@ HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0100, 
  * @tc.type: FUNC
  * @tc.require: I7XKZI
  */
-/**
- * @tc.number: DisposedObserver_ExecuteUIExtension_0200
- * @tc.name: ExecuteUIExtension in embeddable mode
- * @tc.desc: ExecuteUIExtension sets IS_EMBEDDABLE_SERVICE for embeddable mode
- * @tc.type: FUNC
- * @tc.require: I7XKZI
- */
 HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0200, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0200 start");
@@ -1059,25 +1052,6 @@ HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0200, 
     TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0200 end");
 }
 
-    MyFlag::abilityRecord_ = abilityRecord;
-    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_OK;
-
-    AppExecFwk::PageStateData pageStateData;
-    ErrCode result = observer->ExecuteUIExtension(pageStateData);
-
-    // Should route to embeddable path
-    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
-
-    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0200 end");
-}
-
-/**
- * @tc.number: DisposedObserver_ExecuteUIExtension_0300
- * @tc.name: ExecuteUIExtension for PAGE type
- * @tc.desc: ExecuteUIExtension routes to AbilityRecord CreateModalUIExtension for PAGE
- * @tc.type: FUNC
- * @tc.require: I7XKZI
- */
 /**
  * @tc.number: DisposedObserver_ExecuteUIExtension_0300
  * @tc.name: ExecuteUIExtension for PAGE type
@@ -1115,25 +1089,6 @@ HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0300, 
     TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0300 end");
 }
 
-    MyFlag::abilityRecord_ = abilityRecord;
-    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_OK;
-
-    AppExecFwk::PageStateData pageStateData;
-    ErrCode result = observer->ExecuteUIExtension(pageStateData);
-
-    // Should route to modal app path
-    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
-
-    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0300 end");
-}
-
-/**
- * @tc.number: DisposedObserver_ExecuteUIExtension_0400
- * @tc.name: ExecuteUIExtension for non-PAGE type
- * @tc.desc: ExecuteUIExtension routes to modal system path for non-PAGE type
- * @tc.type: FUNC
- * @tc.require: I7XKZI
- */
 /**
  * @tc.number: DisposedObserver_ExecuteUIExtension_0400
  * @tc.name: ExecuteUIExtension for non-PAGE type
@@ -1188,13 +1143,6 @@ HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0400, 
  * @tc.type: FUNC
  * @tc.require: I7XKZI
  */
-/**
- * @tc.number: DisposedObserver_ExecuteUIExtension_0500
- * @tc.name: ExecuteUIExtension CreateModalUIExtension failure
- * @tc.desc: ExecuteUIExtension returns error when CreateModalUIExtension fails
- * @tc.type: FUNC
- * @tc.require: I7XKZI
- */
 HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0500, TestSize.Level1)
 {
     TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0500 start");
@@ -1213,18 +1161,6 @@ HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0500, 
 
     sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
     observer->token_ = token;
-
-    AppExecFwk::PageStateData pageStateData;
-    ErrCode result = observer->ExecuteUIExtension(pageStateData);
-
-    // Should return error
-    EXPECT_EQ(result, ERR_INVALID_VALUE);
-
-    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0500 end");
-}
-
-    MyFlag::abilityRecord_ = abilityRecord;
-    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_INVALID_VALUE;
 
     AppExecFwk::PageStateData pageStateData;
     ErrCode result = observer->ExecuteUIExtension(pageStateData);
