@@ -985,5 +985,6 @@ HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_001 end");
 }
 #endif
+
 } // namespace AAFwk
 } // namespace OHOS

@@ -15,6 +15,12 @@
 
 #include <gtest/gtest.h>
 
+#define private public
+#define protected public
+#include "extension_base.h"
+#undef private
+#undef protected
+
 #include "ability_handler.h"
 #include "embedded_ui_extension.h"
 #include "mock_ability_token.h"
@@ -98,5 +104,6 @@ HWTEST_F(EmbeddedUIExtensionTest, EmbeddedUI_Extension_0300, Function | MediumTe
     EXPECT_TRUE(actionExtension != nullptr);
     GTEST_LOG_(INFO) << "EmbeddedUI_Extension_0300 end";
 }
+
 } // namespace AbilityRuntime
 } // namespace OHOS

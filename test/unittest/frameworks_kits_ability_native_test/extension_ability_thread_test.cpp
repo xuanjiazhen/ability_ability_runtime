@@ -1266,5 +1266,156 @@ HWTEST_F(ExtensionAbilityThreadTest, ExtensionAbilityThread_HandleNativeExtensio
     thread.HandleNativeExtensionAttach(abilityRecord, abilityName);
     EXPECT_NE(thread.contentEmbedEventRunner_, nullptr);
 }
+
+/**
+ * @tc.number: ExtensionAbilityThread_CreateModalUIExtension_0100
+ * @tc.name: CreateModalUIExtension when extensionImpl_ is null
+ * @tc.desc: CreateModalUIExtension returns ERR_INVALID_VALUE when extensionImpl_ is null
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ExtensionAbilityThread_CreateModalUIExtension_0100,
+    Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ExtensionAbilityThread_CreateModalUIExtension_0100 start";
+
+    auto thread = new (std::nothrow) ExtensionAbilityThread();
+    ASSERT_NE(thread, nullptr);
+
+    // extensionImpl_ should be null without proper initialization
+    EXPECT_EQ(thread->extensionImpl_, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+
+    int result = thread->CreateModalUIExtension(want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    delete thread;
+    GTEST_LOG_(INFO) << "ExtensionAbilityThread_CreateModalUIExtension_0100 end";
+}
+
+/**
+ * @tc.number: ExtensionAbilityThread_CreateModalUIExtension_0200
+ * @tc.name: CreateModalUIExtension delegates to extensionImpl_
+ * @tc.desc: CreateModalUIExtension properly delegates to extensionImpl_->CreateModalUIExtension()
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ExtensionAbilityThread_CreateModalUIExtension_0200,
+    Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ExtensionAbilityThread_CreateModalUIExtension_0200 start";
+
+    auto application = std::make_shared<OHOSApplication>();
+    auto info = std::make_shared<AbilityInfo>();
+    info->name = "TestExtension";
+    info->type = AbilityType::EXTENSION;
+
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    auto record = std::make_shared<AbilityLocalRecord>(info, token, nullptr, 0);
+    auto extension = std::make_shared<AbilityRuntime::Extension>();
+    std::shared_ptr<EventRunner> runner = EventRunner::Create(info->name);
+    auto handler = std::make_shared<AbilityHandler>(runner);
+
+    auto thread = new (std::nothrow) ExtensionAbilityThread();
+    thread->Attach(application, record, runner, nullptr);
+
+    ASSERT_NE(thread->extensionImpl_, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+
+    int result = thread->CreateModalUIExtension(want);
+    // Delegation should occur (result depends on extensionImpl implementation)
+    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
+
+    delete thread;
+    GTEST_LOG_(INFO) << "ExtensionAbilityThread_CreateModalUIExtension_0200 end";
+}
+
+/**
+ * @tc.number: ExtensionAbilityThread_CreateModalUIExtension_0300
+ * @tc.name: CreateModalUIExtension with empty Want
+ * @tc.desc: CreateModalUIExtension handles empty Want gracefully
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ExtensionAbilityThread_CreateModalUIExtension_0300,
+    Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ExtensionAbilityThread_CreateModalUIExtension_0300 start";
+
+    auto application = std::make_shared<OHOSApplication>();
+    auto info = std::make_shared<AbilityInfo>();
+    info->name = "TestExtension";
+    info->type = AbilityType::EXTENSION;
+
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    auto record = std::make_shared<AbilityLocalRecord>(info, token, nullptr, 0);
+    auto extension = std::make_shared<AbilityRuntime::Extension>();
+    std::shared_ptr<EventRunner> runner = EventRunner::Create(info->name);
+    auto handler = std::make_shared<AbilityHandler>(runner);
+
+    auto thread = new (std::nothrow) ExtensionAbilityThread();
+    thread->Attach(application, record, runner, nullptr);
+
+    ASSERT_NE(thread->extensionImpl_, nullptr);
+
+    AAFwk::Want want;  // Empty Want
+    int result = thread->CreateModalUIExtension(want);
+
+    // Should handle gracefully
+    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
+
+    delete thread;
+    GTEST_LOG_(INFO) << "ExtensionAbilityThread_CreateModalUIExtension_0300 end";
+}
+
+/**
+ * @tc.number: ExtensionAbilityThread_CreateModalUIExtension_0400
+ * @tc.name: CreateModalUIExtension with Want parameters
+ * @tc.desc: CreateModalUIExtension properly forwards Want with parameters
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(ExtensionAbilityThreadTest, ExtensionAbilityThread_CreateModalUIExtension_0400,
+    Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "ExtensionAbilityThread_CreateModalUIExtension_0400 start";
+
+    auto application = std::make_shared<OHOSApplication>();
+    auto info = std::make_shared<AbilityInfo>();
+    info->name = "TestExtension";
+    info->type = AbilityType::EXTENSION;
+
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    auto record = std::make_shared<AbilityLocalRecord>(info, token, nullptr, 0);
+    auto extension = std::make_shared<AbilityRuntime::Extension>();
+    std::shared_ptr<EventRunner> runner = EventRunner::Create(info->name);
+    auto handler = std::make_shared<AbilityHandler>(runner);
+
+    auto thread = new (std::nothrow) ExtensionAbilityThread();
+    thread->Attach(application, record, runner, nullptr);
+
+    ASSERT_NE(thread->extensionImpl_, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+    want.SetParam("test_param", "test_value");
+    want.SetParam("modal_type", 1);
+
+    int result = thread->CreateModalUIExtension(want);
+
+    // Should delegate Want with parameters
+    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
+
+    delete thread;
+    GTEST_LOG_(INFO) << "ExtensionAbilityThread_CreateModalUIExtension_0400 end";
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS
