@@ -16,30 +16,36 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 module_output_path = "ability_runtime/ability_runtime/ability_test"
 
-ohos_unittest("ui_extension_test") {
-  module_out_path = module_output_path
-
+config("ui_extension_test_config") {
+  visibility = [ ":*" ]
   include_dirs = [
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
     "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
+    "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_ability",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/app",
     "${ability_runtime_services_path}/abilitymgr/include/utils",
     "${ability_runtime_services_path}/abilitymgr/include",
     "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
+    "${ability_runtime_test_path}/mock/frameworks_kits_appkit_native_test/include",
   ]
-
-  sources = [ "ui_extension_test.cpp" ]
-
-  configs = [ "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test:aafwk_l2_test_config" ]
-
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   defines = [ "AMS_LOG_TAG = \"AbilityUnitTest\"" ]
+}
+
+ohos_unittest("ui_extension_test") {
+  module_out_path = module_output_path
+
+  sources = [ "ui_extension_test.cpp" ]
+
+  configs = [ ":ui_extension_test_config" ]
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
