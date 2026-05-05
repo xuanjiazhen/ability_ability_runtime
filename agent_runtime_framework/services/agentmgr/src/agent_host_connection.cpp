@@ -29,7 +29,7 @@ void AgentHostConnection::OnAbilityConnectDone(const AppExecFwk::ElementName &el
     if (service == nullptr) {
         return;
     }
-    service->HandleAgentHostConnectDone(key_, element, remoteObject, resultCode);
+    service->HandleAgentHostConnectDone(key_, this, element, remoteObject, resultCode);
 }
 
 void AgentHostConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName &element, int resultCode)
@@ -38,7 +38,7 @@ void AgentHostConnection::OnAbilityDisconnectDone(const AppExecFwk::ElementName 
     if (service == nullptr) {
         return;
     }
-    service->HandleAgentHostDisconnectDone(key_, element, resultCode);
+    service->HandleAgentHostDisconnectDone(key_, this, element, resultCode);
 }
 }  // namespace AgentRuntime
 }  // namespace OHOS

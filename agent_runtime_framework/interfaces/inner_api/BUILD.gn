@@ -71,9 +71,10 @@ ohos_shared_library("agent_connection_manager") {
   public_configs = []
 
   deps = [
-    ":agent_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_native_path}/ability:ability_context_native",
+    ":agent_fwk",
+    ":agent_manager",
   ]
 
   external_deps = [
