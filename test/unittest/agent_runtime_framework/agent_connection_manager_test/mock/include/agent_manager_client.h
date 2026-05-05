@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "ability_connect_callback_interface.h"
+#include "agent_card.h"
 #include "iremote_object.h"
 #include "want.h"
 
@@ -29,6 +30,8 @@ public:
     AgentManagerClient() = default;
     ~AgentManagerClient() = default;
     static AgentManagerClient &GetInstance();
+
+    int32_t GetCallerAgentCardByAgentId(const std::string &agentId, AgentCard &card);
 
     int32_t ConnectAgentExtensionAbility(const AAFwk::Want &want,
         const sptr<AAFwk::IAbilityConnection> &connection);

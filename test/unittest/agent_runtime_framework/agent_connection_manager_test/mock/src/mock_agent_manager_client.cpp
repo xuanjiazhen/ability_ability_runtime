@@ -23,6 +23,9 @@ int32_t MyFlag::retConnectAgentExtensionAbility = 0;
 int32_t MyFlag::retDisconnectAgentExtensionAbility = 0;
 int32_t MyFlag::retConnectServiceExtensionAbility = 0;
 int32_t MyFlag::retDisconnectServiceExtensionAbility = 0;
+int32_t MyFlag::retGetCallerAgentCardByAgentId = ERR_OK;
+int32_t MyFlag::connectAgentExtensionAbilityCallCount = 0;
+bool MyFlag::isLowCodeAgentCard = false;
 bool MyFlag::isOnAbilityConnectDoneCalled = false;
 bool MyFlag::isOnAbilityDisconnectDoneCalled = false;
 
@@ -32,9 +35,16 @@ AgentManagerClient &AgentManagerClient::GetInstance()
     return instance;
 }
 
+int32_t AgentManagerClient::GetCallerAgentCardByAgentId(const std::string &agentId, AgentCard &card)
+{
+    card.type = MyFlag::isLowCodeAgentCard ? AgentCardType::LOW_CODE : AgentCardType::APP;
+    return MyFlag::retGetCallerAgentCardByAgentId;
+}
+
 int32_t AgentManagerClient::ConnectAgentExtensionAbility(const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection)
 {
+    MyFlag::connectAgentExtensionAbilityCallCount++;
     return MyFlag::retConnectAgentExtensionAbility;
 }
 
