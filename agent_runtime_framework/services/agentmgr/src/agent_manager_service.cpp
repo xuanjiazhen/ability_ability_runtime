@@ -57,6 +57,19 @@ bool IsLowCodeTargetMatched(const AAFwk::Want &want, const AgentCard &card)
     }
     return true;
 }
+
+void CanonicalizeLowCodeConnectWant(AAFwk::Want &want, const AgentCard &card)
+{
+    const auto &element = want.GetElement();
+    want.SetElementName(element.GetDeviceID(), card.appInfo->bundleName,
+        card.appInfo->abilityName, card.appInfo->moduleName);
+}
+
+bool IsSameAgentHostKey(const AgentHostKey &left, const AgentHostKey &right)
+{
+    return left.userId == right.userId && left.bundleName == right.bundleName &&
+        left.moduleName == right.moduleName && left.abilityName == right.abilityName;
+}
 }
 
 std::mutex g_mutex;
@@ -306,7 +319,7 @@ int32_t AgentManagerService::DeleteAgentCard(const std::string &bundleName, cons
 int32_t AgentManagerService::ConnectAgentExtensionAbility(const AAFwk::Want &want,
     const sptr<AAFwk::IAbilityConnection> &connection)
 {
-    // Step 1: validate caller state and shared caller-side connection quota.
+    // Step 1: validate caller state before resolving type-specific connect behavior.
     int32_t callerUid = 0;
     auto ret = ValidateConnectAgentRequest(connection, callerUid);
     if (ret != ERR_OK) {
@@ -409,15 +422,7 @@ int32_t AgentManagerService::ValidateConnectAgentRequest(const sptr<AAFwk::IAbil
         return ERR_INVALID_VALUE;
     }
 
-    // Reserve only against the caller-level shared connection budget.
     callerUid = IPCSkeleton::GetCallingUid();
-    {
-        std::lock_guard<std::mutex> lock(connectionLock_);
-        if (HasReachedCallerConnectionLimitLocked(callerUid)) {
-            TAG_LOGE(AAFwkTag::SER_ROUTER, "Maximum agent connections reached for callerUid: %{public}d", callerUid);
-            return AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED;
-        }
-    }
 
     // Only foreground apps are allowed to initiate agent connects.
     auto callerPid = IPCSkeleton::GetCallingPid();
@@ -436,7 +441,7 @@ int32_t AgentManagerService::ValidateConnectAgentRequest(const sptr<AAFwk::IAbil
 }
 
 int32_t AgentManagerService::ResolveConnectAgentTarget(const AAFwk::Want &want, AAFwk::Want &connectWant,
-    std::string &agentId, AgentCard &card, int32_t &callingUid) const
+    std::string &agentId, AgentCard &card, int32_t &callingUid)
 {
     // Copy the incoming Want so later steps can enrich it safely.
     connectWant = want;
@@ -446,7 +451,12 @@ int32_t AgentManagerService::ResolveConnectAgentTarget(const AAFwk::Want &want, 
         return AAFwk::INVALID_PARAMETERS_ERR;
     }
 
-    int32_t cardRet = AgentCardMgr::GetInstance().GetAgentCardByAgentId(connectWant.GetBundle(), agentId, card);
+    // Prefer the caller-owned card. Low-code connects point the Want at the AgentExt host, so resolving
+    // only by connectWant.GetBundle() can let a target-bundle APP card shadow the caller's LOW_CODE card.
+    int32_t cardRet = GetCallerAgentCardByAgentId(agentId, card);
+    if (cardRet != ERR_OK && !connectWant.GetBundle().empty()) {
+        cardRet = AgentCardMgr::GetInstance().GetAgentCardByAgentId(connectWant.GetBundle(), agentId, card);
+    }
     if (cardRet != ERR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "no such card");
         return AAFwk::ERR_INVALID_AGENT_CARD_ID;
@@ -459,6 +469,9 @@ int32_t AgentManagerService::ResolveConnectAgentTarget(const AAFwk::Want &want, 
     if (card.type == AgentCardType::LOW_CODE && !IsLowCodeTargetMatched(connectWant, card)) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "low-code target mismatch");
         return AAFwk::INVALID_PARAMETERS_ERR;
+    }
+    if (card.type == AgentCardType::LOW_CODE) {
+        CanonicalizeLowCodeConnectWant(connectWant, card);
     }
 
     // Capture the caller UID once the target metadata is known-good.
@@ -646,7 +659,9 @@ int32_t AgentManagerService::DisconnectAgentExtensionAbility(const sptr<AAFwk::I
         }
         if (it != trackedConnections_.end() && it->second.isDisconnecting) {
             it->second.isDisconnecting = false;
-            callerConnectionCounts_[it->second.callerUid]++;
+            if (it->second.countTowardsCallerLimit) {
+                callerConnectionCounts_[it->second.callerUid]++;
+            }
         }
         return ret;
     }
@@ -791,6 +806,10 @@ int32_t AgentManagerService::TryRegisterConnectionLocked(const sptr<AAFwk::IAbil
     }
     auto existing = trackedConnections_.find(callerRemote);
     if (existing != trackedConnections_.end()) {
+        if (hostKey != nullptr && existing->second.isLowCode && IsSameAgentHostKey(existing->second.hostKey,
+            *hostKey)) {
+            return ERR_OK;
+        }
         TAG_LOGE(AAFwkTag::SER_ROUTER, "Connection already tracked");
         return ERR_INVALID_VALUE;
     }
@@ -859,6 +878,15 @@ void AgentManagerService::ReleaseCallerConnectionCountByUidLocked(int32_t caller
     countIt->second--;
 }
 
+void AgentManagerService::ReleaseAgentHostSessionQuotaLocked(const std::shared_ptr<AgentHostSession> &session)
+{
+    if (session == nullptr || !session->countTowardsCallerLimit) {
+        return;
+    }
+    ReleaseCallerConnectionCountByUidLocked(session->quotaCallerUid);
+    session->countTowardsCallerLimit = false;
+}
+
 bool AgentManagerService::ReleaseCallerConnectionCountLocked(const sptr<IRemoteObject> &callerRemote)
 {
     auto it = trackedConnections_.find(callerRemote);
@@ -922,6 +950,7 @@ void AgentManagerService::ReleaseTrackedConnectionByRemoteLocked(const sptr<IRem
     }
 
     auto callerUid = it->second.callerUid;
+    auto countTowardsCallerLimit = it->second.countTowardsCallerLimit;
     if (it->second.callerRemote != nullptr && it->second.deathRecipient != nullptr) {
         it->second.callerRemote->RemoveDeathRecipient(it->second.deathRecipient);
     }
@@ -929,6 +958,9 @@ void AgentManagerService::ReleaseTrackedConnectionByRemoteLocked(const sptr<IRem
     trackedConnections_.erase(it);
 
     if (isDisconnecting) {
+        return;
+    }
+    if (!countTowardsCallerLimit) {
         return;
     }
 
@@ -1099,25 +1131,51 @@ int32_t AgentManagerService::ConnectLowCodeAgentExtensionAbility(const AAFwk::Wa
     const std::string &agentId, const sptr<AAFwk::IAbilityConnection> &connection, int32_t callingUid,
     int32_t hostUid)
 {
-    // Step 1: create or reuse the shared low-code host session bookkeeping.
+    size_t requestId = 0;
+    {
+        std::unique_lock<std::mutex> lock(lowCodeConnectMutex_);
+        // All low-code connect requests share this singleton-wide FIFO gate, even when they arrive
+        // from different IPC threads. Only the request at currentLowCodeConnectRequestId_ may mutate
+        // low-code host-session state.
+        requestId = nextLowCodeConnectRequestId_++;
+        lowCodeConnectCv_.wait(lock, [requestId]() {
+            auto service = AgentManagerService::GetInstance();
+            if (service == nullptr) {
+                return false;
+            }
+            return requestId == service->currentLowCodeConnectRequestId_ && !service->isLowCodeConnectProcessing_;
+        });
+        isLowCodeConnectProcessing_ = true;
+    }
+
+    // Step 1: create or reuse the shared host-session bookkeeping while this request owns the queue.
     AgentConnectPlan plan;
     auto ret = PrepareLowCodeConnectPlan(BuildAgentHostKey(want, callingUid), hostUid, agentId, connection,
         callingUid, plan);
     if (ret != ERR_OK) {
+        FinishLowCodeConnectProcessing();
         return ret;
     }
 
-    // Step 2: if the host is already connected, notify the caller immediately.
-    if (plan.notifyExistingConnection) {
-        NotifyExistingLowCodeConnection(plan, agentId, connection);
-        return ERR_OK;
+    // Step 2: for a new host session, AMS completes asynchronously through AgentHostConnection.
+    // Keep this caller blocked until the matching host callback delivers the real result.
+    if (plan.needRealConnect) {
+        TrackLowCodeConnectProcessingHost(plan.hostKey, plan.hostConnection);
+        ret = CompleteAgentHostConnect(want, plan);
+        if (ret != ERR_OK) {
+            FinishLowCodeConnectProcessing();
+            return ret;
+        }
+        return WaitLowCodeConnectProcessingDone(requestId);
     }
 
-    // Step 3: otherwise connect the shared host session once through AMS.
-    if (!plan.needRealConnect) {
-        return ERR_OK;
+    // Step 3: for an already-connected host, deliver the cached connection before allowing the next
+    // queued request to observe or modify this shared low-code session.
+    if (plan.notifyExistingConnection) {
+        NotifyExistingLowCodeConnection(plan, agentId, connection);
     }
-    return CompleteAgentHostConnect(want, agentId, plan);
+    FinishLowCodeConnectProcessing();
+    return plan.notifyExistingConnection ? plan.cachedResultCode : ERR_OK;
 }
 
 int32_t AgentManagerService::PrepareLowCodeConnectPlan(const AgentHostKey &hostKey, int32_t hostUid,
@@ -1149,17 +1207,32 @@ int32_t AgentManagerService::PrepareLowCodeConnectPlan(const AgentHostKey &hostK
         }
     }
     if (session == nullptr) {
+        // First agent for this host creates the one real host connection and consumes one caller quota slot.
+        if (HasReachedCallerConnectionLimitLocked(callingUid)) {
+            TAG_LOGE(AAFwkTag::SER_ROUTER, "Maximum agent connections reached for callerUid: %{public}d", callingUid);
+            return AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED;
+        }
+        size_t currentCount = 0;
+        auto countIt = callerConnectionCounts_.find(callingUid);
+        if (countIt != callerConnectionCounts_.end()) {
+            currentCount = countIt->second;
+        }
         session = std::make_shared<AgentHostSession>();
         session->key = hostKey;
         session->hostUid = hostUid;
+        session->quotaCallerUid = callingUid;
+        session->countTowardsCallerLimit = true;
         session->hostConnection = sptr<AgentHostConnection>::MakeSptr(hostKey);
         if (session->hostConnection == nullptr) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "Create host connection failed");
             return ERR_INVALID_VALUE;
         }
         agentHostSessions_[hostKey] = session;
+        callerConnectionCounts_[callingUid] = currentCount + 1;
         plan.needRealConnect = true;
     } else {
+        // Later agents reuse the connected or in-flight host session; the outer FIFO queue keeps the
+        // caller-visible connect flow one-at-a-time.
         if (session->isDisconnecting) {
             TAG_LOGW(AAFwkTag::SER_ROUTER, "low-code host session is disconnecting");
             return ERR_INVALID_VALUE;
@@ -1170,9 +1243,10 @@ int32_t AgentManagerService::PrepareLowCodeConnectPlan(const AgentHostKey &hostK
         }
     }
 
-    auto ret = TryRegisterConnectionLocked(connection, callingUid, session->hostConnection, &hostKey);
+    auto ret = TryRegisterConnectionLocked(connection, callingUid, session->hostConnection, &hostKey, false);
     if (ret != ERR_OK) {
         if (plan.needRealConnect) {
+            ReleaseAgentHostSessionQuotaLocked(session);
             agentHostSessions_.erase(hostKey);
         }
         return ret;
@@ -1213,6 +1287,7 @@ void AgentManagerService::CleanupLowCodeConnectPlan(const AgentConnectPlan &plan
             session->callerConnections.erase(plan.callerRemote);
         }
         if (session->callerConnections.empty() && session->agents.empty()) {
+            ReleaseAgentHostSessionQuotaLocked(session);
             agentHostSessions_.erase(sessionIter);
         }
     }
@@ -1221,13 +1296,39 @@ void AgentManagerService::CleanupLowCodeConnectPlan(const AgentConnectPlan &plan
     }
 }
 
-int32_t AgentManagerService::CompleteAgentHostConnect(const AAFwk::Want &want, const std::string &agentId,
-    AgentConnectPlan &plan)
+void AgentManagerService::FailPendingLowCodeHostConnect(const AgentConnectPlan &plan,
+    const AppExecFwk::ElementName &element, int32_t resultCode)
+{
+    std::vector<sptr<AAFwk::IAbilityConnection>> callbacks;
+    std::vector<sptr<IRemoteObject>> callerRemotes;
+    {
+        std::scoped_lock lock(connectionLock_, agentHostMutex_);
+        auto sessionIter = agentHostSessions_.find(plan.hostKey);
+        if (sessionIter == agentHostSessions_.end() || sessionIter->second == nullptr) {
+            return;
+        }
+        for (const auto &callbackEntry : sessionIter->second->callerConnections) {
+            callbacks.emplace_back(callbackEntry.second);
+            callerRemotes.emplace_back(callbackEntry.first);
+        }
+        ClearAgentHostSessionLocked(plan.hostKey);
+        for (const auto &callerRemote : callerRemotes) {
+            ReleaseTrackedConnectionByRemoteLocked(callerRemote);
+        }
+    }
+    for (const auto &callback : callbacks) {
+        if (callback != nullptr && callback->AsObject() != plan.callerRemote) {
+            callback->OnAbilityConnectDone(element, nullptr, resultCode);
+        }
+    }
+}
+
+int32_t AgentManagerService::CompleteAgentHostConnect(const AAFwk::Want &want, AgentConnectPlan &plan)
 {
     auto ret = AAFwk::AbilityManagerClient::GetInstance()->ConnectAbilityWithExtensionType(
         want, plan.hostConnection, nullptr, AAFwk::DEFAULT_INVAL_VALUE, AppExecFwk::ExtensionAbilityType::AGENT);
     if (ret != ERR_OK) {
-        CleanupLowCodeConnectPlan(plan, agentId);
+        FailPendingLowCodeHostConnect(plan, want.GetElement(), ret);
         TAG_LOGE(AAFwkTag::SER_ROUTER, "ConnectAbilityWithExtensionType failed: %{public}d", ret);
         return ret;
     }
@@ -1265,57 +1366,69 @@ void AgentManagerService::EraseAgentOwnersLocked(const AgentHostSession &session
     }
 }
 
-void AgentManagerService::HandleAgentHostConnectDone(const AgentHostKey &key, const AppExecFwk::ElementName &element,
+void AgentManagerService::HandleAgentHostConnectDone(const AgentHostKey &key,
+    const AgentHostConnection *hostConnection, const AppExecFwk::ElementName &element,
     const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     std::vector<sptr<AAFwk::IAbilityConnection>> callbacks;
     std::vector<std::string> pendingAgentIds;
+    bool hasSession = false;
     {
         std::scoped_lock lock(connectionLock_, agentHostMutex_);
         auto sessionIter = agentHostSessions_.find(key);
-        if (sessionIter == agentHostSessions_.end()) {
-            return;
-        }
-        auto session = sessionIter->second;
-        if (session == nullptr) {
-            agentHostSessions_.erase(sessionIter);
-            return;
-        }
-        session->element = element;
-        session->remoteObject = remoteObject;
-        session->resultCode = resultCode;
-        session->isConnected = (resultCode == ERR_OK && remoteObject != nullptr);
-        for (const auto &callbackEntry : session->callerConnections) {
-            callbacks.emplace_back(callbackEntry.second);
-        }
-        for (auto &[pendingAgentId, agentRecord] : session->agents) {
-            if (!agentRecord.isPending) {
-                continue;
+        if (sessionIter != agentHostSessions_.end()) {
+            if (sessionIter->second == nullptr) {
+                agentHostSessions_.erase(sessionIter);
+            } else if (sessionIter->second->hostConnection.GetRefPtr() == hostConnection) {
+                // Only the AgentHostConnection instance created for this session may consume the callback.
+                // A stale callback with the same host key must not complete a newer queued request.
+                hasSession = true;
+                auto session = sessionIter->second;
+                session->element = element;
+                session->remoteObject = remoteObject;
+                session->resultCode = resultCode;
+                session->isConnected = (resultCode == ERR_OK && remoteObject != nullptr);
+                for (const auto &callbackEntry : session->callerConnections) {
+                    callbacks.emplace_back(callbackEntry.second);
+                }
+                for (auto &[pendingAgentId, agentRecord] : session->agents) {
+                    if (!agentRecord.isPending) {
+                        continue;
+                    }
+                    pendingAgentIds.emplace_back(pendingAgentId);
+                    agentRecord.isPending = false;
+                }
+                if (!session->isConnected) {
+                    ClearAgentHostSessionLocked(key);
+                }
+            } else {
+                TAG_LOGW(AAFwkTag::SER_ROUTER, "Ignore stale low-code host connect callback");
             }
-            pendingAgentIds.emplace_back(pendingAgentId);
-            agentRecord.isPending = false;
-        }
-        if (!session->isConnected) {
-            ClearAgentHostSessionLocked(key);
         }
     }
-    AgentHostSession callbackSession;
-    callbackSession.remoteObject = remoteObject;
-    if (resultCode == ERR_OK && remoteObject != nullptr) {
-        for (const auto &agentId : pendingAgentIds) {
-            NotifyAgentInvokedLocked(callbackSession, agentId);
+
+    if (hasSession) {
+        // Callers are notified outside the state locks. The low-code queue is released only after these
+        // notifications finish, so the next request cannot run ahead of the current callback delivery.
+        AgentHostSession callbackSession;
+        callbackSession.remoteObject = remoteObject;
+        if (resultCode == ERR_OK && remoteObject != nullptr) {
+            for (const auto &agentId : pendingAgentIds) {
+                NotifyAgentInvokedLocked(callbackSession, agentId);
+            }
+        }
+        for (const auto &callback : callbacks) {
+            if (callback != nullptr) {
+                callback->OnAbilityConnectDone(element, remoteObject, resultCode);
+                HandleConnectionDone(callback, resultCode, false);
+            }
         }
     }
-    for (const auto &callback : callbacks) {
-        if (callback != nullptr) {
-            callback->OnAbilityConnectDone(element, remoteObject, resultCode);
-            HandleConnectionDone(callback, resultCode, false);
-        }
-    }
+    FinishLowCodeConnectProcessingIfMatched(key, hostConnection, hasSession ? resultCode : ERR_INVALID_VALUE);
 }
 
 void AgentManagerService::HandleAgentHostDisconnectDone(const AgentHostKey &key,
-    const AppExecFwk::ElementName &element, int resultCode)
+    const AgentHostConnection *hostConnection, const AppExecFwk::ElementName &element, int resultCode)
 {
     std::vector<sptr<AAFwk::IAbilityConnection>> callbacks;
     {
@@ -1326,6 +1439,10 @@ void AgentManagerService::HandleAgentHostDisconnectDone(const AgentHostKey &key,
         }
         if (sessionIter->second == nullptr) {
             agentHostSessions_.erase(sessionIter);
+            return;
+        }
+        if (sessionIter->second->hostConnection.GetRefPtr() != hostConnection) {
+            TAG_LOGW(AAFwkTag::SER_ROUTER, "Ignore stale low-code host disconnect callback");
             return;
         }
         for (const auto &callbackEntry : sessionIter->second->callerConnections) {
@@ -1348,9 +1465,79 @@ void AgentManagerService::ClearAgentHostSessionLocked(const AgentHostKey &key)
         return;
     }
     if (sessionIter->second != nullptr) {
+        ReleaseAgentHostSessionQuotaLocked(sessionIter->second);
         EraseAgentOwnersLocked(*sessionIter->second);
     }
     agentHostSessions_.erase(sessionIter);
 }
+
+void AgentManagerService::FinishLowCodeConnectProcessing()
+{
+    {
+        std::lock_guard<std::mutex> lock(lowCodeConnectMutex_);
+        if (!isLowCodeConnectProcessing_) {
+            return;
+        }
+        // Used by synchronous error/reuse paths where there is no pending AMS host callback to wait for.
+        hasLowCodeConnectProcessingHostKey_ = false;
+        lowCodeConnectProcessingHostConnection_ = nullptr;
+        isLowCodeConnectProcessing_ = false;
+        currentLowCodeConnectRequestId_++;
+    }
+    lowCodeConnectCv_.notify_all();
+}
+
+void AgentManagerService::TrackLowCodeConnectProcessingHost(
+    const AgentHostKey &key, const sptr<AgentHostConnection> &hostConnection)
+{
+    std::lock_guard<std::mutex> lock(lowCodeConnectMutex_);
+    // Hold the active host callback token so callback completion is tied to this exact AMS connection.
+    hasLowCodeConnectProcessingHostKey_ = true;
+    lowCodeConnectProcessingHostKey_ = key;
+    lowCodeConnectProcessingHostConnection_ = hostConnection;
+}
+
+bool AgentManagerService::FinishLowCodeConnectProcessingIfMatched(
+    const AgentHostKey &key, const AgentHostConnection *hostConnection, int32_t resultCode)
+{
+    {
+        std::lock_guard<std::mutex> lock(lowCodeConnectMutex_);
+        // Stale or unrelated host callbacks must not release this singleton's global low-code queue.
+        if (!isLowCodeConnectProcessing_ || !hasLowCodeConnectProcessingHostKey_ ||
+            lowCodeConnectProcessingHostConnection_ == nullptr ||
+            lowCodeConnectProcessingHostConnection_.GetRefPtr() != hostConnection ||
+            !IsSameAgentHostKey(lowCodeConnectProcessingHostKey_, key)) {
+            return false;
+        }
+        lowCodeConnectResults_[currentLowCodeConnectRequestId_] = resultCode;
+        hasLowCodeConnectProcessingHostKey_ = false;
+        lowCodeConnectProcessingHostConnection_ = nullptr;
+        isLowCodeConnectProcessing_ = false;
+        currentLowCodeConnectRequestId_++;
+    }
+    lowCodeConnectCv_.notify_all();
+    return true;
+}
+
+int32_t AgentManagerService::WaitLowCodeConnectProcessingDone(size_t requestId)
+{
+    std::unique_lock<std::mutex> lock(lowCodeConnectMutex_);
+    // The matching host callback records the result and advances currentLowCodeConnectRequestId_.
+    lowCodeConnectCv_.wait(lock, [requestId]() {
+        auto service = AgentManagerService::GetInstance();
+        if (service == nullptr) {
+            return false;
+        }
+        return service->currentLowCodeConnectRequestId_ > requestId;
+    });
+    auto resultIter = lowCodeConnectResults_.find(requestId);
+    if (resultIter == lowCodeConnectResults_.end()) {
+        return ERR_OK;
+    }
+    auto resultCode = resultIter->second;
+    lowCodeConnectResults_.erase(resultIter);
+    return resultCode;
+}
+
 }  // namespace AgentRuntime
 }  // namespace OHOS

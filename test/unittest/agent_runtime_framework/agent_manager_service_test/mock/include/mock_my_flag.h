@@ -51,6 +51,7 @@ public:
     static int32_t retGetAllAgentCards;
     static int32_t retGetAgentCardsByBundleName;
     static int32_t retGetAgentCardByAgentId;
+    static std::string lastGetAgentCardBundleName;
     static std::string agentCardAgentId;
     static std::string agentCardBundleName;
     static std::string agentCardModuleName;
