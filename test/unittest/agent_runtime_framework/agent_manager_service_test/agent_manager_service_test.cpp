@@ -1527,7 +1527,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_029, TestSize.Lev
 /**
  * @tc.name  : ConnectAgentExtensionAbility_030
  * @tc.number: ConnectAgentExtensionAbility_030
- * @tc.desc  : Test low-code shared host still enforces MAX_CONNECTIONS_PER_CALLER per caller
+ * @tc.desc  : Test low-code shared host allows MAX_AGENTS_PER_HOST_SESSION agents
  */
 HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_030, TestSize.Level1)
 {
@@ -1550,7 +1550,7 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_030, TestSize.Lev
     AppExecFwk::ElementName element("", "lowcode.bundle", "LowCodeExtAbility", "entry");
     service->HandleAgentHostConnectDone(hostKey, element, receiver->AsObject(), ERR_OK);
 
-    for (size_t i = 1; i < AgentManagerService::MAX_CONNECTIONS_PER_CALLER; i++) {
+    for (size_t i = 1; i < AgentManagerService::MAX_AGENTS_PER_HOST_SESSION; i++) {
         std::string index = std::to_string(i);
         std::string agentId = "agent" + index;
         AAFwk::Want want;
@@ -1560,9 +1560,9 @@ HWTEST_F(AgentManagerServiceTest, ConnectAgentExtensionAbility_030, TestSize.Lev
         EXPECT_EQ(service->ConnectAgentExtensionAbility(want, connection), ERR_OK);
     }
 
-    EXPECT_EQ(service->agentOwners_.size(), AgentManagerService::MAX_CONNECTIONS_PER_CALLER);
+    EXPECT_EQ(service->agentOwners_.size(), AgentManagerService::MAX_AGENTS_PER_HOST_SESSION);
     ASSERT_EQ(service->callerConnectionCounts_.size(), 1);
-    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, AgentManagerService::MAX_CONNECTIONS_PER_CALLER);
+    EXPECT_EQ(service->callerConnectionCounts_.begin()->second, 1);
     EXPECT_EQ(MyFlag::connectAbilityWithExtensionTypeCallCount, 1);
 
     AAFwk::Want overflowWant;
