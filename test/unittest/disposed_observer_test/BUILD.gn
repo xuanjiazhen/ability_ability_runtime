@@ -18,13 +18,6 @@ module_output_path = "ability_runtime/ability_runtime/abilitymgr"
 
 ohos_unittest("disposed_observer_test") {
   module_out_path = module_output_path
-  sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-    blocklist = "../../../cfi_blocklist.txt"
-  }
-  branch_protector_ret = "pac_ret"
 
   include_dirs = [
     "./mock",
@@ -55,6 +48,7 @@ ohos_unittest("disposed_observer_test") {
     "ability_base:want",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "ffrt:libffrt",
     "googletest:gmock_main",
     "googletest:gtest_main",
     "hilog:libhilog",
