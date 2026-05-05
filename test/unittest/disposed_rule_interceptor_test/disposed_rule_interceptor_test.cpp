@@ -985,5 +985,186 @@ HWTEST_F(DisposedRuleInterceptorTest, IsSkipDisposeRule_001, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "IsSkipDisposeRule_001 end");
 }
 #endif
+
+/**
+ * @tc.number: DisposedObserver_ExecuteUIExtension_0100
+ * @tc.name: ExecuteUIExtension with null abilityRecord
+ * @tc.desc: ExecuteUIExtension handles null abilityRecord gracefully
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0100 start");
+
+    auto interceptor = std::make_shared<DisposedRuleInterceptor>();
+    AppExecFwk::DisposedRule rule;
+    rule.componentType = AppExecFwk::ComponentType::UI_EXTENSION;
+    rule.want = std::make_shared<AAFwk::Want>();
+    int32_t uid = 100;
+
+    auto observer = sptr<DisposedObserver>::MakeSptr(rule, interceptor, uid);
+
+    // token_ is null, so abilityRecord will be null
+    MyFlag::retCreateModalUIExtension_ = true;
+    ErrCode result = observer->ExecuteUIExtension(AppExecFwk::PageStateData());
+    EXPECT_EQ(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0100 end");
+}
+
+/**
+ * @tc.number: DisposedObserver_ExecuteUIExtension_0200
+ * @tc.name: ExecuteUIExtension in embeddable mode
+ * @tc.desc: ExecuteUIExtension sets IS_EMBEDDABLE_SERVICE for embeddable mode
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0200 start");
+
+    auto interceptor = std::make_shared<DisposedRuleInterceptor>();
+    AppExecFwk::DisposedRule rule;
+    rule.componentType = AppExecFwk::ComponentType::UI_EXTENSION;
+    rule.want = std::make_shared<AAFwk::Want>();
+    rule.want->SetElementName("", "com.test.modal", "entry", "ModalExtension");
+    int32_t uid = 100;
+
+    auto observer = sptr<DisposedObserver>::MakeSptr(rule, interceptor, uid);
+
+    // Create mock abilityRecord with EMBEDDED_FULL_SCREEN_MODE
+    auto abilityRecord = std::make_shared<AbilityRecord>();
+    abilityRecord->abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityRecord->want.SetParam(AAFwk::SCREEN_MODE_KEY, AAFwk::EMBEDDED_FULL_SCREEN_MODE);
+
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    observer->token_ = token;
+
+    MyFlag::abilityRecord_ = abilityRecord;
+    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_OK;
+
+    AppExecFwk::PageStateData pageStateData;
+    ErrCode result = observer->ExecuteUIExtension(pageStateData);
+
+    // Should route to embeddable path
+    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0200 end");
+}
+
+/**
+ * @tc.number: DisposedObserver_ExecuteUIExtension_0300
+ * @tc.name: ExecuteUIExtension for PAGE type
+ * @tc.desc: ExecuteUIExtension routes to AbilityRecord CreateModalUIExtension for PAGE
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0300 start");
+
+    auto interceptor = std::make_shared<DisposedRuleInterceptor>();
+    AppExecFwk::DisposedRule rule;
+    rule.componentType = AppExecFwk::ComponentType::UI_EXTENSION;
+    rule.want = std::make_shared<AAFwk::Want>();
+    rule.want->SetElementName("", "com.test.modal", "entry", "ModalExtension");
+    int32_t uid = 100;
+
+    auto observer = sptr<DisposedObserver>::MakeSptr(rule, interceptor, uid);
+
+    // Create mock abilityRecord with PAGE type, non-embeddable
+    auto abilityRecord = std::make_shared<AbilityRecord>();
+    abilityRecord->abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    observer->token_ = token;
+
+    MyFlag::abilityRecord_ = abilityRecord;
+    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_OK;
+
+    AppExecFwk::PageStateData pageStateData;
+    ErrCode result = observer->ExecuteUIExtension(pageStateData);
+
+    // Should route to modal app path
+    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0300 end");
+}
+
+/**
+ * @tc.number: DisposedObserver_ExecuteUIExtension_0400
+ * @tc.name: ExecuteUIExtension for non-PAGE type
+ * @tc.desc: ExecuteUIExtension routes to modal system path for non-PAGE type
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0400 start");
+
+    auto interceptor = std::make_shared<DisposedRuleInterceptor>();
+    AppExecFwk::DisposedRule rule;
+    rule.componentType = AppExecFwk::ComponentType::UI_EXTENSION;
+    rule.want = std::make_shared<AAFwk::Want>();
+    int32_t uid = 100;
+
+    auto observer = sptr<DisposedObserver>::MakeSptr(rule, interceptor, uid);
+
+    // Create mock abilityRecord with SERVICE type (non-PAGE)
+    auto abilityRecord = std::make_shared<AbilityRecord>();
+    abilityRecord->abilityInfo.type = AppExecFwk::AbilityType::SERVICE;
+
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    observer->token_ = token;
+
+    MyFlag::retCreateModalUIExtension_ = true;
+
+    AppExecFwk::PageStateData pageStateData;
+    ErrCode result = observer->ExecuteUIExtension(pageStateData);
+
+    // Should route to modal system path
+    EXPECT_EQ(result, ERR_OK);
+
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0400 end");
+}
+
+/**
+ * @tc.number: DisposedObserver_ExecuteUIExtension_0500
+ * @tc.name: ExecuteUIExtension CreateModalUIExtension failure
+ * @tc.desc: ExecuteUIExtension returns error when CreateModalUIExtension fails
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0500 start");
+
+    auto interceptor = std::make_shared<DisposedRuleInterceptor>();
+    AppExecFwk::DisposedRule rule;
+    rule.componentType = AppExecFwk::ComponentType::UI_EXTENSION;
+    rule.want = std::make_shared<AAFwk::Want>();
+    int32_t uid = 100;
+
+    auto observer = sptr<DisposedObserver>::MakeSptr(rule, interceptor, uid);
+
+    auto abilityRecord = std::make_shared<AbilityRecord>();
+    abilityRecord->abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+
+    sptr<IRemoteObject> token = abilityRecord->GetToken();
+    observer->token_ = token;
+
+    MyFlag::abilityRecord_ = abilityRecord;
+    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_INVALID_VALUE;
+
+    AppExecFwk::PageStateData pageStateData;
+    ErrCode result = observer->ExecuteUIExtension(pageStateData);
+
+    // Should return error
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0500 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS

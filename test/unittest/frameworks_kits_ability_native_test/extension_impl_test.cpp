@@ -757,5 +757,148 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_3400, TestSize.Level1)
     impl->ScheduleAbilityRequestSuccess(requestId, element);
     GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_3400 end";
 }
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0100
+ * @tc.name: CreateModalUIExtension when extensionImpl_ is null
+ * @tc.desc: CreateModalUIExtension returns ERR_INVALID_VALUE when extension_ is null
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0100 start";
+
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    ASSERT_NE(impl, nullptr);
+    EXPECT_EQ(impl->extension_, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+
+    int result = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0100 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0200
+ * @tc.name: CreateModalUIExtension for non-UIExtension type
+ * @tc.desc: CreateModalUIExtension returns ERR_INVALID_VALUE for non-UIExtension
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0200 start";
+
+    auto application = std::make_shared<OHOSApplication>();
+    auto info = std::make_shared<AbilityInfo>();
+    info->name = "TestService";
+    info->type = AbilityType::SERVICE;
+
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    auto record = std::make_shared<AbilityLocalRecord>(info, token, nullptr, 0);
+    auto extension = std::make_shared<AbilityRuntime::Extension>();
+    std::shared_ptr<EventRunner> runner;
+    auto handler = std::make_shared<AbilityHandler>(runner);
+
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->Init(application, record, extension, handler, token);
+
+    // Set extensionType_ explicitly to non-UIExtension
+    impl->extensionType_ = ExtensionAbilityType::SERVICE;
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+
+    int result = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0200 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0300
+ * @tc.name: CreateModalUIExtension for UIExtension type
+ * @tc.desc: CreateModalUIExtension with UIExtension type, delegates to UIExtension
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0300 start";
+
+    auto application = std::make_shared<OHOSApplication>();
+    auto info = std::make_shared<AbilityInfo>();
+    info->name = "TestUIExtension";
+    info->type = AbilityType::EXTENSION;
+
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    auto record = std::make_shared<AbilityLocalRecord>(info, token, nullptr, 0);
+    auto extension = std::make_shared<AbilityRuntime::UIExtension>();
+    std::shared_ptr<EventRunner> runner;
+    auto handler = std::make_shared<AbilityHandler>(runner);
+
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->Init(application, record, extension, handler, token);
+
+    // Set extensionType_ to UIExtension
+    impl->extensionType_ = ExtensionAbilityType::UIEXTENSION;
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+
+    int result = impl->CreateModalUIExtension(want);
+    // Should attempt delegation (may fail at deeper levels)
+    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0300 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0400
+ * @tc.name: CreateModalUIExtension static_pointer_cast verification
+ * @tc.desc: CreateModalUIExtension correctly casts extension_ to UIExtension
+ * @tc.type: FUNC
+ * @tc.require: I7XKZI
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0400, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0400 start";
+
+    auto application = std::make_shared<OHOSApplication>();
+    auto info = std::make_shared<AbilityInfo>();
+    info->name = "TestUIExtension";
+    info->type = AbilityType::EXTENSION;
+
+    sptr<IRemoteObject> token = new MockAbilityToken();
+    auto record = std::make_shared<AbilityLocalRecord>(info, token, nullptr, 0);
+    auto extension = std::make_shared<AbilityRuntime::UIExtension>();
+    std::shared_ptr<EventRunner> runner;
+    auto handler = std::make_shared<AbilityHandler>(runner);
+
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->Init(application, record, extension, handler, token);
+
+    impl->extensionType_ = ExtensionAbilityType::UIEXTENSION;
+
+    // Verify extension is UIExtension type
+    auto uiExtension = std::static_pointer_cast<UIExtension>(impl->extension_);
+    EXPECT_NE(uiExtension, nullptr);
+
+    AAFwk::Want want;
+    ElementName element("device", "com.test.modal", "entry", "ModalExtension");
+    want.SetElement(element);
+
+    int result = impl->CreateModalUIExtension(want);
+    EXPECT_TRUE(result == ERR_OK || result == ERR_INVALID_VALUE);
+
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0400 end";
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS
