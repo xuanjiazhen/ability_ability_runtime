@@ -62,9 +62,12 @@ struct AgentHostSession {
     std::map<std::string, LowCodeAgentRecord> agents;
     AppExecFwk::ElementName element;
     sptr<IRemoteObject> remoteObject;
+    int32_t quotaCallerUid = 0;
     int32_t resultCode = ERR_OK;
     bool isConnected = false;
+    bool isConnecting = false;
     bool isDisconnecting = false;
+    bool countTowardsCallerLimit = false;
 };
 
 /**
