@@ -1125,17 +1125,6 @@ HWTEST_F(DisposedRuleInterceptorTest, DisposedObserver_ExecuteUIExtension_0400, 
     TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0400 end");
 }
 
-    MyFlag::retCreateModalUIExtension_ = true;
-
-    AppExecFwk::PageStateData pageStateData;
-    ErrCode result = observer->ExecuteUIExtension(pageStateData);
-
-    // Should route to modal system path
-    EXPECT_EQ(result, ERR_OK);
-
-    TAG_LOGI(AAFwkTag::TEST, "DisposedObserver_ExecuteUIExtension_0400 end");
-}
-
 /**
  * @tc.number: DisposedObserver_ExecuteUIExtension_0500
  * @tc.name: ExecuteUIExtension CreateModalUIExtension failure
