@@ -26,6 +26,8 @@ struct ApplicationInfo {
     std::string appDistributionType;
     uint32_t accessTokenId = 0;
     int32_t uid = 0;
+    int32_t appIndex = 0;
+    std::string process;
 };
 enum ExtensionAbilityType {
     UNSPECIFIED = 0,
@@ -37,6 +39,8 @@ struct AbilityInfo {
     ExtensionAbilityType extensionAbilityType = UNSPECIFIED;
     bool visible = false;
     std::string bundleName;
+    std::string name;
+    std::string extensionTypeName;
 };
 } // namespace AppExecFwk
 

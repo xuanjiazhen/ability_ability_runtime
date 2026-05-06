@@ -334,14 +334,14 @@ pid_t BaseExtensionRecord::GetClientPid() const
     return clientPid_;
 }
 
-void BaseExtensionRecord::SetModularObjectRequestId(const std::string &requestId)
+void BaseExtensionRecord::SetRequestId(const std::string &requestId)
 {
-    modularObjectRequestId_ = requestId;
+    requestId_ = requestId;
 }
 
-std::string BaseExtensionRecord::GetModularObjectRequestId() const
+std::string BaseExtensionRecord::GetRequestId() const
 {
-    return modularObjectRequestId_;
+    return requestId_;
 }
 
 void BaseExtensionRecord::PostUIExtensionAbilityTimeoutTask(uint32_t messageId)

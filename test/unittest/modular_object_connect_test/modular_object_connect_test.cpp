@@ -26,13 +26,12 @@
 #include "mock_sa_call.h"
 #include "mock_task_handler_wrap.h"
 #include "modular_object_extension_info.h"
+#include "modular_object_utils.h"
 
 using namespace testing::ext;
 using namespace OHOS::AppExecFwk;
 
 // Declare mock control functions (defined in mock_modular_object_manager.cpp)
-extern void SetMockModularObjectConfigs(const std::vector<OHOS::AAFwk::ModularObjectExtensionInfo> &configs);
-extern void SetMockModularObjectConfigError();
 extern void ClearMockModularObjectConfig();
 
 namespace OHOS {
@@ -260,7 +259,7 @@ HWTEST_F(ModularObjectConnectTest, RequestId_Reconstruction_001, TestSize.Level1
     std::string fullKey = baseUri + "_" + requestId;
 
     // Simulate: disconnect reconstructs from record member
-    // GetURI() returns baseUri, GetModularObjectRequestId() returns requestId
+    // GetURI() returns baseUri, GetRequestId() returns requestId
     std::string reconstructedUri = baseUri;
     std::string reconstructedRequestId = requestId;
     std::string reconstructedKey = reconstructedUri + "_" + reconstructedRequestId;
@@ -285,7 +284,7 @@ HWTEST_F(ModularObjectConnectTest, RequestId_Reconstruction_002, TestSize.Level1
 
 /**
  * @tc.name: RequestId_SetGet_001
- * @tc.desc: Test SetModularObjectRequestId and GetModularObjectRequestId
+ * @tc.desc: Test SetRequestId and GetRequestId
  * @tc.type: FUNC
  */
 HWTEST_F(ModularObjectConnectTest, RequestId_SetGet_001, TestSize.Level1)
@@ -295,11 +294,11 @@ HWTEST_F(ModularObjectConnectTest, RequestId_SetGet_001, TestSize.Level1)
     ASSERT_NE(service, nullptr);
 
     // Default is empty
-    EXPECT_EQ(service->GetModularObjectRequestId(), "");
+    EXPECT_EQ(service->GetRequestId(), "");
 
     // Set and get
-    service->SetModularObjectRequestId("99999");
-    EXPECT_EQ(service->GetModularObjectRequestId(), "99999");
+    service->SetRequestId("99999");
+    EXPECT_EQ(service->GetRequestId(), "99999");
 }
 
 
@@ -529,571 +528,7 @@ HWTEST_F(ModularObjectConnectTest, AtomicInstanceId_001, TestSize.Level1)
     EXPECT_EQ(id3, 2u);
 }
 
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldReturnEarlyWhenNotModularObject
- * @tc.desc: Test early return when extensionAbilityType is not MODULAR_OBJECT
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldReturnEarlyWhenNotModularObject, TestSize.Level1)
-{
-    // Create a request with non-MODULAR_OBJECT type
-    AbilityRequest request;
-    ElementName element(TEST_DEVICE, TEST_BUNDLE, TEST_MODULE, TEST_ABILITY);
-    request.want.SetElement(element);
-    request.abilityInfo.name = TEST_ABILITY;
-    request.abilityInfo.bundleName = TEST_BUNDLE;
-    request.abilityInfo.type = AbilityType::EXTENSION;
-    request.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
-    request.abilityInfo.deviceId = TEST_DEVICE;
-
-    // Create a service record
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    std::string emptyProcessBefore = service->GetAbilityInfo().process;
-
-    // Call HandleModularObjectNewRecord - should return early without modifying processName
-    std::string serviceKey = "device#com.test.modular#TestModularObjectExt#entry_12345";
-    connectManager_->HandleModularObjectNewRecord(request, service, serviceKey);
-
-    // Verify processName was NOT modified
-    EXPECT_EQ(service->GetAbilityInfo().process, emptyProcessBefore);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldReturnEarlyWhenConfigIsNull
- * @tc.desc: Test early return when QueryModularObjectConfig returns nullptr (no DB config)
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldReturnEarlyWhenConfigIsNull, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    std::string emptyProcessBefore = service->GetAbilityInfo().process;
-
-    // Call HandleModularObjectNewRecord - config query returns nullptr, should early return
-    std::string serviceKey = "device#com.test.modular#TestModularObjectExt#entry_12345";
-    connectManager_->HandleModularObjectNewRecord(request, service, serviceKey);
-
-    // Verify processName was NOT modified (early return due to null config)
-    EXPECT_EQ(service->GetAbilityInfo().process, emptyProcessBefore);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldNotCrashWhenServiceIsNull
- * @tc.desc: Test behavior with nullptr targetService (should not crash)
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldNotCrashWhenServiceIsNull, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    std::shared_ptr<BaseExtensionRecord> nullService = nullptr;
-    std::string serviceKey = "device#com.test.modular#TestModularObjectExt#entry_12345";
-
-    // Early return on null config happens before any service access - should not crash
-    EXPECT_NO_FATAL_FAILURE(
-        connectManager_->HandleModularObjectNewRecord(request, nullService, serviceKey));
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldNotCrashWhenServiceKeyIsEmpty
- * @tc.desc: Test with empty serviceKey (no underscore, connectId not written)
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldNotCrashWhenServiceKeyIsEmpty, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-
-    // Empty serviceKey - no underscore found, no crash
-    std::string emptyKey;
-    EXPECT_NO_FATAL_FAILURE(
-        connectManager_->HandleModularObjectNewRecord(request, service, emptyKey));
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldNotCrashWhenNoUnderscoreInKey
- * @tc.desc: Test with serviceKey that has no underscore (rfind returns npos)
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldNotCrashWhenNoUnderscoreInKey, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-
-    // serviceKey without underscore
-    std::string noUnderscoreKey = "deviceNoUnderscoreKey";
-    EXPECT_NO_FATAL_FAILURE(
-        connectManager_->HandleModularObjectNewRecord(request, service, noUnderscoreKey));
-}
-
-// Tests the call path: GetOrCreateServiceRecord → HandleModularObjectNewRecord
-
-/**
- * @tc.name: GetOrCreateServiceRecord_ShouldCreateServiceWhenNonModularObject
- * @tc.desc: Test GetOrCreateServiceRecord with non-MODULAR_OBJECT doesn't call MO handler
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest,
-    GetOrCreateServiceRecord_ShouldCreateServiceWhenNonModularObject, TestSize.Level1)
-{
-    AbilityRequest request;
-    ElementName element(TEST_DEVICE, TEST_BUNDLE, TEST_MODULE, "TestServiceExt");
-    request.want.SetElement(element);
-    request.abilityInfo.name = "TestServiceExt";
-    request.abilityInfo.bundleName = TEST_BUNDLE;
-    request.abilityInfo.moduleName = TEST_MODULE;
-    request.abilityInfo.type = AbilityType::EXTENSION;
-    request.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
-
-    std::shared_ptr<BaseExtensionRecord> service = nullptr;
-    bool isLoaded = false;
-    connectManager_->GetOrCreateServiceRecord(request, true, service, isLoaded);
-    ASSERT_NE(service, nullptr);
-    // SERVICE type should work without MO-specific processing
-}
-
-/**
- * @tc.name: GetOrCreateServiceRecord_ShouldCreateRecordWhenModularObject
- * @tc.desc: Test GetOrCreateServiceRecord with MODULAR_OBJECT creates record
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest,
-    GetOrCreateServiceRecord_ShouldCreateRecordWhenModularObject, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    std::shared_ptr<BaseExtensionRecord> service = nullptr;
-    bool isLoaded = false;
-    connectManager_->GetOrCreateServiceRecord(request, true, service, isLoaded);
-    ASSERT_NE(service, nullptr);
-    // Without DB config, processName is not set by MO handler
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldNotModifyNonModularObjectTypes
- * @tc.desc: Test early return for various non-MODULAR_OBJECT extension types
- * @tc.type: FUNC
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldNotModifyNonModularObjectTypes, TestSize.Level1)
-{
-    auto testType = [&](AppExecFwk::ExtensionAbilityType type) {
-        AbilityRequest request;
-        request.abilityInfo.extensionAbilityType = type;
-        request.abilityInfo.bundleName = TEST_BUNDLE;
-        request.abilityInfo.name = TEST_ABILITY;
-        auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-        if (service == nullptr) {
-            return;  // Some types may not create records
-        }
-        std::string processBefore = service->GetAbilityInfo().process;
-        connectManager_->HandleModularObjectNewRecord(request, service, "key_123");
-        // Non-MODULAR_OBJECT types should not modify processName
-        EXPECT_EQ(service->GetAbilityInfo().process, processBefore);
-    };
-
-    testType(AppExecFwk::ExtensionAbilityType::SERVICE);
-    testType(AppExecFwk::ExtensionAbilityType::DATASHARE);
-    testType(AppExecFwk::ExtensionAbilityType::FILESHARE);
-}
-
-// Helper: create a ModularObjectExtensionInfo with given fields
-static ModularObjectExtensionInfo MakeConfig(MoeLaunchMode launchMode = MoeLaunchMode::IN_PROCESS,
-    MoeProcessMode processMode = MoeProcessMode::BUNDLE,
-    bool isDisabled = false)
-{
-    ModularObjectExtensionInfo info;
-    info.bundleName = TEST_BUNDLE;
-    info.moduleName = TEST_MODULE;
-    info.abilityName = TEST_ABILITY;
-    info.launchMode = launchMode;
-    info.processMode = processMode;
-    info.isDisabled = isDisabled;
-    return info;
-}
-
-// Full branch coverage for processName and requestId logic
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldFallbackToBundleNameWhenInProcessNoCallerInfo
- * @tc.desc: IN_PROCESS + caller processInfo empty + empty appInfo.process → fallback to bundleName
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldFallbackToBundleNameWhenInProcessNoCallerInfo,
-    TestSize.Level1)
-{
-    // Mock GetRunningProcessInfoByPid returns empty processName_,
-    // and appInfo.process is also empty → falls through to bundleName
-    auto config = MakeConfig(MoeLaunchMode::IN_PROCESS);
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    request.appInfo.process = "";
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
-    EXPECT_EQ(service->GetProcessName(), TEST_BUNDLE);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldFallbackToAppProcessWhenInProcessNoCallerInfo
- * @tc.desc: IN_PROCESS + caller processInfo empty + non-empty appInfo.process → fallback to appInfo.process
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldFallbackToAppProcessWhenInProcessNoCallerInfo,
-    TestSize.Level1)
-{
-    // Mock GetRunningProcessInfoByPid returns empty processName_,
-    // falls through to appInfo.process check
-    auto config = MakeConfig(MoeLaunchMode::IN_PROCESS);
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    request.appInfo.process = "com.test.custom_process";
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
-    EXPECT_EQ(service->GetProcessName(), "com.test.custom_process");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldUseBundleNameWhenCrossProcessBundleMode
- * @tc.desc: CROSS_PROCESS + BUNDLE processMode → processName = bundleName:extensionTypeName
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldUseBundleNameWhenCrossProcessBundleMode,
-    TestSize.Level1)
-{
-    auto config = MakeConfig(MoeLaunchMode::CROSS_PROCESS, MoeProcessMode::BUNDLE);
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    request.abilityInfo.extensionTypeName = "modularObject";
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
-    EXPECT_EQ(service->GetProcessName(), TEST_BUNDLE + ":modularObject");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldUseBundleColonAbilityWhenCrossProcessTypeMode
- * @tc.desc: CROSS_PROCESS + TYPE processMode → processName = bundleName:abilityName
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldUseBundleColonAbilityWhenCrossProcessTypeMode,
-    TestSize.Level1)
-{
-    auto config = MakeConfig(MoeLaunchMode::CROSS_PROCESS, MoeProcessMode::TYPE);
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
-    EXPECT_EQ(service->GetProcessName(), TEST_BUNDLE + ":" + TEST_ABILITY);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldUseFullKeyWhenCrossProcessInstanceMode
- * @tc.desc: CROSS_PROCESS + INSTANCE processMode → processName = bundleName:abilityName:recordId
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldUseFullKeyWhenCrossProcessInstanceMode,
-    TestSize.Level1)
-{
-    auto config = MakeConfig(MoeLaunchMode::CROSS_PROCESS, MoeProcessMode::INSTANCE);
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    int32_t recordId = service->GetRecordId();
-    connectManager_->HandleModularObjectNewRecord(request, service, "key_999");
-    std::string expected = TEST_BUNDLE + ":" + TEST_ABILITY + ":" + std::to_string(recordId);
-    EXPECT_EQ(service->GetProcessName(), expected);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldExtractRequestIdWhenUnderscoreExists
- * @tc.desc: serviceKey with underscore → requestId extracted and saved
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldExtractRequestIdWhenUnderscoreExists,
-    TestSize.Level1)
-{
-    auto config = MakeConfig();
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    std::string serviceKey = "device#bundle#ability#entry_42";
-    connectManager_->HandleModularObjectNewRecord(request, service, serviceKey);
-    EXPECT_EQ(service->GetModularObjectRequestId(), "42");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldNotSetRequestIdWhenNoUnderscore
- * @tc.desc: serviceKey without underscore → requestId not set
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldNotSetRequestIdWhenNoUnderscore,
-    TestSize.Level1)
-{
-    auto config = MakeConfig();
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    std::string serviceKey = "noUnderscoreKey";
-    connectManager_->HandleModularObjectNewRecord(request, service, serviceKey);
-    EXPECT_EQ(service->GetModularObjectRequestId(), "");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldNotSetRequestIdWhenServiceKeyIsEmptyWithConfig
- * @tc.desc: empty serviceKey with config → no crash, requestId not set
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldNotSetRequestIdWhenServiceKeyIsEmptyWithConfig,
-    TestSize.Level1)
-{
-    auto config = MakeConfig();
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    std::string serviceKey;
-    EXPECT_NO_FATAL_FAILURE(
-        connectManager_->HandleModularObjectNewRecord(request, service, serviceKey));
-    EXPECT_EQ(service->GetModularObjectRequestId(), "");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldSetEmptyRequestIdWhenTrailingUnderscore
- * @tc.desc: serviceKey ending with underscore → requestId is empty string
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldSetEmptyRequestIdWhenTrailingUnderscore,
-    TestSize.Level1)
-{
-    auto config = MakeConfig();
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    connectManager_->HandleModularObjectNewRecord(request, service, "key_");
-    EXPECT_EQ(service->GetModularObjectRequestId(), "");
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldNotSetProcessNameWhenDefaultProcessMode
- * @tc.desc: CROSS_PROCESS with invalid processMode (default) → process empty, not set
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldNotSetProcessNameWhenDefaultProcessMode,
-    TestSize.Level1)
-{
-    auto config = MakeConfig(MoeLaunchMode::CROSS_PROCESS, static_cast<MoeProcessMode>(99));
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    std::string processBefore = service->GetProcessName();
-    connectManager_->HandleModularObjectNewRecord(request, service, "key_123");
-    // Default case: process stays empty → SetProcessName not called
-    EXPECT_EQ(service->GetProcessName(), processBefore);
-}
-
-/**
- * @tc.name: HandleModularObjectNewRecord_ShouldNotCrashWhenServiceIsNullWithConfig
- * @tc.desc: nullptr service with valid config → early return, no crash
- */
-HWTEST_F(ModularObjectConnectTest,
-    HandleModularObjectNewRecord_ShouldNotCrashWhenServiceIsNullWithConfig,
-    TestSize.Level1)
-{
-    auto config = MakeConfig();
-    SetMockModularObjectConfigs({config});
-    auto request = MakeModularObjectRequest();
-    std::shared_ptr<BaseExtensionRecord> nullService = nullptr;
-    EXPECT_NO_FATAL_FAILURE(
-        connectManager_->HandleModularObjectNewRecord(request, nullService, "key_1"));
-}
-
-
-/**
- * @tc.name: CheckModularObjectInstanceLimit_ShouldReturnOkWhenBelowLimit
- * @tc.desc: Instance count < 20 returns ERR_OK
- */
-HWTEST_F(ModularObjectConnectTest,
-    CheckModularObjectInstanceLimit_ShouldReturnOkWhenBelowLimit, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
-    // Add 19 instances (below limit of 20)
-    for (int i = 0; i < 19; i++) {
-        auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-        ASSERT_NE(service, nullptr);
-        connectManager_->CallAddToServiceMap(baseKey + "_" + std::to_string(i), service);
-    }
-    auto ret = connectManager_->CheckModularObjectInstanceLimit(baseKey);
-    EXPECT_EQ(ret, ERR_OK);
-}
-
-/**
- * @tc.name: CheckModularObjectInstanceLimit_ShouldReturnErrorWhenAtLimit
- * @tc.desc: Instance count = 20 returns ERR_MOE_INSTANCE_LIMIT
- */
-HWTEST_F(ModularObjectConnectTest,
-    CheckModularObjectInstanceLimit_ShouldReturnErrorWhenAtLimit, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
-    // Add 20 instances (at limit)
-    for (int i = 0; i < 20; i++) {
-        auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-        ASSERT_NE(service, nullptr);
-        connectManager_->CallAddToServiceMap(baseKey + "_" + std::to_string(i), service);
-    }
-    auto ret = connectManager_->CheckModularObjectInstanceLimit(baseKey);
-    EXPECT_EQ(ret, ERR_MOE_INSTANCE_LIMIT);
-}
-
-/**
- * @tc.name: CheckModularObjectInstanceLimit_ShouldNotCountOtherAbilities
- * @tc.desc: Only counts entries matching the base key prefix
- */
-HWTEST_F(ModularObjectConnectTest,
-    CheckModularObjectInstanceLimit_ShouldNotCountOtherAbilities, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
-    // Add 20 instances of a DIFFERENT ability
-    std::string otherKey = TEST_DEVICE + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/OtherAbility";
-    for (int i = 0; i < 20; i++) {
-        auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-        ASSERT_NE(service, nullptr);
-        connectManager_->CallAddToServiceMap(otherKey + "_" + std::to_string(i), service);
-    }
-    // Check the original ability — should be OK (0 instances)
-    auto ret = connectManager_->CheckModularObjectInstanceLimit(baseKey);
-    EXPECT_EQ(ret, ERR_OK);
-}
-
-
-/**
- * @tc.name: CheckModularObjectConnectionLimit_ShouldReturnOkWhenBelowLimit
- * @tc.desc: Connection count per callerPid < 5 returns ERR_OK
- */
-HWTEST_F(ModularObjectConnectTest,
-    CheckModularObjectConnectionLimit_ShouldReturnOkWhenBelowLimit, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
-    // Create one service record with 4 connections from pid 100
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    for (int i = 0; i < 4; i++) {
-        auto connRecord = ConnectionRecord::CreateConnectionRecord(
-            nullptr, service, nullptr, connectManager_);
-        ASSERT_NE(connRecord, nullptr);
-        auto callerInfo = std::make_shared<IndirectCallerInfo>();
-        callerInfo->callerPid = 100;
-        connRecord->AttachCallerInfo(callerInfo);
-        service->AddConnectRecordToList(connRecord);
-    }
-    connectManager_->CallAddToServiceMap(baseKey + "_req1", service);
-    // Below limit of 5
-    auto ret = connectManager_->CheckModularObjectConnectionLimit(baseKey, 100);
-    EXPECT_EQ(ret, ERR_OK);
-}
-
-/**
- * @tc.name: CheckModularObjectConnectionLimit_ShouldReturnErrorWhenAtLimit
- * @tc.desc: Connection count per callerPid = 5 returns ERR_MOE_CONNECTION_LIMIT
- */
-HWTEST_F(ModularObjectConnectTest,
-    CheckModularObjectConnectionLimit_ShouldReturnErrorWhenAtLimit, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
-    // Create service records with total 5 connections from pid 100
-    for (int i = 0; i < 5; i++) {
-        auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-        ASSERT_NE(service, nullptr);
-        auto connRecord = ConnectionRecord::CreateConnectionRecord(
-            nullptr, service, nullptr, connectManager_);
-        ASSERT_NE(connRecord, nullptr);
-        auto callerInfo = std::make_shared<IndirectCallerInfo>();
-        callerInfo->callerPid = 100;
-        connRecord->AttachCallerInfo(callerInfo);
-        service->AddConnectRecordToList(connRecord);
-        connectManager_->CallAddToServiceMap(baseKey + "_" + std::to_string(i), service);
-    }
-    // At limit of 5
-    auto ret = connectManager_->CheckModularObjectConnectionLimit(baseKey, 100);
-    EXPECT_EQ(ret, ERR_MOE_CONNECTION_LIMIT);
-}
-
-/**
- * @tc.name: CheckModularObjectConnectionLimit_ShouldCountAcrossInstances
- * @tc.desc: Connections across multiple service records for same MoeAbility are counted together
- */
-HWTEST_F(ModularObjectConnectTest,
-    CheckModularObjectConnectionLimit_ShouldCountAcrossInstances, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
-    // 3 connections on record 1, 2 on record 2 = total 5 → at limit
-    for (int batch = 0; batch < 2; batch++) {
-        auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-        ASSERT_NE(service, nullptr);
-        int count = (batch == 0) ? 3 : 2;
-        for (int i = 0; i < count; i++) {
-            auto connRecord = ConnectionRecord::CreateConnectionRecord(
-                nullptr, service, nullptr, connectManager_);
-            ASSERT_NE(connRecord, nullptr);
-            auto callerInfo = std::make_shared<IndirectCallerInfo>();
-            callerInfo->callerPid = 100;
-            connRecord->AttachCallerInfo(callerInfo);
-            service->AddConnectRecordToList(connRecord);
-        }
-        connectManager_->CallAddToServiceMap(
-            baseKey + "_batch" + std::to_string(batch), service);
-    }
-    auto ret = connectManager_->CheckModularObjectConnectionLimit(baseKey, 100);
-    EXPECT_EQ(ret, ERR_MOE_CONNECTION_LIMIT);
-}
-
-/**
- * @tc.name: CheckModularObjectConnectionLimit_ShouldNotCountOtherPid
- * @tc.desc: Connections from different callerPid are counted independently
- */
-HWTEST_F(ModularObjectConnectTest,
-    CheckModularObjectConnectionLimit_ShouldNotCountOtherPid, TestSize.Level1)
-{
-    auto request = MakeModularObjectRequest();
-    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
-    // 5 connections from pid 200
-    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
-    ASSERT_NE(service, nullptr);
-    for (int i = 0; i < 5; i++) {
-        auto connRecord = ConnectionRecord::CreateConnectionRecord(
-            nullptr, service, nullptr, connectManager_);
-        ASSERT_NE(connRecord, nullptr);
-        auto callerInfo = std::make_shared<IndirectCallerInfo>();
-        callerInfo->callerPid = 200;
-        connRecord->AttachCallerInfo(callerInfo);
-        service->AddConnectRecordToList(connRecord);
-    }
-    connectManager_->CallAddToServiceMap(baseKey + "_req1", service);
-    // pid 100 has 0 connections → should be OK
-    auto ret = connectManager_->CheckModularObjectConnectionLimit(baseKey, 100);
-    EXPECT_EQ(ret, ERR_OK);
-}
-
+// Tests the call path: GetOrCreateServiceRecord → SetupNewRecord
 
 /**
  * @tc.name: CheckModularObjectLimits_ShouldReturnOkWhenNotModularObject
@@ -1140,14 +575,15 @@ HWTEST_F(ModularObjectConnectTest,
 
 /**
  * @tc.name: CheckModularObjectLimits_ShouldReturnErrorWhenConnectionLimitReached
- * @tc.desc: Connection limit hit returns ERR_MOE_CONNECTION_LIMIT
+ * @tc.desc: Connection limit hit returns ERR_MOE_CONNECTION_LIMIT via single-snapshot path
  */
 HWTEST_F(ModularObjectConnectTest,
     CheckModularObjectLimits_ShouldReturnErrorWhenConnectionLimitReached, TestSize.Level1)
 {
     auto request = MakeModularObjectRequest();
     std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
-    // Manually verify: create records with connections, then check via direct limit calls
+    int32_t callingPid = static_cast<int32_t>(getpid());
+    // 5 connections from callingPid across 5 service records → connection limit
     for (int i = 0; i < 5; i++) {
         auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
         ASSERT_NE(service, nullptr);
@@ -1155,17 +591,46 @@ HWTEST_F(ModularObjectConnectTest,
             nullptr, service, nullptr, connectManager_);
         ASSERT_NE(connRecord, nullptr);
         auto callerInfo = std::make_shared<IndirectCallerInfo>();
-        callerInfo->callerPid = 42;
+        callerInfo->callerPid = callingPid;
         connRecord->AttachCallerInfo(callerInfo);
         service->AddConnectRecordToList(connRecord);
         connectManager_->CallAddToServiceMap(baseKey + "_" + std::to_string(i), service);
     }
-    // Verify connection limit is hit for pid 42
-    auto ret = connectManager_->CheckModularObjectConnectionLimit(baseKey, 42);
+    auto ret = connectManager_->CheckModularObjectLimits(request);
     EXPECT_EQ(ret, ERR_MOE_CONNECTION_LIMIT);
-    // Verify instance limit is still OK (5 < 20)
-    ret = connectManager_->CheckModularObjectInstanceLimit(baseKey);
-    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: CheckModularObjectLimits_ShouldReturnConnectionErrorViaSnapshot
+ * @tc.desc: CheckModularObjectLimits detects connection limit via single-snapshot path
+ */
+HWTEST_F(ModularObjectConnectTest,
+    CheckModularObjectLimits_ShouldReturnConnectionErrorViaSnapshot, TestSize.Level1)
+{
+    auto request = MakeModularObjectRequest();
+    std::string baseKey = std::string(TEST_DEVICE) + "/" + TEST_BUNDLE + "/" + TEST_MODULE + "/" + TEST_ABILITY;
+    // Use getpid() to match IPCSkeleton::GetCallingPid() in test environment
+    int32_t callingPid = static_cast<int32_t>(getpid());
+    // 5 connections from callingPid across 2 service records → connection limit
+    for (int batch = 0; batch < 2; batch++) {
+        auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+        ASSERT_NE(service, nullptr);
+        int count = (batch == 0) ? 3 : 2;
+        for (int i = 0; i < count; i++) {
+            auto connRecord = ConnectionRecord::CreateConnectionRecord(
+                nullptr, service, nullptr, connectManager_);
+            ASSERT_NE(connRecord, nullptr);
+            auto callerInfo = std::make_shared<IndirectCallerInfo>();
+            callerInfo->callerPid = callingPid;
+            connRecord->AttachCallerInfo(callerInfo);
+            service->AddConnectRecordToList(connRecord);
+        }
+        connectManager_->CallAddToServiceMap(
+            baseKey + "_snap" + std::to_string(batch), service);
+    }
+    // CheckModularObjectLimits uses single-snapshot, should detect connection limit
+    auto ret = connectManager_->CheckModularObjectLimits(request);
+    EXPECT_EQ(ret, ERR_MOE_CONNECTION_LIMIT);
 }
 } // AAFwk
 } // OHOS

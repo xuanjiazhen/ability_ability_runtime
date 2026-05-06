@@ -37,6 +37,7 @@
 #include "int_wrapper.h"
 #include "multi_instance_utils.h"
 #include "modular_object_manager.h"
+#include "modular_object_utils.h"
 #include "param.h"
 #include "request_id_util.h"
 #include "res_sched_util.h"
@@ -61,8 +62,6 @@ const std::string DEBUG_APP = "debugApp";
 const std::string FRS_APP_INDEX = "ohos.extra.param.key.frs_index";
 const std::string FRS_BUNDLE_NAME = "com.ohos.formrenderservice";
 const std::string MAX_UINT64_VALUE = "18446744073709551615";
-constexpr int32_t MOE_MAX_CONNECTIONS_PER_CALLER = 5;
-constexpr int32_t MOE_MAX_INSTANCES = 20;
 #ifdef SUPPORT_ASAN
 const int LOAD_TIMEOUT_MULTIPLE = 150;
 const int CONNECT_TIMEOUT_MULTIPLE = 45;
@@ -2511,7 +2510,7 @@ std::string AbilityConnectManager::GetServiceKey(const std::shared_ptr<BaseExten
         serviceKey = serviceKey + service->GetWant().GetStringParam(AgentRuntime::AGENTID_KEY);
     } else if (service->GetAbilityInfo().extensionAbilityType ==
                AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
-        std::string requestId = service->GetModularObjectRequestId();
+        std::string requestId = service->GetRequestId();
         if (!requestId.empty()) {
             serviceKey = serviceKey + "_" + requestId;
         }
@@ -3295,7 +3294,7 @@ void AbilityConnectManager::GetOrCreateServiceRecord(const AbilityRequest &abili
         isLoadedAbility = false;
 
         // ModularObject: set processName and requestId for newly created record
-        HandleModularObjectNewRecord(abilityRequest, targetService, serviceKey);
+        ModularObjectUtils::SetupNewRecord(abilityRequest, targetService, serviceKey);
 
         // Notify running timeout monitor about service extension start
         auto &newAbilityInfo = abilityRequest.abilityInfo;
@@ -3343,139 +3342,38 @@ int32_t AbilityConnectManager::CheckModularObjectLimits(const AbilityRequest &ab
     AppExecFwk::ElementName element(abilityRequest.abilityInfo.deviceId,
         GenerateBundleName(abilityRequest),
         abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName);
-    std::string baseKey = element.GetURI();
-    auto ret = CheckModularObjectInstanceLimit(baseKey);
-    if (ret != ERR_OK) {
-        return ret;
-    }
-    return CheckModularObjectConnectionLimit(baseKey, IPCSkeleton::GetCallingPid());
-}
+    std::string prefix = element.GetURI() + "_";
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
 
-int32_t AbilityConnectManager::CheckModularObjectInstanceLimit(const std::string &baseServiceKey)
-{
-    std::lock_guard lock(serviceMapMutex_);
-    std::string prefix = baseServiceKey + "_";
-    int32_t count = 0;
-    for (const auto &[key, value] : serviceMap_) {
-        if (key.compare(0, prefix.size(), prefix) == 0) {
-            count++;
-        }
-    }
-    if (count >= MOE_MAX_INSTANCES) {
-        TAG_LOGE(AAFwkTag::EXT,
-            "MoeAbility instance limit reached, baseKey: %{public}s, count: %{public}d",
-            baseServiceKey.c_str(), count);
-        return ERR_MOE_INSTANCE_LIMIT;
-    }
-    return ERR_OK;
-}
-
-int32_t AbilityConnectManager::CheckModularObjectConnectionLimit(
-    const std::string &baseServiceKey, int32_t callerPid)
-{
-    std::lock_guard lock(serviceMapMutex_);
-    std::string prefix = baseServiceKey + "_";
-    int32_t count = 0;
-    for (const auto &[key, record] : serviceMap_) {
-        if (key.compare(0, prefix.size(), prefix) != 0) {
-            continue;
-        }
-        for (const auto &conn : record->GetConnectRecordList()) {
-            if (conn != nullptr && conn->GetCallerPid() == callerPid) {
-                count++;
+    // Snapshot matching entries under one lock to minimize lock hold time
+    std::vector<std::shared_ptr<ConnectionRecord>> connections;
+    int32_t instanceCount = 0;
+    {
+        std::lock_guard lock(serviceMapMutex_);
+        for (const auto &[key, record] : serviceMap_) {
+            if (key.compare(0, prefix.size(), prefix) != 0) {
+                continue;
+            }
+            instanceCount++;
+            if (record == nullptr) {
+                continue;
+            }
+            for (const auto &conn : record->GetConnectRecordList()) {
+                if (conn != nullptr) {
+                    connections.push_back(conn);
+                }
             }
         }
     }
-    if (count >= MOE_MAX_CONNECTIONS_PER_CALLER) {
-        TAG_LOGE(AAFwkTag::EXT,
-            "MoeAbility connection limit reached for callerPid: %{public}d, baseKey: %{public}s, count: %{public}d",
-            callerPid, baseServiceKey.c_str(), count);
-        return ERR_MOE_CONNECTION_LIMIT;
+
+    int32_t connectionCount = 0;
+    for (const auto &conn : connections) {
+        if (conn->GetCallerPid() == callerPid) {
+            connectionCount++;
+        }
     }
-    return ERR_OK;
+    return ModularObjectUtils::CheckLimits(instanceCount, connectionCount);
 }
 
-void AbilityConnectManager::HandleModularObjectNewRecord(const AbilityRequest &abilityRequest,
-    std::shared_ptr<BaseExtensionRecord> &targetService, const std::string &serviceKey)
-{
-    if (abilityRequest.abilityInfo.extensionAbilityType !=
-        AppExecFwk::ExtensionAbilityType::MODULAR_OBJECT) {
-        return;
-    }
-    if (targetService == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "targetService is null");
-        return;
-    }
-    auto config = AbilityConnectManager::QueryModularObjectConfig(abilityRequest);
-    if (config == nullptr) {
-        return;
-    }
-    // Set processName based on launchMode and process/thread model
-    std::string process;
-    if (config->launchMode == MoeLaunchMode::IN_PROCESS) {
-        pid_t callingPid = IPCSkeleton::GetCallingPid();
-        AppExecFwk::RunningProcessInfo processInfo;
-        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callingPid, processInfo);
-        if (!processInfo.processName_.empty()) {
-            process = processInfo.processName_;
-        } else if (!abilityRequest.appInfo.process.empty()) {
-            process = abilityRequest.appInfo.process;
-        } else {
-            process = abilityRequest.abilityInfo.bundleName;
-        }
-    } else {
-        switch (config->processMode) {
-            case MoeProcessMode::BUNDLE:
-                process = abilityRequest.abilityInfo.bundleName + ":" +
-                    abilityRequest.abilityInfo.extensionTypeName;
-                break;
-            case MoeProcessMode::TYPE:
-                process = abilityRequest.abilityInfo.bundleName + ":" +
-                    abilityRequest.abilityInfo.name;
-                break;
-            case MoeProcessMode::INSTANCE:
-                process = abilityRequest.abilityInfo.bundleName + ":" +
-                    abilityRequest.abilityInfo.name + ":" +
-                    std::to_string(targetService->GetRecordId());
-                break;
-            default:
-                break;
-        }
-    }
-    if (!process.empty()) {
-        targetService->SetProcessName(process);
-        TAG_LOGI(AAFwkTag::EXT, "ModularObject processName: %{public}s", process.c_str());
-    }
-    // Save requestId for disconnect serviceKey reconstruction
-    auto pos = serviceKey.rfind('_');
-    if (pos != std::string::npos) {
-        targetService->SetModularObjectRequestId(serviceKey.substr(pos + 1));
-    }
-}
-
-std::shared_ptr<AAFwk::ModularObjectExtensionInfo>
-AbilityConnectManager::QueryModularObjectConfig(const AbilityRequest &abilityRequest)
-{
-    auto mgr = DelayedSingleton<AbilityRuntime::ModularObjectManager>::GetInstance();
-    if (mgr == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "ModularObjectManager is null");
-        return nullptr;
-    }
-    std::vector<AAFwk::ModularObjectExtensionInfo> infos;
-    int32_t userId = abilityRequest.userId;
-    const auto &bundleName = abilityRequest.abilityInfo.bundleName;
-    int32_t appIndex = abilityRequest.appInfo.appIndex;
-    if (mgr->QuerySelfModularObjectExtensionInfos(userId, bundleName, appIndex, infos) != ERR_OK) {
-        TAG_LOGD(AAFwkTag::EXT, "query modular object infos failed");
-        return nullptr;
-    }
-    const auto &abilityName = abilityRequest.abilityInfo.name;
-    for (const auto &info : infos) {
-        if (info.abilityName == abilityName) {
-            return std::make_shared<AAFwk::ModularObjectExtensionInfo>(info);
-        }
-    }
-    return nullptr;
-}
 }  // namespace AAFwk
 }  // namespace OHOS

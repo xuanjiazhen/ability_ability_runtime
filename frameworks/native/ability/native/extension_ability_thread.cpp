@@ -245,7 +245,14 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
         return;
     }
 
-    // 1.new ability (create extension first to allow polymorphic handler)
+    // 1.new AbilityHandler - original per-type logic
+    if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::CONTENT_EMBED) {
+        HandleNativeExtensionAttach(abilityRecord, abilityName);
+    } else {
+        HandleNormalExtensionAttach(abilityRecord, mainRunner, abilityName);
+    }
+
+    // 2.new ability
     auto extension = AppExecFwk::AbilityLoader::GetInstance().GetExtensionByName(abilityName,
         abilityInfo->arkTSMode);
     if (extension == nullptr) {
@@ -254,15 +261,11 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
     }
     currentExtension_.reset(extension);
 
-    // 2.new AbilityHandler - try extension-provided handler first
-    abilityHandler_ = currentExtension_->GetAbilityHandler(abilityInfo);
-    if (abilityHandler_ == nullptr) {
-        // Extension didn't provide handler, use default per-type logic
-        if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::CONTENT_EMBED) {
-            HandleNativeExtensionAttach(abilityRecord, abilityName);
-        } else {
-            HandleNormalExtensionAttach(abilityRecord, mainRunner, abilityName);
-        }
+    // 3.Override with extension-provided handler if available (e.g. ModularObject)
+    auto customHandler = currentExtension_->GetAbilityHandler(abilityInfo);
+    if (customHandler != nullptr) {
+        TAG_LOGD(AAFwkTag::EXT, "Using extension-provided abilityHandler");
+        abilityHandler_ = customHandler;
     }
 
     if (abilityHandler_ == nullptr) {
