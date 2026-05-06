@@ -17,6 +17,7 @@
 #define MOCK_FLAG_H
 
 #include <stdint.h>
+#include <string>
 #include <sys/types.h>
 
 #include "modular_object_extension_info.h"
@@ -34,6 +35,7 @@ public:
     static int32_t getRunningProcessInfoRet;
     static int32_t processState;
     static bool isPreForeground;
+    static std::string processName;
 
     // system::GetBoolParameter
     static bool isDeveloperMode;

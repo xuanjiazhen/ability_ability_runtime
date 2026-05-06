@@ -46,8 +46,8 @@ AbilityRuntime_ErrorCode CModularObjectUtils::ConvertConnectBusinessErrorCode(in
             return ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY;
         case ERR_NO_RUNNING_ABILITIES_WITH_UI:
             return ABILITY_RUNTIME_ERROR_CODE_NO_RUNNING_ABILITIES_WITH_UI;
-        case ERR_INVALID_DISTRIBUTION_TYPE:
-            return ABILITY_RUNTIME_ERROR_CODE_INVALID_DISTRIBUTION_TYPE;
+        case ERR_MOE_CROSS_APP_IN_PROCESS:
+            return ABILITY_RUNTIME_ERROR_CODE_CROSS_APP_IN_PROCESS;
         default:
             return ConvertToCommonBusinessErrorCode(errCode);
     }

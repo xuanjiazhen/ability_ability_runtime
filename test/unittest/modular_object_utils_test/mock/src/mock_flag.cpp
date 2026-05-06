@@ -26,6 +26,7 @@ pid_t MockFlag::callingPid = 1234;
 int32_t MockFlag::getRunningProcessInfoRet = 0;
 int32_t MockFlag::processState = 2; // APP_STATE_FOREGROUND
 bool MockFlag::isPreForeground = false;
+std::string MockFlag::processName;
 bool MockFlag::isDeveloperMode = false;
 int32_t MockFlag::queryDataRet = 0;
 bool MockFlag::extensionFound = true;
@@ -52,4 +53,7 @@ std::shared_ptr<OHOS::AAFwk::AbilityRecord> OHOS::AAFwk::Token::abilityRecord_ =
 
 // AbilityRecord mock
 OHOS::AppExecFwk::AbilityInfo OHOS::AAFwk::AbilityRecord::abilityInfo;
+int32_t OHOS::AAFwk::AbilityRecord::recordId_ = 0;
+std::string OHOS::AAFwk::AbilityRecord::processName_;
 pid_t OHOS::AAFwk::BaseExtensionRecord::clientPid = -1;
+std::string OHOS::AAFwk::BaseExtensionRecord::requestId_;
