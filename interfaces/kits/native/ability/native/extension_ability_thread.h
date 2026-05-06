@@ -137,14 +137,14 @@ public:
 
     void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override;
 
+    void ExecuteSkill(const Want &want) override;
+
     /**
      * @brief Create modal UIExtension.
      * @param want The want of the modal UIExtension to create.
      * @return Returns ERR_OK on success, error code on failure.
      */
     int CreateModalUIExtension(const Want &want) override;
-
-    void ExecuteSkill(const Want &want) override;
 
     void HandleNativeExtensionAttach(
         const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
