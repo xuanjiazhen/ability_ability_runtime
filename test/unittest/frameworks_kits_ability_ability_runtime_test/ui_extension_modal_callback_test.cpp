@@ -26,6 +26,8 @@
 #include "hilog_tag_wrapper.h"
 #include "mock_ui_content.h"
 #include "want_params.h"
+#include "int_wrapper.h"
+#include "string_wrapper.h"
 
 using namespace testing::ext;
 using namespace testing;
@@ -276,7 +278,7 @@ HWTEST_F(UIExtensionModalCallbackTest, OnReceive_0200, TestSize.Level1)
 
     // Create WantParams with embeddableServiceExit = true
     AAFwk::WantParams data;
-    data.SetParam("ohos.param.embeddableServiceExit", 1);
+    data.SetParam("ohos.param.embeddableServiceExit", AAFwk::Integer::Box(1));
 
     callback->OnReceive(data);
 
@@ -305,7 +307,7 @@ HWTEST_F(UIExtensionModalCallbackTest, OnReceive_0300, TestSize.Level1)
 
     // Create WantParams without embeddableServiceExit
     AAFwk::WantParams data;
-    data.SetParam("someOtherParam", "testValue");
+    data.SetParam("someOtherParam", AAFwk::String::Box("testValue"));
 
     callback->OnReceive(data);
 

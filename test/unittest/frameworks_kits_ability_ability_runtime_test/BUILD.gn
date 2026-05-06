@@ -315,7 +315,6 @@ ohos_unittest("ui_extension_modal_callback_test") {
   ]
 
   sources = [
-    "${ability_runtime_path}/frameworks/native/ability/native/ui_extension_base/ui_extension_modal_callback.cpp",
     "ui_extension_modal_callback_test.cpp",
   ]
 
@@ -323,6 +322,7 @@ ohos_unittest("ui_extension_modal_callback_test") {
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_native_path}/ability:ability_context_native",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
+    "${ability_runtime_native_path}/ability/native:ui_extension",
   ]
 
   external_deps = [
