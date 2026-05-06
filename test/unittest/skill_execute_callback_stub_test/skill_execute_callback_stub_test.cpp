@@ -128,6 +128,7 @@ HWTEST_F(SkillExecuteCallbackStubTest, OnExecuteDoneInner_002, TestSize.Level1)
     MessageParcel data;
     MessageParcel reply;
 
+    WriteInterfaceToken(data);
     data.WriteString("req003");
     data.WriteInt32(0);
     // No SkillExecuteResult written

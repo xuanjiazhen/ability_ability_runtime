@@ -19,6 +19,7 @@
 
 #include "extension_ability_info.h"
 #include "hilog_tag_wrapper.h"
+#include "singleton.h"
 #include "skill/skill_execute_manager.h"
 #include "skill/skill_execute_record.h"
 #include "string_wrapper.h"
@@ -43,11 +44,10 @@ class SkillExecuteManagerTest : public testing::Test {
 public:
     void SetUp() override
     {
-        manager_ = new SkillExecuteManager();
+        manager_ = DelayedSingleton<SkillExecuteManager>::GetInstance().get();
     }
     void TearDown() override
     {
-        delete manager_;
         manager_ = nullptr;
     }
     SkillExecuteManager *manager_ = nullptr;
