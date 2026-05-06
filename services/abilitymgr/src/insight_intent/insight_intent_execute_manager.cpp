@@ -435,7 +435,7 @@ int32_t InsightIntentExecuteManager::UpdateFuncDecoratorParams(
         TAG_LOGE(AAFwkTag::INTENT, "ability name empty");
         return ERR_INVALID_VALUE;
     }
-    want.SetElementName("", param->bundleName_, param->abilityName_, param->moduleName_);
+    want.SetElementName(param->deviceId_, param->bundleName_, param->abilityName_, param->moduleName_);
 
     std::string srcEntrance = info.decoratorFile;
     want.SetParam(INSIGHT_INTENT_SRC_ENTRANCE, srcEntrance);
@@ -523,7 +523,7 @@ int32_t InsightIntentExecuteManager::UpdatePageDecoratorParams(
         return ERR_INVALID_VALUE;
     }
     param->abilityName_ = uiAbilityName;
-    want.SetElementName("", param->bundleName_, param->abilityName_, param->moduleName_);
+    want.SetElementName(param->deviceId_, param->bundleName_, param->abilityName_, param->moduleName_);
     want.SetParam(INSIGHT_INTENT_PAGE_PARAM_PAGEPATH, pagePath);
     want.SetParam(INSIGHT_INTENT_PAGE_PARAM_NAVIGATIONID, navigationId);
     want.SetParam(INSIGHT_INTENT_PAGE_PARAM_NAVDESTINATIONNAME, navDestinationName);
