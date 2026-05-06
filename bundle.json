@@ -96,6 +96,7 @@
             "napi",
             "netmanager_base",
             "node",
+            "openssl",
             "os_account",
             "power_manager",
             "preferences",

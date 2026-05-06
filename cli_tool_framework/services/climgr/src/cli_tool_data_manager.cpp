@@ -18,8 +18,12 @@
 #include <chrono>
 #include <dirent.h>
 #include <fstream>
+#include <iomanip>
+#include <map>
 #include <nlohmann/json.hpp>
+#include <openssl/md5.h>
 #include <set>
+#include <sstream>
 #include <unistd.h>
 
 #include "cli_error_code.h"
@@ -40,9 +44,41 @@ constexpr const char* KV_STORE_APP_ID = "cli_tools_db";
 constexpr const char* KV_STORE_STORE_ID = "cli_tools_store";
 constexpr const char* CLI_TOOLS_STORAGE_DIR = "/data/service/el1/public/database/aimgr/cli_tool";
 constexpr const char* ALL_CLI_TOOL_NAMES_KEY = "AllCliToolNames";
+constexpr const char* ALL_FILE_MD5_KEY = "ALL_FILE_MD5";
 
 const DistributedKv::AppId APP_ID { KV_STORE_APP_ID };
 const DistributedKv::StoreId STORE_ID { KV_STORE_STORE_ID };
+}
+
+std::string CalculateFileMD5(const std::string &filePath)
+{
+    FILE *file = fopen(filePath.c_str(), "rb");
+    if (file == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to open file for MD5: %{public}s", filePath.c_str());
+        return "";
+    }
+
+    MD5_CTX ctx;
+    MD5_Init(&ctx);
+
+    constexpr size_t bufferSize = 4096;
+    unsigned char buffer[bufferSize];
+    size_t bytesRead;
+    while ((bytesRead = fread(buffer, 1, bufferSize, file)) > 0) {
+        MD5_Update(&ctx, buffer, bytesRead);
+    }
+    fclose(file);
+
+    unsigned char md5Result[MD5_DIGEST_LENGTH];
+    MD5_Final(md5Result, &ctx);
+
+    std::stringstream ss;
+    for (int i = 0; i < MD5_DIGEST_LENGTH; ++i) {
+        ss << std::uppercase << std::setfill('0') << std::setw(2) << std::hex
+           << static_cast<uint32_t>(md5Result[i]);
+    }
+
+    return ss.str();
 }
 
 CliToolDataManager &CliToolDataManager::GetInstance()
@@ -137,36 +173,129 @@ int32_t CliToolDataManager::LoadToolsFromDir(const std::string &dirPath)
         return ERR_FILE_NOT_FOUND;
     }
 
+    std::map<std::string, std::string> oldFileMd5Map = GetStoredFileMd5Map();
+    std::map<std::string, std::string> newFileMd5Map;
     std::vector<std::string> currentToolNames;
     int32_t totalLoaded = 0;
+    int32_t totalSkipped = 0;
+
     struct dirent *entry;
     while ((entry = readdir(dir)) != nullptr) {
         std::string filename = entry->d_name;
-        if (filename.size() < 5 || filename.substr(filename.size() - 5) != ".json") {
+        if (!IsJsonConfigFile(filename)) {
             continue;
         }
-
         std::string filePath = dirPath + "/" + filename;
-        ToolInfo tool;
-        int32_t ret = ParseToolFromJsonFile(filePath, tool);
-        if (ret == ERR_OK) {
-            std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
-            ret = StoreTool(tool);
-            if (ret == ERR_OK) {
-                currentToolNames.push_back(tool.name);
-                totalLoaded++;
-                TAG_LOGI(AAFwkTag::CLI_TOOL, "Loaded tool: %{public}s", tool.name.c_str());
-            }
+        FileProcessResult result = ProcessConfigFile(filePath, filename, oldFileMd5Map, newFileMd5Map);
+        if (!result.toolName.empty()) {
+            currentToolNames.push_back(result.toolName);
+        }
+        if (result.loaded) {
+            totalLoaded++;
+        }
+        if (result.skipped) {
+            totalSkipped++;
         }
     }
     closedir(dir);
 
-    // Sync tool names and remove tools that no longer exist
+    StoreFileMd5Map(newFileMd5Map);
     SyncToolNames(currentToolNames);
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully loaded %{public}d tools from %{public}s",
-        totalLoaded, dirPath.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Loaded %{public}d tools, skipped %{public}d unchanged files from %{public}s",
+        totalLoaded, totalSkipped, dirPath.c_str());
     return ERR_OK;
+}
+
+bool CliToolDataManager::IsJsonConfigFile(const std::string &filename)
+{
+    return filename.size() >= 5 && filename.substr(filename.size() - 5) == ".json";
+}
+
+std::map<std::string, std::string> CliToolDataManager::GetStoredFileMd5Map()
+{
+    std::map<std::string, std::string> md5Map;
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+
+    DistributedKv::Key md5Key(ALL_FILE_MD5_KEY);
+    DistributedKv::Value md5Value;
+    DistributedKv::Status status = kvStorePtr_->Get(md5Key, md5Value);
+    if (status != DistributedKv::Status::SUCCESS) {
+        return md5Map;
+    }
+
+    nlohmann::json md5Json = nlohmann::json::parse(md5Value.ToString(), nullptr, false);
+    if (md5Json.is_discarded() || !md5Json.is_object()) {
+        return md5Map;
+    }
+
+    for (auto it = md5Json.begin(); it != md5Json.end(); ++it) {
+        if (it.value().is_string()) {
+            md5Map[it.key()] = it.value().get<std::string>();
+        }
+    }
+    return md5Map;
+}
+
+void CliToolDataManager::StoreFileMd5Map(const std::map<std::string, std::string> &md5Map)
+{
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+
+    nlohmann::json md5Json = md5Map;
+    DistributedKv::Key md5Key(ALL_FILE_MD5_KEY);
+    DistributedKv::Value md5Value(md5Json.dump());
+    DistributedKv::Status status = kvStorePtr_->Put(md5Key, md5Value);
+    if (status != DistributedKv::Status::SUCCESS) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to store file MD5 map");
+    }
+}
+
+FileProcessResult CliToolDataManager::ProcessConfigFile(const std::string &filePath, const std::string &filename,
+    const std::map<std::string, std::string> &oldMd5Map,
+    std::map<std::string, std::string> &newMd5Map)
+{
+    FileProcessResult result;
+
+    std::string currentMd5 = CalculateFileMD5(filePath);
+    if (currentMd5.empty()) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "Failed to calculate MD5 for: %{public}s", filePath.c_str());
+        return result;
+    }
+
+    newMd5Map[filename] = currentMd5;
+
+    // Check if file has changed
+    auto it = oldMd5Map.find(filename);
+    if (it != oldMd5Map.end() && it->second == currentMd5) {
+        // File MD5 unchanged, skip loading
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "File unchanged (MD5 match), skipping: %{public}s", filename.c_str());
+        result.skipped = true;
+        // Still need to get tool name for sync
+        ToolInfo tool;
+        if (ParseToolFromJsonFile(filePath, tool) == ERR_OK) {
+            result.toolName = tool.name;
+        }
+        return result;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "File changed or new, loading: %{public}s", filename.c_str());
+    ToolInfo tool;
+    int32_t ret = ParseToolFromJsonFile(filePath, tool);
+    if (ret != ERR_OK) {
+        return result;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
+        ret = StoreTool(tool);
+    }
+    if (ret == ERR_OK) {
+        result.toolName = tool.name;
+        result.loaded = true;
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "Loaded tool: %{public}s", tool.name.c_str());
+    }
+
+    return result;
 }
 
 int32_t CliToolDataManager::SyncToolNames(const std::vector<std::string> &currentToolNames)
