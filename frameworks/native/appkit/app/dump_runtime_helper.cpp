@@ -253,6 +253,7 @@ bool DumpRuntimeHelper::Check2DQuota(bool needDecreaseQuota)
 
 void DumpRuntimeHelper::DumpJsHeap(const OHOS::AppExecFwk::JsHeapDumpInfo &info)
 {
+    TAG_LOGE(AAFwkTag::APPKIT, "[denganliang] appInfo_->arkTSMode: %{public}s", appInfo_->arkTSMode.c_str());
     if (application_ == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "null application");
         return;
