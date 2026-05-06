@@ -3344,52 +3344,46 @@ int32_t AbilityConnectManager::CheckModularObjectLimits(const AbilityRequest &ab
         GenerateBundleName(abilityRequest),
         abilityRequest.abilityInfo.name, abilityRequest.abilityInfo.moduleName);
     std::string baseKey = element.GetURI();
-    auto ret = CheckModularObjectInstanceLimit(baseKey);
-    if (ret != ERR_OK) {
-        return ret;
-    }
-    return CheckModularObjectConnectionLimit(baseKey, IPCSkeleton::GetCallingPid());
-}
+    std::string prefix = baseKey + "_";
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
 
-int32_t AbilityConnectManager::CheckModularObjectInstanceLimit(const std::string &baseServiceKey)
-{
-    std::lock_guard lock(serviceMapMutex_);
-    std::string prefix = baseServiceKey + "_";
-    int32_t count = 0;
-    for (const auto &[key, value] : serviceMap_) {
-        if (key.compare(0, prefix.size(), prefix) == 0) {
-            count++;
-        }
-    }
-    if (count >= MOE_MAX_INSTANCES) {
-        TAG_LOGE(AAFwkTag::EXT,
-            "MoeAbility instance limit reached, baseKey: %{public}s, count: %{public}d",
-            baseServiceKey.c_str(), count);
-        return ERR_MOE_INSTANCE_LIMIT;
-    }
-    return ERR_OK;
-}
-
-int32_t AbilityConnectManager::CheckModularObjectConnectionLimit(
-    const std::string &baseServiceKey, int32_t callerPid)
-{
-    std::lock_guard lock(serviceMapMutex_);
-    std::string prefix = baseServiceKey + "_";
-    int32_t count = 0;
-    for (const auto &[key, record] : serviceMap_) {
-        if (key.compare(0, prefix.size(), prefix) != 0) {
-            continue;
-        }
-        for (const auto &conn : record->GetConnectRecordList()) {
-            if (conn != nullptr && conn->GetCallerPid() == callerPid) {
-                count++;
+    // Snapshot matching entries under one lock to minimize lock hold time
+    std::vector<std::shared_ptr<ConnectionRecord>> connections;
+    int32_t instanceCount = 0;
+    {
+        std::lock_guard lock(serviceMapMutex_);
+        for (const auto &[key, record] : serviceMap_) {
+            if (key.compare(0, prefix.size(), prefix) != 0) {
+                continue;
+            }
+            instanceCount++;
+            if (record == nullptr) {
+                continue;
+            }
+            for (const auto &conn : record->GetConnectRecordList()) {
+                if (conn != nullptr) {
+                    connections.push_back(conn);
+                }
             }
         }
     }
-    if (count >= MOE_MAX_CONNECTIONS_PER_CALLER) {
+
+    if (instanceCount >= MOE_MAX_INSTANCES) {
+        TAG_LOGE(AAFwkTag::EXT,
+            "MoeAbility instance limit reached, baseKey: %{public}s, count: %{public}d",
+            baseKey.c_str(), instanceCount);
+        return ERR_MOE_INSTANCE_LIMIT;
+    }
+    int32_t connectionCount = 0;
+    for (const auto &conn : connections) {
+        if (conn->GetCallerPid() == callerPid) {
+            connectionCount++;
+        }
+    }
+    if (connectionCount >= MOE_MAX_CONNECTIONS_PER_CALLER) {
         TAG_LOGE(AAFwkTag::EXT,
             "MoeAbility connection limit reached for callerPid: %{public}d, baseKey: %{public}s, count: %{public}d",
-            callerPid, baseServiceKey.c_str(), count);
+            callerPid, baseKey.c_str(), connectionCount);
         return ERR_MOE_CONNECTION_LIMIT;
     }
     return ERR_OK;

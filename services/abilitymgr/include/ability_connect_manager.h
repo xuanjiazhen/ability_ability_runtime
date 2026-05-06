@@ -825,8 +825,6 @@ private:
     void HandleModularObjectNewRecord(const AbilityRequest &abilityRequest,
         std::shared_ptr<BaseExtensionRecord> &targetService, const std::string &serviceKey);
     int32_t CheckModularObjectLimits(const AbilityRequest &abilityRequest);
-    int32_t CheckModularObjectInstanceLimit(const std::string &baseServiceKey);
-    int32_t CheckModularObjectConnectionLimit(const std::string &baseServiceKey, int32_t callerPid);
     static std::shared_ptr<AAFwk::ModularObjectExtensionInfo> QueryModularObjectConfig(
         const AbilityRequest &abilityRequest);
 
