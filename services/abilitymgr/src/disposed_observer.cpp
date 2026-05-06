@@ -25,7 +25,7 @@ namespace AAFwk {
 namespace {
 constexpr const char* UIEXTENSION_MODAL_TYPE = "ability.want.params.modalType";
 constexpr const char* INTERCEPT_MISSION_ID = "intercept_missionId";
-constexpr const char* IS_EMBEDDABLE_SERVICE = "ohos.param.isEmbeddableUIExtension";
+constexpr const char* IS_EMBEDDABLE_SERVICE = "ohos.param.isCallerEmbeddableUIExtension";
 
 bool IsEmbeddableStart(int32_t screenMode)
 {
