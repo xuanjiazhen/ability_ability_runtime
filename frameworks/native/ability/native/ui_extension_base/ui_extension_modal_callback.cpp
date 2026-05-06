@@ -20,7 +20,7 @@
 namespace OHOS {
 namespace AbilityRuntime {
 namespace {
-constexpr const char* EMBEDDABLE_SERVICE_EXIT = "ohos.param.embeddableServiceExit";
+constexpr const char* EMBEDDABLE_SERVICE_EXIT = "ohos.param.exitEmbeddableUIExtension";
 }
 
 void UIExtensionModalCallback::OnRelease()

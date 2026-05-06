@@ -788,7 +788,7 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0200, Fun
     auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
     ASSERT_NE(impl, nullptr);
     // Set extensionType to UI_EXTENSION
-    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI_EXTENSION;
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI;
     // Set extension_ to nullptr
     impl->extension_ = nullptr;
     AAFwk::Want want;
@@ -808,7 +808,7 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0300, Fun
     auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
     ASSERT_NE(impl, nullptr);
     // Set extensionType to UI_EXTENSION
-    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI_EXTENSION;
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI;
     // Create mock UIExtension
     auto mockUIExtension = std::make_shared<AbilityRuntime::MockUIExtension>();
     ASSERT_NE(mockUIExtension, nullptr);
@@ -834,7 +834,7 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0400, Fun
     auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
     ASSERT_NE(impl, nullptr);
     // Set extensionType to UI_EXTENSION
-    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI_EXTENSION;
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI;
     // Create mock UIExtension
     auto mockUIExtension = std::make_shared<AbilityRuntime::MockUIExtension>();
     ASSERT_NE(mockUIExtension, nullptr);

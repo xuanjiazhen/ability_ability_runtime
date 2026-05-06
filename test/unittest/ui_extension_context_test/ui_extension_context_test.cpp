@@ -1538,8 +1538,6 @@ HWTEST_F(UIExtensionContextTest, SetAbilityConfiguration_0500, TestSize.Level1)
 
     TAG_LOGI(AAFwkTag::TEST, "SetAbilityConfiguration_0500 end");
 }
-} // namespace AbilityRuntime
-} // namespace OHOS
 
 /**
  * @tc.number: CreateModalUIExtensionWithApp_0100
@@ -1710,3 +1708,5 @@ HWTEST_F(UIExtensionContextTest, IsUIExtensionExist_0200, TestSize.Level1)
 
     TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_0200 end");
 }
+} // namespace AbilityRuntime
+} // namespace OHOS
