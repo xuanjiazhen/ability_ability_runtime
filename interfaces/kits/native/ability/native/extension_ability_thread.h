@@ -139,13 +139,6 @@ public:
 
     void ExecuteSkill(const Want &want) override;
 
-    /**
-     * @brief Create modal UIExtension.
-     * @param want The want of the modal UIExtension to create.
-     * @return Returns ERR_OK on success, error code on failure.
-     */
-    int CreateModalUIExtension(const Want &want) override;
-
     void HandleNativeExtensionAttach(
         const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
         const std::string &abilityName);
@@ -154,6 +147,8 @@ public:
         const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
         const std::shared_ptr<AppExecFwk::EventRunner> &mainRunner,
         const std::string &abilityName);
+
+    int CreateModalUIExtension(const Want &want) override;
 
 private:
 
