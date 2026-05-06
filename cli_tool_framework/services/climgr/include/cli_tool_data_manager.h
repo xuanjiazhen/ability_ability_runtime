@@ -16,6 +16,7 @@
 #ifndef OHOS_ABILITY_RUNTIME_CLI_TOOL_DATA_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_CLI_TOOL_DATA_MANAGER_H
 
+#include <map>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -26,6 +27,12 @@
 
 namespace OHOS {
 namespace CliTool {
+
+struct FileProcessResult {
+    std::string toolName;
+    bool loaded = false;
+    bool skipped = false;
+};
 
 class CliToolDataManager {
 public:
@@ -130,6 +137,37 @@ private:
      * @return int32_t ERR_OK on success, error code otherwise
      */
     int32_t SyncToolNames(const std::vector<std::string> &currentToolNames);
+
+    /**
+     * @brief Get stored file MD5 map from KVStore
+     * @return std::map<std::string, std::string> Map of filename to MD5
+     */
+    std::map<std::string, std::string> GetStoredFileMd5Map();
+
+    /**
+     * @brief Store file MD5 map to KVStore
+     * @param md5Map Map of filename to MD5
+     */
+    void StoreFileMd5Map(const std::map<std::string, std::string> &md5Map);
+
+    /**
+     * @brief Process a single config file
+     * @param filePath Full path to the JSON file
+     * @param filename Filename only (for MD5 key)
+     * @param oldMd5Map Previously stored MD5 map
+     * @param newMd5Map New MD5 map to update
+     * @return FileProcessResult Result of processing
+     */
+    FileProcessResult ProcessConfigFile(const std::string &filePath, const std::string &filename,
+        const std::map<std::string, std::string> &oldMd5Map,
+        std::map<std::string, std::string> &newMd5Map);
+
+    /**
+     * @brief Check if a JSON file should be processed (has .json extension)
+     * @param filename Filename to check
+     * @return bool true if should be processed
+     */
+    bool IsJsonConfigFile(const std::string &filename);
 
     DistributedKv::DistributedKvDataManager dataManager_;
     std::shared_ptr<DistributedKv::SingleKvStore> kvStorePtr_;
