@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -67,6 +67,7 @@ constexpr char SANDBOX_SHARED_BUNDLE_ARK_CACHE_PATH[] =
     "/data/service/el1/public/for-all-app/shared_bundles_ark_cache/";
 constexpr char MERGE_ABC_PATH[] = "/ets/modules_static.abc";
 const std::string SYS_HSP_FILE_PATH_PREFIX = "/system/app/";
+const std::string PREINSTALL_HOST_AOT_ARK_CACHE_PATH = "/system/app/ark_cache/";
 const std::string ARK_CACHE_NATIVE_PATH = "arm64/";
 
 const char *ETS_ENV_LIBNAME = "libets_environment.z.so";
@@ -129,6 +130,22 @@ private:
     AppLibPathMap appLibPathMap_;
 };
 std::shared_ptr<EtsAppLibNamespaceMgr> g_etsAppLibNamespaceMgr;
+
+bool IsFileExists(const std::string &path)
+{
+    std::error_code errorCode;
+    return std::filesystem::is_regular_file(path, errorCode);
+}
+
+std::string GetPreinstallHostAotAnPath(const std::string &bundleName, const std::string &moduleName)
+{
+    if (bundleName.empty() || moduleName.empty()) {
+        return "";
+    }
+    return PREINSTALL_HOST_AOT_ARK_CACHE_PATH + bundleName +
+        std::string(AbilityBase::Constants::FILE_SEPARATOR) + moduleName + ".an";
+}
+
 } // namespace
 
 std::unique_ptr<ETSRuntime> ETSRuntime::PreFork(const Options &options,
@@ -171,11 +188,24 @@ bool ETSRuntime::IsAotCompiledSuccess(int32_t status)
 std::string ETSRuntime::GetAotPath(const Options &options)
 {
     std::vector<std::string> aotFiles;
+    TAG_LOGI(AAFwkTag::ETSRUNTIME,
+        "GetAotPath bundleName: %{public}s, moduleName: %{public}s, aotStatusMap size: %{public}zu",
+        options.bundleName.c_str(), options.moduleName.c_str(), options.aotCompileStatusMap.size());
     // Handle Hap and Inner Hsp
     // path: <sandbox_path>/arm64/<moduleName>.an
     for (const auto& status: options.aotCompileStatusMap) {
+        TAG_LOGI(AAFwkTag::ETSRUNTIME, "GetAotPath check module: %{public}s, status: %{public}d",
+            status.first.c_str(), status.second);
         if (IsAotCompiledSuccess(status.second)) {
             aotFiles.push_back(SANDBOX_ARK_CACHE_PATH + ARK_CACHE_NATIVE_PATH + status.first + ".an");
+        } else {
+            std::string anPath = GetPreinstallHostAotAnPath(options.bundleName, status.first);
+            if (!IsFileExists(anPath)) {
+                TAG_LOGW(AAFwkTag::ETSRUNTIME, "host aot an not exist: %{public}s", anPath.c_str());
+                continue;
+            }
+            TAG_LOGI(AAFwkTag::ETSRUNTIME, "load preinstall host aot an: %{public}s", anPath.c_str());
+            aotFiles.push_back(anPath);
         }
     }
 
