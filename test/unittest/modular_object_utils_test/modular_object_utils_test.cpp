@@ -643,7 +643,7 @@ HWTEST_F(ModularObjectUtilsTest, GetPidToCheckByCallerToken_006, TestSize.Level1
 
 /**
  * @tc.name: CheckPermission_ShouldReturnErrorWhenInProcessCrossApp
- * @tc.desc: IN_PROCESS with different caller bundleName returns ERR_INVALID_VALUE
+ * @tc.desc: IN_PROCESS with different caller bundleName returns ERR_MOE_CROSS_APP_IN_PROCESS
  */
 HWTEST_F(ModularObjectUtilsTest,
     CheckPermission_ShouldReturnErrorWhenInProcessCrossApp, TestSize.Level1)
@@ -655,7 +655,7 @@ HWTEST_F(ModularObjectUtilsTest,
     request.uid = 100;
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
     auto ret = ModularObjectUtils::CheckPermission(request);
-    EXPECT_EQ(ret, OHOS::ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, OHOS::ERR_MOE_CROSS_APP_IN_PROCESS);
     GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnErrorWhenInProcessCrossApp end";
 }
 
@@ -734,7 +734,7 @@ HWTEST_F(ModularObjectUtilsTest,
 
 /**
  * @tc.name: CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget
- * @tc.desc: Caller bundleName differs from target returns ERR_INVALID_VALUE
+ * @tc.desc: Caller bundleName differs from target returns ERR_MOE_CROSS_APP_IN_PROCESS
  */
 HWTEST_F(ModularObjectUtilsTest,
     CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget, TestSize.Level1)
@@ -742,7 +742,7 @@ HWTEST_F(ModularObjectUtilsTest,
     GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget start";
     // Default callerBundleName is "com.caller.bundle"
     auto ret = ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode::IN_PROCESS, "com.test.bundle");
-    EXPECT_EQ(ret, OHOS::ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, OHOS::ERR_MOE_CROSS_APP_IN_PROCESS);
     GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget end";
 }
 

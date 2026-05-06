@@ -23,10 +23,12 @@
 #include "ability_util.h"
 #include "base_extension_record.h"
 #include "app_mgr_client.h"
+#include "app_scheduler.h"
 #include "app_utils.h"
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "ipc_skeleton.h"
+#include "modular_object_manager.h"
 #include "modular_object_rdb_storage_mgr.h"
 #include "os_account_manager_wrapper.h"
 #include "parameters.h"
@@ -34,6 +36,11 @@
 #include "rate_limiter.h"
 #include "running_process_info.h"
 #include "scene_board_judgement.h"
+
+namespace {
+constexpr int32_t MOE_MAX_CONNECTIONS_PER_CALLER = 5;
+constexpr int32_t MOE_MAX_INSTANCES = 20;
+}
 
 using namespace OHOS::AppExecFwk;
 
@@ -142,7 +149,7 @@ int32_t ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode launchMode, c
     if (callerBundleName != targetBundleName) {
         TAG_LOGE(AAFwkTag::EXT, "IN_PROCESS not support cross-app connect, caller: %{public}s, target: %{public}s",
             callerBundleName.c_str(), targetBundleName.c_str());
-        return ERR_INVALID_VALUE;
+        return ERR_MOE_CROSS_APP_IN_PROCESS;
     }
     return ERR_OK;
 }
@@ -315,6 +322,97 @@ bool ModularObjectUtils::GetPidToCheckByCallerToken(sptr<IRemoteObject> callerTo
         return true;
     }
     return false;
+}
+
+std::shared_ptr<ModularObjectExtensionInfo> ModularObjectUtils::QueryConfig(const AbilityRequest &abilityRequest)
+{
+    auto mgr = DelayedSingleton<ModularObjectManager>::GetInstance();
+    if (mgr == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "ModularObjectManager is null");
+        return nullptr;
+    }
+    std::vector<ModularObjectExtensionInfo> infos;
+    int32_t userId = abilityRequest.userId;
+    const auto &bundleName = abilityRequest.abilityInfo.bundleName;
+    int32_t appIndex = abilityRequest.appInfo.appIndex;
+    if (mgr->QuerySelfModularObjectExtensionInfos(userId, bundleName, appIndex, infos) != ERR_OK) {
+        TAG_LOGD(AAFwkTag::EXT, "query modular object infos failed");
+        return nullptr;
+    }
+    const auto &abilityName = abilityRequest.abilityInfo.name;
+    for (const auto &info : infos) {
+        if (info.abilityName == abilityName) {
+            return std::make_shared<ModularObjectExtensionInfo>(info);
+        }
+    }
+    return nullptr;
+}
+
+void ModularObjectUtils::SetupNewRecord(const AbilityRequest &abilityRequest,
+    std::shared_ptr<BaseExtensionRecord> &targetService, const std::string &serviceKey)
+{
+    if (targetService == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "targetService is null");
+        return;
+    }
+    auto config = QueryConfig(abilityRequest);
+    if (config == nullptr) {
+        return;
+    }
+    // Determine processName
+    std::string process;
+    if (config->launchMode == MoeLaunchMode::IN_PROCESS) {
+        pid_t callingPid = IPCSkeleton::GetCallingPid();
+        AppExecFwk::RunningProcessInfo processInfo;
+        DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(callingPid, processInfo);
+        if (!processInfo.processName_.empty()) {
+            process = processInfo.processName_;
+        } else if (!abilityRequest.appInfo.process.empty()) {
+            process = abilityRequest.appInfo.process;
+        } else {
+            process = abilityRequest.abilityInfo.bundleName;
+        }
+    } else {
+        switch (config->processMode) {
+            case MoeProcessMode::BUNDLE:
+                process = abilityRequest.abilityInfo.bundleName + ":" +
+                    abilityRequest.abilityInfo.extensionTypeName;
+                break;
+            case MoeProcessMode::TYPE:
+                process = abilityRequest.abilityInfo.bundleName + ":" +
+                    abilityRequest.abilityInfo.name;
+                break;
+            case MoeProcessMode::INSTANCE:
+                process = abilityRequest.abilityInfo.bundleName + ":" +
+                    abilityRequest.abilityInfo.name + ":" +
+                    std::to_string(targetService->GetRecordId());
+                break;
+            default:
+                break;
+        }
+    }
+    if (!process.empty()) {
+        targetService->SetProcessName(process);
+        TAG_LOGI(AAFwkTag::EXT, "ModularObject processName: %{public}s", process.c_str());
+    }
+    // Save requestId for disconnect serviceKey reconstruction
+    auto pos = serviceKey.rfind('_');
+    if (pos != std::string::npos) {
+        targetService->SetRequestId(serviceKey.substr(pos + 1));
+    }
+}
+
+int32_t ModularObjectUtils::CheckLimits(int32_t instanceCount, int32_t connectionCount)
+{
+    if (instanceCount >= MOE_MAX_INSTANCES) {
+        TAG_LOGE(AAFwkTag::EXT, "MoeAbility instance limit reached, count: %{public}d", instanceCount);
+        return ERR_MOE_INSTANCE_LIMIT;
+    }
+    if (connectionCount >= MOE_MAX_CONNECTIONS_PER_CALLER) {
+        TAG_LOGE(AAFwkTag::EXT, "MoeAbility connection limit reached, count: %{public}d", connectionCount);
+        return ERR_MOE_CONNECTION_LIMIT;
+    }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
