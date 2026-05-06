@@ -33,6 +33,7 @@ ohos_unittest("disposed_observer_test") {
     "${ability_runtime_services_path}/abilitymgr/src/interceptor/disposed_rule_interceptor.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/disposed_observer.cpp",
     "./mock/ability_record.cpp",
+    "./mock/modal_system_ui_extension.cpp",
     "disposed_observer_test.cpp",
   ]
 
