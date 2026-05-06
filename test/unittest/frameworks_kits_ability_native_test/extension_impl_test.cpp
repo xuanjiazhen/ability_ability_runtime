@@ -25,6 +25,7 @@
 #undef protected
 #include "event_runner.h"
 #include "mock_ability_token.h"
+#include "mock_ui_extension.h"
 #include "ohos_application.h"
 
 namespace OHOS {
@@ -757,5 +758,96 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_3400, TestSize.Level1)
     impl->ScheduleAbilityRequestSuccess(requestId, element);
     GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_3400 end";
 }
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0100
+ * @tc.name: CreateModalUIExtension
+ * @tc.desc: Test CreateModalUIExtension when extensionType is UNSPECIFIED (not UIExtension)
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0100 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    ASSERT_NE(impl, nullptr);
+    // Set extensionType to UNSPECIFIED (not UIExtension)
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UNSPECIFIED;
+    AAFwk::Want want;
+    int result = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0100 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0200
+ * @tc.name: CreateModalUIExtension
+ * @tc.desc: Test CreateModalUIExtension when extensionType is UIExtension but extension_ is nullptr
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0200, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0200 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    ASSERT_NE(impl, nullptr);
+    // Set extensionType to UI_EXTENSION
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI_EXTENSION;
+    // Set extension_ to nullptr
+    impl->extension_ = nullptr;
+    AAFwk::Want want;
+    int result = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0200 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0300
+ * @tc.name: CreateModalUIExtension
+ * @tc.desc: Test CreateModalUIExtension with mock UIExtension returning ERR_INVALID_VALUE
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0300 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    ASSERT_NE(impl, nullptr);
+    // Set extensionType to UI_EXTENSION
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI_EXTENSION;
+    // Create mock UIExtension
+    auto mockUIExtension = std::make_shared<AbilityRuntime::MockUIExtension>();
+    ASSERT_NE(mockUIExtension, nullptr);
+    // Set mock expectation to return ERR_INVALID_VALUE
+    EXPECT_CALL(*mockUIExtension, CreateModalUIExtension(testing::_))
+        .WillOnce(testing::Return(ERR_INVALID_VALUE));
+    // Set extension_ to mock UIExtension
+    impl->extension_ = mockUIExtension;
+    AAFwk::Want want;
+    int result = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0300 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0400
+ * @tc.name: CreateModalUIExtension
+ * @tc.desc: Test CreateModalUIExtension with mock UIExtension returning ERR_OK
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0400, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0400 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    ASSERT_NE(impl, nullptr);
+    // Set extensionType to UI_EXTENSION
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI_EXTENSION;
+    // Create mock UIExtension
+    auto mockUIExtension = std::make_shared<AbilityRuntime::MockUIExtension>();
+    ASSERT_NE(mockUIExtension, nullptr);
+    // Set mock expectation to return ERR_OK
+    EXPECT_CALL(*mockUIExtension, CreateModalUIExtension(testing::_))
+        .WillOnce(testing::Return(ERR_OK));
+    // Set extension_ to mock UIExtension
+    impl->extension_ = mockUIExtension;
+    AAFwk::Want want;
+    int result = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0400 end";
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -306,6 +306,38 @@ ohos_unittest("dialog_callback_test") {
   ]
 }
 
+ohos_unittest("ui_extension_modal_callback_test") {
+  module_out_path = module_out_path
+
+  include_dirs = [
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
+    "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
+  ]
+
+  sources = [
+    "${ability_runtime_path}/frameworks/native/ability/native/ui_extension_base/ui_extension_modal_callback.cpp",
+    "ui_extension_modal_callback_test.cpp",
+  ]
+
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",
+  ]
+
+  external_deps = [
+    "ability_base:want",
+    "ace_engine:ace_uicontent",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "ipc:ipc_core",
+    "napi:ace_napi",
+  ]
+}
+
 ohos_unittest("ability_context_impl_new_test") {
   module_out_path = module_out_path
 
@@ -366,5 +398,6 @@ group("unittest") {
     ":dialog_callback_test",
     ":local_call_container_ut_test",
     ":local_call_record_ut_test",
+    ":ui_extension_modal_callback_test",
   ]
 }

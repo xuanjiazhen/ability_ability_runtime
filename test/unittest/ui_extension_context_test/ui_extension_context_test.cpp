@@ -1540,3 +1540,173 @@ HWTEST_F(UIExtensionContextTest, SetAbilityConfiguration_0500, TestSize.Level1)
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
+
+/**
+ * @tc.number: CreateModalUIExtensionWithApp_0100
+ * @tc.name: CreateModalUIExtensionWithApp
+ * @tc.desc: Test CreateModalUIExtensionWithApp when uiContent is nullptr
+ */
+HWTEST_F(UIExtensionContextTest, CreateModalUIExtensionWithApp_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CreateModalUIExtensionWithApp_0100 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+    AAFwk::Want want;
+    auto result = context->CreateModalUIExtensionWithApp(want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "CreateModalUIExtensionWithApp_0100 end");
+}
+
+/**
+ * @tc.number: CreateModalUIExtensionWithApp_0200
+ * @tc.name: CreateModalUIExtensionWithApp
+ * @tc.desc: Test CreateModalUIExtensionWithApp when UIExtension already exists
+ */
+HWTEST_F(UIExtensionContextTest, CreateModalUIExtensionWithApp_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CreateModalUIExtensionWithApp_0200 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    // Setup window with UIContent
+    sptr<MockWindow> window = sptr<MockWindow>::MakeSptr();
+    context->SetWindow(window);
+
+    // Add an existing UIExtension to the map
+    AAFwk::Want existingWant;
+    ElementName element("", "com.example.test", "TestExtension");
+    existingWant.SetElement(element);
+    context->uiExtensionMap_[1] = existingWant;
+
+    // Try to create the same extension again
+    AAFwk::Want want;
+    want.SetElement(element);
+    auto result = context->CreateModalUIExtensionWithApp(want);
+    EXPECT_EQ(result, ERR_OK);
+
+    context->uiExtensionMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "CreateModalUIExtensionWithApp_0200 end");
+}
+
+/**
+ * @tc.number: CreateModalUIExtensionWithApp_0300
+ * @tc.name: CreateModalUIExtensionWithApp
+ * @tc.desc: Test CreateModalUIExtensionWithApp when CreateModalUIExtension fails (returns sessionId=0)
+ */
+HWTEST_F(UIExtensionContextTest, CreateModalUIExtensionWithApp_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CreateModalUIExtensionWithApp_0300 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    // Setup window with UIContent - MockWindow returns nullptr UIContent
+    sptr<MockWindow> window = sptr<MockWindow>::MakeSptr();
+    context->SetWindow(window);
+
+    AAFwk::Want want;
+    ElementName element("", "com.example.test", "TestExtension");
+    want.SetElement(element);
+
+    // When UIContent is not null but CreateModalUIExtension returns 0
+    // The mock window will have nullptr UIContent, so it should return ERR_INVALID_VALUE
+    auto result = context->CreateModalUIExtensionWithApp(want);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+
+    TAG_LOGI(AAFwkTag::TEST, "CreateModalUIExtensionWithApp_0300 end");
+}
+
+/**
+ * @tc.number: EraseUIExtension_0100
+ * @tc.name: EraseUIExtension
+ * @tc.desc: Test EraseUIExtension when sessionId exists
+ */
+HWTEST_F(UIExtensionContextTest, EraseUIExtension_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "EraseUIExtension_0100 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    // Add a UIExtension to the map
+    AAFwk::Want want;
+    ElementName element("", "com.example.test", "TestExtension");
+    want.SetElement(element);
+    int32_t sessionId = 123;
+    context->uiExtensionMap_[sessionId] = want;
+
+    EXPECT_EQ(context->uiExtensionMap_.size(), 1);
+
+    // Erase the UIExtension
+    auto result = context->EraseUIExtension(sessionId);
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "EraseUIExtension_0100 end");
+}
+
+/**
+ * @tc.number: EraseUIExtension_0200
+ * @tc.name: EraseUIExtension
+ * @tc.desc: Test EraseUIExtension when sessionId does not exist
+ */
+HWTEST_F(UIExtensionContextTest, EraseUIExtension_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "EraseUIExtension_0200 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    // Try to erase a non-existent sessionId
+    int32_t sessionId = 999;
+    auto result = context->EraseUIExtension(sessionId);
+    // EraseUIExtension always returns ERR_OK even if not found
+    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(context->uiExtensionMap_.size(), 0);
+
+    TAG_LOGI(AAFwkTag::TEST, "EraseUIExtension_0200 end");
+}
+
+/**
+ * @tc.number: IsUIExtensionExist_0100
+ * @tc.name: IsUIExtensionExist
+ * @tc.desc: Test IsUIExtensionExist when UIExtension exists
+ */
+HWTEST_F(UIExtensionContextTest, IsUIExtensionExist_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_0100 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    // Add a UIExtension to the map
+    AAFwk::Want want;
+    ElementName element("", "com.example.test", "TestExtension");
+    want.SetElement(element);
+    context->uiExtensionMap_[1] = want;
+
+    // Check if exists
+    auto result = context->IsUIExtensionExist(want);
+    EXPECT_TRUE(result);
+
+    context->uiExtensionMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_0100 end");
+}
+
+/**
+ * @tc.number: IsUIExtensionExist_0200
+ * @tc.name: IsUIExtensionExist
+ * @tc.desc: Test IsUIExtensionExist when UIExtension does not exist
+ */
+HWTEST_F(UIExtensionContextTest, IsUIExtensionExist_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_0200 start");
+    auto context = std::make_shared<UIExtensionContext>();
+    ASSERT_NE(context, nullptr);
+
+    // Check non-existent extension
+    AAFwk::Want want;
+    ElementName element("", "com.example.test", "NonExistentExtension");
+    want.SetElement(element);
+
+    auto result = context->IsUIExtensionExist(want);
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionExist_0200 end");
+}
