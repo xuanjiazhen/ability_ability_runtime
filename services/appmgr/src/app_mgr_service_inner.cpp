@@ -5779,7 +5779,7 @@ int32_t AppMgrServiceInner::StartProcess(const std::string &appName, const std::
     AppSpawnStartMsg startMsg;
     auto appInfo = appRecord->GetApplicationInfo();
     auto accessTokenIdEx = AccessToken::AccessTokenKit::GetHapTokenIDEx(GetUserIdByUid(uid),
-        bundleInfo.name, bundleInfo.appIndex);
+        bundleInfo.name, bundleInfo.appIndex, true);
     auto bundleType = appInfo ? appInfo->bundleType : BundleType::APP;
     startMsg.appSignType = appInfo ? appInfo->appSignType : std::string();
 #ifdef SUPPORT_CHILD_PROCESS
@@ -9569,7 +9569,7 @@ int32_t AppMgrServiceInner::StartNativeProcessForDebugger(const AAFwk::Want &wan
         return ERR_INVALID_OPERATION;
     }
     auto accessTokenIdEx = AccessToken::AccessTokenKit::GetHapTokenIDEx(GetUserIdByUid(appInfo->uid),
-        bundleInfo.name, appInfo->appIndex);
+        bundleInfo.name, appInfo->appIndex, true);
     appInfo->accessTokenIdEx = accessTokenIdEx.tokenIDEx;
     appInfo->accessTokenId = accessTokenIdEx.tokenIdExStruct.tokenID;
 
