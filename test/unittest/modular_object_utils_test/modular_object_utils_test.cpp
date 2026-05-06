@@ -60,6 +60,9 @@ void ResetFlags()
     BaseExtensionRecord::clientPid = -1;
     MockFlag::launchMode = MoeLaunchMode::CROSS_PROCESS;
     MockFlag::callerBundleName = "com.caller.bundle";
+    MockFlag::processName = "";
+    MockFlag::querySelfModularObjectRet = 0;
+    MockFlag::modularObjectInfos.clear();
 }
 } // namespace
 
@@ -643,7 +646,7 @@ HWTEST_F(ModularObjectUtilsTest, GetPidToCheckByCallerToken_006, TestSize.Level1
 
 /**
  * @tc.name: CheckPermission_ShouldReturnErrorWhenInProcessCrossApp
- * @tc.desc: IN_PROCESS with different caller bundleName returns ERR_INVALID_VALUE
+ * @tc.desc: IN_PROCESS with different caller bundleName returns ERR_MOE_CROSS_APP_IN_PROCESS
  */
 HWTEST_F(ModularObjectUtilsTest,
     CheckPermission_ShouldReturnErrorWhenInProcessCrossApp, TestSize.Level1)
@@ -655,7 +658,7 @@ HWTEST_F(ModularObjectUtilsTest,
     request.uid = 100;
     request.want.SetElement(ElementName("", "com.test.bundle", "TestAbility"));
     auto ret = ModularObjectUtils::CheckPermission(request);
-    EXPECT_EQ(ret, OHOS::ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, ERR_MOE_CROSS_APP_IN_PROCESS);
     GTEST_LOG_(INFO) << "CheckPermission_ShouldReturnErrorWhenInProcessCrossApp end";
 }
 
@@ -734,7 +737,7 @@ HWTEST_F(ModularObjectUtilsTest,
 
 /**
  * @tc.name: CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget
- * @tc.desc: Caller bundleName differs from target returns ERR_INVALID_VALUE
+ * @tc.desc: Caller bundleName differs from target returns ERR_MOE_CROSS_APP_IN_PROCESS
  */
 HWTEST_F(ModularObjectUtilsTest,
     CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget, TestSize.Level1)
@@ -742,7 +745,7 @@ HWTEST_F(ModularObjectUtilsTest,
     GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget start";
     // Default callerBundleName is "com.caller.bundle"
     auto ret = ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode::IN_PROCESS, "com.test.bundle");
-    EXPECT_EQ(ret, OHOS::ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, ERR_MOE_CROSS_APP_IN_PROCESS);
     GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnErrorWhenCallerDiffersFromTarget end";
 }
 
@@ -772,4 +775,344 @@ HWTEST_F(ModularObjectUtilsTest,
     auto ret = ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode::CROSS_PROCESS, "com.test.bundle");
     EXPECT_EQ(ret, ERR_OK);
     GTEST_LOG_(INFO) << "CheckInProcessLaunchMode_ShouldReturnOkWhenCrossProcessMode end";
+}
+
+// ==================== CheckLimits ====================
+
+HWTEST_F(ModularObjectUtilsTest, CheckLimits_ShouldReturnOkWhenBothUnderLimit, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckLimits_ShouldReturnOkWhenBothUnderLimit start";
+    auto ret = ModularObjectUtils::CheckLimits(0, 0);
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "CheckLimits_ShouldReturnOkWhenBothUnderLimit end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, CheckLimits_ShouldReturnInstanceLimitWhenInstanceAtLimit, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckLimits_ShouldReturnInstanceLimitWhenInstanceAtLimit start";
+    auto ret = ModularObjectUtils::CheckLimits(20, 0);
+    EXPECT_EQ(ret, ERR_MOE_INSTANCE_LIMIT);
+    GTEST_LOG_(INFO) << "CheckLimits_ShouldReturnInstanceLimitWhenInstanceAtLimit end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, CheckLimits_ShouldReturnConnectionLimitWhenConnectionAtLimit, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckLimits_ShouldReturnConnectionLimitWhenConnectionAtLimit start";
+    auto ret = ModularObjectUtils::CheckLimits(0, 5);
+    EXPECT_EQ(ret, ERR_MOE_CONNECTION_LIMIT);
+    GTEST_LOG_(INFO) << "CheckLimits_ShouldReturnConnectionLimitWhenConnectionAtLimit end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, CheckLimits_ShouldReturnInstanceLimitWhenBothOverLimit, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CheckLimits_ShouldReturnInstanceLimitWhenBothOverLimit start";
+    auto ret = ModularObjectUtils::CheckLimits(25, 10);
+    EXPECT_EQ(ret, ERR_MOE_INSTANCE_LIMIT);
+    GTEST_LOG_(INFO) << "CheckLimits_ShouldReturnInstanceLimitWhenBothOverLimit end";
+}
+
+// ==================== QueryConfig ====================
+
+HWTEST_F(ModularObjectUtilsTest, QueryConfig_ShouldReturnNullptrWhenQueryFails, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "QueryConfig_ShouldReturnNullptrWhenQueryFails start";
+    MockFlag::querySelfModularObjectRet = -1;
+    AbilityRequest request;
+    request.userId = 100;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.appInfo.appIndex = 0;
+    auto result = ModularObjectUtils::QueryConfig(request);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "QueryConfig_ShouldReturnNullptrWhenQueryFails end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, QueryConfig_ShouldReturnNullptrWhenEmptyInfos, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "QueryConfig_ShouldReturnNullptrWhenEmptyInfos start";
+    MockFlag::querySelfModularObjectRet = 0;
+    MockFlag::modularObjectInfos.clear();
+    AbilityRequest request;
+    request.userId = 100;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    request.appInfo.appIndex = 0;
+    auto result = ModularObjectUtils::QueryConfig(request);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "QueryConfig_ShouldReturnNullptrWhenEmptyInfos end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, QueryConfig_ShouldReturnNullptrWhenAbilityNameNotFound, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "QueryConfig_ShouldReturnNullptrWhenAbilityNameNotFound start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "OtherAbility";
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.userId = 100;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    request.appInfo.appIndex = 0;
+    auto result = ModularObjectUtils::QueryConfig(request);
+    EXPECT_EQ(result, nullptr);
+    GTEST_LOG_(INFO) << "QueryConfig_ShouldReturnNullptrWhenAbilityNameNotFound end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, QueryConfig_ShouldReturnConfigWhenAbilityNameMatched, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "QueryConfig_ShouldReturnConfigWhenAbilityNameMatched start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.userId = 100;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    request.appInfo.appIndex = 0;
+    auto result = ModularObjectUtils::QueryConfig(request);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->abilityName, "TestAbility");
+    EXPECT_EQ(result->launchMode, MoeLaunchMode::CROSS_PROCESS);
+    GTEST_LOG_(INFO) << "QueryConfig_ShouldReturnConfigWhenAbilityNameMatched end";
+}
+
+// ==================== SetupNewRecord ====================
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldNotCrashWhenServiceIsNull, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotCrashWhenServiceIsNull start";
+    AbilityRequest request;
+    std::shared_ptr<BaseExtensionRecord> nullService = nullptr;
+    ModularObjectUtils::SetupNewRecord(request, nullService, "key_123");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotCrashWhenServiceIsNull end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldNotSetProcessNameWhenConfigIsNull, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotSetProcessNameWhenConfigIsNull start";
+    MockFlag::modularObjectInfos.clear();
+    AbilityRequest request;
+    auto service = std::make_shared<BaseExtensionRecord>();
+    ModularObjectUtils::SetupNewRecord(request, service, "key_123");
+    EXPECT_EQ(AbilityRecord::processName_, "");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotSetProcessNameWhenConfigIsNull end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldUseProcessNameWhenInProcessMode, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldUseProcessNameWhenInProcessMode start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::IN_PROCESS;
+    MockFlag::modularObjectInfos = {info};
+    MockFlag::processName = "com.test.process";
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    AbilityRecord::processName_ = "";
+    ModularObjectUtils::SetupNewRecord(request, service, "key_456");
+    EXPECT_EQ(AbilityRecord::processName_, "com.test.process");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldUseProcessNameWhenInProcessMode end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldFallbackToAppProcessWhenAppMgrClientFails, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldFallbackToAppProcessWhenAppMgrClientFails start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::IN_PROCESS;
+    MockFlag::modularObjectInfos = {info};
+    MockFlag::getRunningProcessInfoRet = -1;
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    request.appInfo.process = "com.test.appprocess";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    AbilityRecord::processName_ = "";
+    ModularObjectUtils::SetupNewRecord(request, service, "key_789");
+    EXPECT_EQ(AbilityRecord::processName_, "com.test.appprocess");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldFallbackToAppProcessWhenAppMgrClientFails end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldFallbackToBundleNameWhenNoProcessInfo, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldFallbackToBundleNameWhenNoProcessInfo start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::IN_PROCESS;
+    MockFlag::modularObjectInfos = {info};
+    MockFlag::processName = "";
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    AbilityRecord::processName_ = "";
+    ModularObjectUtils::SetupNewRecord(request, service, "key_101");
+    EXPECT_EQ(AbilityRecord::processName_, "com.test.bundle");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldFallbackToBundleNameWhenNoProcessInfo end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldUseBundleProcessModeWhenCrossProcessBundle, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldUseBundleProcessModeWhenCrossProcessBundle start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    info.processMode = MoeProcessMode::BUNDLE;
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    request.abilityInfo.extensionTypeName = "modularObject";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    AbilityRecord::processName_ = "";
+    ModularObjectUtils::SetupNewRecord(request, service, "key_202");
+    EXPECT_EQ(AbilityRecord::processName_, "com.test.bundle:modularObject");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldUseBundleProcessModeWhenCrossProcessBundle end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldUseTypeProcessModeWhenCrossProcessType, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldUseTypeProcessModeWhenCrossProcessType start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    info.processMode = MoeProcessMode::TYPE;
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    AbilityRecord::processName_ = "";
+    ModularObjectUtils::SetupNewRecord(request, service, "key_303");
+    EXPECT_EQ(AbilityRecord::processName_, "com.test.bundle:TestAbility");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldUseTypeProcessModeWhenCrossProcessType end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldUseInstanceProcessModeWhenCrossProcessInstance, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldUseInstanceProcessModeWhenCrossProcessInstance start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    info.processMode = MoeProcessMode::INSTANCE;
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    AbilityRecord::recordId_ = 42;
+    AbilityRecord::processName_ = "";
+    ModularObjectUtils::SetupNewRecord(request, service, "key_404");
+    EXPECT_EQ(AbilityRecord::processName_, "com.test.bundle:TestAbility:42");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldUseInstanceProcessModeWhenCrossProcessInstance end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldSetRequestIdWhenUnderscoreExists, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldSetRequestIdWhenUnderscoreExists start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    info.processMode = MoeProcessMode::BUNDLE;
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    request.abilityInfo.extensionTypeName = "modularObject";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    BaseExtensionRecord::requestId_ = "";
+    ModularObjectUtils::SetupNewRecord(request, service, "key_myrandid123");
+    EXPECT_EQ(BaseExtensionRecord::requestId_, "myrandid123");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldSetRequestIdWhenUnderscoreExists end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldNotSetRequestIdWhenEmptyServiceKey, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotSetRequestIdWhenEmptyServiceKey start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    info.processMode = MoeProcessMode::BUNDLE;
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    request.abilityInfo.extensionTypeName = "modularObject";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    BaseExtensionRecord::requestId_ = "oldvalue";
+    std::string emptyKey;
+    ModularObjectUtils::SetupNewRecord(request, service, emptyKey);
+    EXPECT_EQ(BaseExtensionRecord::requestId_, "oldvalue");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotSetRequestIdWhenEmptyServiceKey end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldNotSetRequestIdWhenNoUnderscore, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotSetRequestIdWhenNoUnderscore start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    info.processMode = MoeProcessMode::BUNDLE;
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    request.abilityInfo.extensionTypeName = "modularObject";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    BaseExtensionRecord::requestId_ = "oldvalue";
+    ModularObjectUtils::SetupNewRecord(request, service, "noUnderscoreKey");
+    EXPECT_EQ(BaseExtensionRecord::requestId_, "oldvalue");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotSetRequestIdWhenNoUnderscore end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldSetEmptyRequestIdWhenTrailingUnderscore, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldSetEmptyRequestIdWhenTrailingUnderscore start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    info.processMode = MoeProcessMode::BUNDLE;
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    request.abilityInfo.extensionTypeName = "modularObject";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    BaseExtensionRecord::requestId_ = "oldvalue";
+    ModularObjectUtils::SetupNewRecord(request, service, "key_");
+    EXPECT_EQ(BaseExtensionRecord::requestId_, "");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldSetEmptyRequestIdWhenTrailingUnderscore end";
+}
+
+HWTEST_F(ModularObjectUtilsTest, SetupNewRecord_ShouldNotSetProcessNameWhenInvalidProcessMode, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotSetProcessNameWhenInvalidProcessMode start";
+    ModularObjectExtensionInfo info;
+    info.bundleName = "com.test.bundle";
+    info.abilityName = "TestAbility";
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    info.processMode = static_cast<MoeProcessMode>(99);
+    MockFlag::modularObjectInfos = {info};
+    AbilityRequest request;
+    request.abilityInfo.bundleName = "com.test.bundle";
+    request.abilityInfo.name = "TestAbility";
+    auto service = std::make_shared<BaseExtensionRecord>();
+    AbilityRecord::processName_ = "";
+    ModularObjectUtils::SetupNewRecord(request, service, "key_123");
+    EXPECT_EQ(AbilityRecord::processName_, "");
+    GTEST_LOG_(INFO) << "SetupNewRecord_ShouldNotSetProcessNameWhenInvalidProcessMode end";
 }

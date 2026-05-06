@@ -17,6 +17,8 @@
 #define MOCK_FLAG_H
 
 #include <stdint.h>
+#include <string>
+#include <vector>
 #include <sys/types.h>
 
 #include "modular_object_extension_info.h"
@@ -34,6 +36,7 @@ public:
     static int32_t getRunningProcessInfoRet;
     static int32_t processState;
     static bool isPreForeground;
+    static std::string processName;
 
     // system::GetBoolParameter
     static bool isDeveloperMode;
@@ -70,6 +73,10 @@ public:
 
     // RateLimiter
     static bool modularObjectLimited;
+
+    // ModularObjectManager
+    static int32_t querySelfModularObjectRet;
+    static std::vector<OHOS::AAFwk::ModularObjectExtensionInfo> modularObjectInfos;
 };
 
 #endif // MOCK_FLAG_H
