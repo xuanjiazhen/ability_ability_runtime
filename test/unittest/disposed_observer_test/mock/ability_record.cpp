@@ -15,6 +15,9 @@
 
 #include "ability_record.h"
 
+// Include session_info.h for complete SessionInfo type definition
+#include "session_info.h"
+
 namespace OHOS {
 namespace AAFwk {
 // Initialize static members

@@ -27,7 +27,7 @@ namespace OHOS {
 namespace AAFwk {
 class AbilityRecord;
 
-// Forward declaration - SessionInfo is defined in window_manager module
+// Forward declaration - SessionInfo is from ability_base:session_info
 class SessionInfo;
 
 /**

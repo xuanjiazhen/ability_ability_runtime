@@ -217,7 +217,7 @@ HWTEST_F(DisposedObserverTest, OnAbilityStateChanged_0100, Function | MediumTest
 
     // Create AbilityStateData with BACKGROUND state (not FOREGROUND)
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_BACKGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::BACKGROUND);
 
     // Verify: UnregisterObserver should NOT be called when state is not FOREGROUND
     EXPECT_CALL(*static_cast<MockDisposedRuleInterceptor*>(interceptor.get()),
@@ -253,7 +253,7 @@ HWTEST_F(DisposedObserverTest, OnAbilityStateChanged_0200, Function | MediumTest
 
     // Create AbilityStateData with FOREGROUND state
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::FOREGROUND);
     abilityStateData.uid = observerUid;
 
     // Expect UnregisterObserver to be called (token is null, so processing will be limited)
@@ -330,7 +330,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0200, Function | MediumTest | 
 
     // Step 1: Trigger OnAbilityStateChanged to set token_
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -379,7 +379,7 @@ HWTEST_F(DisposedObserverTest, OnAbilityStateChanged_0300, Function | MediumTest
 
     // Create AbilityStateData with FOREGROUND state but null token
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::FOREGROUND);
     abilityStateData.uid = observerUid;
     abilityStateData.token = nullptr;
 
@@ -439,7 +439,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0300, Function | MediumTest | 
 
     // Set token on observer
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -511,7 +511,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0400, Function | MediumTest | 
 
     // Set token on observer
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -582,7 +582,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0500, Function | MediumTest | 
 
     // Set token on observer
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -649,14 +649,16 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0600, Function | MediumTest | 
     AAFwk::Token::mockCreateModalResult = ERR_OK;
     AAFwk::Token::abilityRecord = abilityRecord;
 
-    // Note: SessionInfo is from window_manager module, use nullptr here
-    // This tests the code path where sessionInfo is null and missionId is used instead
-    AAFwk::Token::mockSessionInfo = nullptr;
-    AAFwk::Token::mockMissionId = 67890;
+    // Create mock sessionInfo with persistentId
+    sptr<SessionInfo> sessionInfo = sptr<SessionInfo>(new (std::nothrow) SessionInfo());
+    EXPECT_NE(sessionInfo, nullptr);
+    sessionInfo->persistentId = 67890;
+    AAFwk::Token::mockSessionInfo = sessionInfo;
+    AAFwk::Token::mockMissionId = 0;
 
     // Set token on observer
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -727,7 +729,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0700, Function | MediumTest | 
 
     // Set token on observer
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
