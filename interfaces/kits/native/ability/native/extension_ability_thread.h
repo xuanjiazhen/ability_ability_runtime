@@ -144,6 +144,8 @@ public:
      */
     int CreateModalUIExtension(const Want &want) override;
 
+    void ExecuteSkill(const Want &want) override;
+
     void HandleNativeExtensionAttach(
         const std::shared_ptr<AppExecFwk::AbilityLocalRecord> &abilityRecord,
         const std::string &abilityName);
@@ -245,9 +247,13 @@ private:
      */
     void HandleInsightIntent(const Want &want);
 
+    void HandleExecuteSkill(const Want &want);
+
     void ScheduleCommandAbilityInner(const Want &want, bool restart, int32_t startId);
 
     void ScheduleInsightIntentInner(const Want &want);
+
+    void ScheduleSkillExecuteInner(const Want &want);
 
     std::shared_ptr<ExtensionImpl> extensionImpl_ = nullptr;
     std::shared_ptr<Extension> currentExtension_ = nullptr;
