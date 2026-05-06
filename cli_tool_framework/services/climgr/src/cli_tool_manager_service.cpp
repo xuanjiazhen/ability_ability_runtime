@@ -63,6 +63,7 @@ sptr<CliToolManagerService> CliToolManagerService::GetInstance()
 
 int32_t CliToolManagerService::RegisterScheduler(const sptr<ICliToolManagerScheduler> &scheduler)
 {
+    InterfaceCallCounter counter(interfaceCalledCount_);
     if (EventDispatcher::GetInstance().RegisterScheduler(IPCSkeleton::GetCallingPid(), scheduler)) {
         return ERR_OK;
     }
@@ -71,6 +72,7 @@ int32_t CliToolManagerService::RegisterScheduler(const sptr<ICliToolManagerSched
 
 int32_t CliToolManagerService::UnregisterScheduler()
 {
+    InterfaceCallCounter counter(interfaceCalledCount_);
     EventDispatcher::GetInstance().UnregisterScheduler(IPCSkeleton::GetCallingPid());
     return ERR_OK;
 }
@@ -289,8 +291,9 @@ int32_t CliToolManagerService::OnIdle(const SystemAbilityOnDemandReason &idlReas
         sessionSize = static_cast<int32_t>(sessionRecords_.size());
     }
     int32_t calledCount = interfaceCalledCount_.load();
-    if (calledCount != 0 && sessionSize != 0) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "exist ipc");
+    if (calledCount != 0 || sessionSize != 0) {
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "service busy, calledCount=%{public}d, sessionSize=%{public}d",
+            calledCount, sessionSize);
         if (!CancelIdle()) {
             TAG_LOGW(AAFwkTag::CLI_TOOL, "Fail to cancel idle");
         }
@@ -537,6 +540,7 @@ void CliToolManagerService::HandleBackgroundSessionReply(
 
 int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::string &eventId)
 {
+    InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
         param.toolName.c_str(), param.subcommand.c_str());
 

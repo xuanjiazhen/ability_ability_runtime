@@ -16,9 +16,11 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#define protected public
 #define private public
 #include "cli_tool_manager_service.h"
 #undef private
+#undef protected
 
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
@@ -57,12 +59,14 @@ void CliToolManagerServiceTest::TearDownTestCase(void)
 void CliToolManagerServiceTest::SetUp()
 {
     service_ = CliToolManagerService::GetInstance();
+    service_->interfaceCalledCount_.store(0);
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
 }
 
 void CliToolManagerServiceTest::TearDown()
 {
+    service_->interfaceCalledCount_.store(0);
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
 }
@@ -92,6 +96,31 @@ HWTEST_F(CliToolManagerServiceTest, GetInstance_0100, TestSize.Level1)
     EXPECT_EQ(instance1.GetRefPtr(), instance2.GetRefPtr());
 
     GTEST_LOG_(INFO) << "CliToolManagerService_GetInstance_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_OnIdle_0100
+ * @tc.desc: Test OnIdle blocks unload when IPC or session is active
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnIdle_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnIdle_0100 start";
+
+    SystemAbilityOnDemandReason idleReason;
+
+    EXPECT_EQ(service_->OnIdle(idleReason), 0);
+
+    service_->interfaceCalledCount_.store(1);
+    EXPECT_EQ(service_->OnIdle(idleReason), -1);
+
+    service_->interfaceCalledCount_.store(0);
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "test_session";
+    service_->AddSessionRecord(record);
+    EXPECT_EQ(service_->OnIdle(idleReason), -1);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnIdle_0100 end";
 }
 
 /**
