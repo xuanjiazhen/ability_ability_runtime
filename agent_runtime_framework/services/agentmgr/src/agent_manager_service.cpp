@@ -1170,7 +1170,8 @@ int32_t AgentManagerService::PrepareLowCodeConnectPlan(const AgentHostKey &hostK
         }
     }
 
-    auto ret = TryRegisterConnectionLocked(connection, callingUid, session->hostConnection, &hostKey);
+    auto ret = TryRegisterConnectionLocked(connection, callingUid, session->hostConnection, &hostKey,
+        plan.needRealConnect);
     if (ret != ERR_OK) {
         if (plan.needRealConnect) {
             agentHostSessions_.erase(hostKey);
