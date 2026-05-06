@@ -312,7 +312,6 @@ ohos_unittest("ui_extension_modal_callback_test") {
   include_dirs = [
     "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_extension_base",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime",
   ]
 
   sources = [
@@ -325,7 +324,6 @@ ohos_unittest("ui_extension_modal_callback_test") {
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
     "${ability_runtime_native_path}/ability/native:ui_extension",
     "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_native_path}/appkit:appkit_native",
   ]
 
   external_deps = [
