@@ -175,8 +175,9 @@ ErrCode InsightIntentShellCommand::ParseExecuteIntentOptions(
 {
     int option = -1;
     int counter = 0;
+    constexpr int maxLoopCount = 64;
 
-    while (true) {
+    while (counter < maxLoopCount) {
         counter++;
         option = getopt_long(argc_, argv_, SHORT_OPTIONS_EXECUTE_INTENT.c_str(),
             LONG_OPTIONS_EXECUTE_INTENT, nullptr);
@@ -188,7 +189,8 @@ ErrCode InsightIntentShellCommand::ParseExecuteIntentOptions(
         if (optind < 0 || optind > argc_) {
             AppendErrorEvent("ERR_ARG_MISSING",
                 "Missing required parameters for execute-intent.",
-                "Please provide --bundleName, --moduleName and --intentName.");
+                "Please provide --bundleName, --moduleName "
+                "and --intentName.");
             return OHOS::ERR_INVALID_VALUE;
         }
 
@@ -206,7 +208,8 @@ ErrCode InsightIntentShellCommand::ParseExecuteIntentOptions(
             TAG_LOGI(AAFwkTag::CC_TOOL, "'ohos-claw-cc execute-intent' option unknown");
             AppendErrorEvent("ERR_ARG_INVALID",
                     "Unknown option for execute-intent.",
-                    "Run 'ohos-claw-cc execute-intent --help' for valid options.");
+                    "Run 'ohos-claw-cc execute-intent --help' "
+                    "for valid options.");
             return OHOS::ERR_INVALID_VALUE;
         }
 
@@ -229,7 +232,8 @@ ErrCode InsightIntentShellCommand::CheckRequiredExecuteParams(
         TAG_LOGE(AAFwkTag::CC_TOOL, "missing required parameters");
         AppendErrorEvent("ERR_ARG_MISSING",
                 "Missing required parameters for execute-intent.",
-                "Please provide --bundleName, --moduleName and --intentName.");
+                "Please provide --bundleName, --moduleName "
+                "and --intentName.");
         return OHOS::ERR_INVALID_VALUE;
     }
     return OHOS::ERR_OK;
@@ -241,8 +245,8 @@ ErrCode InsightIntentShellCommand::CheckAllExecuteParams(
     int32_t executeMode, const std::string &intentParamJson)
 {
     if (bundleName.empty() || moduleName.empty() ||
-        insightIntentName.empty() || executeMode < 0 ||
-        intentParamJson.empty()) {
+            insightIntentName.empty() || executeMode < 0 ||
+            intentParamJson.empty()) {
         TAG_LOGE(AAFwkTag::CC_TOOL, "missing required parameters");
         AppendErrorEvent("ERR_ARG_MISSING",
                 "Missing required parameters for execute-intent.",
@@ -291,9 +295,10 @@ ErrCode InsightIntentShellCommand::HandleExecuteIntentOption(
             break;
         case 'p':
             intentParamJson = optarg;
-            if (intentParamJson.size() >= 2 &&
+            constexpr size_t minQuotedLen = 2; // at least two quotes: '...'
+            if (intentParamJson.size() >= minQuotedLen &&
                 intentParamJson.front() == '\'' && intentParamJson.back() == '\'') {
-                intentParamJson = intentParamJson.substr(1, intentParamJson.size() - 2);
+                intentParamJson = intentParamJson.substr(1, intentParamJson.size() - minQuotedLen);
             }
             TAG_LOGI(AAFwkTag::CC_TOOL,
                 "intentParamJson: %{public}s", intentParamJson.c_str());
@@ -397,13 +402,15 @@ ErrCode InsightIntentShellCommand::RunAsGetIntentCommand()
 {
     TAG_LOGI(AAFwkTag::CC_TOOL, "get-intent command called");
 
-    int32_t flag = -1;
-    int32_t executeMode = -1;
+    int32_t flag = 0;
+    int32_t executeMode = 0;
+    bool hasFlag = false;
+    bool hasExecuteMode = false;
     std::string bundleName;
     std::string moduleName;
     std::string intentName;
 
-    auto result = ParseGetIntentOptions(flag, executeMode,
+    auto result = ParseGetIntentOptions(flag, executeMode, hasFlag, hasExecuteMode,
         bundleName, moduleName, intentName);
     if (result != OHOS::ERR_OK) {
         return result;
@@ -414,14 +421,15 @@ ErrCode InsightIntentShellCommand::RunAsGetIntentCommand()
 }
 
 ErrCode InsightIntentShellCommand::ParseGetIntentOptions(
-    int32_t &flag, int32_t &executeMode,
+    int32_t &flag, int32_t &executeMode, bool &hasFlag, bool &hasExecuteMode,
     std::string &bundleName, std::string &moduleName,
     std::string &intentName)
 {
     int option = -1;
     int counter = 0;
+    constexpr int maxLoopCount = 64;
 
-    while (true) {
+    while (counter < maxLoopCount) {
         counter++;
         option = getopt_long(argc_, argv_, SHORT_OPTIONS_GET_INTENT.c_str(),
             LONG_OPTIONS_GET_INTENT, nullptr);
@@ -455,19 +463,19 @@ ErrCode InsightIntentShellCommand::ParseGetIntentOptions(
             return OHOS::ERR_INVALID_VALUE;
         }
 
-        if (HandleGetIntentOption(option, flag, executeMode,
+        if (HandleGetIntentOption(option, flag, executeMode, hasFlag, hasExecuteMode,
             bundleName, moduleName, intentName) != OHOS::ERR_OK) {
             return OHOS::ERR_INVALID_VALUE;
         }
     }
 
-    return ValidateGetIntentParams(flag, executeMode);
+    return ValidateGetIntentParams(flag, executeMode, hasFlag, hasExecuteMode);
 }
 
 ErrCode InsightIntentShellCommand::ValidateGetIntentParams(
-    int32_t flag, int32_t executeMode)
+    int32_t flag, int32_t executeMode, bool hasFlag, bool hasExecuteMode)
 {
-    if (executeMode < 0 || flag < 0) {
+    if (!hasExecuteMode || !hasFlag) {
         TAG_LOGE(AAFwkTag::CC_TOOL, "missing required parameters -e or -f");
         AppendErrorEvent("ERR_ARG_MISSING",
             "Missing required parameters --executeMode and --flag.",
@@ -475,7 +483,10 @@ ErrCode InsightIntentShellCommand::ValidateGetIntentParams(
         return OHOS::ERR_INVALID_VALUE;
     }
 
-    if (flag != 1 && flag != 2 && flag != 5 && flag != 6) {
+    if (flag != static_cast<int32_t>(AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT) &&
+        flag != static_cast<int32_t>(AbilityRuntime::GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT) &&
+        flag != static_cast<int32_t>(AbilityRuntime::GetInsightIntentFlag::GET_FULL_INSIGHT_INTENT_ENTITY) &&
+        flag != static_cast<int32_t>(AbilityRuntime::GetInsightIntentFlag::GET_SUMMARY_INSIGHT_INTENT_ENTITY)) {
         TAG_LOGE(AAFwkTag::CC_TOOL, "invalid flag: %{public}d", flag);
         AppendErrorEvent("ERR_ARG_INVALID",
             "Invalid flag value: " + std::to_string(flag),
@@ -490,6 +501,7 @@ ErrCode InsightIntentShellCommand::ValidateGetIntentParams(
 
 ErrCode InsightIntentShellCommand::HandleGetIntentOption(
     int option, int32_t &flag, int32_t &executeMode,
+    bool &hasFlag, bool &hasExecuteMode,
     std::string &bundleName, std::string &moduleName,
     std::string &intentName)
 {
@@ -504,6 +516,7 @@ ErrCode InsightIntentShellCommand::HandleGetIntentOption(
                     "ExecuteMode must be an integer 1-3.");
                 return OHOS::ERR_INVALID_VALUE;
             }
+            hasExecuteMode = true;
             TAG_LOGI(AAFwkTag::CC_TOOL, "executeMode: %{public}d", executeMode);
             break;
         case 'f':
@@ -513,6 +526,7 @@ ErrCode InsightIntentShellCommand::HandleGetIntentOption(
                     "Flag must be an integer 1-7.");
                 return OHOS::ERR_INVALID_VALUE;
             }
+            hasFlag = true;
             TAG_LOGI(AAFwkTag::CC_TOOL, "flag: %{public}d", flag);
             break;
         case 'b':
@@ -615,17 +629,17 @@ ErrCode InsightIntentShellCommand::ValidateExecuteMode(int32_t executeMode)
 ErrCode InsightIntentShellCommand::RunGetIntentModeAll(int32_t flag)
 {
     std::vector<AbilityRuntime::InsightIntentInfoForQuery> infos;
+
     TAG_LOGI(AAFwkTag::CC_TOOL,
         "GetAllInsightIntentInfo with flag: %{public}d", flag);
-
     auto err = AbilityManagerClient::GetInstance()->GetAllInsightIntentInfo(
         static_cast<AbilityRuntime::GetInsightIntentFlag>(flag), infos,
         DEFAULT_USER_ID);
-
     if (err == OHOS::ERR_OK) {
         TAG_LOGI(AAFwkTag::CC_TOOL,
             "get all insight intent info successfully, count: %{public}zu",
             infos.size());
+
         nlohmann::json data;
         data["mode"] = "all";
         data["total"] = infos.size();
@@ -634,11 +648,11 @@ ErrCode InsightIntentShellCommand::RunGetIntentModeAll(int32_t flag)
     } else {
         TAG_LOGE(AAFwkTag::CC_TOOL,
             "get all insight intent info failed: %{public}d", err);
+
         AppendErrorEvent("ERR_INTERNAL_ERROR",
             "Failed to get all insight intent info: " + GetMessageFromCode(err),
             "Check if AbilityManagerService is running.");
     }
-
     return err;
 }
 
@@ -738,7 +752,10 @@ void InsightIntentShellCommand::AppendErrorEvent(const std::string &errCode,
     event["errMsg"] = errMsg;
     event["suggestion"] = suggestion;
     resultReceiver_.append(event.dump());
-    fprintf(stderr, "%s\n", event.dump().c_str());
+    int ret = fprintf(stderr, "%s\n", event.dump().c_str());
+    if (ret < 0) {
+        TAG_LOGE(AAFwkTag::CC_TOOL, "fprintf stderr failed");
+    }
 }
 
 bool InsightIntentShellCommand::ShouldAppendEntityInfo(int32_t flag) const
