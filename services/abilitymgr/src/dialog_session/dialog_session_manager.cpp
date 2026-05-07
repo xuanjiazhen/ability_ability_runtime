@@ -244,6 +244,7 @@ void DialogSessionManager::GenerateDialogCallerInfo(AbilityRequest &abilityReque
     dialogCallerInfo->userId = userId;
     dialogCallerInfo->needGrantUriPermission = needGrantUriPermission;
     dialogCallerInfo->callerAccessTokenId = abilityRequest.callerAccessTokenId;
+    dialogCallerInfo->requestCallback = abilityRequest.requestCallback;
 }
 
 void DialogSessionManager::NotifyAbilityRequestFailure(const std::string &dialogSessionId, const Want &want)
@@ -313,7 +314,7 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
     CHECK_POINTER_AND_RETURN(abilityMgr, INNER_ERR);
     int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
         dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
-        dialogCallerInfo->callerAccessTokenId);
+        dialogCallerInfo->callerAccessTokenId, dialogCallerInfo->requestCallback);
     if (ret == ERR_OK) {
         ClearDialogContext(dialogSessionId);
         abilityMgr->RemoveSelectorIdentity(dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
