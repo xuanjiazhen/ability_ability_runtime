@@ -315,3 +315,168 @@ aa force-stop <bundle-name>
 - `ace_engine`：ArkUI 引擎
 - `ets_runtime`：ETS 运行时
 - `napi`：NAPI 框架
+
+## Skill 执行框架
+
+### 架构概览
+
+Skill 执行框架允许调用方（如小艺 claw）通过 `executeSkill` 接口调度目标 App 执行特定函数，并通过 IPC callback 异步获取执行结果。
+
+**数据流**：
+```
+调用方 App → NAPI executeSkill → IPC ExecuteInAppSkill(callback) → AMS
+  → SkillExecuteManager(CreateExecuteRecord) → 调度目标 Ability
+  → 目标 App funcName 执行 → completeArkTSScriptInApp → AMS ExecuteSkillDone
+  → callback.OnExecuteDone → 调用方 Promise resolve(ExecuteResult)
+```
+
+### 关键文件
+
+| 层级 | 文件 | 职责 |
+|------|------|------|
+| IPC 接口 | `interfaces/inner_api/ability_manager/include/skill/skill_execute_callback.h` | ISkillExecuteCallback 回调接口 |
+| IPC Stub | `services/abilitymgr/include/skill/skill_execute_callback_stub.h` + `.cpp` | 回调 Stub 实现 |
+| IPC Proxy | `services/abilitymgr/include/skill/skill_execute_callback_proxy.h` + `.cpp` | 回调 Proxy（TF_ASYNC） |
+| AMS 管理 | `services/abilitymgr/include/skill/skill_execute_manager.h` + `.cpp` | 执行记录管理、权限检查、Want 生成 |
+| 执行记录 | `services/abilitymgr/include/skill/skill_execute_record.h` | SkillExecuteRecord 结构体 |
+| 参数序列化 | `services/abilitymgr/include/skill/skill_execute_param.h` + `.cpp` | Want 参数读写 |
+| 结果结构 | `services/abilitymgr/include/skill/skill_execute_result.h` | SkillExecuteResult 结构体 |
+| NAPI 入口（调用方） | `cli_tool_framework/frameworks/js/napi/skill_driver/src/js_skill_driver.cpp` | execSkillTool + SkillExecuteCallbackImpl |
+| NAPI 入口（目标方） | `cli_tool_framework/frameworks/js/napi/script_manager/src/js_script_manager.cpp` | completeArkTSScriptInApp |
+| 目标方 UIAbility | `frameworks/native/ability/native/ability_runtime/js_ui_ability.cpp` | ExecuteSkill 处理 |
+| 目标方 ServiceExtension | `frameworks/native/ability/native/js_service_extension.cpp` | ExecuteSkill 处理 |
+| AMS 入口 | `services/abilitymgr/src/ability_manager_service.cpp` | ExecuteInAppSkill 调度 |
+
+### 已修复的陷阱
+
+1. **双 NapiAsyncTask Bug**: `CreateAsyncTaskWithLastParam` 和 `NapiAsyncTask::Schedule` 各创建了一个 task，导致返回的 Promise 和实际 resolve 的 Promise 不是同一个对象。修复：使用单个 deferred Promise。
+
+2. **Binder 线程调用 napi**: `OnExecuteDone` 在 binder 线程触发，不能直接调用 napi。修复：使用 `JsCliEventHandlerManager::PostTask()` 投递到 JS 主线程。
+
+3. **WantParams API**: `want.Params()` 不存在，正确 API 是 `want.GetParams()`（返回 `const WantParams&`）。非 const 操作需要值拷贝 → 修改 → `want.SetParams()` 写回。
+
+4. **DeathRecipient 不可用 lambda 构造**: `IRemoteObject::DeathRecipient` 有纯虚函数 `OnRemoteDied`，不能直接用 lambda。需创建 `CallerDeathRecipient` 具体子类。
+
+5. **SkillType 枚举**: `SkillInfo.skillType` 是 `enum class SkillType`，不能隐式转为 `int32_t`，需 `static_cast<int32_t>()`。
+
+6. **sptr 隐式转换**: `sptr<IInterface>` 有 `operator T*()` 可隐式转为裸指针，`SetParam(key, sptr_val)` 无需 `.GetRefPtr()`。
+
+### 需要重建的 .so 文件
+
+| .so 文件 | 构建目标 | 涉及修改 |
+|----------|----------|----------|
+| `libabilityms.so` | abilityms | skill_execute_manager, skill_execute_callback_proxy, skill_execute_callback_stub, ability_manager_service, ability_manager_stub |
+| `libability_manager.so` | ability_manager | skill_execute_callback_stub, ability_manager_proxy, ability_manager_client |
+| `libcli_tool_manager.z.so` | cli_tool_manager | js_cli_manager (原有 CLI 接口) |
+| `libskilldriver_napi.z.so` | skilldriver_napi | js_skill_driver (execSkillTool) |
+| `libscriptmanager_napi.z.so` | scriptmanager_napi | js_script_manager (completeArkTSScriptInApp) |
+| `libace.compatible.z.so` | ace_compatible | js_ui_ability (ExecuteSkill 处理) |
+| `libability_extension.z.so` | 详见 framework native BUILD | js_service_extension (ExecuteSkill 处理) |
+| `libcli_tool_napi.z.so` | cli_tool_napi | aa 命令 exec-skill 入口 |
+
+### executeSkill 支持的参数类型
+
+`ExtractSkillArgs` 在 `js_skill_driver.cpp` 中将 JS 参数转为 WantParams：
+- `napi_string` → `AAFwk::String::Box(str)`
+- `napi_number`（整数） → `AAFwk::Integer::Box(intVal)`
+- `napi_number`（浮点） → `AAFwk::Double::Box(dblVal)`
+- `napi_boolean` → `AAFwk::Bool::Box(boolVal)`
+
+## Code Audit: without-token ExecuteSkillDone removal (2026-05-04)
+
+### 修改内容
+
+1. 移除了 without-token 的 `ExecuteSkillDone` 重载（3参数版本：requestCode, resultCode, result）
+2. 移除了 `JsUIAbility::ReportSkillDone` 和 `JsServiceExtension::ReportSkillDone`
+3. 移除了 IPC code `EXECUTE_IN_APP_SKILL_DONE = 6170`
+
+### 审计结果
+
+**代码一致性：通过**
+
+- IPC 枚举：`EXECUTE_IN_APP_SKILL_DONE = 6170` 已完全移除，保留值 6169/6171/6172 无冲突
+- 接口层：`IAbilityManager` 只保留 `ExecuteSkillDone(token, requestCode, resultCode, result)` 带默认实现
+- Proxy：只有带 token 的 `ExecuteSkillDone` 实现，使用 `EXECUTE_SKILL_DONE_WITH_TOKEN = 6172`
+- Stub：只有 `ExecuteSkillDoneWithTokenInner`，switch case 正确路由
+- Client：`AbilityManagerClient::ExecuteSkillDone` 签名为 `sptr<IRemoteObject> token`（按值，非 override，安全）
+- Service：只有带 token 版本，从 token 获取 abilityRecord 后提取 bundleName 传给 SkillExecuteManager
+- SkillExecuteManager：`ExecuteSkillDone(requestCode, resultCode, result, callerBundleName)`，callerBundleName 始终非空
+
+**目标方文件：通过**
+
+- `js_ui_ability.h/.cpp`：ReportSkillDone 已完全移除，ExecuteSkill 保留，无死代码
+- `js_service_extension.h/.cpp`：ReportSkillDone 已完全移除，ExecuteSkill 保留，无死代码
+
+**测试 Mock 文件（11个）：通过**
+
+所有 mock 文件只包含 `MOCK_METHOD4(ExecuteSkillDone, ...)` 带签名 `(const sptr<IRemoteObject>&, const std::string&, int32_t, const SkillExecuteResult&)`，没有残留的旧 MOCK_METHOD3
+
+**已确认的预存问题（非本次修改引入）**
+
+- 枚举值冲突：`RECORD_APP_WITH_REASON_BY_USERID = 6010` 和 `REGISTER_SESSION_HANDLER = 6010` 共用同一值
+- 枚举间隔：6170 被跳过（有意为之，不影响功能）
+- `napi_value result` 在 `ExecuteSkill` 中被 `napi_call_function` 写入但未被读取（设计如此，future use）
+
+**文档文件未更新（低优先级）**
+
+- `skill.md` 和 `execute_skill.md` 仍引用旧的 3 参数 `ExecuteSkillDone` 和 `EXECUTE_IN_APP_SKILL_DONE`
+
+## NAPI 模块拆分 (2026-05-04)
+
+### 概述
+
+Skill 相关的 NAPI 接口从 `js_cli_manager.cpp`（cliManager 模块）拆分为独立模块，对应各自的 `.d.ts` 定义：
+
+| 模块 | 模块名 | .so 文件 | 接口 | 权限 |
+|------|--------|----------|------|------|
+| cliManager | `app.cli.cliManager` | `libclimanager_napi.z.so` | execTool, subscribeSession 等 | @systemapi |
+| skillDriver | `app.ability.skillDriver` | `libskilldriver_napi.z.so` | execSkillTool | @systemapi |
+| scriptManager | `app.ability.scriptManager` | `libscriptmanager_napi.z.so` | completeArkTSScriptInApp, completeArkTSScript | @atomicservice |
+
+### 目录结构
+
+```
+cli_tool_framework/frameworks/js/napi/
+├── cli_tool_manager/          (精简后，仅保留 CLI 原有接口)
+│   ├── BUILD.gn               (新增 cli_manager_error_utils_src, js_cli_event_handler_manager_src source_set)
+│   ├── include/js_cli_manager.h
+│   └── src/js_cli_manager.cpp
+├── skill_driver/              (新建，调用方接口)
+│   ├── BUILD.gn
+│   ├── include/js_skill_driver.h
+│   └── src/js_skill_driver.cpp, skill_driver_module.cpp
+└── script_manager/            (新建，目标方接口)
+    ├── BUILD.gn
+    ├── include/js_script_manager.h
+    └── src/js_script_manager.cpp, script_manager_module.cpp
+```
+
+### 共享代码
+
+- `cli_manager_error_utils.h/.cpp`：错误码映射，通过 `cli_manager_error_utils_src` source_set 共享
+- `js_cli_event_handler_manager.h/.cpp`：事件线程投递，通过 `js_cli_event_handler_manager_src` source_set 共享
+- `napi_common_skill_execute.h/.cpp`：SkillExecuteResult 序列化，已在 napi_common 库中
+
+## 遗留任务
+
+### TODO-1: Skill 执行超时机制
+
+**状态**: 已完成
+
+**问题**: `SkillExecuteManager` 缺少服务端超时保护。目标方不调 `completeArkTSScriptInApp` 时，record 永远处于 `EXECUTING` 状态，无自动清理。
+
+**方案**: 复用 AMS EventHandler 超时框架（与 InsightIntent 一致），超时倍数 `SKILL_EXECUTE_TIMEOUT_MULTIPLE = INSIGHT_INTENT_TIMEOUT_MULTIPLE`。
+
+**已修改文件**（8 个）:
+- `global_constant.h` — 添加 `SKILL_EXECUTE_TIMEOUT_MULTIPLE`（SUPPORT_ASAN 和非 ASAN 两处）
+- `ability_manager_service.h` — 添加 `SKILL_EXECUTE_TIMEOUT_MSG = 12` + `HandleSkillExecuteTimeOut` 声明
+- `ability_manager_service.cpp` — `HandleSkillExecuteTimeOut` 实现，委托给 `SkillExecuteManager::OnTimeout`
+- `ability_event_handler.h/.cpp` — 添加 `ProcessSkillExecuteTimeOut` + switch case
+- `skill_execute_record.h` — 添加 `TIMED_OUT` 状态 + `requestCodeSeq` 字段
+- `skill_execute_manager.h/.cpp` — `PostSkillExecuteTimeout`、`RemoveSkillExecuteTimeoutLocked`、`OnTimeout` 实现
+
+### TODO-2: 调用方 DispatchExecuteSkill 异步化
+
+**状态**: 已完成
+
+已将 `js_skill_driver.cpp` 的 `DispatchExecuteSkill`（`QuerySkillType` + `ExecuteInAppSkill` 同步 IPC）从 JS 主线程移到 `NapiAsyncTask::Schedule` worker 线程，避免阻塞 JS 事件循环。
