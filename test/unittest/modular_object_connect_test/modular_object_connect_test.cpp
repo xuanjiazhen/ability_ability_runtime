@@ -33,6 +33,9 @@ using namespace OHOS::AppExecFwk;
 
 // Declare mock control functions (defined in mock_modular_object_manager.cpp)
 extern void ClearMockModularObjectConfig();
+extern void SetMockModularObjectConfigs(
+    const std::vector<OHOS::AAFwk::ModularObjectExtensionInfo> &configs);
+extern void SetMockModularObjectConfigError();
 
 namespace OHOS {
 namespace AAFwk {
@@ -631,6 +634,55 @@ HWTEST_F(ModularObjectConnectTest,
     // CheckModularObjectLimits uses single-snapshot, should detect connection limit
     auto ret = connectManager_->CheckModularObjectLimits(request);
     EXPECT_EQ(ret, ERR_MOE_CONNECTION_LIMIT);
+}
+
+/**
+ * @tc.name: HandleExtensionSetup_ShouldReturnOkWhenNotModularObject
+ * @tc.desc: Non-MODULAR_OBJECT type returns ERR_OK directly without calling SetupNewRecord
+ */
+HWTEST_F(ModularObjectConnectTest,
+    HandleExtensionSetup_ShouldReturnOkWhenNotModularObject, TestSize.Level1)
+{
+    AbilityRequest request;
+    request.abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::SERVICE;
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    auto ret = connectManager_->HandleExtensionSetup(request, service, "key_123");
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: HandleExtensionSetup_ShouldDelegateToSetupNewRecordWhenModularObject
+ * @tc.desc: MODULAR_OBJECT delegates to SetupNewRecord and propagates success
+ */
+HWTEST_F(ModularObjectConnectTest,
+    HandleExtensionSetup_ShouldDelegateToSetupNewRecordWhenModularObject, TestSize.Level1)
+{
+    ModularObjectExtensionInfo info;
+    info.bundleName = TEST_BUNDLE;
+    info.abilityName = TEST_ABILITY;
+    info.launchMode = MoeLaunchMode::CROSS_PROCESS;
+    info.processMode = MoeProcessMode::BUNDLE;
+    SetMockModularObjectConfigs({info});
+
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    auto ret = connectManager_->HandleExtensionSetup(request, service, "key_456");
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: HandleExtensionSetup_ShouldPropagateErrorWhenSetupNewRecordFails
+ * @tc.desc: MODULAR_OBJECT propagates SetupNewRecord failure
+ */
+HWTEST_F(ModularObjectConnectTest,
+    HandleExtensionSetup_ShouldPropagateErrorWhenSetupNewRecordFails, TestSize.Level1)
+{
+    SetMockModularObjectConfigError();
+
+    auto request = MakeModularObjectRequest();
+    auto service = BaseExtensionRecord::CreateBaseExtensionRecord(request);
+    auto ret = connectManager_->HandleExtensionSetup(request, service, "key_789");
+    EXPECT_NE(ret, ERR_OK);
 }
 } // AAFwk
 } // OHOS
