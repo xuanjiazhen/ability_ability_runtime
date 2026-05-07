@@ -144,6 +144,9 @@ public:
     ErrCode SetBundleFirstLaunch(const std::string &bundleName, int32_t userId, int32_t appIndex,
         bool isBundleFirstLaunched);
 
+    bool QueryAbilityInfos(const Want &want, std::vector<AbilityInfo> &abilityInfos);
+    bool QueryEnabledAbilityInfo(const Want &want, AbilityInfo &abilityInfo);
+
 private:
     sptr<IBundleMgr> Connect();
     sptr<IBundleMgr> Connect(bool checkBmsReady);

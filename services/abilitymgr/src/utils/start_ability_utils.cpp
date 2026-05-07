@@ -33,6 +33,8 @@ namespace {
 constexpr int32_t ERMS_ISALLOW_RESULTCODE = 10;
 constexpr const char* PARAM_RESV_ANCO_CALLER_UID = "ohos.anco.param.callerUid";
 constexpr const char* PARAM_RESV_ANCO_CALLER_BUNDLENAME = "ohos.anco.param.callerBundleName";
+
+constexpr const char* PARAM_ENABLE_CLONE_TEST = "ohos.anco.param.enableCloneTest";
 }
 thread_local std::shared_ptr<StartAbilityInfo> StartAbilityUtils::startAbilityInfo;
 thread_local std::shared_ptr<StartAbilityInfo> StartAbilityUtils::callerAbilityInfo;
@@ -170,7 +172,8 @@ StartAbilityInfoWrap::StartAbilityInfoWrap(const Want &want, int32_t validUserId
     StartAbilityUtils::ermsSupportBackToCallerFlag = false;
     StartAbilityUtils::isWantWithAppCloneIndex = false;
     if ((want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY) && appIndex >= 0 &&
-        appIndex < AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) || StartAbilityUtils::startSpecifiedBySCB) {
+        appIndex < AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) || StartAbilityUtils::startSpecifiedBySCB ||
+        want.GetBoolParam(PARAM_ENABLE_CLONE_TEST, false)) {
         StartAbilityUtils::isWantWithAppCloneIndex = true;
     }
 }
@@ -223,6 +226,17 @@ std::shared_ptr<StartAbilityInfo> QueryAbilityInfo(const Want &want, int32_t use
         }
         return request;
     }
+
+    // 测试代码，当前策略，优先使用用户传递的appIndex
+    if (want.GetBoolParam(PARAM_ENABLE_CLONE_TEST, false)) {
+        auto ret = IN_PROCESS_CALL(bms->(want, request->abilityInfo));
+        if (!ret) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "QueryEnabledAbilityInfo failed");
+            request->status = RESOLVE_ABILITY_ERR;
+        }
+        return request;
+    }
+
     if (appIndex == 0) {
         if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
             auto caller = Token::GetAbilityRecordByToken(callerToken);

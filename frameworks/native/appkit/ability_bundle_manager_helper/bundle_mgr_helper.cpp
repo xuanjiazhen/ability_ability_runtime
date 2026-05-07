@@ -1187,5 +1187,53 @@ ErrCode BundleMgrHelper::SetBundleFirstLaunch(const std::string &bundleName, int
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     return bundleMgr->SetBundleFirstLaunch(bundleName, userId, appIndex, isBundleFirstLaunched);
 }
+
+bool BundleMgrHelper::QueryAbilityInfos(const Want &want, std::vector<AbilityInfo> &abilityInfos)
+{
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "QueryAbilityInfos");
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
+        return false;
+    }
+
+    RecordCostTimeUtil timeRecord("QueryAbilityInfos");
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    bool ret = bundleMgr->QueryAbilityInfos(want, abilityInfos);
+    for (auto &abilityInfo : abilityInfos) {
+        SetAbilityProcessEmpty(abilityInfo);
+    }
+    return ret;
+}
+
+bool BundleMgrHelper::QueryEnabledAbilityInfo(const Want &want, AbilityInfo &abilityInfo)
+{
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "QueryEnabledAbilityInfo");
+    std::vector<AbilityInfo> abilityInfos;
+    if (!QueryAbilityInfos(want, abilityInfos)) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "QueryAbilityInfos failed");
+        return false;
+    }
+
+    if (abilityInfos.size() > 1u) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "too many infos: %{public}zu", abilityInfos.size());
+    }
+
+    for (const auto &info : abilityInfos) {
+        TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER,
+            "abilityInfo: bundleName=%{public}s, abilityName=%{public}s, appIndex=%{public}d, enabled=%{public}d",
+            info.bundleName.c_str(), info.name.c_str(), info.appIndex, info.applicationInfo.enabled);
+        if (info.applicationInfo.enabled) {
+            abilityInfo = info;
+            TAG_LOGI(AAFwkTag::BUNDLEMGRHELPER,
+                "found enabled ability, bundleName=%{public}s, abilityName=%{public}s, appIndex=%{public}d",
+                abilityInfo.bundleName.c_str(), abilityInfo.name.c_str(), abilityInfo.appIndex);
+            return true;
+        }
+    }
+
+    TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "no enabled ability found");
+    return false;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS
