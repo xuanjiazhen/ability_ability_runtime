@@ -22,6 +22,9 @@ int main(int argc, char* argv[])
 {
     AAFwk::InsightIntentShellCommand cmd(argc, argv);
     auto result = cmd.ExecCommand();
-    fprintf(stdout, "%s\n", result.c_str());
+    int ret = fprintf(stdout, "%s\n", result.c_str());
+    if (ret < 0) {
+        TAG_LOGE(AAFwkTag::CC_TOOL, "fprintf failed");
+    }
     return 0;
 }
