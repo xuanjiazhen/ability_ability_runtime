@@ -109,6 +109,11 @@ private:
 
     ErrCode RunAsHelpCommand();
     ErrCode RunAsExecuteIntentCommand();
+    InsightIntentExecuteParam BuildExecuteParam(
+        const std::string &bundleName, const std::string &moduleName,
+        const std::string &abilityName, const std::string &insightIntentName,
+        int32_t executeMode, int8_t decoratorType,
+        const std::string &intentParamJson);
     ErrCode RunAsGetIntentCommand();
 
     ErrCode ParseExecuteIntentOptions(std::string &bundleName, std::string &moduleName,
@@ -126,7 +131,8 @@ private:
         const std::string &insightIntentName,
         const std::string &abilityName, int32_t executeMode,
         const std::string &intentParamJson);
-    ErrCode ValidateGetIntentParams(int32_t flag, int32_t executeMode);
+    ErrCode ValidateGetIntentParams(int32_t flag, int32_t executeMode,
+        bool hasFlag, bool hasExecuteMode);
     ErrCode ValidateIntentFromDatabase(const std::string &bundleName,
         const std::string &moduleName,
         const std::string &insightIntentName,
@@ -136,10 +142,11 @@ private:
     void AppendExecuteResult(const InsightIntentExecuteResult &executeResult);
 
     ErrCode ParseGetIntentOptions(int32_t &flag, int32_t &executeMode,
-        std::string &bundleName,
+        bool &hasFlag, bool &hasExecuteMode, std::string &bundleName,
         std::string &moduleName, std::string &intentName);
     ErrCode HandleGetIntentOption(int option, int32_t &flag,
-        int32_t &executeMode, std::string &bundleName,
+        int32_t &executeMode, bool &hasFlag, bool &hasExecuteMode,
+        std::string &bundleName,
         std::string &moduleName, std::string &intentName);
     ErrCode DispatchGetIntentMode(int32_t executeMode, int32_t flag,
         const std::string &bundleName,

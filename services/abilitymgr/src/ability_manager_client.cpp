@@ -2170,11 +2170,11 @@ ErrCode AbilityManagerClient::QueryEntityInfo(uint64_t key, sptr<IRemoteObject> 
 namespace {
 constexpr int32_t INSIGHT_INTENT_EXECUTE_TIMEOUT = AbilityRuntime::INSIGHT_INTENT_EXECUTE_REPLY_FAILED;
 
-class SyncInsightIntentCallback : public AbilityRuntime::InsightIntentExecuteCallbackInterface{
+class SyncInsightIntentCallback : public AbilityRuntime::InsightIntentExecuteCallbackInterface {
 public:
-    explicit SyncInsightIntentCallback(std::shared_ptr<std::promise<AppExecFwk::InsightIntentExecuteResult>> promise)
+    explicit SyncInsightIntentCallback(
+        std::shared_ptr<std::promise<AppExecFwk::InsightIntentExecuteResult>> promise)
         : promise_(promise) {}
-
 
     void ProcessInsightIntentExecute(int32_t resultCode,
         AppExecFwk::InsightIntentExecuteResult executeResult) override
