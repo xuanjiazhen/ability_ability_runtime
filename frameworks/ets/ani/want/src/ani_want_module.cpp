@@ -269,7 +269,7 @@ ani_boolean EtsWantParams::NativeSetLongParam(ani_env *env, ani_object, ani_long
         return false;
     }
 
-    params->SetParam(keyString, AAFwk::Long::Box(value));
+    params->SetParam(keyString, AAFwk::Long::Box64(value));
     return true;
 }
 
