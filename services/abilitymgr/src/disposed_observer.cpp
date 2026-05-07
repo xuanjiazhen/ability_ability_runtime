@@ -126,7 +126,7 @@ ErrCode DisposedObserver::ExecuteUIExtension(const AppExecFwk::PageStateData &pa
         bool ret = IN_PROCESS_CALL(systemUIExtension->CreateModalUIExtension(want));
         if (!ret) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "Modal system UIExtension creation failed");
-            return ret;
+            return INNER_ERR;
         }
         return ERR_OK;
     }
