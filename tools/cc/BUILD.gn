@@ -106,7 +106,7 @@ ohos_executable("ohos-claw-cc") {
 }
 
 ohos_prebuilt_etc("ohos_claw_cc_config") {
-  source = "ohos-calw-cc.json"
+  source = "ohos-claw-cc.json"
   module_install_dir = "cli_tool"
   part_name = "ability_runtime"
   subsystem_name = "ability"

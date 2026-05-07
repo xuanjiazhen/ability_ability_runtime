@@ -754,7 +754,6 @@ int32_t InsightIntentExecuteManager::CheckGetInsightIntenInfoPermission(
 
     bool isSystemAppCall =
         PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI();
-
     if (isSystemAppCall && !targetBundleName.empty()) {
         auto callerBundle = GetCallerBundleNameByUid();
         if (!callerBundle.empty() && callerBundle == targetBundleName) {
