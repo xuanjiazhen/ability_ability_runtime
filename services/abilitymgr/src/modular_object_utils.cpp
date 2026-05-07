@@ -96,7 +96,7 @@ int32_t ModularObjectUtils::CheckPermission(const AbilityRequest &abilityRequest
     if (ret != ERR_OK) {
         return ret;
     }
-    ret = CheckInProcessLaunchMode(targetExtensionInfo.launchMode, bundleName);
+    ret = CheckInProcessLaunchMode(targetExtensionInfo.launchMode, abilityRequest.uid);
     if (ret != ERR_OK) {
         return ret;
     }
@@ -128,26 +128,15 @@ int32_t ModularObjectUtils::CheckExtensionEnabled(const ModularObjectExtensionIn
     return ERR_OK;
 }
 
-int32_t ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode launchMode, const std::string &targetBundleName)
+int32_t ModularObjectUtils::CheckInProcessLaunchMode(MoeLaunchMode launchMode, int32_t targetUid)
 {
     if (launchMode != MoeLaunchMode::IN_PROCESS) {
         return ERR_OK;
     }
     int32_t callingUid = IPCSkeleton::GetCallingUid();
-    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
-    CHECK_POINTER_AND_RETURN(bundleMgrHelper, INNER_ERR);
-    std::string callerBundleName;
-    int32_t callerAppIndex = 0;
-    auto ret = IN_PROCESS_CALL(
-        bundleMgrHelper->GetNameAndIndexForUid(callingUid, callerBundleName, callerAppIndex));
-    if (ret != ERR_OK) {
-        TAG_LOGE(AAFwkTag::EXT, "Get caller bundleName failed, callingUid: %{public}d, ret: %{public}d",
-            callingUid, ret);
-        return INNER_ERR;
-    }
-    if (callerBundleName != targetBundleName) {
-        TAG_LOGE(AAFwkTag::EXT, "IN_PROCESS not support cross-app connect, caller: %{public}s, target: %{public}s",
-            callerBundleName.c_str(), targetBundleName.c_str());
+    if (callingUid != targetUid) {
+        TAG_LOGE(AAFwkTag::EXT, "IN_PROCESS not support cross-app connect, callerUid: %{public}d, targetUid: %{public}d",
+            callingUid, targetUid);
         return ERR_MOE_CROSS_APP_IN_PROCESS;
     }
     return ERR_OK;
@@ -390,6 +379,10 @@ void ModularObjectUtils::SetupNewRecord(const AbilityRequest &abilityRequest,
                 break;
             default:
                 break;
+        }
+        int32_t appCloneIndex = abilityRequest.appInfo.appIndex;
+        if (appCloneIndex > 0) {
+            process = std::to_string(appCloneIndex) + process;
         }
     }
     if (!process.empty()) {
