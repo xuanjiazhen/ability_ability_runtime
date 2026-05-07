@@ -185,7 +185,7 @@ HWTEST_F(DisposedObserverTest, OnAbilityStateChanged_0100, Function | MediumTest
     ASSERT_NE(observer, nullptr);
 
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_BACKGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_BACKGROUND);
     abilityStateData.uid = observerUid;
 
     EXPECT_CALL(*interceptor, UnregisterObserver(testing::_)).Times(0);
@@ -219,7 +219,7 @@ HWTEST_F(DisposedObserverTest, OnAbilityStateChanged_0200, Function | MediumTest
     ASSERT_NE(mockToken, nullptr);
 
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -247,7 +247,7 @@ HWTEST_F(DisposedObserverTest, OnAbilityStateChanged_0300, Function | MediumTest
     ASSERT_NE(observer, nullptr);
 
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND);
     abilityStateData.token = nullptr;
     abilityStateData.uid = observerUid;
 
@@ -303,7 +303,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0200, Function | MediumTest | 
     ASSERT_NE(mockToken, nullptr);
 
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -344,7 +344,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0300, Function | MediumTest | 
     ASSERT_NE(mockToken, nullptr);
 
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -384,7 +384,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0400, Function | MediumTest | 
     ASSERT_NE(mockToken, nullptr);
 
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -424,7 +424,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0500, Function | MediumTest | 
     ASSERT_NE(mockToken, nullptr);
 
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -466,7 +466,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0600, Function | MediumTest | 
     ASSERT_NE(mockToken, nullptr);
 
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
@@ -509,7 +509,7 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_0700, Function | MediumTest | 
     ASSERT_NE(mockToken, nullptr);
 
     AbilityStateData abilityStateData;
-    abilityStateData.abilityState = static_cast<int32_t>(AbilityState::ABILITY_STATE_FOREGROUND);
+    abilityStateData.abilityState = static_cast<int32_t>(AppExecFwk::AbilityState::ABILITY_STATE_FOREGROUND);
     abilityStateData.token = mockToken;
     abilityStateData.uid = observerUid;
 
