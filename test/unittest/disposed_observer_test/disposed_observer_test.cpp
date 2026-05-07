@@ -19,7 +19,7 @@
 #define private public
 #define protected public
 #include "disposed_observer.h"
-#include "disposed_rule_interceptor.h"
+#include "interceptor/disposed_rule_interceptor.h"
 #undef private
 #undef protected
 
@@ -45,11 +45,6 @@ class MockDisposedRuleInterceptor : public DisposedRuleInterceptor {
 public:
     MockDisposedRuleInterceptor() = default;
     ~MockDisposedRuleInterceptor() override = default;
-
-    ErrCode DoProcess(AbilityInterceptorParam param) override
-    {
-        return ERR_OK;
-    }
 
     MOCK_METHOD1(UnregisterObserver, void(int32_t uid));
 };
