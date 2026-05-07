@@ -30,8 +30,8 @@ ohos_unittest("disposed_observer_test") {
   ]
 
   sources = [
-    "${ability_runtime_services_path}/abilitymgr/src/interceptor/disposed_rule_interceptor.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/disposed_observer.cpp",
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_ability_manager_client.cpp",
     "./mock/ability_record.cpp",
     "./mock/modal_system_ui_extension.cpp",
     "disposed_observer_test.cpp",
@@ -43,6 +43,7 @@ ohos_unittest("disposed_observer_test") {
 
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_native_path}/ability/native:abilitykit_native",
   ]
 

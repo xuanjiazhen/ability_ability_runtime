@@ -19,8 +19,7 @@
 #include <memory>
 
 #include "ability_info.h"
-#include "ability_token_stub.h"
-#include "ipc_skeleton.h"
+#include "iremote_object.h"
 #include "want.h"
 
 namespace OHOS {
@@ -34,10 +33,10 @@ class SessionInfo;
  * @class Token
  * Token is identification of ability and used to interact with kit and wms.
  */
-class Token : public AbilityTokenStub {
+class Token {
 public:
-    Token();
-    virtual ~Token();
+    Token() = default;
+    ~Token() = default;
 
     static std::shared_ptr<AbilityRecord> GetAbilityRecordByToken(sptr<IRemoteObject> token);
 

@@ -28,12 +28,6 @@ sptr<SessionInfo> Token::mockSessionInfo = nullptr;
 int32_t Token::mockMissionId = 0;
 int Token::mockCreateModalResult = ERR_OK;
 
-Token::Token()
-{}
-
-Token::~Token()
-{}
-
 std::shared_ptr<AbilityRecord> Token::GetAbilityRecordByToken(sptr<IRemoteObject> token)
 {
     return abilityRecord;
