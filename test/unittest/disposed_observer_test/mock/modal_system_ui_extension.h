@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,22 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef WINDOW_MANAGER_MODAL_SYSTEM_UI_EXTENSION_H
-#define WINDOW_MANAGER_MODAL_SYSTEM_UI_EXTENSION_H
+#ifndef TEST_MODAL_SYSTEM_UI_EXTENSION_H
+#define TEST_MODAL_SYSTEM_UI_EXTENSION_H
 
 #include "want.h"
 
 namespace OHOS {
 namespace Rosen {
+
 class ModalSystemUiExtension {
 public:
-    ModalSystemUiExtension();
-    ~ModalSystemUiExtension();
-
-    bool CreateModalUIExtension(const AAFwk::Want &want);
+    ModalSystemUiExtension() = default;
+    ~ModalSystemUiExtension() = default;
+    
+    bool CreateModalUIExtension(const Want& want) { return createModalResult_; }
+    
+    static bool createModalResult_;
 };
 
-} // namespace Rosen
-} // namespace OHOS
+bool ModalSystemUiExtension::createModalResult_ = true;
 
-#endif // WINDOW_MANAGER_MODAL_SYSTEM_UI_EXTENSION_H
+}  // namespace Rosen
+}  // namespace OHOS
+#endif  // TEST_MODAL_SYSTEM_UI_EXTENSION_H

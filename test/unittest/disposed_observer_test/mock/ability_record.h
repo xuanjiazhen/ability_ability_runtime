@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -13,88 +13,46 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H
-#define OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H
+#ifndef TEST_ABILITY_RECORD_H
+#define TEST_ABILITY_RECORD_H
 
 #include <memory>
-
 #include "ability_info.h"
-#include "iremote_object.h"
 #include "want.h"
+#include "session_info.h"
+#include "iremote_object.h"
 
 namespace OHOS {
 namespace AAFwk {
-class AbilityRecord;
 
-// Forward declaration - SessionInfo is from ability_base:session_info
-class SessionInfo;
-
-/**
- * @class Token
- * Token is identification of ability and used to interact with kit and wms.
- */
 class Token {
-public:
-    Token() = default;
-    ~Token() = default;
-
-    static std::shared_ptr<AbilityRecord> GetAbilityRecordByToken(sptr<IRemoteObject> token);
-
 public:
     static std::shared_ptr<AbilityRecord> abilityRecord;
     static Want mockWant;
     static AppExecFwk::AbilityInfo mockAbilityInfo;
     static sptr<SessionInfo> mockSessionInfo;
     static int32_t mockMissionId;
-    static int mockCreateModalResult;
+    static int32_t mockCreateModalResult;
+
+    static std::shared_ptr<AbilityRecord> GetAbilityRecordByToken(sptr<IRemoteObject> token);
 };
 
-/**
- * @class AbilityRecord
- * AbilityRecord records ability info and states and used to schedule ability life.
- */
-class AbilityRecord : public std::enable_shared_from_this<AbilityRecord> {
+class AbilityRecord {
 public:
-    AbilityRecord();
-    ~AbilityRecord();
+    AbilityRecord() : abilityInfo_(Token::mockAbilityInfo), want_(Token::mockWant) {}
+    
+    const Want& GetWant() const { return want_; }
+    const AppExecFwk::AbilityInfo& GetAbilityInfo() const { return abilityInfo_; }
+    sptr<SessionInfo> GetSessionInfo() const { return Token::mockSessionInfo; }
+    int32_t GetMissionId() const { return Token::mockMissionId; }
+    
+    int32_t CreateModalUIExtension(const Want& want) { return Token::mockCreateModalResult; }
 
-    /**
-     * get ability's info.
-     *
-     * @return ability info.
-     */
-    const AppExecFwk::AbilityInfo &GetAbilityInfo() const;
-
-    /**
-     * get ability's want.
-     *
-     * @return ability want.
-     */
-    Want GetWant() const;
-
-    /**
-     * get session info.
-     *
-     * @return session info.
-     */
-    sptr<SessionInfo> GetSessionInfo() const;
-
-    /**
-     * get mission id.
-     *
-     * @return mission id.
-     */
-    int32_t GetMissionId() const;
-
-    /**
-     * create modal ui extension.
-     *
-     * @param want the want.
-     * @return result code.
-     */
-    int32_t CreateModalUIExtension(const Want &want);
+private:
+    AppExecFwk::AbilityInfo abilityInfo_;
+    Want want_;
 };
 
 }  // namespace AAFwk
 }  // namespace OHOS
-#endif  // OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H
+#endif  // TEST_ABILITY_RECORD_H

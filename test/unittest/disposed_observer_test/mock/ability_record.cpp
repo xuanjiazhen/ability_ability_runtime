@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2026 Huawei Device Co., Ltd.
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -15,53 +15,20 @@
 
 #include "ability_record.h"
 
-// Include session_info.h for complete SessionInfo type definition
-#include "session_info.h"
-
 namespace OHOS {
 namespace AAFwk {
-// Initialize static members
+
 std::shared_ptr<AbilityRecord> Token::abilityRecord = nullptr;
 Want Token::mockWant;
 AppExecFwk::AbilityInfo Token::mockAbilityInfo;
 sptr<SessionInfo> Token::mockSessionInfo = nullptr;
 int32_t Token::mockMissionId = 0;
-int Token::mockCreateModalResult = ERR_OK;
+int32_t Token::mockCreateModalResult = 0;
 
 std::shared_ptr<AbilityRecord> Token::GetAbilityRecordByToken(sptr<IRemoteObject> token)
 {
     return abilityRecord;
 }
 
-AbilityRecord::AbilityRecord()
-{}
-
-AbilityRecord::~AbilityRecord()
-{}
-
-const AppExecFwk::AbilityInfo &AbilityRecord::GetAbilityInfo() const
-{
-    return Token::mockAbilityInfo;
-}
-
-Want AbilityRecord::GetWant() const
-{
-    return Token::mockWant;
-}
-
-sptr<SessionInfo> AbilityRecord::GetSessionInfo() const
-{
-    return Token::mockSessionInfo;
-}
-
-int32_t AbilityRecord::GetMissionId() const
-{
-    return Token::mockMissionId;
-}
-
-int32_t AbilityRecord::CreateModalUIExtension(const Want &want)
-{
-    return Token::mockCreateModalResult;
-}
 }  // namespace AAFwk
 }  // namespace OHOS
