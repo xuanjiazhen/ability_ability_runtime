@@ -17,6 +17,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "cli_session_info.h"
 #include "cli_tool_event.h"
 #include "exec_options.h"
 #include "hilog_tag_wrapper.h"

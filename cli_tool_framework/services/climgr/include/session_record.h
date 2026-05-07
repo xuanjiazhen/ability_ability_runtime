@@ -25,7 +25,7 @@
 #include <sys/wait.h>
 #include <condition_variable>
 
-#include "icli_tool_data.h"
+#include "cli_session_info.h"
 
 namespace OHOS {
 namespace CliTool {
