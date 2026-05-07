@@ -42,7 +42,6 @@ WantParams CcParamParser::BuildWantParamsFromJson(const std::string &jsonStr)
 
     try {
         nlohmann::json jsonObj = nlohmann::json::parse(jsonStr);
-
         if (!jsonObj.is_object()) {
             TAG_LOGE(AAFwkTag::CC_TOOL, "json is not an object");
             return wantParams;
