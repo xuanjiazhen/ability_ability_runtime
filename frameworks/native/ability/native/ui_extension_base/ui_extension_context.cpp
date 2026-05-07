@@ -998,10 +998,9 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
 
     // Create modal callback
     auto modalCallback = std::make_shared<UIExtensionModalCallback>();
-    std::weak_ptr<UIExtensionModalCallback> modalCallbackWeak = modalCallback;
 
     // Setup Ace callbacks
-    Ace::ModalUIExtensionCallbacks callback = SetupModalCallbacks(modalCallbackWeak);
+    Ace::ModalUIExtensionCallbacks callback = SetupModalCallbacks(modalCallback);
 
     // Configure modal UIExtension
     Ace::ModalUIExtensionConfig config;
@@ -1041,43 +1040,28 @@ ErrCode UIExtensionContext::CreateModalUIExtensionWithApp(const AAFwk::Want &wan
 }
 
 Ace::ModalUIExtensionCallbacks UIExtensionContext::SetupModalCallbacks(
-    std::weak_ptr<UIExtensionModalCallback> modalCallbackWeak)
+    std::shared_ptr<UIExtensionModalCallback> modalCallback)
 {
     Ace::ModalUIExtensionCallbacks callback;
-    callback.onError = [modalCallbackWeak](int32_t code, const std::string &str1, const std::string &str2) {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGE(AAFwkTag::UI_EXT, "Modal UIExtension error: %{public}d, msg: %{public}s",
-                code, str2.c_str());
-            cb->OnError();
-        }
+    callback.onError = [modalCallback](int32_t code, const std::string &str1, const std::string &str2) {
+        TAG_LOGE(AAFwkTag::UI_EXT, "Modal UIExtension error: %{public}d, msg: %{public}s",
+            code, str2.c_str());
+        modalCallback->OnError();
     };
-    callback.onRelease = [modalCallbackWeak](int32_t code) {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension release: %{public}d", code);
-            cb->OnRelease();
-        }
+    callback.onRelease = [modalCallback](int32_t code) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension release: %{public}d", code);
+        modalCallback->OnRelease();
     };
-    callback.onResult = [modalCallbackWeak](int32_t code, const AAFwk::Want &resultWant) {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension result: %{public}d", code);
-        }
+    callback.onResult = [modalCallback](int32_t code, const AAFwk::Want &resultWant) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension result: %{public}d", code);
     };
-    callback.onDestroy = [modalCallbackWeak]() {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension destroy");
-            cb->OnDestroy();
-        }
+    callback.onDestroy = [modalCallback]() {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension destroy");
+        modalCallback->OnDestroy();
     };
-    callback.onReceive = [modalCallbackWeak](const AAFwk::WantParams& data) {
-        auto cb = modalCallbackWeak.lock();
-        if (cb) {
-            TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension onReceive");
-            cb->OnReceive(data);
-        }
+    callback.onReceive = [modalCallback](const AAFwk::WantParams& data) {
+        TAG_LOGD(AAFwkTag::UI_EXT, "Modal UIExtension onReceive");
+        modalCallback->OnReceive(data);
     };
     return callback;
 }
