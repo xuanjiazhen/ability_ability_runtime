@@ -25,18 +25,14 @@ ohos_unittest("disposed_observer_test") {
     "${ability_runtime_path}/services/abilitymgr/include",
     "${ability_runtime_path}/services/common/include",
     "${ability_runtime_services_path}/abilitymgr/include/utils",
-    "${ability_runtime_innerkits_path}/ability_manager/include",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
-    "${ability_runtime_test_path}/mock/common/include",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
-    "${ability_runtime_test_path}/mock/services_abilitymgr_test/include",
   ]
 
   sources = [
     "${ability_runtime_services_path}/abilitymgr/src/disposed_observer.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/interceptor/disposed_rule_interceptor.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_ability_manager_client.cpp",
-    "${ability_runtime_test_path}/mock/common/src/mock_native_token.cpp",
+    "./mock/mock_ability_manager_client.cpp",
+    "./mock/mock_my_flag.cpp",
     "./mock/ability_record.cpp",
     "./mock/modal_system_ui_extension.cpp",
     "disposed_observer_test.cpp",
@@ -55,8 +51,6 @@ ohos_unittest("disposed_observer_test") {
   ]
 
   external_deps = [
-    "access_token:libnativetoken",
-    "access_token:libtoken_setproc",
     "ability_base:session_info",
     "ability_base:want",
     "bundle_framework:appexecfwk_base",
