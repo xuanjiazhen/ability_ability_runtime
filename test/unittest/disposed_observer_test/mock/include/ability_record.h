@@ -20,7 +20,6 @@
 
 #include "ability_info.h"
 #include "iremote_object.h"
-#include "session_info.h"
 #include "want.h"
 
 namespace OHOS {
@@ -42,16 +41,12 @@ public:
     ~AbilityRecord();
 
     const AppExecFwk::AbilityInfo &GetAbilityInfo() const;
-    const Want &GetWant() const;
-    sptr<SessionInfo> GetSessionInfo() const;
-    int32_t GetMissionId() const;
+
     int32_t CreateModalUIExtension(const Want &want);
 
 public:
     AppExecFwk::AbilityInfo abilityInfo;
     Want want_;
-    sptr<SessionInfo> sessionInfo_ = nullptr;
-    int32_t missionId_ = 0;
 };
 }  // namespace AAFwk
 }  // namespace OHOS

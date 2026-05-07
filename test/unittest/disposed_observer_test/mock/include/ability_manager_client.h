@@ -13,20 +13,22 @@
  * limitations under the License.
  */
 
-#include "modal_system_ui_extension.h"
-#include "mock_my_flag.h"
+#ifndef OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_CLIENT_H
+#define OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_CLIENT_H
+
+#include <memory>
+
+#include "want.h"
 
 namespace OHOS {
-namespace Rosen {
-ModalSystemUiExtension::ModalSystemUiExtension()
-{}
-
-ModalSystemUiExtension::~ModalSystemUiExtension()
-{}
-
-bool ModalSystemUiExtension::CreateModalUIExtension(const AAFwk::Want &want)
-{
-    return MyFlag::retCreateModalUIExtension_;
-}
-} // namespace Rosen
-} // namespace OHOS
+namespace AAFwk {
+class AbilityManagerClient {
+public:
+    AbilityManagerClient();
+    virtual ~AbilityManagerClient();
+    static std::shared_ptr<AbilityManagerClient> GetInstance();
+    ErrCode StartAbility(const Want& want, int requestCode, int32_t userId);
+};
+}  // namespace AAFwk
+}  // namespace OHOS
+#endif  // OHOS_ABILITY_RUNTIME_ABILITY_MANAGER_CLIENT_H

@@ -13,51 +13,26 @@
  * limitations under the License.
  */
 
-#include "ability_record.h"
+#include "ability_manager_client.h"
 #include "mock_my_flag.h"
 
 namespace OHOS {
 namespace AAFwk {
-Token::Token()
+AbilityManagerClient::AbilityManagerClient()
 {}
 
-Token::~Token()
+AbilityManagerClient::~AbilityManagerClient()
 {}
 
-std::shared_ptr<AbilityRecord> Token::GetAbilityRecordByToken(const sptr<IRemoteObject> &token)
+std::shared_ptr<AbilityManagerClient> AbilityManagerClient::GetInstance()
 {
-    return MyFlag::abilityRecord_;
+    static std::shared_ptr<AbilityManagerClient> instance = std::make_shared<AbilityManagerClient>();
+    return instance;
 }
 
-AbilityRecord::AbilityRecord()
-{}
-
-AbilityRecord::~AbilityRecord()
-{}
-
-const AppExecFwk::AbilityInfo &AbilityRecord::GetAbilityInfo() const
+ErrCode AbilityManagerClient::StartAbility(const Want& want, int requestCode, int32_t userId)
 {
-    return abilityInfo;
-}
-
-const Want &AbilityRecord::GetWant() const
-{
-    return want_;
-}
-
-sptr<SessionInfo> AbilityRecord::GetSessionInfo() const
-{
-    return sessionInfo_;
-}
-
-int32_t AbilityRecord::GetMissionId() const
-{
-    return missionId_;
-}
-
-int32_t AbilityRecord::CreateModalUIExtension(const Want &want)
-{
-    return MyFlag::retAbilityRecordCreateModalUIExtension_;
+    return MyFlag::startAbilityRet_;
 }
 }  // namespace AAFwk
 }  // namespace OHOS

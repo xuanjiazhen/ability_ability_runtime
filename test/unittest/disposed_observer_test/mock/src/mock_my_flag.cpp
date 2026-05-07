@@ -13,27 +13,19 @@
  * limitations under the License.
  */
 
-#include "ability_manager_client.h"
-
 #include "mock_my_flag.h"
 
 namespace OHOS {
 namespace AAFwk {
-std::shared_ptr<AbilityManagerClient> AbilityManagerClient::GetInstance()
-{
-    static std::shared_ptr<AbilityManagerClient> client = std::make_shared<AbilityManagerClient>();
-    return client;
-}
-
-AbilityManagerClient::AbilityManagerClient()
-{}
-
-AbilityManagerClient::~AbilityManagerClient()
-{}
-
-ErrCode AbilityManagerClient::StartAbility(const Want& want, int requestCode, int32_t userId)
-{
-    return MyFlag::startAbilityRet_;
-}
+int MyFlag::startAbilityRet_ = 0;
+sptr<AppExecFwk::IAppControlMgr> MyFlag::mockAppControlManager_ = nullptr;
+std::vector<AppExecFwk::DisposedRule> MyFlag::mockDisposedRuleList_;
+int MyFlag::retGetAbilityRunningControlRule_ = 0;
+bool MyFlag::retCreateModalUIExtension_ = true;
+int MyFlag::retAbilityRecordCreateModalUIExtension_ = 0;
+std::shared_ptr<AbilityRecord> MyFlag::abilityRecord_ = nullptr;
+sptr<AppExecFwk::MockAppMgrService> MyFlag::mockAppMgr_ = nullptr;
+std::shared_ptr<AppExecFwk::BundleMgrHelper> MyFlag::bundleMgrHelper_ = nullptr;
+int MyFlag::edmCode_ = 0;
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -13,29 +13,26 @@
  * limitations under the License.
  */
 
-#ifndef MOCK_MY_FLAG_H
-#define MOCK_MY_FLAG_H
+#ifndef OHOS_ABILITY_RUNTIME_BUNDLE_MGR_HELPER_H
+#define OHOS_ABILITY_RUNTIME_BUNDLE_MGR_HELPER_H
 
-#include <vector>
+#include <memory>
 
-#include "ability_record.h"
 #include "app_control_interface.h"
-#include "bundle_mgr_helper.h"
 
 namespace OHOS {
-namespace AAFwk {
-class MyFlag {
+
+namespace AppExecFwk {
+class BundleMgrHelper {
 public:
-    static int startAbilityRet_;
-    static sptr<AppExecFwk::IAppControlMgr> mockAppControlManager_;
-    static std::vector<AppExecFwk::DisposedRule> mockDisposedRuleList_;
-    static int retGetAbilityRunningControlRule_;
-    static bool retCreateModalUIExtension_;
-    static int retAbilityRecordCreateModalUIExtension_;
-    static std::shared_ptr<AbilityRecord> abilityRecord_;
-    static std::shared_ptr<AppExecFwk::BundleMgrHelper> bundleMgrHelper_;
-    static int edmCode_;
+    BundleMgrHelper();
+
+    ~BundleMgrHelper();
+
+    static std::shared_ptr<BundleMgrHelper> GetInstance();
+
+    sptr<IAppControlMgr> GetAppControlProxy();
 };
-}  // namespace AAFwk
+}  // namespace AppExecFwk
 }  // namespace OHOS
-#endif // MOCK_MY_FLAG_H
+#endif  // OHOS_ABILITY_RUNTIME_BUNDLE_MGR_HELPER_H
