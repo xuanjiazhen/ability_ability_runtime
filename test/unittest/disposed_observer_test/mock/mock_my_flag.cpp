@@ -17,8 +17,14 @@
 
 namespace OHOS {
 namespace AAFwk {
-int32_t MyFlag::startAbilityRet_ = 0;
-sptr<IRemoteObject> MyFlag::mockAppMgr_ = nullptr;
-sptr<IRemoteObject> MyFlag::mockAppControlManager_ = nullptr;
+int MyFlag::startAbilityRet_ = 0;
+sptr<AppExecFwk::IAppControlMgr> MyFlag::mockAppControlManager_ = nullptr;
+std::vector<AppExecFwk::DisposedRule> MyFlag::mockDisposedRuleList_;
+int MyFlag::retGetAbilityRunningControlRule_ = 0;
+bool MyFlag::retCreateModalUIExtension_ = true;
+int MyFlag::retAbilityRecordCreateModalUIExtension_ = 0;
+std::shared_ptr<AbilityRecord> MyFlag::abilityRecord_ = nullptr;
+std::shared_ptr<AppExecFwk::BundleMgrHelper> MyFlag::bundleMgrHelper_ = nullptr;
+int MyFlag::edmCode_ = 0;
 }  // namespace AAFwk
 }  // namespace OHOS

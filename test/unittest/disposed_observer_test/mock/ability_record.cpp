@@ -14,21 +14,50 @@
  */
 
 #include "ability_record.h"
+#include "mock_my_flag.h"
 
 namespace OHOS {
 namespace AAFwk {
+Token::Token()
+{}
 
-std::shared_ptr<AbilityRecord> Token::abilityRecord = nullptr;
-Want Token::mockWant;
-AppExecFwk::AbilityInfo Token::mockAbilityInfo;
-sptr<SessionInfo> Token::mockSessionInfo = nullptr;
-int32_t Token::mockMissionId = 0;
-int32_t Token::mockCreateModalResult = 0;
+Token::~Token()
+{}
 
-std::shared_ptr<AbilityRecord> Token::GetAbilityRecordByToken(sptr<IRemoteObject> token)
+std::shared_ptr<AbilityRecord> Token::GetAbilityRecordByToken(const sptr<IRemoteObject> &token)
 {
-    return abilityRecord;
+    return MyFlag::abilityRecord_;
 }
 
+AbilityRecord::AbilityRecord()
+{}
+
+AbilityRecord::~AbilityRecord()
+{}
+
+const AppExecFwk::AbilityInfo &AbilityRecord::GetAbilityInfo() const
+{
+    return abilityInfo;
+}
+
+const Want &AbilityRecord::GetWant() const
+{
+    return want_;
+}
+
+sptr<SessionInfo> AbilityRecord::GetSessionInfo() const
+{
+    return sessionInfo_;
+}
+
+int32_t AbilityRecord::GetMissionId() const
+{
+    return missionId_;
+}
+
+int32_t AbilityRecord::CreateModalUIExtension(const Want &want)
+{
+    return MyFlag::retAbilityRecordCreateModalUIExtension_;
+}
 }  // namespace AAFwk
 }  // namespace OHOS

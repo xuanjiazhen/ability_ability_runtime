@@ -16,16 +16,26 @@
 #ifndef MOCK_MY_FLAG_H
 #define MOCK_MY_FLAG_H
 
-#include "iremote_object.h"
+#include <vector>
+
+#include "ability_record.h"
+#include "app_control_interface.h"
+#include "bundle_mgr_helper.h"
 
 namespace OHOS {
 namespace AAFwk {
 class MyFlag {
 public:
-    static int32_t startAbilityRet_;
-    static sptr<IRemoteObject> mockAppMgr_;
-    static sptr<IRemoteObject> mockAppControlManager_;
+    static int startAbilityRet_;
+    static sptr<AppExecFwk::IAppControlMgr> mockAppControlManager_;
+    static std::vector<AppExecFwk::DisposedRule> mockDisposedRuleList_;
+    static int retGetAbilityRunningControlRule_;
+    static bool retCreateModalUIExtension_;
+    static int retAbilityRecordCreateModalUIExtension_;
+    static std::shared_ptr<AbilityRecord> abilityRecord_;
+    static std::shared_ptr<AppExecFwk::BundleMgrHelper> bundleMgrHelper_;
+    static int edmCode_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
-#endif  // MOCK_MY_FLAG_H
+#endif // MOCK_MY_FLAG_H

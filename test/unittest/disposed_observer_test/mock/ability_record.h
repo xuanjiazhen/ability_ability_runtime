@@ -13,46 +13,46 @@
  * limitations under the License.
  */
 
-#ifndef TEST_ABILITY_RECORD_H
-#define TEST_ABILITY_RECORD_H
+#ifndef OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H
+#define OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H
 
 #include <memory>
+
 #include "ability_info.h"
-#include "want.h"
-#include "session_info.h"
 #include "iremote_object.h"
+#include "session_info.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AAFwk {
+class AbilityRecord;
 
 class Token {
 public:
-    static std::shared_ptr<AbilityRecord> abilityRecord;
-    static Want mockWant;
-    static AppExecFwk::AbilityInfo mockAbilityInfo;
-    static sptr<SessionInfo> mockSessionInfo;
-    static int32_t mockMissionId;
-    static int32_t mockCreateModalResult;
+    explicit Token();
+    virtual ~Token();
 
-    static std::shared_ptr<AbilityRecord> GetAbilityRecordByToken(sptr<IRemoteObject> token);
+    static std::shared_ptr<AbilityRecord> GetAbilityRecordByToken(const sptr<IRemoteObject> &token);
 };
 
-class AbilityRecord {
+class AbilityRecord : public std::enable_shared_from_this<AbilityRecord> {
 public:
-    AbilityRecord() : abilityInfo_(Token::mockAbilityInfo), want_(Token::mockWant) {}
-    
-    const Want& GetWant() const { return want_; }
-    const AppExecFwk::AbilityInfo& GetAbilityInfo() const { return abilityInfo_; }
-    sptr<SessionInfo> GetSessionInfo() const { return Token::mockSessionInfo; }
-    int32_t GetMissionId() const { return Token::mockMissionId; }
-    
-    int32_t CreateModalUIExtension(const Want& want) { return Token::mockCreateModalResult; }
+    AbilityRecord();
 
-private:
-    AppExecFwk::AbilityInfo abilityInfo_;
+    ~AbilityRecord();
+
+    const AppExecFwk::AbilityInfo &GetAbilityInfo() const;
+    const Want &GetWant() const;
+    sptr<SessionInfo> GetSessionInfo() const;
+    int32_t GetMissionId() const;
+    int32_t CreateModalUIExtension(const Want &want);
+
+public:
+    AppExecFwk::AbilityInfo abilityInfo;
     Want want_;
+    sptr<SessionInfo> sessionInfo_ = nullptr;
+    int32_t missionId_ = 0;
 };
-
 }  // namespace AAFwk
 }  // namespace OHOS
-#endif  // TEST_ABILITY_RECORD_H
+#endif  // OHOS_ABILITY_RUNTIME_ABILITY_RECORD_H

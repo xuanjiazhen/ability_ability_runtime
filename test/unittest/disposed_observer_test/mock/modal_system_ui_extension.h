@@ -13,26 +13,21 @@
  * limitations under the License.
  */
 
-#ifndef TEST_MODAL_SYSTEM_UI_EXTENSION_H
-#define TEST_MODAL_SYSTEM_UI_EXTENSION_H
+#ifndef WINDOW_MANAGER_MODAL_SYSTEM_UI_EXTENSION_H
+#define WINDOW_MANAGER_MODAL_SYSTEM_UI_EXTENSION_H
 
 #include "want.h"
 
 namespace OHOS {
 namespace Rosen {
-
 class ModalSystemUiExtension {
 public:
-    ModalSystemUiExtension() = default;
-    ~ModalSystemUiExtension() = default;
-    
-    bool CreateModalUIExtension(const Want& want) { return createModalResult_; }
-    
-    static bool createModalResult_;
+    ModalSystemUiExtension();
+    ~ModalSystemUiExtension();
+
+    bool CreateModalUIExtension(const AAFwk::Want &want);
 };
+} // namespace Rosen
+} // namespace OHOS
 
-bool ModalSystemUiExtension::createModalResult_ = true;
-
-}  // namespace Rosen
-}  // namespace OHOS
-#endif  // TEST_MODAL_SYSTEM_UI_EXTENSION_H
+#endif // WINDOW_MANAGER_MODAL_SYSTEM_UI_EXTENSION_H

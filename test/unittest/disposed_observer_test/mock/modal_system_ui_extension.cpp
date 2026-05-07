@@ -14,3 +14,19 @@
  */
 
 #include "modal_system_ui_extension.h"
+#include "mock_my_flag.h"
+
+namespace OHOS {
+namespace Rosen {
+ModalSystemUiExtension::ModalSystemUiExtension()
+{}
+
+ModalSystemUiExtension::~ModalSystemUiExtension()
+{}
+
+bool ModalSystemUiExtension::CreateModalUIExtension(const AAFwk::Want &want)
+{
+    return MyFlag::retCreateModalUIExtension_;
+}
+} // namespace Rosen
+} // namespace OHOS

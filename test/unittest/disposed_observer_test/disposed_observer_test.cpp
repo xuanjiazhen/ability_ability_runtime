@@ -24,9 +24,11 @@
 #undef protected
 
 #include "ability_manager_errors.h"
-#include "ability_record.h"
 #include "hilog_tag_wrapper.h"
+#include "mock_ability_token.h"
 #include "mock_my_flag.h"
+#include "modal_system_ui_extension.h"
+#include "ability_record.h"
 #include "want.h"
 
 using namespace testing::ext;
@@ -58,13 +60,9 @@ public:
 
     void ResetMockAbilityRecord()
     {
-        Token::abilityRecord = nullptr;
-        Token::mockWant = Want();
-        Token::mockAbilityInfo = AppExecFwk::AbilityInfo();
-        Token::mockSessionInfo = nullptr;
-        Token::mockMissionId = 0;
-        Token::mockCreateModalResult = ERR_OK;
-        Rosen::ModalSystemUiExtension::createModalResult_ = true;
+        MyFlag::abilityRecord_ = nullptr;
+        MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_OK;
+        MyFlag::retCreateModalUIExtension_ = true;
         MyFlag::startAbilityRet_ = ERR_OK;
     }
 
@@ -136,10 +134,10 @@ HWTEST_F(DisposedObserverTest, OnAbilityStateChanged_002, Function | MediumTest 
     ASSERT_NE(observer, nullptr);
 
     auto abilityRecord = std::make_shared<AbilityRecord>();
-    Token::abilityRecord = abilityRecord;
-    Token::mockAbilityInfo.isStageBasedModel = false;
+    MyFlag::abilityRecord_ = abilityRecord;
+    abilityRecord->abilityInfo.isStageBasedModel = false;
 
-    sptr<IRemoteObject> mockToken = sptr<IRemoteObject>(new (std::nothrow) IRemoteStub<IRemoteBroker>());
+    sptr<IRemoteObject> mockToken = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
     ASSERT_NE(mockToken, nullptr);
 
     AbilityStateData abilityStateData;
@@ -199,10 +197,10 @@ HWTEST_F(DisposedObserverTest, OnAbilityStateChanged_004, Function | MediumTest 
     ASSERT_NE(observer, nullptr);
 
     auto abilityRecord = std::make_shared<AbilityRecord>();
-    Token::abilityRecord = abilityRecord;
-    Token::mockAbilityInfo.isStageBasedModel = true;
+    MyFlag::abilityRecord_ = abilityRecord;
+    abilityRecord->abilityInfo.isStageBasedModel = true;
 
-    sptr<IRemoteObject> mockToken = sptr<IRemoteObject>(new (std::nothrow) IRemoteStub<IRemoteBroker>());
+    sptr<IRemoteObject> mockToken = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
     ASSERT_NE(mockToken, nullptr);
 
     AbilityStateData abilityStateData;
@@ -333,12 +331,11 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_001, Function | MediumTest | L
     auto observer = std::make_shared<DisposedObserver>(disposedRule, interceptor, observerUid);
     ASSERT_NE(observer, nullptr);
 
-    Token::abilityRecord = nullptr;
+    MyFlag::abilityRecord_ = nullptr;
+    MyFlag::retCreateModalUIExtension_ = true;
 
     PageStateData pageStateData;
     pageStateData.uid = observerUid;
-
-    Rosen::ModalSystemUiExtension::createModalResult_ = true;
 
     ErrCode ret = observer->ExecuteUIExtension(pageStateData);
     EXPECT_EQ(ret, ERR_OK);
@@ -360,12 +357,11 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_002, Function | MediumTest | L
     auto observer = std::make_shared<DisposedObserver>(disposedRule, interceptor, observerUid);
     ASSERT_NE(observer, nullptr);
 
-    Token::abilityRecord = nullptr;
+    MyFlag::abilityRecord_ = nullptr;
+    MyFlag::retCreateModalUIExtension_ = false;
 
     PageStateData pageStateData;
     pageStateData.uid = observerUid;
-
-    Rosen::ModalSystemUiExtension::createModalResult_ = false;
 
     ErrCode ret = observer->ExecuteUIExtension(pageStateData);
     EXPECT_NE(ret, ERR_OK);
@@ -388,13 +384,12 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_003, Function | MediumTest | L
     ASSERT_NE(observer, nullptr);
 
     auto abilityRecord = std::make_shared<AbilityRecord>();
-    Token::abilityRecord = abilityRecord;
-    Token::mockAbilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    MyFlag::abilityRecord_ = abilityRecord;
+    abilityRecord->abilityInfo.type = AppExecFwk::AbilityType::EXTENSION;
+    MyFlag::retCreateModalUIExtension_ = true;
 
     PageStateData pageStateData;
     pageStateData.uid = observerUid;
-
-    Rosen::ModalSystemUiExtension::createModalResult_ = true;
 
     ErrCode ret = observer->ExecuteUIExtension(pageStateData);
     EXPECT_EQ(ret, ERR_OK);
@@ -417,9 +412,9 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_004, Function | MediumTest | L
     ASSERT_NE(observer, nullptr);
 
     auto abilityRecord = std::make_shared<AbilityRecord>();
-    Token::abilityRecord = abilityRecord;
-    Token::mockAbilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    Token::mockCreateModalResult = ERR_OK;
+    MyFlag::abilityRecord_ = abilityRecord;
+    abilityRecord->abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_OK;
 
     PageStateData pageStateData;
     pageStateData.uid = observerUid;
@@ -445,9 +440,9 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_005, Function | MediumTest | L
     ASSERT_NE(observer, nullptr);
 
     auto abilityRecord = std::make_shared<AbilityRecord>();
-    Token::abilityRecord = abilityRecord;
-    Token::mockAbilityInfo.type = AppExecFwk::AbilityType::PAGE;
-    Token::mockCreateModalResult = ERR_NO_MEMORY;
+    MyFlag::abilityRecord_ = abilityRecord;
+    abilityRecord->abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_NO_MEMORY;
 
     PageStateData pageStateData;
     pageStateData.uid = observerUid;
@@ -473,9 +468,11 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_006, Function | MediumTest | L
     ASSERT_NE(observer, nullptr);
 
     auto abilityRecord = std::make_shared<AbilityRecord>();
-    Token::abilityRecord = abilityRecord;
-    Token::mockWant.SetParam(AAFwk::SCREEN_MODE_KEY, AAFwk::EMBEDDED_FULL_SCREEN_MODE);
-    Token::mockCreateModalResult = ERR_OK;
+    MyFlag::abilityRecord_ = abilityRecord;
+    Want want;
+    want.SetParam(AAFwk::SCREEN_MODE_KEY, AAFwk::EMBEDDED_FULL_SCREEN_MODE);
+    abilityRecord->want_ = want;
+    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_OK;
 
     PageStateData pageStateData;
     pageStateData.uid = observerUid;
@@ -501,9 +498,11 @@ HWTEST_F(DisposedObserverTest, ExecuteUIExtension_007, Function | MediumTest | L
     ASSERT_NE(observer, nullptr);
 
     auto abilityRecord = std::make_shared<AbilityRecord>();
-    Token::abilityRecord = abilityRecord;
-    Token::mockWant.SetParam(AAFwk::SCREEN_MODE_KEY, AAFwk::EMBEDDED_FULL_SCREEN_MODE);
-    Token::mockCreateModalResult = ERR_NO_MEMORY;
+    MyFlag::abilityRecord_ = abilityRecord;
+    Want want;
+    want.SetParam(AAFwk::SCREEN_MODE_KEY, AAFwk::EMBEDDED_FULL_SCREEN_MODE);
+    abilityRecord->want_ = want;
+    MyFlag::retAbilityRecordCreateModalUIExtension_ = ERR_NO_MEMORY;
 
     PageStateData pageStateData;
     pageStateData.uid = observerUid;
