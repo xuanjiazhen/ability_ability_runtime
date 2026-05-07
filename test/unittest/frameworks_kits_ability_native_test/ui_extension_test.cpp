@@ -87,7 +87,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0200, Function | Me
 
     // Create and set context
     auto context = std::make_shared<UIExtensionContext>();
-    uiExtension->AttachContext(context);
+    uiExtension->context_ = context;
 
     // handler_ is nullptr by default
     EXPECT_EQ(uiExtension->handler_, nullptr);
@@ -113,7 +113,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0300, Function | Me
 
     // Create and set context
     auto context = std::make_shared<UIExtensionContext>();
-    uiExtension->AttachContext(context);
+    uiExtension->context_ = context;
 
     // Create handler with no event runner (PostTask will fail)
     auto handler = std::make_shared<AbilityHandler>(nullptr);
@@ -141,7 +141,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0400, Function | Me
 
     // Create and set context
     auto context = std::make_shared<UIExtensionContext>();
-    uiExtension->AttachContext(context);
+    uiExtension->context_ = context;
 
     // Create event runner and handler
     auto runner = EventRunner::Create("UIExtensionTestRunner");
