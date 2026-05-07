@@ -22,5 +22,6 @@ group("tools_target") {
     "ohos-timer:ohos-timer",
     "ohos-aa:tools_ohos_aa",
     "cc:tools_cc",
+    "ohos-arktsScript:ohos-arktsScript"
   ]
 }
