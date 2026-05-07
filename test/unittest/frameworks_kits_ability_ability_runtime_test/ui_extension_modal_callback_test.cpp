@@ -133,6 +133,9 @@ HWTEST_F(UIExtensionModalCallbackTest, OnRelease_0300, TestSize.Level1)
 
     callback->OnRelease();
 
+    // Verify the sessionId was erased from context even when uiContent is nullptr
+    EXPECT_EQ(context->uiExtensionMap_.find(sessionId), context->uiExtensionMap_.end());
+
     TAG_LOGI(AAFwkTag::TEST, "OnRelease_0300 end");
 }
 
