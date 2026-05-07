@@ -23,7 +23,9 @@
 #include "ability_manager_interface.h"
 #include "ability_runtime_error_util.h"
 #include "app_mgr_interface.h"
+#include "application_context.h"
 #include "application_info.h"
+#include "event_report.h"
 #include "event_runner.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -63,6 +65,7 @@ constexpr const char* ON_OFF_TYPE = "applicationState";
 constexpr const char* ON_OFF_TYPE_SYNC = "applicationStateEvent";
 constexpr const char* ON_OFF_TYPE_APP_FOREGROUND_STATE = "appForegroundState";
 constexpr const char* ON_OFF_TYPE_ABILITY_FIRST_FRAME_STATE = "abilityFirstFrameState";
+constexpr const char* APP_MGR_ON_ON_NEW = "jsAppManagerOnOnNew"
 
 class JsAppManager final {
 public:
@@ -359,7 +362,14 @@ private:
 
     napi_value OnOnNew(napi_env env, size_t argc, napi_value* argv)
     {
-        TAG_LOGD(AAFwkTag::APPMGR, "called");
+        TAG_LOGD(AAFwkTag::APPMGR, "OnOnNew");
+        EventInfo eventInfo;
+        auto appContext = AbilityRuntime::ApplicationContext::GetInstance();
+        if (appContext != nullptr) {
+            eventInfo.bundleName = appContext->GetBundleName();
+        }
+        eventInfo.moduleName = APP_MGR_ON_ON_NEW;
+        EventReport::SendStartAbilityOtherExtensionEvent(EventName::APP_LAUNCH, eventInfo);
         if (argc < ARGC_TWO) { // support 2 or 3 params, if > 3 params, ignore other params
             TAG_LOGE(AAFwkTag::APPMGR, "invalid argc");
             ThrowTooFewParametersError(env);
