@@ -5066,6 +5066,8 @@ int AbilityManagerService::StartSelf(sptr<IRemoteObject> token)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartSelf called");
+    CHECK_TRUE_RETURN_RET(!AppUtils::GetInstance().IsSupportNativeUIAbility(),
+        ERR_CAPABILITY_NOT_SUPPORT, "device type not allowd");
 
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
     if (!abilityRecord) {
@@ -6048,7 +6050,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
             return TARGET_ABILITY_NOT_SERVICE;
         }
         // LCOV_EXCL_STOP
-        bool isVpn = abilityInfo.extensionAbilityType != AppExecFwk::ExtensionAbilityType::VPN;
+        bool isVpn = abilityInfo.extensionAbilityType == AppExecFwk::ExtensionAbilityType::VPN;
         if (callerToken && extensionType == AppExecFwk::ExtensionAbilityType::SERVICE && !isService && !isVpn) {
             TAG_LOGE(AAFwkTag::SERVICE_EXT, "ability, type not service");
             return TARGET_ABILITY_NOT_SERVICE;
