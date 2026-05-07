@@ -358,7 +358,7 @@ private:
     std::mutex uiExtensionMutex_;
 
     // CreateModalUIExtensionWithApp 重构辅助方法
-    Ace::ModalUIExtensionCallbacks SetupModalCallbacks(std::weak_ptr<UIExtensionModalCallback> modalCallbackWeak);
+    Ace::ModalUIExtensionCallbacks SetupModalCallbacks(std::shared_ptr<UIExtensionModalCallback> modalCallbackWeak);
 };
 }  // namespace AbilityRuntime
 }  // namespace OHOS
