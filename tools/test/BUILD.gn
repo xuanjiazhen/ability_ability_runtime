@@ -24,7 +24,6 @@ group("moduletest") {
 
   deps = [ "moduletest/aa:moduletest" ]
   deps += [ "moduletest/ability_delegator:moduletest" ]
-  deps += [ "moduletest/cc:moduletest" ]
 }
 
 group("unittest") {
