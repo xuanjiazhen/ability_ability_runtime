@@ -31,6 +31,7 @@ arkts_script_deps = [
   "${ability_runtime_native_path}/appkit:appkit_manager_helper",
   "${ability_runtime_native_path}/appkit:app_context",
   "${ability_runtime_native_path}/appkit:app_context_utils",
+  "${cli_tool_framework_path}/frameworks/common/standalone_skill_utils:standalone_skill_utils",
 ]
 
 arkts_script_external_deps = [
