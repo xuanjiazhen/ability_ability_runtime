@@ -2827,6 +2827,28 @@ public:
     }
 
     /**
+     * @brief Execute in-app skill with explicit caller tokenId (for SA-to-SA calls).
+     * @param callerTokenId The caller's access token ID.
+     * @param bundleName The target bundle name.
+     * @param moduleName The target module name.
+     * @param skillName The skill name to execute.
+     * @param arkTSPath The target ArkTS file path.
+     * @param funcName The target function name.
+     * @param skillArgs The arguments for skill execution.
+     * @param callback The callback for skill execution result.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ExecuteInAppSkillWithTokenId(uint32_t callerTokenId,
+        const std::string &bundleName, const std::string &moduleName,
+        const std::string &skillName, const std::string &arkTSPath,
+        const std::string &funcName,
+        const std::shared_ptr<AAFwk::WantParams> &skillArgs,
+        const sptr<ISkillExecuteCallback> &callback)
+    {
+        return ERR_OK;
+    }
+
+    /**
      * @brief Query the type of a skill (independent or in-app).
      * @param bundleName The bundle name of the target application.
      * @param moduleName The module name of the target application.
