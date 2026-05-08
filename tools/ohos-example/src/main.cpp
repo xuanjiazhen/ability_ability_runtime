@@ -14,12 +14,19 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <chrono>
+#include <sys/prctl.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <thread>
+#include <unistd.h>
 
 namespace {
 constexpr int PROGRESS_MAX = 100;
 constexpr int MIN_ARGC = 2;
 constexpr const char* VERSION = "1.0.0";
 constexpr const char* BUILD_TIME = "2026-04-04 00:00:00";
+constexpr int READ_BUFFER_SIZE = 1024;
 }
 
 std::string EscapeJson(const std::string& input)
@@ -76,6 +83,7 @@ void ShowHelp()
     std::cout << "Subcommands:" << std::endl;
     std::cout << "  run --argLine <value>  Run the tool with a single string argument" << std::endl;
     std::cout << "  version                Show version information" << std::endl;
+    std::cout << "  input                  Run a long-term interactive task" << std::endl;
     std::cout << "  help                   Show this help message" << std::endl;
 }
 
@@ -154,6 +162,48 @@ int VersionCommand(int argc, char* argv[])
     return 0;
 }
 
+void EmitOnInputCommandEvent(const std::string& message)
+{
+    std::cout << "{\"type\":\"OnInputCommand\",\"message\":" << EscapeJson(message) << "\"}" << std::endl;
+}
+
+int InputCommand(int argc, char* argv[])
+{
+    char buffer[READ_BUFFER_SIZE] = {0};
+    uint64_t totalSize = 0;
+    int64_t currentTimeMs = 0;
+    while (true) {
+        ssize_t bytesRead = read(STDIN_FILENO, buffer, READ_BUFFER_SIZE);
+        if (bytesRead > 0) {
+            totalSize += bytesRead;
+            std::string inputText = std::string(buffer, bytesRead);
+            if (inputText == "quit" || inputText == "exit") {
+                EmitOnInputCommandEvent("Task exit!");
+                break;
+            } else if (inputText == "HelloWord") {
+                EmitOnInputCommandEvent("HelloWord");
+            } else {
+                currentTimeMs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::system_clock::now().time_since_epoch()).count();
+                EmitOnInputCommandEvent("currentTime: " + std::to_string(currentTimeMs) + "ms");
+            }
+            continue;
+        }
+        if (bytesRead == 0) {
+            break;
+        }
+        if (errno == EINTR) {
+            continue;
+        }
+        if (errno == EAGAIN || errno == EWOULDBLOCK) {
+            break;
+        }
+        std::this_thread::sleep_for(std::chrono::seconds(100));
+    }
+    EmitSuccessResult("{\"result\":\"执行完成\"}");
+    return 0;
+}
+
 int main(int argc, char* argv[])
 {
     if (argc < MIN_ARGC) {
@@ -168,6 +218,9 @@ int main(int argc, char* argv[])
     }
     if (subcommand == "version") {
         return VersionCommand(argc, argv);
+    }
+    if (subcommand == "input") {
+        return InputCommand(argc, argv);
     }
     if (subcommand == "help" || subcommand == "--help" || subcommand == "-h") {
         ShowHelp();
