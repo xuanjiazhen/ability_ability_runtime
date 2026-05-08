@@ -30,13 +30,29 @@
 #include "io_monitor.h"
 #include "process_manager.h"
 #include "session_record.h"
+#include "skill/skill_execute_callback_stub.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 class IApplicationStateObserver;
+struct SkillExecuteResult;
 }
 namespace CliTool {
 class SessionRecord;
+
+class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
+public:
+    SkillCallbackAdapter(std::weak_ptr<CliToolManagerService> service,
+        const std::string &sessionId, int32_t callerPid, const std::string &eventId);
+    void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
+        const AppExecFwk::SkillExecuteResult &result) override;
+
+private:
+    std::weak_ptr<CliToolManagerService> service_;
+    std::string sessionId_;
+    int32_t callerPid_;
+    std::string eventId_;
+};
 class CliToolManagerService : public SystemAbility,
                               public CliToolManagerStub,
                               public std::enable_shared_from_this<CliToolManagerService> {
@@ -136,9 +152,14 @@ private:
         ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName);
     int32_t SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
         const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName);
-    void HandleBackgroundSessionReply(const std::shared_ptr<SessionRecord> &record, const std::string &eventId);
 
-    void HandleProcessTimeout(const std::string &sessionId);
+    int32_t SetupAndStartSkillSession(const ExecToolParam &param,
+        const std::string &eventId, const ToolInfo &toolInfo);
+    void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid,
+        const std::string &eventId, int32_t resultCode, const CliSessionInfo &session);
+    void HandleSkillSessionTimeout(const std::string &sessionId);
+
+    void HandleBackgroundSessionReply(const std::shared_ptr<SessionRecord> &record, const std::string &eventId);
     void HandleProcessYieldTimeout(const std::string &sessionId);
     void HandleOutputClosed(const std::string &sessionId, bool isStdout);
     void HandleOutputDrained(const std::string &sessionId);
