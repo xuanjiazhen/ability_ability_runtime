@@ -214,7 +214,8 @@ int AppfreezeManager::AppfreezeHandle(const FaultData& faultData, const Appfreez
         faultData.errorObject.name == AppFreezeType::LIFECYCLE_HALF_TIMEOUT_WARNING) {
         AcquireStack(faultData, appInfo, memoryContent);
     } else {
-        NotifyANR(faultData, appInfo, "", memoryContent);
+        FaultData faultDataCopy = faultData;
+        NotifyANR(faultDataCopy, appInfo, "", memoryContent);
     }
     return 0;
 }
