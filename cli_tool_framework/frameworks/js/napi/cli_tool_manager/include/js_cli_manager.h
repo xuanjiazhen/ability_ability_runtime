@@ -17,8 +17,12 @@
 #define OHOS_CLI_TOOL_JS_CLI_MANAGER_H
 
 #include "native_engine/native_engine.h"
+#include "want_params.h"
 
 namespace OHOS {
+namespace AAFwk {
+class WantParams;
+}
 namespace CliTool {
 
 /**
@@ -193,6 +197,15 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnQueryTools(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for executing an in-app skill tool.
+     *
+     * @param env The N-API environment.
+     * @param args The WantParams containing skill parameters.
+     * @return Returns the N-API value (Promise).
+     */
+    napi_value OnExecSkillToolInner(napi_env env, const AAFwk::WantParams &args);
 };
 
 /**

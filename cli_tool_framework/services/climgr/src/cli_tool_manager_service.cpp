@@ -17,6 +17,7 @@
 
 #include <sys/wait.h>
 
+#include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_client.h"
 #include "ccm_util.h"
@@ -32,12 +33,14 @@
 #include "session_record.h"
 #include "tokenid_kit.h"
 #include "tool_util.h"
+#include "want_params.h"
 
 namespace OHOS {
 namespace CliTool {
 namespace {
 constexpr const char* PERMISSION_EXEC_CLI_TOOL = "ohos.permission.EXEC_CLI_TOOL";
 constexpr const char* PERMISSION_QUERY_CLI_TOOL = "ohos.permission.QUERY_CLI_TOOL";
+constexpr const char* ARKTS_SCRIPT_TOOL_NAME = "ohos-arktsScript";
 
 constexpr int32_t COEFFICIENT = 1000;
 constexpr int32_t QUERY_SUCCESS = 0;
@@ -538,6 +541,50 @@ void CliToolManagerService::HandleBackgroundSessionReply(
     EventDispatcher::GetInstance().DispatchExecToolReplyEvent(record->callerPid, eventId, ERR_OK, session);
 }
 
+int32_t CliToolManagerService::HandleInAppSkill(const ExecToolParam &param, const std::string &eventId,
+    uint32_t tokenId)
+{
+    ToolInfo toolInfo;
+    if (CliToolDataManager::GetInstance().GetToolByName(param.toolName, toolInfo) != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Tool not found");
+        return ERR_TOOL_NOT_EXIST;
+    }
+
+    std::shared_ptr<SessionRecord> record = CreateSessionRecord(param, eventId);
+    if (record == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create session record");
+        return ERR_NO_INIT;
+    }
+
+    AddSessionRecord(record);
+
+    std::string scriptOutputText;
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteInAppSkill(
+        param.args, param.options.timeout, tokenId, scriptOutputText);
+
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecuteInAppSkill failed: %{public}d", ret);
+        RemoveSessionRecord(record->sessionId);
+        return ret;
+    }
+
+    if (!scriptOutputText.empty()) {
+        record->AppendOutput(true, scriptOutputText);
+    }
+
+    record->MarkStdoutClosed();
+    record->MarkStderrClosed();
+
+    CliSessionInfo session;
+    record->BuildSessionInfo(session);
+    EventDispatcher::GetInstance().DispatchExecToolReplyEvent(
+        record->callerPid, eventId, ERR_OK, session);
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ArkTS script execution completed: sessionId=%{public}s",
+        record->sessionId.c_str());
+    return ERR_OK;
+}
+
 int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::string &eventId)
 {
     InterfaceCallCounter counter(interfaceCalledCount_);
@@ -554,6 +601,10 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
 
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     ToolInfo toolInfo;
+    if (param.toolName == ARKTS_SCRIPT_TOOL_NAME) {
+        return HandleInAppSkill(param, eventId, tokenId);
+    }
+
     std::string sandboxConfig;
     std::string bundleName;
 

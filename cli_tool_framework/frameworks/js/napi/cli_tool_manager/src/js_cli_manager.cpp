@@ -15,20 +15,24 @@
 
 #include "js_cli_manager.h"
 
+#include <set>
 #include <string>
 
+#include "ability_manager_client.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"
 #include "cli_tool_mgr_client.h"
 #include "hilog_tag_wrapper.h"
+#include "js_cli_event_handler_manager.h"
 #include "js_cli_manager_utils.h"
+#include "js_cli_session_event_callback.h"
 #include "js_error_utils.h"
+#include "napi_common_skill_execute.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
-
-#include "js_cli_event_handler_manager.h"
-#include "js_cli_session_event_callback.h"
+#include "skill/skill_execute_callback_stub.h"
+#include "string_wrapper.h"
 
 using namespace OHOS::AbilityRuntime;
 
@@ -40,6 +44,70 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
+constexpr const char *ARKTS_SCRIPT_TOOL_NAME = "ohos-arktsScript";
+constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
+
+const std::set<std::string> SKILL_RESERVED_KEYS = {
+    "bundleName", "moduleName", "skillName", "arkTSPath", "funcName"
+};
+
+std::shared_ptr<AAFwk::WantParams> FilterSkillArgs(const AAFwk::WantParams &args)
+{
+    auto skillArgs = std::make_shared<AAFwk::WantParams>();
+    auto &params = args.GetParams();
+    for (auto &[key, value] : params) {
+        if (SKILL_RESERVED_KEYS.count(key) == 0) {
+            skillArgs->SetParam(key, value);
+        }
+    }
+    return skillArgs;
+}
+
+class SkillExecuteCallbackImpl : public AAFwk::SkillExecuteCallbackStub {
+public:
+    explicit SkillExecuteCallbackImpl(napi_env env, napi_deferred deferred)
+        : env_(env), deferred_(deferred) {}
+
+    void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
+        const AppExecFwk::SkillExecuteResult &result) override
+    {
+        TAG_LOGD(AAFwkTag::CLI_TOOL,
+            "SkillExecuteCallbackImpl::OnExecuteDone req:%{public}s code:%{public}d",
+            requestCode.c_str(), resultCode);
+        auto resultCopy = result;
+        auto deferred = deferred_;
+        JsCliEventHandlerManager::GetInstance().PostTask(
+            [env = env_, deferred, resultCopy]() {
+                HandleScope handleScope(env);
+                napi_value jsResult = WrapSkillExecuteResult(env, resultCopy);
+                napi_resolve_deferred(env, deferred, jsResult);
+            });
+    }
+
+private:
+    napi_env env_ = nullptr;
+    napi_deferred deferred_ = nullptr;
+};
+
+int32_t DispatchExecuteSkill(const std::string &bundleName, const std::string &moduleName,
+    const std::string &skillName, const std::string &arkTSPath, const std::string &funcName,
+    const std::shared_ptr<AAFwk::WantParams> &skillArgs,
+    const sptr<SkillExecuteCallbackImpl> &callback)
+{
+    int32_t skillType = 0;
+    auto queryRet = AAFwk::AbilityManagerClient::GetInstance()->QuerySkillType(
+        bundleName, moduleName, skillName, skillType);
+    if (queryRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "querySkillType failed:%{public}d", queryRet);
+        return queryRet;
+    }
+    if (skillType == SKILL_TYPE_INDEPENDENT) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "independent skill not supported yet");
+        return ERR_TOOL_NOT_EXIST;
+    }
+    return AAFwk::AbilityManagerClient::GetInstance()->ExecuteInAppSkill(
+        bundleName, moduleName, skillName, arkTSPath, funcName, skillArgs, callback);
+}
 } // namespace
 
 void JSCliManager::Finalizer(napi_env env, void *data, void *hint)
@@ -123,6 +191,10 @@ napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
             ThrowInvalidParamError(env, "Tool options is required");
             return CreateJsUndefined(env);
         }
+    }
+
+    if (param.toolName == ARKTS_SCRIPT_TOOL_NAME) {
+        return OnExecSkillToolInner(env, param.args);
     }
 
     napi_value result = nullptr;
@@ -435,6 +507,56 @@ napi_value JSCliManager::OnQueryTools(napi_env env, size_t argc, napi_value *arg
     NapiAsyncTask::Schedule("JsCliManager::OnQueryTools", env,
         CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
     return handleEscape.Escape(asyncResult);
+}
+
+napi_value JSCliManager::OnExecSkillToolInner(napi_env env, const AAFwk::WantParams &args)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnExecSkillToolInner called");
+    HandleEscape handleEscape(env);
+
+    auto bundleName = args.GetStringParam("bundleName");
+    auto moduleName = args.GetStringParam("moduleName");
+    auto skillName = args.GetStringParam("skillName");
+    if (bundleName.empty() || moduleName.empty() || skillName.empty()) {
+        ThrowInvalidParamError(env, "bundleName, moduleName, skillName are required in args");
+        return CreateJsUndefined(env);
+    }
+    auto arkTSPath = args.GetStringParam("arkTSPath");
+    auto funcName = args.GetStringParam("funcName");
+    auto skillArgs = FilterSkillArgs(args);
+
+    TAG_LOGD(AAFwkTag::CLI_TOOL,
+        "execTool skill path bundle:%{public}s module:%{public}s skill:%{public}s",
+        bundleName.c_str(), moduleName.c_str(), skillName.c_str());
+
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    auto callback = sptr<SkillExecuteCallbackImpl>::MakeSptr(env, deferred);
+
+    NapiAsyncTask::ExecuteCallback execute =
+        [innerErrCode, bundleName, moduleName, skillName,
+         arkTSPath, funcName, skillArgs, callback]() {
+        *innerErrCode = DispatchExecuteSkill(
+            bundleName, moduleName, skillName, arkTSPath, funcName, skillArgs, callback);
+    };
+
+    NapiAsyncTask::CompleteCallback complete =
+        [innerErrCode, deferred](napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            napi_reject_deferred(env, deferred,
+                CreateCliJsErrorByNativeErr(env, *innerErrCode));
+        }
+    };
+
+    auto asyncTask = std::make_unique<NapiAsyncTask>(deferred,
+        std::make_unique<NapiAsyncTask::ExecuteCallback>(std::move(execute)),
+        std::make_unique<NapiAsyncTask::CompleteCallback>(std::move(complete)));
+    NapiAsyncTask::Schedule("JSCliManager::OnExecSkillToolInner", env, std::move(asyncTask));
+    return handleEscape.Escape(promise);
 }
 
 napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
