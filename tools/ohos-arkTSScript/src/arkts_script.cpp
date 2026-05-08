@@ -56,9 +56,9 @@ constexpr int32_t SCRIPT_CONTEXT_BUNDLE_INFO_FLAGS =
     static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_APPLICATION);
 
 const std::string HELP_MSG =
-    "ohos-arktsScript - ArkTS script execution tool for loading ABC files and invoking target functions\n\n"
+    "ohos-arkTSScript - ArkTS script execution tool for loading ABC files and invoking target functions\n\n"
     "Usage:\n"
-    "  ohos-arktsScript [options]\n\n"
+    "  ohos-arkTSScript [options]\n\n"
     "Parameters:\n"
     "  --abcPath <path>        ABC file path to load (required)\n"
     "  --scriptPath <path>     Script file or class name used to locate the target module (optional)\n"
@@ -68,12 +68,12 @@ const std::string HELP_MSG =
     "  --help                  Display this help message\n\n"
     "Examples:\n"
     "  # Execute an exported function from an ABC file\n"
-    "  ohos-arktsScript --abcPath /data/test/module.abc --functionName run\n\n"
+    "  ohos-arkTSScript --abcPath /data/test/module.abc --functionName run\n\n"
     "  # Execute a method from a specified script class\n"
-    "  ohos-arktsScript --abcPath /data/test/module.abc --scriptPath TestScript.ets "
+    "  ohos-arkTSScript --abcPath /data/test/module.abc --scriptPath TestScript.ets "
         "--functionName calculate --args '{\"arg0\":10,\"arg1\":20}'\n\n"
     "  # Execute with JSON object and array arguments\n"
-    "  ohos-arktsScript --abcPath /data/test/module.abc --functionName parseValues "
+    "  ohos-arkTSScript --abcPath /data/test/module.abc --functionName parseValues "
         "--args '{\"arg0\":{\"name\":\"tool\"},\"arg1\":[\"a\",\"b\"]}'\n";
 
 struct StringOptionBinding {
