@@ -135,17 +135,24 @@ int32_t SkillExecuteManager::GenerateSkillWant(const AppExecFwk::SkillInfo &skil
 std::string SkillExecuteManager::CreateExecuteRecord(const sptr<IRemoteObject> &callerToken,
     const std::string &targetBundleName, const std::string &callerBundleName,
     uint32_t callerTokenId,
-    const sptr<ISkillExecuteCallback> &callback)
+    const sptr<ISkillExecuteCallback> &callback,
+    const std::string &externalRequestCode)
 {
     std::lock_guard<ffrt::mutex> lock(mutex_);
-    std::string requestCode = std::to_string(++requestCodeSeq_);
+    uint64_t currentSeq = ++requestCodeSeq_;
+    std::string requestCode;
+    if (!externalRequestCode.empty()) {
+        requestCode = externalRequestCode;
+    } else {
+        requestCode = std::to_string(currentSeq);
+    }
     auto record = std::make_shared<SkillExecuteRecord>();
     record->requestCode = requestCode;
     record->callerToken = callerToken;
     record->targetBundleName = targetBundleName;
     record->callerBundleName = callerBundleName;
     record->callerTokenId = callerTokenId;
-    record->requestCodeSeq = requestCodeSeq_;
+    record->requestCodeSeq = currentSeq;
     record->state = SkillExecuteState::EXECUTING;
     record->callback = callback;
 
@@ -157,7 +164,7 @@ std::string SkillExecuteManager::CreateExecuteRecord(const sptr<IRemoteObject> &
     }
 
     records_[requestCode] = record;
-    PostSkillExecuteTimeout(requestCode, requestCodeSeq_);
+    PostSkillExecuteTimeout(requestCode, currentSeq);
     TAG_LOGD(AAFwkTag::ABILITYMGR,
         "create execute record, requestCode:%{public}s", requestCode.c_str());
     return requestCode;
