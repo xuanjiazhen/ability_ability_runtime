@@ -1164,6 +1164,46 @@ HWTEST_F(AppMgrStubTest, SetProcessPrepareExit_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: HandleSetTerminateTimeOutFlag_0100
+ * @tc.desc: Test HandleSetTerminateTimeOutFlag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleSetTerminateTimeOutFlag_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    data.WriteRemoteObject(nullptr);
+
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::SET_TERMINATE_TIMEOUT_FLAG), data, reply, option);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
+}
+
+
+/**
+ * @tc.name: HandleSetTerminateTimeOutFlag_0200
+ * @tc.desc: Test HandleSetTerminateTimeOutFlag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleSetTerminateTimeOutFlag_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    sptr<IRemoteObject> token = new MockAppMgrService();
+    data.WriteRemoteObject(token);
+
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::SET_TERMINATE_TIMEOUT_FLAG), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
  * @tc.name: HandleMakeImage_ShouldReturnInvalidValueWhenFlagIsTrueAndHandlerIsNullptr
  * @tc.desc: handle make image.
  * @tc.type: FUNC
@@ -1174,10 +1214,12 @@ HWTEST_F(AppMgrStubTest, HandleMakeImage_ShouldReturnInvalidValueWhenFlagIsTrueA
     MessageParcel reply;
     MessageOption option;
     std::string bundleName = "com.acts.makeimagetest";
+    AAFwk::Want want;
+    want.SetBundle(bundleName);
     int32_t userId = 100;
     PreloadMode preloadMode = PreloadMode::PRE_MAKE;
     int32_t appIndex = 0;
-    data.WriteString16(Str8ToStr16(bundleName));
+    data.WriteParcelable(&want);
     data.WriteInt32(userId);
     data.WriteInt32(static_cast<int32_t>(preloadMode));
     data.WriteInt32(appIndex);
@@ -1198,10 +1240,12 @@ HWTEST_F(AppMgrStubTest, HandleMakeImage_ShouldReturnNoErrorWhenFlagIsTrueAndHan
     MessageParcel reply;
     MessageOption option;
     std::string bundleName = "com.acts.makeimagetest";
+    AAFwk::Want want;
+    want.SetBundle(bundleName);
     int32_t userId = 100;
     PreloadMode preloadMode = PreloadMode::PRE_MAKE;
     int32_t appIndex = 0;
-    data.WriteString16(Str8ToStr16(bundleName));
+    data.WriteParcelable(&want);
     data.WriteInt32(userId);
     data.WriteInt32(static_cast<int32_t>(preloadMode));
     data.WriteInt32(appIndex);
@@ -1249,6 +1293,217 @@ HWTEST_F(AppMgrStubTest, HandleDestroyImage_ShouldReturnNoErrorWhenFlagIsTrueAnd
     EXPECT_CALL(*mockAppMgrService_, DestroyImage(_, _)).Times(1);
     auto result = mockAppMgrService_->HandleDestroyImage(data, reply);
     EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleGetAllAbilityInfos_0100
+ * @tc.desc: Test HandleGetAllAbilityInfos when service returns error.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleGetAllAbilityInfos_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1001;
+    data.WriteInt32(pid);
+
+    EXPECT_CALL(*mockAppMgrService_, GetAllAbilityInfos(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_PERMISSION_DENIED));
+
+    mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_ABILITY_INFOS), data, reply, option);
+    auto replyResult = reply.ReadInt32();
+    EXPECT_EQ(replyResult, ERR_PERMISSION_DENIED);
+}
+
+/**
+ * @tc.name: HandleGetAllAbilityInfos_0200
+ * @tc.desc: Test HandleGetAllAbilityInfos when write result fails.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleGetAllAbilityInfos_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1001;
+    data.WriteInt32(pid);
+
+    EXPECT_CALL(*mockAppMgrService_, GetAllAbilityInfos(_, _))
+        .Times(1)
+        .WillOnce(DoAll(SetArgReferee<1>(std::vector<AppExecFwk::AbilityStateData>()), Return(ERR_OK)));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_ABILITY_INFOS), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    auto replyResult = reply.ReadInt32();
+    EXPECT_EQ(replyResult, ERR_OK);
+}
+
+/**
+ * @tc.name: HandleGetAllAbilityInfos_0300
+ * @tc.desc: Test HandleGetAllAbilityInfos with empty info list.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleGetAllAbilityInfos_0300, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = -1;
+    data.WriteInt32(pid);
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    EXPECT_CALL(*mockAppMgrService_, GetAllAbilityInfos(_, _))
+        .Times(1)
+        .WillOnce(DoAll(SetArgReferee<1>(infos), Return(ERR_OK)));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_ABILITY_INFOS), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    auto replyResult = reply.ReadInt32();
+    EXPECT_EQ(replyResult, ERR_OK);
+    int32_t infoSize = reply.ReadInt32();
+    EXPECT_EQ(infoSize, 0);
+}
+
+/**
+ * @tc.name: HandleGetAllAbilityInfos_0400
+ * @tc.desc: Test HandleGetAllAbilityInfos with one ability info.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleGetAllAbilityInfos_0400, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1001;
+    data.WriteInt32(pid);
+
+    std::vector<AppExecFwk::AbilityStateData> infos;
+    AppExecFwk::AbilityStateData info;
+    info.abilityRecordId = 1001;
+    info.pid = 1001;
+    info.uid = 1001;
+    info.abilityType = 1;
+    info.extensionAbilityType = 0;
+    infos.push_back(info);
+
+    EXPECT_CALL(*mockAppMgrService_, GetAllAbilityInfos(_, _))
+        .Times(1)
+        .WillOnce(DoAll(SetArgReferee<1>(infos), Return(ERR_OK)));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::GET_ALL_ABILITY_INFOS), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    auto replyResult = reply.ReadInt32();
+    EXPECT_EQ(replyResult, ERR_OK);
+    int32_t infoSize = reply.ReadInt32();
+    EXPECT_EQ(infoSize, 1);
+}
+
+/**
+ * @tc.name: HandleUpdateFreezeExcludedPid_001
+ * @tc.desc: Handle Update Freeze Excluded Pid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleUpdateFreezeExcludedPid_001, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    WriteInterfaceToken(data);
+    data.WriteBool(true);
+    data.WriteInt32(1);
+    data.WriteInt32(2);
+    auto result = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::UPDATE_FREEZE_EXCLUDED_PID), data, reply, option);
+    EXPECT_EQ(result, NO_ERROR);
+}
+
+/**
+ * @tc.name: HandleEnableDelayedProcessExit_0100
+ * @tc.desc: Test HandleEnableDelayedProcessExit with enable flag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleEnableDelayedProcessExit_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1234;
+    data.WriteInt32(pid);
+    data.WriteBool(true);
+
+    EXPECT_CALL(*mockAppMgrService_, EnableDelayedProcessExit(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_OK));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::ENABLE_DELAYED_PROCESS_EXIT), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_OK);
+}
+
+/**
+ * @tc.name: HandleEnableDelayedProcessExit_0200
+ * @tc.desc: Test HandleEnableDelayedProcessExit with disable flag.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleEnableDelayedProcessExit_0200, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1234;
+    data.WriteInt32(pid);
+    data.WriteBool(false);
+
+    EXPECT_CALL(*mockAppMgrService_, EnableDelayedProcessExit(_, _))
+        .Times(1)
+        .WillOnce(Return(ERR_INVALID_VALUE));
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::ENABLE_DELAYED_PROCESS_EXIT), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
+    EXPECT_EQ(reply.ReadInt32(), ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: HandleCancelDelayedExitTask_0100
+ * @tc.desc: Test HandleCancelDelayedExitTask.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrStubTest, HandleCancelDelayedExitTask_0100, TestSize.Level1)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+
+    WriteInterfaceToken(data);
+    int32_t pid = 1234;
+    data.WriteInt32(pid);
+
+    EXPECT_CALL(*mockAppMgrService_, CancelDelayedExitTask(_))
+        .Times(1);
+
+    auto ret = mockAppMgrService_->OnRemoteRequest(
+        static_cast<uint32_t>(AppMgrInterfaceCode::CANCEL_DELAYED_EXIT_TASK), data, reply, option);
+    EXPECT_EQ(ret, NO_ERROR);
 }
 } // namespace AppExecFwk
 } // namespace OHOS

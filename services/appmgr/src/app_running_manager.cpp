@@ -314,6 +314,26 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::FindMasterProcessAppRunning
     return resMasterRecord;
 }
 
+std::shared_ptr<AppRunningRecord> AppRunningManager::FindMainProcessAppRunningRecord(const int uid)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGD(AAFwkTag::APPMGR, "uid: %{public}d", uid);
+    auto appRunningMap = GetAppRunningRecordMap();
+    for (const auto &item : appRunningMap) {
+        const auto &appRecord = item.second;
+        if (!(appRecord && appRecord->GetUid() == uid)) {
+            continue;
+        }
+        if (!IsAppRunningRecordValid(appRecord)) {
+            continue;
+        }
+        if (appRecord->IsMainProcess()) {
+            return appRecord;
+        }
+    }
+    return nullptr;
+}
+
 bool AppRunningManager::CheckMasterProcessAppRunningRecordIsExist(
     const std::string &appName, const AppExecFwk::AbilityInfo &abilityInfo, const int uid)
 {
@@ -761,10 +781,6 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::OnRemoteDied(const wptr<IRe
             TAG_LOGI(AAFwkTag::APPMGR, "pname: %{public}s, pid: %{public}d", appRecord->GetProcessName().c_str(),
                 priorityObject->GetPid());
             if (appMgrServiceInner != nullptr) {
-#ifdef APP_MGR_KILL_REASON_TAG
-                appMgrServiceInner->RecordAppWithReason(priorityObject->GetPid(), appRecord->GetUid(),
-                    HiviewDFX::ProcessKillReason::KillEventId::REASON_ON_REMOTE_DIED);
-#endif
                 appMgrServiceInner->KillProcessByPid(priorityObject->GetPid(), "OnRemoteDied");
             }
             AbilityRuntime::FreezeUtil::GetInstance().DeleteAppLifecycleEvent(priorityObject->GetPid());
@@ -906,7 +922,7 @@ void AppRunningManager::HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &to
         }
         appRecord->TerminateAbility(token, true, true);
     };
-    appRecord->PostTask("DELAY_KILL_ABILITY", AMSEventHandler::KILL_PROCESS_TIMEOUT, timeoutTask);
+    appRecord->PostTask("DELAY_KILL_ABILITY", AMSEventHandler::KILL_PROCESS_TIMEOUT_DELAY, timeoutTask);
 }
 
 void AppRunningManager::PrepareTerminate(const sptr<IRemoteObject> &token, bool clearMissionFlag)
@@ -1108,6 +1124,7 @@ int32_t AppRunningManager::AssignRunningProcessInfoByAppRecord(
     info.processName_ = appRecord->GetProcessName();
     info.pid_ = appRecord->GetPid();
     info.uid_ = appRecord->GetUid();
+    info.accessTokenId_ = appRecord->GetAccessTokenId();
     info.bundleNames.emplace_back(appRecord->GetBundleName());
     info.state_ = static_cast<AppExecFwk::AppProcessState>(appRecord->GetState());
     info.isContinuousTask = appRecord->IsContinuousTask();
@@ -1449,6 +1466,17 @@ int32_t AppRunningManager::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
         return ERR_INVALID_VALUE;
     }
     appRecord->ScheduleCjHeapMemory(info);
+    return ERR_OK;
+}
+
+int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    auto appRecord = GetAppRunningRecordByPid(info.pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
+        return ERR_INVALID_VALUE;
+    }
+    appRecord->ScheduleMem(info, dumpResult);
     return ERR_OK;
 }
 
@@ -2362,6 +2390,28 @@ int32_t AppRunningManager::QueryUIExtensionBindItemById(
         return ERR_OK;
     }
     return ERR_INVALID_VALUE;
+}
+
+int32_t AppRunningManager::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
+{
+    std::lock_guard guard(runningRecordMapMutex_);
+    if (pid != -1) {
+        for (const auto &[recordId, appRecord] : appRunningRecordMap_) {
+            if (appRecord != nullptr && appRecord->GetPid() == pid) {
+                appRecord->GetAllAbilityInfos(infos);
+                return ERR_OK;
+            }
+        }
+        TAG_LOGE(AAFwkTag::APPMGR, "not find pid:%{public}d appRecord", pid);
+        return ERR_INVALID_VALUE;
+    } else {
+        for (const auto &[recordId, appRecord] : appRunningRecordMap_) {
+            if (appRecord != nullptr) {
+                appRecord->GetAllAbilityInfos(infos);
+            }
+        }
+    }
+    return ERR_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

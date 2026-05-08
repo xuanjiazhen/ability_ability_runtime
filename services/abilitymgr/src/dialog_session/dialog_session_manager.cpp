@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2023-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -26,6 +26,7 @@
 #include "scene_board_judgement.h"
 #include "session_manager_lite.h"
 #endif
+#include "session/host/include/zidl/session_interface.h"
 #include "start_ability_utils.h"
 #include "string_wrapper.h"
 #include "want.h"
@@ -40,6 +41,7 @@ constexpr int32_t ERMS_ISALLOW_RESULTCODE = 10;
 constexpr const char* SUPPORT_CLOSE_ON_BLUR = "supportCloseOnBlur";
 constexpr const char* DIALOG_SESSION_ID = "dialogSessionId";
 constexpr const char* PICKER_ERMS_POLICY = "ability.params.picker.erms.policy";
+constexpr const char* ATOMIC_SERVICE_SHORT_LINK = "atomicServiceShortLink";
 }
 
 DialogSessionManager &DialogSessionManager::GetInstance()
@@ -275,17 +277,16 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
         ClearDialogContext(dialogSessionId);
         return ERR_OK;
     }
+    std::shared_ptr<DialogCallerInfo> dialogCallerInfo = GetDialogCallerInfo(dialogSessionId);
     if (!isAllowed) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "user refuse to jump");
-        NotifyAbilityRequestFailure(dialogSessionId, want);
-        ClearDialogContext(dialogSessionId);
+        HandleUserRejected(dialogSessionId, want, dialogCallerInfo);
         return ERR_OK;
     }
     std::shared_ptr<StartupSessionInfo> startupSessionInfo = GetStartupSessionInfo(dialogSessionId);
     if (startupSessionInfo != nullptr) {
         return NotifySCBToRecoveryAfterInterception(dialogSessionId, startupSessionInfo->abilityRequest);
     }
-    std::shared_ptr<DialogCallerInfo> dialogCallerInfo = GetDialogCallerInfo(dialogSessionId);
     if (dialogCallerInfo == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "dialogCallerInfo null");
         ClearDialogContext(dialogSessionId);
@@ -311,14 +312,38 @@ int DialogSessionManager::SendDialogResult(const Want &want, const std::string &
     sptr<IRemoteObject> callerToken = dialogCallerInfo->callerToken;
     auto abilityMgr = DelayedSingleton<AbilityManagerService>::GetInstance();
     CHECK_POINTER_AND_RETURN(abilityMgr, INNER_ERR);
-    int ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
-        dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
-        dialogCallerInfo->callerAccessTokenId);
+    int32_t ret = ERR_OK;
+    int32_t atomicServiceShortLink = want.GetIntParam(ATOMIC_SERVICE_SHORT_LINK, 0);
+    if (atomicServiceShortLink == 1) {
+        ret = abilityMgr->OpenLink(targetWant, callerToken, dialogCallerInfo->userId,
+            dialogCallerInfo->requestCode, false);
+    } else {
+        ret = abilityMgr->StartAbilityAsCallerDetails(targetWant, callerToken, callerToken, dialogCallerInfo->userId,
+            dialogCallerInfo->requestCode, false, dialogCallerInfo->type == SelectorType::APP_CLONE_SELECTOR,
+            dialogCallerInfo->callerAccessTokenId);
+    }
     if (ret == ERR_OK) {
         ClearDialogContext(dialogSessionId);
         abilityMgr->RemoveSelectorIdentity(dialogCallerInfo->targetWant.GetIntParam(Want::PARAM_RESV_CALLER_TOKEN, 0));
     }
     return ret;
+}
+
+void DialogSessionManager::HandleUserRejected(const std::string &dialogSessionId, const Want &want,
+    const std::shared_ptr<DialogCallerInfo> &dialogCallerInfo)
+{
+    NotifyAbilityRequestFailure(dialogSessionId, want);
+    if (dialogCallerInfo != nullptr && dialogCallerInfo->sessionToken != nullptr) {
+        auto session = iface_cast<Rosen::ISession>(dialogCallerInfo->sessionToken);
+        if (session != nullptr) {
+            sptr<SessionInfo> sessionInfo = sptr<SessionInfo>::MakeSptr();
+            sessionInfo->errorCode = static_cast<int32_t>(ErrorLifecycleState::ABILITY_STATE_INTERCEPTOR_REJECT);
+            sessionInfo->errorReason = "userReject";
+            Rosen::ExceptionInfo exceptionInfo;
+            session->NotifySessionException(sessionInfo, exceptionInfo);
+        }
+    }
+    ClearDialogContext(dialogSessionId);
 }
 
 int32_t DialogSessionManager::NotifySCBToRecoveryAfterInterception(const std::string &dialogSessionId,
@@ -372,6 +397,7 @@ int DialogSessionManager::CreateJumpModalDialog(AbilityRequest &abilityRequest, 
 
     parameters.SetParam("deviceType", AAFwk::String::Box(OHOS::system::GetDeviceType()));
     parameters.SetParam("userId", AAFwk::Integer::Box(userId));
+    parameters.SetParam(ATOMIC_SERVICE_SHORT_LINK, AAFwk::Integer::Box(abilityRequest.atomicServiceShortLink));
 
     std::vector<DialogAppInfo> dialogAppInfos;
     std::string dialogSessionId = GenerateDialogSessionRecordCommon(abilityRequest, userId, parameters,
@@ -402,6 +428,7 @@ int DialogSessionManager::CreateImplicitSelectorModalDialog(AbilityRequest &abil
     sessionWant.SetParam("showCaller", showCaller);
     sessionWant.SetParam("ohos.ability.params.showDefaultPicker",
         abilityRequest.want.GetBoolParam("ohos.ability.params.showDefaultPicker", false));
+    sessionWant.SetParam(ATOMIC_SERVICE_SHORT_LINK, abilityRequest.atomicServiceShortLink);
     if (abilityRequest.want.HasParameter(APP_LAUNCH_TRUSTLIST)) {
         sessionWant.SetParam(APP_LAUNCH_TRUSTLIST,
             abilityRequest.want.GetStringArrayParam(APP_LAUNCH_TRUSTLIST));
@@ -442,6 +469,7 @@ int DialogSessionManager::CreateCloneSelectorModalDialog(AbilityRequest &ability
     if (replaceWant !=  "") {
         parameters.SetParam("ecological.replaceWant", AAFwk::String::Box(replaceWant));
     }
+    parameters.SetParam(ATOMIC_SERVICE_SHORT_LINK, AAFwk::Integer::Box(abilityRequest.atomicServiceShortLink));
 
     std::string dialogSessionId = GenerateDialogSessionRecordCommon(abilityRequest, userId, parameters,
         dialogAppInfos, SelectorType::APP_CLONE_SELECTOR);
@@ -610,6 +638,9 @@ void DialogSessionManager::OnlySetDialogCallerInfo(AbilityRequest &abilityReques
     std::lock_guard<ffrt::mutex> guard(dialogSessionRecordLock_);
     std::shared_ptr<DialogCallerInfo> dialogCallerInfo = std::make_shared<DialogCallerInfo>();
     GenerateDialogCallerInfo(abilityRequest, userId, dialogCallerInfo, type, needGrantUriPermission);
+    if (abilityRequest.sessionInfo != nullptr) {
+        dialogCallerInfo->sessionToken = abilityRequest.sessionInfo->sessionToken;
+    }
     dialogCallerInfoMap_[dialogSessionId] = dialogCallerInfo;
 }
 }  // namespace AAFwk

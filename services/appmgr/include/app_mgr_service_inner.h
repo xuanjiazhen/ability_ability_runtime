@@ -204,7 +204,8 @@ public:
      *
      * @return
      */
-    virtual void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state);
+    virtual void UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+        bool isFromScreenOffBackground = false);
 
     /**
      * UpdateExtensionState, call UpdateExtensionState() through the proxy object, update the extension status.
@@ -242,6 +243,15 @@ public:
      * @return
      */
     virtual void KillProcessByAbilityToken(const sptr<IRemoteObject> &token);
+
+    /**
+     * SetGameSAPrelaunch, set game SA prelaunch flag.
+     *
+     * @param token, the unique identification to the ability.
+     * @param isGameSAPrelaunch, the game SA prelaunch flag to set.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetGameSAPrelaunch(const sptr<IRemoteObject> &token, bool isGameSAPrelaunch);
 
     /**
      * KillProcessesByUserId, kill the processes by userId.
@@ -317,9 +327,9 @@ public:
      */
     virtual void PreloadModuleFinished(const int32_t pid);
 
-    void MakeImage(const std::string &bundleName, int32_t userId,
+    void MakeImage(const AAFwk::Want &want, int32_t userId,
         AppExecFwk::PreloadMode preloadMode, int32_t appIndex, sptr<IImageErrorHandler> errorHandler);
-    ImageError MakeImageInner(const std::string &bundleName, int32_t userId,
+    ImageError MakeImageInner(const AAFwk::Want &want, int32_t userId,
         AppExecFwk::PreloadMode preloadMode, int32_t appIndex, sptr<IImageErrorHandler> errorHandler);
     void DestroyImage(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler);
     ImageError DestroyImageInner(uint64_t checkpointId, sptr<IImageErrorHandler> errorHandler);
@@ -552,6 +562,18 @@ public:
     virtual int32_t GetProcessRunningInfosByUserId(std::vector<RunningProcessInfo> &info, int32_t userId);
 
     /**
+     * GetProcessRunningInfosByAccessTokenId, Obtains information about application processes
+     * that are running on the device by accessTokenId.
+     *
+     * @param accessTokenId, accessTokenId.
+     * @param info, Running process information list.
+     *
+     * @return ERR_OK ,return back success，others fail.
+     */
+    virtual int32_t GetProcessRunningInfosByAccessTokenId(uint32_t accessTokenId,
+        std::vector<RunningProcessInfo> &info);
+
+    /**
      * GetProcessRunningInformation, Obtains information about current application process
      * which is running on the device.
      * @param info, app name in Application record.
@@ -626,6 +648,16 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
+
+    /**
+     * DumpMem, call DumpMem() through proxy project.
+     * triggerGC and dump application's memory info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot
+     * @param dumpResult The dump result string
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
 
     /**
      * @brief Check whether the shared bundle is running.
@@ -989,7 +1021,7 @@ public:
      * @param requestId request id to callback
      */
     void StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
-        int32_t requestId = 0, const std::string &customProcess = "");
+        int32_t requestId = 0, const std::string &customProcess = "", bool isWindowStagePreload = false);
 
     /**
      * Start specified process.
@@ -1064,9 +1096,12 @@ public:
     int32_t NotifyAppMgrRecordExitReasonCompability(
         int32_t pid, int32_t killId, const std::string &killMsg, const std::string &innerMsg);
 #ifdef APP_MGR_KILL_REASON_TAG
-    void RecordAppWithReason(int32_t pid, int32_t uid, int32_t killId);
     void RecordAppWithReasonByUserId(int32_t userId, int32_t killId);
 #endif
+    void DestroyImageForAppExitCompatibility(const std::shared_ptr<AppRunningRecord> appRecord,
+        const int32_t killId, const std::string &exitMsg);
+    void DestroyImageForAppExit(const std::shared_ptr<AppRunningRecord> appRecord,
+        const int32_t reason, const std::string &exitMsg);
 
     /**
      * Notify application status.
@@ -1250,6 +1285,12 @@ public:
      * @param state Target UIExtension preload state.
      */
     void UpdateUIExtensionPreloadState(const std::shared_ptr<AppRunningRecord> &appRecord, bool state);
+
+    /**
+     * @brief Set preload start state for app running record.
+     * @param appRecord App running record.
+     */
+    void UpdateWindowStageCreatedPreloadState(const std::shared_ptr<AppRunningRecord> &appRecord);
 
     /**
      * @brief Set preload flag for running process info.
@@ -1713,6 +1754,12 @@ public:
 
     void SetProcessPrepareExit(int32_t pid);
 
+    /**
+     * @brief set TerminateTimeOut flag.
+     * @param token Ability identify.
+     */
+    void SetTerminateTimeOutFlag(const sptr<IRemoteObject> token);
+
     void AllowScbProcessMoveToBackground();
 
     int32_t KillChildProcessByPid(int32_t pid);
@@ -1730,6 +1777,18 @@ public:
 
     void NotifyTerminateAbility(const sptr<IRemoteObject> token);
 
+    /**
+     * Get all ability infos
+     *
+     * @param pid if pid is -1, query all ability infos, otherwise query ability infos for this pid
+     * @param infos ability infos
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos);
+
+    int32_t EnableDelayedProcessExit(int32_t pid, bool enabled);
+    
+    void CancelDelayedExitTask(int32_t pid);
 private:
     int32_t ForceKillApplicationInner(const std::string &bundleName, const int userId = -1,
         const int appIndex = 0);
@@ -2104,6 +2163,8 @@ private:
 
     void AppRecoveryNotifyApp(int32_t pid, const std::string& bundleName,
         FaultDataType faultType, const std::string& markers, int32_t recordId);
+    
+    void RecordAppRecoveryNotifyAppReason(int32_t pid);
 
     void ProcessAppDebug(const std::shared_ptr<AppRunningRecord> &appRecord, const bool &isDebugStart);
     AppDebugInfo MakeAppDebugInfo(const std::shared_ptr<AppRunningRecord> &appRecord, const bool &isDebugStart);
@@ -2146,7 +2207,7 @@ private:
      */
     bool NotifyMemMgrPriorityChanged(const std::shared_ptr<AppRunningRecord> appRecord);
 
-    int32_t PreloadApplication(const std::string &bundleName, int32_t userId, int32_t appIndex,
+    int32_t PreloadApplication(const AAFwk::Want &want, int32_t userId, int32_t appIndex,
         AppExecFwk::PreloadMode preloadMode, AppExecFwk::PreloadPhase preloadPhase, bool needMakeImage = false,
         sptr<IImageErrorHandler> errorHandler = nullptr);
     void HandlePreloadApplication(const PreloadRequest &request);
@@ -2288,6 +2349,8 @@ private:
     int32_t SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
         const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid);
     void AddAbilityStageForSpecified(std::shared_ptr<AppRunningRecord> appRecord);
+    void ReportAbilityStartInfoForSpecified(std::shared_ptr<AppRunningRecord> appRecord,
+        const AbilityInfo &abilityInfo);
     void GetKernelPermissions(uint32_t accessTokenId, JITPermissionsMap &permissionsMap);
     void SendAppSpawnUninstallDebugHapMsg(int32_t userId);
     std::shared_ptr<AppRunningRecord> CreateAppRunningRecord(std::shared_ptr<ApplicationInfo> appInfo,

@@ -531,6 +531,12 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::FindMasterProcessAppRunning
     return AAFwk::MyStatus::GetInstance().masterProcessRunningRecord_;
 }
 
+std::shared_ptr<AppRunningRecord> AppRunningManager::FindMainProcessAppRunningRecord(const int uid)
+{
+    AAFwk::MyStatus::GetInstance().isFindMainProcessAppRunningRecordCalled_ = true;
+    return AAFwk::MyStatus::GetInstance().mainProcessRunningRecord_;
+}
+
 std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordForSpecifiedProcess(
     int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag)
 {
@@ -539,6 +545,11 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordForSpe
 }
 
 int32_t AppRunningManager::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
+{
+    return ERR_OK;
+}
+
+int32_t AppRunningManager::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
 {
     return ERR_OK;
 }
@@ -573,6 +584,11 @@ bool AppRunningManager::ProcessExitByPid(int32_t, const KillProcessConfig &)
 int32_t AppRunningManager::SignRestartProcess(int32_t)
 {
     return AAFwk::MyStatus::GetInstance().signRestartProcessStatus_;
+}
+
+int32_t AppRunningManager::GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos)
+{
+    return ERR_OK;
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

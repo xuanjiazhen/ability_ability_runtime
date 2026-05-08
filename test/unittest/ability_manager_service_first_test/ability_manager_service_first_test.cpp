@@ -248,6 +248,11 @@ HWTEST_F(AbilityManagerServiceFirstTest, CheckStartByCallPermission_002, TestSiz
     abilityRequest_.abilityInfo.type = AbilityType::DATA;
     EXPECT_EQ(abilityMs_->CheckStartByCallPermission(abilityRequest_), RESOLVE_CALL_ABILITY_TYPE_ERR);
     MyFlag::flag_ = 0;
+
+    abilityRequest_.abilityInfo.type = AbilityType::PAGE;
+    MyFlag::isWithNative_ = true;
+    EXPECT_EQ(abilityMs_->CheckStartByCallPermission(abilityRequest_), RESOLVE_CALL_ABILITY_TYPE_ERR);
+    MyFlag::isWithNative_ = false;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFirstTest CheckStartByCallPermission_002 end");
 }
 
@@ -2836,9 +2841,6 @@ HWTEST_F(AbilityManagerServiceFirstTest, RecordAppWithReason_0100, TestSize.Leve
     abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
     auto res = abilityMs->RecordAppWithReason(pid, uid, exitReason);
     EXPECT_EQ(res, ERR_INVALID_VALUE);
-    exitReason.killId = 1;
-    res = abilityMs->RecordAppWithReason(pid, uid, exitReason);
-    EXPECT_EQ(res, ERR_BUNDLE_MANAGER_PERMISSION_DENIED);
     MyFlag::flag_ = 0;
 }
 

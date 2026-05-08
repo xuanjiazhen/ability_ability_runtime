@@ -38,6 +38,15 @@ void GetEtsPatchNativeLibPath(const HapModuleInfo &hapInfo, std::string &patchNa
 
 void GetEtsNativeLibPath(const BundleInfo &bundleInfo, const std::vector<BaseSharedBundleInfo> &hspList,
     AppLibPathMap &appLibPaths, std::map<std::string, std::string> &abcPathsToBundleModuleNameMap);
+void GetLibrarySupportDirectory(
+    const std::vector<HapModuleInfo> &hapModuleInfos,
+    const std::string &nativeLibraryPath,
+    AppLibPathMap &appLibPaths);
+void TraverseLibrarySupportDirectory(
+    const std::vector<std::string> &librarySupportDirectory,
+    const std::string &prefixPath,
+    const std::string &appLibPathKey,
+    AppLibPathMap &appLibPaths);
 }  // namespace AppExecFwk
 }  // namespace OHOS
 #endif  // OHOS_ABILITY_RUNTIME_ETS_NATIVE_LIB_UTIL_H

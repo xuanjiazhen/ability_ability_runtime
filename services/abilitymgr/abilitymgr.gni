@@ -48,6 +48,7 @@ abilityms_files = [
   "src/extension_running_info.cpp",
   "src/extension_record/base_extension_record.cpp",
   "src/extension_record/extension_record_manager.cpp",
+  "src/extension_running_timeout_monitor.cpp",
   "src/extension_record/extension_record.cpp",
   "src/extension_record/extension_record_factory.cpp",
   "src/foreground_app_connection_manager/foreground_app_connection_manager.cpp",
@@ -61,11 +62,6 @@ abilityms_files = [
   "src/ams_configuration_parameter.cpp",
   "src/recovery_info_timer.cpp",
   "src/modal_system_dialog/modal_system_dialog_ui_extension.cpp",
-  "src/modular_object/modular_object_event_mgr.cpp",
-  "src/modular_object/modular_object_event_receiver.cpp",
-  "src/modular_object/modular_object_manager.cpp",
-  "src/modular_object/modular_object_rdb_data_mgr.cpp",
-  "src/modular_object/modular_object_rdb_storage_mgr.cpp",
   "src/hidden_start_observer_manager.cpp",
   "src/interceptor/ability_interceptor_executer.cpp",
   "src/interceptor/ability_jump_interceptor.cpp",
@@ -102,6 +98,7 @@ abilityms_files = [
   "src/rdb/parser_util.cpp",
   "src/rdb/rdb_data_manager.cpp",
   "src/remote_mission_listener_proxy.cpp",
+  "src/request_start_ability_callback_proxy.cpp",
   "src/scene_board/status_bar_delegate_manager.cpp",
   "src/scene_board/ui_ability_lifecycle_manager.cpp",
   "src/scene_board/ui_ability_record.cpp",
@@ -119,6 +116,11 @@ abilityms_files = [
   "src/atomic_service_status_callback.cpp",
   "src/free_install_manager.cpp",
   "src/free_install_observer_manager.cpp",
+
+  #remote_intent
+  "src/remote_intent_result_callback.cpp",
+  "src/remote_intent_result_callback_proxy.cpp",
+  "src/remote_intent_result_callback_stub.cpp",
 
   #erms
   "src/query_erms_manager.cpp",
@@ -146,6 +148,13 @@ abilityms_files = [
   "src/insight_intent/extract_insight_intent_profile.cpp",
   "src/insight_intent/insight_intent_event_mgr.cpp",
   "src/insight_intent/insight_intent_sys_event_receiver.cpp",
+
+  #skill execution
+  "src/skill/skill_execute_callback_proxy.cpp",
+  "src/skill/skill_execute_callback_stub.cpp",
+  "src/skill/skill_execute_param.cpp",
+  "src/skill/skill_execute_result.cpp",
+  "src/skill/skill_execute_manager.cpp",
 
   #sa interceptor
   "src/sa_interceptor_manager.cpp",
@@ -194,6 +203,9 @@ abilityms_files = [
   "src/kiosk_status.cpp",
   "src/kiosk_manager.cpp",
   "src/utils/udmf_utils.cpp",
+
+  #modular_object utils
+  "src/modular_object_utils.cpp",
 ]
 
 if (ability_runtime_graphics) {

@@ -27,7 +27,7 @@
  *
  * @brief Declares the modular object extension manager.
  *
- * @library libmodular_object_extension.so
+ * @library libability_runtime.so
  * @kit AbilityKit
  * @syscap SystemCapability.Ability.AbilityRuntime.Core
  * @since 26.0.0
@@ -37,7 +37,10 @@
 #define ABILITY_RUNTIME_MODULAR_OBJECT_EXTENSION_MANAGER_H
 
 #include <stddef.h>
+
 #include "ability_runtime_common.h"
+#include "connect_options.h"
+#include "context.h"
 #include "want_manager.h"
 
 #ifdef __cplusplus
@@ -45,30 +48,18 @@ extern "C" {
 #endif
 
 /**
- * @brief Defines the pointer to OH_AbilityRuntime_ModularObject_ExtensionInfo.
+ * @brief Defines the pointer to OH_AbilityRuntime_ModularObjectExtensionInfo.
  *
  * @since 26.0.0
  */
-typedef struct OH_AbilityRuntime_ModularObject_ExtensionInfo* OH_AbilityRuntime_MoeInfoHandle;
+typedef struct OH_AbilityRuntime_ModularObjectExtensionInfo* OH_AbilityRuntime_ModObjExtensionInfoHandle;
 
 /**
- * @brief Defines the pointer to OH_AbilityRuntime_ModularObject_AllExtensionInfos.
+ * @brief Defines the pointer to OH_AbilityRuntime_AllModularObjectExtensionInfos.
  *
  * @since 26.0.0
  */
-typedef struct OH_AbilityRuntime_ModularObject_AllExtensionInfos* OH_AbilityRuntime_AllMoeInfosHandle;
-
-/**
- * @brief Destroys the specified modular object all extension infos.
- *
- * @param allExtensionInfos The modular object all extension infos to be deleted.
- * @return Returns a specific error code.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
- *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.
- * @since 26.0.0
- */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_DestroyAllExtensionInfos(
-    OH_AbilityRuntime_AllMoeInfosHandle *allExtensionInfos);
+typedef struct OH_AbilityRuntime_AllModularObjectExtensionInfos* OH_AbilityRuntime_AllModObjExtensionInfosHandle;
 
 /**
  * @brief The launch mode of a modular object extension.
@@ -147,7 +138,7 @@ typedef enum OH_AbilityRuntime_ThreadMode {
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoLaunchMode(
-    OH_AbilityRuntime_MoeInfoHandle extensionInfo, OH_AbilityRuntime_LaunchMode *launchMode);
+    OH_AbilityRuntime_ModObjExtensionInfoHandle extensionInfo, OH_AbilityRuntime_LaunchMode *launchMode);
 
 /**
  * @brief Gets the process mode from modular object extension info.
@@ -160,7 +151,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoLaunchMo
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoProcessMode(
-    OH_AbilityRuntime_MoeInfoHandle extensionInfo, OH_AbilityRuntime_ProcessMode *processMode);
+    OH_AbilityRuntime_ModObjExtensionInfoHandle extensionInfo, OH_AbilityRuntime_ProcessMode *processMode);
 
 /**
  * @brief Gets the thread mode from modular object extension info.
@@ -173,7 +164,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoProcessM
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoThreadMode(
-    OH_AbilityRuntime_MoeInfoHandle extensionInfo, OH_AbilityRuntime_ThreadMode *threadMode);
+    OH_AbilityRuntime_ModObjExtensionInfoHandle extensionInfo, OH_AbilityRuntime_ThreadMode *threadMode);
 
 /**
  * @brief Gets elementName from modular object extension info.
@@ -186,33 +177,47 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoThreadMo
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoElementName(
-    OH_AbilityRuntime_MoeInfoHandle extensionInfo, AbilityBase_Element *element);
+    OH_AbilityRuntime_ModObjExtensionInfoHandle extensionInfo, AbilityBase_Element *element);
 
 /**
  * @brief Gets the disable state of modular object extension.
  *
  * @param extensionInfo The modular object extension info.
- * @param isDisabled Whether the extension is disabled by the application itself.
+ * @param isDisabled Whether the extension is disabled.
  * @return Returns a specific error code.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.
  * @since 26.0.0
  */
 AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModularObjectExtensionInfoDisableState(
-    OH_AbilityRuntime_MoeInfoHandle extensionInfo, bool *isDisabled);
+    OH_AbilityRuntime_ModObjExtensionInfoHandle extensionInfo, bool *isDisabled);
 
 /**
- * @brief Queries all modular object extension infos within the self application.
+ * @brief Acquires all modular object extension infos within the self application.
  *
- * @param allExtensionInfos Information about all extensions within the self application.
+ * @param outOwnedAllExtensionInfos Information about all extensions within the self application.
  * @return Returns a specific error code.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.
  *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} if the device does not support.
+ * @release OH_AbilityRuntime_ReleaseAllExtensionInfos {outOwnedAllExtensionInfos}
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_QuerySelfModularObjectExtensionInfos(
-    OH_AbilityRuntime_AllMoeInfosHandle *allExtensionInfos);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_AcquireSelfModularObjectExtensionInfos(
+    OH_AbilityRuntime_AllModObjExtensionInfosHandle *outOwnedAllExtensionInfos);
+
+/**
+ * @brief Releases the specified all modular object extension infos.
+ *
+ * @param allExtensionInfos The all modular object extension infos to be released.
+ * @return Returns a specific error code.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the operation is successful.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.
+ * @see OH_AbilityRuntime_AcquireSelfModularObjectExtensionInfos
+ * @since 26.0.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ReleaseAllExtensionInfos(
+    OH_AbilityRuntime_AllModObjExtensionInfosHandle *allExtensionInfos);
 
 /**
  * @brief Gets the exact count of modular object extension infos present in the collection.
@@ -224,8 +229,8 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_QuerySelfModularObjectExtensionInfos(
  *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_GetCountFromAllMoeInfos(
-    OH_AbilityRuntime_AllMoeInfosHandle allExtensionInfos, size_t *count);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetCountFromAllModObjExtensionInfos(
+    OH_AbilityRuntime_AllModObjExtensionInfosHandle allExtensionInfos, size_t *count);
 
 /**
  * @brief Retrieves a specific modular object extension info handle from the collection by its index.
@@ -238,9 +243,57 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetCountFromAllMoeInfos(
  *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.
  * @since 26.0.0
  */
-AbilityRuntime_ErrorCode OH_AbilityRuntime_GetMoeInfoByIndex(
-    OH_AbilityRuntime_AllMoeInfosHandle allExtensionInfos, size_t index,
-    OH_AbilityRuntime_MoeInfoHandle *extensionInfo);
+AbilityRuntime_ErrorCode OH_AbilityRuntime_GetModObjExtensionInfoByIndex(
+    OH_AbilityRuntime_AllModObjExtensionInfosHandle allExtensionInfos, size_t index,
+    OH_AbilityRuntime_ModObjExtensionInfoHandle *extensionInfo);
+
+/**
+ * @brief Connect to a modular object extension ability
+ *
+ * @param want Indicates the service extension to connect.
+ * For details, see {@link AbilityBase_Want}.
+ * @param connectOptions Indicates the connection options.
+ * @param connectionId Indicates the connection id that is a output param.
+ * @return Returns a specific error code.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the call is successful.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_PERMISSION_DENIED} if the caller has no correct permission.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_SUPPORTED} if the device does not support connecting modular
+ *          object extension ability.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_SUCH_ABILITY} if the target ability does not exist.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INCORRECT_ABILITY_TYPE} if the ability type is incorrect.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_VISIBILITY_VERIFICATION_FAILED} - Cannot start an invisible component.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_STATIC_CFG_PERMISSION} The specified process does not have
+            the permission.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_CROSS_USER_OPERATION} Cross-user operations are not allowed.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_CROWDTEST_EXPIRED} if the crowdtesting application expires.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if an internal error occurs.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NOT_TOP_ABILITY} if the caller is not a foreground process.
+ *          {@lin ABILITY_RUNTIME_ERROR_CODE_UPPER_LIMIT_REACHED} The number of ability instances is
+ *          more than twenty.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_RUNNING_ABILITIES_WITH_UI} if the target application does not have
+ *          running abilities with UI.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_UPPER_RATE_LIMIT} The API call frequency is too high and
+ *          exceeds 20 times per second.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_UPPER_CONNECTION_NUMBER_LIMIT} The number of connections exceeds five.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INVALID_DISTRIBUTION_TYPE} The distribution type of
+ *          application is invalid.
+ * @since 26.0.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_ConnectModularObjectExtensionAbility(AbilityBase_Want *want,
+    OH_AbilityRuntime_ConnectOptions *connectOptions, int64_t *connectionId);
+
+/**
+ * @brief Disconnect the modular object extension ability
+ *
+ * @param connectionId Indicates the connection ID.
+ * @return Returns a specific error code.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if the call is successful.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if the arguments provided are invalid.
+ *          {@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if an internal error occurs.
+ * @since 26.0.0
+ */
+AbilityRuntime_ErrorCode OH_AbilityRuntime_DisconnectModularObjectExtensionAbility(int64_t connectionId);
 
 #ifdef __cplusplus
 }

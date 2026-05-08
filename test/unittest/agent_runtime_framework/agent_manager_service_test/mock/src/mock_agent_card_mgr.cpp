@@ -14,7 +14,6 @@
  */
 
 #include "agent_card_mgr.h"
-
 #include "mock_my_flag.h"
 
 namespace OHOS {
@@ -29,6 +28,7 @@ std::string AgentRuntime::MyFlag::agentCardBundleName = "test.bundle";
 std::string AgentRuntime::MyFlag::agentCardModuleName;
 std::string AgentRuntime::MyFlag::agentCardAbilityName = "TestAbility";
 bool AgentRuntime::MyFlag::shouldCreateAgentCardAppInfo = true;
+int32_t AgentRuntime::MyFlag::agentCardType = 0;
 
 namespace AgentRuntime {
 AgentCardMgr &AgentCardMgr::GetInstance()
@@ -65,6 +65,7 @@ int32_t AgentCardMgr::GetAgentCardByAgentId(const std::string &bundleName, const
         } else {
             card.appInfo = nullptr;
         }
+        card.type = static_cast<AgentCardType>(MyFlag::agentCardType);
     }
     return MyFlag::retGetAgentCardByAgentId;
 }

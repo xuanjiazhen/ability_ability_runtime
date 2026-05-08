@@ -430,6 +430,8 @@ enum class AbilityManagerInterfaceCode {
     // ipc id for get want from proxy
     GET_PENDING_REQUEST_WANT_FROM_PROXY = 1075,
 
+    START_UI_ABILITY_WITH_CALLBACK = 1076,
+
     // ipc id for continue ability(1101)
     START_CONTINUATION = 1101,
 
@@ -488,6 +490,10 @@ enum class AbilityManagerInterfaceCode {
     RESUME_EXTENSION_ABILITY = 1142,
     //ipc for prelaunch
     START_PRELAUNCH_ABILITY = 1143,
+    // ipc for request modal UIExtension with account
+    REQUEST_MODAL_UI_EXTENSION_WITH_ACCOUNT = 1144,
+
+    EXECUTE_INTENT_FOR_DISTRIBUTED = 1145,
 
     // ipc id 2001-3000 for tools
     // ipc id for dumping state (2001)
@@ -574,6 +580,10 @@ enum class AbilityManagerInterfaceCode {
     MANUAL_START_AUTO_STARTUP_APPS = 6107,
     // ipc id for query the caller's token id for anco
     QUERY_CALLER_TOKEN_ID_FOR_ANCO = 6108,
+    // ipc id for launch game customized
+    LAUNCH_GAME_CUSTOMIZED = 6109,
+    // ipc id for set game prelaunch complete time
+    SET_GAME_PRELAUNCH_COMPLETE_TIME = 6110,
 
     // ipc id for on auto starup on
     ON_AUTO_STARTUP_ON = 6111,
@@ -724,6 +734,36 @@ enum class AbilityManagerInterfaceCode {
 
     // query self modular object Extension infos
     QUERY_SELF_MODULAR_OBJECT_EXTENSION_INFOS = 6162,
+
+    // cancel game prelaunch
+    CANCEL_GAME_PRELAUNCH = 6163,
+
+    // complete game prelaunch
+    COMPLETE_GAME_PRELAUNCH = 6164,
+
+    // query entity
+    INSIGHT_INTENT_QUERY_ENTITY = 6165,
+
+    // execute in-app skill
+    EXECUTE_IN_APP_SKILL = 6169,
+
+    // query skill type (independent or in-app)
+    QUERY_SKILL_TYPE = 6171,
+
+    // start self ability with token
+    START_SELF = 6166,
+
+    // start self uiability with caller token
+    START_SELF_UI_ABILITY_WITH_TOKEN = 6167,
+
+    // start self uiability with start options and caller token
+    START_SELF_UI_ABILITY_WITH_OPTIONS_AND_TOKEN = 6168,
+
+    // start self uiability by application context in current process
+    START_SELF_UI_ABILITY_BY_APP_CONTEXT = 6169,
+
+    // execute skill done with token for identity verification
+    EXECUTE_SKILL_DONE_WITH_TOKEN = 6172,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

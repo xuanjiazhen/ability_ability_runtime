@@ -22,6 +22,7 @@
 #include "app_utils.h"
 #include "render_record.h"
 #include "app_mgr_service_inner.h"
+#include "app_state_observer_manager.h"
 #include "error_msg_util.h"
 #include "event_report.h"
 #include "exit_resident_process_manager.h"
@@ -33,6 +34,7 @@
 #include "app_mgr_service_const.h"
 #include "app_mgr_service_dump_error_code.h"
 #include "cache_process_manager.h"
+#include "global_constant.h"
 #include "hisysevent_report.h"
 #ifdef SUPPORT_SCREEN
 #include "window_visibility_info.h"
@@ -205,6 +207,14 @@ const std::string &AppRunningRecord::GetCustomProcessFlag() const
 int32_t AppRunningRecord::GetUid() const
 {
     return mainUid_;
+}
+
+uint32_t AppRunningRecord::GetAccessTokenId() const
+{
+    if (appInfo_ != nullptr) {
+        return appInfo_->accessTokenId;
+    }
+    return 0;
 }
 
 void AppRunningRecord::SetUid(const int32_t uid)
@@ -408,6 +418,8 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetNWebPreload(isAllowedNWebPreload_);
     launchData.SetPreloadModuleName(preloadModuleName_);
     launchData.SetDebugFromLocal(isDebugFromLocal_);
+    launchData.SetArkChildProcessSupported(isArkChildProcessSupported_);
+    launchData.SetNativeChildProcessSupported(isNativeChildProcessSupported_);
     launchData.SetStartupTaskData(startupTaskData_);
     launchData.SetImageProcessType(static_cast<int32_t>(imageProcessType_));
 
@@ -689,6 +701,13 @@ void AppRunningRecord::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     }
 }
 
+void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+{
+    if (appLifeCycleDeal_) {
+        appLifeCycleDeal_->ScheduleMem(info, dumpResult);
+    }
+}
+
 void AppRunningRecord::LowMemoryWarning()
 {
     if (appLifeCycleDeal_) {
@@ -897,7 +916,8 @@ bool AppRunningRecord::UpdateAbilityFocusState(const sptr<IRemoteObject> &token,
     }
 }
 
-void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state)
+void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, const AbilityState state,
+    bool isFromScreenOffBackground)
 {
     TAG_LOGD(AAFwkTag::APPMGR, "state is :%{public}d", static_cast<int32_t>(state));
     auto abilityRecord = GetAbilityRunningRecordByToken(token);
@@ -918,7 +938,7 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
     if (state == AbilityState::ABILITY_STATE_FOREGROUND) {
         AbilityForeground(abilityRecord);
     } else if (state == AbilityState::ABILITY_STATE_BACKGROUND) {
-        AbilityBackground(abilityRecord);
+        AbilityBackground(abilityRecord, isFromScreenOffBackground);
     } else {
         TAG_LOGW(AAFwkTag::APPMGR, "wrong state");
     }
@@ -931,7 +951,7 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         TAG_LOGE(AAFwkTag::APPMGR, "null ability");
         return;
     }
-
+    SetIsFromScreenOffBackground(false);
     AbilityState curAbilityState = ability->GetState();
     if (curAbilityState != AbilityState::ABILITY_STATE_READY &&
         curAbilityState != AbilityState::ABILITY_STATE_BACKGROUND) {
@@ -978,7 +998,8 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
     }
 }
 
-void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability)
+void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRecord> &ability,
+    bool isFromScreenOffBackground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     if (!ability) {
@@ -1018,6 +1039,10 @@ void AppRunningRecord::AbilityBackground(const std::shared_ptr<AbilityRunningRec
             foregroundSize++;
             break;
         }
+    }
+    
+    if (foregroundSize == 0 && (mainBundleName_ != LAUNCHER_NAME || IsAllowScbProcessMoveToBackground())) {
+        isFromScreenOffBackground_ = isFromScreenOffBackground;
     }
 
     // Then schedule application background when all ability is not foreground.
@@ -1133,6 +1158,11 @@ void AppRunningRecord::TerminateAbility(const sptr<IRemoteObject> &token, const 
             abilityRecord, static_cast<int32_t>(AbilityState::ABILITY_STATE_TERMINATED), true, false);
     }
     moduleRecord->TerminateAbility(shared_from_this(), token, isForce);
+
+    if (GetProcessType() == ProcessType::NORMAL && HasOnlyOneExtensionType()) {
+        SetProcessType(ProcessType::EXTENSION);
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnProcessTypeChanged(shared_from_this());
+    }
 }
 
 void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
@@ -1148,7 +1178,9 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
     auto abilityRecord = moduleRecord->GetAbilityByTerminateLists(token);
     if (abilityRecord != nullptr && abilityRecord->GetAbilityInfo() != nullptr) {
         isExtensionDebug = (abilityRecord->GetAbilityInfo()->type == AppExecFwk::AbilityType::EXTENSION) &&
-                           (isAttachDebug_ || isDebugApp_);
+            abilityRecord->GetAbilityInfo()->extensionAbilityType != AppExecFwk::ExtensionAbilityType::AGENT &&
+            abilityRecord->GetAbilityInfo()->extensionAbilityType != AppExecFwk::ExtensionAbilityType::AGENT_UI &&
+            (isAttachDebug_ || isDebugApp_);
     }
     TAG_LOGD(AAFwkTag::APPMGR, "Extension debug is [%{public}s]", isExtensionDebug ? "true" : "false");
 
@@ -1176,14 +1208,33 @@ void AppRunningRecord::AbilityTerminated(const sptr<IRemoteObject> &token)
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !needCache) {
         RemoveModuleRecord(moduleRecord, isExtensionDebug);
     }
-
+    bool isLastUIAbility = (abilityRecord != nullptr && abilityRecord->GetAbilityInfo() != nullptr &&
+        abilityRecord->GetAbilityInfo()->type == AppExecFwk::AbilityType::PAGE);
     auto moduleRecordList = GetAllModuleRecord();
     if (moduleRecordList.empty() && (!IsKeepAliveApp()
         || AAFwk::UIExtensionWrapper::IsUIExtension(GetExtensionType())
         || !ExitResidentProcessManager::GetInstance().IsMemorySizeSufficient()) && !isExtensionDebug
         && !needCache) {
-        ScheduleTerminate();
+        ScheduleTerminateByDelayed(isLastUIAbility);
     }
+}
+
+void AppRunningRecord::ScheduleTerminateByDelayed(bool isLastUIAbility)
+{
+    if (IsDelayedProcessExitEnabled() && isLastUIAbility) {
+        TAG_LOGD(AAFwkTag::APPMGR, "ScheduleTerminateByDelayed");
+        auto delayedExitTime = AbilityRuntime::GlobalConstant::PREPARE_TERMINATE_TIMEOUT_TIME;
+        std::string taskName = std::string("DELAY_EXIT_UI_PROCESS_") + std::to_string(GetRecordId());
+        auto terminateTask = [weakThis = weak_from_this()]() {
+            auto self = weakThis.lock();
+            if (self) {
+                self->ScheduleTerminate();
+            }
+        };
+        PostTask(taskName, delayedExitTime, terminateTask);
+        return;
+    }
+    ScheduleTerminate();
 }
 
 std::list<std::shared_ptr<ModuleRunningRecord>> AppRunningRecord::GetAllModuleRecord() const
@@ -1993,7 +2044,8 @@ void AppRunningRecord::GetSplitModeAndFloatingMode(bool &isSplitScreenMode, bool
                 isFloatingWindowMode = true;
             }
             if (windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_PRIMARY ||
-                windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY) {
+                windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SECONDARY ||
+                windowMode == AAFwk::AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_SPLIT) {
                 isSplitScreenMode = true;
             }
         }
@@ -2265,6 +2317,38 @@ uint64_t AppRunningRecord::GenerateRunningId()
     thread_local std::mt19937_64 engine(std::random_device{}());
     thread_local std::uniform_int_distribution<uint64_t> dist;
     return dist(engine);
+}
+
+bool AppRunningRecord::HasOnlyOneExtensionType()
+{
+    auto abilities = GetAbilities();
+    ExtensionAbilityType firstType = ExtensionAbilityType::UNSPECIFIED;
+    bool hasExtension = false;
+
+    for (const auto &item : abilities) {
+        const auto &ability = item.second;
+        if (!ability) {
+            continue;
+        }
+        auto abilityInfo = ability->GetAbilityInfo();
+        if (!abilityInfo) {
+            continue;
+        }
+
+        if (abilityInfo->type != AbilityType::EXTENSION) {
+            return false;
+        }
+
+        auto currentType = abilityInfo->extensionAbilityType;
+        if (!hasExtension) {
+            firstType = currentType;
+            hasExtension = true;
+        } else if (currentType != firstType) {
+            return false;
+        }
+    }
+
+    return hasExtension;
 }
 
 void AppRunningRecord::SetRequestProcCode(int32_t requestProcCode)
@@ -2818,12 +2902,12 @@ bool AppRunningRecord::IsAttachedToStatusBar()
 
 void AppRunningRecord::SetProcessCacheBlocked(bool isBlocked)
 {
-    processCacheBlocked = isBlocked;
+    processCacheBlocked_.store(isBlocked);
 }
 
 bool AppRunningRecord::GetProcessCacheBlocked()
 {
-    return processCacheBlocked;
+    return processCacheBlocked_.load();
 }
 
 void AppRunningRecord::SetProcessCacheLocked(bool isLock)
@@ -2981,6 +3065,24 @@ void AppRunningRecord::SetSupportMultiProcessDeviceFeature(bool support)
 {
     std::lock_guard<ffrt::mutex> supportLock(supportMultiProcessDeviceFeatureLock_);
     supportMultiProcessDeviceFeature_ = support;
+}
+
+void AppRunningRecord::GetAllAbilityInfos(std::vector<AppExecFwk::AbilityStateData> &infos)
+{
+    auto abilitiesMap = GetAbilities();
+    for (const auto &pair : abilitiesMap) {
+        const auto &abilityRecord = pair.second;
+        if (abilityRecord == nullptr || abilityRecord->GetAbilityInfo() == nullptr) {
+            continue;
+        }
+        AbilityStateData info;
+        info.abilityRecordId = abilityRecord->GetAbilityRecordId();
+        info.pid = GetPid();
+        info.uid = abilityRecord->GetAbilityInfo()->applicationInfo.uid;
+        info.abilityType = static_cast<int32_t>(abilityRecord->GetAbilityInfo()->type);
+        info.extensionAbilityType = static_cast<int32_t>(abilityRecord->GetAbilityInfo()->extensionAbilityType);
+        infos.emplace_back(info);
+    }
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

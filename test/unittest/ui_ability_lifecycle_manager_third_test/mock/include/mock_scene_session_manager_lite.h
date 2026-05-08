@@ -42,7 +42,7 @@ public:
     MOCK_METHOD(WSError, PendingSessionToForeground,
         (const sptr<IRemoteObject>& token, int32_t windowMode), (override));
     MOCK_METHOD(WSError, PendingSessionToBackgroundForDelegator,
-        (const sptr<IRemoteObject>& token, bool shouldBackToCaller), (override));
+        (const sptr<IRemoteObject>& token, bool shouldBackToCaller, int32_t reason), (override));
     MOCK_METHOD(WSError, MoveSessionsToForeground,
         (const std::vector<std::int32_t>& sessionIds, int32_t topSessionId), (override));
     MOCK_METHOD(WSError, MoveSessionsToBackground,
@@ -143,6 +143,8 @@ public:
         MainWindowInfo& windowInfo), (override));
     MOCK_METHOD(void, GetAllGroupInfo, ((std::unordered_map<DisplayId, DisplayGroupId> &),
         (std::vector<sptr<FocusChangeInfo>> &)), (override));
+    MOCK_METHOD(WMError, GetAppWindowShowingInfosByBundleName, (const ApplicationInfo& appInfo,
+        std::vector<AppWindowShowingInfo>& windowInfos), (override));
 };
 } // namespace OHOS::Rosen
 #endif // MOCK_SCENE_SESSION_MANAGER_LITE_H

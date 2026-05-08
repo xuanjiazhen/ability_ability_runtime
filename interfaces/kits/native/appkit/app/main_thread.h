@@ -232,6 +232,15 @@ public:
 
     /**
      *
+     * @brief triggerGC and dump application's memory info.
+     *
+     * @param info, pid, tid, needGc, needSnapshot.
+     * @param dumpResult The dump result string
+     */
+    void ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult) override;
+
+    /**
+     *
      * @brief Low the memory which used by application.
      *
      */
@@ -344,6 +353,8 @@ public:
 #ifdef CJ_FRONTEND
     CJUncaughtExceptionInfo CreateCjExceptionInfo(const std::string &bundleName, uint32_t versionCode,
         const std::string &hapPath);
+    CJEventReportInfo CreateCjEventReportInfo(const std::string &bundleName, uint32_t versionCode,
+        const std::string &hapPath, std::string &appRunningId);
 #endif
     EtsEnv::ETSUncaughtExceptionInfo CreateEtsExceptionInfo(const std::string &bundleName, uint32_t versionCode,
         const std::string &hapPath, std::string &appRunningId, int32_t pid, std::string &processName);
@@ -430,6 +441,8 @@ private:
     void HandleJsHeapMemory(const OHOS::AppExecFwk::JsHeapDumpInfo &info);
 
     void HandleCjHeapMemory(const OHOS::AppExecFwk::CjHeapDumpInfo &info);
+
+    void HandleMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
 
     void HandleSchedulePrepareTerminate(const std::string &moduleName);
 
@@ -776,7 +789,8 @@ private:
     std::string pluginDefaultNamespaceLdDictionary_ = "";
     RuntimeUpdateParam runtimeUpdateParam_;
 #if defined(NWEB) && defined(NWEB_GRAPHIC)
-    Rosen::RSSurfaceNode::SharedPtr preloadSurfaceNode_ = nullptr;
+    sptr<OHOS::IConsumerSurface> cSurface_ = nullptr;
+    sptr<OHOS::Surface> pSurface_ = nullptr;
     std::shared_ptr<NWeb::NWeb> preloadNWeb_ = nullptr;
 #endif
 
@@ -842,6 +856,8 @@ private:
         AppLibPathMap &appLibPaths);
     void SetRuntimeLang(ApplicationInfo &appInfo, AbilityRuntime::Runtime::Options &options);
     bool IsEtsAPP(const ApplicationInfo &appInfo);
+    void RegisterHybridException(const std::unique_ptr<AbilityRuntime::Runtime> &runtime,
+        const ApplicationInfo &appInfo, const std::string &hapPath, const UncatchableTaskInfo &uncatchableTaskInfo);
     void SetJsIdleCallback(const std::weak_ptr<OHOSApplication> &wpApplication,
         const std::unique_ptr<AbilityRuntime::Runtime> &runtime);
     void PreloadAppStartup(const BundleInfo &bundleInfo, const AppLaunchData &appLaunchData) const;

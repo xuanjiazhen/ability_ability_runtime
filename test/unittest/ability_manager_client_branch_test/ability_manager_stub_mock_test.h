@@ -374,7 +374,7 @@ public:
 
     int StartAbilityByCall(const Want& want, const sptr<IAbilityConnection>& connect,
         const sptr<IRemoteObject>& callerToken, int32_t userId = DEFAULT_INVAL_VALUE, bool isSilent = false,
-        bool promotePriority = false, bool isVisible = false) override
+        bool promotePriority = false, bool isVisible = false, uint64_t specifiedFullTokenId = 0) override
     {
         return 0;
     }
@@ -396,6 +396,11 @@ public:
 
     int FinishUserTest(
         const std::string& msg, const int64_t& resultCode, const std::string& bundleName) override
+    {
+        return 0;
+    }
+
+    int RecordAppWithReasonByUserId(int32_t userId, const ExitReasonCompability& exitReason) override
     {
         return 0;
     }

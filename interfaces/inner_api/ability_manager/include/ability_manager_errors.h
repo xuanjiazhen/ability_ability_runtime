@@ -1125,6 +1125,9 @@ enum {
     // Result (2099217) for duplicate register of an existing agent card.
     ERR_AGENT_CARD_DUPLICATE_REGISTER = 2099217,
 
+    // Result (2099218) for duplicate active LOW_CODE agent invocation.
+    ERR_LOW_CODE_AGENT_ALREADY_ACTIVE = 2099218,
+
     /**
      * Result (2099220) for pid has been reused.
      */
@@ -1134,6 +1137,18 @@ enum {
      * Result (2099411) for not support screen.
      */
     ERR_NOT_SUPPORT_SCREEN = 2099411,
+
+    ERR_MODULAR_OBJECT_DISABLED = 2099412,
+
+    ERR_NO_RUNNING_ABILITIES_WITH_UI = 2099413,
+    
+    ERR_INVALID_DISTRIBUTION_TYPE = 2099414,
+
+    // Result (2099420) for Cross-device execution intent connection failed.
+    ERR_INTENT_CONNECTION_FAILED = 2099420,
+
+    // Result (2099421) for Device disconnected during cross-device intent execution.
+    ERR_INTENT_DEVICE_DISCONNECTED = 2099421,
 
     /**
      * Native error(3000000) for target bundle not exist.
@@ -1401,6 +1416,27 @@ enum NativeFreeInstallError {
      * Result (29360226) Invalid pid.
      */
     ERR_INVALID_PID = 29360226,
+
+    /*
+     * Result (29360227) The current application is not in a game preloading state.
+     */
+    ERR_NOT_GAME_PRELOAD_STATE = 29360227,
+
+    /* codes 29360270 - 29360280 are reserved for StartSelfUIAbility by delayed process exit */
+    /*
+     * Result (29360270) The current process has no UIAbility, cannot be called.
+     */
+    ERR_DELAYED_PROCESS_EXIT_NO_UIABILITY = 29360270,
+
+    /*
+     * Result (29360271) Delayed process exit is not pending in the current process, cannot be called.
+     */
+    ERR_DELAYED_PROCESS_EXIT_NOT_PENDING = 29360271,
+    
+    /*
+     * Result (29360272) The current process still has another UIAbility.
+     */
+    ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY = 29360272,
 
     /**
      * Undefine error code.

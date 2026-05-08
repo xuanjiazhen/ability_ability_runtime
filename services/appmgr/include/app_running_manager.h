@@ -117,6 +117,8 @@ public:
     std::shared_ptr<AppRunningRecord> FindMasterProcessAppRunningRecord(const std::string &appName,
         const AppExecFwk::AbilityInfo &abilityInfo, const int uid);
 
+    std::shared_ptr<AppRunningRecord> FindMainProcessAppRunningRecord(const int uid);
+
     bool CheckMasterProcessAppRunningRecordIsExist(const std::string &appName,
         const AppExecFwk::AbilityInfo &abilityInfo, const int uid);
 
@@ -307,6 +309,16 @@ public:
     int32_t DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info);
 
     /**
+     * DumpMem, call DumpMem() through proxy project.
+     * triggerGC and dump application's memory info.
+     *
+     * @param info The information to be dumped
+     * @param dumpResult The dump result string
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult);
+
+    /**
      * Set AbilityForegroundingFlag of an app-record to true.
      *
      * @param pid, pid.
@@ -451,6 +463,7 @@ public:
         std::shared_ptr<ChildProcessRecord> childRecord, std::shared_ptr<AppRunningRecord> appRecord);
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForUIExtension(
         int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag);
+    int32_t GetAllAbilityInfos(const int32_t pid, std::vector<AppExecFwk::AbilityStateData> &infos);
 
 private:
     std::shared_ptr<AbilityRunningRecord> GetAbilityRunningRecord(const int64_t eventId);

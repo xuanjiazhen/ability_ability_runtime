@@ -54,6 +54,17 @@ public:
         return UNKNOWN_ERROR;
     }
 
+    int InvokeInsightIntentSendRequest(uint32_t code, MessageParcel& data,
+        MessageParcel& reply, MessageOption& option)
+    {
+        code_ = code;
+        std::string emptyArray = "[]";
+        reply.WriteUint32(emptyArray.size() + 1);
+        reply.WriteRawData(emptyArray.c_str(), emptyArray.size() + 1);
+        reply.WriteInt32(NO_ERROR);
+        return 0;
+    }
+
     int code_ = 0;
 
     virtual int StartAbility(
@@ -367,8 +378,8 @@ public:
     MOCK_METHOD1(GetAbilityRunningInfos, int(std::vector<AbilityRunningInfo>& info));
     MOCK_METHOD2(GetExtensionRunningInfos, int(int upperLimit, std::vector<ExtensionRunningInfo>& info));
     MOCK_METHOD1(GetProcessRunningInfos, int(std::vector<AppExecFwk::RunningProcessInfo>& info));
-    MOCK_METHOD7(StartAbilityByCall,
-        int(const Want&, const sptr<IAbilityConnection>&, const sptr<IRemoteObject>&, int32_t, bool, bool, bool));
+    MOCK_METHOD8(StartAbilityByCall, int(const Want&, const sptr<IAbilityConnection>&,
+        const sptr<IRemoteObject>&, int32_t, bool, bool, bool, uint64_t));
     MOCK_METHOD2(AcquireShareData, int32_t(const int32_t &missionId, const sptr<IAcquireShareDataCallback> &shareData));
     MOCK_METHOD4(ShareDataDone, int32_t(const sptr<IRemoteObject> &token,
         const int32_t &resultCode, const int32_t &uniqueId, WantParams &wantParam));

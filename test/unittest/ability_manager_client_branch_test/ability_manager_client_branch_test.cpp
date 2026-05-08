@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021-2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -1060,6 +1060,55 @@ HWTEST_F(AbilityManagerClientBranchTest, FinishUserTest_0100, TestSize.Level1)
 
     EXPECT_EQ(result, ERR_OK);
     GTEST_LOG_(INFO) << "FinishUserTest_0100 end";
+}
+
+/**
+ * @tc.name: FinishUserTest_0200
+ * @tc.desc: FinishUserTest with nullptr proxy (GetAbilityManager will reconnect)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, FinishUserTest_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "FinishUserTest_0200 start";
+    std::string msg = "msg";
+    int64_t resultCode = 0;
+    std::string bundleName = "bundleName_test";
+    auto result = client_->FinishUserTest(msg, resultCode, bundleName);
+
+    EXPECT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "FinishUserTest_0200 end";
+}
+
+/**
+ * @tc.name: RecordAppWithReasonByUserId_0100
+ * @tc.desc: RecordAppWithReasonByUserId with valid proxy
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, RecordAppWithReasonByUserId_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RecordAppWithReasonByUserId_0100 start";
+    int32_t userId = 100;
+    ExitReasonCompability exitReason(1);
+    auto result = client_->RecordAppWithReasonByUserId(userId, exitReason);
+
+    EXPECT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "RecordAppWithReasonByUserId_0100 end";
+}
+
+/**
+ * @tc.name: RecordAppWithReasonByUserId_0200
+ * @tc.desc: RecordAppWithReasonByUserId with nullptr proxy (GetAbilityManager will reconnect)
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, RecordAppWithReasonByUserId_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "RecordAppWithReasonByUserId_0200 start";
+    int32_t userId = 100;
+    ExitReasonCompability exitReason(1);
+    auto result = client_->RecordAppWithReasonByUserId(userId, exitReason);
+
+    EXPECT_EQ(result, ERR_OK);
+    GTEST_LOG_(INFO) << "RecordAppWithReasonByUserId_0200 end";
 }
 
 /**
@@ -2776,6 +2825,18 @@ HWTEST_F(AbilityManagerClientBranchTest, QuerySelfModularObjectExtensionInfos_01
 {
     std::vector<ModularObjectExtensionInfo> infos;
     EXPECT_EQ(client_->QuerySelfModularObjectExtensionInfos(infos), ERR_OK);
+}
+
+/**
+ * @tc.name: StartUIAbilityWithCallback_0100
+ * @tc.desc: StartUIAbilityWithCallback
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartUIAbilityWithCallback_0100, TestSize.Level1)
+{
+    Want want;
+    sptr<IRemoteObject> callerToken = new AbilityManagerStubTestMock();
+    EXPECT_EQ(client_->StartUIAbilityWithCallback(want, callerToken, nullptr), ERR_OK);
 }
 
 /*

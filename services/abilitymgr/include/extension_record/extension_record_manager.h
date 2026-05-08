@@ -25,6 +25,7 @@
 
 #include "base_extension_record.h"
 #include "extension_record.h"
+#include "extension_running_timeout_monitor.h"
 #include "preload_ui_extension_execute_callback_interface.h"
 #include "ui_extension/ui_extension_host_info.h"
 #include "ui_extension/ui_extension_session_info.h"
@@ -85,6 +86,13 @@ public:
      * @param extensionList UIExtensionAbility name list.
      */
     int32_t GetActiveUIExtensionList(const std::string &bundleName, std::vector<std::string> &extensionList);
+
+    /**
+     * @brief Get extensionList by uid.
+     * @param uid The application uid.
+     * @param extensionList UIExtensionAbility name list.
+     */
+    int32_t GetActiveUIExtensionListByUid(int32_t uid, std::vector<std::string> &extensionList);
 
     int32_t StartAbility(const AAFwk::AbilityRequest &abilityRequest);
 
