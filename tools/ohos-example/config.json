@@ -82,6 +82,41 @@
         },
         "required": ["version"]
       }
+    },
+    "input": {
+      "description": "Run example tool, execute and return results",
+      "requirePermissions": [],
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "outputSchema": {
+        "type": "object",
+        "description": "Execution result",
+        "properties": {
+          "result": {
+            "type": "string",
+            "description": "Execution result string"
+          }
+        }
+      },
+      "eventTypes": ["OnInputCommand"],
+      "eventSchemas": {
+        "OnInputCommand" : {
+          "type": "object",
+          "description": "Execution result event",
+          "properties": {
+            "type" : {
+              "const": "OnInputCommand"
+            },
+            "message": {
+              "type": "string",
+              "description": "Execution result string"
+            }
+          }
+        },
+        "required": ["message"]
+      }
     }
   }
 }
