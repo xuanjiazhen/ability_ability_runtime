@@ -72,7 +72,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetAbilityName(
 
     if (nativeAbilityWrapper->abilityName.empty()) {
         TAG_LOGE(AAFwkTag::APPKIT, "Ability name is empty");
-        return ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST;
+        return ABILITY_RUNTIME_ERROR_CODE_ABILITY_WRAPPER_INVALID;
     }
 
     int32_t nameLength = static_cast<int32_t>(nativeAbilityWrapper->abilityName.length());
@@ -120,7 +120,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_GetEnv(
 
     if (nativeAbilityWrapper->env == nullptr) {
         TAG_LOGE(AAFwkTag::APPKIT, "napi_env in NativeAbilityWrapper is null");
-        return ABILITY_RUNTIME_ERROR_CODE_CONTEXT_NOT_EXIST;
+        return ABILITY_RUNTIME_ERROR_CODE_ABILITY_WRAPPER_INVALID;
     }
 
     *env = nativeAbilityWrapper->env;
