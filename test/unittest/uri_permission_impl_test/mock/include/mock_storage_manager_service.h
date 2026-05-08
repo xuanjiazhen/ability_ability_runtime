@@ -561,6 +561,11 @@ public:
         return E_OK;
     }
 
+    virtual int32_t GetPartitionTable(const std::string &diskId, PartitionTableInfo &partitionTableInfo)
+    {
+        return E_OK;
+    }
+
     virtual int32_t Burn(const std::string &volumeId, const BurnParams &params) override
     {
         return E_OK;
