@@ -47,7 +47,8 @@ public:
     std::string CreateExecuteRecord(const sptr<IRemoteObject> &callerToken,
         const std::string &targetBundleName, const std::string &callerBundleName,
         uint32_t callerTokenId,
-        const sptr<ISkillExecuteCallback> &callback = nullptr);
+        const sptr<ISkillExecuteCallback> &callback = nullptr,
+        const std::string &externalRequestCode = "");
 
     int32_t ExecuteSkillDone(const std::string &requestCode, int32_t resultCode,
         const AppExecFwk::SkillExecuteResult &result,
