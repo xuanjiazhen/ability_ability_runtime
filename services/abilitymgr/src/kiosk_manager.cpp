@@ -125,6 +125,7 @@ int32_t KioskManager::EnterKioskMode(sptr<IRemoteObject> callerToken)
     NotifyKioskModeChanged(true);
     auto sceneSessionManager = Rosen::SessionManagerLite::GetInstance().GetSceneSessionManagerLiteProxy();
     CHECK_POINTER_AND_RETURN_LOG(sceneSessionManager, INNER_ERR, "sceneSessionManager is nullptr");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call SessionManager EnterKioskMode");
     sceneSessionManager->EnterKioskMode(callerToken);
     return ERR_OK;
 }
