@@ -1784,7 +1784,10 @@ ohos_unittest("data_uri_utils_test") {
 
 ohos_unittest("extension_impl_test") {
   module_out_path = module_output_path
-  include_dirs = [ "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include" ]
+  include_dirs = [
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
+    "${ability_runtime_path}/utils/global/common/include",
+  ]
 
   sources = [ "extension_impl_test.cpp" ]
 
