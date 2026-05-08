@@ -137,6 +137,7 @@ private:
     int32_t SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
         const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName);
     void HandleBackgroundSessionReply(const std::shared_ptr<SessionRecord> &record, const std::string &eventId);
+    int32_t HandleInAppSkill(const ExecToolParam &param, const std::string &eventId, uint32_t tokenId);
 
     void HandleProcessTimeout(const std::string &sessionId);
     void HandleProcessYieldTimeout(const std::string &sessionId);
