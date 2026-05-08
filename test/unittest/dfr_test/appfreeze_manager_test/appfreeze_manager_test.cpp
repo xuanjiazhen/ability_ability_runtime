@@ -411,6 +411,7 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetAppfreezeInfoPath_001, Te
     FaultData faultData;
     std::string bundleName = "AppfreezeManagerTest";
     faultData.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+    faultData.isEnableMainThreadSample = true;
     AppfreezeManager::AppInfo appInfo = {
         .pid = getpid(),
         .uid = getuid(),
@@ -431,6 +432,11 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetAppfreezeInfoPath_001, Te
     appfreezeManager->InitWarningCpuInfo(faultData, appInfo);
     faultData.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
     appfreezeManager->GetAppfreezeInfoPath(faultData, appInfo);
+
+    faultData.isEnableMainThreadSample = false;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    ret = appfreezeManager->GetAppfreezeInfoPath(faultData, appInfo);
+    EXPECT_TRUE(ret.empty());
 }
 
 /**

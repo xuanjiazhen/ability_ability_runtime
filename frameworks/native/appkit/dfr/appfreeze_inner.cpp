@@ -43,6 +43,11 @@ namespace AppExecFwk {
 namespace {
 constexpr int32_t HALF_DURATION = 3000;
 constexpr int32_t HALF_INTERVAL = 300;
+constexpr int MAX_INLINE_FREEZE_STACK_APPEND = 256 * 1024;
+// Keep in sync with base/hiviewdfx/hicollie/frameworks/native/xcollie_utils.h FREEZE_DIR
+constexpr const char FREEZE_SAMPLE_DIR[] = "/data/storage/el2/log/watchdog/freeze/";
+constexpr const char INLINE_SAMPLE_STACK_HEADER[] =
+    "\n\n======== Main thread sampling stack (default inline mode) ========\n";
 const bool BETA_VERSION = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
 constexpr int32_t APPFREEZE_INNER_TASKWORKER_NUM = 1;
 static constexpr const char *const HEAP_TOTAL_SIZE = "HEAP_TOTAL_SIZE";
@@ -287,6 +292,31 @@ int AppfreezeInner::TransformHicollieFaultNumber(const std::string& faultName)
     return -1;
 }
 
+void AppfreezeInner::AppendInlineSamplingStackToMessage(FaultData& faultData)
+{
+    if (GetMainThreadSample()) {
+        return;
+    }
+    if (!IsAppFreeze(faultData.errorObject.name)) {
+        return;
+    }
+    if (faultData.appfreezeInfo.empty()) {
+        return;
+    }
+    std::string stackPath = std::string(FREEZE_SAMPLE_DIR) + faultData.appfreezeInfo;
+    std::string stackContent;
+    if (!OHOS::LoadStringFromFile(stackPath, stackContent) || stackContent.empty()) {
+        return;
+    }
+    faultData.errorObject.message += INLINE_SAMPLE_STACK_HEADER;
+    if (stackContent.size() > static_cast<size_t>(MAX_INLINE_FREEZE_STACK_APPEND)) {
+        faultData.errorObject.message.append(stackContent.c_str(), MAX_INLINE_FREEZE_STACK_APPEND);
+        faultData.errorObject.message += "\n...[truncated]\n";
+    } else {
+        faultData.errorObject.message += stackContent;
+    }
+}
+
 void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string& msgContent)
 {
     faultData.errorObject.message += msgContent;
@@ -328,6 +358,7 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
         TAG_LOGI(AAFwkTag::ABILITYMGR, "Record result=%{public}d, pid=%{public}d, uid=%{public}d, "
             "killId=%{public}d", result, pid, uid, exitReason.killId);
     }
+    AppendInlineSamplingStackToMessage(faultData);
     NotifyANR(faultData);
     if (isExit) {
         AppFreezeRecovery();

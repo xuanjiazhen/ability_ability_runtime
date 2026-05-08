@@ -97,8 +97,8 @@ struct FaultData : public Parcelable {
     std::string appfreezeInfo;
     std::string appRunningUniqueId;
     std::string procStatm;
-    bool isInForeground;
-    bool isEnableMainThreadSample;
+    bool isInForeground = false;
+    bool isEnableMainThreadSample = false;
     bool reportLifecycleToFreeze = false;
     std::string applicationHeapInfo;
     std::string processLifeTime;
@@ -140,8 +140,8 @@ struct AppFaultDataBySA : public Parcelable {
     std::string appfreezeInfo;
     std::string appRunningUniqueId;
     std::string procStatm;
-    bool isInForeground;
-    bool isEnableMainThreadSample;
+    bool isInForeground = false;
+    bool isEnableMainThreadSample = false;
     bool reportLifecycleToFreeze = false;
     std::string applicationHeapInfo;
     std::string processLifeTime;

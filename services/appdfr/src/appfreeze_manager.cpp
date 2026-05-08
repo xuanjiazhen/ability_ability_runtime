@@ -114,6 +114,31 @@ struct KillInfo {
     unsigned int structSize;
 };
 }
+
+static constexpr int MAX_INLINE_SAMPLE_APPEND = 256 * 1024; // 256KB, align with MAX_REPORT_STACK_SIZE above
+static constexpr const char INLINE_SAMPLE_CPU_HEADER[] =
+    "\n\n======== CPU sampling detail (default inline mode) ========\n";
+
+static bool IsFullAppFreezeEventForInlineSampling(const std::string& eventName)
+{
+    return eventName == AppFreezeType::THREAD_BLOCK_6S || eventName == AppFreezeType::LIFECYCLE_TIMEOUT ||
+        eventName == AppFreezeType::APP_INPUT_BLOCK;
+}
+
+static void AppendInlineChunk(std::string& message, const char* header, const std::string& content)
+{
+    if (content.empty()) {
+        return;
+    }
+    message += header;
+    if (content.size() > static_cast<size_t>(MAX_INLINE_SAMPLE_APPEND)) {
+        message.append(content.c_str(), MAX_INLINE_SAMPLE_APPEND);
+        message += "\n...[truncated]\n";
+    } else {
+        message += content;
+    }
+}
+
 static constexpr const char *const TWELVE_BIG_CPU_CUR_FREQ = "/sys/devices/system/cpu/cpufreq/policy2/scaling_cur_freq";
 static constexpr const char *const TWELVE_BIG_CPU_MAX_FREQ = "/sys/devices/system/cpu/cpufreq/policy2/scaling_max_freq";
 static constexpr const char *const TWELVE_MID_CPU_CUR_FREQ = "/sys/devices/system/cpu/cpufreq/policy1/scaling_cur_freq";
@@ -565,6 +590,9 @@ void AppfreezeManager::InitWarningCpuInfo(const FaultData& faultData,
 std::string AppfreezeManager::GetAppfreezeInfoPath(const FaultData& faultData,
     const AppfreezeManager::AppInfo& appInfo)
 {
+    if (!faultData.isEnableMainThreadSample) {
+        return "";
+    }
     std::string eventName = faultData.errorObject.name;
     std::string cpuInfoFile = faultData.appfreezeInfo;
     if (eventName == AppFreezeType::THREAD_BLOCK_6S || eventName == AppFreezeType::LIFECYCLE_TIMEOUT ||
@@ -579,9 +607,31 @@ std::string AppfreezeManager::GetAppfreezeInfoPath(const FaultData& faultData,
     return cpuInfoFile;
 }
 
-int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
+void AppfreezeManager::AppendInlineCpuSamplingToFaultMessage(FaultData& faultData,
+    const AppfreezeManager::AppInfo& appInfo) const
+{
+    if (faultData.isEnableMainThreadSample) {
+        return;
+    }
+    if (!IsFullAppFreezeEventForInlineSampling(faultData.errorObject.name)) {
+        return;
+    }
+    std::string type = std::to_string(appInfo.pid) + "-" + std::to_string(appInfo.uid) + "-" + appInfo.bundleName;
+    std::string cpuPath = AppfreezeCpuFreqManager::GetInstance().GetCpuInfoPath(
+        type, appInfo.bundleName, appInfo.uid, appInfo.pid);
+    if (cpuPath.empty()) {
+        return;
+    }
+    std::string cpuContent;
+    if (OHOS::LoadStringFromFile(cpuPath, cpuContent) && !cpuContent.empty()) {
+        AppendInlineChunk(faultData.errorObject.message, INLINE_SAMPLE_CPU_HEADER, cpuContent);
+    }
+}
+
+int AppfreezeManager::NotifyANR(FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
     const std::string& binderInfo, const std::string& memoryContent)
 {
+    AppendInlineCpuSamplingToFaultMessage(faultData, appInfo);
     std::string eventName = faultData.errorObject.name;
     this->PerfStart(eventName);
     int64_t startTime = AbilityRuntime::TimeUtil::CurrentTimeMillis();
