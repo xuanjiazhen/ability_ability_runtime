@@ -1,5 +1,5 @@
 {
-  "name": "ohos-arktsScript",
+  "name": "ohos-arkTSScript",
   "version": "1.0.0",
   "description": "Run a specified function from an ArkTS script ABC file",
   "executablePath": "/system/bin/cli_tool/executable/ohos-arktsScript",
@@ -28,32 +28,81 @@
       "args": {
         "type": "string",
         "description": "JSON object string for function arguments, for example {\"arg0\":10,\"arg1\":20}"
+      },
+      "bundleName": {
+        "type": "string",
+        "description": "Optional target application bundle name for skill execution",
+        "default": ""
+      },
+      "moduleName": {
+        "type": "string",
+        "description": "Optional target module name for skill execution",
+        "default": ""
+      },
+      "skillName": {
+        "type": "string",
+        "description": "Skill name to execute (required for skill path)"
+      },
+      "arkTSPath": {
+        "type": "string",
+        "description": "Relative path to the ArkTS source file for skill execution"
+      },
+      "functionName": {
+        "type": "string",
+        "description": "Function name to execute within the ArkTS skill module"
       }
     },
-    "required": [
-      "abcPath",
-      "functionName"
-    ]
+    "required": []
   },
   "outputSchema": {
     "type": "object",
     "properties": {
-      "code": {
-        "type": "integer"
+      "sessionId": {
+        "type": "string",
+        "description": "Session ID or request code"
+      },
+      "toolName": {
+        "type": "string",
+        "description": "Tool name"
+      },
+      "status": {
+        "type": "string",
+        "description": "Execution status: running, completed, or failed"
       },
       "result": {
         "type": "object",
-        "properties": {}
-      },
-      "uri": {
-        "type": "string"
-      },
-      "flag": {
-        "type": "integer"
+        "properties": {
+          "exitCode": {
+            "type": "integer",
+            "description": "Execution exit code"
+          },
+          "outputText": {
+            "type": "string",
+            "description": "Execution output text"
+          },
+          "errorText": {
+            "type": "string",
+            "description": "Execution error text"
+          },
+          "signalNumber": {
+            "type": "integer",
+            "description": "Signal number if terminated by signal"
+          },
+          "timedOut": {
+            "type": "boolean",
+            "description": "Whether the execution timed out"
+          },
+          "executionTime": {
+            "type": "integer",
+            "description": "Execution time in milliseconds"
+          }
+        }
       }
     },
     "required": [
-      "code"
+      "sessionId",
+      "toolName",
+      "status"
     ]
   }
 }
