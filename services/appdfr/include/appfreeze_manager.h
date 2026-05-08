@@ -185,8 +185,9 @@ private:
     FaultData GetFaultNotifyData(const FaultData& faultData, int pid);
     int AcquireStack(const FaultData& faultData, const AppInfo& appInfo, const std::string& memoryContent);
     std::string GetAppfreezeInfoPath(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo);
-    int NotifyANR(const FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
+    int NotifyANR(FaultData& faultData, const AppfreezeManager::AppInfo& appInfo,
         const std::string& binderInfo, const std::string& memoryContent);
+    void AppendInlineCpuSamplingToFaultMessage(FaultData& faultData, const AppInfo& appInfo) const;
     void CollectFreezeSysMemory(std::string& memoryContent);
     int MergeNotifyInfo(FaultData& faultNotifyData, const AppfreezeManager::AppInfo& appInfo);
     void RecordAppFreezeBehavior(FaultData& faultData, uint64_t dumpStartTime,
