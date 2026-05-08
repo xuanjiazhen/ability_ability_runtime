@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 
+#include "ui_extension_context.h"
 #define private public
 #define protected public
 #include "ui_extension.h"
@@ -85,7 +86,8 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0200, TestSize.Leve
     sptr<IRemoteObject> token = new AppExecFwk::MockAbilityToken();
     auto record = std::make_shared<AppExecFwk::AbilityLocalRecord>(info, token, nullptr, 0);
 
-    uiExtension->Init(record, application, nullptr, token);
+    std::shared_ptr<AppExecFwk::AbilityHandler> handler = nullptr;
+    uiExtension->Init(record, application, handler, token);
 
     AAFwk::Want want;
     constexpr int ERR_INVALID_VALUE = -1;
