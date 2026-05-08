@@ -15,20 +15,29 @@
 
 #include "js_cli_manager.h"
 
+#include <set>
 #include <string>
 
+#include "ability_manager_client.h"
 #include "cli_error_code.h"
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"
 #include "cli_tool_mgr_client.h"
+#include "exec_result.h"
 #include "hilog_tag_wrapper.h"
+#include "js_cli_event_handler_manager.h"
 #include "js_cli_manager_utils.h"
+#include "js_cli_session_event_callback.h"
 #include "js_error_utils.h"
 #include "napi_common_util.h"
 #include "napi_common_want.h"
+#include "skill/skill_execute_callback_stub.h"
 
-#include "js_cli_event_handler_manager.h"
-#include "js_cli_session_event_callback.h"
+#include <nlohmann/json.hpp>
+#include "bool_wrapper.h"
+#include "int_wrapper.h"
+#include "string_wrapper.h"
+#include "want_params_wrapper.h"
 
 using namespace OHOS::AbilityRuntime;
 
@@ -40,6 +49,199 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
+constexpr const char *ARKTS_SCRIPT_TOOL_NAME = "ohos-arktsScript";
+constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
+
+const std::set<std::string> SKILL_RESERVED_KEYS = {
+    "bundleName", "moduleName", "skillName", "arkTSPath", "funcName"
+};
+
+std::shared_ptr<AAFwk::WantParams> FilterSkillArgs(const AAFwk::WantParams &args)
+{
+    auto skillArgs = std::make_shared<AAFwk::WantParams>();
+    auto &params = args.GetParams();
+    for (auto &[key, value] : params) {
+        if (SKILL_RESERVED_KEYS.count(key) == 0) {
+            skillArgs->SetParam(key, value);
+        }
+    }
+    return skillArgs;
+}
+
+void ExpandArgsJsonString(AAFwk::WantParams &args)
+{
+    auto argsStr = args.GetStringParam("args");
+    if (!argsStr.empty()) {
+        auto jsonObj = nlohmann::json::parse(argsStr, nullptr, false);
+        if (jsonObj.is_object() && !jsonObj.is_discarded()) {
+            args.Remove("args");
+            for (auto &[key, val] : jsonObj.items()) {
+                if (SKILL_RESERVED_KEYS.count(key) > 0) {
+                    continue;
+                }
+                if (val.is_string()) {
+                    args.SetParam(key, AAFwk::String::Box(val.get<std::string>()));
+                } else if (val.is_number_integer()) {
+                    args.SetParam(key, AAFwk::Integer::Box(val.get<int32_t>()));
+                } else if (val.is_boolean()) {
+                    args.SetParam(key, AAFwk::Boolean::Box(val.get<bool>()));
+                }
+            }
+            return;
+        }
+    }
+
+    // Handle "args" as nested WantParams (WantParamWrapper)
+    auto &params = args.GetParams();
+    auto it = params.find("args");
+    if (it == params.end()) {
+        return;
+    }
+    auto *wantParams = AAFwk::IWantParams::Query(it->second);
+    if (wantParams == nullptr) {
+        return;
+    }
+    AAFwk::WantParams nestedParams;
+    if (wantParams->GetValue(nestedParams) != ERR_OK) {
+        return;
+    }
+    args.Remove("args");
+    for (auto &[key, value] : nestedParams.GetParams()) {
+        if (SKILL_RESERVED_KEYS.count(key) > 0) {
+            continue;
+        }
+        args.SetParam(key, value);
+    }
+}
+
+CliSessionInfo BuildSkillSessionInfo(const std::string &requestCode,
+    int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult)
+{
+    CliSessionInfo session;
+    session.sessionId = requestCode;
+    session.toolName = ARKTS_SCRIPT_TOOL_NAME;
+    session.status = (resultCode == ERR_OK) ? "completed" : "failed";
+    session.result = std::make_shared<ExecResult>();
+    session.result->exitCode = skillResult.code;
+    if (skillResult.result != nullptr) {
+        session.result->outputText = skillResult.result->ToString();
+    }
+    return session;
+}
+
+class SkillExecuteCallbackImpl : public AAFwk::SkillExecuteCallbackStub {
+public:
+    SkillExecuteCallbackImpl(napi_env env, std::shared_ptr<NapiAsyncTask> asyncTask)
+        : env_(env), asyncTask_(std::move(asyncTask)) {}
+
+    void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
+        const AppExecFwk::SkillExecuteResult &result) override
+    {
+        TAG_LOGD(AAFwkTag::CLI_TOOL,
+            "SkillExecuteCallbackImpl::OnExecuteDone req:%{public}s code:%{public}d",
+            requestCode.c_str(), resultCode);
+        auto asyncTask = asyncTask_;
+        auto session = BuildSkillSessionInfo(requestCode, resultCode, result);
+        JsCliEventHandlerManager::GetInstance().PostTask(
+            [env = env_, asyncTask, session]() {
+                HandleScope handleScope(env);
+                napi_value jsSession = CreateJsCliSessionInfo(env, session);
+                if (jsSession == nullptr) {
+                    asyncTask->Reject(env, CreateJsUndefined(env));
+                    return;
+                }
+                asyncTask->ResolveWithNoError(env, jsSession);
+            });
+    }
+
+private:
+    napi_env env_ = nullptr;
+    std::shared_ptr<NapiAsyncTask> asyncTask_;
+};
+
+struct SkillExecuteParam {
+    std::string bundleName;
+    std::string moduleName;
+    std::string skillName;
+    std::string arkTSPath;
+    std::string funcName;
+    std::shared_ptr<AAFwk::WantParams> skillArgs;
+    sptr<SkillExecuteCallbackImpl> callback;
+};
+
+int32_t DispatchExecuteSkill(const SkillExecuteParam &param)
+{
+    int32_t skillType = 0;
+    auto queryRet = AAFwk::AbilityManagerClient::GetInstance()->QuerySkillType(
+        param.bundleName, param.moduleName, param.skillName, skillType);
+    if (queryRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "querySkillType failed:%{public}d", queryRet);
+        return queryRet;
+    }
+    if (skillType == SKILL_TYPE_INDEPENDENT) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "independent skill not supported yet");
+        return ERR_TOOL_NOT_EXIST;
+    }
+    return AAFwk::AbilityManagerClient::GetInstance()->ExecuteInAppSkill(
+        param.bundleName, param.moduleName, param.skillName,
+        param.arkTSPath, param.funcName, param.skillArgs, param.callback);
+}
+
+int32_t ExecuteSkillTool(ExecToolParam &param, napi_env env,
+    std::shared_ptr<NapiAsyncTask> asyncTask)
+{
+    auto &args = param.args;
+    auto bundleName = args.GetStringParam("bundleName");
+    auto moduleName = args.GetStringParam("moduleName");
+    auto skillName = args.GetStringParam("skillName");
+    if (bundleName.empty() || moduleName.empty() || skillName.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "bundleName, moduleName, skillName are required in args");
+        return ERR_INVALID_VALUE;
+    }
+    auto arkTSPath = args.GetStringParam("arkTSPath");
+    auto funcName = args.GetStringParam("funcName");
+    ExpandArgsJsonString(args);
+    auto skillArgs = FilterSkillArgs(args);
+
+    TAG_LOGD(AAFwkTag::CLI_TOOL,
+        "execTool skill path bundle:%{public}s module:%{public}s skill:%{public}s",
+        bundleName.c_str(), moduleName.c_str(), skillName.c_str());
+
+    auto callback = sptr<SkillExecuteCallbackImpl>::MakeSptr(env, std::move(asyncTask));
+    SkillExecuteParam skillParam = {
+        .bundleName = std::move(bundleName),
+        .moduleName = std::move(moduleName),
+        .skillName = std::move(skillName),
+        .arkTSPath = std::move(arkTSPath),
+        .funcName = std::move(funcName),
+        .skillArgs = std::move(skillArgs),
+        .callback = std::move(callback),
+    };
+    return DispatchExecuteSkill(skillParam);
+}
+
+int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
+    std::shared_ptr<NapiAsyncTask> asyncTask)
+{
+    CliToolMGRClient::ExecToolReplyCallback replyCallback =
+        [env, asyncTask](int32_t resultCode, const CliSessionInfo &session) {
+            JsCliEventHandlerManager::GetInstance().PostTask(
+                [env, asyncTask, resultCode, session]() {
+                    HandleScope handleScope(env);
+                    if (resultCode != ERR_OK) {
+                        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, resultCode));
+                        return;
+                    }
+                    napi_value jsSession = CreateJsCliSessionInfo(env, session);
+                    if (jsSession == nullptr) {
+                        asyncTask->Reject(env, CreateJsUndefined(env));
+                        return;
+                    }
+                    asyncTask->ResolveWithNoError(env, jsSession);
+                });
+        };
+    return CliToolMGRClient::GetInstance().ExecTool(param, replyCallback);
+}
 } // namespace
 
 void JSCliManager::Finalizer(napi_env env, void *data, void *hint)
@@ -129,24 +331,12 @@ napi_value JSCliManager::OnExecTool(napi_env env, size_t argc, napi_value *argv)
     auto uasyncTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
     std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
 
-    // Create callback task that will be invoked when ExecTool completes
-    CliToolMGRClient::ExecToolReplyCallback replyCallback =
-        [env, asyncTask](int32_t resultCode, const CliSessionInfo &session) {
-            JsCliEventHandlerManager::GetInstance().PostTask([env, asyncTask, resultCode, session]() {
-                HandleScope handleScope(env);
-                if (resultCode != ERR_OK) {
-                    asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, resultCode));
-                    return;
-                }
-                napi_value jsSession = CreateJsCliSessionInfo(env, session);
-                if (jsSession == nullptr) {
-                    asyncTask->Reject(env, CreateJsUndefined(env));
-                    return;
-                }
-                asyncTask->ResolveWithNoError(env, jsSession);
-            });
-        };
-    int32_t errCode = CliToolMGRClient::GetInstance().ExecTool(param, replyCallback);
+    int32_t errCode = ERR_OK;
+    if (param.toolName == ARKTS_SCRIPT_TOOL_NAME) {
+        errCode = ExecuteSkillTool(param, env, asyncTask);
+    } else {
+        errCode = DispatchCliTool(param, env, asyncTask);
+    }
     if (errCode != ERR_OK) {
         asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, errCode));
     }
