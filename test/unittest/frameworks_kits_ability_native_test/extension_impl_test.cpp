@@ -26,6 +26,9 @@
 #include "event_runner.h"
 #include "mock_ability_token.h"
 #include "ohos_application.h"
+#include "ui_extension.h"
+#include "ui_extension_wrapper.h"
+#include "want.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -756,6 +759,111 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_3400, TestSize.Level1)
     AppExecFwk::ElementName element("", "com.example.com", "MainAbility");
     impl->ScheduleAbilityRequestSuccess(requestId, element);
     GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_3400 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0100
+ * @tc.name: CreateModalUIExtension
+ * @tc.desc: extensionType_ is not UI extension type, return ERR_INVALID_VALUE.
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0100 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::SERVICE;
+    impl->extension_ = nullptr;
+    AAFwk::Want want;
+    constexpr int ERR_INVALID_VALUE = -1;
+    int ret = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0100 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0200
+ * @tc.name: CreateModalUIExtension
+ * @tc.desc: extension_ is nullptr, return ERR_INVALID_VALUE.
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0200 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI;
+    impl->extension_ = nullptr;
+    AAFwk::Want want;
+    constexpr int ERR_INVALID_VALUE = -1;
+    int ret = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0200 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0300
+ * @tc.name: CreateModalUIExtension
+ * @tc.desc: extension_ is not UIExtension type, return ERR_INVALID_VALUE.
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0300 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI;
+    auto extension = std::make_shared<AbilityRuntime::Extension>();
+    impl->extension_ = extension;
+    AAFwk::Want want;
+    constexpr int ERR_INVALID_VALUE = -1;
+    int ret = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0300 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0400
+ * @tc.name: CreateModalUIExtension
+ * @tc.desc: Create modal UI extension successfully, return ERR_OK.
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0400 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI;
+
+    auto application = std::make_shared<AppExecFwk::OHOSApplication>();
+    std::shared_ptr<AppExecFwk::AbilityInfo> info = std::make_shared<AppExecFwk::AbilityInfo>();
+    sptr<IRemoteObject> token = new AppExecFwk::MockAbilityToken();
+    auto record = std::make_shared<AppExecFwk::AbilityLocalRecord>(info, token, nullptr, 0);
+    std::shared_ptr<EventRunner> runner;
+    auto handler = std::make_shared<AppExecFwk::AbilityHandler>(runner);
+
+    auto uiExtension = std::make_shared<AbilityRuntime::UIExtension>();
+    uiExtension->Init(record, application, handler, token);
+    impl->extension_ = uiExtension;
+
+    AAFwk::Want want;
+    constexpr int ERR_OK = 0;
+    int ret = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(ret, ERR_OK);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0400 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_CreateModalUIExtension_0500
+ * @tc.name: CreateModalUIExtension
+ * @tc.desc: UIExtension::CreateModalUIExtension call failed, return error code.
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0500 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI;
+
+    auto uiExtension = std::make_shared<AbilityRuntime::UIExtension>();
+    impl->extension_ = uiExtension;
+
+    AAFwk::Want want;
+    constexpr int ERR_INVALID_VALUE = -1;
+    int ret = impl->CreateModalUIExtension(want);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_0500 end";
 }
 } // namespace AppExecFwk
 } // namespace OHOS
