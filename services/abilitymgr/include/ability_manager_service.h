@@ -2213,6 +2213,13 @@ public:
         const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
         const sptr<ISkillExecuteCallback> &callback = nullptr) override;
 
+    int32_t ExecuteInAppSkillWithTokenId(uint32_t callerTokenId,
+        const std::string &bundleName, const std::string &moduleName,
+        const std::string &skillName, const std::string &arkTSPath,
+        const std::string &funcName,
+        const std::shared_ptr<AAFwk::WantParams> &skillArgs,
+        const sptr<ISkillExecuteCallback> &callback) override;
+
     int32_t StartAbilityByCallWithSkill(const Want &want,
         const sptr<IRemoteObject> &callerToken, int32_t userId = DEFAULT_INVAL_VALUE);
 
