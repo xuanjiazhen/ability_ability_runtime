@@ -527,6 +527,7 @@ group("unittest") {
       "ui_ability_record_test:unittest",
       "ui_extension:unittest",
       "ui_extension_ability_test:unittest",
+      "ui_extension_test:unittest",
       "ui_extension_context_second_test:unittest",
       "ui_extension_context_test:unittest",
       "ui_extension_record_factory_test:unittest",
