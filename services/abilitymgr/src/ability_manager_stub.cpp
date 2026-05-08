@@ -1020,6 +1020,9 @@ int AbilityManagerStub::OnRemoteRequestInnerTwentySecond(uint32_t code, MessageP
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_IN_APP_SKILL) {
         return ExecuteInAppSkillInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_IN_APP_SKILL_WITH_TOKEN_ID) {
+        return ExecuteInAppSkillWithTokenIdInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::EXECUTE_SKILL_DONE_WITH_TOKEN) {
         return ExecuteSkillDoneWithTokenInner(data, reply);
     }
@@ -5713,6 +5716,38 @@ int32_t AbilityManagerStub::ExecuteInAppSkillInner(MessageParcel &data, MessageP
 
     int32_t result = ExecuteInAppSkill(
         bundleName, moduleName, skillName, arkTSPath, funcName, skillArgs, callback);
+    reply.WriteInt32(result);
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::ExecuteInAppSkillWithTokenIdInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "execute in-app skill with tokenId stub");
+    AppExecFwk::SkillExecuteRequest request;
+    request.callerTokenId = data.ReadUint32();
+    request.bundleName = Str16ToStr8(data.ReadString16());
+    request.moduleName = Str16ToStr8(data.ReadString16());
+    request.skillName = Str16ToStr8(data.ReadString16());
+    request.arkTSPath = Str16ToStr8(data.ReadString16());
+    request.funcName = Str16ToStr8(data.ReadString16());
+
+    auto *args = data.ReadParcelable<AAFwk::WantParams>();
+    if (args != nullptr) {
+        request.skillArgs = std::shared_ptr<AAFwk::WantParams>(args);
+    } else {
+        request.skillArgs = std::make_shared<AAFwk::WantParams>();
+    }
+
+    sptr<ISkillExecuteCallback> callback = nullptr;
+    bool hasCallback = data.ReadBool();
+    if (hasCallback) {
+        auto callbackObj = data.ReadRemoteObject();
+        if (callbackObj != nullptr) {
+            callback = iface_cast<ISkillExecuteCallback>(callbackObj);
+        }
+    }
+
+    int32_t result = ExecuteInAppSkillWithTokenId(request, callback);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
