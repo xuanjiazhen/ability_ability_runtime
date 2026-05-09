@@ -15,7 +15,6 @@
 
 #include <gtest/gtest.h>
 
-#include "errors.h"
 #include "ui_extension_context.h"
 #define private public
 #define protected public
@@ -67,7 +66,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0100, TestSize.Leve
     auto uiExtension = std::make_shared<UIExtension>();
     AAFwk::Want want;
     int ret = uiExtension->CreateModalUIExtension(want);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, -1);
     TAG_LOGI(AAFwkTag::TEST, "UIExtension_CreateModalUIExtension_0100 end");
 }
 
@@ -91,7 +90,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0200, TestSize.Leve
 
     AAFwk::Want want;
     int ret = uiExtension->CreateModalUIExtension(want);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, -1);
     TAG_LOGI(AAFwkTag::TEST, "UIExtension_CreateModalUIExtension_0200 end");
 }
 
@@ -116,7 +115,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0300, TestSize.Leve
 
     AAFwk::Want want;
     int ret = uiExtension->CreateModalUIExtension(want);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, -1);
     TAG_LOGI(AAFwkTag::TEST, "UIExtension_CreateModalUIExtension_0300 end");
 }
 
@@ -144,14 +143,14 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0400, TestSize.Leve
     ElementName element1("device", "com.example.test", "Ability1");
     want1.SetElement(element1);
     int ret1 = uiExtension->CreateModalUIExtension(want1);
-    EXPECT_EQ(ret1, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret1, -1);
 
     // Second call with different Want
     AAFwk::Want want2;
     ElementName element2("device", "com.example.test", "Ability2");
     want2.SetElement(element2);
     int ret2 = uiExtension->CreateModalUIExtension(want2);
-    EXPECT_EQ(ret2, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret2, -1);
 
     TAG_LOGI(AAFwkTag::TEST, "UIExtension_CreateModalUIExtension_0400 end");
 }
@@ -177,7 +176,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0500, TestSize.Leve
 
     AAFwk::Want want;  // Empty Want
     int ret = uiExtension->CreateModalUIExtension(want);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, -1);
 
     TAG_LOGI(AAFwkTag::TEST, "UIExtension_CreateModalUIExtension_0500 end");
 }
@@ -208,7 +207,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0600, TestSize.Leve
     want.SetFlags(AAFwk::Want::FLAG_ABILITY_CONTINUATION);
 
     int ret = uiExtension->CreateModalUIExtension(want);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, -1);
 
     TAG_LOGI(AAFwkTag::TEST, "UIExtension_CreateModalUIExtension_0600 end");
 }
@@ -237,7 +236,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0700, TestSize.Leve
 
     AAFwk::Want want;
     int ret = uiExtension->CreateModalUIExtension(want);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, -1);
 
     TAG_LOGI(AAFwkTag::TEST, "UIExtension_CreateModalUIExtension_0700 end");
 }
@@ -267,7 +266,7 @@ HWTEST_F(UIExtensionTest, UIExtension_CreateModalUIExtension_0800, TestSize.Leve
     want.SetDeviceId("tablet_device_001");
 
     int ret = uiExtension->CreateModalUIExtension(want);
-    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    EXPECT_EQ(ret, -1);
 
     TAG_LOGI(AAFwkTag::TEST, "UIExtension_CreateModalUIExtension_0800 end");
 }
