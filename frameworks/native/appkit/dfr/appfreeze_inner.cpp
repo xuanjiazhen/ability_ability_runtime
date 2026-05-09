@@ -14,6 +14,7 @@
  */
 #include "appfreeze_inner.h"
 
+#include <chrono>
 #include <sys/time.h>
 
 #include "ability_manager_client.h"
@@ -43,6 +44,11 @@ namespace AppExecFwk {
 namespace {
 constexpr int32_t HALF_DURATION = 3000;
 constexpr int32_t HALF_INTERVAL = 300;
+constexpr int MAX_INLINE_FREEZE_STACK_APPEND = 256 * 1024;
+// Keep in sync with base/hiviewdfx/hicollie/frameworks/native/xcollie_utils.h FREEZE_DIR
+constexpr const char FREEZE_SAMPLE_DIR[] = "/data/storage/el2/log/watchdog/freeze/";
+constexpr const char INLINE_SAMPLE_STACK_HEADER[] =
+    "\n\n======== Main thread sampling stack (default inline mode) ========\n";
 const bool BETA_VERSION = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
 constexpr int32_t APPFREEZE_INNER_TASKWORKER_NUM = 1;
 static constexpr const char *const HEAP_TOTAL_SIZE = "HEAP_TOTAL_SIZE";
@@ -289,11 +295,36 @@ int AppfreezeInner::TransformHicollieFaultNumber(const std::string& faultName)
     return -1;
 }
 
+void AppfreezeInner::AppendInlineSamplingStackToMessage(FaultData& faultData)
+{
+    if (GetMainThreadSample()) {
+        return;
+    }
+    if (!IsAppFreeze(faultData.errorObject.name)) {
+        return;
+    }
+    if (faultData.appfreezeInfo.empty()) {
+        return;
+    }
+    std::string stackPath = std::string(FREEZE_SAMPLE_DIR) + faultData.appfreezeInfo;
+    std::string stackContent;
+    if (!OHOS::LoadStringFromFile(stackPath, stackContent) || stackContent.empty()) {
+        return;
+    }
+    faultData.errorObject.message += INLINE_SAMPLE_STACK_HEADER;
+    if (stackContent.size() > static_cast<size_t>(MAX_INLINE_FREEZE_STACK_APPEND)) {
+        faultData.errorObject.message.append(stackContent.c_str(), MAX_INLINE_FREEZE_STACK_APPEND);
+        faultData.errorObject.message += "\n...[truncated]\n";
+    } else {
+        faultData.errorObject.message += stackContent;
+    }
+}
+
 std::string AppfreezeInner::GetMainStackDump(int32_t pid)
 {
     int64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
         system_clock::now().time_since_epoch()).count();
-    if (!lastMainStack_.empty() && now - lastMainStackTime_ < LAST_SAVE_MAIN_STACK_TIME) {
+    if (!lastMainStack_.empty() && now - lastMainStackTime_.load() < LAST_SAVE_MAIN_STACK_TIME) {
         {
             std::lock_guard<std::mutex> lock(mainStackMutex_);
             return lastMainStack_;
@@ -309,8 +340,8 @@ std::string AppfreezeInner::GetMainStackDump(int32_t pid)
         } else {
             TAG_LOGE(AAFwkTag::APPDFR, "get main stack failed, mainStack=%{public}s", mainStack.c_str());
         }
-        lastMainStackTime_ = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
-            system_clock::now().time_since_epoch()).count();
+        lastMainStackTime_.store(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::
+            system_clock::now().time_since_epoch()).count());
         std::unique_lock<std::mutex> lock(mainStackMutex_);
         lastMainStack_ = mainStack;
         mainStackCv_.notify_one();
@@ -364,6 +395,7 @@ void AppfreezeInner::ChangeFaultDateInfo(FaultData& faultData, const std::string
         TAG_LOGI(AAFwkTag::APPDFR, "Record result=%{public}d, pid=%{public}d, uid=%{public}d, "
             "killId=%{public}d", result, pid, uid, exitReason.killId);
     }
+    AppendInlineSamplingStackToMessage(faultData);
     NotifyANR(faultData);
     if (isExit) {
         AppFreezeRecovery();
@@ -417,7 +449,7 @@ void AppfreezeInner::EnableFreezeSample(FaultData& newFaultData)
     std::string eventName = newFaultData.errorObject.name;
     newFaultData.isInForeground = GetAppInForeground();
     if (eventName == AppFreezeType::THREAD_BLOCK_3S || eventName == AppFreezeType::LIFECYCLE_HALF_TIMEOUT) {
-        newFaultData.appfreezeInfo = OHOS::HiviewDFX::Watchdog::GetInstance().StartSample(HALF_DURATION, HALF_INTERVAL);
+        OHOS::HiviewDFX::Watchdog::GetInstance().StartSample(HALF_DURATION, HALF_INTERVAL);
         TAG_LOGI(AAFwkTag::APPDFR, "start to sample freeze stack, eventName:%{public}s", eventName.c_str());
         return;
     }

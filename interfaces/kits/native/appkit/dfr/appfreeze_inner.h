@@ -79,6 +79,7 @@ private:
     bool GetMainThreadSample();
     bool GetReportLifeCycleAsAppfreeze();
     void EnableFreezeSample(FaultData& newFaultData);
+    void AppendInlineSamplingStackToMessage(FaultData& faultData);
     void ReportAppfreezeTask(const FaultData& faultData, bool onlyMainThread);
     std::string LogFormat(size_t totalSize, size_t objectSize);
     void GetApplicationInfo(FaultData& faultData);
