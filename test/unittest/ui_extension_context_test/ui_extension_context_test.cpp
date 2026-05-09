@@ -19,13 +19,13 @@
 #define protected public
 #include "extension_base.h"
 #include "ui_extension_context.h"
+#include "ui_extension_modal_callback.h"
 #undef private
 #undef protected
 
 #include "hilog_tag_wrapper.h"
 #include "want.h"
 #include "mock_window.h"
-#include "ui_extension_modal_callback.h"
 #include "int_wrapper.h"
 
 using namespace testing::ext;
