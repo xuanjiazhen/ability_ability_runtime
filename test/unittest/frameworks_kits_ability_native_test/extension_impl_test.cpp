@@ -23,13 +23,13 @@
 #include "ability_info.h"
 #include "ability_local_record.h"
 #include "extension_impl.h"
+#include "ui_extension_context.h"
+#include "ui_extension.h"
 #undef private
 #undef protected
 #include "event_runner.h"
 #include "mock_ability_token.h"
 #include "ohos_application.h"
-#include "ui_extension_context.h"
-#include "ui_extension.h"
 #include "ui_extension_wrapper.h"
 #include "want.h"
 
@@ -809,15 +809,12 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_0400, Tes
     auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
     impl->extensionType_ = AppExecFwk::ExtensionAbilityType::UI;
 
-    auto application = std::make_shared<AppExecFwk::OHOSApplication>();
-    std::shared_ptr<AppExecFwk::AbilityInfo> info = std::make_shared<AppExecFwk::AbilityInfo>();
-    sptr<IRemoteObject> token = new AppExecFwk::MockAbilityToken();
-    auto record = std::make_shared<AppExecFwk::AbilityLocalRecord>(info, token, nullptr, 0);
     std::shared_ptr<EventRunner> runner;
     auto handler = std::make_shared<AppExecFwk::AbilityHandler>(runner);
 
     auto uiExtension = std::make_shared<AbilityRuntime::UIExtension>();
-    uiExtension->Init(record, application, handler, token);
+    uiExtension->handler_ = handler;
+    uiExtension->context_ = std::make_shared<AbilityRuntime::UIExtensionContext>();
     impl->extension_ = uiExtension;
 
     AAFwk::Want want;

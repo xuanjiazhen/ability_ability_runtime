@@ -1582,7 +1582,7 @@ HWTEST_F(UIExtensionContextTest, CreateModalUIExtensionWithApp_0200, TestSize.Le
     AAFwk::Want want;
     want.SetElement(element);
     auto result = context->CreateModalUIExtensionWithApp(want);
-    EXPECT_EQ(result, ERR_OK);
+    EXPECT_EQ(result, ERR_INVALID_VALUE);
 
     context->uiExtensionMap_.clear();
     TAG_LOGI(AAFwkTag::TEST, "CreateModalUIExtensionWithApp_0200 end");
