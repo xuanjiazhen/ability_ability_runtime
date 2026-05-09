@@ -12402,9 +12402,7 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
     if (AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId)) {
         return ERR_OK;
     }
-    if (!AppUtils::GetInstance().IsSupportAppServiceExtension()) {
-        return ERR_CAPABILITY_NOT_SUPPORT;
-    }
+    // Removed: IsSupportAppServiceExtension() 2in1-only device check
     bool isVerifyAppIdentifierAllowList = true;
     if (targetService != nullptr && targetService->IsAbilityState(AbilityState::ACTIVE)) {
         isVerifyAppIdentifierAllowList = false;
