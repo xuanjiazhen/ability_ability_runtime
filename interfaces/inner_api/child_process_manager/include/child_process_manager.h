@@ -98,6 +98,8 @@ private:
     static bool signalRegistered_;
     bool isChildProcessBySelfFork_ = false;
     std::atomic<int32_t> childProcessCount_ = 0;
+    bool isArkChildProcessSupported_ = false;
+    bool isNativeChildProcessSupported_ = false;
     mutable std::mutex appMutex_;
     std::weak_ptr<AppExecFwk::OHOSApplication> application_;
 
