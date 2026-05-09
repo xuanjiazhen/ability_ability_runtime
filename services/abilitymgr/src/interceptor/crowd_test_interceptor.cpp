@@ -82,7 +82,6 @@ ErrCode CrowdTestInterceptor::DoProcess(AbilityInterceptorParam param)
 
 bool CrowdTestInterceptor::CheckCrowdtest(const Want &want, int32_t userId)
 {
-    // get crowdtest status and time
     AppExecFwk::ApplicationInfo appInfo;
     if (!StartAbilityUtils::GetApplicationInfo(want.GetBundle(), userId, appInfo)) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "GetAppInfo failed");
@@ -95,7 +94,8 @@ bool CrowdTestInterceptor::CheckCrowdtest(const Want &want, int32_t userId)
     if (appCrowdtestDeadline > 0 && appCrowdtestDeadline < now) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "expired time: %{public}s",
             std::to_string(appCrowdtestDeadline).c_str());
-        return true;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "[SIGN_EXPIRED_CHECK] Skipping crowdtest check in emulator mode");
+        return false;
     }
     return false;
 }
