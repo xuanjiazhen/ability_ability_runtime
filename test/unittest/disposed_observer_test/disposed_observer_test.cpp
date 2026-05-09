@@ -21,6 +21,7 @@
 #include "hilog_tag_wrapper.h"
 #include "mock_ability_token.h"
 #include "want.h"
+#include "page_state_data.h"
 
 #define private public
 #define protected public
