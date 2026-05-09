@@ -25,8 +25,9 @@
 
 #include "app_utils.h"
 #include "application_info.h"
-#include "app_mgr_interface.h"
 #include "app_mgr_client.h"
+#include "app_mgr_interface.h"
+#include "delayed_singleton.h"
 #include "bundle_info.h"
 #include "bundle_mgr_interface.h"
 #include "child_process.h"
@@ -634,20 +635,20 @@ bool ChildProcessManager::IsArkChildProcessSupported()
 {
     TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
     bool isSupported = false;
-    auto client = std::make_unique<AppExecFwk::AppMgrClient>();
-    if (client->IsArkChildProcessSupported(isSupported) != ERR_OK) {
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (client->IsChildProcessSupported(AppExecFwk::CHILD_PROCESS_TYPE_ARK, isSupported) != ERR_OK) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "ipc query failed");
         return false;
     }
     return isSupported;
 }
 
-bool ChildProcessManager::IsNativeChildProcessSupported()
+  bool ChildProcessManager::IsNativeChildProcessSupported()
 {
     TAG_LOGD(AAFwkTag::PROCESSMGR, "called");
     bool isSupported = false;
-    auto client = std::make_unique<AppExecFwk::AppMgrClient>();
-    if (client->IsNativeChildProcessSupported(isSupported) != ERR_OK) {
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (client->IsChildProcessSupported(AppExecFwk::CHILD_PROCESS_TYPE_NATIVE, isSupported) != ERR_OK) {
         TAG_LOGE(AAFwkTag::PROCESSMGR, "ipc query failed");
         return false;
     }
