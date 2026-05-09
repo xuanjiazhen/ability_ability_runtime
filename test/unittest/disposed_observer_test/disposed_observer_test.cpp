@@ -38,35 +38,10 @@ using namespace AppExecFwk;
 // Mock DisposedRuleInterceptor
 class MockDisposedRuleInterceptor : public DisposedRuleInterceptor {
 public:
-    MockDisposedRuleInterceptor(const std::shared_ptr<AbilityManagerService>& abilityManagerService)
-        : DisposedRuleInterceptor(abilityManagerService) {}
+    MockDisposedRuleInterceptor() = default;
+    ~MockDisposedRuleInterceptor() override = default;
 
     MOCK_METHOD(void, UnregisterObserver, (int32_t uid), (override));
-};
-
-// Mock AbilityRecord for testing
-class MockAbilityRecord : public AbilityRecord {
-public:
-    MockAbilityRecord(const Want& want, const sptr<IRemoteObject>& token)
-        : AbilityRecord(want, nullptr, token, 0) {}
-
-    MOCK_METHOD(int32_t, CreateModalUIExtension, (const Want& want), (override));
-    MOCK_METHOD(const Want&, GetWant, (), (const, override));
-    MOCK_METHOD(const AbilityInfo&, GetAbilityInfo, (), (const, override));
-    MOCK_METHOD(sptr<SessionInfo>, GetSessionInfo, (), (const, override));
-    MOCK_METHOD(int32_t, GetMissionId, (), (const, override));
-
-    void SetAbilityType(AbilityType type) {
-        abilityInfo_.type = type;
-    }
-
-    void SetScreenMode(int32_t screenMode) {
-        want_.SetIntParam(AAFwk::SCREEN_MODE_KEY, screenMode);
-    }
-
-private:
-    AbilityInfo abilityInfo_;
-    Want want_;
 };
 
 class DisposedObserverTest : public testing::Test {
@@ -98,7 +73,7 @@ void DisposedObserverTest::TearDown()
 
 std::shared_ptr<MockDisposedRuleInterceptor> DisposedObserverTest::CreateMockInterceptor()
 {
-    return std::make_shared<MockDisposedRuleInterceptor>(nullptr);
+    return std::make_shared<MockDisposedRuleInterceptor>();
 }
 
 std::shared_ptr<DisposedObserver> DisposedObserverTest::CreateDisposedObserver(ComponentType type)
@@ -349,7 +324,7 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_Members_0100, TestSize.Level1)
 
     EXPECT_EQ(observer->disposedRule_.componentType, ComponentType::UI_ABILITY);
     EXPECT_NE(observer->disposedRule_.want, nullptr);
-    EXPECT_EQ(observer->disposedRule_.want->GetElement()->GetAbilityName(), "TestAbility");
+    EXPECT_EQ(observer->disposedRule_.want->GetElement().GetAbilityName(), "TestAbility");
     EXPECT_EQ(observer->interceptor_, mockInterceptor);
     EXPECT_EQ(observer->uid_, testUid);
 
@@ -497,9 +472,9 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_Want_0100, TestSize.Level1)
 
     // Verify want is correctly stored
     EXPECT_NE(observer->disposedRule_.want, nullptr);
-    EXPECT_EQ(observer->disposedRule_.want->GetElement()->GetDeviceId(), "testDevice");
-    EXPECT_EQ(observer->disposedRule_.want->GetElement()->GetBundleName(), "com.example.bundle");
-    EXPECT_EQ(observer->disposedRule_.want->GetElement()->GetAbilityName(), "TestAbility");
+    EXPECT_EQ(observer->disposedRule_.want->GetElement().GetDeviceId(), "testDevice");
+    EXPECT_EQ(observer->disposedRule_.want->GetElement().GetBundleName(), "com.example.bundle");
+    EXPECT_EQ(observer->disposedRule_.want->GetElement().GetAbilityName(), "TestAbility");
     EXPECT_EQ(observer->disposedRule_.want->GetAction(), "test.action");
     EXPECT_EQ(observer->disposedRule_.want->GetFlags(), 0x1234);
 
@@ -539,8 +514,8 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_MultipleObservers_0100, TestSize
     EXPECT_EQ(observer2->uid_, uid2);
     EXPECT_EQ(observer1->disposedRule_.componentType, ComponentType::UI_ABILITY);
     EXPECT_EQ(observer2->disposedRule_.componentType, ComponentType::UI_EXTENSION);
-    EXPECT_EQ(observer1->disposedRule_.want->GetElement()->GetBundleName(), "com.test1");
-    EXPECT_EQ(observer2->disposedRule_.want->GetElement()->GetBundleName(), "com.test2");
+    EXPECT_EQ(observer1->disposedRule_.want->GetElement().GetBundleName(), "com.test1");
+    EXPECT_EQ(observer2->disposedRule_.want->GetElement().GetBundleName(), "com.test2");
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_MultipleObservers_0100 end");
 }
