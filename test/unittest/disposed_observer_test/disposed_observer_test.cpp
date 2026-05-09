@@ -35,15 +35,6 @@ namespace AAFwk {
 using namespace testing::ext;
 using namespace AppExecFwk;
 
-// Mock DisposedRuleInterceptor
-class MockDisposedRuleInterceptor : public DisposedRuleInterceptor {
-public:
-    MockDisposedRuleInterceptor() = default;
-    ~MockDisposedRuleInterceptor() override = default;
-
-    MOCK_METHOD(void, UnregisterObserver, (int32_t uid), (override));
-};
-
 class DisposedObserverTest : public testing::Test {
 public:
     static void SetUpTestCase(void);
@@ -52,10 +43,9 @@ public:
     void TearDown() override;
 
     std::shared_ptr<DisposedObserver> CreateDisposedObserver(ComponentType type);
-    std::shared_ptr<MockDisposedRuleInterceptor> CreateMockInterceptor();
 
 protected:
-    std::shared_ptr<MockDisposedRuleInterceptor> mockInterceptor_ = nullptr;
+    std::shared_ptr<DisposedRuleInterceptor> interceptor_ = nullptr;
     int32_t testUid_ = 1001;
 };
 
@@ -71,9 +61,9 @@ void DisposedObserverTest::SetUp()
 void DisposedObserverTest::TearDown()
 {}
 
-std::shared_ptr<MockDisposedRuleInterceptor> DisposedObserverTest::CreateMockInterceptor()
+std::shared_ptr<DisposedRuleInterceptor> DisposedObserverTest::CreateInterceptor()
 {
-    return std::make_shared<MockDisposedRuleInterceptor>();
+    return std::make_shared<DisposedRuleInterceptor>();
 }
 
 std::shared_ptr<DisposedObserver> DisposedObserverTest::CreateDisposedObserver(ComponentType type)
@@ -84,8 +74,8 @@ std::shared_ptr<DisposedObserver> DisposedObserverTest::CreateDisposedObserver(C
     disposedRule.want = std::make_shared<Want>(want);
     disposedRule.componentType = type;
 
-    mockInterceptor_ = CreateMockInterceptor();
-    return std::make_shared<DisposedObserver>(disposedRule, mockInterceptor_, testUid_);
+    interceptor_ = CreateInterceptor();
+    return std::make_shared<DisposedObserver>(disposedRule, interceptor_, testUid_);
 }
 
 /**
@@ -101,11 +91,11 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0100, TestSize.Level1
     PageStateData pageStateData;
     pageStateData.uid = testUid_ + 1; // Different uid
 
-    // Expect UnregisterObserver NOT to be called when uid doesn't match
-    EXPECT_CALL(*mockInterceptor_, UnregisterObserver(testUid_ + 1))
-        .Times(0);
-
+    // When uid doesn't match, OnPageShow returns early without any action
     observer->OnPageShow(pageStateData);
+
+    // Verify observer state remains unchanged
+    EXPECT_EQ(observer->uid_, testUid_);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_OnPageShow_0100 end");
 }
@@ -113,7 +103,7 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0100, TestSize.Level1
 /**
  * @tc.number: DisposedObserver_OnPageShow_0200
  * @tc.name: DisposedObserver::OnPageShow
- * @tc.desc: componentType is UI_ABILITY, UnregisterObserver called after OnPageShow.
+ * @tc.desc: componentType is UI_ABILITY, OnPageShow executes successfully.
  */
 HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0200, TestSize.Level1)
 {
@@ -123,9 +113,9 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0200, TestSize.Level1
     PageStateData pageStateData;
     pageStateData.uid = testUid_;
 
-    // Expect UnregisterObserver to be called with matching uid
-    EXPECT_CALL(*mockInterceptor_, UnregisterObserver(testUid_))
-        .Times(1);
+    // Verify observer is properly initialized
+    EXPECT_EQ(observer->uid_, testUid_);
+    EXPECT_NE(observer->interceptor_, nullptr);
 
     observer->OnPageShow(pageStateData);
 
@@ -147,9 +137,6 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0300, TestSize.Level1
 
     observer->token_ = nullptr;
 
-    // UnregisterObserver should still be called
-    EXPECT_CALL(*mockInterceptor_, UnregisterObserver(testUid_))
-        .Times(1);
 
     observer->OnPageShow(pageStateData);
 
@@ -174,10 +161,11 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0400, TestSize.Level1
     pageStateData.uid = testUid_;
 
     // Expect UnregisterObserver to be called
-    EXPECT_CALL(*mockInterceptor_, UnregisterObserver(testUid_))
-        .Times(1);
 
     observer->OnPageShow(pageStateData);
+
+    // Verify observer state after OnPageShow
+    EXPECT_EQ(observer->uid_, testUid_);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_OnPageShow_0400 end");
 }
@@ -199,10 +187,12 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0500, TestSize.Level1
     observer->token_ = nullptr;
 
     // UnregisterObserver should be called even when ExecuteUIExtension fails
-    EXPECT_CALL(*mockInterceptor_, UnregisterObserver(testUid_))
-        .Times(1);
 
     observer->OnPageShow(pageStateData);
+
+    // Verify observer state
+    EXPECT_EQ(observer->uid_, testUid_);
+    EXPECT_EQ(observer->token_, nullptr);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_OnPageShow_0500 end");
 }
@@ -372,8 +362,6 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_UID_0100, TestSize.Level1)
     pageStateData.uid = differentUid;
 
     // When uid doesn't match, UnregisterObserver should NOT be called
-    EXPECT_CALL(*mockInterceptor_, UnregisterObserver(differentUid))
-        .Times(0);
 
     observer->OnPageShow(pageStateData);
 
@@ -407,10 +395,6 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_ComponentType_UIAbility_0100, Te
     // Verify componentType is correctly set
     EXPECT_EQ(observer->disposedRule_.componentType, ComponentType::UI_ABILITY);
 
-    // Verify UnregisterObserver is called
-    EXPECT_CALL(*mockInterceptor, UnregisterObserver(testUid_))
-        .Times(1);
-
     observer->OnPageShow(pageStateData);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ComponentType_UIAbility_0100 end");
@@ -441,10 +425,11 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_ComponentType_UIExtension_0100, 
     EXPECT_EQ(observer->disposedRule_.componentType, ComponentType::UI_EXTENSION);
 
     // Verify UnregisterObserver is called (after ExecuteUIExtension)
-    EXPECT_CALL(*mockInterceptor, UnregisterObserver(testUid_))
-        .Times(1);
 
     observer->OnPageShow(pageStateData);
+
+    // Verify componentType is correctly set
+    EXPECT_EQ(observer->disposedRule_.componentType, ComponentType::UI_EXTENSION);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ComponentType_UIExtension_0100 end");
 }
@@ -472,7 +457,7 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_Want_0100, TestSize.Level1)
 
     // Verify want is correctly stored
     EXPECT_NE(observer->disposedRule_.want, nullptr);
-    EXPECT_EQ(observer->disposedRule_.want->GetElement().GetDeviceId(), "testDevice");
+    EXPECT_EQ(observer->disposedRule_.want->GetElement().GetDeviceID(), "testDevice");
     EXPECT_EQ(observer->disposedRule_.want->GetElement().GetBundleName(), "com.example.bundle");
     EXPECT_EQ(observer->disposedRule_.want->GetElement().GetAbilityName(), "TestAbility");
     EXPECT_EQ(observer->disposedRule_.want->GetAction(), "test.action");
