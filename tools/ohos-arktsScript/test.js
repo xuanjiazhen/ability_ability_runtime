@@ -1,5 +1,3 @@
-import scriptManager from "@ohos.app.ability.scriptManager";
-
 function toArgs(args) {
     return Array.isArray(args) ? args : [];
 }
@@ -66,43 +64,6 @@ function snapshotContext(ctx = currentContext()) {
         } : null,
         bundleName: ctx && ctx.bundleName !== undefined ? ctx.bundleName : null,
         processName: ctx && ctx.processName !== undefined ? ctx.processName : null,
-        cacheDir: ctx && ctx.cacheDir !== undefined ? ctx.cacheDir : null,
-        tempDir: ctx && ctx.tempDir !== undefined ? ctx.tempDir : null,
-        filesDir: ctx && ctx.filesDir !== undefined ? ctx.filesDir : null,
-        databaseDir: ctx && ctx.databaseDir !== undefined ? ctx.databaseDir : null,
-        preferencesDir: ctx && ctx.preferencesDir !== undefined ? ctx.preferencesDir : null,
-        bundleCodeDir: ctx && ctx.bundleCodeDir !== undefined ? ctx.bundleCodeDir : null,
-        distributedFilesDir: ctx && ctx.distributedFilesDir !== undefined ? ctx.distributedFilesDir : null,
-        resourceDir: ctx && ctx.resourceDir !== undefined ? ctx.resourceDir : null,
-        cloudFileDir: ctx && ctx.cloudFileDir !== undefined ? ctx.cloudFileDir : null,
-        logFileDir: ctx && ctx.logFileDir !== undefined ? ctx.logFileDir : null,
-    };
-}
-
-function buildExpectedResult(caseName, args, extra = {}) {
-    const list = toArgs(args);
-    return {
-        case: caseName,
-        argc: list.length,
-        args: list,
-        ...extra,
-    };
-}
-
-function buildCaseResult(caseName, args, extra = {}) {
-    return {
-        ...buildExpectedResult(caseName, args),
-        context: snapshotContext(),
-        ...extra,
-    };
-}
-
-function withInterfaceInfo(result, calledInterface, jsCall, expectedResult) {
-    return {
-        ...result,
-        calledInterface,
-        jsCall,
-        expectedResult,
     };
 }
 
@@ -136,43 +97,28 @@ function completeErrorResult(error, extra = {}) {
     };
 }
 
-function buildAddResult(args, targetKind, calledInterface, jsCall) {
+function buildResult(result, targetKind) {
+    return {
+        result,
+        targetKind,
+    };
+}
+
+function calculateAddResult(args) {
     const list = toArgs(args);
     const left = list[0];
     const right = list[1];
     const leftNumber = toNumberOrNull(left);
     const rightNumber = toNumberOrNull(right);
-    const canAdd = leftNumber !== null && rightNumber !== null;
-    const expectedResult = buildExpectedResult("add", args, {
-        targetKind,
-        left,
-        right,
-        leftNumber,
-        rightNumber,
-        sum: canAdd ? leftNumber + rightNumber : null,
-    });
-    return withInterfaceInfo(buildCaseResult("add", args, {
-        targetKind,
-        left,
-        right,
-        leftNumber,
-        rightNumber,
-        sum: expectedResult.sum,
-    }), calledInterface, jsCall, expectedResult);
+    return leftNumber !== null && rightNumber !== null ? leftNumber + rightNumber : null;
 }
 
-export async function add(args) {
-    await scriptManager.completeArkTSScript({
-        code: 0,
-        result: buildAddResult(args, "namedExport", "export async function add(args)",
-            "await scriptManager.completeArkTSScript({ code: 0, result: buildAddResult(args, 'namedExport') })"),
-    });
-    return "pending";
+export function add(args) {
+    return completeResult(buildResult(calculateAddResult(args), "namedExport"));
 }
 
 export function addNumber(args) {
-    return completeResult(buildAddResult(args, "namedExport:addNumber", "export function addNumber(args)",
-        "CompletearktsScript({ code: 0, result: buildAddResult(args, 'namedExport:addNumber') })"));
+    return completeResult(buildResult(calculateAddResult(args), "namedExport:addNumber"));
 }
 
 export function addInvalid(args) {
@@ -181,64 +127,29 @@ export function addInvalid(args) {
     const right = list[1];
     const leftNumber = toNumberOrNull(left);
     const rightNumber = toNumberOrNull(right);
-    const expectedResult = {
-        case: "addInvalid",
-        argc: list.length,
-        args: list,
-        error: "ADD_ARGS_INVALID",
-        reason: "arg0 and arg1 must be numeric values",
-        leftNumber,
-        rightNumber,
-    };
     if (leftNumber === null || rightNumber === null) {
-        return completeErrorResult("ADD_ARGS_INVALID", withInterfaceInfo({
-            reason: "arg0 and arg1 must be numeric values",
-            argc: list.length,
-            args: list,
-            leftNumber,
-            rightNumber,
-        }, "export function addInvalid(args)",
-            "CompletearktsScript({ code: -1, result: { case: 'error', error: 'ADD_ARGS_INVALID' } })",
-            expectedResult));
+        return completeErrorResult("ADD_ARGS_INVALID");
     }
-    return completeResult(buildAddResult(args, "namedExport:addInvalid", "export function addInvalid(args)",
-        "CompletearktsScript({ code: 0, result: buildAddResult(args, 'namedExport:addInvalid') })"));
+    return completeResult(buildResult(calculateAddResult(args), "namedExport:addInvalid"));
 }
 
 export function parseValues(args) {
     const list = toArgs(args);
     const typedValues = list.map((value) => describeValue(value));
-    return completeResult(withInterfaceInfo(buildCaseResult("parseValues", args, {
-        typedValues,
-    }), "export function parseValues(args)",
-        "return { case: 'parseValues', typedValues: args.map(describeValue) }",
-        buildExpectedResult("parseValues", args, {
-            typedValues,
-        })));
+    return completeResult(buildResult(typedValues, "namedExport:parseValues"));
 }
 
 export function parseEmptyArgs(args) {
-    return completeResult(withInterfaceInfo(buildCaseResult("parseEmptyArgs", args, {
+    return completeResult(buildResult({
         isEmpty: toArgs(args).length === 0,
-    }), "export function parseEmptyArgs(args)",
-        "return { case: 'parseEmptyArgs', isEmpty: args.length === 0 }",
-        buildExpectedResult("parseEmptyArgs", args, {
-            isEmpty: toArgs(args).length === 0,
-        })));
+    }, "namedExport:parseEmptyArgs"));
 }
 
 export function parseArgGap(args) {
     const list = toArgs(args);
-    const typedValues = list.map((value) => describeValue(value));
-    return completeResult(withInterfaceInfo(buildCaseResult("parseArgGap", args, {
-        typedValues,
+    return completeResult(buildResult({
         hasArgGap: list.some((value) => value === undefined),
-    }), "export function parseArgGap(args)",
-        "return { case: 'parseArgGap', typedValues, hasArgGap }",
-        buildExpectedResult("parseArgGap", args, {
-            typedValues,
-            hasArgGap: list.some((value) => value === undefined),
-        })));
+    }, "namedExport:parseArgGap"));
 }
 
 export function throwError(args) {
@@ -246,77 +157,31 @@ export function throwError(args) {
     throw new Error("throwError expected failure, argc=" + list.length);
 }
 
-export function completeWithoutArgument(args) {
-    if (typeof globalThis.CompletearktsScript === "function") {
-        globalThis.CompletearktsScript();
-        return "pending";
-    }
-    return buildCaseResult("completeWithoutArgument", args);
-}
-
-export function completeWithNonObject(args) {
-    if (typeof globalThis.CompletearktsScript === "function") {
-        globalThis.CompletearktsScript("invalid");
-        return "pending";
-    }
-    return buildCaseResult("completeWithNonObject", args);
-}
-
-export function completeWithoutCode(args) {
-    if (typeof globalThis.CompletearktsScript === "function") {
-        globalThis.CompletearktsScript({
-            result: {
-                case: "completeWithoutCode",
-            },
-        });
-        return "pending";
-    }
-    return buildCaseResult("completeWithoutCode", args);
-}
-
-export function completeWithInvalidResult(args) {
-    if (typeof globalThis.CompletearktsScript === "function") {
-        globalThis.CompletearktsScript({
-            code: 0,
-            result: "invalid",
-        });
-        return "pending";
-    }
-    return buildCaseResult("completeWithInvalidResult", args);
-}
-
-export function completeWithInvalidUri(args) {
-    if (typeof globalThis.CompletearktsScript === "function") {
-        globalThis.CompletearktsScript({
-            code: 0,
-            result: {
-                case: "completeWithInvalidUri",
-            },
-            uri: 100,
-        });
-        return "pending";
-    }
-    return buildCaseResult("completeWithInvalidUri", args);
-}
-
-export function completeWithInvalidFlag(args) {
-    if (typeof globalThis.CompletearktsScript === "function") {
-        globalThis.CompletearktsScript({
-            code: 0,
-            result: {
-                case: "completeWithInvalidFlag",
-            },
-            flag: "invalid",
-        });
-        return "pending";
-    }
-    return buildCaseResult("completeWithInvalidFlag", args);
-}
-
 export function testCatalog(args) {
-    return completeResult(buildCaseResult("testCatalog", args, {
+    return completeResult(buildResult({
         cases: [
-            // Expected: code=0, result.case=add, result.sum=20.
+            // 1. Expected: exitCode=0, stdout contains help usage and parameter descriptions.
+            {
+                functionName: "--help",
+                scene: "cli help output",
+                command: "ohos-arktsScript --help",
+                expected: {
+                    exitCode: 0,
+                    stdoutIncludes: [
+                        "ohos-arktsScript - ArkTS script execution tool for loading ABC files and invoking target functions",
+                        "Usage:",
+                        "ohos-arktsScript [options]",
+                        "Parameters:",
+                        "--abcPath <path>",
+                        "--scriptPath <path>",
+                        "--functionName <name>",
+                        "--args <jsonObject>",
+                        "--help",
+                        "Examples:",
+                    ],
+                },
+            },
+            // 2. Expected: code=0, result.result=20, result.targetKind=namedExport.
             {
                 functionName: "add",
                 scene: "named export add, numeric strings are converted before summing",
@@ -324,17 +189,12 @@ export function testCatalog(args) {
                 expected: {
                     code: 0,
                     result: {
-                        case: "add",
+                        result: 20,
                         targetKind: "namedExport",
-                        left: "10",
-                        right: "10",
-                        leftNumber: 10,
-                        rightNumber: 10,
-                        sum: 20,
                     },
                 },
             },
-            // Expected: code=0, result.case=add, result.targetKind=defaultClassMethod:addByDefaultClass, result.sum=30.
+            // 3. Expected: code=0, result.result=30, result.targetKind=defaultClassMethod:addByDefaultClass.
             {
                 functionName: "addByDefaultClass",
                 scene: "default class method dispatch",
@@ -342,13 +202,12 @@ export function testCatalog(args) {
                 expected: {
                     code: 0,
                     result: {
-                        case: "add",
+                        result: 30,
                         targetKind: "defaultClassMethod:addByDefaultClass",
-                        sum: 30,
                     },
                 },
             },
-            // Expected: code=0, result.case=add, result.sum=20.
+            // 4. Expected: code=0, result.result=20, result.targetKind=namedExport:addNumber.
             {
                 functionName: "addNumber",
                 scene: "named export add with numeric JSON arguments",
@@ -356,15 +215,12 @@ export function testCatalog(args) {
                 expected: {
                     code: 0,
                     result: {
-                        case: "add",
+                        result: 20,
                         targetKind: "namedExport:addNumber",
-                        leftNumber: 10,
-                        rightNumber: 10,
-                        sum: 20,
                     },
                 },
             },
-            // Expected: code=-1, result.case=error, result.error=ADD_ARGS_INVALID.
+            // 5. Expected: code=-1, result.case=error, result.error=ADD_ARGS_INVALID.
             {
                 functionName: "addInvalid",
                 scene: "add abnormal branch: non-numeric argument",
@@ -377,7 +233,7 @@ export function testCatalog(args) {
                     },
                 },
             },
-            // Expected: code=0, result.case=parseValues, result.argc=5.
+            // 6. Expected: code=0, result.targetKind=namedExport:parseValues, result.result length=5.
             {
                 functionName: "parseValues",
                 scene: "string, number, boolean, object and array argument conversion",
@@ -385,12 +241,11 @@ export function testCatalog(args) {
                 expected: {
                     code: 0,
                     result: {
-                        case: "parseValues",
-                        argc: 5,
+                        targetKind: "namedExport:parseValues",
                     },
                 },
             },
-            // Expected: code=0, result.case=parseEmptyArgs, result.isEmpty=true.
+            // 7. Expected: code=0, result.result.isEmpty=true, result.targetKind=namedExport:parseEmptyArgs.
             {
                 functionName: "parseEmptyArgs",
                 scene: "empty --args or no --args produces an empty argument array",
@@ -398,13 +253,14 @@ export function testCatalog(args) {
                 expected: {
                     code: 0,
                     result: {
-                        case: "parseEmptyArgs",
-                        argc: 0,
-                        isEmpty: true,
+                        result: {
+                            isEmpty: true,
+                        },
+                        targetKind: "namedExport:parseEmptyArgs",
                     },
                 },
             },
-            // Expected: code=0, result.case=parseArgGap, result.argc=2, result.hasArgGap=true.
+            // 8. Expected: code=0, result.result.hasArgGap=true, result.targetKind=namedExport:parseArgGap.
             {
                 functionName: "parseArgGap",
                 scene: "argument index gap fills missing slots as undefined",
@@ -412,13 +268,14 @@ export function testCatalog(args) {
                 expected: {
                     code: 0,
                     result: {
-                        case: "parseArgGap",
-                        argc: 2,
-                        hasArgGap: true,
+                        result: {
+                            hasArgGap: true,
+                        },
+                        targetKind: "namedExport:parseArgGap",
                     },
                 },
             },
-            // Expected: code=0, result.case=describeContext, context/applicationContext/bundleContext are available.
+            // 9. Expected: code=0, result.targetKind=namedExport:describeContext.
             {
                 functionName: "describeContext",
                 scene: "script context, application context and bundle context availability",
@@ -426,84 +283,50 @@ export function testCatalog(args) {
                 expected: {
                     code: 0,
                     result: {
-                        case: "describeContext",
-                        context: {
-                            hasContext: true,
-                        },
+                        targetKind: "namedExport:describeContext",
                     },
                 },
             },
-            // Expected: code=0, result={ ok: true }, uri=file://demo, flag=1.
+            // 10. Expected error: failed to parse arguments.
             {
-                functionName: "completeWithResult",
-                scene: "CompletearktsScript success payload with code/result/uri/flag",
-                args: "{\"arg0\":0,\"arg1\":{\"ok\":true},\"arg2\":\"file://demo\",\"arg3\":1}",
-                expected: {
-                    code: 0,
-                    result: {
-                        ok: true,
-                    },
-                    uri: "file://demo",
-                    flag: 1,
-                },
+                functionName: "add",
+                scene: "abcPath is empty",
+                command: "ohos-arktsScript --abcPath '' --functionName add",
+                expectedError: "failed to parse arguments",
             },
-            // Expected error: CompletearktsScript requires a result argument.
+            // 11. Expected error: failed to parse arguments.
             {
-                functionName: "completeWithoutArgument",
-                scene: "CompletearktsScript abnormal branch: missing result argument",
-                expectedError: "CompletearktsScript requires a result argument",
+                functionName: "add",
+                scene: "functionName is empty",
+                command: "ohos-arktsScript --abcPath /data/test/module.abc --functionName ''",
+                expectedError: "failed to parse arguments",
             },
-            // Expected error: CompletearktsScript requires an object argument.
+            // 12. Expected error: failed to resolve function.
             {
-                functionName: "completeWithNonObject",
-                scene: "CompletearktsScript abnormal branch: argument is not object",
-                expectedError: "CompletearktsScript requires an object argument",
+                functionName: "notExists",
+                scene: "abcPath is valid and functionName is fake",
+                command: "ohos-arktsScript --abcPath /data/test/module.abc --functionName notExists",
+                expectedError: "failed to resolve function",
             },
-            // Expected error: CompletearktsScript requires a numeric code.
+            // 13. Expected error: failed to parse arguments.
             {
-                functionName: "completeWithoutCode",
-                scene: "CompletearktsScript abnormal branch: missing numeric code",
-                expectedError: "CompletearktsScript requires a numeric code",
+                functionName: "add",
+                scene: "abcPath is valid, functionName is valid and args is invalid",
+                command: "ohos-arktsScript --abcPath /data/test/module.abc --functionName add --args '{\"invalid\":10}'",
+                expectedError: "failed to parse arguments",
             },
-            // Expected: code=0, result=\"invalid\".
-            {
-                functionName: "completeWithInvalidResult",
-                scene: "CompletearktsScript compatibility branch: non-object result is forwarded",
-                expected: {
-                    code: 0,
-                    result: "invalid",
-                },
-            },
-            // Expected error: CompletearktsScript failed to read uri.
-            {
-                functionName: "completeWithInvalidUri",
-                scene: "CompletearktsScript abnormal branch: uri is not string",
-                expectedError: "CompletearktsScript failed to read uri",
-            },
-            // Expected error: CompletearktsScript failed to read flag.
-            {
-                functionName: "completeWithInvalidFlag",
-                scene: "CompletearktsScript abnormal branch: flag is not int",
-                expectedError: "CompletearktsScript failed to read flag",
-            },
-            // Expected error: failed to call function.
+            // 14. Expected error: failed to call function.
             {
                 functionName: "throwError",
                 scene: "target JS function throws",
                 expectedError: "failed to call function",
             },
-            // Expected error: failed to resolve function.
-            {
-                functionName: "notExists",
-                scene: "function resolve failure",
-                expectedError: "failed to resolve function",
-            },
         ],
-    }));
+    }, "namedExport:testCatalog"));
 }
 
 export function selfCheck(args) {
-    return completeResult(buildCaseResult("selfCheck", args, {
+    return completeResult(buildResult({
         exports: [
             "add",
             "addNumber",
@@ -512,20 +335,13 @@ export function selfCheck(args) {
             "parseEmptyArgs",
             "parseArgGap",
             "describeContext",
-            "completeWithResult",
             "throwError",
-            "completeWithoutArgument",
-            "completeWithNonObject",
-            "completeWithoutCode",
-            "completeWithInvalidResult",
-            "completeWithInvalidUri",
-            "completeWithInvalidFlag",
             "testCatalog",
             "selfCheck",
             "default",
             "ArktsScriptSuite",
         ],
-    }));
+    }, "namedExport:selfCheck"));
 }
 
 export function describeContext(args) {
@@ -535,92 +351,18 @@ export function describeContext(args) {
     const bundleName = list.length > 0 ? list[0] : (ctx && ctx.applicationInfo && ctx.applicationInfo.bundleName) || "";
     const bundleCtx = ctx && typeof ctx.createBundleContext === "function" ? ctx.createBundleContext(bundleName) : null;
 
-    return completeResult(withInterfaceInfo(buildCaseResult("describeContext", args, {
+    return completeResult(buildResult({
+        context: snapshotContext(ctx),
         applicationContext: snapshotContext(appCtx),
         bundleContext: snapshotContext(bundleCtx),
-    }), "export function describeContext(args)",
-        "return { context: snapshotContext(), applicationContext: snapshotContext(appCtx), bundleContext: snapshotContext(bundleCtx) }",
-        buildExpectedResult("describeContext", args, {
-            context: {
-                hasContext: true,
-            },
-            applicationContext: {
-                hasContext: true,
-            },
-            bundleContext: {
-                hasContext: true,
-            },
-        })));
-}
-
-export function completeWithResult(args) {
-    const list = toArgs(args);
-    const code = typeof list[0] === "number" ? list[0] : 0;
-    const resultPayload = list[1] !== null && typeof list[1] === "object" && !Array.isArray(list[1]) ? list[1] : null;
-    const uri = typeof list[2] === "string" ? list[2] : null;
-    const flag = typeof list[3] === "number" ? list[3] : null;
-    const executeResult = {
-        code,
-    };
-    if (resultPayload !== null) {
-        executeResult.result = resultPayload;
-    }
-    if (uri !== null) {
-        executeResult.uri = uri;
-    }
-    if (flag !== null) {
-        executeResult.flag = flag;
-    }
-
-    if (typeof globalThis.CompletearktsScript === "function") {
-        globalThis.CompletearktsScript(executeResult);
-        return "pending";
-    }
-
-    return withInterfaceInfo(buildCaseResult("completeWithResult", args, {
-        executeResult,
-    }), "export function completeWithResult(args)",
-        "CompletearktsScript({ code, result, uri, flag })",
-        executeResult);
+    }, "namedExport:describeContext"));
 }
 
 export default class ArktsScriptSuite {
-    add(args) {
-        return completeResult(buildAddResult(args, "defaultClassMethod:add", "default class ArktsScriptSuite.add(args)",
-            "CompletearktsScript({ code: 0, result: buildAddResult(args, 'defaultClassMethod:add') })"));
-    }
-
     addByDefaultClass(args) {
-        return completeResult(buildAddResult(args, "defaultClassMethod:addByDefaultClass",
-            "default class ArktsScriptSuite.addByDefaultClass(args)",
-            "CompletearktsScript({ code: 0, result: buildAddResult(args, 'defaultClassMethod:addByDefaultClass') })"));
-    }
-
-    parseValues(args) {
-        return parseValues(args);
-    }
-
-    describeContext(args) {
-        return describeContext(args);
-    }
-
-    completeWithResult(args) {
-        return completeWithResult(args);
-    }
-
-    selfCheck(args) {
-        return selfCheck(args);
+        return completeResult(buildResult(calculateAddResult(args), "defaultClassMethod:addByDefaultClass"));
     }
 }
-
-globalThis.add = function add(args) {
-    return completeResult(buildAddResult(args, "globalFallback:add", "globalThis.add(args)",
-        "CompletearktsScript({ code: 0, result: buildAddResult(args, 'globalFallback:add') })"));
-};
-globalThis.parseValues = parseValues;
-globalThis.describeContext = describeContext;
-globalThis.completeWithResult = completeWithResult;
-globalThis.selfCheck = selfCheck;
 globalThis.ArktsScriptSuite = ArktsScriptSuite;
 
 if (typeof console !== "undefined" && console !== null) {
