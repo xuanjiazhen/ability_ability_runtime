@@ -22,6 +22,8 @@
 #include "mock_ability_token.h"
 #include "want.h"
 #include "page_state_data.h"
+#include "ability_info.h"
+#include "application_info.h"
 
 #define private public
 #define protected public
@@ -200,72 +202,83 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0500, TestSize.Level1
 }
 
 /**
- * @tc.number: DisposedObserver_ExecuteUIExtension_0100
- * @tc.name: DisposedObserver::ExecuteUIExtension
- * @tc.desc: abilityRecord is nullptr, return ERR_OK with ModalSystemUiExtension path.
- */
-HWTEST_F(DisposedObserverTest, DisposedObserver_ExecuteUIExtension_0100, TestSize.Level1)
+ * * @tc.number: DisposedObserver_OnPageShow_0600
+ * * @tc.name: DisposedObserver::OnPageShow - embeddable UIExtension path
+ * * @tc.desc: abilityRecord with EMBEDDED_FULL_SCREEN_MODE triggers embeddable path.
+ * */
+HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0600, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteUIExtension_0100 start");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_OnPageShow_0600 start");
     auto observer = CreateDisposedObserver(ComponentType::UI_EXTENSION);
+
+    // Create real AbilityRecord with embeddable screen mode
+    Want want;
+    want.SetElementName("device", "com.example.test", "TestAbility");
+    want.SetParam("ohos.extra.param.key.showMode", static_cast<int32_t>(1));  // EMBEDDED_FULL_SCREEN_MODE
+
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityInfo.process = "test_process";
+
+    AppExecFwk::ApplicationInfo applicationInfo;
+
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    EXPECT_NE(abilityRecord, nullptr);
+
+    // Create token associated with abilityRecord
+    sptr<IRemoteObject> token = new Token(abilityRecord);
+    observer->token_ = token;
 
     PageStateData pageStateData;
     pageStateData.uid = testUid_;
 
-    // Keep token_ as nullptr to trigger ModalSystemUiExtension path
-    observer->token_ = nullptr;
+    // This should trigger embeddable UIExtension path
+    observer->OnPageShow(pageStateData);
 
-    ErrCode ret = observer->ExecuteUIExtension(pageStateData);
+    EXPECT_EQ(observer->uid_, testUid_);
+    EXPECT_NE(observer->token_, nullptr);
 
-    EXPECT_EQ(ret, ERR_OK);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteUIExtension_0100 end");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_OnPageShow_0600 end");
 }
 
 /**
- * @tc.number: DisposedObserver_ExecuteUIExtension_0200
- * @tc.name: DisposedObserver::ExecuteUIExtension
- * @tc.desc: abilityRecord exists with PAGE type and session info.
- */
-HWTEST_F(DisposedObserverTest, DisposedObserver_ExecuteUIExtension_0200, TestSize.Level1)
+ * * @tc.number: DisposedObserver_OnPageShow_0700
+ * * @tc.name: DisposedObserver::OnPageShow - PAGE type UIExtension path
+ * * @tc.desc: abilityRecord with PAGE type and non-embeddable mode triggers PAGE path.
+ * */
+HWTEST_F(DisposedObserverTest, DisposedObserver_OnPageShow_0700, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteUIExtension_0200 start");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_OnPageShow_0700 start");
     auto observer = CreateDisposedObserver(ComponentType::UI_EXTENSION);
+
+    // Create real AbilityRecord with PAGE type and non-embeddable mode
+    Want want;
+    want.SetElementName("device", "com.example.test", "TestAbility");
+    want.SetParam("ohos.extra.param.key.showMode", static_cast<int32_t>(-1));  // IDLE_SCREEN_MODE
+
+    AppExecFwk::AbilityInfo abilityInfo;
+    abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    abilityInfo.process = "test_process";
+
+    AppExecFwk::ApplicationInfo applicationInfo;
+
+    auto abilityRecord = std::make_shared<AbilityRecord>(want, abilityInfo, applicationInfo);
+    EXPECT_NE(abilityRecord, nullptr);
+
+    // Create token associated with abilityRecord
+    sptr<IRemoteObject> token = new Token(abilityRecord);
+    observer->token_ = token;
 
     PageStateData pageStateData;
     pageStateData.uid = testUid_;
 
-    // Token::GetAbilityRecordByToken likely returns nullptr for mock token
-    // So ExecuteUIExtension should take ModalSystemUiExtension path and return ERR_OK
-    observer->token_ = new MockAbilityToken();
+    // This should trigger PAGE type UIExtension path
+    observer->OnPageShow(pageStateData);
 
-    ErrCode ret = observer->ExecuteUIExtension(pageStateData);
+    EXPECT_EQ(observer->uid_, testUid_);
+    EXPECT_NE(observer->token_, nullptr);
 
-    // Since Token::GetAbilityRecordByToken will return nullptr for mock token,
-    // ModalSystemUiExtension path should be taken, which returns ERR_OK
-    EXPECT_EQ(ret, ERR_OK);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteUIExtension_0200 end");
-}
-
-/**
- * @tc.number: DisposedObserver_ExecuteUIExtension_0300
- * @tc.name: DisposedObserver::ExecuteUIExtension
- * @tc.desc: Test ExecuteUIExtension with invalid screen mode.
- */
-HWTEST_F(DisposedObserverTest, DisposedObserver_ExecuteUIExtension_0300, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteUIExtension_0300 start");
-    auto observer = CreateDisposedObserver(ComponentType::UI_EXTENSION);
-
-    PageStateData pageStateData;
-    pageStateData.uid = testUid_;
-
-    observer->token_ = new MockAbilityToken();
-
-    ErrCode ret = observer->ExecuteUIExtension(pageStateData);
-
-    // Function should handle null abilityRecord gracefully by taking ModalSystemUiExtension path
-    EXPECT_EQ(ret, ERR_OK);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_ExecuteUIExtension_0300 end");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "DisposedObserver_OnPageShow_0700 end");
 }
 
 /**
