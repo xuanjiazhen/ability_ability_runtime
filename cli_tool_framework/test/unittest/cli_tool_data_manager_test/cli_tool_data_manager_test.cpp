@@ -24,6 +24,8 @@
 
 #include "cli_tool_data_manager.h"
 #include "hilog_tag_wrapper.h"
+#include "sub_command_info.h"
+#include "tool_info.h"
 
 using namespace testing::ext;
 
@@ -448,6 +450,675 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_SyncToolNames_003, TestSize.
     rmdir(emptyDir);
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_SyncToolNames_003 end");
+}
+
+// ==================== JsonArrayToTools Error Branch Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_JsonArrayToTools_002
+ * @tc.desc: Test parsing invalid JSON string
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonArrayToTools_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_002 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    std::string invalidJson = "not a valid json";
+
+    std::vector<ToolInfo> tools;
+    int32_t ret = dataManager.JsonArrayToTools(invalidJson, tools);
+
+    EXPECT_NE(ret, 0); // Should return error code
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_002 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_JsonArrayToTools_003
+ * @tc.desc: Test parsing JSON that is not an array
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonArrayToTools_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_003 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    std::string nonArrayJson = R"({"name": "single_tool", "version": "1.0"})";
+
+    std::vector<ToolInfo> tools;
+    int32_t ret = dataManager.JsonArrayToTools(nonArrayJson, tools);
+
+    EXPECT_NE(ret, 0); // Should return error code
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_003 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_JsonArrayToTools_004
+ * @tc.desc: Test parsing JSON array with invalid tool items
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonArrayToTools_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_004 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    std::string jsonWithInvalidItems = R"([
+        {"name": "ohos-valid_tool", "version": "1.0", "description": "Valid",
+            "executablePath": "/bin/valid", "requirePermissions": [], "inputSchema": {}, "outputSchema": {}},
+        {"invalid": "missing required fields"},
+        {}
+    ])";
+
+    std::vector<ToolInfo> tools;
+    int32_t ret = dataManager.JsonArrayToTools(jsonWithInvalidItems, tools);
+
+    EXPECT_EQ(ret, 0); // Should succeed but only parse valid items
+    EXPECT_EQ(tools.size(), 1u); // Only one valid tool
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_004 end");
+}
+
+// ==================== ToolInfo ParseFromJson Error Branch Tests ====================
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_004
+ * @tc.desc: Test parsing JSON without required name field
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_004 start");
+
+    nlohmann::json json = R"({
+        "version": "1.0.0",
+        "description": "Missing name"
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_004 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_005
+ * @tc.desc: Test parsing JSON without required version field
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_005 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-test_tool",
+        "description": "Missing version"
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_005 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_006
+ * @tc.desc: Test parsing JSON without required executablePath field
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_006 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-test_tool",
+        "version": "1.0.0",
+        "description": "Missing executablePath"
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_006 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_007
+ * @tc.desc: Test parsing JSON with invalid name type (not string)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_007, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_007 start");
+
+    nlohmann::json json = R"({
+        "name": 123,
+        "version": "1.0.0",
+        "executablePath": "/bin/test"
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_007 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_008
+ * @tc.desc: Test parsing JSON with invalid requirePermissions type (not array)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_008, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_008 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-test_tool",
+        "version": "1.0.0",
+        "executablePath": "/bin/test",
+        "requirePermissions": "not_an_array"
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_008 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_009
+ * @tc.desc: Test parsing JSON with invalid subcommands type (not object)
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_009, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_009 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-test_tool",
+        "version": "1.0.0",
+        "executablePath": "/bin/test",
+        "hasSubCommand": true,
+        "subcommands": "invalid_type"
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_009 end");
+}
+
+// ==================== ToolInfo Validation Tests ====================
+
+/**
+ * @tc.name: ToolInfo_ValidateName_001
+ * @tc.desc: Test validating valid tool names
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ValidateName_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateName_001 start");
+
+    EXPECT_TRUE(ToolInfo::ValidateName("ohos-test_tool"));
+    EXPECT_TRUE(ToolInfo::ValidateName("hms-another_tool"));
+    EXPECT_TRUE(ToolInfo::ValidateName("ohos-a")); // minimum valid suffix
+    EXPECT_TRUE(ToolInfo::ValidateName("hms-tool_with_underscore"));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateName_001 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ValidateName_002
+ * @tc.desc: Test validating invalid tool names
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ValidateName_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateName_002 start");
+
+    EXPECT_FALSE(ToolInfo::ValidateName("")); // empty
+    EXPECT_FALSE(ToolInfo::ValidateName("ohos-")); // empty suffix
+    EXPECT_FALSE(ToolInfo::ValidateName("hms-")); // empty suffix
+    EXPECT_FALSE(ToolInfo::ValidateName("simple_tool")); // no prefix
+    EXPECT_FALSE(ToolInfo::ValidateName("invalid name with spaces")); // spaces
+    EXPECT_FALSE(ToolInfo::ValidateName("ohos-tool_with_too_long_suffix_exceeding_32_chars_limit")); // too long
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateName_002 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ValidateExecutablePath_001
+ * @tc.desc: Test validating valid executable paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ValidateExecutablePath_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateExecutablePath_001 start");
+
+    EXPECT_TRUE(ToolInfo::ValidateExecutablePath("/bin/test"));
+    EXPECT_TRUE(ToolInfo::ValidateExecutablePath("/usr/local/bin/tool"));
+    EXPECT_TRUE(ToolInfo::ValidateExecutablePath("/system/bin/cli_tool"));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateExecutablePath_001 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ValidateExecutablePath_002
+ * @tc.desc: Test validating invalid executable paths
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ValidateExecutablePath_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateExecutablePath_002 start");
+
+    EXPECT_FALSE(ToolInfo::ValidateExecutablePath(""));
+    EXPECT_FALSE(ToolInfo::ValidateExecutablePath("relative/path"));
+    EXPECT_FALSE(ToolInfo::ValidateExecutablePath("bin/tool"));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateExecutablePath_002 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ValidateRequirePermissions_001
+ * @tc.desc: Test validating valid requirePermissions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ValidateRequirePermissions_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateRequirePermissions_001 start");
+
+    EXPECT_TRUE(ToolInfo::ValidateRequirePermissions({}));
+    EXPECT_TRUE(ToolInfo::ValidateRequirePermissions({"ohos.permission.INTERNET"}));
+    EXPECT_TRUE(ToolInfo::ValidateRequirePermissions({"ohos.permission.INTERNET", "ohos.permission.CAMERA"}));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateRequirePermissions_001 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ValidateRequirePermissions_002
+ * @tc.desc: Test validating invalid requirePermissions with duplicates
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ValidateRequirePermissions_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateRequirePermissions_002 start");
+
+    // Duplicate permissions should fail
+    EXPECT_FALSE(ToolInfo::ValidateRequirePermissions({"ohos.permission.INTERNET", "ohos.permission.INTERNET"}));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateRequirePermissions_002 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ValidateEventTypes_001
+ * @tc.desc: Test validating valid eventTypes
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ValidateEventTypes_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateEventTypes_001 start");
+
+    EXPECT_TRUE(ToolInfo::ValidateEventTypes({}));
+    EXPECT_TRUE(ToolInfo::ValidateEventTypes({"stdout"}));
+    EXPECT_TRUE(ToolInfo::ValidateEventTypes({"stdout", "stderr", "exit"}));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateEventTypes_001 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ValidateEventTypes_002
+ * @tc.desc: Test validating invalid eventTypes with duplicates
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ValidateEventTypes_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateEventTypes_002 start");
+
+    // Duplicate event types should fail
+    EXPECT_FALSE(ToolInfo::ValidateEventTypes({"stdout", "stdout"}));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ValidateEventTypes_002 end");
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_001
+ * @tc.desc: Test validating valid ToolInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_Validate_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_001 start");
+
+    ToolInfo tool;
+    tool.name = "ohos-valid_tool";
+    tool.version = "1.0.0";
+    tool.description = "Valid tool description";
+    tool.executablePath = "/bin/valid";
+    tool.requirePermissions = {"ohos.permission.INTERNET"};
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.eventTypes = {"stdout"};
+
+    EXPECT_TRUE(ToolInfo::Validate(tool));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_001 end");
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_002
+ * @tc.desc: Test validating invalid ToolInfo with empty name
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_Validate_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_002 start");
+
+    ToolInfo tool;
+    tool.name = "";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_002 end");
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_003
+ * @tc.desc: Test validating invalid ToolInfo with relative path
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_Validate_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_003 start");
+
+    ToolInfo tool;
+    tool.name = "ohos-test_tool";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "relative/path";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_003 end");
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_004
+ * @tc.desc: Test validating ToolInfo with empty inputSchema
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_Validate_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_004 start");
+
+    ToolInfo tool;
+    tool.name = "ohos-test_tool";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = ""; // empty inputSchema
+    tool.outputSchema = "{}";
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_004 end");
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_005
+ * @tc.desc: Test validating ToolInfo with empty outputSchema
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_Validate_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_005 start");
+
+    ToolInfo tool;
+    tool.name = "ohos-test_tool";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = ""; // empty outputSchema
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_005 end");
+}
+
+/**
+ * @tc.name: ToolInfo_Validate_006
+ * @tc.desc: Test validating ToolInfo with hasSubCommand true but empty subcommands
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_Validate_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_006 start");
+
+    ToolInfo tool;
+    tool.name = "ohos-test_tool";
+    tool.version = "1.0.0";
+    tool.description = "Test";
+    tool.executablePath = "/bin/test";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tool.hasSubCommand = true;
+    // subcommands is empty
+
+    EXPECT_FALSE(ToolInfo::Validate(tool));
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Validate_006 end");
+}
+
+// ==================== ToolInfo Marshalling Tests ====================
+
+/**
+ * @tc.name: ToolInfo_Marshalling_001
+ * @tc.desc: Test marshalling and unmarshalling ToolInfo
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_Marshalling_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Marshalling_001 start");
+
+    ToolInfo original;
+    original.name = "ohos-marshal_test";
+    original.version = "1.0.0";
+    original.description = "Test marshalling";
+    original.executablePath = "/bin/marshal";
+    original.requirePermissions = {"ohos.permission.INTERNET"};
+    original.hasSubCommand = false;
+
+    Parcel parcel;
+    EXPECT_TRUE(original.Marshalling(parcel));
+
+    ToolInfo* unmarshalled = ToolInfo::Unmarshalling(parcel);
+    EXPECT_NE(unmarshalled, nullptr);
+    EXPECT_EQ(unmarshalled->name, original.name);
+    EXPECT_EQ(unmarshalled->version, original.version);
+    EXPECT_EQ(unmarshalled->executablePath, original.executablePath);
+
+    delete unmarshalled;
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Marshalling_001 end");
+}
+
+/**
+ * @tc.name: ToolInfo_Marshalling_002
+ * @tc.desc: Test marshalling ToolInfo with subcommands
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_Marshalling_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Marshalling_002 start");
+
+    ToolInfo original;
+    original.name = "ohos-marshal_subcmd";
+    original.version = "2.0.0";
+    original.executablePath = "/bin/marshal_subcmd";
+    original.hasSubCommand = true;
+
+    SubCommandInfo subCmd;
+    subCmd.description = "Test subcommand";
+    subCmd.requirePermissions = {"ohos.permission.READ_STORAGE"};
+    original.subcommands["sub1"] = subCmd;
+
+    Parcel parcel;
+    EXPECT_TRUE(original.Marshalling(parcel));
+
+    ToolInfo* unmarshalled = ToolInfo::Unmarshalling(parcel);
+    EXPECT_NE(unmarshalled, nullptr);
+    EXPECT_TRUE(unmarshalled->hasSubCommand);
+    EXPECT_EQ(unmarshalled->subcommands.size(), 1u);
+
+    delete unmarshalled;
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_Marshalling_002 end");
+}
+
+// ==================== ToolsRawData Tests ====================
+
+/**
+ * @tc.name: ToolsRawData_FromToolInfoVec_001
+ * @tc.desc: Test converting ToolInfo vector to raw data
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolsRawData_FromToolInfoVec_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolsRawData_FromToolInfoVec_001 start");
+
+    std::vector<ToolInfo> tools;
+    ToolInfo tool1;
+    tool1.name = "ohos-raw_tool1";
+    tool1.version = "1.0.0";
+    tool1.description = "Test tool 1";
+    tool1.executablePath = "/bin/raw1";
+    tool1.inputSchema = "{}";
+    tool1.outputSchema = "{}";
+    tools.push_back(tool1);
+
+    ToolInfo tool2;
+    tool2.name = "hms-raw_tool2";
+    tool2.version = "2.0.0";
+    tool2.description = "Test tool 2";
+    tool2.executablePath = "/bin/raw2";
+    tool2.inputSchema = "{}";
+    tool2.outputSchema = "{}";
+    tools.push_back(tool2);
+
+    ToolsRawData rawData;
+    ToolsRawData::FromToolInfoVec(tools, rawData);
+
+    EXPECT_NE(rawData.data, nullptr);
+    EXPECT_GT(rawData.size, 0u);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolsRawData_FromToolInfoVec_001 end");
+}
+
+/**
+ * @tc.name: ToolsRawData_ToToolInfoVec_001
+ * @tc.desc: Test converting raw data back to ToolInfo vector
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolsRawData_ToToolInfoVec_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolsRawData_ToToolInfoVec_001 start");
+
+    std::vector<ToolInfo> originalTools;
+    ToolInfo tool;
+    tool.name = "ohos-roundtrip_raw";
+    tool.version = "1.0.0";
+    tool.description = "Roundtrip test tool";
+    tool.executablePath = "/bin/roundtrip";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    originalTools.push_back(tool);
+
+    ToolsRawData rawData;
+    ToolsRawData::FromToolInfoVec(originalTools, rawData);
+
+    std::vector<ToolInfo> restoredTools;
+    int32_t ret = ToolsRawData::ToToolInfoVec(rawData, restoredTools);
+
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(restoredTools.size(), originalTools.size());
+    EXPECT_EQ(restoredTools[0].name, originalTools[0].name);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolsRawData_ToToolInfoVec_001 end");
+}
+
+/**
+ * @tc.name: ToolsRawData_RawDataCpy_001
+ * @tc.desc: Test copying raw data
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolsRawData_RawDataCpy_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolsRawData_RawDataCpy_001 start");
+
+    std::vector<ToolInfo> tools;
+    ToolInfo tool;
+    tool.name = "ohos-cpy_test";
+    tool.version = "1.0.0";
+    tool.description = "Copy test tool";
+    tool.executablePath = "/bin/cpy";
+    tool.inputSchema = "{}";
+    tool.outputSchema = "{}";
+    tools.push_back(tool);
+
+    ToolsRawData rawData;
+    ToolsRawData::FromToolInfoVec(tools, rawData);
+
+    ToolsRawData copiedData;
+    copiedData.size = rawData.size; // Set size before copy
+    int32_t ret = copiedData.RawDataCpy(rawData.data);
+
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(copiedData.size, rawData.size);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolsRawData_RawDataCpy_001 end");
+}
+
+/**
+ * @tc.name: ToolsRawData_EmptyVector_001
+ * @tc.desc: Test converting empty ToolInfo vector to raw data
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolsRawData_EmptyVector_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolsRawData_EmptyVector_001 start");
+
+    std::vector<ToolInfo> emptyTools;
+    ToolsRawData rawData;
+    ToolsRawData::FromToolInfoVec(emptyTools, rawData);
+
+    // Should handle empty vector gracefully
+    std::vector<ToolInfo> restoredTools;
+    int32_t ret = ToolsRawData::ToToolInfoVec(rawData, restoredTools);
+
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(restoredTools.size(), 0u);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolsRawData_EmptyVector_001 end");
 }
 
 } // namespace CliTool
