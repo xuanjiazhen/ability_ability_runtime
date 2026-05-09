@@ -435,6 +435,13 @@ public:
     void ScheduleTerminate();
 
     /**
+     * ScheduleTerminateByDelayed, Notify application to terminate by delayed.
+     *
+     * @return
+     */
+    void ScheduleTerminateByDelayed(bool isLastUIAbility);
+
+    /**
      * ScheduleTerminate, Notify application process exit safely.
      *
      * @return
@@ -978,6 +985,10 @@ public:
 
     std::string GetPreloadModuleName() const;
 
+    void SetPreloadAbilityName(const std::string &abilityName);
+
+    std::string GetPreloadAbilityName() const;
+
     /**
      * @brief Obtains the app record assign tokenId.
      *
@@ -1321,6 +1332,16 @@ public:
 
     bool IsLastAgentExtensionAbility(const sptr<IRemoteObject> &token);
 
+    inline void EnableDelayedProcessExit(bool enabled)
+    {
+        delayedProcessExitEnabled_ = enabled;
+    }
+
+    inline bool IsDelayedProcessExitEnabled() const
+    {
+        return delayedProcessExitEnabled_;
+    }
+
 private:
     /**
      * SearchTheModuleInfoNeedToUpdated, Get an uninitialized abilityStage data.
@@ -1443,7 +1464,7 @@ private:
     ApplicationPendingState pendingState_ = ApplicationPendingState::READY;
     ApplicationScheduleState scheduleState_ = ApplicationScheduleState::SCHEDULE_READY;
     WatchdogVisibilityState watchdogVisibilityState_ = WatchdogVisibilityState::WATCHDOG_STATE_READY;
-    ProcessChangeReason processChangeReason_ = ProcessChangeReason::REASON_NONE; // render record
+    std::atomic<ProcessChangeReason> processChangeReason_ = ProcessChangeReason::REASON_NONE; // render record
     std::chrono::system_clock::time_point preloadAttachTimeoutStartTime_;
 
     MakeImageState makeImageState_ = MakeImageState::NONE;
@@ -1463,10 +1484,10 @@ private:
     int32_t callerTokenId_ = -1;
     int32_t callerUid_ = -1;
     int32_t exitReason_ = 0;
-    int32_t pssValue_ = 0;
+    std::atomic_int32_t pssValue_ = 0;
     std::atomic<bool> isUIExtensionPreload_ = false;
     int32_t requestProcCode_ = 0; // render record
-    int32_t rssValue_ = 0;
+    std::atomic_int32_t rssValue_ = 0;
     int32_t killId_ = -1;
     int restartResidentProcCount_ = 0;
     pid_t gpuPid_ = 0;
@@ -1483,6 +1504,7 @@ private:
     std::string moduleName_;
     std::string perfCmd_;
     std::string preloadModuleName_;
+    std::string preloadAbilityName_; // ability name for preloading specific ability
     std::string exitMsg_ = "";
     std::string instanceKey_; // render record
     std::string killReason_ = "";
@@ -1511,18 +1533,19 @@ private:
     bool isKeepAliveDkv_ = false; // Only non-resident keep-alive processes can be set to true, please choose carefully
     bool isKia_ = false;
     bool isMainElementRunning_ = false;
-    bool isMainProcess_ = true; // Only MasterProcess can be keepalive
-    bool isMasterProcess_ = false; // Only MainProcess can be keepalive
+    std::atomic_bool isMainProcess_ = true; // Only MainProcess can be keepalive
+    bool isMasterProcess_ = false; // Only MasterProcess can be keepalive
     bool isMultiThread_ = false;
     bool isNativeDebug_ = false;
     bool isNativeStart_ = false;
     bool isNeedLimitPrio_ = false;
     bool isNeedPreloadModule_ = false;
+    bool delayedProcessExitEnabled_ = false;
     bool isPrepareExit_ = false;
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isSingleton_ = false;
     bool isStageBasedModel_ = false;
-    bool isStrictMode_ = false;
+    std::atomic_bool isStrictMode_ = false;
     bool isTerminating = false;
     bool isUnSetPermission_ = false;
     bool isUserRequestCleaning_ = false;

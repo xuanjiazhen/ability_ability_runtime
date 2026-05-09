@@ -480,11 +480,6 @@ public:
         return E_OK;
     }
 
-    virtual int32_t ClearSecondMountPoint(uint32_t userId, const std::string &bundleName) override
-    {
-        return E_OK;
-    }
-
     virtual int32_t Encrypt(const std::string &volumeId, const std::string &password) override
     {
         return E_OK;
@@ -557,6 +552,11 @@ public:
     }
 
     virtual int32_t CreateIsoImage(const std::string &volId, const std::string &filePath) override
+    {
+        return E_OK;
+    }
+
+    virtual int32_t GetPartitionTable(const std::string &diskId, PartitionTableInfo &partitionTableInfo)
     {
         return E_OK;
     }
