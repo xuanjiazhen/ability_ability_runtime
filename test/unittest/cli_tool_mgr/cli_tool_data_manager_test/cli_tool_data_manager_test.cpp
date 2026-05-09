@@ -931,5 +931,704 @@ HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ProcessConfigFile_002, TestS
     TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ProcessConfigFile_002 end");
 }
 
+// ==================== JsonArrayToTools Error Cases Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_JsonArrayToTools_002
+ * @tc.desc: Test JsonArrayToTools with invalid JSON string
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonArrayToTools_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_002 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    std::string invalidJsonStr = "not a valid json";
+    std::vector<ToolInfo> tools;
+    int32_t ret = dataManager.JsonArrayToTools(invalidJsonStr, tools);
+
+    EXPECT_EQ(ret, -3); // ERR_JSON_PARSE_FAILED
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_002 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_JsonArrayToTools_003
+ * @tc.desc: Test JsonArrayToTools with JSON object instead of array
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonArrayToTools_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_003 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    std::string jsonObjectStr = R"({"name": "tool", "version": "1.0"})";
+    std::vector<ToolInfo> tools;
+    int32_t ret = dataManager.JsonArrayToTools(jsonObjectStr, tools);
+
+    EXPECT_EQ(ret, -3); // ERR_JSON_PARSE_FAILED
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_003 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_JsonArrayToTools_004
+ * @tc.desc: Test JsonArrayToTools with array containing invalid tool objects
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_JsonArrayToTools_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_004 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    std::string jsonStr = R"([
+        {"invalid": "tool"},
+        {"name": "ohos-valid_tool", "version": "1.0", "description": "Valid", "executablePath": "/bin/valid", "requirePermissions": [], "inputSchema": {}, "outputSchema": {}}
+    ])";
+
+    std::vector<ToolInfo> tools;
+    int32_t ret = dataManager.JsonArrayToTools(jsonStr, tools);
+
+    // Should succeed but only parse the valid tool
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(tools.size(), 1u);
+    EXPECT_EQ(tools[0].name, "ohos-valid_tool");
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_JsonArrayToTools_004 end");
+}
+
+// ==================== ParseToolFromJsonFile Error Cases Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_ParseToolFromJsonFile_001
+ * @tc.desc: Test ParseToolFromJsonFile with non-existent file
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseToolFromJsonFile_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_001 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    ToolInfo tool;
+    int32_t ret = dataManager.ParseToolFromJsonFile("/data/non_existent_file.json", tool);
+
+    EXPECT_EQ(ret, -2); // ERR_FILE_NOT_FOUND
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_001 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_ParseToolFromJsonFile_002
+ * @tc.desc: Test ParseToolFromJsonFile with empty file
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseToolFromJsonFile_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_002 start");
+
+    const char* emptyFile = "/data/test_empty_tool.json";
+    std::ofstream file(emptyFile);
+    file << "";
+    file.close();
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    ToolInfo tool;
+    int32_t ret = dataManager.ParseToolFromJsonFile(emptyFile, tool);
+
+    EXPECT_EQ(ret, -3); // ERR_JSON_PARSE_FAILED
+
+    std::remove(emptyFile);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_002 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_ParseToolFromJsonFile_003
+ * @tc.desc: Test ParseToolFromJsonFile with invalid JSON content
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseToolFromJsonFile_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_003 start");
+
+    const char* invalidJsonFile = "/data/test_invalid_json_tool.json";
+    std::ofstream file(invalidJsonFile);
+    file << "{ invalid json content }";
+    file.close();
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    ToolInfo tool;
+    int32_t ret = dataManager.ParseToolFromJsonFile(invalidJsonFile, tool);
+
+    EXPECT_EQ(ret, -3); // ERR_JSON_PARSE_FAILED
+
+    std::remove(invalidJsonFile);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_003 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_ParseToolFromJsonFile_004
+ * @tc.desc: Test ParseToolFromJsonFile with JSON array instead of object
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseToolFromJsonFile_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_004 start");
+
+    const char* arrayJsonFile = "/data/test_array_json_tool.json";
+    std::ofstream file(arrayJsonFile);
+    file << R"([{"name": "tool"}])";
+    file.close();
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    ToolInfo tool;
+    int32_t ret = dataManager.ParseToolFromJsonFile(arrayJsonFile, tool);
+
+    EXPECT_EQ(ret, -3); // ERR_JSON_PARSE_FAILED
+
+    std::remove(arrayJsonFile);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_004 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_ParseToolFromJsonFile_005
+ * @tc.desc: Test ParseToolFromJsonFile with BOM header
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseToolFromJsonFile_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_005 start");
+
+    const char* bomFile = "/data/test_bom_tool.json";
+    std::ofstream file(bomFile, std::ios::binary);
+    // Write UTF-8 BOM
+    file.put(0xEF);
+    file.put(0xBB);
+    file.put(0xBF);
+    file << R"({
+        "name": "ohos-bom_tool",
+        "version": "1.0.0",
+        "description": "Tool with BOM",
+        "executablePath": "/bin/bom",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {}
+    })";
+    file.close();
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    ToolInfo tool;
+    int32_t ret = dataManager.ParseToolFromJsonFile(bomFile, tool);
+
+    EXPECT_EQ(ret, 0);
+    EXPECT_EQ(tool.name, "ohos-bom_tool");
+
+    std::remove(bomFile);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_005 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_ParseToolFromJsonFile_006
+ * @tc.desc: Test ParseToolFromJsonFile with missing required fields
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_ParseToolFromJsonFile_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_006 start");
+
+    const char* missingFieldsFile = "/data/test_missing_fields_tool.json";
+    std::ofstream file(missingFieldsFile);
+    file << R"({"description": "missing name and version"})";
+    file.close();
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    ToolInfo tool;
+    int32_t ret = dataManager.ParseToolFromJsonFile(missingFieldsFile, tool);
+
+    EXPECT_EQ(ret, -3); // ERR_JSON_PARSE_FAILED
+
+    std::remove(missingFieldsFile);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_ParseToolFromJsonFile_006 end");
+}
+
+// ==================== LoadToolsFromDir Error Cases Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_LoadToolsFromDir_001
+ * @tc.desc: Test LoadToolsFromDir with non-existent directory
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LoadToolsFromDir_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsFromDir_001 start");
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    int32_t ret = dataManager.LoadToolsFromDir("/data/non_existent_directory_12345");
+
+    EXPECT_EQ(ret, -2); // ERR_FILE_NOT_FOUND
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsFromDir_001 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_LoadToolsFromDir_002
+ * @tc.desc: Test LoadToolsFromDir with empty directory
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LoadToolsFromDir_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsFromDir_002 start");
+
+    const char* emptyDir = "/data/test_empty_dir_tools";
+    std::string mkdirCmd = "mkdir -p " + std::string(emptyDir);
+    std::system(mkdirCmd.c_str());
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    int32_t ret = dataManager.LoadToolsFromDir(emptyDir);
+
+    EXPECT_EQ(ret, 0); // Should succeed with 0 tools loaded
+
+    rmdir(emptyDir);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsFromDir_002 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_LoadToolsFromDir_003
+ * @tc.desc: Test LoadToolsFromDir with non-JSON files
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LoadToolsFromDir_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsFromDir_003 start");
+
+    const char* testDir = "/data/test_non_json_dir";
+    std::string mkdirCmd = "mkdir -p " + std::string(testDir);
+    std::system(mkdirCmd.c_str());
+
+    // Create non-JSON files
+    const char* txtFile = "/data/test_non_json_dir/readme.txt";
+    std::ofstream file(txtFile);
+    file << "This is a text file";
+    file.close();
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    int32_t ret = dataManager.LoadToolsFromDir(testDir);
+
+    EXPECT_EQ(ret, 0); // Should succeed, just skip non-JSON files
+
+    std::remove(txtFile);
+    rmdir(testDir);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LoadToolsFromDir_003 end");
+}
+
+// ==================== ToolInfo Edge Cases Tests ====================
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_004
+ * @tc.desc: Test parsing JSON with null values
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_004 start");
+
+    nlohmann::json json = R"({
+        "name": null,
+        "version": null,
+        "description": null
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_004 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ParseFromJson_005
+ * @tc.desc: Test parsing JSON with wrong types
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseFromJson_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_005 start");
+
+    nlohmann::json json = R"({
+        "name": 123,
+        "version": [],
+        "description": {}
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_FALSE(result);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseFromJson_005 end");
+}
+
+/**
+ * @tc.name: ToolInfo_ParseToJson_003
+ * @tc.desc: Test converting empty ToolInfo to JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolInfo_ParseToJson_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseToJson_003 start");
+
+    ToolInfo tool;
+    nlohmann::json json = tool.ParseToJson();
+
+    EXPECT_TRUE(json.is_object());
+    EXPECT_TRUE(json["name"].is_string());
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolInfo_ParseToJson_003 end");
+}
+
+// ==================== SubCommandInfo Tests ====================
+
+/**
+ * @tc.name: SubCommandInfo_ParseFromJson_001
+ * @tc.desc: Test parsing SubCommandInfo from JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, SubCommandInfo_ParseFromJson_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SubCommandInfo_ParseFromJson_001 start");
+
+    nlohmann::json json = R"({
+        "description": "Test subcommand",
+        "requirePermissions": ["ohos.permission.INTERNET"],
+        "inputSchema": {"type": "object"},
+        "outputSchema": {"type": "string"}
+    })"_json;
+
+    SubCommandInfo subCmd;
+    bool result = SubCommandInfo::ParseFromJson(json, subCmd);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(subCmd.description, "Test subcommand");
+    EXPECT_EQ(subCmd.requirePermissions.size(), 1u);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SubCommandInfo_ParseFromJson_001 end");
+}
+
+/**
+ * @tc.name: SubCommandInfo_ParseToJson_001
+ * @tc.desc: Test converting SubCommandInfo to JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, SubCommandInfo_ParseToJson_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SubCommandInfo_ParseToJson_001 start");
+
+    SubCommandInfo subCmd;
+    subCmd.description = "Test subcommand";
+    subCmd.inputSchema = R"({"type": "object"})";
+    subCmd.outputSchema = R"({"type": "string"})";
+
+    nlohmann::json json = subCmd.ParseToJson();
+
+    EXPECT_TRUE(json.is_object());
+    EXPECT_EQ(json["description"], "Test subcommand");
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SubCommandInfo_ParseToJson_001 end");
+}
+
+// ==================== ToolSummary Tests ====================
+
+/**
+ * @tc.name: ToolSummary_ParseFromJson_001
+ * @tc.desc: Test parsing ToolSummary from JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolSummary_ParseFromJson_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolSummary_ParseFromJson_001 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-summary_tool",
+        "version": "1.0.0",
+        "description": "Summary test tool"
+    })"_json;
+
+    ToolSummary summary;
+    bool result = ToolSummary::ParseFromJson(json, summary);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(summary.name, "ohos-summary_tool");
+    EXPECT_EQ(summary.version, "1.0.0");
+    EXPECT_EQ(summary.description, "Summary test tool");
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolSummary_ParseFromJson_001 end");
+}
+
+/**
+ * @tc.name: ToolSummary_ParseToJson_001
+ * @tc.desc: Test converting ToolSummary to JSON
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, ToolSummary_ParseToJson_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolSummary_ParseToJson_001 start");
+
+    ToolSummary summary;
+    summary.name = "ohos-summary_tool";
+    summary.version = "1.0.0";
+    summary.description = "Summary test tool";
+
+    nlohmann::json json = summary.ParseToJson();
+
+    EXPECT_TRUE(json.is_object());
+    EXPECT_EQ(json["name"], "ohos-summary_tool");
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ToolSummary_ParseToJson_001 end");
+}
+
+// ==================== Edge Cases with Special Characters ====================
+
+/**
+ * @tc.name: CliToolDataManager_SpecialChars_001
+ * @tc.desc: Test tool with special characters in name
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_SpecialChars_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_SpecialChars_001 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-tool-with-dashes_and_underscores",
+        "version": "1.0.0",
+        "description": "Tool with special chars in name",
+        "executablePath": "/bin/special-tool",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {}
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(tool.name, "ohos-tool-with-dashes_and_underscores");
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_SpecialChars_001 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_Unicode_001
+ * @tc.desc: Test tool with unicode characters in description
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_Unicode_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_Unicode_001 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-unicode_tool",
+        "version": "1.0.0",
+        "description": "工具描述 - Tool Description - ツール説明",
+        "executablePath": "/bin/unicode",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {}
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_TRUE(result);
+    EXPECT_FALSE(tool.description.empty());
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_Unicode_001 end");
+}
+
+// ==================== Large Data Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_LargeData_001
+ * @tc.desc: Test parsing tool with large number of permissions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LargeData_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LargeData_001 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-many_perms_tool",
+        "version": "1.0.0",
+        "description": "Tool with many permissions",
+        "executablePath": "/bin/manyperms",
+        "requirePermissions": [
+            "ohos.permission.INTERNET",
+            "ohos.permission.READ_STORAGE",
+            "ohos.permission.WRITE_STORAGE",
+            "ohos.permission.CAMERA",
+            "ohos.permission.MICROPHONE",
+            "ohos.permission.LOCATION",
+            "ohos.permission.READ_CONTACTS",
+            "ohos.permission.WRITE_CONTACTS"
+        ],
+        "inputSchema": {},
+        "outputSchema": {}
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(tool.requirePermissions.size(), 8u);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LargeData_001 end");
+}
+
+/**
+ * @tc.name: CliToolDataManager_LargeData_002
+ * @tc.desc: Test parsing tool with many subcommands
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_LargeData_002, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LargeData_002 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-many_subcmds_tool",
+        "version": "1.0.0",
+        "description": "Tool with many subcommands",
+        "executablePath": "/bin/manysubcmds",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {},
+        "hasSubCommand": true,
+        "subcommands": {
+            "init": {"description": "Init", "requirePermissions": [], "inputSchema": {}, "outputSchema": {}},
+            "build": {"description": "Build", "requirePermissions": [], "inputSchema": {}, "outputSchema": {}},
+            "test": {"description": "Test", "requirePermissions": [], "inputSchema": {}, "outputSchema": {}},
+            "deploy": {"description": "Deploy", "requirePermissions": [], "inputSchema": {}, "outputSchema": {}},
+            "clean": {"description": "Clean", "requirePermissions": [], "inputSchema": {}, "outputSchema": {}}
+        }
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(tool.subcommands.size(), 5u);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_LargeData_002 end");
+}
+
+// ==================== EventSchemas Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_EventSchemas_001
+ * @tc.desc: Test parsing tool with eventSchemas
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_EventSchemas_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_EventSchemas_001 start");
+
+    nlohmann::json json = R"({
+        "name": "ohos-event_tool",
+        "version": "1.0.0",
+        "description": "Tool with event schemas",
+        "executablePath": "/bin/eventtool",
+        "requirePermissions": [],
+        "inputSchema": {},
+        "outputSchema": {},
+        "eventSchemas": {
+            "stdout": {"type": "string"},
+            "stderr": {"type": "string"},
+            "exit": {"type": "number"}
+        },
+        "eventTypes": ["stdout", "stderr", "exit"],
+        "timeout": 60000
+    })"_json;
+
+    ToolInfo tool;
+    bool result = ToolInfo::ParseFromJson(json, tool);
+
+    EXPECT_TRUE(result);
+    EXPECT_EQ(tool.eventSchemas.size(), 3u);
+    EXPECT_EQ(tool.eventTypes.size(), 3u);
+    EXPECT_EQ(tool.timeout, 60000u);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_EventSchemas_001 end");
+}
+
+// ==================== GetInstance Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_GetInstance_001
+ * @tc.desc: Test GetInstance returns valid singleton
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_GetInstance_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetInstance_001 start");
+
+    auto& instance1 = CliToolDataManager::GetInstance();
+    auto& instance2 = CliToolDataManager::GetInstance();
+
+    EXPECT_EQ(&instance1, &instance2);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_GetInstance_001 end");
+}
+
+// ==================== Multiple Tools in Directory Tests ====================
+
+/**
+ * @tc.name: CliToolDataManager_MultipleTools_001
+ * @tc.desc: Test loading multiple tools from directory
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolDataManagerTest, CliToolDataManager_MultipleTools_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_MultipleTools_001 start");
+
+    const char* testDir = "/data/test_multi_tools";
+    std::string mkdirCmd = "mkdir -p " + std::string(testDir);
+    std::system(mkdirCmd.c_str());
+
+    // Create multiple tool files
+    for (int i = 1; i <= 3; i++) {
+        std::string filename = std::string(testDir) + "/tool" + std::to_string(i) + ".json";
+        std::ofstream file(filename);
+        file << R"({
+            "name": "ohos-multi_tool)" + std::to_string(i) + R"(",
+            "version": "1.0.0",
+            "description": "Multi tool )" + std::to_string(i) + R"(",
+            "executablePath": "/bin/multi)" + std::to_string(i) + R"(",
+            "requirePermissions": [],
+            "inputSchema": {},
+            "outputSchema": {}
+        })";
+        file.close();
+    }
+
+    auto& dataManager = CliToolDataManager::GetInstance();
+    int32_t ret = dataManager.LoadToolsFromDir(testDir);
+
+    EXPECT_EQ(ret, 0);
+
+    // Clean up
+    for (int i = 1; i <= 3; i++) {
+        std::string filename = std::string(testDir) + "/tool" + std::to_string(i) + ".json";
+        std::remove(filename.c_str());
+    }
+    rmdir(testDir);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CliToolDataManager_MultipleTools_001 end");
+}
+
 } // namespace CliTool
 } // namespace OHOS
