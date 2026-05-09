@@ -368,6 +368,16 @@ public:
      */
     bool GetDebugFromLocal() const;
 
+    inline void SetNativeChildProcessSupported(bool supported)
+    {
+        isNativeChildProcessSupported_ = supported;
+    }
+
+    inline bool IsNativeChildProcessSupported() const
+    {
+        return isNativeChildProcessSupported_;
+    }
+
 private:
     bool debugApp_ = false;
     bool jitEnabled_ = false;
