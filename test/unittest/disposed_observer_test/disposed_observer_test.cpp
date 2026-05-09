@@ -43,6 +43,7 @@ public:
     void TearDown() override;
 
     std::shared_ptr<DisposedObserver> CreateDisposedObserver(ComponentType type);
+    std::shared_ptr<DisposedRuleInterceptor> CreateInterceptor();
 
 protected:
     std::shared_ptr<DisposedRuleInterceptor> interceptor_ = nullptr;
@@ -281,7 +282,7 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_Constructor_0100, TestSize.Level
     disposedRule.want = std::make_shared<Want>(want);
     disposedRule.componentType = ComponentType::UI_EXTENSION;
 
-    auto mockInterceptor = CreateMockInterceptor();
+    auto mockInterceptor = CreateInterceptor();
     int32_t testUid = 2002;
 
     auto observer = std::make_shared<DisposedObserver>(disposedRule, mockInterceptor, testUid);
@@ -307,7 +308,7 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_Members_0100, TestSize.Level1)
     disposedRule.want = std::make_shared<Want>(want);
     disposedRule.componentType = ComponentType::UI_ABILITY;
 
-    auto mockInterceptor = CreateMockInterceptor();
+    auto mockInterceptor = CreateInterceptor();
     int32_t testUid = 3003;
 
     auto observer = std::make_shared<DisposedObserver>(disposedRule, mockInterceptor, testUid);
@@ -386,7 +387,7 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_ComponentType_UIAbility_0100, Te
     disposedRule.want = std::make_shared<Want>(want);
     disposedRule.componentType = ComponentType::UI_ABILITY;
 
-    auto mockInterceptor = CreateMockInterceptor();
+    auto mockInterceptor = CreateInterceptor();
     auto observer = std::make_shared<DisposedObserver>(disposedRule, mockInterceptor, testUid_);
 
     PageStateData pageStateData;
@@ -415,7 +416,7 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_ComponentType_UIExtension_0100, 
     disposedRule.want = std::make_shared<Want>(want);
     disposedRule.componentType = ComponentType::UI_EXTENSION;
 
-    auto mockInterceptor = CreateMockInterceptor();
+    auto mockInterceptor = CreateInterceptor();
     auto observer = std::make_shared<DisposedObserver>(disposedRule, mockInterceptor, testUid_);
 
     PageStateData pageStateData;
@@ -452,7 +453,7 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_Want_0100, TestSize.Level1)
     disposedRule.want = std::make_shared<Want>(want);
     disposedRule.componentType = ComponentType::UI_EXTENSION;
 
-    auto mockInterceptor = CreateMockInterceptor();
+    auto mockInterceptor = CreateInterceptor();
     auto observer = std::make_shared<DisposedObserver>(disposedRule, mockInterceptor, testUid_);
 
     // Verify want is correctly stored
@@ -485,8 +486,8 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_MultipleObservers_0100, TestSize
     disposedRule2.want = std::make_shared<Want>(want2);
     disposedRule2.componentType = ComponentType::UI_EXTENSION;
 
-    auto mockInterceptor1 = CreateMockInterceptor();
-    auto mockInterceptor2 = CreateMockInterceptor();
+    auto mockInterceptor1 = CreateInterceptor();
+    auto mockInterceptor2 = CreateInterceptor();
 
     int32_t uid1 = 1001;
     int32_t uid2 = 1002;
@@ -521,7 +522,7 @@ HWTEST_F(DisposedObserverTest, DisposedObserver_Interceptor_0100, TestSize.Level
     disposedRule.want = std::make_shared<Want>(want);
     disposedRule.componentType = ComponentType::UI_EXTENSION;
 
-    auto mockInterceptor = CreateMockInterceptor();
+    auto mockInterceptor = CreateInterceptor();
     auto observer = std::make_shared<DisposedObserver>(disposedRule, mockInterceptor, testUid_);
 
     // Verify interceptor is stored
