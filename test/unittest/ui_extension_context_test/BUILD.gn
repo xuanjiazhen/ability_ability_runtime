@@ -59,6 +59,17 @@ ohos_unittest("ui_extension_context_test") {
     "ipc:ipc_napi",
     "napi:ace_napi",
   ]
+
+  if (ability_runtime_graphics) {
+    external_deps += [
+      "ace_engine:ace_uicontent",
+      "window_manager:libwm",
+    ]
+    defines = [
+      "SUPPORT_GRAPHICS",
+      "SUPPORT_SCREEN",
+    ]
+  }
 }
 
 group("unittest") {
