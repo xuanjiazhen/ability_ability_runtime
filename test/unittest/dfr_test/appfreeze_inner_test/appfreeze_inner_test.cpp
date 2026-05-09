@@ -13,7 +13,14 @@
  * limitations under the License.
  */
 
+#include <ctime>
+#include <cstring>
+#include <filesystem>
+#include <string>
+
 #include <gtest/gtest.h>
+
+#include "file_ex.h"
 
 #define private public
 #include "appfreeze_inner.h"
@@ -26,6 +33,25 @@ using namespace testing;
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::AppExecFwk;
+
+namespace {
+constexpr const char FREEZE_SAMPLE_DIR[] = "/data/storage/el2/log/watchdog/freeze/";
+constexpr const char INLINE_SAMPLE_STACK_HEADER[] =
+    "\n\n======== Main thread sampling stack (default inline mode) ========\n";
+constexpr int MAX_INLINE_FREEZE_STACK_APPEND = 256 * 1024;
+
+bool EnsureFreezeSampleDir()
+{
+    std::error_code ec;
+    std::filesystem::create_directories(FREEZE_SAMPLE_DIR, ec);
+    return !ec;
+}
+
+std::string UniqueFreezeFileName(const char *prefix)
+{
+    return std::string(prefix) + "_" + std::to_string(getpid()) + "_" + std::to_string(time(nullptr)) + ".txt";
+}
+}  // namespace
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -690,6 +716,142 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInnerTest_TransformHicollieFaultNumber_001
     const int businessInputBlockType = 7;
     int ret = appfreezeInner->TransformHicollieFaultNumber(AppFreezeType::BUSINESS_INPUT_BLOCK);
     EXPECT_EQ(ret, businessInputBlockType);
+}
+
+/**
+ * @tc.number: AppfreezeInner_AppendInlineSamplingStackToMessage_001
+ * @tc.name: AppendInlineSamplingStackToMessage
+ * @tc.desc: Skip when main-thread sampling is enabled.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppendInlineSamplingStackToMessage_001, TestSize.Level1)
+{
+    appfreezeInner->SetMainThreadSample(true);
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    faultData.appfreezeInfo = "freeze_ut_not_used.txt";
+    faultData.errorObject.message = "base";
+    appfreezeInner->AppendInlineSamplingStackToMessage(faultData);
+    EXPECT_EQ(faultData.errorObject.message, "base");
+    appfreezeInner->SetMainThreadSample(false);
+}
+
+/**
+ * @tc.number: AppfreezeInner_AppendInlineSamplingStackToMessage_002
+ * @tc.name: AppendInlineSamplingStackToMessage
+ * @tc.desc: Skip when fault is not an app-freeze type.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppendInlineSamplingStackToMessage_002, TestSize.Level1)
+{
+    ASSERT_TRUE(EnsureFreezeSampleDir());
+    const std::string fileName = UniqueFreezeFileName("ut_inline_not_freeze");
+    const std::string fullPath = std::string(FREEZE_SAMPLE_DIR) + fileName;
+    ASSERT_TRUE(OHOS::SaveStringToFile(fullPath, "stack_body", true));
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_3S;
+    faultData.appfreezeInfo = fileName;
+    faultData.errorObject.message = "base";
+    appfreezeInner->AppendInlineSamplingStackToMessage(faultData);
+    EXPECT_EQ(faultData.errorObject.message, "base");
+    std::filesystem::remove(fullPath);
+}
+
+/**
+ * @tc.number: AppfreezeInner_AppendInlineSamplingStackToMessage_003
+ * @tc.name: AppendInlineSamplingStackToMessage
+ * @tc.desc: Skip when appfreezeInfo is empty.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppendInlineSamplingStackToMessage_003, TestSize.Level1)
+{
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    faultData.appfreezeInfo = "";
+    faultData.errorObject.message = "base";
+    appfreezeInner->AppendInlineSamplingStackToMessage(faultData);
+    EXPECT_EQ(faultData.errorObject.message, "base");
+}
+
+/**
+ * @tc.number: AppfreezeInner_AppendInlineSamplingStackToMessage_004
+ * @tc.name: AppendInlineSamplingStackToMessage
+ * @tc.desc: Skip when freeze stack file is missing or unreadable.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppendInlineSamplingStackToMessage_004, TestSize.Level1)
+{
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
+    faultData.appfreezeInfo = "ut_inline_no_such_file_" + std::to_string(getpid()) + ".txt";
+    faultData.errorObject.message = "base";
+    appfreezeInner->AppendInlineSamplingStackToMessage(faultData);
+    EXPECT_EQ(faultData.errorObject.message, "base");
+}
+
+/**
+ * @tc.number: AppfreezeInner_AppendInlineSamplingStackToMessage_005a
+ * @tc.name: AppendInlineSamplingStackToMessage
+ * @tc.desc: Skip when stack file is empty.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppendInlineSamplingStackToMessage_005a, TestSize.Level1)
+{
+    ASSERT_TRUE(EnsureFreezeSampleDir());
+    const std::string fileName = UniqueFreezeFileName("ut_inline_empty");
+    const std::string fullPath = std::string(FREEZE_SAMPLE_DIR) + fileName;
+    ASSERT_TRUE(OHOS::SaveStringToFile(fullPath, "", true));
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    faultData.appfreezeInfo = fileName;
+    faultData.errorObject.message = "base";
+    appfreezeInner->AppendInlineSamplingStackToMessage(faultData);
+    EXPECT_EQ(faultData.errorObject.message, "base");
+    std::filesystem::remove(fullPath);
+}
+
+/**
+ * @tc.number: AppfreezeInner_AppendInlineSamplingStackToMessage_005
+ * @tc.name: AppendInlineSamplingStackToMessage
+ * @tc.desc: Append full stack when file size is below the inline limit.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppendInlineSamplingStackToMessage_005, TestSize.Level1)
+{
+    ASSERT_TRUE(EnsureFreezeSampleDir());
+    const std::string fileName = UniqueFreezeFileName("ut_inline_small");
+    const std::string fullPath = std::string(FREEZE_SAMPLE_DIR) + fileName;
+    const std::string body = "small_stack_line";
+    ASSERT_TRUE(OHOS::SaveStringToFile(fullPath, body, true));
+    appfreezeInner->SetMainThreadSample(false);
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::LIFECYCLE_TIMEOUT;
+    faultData.appfreezeInfo = fileName;
+    faultData.errorObject.message = "prefix";
+    appfreezeInner->AppendInlineSamplingStackToMessage(faultData);
+    const std::string expect = std::string("prefix") + INLINE_SAMPLE_STACK_HEADER + body;
+    EXPECT_EQ(faultData.errorObject.message, expect);
+    std::filesystem::remove(fullPath);
+}
+
+/**
+ * @tc.number: AppfreezeInner_AppendInlineSamplingStackToMessage_006
+ * @tc.name: AppendInlineSamplingStackToMessage
+ * @tc.desc: Truncate and mark when stack file exceeds the inline limit.
+ */
+HWTEST_F(AppfreezeInnerTest, AppfreezeInner_AppendInlineSamplingStackToMessage_006, TestSize.Level1)
+{
+    ASSERT_TRUE(EnsureFreezeSampleDir());
+    const std::string fileName = UniqueFreezeFileName("ut_inline_large");
+    const std::string fullPath = std::string(FREEZE_SAMPLE_DIR) + fileName;
+    const std::string body(static_cast<size_t>(MAX_INLINE_FREEZE_STACK_APPEND) + 500, 'z');
+    ASSERT_TRUE(OHOS::SaveStringToFile(fullPath, body, true));
+    appfreezeInner->SetMainThreadSample(false);
+    FaultData faultData;
+    faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
+    faultData.appfreezeInfo = fileName;
+    faultData.errorObject.message = "p";
+    appfreezeInner->AppendInlineSamplingStackToMessage(faultData);
+    EXPECT_NE(faultData.errorObject.message.find(INLINE_SAMPLE_STACK_HEADER), std::string::npos);
+    EXPECT_NE(faultData.errorObject.message.find("\n...[truncated]\n"), std::string::npos);
+    const size_t expectLen = 1 + std::strlen(INLINE_SAMPLE_STACK_HEADER) +
+        static_cast<size_t>(MAX_INLINE_FREEZE_STACK_APPEND) + std::strlen("\n...[truncated]\n");
+    EXPECT_EQ(faultData.errorObject.message.size(), expectLen);
+    std::filesystem::remove(fullPath);
 }
 
 /**
