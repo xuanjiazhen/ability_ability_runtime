@@ -617,11 +617,7 @@ int32_t AbilityAutoStartupService::GetAbilityInfo(
         return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
     }
 
-    if ((abilityData.abilityTypeName == EXTENSION_TYPE_APP_SERVICE) &&
-        (abilityData.userId != U1_USER_ID)) {
-        TAG_LOGE(AAFwkTag::AUTO_STARTUP, "AppServiceExtension does not belong to U1");
-        return INNER_ERR;
-    }
+    // Removed: AppServiceExtension U1-only restriction, now supported on all devices
 
     return ERR_OK;
 }
