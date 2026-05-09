@@ -211,10 +211,16 @@ typedef enum {
      */
     ABILITY_RUNTIME_ERROR_CODE_INVALID_DISTRIBUTION_TYPE = 16000176,
     /**
+     * The native ability wrapper is invalid or incomplete.
+     *
+     * @since 26.0.0
+     */
+    ABILITY_RUNTIME_ERROR_CODE_ABILITY_WRAPPER_INVALID = 16000177,
+    /**
      * @error The type library metadata is invalid, e.g. missing or duplicate main interface.
      * @since 26
      */
-    ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID = 16000177,
+    ABILITY_RUNTIME_ERROR_CODE_TLB_METADATA_INVALID = 16000178,
 } AbilityRuntime_ErrorCode;
 
 #ifdef __cplusplus

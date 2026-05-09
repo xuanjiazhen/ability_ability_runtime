@@ -32,6 +32,9 @@
 #include "session_record.h"
 
 namespace OHOS {
+namespace AppExecFwk {
+class IApplicationStateObserver;
+}
 namespace CliTool {
 class SessionRecord;
 class CliToolManagerService : public SystemAbility,
@@ -46,7 +49,7 @@ public:
     /**
      * @brief Query all available tools
      */
-    int32_t GetAllToolInfos(std::vector<ToolInfo> &tools) override;
+    int32_t GetAllToolInfos(ToolsRawData &tools) override;
 
     /**
      * @brief Query tool summaries (lightweight for listing)
@@ -92,21 +95,48 @@ public:
 protected:
     void OnStart() override;
     void OnStop() override;
+    int32_t OnIdle(const SystemAbilityOnDemandReason &idlReason) override;
 
 private:
     CliToolManagerService() : SystemAbility(CLI_TOOL_MGR_SERVICE_ID, false) {};
 
+    // RAII wrapper for interface call counter
+    class InterfaceCallCounter {
+    public:
+        explicit InterfaceCallCounter(std::atomic<int32_t>& counter) : counter_(counter)
+        {
+            counter_.fetch_add(1, std::memory_order_acq_rel);
+        }
+        ~InterfaceCallCounter()
+        {
+            counter_.fetch_sub(1, std::memory_order_acq_rel);
+        }
+        InterfaceCallCounter(const InterfaceCallCounter&) = delete;
+        InterfaceCallCounter& operator=(const InterfaceCallCounter&) = delete;
+    private:
+        std::atomic<int32_t>& counter_;
+    };
+
     enum class ServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 
     void Init();
+    void DelayUnloadTask();
 
-    std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param);
+    std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
     void AddSessionRecord(const std::shared_ptr<SessionRecord> &record);
     std::shared_ptr<SessionRecord> GetSessionRecord(const std::string &sessionId);
     void RemoveSessionRecord(const std::string &sessionId);
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecToolParam &param);
     void UnregisterSessionWithMonitors(const std::string &sessionId);
+
+    int32_t ValidateExecToolPermissions();
+    int32_t ValidateSessionLimit();
+    int32_t ValidateAndPrepareTool(const ExecToolParam &param, uint32_t tokenId,
+        ToolInfo &toolInfo, std::string &sandboxConfig, std::string &bundleName);
+    int32_t SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
+        const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName);
+    void HandleBackgroundSessionReply(const std::shared_ptr<SessionRecord> &record, const std::string &eventId);
 
     void HandleProcessTimeout(const std::string &sessionId);
     void HandleProcessYieldTimeout(const std::string &sessionId);
@@ -121,8 +151,10 @@ private:
 
     static void sigchld_handler(int32_t sig);
 
-    void PostExecToolTask(int32_t time, const std::string &sessionId, bool isTimeout);
+    void PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout);
     void WaitPid(pid_t pid, int32_t status, int32_t sig);
+    void RegisterAppStateObserver(const std::string &bundleName, pid_t callerPid);
+    void OnProcessDied(const std::string &bundleName, pid_t diedPid);
 
     bool initialized_ = false;
     std::shared_ptr<IOMonitor> ioMonitor_ = nullptr;
@@ -143,9 +175,10 @@ private:
     int32_t QuerySubCommandPermission(const std::string &toolName, const std::string &subCommand,
         std::vector<std::string> &permissions);
 
-    std::atomic<int32_t> activeSessionCount_ = 0;
-    std::mutex sessionsMutex_;
+    std::atomic<int32_t> interfaceCalledCount_ = 0;
+    ffrt::mutex sessionsMutex_;
     std::unordered_map<std::string, std::shared_ptr<SessionRecord>> sessionRecords_;
+    std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
 };
 
 } // namespace CliTool
