@@ -44,9 +44,18 @@ bool InsightIntentExecuteResult::ReadFromParcel(Parcel &parcel)
     flags = parcel.ReadInt32();
     isDecorator = parcel.ReadBool();
     isQueryEntity = parcel.ReadBool();
-    queryResults.resize(parcel.ReadInt32());
-    for (size_t i = 0; i < queryResults.size(); i++) {
-        queryResults[i] = std::shared_ptr<WantParams>(parcel.ReadParcelable<WantParams>());
+    int32_t resultSize = parcel.ReadInt32();
+    if (resultSize < 0) {
+        return false;
+    }
+    queryResults.clear();
+    queryResults.reserve(resultSize);
+    for (int32_t i = 0; i < resultSize; i++) {
+        auto temp = parcel.ReadParcelable<WantParams>();
+        if (temp == nullptr) {
+            return false;
+        }
+        queryResults.push_back(std::shared_ptr<WantParams>(temp));
     }
     return true;
 }
