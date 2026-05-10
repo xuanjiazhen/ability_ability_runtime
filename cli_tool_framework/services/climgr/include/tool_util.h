@@ -24,6 +24,8 @@
 #include <iremote_object.h>
 #include <functional>
 
+#include "cli_session_info.h"
+
 namespace OHOS {
 namespace AAFwk {
 class WantParams;
@@ -32,6 +34,7 @@ struct IArray;
 }
 namespace AppExecFwk {
 struct BundleInfo;
+struct SkillExecuteResult;
 }
 namespace CliTool {
 class ExecToolParam;
@@ -51,6 +54,13 @@ public:
         std::string &sandboxConfig, std::string &bundleName);
 
     static void TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantParams &args, std::string &cmdLine);
+
+    static bool IsSkillTool(const std::string &toolName);
+    static void NormalizeSkillParamKeys(AAFwk::WantParams &args);
+    static void ExpandArgsJsonString(AAFwk::WantParams &args);
+    static std::shared_ptr<AAFwk::WantParams> FilterSkillArgs(const AAFwk::WantParams &args);
+    static CliSessionInfo BuildSkillSessionInfo(const std::string &sessionId,
+        int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult);
 
 private:
     static bool GetBundleInfoByTokenId(AccessToken::AccessTokenID tokenId,
