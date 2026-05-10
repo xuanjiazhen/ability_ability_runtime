@@ -11695,6 +11695,30 @@ int32_t AppMgrServiceInner::IsProcessCacheSupported(int32_t pid, bool &isSupport
     return ERR_OK;
 }
 
+int32_t AppMgrServiceInner::IsChildProcessSupported(int32_t childProcessType, bool &isSupported)
+{
+    pid_t pid = IPCSkeleton::GetCallingPid();
+    TAG_LOGD(AAFwkTag::APPMGR, "IsChildProcessSupported called, pid:%{public}d, type:%{public}d", pid, childProcessType);
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (!appRecord) {
+        TAG_LOGE(AAFwkTag::APPMGR, "no such appRecord, pid:%{public}d", pid);
+        return AAFwk::ERR_NO_APP_RECORD;
+    }
+    bool isMultiProcessModel = AAFwk::AppUtils::GetInstance().IsMultiProcessModel();
+    if (childProcessType == AppExecFwk::CHILD_PROCESS_TYPE_ARK ||
+        childProcessType == AppExecFwk::CHILD_PROCESS_TYPE_JS) {
+        isSupported = isMultiProcessModel || AllowChildProcessInMultiProcessFeatureApp(appRecord);
+    } else if (childProcessType == AppExecFwk::CHILD_PROCESS_TYPE_NATIVE ||
+                childProcessType == AppExecFwk::CHILD_PROCESS_TYPE_NATIVE_ARGS) {
+        isSupported = isMultiProcessModel ||
+            AllowNativeChildProcess(childProcessType, appRecord->GetAppIdentifier()) ||
+            AllowChildProcessInMultiProcessFeatureApp(appRecord);
+    } else {
+        isSupported = isMultiProcessModel || AllowChildProcessInMultiProcessFeatureApp(appRecord);
+    }
+    return ERR_OK;
+}
+
 int32_t AppMgrServiceInner::SetProcessCacheEnable(int32_t pid, bool enable)
 {
     TAG_LOGI(AAFwkTag::APPMGR, "set enable process cache, pid:%{public}d, enable:%{public}d", pid, enable);

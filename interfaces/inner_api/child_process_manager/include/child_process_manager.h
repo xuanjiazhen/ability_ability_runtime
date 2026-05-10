@@ -46,8 +46,6 @@ public:
     bool IsChildProcessBySelfFork();
     bool IsArkChildProcessSupported();
     bool IsNativeChildProcessSupported();
-    void SetArkChildProcessSupported(bool supported);
-    void SetNativeChildProcessSupported(bool supported);
     ChildProcessManagerErrorCode StartChildProcessBySelfFork(const std::string &srcEntry, pid_t &pid,
         bool isStaticChildProcess = false);
     ChildProcessManagerErrorCode StartChildProcessByAppSpawnFork(const std::string &srcEntry, pid_t &pid,
