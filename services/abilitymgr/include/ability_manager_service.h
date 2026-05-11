@@ -1956,8 +1956,9 @@ public:
      * @param sessionInfo the session info of the ability to be called.
      * @param params start parameters.
      * @param isColdStart the session of the ability is or not cold start.
+     * @return Returns ERR_OK on success, error code otherwise.
      */
-    virtual void CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
+    virtual int CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
         AbilityRuntime::StartParamsBySCB &params, bool &isColdStart) override;
 
     /**
