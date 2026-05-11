@@ -130,7 +130,13 @@ ErrCode CliToolMGRClient::GetAllToolInfos(std::vector<ToolInfo> &tools)
         TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
         return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
-    return proxy->GetAllToolInfos(tools);
+    ToolsRawData rawData;
+    auto ret = proxy->GetAllToolInfos(rawData);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolInfos failed: %{public}d", ret);
+        return ret;
+    }
+    return ToolsRawData::ToToolInfoVec(rawData, tools);
 }
 
 ErrCode CliToolMGRClient::RegisterTool(const ToolInfo &tool)
@@ -196,7 +202,7 @@ sptr<ICliToolManager> CliToolMGRClient::GetCliToolMgrProxy()
 
     const auto &onClearProxyCallback = [](const wptr<IRemoteObject> &remote) {
         auto &instance = GetInstance();
-        if (instance.cliToolMgr_ == remote) {
+        if (instance.cliToolMgr_->AsObject() == remote) {
             instance.ClearProxy();
         }
     };
@@ -281,7 +287,7 @@ void CliToolMGRClient::ClearProxy()
 void CliToolMGRClient::CliMgrDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remote)
 {
     if (callback_ != nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "cli tool manager service died");
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "cli tool manager service died");
         callback_(remote);
     }
 }
