@@ -1930,11 +1930,11 @@ void AbilityManagerClient::SetRootSceneSession(sptr<IRemoteObject> rootSceneSess
     abms->SetRootSceneSession(rootSceneSession);
 }
 
-void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
+int AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, AbilityRuntime::StartParamsBySCB &params,
     bool &isColdStart)
 {
     auto abms = GetAbilityManager();
-    CHECK_POINTER_RETURN(abms);
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
     if (sessionInfo) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call,CallUIAbilityBySCB:%{public}s/%{public}s/%{public}d,flag:%{public}u, "
             "pageConfigSize:%{public}zu",
@@ -1944,8 +1944,9 @@ void AbilityManagerClient::CallUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Abi
             params.sceneFlag, params.pageConfig.size());
     }
 
-    abms->CallUIAbilityBySCB(sessionInfo, params, isColdStart);
+    int ret = abms->CallUIAbilityBySCB(sessionInfo, params, isColdStart);
     TAG_LOGD(AAFwkTag::ABILITYMGR, "scb call, CallUIAbilityBySCB, isColdStart: %{public}d", isColdStart);
+    return ret;
 }
 
 int32_t AbilityManagerClient::StartSpecifiedAbilityBySCB(const Want &want, const StartSpecifiedAbilityParams &params)

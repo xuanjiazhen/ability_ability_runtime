@@ -1845,19 +1845,19 @@ void UIAbilityLifecycleManager::PostCallTimeoutTask(int32_t requestId)
         .timeout(GlobalConstant::DEFAULT_FFRT_TASK_TIMEOUT));
 }
 
-void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
+int UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
     AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
-    CHECK_POINTER_LOG(sessionInfo, "ByCall, null sessionInfo");
-    CHECK_POINTER_LOG(sessionInfo->sessionToken, "bycall, null sessionToken");
+    CHECK_POINTER_LOG_RETURN(sessionInfo, "ByCall, null sessionInfo", ERR_INVALID_VALUE);
+    CHECK_POINTER_LOG_RETURN(sessionInfo->sessionToken, "bycall, null sessionToken", ERR_INVALID_VALUE);
     auto sessionToken = iface_cast<Rosen::ISession>(sessionInfo->sessionToken);
-    CHECK_POINTER_LOG(sessionToken, "ByCall, sessionToken null");
+    CHECK_POINTER_LOG_RETURN(sessionToken, "ByCall, sessionToken null", ERR_INVALID_VALUE);
     auto descriptor = Str16ToStr8(sessionToken->GetDescriptor());
     if (descriptor != "OHOS.ISession") {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "ByCall, token's Descriptor: %{public}s", descriptor.c_str());
-        return;
+        return ERR_INVALID_VALUE;
     }
 
     TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, CallUIAbilityBySCB abilityId:%{public}" PRIu64 ".",
@@ -1869,17 +1869,17 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
             search = tmpAbilityMap_.begin();
         } else {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "not find UIAbility");
-            return;
+            return ERR_INVALID_VALUE;
         }
     }
     auto uiAbilityRecord = search->second;
     tmpAbilityMap_.erase(search);
-    CHECK_POINTER_LOG(uiAbilityRecord, "UIAbility not exist.");
+    CHECK_POINTER_LOG_RETURN(uiAbilityRecord, "UIAbility not exist.", ERR_INVALID_VALUE);
     auto sessionSearch = sessionAbilityMap_.find(sessionInfo->persistentId);
     if (sessionSearch != sessionAbilityMap_.end()) {
         // ability could be in loading state, waiting for callback
         TAG_LOGI(AAFwkTag::ABILITYMGR, "session exist");
-        return;
+        return ERR_OK;
     }
     isColdStart = true;
     uiAbilityRecord->lifeCycleStateInfo_.sceneFlagBak = params.sceneFlag;
@@ -1898,6 +1898,7 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
         uiAbilityRecord->SetPendingState(AbilityState::FOREGROUND);
     }
     uiAbilityRecord->LoadAbility();
+    return ERR_OK;
 }
 
 sptr<SessionInfo> UIAbilityLifecycleManager::CreateSessionInfo(const AbilityRequest &abilityRequest,

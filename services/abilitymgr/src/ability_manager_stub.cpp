@@ -3847,8 +3847,9 @@ int AbilityManagerStub::CallUIAbilityBySCBInner(MessageParcel &data, MessageParc
         return ERR_INVALID_VALUE;
     }
     bool isColdStart = false;
-    CallUIAbilityBySCB(sessionInfo, *params, isColdStart);
+    int ret = CallUIAbilityBySCB(sessionInfo, *params, isColdStart);
     reply.WriteBool(isColdStart);
+    reply.WriteInt32(ret);
     return NO_ERROR;
 }
 
