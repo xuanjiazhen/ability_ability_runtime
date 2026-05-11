@@ -33,11 +33,12 @@ using OHOS::AppExecFwk::ElementName;
 static const char* FD = "FD";
 static const char* TYPE_PROPERTY = "type";
 static const char* VALUE_PROPERTY = "value";
+static const int PROPERTIES_SIZE = 2;
 
 static bool IsFdParam(const OHOS::AAFwk::WantParams &wp)
 {
     auto valueMap = wp.GetParams();
-    if (valueMap.size() != 2) {
+    if (valueMap.size() != PROPERTIES_SIZE) {
         return false;
     }
     auto typeIt = valueMap.find(TYPE_PROPERTY);

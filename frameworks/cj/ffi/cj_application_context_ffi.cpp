@@ -73,7 +73,7 @@ int32_t FfiCJApplicationContextOnOnEnvironment(int64_t id, void (*cfgCallback)(C
 }
 
 int32_t FfiCJApplicationContextOnOnEnvironmentV2(int64_t id, void (*cfgCallback)(CConfigurationV2),
-                                                  void (*memCallback)(int32_t), int32_t *errCode)
+                                                 void (*memCallback)(int32_t), int32_t *errCode)
 {
     auto context = FFI::FFIData::GetData<CJApplicationContext>(id);
     if (context == nullptr) {
