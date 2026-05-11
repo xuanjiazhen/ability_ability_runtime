@@ -570,6 +570,14 @@ public:
     {
         return E_OK;
     }
+
+    virtual int32_t NotifyUpdateVolumeInfo(const std::string &volId,
+                                           const std::string &fsUuid,
+                                           const std::string &fsType,
+                                           const std::string &fsLabel) override
+    {
+        return E_OK;
+    }
 };
 
 bool StorageManagerServiceMock::isZero = true;
