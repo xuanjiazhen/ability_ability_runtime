@@ -5077,29 +5077,29 @@ void AbilityManagerProxy::SetRootSceneSession(const sptr<IRemoteObject> &rootSce
     }
 }
 
-void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
+int AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
     AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
-        return;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
     if (sessionInfo) {
         ExtendMaxIpcCapacityForWant(sessionInfo->want, data);
         if (!data.WriteBool(true) || !data.WriteParcelable(sessionInfo)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag and sessionInfo write fail");
-            return;
+            return ERR_NATIVE_IPC_PARCEL_FAILED;
         }
     } else {
         if (!data.WriteBool(false)) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "flag write fail");
-            return;
+            return ERR_NATIVE_IPC_PARCEL_FAILED;
         }
     }
     if (!data.WriteParcelable(&params)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "params write fail");
-        return;
+        return ERR_NATIVE_IPC_PARCEL_FAILED;
     }
 
     MessageParcel reply;
@@ -5107,9 +5107,10 @@ void AbilityManagerProxy::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInf
     auto error = SendRequest(AbilityManagerInterfaceCode::CALL_ABILITY_BY_SCB, data, reply, option);
     if (error != NO_ERROR) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", error);
-        return;
+        return error;
     }
     isColdStart = reply.ReadBool();
+    return reply.ReadInt32();
 }
 
 int32_t AbilityManagerProxy::StartSpecifiedAbilityBySCB(const Want &want, const StartSpecifiedAbilityParams &params)
