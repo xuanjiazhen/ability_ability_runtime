@@ -1966,5 +1966,81 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartSelf_006, TestSize.Level1)
     appUtils.isSupportNativeUIAbility_.value = srcCacheValue;
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSelf_006 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilityBySCB
+ * FunctionPoints: AbilityManagerService StartUIAbilityBySCB with user locked status
+ * EnvConditions: user is locked
+ * CaseDescription: Expect ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK when user is locked
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_UserLocked_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_UserLocked_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+
+    sptr<SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
+    ASSERT_NE(sessionInfo, nullptr);
+
+    bool isColdStart = true;
+    AbilityRuntime::StartParamsBySCB params;
+
+    // Set user as locked
+    int32_t testUserId = 100;
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(testUserId,
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+
+    // Set calling UID to match the test user
+    IPCSkeleton::SetCallingUid(testUserId * BASE_USER_RANGE);
+
+    auto ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
+    EXPECT_EQ(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+
+    // Clean up
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(testUserId);
+    IPCSkeleton::SetCallingUid(0);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_UserLocked_001 end");
+}
+
+/*
+ * Feature: AbilityManagerService
+ * Function: StartUIAbilityBySCB
+ * FunctionPoints: AbilityManagerService StartUIAbilityBySCB with user unlocked status
+ * EnvConditions: user is unlocked
+ * CaseDescription: Should not return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK when user is unlocked
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_UserUnlocked_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_UserUnlocked_001 start");
+    auto abilityMs_ = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs_, nullptr);
+
+    sptr<SessionInfo> sessionInfo = new (std::nothrow) SessionInfo();
+    ASSERT_NE(sessionInfo, nullptr);
+
+    bool isColdStart = true;
+    AbilityRuntime::StartParamsBySCB params;
+
+    // Set user as unlocked
+    int32_t testUserId = 100;
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(testUserId,
+        AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED);
+
+    // Set calling UID to match the test user
+    IPCSkeleton::SetCallingUid(testUserId * BASE_USER_RANGE);
+
+    auto ret = abilityMs_->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
+    // Should not return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK when user is unlocked
+    EXPECT_NE(ret, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+
+    // Clean up
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(testUserId);
+    IPCSkeleton::SetCallingUid(0);
+
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_UserUnlocked_001 end");
+}
+
 } // namespace AAFwk
 } // namespace OHOS
