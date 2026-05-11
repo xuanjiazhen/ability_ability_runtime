@@ -341,11 +341,32 @@ bool EtsInsightIntentFunc::GetMethodArg(ani_env *env, ani_object wantParams, ani
         return false;
     }
     ani_status status = env->Object_CallMethod_Ref(wantParams, recordGetMethod, &valueRef, key);
-    if (status != ANI_OK || valueRef == nullptr) {
+    if (status != ANI_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "get method param failed, name: %{public}s, status: %{public}d",
             paramName.c_str(), status);
         return false;
     }
+
+    // Check if value is undefined (happens when optional param is not provided)
+    ani_boolean isUndefined = ANI_FALSE;
+    if (valueRef != nullptr) {
+        status = env->Reference_IsUndefined(valueRef, &isUndefined);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "check undefined failed, name: %{public}s, status: %{public}d",
+                paramName.c_str(), status);
+            return false;
+        }
+    }
+
+    if (valueRef == nullptr || isUndefined == ANI_TRUE) {
+        if (methodParamInfo.isRequired) {
+            TAG_LOGE(AAFwkTag::INTENT, "required param missing, name: %{public}s", paramName.c_str());
+            return false;
+        }
+        TAG_LOGD(AAFwkTag::INTENT, "optional param not provided, name: %{public}s", paramName.c_str());
+        return true;
+    }
+
     if (!ValidateParamType(env, valueRef, methodParamInfo.type)) {
         TAG_LOGE(AAFwkTag::INTENT, "param type validation failed, name: %{public}s", paramName.c_str());
         return false;
@@ -410,9 +431,21 @@ bool EtsInsightIntentFunc::ExecuteInsightIntent(ani_env *env,
         return ExecuteIntentCheckError();
     }
 
+    ani_static_method method = nullptr;
+    ani_status status = env->Class_FindStaticMethod(etsObj_->aniCls, executeParam->methodName_.c_str(),
+        nullptr, &method);
+    if (status != ANI_OK || method == nullptr) {
+        TAG_LOGE(AAFwkTag::INTENT, "find static method failed %{public}d", status);
+        return ExecuteIntentCheckError();
+    }
+
     if (IsVoidReturnType(executeParam)) {
-        ani_status status = env->Class_CallStaticMethodByName_Void_A(
-            etsObj_->aniCls, executeParam->methodName_.c_str(), nullptr, args.empty() ? nullptr : args.data());
+        // For methods with no args, use non-_A version; for methods with args, use _A version
+        if (args.empty()) {
+            status = env->Class_CallStaticMethod_Void(etsObj_->aniCls, method);
+        } else {
+            status = env->Class_CallStaticMethod_Void_A(etsObj_->aniCls, method, args.data());
+        }
         if (status != ANI_OK) {
             TAG_LOGE(AAFwkTag::INTENT, "call static void method failed %{public}d", status);
             return ExecuteIntentCheckError();
@@ -421,8 +454,12 @@ bool EtsInsightIntentFunc::ExecuteInsightIntent(ani_env *env,
     }
 
     ani_ref result = nullptr;
-    ani_status status = env->Class_CallStaticMethodByName_Ref_A(etsObj_->aniCls, executeParam->methodName_.c_str(),
-        nullptr, &result, args.empty() ? nullptr : args.data());
+    // For methods with no args, use non-_A version; for methods with args, use _A version
+    if (args.empty()) {
+        status = env->Class_CallStaticMethod_Ref(etsObj_->aniCls, method, &result);
+    } else {
+        status = env->Class_CallStaticMethod_Ref_A(etsObj_->aniCls, method, &result, args.data());
+    }
     if (status != ANI_OK || result == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "call static method failed %{public}d", status);
         return ExecuteIntentCheckError();
