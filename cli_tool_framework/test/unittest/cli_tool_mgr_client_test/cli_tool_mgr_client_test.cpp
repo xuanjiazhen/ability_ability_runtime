@@ -126,5 +126,229 @@ HWTEST_F(CliToolMGRClientTest, RegisterTool_0100, TestSize.Level1)
 
     GTEST_LOG_(INFO) << "CliToolMGRClient_RegisterTool_0100 end";
 }
+
+/**
+ * @tc.name: CliToolMGRClient_BatchQueryPermissionBySubCommand_0100
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with empty command list
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, BatchQueryPermissionBySubCommand_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0100 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<Command> cmds;
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t ret = client.BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(ret, GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_TRUE(cmdPermissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0100 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_BatchQueryPermissionBySubCommand_0200
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with single command without subcommand
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, BatchQueryPermissionBySubCommand_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0200 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<Command> cmds;
+
+    Command cmd;
+    cmd.toolName = "test_tool";
+    cmd.subCommand = "";
+    cmds.push_back(cmd);
+
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t ret = client.BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(ret, GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_TRUE(cmdPermissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0200 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_BatchQueryPermissionBySubCommand_0300
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with single command with subcommand
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, BatchQueryPermissionBySubCommand_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0300 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<Command> cmds;
+
+    Command cmd;
+    cmd.toolName = "test_tool";
+    cmd.subCommand = "test_subcommand";
+    cmds.push_back(cmd);
+
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t ret = client.BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(ret, GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_TRUE(cmdPermissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0300 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_BatchQueryPermissionBySubCommand_0400
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with multiple commands
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, BatchQueryPermissionBySubCommand_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0400 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<Command> cmds;
+
+    Command cmd1;
+    cmd1.toolName = "tool1";
+    cmd1.subCommand = "sub1";
+    cmds.push_back(cmd1);
+
+    Command cmd2;
+    cmd2.toolName = "tool2";
+    cmd2.subCommand = "";
+    cmds.push_back(cmd2);
+
+    Command cmd3;
+    cmd3.toolName = "tool3";
+    cmd3.subCommand = "sub3";
+    cmds.push_back(cmd3);
+
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t ret = client.BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(ret, GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_TRUE(cmdPermissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0400 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_BatchQueryPermissionBySubCommand_0500
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with special characters in tool name
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, BatchQueryPermissionBySubCommand_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0500 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<Command> cmds;
+
+    Command cmd;
+    cmd.toolName = "test-tool-with-dashes";
+    cmd.subCommand = "sub_command_with_underscores";
+    cmds.push_back(cmd);
+
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t ret = client.BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(ret, GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_TRUE(cmdPermissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0500 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_BatchQueryPermissionBySubCommand_0600
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with very long tool name
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, BatchQueryPermissionBySubCommand_0600, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0600 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<Command> cmds;
+
+    Command cmd;
+    cmd.toolName = "this_is_a_very_long_tool_name_that_exceeds_normal_length_for_testing_purposes_1234567890";
+    cmd.subCommand = "sub";
+    cmds.push_back(cmd);
+
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t ret = client.BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(ret, GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_TRUE(cmdPermissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0600 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_BatchQueryPermissionBySubCommand_0700
+ * @tc.desc: Test BatchQueryPermissionBySubCommand boundary with large command count
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, BatchQueryPermissionBySubCommand_0700, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0700 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<Command> cmds;
+
+    // Add 100 commands for stress testing
+    for (int i = 0; i < 100; i++) {
+        Command cmd;
+        cmd.toolName = "tool_" + std::to_string(i);
+        cmd.subCommand = "sub_" + std::to_string(i);
+        cmds.push_back(cmd);
+    }
+
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t ret = client.BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(ret, GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_TRUE(cmdPermissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0700 end";
+}
+
+/**
+ * @tc.name: CliToolMGRClient_BatchQueryPermissionBySubCommand_0800
+ * @tc.desc: Test BatchQueryPermissionBySubCommand with empty tool name
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, BatchQueryPermissionBySubCommand_0800, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0800 start";
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<Command> cmds;
+
+    Command cmd;
+    cmd.toolName = "";
+    cmd.subCommand = "sub";
+    cmds.push_back(cmd);
+
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t ret = client.BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    EXPECT_EQ(ret, GET_CLI_TOOL_MGR_SERVICE_FAILED);
+    EXPECT_TRUE(cmdPermissions.empty());
+
+    GTEST_LOG_(INFO) << "CliToolMGRClient_BatchQueryPermissionBySubCommand_0800 end";
+}
+
 } // namespace CliTool
 } // namespace OHOS
