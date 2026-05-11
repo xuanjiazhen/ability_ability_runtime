@@ -292,6 +292,11 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     if (sessionInfo != nullptr) {
         SetSessionToken(sessionInfo->sessionToken, sessionInfo->renderSession);
         SetIdentityToken(sessionInfo->identityToken);
+        // Save requestId and scbRequestId to member variables
+        SetRequestId(sessionInfo->requestId);
+        SetScbRequestId(sessionInfo->scbRequestId);
+        TAG_LOGI(AAFwkTag::UIABILITY, "Save requestId: %{public}d, scbRequestId: %{public}d",
+            sessionInfo->requestId, sessionInfo->scbRequestId);
     }
     OnStartForSupportGraphics(want);
 #endif
@@ -1571,6 +1576,26 @@ void UIAbility::SetIdentityToken(const std::string &identityToken)
 std::string UIAbility::GetIdentityToken() const
 {
     return identityToken_;
+}
+
+void UIAbility::SetRequestId(int32_t requestId)
+{
+    requestId_ = requestId;
+}
+
+int32_t UIAbility::GetRequestId() const
+{
+    return requestId_;
+}
+
+void UIAbility::SetScbRequestId(int32_t scbRequestId)
+{
+    scbRequestId_ = scbRequestId;
+}
+
+int32_t UIAbility::GetScbRequestId() const
+{
+    return scbRequestId_;
 }
 
 bool UIAbility::CheckRecoveryEnabled()

@@ -676,6 +676,30 @@ public:
     std::string GetIdentityToken() const;
 
     /**
+     * @brief Set the request ID for UIAbility startup flow.
+     * @param requestId The request ID from AMS side.
+     */
+    void SetRequestId(int32_t requestId);
+
+    /**
+     * @brief Get the request ID for UIAbility startup flow.
+     * @return Returns the request ID.
+     */
+    int32_t GetRequestId() const;
+
+    /**
+     * @brief Set the SCB request ID for UIAbility startup flow.
+     * @param scbRequestId The SCB request ID from WMS side.
+     */
+    void SetScbRequestId(int32_t scbRequestId);
+
+    /**
+     * @brief Get the SCB request ID for UIAbility startup flow.
+     * @return Returns the SCB request ID.
+     */
+    int32_t GetScbRequestId() const;
+
+    /**
      * @brief Called when distributed system trying to collaborate remote ability.
      * @param want want with collaborative info.
      */
@@ -772,6 +796,11 @@ protected:
     sptr<Rosen::IWindowLifeCycle> sceneListener_ = nullptr;
     sptr<UIAbilityDisplayListener> abilityDisplayListener_ = nullptr;
     sptr<Rosen::IDisplayMoveListener> abilityDisplayMoveListener_ = nullptr;
+
+    // Request IDs for UIAbility startup flow
+    int32_t requestId_ = 0;        // AMS request ID
+    int32_t scbRequestId_ = 0;     // WMS request ID
+
 private:
     void OnStartForSupportGraphics(const AAFwk::Want &want);
     void OnChangeForUpdateConfiguration(const AppExecFwk::Configuration &newConfig);
