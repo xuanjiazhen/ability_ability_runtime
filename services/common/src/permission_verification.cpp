@@ -434,10 +434,10 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
     if (specifyTokenId == 0 &&
         SupportSystemAbilityPermission::IsSupportSaCallPermission()) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Support SA call");
-        // Only report when: 1) shell call, 2) ability is invisible (exported=false)
-        if (IsShellCall() && !verificationInfo.visible) {
+        // Only report when: 1) IsSupportSaCallPermission, 2) ability is invisible (exported=false)
+        if (!verificationInfo.visible) {
             EventInfo eventInfo;
-            eventInfo.uri = "ShellCall://" + std::to_string(IPCSkeleton::GetCallingUid());
+            eventInfo.uri = "IsSupportSaCallPermission://" + std::to_string(IPCSkeleton::GetCallingUid());
             EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);
         }
         return ERR_OK;
