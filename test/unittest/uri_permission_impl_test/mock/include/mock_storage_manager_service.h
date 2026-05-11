@@ -566,6 +566,16 @@ public:
         return E_OK;
     }
 
+    int32_t CreatePartition(const std::string &diskId, const PartitionOptions &partitionOption)
+    {
+        return E_OK;
+    }
+
+    int32_t DeletePartition(const std::string &diskId, uint32_t partitionNum)
+    {
+        return E_OK;
+    }
+
     virtual int32_t Burn(const std::string &volumeId, const BurnParams &params) override
     {
         return E_OK;
