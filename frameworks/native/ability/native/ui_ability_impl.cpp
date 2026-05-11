@@ -845,6 +845,11 @@ void UIAbilityImpl::ExecuteInsightIntentMoveToForeground(const Want &want,
         notifyForegroundByWindow_ = false;
     }
 
+    if (localNativeState_ == LocalNativeState::INIT_PRE_FOREGROUND) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Native module startPhase is PRE_FOREGROUND, skip OnForeground");
+        ability_->SetIsSilentForeground(true);
+    }
+
     auto asyncCallback =
         [weak = weak_from_this(), intentId = executeParam->insightIntentId_](InsightIntentExecuteResult result) {
             TAG_LOGD(AAFwkTag::INTENT, "end, intentId %{public}" PRIu64"", intentId);
@@ -855,6 +860,7 @@ void UIAbilityImpl::ExecuteInsightIntentMoveToForeground(const Want &want,
             }
             abilityImpl->ExecuteInsightIntentDone(intentId, result);
             abilityImpl->PostForegroundInsightIntent();
+            ability_->SetIsSilentForeground(false);
         };
     callback->Push(asyncCallback);
 

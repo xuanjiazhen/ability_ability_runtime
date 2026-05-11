@@ -1596,8 +1596,9 @@ int32_t UIAbilityLifecycleManager::StartSelf(const UIAbilityRecordPtr &abilityRe
         return ERR_INVALID_VALUE;
     }
 
-    if (abilityRecord->GetNativeState() == AbilityNativeState::NONE) {
-        TAG_LOGW(AAFwkTag::ABILITYMGR, "not a NativeModule ability");
+    if (abilityRecord->GetNativeState() == AbilityNativeState::NONE ||
+        abilityRecord->GetNativeState() == AbilityNativeState::ATTACHED) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Invalid ability state");
         return ERR_CAPABILITY_NOT_SUPPORT;
     }
 
