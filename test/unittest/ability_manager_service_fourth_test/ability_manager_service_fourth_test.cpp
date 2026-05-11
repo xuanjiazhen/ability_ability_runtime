@@ -430,6 +430,49 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_003, TestSize.Leve
     EXPECT_EQ(result, ERR_WRONG_INTERFACE_CALL);
 }
 
+/**
+ * @tc.name: StartUIAbilityBySCB_004
+ * @tc.desc: Test StartUIAbilityBySCB when user is locked
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_004 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    sptr<SessionInfo> sessionInfo(new SessionInfo());
+    bool isColdStart = true;
+    AbilityRuntime::StartParamsBySCB params;
+    int32_t testUserId = 100;
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(testUserId,
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+    auto result = abilityMs->StartUIAbilityBySCB(sessionInfo, params, isColdStart);
+    EXPECT_EQ(result, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(testUserId);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartUIAbilityBySCB_004 end");
+}
+
+/**
+ * @tc.name: StartSpecifiedAbilityBySCB_001
+ * @tc.desc: Test StartSpecifiedAbilityBySCB when user is locked
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerServiceFourthTest, StartSpecifiedAbilityBySCB_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSpecifiedAbilityBySCB_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    Want want;
+    ElementName element("" ,"com.test.bundle", "TestAbility");
+    want.SetElement(element);
+    AAFwk::StartSpecifiedAbilityParams params;
+    int32_t testUserId = 100;
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(testUserId,
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+    auto result = abilityMs->StartSpecifiedAbilityBySCB(want, params);
+    EXPECT_EQ(result, ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(testUserId);
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest StartSpecifiedAbilityBySCB_001 end");
+}
+
 /*
  * Feature: AbilityManagerService
  * Function: RequestDialogServiceInner
@@ -437,7 +480,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_003, TestSize.Leve
  */
 HWTEST_F(AbilityManagerServiceFourthTest, RequestDialogServiceInner_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest RequestDialogServiceInner_001 start");
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest RequestDialogServiceInner_001 start");
     auto abilityMs = std::make_shared<AbilityManagerService>();
     Want want;
     const sptr<IRemoteObject> callerToken;
@@ -453,7 +496,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, RequestDialogServiceInner_001, TestSiz
 
     result = abilityMs->RequestDialogServiceInner(want, callerToken2, requestCode, userId);
     EXPECT_EQ(result, ERR_INVALID_CALLER);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest RequestDialogServiceInner_001 end");
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest RequestDialogServiceInner_001 end");
 }
 
 /*
