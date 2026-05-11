@@ -325,6 +325,8 @@ constexpr const char* DLP_INDEX = "ohos.dlp.params.index";
 constexpr int32_t APPRECOVERY_NOTIFYAPP_OVER_LIMIT_ID = 3041;
 constexpr const char* REASON_APPRECOVERY_NOTIFYAPP_OVER_LIMIT = "AppRecoveryNotifyAppOverLimit";
 
+constexpr const char* PRELOAD_UIEXTENSION = "PreloadUIExtension";
+
 #define CHECKPOINT_IOCTL_KILL_ALL                _IOR(0xE0, 0x4, int)
 #define CHECKPOINT_MONITOR_IOCTL_MARK_TEMPLATE   _IOR(0xE0, 0x7, struct HMCheckpointMarkS)
 #define CHECKPOINT_MONITOR_IOCTL_UNMARK_TEMPLATE _IOR(0xE0, 0x8, struct HMCheckpointUnMarkS)
@@ -9139,6 +9141,11 @@ int AppMgrServiceInner::GetExceptionTimerId(const FaultData &faultData, const st
 int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
     const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid)
 {
+    if (faultData.errorObject.message.find(PRELOAD_UIEXTENSION) != std::string::npos) {
+        TAG_LOGW(AAFwkTag::APPMGR, "don't report event, msg: PreloadUIExtension, bundleName: %{public}s "
+            "pid: %{public}d", bundleName.c_str(), pid);
+        return ERR_OK;
+    }
     int32_t callerUid = IPCSkeleton::GetCallingUid();
     std::string processName = appRecord->GetProcessName();
     int exceptionId = GetExceptionTimerId(faultData, bundleName, appRecord, pid, callerUid);
