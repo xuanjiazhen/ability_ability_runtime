@@ -3122,6 +3122,12 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Ab
             "not sceneboard", true);
         return ERR_WRONG_INTERFACE_CALL;
     }
+    auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(currentUserId);
+    if (userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_LOCKED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user unlock:%{public}d-%{public}d", currentUserId, userLockStatus);
+        return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
+    }
 
     if (params.isRestart && !AppUtils::GetInstance().IsSupportRestartAppWithWindow()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported");
@@ -13406,17 +13412,25 @@ void AbilityManagerService::SetRootSceneSession(const sptr<IRemoteObject> &rootS
     uiAbilityManager->SetRootSceneSession(rootSceneSession);
 }
 
-void AbilityManagerService::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
+int AbilityManagerService::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionInfo,
     AbilityRuntime::StartParamsBySCB &params, bool &isColdStart)
 {
     XCOLLIE_TIMER_LESS(__PRETTY_FUNCTION__);
     if (!IsCallerSceneBoard()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
-        return;
+        return ERR_WRONG_INTERFACE_CALL;
+    }
+    CHECK_POINTER_AND_RETURN(sessionInfo, ERR_INVALID_VALUE);
+    auto toForeground = sessionInfo->state == CallToState::FOREGROUND;
+    auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(currentUserId);
+    if (toForeground && userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_LOCKED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user unlock:%{public}d-%{public}d", currentUserId, userLockStatus);
+        return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
     }
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
-    CHECK_POINTER(uiAbilityManager);
-    uiAbilityManager->CallUIAbilityBySCB(sessionInfo, params, isColdStart);
+    CHECK_POINTER_AND_RETURN(uiAbilityManager, ERR_INVALID_VALUE);
+    return uiAbilityManager->CallUIAbilityBySCB(sessionInfo, params, isColdStart);
 }
 
 int32_t AbilityManagerService::SetSessionManagerService(const sptr<IRemoteObject> &sessionManagerService)
@@ -13443,6 +13457,12 @@ int32_t AbilityManagerService::StartSpecifiedAbilityBySCB(const Want &want, cons
     if (!IsCallerSceneBoard()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
         return ERR_PERMISSION_DENIED;
+    }
+    auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(currentUserId);
+    if (userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_LOCKED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user unlock:%{public}d-%{public}d", currentUserId, userLockStatus);
+        return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
     }
     StartAbilityUtils::startSpecifiedBySCB = true;
     StartAbilityWrapParam param = {
