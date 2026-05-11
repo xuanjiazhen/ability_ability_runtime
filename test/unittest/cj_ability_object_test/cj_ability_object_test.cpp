@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -84,4 +84,31 @@ HWTEST_F(CjAbilityObjectTest, CJAbilityObject002, TestSize.Level1)
     ProxyCall();
     RegisterCJAbilityFuncs(nullptr);
     EXPECT_NE(registerFunc, nullptr);
+}
+
+/**
+ * @tc.name: CjAbilityObjectTest_RegisterCJAbilityFuncsV3_001
+ * @tc.desc: CjAbilityObjectTest test for RegisterCJAbilityFuncsV3.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjAbilityObjectTest, CjAbilityObjectTest_RegisterCJAbilityFuncsV3_001, TestSize.Level1)
+{
+    auto registerFunc = [](CJAbilityFuncsV3* funcs) {
+        funcs->cjAbilityOnStartV3 = [](int64_t id, WantHandle want, CJLaunchParamV3 launchParam) {};
+        funcs->cjAbilityOnNewWantV3 = [](int64_t id, WantHandle want, CJLaunchParamV3 launchParam) {};
+        funcs->cjAbilityOnConfigurationUpdateV3 = [](int64_t id, OHOS::AbilityRuntime::CConfigurationV2 configuration) {};
+    };
+    RegisterCJAbilityFuncsV3(registerFunc);
+    EXPECT_NE(registerFunc, nullptr);
+}
+
+/**
+ * @tc.name: CjAbilityObjectTest_RegisterCJAbilityFuncsV3_002
+ * @tc.desc: CjAbilityObjectTest test for RegisterCJAbilityFuncsV3 with nullptr.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjAbilityObjectTest, CjAbilityObjectTest_RegisterCJAbilityFuncsV3_002, TestSize.Level1)
+{
+    RegisterCJAbilityFuncsV3(nullptr);
+    EXPECT_TRUE(true);
 }

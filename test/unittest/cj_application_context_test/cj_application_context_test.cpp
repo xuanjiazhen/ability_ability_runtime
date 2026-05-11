@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -139,6 +139,25 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnEnvironment_001, 
 
     CJApplicationContext::GetInstance()->envCallback_ = nullptr;
     ret = CJApplicationContext::GetInstance()->OnOnEnvironment(cfgCallback, memCallback, true, err);
+    EXPECT_EQ(ret, -1);
+}
+
+/**
+ * @tc.name: CJApplicationContextTestOnOnEnvironmentV2_001
+ * @tc.desc: CjApplicationContextTest test for OnOnEnvironmentV2.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnOnEnvironmentV2_001, TestSize.Level1)
+{
+    auto cfgCallback = [](AbilityRuntime::CConfigurationV2) {};
+    auto memCallback = [](int32_t) {};
+    int32_t err = 0;
+    auto ret =
+        CJApplicationContext::GetInstance()->OnOnEnvironmentV2(cfgCallback, memCallback, true, err);
+    EXPECT_EQ(ret, -1);
+
+    CJApplicationContext::GetInstance()->envCallback_ = nullptr;
+    ret = CJApplicationContext::GetInstance()->OnOnEnvironmentV2(cfgCallback, memCallback, true, err);
     EXPECT_EQ(ret, -1);
 }
 
