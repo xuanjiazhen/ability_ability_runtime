@@ -22,7 +22,25 @@ NativeTokenInfo AccessTokenKit::nativeTokenInfo = NativeTokenInfo();
 int32_t AccessTokenKit::getNativeTokenInfoRet = 0;
 HapTokenInfo AccessTokenKit::hapInfo = HapTokenInfo();
 int32_t AccessTokenKit::getHapTokenInfoRet = 0;
+int32_t AccessTokenKit::verifyAccessTokenRet = PermissionState::PERMISSION_GRANTED;
 ATokenTypeEnum AccessTokenKit::getTokenTypeFlagRet = ATokenTypeEnum::TOKEN_INVALID;
+std::vector<int32_t> AccessTokenKit::permissionStateList;
+
+int32_t AccessTokenKit::VerifyAccessToken(AccessTokenID, const std::vector<std::string> &permissions,
+    std::vector<int32_t> &permStateList)
+{
+    if (!permissionStateList.empty()) {
+        permStateList = permissionStateList;
+    } else {
+        permStateList.assign(permissions.size(), verifyAccessTokenRet);
+    }
+    return verifyAccessTokenRet;
+}
+
+int32_t AccessTokenKit::VerifyAccessToken(AccessTokenID, const std::string &, bool)
+{
+    return verifyAccessTokenRet;
+}
 } // namespace AccessToken
 } // namespace Security
 } // namespace OHOS
