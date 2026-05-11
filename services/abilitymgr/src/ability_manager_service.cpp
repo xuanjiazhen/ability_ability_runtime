@@ -14554,7 +14554,7 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
 
     // 3. Create execute record with requestCode and callback
     std::string requestCode = DelayedSingleton<SkillExecuteManager>::GetInstance()->CreateExecuteRecord(
-        nullptr, request.bundleName, callerBundleName, request.callerTokenId, callback);
+        nullptr, skillInfo.bundleName, callerBundleName, request.callerTokenId, callback);
 
     // 4. Generate Want with abilityName, srcEntries and requestCode
     Want want;
