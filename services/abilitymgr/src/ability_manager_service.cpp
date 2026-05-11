@@ -3112,6 +3112,12 @@ int AbilityManagerService::StartUIAbilityBySCB(sptr<SessionInfo> sessionInfo, Ab
             "not sceneboard", true);
         return ERR_WRONG_INTERFACE_CALL;
     }
+    auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(currentUserId);
+    if (userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_LOCKED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user unlock:%{public}d-%{public}d", currentUserId, userLockStatus);
+        return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
+    }
 
     if (params.isRestart && !AppUtils::GetInstance().IsSupportRestartAppWithWindow()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not supported");
@@ -13394,6 +13400,14 @@ void AbilityManagerService::CallUIAbilityBySCB(const sptr<SessionInfo> &sessionI
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
         return;
     }
+    CHECK_POINTER_LOG(sessionInfo, "scb call, null session");
+    auto toForeground = sessionInfo->state == CallToState::FOREGROUND;
+    auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(currentUserId);
+    if (toForeground && userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_LOCKED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user unlock:%{public}d-%{public}d", currentUserId, userLockStatus);
+        return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
+    }
     auto uiAbilityManager = GetUIAbilityManagerByUid(IPCSkeleton::GetCallingUid());
     CHECK_POINTER(uiAbilityManager);
     uiAbilityManager->CallUIAbilityBySCB(sessionInfo, params, isColdStart);
@@ -13423,6 +13437,12 @@ int32_t AbilityManagerService::StartSpecifiedAbilityBySCB(const Want &want, cons
     if (!IsCallerSceneBoard()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard called, no allowed");
         return ERR_PERMISSION_DENIED;
+    }
+    auto currentUserId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(currentUserId);
+    if (userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_LOCKED) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "scb call, user unlock:%{public}d-%{public}d", currentUserId, userLockStatus);
+        return ERR_BLOCK_START_FIRST_BOOT_SCREEN_UNLOCK;
     }
     StartAbilityUtils::startSpecifiedBySCB = true;
     StartAbilityWrapParam param = {
