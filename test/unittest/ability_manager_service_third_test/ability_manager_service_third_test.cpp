@@ -25,6 +25,7 @@
 #include "ability_start_setting.h"
 #include "recovery_param.h"
 #include "start_ability_utils.h"
+#include "user_controller.h"
 #undef private
 #undef protected
 
@@ -3370,6 +3371,5 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_002, TestSize.Level1)
     auto result = abilityMs_->CheckSupportVpn(abilityInfo);
     EXPECT_TRUE(result);
 }
-
 }  // namespace AAFwk
 }  // namespace OHOS
