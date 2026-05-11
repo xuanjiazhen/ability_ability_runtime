@@ -16,9 +16,12 @@
 #ifndef INTERFACES_INNER_KITS_ACCESSTOKEN_KIT_H
 #define INTERFACES_INNER_KITS_ACCESSTOKEN_KIT_H
 
+#include <string>
+#include <vector>
+
 #include "access_token.h"
-#include "native_token_info.h"
 #include "hap_token_info.h"
+#include "native_token_info.h"
 
 namespace OHOS {
 namespace Security {
@@ -43,10 +46,16 @@ public:
         return getHapTokenInfoRet;
     }
 
+    static int32_t VerifyAccessToken(AccessTokenID tokenID, const std::vector<std::string> &permissions,
+        std::vector<int32_t> &permStateList);
+    static int32_t VerifyAccessToken(AccessTokenID tokenID, const std::string &permissionName, bool crossUser);
+
     static void InitMockResult()
     {
         getNativeTokenInfoRet = 0;
         getHapTokenInfoRet = 0;
+        verifyAccessTokenRet = PermissionState::PERMISSION_GRANTED;
+        permissionStateList.clear();
         nativeTokenInfo = NativeTokenInfo();
         hapInfo = HapTokenInfo();
     }
@@ -55,7 +64,9 @@ public:
     static HapTokenInfo hapInfo;
     static int32_t getNativeTokenInfoRet;
     static int32_t getHapTokenInfoRet;
+    static int32_t verifyAccessTokenRet;
     static ATokenTypeEnum getTokenTypeFlagRet;
+    static std::vector<int32_t> permissionStateList;
 };
 } // namespace AccessToken
 } // namespace Security
