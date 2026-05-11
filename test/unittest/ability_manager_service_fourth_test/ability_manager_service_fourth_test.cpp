@@ -437,7 +437,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, StartUIAbilityBySCB_003, TestSize.Leve
  */
 HWTEST_F(AbilityManagerServiceFourthTest, RequestDialogServiceInner_001, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest RequestDialogServiceInner_001 start");
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest RequestDialogServiceInner_001 start");
     auto abilityMs = std::make_shared<AbilityManagerService>();
     Want want;
     const sptr<IRemoteObject> callerToken;
@@ -453,7 +453,7 @@ HWTEST_F(AbilityManagerServiceFourthTest, RequestDialogServiceInner_001, TestSiz
 
     result = abilityMs->RequestDialogServiceInner(want, callerToken2, requestCode, userId);
     EXPECT_EQ(result, ERR_INVALID_CALLER);
-    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceThirdTest RequestDialogServiceInner_001 end");
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceFourthTest RequestDialogServiceInner_001 end");
 }
 
 /*
