@@ -58,9 +58,102 @@ HWTEST_F(InsightIntentExecuteResultTest, ReadFromParcel_0100, TestSize.Level1)
     TAG_LOGI(AAFwkTag::TEST, "begin.");
     InsightIntentExecuteResult testclass;
     Parcel parcel;
+    WantParams result;
+    WantParams queryResult;
+    std::vector<std::string> uris = { "uri_1", "uri_2" };
+
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(1);
+    parcel.WriteParcelable(&result);
+    parcel.WriteStringVector(uris);
+    parcel.WriteInt32(2);
+    parcel.WriteBool(true);
+    parcel.WriteBool(true);
+    parcel.WriteInt32(1);
+    parcel.WriteParcelable(&queryResult);
+
     auto ret = testclass.ReadFromParcel(parcel);
     EXPECT_TRUE(ret);
+    EXPECT_EQ(testclass.innerErr, 0);
+    EXPECT_EQ(testclass.code, 1);
+    EXPECT_EQ(testclass.flags, 2);
+    EXPECT_TRUE(testclass.isDecorator);
+    EXPECT_TRUE(testclass.isQueryEntity);
+    EXPECT_EQ(testclass.uris.size(), 2);
+    EXPECT_EQ(testclass.queryResults.size(), 1);
     TAG_LOGI(AAFwkTag::TEST, "end.");
+}
+
+/**
+ * @tc.name: ReadFromParcel_0200
+ * @tc.desc: resultSize is negative.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteResultTest, ReadFromParcel_0200, TestSize.Level1)
+{
+    InsightIntentExecuteResult testclass;
+    Parcel parcel;
+    WantParams result;
+
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(1);
+    parcel.WriteParcelable(&result);
+    parcel.WriteStringVector({});
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(-1);
+
+    auto ret = testclass.ReadFromParcel(parcel);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: ReadFromParcel_0300
+ * @tc.desc: resultSize exceeds cycle limit.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteResultTest, ReadFromParcel_0300, TestSize.Level1)
+{
+    InsightIntentExecuteResult testclass;
+    Parcel parcel;
+    WantParams result;
+
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(1);
+    parcel.WriteParcelable(&result);
+    parcel.WriteStringVector({});
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteBool(false);
+    parcel.WriteInt32(1001);
+
+    auto ret = testclass.ReadFromParcel(parcel);
+    EXPECT_FALSE(ret);
+}
+
+/**
+ * @tc.name: ReadFromParcel_0400
+ * @tc.desc: query result parcelable is missing.
+ * @tc.type: FUNC
+ */
+HWTEST_F(InsightIntentExecuteResultTest, ReadFromParcel_0400, TestSize.Level1)
+{
+    InsightIntentExecuteResult testclass;
+    Parcel parcel;
+    WantParams result;
+
+    parcel.WriteInt32(0);
+    parcel.WriteInt32(1);
+    parcel.WriteParcelable(&result);
+    parcel.WriteStringVector({});
+    parcel.WriteInt32(0);
+    parcel.WriteBool(false);
+    parcel.WriteBool(true);
+    parcel.WriteInt32(1);
+
+    auto ret = testclass.ReadFromParcel(parcel);
+    EXPECT_FALSE(ret);
 }
 
 /**
