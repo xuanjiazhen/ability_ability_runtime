@@ -30,12 +30,53 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
+
+    /**
+     * @brief Helper method to ensure service proxy is unavailable
+     * This simulates the scenario where the service is not running or connection fails
+     */
+    void EnsureServiceProxyUnavailable();
+
+    /**
+     * @brief Helper method to test BatchQueryPermissionBySubCommand with given commands
+     * @param cmds Command list to test
+     * @param testName Name of the test for logging
+     */
+    void TestBatchQueryWithServiceUnavailable(const std::vector<Command> &cmds, const std::string &testName);
 };
 
 void CliToolMGRClientTest::SetUpTestCase(void) {}
 void CliToolMGRClientTest::TearDownTestCase(void) {}
 void CliToolMGRClientTest::SetUp() {}
 void CliToolMGRClientTest::TearDown() {}
+
+void CliToolMGRClientTest::EnsureServiceProxyUnavailable()
+{
+    // Explicitly clear the proxy to simulate service unavailability
+    // This ensures we test the error handling path when the service is not available
+    auto& client = CliToolMGRClient::GetInstance();
+    client.ClearProxy();
+}
+
+void CliToolMGRClientTest::TestBatchQueryWithServiceUnavailable(
+    const std::vector<Command> &cmds, const std::string &testName)
+{
+    GTEST_LOG_(INFO) << testName << " start";
+
+    // Ensure service proxy is unavailable for this test
+    EnsureServiceProxyUnavailable();
+
+    auto& client = CliToolMGRClient::GetInstance();
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t ret = client.BatchQueryPermissionBySubCommand(cmds, cmdPermissions);
+
+    // When service proxy is unavailable, should return error and empty results
+    EXPECT_EQ(ret, GET_CLI_TOOL_MGR_SERVICE_FAILED) << "Service proxy should be unavailable";
+    EXPECT_TRUE(cmdPermissions.empty()) << "Result should be empty when service is unavailable";
+
+    GTEST_LOG_(INFO) << testName << " end";
+}
 
 /**
  * @tc.name: CliToolMGRClient_GetInstance_0100
