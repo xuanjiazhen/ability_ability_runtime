@@ -25,6 +25,10 @@
 #include <unordered_set>
 #include <vector>
 
+#include "accesstoken_kit.h"
+#include "bundle_mgr_helper.h"
+#include "ipc_skeleton.h"
+
 #define private public
 #include "tool_util.h"
 #undef private
@@ -38,6 +42,7 @@
 #include "int_wrapper.h"
 #include "long_wrapper.h"
 #include "session_record.h"
+#include "skill_execute_result.h"
 #include "string_wrapper.h"
 #include "tool_info.h"
 #include "want_params.h"
@@ -96,7 +101,9 @@ void ToolUtilTest::TearDownTestCase(void)
 
 void ToolUtilTest::SetUp()
 {
-    // Reset state before each test
+    AccessToken::AccessTokenKit::InitMockResult();
+    AppExecFwk::BundleMgrHelper::Reset();
+    IPCSkeleton::Reset();
 }
 
 void ToolUtilTest::TearDown()
@@ -487,24 +494,56 @@ HWTEST_F(ToolUtilTest, GenerateCliSessionId_0600, TestSize.Level1)
 
 /**
  * @tc.name: ToolUtil_GenerateSandboxConfig_0100
- * @tc.desc: Test GenerateSandboxConfig with challenge
+ * @tc.desc: Test GenerateSandboxConfig with mocked caller and bundle info
  * @tc.type: FUNC
  */
 HWTEST_F(ToolUtilTest, GenerateSandboxConfig_0100, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "ToolUtil_GenerateSandboxConfig_0100 start";
 
+    constexpr AccessToken::AccessTokenID tokenId = 100;
+    constexpr uint64_t callerTokenId = 200;
+    constexpr int32_t uid = 300;
+    constexpr int32_t pid = 400;
+    constexpr int32_t gid = 500;
+    const std::string bundleName = "bundle.mock";
+    const std::string appId = "app.mock";
+    const std::string challenge = "test_challenge_123";
+    const std::string cliName = "test_tool";
+    const std::string subCliName = "test_subcommand";
+
+    AccessToken::AccessTokenKit::getTokenTypeFlagRet = AccessToken::ATokenTypeEnum::TOKEN_HAP;
+    AccessToken::AccessTokenKit::hapInfo.bundleName = bundleName;
+    AccessToken::AccessTokenKit::hapInfo.userID = uid;
+    AccessToken::AccessTokenKit::hapInfo.instIndex = 0;
+    AppExecFwk::BundleMgrHelper::gid = gid;
+    AppExecFwk::BundleMgrHelper::appId = appId;
+    AppExecFwk::BundleMgrHelper::bundleName = bundleName;
+    IPCSkeleton::callingFullTokenId = callerTokenId;
+    IPCSkeleton::callingUid = uid;
+    IPCSkeleton::callingPid = pid;
+
     ExecToolParam param;
-    param.challenge = "test_challenge_123";
+    param.challenge = challenge;
+    param.toolName = cliName;
+    param.subcommand = subCliName;
     std::string sandboxConfig;
-    std::string bundleName;
-    AccessToken::AccessTokenID tokenId = 1; // Invalid token ID for testing
+    std::string actualBundleName;
 
-    bool result = ToolUtil::GenerateSandboxConfig(param, tokenId, sandboxConfig, bundleName);
+    bool result = ToolUtil::GenerateSandboxConfig(param, tokenId, sandboxConfig, actualBundleName);
 
-    // In test environment, this will likely fail because we're not a HAP
-    // Expected: return false, sandboxConfig may be empty or unchanged
-    EXPECT_FALSE(result);
+    ASSERT_TRUE(result);
+    EXPECT_EQ(actualBundleName, bundleName);
+    auto config = nlohmann::json::parse(sandboxConfig);
+    EXPECT_EQ(config["callerTokenId"], callerTokenId);
+    EXPECT_EQ(config["challenge"], challenge);
+    EXPECT_EQ(config["uid"], uid);
+    EXPECT_EQ(config["callerPid"], pid);
+    EXPECT_EQ(config["gid"], gid);
+    EXPECT_EQ(config["appId"], appId);
+    EXPECT_EQ(config["bundleName"], bundleName);
+    EXPECT_EQ(config["cliName"], cliName);
+    EXPECT_EQ(config["subCliName"], subCliName);
 
     GTEST_LOG_(INFO) << "ToolUtil_GenerateSandboxConfig_0100 end";
 }
@@ -1118,6 +1157,264 @@ HWTEST_F(ToolUtilTest, ValidateInputSchemaProperties_ArrayItems_0200, TestSize.L
     EXPECT_EQ(result, ERR_INVALID_PARAM);
 
     GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_ArrayItems_0200 end";
+}
+
+/**
+ * @tc.name: ToolUtil_ValidateInputSchemaProperties_1100
+ * @tc.desc: Test ValidateInputSchemaProperties with non-empty args and empty schema
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ValidateInputSchemaProperties_1100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_1100 start";
+
+    AAFwk::WantParams args;
+    args.SetParam("target", AAFwk::String::Box("device"));
+
+    EXPECT_EQ(ToolUtil::ValidateInputSchemaProperties("", args), ERR_INVALID_PARAM);
+
+    GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_1100 end";
+}
+
+/**
+ * @tc.name: ToolUtil_ValidateInputSchemaProperties_1200
+ * @tc.desc: Test ValidateInputSchemaProperties with invalid schema and non-empty args
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ValidateInputSchemaProperties_1200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_1200 start";
+
+    AAFwk::WantParams args;
+    args.SetParam("target", AAFwk::String::Box("device"));
+
+    EXPECT_EQ(ToolUtil::ValidateInputSchemaProperties("{invalid json}", args), ERR_NO_INIT);
+
+    GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_1200 end";
+}
+
+/**
+ * @tc.name: ToolUtil_ValidateInputSchemaProperties_1300
+ * @tc.desc: Test ValidateInputSchemaProperties help branch rejects additional args
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ValidateInputSchemaProperties_1300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_1300 start";
+
+    AAFwk::WantParams args;
+    args.SetParam("help", AAFwk::Boolean::Box(true));
+    args.SetParam("target", AAFwk::String::Box("device"));
+
+    std::string schema = R"({"properties":{"help":{"type":"boolean"},"target":{"type":"string"}}})";
+    EXPECT_EQ(ToolUtil::ValidateInputSchemaProperties(schema, args), ERR_INVALID_PARAM);
+
+    GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_1300 end";
+}
+
+/**
+ * @tc.name: ToolUtil_ValidateInputSchemaProperties_1400
+ * @tc.desc: Test unknown schema type is allowed for compatibility
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ValidateInputSchemaProperties_1400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_1400 start";
+
+    AAFwk::WantParams args;
+    args.SetParam("target", AAFwk::String::Box("device"));
+
+    std::string schema = R"({"properties":{"target":{"type":"custom"}}})";
+    EXPECT_EQ(ToolUtil::ValidateInputSchemaProperties(schema, args), ERR_OK);
+
+    GTEST_LOG_(INFO) << "ToolUtil_ValidateInputSchemaProperties_1400 end";
+}
+
+/**
+ * @tc.name: ToolUtil_GenerateCliSessionId_0700
+ * @tc.desc: Test GenerateCliSessionId records start time when record is supplied
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, GenerateCliSessionId_0700, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_GenerateCliSessionId_0700 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    EXPECT_EQ(record->startTime, 0);
+
+    std::string sessionId = ToolUtil::GenerateCliSessionId("record_tool", record);
+
+    EXPECT_FALSE(sessionId.empty());
+    EXPECT_GT(record->startTime, 0);
+
+    GTEST_LOG_(INFO) << "ToolUtil_GenerateCliSessionId_0700 end";
+}
+
+/**
+ * @tc.name: ToolUtil_NormalizeSkillParamKeys_0100
+ * @tc.desc: Test NormalizeSkillParamKeys renames dashed args and preserves existing bare keys
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, NormalizeSkillParamKeys_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_NormalizeSkillParamKeys_0100 start";
+
+    AAFwk::WantParams args;
+    args.SetParam("--target", AAFwk::String::Box("device"));
+    args.SetParam("-force", AAFwk::Boolean::Box(true));
+    args.SetParam("--exists", AAFwk::String::Box("prefixed"));
+    args.SetParam("exists", AAFwk::String::Box("bare"));
+
+    ToolUtil::NormalizeSkillParamKeys(args);
+
+    EXPECT_EQ(args.GetStringParam("target"), "device");
+    auto forceValue = AAFwk::IBoolean::Query(args.GetParam("force"));
+    ASSERT_NE(forceValue, nullptr);
+    bool force = false;
+    EXPECT_EQ(forceValue->GetValue(force), ERR_OK);
+    EXPECT_TRUE(force);
+    EXPECT_EQ(args.GetStringParam("exists"), "bare");
+    EXPECT_TRUE(args.GetStringParam("--target").empty());
+    EXPECT_TRUE(args.GetStringParam("--exists").empty());
+
+    GTEST_LOG_(INFO) << "ToolUtil_NormalizeSkillParamKeys_0100 end";
+}
+
+/**
+ * @tc.name: ToolUtil_ExpandArgsFromJson_0100
+ * @tc.desc: Test ExpandArgsFromJson expands supported values and skips reserved/object values
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ExpandArgsFromJson_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandArgsFromJson_0100 start";
+
+    AAFwk::WantParams args;
+    args.SetParam("args", AAFwk::String::Box("placeholder"));
+    std::string argsStr = R"({
+        "target": "device",
+        "count": 2,
+        "enabled": true,
+        "bundleName": "reserved.bundle",
+        "nested": {"ignored": true}
+    })";
+
+    EXPECT_TRUE(ToolUtil::ExpandArgsFromJson(args, argsStr));
+    EXPECT_TRUE(args.GetStringParam("args").empty());
+    EXPECT_EQ(args.GetStringParam("target"), "device");
+    auto countValue = AAFwk::IInteger::Query(args.GetParam("count"));
+    ASSERT_NE(countValue, nullptr);
+    int32_t count = 0;
+    EXPECT_EQ(countValue->GetValue(count), ERR_OK);
+    EXPECT_EQ(count, 2);
+    auto enabledValue = AAFwk::IBoolean::Query(args.GetParam("enabled"));
+    ASSERT_NE(enabledValue, nullptr);
+    bool enabled = false;
+    EXPECT_EQ(enabledValue->GetValue(enabled), ERR_OK);
+    EXPECT_TRUE(enabled);
+    EXPECT_TRUE(args.GetStringParam("bundleName").empty());
+    EXPECT_TRUE(args.GetStringParam("nested").empty());
+
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandArgsFromJson_0100 end";
+}
+
+/**
+ * @tc.name: ToolUtil_ExpandArgsFromJson_0200
+ * @tc.desc: Test ExpandArgsFromJson rejects invalid and non-object json
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ExpandArgsFromJson_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandArgsFromJson_0200 start";
+
+    AAFwk::WantParams args;
+
+    EXPECT_FALSE(ToolUtil::ExpandArgsFromJson(args, "{invalid json}"));
+    EXPECT_FALSE(ToolUtil::ExpandArgsFromJson(args, R"(["not", "object"])"));
+
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandArgsFromJson_0200 end";
+}
+
+/**
+ * @tc.name: ToolUtil_ExpandArgsFromWantParams_0100
+ * @tc.desc: Test ExpandArgsFromWantParams expands nested args and skips reserved keys
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, ExpandArgsFromWantParams_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandArgsFromWantParams_0100 start";
+
+    AAFwk::WantParams nestedArgs;
+    nestedArgs.SetParam("target", AAFwk::String::Box("device"));
+    nestedArgs.SetParam("bundleName", AAFwk::String::Box("reserved.bundle"));
+
+    AAFwk::WantParams args;
+    args.SetParam("args", AAFwk::WantParamWrapper::Box(nestedArgs));
+
+    ToolUtil::ExpandArgsFromWantParams(args);
+
+    EXPECT_TRUE(args.GetStringParam("args").empty());
+    EXPECT_EQ(args.GetStringParam("target"), "device");
+    EXPECT_TRUE(args.GetStringParam("bundleName").empty());
+
+    GTEST_LOG_(INFO) << "ToolUtil_ExpandArgsFromWantParams_0100 end";
+}
+
+/**
+ * @tc.name: ToolUtil_FilterSkillArgs_0100
+ * @tc.desc: Test FilterSkillArgs removes reserved skill keys
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, FilterSkillArgs_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_FilterSkillArgs_0100 start";
+
+    AAFwk::WantParams args;
+    args.SetParam("bundleName", AAFwk::String::Box("reserved.bundle"));
+    args.SetParam("target", AAFwk::String::Box("device"));
+    args.SetParam("moduleName", AAFwk::String::Box("module"));
+
+    auto filteredArgs = ToolUtil::FilterSkillArgs(args);
+
+    ASSERT_NE(filteredArgs, nullptr);
+    EXPECT_EQ(filteredArgs->GetStringParam("target"), "device");
+    EXPECT_TRUE(filteredArgs->GetStringParam("bundleName").empty());
+    EXPECT_TRUE(filteredArgs->GetStringParam("moduleName").empty());
+
+    GTEST_LOG_(INFO) << "ToolUtil_FilterSkillArgs_0100 end";
+}
+
+/**
+ * @tc.name: ToolUtil_BuildSkillSessionInfo_0100
+ * @tc.desc: Test BuildSkillSessionInfo success and failure status branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(ToolUtilTest, BuildSkillSessionInfo_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "ToolUtil_BuildSkillSessionInfo_0100 start";
+
+    AppExecFwk::SkillExecuteResult skillResult;
+    skillResult.code = 12;
+    skillResult.result = std::make_shared<AAFwk::WantParams>();
+    skillResult.result->SetParam("output", AAFwk::String::Box("skill result"));
+
+    CliSessionInfo completed = ToolUtil::BuildSkillSessionInfo("session", ERR_OK, skillResult);
+    EXPECT_EQ(completed.sessionId, "session");
+    EXPECT_EQ(completed.toolName, "ohos-arkTSScript");
+    EXPECT_EQ(completed.status, "completed");
+    ASSERT_NE(completed.result, nullptr);
+    EXPECT_EQ(completed.result->exitCode, 12);
+    EXPECT_FALSE(completed.result->outputText.empty());
+
+    AppExecFwk::SkillExecuteResult failedSkillResult;
+    failedSkillResult.code = -1;
+    CliSessionInfo failed = ToolUtil::BuildSkillSessionInfo("failed-session", ERR_INVALID_PARAM, failedSkillResult);
+    EXPECT_EQ(failed.status, "failed");
+    ASSERT_NE(failed.result, nullptr);
+    EXPECT_EQ(failed.result->exitCode, -1);
+    EXPECT_TRUE(failed.result->outputText.empty());
+
+    GTEST_LOG_(INFO) << "ToolUtil_BuildSkillSessionInfo_0100 end";
 }
 
 } // namespace CliTool
