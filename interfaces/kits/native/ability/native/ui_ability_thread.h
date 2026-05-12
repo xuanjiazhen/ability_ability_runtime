@@ -161,6 +161,13 @@ public:
 
     void ScheduleAbilityRequestSuccess(const std::string &requestId, const AppExecFwk::ElementName &element) override;
 
+    /**
+     * @brief ScheduleUpdateRequestIds, update request IDs for current request.
+     * @param requestId The request ID from AMS side.
+     * @param scbRequestId The SCB request ID from WMS side.
+     */
+    void ScheduleUpdateRequestIds(int32_t requestId, int32_t scbRequestId) override;
+
 #ifdef SUPPORT_SCREEN
     /**
      * @brief Get the UIability of the current thread.
@@ -189,6 +196,7 @@ private:
         sptr<AAFwk::SessionInfo> sessionInfo = nullptr);
     void HandleShareData(const int32_t &requestCode);
     bool HandlePrepareTerminateAbility();
+    void HandleUpdateRequestIds(int32_t requestId, int32_t scbRequestId);
     void HandleUpdateConfiguration(const AppExecFwk::Configuration &config);
     void AddLifecycleEvent(uint32_t state, std::string &methodName) const;
 

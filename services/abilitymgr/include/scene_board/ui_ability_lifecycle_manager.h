@@ -165,7 +165,7 @@ public:
      * @return Returns ERR_OK on success, others on failure.
      */
     int MinimizeUIAbility(const UIAbilityRecordPtr &abilityRecord, bool fromUser, uint32_t sceneFlag,
-        int32_t backgroundReason = 0);
+        int32_t backgroundReason = 0, int32_t requestId = 0, int32_t scbRequestId = 0);
 
     /**
      * GetUIAbilityRecordBySessionInfo.
@@ -179,7 +179,8 @@ public:
         int resultCode, const Want *resultWant, int64_t callerRequestCode);
 
     int CloseUIAbility(const UIAbilityRecordPtr &abilityRecord,
-        int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery);
+        int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery,
+        int32_t requestId = 0, int32_t scbRequestId = 0);
 
     /**
      * Set rootSceneSession by SCB.
@@ -779,13 +780,13 @@ private:
      * @brief Delay complete terminate operation
      * @param abilityRecord The ability record to terminate
      */
-    void DelayCompleteTerminate(const UIAbilityRecordPtr &abilityRecord);
+    void DelayCompleteTerminate(const UIAbilityRecordPtr &abilityRecord, int32_t requestId = 0, int32_t scbRequestId = 0);
 
     /**
      * @brief Complete terminate operation
      * @param abilityRecord The ability record to terminate
      */
-    void CompleteTerminate(const UIAbilityRecordPtr &abilityRecord);
+    void CompleteTerminate(const UIAbilityRecordPtr &abilityRecord, int32_t requestId = 0, int32_t scbRequestId = 0);
 
     /**
      * @brief Check if token is contained in internal storage
@@ -826,7 +827,7 @@ private:
      * @param abilityRecord The ability to close
      * @return ERR_OK if successful, error code otherwise
      */
-    int CloseUIAbilityInner(UIAbilityRecordPtr abilityRecord);
+    int CloseUIAbilityInner(UIAbilityRecordPtr abilityRecord, int32_t requestId = 0, int32_t scbRequestId = 0);
 
     /**
      * @brief Return to caller ability with result (locked)

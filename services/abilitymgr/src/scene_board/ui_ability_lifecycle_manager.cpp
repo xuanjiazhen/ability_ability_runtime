@@ -216,11 +216,11 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     auto isCallBySCB = sessionInfo->want.GetBoolParam(ServerConstant::IS_CALL_BY_SCB, true);
     sessionInfo->want.RemoveParam(ServerConstant::IS_CALL_BY_SCB);
     TAG_LOGI(AAFwkTag::ABILITYMGR, "StartUIAbility session:%{public}d. bundle:%{public}s, ability:%{public}s, "
-        "instanceKey:%{public}s, requestId: %{public}d, isCallBySCB: %{public}d, reuseDelegator: %{public}d, "
+        "instanceKey:%{public}s, requestId: %{public}d, scbRequestId: %{public}d, isCallBySCB: %{public}d, reuseDelegator: %{public}d, "
         "scenarios:%{public}d, requestCode:%{public}d", sessionInfo->persistentId,
         abilityRequest.abilityInfo.bundleName.c_str(), abilityRequest.abilityInfo.name.c_str(),
-        sessionInfo->instanceKey.c_str(), sessionInfo->requestId, isCallBySCB, sessionInfo->reuseDelegatorWindow,
-        sessionInfo->scenarios, abilityRequest.requestCode);
+        sessionInfo->instanceKey.c_str(), sessionInfo->requestId, sessionInfo->scbRequestId, isCallBySCB,
+        sessionInfo->reuseDelegatorWindow, sessionInfo->scenarios, abilityRequest.requestCode);
     abilityRequest.sessionInfo = sessionInfo;
     if (sessionInfo->callerTypeForAnco == static_cast<int32_t>(CallerTypeForAnco::ADD)) {
         auto asCallerForAncoSessionId = StartAbilityUtils::GenerateAsCallerForAncoSessionId();
@@ -320,6 +320,21 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
     if (sessionInfo->processOptions != nullptr) {
         options.selfPid = sessionInfo->processOptions->selfPid;
     }
+
+    // Hot start scenario: Update request IDs before moving to foreground
+    if (!isColdStart && (sessionInfo->requestId != 0 || sessionInfo->scbRequestId != 0)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Hot start: Notify application to update request IDs: "
+            "requestId=%{public}d, scbRequestId=%{public}d",
+            sessionInfo->requestId, sessionInfo->scbRequestId);
+        auto scheduler = uiAbilityRecord->GetScheduler();
+        if (scheduler != nullptr) {
+            scheduler->ScheduleUpdateRequestIds(sessionInfo->requestId, sessionInfo->scbRequestId);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "Hot start: Updated request IDs in application process");
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Hot start: scheduler is null, cannot update request IDs");
+        }
+    }
+
     uiAbilityRecord->ProcessForegroundAbility(callerTokenId, options);
     if (uiAbilityRecord->GetSpecifiedFlag().empty() && !sessionInfo->specifiedFlag.empty()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "update specified: %{public}d--%{public}s", sessionInfo->requestId,
@@ -768,8 +783,8 @@ int UIAbilityLifecycleManager::NotifySCBToStartUIAbility(AbilityRequest &ability
     }
     sessionInfo->userId = userId_;
     sessionInfo->isAtomicService = (abilityInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, userId: %{public}d, requestId: %{public}d",
-        sessionInfo->persistentId, userId_, requestId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, userId: %{public}d, requestId: %{public}d, scbRequestId: %{public}d",
+        sessionInfo->persistentId, userId_, requestId, sessionInfo->scbRequestId);
     std::string errMsg;
     int ret = NotifySCBPendingActivation(sessionInfo, abilityRequest, errMsg);
     if (ret == ERR_INVALID_VALUE) {
@@ -892,8 +907,8 @@ void UIAbilityLifecycleManager::HandleAbilitiesNormalSessionInfo(AbilityRequest 
     sessionInfo->persistentId = GetPersistentIdByAbilityRequest(abilityRequest, sessionInfo->reuse);
     sessionInfo->userId = userId_;
     sessionInfo->isAtomicService = (abilityInfo.applicationInfo.bundleType == AppExecFwk::BundleType::ATOMIC_SERVICE);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, userId: %{public}d, requestId: %{public}d",
-        sessionInfo->persistentId, userId_, requestId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Reused sessionId: %{public}d, userId: %{public}d, requestId: %{public}d, scbRequestId: %{public}d",
+        sessionInfo->persistentId, userId_, requestId, sessionInfo->scbRequestId);
 
     abilitiesRequest->sessionInfoList.emplace_back(requestId, sessionInfo);
     abilitiesRequest->doneCount++;
@@ -1533,7 +1548,7 @@ int32_t UIAbilityLifecycleManager::NotifySCBToMinimizeUIAbility(const sptr<IRemo
 }
 
 int UIAbilityLifecycleManager::MinimizeUIAbility(const UIAbilityRecordPtr &abilityRecord, bool fromUser,
-    uint32_t sceneFlag, int32_t backgroundReason)
+    uint32_t sceneFlag, int32_t backgroundReason, int32_t requestId, int32_t scbRequestId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "call");
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
@@ -1542,8 +1557,8 @@ int UIAbilityLifecycleManager::MinimizeUIAbility(const UIAbilityRecordPtr &abili
         TAG_LOGE(AAFwkTag::ABILITYMGR, "null ability record");
         return ERR_INVALID_VALUE;
     }
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "infoName:%{public}s, backgroundReason:%{public}d",
-        abilityRecord->GetAbilityInfo().name.c_str(), backgroundReason);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "infoName:%{public}s, backgroundReason:%{public}d, requestId: %{public}d, scbRequestId: %{public}d",
+        abilityRecord->GetAbilityInfo().name.c_str(), backgroundReason, requestId, scbRequestId);
     abilityRecord->SetMinimizeReason(fromUser);
     abilityRecord->SetSceneFlag(sceneFlag);
     abilityRecord->SetIsFromScreenOffBackground(backgroundReason == BackgroundReason::BACKGROUND_REASON_SCREEN_OFF);
@@ -1559,6 +1574,19 @@ int UIAbilityLifecycleManager::MinimizeUIAbility(const UIAbilityRecordPtr &abili
         return ERR_OK;
     }
     abilityRecord->SetPendingState(AbilityState::BACKGROUND);
+
+    // Notify application to update request IDs before moving to background
+    if (requestId != 0 || scbRequestId != 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Notify application to update request IDs: %{public}d, %{public}d",
+            requestId, scbRequestId);
+        auto scheduler = abilityRecord->GetScheduler();
+        if (scheduler != nullptr) {
+            scheduler->ScheduleUpdateRequestIds(requestId, scbRequestId);
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Scheduler is null, skip updating request IDs");
+        }
+    }
+
     MoveToBackground(abilityRecord);
     abilityRecord->SetSceneFlag(0);
     return ERR_OK;
@@ -1860,8 +1888,8 @@ void UIAbilityLifecycleManager::CallUIAbilityBySCB(const sptr<SessionInfo> &sess
         return;
     }
 
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, CallUIAbilityBySCB abilityId:%{public}" PRIu64 ".",
-        sessionInfo->uiAbilityId);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, CallUIAbilityBySCB abilityId:%{public}" PRIu64 ", requestId: %{public}d, scbRequestId: %{public}d.",
+        sessionInfo->uiAbilityId, sessionInfo->requestId, sessionInfo->scbRequestId);
     sessionInfo->want.SetParam(AbilityRuntime::GlobalConstant::PAGE_CONFIG, params.pageConfig);
     auto search = tmpAbilityMap_.find(sessionInfo->requestId);
     if (search == tmpAbilityMap_.end()) {
@@ -2010,10 +2038,10 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
         }
         const_cast<AbilityRequest &>(abilityRequest).want.RemoveParam(KEY_REQUEST_ID);
         TAG_LOGI(AAFwkTag::ABILITYMGR, "scb call, NotifySCBPendingActivation for callerSession, target: %{public}s"
-            "requestId:%{public}s, splitRatio:%{public}d, windowMode:%{public}d",
+            "requestId:%{public}s, splitRatio:%{public}d, windowMode:%{public}d, sessionInfo->requestId: %{public}d, scbRequestId: %{public}d",
             sessionInfo->want.GetElement().GetAbilityName().c_str(), requestId.c_str(),
             sessionInfo->splitRatioPreference, sessionInfo->want.GetIntParam(Want::PARAM_RESV_WINDOW_MODE,
-                AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED));
+                AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED), sessionInfo->requestId, sessionInfo->scbRequestId);
         auto ret = static_cast<int>(callerSession->PendingSessionActivation(sessionInfo));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
@@ -2042,11 +2070,12 @@ int UIAbilityLifecycleManager::NotifySCBPendingActivation(sptr<SessionInfo> &ses
     sessionInfo->canStartAbilityFromBackground = true;
     TAG_LOGI(AAFwkTag::ABILITYMGR,
         "scb call, NotifySCBPendingActivation for rootSceneSession, target: %{public}s, "
-        "splitRatio:%{public}d, flags:%{public}u, windowMode:%{public}d",
+        "splitRatio:%{public}d, flags:%{public}u, windowMode:%{public}d, requestId: %{public}d, scbRequestId: %{public}d",
         sessionInfo->want.GetElement().GetAbilityName().c_str(),
         sessionInfo->splitRatioPreference, sessionInfo->want.GetFlags(),
         sessionInfo->want.GetIntParam(Want::PARAM_RESV_WINDOW_MODE,
-            AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED));
+            AbilityWindowConfiguration::MULTI_WINDOW_DISPLAY_UNDEFINED), sessionInfo->requestId, sessionInfo->scbRequestId);
+
     auto ret = static_cast<int>(tmpSceneSession->PendingSessionActivation(sessionInfo));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "PendingSessionActivation failed:%{public}d", ret);
@@ -2348,14 +2377,15 @@ int32_t UIAbilityLifecycleManager::BackToCallerAbilityWithResultLocked(sptr<Sess
 }
 
 int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityRecord,
-    int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery)
+    int resultCode, const Want *resultWant, bool isClearSession, bool isIndependentRecovery,
+    int32_t requestId, int32_t scbRequestId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_UI_ABILITY_MANAGER_NULL_ABILITY_RECORD);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "CloseUIAbility call: %{public}s/%{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CloseUIAbility call: %{public}s/%{public}s, requestId: %{public}d, scbRequestId: %{public}d",
         abilityRecord->GetElementName().GetBundleName().c_str(),
-        abilityRecord->GetElementName().GetAbilityName().c_str());
+        abilityRecord->GetElementName().GetAbilityName().c_str(), requestId, scbRequestId);
     if (abilityRecord->IsTerminating() && !abilityRecord->IsForeground()) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "ability on terminating");
         return ERR_OK;
@@ -2376,6 +2406,15 @@ int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityR
             abilityRecord->RemoveLoadTimeoutTask();
         }
         terminateAbilityList_.remove(abilityRecord);
+        // Notify application to update request IDs before terminating
+        if (requestId != 0 || scbRequestId != 0) {
+            auto scheduler = abilityRecord->GetScheduler();
+            if (scheduler != nullptr) {
+                scheduler->ScheduleUpdateRequestIds(requestId, scbRequestId);
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "Called ScheduleUpdateRequestIds: %{public}d, %{public}d",
+                    requestId, scbRequestId);
+            }
+        }
         return abilityRecord->TerminateAbility();
     }
     if (abilityRecord->GetPendingState() != AbilityState::INITIAL) {
@@ -2387,7 +2426,7 @@ int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityR
         }
         abilityRecord->RemoveForegroundTimeoutTask();
     }
-    return CloseUIAbilityInner(abilityRecord);
+    return CloseUIAbilityInner(abilityRecord, requestId, scbRequestId);
 }
 
 void UIAbilityLifecycleManager::PrepareCloseUIAbility(UIAbilityRecordPtr abilityRecord,
@@ -2414,7 +2453,7 @@ void UIAbilityLifecycleManager::PrepareCloseUIAbility(UIAbilityRecordPtr ability
     terminateAbilityList_.push_back(abilityRecord);
 }
 
-int UIAbilityLifecycleManager::CloseUIAbilityInner(UIAbilityRecordPtr abilityRecord)
+int UIAbilityLifecycleManager::CloseUIAbilityInner(UIAbilityRecordPtr abilityRecord, int32_t requestId, int32_t scbRequestId)
 {
     CHECK_POINTER_AND_RETURN(abilityRecord, ERR_UI_ABILITY_MANAGER_NULL_ABILITY_RECORD);
     if (abilityRecord->IsAbilityState(FOREGROUND) || abilityRecord->IsAbilityState(FOREGROUNDING)) {
@@ -2425,25 +2464,25 @@ int UIAbilityLifecycleManager::CloseUIAbilityInner(UIAbilityRecordPtr abilityRec
     // ability on background, schedule to terminate.
     if (abilityRecord->GetAbilityState() == AbilityState::BACKGROUND) {
         auto self(shared_from_this());
-        auto task = [abilityRecord, self]() {
+        auto task = [abilityRecord, self, requestId, scbRequestId]() {
             TAG_LOGW(AAFwkTag::ABILITYMGR, "close ability by scb timeout");
-            self->DelayCompleteTerminate(abilityRecord);
+            self->DelayCompleteTerminate(abilityRecord, requestId, scbRequestId);
         };
         abilityRecord->Terminate(task);
     }
     return ERR_OK;
 }
 
-void UIAbilityLifecycleManager::DelayCompleteTerminate(const UIAbilityRecordPtr &abilityRecord)
+void UIAbilityLifecycleManager::DelayCompleteTerminate(const UIAbilityRecordPtr &abilityRecord, int32_t requestId, int32_t scbRequestId)
 {
     auto handler = DelayedSingleton<AbilityManagerService>::GetInstance()->GetTaskHandler();
     CHECK_POINTER(handler);
 
     PrintTimeOutLog(abilityRecord, AbilityManagerService::TERMINATE_TIMEOUT_MSG);
 
-    auto timeoutTask = [self = shared_from_this(), abilityRecord]() {
+    auto timeoutTask = [self = shared_from_this(), abilityRecord, requestId, scbRequestId]() {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "delay complete terminate task");
-        self->CompleteTerminate(abilityRecord);
+        self->CompleteTerminate(abilityRecord, requestId, scbRequestId);
         // set apprecord not support cache
         auto appMgr = AppMgrUtil::GetAppMgr();
         CHECK_POINTER(appMgr);
@@ -2454,7 +2493,7 @@ void UIAbilityLifecycleManager::DelayCompleteTerminate(const UIAbilityRecordPtr 
     handler->SubmitTaskJust(timeoutTask, "DELAY_KILL_PROCESS", killTimeout);
 }
 
-void UIAbilityLifecycleManager::CompleteTerminate(const UIAbilityRecordPtr &abilityRecord)
+void UIAbilityLifecycleManager::CompleteTerminate(const UIAbilityRecordPtr &abilityRecord, int32_t requestId, int32_t scbRequestId)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     std::lock_guard<ffrt::mutex> guard(sessionLock_);
@@ -2466,6 +2505,18 @@ void UIAbilityLifecycleManager::CompleteTerminate(const UIAbilityRecordPtr &abil
 
     // If this is a plugin ability, remove it from host's plugin list
     abilityRecord->PluginCompleteTerminate();
+
+    // Update request IDs in application process via IPC before terminating
+    if (requestId != 0 || scbRequestId != 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Notify application to update request IDs: %{public}d, %{public}d",
+            requestId, scbRequestId);
+        auto scheduler = abilityRecord->GetScheduler();
+        if (scheduler != nullptr) {
+            scheduler->ScheduleUpdateRequestIds(requestId, scbRequestId);
+        } else {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "Scheduler is null, skip updating request IDs");
+        }
+    }
 
     abilityRecord->RemoveAbilityDeathRecipient();
     auto ret = abilityRecord->TerminateAbility();

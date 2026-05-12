@@ -582,9 +582,15 @@ void CJUIAbility::DoOnForeground(const Want &want)
         window->SetSystemPrivacyMode(true);
     }
 
+    // Get requestId and scbRequestId from UIAbility member variables
+    int32_t requestId = GetRequestId();
+    int32_t scbRequestId = GetScbRequestId();
+    TAG_LOGI(AAFwkTag::UIABILITY, "Get requestId: %{public}d, scbRequestId: %{public}d from UIAbility for GoForeground",
+        requestId, scbRequestId);
+
     TAG_LOGD(AAFwkTag::UIABILITY, "move scene to foreground, sceneFlag_: %{public}d", UIAbility::sceneFlag_);
     AddLifecycleEventBeforeCall(FreezeUtil::TimeoutState::FOREGROUND, METHOD_NAME);
-    scene_->GoForeground(UIAbility::sceneFlag_);
+    scene_->GoForeground(UIAbility::sceneFlag_, requestId, scbRequestId);
 }
 
 void CJUIAbility::InitSceneDoOnForeground(std::shared_ptr<Rosen::WindowScene> scene, const Want &want)
@@ -605,11 +611,18 @@ void CJUIAbility::InitSceneDoOnForeground(std::shared_ptr<Rosen::WindowScene> sc
     Rosen::WMError ret = Rosen::WMError::WM_OK;
     auto option = GetWindowOption(want);
     auto sessionToken = GetSessionToken();
+
+    // Get requestId and scbRequestId from UIAbility member variables
+    int32_t requestId = GetRequestId();
+    int32_t scbRequestId = GetScbRequestId();
+    TAG_LOGI(AAFwkTag::UIABILITY, "Get requestId: %{public}d, scbRequestId: %{public}d from UIAbility for Init",
+        requestId, scbRequestId);
+
     if (Rosen::SceneBoardJudgement::IsSceneBoardEnabled() && sessionToken != nullptr) {
         abilityContext_->SetWeakSessionToken(sessionToken);
-        ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken, "", false, renderSession_);
+        ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, sessionToken, "", false, renderSession_, requestId, scbRequestId);
     } else {
-        ret = scene_->Init(displayId, abilityContext_, sceneListener_, option);
+        ret = scene_->Init(displayId, abilityContext_, sceneListener_, option, requestId, scbRequestId);
     }
     if (ret != Rosen::WMError::WM_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "init window scene failed");
