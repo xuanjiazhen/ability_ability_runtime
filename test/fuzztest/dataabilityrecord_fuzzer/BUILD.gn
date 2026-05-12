@@ -29,7 +29,6 @@ ohos_fuzztest("DataAbilityRecordFuzzTest") {
     "${ability_runtime_innerkits_path}/dataobs_manager/include",
     "${ability_runtime_services_path}/abilitymgr/include",
     "${ability_runtime_services_path}/abilitymgr/include/data_ability",
-    "${ability_runtime_test_path}/fuzztest",
   ]
   cflags = [
     "-g",
