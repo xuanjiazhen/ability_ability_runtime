@@ -292,6 +292,11 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     if (sessionInfo != nullptr) {
         SetSessionToken(sessionInfo->sessionToken, sessionInfo->renderSession);
         SetIdentityToken(sessionInfo->identityToken);
+        // Save requestId and scbRequestId to member variables
+        SetRequestId(sessionInfo->requestId);
+        SetScbRequestId(sessionInfo->scbRequestId);
+        TAG_LOGI(AAFwkTag::UIABILITY, "Save requestId: %{public}d, scbRequestId: %{public}d",
+            sessionInfo->requestId, sessionInfo->scbRequestId);
     }
     OnStartForSupportGraphics(want);
 #endif
@@ -325,7 +330,12 @@ void UIAbility::OnStop()
     // Call JS Func(onWindowStageDestroy) and Release the scene.
     if (scene_ != nullptr) {
         OnSceneWillDestroy();
-        scene_->GoDestroy();
+        // Get requestId and scbRequestId from UIAbility member variables
+        int32_t requestId = GetRequestId();
+        int32_t scbRequestId = GetScbRequestId();
+        TAG_LOGI(AAFwkTag::UIABILITY, "Get requestId: %{public}d, scbRequestId: %{public}d from UIAbility for GoDestroy",
+            requestId, scbRequestId);
+        scene_->GoDestroy(requestId, scbRequestId);
         onSceneDestroyed();
     }
 #endif
@@ -907,7 +917,12 @@ void UIAbility::OnBackground()
 
     if (scene_ != nullptr) {
         TAG_LOGD(AAFwkTag::UIABILITY, "goBackground sceneFlag: %{public}d", sceneFlag_);
-        scene_->GoBackground(sceneFlag_);
+        // Get requestId and scbRequestId from UIAbility member variables
+        int32_t requestId = GetRequestId();
+        int32_t scbRequestId = GetScbRequestId();
+        TAG_LOGI(AAFwkTag::UIABILITY, "Get requestId: %{public}d, scbRequestId: %{public}d from UIAbility for GoBackground",
+            requestId, scbRequestId);
+        scene_->GoBackground(sceneFlag_, requestId, scbRequestId);
     }
 
     if (abilityRecovery_ != nullptr && abilityContext_ != nullptr && abilityContext_->GetRestoreEnabled() &&
@@ -1571,6 +1586,38 @@ void UIAbility::SetIdentityToken(const std::string &identityToken)
 std::string UIAbility::GetIdentityToken() const
 {
     return identityToken_;
+}
+
+void UIAbility::SetRequestId(int32_t requestId)
+{
+    requestId_ = requestId;
+}
+
+int32_t UIAbility::GetRequestId() const
+{
+    return requestId_;
+}
+
+void UIAbility::SetScbRequestId(int32_t scbRequestId)
+{
+    scbRequestId_ = scbRequestId;
+}
+
+int32_t UIAbility::GetScbRequestId() const
+{
+    return scbRequestId_;
+}
+
+void UIAbility::UpdateTerminateRequestIds(int32_t requestId, int32_t scbRequestId)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "Update request IDs for current request: "
+        "requestId: %{public}d → %{public}d, scbRequestId: %{public}d → %{public}d",
+        requestId_, requestId, scbRequestId_, scbRequestId);
+    // Update member variables with the current request's IDs
+    // These IDs will be used in subsequent lifecycle callbacks (OnBackground, OnStop, etc.)
+    // Note: requestId identifies a request, not a flow type (start/minimize/terminate)
+    requestId_ = requestId;
+    scbRequestId_ = scbRequestId;
 }
 
 bool UIAbility::CheckRecoveryEnabled()

@@ -96,6 +96,14 @@ public:
      */
     virtual bool SchedulePrepareTerminateAbility() = 0;
 
+    /**
+     * ScheduleUpdateRequestIds, update request IDs for current request.
+     * This is a unified interface for all flows (minimize, terminate, etc.)
+     * @param requestId The request ID from AMS side.
+     * @param scbRequestId The SCB request ID from WMS side.
+     */
+    virtual void ScheduleUpdateRequestIds(int32_t requestId, int32_t scbRequestId) = 0;
+
     /*
      * ScheduleSaveAbilityState, scheduling save ability state.
      */
@@ -414,6 +422,9 @@ public:
 
         // ipc id for scheduling service ability to prepare terminate (30)
         SCHEDULE_ABILITY_PREPARE_TERMINATE,
+
+        // ipc id for scheduling update request IDs (unified for all flows)
+        SCHEDULE_UPDATE_REQUEST_IDS,
 
         SCHEDULE_ONEXECUTE_INTENT,
 

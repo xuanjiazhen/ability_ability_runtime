@@ -342,6 +342,14 @@ public:
 
     void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override;
 
+    /**
+     * @brief ScheduleUpdateRequestIds, update request IDs for current request.
+     * This is a unified interface for all flows (minimize, terminate, etc.)
+     * @param requestId The request ID from AMS side.
+     * @param scbRequestId The SCB request ID from WMS side.
+     */
+    void ScheduleUpdateRequestIds(int32_t requestId, int32_t scbRequestId) override;
+
 private:
     bool WriteInterfaceToken(MessageParcel &data);
     int32_t SendTransactCmd(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);

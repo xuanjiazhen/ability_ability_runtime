@@ -374,6 +374,15 @@ public:
 
     void ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode) override;
 
+    /**
+     * @brief ScheduleUpdateRequestIds, update request IDs for current request.
+     * This is a unified interface for all flows (minimize, terminate, etc.)
+     * Default implementation does nothing. Subclasses can override to implement requestId tracking.
+     * @param requestId The request ID from AMS side.
+     * @param scbRequestId The SCB request ID from WMS side.
+     */
+    void ScheduleUpdateRequestIds(int32_t requestId, int32_t scbRequestId) override;
+
     sptr<IRemoteObject> token_;
     std::shared_ptr<AbilityHandler> abilityHandler_ = nullptr;
     std::shared_ptr<EventRunner> runner_ = nullptr;

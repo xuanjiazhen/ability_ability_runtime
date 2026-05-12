@@ -5335,6 +5335,11 @@ int AbilityManagerService::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionI
         return ERR_INVALID_VALUE;
     }
 
+    // Generate requestId for AMS side close request
+    auto requestId = RequestIdUtil::GetRequestId();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "CloseUIAbilityBySCB, generate requestId: %{public}d, "
+        "scbRequestId from WMS: %{public}d", requestId, sessionInfo->scbRequestId);
+
     if (!IsCallerSceneBoard()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard, no allowed");
         return ERR_WRONG_INTERFACE_CALL;
@@ -5369,7 +5374,7 @@ int AbilityManagerService::CloseUIAbilityBySCB(const sptr<SessionInfo> &sessionI
             exitReason);
     }
     eventInfo.errCode = uiAbilityManager->CloseUIAbility(abilityRecord, sessionInfo->resultCode,
-        &(sessionInfo->want), sessionInfo->isClearSession, false);
+        &(sessionInfo->want), sessionInfo->isClearSession, false, requestId, sessionInfo->scbRequestId);
     if (eventInfo.errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "close UIAbility by SCB failed: %{public}d", eventInfo.errCode);
         SendAbilityEvent(EventName::TERMINATE_ABILITY_ERROR, HISYSEVENT_FAULT, eventInfo);
@@ -5644,6 +5649,11 @@ int AbilityManagerService::MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessi
         return ERR_INVALID_VALUE;
     }
 
+    // Generate requestId for AMS side minimize request
+    auto requestId = RequestIdUtil::GetRequestId();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "MinimizeUIAbilityBySCB, generate requestId: %{public}d, "
+        "scbRequestId from WMS: %{public}d", requestId, sessionInfo->scbRequestId);
+
     if (!IsCallerSceneBoard()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no sceneboard, no allowed");
         return ERR_WRONG_INTERFACE_CALL;
@@ -5658,7 +5668,7 @@ int AbilityManagerService::MinimizeUIAbilityBySCB(const sptr<SessionInfo> &sessi
     if (!IsAbilityControllerForeground(abilityRecord->GetAbilityInfo().bundleName)) {
         return ERR_WOULD_BLOCK;
     }
-    return uiAbilityManager->MinimizeUIAbility(abilityRecord, fromUser, sceneFlag, backgroundReason);
+    return uiAbilityManager->MinimizeUIAbility(abilityRecord, fromUser, sceneFlag, backgroundReason, requestId, sessionInfo->scbRequestId);
 }
 
 int32_t AbilityManagerService::ConnectAbility(

@@ -1343,5 +1343,29 @@ void AbilitySchedulerProxy::ScheduleAbilitiesRequestDone(const std::string &requ
     }
     return;
 }
+
+void AbilitySchedulerProxy::ScheduleUpdateRequestIds(int32_t requestId, int32_t scbRequestId)
+{
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_ASYNC);
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write interface token failed");
+        return;
+    }
+    if (!data.WriteInt32(requestId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write requestId failed");
+        return;
+    }
+    if (!data.WriteInt32(scbRequestId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write scbRequestId failed");
+        return;
+    }
+
+    int32_t err = SendTransactCmd(IAbilityScheduler::SCHEDULE_UPDATE_REQUEST_IDS, data, reply, option);
+    if (err != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ScheduleUpdateRequestIds fail, err: %{public}d", err);
+    }
+}
 }  // namespace AAFwk
 }  // namespace OHOS
