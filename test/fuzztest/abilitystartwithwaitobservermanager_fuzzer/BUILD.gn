@@ -37,6 +37,7 @@ ohos_fuzztest("AbilityStartWithWaitObserverManagerFuzzTest") {
   sources = [
     "${ability_runtime_abilitymgr_path}/src/ability_start_with_wait_observer_manager/ability_start_with_wait_observer_manager.cpp",
     "${ability_runtime_innerkits_path}/ability_manager/src/aa_tools/ability_start_with_wait_observer_stub.cpp",
+    "${ability_runtime_innerkits_path}/ability_manager/src/aa_tools/ability_start_with_wait_observer_proxy.cpp",
     "abilitystartwithwaitobservermanager_fuzzer.cpp",
   ]
 
