@@ -27,6 +27,7 @@ ohos_fuzztest("AbilityAppFreezeManagerFuzzTest") {
     "${ability_runtime_services_path}/abilitymgr/include",
     "${ability_runtime_services_path}/appdfr/include",
     "${ability_runtime_path}/utils/global/freeze/include",
+    "${ability_runtime_test_path}/fuzztest",
   ]
 
   cflags = [
