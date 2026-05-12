@@ -1903,6 +1903,22 @@ public:
     int32_t SetResidentProcessEnabled(const std::string &bundleName, bool enable);
 
     /**
+     * Set delayed launch resident bundles.
+     * Only the specified SA (SA ID = CAR_SA_ID) can call this interface.
+     * @param bundleNames The bundle names of the resident processes to be delayed.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SetDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames);
+
+    /**
+     * Clear delayed launch resident bundles.
+     * Only the specified SA (SA ID = CAR_SA_ID) can call this interface.
+     * @param bundleNames The bundle names of the resident processes to be cleared from delayed list.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ClearDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames);
+
+    /**
      * Starts a new ability with specific start options.
      *
      * @param want, the want of the ability to start.

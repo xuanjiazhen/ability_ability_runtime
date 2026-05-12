@@ -6310,6 +6310,48 @@ int32_t AbilityManagerProxy::SetResidentProcessEnabled(const std::string &bundle
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::SetDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteStringVector(bundleNames)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write bundleNames fail");
+        return INNER_ERR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_DELAYED_LAUNCH_RESIDENT_BUNDLES, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::ClearDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteStringVector(bundleNames)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write bundleNames fail");
+        return INNER_ERR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::CLEAR_DELAYED_LAUNCH_RESIDENT_BUNDLES, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
+        return ret;
+    }
+    return reply.ReadInt32();
+}
+
 bool AbilityManagerProxy::IsEmbeddedOpenAllowed(sptr<IRemoteObject> callerToken, const std::string &appId)
 {
     if (callerToken == nullptr) {

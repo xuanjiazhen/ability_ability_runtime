@@ -767,6 +767,12 @@ enum class AbilityManagerInterfaceCode {
 
     // execute in-app skill with explicit caller tokenId
     EXECUTE_IN_APP_SKILL_WITH_TOKEN_ID = 6173,
+
+    // set delayed launch resident bundles
+    SET_DELAYED_LAUNCH_RESIDENT_BUNDLES = 6174,
+
+    // clear delayed launch resident bundles
+    CLEAR_DELAYED_LAUNCH_RESIDENT_BUNDLES = 6175,
 };
 }  // namespace AAFwk
 }  // namespace OHOS

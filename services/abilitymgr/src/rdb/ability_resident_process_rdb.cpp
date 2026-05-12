@@ -27,6 +27,12 @@ const std::string KEY_BUNDLE_NAME = "KEY_BUNDLE_NAME";
 const std::string KEY_KEEP_ALIVE_ENABLE = "KEEP_ALIVE_ENABLE";
 const std::string KEY_KEEP_ALIVE_CONFIGURED_LIST = "KEEP_ALIVE_CONFIGURED_LIST";
 
+// Delayed launch config table
+const std::string DELAYED_LAUNCH_TABLE_NAME = "delayed_launch_config";
+const std::string DELAYED_KEY_BUNDLE_NAME = "BUNDLE_NAME";
+const std::string DELAYED_KEY_CREATE_TIME = "CREATE_TIME";
+const std::string DELAYED_KEY_UPDATE_TIME = "UPDATE_TIME";
+
 const int32_t INDEX_BUNDLE_NAME = 0;
 const int32_t INDEX_KEEP_ALIVE_ENABLE = 1;
 const int32_t INDEX_KEEP_ALIVE_CONFIGURED_LIST = 2;
@@ -44,6 +50,16 @@ int32_t AmsResidentProcessRdbCallBack::OnCreate(NativeRdb::RdbStore &rdbStore)
     auto sqlResult = rdbStore.ExecuteSql(createTableSql);
     if (sqlResult != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "execute sql error");
+        return sqlResult;
+    }
+
+    // Create delayed launch config table
+    std::string createDelayedTableSql = "CREATE TABLE IF NOT EXISTS " + DELAYED_LAUNCH_TABLE_NAME +
+                                        " (BUNDLE_NAME TEXT NOT NULL PRIMARY KEY," +
+                                        "CREATE_TIME INTEGER NOT NULL, UPDATE_TIME INTEGER NOT NULL);";
+    sqlResult = rdbStore.ExecuteSql(createDelayedTableSql);
+    if (sqlResult != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "create delayed launch table error");
         return sqlResult;
     }
 
@@ -284,6 +300,129 @@ int32_t AmsResidentProcessRdb::GetResidentProcessRawData(const std::string &bund
     }
 
     return Rdb_Parameter_Err;
+}
+
+int32_t AmsResidentProcessRdb::SetDelayedLaunchConfig(const std::vector<std::string> &bundleNames)
+{
+    if (rdbMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "rdb mgr error");
+        return Rdb_Parameter_Err;
+    }
+
+    // If bundleNames is empty, clear all delayed launch config
+    if (bundleNames.empty()) {
+        NativeRdb::AbsRdbPredicates absRdbPredicates(DELAYED_LAUNCH_TABLE_NAME);
+        return rdbMgr_->DeleteData(absRdbPredicates);
+    }
+
+    int64_t currentTime = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now().time_since_epoch()).count();
+
+    for (const auto &bundleName : bundleNames) {
+        if (bundleName.empty()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "skip empty bundleName");
+            continue;
+        }
+
+        // Check if already exists
+        NativeRdb::AbsRdbPredicates queryPredicates(DELAYED_LAUNCH_TABLE_NAME);
+        queryPredicates.EqualTo(DELAYED_KEY_BUNDLE_NAME, bundleName);
+        auto resultSet = rdbMgr_->QueryData(queryPredicates);
+        if (resultSet != nullptr) {
+            bool exists = (resultSet->GoToFirstRow() == NativeRdb::E_OK);
+            resultSet->Close();
+
+            if (exists) {
+                // Update existing record
+                NativeRdb::ValuesBucket valuesBucket;
+                valuesBucket.PutInt(DELAYED_KEY_UPDATE_TIME, currentTime);
+                NativeRdb::AbsRdbPredicates updatePredicates(DELAYED_LAUNCH_TABLE_NAME);
+                updatePredicates.EqualTo(DELAYED_KEY_BUNDLE_NAME, bundleName);
+                rdbMgr_->UpdateData(valuesBucket, updatePredicates);
+            } else {
+                // Insert new record
+                NativeRdb::ValuesBucket valuesBucket;
+                valuesBucket.PutString(DELAYED_KEY_BUNDLE_NAME, bundleName);
+                valuesBucket.PutInt(DELAYED_KEY_CREATE_TIME, currentTime);
+                valuesBucket.PutInt(DELAYED_KEY_UPDATE_TIME, currentTime);
+                rdbMgr_->InsertData(valuesBucket);
+            }
+        }
+    }
+
+    return Rdb_OK;
+}
+
+int32_t AmsResidentProcessRdb::ClearDelayedLaunchConfig(const std::vector<std::string> &bundleNames)
+{
+    if (rdbMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "rdb mgr error");
+        return Rdb_Parameter_Err;
+    }
+
+    for (const auto &bundleName : bundleNames) {
+        if (bundleName.empty()) {
+            TAG_LOGW(AAFwkTag::ABILITYMGR, "skip empty bundleName");
+            continue;
+        }
+
+        NativeRdb::AbsRdbPredicates absRdbPredicates(DELAYED_LAUNCH_TABLE_NAME);
+        absRdbPredicates.EqualTo(DELAYED_KEY_BUNDLE_NAME, bundleName);
+        rdbMgr_->DeleteData(absRdbPredicates);
+    }
+
+    return Rdb_OK;
+}
+
+bool AmsResidentProcessRdb::IsDelayedLaunchBundle(const std::string &bundleName)
+{
+    if (bundleName.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "empty bundleName");
+        return false;
+    }
+
+    if (rdbMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "rdb mgr error");
+        return false;
+    }
+
+    NativeRdb::AbsRdbPredicates absRdbPredicates(DELAYED_LAUNCH_TABLE_NAME);
+    absRdbPredicates.EqualTo(DELAYED_KEY_BUNDLE_NAME, bundleName);
+    auto resultSet = rdbMgr_->QueryData(absRdbPredicates);
+    if (resultSet == nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "query result null");
+        return false;
+    }
+
+    ScopeGuard stateGuard([resultSet] { resultSet->Close(); });
+    bool result = (resultSet->GoToFirstRow() == NativeRdb::E_OK);
+    return result;
+}
+
+int32_t AmsResidentProcessRdb::GetDelayedLaunchBundles(std::vector<std::string> &bundleNames)
+{
+    if (rdbMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "rdb mgr error");
+        return Rdb_Parameter_Err;
+    }
+
+    NativeRdb::AbsRdbPredicates absRdbPredicates(DELAYED_LAUNCH_TABLE_NAME);
+    auto resultSet = rdbMgr_->QueryData(absRdbPredicates);
+    if (resultSet == nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "query result null");
+        return Rdb_OK;
+    }
+
+    ScopeGuard stateGuard([resultSet] { resultSet->Close(); });
+    while (resultSet->GoToNextRow() == NativeRdb::E_OK) {
+        std::string bundleName;
+        int ret = resultSet->GetString(0, bundleName);
+        if (ret == NativeRdb::E_OK && !bundleName.empty()) {
+            bundleNames.push_back(bundleName);
+        }
+    }
+
+    return Rdb_OK;
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -825,6 +825,12 @@ int AbilityManagerStub::OnRemoteRequestInnerNineteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::SET_RESIDENT_PROCESS_ENABLE) {
         return SetResidentProcessEnableInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_DELAYED_LAUNCH_RESIDENT_BUNDLES) {
+        return SetDelayedLaunchResidentBundlesInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::CLEAR_DELAYED_LAUNCH_RESIDENT_BUNDLES) {
+        return ClearDelayedLaunchResidentBundlesInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_ABILITY_STATE_BY_PERSISTENT_ID) {
         return GetAbilityStateByPersistentIdInner(data, reply);
     }
@@ -4754,6 +4760,36 @@ int32_t AbilityManagerStub::SetResidentProcessEnableInner(MessageParcel &data, M
     std::string bundleName = data.ReadString();
     bool enable = data.ReadBool();
     auto result = SetResidentProcessEnabled(bundleName, enable);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::SetDelayedLaunchResidentBundlesInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> bundleNames;
+    if (!data.ReadStringVector(&bundleNames)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read bundleNames fail");
+        return ERR_INVALID_VALUE;
+    }
+    auto result = SetDelayedLaunchResidentBundles(bundleNames);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::ClearDelayedLaunchResidentBundlesInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::vector<std::string> bundleNames;
+    if (!data.ReadStringVector(&bundleNames)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "read bundleNames fail");
+        return ERR_INVALID_VALUE;
+    }
+    auto result = ClearDelayedLaunchResidentBundles(bundleNames);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;

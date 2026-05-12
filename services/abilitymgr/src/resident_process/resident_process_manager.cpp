@@ -90,6 +90,14 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundle(const 
         needEraseIndexSet.insert(index);
         return;
     }
+
+    // Check if bundle is in delayed launch list
+    if (IsDelayedLaunchBundle(bundleInfo.name)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "bundle:%{public}s is in delayed launch list, skip", bundleInfo.name.c_str());
+        needEraseIndexSet.insert(index);
+        return;
+    }
+
     std::string processName = bundleInfo.applicationInfo.process;
     bool keepAliveEnable = bundleInfo.isKeepAlive;
     // Check startup permissions
@@ -380,6 +388,26 @@ void ResidentProcessManager::AddFailedResidentAbility(const std::string &bundleN
         .abilityName = abilityName,
         .userId = userId,
     });
+}
+
+int32_t ResidentProcessManager::SetDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call, bundleNames size: %{public}zu", bundleNames.size());
+    auto &rdb = AmsResidentProcessRdb::GetInstance();
+    return rdb.SetDelayedLaunchConfig(bundleNames);
+}
+
+int32_t ResidentProcessManager::ClearDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "call, bundleNames size: %{public}zu", bundleNames.size());
+    auto &rdb = AmsResidentProcessRdb::GetInstance();
+    return rdb.ClearDelayedLaunchConfig(bundleNames);
+}
+
+bool ResidentProcessManager::IsDelayedLaunchBundle(const std::string &bundleName)
+{
+    auto &rdb = AmsResidentProcessRdb::GetInstance();
+    return rdb.IsDelayedLaunchBundle(bundleName);
 }
 }  // namespace AAFwk
 }  // namespace OHOS

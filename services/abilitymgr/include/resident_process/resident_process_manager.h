@@ -95,6 +95,28 @@ public:
      */
     bool GetResidentBundleInfosForUser(std::vector<AppExecFwk::BundleInfo> &bundleInfos, int32_t userId);
     void StartFailedResidentAbilities();
+
+    /**
+     * Set delayed launch resident bundles.
+     * @param bundleNames The bundle names to be set as delayed launch.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t SetDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames);
+
+    /**
+     * Clear delayed launch resident bundles.
+     * @param bundleNames The bundle names to be cleared from delayed launch list.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    int32_t ClearDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames);
+
+    /**
+     * Check if a bundle is in delayed launch list.
+     * @param bundleName The bundle name to check.
+     * @return Returns true if the bundle is in delayed launch list, false otherwise.
+     */
+    bool IsDelayedLaunchBundle(const std::string &bundleName);
+
 private:
     void UpdateResidentProcessesStatus(const std::string &bundleName, bool localEnable, bool updateEnable);
     void AddFailedResidentAbility(const std::string &bundleName, const std::string &abilityName, int32_t userId);

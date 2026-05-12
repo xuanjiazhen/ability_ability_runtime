@@ -2329,6 +2329,22 @@ int32_t AbilityManagerClient::SetResidentProcessEnabled(const std::string &bundl
     return abms->SetResidentProcessEnabled(bundleName, enable);
 }
 
+int32_t AbilityManagerClient::SetDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_INVALID_VALUE(abms);
+    return abms->SetDelayedLaunchResidentBundles(bundleNames);
+}
+
+int32_t AbilityManagerClient::ClearDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_INVALID_VALUE(abms);
+    return abms->ClearDelayedLaunchResidentBundles(bundleNames);
+}
+
 bool AbilityManagerClient::IsEmbeddedOpenAllowed(sptr<IRemoteObject> callerToken, const std::string &appId)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "Get ui extension host info.");

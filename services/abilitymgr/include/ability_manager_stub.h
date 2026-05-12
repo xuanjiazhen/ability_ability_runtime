@@ -270,6 +270,8 @@ private:
     int32_t KillBundleWithReasonInner(MessageParcel &data, MessageParcel &reply);
     int32_t RecordAppWithReasonInner(MessageParcel &data, MessageParcel &reply);
     int32_t SetResidentProcessEnableInner(MessageParcel &data, MessageParcel &reply);
+    int32_t SetDelayedLaunchResidentBundlesInner(MessageParcel &data, MessageParcel &reply);
+    int32_t ClearDelayedLaunchResidentBundlesInner(MessageParcel &data, MessageParcel &reply);
 
     int SetRootSceneSessionInner(MessageParcel &data, MessageParcel &reply);
     int CallUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);

@@ -2196,6 +2196,28 @@ public:
     }
 
     /**
+     * @brief Set delayed launch resident bundles.
+     * Only the specified SA (SA ID = CAR_SA_ID) can call this interface.
+     * @param bundleNames The bundle names of the resident processes to be delayed.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief Clear delayed launch resident bundles.
+     * Only the specified SA (SA ID = CAR_SA_ID) can call this interface.
+     * @param bundleNames The bundle names of the resident processes to be cleared from delayed list.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ClearDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+    {
+        return 0;
+    }
+
+    /**
      * @brief Querying whether to allow embedded startup of atomic service.
      *
      * @param token The caller UIAbility token.

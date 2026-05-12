@@ -154,6 +154,35 @@ public:
      * @return An integer indicating the result of the operation (e.g., success or error code).
      */
     int32_t GetResidentProcessRawData(const std::string &bundleName, const std::string &callerName);
+
+    /**
+     * @brief Set delayed launch config for bundles.
+     * @param bundleNames The bundle names to be set as delayed launch.
+     * @return Returns Rdb_OK on success, others on failure.
+     */
+    int32_t SetDelayedLaunchConfig(const std::vector<std::string> &bundleNames);
+
+    /**
+     * @brief Clear delayed launch config for bundles.
+     * @param bundleNames The bundle names to be cleared from delayed launch list.
+     * @return Returns Rdb_OK on success, others on failure.
+     */
+    int32_t ClearDelayedLaunchConfig(const std::vector<std::string> &bundleNames);
+
+    /**
+     * @brief Check if a bundle is in delayed launch list.
+     * @param bundleName The bundle name to check.
+     * @return Returns true if the bundle is in delayed launch list, false otherwise.
+     */
+    bool IsDelayedLaunchBundle(const std::string &bundleName);
+
+    /**
+     * @brief Get all delayed launch bundles.
+     * @param bundleNames Output parameter to store the bundle names.
+     * @return Returns Rdb_OK on success, others on failure.
+     */
+    int32_t GetDelayedLaunchBundles(std::vector<std::string> &bundleNames);
+
 private:
     // Pointer to the RDB data manager, responsible for managing RDB operations.
     std::unique_ptr<RdbDataManager> rdbMgr_ = nullptr;

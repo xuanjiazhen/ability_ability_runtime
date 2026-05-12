@@ -15136,6 +15136,58 @@ int32_t AbilityManagerService::SetResidentProcessEnabled(const std::string &bund
     return residentProcessManager->SetResidentProcessEnabled(bundleName, callerName, enable);
 }
 
+int32_t AbilityManagerService::SetDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    // Check caller SA ID
+    int32_t callerSaId = IPCSkeleton::GetCallingSid();
+    constexpr int32_t CAR_SA_ID = 6666;
+    if (callerSaId != CAR_SA_ID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller SA ID %{public}d not authorized, only %{public}d allowed",
+            callerSaId, CAR_SA_ID);
+        return ERR_NO_PERMISSION;
+    }
+
+    // Validate bundleNames
+    for (const auto &bundleName : bundleNames) {
+        if (bundleName.empty()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName is empty");
+            return ERR_INVALID_VALUE;
+        }
+    }
+
+    auto residentProcessManager = DelayedSingleton<ResidentProcessManager>::GetInstance();
+    CHECK_POINTER_AND_RETURN(residentProcessManager, INNER_ERR);
+
+    return residentProcessManager->SetDelayedLaunchResidentBundles(bundleNames);
+}
+
+int32_t AbilityManagerService::ClearDelayedLaunchResidentBundles(const std::vector<std::string> &bundleNames)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    // Check caller SA ID
+    int32_t callerSaId = IPCSkeleton::GetCallingSid();
+    constexpr int32_t CAR_SA_ID = 6666;
+    if (callerSaId != CAR_SA_ID) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller SA ID %{public}d not authorized, only %{public}d allowed",
+            callerSaId, CAR_SA_ID);
+        return ERR_NO_PERMISSION;
+    }
+
+    // Validate bundleNames
+    for (const auto &bundleName : bundleNames) {
+        if (bundleName.empty()) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName is empty");
+            return ERR_INVALID_VALUE;
+        }
+    }
+
+    auto residentProcessManager = DelayedSingleton<ResidentProcessManager>::GetInstance();
+    CHECK_POINTER_AND_RETURN(residentProcessManager, INNER_ERR);
+
+    return residentProcessManager->ClearDelayedLaunchResidentBundles(bundleNames);
+}
+
 int32_t AbilityManagerService::RequestAssertFaultDialog(
     const sptr<IRemoteObject> &callback, const AAFwk::WantParams &wantParams)
 {
