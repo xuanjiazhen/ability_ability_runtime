@@ -18,14 +18,17 @@
 #define private public
 #include "app_utils.h"
 #include "child_process_manager.h"
+#include "iservice_registry.h"
 #undef private
 #include "child_process_manager_error_utils.h"
 #include "js_runtime.h"
 #include "mock_app_mgr_service.h"
 #include "mock_bundle_manager.h"
+#include "mock_system_ability_manager.h"
 #include "parameters.h"
 #include "sys_mgr_client.h"
 #include "system_ability_definition.h"
+#include "ability_manager_errors.h"
 #include "ability_manager_errors.h"
 #include "hilog_tag_wrapper.h"
 
