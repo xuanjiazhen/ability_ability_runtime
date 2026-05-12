@@ -29,6 +29,7 @@ ohos_fuzztest("AbilitymgrEcologicalRuleInterceptorFuzzTest") {
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_services_path}/abilitymgr/include/interceptor",
     "${ability_runtime_services_path}/abilitymgr/include/ecological_rule",
+    "${ability_runtime_test_path}/fuzztest",
   ]
   cflags = [
     "-g",
