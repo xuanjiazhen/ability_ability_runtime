@@ -2,12 +2,12 @@
 
 ## 1. 概述
 
-Skill 框架支持跨进程调用目标 App 中注册的 ArkTS 函数。调用方通过 CliToolManagerService 发起请求，AMS 调度到目标 App（ServiceExtension 或 UIAbility），目标 App 执行函数后通过回调返回结果。
+Skill 框架支持跨进程调用目标 App 中注册的 ArkTS 函数。调用方通过 CliToolManagerService 发起请求，AbilityManagerService 调度到目标 App（ServiceExtension 或 UIAbility），目标 App 执行函数后通过回调返回结果。
 
 ```
-调用方 ──IPC──▶ CliToolManagerService ──IPC──▶ AMS ──IPC──▶ 目标 App
-                                                                  │
-调用方 ◀──event── CliToolManagerService ◀──IPC── AMS ◀──IPC──────┘
+调用方 ──IPC──▶ CliToolManagerService ──IPC──▶ AbilityManagerService ──IPC──▶ 目标 App
+                                                                                  │
+调用方 ◀──event── CliToolManagerService ◀──IPC── AbilityManagerService ◀──IPC──────┘
 ```
 
 ## 2. 调用方：发起 Skill 执行
@@ -154,7 +154,7 @@ scriptManager.completeArkTSScriptInApp(
 |------|------|------|------|
 | `code` | number | **是** | 执行结果码。0 = 成功，其他值 = 失败 |
 | `result` | object | 否 | 键值对形式的返回数据，仅支持基本类型值 |
-| `uris` | string[] | 否 | 文件 URI 列表，AMS 会自动授权给调用方 |
+| `uris` | string[] | 否 | 文件 URI 列表，AbilityManagerService 会自动授权给调用方 |
 | `flags` | number | 否 | URI 权限标志位 |
 
 > 如果不调用 `completeArkTSScriptInApp`，调用方的 Promise 将一直 pending，直到超时。
@@ -229,5 +229,5 @@ export function translate(
 
 1. **异步回调**：目标函数是异步执行的，必须调用 `completeArkTSScriptInApp` 才能返回结果
 2. **参数类型**：skillArgs 仅支持 string / boolean / integer / number / array 基本类型，不支持嵌套 object
-3. **requestCode**：目标函数必须将 `info.requestCode` 原样传回，AMS 依此关联请求和回调
+3. **requestCode**：目标函数必须将 `info.requestCode` 原样传回，AbilityManagerService 依此关联请求和回调
 4. **超时**：调用方可设置超时时间，超时后 Promise resolve 为 failed 状态
