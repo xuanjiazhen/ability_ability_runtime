@@ -129,6 +129,7 @@ void AbilityUserUnlockEventSubscriber::OnReceiveEvent(const EventFwk::CommonEven
     }
     int32_t userId = data.GetCode();
     AbilityEventMapManager::GetInstance().AddEvent(userId, action);
+    UserController::GetInstance().SetUserLockStatus(userId, UserController::UserLockStatus::USER_UNLOCKED);
     if (AbilityEventMapManager::GetInstance().CheckAllUnlocked(userId)) {
         screenUnlockCallback_(userId);
         AbilityEventMapManager::GetInstance().RemoveUser(userId);
