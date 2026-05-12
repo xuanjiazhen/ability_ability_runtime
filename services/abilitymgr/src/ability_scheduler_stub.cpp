@@ -82,6 +82,8 @@ int AbilitySchedulerStub::OnRemoteRequestInnerFirst(
             return CommandAbilityInner(data, reply);
         case SCHEDULE_ABILITY_PREPARE_TERMINATE:
             return PrepareTerminateAbilityInner(data, reply);
+        case SCHEDULE_UPDATE_REQUEST_IDS:
+            return UpdateRequestIdsInner(data, reply);
         case SCHEDULE_ABILITY_COMMAND_WINDOW:
             return CommandAbilityWindowInner(data, reply);
         case SCHEDULE_SAVE_ABILITY_STATE:
@@ -253,6 +255,17 @@ int AbilitySchedulerStub::PrepareTerminateAbilityInner(MessageParcel &data, Mess
         TAG_LOGE(AAFwkTag::ABILITYMGR, "fail to write ret");
         return ERR_INVALID_VALUE;
     }
+    return NO_ERROR;
+}
+
+int AbilitySchedulerStub::UpdateRequestIdsInner(MessageParcel &data, MessageParcel &reply)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "update request IDs call");
+    int32_t requestId = data.ReadInt32();
+    int32_t scbRequestId = data.ReadInt32();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Received requestId: %{public}d, scbRequestId: %{public}d",
+        requestId, scbRequestId);
+    ScheduleUpdateRequestIds(requestId, scbRequestId);
     return NO_ERROR;
 }
 

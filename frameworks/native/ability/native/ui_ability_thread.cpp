@@ -433,6 +433,46 @@ bool UIAbilityThread::SchedulePrepareTerminateAbility()
     return true;
 }
 
+void UIAbilityThread::ScheduleUpdateRequestIds(int32_t requestId, int32_t scbRequestId)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "ScheduleUpdateRequestIds, requestId: %{public}d, scbRequestId: %{public}d",
+        requestId, scbRequestId);
+    if (getpid() == gettid()) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "in app main thread");
+        HandleUpdateRequestIds(requestId, scbRequestId);
+        return;
+    }
+    wptr<UIAbilityThread> weak = this;
+    auto task = [weak, requestId, scbRequestId]() {
+        auto abilityThread = weak.promote();
+        if (abilityThread == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilityThread");
+            return;
+        }
+        abilityThread->HandleUpdateRequestIds(requestId, scbRequestId);
+    };
+    if (!abilityHandler_->PostTask(task, "UIAbilityThread:UpdateRequestIds")) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
+    }
+}
+
+bool UIAbilityThread::HandlePrepareTerminateAbility()
+        return;
+    }
+    wptr<UIAbilityThread> weak = this;
+    auto task = [weak, requestId, scbRequestId]() {
+        auto abilityThread = weak.promote();
+        if (abilityThread == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "null abilityThread");
+            return;
+        }
+        abilityThread->HandleUpdateMinimizeRequestIds(requestId, scbRequestId);
+    };
+    if (!abilityHandler_->PostTask(task, "UIAbilityThread:UpdateMinimizeRequestIds")) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "postTask error");
+    }
+}
+
 bool UIAbilityThread::HandlePrepareTerminateAbility()
 {
     wptr<UIAbilityThread> weak = this;
@@ -460,6 +500,23 @@ bool UIAbilityThread::HandlePrepareTerminateAbility()
         TAG_LOGI(AAFwkTag::UIABILITY, "sync call");
     }
     return true;
+}
+
+void UIAbilityThread::HandleUpdateRequestIds(int32_t requestId, int32_t scbRequestId)
+{
+    TAG_LOGI(AAFwkTag::UIABILITY, "HandleUpdateRequestIds, requestId: %{public}d, scbRequestId: %{public}d",
+        requestId, scbRequestId);
+    if (abilityImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null abilityImpl_");
+        return;
+    }
+    auto uiAbility = abilityImpl_->GetUIAbility();
+    if (uiAbility == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null uiAbility");
+        return;
+    }
+    uiAbility->UpdateTerminateRequestIds(requestId, scbRequestId);
+    TAG_LOGI(AAFwkTag::UIABILITY, "Updated request IDs in UIAbility for current flow");
 }
 
 void UIAbilityThread::SendResult(int requestCode, int resultCode, const Want &want)

@@ -189,6 +189,7 @@ private:
         sptr<AAFwk::SessionInfo> sessionInfo = nullptr);
     void HandleShareData(const int32_t &requestCode);
     bool HandlePrepareTerminateAbility();
+    void HandleUpdateRequestIds(int32_t requestId, int32_t scbRequestId);
     void HandleUpdateConfiguration(const AppExecFwk::Configuration &config);
     void AddLifecycleEvent(uint32_t state, std::string &methodName) const;
 
