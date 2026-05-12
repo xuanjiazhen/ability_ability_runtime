@@ -312,5 +312,13 @@ std::shared_ptr<AbilityRuntime::UIAbility> AbilityThread::GetUIAbility()
 void AbilityThread::ScheduleAbilitiesRequestDone(const std::string &requestKey, int32_t resultCode)
 {
 }
+
+void AbilityThread::ScheduleUpdateRequestIds(int32_t requestId, int32_t scbRequestId)
+{
+    TAG_LOGD(AAFwkTag::ABILITY, "AbilityThread::ScheduleUpdateRequestIds, requestId: %{public}d, scbRequestId: %{public}d",
+        requestId, scbRequestId);
+    // Default implementation: do nothing
+    // Subclasses (like UIAbilityThread) can override this to implement requestId tracking
+}
 } // namespace AppExecFwk
 } // namespace OHOS

@@ -128,6 +128,7 @@
 #include "utils/modal_system_dialog_util.h"
 #include "utils/update_caller_info_util.h"
 #include "utils/want_utils.h"
+#include "utils/request_id_util.h"
 #include "utils/window_options_utils.h"
 #include "utils/udmf_utils.h"
 #include "view_data.h"
@@ -161,6 +162,7 @@ using OHOS::Security::AccessToken::AccessTokenKit;
 
 namespace OHOS {
 using AbilityRuntime::FreezeUtil;
+using AbilityRuntime::RequestIdUtil;
 using namespace AbilityRuntime::ServerConstant;
 namespace AAFwk {
 using AutoStartupInfo = AbilityRuntime::AutoStartupInfo;
