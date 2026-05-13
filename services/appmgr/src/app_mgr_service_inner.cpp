@@ -9136,6 +9136,21 @@ int AppMgrServiceInner::GetExceptionTimerId(const FaultData &faultData, const st
     return exceptionId;
 }
 
+bool AppMgrServiceInner::UpdateForeground(const std::shared_ptr<AppRunningRecord> &appRecord,
+    const std::string &eventName)
+{
+    bool isStateForeground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
+        appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
+    if (eventName == AppFreezeType::THREAD_BLOCK_3S || eventName == AppFreezeType::THREAD_BLOCK_6S ||
+        eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_3S ||
+        eventName == AppFreezeType::BUSSINESS_THREAD_BLOCK_6S) {
+        return isStateForeground;
+    }
+    bool isTransitioningToForeground = appRecord->GetApplicationPendingState() ==
+        ApplicationPendingState::FOREGROUNDING;
+    return (isStateForeground || isTransitioningToForeground);
+}
+
 int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const std::string &bundleName,
     const std::shared_ptr<AppRunningRecord> &appRecord, const int32_t pid)
 {
@@ -9147,8 +9162,7 @@ int32_t AppMgrServiceInner::SubmitDfxFaultTask(const FaultData &faultData, const
     std::string processName = appRecord->GetProcessName();
     int exceptionId = GetExceptionTimerId(faultData, bundleName, appRecord, pid, callerUid);
     FaultData& newFaultDta = const_cast<FaultData&>(faultData);
-    newFaultDta.isInForeground = appRecord->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
-        appRecord->GetState() == ApplicationState::APP_STATE_FOCUS;
+    newFaultDta.isInForeground = UpdateForeground(appRecord, faultData.errorObject.name);
     auto notifyAppTask = [appRecord, pid, callerUid, bundleName, processName, newFaultDta, exceptionId,
         innerServiceWeak = weak_from_this()]() {
 #ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
@@ -9303,8 +9317,16 @@ int32_t AppMgrServiceInner::KillFaultApp(int32_t pid, const std::string &bundleN
             uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
                 std::chrono::system_clock::now().time_since_epoch()).count();
             AppExecFwk::AppfreezeManager::GetInstance()->RegisterAppKillTime(pid, now);
+            bool foreground = faultData.isInForeground;
+            auto appRecord = innerService->GetAppRunningRecordByPid(pid);
+            if (appRecord != nullptr) {
+                TAG_LOGW(AAFwkTag::APPMGR, "check exit, pid:%{public}d, foreground:%{public}d", pid, foreground);
+                foreground = innerService->UpdateForeground(appRecord, faultData.errorObject.name);
+            }
 #ifdef APP_MGR_KILL_REASON_TAG
-            innerService->RecordAppfreezeKillReason(pid, faultData);
+            if (foreground) {
+                innerService->RecordAppfreezeKillReason(pid, faultData);
+            }
 #endif
             return;
         };
@@ -9351,8 +9373,7 @@ int32_t AppMgrServiceInner::TransformedNotifyAppFault(const AppFaultDataBySA &fa
     }
 
     FaultData transformedFaultData = ConvertDataTypes(faultData);
-    transformedFaultData.isInForeground = record->GetState() == ApplicationState::APP_STATE_FOREGROUND ||
-        record->GetState() == ApplicationState::APP_STATE_FOCUS;
+    transformedFaultData.isInForeground = UpdateForeground(record, transformedFaultData.errorObject.name);
     int32_t uid = record->GetUid();
     int32_t recordId = record->GetRecordId();
     std::string bundleName = record->GetBundleName();
