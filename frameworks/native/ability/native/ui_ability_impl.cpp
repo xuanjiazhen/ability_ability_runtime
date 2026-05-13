@@ -326,10 +326,18 @@ void UIAbilityImpl::NewWant(const AAFwk::Want &want)
         TAG_LOGE(AAFwkTag::UIABILITY, "null ability_");
         return;
     }
-    ability_->SetWant(want);
-    ability_->OnNewWant(want);
+
+    // Create a copy of want without requestId for app layer
+    AAFwk::Want wantWithoutRequestId = want;
+    wantWithoutRequestId.RemoveParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID);
+    wantWithoutRequestId.RemoveParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID);
+
+    // Save the clean want to UIAbility
+    ability_->SetWant(wantWithoutRequestId);
+    // Pass the clean want to OnNewWant callback
+    ability_->OnNewWant(wantWithoutRequestId);
 #ifdef SUPPORT_SCREEN
-    ability_->ContinuationRestore(want);
+    ability_->ContinuationRestore(wantWithoutRequestId);
 #endif
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
