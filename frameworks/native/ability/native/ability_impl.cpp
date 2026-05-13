@@ -327,6 +327,13 @@ void AbilityImpl::NewWant(const Want &want)
         TAG_LOGE(AAFwkTag::ABILITY, "null ability_");
         return;
     }
+
+    // Remove requestId and scbRequestId before SetWant
+    // This ensures application layer cannot access these system-internal fields via GetWant()
+    const_cast<AAFwk::Want &>(want).RemoveParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID);
+    const_cast<AAFwk::Want &>(want).RemoveParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID);
+    TAG_LOGD(AAFwkTag::ABILITY, "Removed requestId and scbRequestId from want in NewWant");
+
     ability_->SetWant(want);
     ability_->OnNewWant(want);
 #ifdef SUPPORT_SCREEN

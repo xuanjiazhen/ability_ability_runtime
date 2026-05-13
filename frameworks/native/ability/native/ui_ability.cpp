@@ -286,6 +286,13 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     securityFlag_ = want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false);
     (const_cast<AAFwk::Want &>(want)).RemoveParam(DLP_PARAMS_SECURITY_FLAG);
 #endif // WITH_DLP
+
+    // Remove requestId and scbRequestId before SetWant
+    // This ensures application layer cannot access these system-internal fields via GetWant()
+    const_cast<AAFwk::Want &>(want).RemoveParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID);
+    const_cast<AAFwk::Want &>(want).RemoveParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID);
+    TAG_LOGD(AAFwkTag::UIABILITY, "Removed requestId and scbRequestId from want in OnStart");
+
     SetWant(want);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", abilityInfo_->name.c_str());
 #ifdef SUPPORT_SCREEN

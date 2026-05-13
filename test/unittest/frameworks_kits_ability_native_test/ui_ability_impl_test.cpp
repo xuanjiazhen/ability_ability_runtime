@@ -2632,5 +2632,144 @@ HWTEST_F(UIAbilityImplTest, AbilityRuntime_SetNativeModuleMetaData_005, TestSize
     GTEST_LOG_(INFO) << "AbilityRuntime_SetNativeModuleMetaData_005 end";
 }
 
+/*
+ * Feature: UIAbilityImpl
+ * Function: NewWant with requestId
+ * SubFunction: NA
+ * FunctionPoints: NewWant removes requestId and scbRequestId
+ * EnvConditions: NA
+ * CaseDescription: Test NewWant removes requestId and scbRequestId from want
+ */
+HWTEST_F(UIAbilityImplTest, AbilityRuntime_NewWant_WithRequestId_001, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_NewWant_WithRequestId_001 start";
+    std::shared_ptr<MockUIAbilityimpl> mockUIAbilityimpl = std::make_shared<MockUIAbilityimpl>();
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "uiAbility";
+    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    EXPECT_NE(token, nullptr);
+    if (token != nullptr) {
+        auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
+        std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
+        std::shared_ptr<UIAbility> uiability;
+        MockUIAbility *pMocKUIAbility = new (std::nothrow) MockUIAbility();
+        EXPECT_NE(pMocKUIAbility, nullptr);
+        if (pMocKUIAbility != nullptr) {
+            uiability.reset(pMocKUIAbility);
+            bool createObjSuc = false;
+            mockUIAbilityimpl->Init(application, record, uiability, handler, token, createObjSuc);
+
+            // Create want with requestId and scbRequestId
+            Want want;
+            want.SetParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, 100);
+            want.SetParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, 200);
+
+            // Call NewWant
+            mockUIAbilityimpl->NewWant(want);
+
+            // Verify requestId and scbRequestId are removed
+            int32_t requestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, -1);
+            int32_t scbRequestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, -1);
+            EXPECT_EQ(requestId, -1);  // Should be removed
+            EXPECT_EQ(scbRequestId, -1);  // Should be removed
+        }
+    }
+    GTEST_LOG_(INFO) << "AbilityRuntime_NewWant_WithRequestId_001 end";
+}
+
+/*
+ * Feature: UIAbilityImpl
+ * Function: NewWant with only requestId
+ * SubFunction: NA
+ * FunctionPoints: NewWant removes requestId only
+ * EnvConditions: NA
+ * CaseDescription: Test NewWant removes only requestId from want
+ */
+HWTEST_F(UIAbilityImplTest, AbilityRuntime_NewWant_WithRequestId_002, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_NewWant_WithRequestId_002 start";
+    std::shared_ptr<MockUIAbilityimpl> mockUIAbilityimpl = std::make_shared<MockUIAbilityimpl>();
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "uiAbility";
+    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    EXPECT_NE(token, nullptr);
+    if (token != nullptr) {
+        auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
+        std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
+        std::shared_ptr<UIAbility> uiability;
+        MockUIAbility *pMocKUIAbility = new (std::nothrow) MockUIAbility();
+        EXPECT_NE(pMocKUIAbility, nullptr);
+        if (pMocKUIAbility != nullptr) {
+            uiability.reset(pMocKUIAbility);
+            bool createObjSuc = false;
+            mockUIAbilityimpl->Init(application, record, uiability, handler, token, createObjSuc);
+
+            // Create want with only requestId
+            Want want;
+            want.SetParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, 100);
+
+            // Call NewWant
+            mockUIAbilityimpl->NewWant(want);
+
+            // Verify requestId is removed
+            int32_t requestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, -1);
+            int32_t scbRequestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, -1);
+            EXPECT_EQ(requestId, -1);  // Should be removed
+            EXPECT_EQ(scbRequestId, -1);  // Never set
+        }
+    }
+    GTEST_LOG_(INFO) << "AbilityRuntime_NewWant_WithRequestId_002 end";
+}
+
+/*
+ * Feature: UIAbilityImpl
+ * Function: NewWant with only scbRequestId
+ * SubFunction: NA
+ * FunctionPoints: NewWant removes scbRequestId only
+ * EnvConditions: NA
+ * CaseDescription: Test NewWant removes only scbRequestId from want
+ */
+HWTEST_F(UIAbilityImplTest, AbilityRuntime_NewWant_WithRequestId_003, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_NewWant_WithRequestId_003 start";
+    std::shared_ptr<MockUIAbilityimpl> mockUIAbilityimpl = std::make_shared<MockUIAbilityimpl>();
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "uiAbility";
+    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    EXPECT_NE(token, nullptr);
+    if (token != nullptr) {
+        auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
+        std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
+        std::shared_ptr<UIAbility> uiability;
+        MockUIAbility *pMocKUIAbility = new (std::nothrow) MockUIAbility();
+        EXPECT_NE(pMocKUIAbility, nullptr);
+        if (pMocKUIAbility != nullptr) {
+            uiability.reset(pMocKUIAbility);
+            bool createObjSuc = false;
+            mockUIAbilityimpl->Init(application, record, uiability, handler, token, createObjSuc);
+
+            // Create want with only scbRequestId
+            Want want;
+            want.SetParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, 200);
+
+            // Call NewWant
+            mockUIAbilityimpl->NewWant(want);
+
+            // Verify scbRequestId is removed
+            int32_t requestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, -1);
+            int32_t scbRequestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, -1);
+            EXPECT_EQ(requestId, -1);  // Never set
+            EXPECT_EQ(scbRequestId, -1);  // Should be removed
+        }
+    }
+    GTEST_LOG_(INFO) << "AbilityRuntime_NewWant_WithRequestId_003 end";
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

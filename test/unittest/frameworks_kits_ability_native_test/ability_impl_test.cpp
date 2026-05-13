@@ -3123,5 +3123,133 @@ HWTEST_F(AbilityImplTest, AaFwk_InputEventConsumerImpl_0200, TestSize.Level1)
     impl->OnInputEvent(pointerEvent);
     GTEST_LOG_(INFO) << "AaFwk_InputEventConsumerImpl_0200 end";
 }
+
+/**
+ * @tc.number: AaFwk_AbilityImpl_NewWant_WithRequestId_0100
+ * @tc.name: NewWant with requestId and scbRequestId
+ * @tc.desc: Test NewWant removes requestId and scbRequestId from want
+ */
+HWTEST_F(AbilityImplTest, AaFwk_AbilityImpl_NewWant_WithRequestId_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_AbilityImpl_NewWant_WithRequestId_0100 start";
+    std::shared_ptr<MockAbilityimpl> mockAbilityimpl = std::make_shared<MockAbilityimpl>();
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "pageAbility";
+    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    EXPECT_NE(token, nullptr);
+    if (token != nullptr) {
+        auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
+        std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
+        std::shared_ptr<Ability> ability = nullptr;
+        MockPageAbility* pMocKPageAbility = new (std::nothrow) MockPageAbility();
+        EXPECT_NE(pMocKPageAbility, nullptr);
+        if (pMocKPageAbility != nullptr) {
+            ability.reset(pMocKPageAbility);
+            mockAbilityimpl->Init(application, record, ability, handler, token);
+
+            // Create want with requestId and scbRequestId
+            Want want;
+            want.SetParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, 100);
+            want.SetParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, 200);
+
+            // Call NewWant
+            mockAbilityimpl->NewWant(want);
+
+            // Verify requestId and scbRequestId are removed
+            int32_t requestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, -1);
+            int32_t scbRequestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, -1);
+            EXPECT_EQ(requestId, -1);  // Should be removed
+            EXPECT_EQ(scbRequestId, -1);  // Should be removed
+        }
+    }
+    GTEST_LOG_(INFO) << "AaFwk_AbilityImpl_NewWant_WithRequestId_0100 end";
+}
+
+/**
+ * @tc.number: AaFwk_AbilityImpl_NewWant_WithRequestId_0200
+ * @tc.name: NewWant with only requestId
+ * @tc.desc: Test NewWant removes only requestId from want
+ */
+HWTEST_F(AbilityImplTest, AaFwk_AbilityImpl_NewWant_WithRequestId_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_AbilityImpl_NewWant_WithRequestId_0200 start";
+    std::shared_ptr<MockAbilityimpl> mockAbilityimpl = std::make_shared<MockAbilityimpl>();
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "pageAbility";
+    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    EXPECT_NE(token, nullptr);
+    if (token != nullptr) {
+        auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
+        std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
+        std::shared_ptr<Ability> ability = nullptr;
+        MockPageAbility* pMocKPageAbility = new (std::nothrow) MockPageAbility();
+        EXPECT_NE(pMocKPageAbility, nullptr);
+        if (pMocKPageAbility != nullptr) {
+            ability.reset(pMocKPageAbility);
+            mockAbilityimpl->Init(application, record, ability, handler, token);
+
+            // Create want with only requestId
+            Want want;
+            want.SetParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, 100);
+
+            // Call NewWant
+            mockAbilityimpl->NewWant(want);
+
+            // Verify requestId is removed
+            int32_t requestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, -1);
+            int32_t scbRequestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, -1);
+            EXPECT_EQ(requestId, -1);  // Should be removed
+            EXPECT_EQ(scbRequestId, -1);  // Never set
+        }
+    }
+    GTEST_LOG_(INFO) << "AaFwk_AbilityImpl_NewWant_WithRequestId_0200 end";
+}
+
+/**
+ * @tc.number: AaFwk_AbilityImpl_NewWant_WithRequestId_0300
+ * @tc.name: NewWant with only scbRequestId
+ * @tc.desc: Test NewWant removes only scbRequestId from want
+ */
+HWTEST_F(AbilityImplTest, AaFwk_AbilityImpl_NewWant_WithRequestId_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_AbilityImpl_NewWant_WithRequestId_0300 start";
+    std::shared_ptr<MockAbilityimpl> mockAbilityimpl = std::make_shared<MockAbilityimpl>();
+    std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+    std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+    abilityInfo->name = "pageAbility";
+    sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    EXPECT_NE(token, nullptr);
+    if (token != nullptr) {
+        auto record = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        std::shared_ptr<EventRunner> eventRunner = EventRunner::Create(abilityInfo->name);
+        std::shared_ptr<AbilityHandler> handler = std::make_shared<AbilityHandler>(eventRunner);
+        std::shared_ptr<Ability> ability = nullptr;
+        MockPageAbility* pMocKPageAbility = new (std::nothrow) MockPageAbility();
+        EXPECT_NE(pMocKPageAbility, nullptr);
+        if (pMocKPageAbility != nullptr) {
+            ability.reset(pMocKPageAbility);
+            mockAbilityimpl->Init(application, record, ability, handler, token);
+
+            // Create want with only scbRequestId
+            Want want;
+            want.SetParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, 200);
+
+            // Call NewWant
+            mockAbilityimpl->NewWant(want);
+
+            // Verify scbRequestId is removed
+            int32_t requestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID, -1);
+            int32_t scbRequestId = want.GetIntParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID, -1);
+            EXPECT_EQ(requestId, -1);  // Never set
+            EXPECT_EQ(scbRequestId, -1);  // Should be removed
+        }
+    }
+    GTEST_LOG_(INFO) << "AaFwk_AbilityImpl_NewWant_WithRequestId_0300 end";
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS
