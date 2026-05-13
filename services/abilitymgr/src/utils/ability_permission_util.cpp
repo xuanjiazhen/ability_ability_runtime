@@ -414,5 +414,26 @@ bool AbilityPermissionUtil::NeedCheckStatusBar(std::shared_ptr<AbilityRecord> ab
     }
     return true;
 }
+
+bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::string &bundleName)
+{
+    if (bundleName.empty()) {
+        return true;
+    }
+    auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userLockStatus = AbilityRuntime::UserController::GetInstance().GetUserLockStatus(userId);
+    if (userLockStatus == AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED) {
+        return true;
+    }
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    if (bms == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null helper");
+        return true;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    auto ret = IN_PROCESS_CALL(bms->GetBundleInfo(bundleName,
+        AppExecFwk::BundleFlag::GET_BUNDLE_INFO_WITH_APPLICATION, bundleInfo, userId));
+    return isTargetSystemApp = ret ? bundleInfo.applicationInfo.isSystemApp : false;
+}
 } // AAFwk
 } // OHOS
