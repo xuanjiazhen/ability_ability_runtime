@@ -37,6 +37,7 @@
 #include "parameters.h"
 #include "running_process_info.h"
 #include "start_ability_utils.h"
+#include "user_controller/user_controller.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -1426,6 +1427,145 @@ HWTEST_F(AbilityPermissionUtilTest, NeedCheckStatusBar_0900, TestSize.Level1)
     auto ret = AbilityPermissionUtil::GetInstance().NeedCheckStatusBar(abilityRecord, abilityRequest);
     EXPECT_EQ(ret, false);
     TAG_LOGI(AAFwkTag::TEST, "AbilityPermissionUtil NeedCheckStatusBar_0900 end");
+}
+
+/**
+ * @tc.name: CheckStartUIAbilityByUserLockStatus_0100
+ * @tc.desc: bundleName is empty, should return true
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityPermissionUtilTest, CheckStartUIAbilityByUserLockStatus_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0100 start");
+    std::string emptyBundleName = "";
+    auto ret = AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(emptyBundleName);
+    EXPECT_EQ(ret, true);
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0100 end");
+}
+
+/**
+ * @tc.name: CheckStartUIAbilityByUserLockStatus_0200
+ * @tc.desc: user unlocked, should return true for all apps
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityPermissionUtilTest, CheckStartUIAbilityByUserLockStatus_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0200 start");
+
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(0,
+        AbilityRuntime::UserController::UserLockStatus::USER_UNLOCKED);
+    std::string bundleName = "com.example.test";
+    auto ret = AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(bundleName);
+    EXPECT_EQ(ret, true);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(0);
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0200 end");
+}
+
+/**
+ * @tc.name: CheckStartUIAbilityByUserLockStatus_0300
+ * @tc.desc: user locked + system app, should return true
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityPermissionUtilTest, CheckStartUIAbilityByUserLockStatus_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0300 start");
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(0,
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.isSystemApp = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.name = "systemApp";
+    BundleMgrHelper::retBundleInfo.applicationInfo.bundleName = "com.example.system";
+    std::string bundleName = "com.example.system";
+    auto ret = AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(bundleName);
+    EXPECT_EQ(ret, true);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(0);
+    BundleMgrHelper::retBundleInfo.applicationInfo.isSystemApp = false;
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0300 end");
+}
+
+/**
+ * @tc.name: CheckStartUIAbilityByUserLockStatus_0400
+ * @tc.desc: user locked + third-party app, should return false
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityPermissionUtilTest, CheckStartUIAbilityByUserLockStatus_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0400 start");
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(0,
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.isSystemApp = false;
+    BundleMgrHelper::retBundleInfo.applicationInfo.name = "thirdPartyApp";
+    BundleMgrHelper::retBundleInfo.applicationInfo.bundleName = "com.example.thirdparty";
+    std::string bundleName = "com.example.thirdparty";
+    auto ret = AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(bundleName);
+    EXPECT_EQ(ret, false);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(0);
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0400 end");
+}
+
+/**
+ * @tc.name: CheckStartUIAbilityByUserLockStatus_0500
+ * @tc.desc: user locked + GetBundleInfo failed, should return false
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityPermissionUtilTest, CheckStartUIAbilityByUserLockStatus_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0500 start");
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(0,
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::retGetBundleInfo = false;
+    BundleMgrHelper::retBundleInfo.applicationInfo.isSystemApp = false;
+    std::string bundleName = "com.example.test";
+    auto ret = AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(bundleName);
+    EXPECT_EQ(ret, false);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(0);
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0500 end");
+}
+
+/**
+ * @tc.name: CheckStartUIAbilityByUserLockStatus_0600
+ * @tc.desc: user locked + user status not set (BUTT), should return false
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityPermissionUtilTest, CheckStartUIAbilityByUserLockStatus_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0600 start");
+    BundleMgrHelper::retGetBundleInfo = true;
+    BundleMgrHelper::retBundleInfo.applicationInfo.isSystemApp = false;
+    BundleMgrHelper::retBundleInfo.applicationInfo.name = "testApp";
+    BundleMgrHelper::retBundleInfo.applicationInfo.bundleName = "com.example.test";
+    std::string bundleName = "com.example.test";
+    auto ret = AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(bundleName);
+    EXPECT_EQ(ret, false);
+    BundleMgrHelper::retBundleInfo.applicationInfo.isSystemApp = false;
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0600 end");
+}
+
+/**
+ * @tc.name: CheckStartUIAbilityByUserLockStatus_0700
+ * @tc.desc: user locked + bms is null, should return true (fail open)
+ * @tc.type: FUNC
+ * @tc.require: NA
+ */
+HWTEST_F(AbilityPermissionUtilTest, CheckStartUIAbilityByUserLockStatus_0700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0700 start");
+    AbilityRuntime::UserController::GetInstance().SetUserLockStatus(0,
+        AbilityRuntime::UserController::UserLockStatus::USER_LOCKED);
+    BundleMgrHelper::isNullBundleMgrInstance = true;
+    std::string bundleName = "com.example.test";
+    auto ret = AbilityPermissionUtil::GetInstance().CheckStartUIAbilityByUserLockStatus(bundleName);
+    EXPECT_EQ(ret, true);
+    AbilityRuntime::UserController::GetInstance().DeleteUserLockStatus(0);
+    BundleMgrHelper::isNullBundleMgrInstance = false;
+    TAG_LOGI(AAFwkTag::TEST, "CheckStartUIAbilityByUserLockStatus_0700 end");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
