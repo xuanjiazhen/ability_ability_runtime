@@ -286,7 +286,13 @@ void UIAbility::OnStart(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sessio
     securityFlag_ = want.GetBoolParam(DLP_PARAMS_SECURITY_FLAG, false);
     (const_cast<AAFwk::Want &>(want)).RemoveParam(DLP_PARAMS_SECURITY_FLAG);
 #endif // WITH_DLP
-    SetWant(want);
+
+    // Create a copy of want without requestId for app layer
+    AAFwk::Want wantWithoutRequestId = want;
+    wantWithoutRequestId.RemoveParam(AAFwk::Want::PARAM_RESV_AMS_REQUEST_ID);
+    wantWithoutRequestId.RemoveParam(AAFwk::Want::PARAM_RESV_WMS_REQUEST_ID);
+
+    SetWant(wantWithoutRequestId);
     TAG_LOGD(AAFwkTag::UIABILITY, "ability: %{public}s", abilityInfo_->name.c_str());
 #ifdef SUPPORT_SCREEN
     if (sessionInfo != nullptr) {
