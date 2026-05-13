@@ -34,6 +34,8 @@
 using namespace testing;
 using namespace testing::ext;
 
+extern "C" void ChildMainThreadStart(const std::map<std::string, int32_t> &fds);
+
 namespace OHOS {
 namespace AppExecFwk {
 class MockChildMainThread : public ChildMainThread {
@@ -247,6 +249,99 @@ HWTEST_F(ChildMainThreadFirstTest, OnLoadAbilityFinished_0100, TestSize.Level1)
     childMainThread.OnLoadAbilityFinished(1234, 1234);
     EXPECT_EQ(childMainThread.processInfo_, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "OnLoadAbilityFinished_0100 end.");
+}
+
+/**
+ * @tc.number: ChildMainThreadStart_0100
+ * @tc.desc: Test ChildMainThreadStart with empty fds map, GetChildProcessInfo fails in test env
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildMainThreadFirstTest, ChildMainThreadStart_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0100 start.");
+    std::map<std::string, int32_t> fds;
+    ChildMainThreadStart(fds);
+    // GetChildProcessInfo fails or Init fails due to null bundleInfo, no crash expected
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0100 end.");
+}
+
+/**
+ * @tc.number: ChildMainThreadStart_0200
+ * @tc.desc: Test ChildMainThreadStart with non-empty fds map
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildMainThreadFirstTest, ChildMainThreadStart_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0200 start.");
+    std::map<std::string, int32_t> fds;
+    fds["test_fd"] = 1;
+    ChildMainThreadStart(fds);
+    // GetChildProcessInfo fails or Init fails due to null bundleInfo, no crash expected
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0200 end.");
+}
+
+/**
+ * @tc.number: ChildMainThreadStart_0300
+ * @tc.desc: Test ChildMainThreadStart with invalid fd value (-1)
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildMainThreadFirstTest, ChildMainThreadStart_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0300 start.");
+    std::map<std::string, int32_t> fds;
+    fds["invalid_fd"] = -1;
+    ChildMainThreadStart(fds);
+    // Invalid fd value, GetChildProcessInfo fails first, no crash expected
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0300 end.");
+}
+
+/**
+ * @tc.number: ChildMainThreadStart_0400
+ * @tc.desc: Test ChildMainThreadStart called multiple times, verify stability
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildMainThreadFirstTest, ChildMainThreadStart_0400, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0400 start.");
+    std::map<std::string, int32_t> fds;
+    fds["fd1"] = 1;
+    fds["fd2"] = 2;
+    ChildMainThreadStart(fds);
+    ChildMainThreadStart(fds);
+    // Multiple calls, each fails at GetChildProcessInfo or Init, no crash expected
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0400 end.");
+}
+
+/**
+ * @tc.number: ChildMainThreadStart_0500
+ * @tc.desc: Test ChildMainThreadStart with large fds map
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildMainThreadFirstTest, ChildMainThreadStart_0500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0500 start.");
+    std::map<std::string, int32_t> fds;
+    for (int i = 0; i < 100; i++) {
+        fds["fd_" + std::to_string(i)] = i;
+    }
+    ChildMainThreadStart(fds);
+    // Large fds map, GetChildProcessInfo fails first, no crash expected
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0500 end.");
+}
+
+/**
+ * @tc.number: ChildMainThreadStart_0600
+ * @tc.desc: Test ChildMainThreadStart with empty string key in fds map
+ * @tc.type: FUNC
+ */
+HWTEST_F(ChildMainThreadFirstTest, ChildMainThreadStart_0600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0600 start.");
+    std::map<std::string, int32_t> fds;
+    fds[""] = 0;
+    ChildMainThreadStart(fds);
+    // Empty string key, GetChildProcessInfo fails first, no crash expected
+    TAG_LOGI(AAFwkTag::TEST, "ChildMainThreadStart_0600 end.");
 }
 } // namespace AppExecFwk
 } // namespace OHOS
