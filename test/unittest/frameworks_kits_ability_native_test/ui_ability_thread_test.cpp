@@ -1389,10 +1389,9 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_ScheduleAbilityRequestSuccess_0200,
 HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0100, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0100 start";
-    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
-    EXPECT_NE(abilitythread, nullptr);
+    auto abilityThread = std::make_shared<AbilityRuntime::UIAbilityThread>();
     std::shared_ptr<AbilityInfo> abilityInfo = nullptr;
-    auto ret = abilitythread->InitNativeThread(abilityInfo);
+    auto ret = abilityThread->InitNativeThread(abilityInfo);
     EXPECT_EQ(ret, false);
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0100 end";
 }
@@ -1405,12 +1404,11 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0100, Function | M
 HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0200, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0200 start";
-    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
-    EXPECT_NE(abilitythread, nullptr);
+    auto abilityThread = std::make_shared<AbilityRuntime::UIAbilityThread>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
     abilityInfo->name = "MockUIAbility";
     abilityInfo->type = AbilityType::PAGE;
-    auto ret = abilitythread->InitNativeThread(abilityInfo);
+    auto ret = abilityThread->InitNativeThread(abilityInfo);
     EXPECT_TRUE(ret);
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0200 end";
 }
@@ -1423,8 +1421,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0200, Function | M
 HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0300, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0300 start";
-    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
-    EXPECT_NE(abilitythread, nullptr);
+    auto abilityThread = std::make_shared<AbilityRuntime::UIAbilityThread>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
     abilityInfo->name = "MockUIAbility";
     abilityInfo->type = AbilityType::PAGE;
@@ -1432,8 +1429,8 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0300, Function | M
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
     std::shared_ptr<EventRunner> mainRunner = EventRunner::Create(abilityInfo->name);
-    abilitythread->Attach(application, abilityRecord, mainRunner, nullptr);
-    auto ret = abilitythread->InitNativeThread(abilityInfo);
+    abilityThread->Attach(application, abilityRecord, mainRunner, nullptr);
+    auto ret = abilityThread->InitNativeThread(abilityInfo);
     EXPECT_EQ(ret, true);
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0300 end";
 }
@@ -1446,8 +1443,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0300, Function | M
 HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0400, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0400 start";
-    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
-    EXPECT_NE(abilitythread, nullptr);
+    auto abilityThread = std::make_shared<AbilityRuntime::UIAbilityThread>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
     abilityInfo->name = "MockUIAbility";
     abilityInfo->type = AbilityType::PAGE;
@@ -1455,10 +1451,10 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0400, Function | M
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
     std::shared_ptr<EventRunner> mainRunner = EventRunner::Create(abilityInfo->name);
-    abilitythread->Attach(application, abilityRecord, mainRunner, nullptr);
-    abilitythread->currentAbility_ = nullptr;
-    abilitythread->abilityImpl_ = nullptr;
-    auto ret = abilitythread->InitNativeThread(abilityInfo);
+    abilityThread->Attach(application, abilityRecord, mainRunner, nullptr);
+    abilityThread->currentAbility_ = nullptr;
+    abilityThread->abilityImpl_ = nullptr;
+    auto ret = abilityThread->InitNativeThread(abilityInfo);
     EXPECT_EQ(ret, true);
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0400 end";
 }
@@ -1471,8 +1467,7 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0400, Function | M
 HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0500, Function | MediumTest | Level1)
 {
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0500 start";
-    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
-    EXPECT_NE(abilitythread, nullptr);
+    auto abilityThread = std::make_shared<AbilityRuntime::UIAbilityThread>();
     std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
     abilityInfo->name = "MockUIAbility";
     abilityInfo->type = AbilityType::PAGE;
@@ -1480,14 +1475,178 @@ HWTEST_F(UIAbilityThreadTest, AbilityRuntime_InitNativeThread_0500, Function | M
     std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
     auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
     std::shared_ptr<EventRunner> mainRunner = EventRunner::Create(abilityInfo->name);
-    abilitythread->Attach(application, abilityRecord, mainRunner, nullptr);
-    abilitythread->currentAbility_ = std::make_shared<AbilityRuntime::UIAbility>();
-    abilitythread->abilityImpl_ = std::make_shared<AbilityRuntime::UIAbilityImpl>();
-    EXPECT_NE(abilitythread->currentAbility_, nullptr);
-    EXPECT_NE(abilitythread->abilityImpl_, nullptr);
-    auto ret = abilitythread->InitNativeThread(abilityInfo);
+    abilityThread->Attach(application, abilityRecord, mainRunner, nullptr);
+    abilityThread->currentAbility_ = std::make_shared<AbilityRuntime::UIAbility>();
+    abilityThread->abilityImpl_ = std::make_shared<AbilityRuntime::UIAbilityImpl>();
+    EXPECT_NE(abilityThread->currentAbility_, nullptr);
+    EXPECT_NE(abilityThread->abilityImpl_, nullptr);
+    auto ret = abilityThread->InitNativeThread(abilityInfo);
     EXPECT_EQ(ret, true);
     GTEST_LOG_(INFO) << "AbilityRuntime_InitNativeThread_0500 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AttachInner_0100
+ * @tc.name: AttachInner
+ * @tc.desc: Test AttachInner function with valid parameters
+ */
+HWTEST_F(UIAbilityThreadTest, AbilityRuntime_AttachInner_0100, Function | MediumTest | Level1)
+{
+    auto abilityThread = std::make_shared<AbilityRuntime::UIAbilityThread>();
+    abilityThread->abilityImpl_ = nullptr;
+    abilityThread->AttachInner(nullptr, nullptr, nullptr);
+    EXPECT_EQ(abilityThread->abilityImpl_, nullptr);
+}
+
+/**
+ * @tc.number: AbilityRuntime_AttachInner_0200
+ * @tc.name: AttachInner
+ * @tc.desc: Test AttachInner function with token_ set
+ */
+HWTEST_F(UIAbilityThreadTest, AbilityRuntime_AttachInner_0200, Function | MediumTest | Level1)
+{
+    auto abilityThread = std::make_shared<AbilityRuntime::UIAbilityThread>();
+
+    if (abilitythread != nullptr) {
+        abilitythread->token_ = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+        EXPECT_NE(abilitythread->token_, nullptr);
+        std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+        abilityInfo->name = "MockUIAbility";
+        abilityInfo->type = AbilityType::PAGE;
+        sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+        std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+        auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        abilitythread->AttachInner(application, abilityRecord, nullptr);
+    }
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0200 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AttachInner_0300
+ * @tc.name: AttachInner
+ * @tc.desc: Test AttachInner function with abilityHandler_ set
+ */
+HWTEST_F(UIAbilityThreadTest, AbilityRuntime_AttachInner_0300, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0300 start";
+    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
+    EXPECT_NE(abilitythread, nullptr);
+    if (abilitythread != nullptr) {
+        std::shared_ptr<EventRunner> mainRunner = EventRunner::Create("MockUIAbility");
+        abilitythread->abilityHandler_ = std::make_shared<AbilityHandler>(mainRunner);
+        EXPECT_NE(abilitythread->abilityHandler_, nullptr);
+        std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+        abilityInfo->name = "MockUIAbility";
+        abilityInfo->type = AbilityType::PAGE;
+        sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+        std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+        auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        abilitythread->AttachInner(application, abilityRecord, nullptr);
+    }
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0300 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AttachInner_0400
+ * @tc.name: AttachInner
+ * @tc.desc: Test AttachInner function with currentAbility_ set
+ */
+HWTEST_F(UIAbilityThreadTest, AbilityRuntime_AttachInner_0400, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0400 start";
+    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
+    EXPECT_NE(abilitythread, nullptr);
+    if (abilitythread != nullptr) {
+        abilitythread->currentAbility_ = std::make_shared<AbilityRuntime::UIAbility>();
+        EXPECT_NE(abilitythread->currentAbility_, nullptr);
+        std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+        abilityInfo->name = "MockUIAbility";
+        abilityInfo->type = AbilityType::PAGE;
+        sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+        std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+        auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        abilitythread->AttachInner(application, abilityRecord, nullptr);
+    }
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0400 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AttachInner_0500
+ * @tc.name: AttachInner
+ * @tc.desc: Test AttachInner function after Attach called
+ */
+HWTEST_F(UIAbilityThreadTest, AbilityRuntime_AttachInner_0500, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0500 start";
+    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
+    EXPECT_NE(abilitythread, nullptr);
+    if (abilitythread != nullptr) {
+        std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+        abilityInfo->name = "MockUIAbility";
+        abilityInfo->type = AbilityType::PAGE;
+        sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+        std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+        auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        std::shared_ptr<EventRunner> mainRunner = EventRunner::Create(abilityInfo->name);
+        abilitythread->Attach(application, abilityRecord, mainRunner, nullptr);
+        abilitythread->AttachInner(application, abilityRecord, nullptr);
+    }
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0500 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AttachInner_0600
+ * @tc.name: AttachInner
+ * @tc.desc: Test AttachInner function with existing abilityImpl_
+ */
+HWTEST_F(UIAbilityThreadTest, AbilityRuntime_AttachInner_0600, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0600 start";
+    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
+    EXPECT_NE(abilitythread, nullptr);
+    if (abilitythread != nullptr) {
+        abilitythread->abilityImpl_ = std::make_shared<AbilityRuntime::UIAbilityImpl>();
+        EXPECT_NE(abilitythread->abilityImpl_, nullptr);
+        std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+        abilityInfo->name = "MockUIAbility";
+        abilityInfo->type = AbilityType::PAGE;
+        sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+        std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+        auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        abilitythread->AttachInner(application, abilityRecord, nullptr);
+    }
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0600 end";
+}
+
+/**
+ * @tc.number: AbilityRuntime_AttachInner_0700
+ * @tc.name: AttachInner
+ * @tc.desc: Test AttachInner function with all member variables set
+ */
+HWTEST_F(UIAbilityThreadTest, AbilityRuntime_AttachInner_0700, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0700 start";
+    AbilityRuntime::UIAbilityThread *abilitythread = new (std::nothrow) AbilityRuntime::UIAbilityThread();
+    EXPECT_NE(abilitythread, nullptr);
+    if (abilitythread != nullptr) {
+        abilitythread->token_ = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+        EXPECT_NE(abilitythread->token_, nullptr);
+        std::shared_ptr<EventRunner> mainRunner = EventRunner::Create("MockUIAbility");
+        abilitythread->abilityHandler_ = std::make_shared<AbilityHandler>(mainRunner);
+        EXPECT_NE(abilitythread->abilityHandler_, nullptr);
+        abilitythread->currentAbility_ = std::make_shared<AbilityRuntime::UIAbility>();
+        EXPECT_NE(abilitythread->currentAbility_, nullptr);
+        abilitythread->abilityImpl_ = std::make_shared<AbilityRuntime::UIAbilityImpl>();
+        EXPECT_NE(abilitythread->abilityImpl_, nullptr);
+        std::shared_ptr<AbilityInfo> abilityInfo = std::make_shared<AbilityInfo>();
+        abilityInfo->name = "MockUIAbility";
+        abilityInfo->type = AbilityType::PAGE;
+        sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+        std::shared_ptr<OHOSApplication> application = std::make_shared<OHOSApplication>();
+        auto abilityRecord = std::make_shared<AbilityLocalRecord>(abilityInfo, token, nullptr, 0);
+        abilitythread->AttachInner(application, abilityRecord, nullptr);
+    }
+    GTEST_LOG_(INFO) << "AbilityRuntime_AttachInner_0700 end";
 }
 
 #ifdef SUPPORT_SCREEN

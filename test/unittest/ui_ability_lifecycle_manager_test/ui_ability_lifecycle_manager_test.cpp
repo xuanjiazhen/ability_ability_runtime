@@ -8891,5 +8891,222 @@ HWTEST_F(UIAbilityLifecycleManagerTest, CompleteForegroundSuccess_GameSAPreLaunc
     EXPECT_EQ(abilityRecord->GetAbilityState(), AbilityState::FOREGROUNDING);
     EXPECT_TRUE(abilityRecord->IsGameSAPreLaunch());
 }
+/**
+ * @tc.name: DispatchForeground_Success_0100
+ * @tc.desc: Test DispatchForeground with success=true and default NativeState,
+ *           should call CompleteForegroundSuccess and return ERR_OK.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_Success_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, true);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: DispatchForeground_Failed_0100
+ * @tc.desc: Test DispatchForeground with success=false and state=FOREGROUND_FAILED,
+ *           should call HandleForegroundFailed and return ERR_OK.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_Failed_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, false, AbilityState::FOREGROUND_FAILED);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: DispatchForeground_Failed_0200
+ * @tc.desc: Test DispatchForeground with success=false and state=FOREGROUND_INVALID_MODE,
+ *           should call HandleForegroundFailed and return ERR_OK.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_Failed_0200, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, false, AbilityState::FOREGROUND_INVALID_MODE);
+    EXPECT_EQ(ret, ERR_OK);
+}
+
+/**
+ * @tc.name: DispatchForeground_WindowFreezed_0100
+ * @tc.desc: Test DispatchForeground with success=false and state=FOREGROUND_WINDOW_FREEZED,
+ *           should set ability state to BACKGROUND and return ERR_OK.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_WindowFreezed_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, false, AbilityState::FOREGROUND_WINDOW_FREEZED);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetAbilityState(), AbilityState::BACKGROUND);
+}
+
+/**
+ * @tc.name: DispatchForeground_NativeModuleAttached_Failed_0100
+ * @tc.desc: Test DispatchForeground with NativeState=ATTACHED and success=false,
+ *           NativeModule path should take priority, state set to CREATED.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_NativeModuleAttached_Failed_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, false, AbilityState::FOREGROUND_FAILED);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::CREATED);
+}
+
+/**
+ * @tc.name: DispatchForeground_NativeModuleOnForeground_Failed_0100
+ * @tc.desc: Test DispatchForeground with NativeState=ON_FOREGROUND and success=false,
+ *           should set NativeState to NORMAL then call HandleForegroundFailed.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_NativeModuleOnForeground_Failed_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, false, AbilityState::FOREGROUND_FAILED);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
+}
+
+/**
+ * @tc.name: DispatchForeground_WrongState_0100
+ * @tc.desc: Test DispatchForeground with ability in BACKGROUND state (not FOREGROUNDING),
+ *           should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_WrongState_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetAbilityState(AbilityState::BACKGROUND);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: DispatchForeground_WrongState_0200
+ * @tc.desc: Test DispatchForeground with ability in FOREGROUND state (not FOREGROUNDING),
+ *           should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_WrongState_0200, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUND);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: DispatchForeground_RemoveStartingPid_0100
+ * @tc.desc: Test DispatchForeground removes the ability's pid from startingPids_.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_RemoveStartingPid_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+    pid_t testPid = 12345;
+    abilityRecord->SetPid(testPid);
+    mgr->startingPids_.emplace(testPid);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, true);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(mgr->startingPids_.count(testPid), 0);
+}
+
+/**
+ * @tc.name: DispatchForeground_NativeModuleNormal_Success_0100
+ * @tc.desc: Test DispatchForeground with NativeState=NORMAL and success=true,
+ *           should call CompleteForegroundSuccess and return ERR_OK.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_NativeModuleNormal_Success_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::NORMAL);
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, true);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
+}
+
+/**
+ * @tc.name: DispatchForeground_Nullptr_0100
+ * @tc.desc: Test DispatchForeground with nullptr abilityRecord,
+ *           should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_Nullptr_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+
+    auto ret = mgr->DispatchForeground(nullptr, true);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: DispatchForeground_Nullptr_0200
+ * @tc.desc: Test DispatchForeground with nullptr abilityRecord and success=false,
+ *           should return ERR_INVALID_VALUE.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_Nullptr_0200, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+
+    auto ret = mgr->DispatchForeground(nullptr, false, AbilityState::FOREGROUND_FAILED);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+}
+
+/**
+ * @tc.name: DispatchForeground_NativeModuleOnForeground_WindowFreezed_0100
+ * @tc.desc: Test DispatchForeground with NativeState=ON_FOREGROUND, success=false,
+ *           state=FOREGROUND_WINDOW_FREEZED, should set NativeState to NORMAL then
+ *           set ability state to BACKGROUND.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_NativeModuleOnForeground_WindowFreezed_0100, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    auto abilityRecord = InitAbilityRecord();
+    abilityRecord->SetNativeState(AbilityNativeState::ON_FOREGROUND);
+    abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);
+
+    auto ret = mgr->DispatchForeground(abilityRecord, false, AbilityState::FOREGROUND_WINDOW_FREEZED);
+    EXPECT_EQ(ret, ERR_OK);
+    EXPECT_EQ(abilityRecord->GetNativeState(), AbilityNativeState::NORMAL);
+    EXPECT_EQ(abilityRecord->GetAbilityState(), AbilityState::BACKGROUND);
+}
 }  // namespace AAFwk
 }  // namespace OHOS
