@@ -28,6 +28,7 @@
 #include "permission_constants.h"
 #include "permission_verification.h"
 #include "start_ability_utils.h"
+#include "user_controller/user_controller.h"
 #include "utils/app_mgr_util.h"
 #ifdef SUPPORT_SCREEN
 #include "scene_board_judgement.h"
@@ -413,6 +414,28 @@ bool AbilityPermissionUtil::NeedCheckStatusBar(std::shared_ptr<AbilityRecord> ab
         return false;
     }
     return true;
+}
+
+bool AbilityPermissionUtil::CheckStartUIAbilityByUserLockStatus(const std::string &bundleName)
+{
+    if (bundleName.empty()) {
+        return true;
+    }
+    auto userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    auto userLockStatus = AAFwk::UserController::GetInstance().GetUserLockStatus(userId);
+    if (userLockStatus == AAFwk::UserController::UserLockStatus::USER_UNLOCKED) {
+        return true;
+    }
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    if (bms == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "null helper");
+        return true;
+    }
+    AppExecFwk::BundleInfo bundleInfo;
+    auto ret =
+        IN_PROCESS_CALL(bms->GetBundleInfo(bundleName, AppExecFwk::BundleFlag::GET_BUNDLE_DEFAULT, bundleInfo, userId));
+    bool isSystemApp = ret ? bundleInfo.applicationInfo.isSystemApp : false;
+    return isSystemApp;
 }
 } // AAFwk
 } // OHOS
