@@ -47,6 +47,11 @@ namespace {
 constexpr int32_t MILLISECOND_COEFFICIENT = 1000;
 constexpr int64_t MAX_TIMEOUT = 30 * 60; // 30 m
 constexpr size_t PREFIX_DOUBLE_DASH_LEN = 2;
+constexpr char BUNDLE_NAME_KEY[] = "bundleName";
+constexpr char MODULE_NAME_KEY[] = "moduleName";
+constexpr char SKILL_NAME_KEY[] = "skillName";
+constexpr char SKILL_TOOL_TYPE_KEY[] = "skillToolType";
+constexpr char ABC_PATH_KEY[] = "abcPath";
 }
 int32_t ToolUtil::ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &param,
     AccessToken::AccessTokenID tokenId)
@@ -581,6 +586,18 @@ void ToolUtil::ExpandArgsJsonString(AAFwk::WantParams &args)
         return;
     }
     ExpandArgsFromWantParams(args);
+}
+
+AAFwk::WantParams ToolUtil::BuildIndependentToolArgs(const AAFwk::WantParams &args,
+    const std::string &resolvedAbcPath)
+{
+    AAFwk::WantParams preparedArgs(args);
+    preparedArgs.Remove(BUNDLE_NAME_KEY);
+    preparedArgs.Remove(MODULE_NAME_KEY);
+    preparedArgs.Remove(SKILL_NAME_KEY);
+    preparedArgs.Remove(SKILL_TOOL_TYPE_KEY);
+    preparedArgs.SetParam(ABC_PATH_KEY, AAFwk::String::Box(resolvedAbcPath));
+    return preparedArgs;
 }
 
 std::shared_ptr<AAFwk::WantParams> ToolUtil::FilterSkillArgs(const AAFwk::WantParams &args)

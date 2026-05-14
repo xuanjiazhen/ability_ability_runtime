@@ -561,6 +561,33 @@ bool ArktsScript::MarkScriptDone(const std::shared_ptr<ExecutionContext>& execCo
     return true;
 }
 
+std::string ArktsScript::BuildStandaloneResultJson(const AbilityRuntime::StandaloneScriptExecuteResult& result)
+{
+    nlohmann::json output;
+    output["code"] = result.code;
+    if (result.hasResult && !result.resultJson.empty()) {
+        output["result"] = nlohmann::json::parse(result.resultJson, nullptr, false);
+        if (output["result"].is_discarded()) {
+            output["result"] = result.resultJson;
+        }
+    }
+    return output.dump();
+}
+
+bool ArktsScript::RegisterStandaloneCompletionCallback(const std::shared_ptr<ExecutionContext>& execContext,
+    CompletionChannel channel)
+{
+    return AbilityRuntime::RegisterStandaloneScriptCompleteCallback(
+        [execContext, channel](const AbilityRuntime::StandaloneScriptExecuteResult& result) {
+            PublishResult(execContext, channel.eventFd, BuildStandaloneResultJson(result));
+        });
+}
+
+void ArktsScript::ClearStandaloneCompletionCallback()
+{
+    AbilityRuntime::ClearStandaloneScriptCompleteCallback();
+}
+
 void ArktsScript::ReadCompletionSignal(const CompletionChannel& channel)
 {
     uint64_t count = 0;
@@ -645,6 +672,7 @@ bool ArktsScript::StartMonitor(CompletionChannel& channel, std::shared_ptr<Execu
 int ArktsScript::FinalizeAndJoin(const std::shared_ptr<ExecutionContext>& execContext, CompletionChannel& channel,
     std::thread& monitorThread, const ScriptError& error)
 {
+    ClearStandaloneCompletionCallback();
     if (execContext != nullptr) {
         PublishFailure(execContext, channel.eventFd, error);
     }
@@ -654,20 +682,7 @@ int ArktsScript::FinalizeAndJoin(const std::shared_ptr<ExecutionContext>& execCo
     return EXIT_FAILURE;
 }
 
-ResultCallback ArktsScript::CreateCompleteCallback(const std::shared_ptr<ExecutionContext>& execContext,
-    CompletionChannel channel)
-{
-    return [execContext, channel](bool success, const std::string& result, const ScriptError& error) {
-        if (success) {
-            PublishResult(execContext, channel.eventFd, result);
-            return;
-        }
-        PublishFailure(execContext, channel.eventFd, error);
-    };
-}
-
-bool ArktsScript::PrepareRuntimeEnvironment(const ResultCallback& completeCallback,
-    std::shared_ptr<ContextImpl>& context,
+bool ArktsScript::PrepareRuntimeEnvironment(std::shared_ptr<ContextImpl>& context,
     std::unique_ptr<JsRuntime>& runtimeOwner, ScriptError& error)
 {
     context = ArktsScript::CreateScriptContext();
@@ -692,11 +707,6 @@ bool ArktsScript::PrepareRuntimeEnvironment(const ResultCallback& completeCallba
     }
     if (!JsArktsScript::BindContextToGlobal(env, context)) {
         error.message = "failed to bind context to globalThis";
-        error.type = "BIND_ERROR";
-        return false;
-    }
-    if (!JsArktsScript::BindCompletearktsScript(env, completeCallback)) {
-        error.message = "failed to bind CompletearktsScript";
         error.type = "BIND_ERROR";
         return false;
     }
@@ -777,12 +787,15 @@ int ArktsScript::RunArkTsScript(int argc, char* argv[])
     if (!StartMonitor(channel, execContext, monitorThread)) {
         return EXIT_FAILURE;
     }
+    if (!RegisterStandaloneCompletionCallback(execContext, channel)) {
+        return FinalizeAndJoin(execContext, channel, monitorThread,
+            { "failed to register standalone completion callback", "BIND_ERROR" });
+    }
 
     ScriptError error;
     std::shared_ptr<ContextImpl> context;
     std::unique_ptr<JsRuntime> runtimeOwner;
-    ResultCallback completeCallback = CreateCompleteCallback(execContext, channel);
-    if (!PrepareRuntimeEnvironment(completeCallback, context, runtimeOwner, error)) {
+    if (!PrepareRuntimeEnvironment(context, runtimeOwner, error)) {
         return FinalizeAndJoin(execContext, channel, monitorThread, error);
     }
 

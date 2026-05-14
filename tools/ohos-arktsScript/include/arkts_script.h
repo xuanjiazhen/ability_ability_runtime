@@ -20,7 +20,6 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <functional>
 #include <atomic>
 #include <mutex>
 #include <thread>
@@ -28,6 +27,7 @@
 #include "context_impl.h"
 #include "js_runtime.h"
 #include "napi/native_api.h"
+#include "standalone_skill_utils.h"
 
 namespace OHOS {
 namespace ArktsScript {
@@ -69,8 +69,6 @@ struct ExecutionContext {
     std::string result;
     ScriptError error;
 };
-
-using ResultCallback = std::function<void(bool success, const std::string& result, const ScriptError& error)>;
 
 struct CompletionChannel {
     int eventFd = -1;
@@ -117,6 +115,10 @@ private:
     static bool PublishFailure(const std::shared_ptr<ExecutionContext>& execContext, int eventFd,
         const ScriptError& error);
     static bool MarkScriptDone(const std::shared_ptr<ExecutionContext>& execContext, int eventFd);
+    static std::string BuildStandaloneResultJson(const AbilityRuntime::StandaloneScriptExecuteResult& result);
+    static bool RegisterStandaloneCompletionCallback(const std::shared_ptr<ExecutionContext>& execContext,
+        CompletionChannel channel);
+    static void ClearStandaloneCompletionCallback();
     static void ReadCompletionSignal(const CompletionChannel& channel);
     static ExecutionSnapshot TakeExecutionSnapshot(const std::shared_ptr<ExecutionContext>& execContext);
     static void HandleExecutionSnapshot(const ExecutionSnapshot& snapshot, const CompletionChannel& channel);
@@ -125,10 +127,8 @@ private:
         std::thread& monitorThread);
     static int FinalizeAndJoin(const std::shared_ptr<ExecutionContext>& execContext, CompletionChannel& channel,
         std::thread& monitorThread, const ScriptError& error);
-    static ResultCallback CreateCompleteCallback(const std::shared_ptr<ExecutionContext>& execContext,
-        CompletionChannel channel);
-    static bool PrepareRuntimeEnvironment(const ResultCallback& completeCallback,
-        std::shared_ptr<ContextImpl>& context, std::unique_ptr<JsRuntime>& runtimeOwner, ScriptError& error);
+    static bool PrepareRuntimeEnvironment(std::shared_ptr<ContextImpl>& context,
+        std::unique_ptr<JsRuntime>& runtimeOwner, ScriptError& error);
     static bool LoadScriptFile(const ScriptArgs& args, JsRuntime* runtime, ScriptError& error);
     static bool ResolveScriptFunction(const ScriptArgs& args, JsRuntime* runtime,
         napi_value& receiver, napi_value& func, ScriptError& error);

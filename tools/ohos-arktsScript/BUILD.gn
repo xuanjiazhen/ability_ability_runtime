@@ -22,6 +22,7 @@ config("ohos-arkts-config") {
     "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper",
     "${ability_runtime_innerkits_path}/app_manager/include/appmgr",
     "${ability_runtime_innerkits_path}/ability_manager/include",
+    "${cli_tool_framework_path}/frameworks/common/standalone_skill_utils/include",
   ]
   cflags_cc = [ "-fexceptions" ]
 }
@@ -31,6 +32,7 @@ arkts_script_deps = [
   "${ability_runtime_native_path}/appkit:appkit_manager_helper",
   "${ability_runtime_native_path}/appkit:app_context",
   "${ability_runtime_native_path}/appkit:app_context_utils",
+  "${cli_tool_framework_path}/frameworks/common/standalone_skill_utils:standalone_skill_utils",
 ]
 
 arkts_script_external_deps = [

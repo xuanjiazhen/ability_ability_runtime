@@ -37,6 +37,7 @@ ohos_shared_library("scriptmanager_napi") {
     "${ability_runtime_innerkits_path}/napi_base_context:napi_base_context",
     "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_napi_path}/inner/napi_common:napi_common",
+    "${cli_tool_framework_path}/frameworks/common/standalone_skill_utils:standalone_skill_utils",
   ]
 
   external_deps = [

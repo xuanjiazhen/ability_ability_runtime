@@ -15,11 +15,14 @@
 
 #include "cli_tool_manager_service.h"
 
+#include <algorithm>
 #include <sys/wait.h>
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_client.h"
+#include "bundle_info.h"
+#include "bundle_mgr_helper.h"
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
@@ -48,6 +51,9 @@ constexpr int32_t QUERY_DB_ERROR = 2;
 constexpr int32_t MAX_QUERY_CMDS_SIZE = 100;
 constexpr int32_t ACTIVE_TIME = 30 * 1000; // 30s
 constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
+constexpr int32_t GET_BUNDLE_INFO_WITH_HAP_MODULE =
+    static_cast<int32_t>(AppExecFwk::GetBundleInfoFlag::GET_BUNDLE_INFO_WITH_HAP_MODULE);
+constexpr char BUNDLE_STORAGE_PREFIX[] = "/data/storage/el1/bundle/";
 sptr<SkillCallbackAdapter> adaptor_;
 } // namespace
 
@@ -557,26 +563,31 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     InterfaceCallCounter counter(interfaceCalledCount_);
     TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecTool called: toolName=%{public}s, subcommand=%{public}s",
         param.toolName.c_str(), param.subcommand.c_str());
+    ExecToolParam preparedParam(param);
     ToolInfo toolInfo;
-    if (ToolUtil::IsSkillTool(param.toolName)) {
+    if (ToolUtil::IsSkillTool(preparedParam.toolName)) {
         int32_t skillType = 0;
-        auto skillRet = ValidateSkillTypeFromParam(param, skillType);
+        auto skillRet = ValidateSkillTypeFromParam(preparedParam, skillType);
         if (skillRet == ERR_OK && skillType != SKILL_TYPE_INDEPENDENT) {
             TAG_LOGI(AAFwkTag::CLI_TOOL,
                 "Dispatch to skill path, toolName=%{public}s eventId=%{public}s",
-                param.toolName.c_str(), eventId.c_str());
-            int32_t ret = SetupAndStartSkillSession(param, eventId, toolInfo);
+                preparedParam.toolName.c_str(), eventId.c_str());
+            int32_t ret = SetupAndStartSkillSession(preparedParam, eventId, toolInfo);
             if (ret != ERR_OK) {
                 TAG_LOGE(AAFwkTag::CLI_TOOL,
-                    "Skill dispatch failed, toolName=%{public}s ret=%{public}d", param.toolName.c_str(), ret);
+                    "Skill dispatch failed, toolName=%{public}s ret=%{public}d", preparedParam.toolName.c_str(), ret);
             }
             return ret;
         }
         if (skillRet != ERR_OK) {
             return skillRet;
         }
+        if (auto ret = PrepareIndependentSkillToolParam(param, preparedParam); ret != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "PrepareIndependentSkillToolParam failed, ret=%{public}d", ret);
+            return ret;
+        }
         TAG_LOGI(AAFwkTag::CLI_TOOL,
-            "Independent skill, fallback to CLI path, toolName=%{public}s", param.toolName.c_str());
+            "Independent skill, fallback to CLI path, toolName=%{public}s", preparedParam.toolName.c_str());
     }
 
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
@@ -591,11 +602,11 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     std::string sandboxConfig;
     std::string bundleName;
 
-    if (auto ret = ValidateAndPrepareTool(param, tokenId, toolInfo, sandboxConfig, bundleName); ret != ERR_OK) {
+    if (auto ret = ValidateAndPrepareTool(preparedParam, tokenId, toolInfo, sandboxConfig, bundleName); ret != ERR_OK) {
         return ret;
     }
 
-    return SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
+    return SetupAndStartSession(preparedParam, eventId, toolInfo, sandboxConfig, bundleName);
 }
 
 void CliToolManagerService::PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout)
@@ -987,16 +998,6 @@ int32_t CliToolManagerService::ValidateSkillTypeFromParam(const ExecToolParam &p
     auto bundleName = args.GetStringParam("bundleName");
     auto moduleName = args.GetStringParam("moduleName");
     auto skillName = args.GetStringParam("skillName");
-    if (skillName.empty()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "skillName is required in args");
-        return ERR_INVALID_VALUE;
-    }
-    return ValidateSkillType(bundleName, moduleName, skillName, skillType);
-}
-
-int32_t CliToolManagerService::ValidateSkillType(const std::string &bundleName,
-    const std::string &moduleName, const std::string &skillName, int32_t &skillType)
-{
     auto queryRet = AAFwk::AbilityManagerClient::GetInstance()->QuerySkillType(
         bundleName, moduleName, skillName, skillType);
     if (queryRet != ERR_OK) {
@@ -1018,6 +1019,10 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
     auto skillName = args.GetStringParam("skillName");
     auto scriptPath = args.GetStringParam("scriptPath");
     auto funcName = args.GetStringParam("functionName");
+    if (skillName.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "skillName is required for app skill");
+        return ERR_INVALID_VALUE;
+    }
 
     ToolUtil::ExpandArgsJsonString(args);
     auto skillArgs = ToolUtil::FilterSkillArgs(args);
@@ -1055,6 +1060,59 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
         HandleBackgroundSessionReply(record, eventId);
     }
 
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::PrepareIndependentSkillToolParam(const ExecToolParam &param, ExecToolParam &preparedParam)
+{
+    auto &args = const_cast<ExecToolParam &>(param).args;
+    auto bundleName = args.GetStringParam("bundleName");
+    auto moduleName = args.GetStringParam("moduleName");
+    auto abcPath = args.GetStringParam("abcPath");
+    auto functionName = args.GetStringParam("functionName");
+    if (bundleName.empty() || moduleName.empty() || abcPath.empty() || functionName.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Independent skill missing required args");
+        return ERR_INVALID_VALUE;
+    }
+
+    std::string resolvedAbcPath;
+    auto ret = ResolveIndependentSkillAbcPath(bundleName, moduleName, abcPath, resolvedAbcPath);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    preparedParam = param;
+    ToolUtil::NormalizeSkillParamKeys(preparedParam.args);
+    preparedParam.args = ToolUtil::BuildIndependentToolArgs(preparedParam.args, resolvedAbcPath);
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::ResolveIndependentSkillAbcPath(const std::string &bundleName,
+    const std::string &moduleName, const std::string &abcPath, std::string &resolvedAbcPath)
+{
+    auto bundleMgrHelper = DelayedSingleton<AppExecFwk::BundleMgrHelper>::GetInstance();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "bundleMgrHelper is invalid");
+        return ERR_NO_INIT;
+    }
+
+    AppExecFwk::BundleInfo bundleInfo;
+    auto ret = bundleMgrHelper->GetBundleInfoV9(bundleName, GET_BUNDLE_INFO_WITH_HAP_MODULE, bundleInfo, 0);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetBundleInfoV9 failed, ret=%{public}d", ret);
+        return ret;
+    }
+
+    auto moduleIt = std::find_if(bundleInfo.hapModuleInfos.begin(), bundleInfo.hapModuleInfos.end(),
+        [&moduleName](const AppExecFwk::HapModuleInfo &hapModuleInfo) {
+            return hapModuleInfo.moduleName == moduleName;
+        });
+    if (moduleIt == bundleInfo.hapModuleInfos.end()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "module not found in bundle, moduleName=%{public}s", moduleName.c_str());
+        return ERR_INVALID_VALUE;
+    }
+
+    resolvedAbcPath = std::string(BUNDLE_STORAGE_PREFIX) + moduleName + "/" + abcPath;
     return ERR_OK;
 }
 
