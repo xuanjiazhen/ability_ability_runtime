@@ -35,6 +35,7 @@
 namespace OHOS {
 namespace AppExecFwk {
 class IApplicationStateObserver;
+class IBundleSkillManager;
 struct SkillExecuteResult;
 }
 namespace CliTool {
@@ -148,6 +149,7 @@ private:
     int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
     int32_t ValidateSkillType(const std::string &bundleName,
         const std::string &moduleName, const std::string &skillName, int32_t &skillType);
+    sptr<AppExecFwk::IBundleSkillManager> GetSkillManagerProxy();
     void HandleSkillSessionComplete(const std::string &sessionId, int32_t callerPid,
         const std::string &eventId, int32_t resultCode, const CliSessionInfo &session);
     void HandleSkillSessionTimeout(const std::string &sessionId);

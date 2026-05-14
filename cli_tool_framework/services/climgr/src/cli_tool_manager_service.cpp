@@ -28,6 +28,10 @@
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
 #include "iservice_registry.h"
+#include "bundle_mgr_interface.h"
+#include "bundle_skill/skill_info.h"
+#include "bundle_skill/skill_manager_interface.h"
+#include "system_ability_definition.h"
 #include "permission_query_util.h"
 #include "permission_util.h"
 #include "process_manager.h"
@@ -48,6 +52,8 @@ constexpr int32_t QUERY_DB_ERROR = 2;
 constexpr int32_t MAX_QUERY_CMDS_SIZE = 100;
 constexpr int32_t ACTIVE_TIME = 30 * 1000; // 30s
 constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
+constexpr int32_t BASE_USER_RANGE = 200000;
+constexpr int32_t DEFAULT_USER_ID = 100;
 sptr<SkillCallbackAdapter> adaptor_;
 } // namespace
 
@@ -558,24 +564,33 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         param.toolName.c_str(), param.subcommand.c_str());
     ToolInfo toolInfo;
     if (ToolUtil::IsSkillTool(param.toolName)) {
-        int32_t skillType = 0;
-        auto skillRet = ValidateSkillTypeFromParam(param, skillType);
-        if (skillRet == ERR_OK && skillType != SKILL_TYPE_INDEPENDENT) {
+        auto &skillArgs = const_cast<ExecToolParam &>(param).args;
+        ToolUtil::NormalizeSkillParamKeys(skillArgs);
+        auto skillName = skillArgs.GetStringParam("skillName");
+        if (skillName.empty()) {
             TAG_LOGI(AAFwkTag::CLI_TOOL,
-                "Dispatch to skill path, toolName=%{public}s eventId=%{public}s",
-                param.toolName.c_str(), eventId.c_str());
-            int32_t ret = SetupAndStartSkillSession(param, eventId, toolInfo);
-            if (ret != ERR_OK) {
-                TAG_LOGE(AAFwkTag::CLI_TOOL,
-                    "Skill dispatch failed, toolName=%{public}s ret=%{public}d", param.toolName.c_str(), ret);
+                "skillName is empty, fallback to CLI path, toolName=%{public}s", param.toolName.c_str());
+        } else {
+            int32_t skillType = 0;
+            auto skillRet = ValidateSkillTypeFromParam(param, skillType);
+            if (skillRet == ERR_OK && skillType != SKILL_TYPE_INDEPENDENT) {
+                TAG_LOGI(AAFwkTag::CLI_TOOL,
+                    "Dispatch to skill path, toolName=%{public}s eventId=%{public}s",
+                    param.toolName.c_str(), eventId.c_str());
+                int32_t ret = SetupAndStartSkillSession(param, eventId, toolInfo);
+                if (ret != ERR_OK) {
+                    TAG_LOGE(AAFwkTag::CLI_TOOL,
+                        "Skill dispatch failed, toolName=%{public}s ret=%{public}d",
+                        param.toolName.c_str(), ret);
+                }
+                return ret;
             }
-            return ret;
+            if (skillRet != ERR_OK) {
+                return skillRet;
+            }
+            TAG_LOGI(AAFwkTag::CLI_TOOL,
+                "Independent skill, fallback to CLI path, toolName=%{public}s", param.toolName.c_str());
         }
-        if (skillRet != ERR_OK) {
-            return skillRet;
-        }
-        TAG_LOGI(AAFwkTag::CLI_TOOL,
-            "Independent skill, fallback to CLI path, toolName=%{public}s", param.toolName.c_str());
     }
 
     if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
@@ -981,26 +996,56 @@ int32_t CliToolManagerService::ValidateSkillTypeFromParam(const ExecToolParam &p
 {
     auto &args = const_cast<ExecToolParam &>(param).args;
     ToolUtil::NormalizeSkillParamKeys(args);
-    auto bundleName = args.GetStringParam("bundleName");
-    auto moduleName = args.GetStringParam("moduleName");
     auto skillName = args.GetStringParam("skillName");
     if (skillName.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "skillName is required in args");
         return ERR_INVALID_VALUE;
     }
-    return ValidateSkillType(bundleName, moduleName, skillName, skillType);
+    return ValidateSkillType("", "", skillName, skillType);
 }
 
 int32_t CliToolManagerService::ValidateSkillType(const std::string &bundleName,
     const std::string &moduleName, const std::string &skillName, int32_t &skillType)
 {
-    auto queryRet = AAFwk::AbilityManagerClient::GetInstance()->QuerySkillType(
-        bundleName, moduleName, skillName, skillType);
-    if (queryRet != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "querySkillType failed:%{public}d", queryRet);
-        return queryRet;
+    int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
+    if (userId == 0) {
+        userId = DEFAULT_USER_ID;
     }
+    auto skillMgr = GetSkillManagerProxy();
+    if (skillMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "failed to get SkillManager proxy");
+        return ERR_INVALID_VALUE;
+    }
+    uint32_t flags = static_cast<uint32_t>(AppExecFwk::SkillInfoFlag::GET_SKILL_INFO_DEFAULT);
+    AppExecFwk::SkillInfo skillInfo;
+    auto ret = skillMgr->GetSkillInfo(bundleName, moduleName, skillName, flags, userId, skillInfo);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetSkillInfo failed, ret:%{public}d", ret);
+        return ret;
+    }
+    skillType = static_cast<int32_t>(skillInfo.skillType);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "skill:%{public}s type:%{public}d", skillName.c_str(), skillType);
     return ERR_OK;
+}
+
+sptr<AppExecFwk::IBundleSkillManager> CliToolManagerService::GetSkillManagerProxy()
+{
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgr == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "failed to get SystemAbilityManager");
+        return nullptr;
+    }
+    auto bmsObj = samgr->GetSystemAbility(BUNDLE_MGR_SERVICE_SYS_ABILITY_ID);
+    if (bmsObj == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "failed to get BMS from samgr");
+        return nullptr;
+    }
+    auto bundleMgr = iface_cast<AppExecFwk::IBundleMgr>(bmsObj);
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "failed to cast IBundleMgr");
+        return nullptr;
+    }
+    return bundleMgr->GetSkillManagerProxy();
 }
 
 int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &param,
@@ -1010,8 +1055,6 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
         param.toolName.c_str());
 
     auto &args = const_cast<ExecToolParam &>(param).args;
-    auto bundleName = args.GetStringParam("bundleName");
-    auto moduleName = args.GetStringParam("moduleName");
     auto skillName = args.GetStringParam("skillName");
     auto scriptPath = args.GetStringParam("scriptPath");
     auto funcName = args.GetStringParam("functionName");
@@ -1032,8 +1075,6 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
 
     AppExecFwk::SkillExecuteRequest skillRequest;
     skillRequest.callerTokenId = callerTokenId;
-    skillRequest.bundleName = bundleName;
-    skillRequest.moduleName = moduleName;
     skillRequest.skillName = skillName;
     skillRequest.scriptPath = scriptPath;
     skillRequest.functionName = funcName;

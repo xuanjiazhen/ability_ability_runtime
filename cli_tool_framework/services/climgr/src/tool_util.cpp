@@ -523,7 +523,7 @@ void ToolUtil::NormalizeSkillParamKeys(AAFwk::WantParams &args)
 bool ToolUtil::ExpandArgsFromJson(AAFwk::WantParams &args, const std::string &argsStr)
 {
     static const std::set<std::string> RESERVED_KEYS = {
-        "bundleName", "moduleName", "skillName", "scriptPath", "functionName"
+        "skillName", "scriptPath", "functionName"
     };
 
     auto jsonObj = nlohmann::json::parse(argsStr, nullptr, false);
@@ -549,7 +549,7 @@ bool ToolUtil::ExpandArgsFromJson(AAFwk::WantParams &args, const std::string &ar
 void ToolUtil::ExpandArgsFromWantParams(AAFwk::WantParams &args)
 {
     static const std::set<std::string> RESERVED_KEYS = {
-        "bundleName", "moduleName", "skillName", "scriptPath", "functionName"
+        "skillName", "scriptPath", "functionName"
     };
 
     auto &params = args.GetParams();
@@ -586,7 +586,7 @@ void ToolUtil::ExpandArgsJsonString(AAFwk::WantParams &args)
 std::shared_ptr<AAFwk::WantParams> ToolUtil::FilterSkillArgs(const AAFwk::WantParams &args)
 {
     static const std::set<std::string> RESERVED_KEYS = {
-        "bundleName", "moduleName", "skillName", "scriptPath", "functionName"
+        "skillName", "scriptPath", "functionName"
     };
 
     auto skillArgs = std::make_shared<AAFwk::WantParams>();
