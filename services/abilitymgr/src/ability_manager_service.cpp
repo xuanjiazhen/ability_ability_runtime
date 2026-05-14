@@ -14546,7 +14546,8 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
     }
 
     // 2. Verify caller permissions
-    ret = DelayedSingleton<SkillExecuteManager>::GetInstance()->CheckSkillPermission(skillInfo);
+    ret = DelayedSingleton<SkillExecuteManager>::GetInstance()->CheckSkillPermission(
+        skillInfo, request.callerTokenId);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "check skill permission failed");
         return ret;
