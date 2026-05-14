@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2024 Huawei Device Co., Ltd.
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -157,9 +157,9 @@ bool ConvertToDouble(const std::string& str, double& outValue)
 namespace OHOS {
 namespace AbilityRuntime {
 
-CConfiguration CreateCConfiguration(const OHOS::AppExecFwk::Configuration &configuration)
+template<typename T>
+static void FillCommonConfigFields(const OHOS::AppExecFwk::Configuration &configuration, T &cfg)
 {
-    CConfiguration cfg;
     cfg.language = CreateCStringFromString(configuration.GetItem(
         OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE));
     cfg.colorMode = ConvertColorMode(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_COLORMODE));
@@ -182,6 +182,12 @@ CConfiguration CreateCConfiguration(const OHOS::AppExecFwk::Configuration &confi
     cfg.fontWeightScale = fontWeightScaleValue;
     cfg.mcc = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_MCC));
     cfg.mnc = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_MNC));
+}
+
+CConfiguration CreateCConfiguration(const OHOS::AppExecFwk::Configuration &configuration)
+{
+    CConfiguration cfg;
+    FillCommonConfigFields(configuration, cfg);
     return cfg;
 }
 
@@ -190,6 +196,29 @@ void FreeCConfiguration(CConfiguration configuration)
     free(configuration.language);
     free(configuration.mcc);
     free(configuration.mnc);
+}
+
+CConfigurationV2 CreateCConfigurationV2(const OHOS::AppExecFwk::Configuration &configuration)
+{
+    CConfigurationV2 cfg;
+    FillCommonConfigFields(configuration, cfg);
+    cfg.fontId = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_FONT_ID));
+    cfg.locale = CreateCStringFromString(configuration.GetItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_LOCALE));
+    return cfg;
+}
+
+void FreeCConfigurationV2(CConfigurationV2 *configuration)
+{
+    free(configuration->language);
+    free(configuration->mcc);
+    free(configuration->mnc);
+    free(configuration->fontId);
+    free(configuration->locale);
+    configuration->language = nullptr;
+    configuration->mcc = nullptr;
+    configuration->mnc = nullptr;
+    configuration->fontId = nullptr;
+    configuration->locale = nullptr;
 }
 
 extern "C" {
@@ -201,6 +230,21 @@ CJ_EXPORT CConfiguration OHOS_ConvertConfiguration(void* param)
         return cCfg;
     }
     return CreateCConfiguration(*config);
+}
+
+CJ_EXPORT CConfigurationV2 OHOS_ConvertConfigurationV2(void* param)
+{
+    CConfigurationV2 cCfg = {};
+    auto config = reinterpret_cast<AppExecFwk::Configuration*>(param);
+    if (config == nullptr) {
+        return cCfg;
+    }
+    return CreateCConfigurationV2(*config);
+}
+
+CJ_EXPORT void OHOS_FreeConfigurationV2(CConfigurationV2 *configuration)
+{
+    FreeCConfigurationV2(configuration);
 }
 }
 }
