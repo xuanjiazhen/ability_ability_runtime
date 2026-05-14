@@ -148,6 +148,8 @@ private:
 
     int32_t SetupAndStartSkillSession(const ExecToolParam &param,
         const std::string &eventId, const ToolInfo &toolInfo);
+    int32_t TryDispatchSkill(const ExecToolParam &param,
+        const std::string &eventId, ToolInfo &toolInfo);
     int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);
     int32_t ValidateSkillType(const std::string &bundleName,
         const std::string &moduleName, const std::string &skillName, int32_t &skillType);
