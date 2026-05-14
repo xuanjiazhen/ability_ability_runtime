@@ -271,7 +271,8 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
     }
 
     g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), GetAotPath(options), options.appInnerHspPathList,
-        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner, options.baseLineProfile);
+        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner, options.baseLineProfile,
+        options.staticPluginHspPathList, options.bundleName);
     return true;
 }
 
@@ -641,7 +642,7 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> ETSRuntime::LoadEtsModule(const 
         return std::unique_ptr<AppExecFwk::ETSNativeReference>();
     }
 
-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
+    std::string modulePath = ExtractorUtil::GetLoadFilePath(hapPath);
     std::string entryPath = HandleOhmUrlSrcEntry(srcEntrance);
     void *cls = nullptr;
     void *obj = nullptr;
