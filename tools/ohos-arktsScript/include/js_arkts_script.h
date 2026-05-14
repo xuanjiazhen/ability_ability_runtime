@@ -23,7 +23,6 @@
 #include "arkts_script.h"
 #include "context.h"
 #include "napi/native_api.h"
-#include "nlohmann/json.hpp"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -37,23 +36,12 @@ public:
     ~JsArktsScript() = delete;
 
     static bool BindContextToGlobal(napi_env env, const std::shared_ptr<ContextImpl>& context);
-    static bool BindCompletearktsScript(napi_env env, const ResultCallback& callback);
     static bool ResolveFunction(JsRuntime* runtime, napi_env env, const std::string& abcPath,
         const std::string& scriptName, const std::string& funName, napi_value& receiver, napi_value& func);
     static napi_value ConvertArgumentsToNapi(napi_env env, const std::vector<ScriptArg>& arguments);
     static std::string StringifyObject(napi_env env, napi_value result);
 
 private:
-    struct CompletePayload {
-        int32_t code = 0;
-        nlohmann::json resultJson;
-        bool hasResult = false;
-        std::string uri;
-        bool hasUri = false;
-        int32_t flag = 0;
-        bool hasFlag = false;
-    };
-
     static std::string NormalizeScriptName(const std::string& scriptName);
     static bool ResolveFunctionFromExports(JsRuntime* runtime, napi_env env, const std::string& abcPath,
         const std::string& scriptName, const std::string& funName, napi_value& receiver, napi_value& func);
@@ -75,19 +63,6 @@ private:
         const std::shared_ptr<OHOS::AbilityRuntime::Context>& context,
         const std::string& bundleNameOverride = std::string());
     static bool GetUtf8String(napi_env env, napi_value value, std::string& output);
-    static bool GetInt32Property(napi_env env, napi_value object, const char* name, int32_t& output);
-    static bool GetOptionalInt32Property(napi_env env, napi_value object, const char* name,
-        int32_t& output, bool& hasValue);
-    static bool GetOptionalStringProperty(napi_env env, napi_value object, const char* name,
-        std::string& output, bool& hasValue);
-    static bool GetOptionalJsonObjectProperty(napi_env env, napi_value object, const char* name,
-        nlohmann::json& output, bool& hasValue);
-    static bool ReadCompletePayload(napi_env env, napi_value value, CompletePayload& payload, std::string& error);
-    static nlohmann::json BuildCompletePayloadJson(const CompletePayload& payload);
-    static void ClearCompleteCallbackData();
-    static void FinishCompleteCallback(bool success, const std::string& result, const ScriptError& error);
-    static napi_value CompletearktsScriptWithError(const std::string& error);
-    static napi_value CompletearktsScript(napi_env env, napi_callback_info info);
 };
 
 } // namespace ArktsScript
