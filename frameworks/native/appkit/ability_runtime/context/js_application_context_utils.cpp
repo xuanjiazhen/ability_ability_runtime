@@ -26,6 +26,9 @@
 #include "application_info.h"
 #include "application_context_manager.h"
 #include "hilog_tag_wrapper.h"
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+#include "histogram_plugin_macros.h"
+#endif
 #include "interop_object_instance.h"
 #include "ipc_skeleton.h"
 #include "js_ability_auto_startup_callback.h"
