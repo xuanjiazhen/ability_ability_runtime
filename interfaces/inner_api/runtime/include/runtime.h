@@ -91,6 +91,7 @@ public:
         uint32_t versionCode = 0;
         bool enableWarmStartupSmartGC = false;
         std::string arkTSMode;
+        std::vector<std::string> staticPluginHspPathList;
     };
 
     struct DebugOption {
