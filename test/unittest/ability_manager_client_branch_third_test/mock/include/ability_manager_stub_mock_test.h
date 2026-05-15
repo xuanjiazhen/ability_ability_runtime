@@ -433,6 +433,8 @@ public:
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (int32_t sessionId), (override));
 #endif
     MOCK_METHOD(int32_t, GetUserLockedBundleList, (int32_t, std::unordered_set<std::string> &), (override));
+    MOCK_METHOD(int32_t, ExecuteInAppSkillWithTokenId,
+        (const AppExecFwk::SkillExecuteRequest &request, const sptr<ISkillExecuteCallback> &callback), (override));
 };  // namespace AAFwk
 }   // namespace OHOS
 }
