@@ -433,6 +433,7 @@ public:
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (int32_t sessionId), (override));
 #endif
     MOCK_METHOD(int32_t, GetUserLockedBundleList, (int32_t, std::unordered_set<std::string> &), (override));
+<<<<<<< HEAD
     MOCK_METHOD7(ExecuteInAppSkill, int32_t(const std::string &, const std::string &,
         const std::string &, const std::string &, const std::string &,
         const std::shared_ptr<AAFwk::WantParams> &, const sptr<ISkillExecuteCallback> &));
@@ -440,6 +441,8 @@ public:
         int32_t, const AppExecFwk::SkillExecuteResult &));
     MOCK_METHOD4(QuerySkillType, int32_t(const std::string &, const std::string &,
         const std::string &, int32_t &));
+=======
+>>>>>>> 4e4cc0accd (add TDD cases for ExecuteInAppSkillWithTokenId and ExecuteIntentWithResult)
     MOCK_METHOD(int32_t, ExecuteInAppSkillWithTokenId,
         (const AppExecFwk::SkillExecuteRequest &request, const sptr<ISkillExecuteCallback> &callback), (override));
 };  // namespace AAFwk

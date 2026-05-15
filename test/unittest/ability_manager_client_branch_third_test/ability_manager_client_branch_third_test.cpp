@@ -1424,6 +1424,7 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, DisplayInfoTest_0100, TestSize.Lev
 }
 
 /**
+<<<<<<< HEAD
  * @tc.name: ExecuteInAppSkill_0100
  * @tc.desc: Test ExecuteInAppSkill with proxy not connected
  * @tc.type: FUNC
@@ -1530,6 +1531,8 @@ HWTEST_F(AbilityManagerClientBranchThirdTest, QuerySkillType_0200, TestSize.Leve
 }
 
 /**
+=======
+>>>>>>> 4e4cc0accd (add TDD cases for ExecuteInAppSkillWithTokenId and ExecuteIntentWithResult)
  * @tc.name: ExecuteInAppSkillWithTokenId_0100
  * @tc.desc: Test ExecuteInAppSkillWithTokenId with proxy not connected
  * @tc.type: FUNC
