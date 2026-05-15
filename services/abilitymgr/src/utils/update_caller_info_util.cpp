@@ -400,7 +400,7 @@ void UpdateCallerInfoUtil::ClearProtectedWantParam(Want &want)
         if (callerBundleName.empty()) {
             callerBundleName = std::to_string(callerUid);
         }
-        auto hideSensitiveType = want.GetIntParam(HIDE_SENSITIVE_TYPE, 0);
+        auto hideSensitiveType = want.GetIntParam(HIDE_SENSITIVE_TYPE, 4);
         eventInfo.uri = "HideSensitiveType://" + bundleName + "/" + callerBundleName + "/" +
             std::to_string(hideSensitiveType);
         EventReport::SendGrantUriPermissionEvent(EventName::GRANT_URI_PERMISSION, eventInfo);

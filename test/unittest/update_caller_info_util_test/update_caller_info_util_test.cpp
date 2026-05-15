@@ -695,7 +695,7 @@ HWTEST_F(UpdateCallerInfoUtilTest, ClearProtectedWantParam_HideSensitiveType_002
 {
     auto updateCallerUtil = std::make_shared<UpdateCallerInfoUtil>();
     Want want;
-    want.SetParam(HIDE_SENSITIVE_TYPE, 0);
+    want.SetParam(HIDE_SENSITIVE_TYPE, 4);
     want.SetElementName("com.test.demo", "entry", "TestAbility");
 
     // ClearProtectedWantParam should still process the parameter
