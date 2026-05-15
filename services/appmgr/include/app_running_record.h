@@ -435,6 +435,13 @@ public:
     void ScheduleTerminate();
 
     /**
+     * ScheduleTerminateByDelayed, Notify application to terminate by delayed.
+     *
+     * @return
+     */
+    void ScheduleTerminateByDelayed(bool isLastUIAbility);
+
+    /**
      * ScheduleTerminate, Notify application process exit safely.
      *
      * @return
@@ -978,6 +985,10 @@ public:
 
     std::string GetPreloadModuleName() const;
 
+    void SetPreloadAbilityName(const std::string &abilityName);
+
+    std::string GetPreloadAbilityName() const;
+
     /**
      * @brief Obtains the app record assign tokenId.
      *
@@ -1230,26 +1241,6 @@ public:
     std::optional<bool> IsSupportMultiProcessDeviceFeature() const;
     void SetSupportMultiProcessDeviceFeature(bool support);
 
-    inline void SetArkChildProcessSupported(bool supported)
-    {
-        isArkChildProcessSupported_ = supported;
-    }
-
-    inline bool IsArkChildProcessSupported() const
-    {
-        return isArkChildProcessSupported_;
-    }
-
-    inline void SetNativeChildProcessSupported(bool supported)
-    {
-        isNativeChildProcessSupported_ = supported;
-    }
-
-    inline bool IsNativeChildProcessSupported() const
-    {
-        return isNativeChildProcessSupported_;
-    }
-
     inline void SetMasterProcess(bool isMasterProcess)
     {
         isMasterProcess_ = isMasterProcess;
@@ -1320,6 +1311,16 @@ public:
     }
 
     bool IsLastAgentExtensionAbility(const sptr<IRemoteObject> &token);
+
+    inline void EnableDelayedProcessExit(bool enabled)
+    {
+        delayedProcessExitEnabled_ = enabled;
+    }
+
+    inline bool IsDelayedProcessExitEnabled() const
+    {
+        return delayedProcessExitEnabled_;
+    }
 
 private:
     /**
@@ -1483,6 +1484,7 @@ private:
     std::string moduleName_;
     std::string perfCmd_;
     std::string preloadModuleName_;
+    std::string preloadAbilityName_; // ability name for preloading specific ability
     std::string exitMsg_ = "";
     std::string instanceKey_; // render record
     std::string killReason_ = "";
@@ -1498,8 +1500,6 @@ private:
     bool isContinuousTask_ = false;    // Only continuesTask processes can be set to true, please choose carefully
     bool isDebugApp_ = false;
     bool isDebugFromLocal_ = false;
-    bool isArkChildProcessSupported_ = false;
-    bool isNativeChildProcessSupported_ = false;
     bool isDependedOnArkWeb_ = false;
     bool isEmptyKeepAliveApp_ = false;  // Only empty resident processes can be set to true, please choose carefully
     bool isErrorInfoEnhance_ = false;
@@ -1518,6 +1518,7 @@ private:
     bool isNativeStart_ = false;
     bool isNeedLimitPrio_ = false;
     bool isNeedPreloadModule_ = false;
+    bool delayedProcessExitEnabled_ = false;
     bool isPrepareExit_ = false;
     bool isRestartApp_ = false; // Only app calling RestartApp can be set to true
     bool isSingleton_ = false;

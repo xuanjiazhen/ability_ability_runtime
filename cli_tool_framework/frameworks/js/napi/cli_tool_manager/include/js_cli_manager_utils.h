@@ -28,6 +28,7 @@ namespace CliTool {
 class CliSessionInfo;
 class CliToolEvent;
 class ExecOptions;
+
 /**
  * @brief Unwrap a string map from JavaScript object.
  * @param env The N-API environment.

@@ -36,6 +36,7 @@
 #include "mock_scene_session_manager_lite.h"
 #include "session/host/include/session.h"
 #include "status_bar_delegate_interface.h"
+#include "skill_execute_result.h"
 
 using namespace testing::ext;
 using namespace testing;

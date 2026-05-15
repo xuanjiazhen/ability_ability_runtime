@@ -59,6 +59,7 @@ CliToolDataManager::CliToolDataManager()
 CliToolDataManager::~CliToolDataManager()
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "CliToolDataManager destructor called");
+    std::lock_guard<std::mutex> lock(kvStorePtrMutex_);
     if (kvStorePtr_ != nullptr) {
         dataManager_.CloseKvStore(APP_ID, kvStorePtr_);
     }
@@ -291,6 +292,17 @@ int32_t CliToolDataManager::GetAllTools(std::vector<ToolInfo> &tools)
     }
 
     TAG_LOGI(AAFwkTag::CLI_TOOL, "Retrieved %{public}zu tools", tools.size());
+    return ERR_OK;
+}
+
+int32_t CliToolDataManager::GetAllToolsRawData(ToolsRawData &rawData)
+{
+    std::vector<ToolInfo> tools;
+    int32_t ret = GetAllTools(tools);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+    ToolsRawData::FromToolInfoVec(tools, rawData);
     return ERR_OK;
 }
 

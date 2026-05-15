@@ -21,7 +21,7 @@ idl_gen_interface("cli_tool_manager_interface") {
     "ICliToolManagerScheduler.idl",
   ]
 
-  sources_common = [ "ICliToolCmd.idl" ]
+  sources_common = [ "ICliToolData.idl" ]
   hitrace = "HITRACE_TAG_ABILITY_MANAGER"
   log_domainid = "0xD001365"
   log_tag = "CliToolManager"

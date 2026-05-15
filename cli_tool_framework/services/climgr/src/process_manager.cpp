@@ -128,7 +128,8 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         execArgs.push_back(nullptr);
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Before execvp");
         execvp(execArgs[0], execArgs.data());
-        _exit(0);
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "execvp failed:%{public}d", errno);
+        _exit(EXIT_FAILURE);
     }
 
     // Parent process: close write ends of pipes
@@ -143,12 +144,7 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
 
 bool ProcessManager::Killpg(pid_t pid) const
 {
-    pid_t gPid = getpgid(pid);
-    if (gPid == -1) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "Fial to get gPid");
-        return false;
-    }
-    int32_t killRet = killpg(gPid, SIGTERM);
+    int32_t killRet = kill(0 - pid, SIGTERM);
     if (killRet != 0) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "killpg result:%{public}d", killRet);
         return false;
