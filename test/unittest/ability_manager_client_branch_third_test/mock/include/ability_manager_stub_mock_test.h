@@ -1,4 +1,4 @@
-/*
+.//*
  * Copyright (c) 2021-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -433,6 +433,15 @@ public:
     MOCK_METHOD(void, CompleteFirstFrameDrawing, (int32_t sessionId), (override));
 #endif
     MOCK_METHOD(int32_t, GetUserLockedBundleList, (int32_t, std::unordered_set<std::string> &), (override));
+    MOCK_METHOD7(ExecuteInAppSkill, int32_t(const std::string &, const std::string &,
+        const std::string &, const std::string &, const std::string &,
+        const std::shared_ptr<AAFwk::WantParams> &, const sptr<ISkillExecuteCallback> &));
+    MOCK_METHOD4(ExecuteSkillDone, int32_t(const sptr<IRemoteObject> &, const std::string &,
+        int32_t, const AppExecFwk::SkillExecuteResult &));
+    MOCK_METHOD4(QuerySkillType, int32_t(const std::string &, const std::string &,
+        const std::string &, int32_t &));
+    MOCK_METHOD(int32_t, ExecuteInAppSkillWithTokenId,
+        (const AppExecFwk::SkillExecuteRequest &request, const sptr<ISkillExecuteCallback> &callback), (override));
 };  // namespace AAFwk
 }   // namespace OHOS
 }
