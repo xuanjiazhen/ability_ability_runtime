@@ -23,6 +23,7 @@
 #include "cpp/mutex.h"
 #include "extension_ability_info.h"
 #include "iremote_object.h"
+#include "permission_verification.h"
 #include "singleton.h"
 #include "skill/skill_execute_param.h"
 #include "skill/skill_execute_record.h"
@@ -42,7 +43,8 @@ public:
     int32_t QuerySkillInfo(const std::string &bundleName, const std::string &moduleName,
         const std::string &skillName, int32_t userId, AppExecFwk::SkillInfo &skillInfo);
 
-    int32_t CheckSkillPermission(const AppExecFwk::SkillInfo &skillInfo);
+    int32_t CheckSkillPermission(const AppExecFwk::SkillInfo &skillInfo,
+        uint32_t callerTokenId = 0);
 
     std::string CreateExecuteRecord(const sptr<IRemoteObject> &callerToken,
         const std::string &targetBundleName, const std::string &callerBundleName,
@@ -81,6 +83,14 @@ private:
     void OnCallerDied(const std::string &requestCode);
     void PostSkillExecuteTimeout(const std::string &requestCode, uint64_t requestCodeSeq);
     void RemoveSkillExecuteTimeoutLocked(uint64_t requestCodeSeq);
+
+    bool IsCallerAllowedToUseSystemAPIByTokenId(
+        const std::shared_ptr<PermissionVerification> &permVerif,
+        uint32_t callerTokenId) const;
+    int32_t CheckSkillPermissionWithTokenId(
+        const AppExecFwk::SkillInfo &skillInfo, uint32_t callerTokenId);
+    int32_t CheckSkillPermissionWithIpcContext(
+        const AppExecFwk::SkillInfo &skillInfo);
 
     ffrt::mutex mutex_;
     uint64_t requestCodeSeq_ = 0;

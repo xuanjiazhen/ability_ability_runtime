@@ -82,20 +82,59 @@ int32_t SkillExecuteManager::QuerySkillInfo(const std::string &bundleName, const
     return ERR_OK;
 }
 
-int32_t SkillExecuteManager::CheckSkillPermission(const AppExecFwk::SkillInfo &skillInfo)
+int32_t SkillExecuteManager::CheckSkillPermission(const AppExecFwk::SkillInfo &skillInfo,
+    uint32_t callerTokenId)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "check skill permission for skill:%{public}s",
-        skillInfo.skillName.c_str());
+    TAG_LOGD(AAFwkTag::ABILITYMGR,
+        "check skill permission for skill:%{public}s, callerTokenId:%{public}u",
+        skillInfo.skillName.c_str(), callerTokenId);
+    if (callerTokenId != 0) {
+        return CheckSkillPermissionWithTokenId(skillInfo, callerTokenId);
+    }
+    return CheckSkillPermissionWithIpcContext(skillInfo);
+}
 
+bool SkillExecuteManager::IsCallerAllowedToUseSystemAPIByTokenId(
+    const std::shared_ptr<PermissionVerification> &permVerif,
+    uint32_t callerTokenId) const
+{
+    if (permVerif->IsSACallByTokenId(callerTokenId) ||
+        permVerif->IsShellCallByTokenId(callerTokenId)) {
+        return true;
+    }
+    return permVerif->IsSystemAppCallByTokenId(callerTokenId);
+}
+
+int32_t SkillExecuteManager::CheckSkillPermissionWithTokenId(
+    const AppExecFwk::SkillInfo &skillInfo, uint32_t callerTokenId)
+{
+    auto permVerif = PermissionVerification::GetInstance();
+    if (!IsCallerAllowedToUseSystemAPIByTokenId(permVerif, callerTokenId)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not allowed to use system API");
+        return ERR_NOT_SYSTEM_APP;
+    }
+    for (const auto &perm : skillInfo.permissions) {
+        if (!permVerif->VerifyCallingPermission(perm, callerTokenId)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "caller lacks permission:%{public}s",
+                perm.c_str());
+            return CHECK_PERMISSION_FAILED;
+        }
+    }
+    return ERR_OK;
+}
+
+int32_t SkillExecuteManager::CheckSkillPermissionWithIpcContext(
+    const AppExecFwk::SkillInfo &skillInfo)
+{
     auto permVerif = PermissionVerification::GetInstance();
     if (!permVerif->JudgeCallerIsAllowedToUseSystemAPI()) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "caller not allowed to use system API");
         return ERR_NOT_SYSTEM_APP;
     }
-
     for (const auto &perm : skillInfo.permissions) {
         if (!permVerif->VerifyCallingPermission(perm)) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "caller lacks permission:%{public}s", perm.c_str());
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "caller lacks permission:%{public}s",
+                perm.c_str());
             return CHECK_PERMISSION_FAILED;
         }
     }
