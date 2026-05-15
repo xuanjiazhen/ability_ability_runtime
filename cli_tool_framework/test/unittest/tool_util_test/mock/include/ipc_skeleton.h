@@ -13,19 +13,24 @@
  * limitations under the License.
  */
 
-#include "fork_image_info.h"
+#ifndef OHOS_ABILITY_RUNTIME_TOOL_UTIL_TEST_IPC_SKELETON_H
+#define OHOS_ABILITY_RUNTIME_TOOL_UTIL_TEST_IPC_SKELETON_H
+
+#include <cstdint>
+#include <sys/types.h>
 
 namespace OHOS {
-namespace AppExecFwk {
-ForkImageInfo::ForkImageInfo()
-{
-    imageInfoId = CreateId();
-}
+class IPCSkeleton {
+public:
+    static pid_t GetCallingUid();
+    static pid_t GetCallingPid();
+    static uint64_t GetCallingFullTokenID();
+    static void Reset();
 
-int32_t ForkImageInfo::CreateId()
-{
-    static std::atomic_int id(0);
-    return ++id;
-}
-} // namespace AppExecFwk
+    static pid_t callingUid;
+    static pid_t callingPid;
+    static uint64_t callingFullTokenId;
+};
 } // namespace OHOS
+
+#endif // OHOS_ABILITY_RUNTIME_TOOL_UTIL_TEST_IPC_SKELETON_H
