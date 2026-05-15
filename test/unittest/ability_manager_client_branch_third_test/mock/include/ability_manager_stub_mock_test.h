@@ -440,6 +440,8 @@ public:
         int32_t, const AppExecFwk::SkillExecuteResult &));
     MOCK_METHOD4(QuerySkillType, int32_t(const std::string &, const std::string &,
         const std::string &, int32_t &));
+    MOCK_METHOD(int32_t, ExecuteInAppSkillWithTokenId,
+        (const AppExecFwk::SkillExecuteRequest &request, const sptr<ISkillExecuteCallback> &callback), (override));
 };  // namespace AAFwk
 }   // namespace OHOS
 }
