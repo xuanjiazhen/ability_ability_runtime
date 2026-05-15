@@ -251,6 +251,7 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
             abilityRequest.processOptions->callingPid, uiAbilityRecord->GetPid(),
             abilityRequest.processOptions->loadAbilityCallbackId);
     }
+    uiAbilityRecord->SetByOeExt(abilityRequest.isStartByOEExt);
     SetLastExitReasonAsync(uiAbilityRecord);
     MarkStartingFlag(abilityRequest);
     if (sessionInfo->reuseDelegatorWindow) {
@@ -2366,6 +2367,10 @@ int UIAbilityLifecycleManager::CloseUIAbility(const UIAbilityRecordPtr &abilityR
     abilityRecord->ClearPluginAbilities();
     for (const auto& plugin : pluginAbilities) {
         TerminateSession(plugin);
+    }
+
+    if (abilityRecord->IsByOeExt()) {
+        isClearSession = false;
     }
 
     PrepareCloseUIAbility(abilityRecord, resultCode, resultWant, isClearSession);
