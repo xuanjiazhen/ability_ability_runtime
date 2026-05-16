@@ -134,28 +134,19 @@ napi_value JSScriptManager::OnCompleteArkTSScriptInApp(napi_env env, size_t argc
     TAG_LOGD(AAFwkTag::JSNAPI,
         "completeArkTSScriptInApp reqCode:%{public}s code:%{public}d",
         requestCode.c_str(), skillResult.code);
-    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
-    NapiAsyncTask::ExecuteCallback execute =
-        [innerErrCode, token, requestCode, skillResult]() {
-        *innerErrCode = AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(
-            token, requestCode, skillResult.code, skillResult);
-    };
-    NapiAsyncTask::CompleteCallback complete =
-        [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
-        HandleScope handleScope(env);
-        if (*innerErrCode != ERR_OK) {
-            TAG_LOGE(AAFwkTag::JSNAPI,
-                "completeArkTSScriptInApp error: %{public}d", *innerErrCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
-            return;
-        }
-        task.ResolveWithNoError(env, CreateJsUndefined(env));
-    };
-    napi_value asyncResult = nullptr;
-    NapiAsyncTask::Schedule("JSScriptManager::OnCompleteArkTSScriptInApp", env,
-        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute),
-            std::move(complete), &asyncResult));
-    return handleEscape.Escape(asyncResult);
+    auto ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteSkillDone(
+        token, requestCode, skillResult.code, skillResult);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::JSNAPI,
+            "completeArkTSScriptInApp error: %{public}d", ret);
+        ThrowErrorByNativeErr(env, ret);
+        return CreateJsUndefined(env);
+    }
+    napi_deferred deferred = nullptr;
+    napi_value promise = nullptr;
+    napi_create_promise(env, &deferred, &promise);
+    napi_resolve_deferred(env, deferred, CreateJsUndefined(env));
+    return handleEscape.Escape(promise);
 }
 
 napi_value JSScriptManager::OnCompleteArkTSScript(napi_env env, size_t argc, napi_value *argv)
