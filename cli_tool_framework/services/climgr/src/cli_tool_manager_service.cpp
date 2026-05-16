@@ -584,6 +584,10 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
 
     auto tokenId = IPCSkeleton::GetCallingTokenID();
 
+    if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
+        return ret;
+    }
+
     std::string sandboxConfig;
     std::string bundleName;
 
