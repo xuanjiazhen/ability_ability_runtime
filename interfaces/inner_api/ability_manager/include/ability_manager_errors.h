@@ -1453,6 +1453,11 @@ enum NativeFreeInstallError {
      */
     ERR_DELAYED_PROCESS_EXIT_HAS_OTHER_UIABILITY = 29360272,
 
+    /*
+     * Result (29360273) The requestCode is not found in skill execute records.
+     */
+    ERR_SKILL_INVALID_REQUEST_CODE = 29360273,
+
     /**
      * Undefine error code.
      */
