@@ -97,6 +97,8 @@ void CliToolManagerServiceTest::SetUp()
     EventDispatcher::GetInstance().ClearAll();
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
+    std::lock_guard<ffrt::mutex> observerGuard(service_->observerMutex_);
+    service_->bundleObservers_.clear();
 }
 
 void CliToolManagerServiceTest::TearDown()
@@ -105,6 +107,8 @@ void CliToolManagerServiceTest::TearDown()
     EventDispatcher::GetInstance().ClearAll();
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
+    std::lock_guard<ffrt::mutex> observerGuard(service_->observerMutex_);
+    service_->bundleObservers_.clear();
 }
 
 void CliToolManagerServiceTest::RegisterTestTool(const std::string& name, const std::string& schema)
@@ -908,6 +912,65 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0600, TestSize.Level1)
     EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
 
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0600 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_OnProcessDied_0100
+ * @tc.desc: Test OnProcessDied removes bundle observer
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnProcessDied_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnProcessDied_0100 start";
+
+    // Create a mock observer
+    sptr<CliToolAppStateObserver> observer = new CliToolAppStateObserver("test.bundle", nullptr);
+
+    // Add observer to bundleObservers_
+    {
+        std::lock_guard<ffrt::mutex> observerGuard(service_->observerMutex_);
+        service_->bundleObservers_["test.bundle"] = observer;
+    }
+
+    // Verify observer was added
+    {
+        std::lock_guard<ffrt::mutex> observerGuard(service_->observerMutex_);
+        EXPECT_NE(service_->bundleObservers_.find("test.bundle"), service_->bundleObservers_.end());
+    }
+
+    // Call OnProcessDied
+    pid_t pid = 12345;
+    service_->OnProcessDied("test.bundle", pid);
+
+    // Verify observer was removed
+    {
+        std::lock_guard<ffrt::mutex> observerGuard(service_->observerMutex_);
+        EXPECT_EQ(service_->bundleObservers_.find("test.bundle"), service_->bundleObservers_.end());
+    }
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnProcessDied_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_OnProcessDied_0200
+ * @tc.desc: Test OnProcessDied with non-existent bundle name
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnProcessDied_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnProcessDied_0200 start";
+
+    // Call OnProcessDied with bundle name that doesn't exist in bundleObservers_
+    pid_t pid = 12345;
+    service_->OnProcessDied("nonexistent.bundle", pid);
+
+    // Should not crash or cause issues
+    {
+        std::lock_guard<ffrt::mutex> observerGuard(service_->observerMutex_);
+        EXPECT_EQ(service_->bundleObservers_.find("nonexistent.bundle"), service_->bundleObservers_.end());
+    }
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnProcessDied_0200 end";
 }
 
 } // namespace CliTool
