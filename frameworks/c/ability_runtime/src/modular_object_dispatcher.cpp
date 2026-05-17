@@ -62,7 +62,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_CreateSubInstance(
     OHIPCRemoteProxy* subProxy, OH_AbilityRuntime_ModObjDispatcherHandle* ppModObjDispatcher)
 {
     if (mainServiceDispatcher == nullptr || subProxy == nullptr || ppModObjDispatcher == nullptr
-        || mainServiceDispatcher->metadataManager == nullptr) {
+        || mainServiceDispatcher->metadataManager == nullptr || *ppModObjDispatcher != nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "CreateSubInstance: invalid param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
@@ -98,8 +98,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_HasTypeDescriptor(
         TAG_LOGE(AAFwkTag::EXT, "HasTypeDescriptor: EnsureLoaded failed, ret=%{public}d", ret);
     }
     *pctinfo = (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) ? 1 : 0;
-    return (ret == ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) ? ABILITY_RUNTIME_ERROR_CODE_NO_ERROR :
-        ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    return ret;
 }
 
 AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_GetTypeDescriptor(
@@ -137,7 +136,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_QueryMainServiceInte
     auto ret = pModObjDispatcher->metadataManager->EnsureLoaded(pModObjDispatcher->proxy);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::EXT, "QueryMemIDsOfNames: EnsureLoaded failed, ret=%{public}d", ret);
-        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        return ret;
     }
     return pModObjDispatcher->metadataManager->QueryMainServiceInterfaceMemberIds(rgszNames, cNames, pMemID);
 }
@@ -149,13 +148,11 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_CallMethod(
     int32_t* pMethodErrCode)
 {
     if (pModObjDispatcher == nullptr || pInputParams == nullptr || pResult == nullptr
-        || pModObjDispatcher->metadataManager == nullptr) {
+        || pModObjDispatcher->metadataManager == nullptr || pMethodErrCode == nullptr) {
         TAG_LOGE(AAFwkTag::EXT, "CallMethod: invalid param");
         return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
     }
-    if (pMethodErrCode != nullptr) {
-        *pMethodErrCode = 0;
-    }
+    *pMethodErrCode = 0;
     auto ret = pModObjDispatcher->metadataManager->EnsureLoaded(pModObjDispatcher->proxy);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::EXT, "CallMethod: EnsureLoaded failed, ret=%{public}d", ret);
@@ -166,7 +163,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_CallMethod(
     ret = pModObjDispatcher->metadataManager->GetMethodMeta(memID, &methodMeta);
     if (ret != ABILITY_RUNTIME_ERROR_CODE_NO_ERROR) {
         TAG_LOGE(AAFwkTag::EXT, "CallMethod: GetMethodMeta failed, memID=%{public}u, ret=%{public}d", memID, ret);
-        return ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND;
+        return ret;
     }
     MessageParcel dataParcel;
     MessageParcel replyParcel;
@@ -180,7 +177,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_CallMethod(
     }
     if (!dataParcel.WriteInterfaceToken(ifaceDescriptor)) {
         TAG_LOGE(AAFwkTag::EXT, "CallMethod: WriteInterfaceToken failed");
-        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+        return ABILITY_RUNTIME_ERROR_CODE_SEND_REQUEST_FAILED;
     }
 
     ret = ModObjDispatcherParamCodec::MarshalCallRequest(methodMeta, pInputParams, dataParcel);
