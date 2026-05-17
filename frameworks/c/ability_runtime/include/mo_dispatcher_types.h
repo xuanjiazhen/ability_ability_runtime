@@ -128,6 +128,7 @@ struct MoTypeInfo {
             default:
                 break;
         }
+        cType->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_EMPTY;
     }
 
     // Build from C TypeInfo (recursive)

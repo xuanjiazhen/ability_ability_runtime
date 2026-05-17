@@ -53,7 +53,7 @@ bool IsVariantHandleValid(const OH_AbilityRuntime_ModObjDispatcher_Variant* valu
 struct ScopedVisited {
     std::unordered_set<const void*>& visited;
     const void* ptr;
-    bool inserted;
+    bool inserted = false;
     ScopedVisited(std::unordered_set<const void*>& v, const void* p) : visited(v), ptr(p)
     {
         inserted = visited.insert(ptr).second;
