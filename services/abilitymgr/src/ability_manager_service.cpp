@@ -11589,13 +11589,21 @@ int AbilityManagerService::CheckStaticCfgPermission(const AppExecFwk::AbilityReq
     if (specifyTokenId != 0) {
         isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACallByTokenId(specifyTokenId);
     }
+    // Skill path: verify using real caller's tokenId instead of SA identity
+    uint32_t skillCallerTokenId = static_cast<uint32_t>(
+        abilityRequest.want.GetIntParam(SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID, 0));
+    if (skillCallerTokenId != 0) {
+        isSaCall = false;
+    }
     if (isSaCall) {
         // do not need check static config permission when start ability by SA
         return AppExecFwk::Constants::PERMISSION_GRANTED;
     }
 
     uint32_t tokenId;
-    if (isStartAsCaller) {
+    if (skillCallerTokenId != 0) {
+        tokenId = skillCallerTokenId;
+    } else if (isStartAsCaller) {
         tokenId = callerTokenId;
     } else if (specifyTokenId != 0) {
         tokenId = specifyTokenId;
@@ -14524,6 +14532,8 @@ int32_t AbilityManagerService::ExecuteInAppSkill(const std::string &bundleName, 
 
     // 5. Launch target based on type
     int32_t callerUid = IPCSkeleton::GetCallingUid();
+    uint32_t callerTokenId = IPCSkeleton::GetCallingTokenID();
+    want.SetParam(SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID, static_cast<int32_t>(callerTokenId));
     if (targetType == AppExecFwk::ExtensionAbilityType::SERVICE) {
         return StartExtensionAbilityWithSkill(want, userId, callerUid);
     }
@@ -14578,6 +14588,7 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
     }
 
     // 5. Launch target based on type
+    want.SetParam(SKILL_EXECUTE_PARAM_CALLER_TOKEN_ID, static_cast<int32_t>(request.callerTokenId));
     if (targetType == AppExecFwk::ExtensionAbilityType::SERVICE) {
         return StartExtensionAbilityWithSkill(want, userId, callerUid);
     }
