@@ -298,6 +298,7 @@ constexpr int32_t INSTALL_TYPE_UPGRADE = 2;
 constexpr int64_t CLEAR_USER_LOCKED_BUNDLE_LIST_KEY_DELAY_TIME = 60 * 1000; // 60s
 constexpr const char* VPN_PERMISSION_IF = "libnet_vpn_permission_if.z.so";
 constexpr const char* INTENT_USER_ID = "ohos.insightIntent.userId";
+constexpr const char* DMS_CALLER_APP_IDENTIFIER = "ohos.dms.param.sourceCallerAppIdentifier";
 
 using RequestVpnPermission = int32_t (*)(int32_t, const std::string &, const std::string &, bool &);
 
@@ -6080,6 +6081,7 @@ int32_t AbilityManagerService::ConnectLocalAbility(const Want &want, const int32
         validUserId, static_cast<int>(abilityInfo.applicationInfo.singleton));
 
     abilityRequest.specifiedFullTokenId = specifiedFullTokenId;
+    abilityRequest.callerAppIdentifier = want.GetStringParam(DMS_CALLER_APP_IDENTIFIER);
     result = CheckStaticCfgPermission(abilityRequest, false, -1);
     if (result != AppExecFwk::Constants::PERMISSION_GRANTED) {
         TAG_LOGE(AAFwkTag::SERVICE_EXT, "checkStaticCfgPermission error, result=%{public}d", result);
@@ -12422,6 +12424,28 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
     return ERR_OK;
 }
 
+bool AbilityManagerService::IsDmsSameAPP(const AbilityRequest &abilityRequest)
+{
+    if (abilityRequest.callerAppIdentifier.empty() || abilityRequest.abilityInfo.bundleName.empty()) {
+        return false;
+    }
+
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, false);
+    AppExecFwk::BundleInfo bundleInfo;
+    bool queryBundleInfoRet = IN_PROCESS_CALL(bms->GetBundleInfo(abilityRequest.abilityInfo.bundleName,
+        AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, abilityRequest.userId));
+    if (!queryBundleInfoRet) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "get bundleInfo failed, %{public}s", abilityRequest.abilityInfo.bundleName.c_str());
+        return false;
+    }
+    if (abilityRequest.callerAppIdentifier == bundleInfo.signatureInfo.appIdentifier) {
+        return true;
+    }
+    return false;
+}
+
 int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "begin");
@@ -12429,6 +12453,9 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
     AAFwk::PermissionVerification::VerificationInfo verificationInfo;
     verificationInfo.accessTokenId = abilityRequest.appInfo.accessTokenId;
     verificationInfo.visible = abilityRequest.abilityInfo.visible;
+    if (IsDmsSameAPP(abilityRequest)) {
+        verificationInfo.visible = true;
+    }
     verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
     verificationInfo.isBackgroundCall = false;
     verificationInfo.specifyTokenId = (abilityRequest.specifiedFullTokenId != 0) ?
