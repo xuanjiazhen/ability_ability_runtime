@@ -539,6 +539,13 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
 
     napi_set_named_property(env, obj, "launchWant", jsWant);
     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
+
+    // Initialize isDestroyed to false
+ 	napi_value jsIsDestroyed = nullptr;
+ 	napi_get_boolean(env, false, &jsIsDestroyed);
+ 	napi_set_named_property(env, obj, "isDestroyed", jsIsDestroyed);
+ 	TAG_LOGI(AAFwkTag::UIABILITY, "[NAPI] Initialize isDestroyed to false");
+
     auto launchParam = GetLaunchParam();
     if (abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
         napi_set_named_property(env, obj, "specifiedId", CreateJsValue(env, launchParam.specifiedId));
@@ -663,6 +670,20 @@ void JsUIAbility::OnStop()
     }
     WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod("onDestroy");
+
+    // Set isDestroyed to true after onDestroy callback
+    HandleScope handleScopeSet(jsRuntime_);
+    auto envSet = jsRuntime_.GetNapiEnv();
+    if (envSet != nullptr && jsAbilityObj_ != nullptr) {
+        napi_value obj = jsAbilityObj_->GetNapiValue();
+        if (CheckTypeForNapiValue(envSet, obj, napi_object)) {
+            napi_value jsIsDestroyed = nullptr;
+            napi_get_boolean(envSet, true, &jsIsDestroyed);
+            napi_set_named_property(envSet, obj, "isDestroyed", jsIsDestroyed);
+            TAG_LOGI(AAFwkTag::UIABILITY, "[NAPI] Set isDestroyed to true after onDestroy");
+        }
+    }
+
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -705,6 +726,21 @@ void JsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackI
             TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
             return;
         }
+
+        // Set isDestroyed to true after onDestroy promise callback
+        auto jsAbility = static_cast<JsUIAbility*>(ability.get());
+        HandleScope handleScope(jsAbility->jsRuntime_);
+        auto env = jsAbility->jsRuntime_.GetNapiEnv();
+        if (env != nullptr && jsAbility->jsAbilityObj_ != nullptr) {
+            napi_value obj = jsAbility->jsAbilityObj_->GetNapiValue();
+            if (CheckTypeForNapiValue(env, obj, napi_object)) {
+                napi_value jsIsDestroyed = nullptr;
+                napi_get_boolean(env, true, &jsIsDestroyed);
+                napi_set_named_property(env, obj, "isDestroyed", jsIsDestroyed);
+                TAG_LOGI(AAFwkTag::UIABILITY, "[NAPI] Set isDestroyed to true after onDestroy promise callback");
+            }
+        }
+
         ability->OnStopCallback();
     };
     callbackInfo->Push(asyncCallback);
