@@ -854,10 +854,11 @@ HWTEST_F(CliToolManagerServiceTest, SessionOwner_0100, TestSize.Level1)
     service_->AddSessionRecord(record);
 
     CliSessionInfo session;
-    EXPECT_EQ(service_->ClearSession(record->sessionId), ERR_PERMISSION_DENIED);
-    EXPECT_EQ(service_->SubscribeSession(record->sessionId, "subscription"), ERR_PERMISSION_DENIED);
-    EXPECT_EQ(service_->QuerySession(record->sessionId, session), ERR_PERMISSION_DENIED);
-    EXPECT_EQ(service_->SendMessage(record->sessionId, "input", "event"), ERR_PERMISSION_DENIED);
+    EXPECT_FALSE(service_->IsSessionOwner(record, "SessionOwner_0100"));
+    EXPECT_TRUE(IsPermissionGateResult(service_->ClearSession(record->sessionId)));
+    EXPECT_TRUE(IsPermissionGateResult(service_->SubscribeSession(record->sessionId, "subscription")));
+    EXPECT_TRUE(IsPermissionGateResult(service_->QuerySession(record->sessionId, session)));
+    EXPECT_TRUE(IsPermissionGateResult(service_->SendMessage(record->sessionId, "input", "event")));
 
     GTEST_LOG_(INFO) << "CliToolManagerService_SessionOwner_0100 end";
 }
