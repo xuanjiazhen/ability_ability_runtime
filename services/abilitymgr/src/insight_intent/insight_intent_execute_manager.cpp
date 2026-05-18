@@ -23,6 +23,7 @@
 #include "ability_manager_errors.h"
 #include "distributed_ability_runtime/distributed_client.h"
 #include "extract_insight_intent_profile.h"
+#include "ffrt.h"
 #include "hilog_tag_wrapper.h"
 #include "insight_intent_execute_callback_interface.h"
 #include "insight_intent_db_cache.h"
@@ -816,33 +817,53 @@ void InsightIntentExecuteManager::SendIntentReport(EventInfo &eventInfo, int32_t
 void InsightIntentExecuteManager::OnInsightAppDied(const std::string &bundleName)
 {
     TAG_LOGI(AAFwkTag::INTENT, "app died: %{public}s", bundleName.c_str());
-    std::lock_guard<ffrt::mutex> lock(mutex_);
     AppExecFwk::InsightIntentExecuteResult errorResult{};
     errorResult.innerErr = AbilityRuntime::InsightIntentInnerErr::INSIGHT_INTENT_EXECUTE_REPLY_FAILED;
 
     std::vector<uint64_t> toRemove;
-    for (const auto &[intentId, record] : records_) {
-        if (record == nullptr || bundleName != record->bundleName) {
-            continue;
-        }
-        toRemove.push_back(intentId);
-        sptr<IInsightIntentExecuteCallback> remoteCallback =
-            iface_cast<IInsightIntentExecuteCallback>(record->callerToken);
-        if (remoteCallback != nullptr) {
-            TAG_LOGD(AAFwkTag::INTENT, "notify caller, intentId: %{public}" PRIu64, intentId);
-            remoteCallback->OnExecuteDone(record->key, errorResult.innerErr, errorResult);
-        }
-
-        if (record->callerToken != nullptr && record->deathRecipient != nullptr) {
-            record->callerToken->RemoveDeathRecipient(record->deathRecipient);
+    {
+        std::lock_guard<ffrt::mutex> lock(mutex_);
+        for (const auto &[intentId, record] : records_) {
+            if (record == nullptr || bundleName != record->bundleName) {
+                continue;
+            }
+            toRemove.push_back(intentId);
         }
     }
 
-    for (uint64_t intentId : toRemove) {
-        records_.erase(intentId);
-    }
-    TAG_LOGI(AAFwkTag::INTENT, "removed %{public}zu records, remaining: %{public}zu",
-        toRemove.size(), records_.size());
+    ffrt::submit([weakThis = weak_from_this(), errorResult, toRemove = std::move(toRemove)]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(DYING_CALLBACK_DELAY_MS));
+        auto self = weakThis.lock();
+        if (self == nullptr) {
+            TAG_LOGW(AAFwkTag::INTENT, "InsightIntentExecuteManager already destroyed");
+            return;
+        }
+        std::lock_guard<ffrt::mutex> lock(self->mutex_);
+        for (uint64_t intentId : toRemove) {
+            auto findResult = self->records_.find(intentId);
+            if (findResult == self->records_.end() || findResult->second == nullptr) {
+                TAG_LOGI(AAFwkTag::INTENT, "record already removed, intentId: %{public}" PRIu64, intentId);
+                continue;
+            }
+            std::shared_ptr<InsightIntentExecuteRecord> record = findResult->second;
+            if (record->state != InsightIntentExecuteState::EXECUTE_DONE) {
+                sptr<IInsightIntentExecuteCallback> remoteCallback =
+                    iface_cast<IInsightIntentExecuteCallback>(record->callerToken);
+                if (remoteCallback != nullptr) {
+                    TAG_LOGI(AAFwkTag::INTENT, "timeout notify caller, intentId: %{public}" PRIu64, intentId);
+                    remoteCallback->OnExecuteDone(record->key, errorResult.innerErr, errorResult);
+                }
+            } else {
+                TAG_LOGI(AAFwkTag::INTENT, "ExecuteIntentDone already handled, skip error notify, intentId: %{public}" PRIu64, intentId);
+            }
+            if (record->callerToken != nullptr && record->deathRecipient != nullptr) {
+                record->callerToken->RemoveDeathRecipient(record->deathRecipient);
+            }
+            self->records_.erase(intentId);
+        }
+        TAG_LOGI(AAFwkTag::INTENT, "removed %{public}zu records, remaining: %{public}zu",
+            toRemove.size(), self->records_.size());
+    });
 }
 
 int32_t InsightIntentExecuteManager::CheckAndUpdateQueryEntityParam(uint64_t key,
