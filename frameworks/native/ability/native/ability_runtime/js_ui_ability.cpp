@@ -539,6 +539,12 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
 
     napi_set_named_property(env, obj, "launchWant", jsWant);
     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
+
+    // Initialize isDestroyed to false
+    if (SetIsDestroyedProperty(jsRuntime_, jsAbilityObj_.get(), false)) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "[NAPI] Initialize isDestroyed to false");
+    }
+
     auto launchParam = GetLaunchParam();
     if (abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
         napi_set_named_property(env, obj, "specifiedId", CreateJsValue(env, launchParam.specifiedId));
@@ -663,6 +669,12 @@ void JsUIAbility::OnStop()
     }
     WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod("onDestroy");
+
+    // Set isDestroyed to true after onDestroy callback
+    if (SetIsDestroyedProperty(jsRuntime_, jsAbilityObj_.get(), true)) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "[NAPI] Set isDestroyed to true after onDestroy");
+    }
+
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -705,6 +717,42 @@ void JsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackI
             TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
             return;
         }
+
+        // Set isDestroyed to true after onDestroy promise callback
+        auto jsAbility = static_cast<JsUIAbility*>(ability.get());
+        auto env = jsAbility->jsRuntime_.GetNapiEnv();
+
+        // Early return for null checks
+        if (env == nullptr || jsAbility->jsAbilityObj_ == nullptr) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] env or jsAbilityObj_ is null in async callback");
+            ability->OnStopCallback();
+            return;
+        }
+
+        napi_value obj = jsAbility->jsAbilityObj_->GetNapiValue();
+        if (!CheckTypeForNapiValue(env, obj, napi_object)) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Invalid napi object type in async callback");
+            ability->OnStopCallback();
+            return;
+        }
+
+        napi_value jsIsDestroyed = nullptr;
+        napi_status status = napi_get_boolean(env, true, &jsIsDestroyed);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to create boolean in async callback: %{public}d", status);
+            ability->OnStopCallback();
+            return;
+        }
+
+        status = napi_set_named_property(env, obj, "isDestroyed", jsIsDestroyed);
+        if (status != napi_ok) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to set isDestroyed in async callback: %{public}d", status);
+            ability->OnStopCallback();
+            return;
+        }
+
+        TAG_LOGI(AAFwkTag::UIABILITY, "[NAPI] Set isDestroyed to true after onDestroy promise callback");
+
         ability->OnStopCallback();
     };
     callbackInfo->Push(asyncCallback);
@@ -2732,5 +2780,37 @@ void JsUIAbility::HandleNativeModule(napi_env env)
         TAG_LOGE(AAFwkTag::UIABILITY, "ApplicationContext is null");
     }
 }
+
+// Helper function to set isDestroyed property
+bool SetIsDestroyedProperty(JSRuntime& jsRuntime, NativeReference* jsAbilityObj, bool value)
+{
+    auto env = jsRuntime.GetNapiEnv();
+    if (env == nullptr || jsAbilityObj == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] env or jsAbilityObj_ is null");
+        return false;
+    }
+
+    napi_value obj = jsAbilityObj->GetNapiValue();
+    if (!CheckTypeForNapiValue(env, obj, napi_object)) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Invalid napi object type");
+        return false;
+    }
+
+    napi_value jsValue = nullptr;
+    napi_status status = napi_get_boolean(env, value, &jsValue);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to create boolean: %{public}d", status);
+        return false;
+    }
+
+    status = napi_set_named_property(env, obj, "isDestroyed", jsValue);
+    if (status != napi_ok) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to set isDestroyed property: %{public}d", status);
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace AbilityRuntime
 } // namespace OHOS
