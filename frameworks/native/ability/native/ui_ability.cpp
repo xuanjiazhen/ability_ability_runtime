@@ -348,6 +348,9 @@ void UIAbility::OnStop()
 #ifdef SUPPORT_SCREEN
     Rosen::DisplayManager::GetInstance().RemoveDisplayIdFromAms(token_);
 #endif
+
+    // Set isDestroyed to true after onDestroy callback
+    isDestroyed_ = true;
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
 
@@ -588,6 +591,11 @@ std::shared_ptr<AAFwk::Want> UIAbility::GetWant()
 {
     std::lock_guard<std::mutex> lock(wantMutexlock_);
     return setWant_;
+}
+
+bool UIAbility::IsDestroyed() const
+{
+    return isDestroyed_;
 }
 
 void UIAbility::OnConfigurationUpdated(const AppExecFwk::Configuration &configuration)

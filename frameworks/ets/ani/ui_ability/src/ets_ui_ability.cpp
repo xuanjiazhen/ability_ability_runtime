@@ -131,6 +131,15 @@ void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
         TAG_LOGE(AAFwkTag::UIABILITY, "Object_SetFieldByName_Long status: %{public}d", status);
         return;
     }
+
+    // Set isDestroyed to true after onDestroy callback
+    ani_boolean isDestroyed = true;
+    status = env->Object_SetFieldByName_Boolean(aniObj, "isDestroyed", isDestroyed);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Failed to set isDestroyed, status: %{public}d", status);
+    } else {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Set isDestroyed to true after onDestroy callback");
+    }
 }
 
 void OnPrepareTerminatePromiseCallback(ani_env *env, ani_object aniObj, ani_boolean aniPrepareTermination)
@@ -581,6 +590,16 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
         TAG_LOGE(AAFwkTag::UIABILITY, "lastRequestWant status: %{public}d", status);
         return;
     }
+
+    // Initialize isDestroyed to false
+    ani_boolean isDestroyed = false;
+    status = env->Object_SetFieldByName_Boolean(etsAbilityObj_->aniObj, "isDestroyed", isDestroyed);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "isDestroyed Object_SetFieldByName_Boolean status: %{public}d", status);
+        // Don't return, let's continue
+    } else {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Initialize isDestroyed to false successfully");
+    }
     SetSelfSpecifiedId(env, sessionInfo);
 
     // Handle NativeModule: Create NativeAbilityWrapper and call PostAbility
@@ -699,6 +718,19 @@ void EtsUIAbility::OnStop()
     }
     WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod(false, "onDestroy", nullptr);
+
+    // Set isDestroyed to true after sync onDestroy call
+    auto env = etsRuntime_.GetAniEnv();
+    if (env != nullptr && etsAbilityObj_ != nullptr) {
+        ani_boolean isDestroyed = true;
+        ani_status status = env->Object_SetFieldByName_Boolean(etsAbilityObj_->aniObj, "isDestroyed", isDestroyed);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "Failed to set isDestroyed, status: %{public}d", status);
+        } else {
+            TAG_LOGI(AAFwkTag::UIABILITY, "Set isDestroyed to true after sync onDestroy");
+        }
+    }
+
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStop end");
 }
