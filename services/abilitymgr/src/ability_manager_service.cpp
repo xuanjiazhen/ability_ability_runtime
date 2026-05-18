@@ -14523,10 +14523,11 @@ int32_t AbilityManagerService::ExecuteInAppSkill(const std::string &bundleName, 
     }
 
     // 5. Launch target based on type
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
     if (targetType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-        return StartExtensionAbilityWithSkill(want, userId);
+        return StartExtensionAbilityWithSkill(want, userId, callerUid);
     }
-    return StartAbilityByCallWithSkill(want, nullptr, userId);
+    return StartAbilityByCallWithSkill(want, nullptr, userId, callerUid);
 }
 
 int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::SkillExecuteRequest &request,
@@ -14543,6 +14544,7 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
     }
     int32_t userId = hapInfo.userID;
     std::string callerBundleName = hapInfo.bundleName;
+    int32_t callerUid = hapInfo.uid;
 
     // 1. Query skill configuration from bundle framework
     AppExecFwk::SkillInfo skillInfo;
@@ -14577,13 +14579,13 @@ int32_t AbilityManagerService::ExecuteInAppSkillWithTokenId(const AppExecFwk::Sk
 
     // 5. Launch target based on type
     if (targetType == AppExecFwk::ExtensionAbilityType::SERVICE) {
-        return StartExtensionAbilityWithSkill(want, userId);
+        return StartExtensionAbilityWithSkill(want, userId, callerUid);
     }
-    return StartAbilityByCallWithSkill(want, nullptr, userId);
+    return StartAbilityByCallWithSkill(want, nullptr, userId, callerUid);
 }
 
 int32_t AbilityManagerService::StartAbilityByCallWithSkill(const Want &want,
-    const sptr<IRemoteObject> &callerToken, int32_t userId)
+    const sptr<IRemoteObject> &callerToken, int32_t userId, int32_t callerUid)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "start ability by call with skill intent");
     sptr<IAbilityConnection> connect = sptr<AbilityBackgroundConnection>::MakeSptr();
@@ -14594,7 +14596,7 @@ int32_t AbilityManagerService::StartAbilityByCallWithSkill(const Want &want,
 
     AbilityRequest abilityRequest;
     abilityRequest.callType = AbilityCallType::CALL_REQUEST_TYPE;
-    abilityRequest.callerUid = IPCSkeleton::GetCallingUid();
+    abilityRequest.callerUid = callerUid;
     abilityRequest.callerToken = callerToken;
     abilityRequest.startSetting = nullptr;
     abilityRequest.want = want;
@@ -14605,6 +14607,8 @@ int32_t AbilityManagerService::StartAbilityByCallWithSkill(const Want &want,
         TAG_LOGE(AAFwkTag::ABILITYMGR, "generate ability request error");
         return result;
     }
+    // Override caller identity in want after GenerateAbilityRequest
+    abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
 
     std::shared_ptr<AbilityRecord> targetRecord;
     if (IsAbilityStarted(abilityRequest, targetRecord, oriValidUserId)) {
@@ -14623,10 +14627,13 @@ int32_t AbilityManagerService::StartAbilityByCallWithSkill(const Want &want,
     return result;
 }
 
-int32_t AbilityManagerService::StartExtensionAbilityWithSkill(const Want &want, int32_t userId)
+int32_t AbilityManagerService::StartExtensionAbilityWithSkill(
+    const Want &want, int32_t userId, int32_t callerUid)
 {
     TAG_LOGI(AAFwkTag::ABILITYMGR, "start extension ability with skill intent");
-    return StartExtensionAbilityInner(want, nullptr, userId,
+    Want skillWant = want;
+    skillWant.SetParam(Want::PARAM_RESV_CALLER_UID, callerUid);
+    return StartExtensionAbilityInner(skillWant, nullptr, userId,
         AppExecFwk::ExtensionAbilityType::SERVICE, true);
 }
 

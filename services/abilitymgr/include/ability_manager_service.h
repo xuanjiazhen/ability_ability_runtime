@@ -2228,9 +2228,9 @@ public:
         const sptr<ISkillExecuteCallback> &callback) override;
 
     int32_t StartAbilityByCallWithSkill(const Want &want,
-        const sptr<IRemoteObject> &callerToken, int32_t userId = DEFAULT_INVAL_VALUE);
+        const sptr<IRemoteObject> &callerToken, int32_t userId, int32_t callerUid);
 
-    int32_t StartExtensionAbilityWithSkill(const Want &want, int32_t userId);
+    int32_t StartExtensionAbilityWithSkill(const Want &want, int32_t userId, int32_t callerUid);
 
     int32_t ExecuteSkillDone(const sptr<IRemoteObject> &token, const std::string &requestCode,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &result) override;
