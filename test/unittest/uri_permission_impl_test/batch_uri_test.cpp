@@ -131,13 +131,13 @@ HWTEST_F(BatchUriTest, Init_0500, TestSize.Level2)
     auto batchUri = std::make_shared<BatchUri>();
     ASSERT_NE(batchUri, nullptr);
     std::vector<std::string> uriVec;
-    uriVec.push_back("content://temp.txt");
+    uriVec.push_back("anco://temp.txt");
     uint32_t mode = 0;
     std::string callerAlterBundleName = "callerBundleName";
     std::string targetAlterBundleName = "targetBundleName";
     auto ret = batchUri->Init(uriVec, mode, callerAlterBundleName, targetAlterBundleName, false);
     EXPECT_EQ(ret, 1);
-    EXPECT_EQ(batchUri->contentUris.size(), 1);
+    EXPECT_EQ(batchUri->ancoUris.size(), 1);
 }
 
 /**

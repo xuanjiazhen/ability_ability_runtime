@@ -154,7 +154,7 @@ private:
      * @param want Want object containing URI information
      * @param isBrokerCall Whether the call is from broker
      * @return true if permission was successfully granted, false otherwise
-     * @note When isBrokerCall is true, content URIs are automatically marked as authorized
+     * @note When isBrokerCall is true, anco URIs are automatically marked as authorized
      */
     bool GrantUriPermissionInner(const std::vector<std::string> &uriVec, const GrantUriPermissionInfo &grantInfo,
         Want &want, bool isBrokerCall);
@@ -264,12 +264,12 @@ private:
         uint32_t flag, int32_t userId, const std::vector<bool> &checkResults);
 
     /**
-     * @brief Mark content URIs as authorized for broker call
+     * @brief Mark anco URIs as authorized for broker call
      * @param uriVec Vector of URI strings
      * @param checkResults Check results to update
      * @param isBrokerCall Whether the call is from broker
      */
-    void MarkContentUriAuthorizedForBroker(const std::vector<std::string> &uriVec,
+    void MarkAncoUriAuthorizedForBroker(const std::vector<std::string> &uriVec,
         std::vector<CheckResult> &checkResults, bool isBrokerCall);
 
     DISALLOW_COPY_AND_MOVE(UriUtils);

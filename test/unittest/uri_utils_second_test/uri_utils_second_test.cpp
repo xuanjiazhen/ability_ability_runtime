@@ -219,7 +219,7 @@ HWTEST_F(UriUtilsSecondTest, IsSandboxApp_003, TestSize.Level1)
 HWTEST_F(UriUtilsSecondTest, PublishFileOpenEvent_004, TestSize.Level1)
 {
     Want want;
-    want.SetUri("content://test/file.txt");
+    want.SetUri("anco://test/file.txt");
     GrantUriPermissionInfo grantInfo;
     grantInfo.targetBundleName = "com.example.test";
     grantInfo.targetAbilityName = "MainAbility";
@@ -231,7 +231,7 @@ HWTEST_F(UriUtilsSecondTest, PublishFileOpenEvent_004, TestSize.Level1)
     // Verify the URI is set correctly and scheme is content (not file)
     std::string uri = want.GetUri().ToString();
     EXPECT_FALSE(uri.empty());
-    EXPECT_NE(uri.find("content://"), std::string::npos);
+    EXPECT_NE(uri.find("anco://"), std::string::npos);
 }
 
 /*

@@ -73,39 +73,39 @@ public:
     ErrCode VerifyUriPermission(const Uri& uri, uint32_t flag, uint32_t tokenId, bool& funcResult) override;
 
     /*
-    * only support local file uri, not support distribute docs and content uri.
+    * only support local file uri, not support distribute docs and anco uri.
     */
     ErrCode GrantUriPermission(const Uri& uri, uint32_t flag, const std::string& targetBundleName, int32_t appIndex,
         uint32_t initiatorTokenId, int32_t& funcResult) override;
 
     /*
-    * only support local file uri, not support distribute docs and content uri.
+    * only support local file uri, not support distribute docs and anco uri.
     */
     ErrCode GrantUriPermission(const std::vector<std::string>& uriVec, uint32_t flag,
         const std::string& targetBundleName, int32_t appIndex, uint32_t initiatorTokenId, int32_t& funcResult) override;
 
     /*
-    * only support local file uri, not support distribute docs and content uri.
+    * only support local file uri, not support distribute docs and anco uri.
     */
     ErrCode GrantUriPermission(const UriPermissionRawData& rawData, uint32_t flag, const std::string& targetBundleName,
         int32_t appIndex, uint32_t initiatorTokenId, int32_t& funcResult) override;
 
     /*
-    * only support local file uri, not support distribute docs and content uri.
+    * only support local file uri, not support distribute docs and anco uri.
     */
     ErrCode GrantUriPermissionPrivileged(const std::vector<std::string>& uriVec, uint32_t flag,
         const std::string& targetBundleName, int32_t appIndex, uint32_t initiatorTokenId, int32_t hideSensitiveType,
         int32_t& funcResult) override;
 
     /*
-    * only support local file uri, not support distribute docs and content uri.
+    * only support local file uri, not support distribute docs and anco uri.
     */
     ErrCode GrantUriPermissionWithType(const std::vector<Uri> &uriVec, uint32_t flag,
         const std::string &targetBundleName, int32_t appIndex, uint32_t initiatorTokenId, int32_t hideSensitiveType,
         const std::vector<int32_t> &permissionTypes, int32_t &funcResult) override;
 
     /*
-    * only support local file uri, not support distribute docs and content uri.
+    * only support local file uri, not support distribute docs and anco uri.
     */
     ErrCode GrantUriPermissionPrivileged(const UriPermissionRawData& rawData, uint32_t flag,
         const std::string& targetBundleName, int32_t appIndex, uint32_t initiatorTokenId,
@@ -118,19 +118,19 @@ public:
         uint32_t targetTokenId, int32_t &funcResult) override;
 
     /*
-    * only support local file uri, not support distribute docs and content uri.
+    * only support local file uri, not support distribute docs and anco uri.
     */
     ErrCode CheckUriAuthorization(const std::vector<std::string>& uriVec, uint32_t flag, uint32_t tokenId,
         std::vector<bool>& funcResult) override;
 
     /*
-    * only support local file uri, not support distribute docs and content uri.
+    * only support local file uri, not support distribute docs and anco uri.
     */
     ErrCode CheckUriAuthorizationWithType(const std::vector<std::string> &uriVec, uint32_t flag, uint32_t tokenId,
         std::vector<CheckResult> &funcResult) override;
 
     /*
-    * only support local file uri, not support distribute docs and content uri.
+    * only support local file uri, not support distribute docs and anco uri.
     */
     ErrCode CheckUriAuthorization(const UriPermissionRawData& rawData, uint32_t flag, uint32_t tokenId,
         UriPermissionRawData& funcResult) override;
@@ -173,19 +173,19 @@ private:
     int32_t GrantUriPermissionPrivilegedImpl(BatchStringUri &batchUris, uint32_t flag,
         const FUDAppInfo &callerInfo, const FUDAppInfo &targetAppInfo, int32_t hideSensitiveType);
 
-    int32_t GrantBatchContentUriPermissionImpl(const std::vector<std::string> &contentUris,
+    int32_t GrantBatchAncoUriPermissionImpl(const std::vector<std::string> &ancoUris,
         uint32_t flag, uint32_t targetTokenId, const std::string &targetBundleName);
 
-    int32_t RevokeContentUriPermission(uint32_t tokenId);
+    int32_t RevokeAncoUriPermission(uint32_t tokenId);
 
-    int32_t VerifyContentUriPermission(const std::vector<std::string> &contentUris, uint32_t flag,
+    int32_t VerifyAncoUriPermission(const std::vector<std::string> &ancoUris, uint32_t flag,
         uint32_t tokenId, std::vector<bool> &checkResults);
 
-    bool IsContentUriGranted(uint32_t tokenId);
+    bool IsAncoUriGranted(uint32_t tokenId);
 
-    void AddContentTokenIdRecord(uint32_t tokenId);
+    void AddAncoTokenIdRecord(uint32_t tokenId);
 
-    void RemoveContentTokenIdRecord(uint32_t tokenId);
+    void RemoveAncoTokenIdRecord(uint32_t tokenId);
 
     void AddPolicyRecordCache(uint32_t callerTokenId, uint32_t targetTokenId, const std::string &path);
 
@@ -284,8 +284,8 @@ private:
     sptr<StorageManager::IStorageManager> storageManager_ = nullptr;
     std::set<uint32_t> permissionTokenMap_;
     std::mutex ptMapMutex_;
-    std::set<uint32_t> contentTokenIdSet_;
-    std::mutex contentTokenIdSetMutex_;
+    std::set<uint32_t> ancoTokenIdSet_;
+    std::mutex ancoTokenIdSetMutex_;
 };
 }  // namespace OHOS::AAFwk
 #endif  // OHOS_ABILITY_RUNTIME_URI_PERMISSION_MANAGER_STUB_IMPL_H

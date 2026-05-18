@@ -330,7 +330,7 @@ bool UriUtils::GrantShellUriPermission(const std::vector<std::string> &strUriVec
 
 void UriUtils::CheckUriPermission(uint32_t callerTokenId, Want &want)
 {
-    // Check and clear no-permission uris in want, not support content uri
+    // Check and clear no-permission uris in want, not support anco uri
     uint32_t flag = want.GetFlags();
     if (!IsGrantUriPermissionFlag(flag)) {
         TAG_LOGD(AAFwkTag::ABILITYMGR, "No grant uri flag: %{public}u.", flag);
@@ -438,7 +438,7 @@ bool UriUtils::GrantUriPermission(Want &want, const GrantUriPermissionInfo &gran
     return true;
 }
 
-void UriUtils::MarkContentUriAuthorizedForBroker(const std::vector<std::string> &uriVec,
+void UriUtils::MarkAncoUriAuthorizedForBroker(const std::vector<std::string> &uriVec,
     std::vector<CheckResult> &checkResults, bool isBrokerCall)
 {
     if (!isBrokerCall) {
@@ -468,7 +468,7 @@ bool UriUtils::GrantUriPermissionInner(const std::vector<std::string> &uriVec,
     NotifyGrantUriPermissionStart(grantInfo.isNotifyCollaborator, uriVec, grantInfo.flag, grantInfo.userId);
     auto checkResults = IN_PROCESS_CALL(UriPermissionManagerClient::GetInstance().CheckUriAuthorizationWithType(
         uriVec, grantInfo.flag, grantInfo.callerTokenId));
-    MarkContentUriAuthorizedForBroker(uriVec, checkResults, isBrokerCall);
+    MarkAncoUriAuthorizedForBroker(uriVec, checkResults, isBrokerCall);
     auto permissionUris = GetPermissionedUriList(uriVec, checkResults, grantInfo.callerTokenId,
         grantInfo.targetBundleName, want);
     std::vector<bool> boolResults(checkResults.size(), false);

@@ -880,7 +880,7 @@ HWTEST_F(UriPermissionImplTest, Upms_VerifyUriPermission_003, TestSize.Level1)
     bool funcResult = false;
     auto ret = upms->VerifyUriPermission(uri1, 1, 1001, funcResult);
     EXPECT_EQ(funcResult, false);
-    auto uri2 = Uri("content://media/Photo/1/IMG_001/test_001.jpg");
+    auto uri2 = Uri("anco://media/Photo/1/IMG_001/test_001.jpg");
     ret = upms->VerifyUriPermission(uri2, 1, 1001, funcResult);
     EXPECT_EQ(funcResult, false);
 }
@@ -3086,7 +3086,7 @@ HWTEST_F(UriPermissionImplTest, Upmsi_GrantUriPermissionInner_005, TestSize.Leve
 {
     auto upms = std::make_unique<UriPermissionManagerStubImpl>();
     ASSERT_NE(upms, nullptr);
-    auto uri = "content://test_001.txt";
+    auto uri = "anco://test_001.txt";
     std::vector<std::string> uriVec = { uri };
     BatchUri batchUri;
     batchUri.Init(uriVec);

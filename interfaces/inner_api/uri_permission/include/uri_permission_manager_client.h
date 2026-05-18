@@ -40,7 +40,7 @@ public:
 
     /**
      * @brief Authorize the uri permission of to targetBundleName.
-     * @param uri The file uri, not support content uri.
+     * @param uri The file uri, not support anco uri.
      * @param flag Want::FLAG_AUTH_READ_URI_PERMISSION or Want::FLAG_AUTH_WRITE_URI_PERMISSION.
      * @param targetBundleName The user of uri.
      */
@@ -112,7 +112,7 @@ public:
 
     /**
      * @brief verify if tokenId have uri permission of flag.
-     * @param uri The file uri, not support content uri.
+     * @param uri The file uri, not support anco uri.
      * @param flag Want::FLAG_AUTH_READ_URI_PERMISSION or Want::FLAG_AUTH_WRITE_URI_PERMISSION.
      * @param tokenId A tokenId of an application.
      */
@@ -120,7 +120,7 @@ public:
 
     /**
      * @brief verify if tokenId have uri permission of flag.Only for foundation.
-     * @param uri The file uri, not support content uri.
+     * @param uri The file uri, not support anco uri.
      * @param flag Want::FLAG_AUTH_READ_URI_PERMISSION or Want::FLAG_AUTH_WRITE_URI_PERMISSION.
      * @param tokenId A tokenId of an application.
      */

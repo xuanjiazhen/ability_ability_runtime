@@ -707,18 +707,18 @@ HWTEST_F(UriPermissionManagerStubImplTest, Upmsi_RawDataToPolicyInfo_001, TestSi
 
 /*
  * Feature: UriPermissionManagerService
- * Function: VerifyContentUriPermission
+ * Function: VerifyAncoUriPermission
  * SubFunction: NA
- * FunctionPoints: VerifyContentUriPermission with empty contentUris
+ * FunctionPoints: VerifyAncoUriPermission with empty ancoUris
  */
-HWTEST_F(UriPermissionManagerStubImplTest, VerifyContentUriPermission_001, TestSize.Level1)
+HWTEST_F(UriPermissionManagerStubImplTest, VerifyAncoUriPermission_001, TestSize.Level1)
 {
     auto upmsi = std::make_shared<UriPermissionManagerStubImpl>();
-    std::vector<std::string> contentUris; // Empty
+    std::vector<std::string> ancoUris; // Empty
     uint32_t flag = 1;
     uint32_t tokenId = 1;
     std::vector<bool> checkResults;
-    auto result = upmsi->VerifyContentUriPermission(contentUris, flag, tokenId, checkResults);
+    auto result = upmsi->VerifyAncoUriPermission(ancoUris, flag, tokenId, checkResults);
     EXPECT_EQ(result, ERR_OK);
 }
 
@@ -745,7 +745,7 @@ HWTEST_F(UriPermissionManagerStubImplTest, CheckProxyUriPermission_001, TestSize
  * Feature: UriPermissionManagerService
  * Function: CheckProxyUriPermission
  * SubFunction: NA
- * FunctionPoints: CheckProxyUriPermission with empty proxyUrisByPolicy and empty contentUris
+ * FunctionPoints: CheckProxyUriPermission with empty proxyUrisByPolicy and empty ancoUris
  */
 HWTEST_F(UriPermissionManagerStubImplTest, CheckProxyUriPermission_002, TestSize.Level1)
 {

@@ -612,7 +612,7 @@ HWTEST_F(UriUtilsTest, GrantShellUriPermission_001, TestSize.Level1)
     bool res0 = UriUtils::GetInstance().GrantShellUriPermission(strUriVec, flag, targetPkg, appIndex);
     EXPECT_EQ(res0, false);
 
-    strUriVec[0] = "content://data/storage/el2/distributedfiles/test.txt";
+    strUriVec[0] = "anco://data/storage/el2/distributedfiles/test.txt";
     bool res1 = UriUtils::GetInstance().GrantShellUriPermission(strUriVec, flag, targetPkg, appIndex);
     EXPECT_EQ(res1, true);
 }
@@ -1241,7 +1241,7 @@ HWTEST_F(UriUtilsTest, GetUriListFromWantDms_002, TestSize.Level1)
 HWTEST_F(UriUtilsTest, GetUriListFromWantDms_003, TestSize.Level1)
 {
     Want want;
-    std::vector<std::string> uriStrVec = {"content://test/file.txt"};
+    std::vector<std::string> uriStrVec = {"anco://test/file.txt"};
     want.SetParam("ability.verify.uri", uriStrVec);
 
     auto uriList = UriUtils::GetInstance().GetUriListFromWantDms(want);
@@ -1313,11 +1313,11 @@ HWTEST_F(UriUtilsTest, GrantUriPermission_Collaborator_001, TestSize.Level1)
  * Feature: UriUtils
  * Function: GrantUriPermissionInner
  * SubFunction: NA
- * FunctionPoints: GrantUriPermissionInner isBrokerCall marks content uri.
+ * FunctionPoints: GrantUriPermissionInner isBrokerCall marks anco uri.
  */
 HWTEST_F(UriUtilsTest, GrantUriPermissionInner_Broker_001, TestSize.Level1)
 {
-    std::vector<std::string> uriVec = {"content://test/file.txt"};
+    std::vector<std::string> uriVec = {"anco://test/file.txt"};
     Want want;
     GrantUriPermissionInfo grantInfo;
     grantInfo.callerTokenId = 1001;
@@ -1372,7 +1372,7 @@ HWTEST_F(UriUtilsTest, GrantUriPermission_DMS_001, TestSize.Level1)
 HWTEST_F(UriUtilsTest, GrantUriPermission_Broker_001, TestSize.Level1)
 {
     Want want;
-    want.SetUri("content://test/file.txt");
+    want.SetUri("anco://test/file.txt");
     want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, std::string("com.ohos.broker"));
 
     GrantUriPermissionInfo grantInfo;

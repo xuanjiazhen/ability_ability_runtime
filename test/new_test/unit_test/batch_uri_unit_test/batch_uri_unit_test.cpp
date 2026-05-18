@@ -58,7 +58,7 @@ HWTEST_F(BatchUriTest, BatchUri_Branch_01, Function | MediumTest | Level1)
 HWTEST_F(BatchUriTest, BatchUri_Branch_02, Function | MediumTest | Level1)
 {
     BatchUri batchUri;
-    std::vector<std::string> uris = {"content://test/1.txt", "file://media/2.txt"};
+    std::vector<std::string> uris = {"anco://test/1.txt", "file://media/2.txt"};
     EXPECT_EQ(batchUri.Init(uris), 2);
 }
 
@@ -377,28 +377,28 @@ HWTEST_F(BatchUriTest, BatchUri_Branch_22, Function | MediumTest | Level1)
 
 /**
  * @tc.number: BatchUri_Branch_23
- * @tc.name: SetCheckProxyByContentUriResult_Mismatch
- * @tc.desc: Coverage: SetCheckProxyByContentUriResult size mismatch.
+ * @tc.name: SetCheckProxyByAncoUriResult_Mismatch
+ * @tc.desc: Coverage: SetCheckProxyByAncoUriResult size mismatch.
  */
 HWTEST_F(BatchUriTest, BatchUri_Branch_23, Function | MediumTest | Level1)
 {
     BatchUri batchUri;
-    batchUri.Init({"content://test/1.txt"});
-    std::vector<bool> contentUriResult = {true, false}; // Size mismatch
-    EXPECT_FALSE(batchUri.SetCheckProxyByContentUriResult(contentUriResult));
+    batchUri.Init({"anco://test/1.txt"});
+    std::vector<bool> ancoUriResult = {true, false}; // Size mismatch
+    EXPECT_FALSE(batchUri.SetCheckProxyByAncoUriResult(ancoUriResult));
 }
 
 /**
  * @tc.number: BatchUri_Branch_24
- * @tc.name: SetCheckProxyByContentUriResult_Success
- * @tc.desc: Coverage: SetCheckProxyByContentUriResult success path.
+ * @tc.name: SetCheckProxyByAncoUriResult_Success
+ * @tc.desc: Coverage: SetCheckProxyByAncoUriResult success path.
  */
 HWTEST_F(BatchUriTest, BatchUri_Branch_24, Function | MediumTest | Level1)
 {
     BatchUri batchUri;
-    batchUri.Init({"content://test/1.txt", "content://test/2.txt"});
-    std::vector<bool> contentUriResult = {true, false};
-    EXPECT_TRUE(batchUri.SetCheckProxyByContentUriResult(contentUriResult));
+    batchUri.Init({"anco://test/1.txt", "anco://test/2.txt"});
+    std::vector<bool> ancoUriResult = {true, false};
+    EXPECT_TRUE(batchUri.SetCheckProxyByAncoUriResult(ancoUriResult));
     EXPECT_TRUE(batchUri.checkResult[0].result);
     EXPECT_FALSE(batchUri.checkResult[1].result);
     EXPECT_EQ(batchUri.checkResult[0].permissionType, static_cast<int32_t>(PolicyType::AUTHORIZATION_PATH));
@@ -406,15 +406,15 @@ HWTEST_F(BatchUriTest, BatchUri_Branch_24, Function | MediumTest | Level1)
 
 /**
  * @tc.number: BatchUri_Branch_25
- * @tc.name: SetCheckProxyByContentUriResult_AllTrue
- * @tc.desc: Coverage: SetCheckProxyByContentUriResult all true.
+ * @tc.name: SetCheckProxyByAncoUriResult_AllTrue
+ * @tc.desc: Coverage: SetCheckProxyByAncoUriResult all true.
  */
 HWTEST_F(BatchUriTest, BatchUri_Branch_25, Function | MediumTest | Level1)
 {
     BatchUri batchUri;
-    batchUri.Init({"content://test/1.txt", "content://test/2.txt"});
-    std::vector<bool> contentUriResult = {true, true};
-    EXPECT_TRUE(batchUri.SetCheckProxyByContentUriResult(contentUriResult));
+    batchUri.Init({"anco://test/1.txt", "anco://test/2.txt"});
+    std::vector<bool> ancoUriResult = {true, true};
+    EXPECT_TRUE(batchUri.SetCheckProxyByAncoUriResult(ancoUriResult));
     EXPECT_TRUE(batchUri.IsAllUriPermissioned());
 }
 
@@ -478,20 +478,20 @@ HWTEST_F(BatchUriTest, BatchUri_Branch_29, Function | MediumTest | Level1)
 
 /**
  * @tc.number: BatchUri_Branch_30
- * @tc.name: Init_ContentUri_Mixed
- * @tc.desc: Coverage: Init with content URIs mixed with file URIs.
+ * @tc.name: Init_AncoUri_Mixed
+ * @tc.desc: Coverage: Init with anco URIs mixed with file URIs.
  */
 HWTEST_F(BatchUriTest, BatchUri_Branch_30, Function | MediumTest | Level1)
 {
     BatchUri batchUri;
     std::vector<std::string> uris = {
-        "content://test/1.txt",
+        "anco://test/1.txt",
         "file://media/2.txt",
-        "content://test/3.txt",
+        "anco://test/3.txt",
         "file://docs/4.txt"
     };
     EXPECT_EQ(batchUri.Init(uris), 4);
-    EXPECT_EQ(batchUri.contentUris.size(), 2);
+    EXPECT_EQ(batchUri.ancoUris.size(), 2);
     EXPECT_EQ(batchUri.mediaUris.size(), 1);
     EXPECT_EQ(batchUri.otherUris.size(), 1);
 }

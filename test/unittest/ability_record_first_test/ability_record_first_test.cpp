@@ -165,8 +165,8 @@ HWTEST_F(AbilityRecordFirstTest, AbilityRecord_GrantPermissionToShell_002, TestS
 {
     uint32_t flag = 0;
     Want want;
-    want.SetUri("content://com.example.app1001/data/storage/el2/base/haps/entry/files/test_1.txt");
-    std::string str = "content://com.example.app1001/data/storage/el2/base/haps/entry/files/test_1.txt";
+    want.SetUri("anco://com.example.app1001/data/storage/el2/base/haps/entry/files/test_1.txt");
+    std::string str = "anco://com.example.app1001/data/storage/el2/base/haps/entry/files/test_1.txt";
     std::vector<std::string> oriUriVec(50, str);
     want.SetParam(TEST_PARAMS_STREAM, oriUriVec);
     std::vector<std::string> uriVec;

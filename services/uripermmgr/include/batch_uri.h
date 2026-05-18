@@ -57,7 +57,7 @@ public:
 
     bool SetCheckProxyByPolicyResult(const std::vector<bool> &proxyResultByPolicy);
 
-    bool SetCheckProxyByContentUriResult(const std::vector<bool> &contentUriResult);
+    bool SetCheckProxyByAncoUriResult(const std::vector<bool> &ancoUriResult);
 
     int32_t GetUriToGrantByMap(std::vector<std::string> &uriVec);
 
@@ -88,9 +88,9 @@ public:
     std::vector<int32_t> otherIndexes;
     std::vector<PolicyInfo> otherPolicyInfos;
 
-    // content uri
-    std::vector<std::string> contentUris;
-    std::vector<int32_t> contentIndexes;
+    // anco uri
+    std::vector<std::string> ancoUris;
+    std::vector<int32_t> ancoIndexes;
 
     // caller's uri
     std::vector<PolicyInfo> selfBundlePolicyInfos;
@@ -113,7 +113,7 @@ public:
 
 struct BatchStringUri {
     std::vector<std::string> uriStrVec;
-    std::vector<std::string> contentUris;
+    std::vector<std::string> ancoUris;
     std::vector<std::string> mediaUriVec;
     std::vector<PolicyInfo> policyVec;
 };
