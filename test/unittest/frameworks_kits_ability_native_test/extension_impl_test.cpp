@@ -917,5 +917,46 @@ HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_CreateModalUIExtension_1000, Tes
     GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_CreateModalUIExtension_1000 end";
 }
 
+/**
+ * @tc.number: AaFwk_ExtensionImpl_HandleExecuteSkill_0100
+ * @tc.name: HandleExecuteSkill
+ * @tc.desc: extension_ is nullptr, return false.
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_HandleExecuteSkill_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_HandleExecuteSkill_0100 start";
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    AAFwk::Want want;
+    auto ret = impl->HandleExecuteSkill(want);
+    EXPECT_FALSE(ret);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_HandleExecuteSkill_0100 end";
+}
+
+/**
+ * @tc.number: AaFwk_ExtensionImpl_HandleExecuteSkill_0200
+ * @tc.name: HandleExecuteSkill
+ * @tc.desc: extension_ is not nullptr, return true.
+ */
+HWTEST_F(ExtensionImplTest, AaFwk_ExtensionImpl_HandleExecuteSkill_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_HandleExecuteSkill_0200 start";
+    auto application = std::make_shared<AppExecFwk::OHOSApplication>();
+    std::shared_ptr<AppExecFwk::AbilityInfo> info = std::make_shared<AppExecFwk::AbilityInfo>();
+    sptr<IRemoteObject> token = new AppExecFwk::MockAbilityToken();
+    auto record = std::make_shared<AppExecFwk::AbilityLocalRecord>(info, token, nullptr, 0);
+    auto extension = std::make_shared<AbilityRuntime::Extension>();
+    std::shared_ptr<EventRunner> runner;
+    auto handler = std::make_shared<AppExecFwk::AbilityHandler>(runner);
+
+    auto impl = std::make_shared<AbilityRuntime::ExtensionImpl>();
+    impl->Init(application, record, extension, handler, token);
+    ASSERT_TRUE(impl->extension_ != nullptr);
+
+    AAFwk::Want want;
+    auto ret = impl->HandleExecuteSkill(want);
+    EXPECT_TRUE(ret);
+    GTEST_LOG_(INFO) << "AaFwk_ExtensionImpl_HandleExecuteSkill_0200 end";
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS
