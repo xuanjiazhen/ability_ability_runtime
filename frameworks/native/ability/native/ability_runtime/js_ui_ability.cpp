@@ -539,6 +539,21 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
 
     napi_set_named_property(env, obj, "launchWant", jsWant);
     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
+
+    // Initialize isDestroyed to false
+    napi_value jsIsDestroyed = nullptr;
+    napi_status status = napi_get_boolean(env, false, &jsIsDestroyed);
+    if (status == napi_ok) {
+        status = napi_set_named_property(env, obj, "isDestroyed", jsIsDestroyed);
+        if (status == napi_ok) {
+            TAG_LOGI(AAFwkTag::UIABILITY, "[NAPI] Initialize isDestroyed to false");
+        } else {
+            TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to set isDestroyed in OnStart: %{public}d", status);
+        }
+    } else {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to create boolean in OnStart: %{public}d", status);
+    }
+
     auto launchParam = GetLaunchParam();
     if (abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
         napi_set_named_property(env, obj, "specifiedId", CreateJsValue(env, launchParam.specifiedId));
@@ -663,6 +678,31 @@ void JsUIAbility::OnStop()
     }
     WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod("onDestroy");
+
+    // Set isDestroyed to true after onDestroy callback
+    auto envSet = jsRuntime_.GetNapiEnv();
+    if (envSet != nullptr && jsAbilityObj_ != nullptr) {
+        napi_value obj = jsAbilityObj_->GetNapiValue();
+        if (CheckTypeForNapiValue(envSet, obj, napi_object)) {
+            napi_value jsIsDestroyed = nullptr;
+            napi_status status = napi_get_boolean(envSet, true, &jsIsDestroyed);
+            if (status == napi_ok) {
+                status = napi_set_named_property(envSet, obj, "isDestroyed", jsIsDestroyed);
+                if (status == napi_ok) {
+                    TAG_LOGI(AAFwkTag::UIABILITY, "[NAPI] Set isDestroyed to true after onDestroy");
+                } else {
+                    TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to set isDestroyed property: %{public}d", status);
+                }
+            } else {
+                TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to create boolean: %{public}d", status);
+            }
+        } else {
+            TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Invalid napi object type");
+        }
+    } else {
+        TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] envSet or jsAbilityObj_ is null");
+    }
+
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "end");
 }
@@ -705,6 +745,33 @@ void JsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackI
             TAG_LOGE(AAFwkTag::UIABILITY, "null ability");
             return;
         }
+
+        // Set isDestroyed to true after onDestroy promise callback
+        auto jsAbility = static_cast<JsUIAbility*>(ability.get());
+        // Don't create HandleScope in async callback - it may cause crashes
+        auto env = jsAbility->jsRuntime_.GetNapiEnv();
+        if (env != nullptr && jsAbility->jsAbilityObj_ != nullptr) {
+            napi_value obj = jsAbility->jsAbilityObj_->GetNapiValue();
+            if (CheckTypeForNapiValue(env, obj, napi_object)) {
+                napi_value jsIsDestroyed = nullptr;
+                napi_status status = napi_get_boolean(env, true, &jsIsDestroyed);
+                if (status == napi_ok) {
+                    status = napi_set_named_property(env, obj, "isDestroyed", jsIsDestroyed);
+                    if (status == napi_ok) {
+                        TAG_LOGI(AAFwkTag::UIABILITY, "[NAPI] Set isDestroyed to true after onDestroy promise callback");
+                    } else {
+                        TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to set isDestroyed in async callback: %{public}d", status);
+                    }
+                } else {
+                    TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Failed to create boolean in async callback: %{public}d", status);
+                }
+            } else {
+                TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] Invalid napi object type in async callback");
+            }
+        } else {
+            TAG_LOGE(AAFwkTag::UIABILITY, "[NAPI] env or jsAbilityObj_ is null in async callback");
+        }
+
         ability->OnStopCallback();
     };
     callbackInfo->Push(asyncCallback);

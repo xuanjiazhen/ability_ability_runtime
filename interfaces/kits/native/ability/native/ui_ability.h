@@ -466,6 +466,13 @@ public:
     virtual void OnSceneRestored();
 
     /**
+     * @brief Checks whether the UIAbility has been destroyed.
+     * @return Returns true if the UIAbility has been destroyed; returns false otherwise.
+     * @since 26.0.0
+     */
+    virtual bool IsDestroyed() const;
+
+    /**
      * @brief Called when this ability enters the <b>STATE_FOREGROUND</b> state.
      * The ability in the <b>STATE_FOREGROUND</b> state is visible.
      * You can override this function to implement your own processing logic.
@@ -780,6 +787,7 @@ private:
 
     std::string identityToken_;
     bool showOnLockScreen_ = false;
+    bool isDestroyed_ = false;
     std::mutex wantMutexlock_;
 #endif
 };
