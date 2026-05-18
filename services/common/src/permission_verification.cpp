@@ -331,21 +331,28 @@ int PermissionVerification::CheckCallServiceExtensionPermission(const Verificati
 
 int PermissionVerification::CheckStartByCallPermission(const VerificationInfo &verificationInfo) const
 {
-    if (IsCallFromSameAccessToken(verificationInfo.accessTokenId)) {
+    uint32_t specifyTokenId = verificationInfo.skillCallerTokenId != 0 ?
+        verificationInfo.skillCallerTokenId : verificationInfo.specifiedFullTokenId;
+    if (verificationInfo.skillCallerTokenId != 0) {
+        if (verificationInfo.skillCallerTokenId == verificationInfo.accessTokenId) {
+            TAG_LOGE(AAFwkTag::DEFAULT, "StartAbilityByCall reject");
+            return CHECK_PERMISSION_FAILED;
+        }
+    } else if (IsCallFromSameAccessToken(verificationInfo.accessTokenId)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "StartAbilityByCall reject");
         return CHECK_PERMISSION_FAILED;
     }
     // Different APP call, check permissions
     if (!VerifyCallingPermission(
-        PermissionConstants::PERMISSION_ABILITY_BACKGROUND_COMMUNICATION, verificationInfo.specifiedFullTokenId)) {
+        PermissionConstants::PERMISSION_ABILITY_BACKGROUND_COMMUNICATION, specifyTokenId)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "Permission denied");
         return CHECK_PERMISSION_FAILED;
     }
-    if (!JudgeStartInvisibleAbility(verificationInfo.accessTokenId, verificationInfo.visible)) {
+    if (!JudgeStartInvisibleAbility(verificationInfo.accessTokenId, verificationInfo.visible, specifyTokenId)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "caller INVISIBLE permission invalid");
         return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
     }
-    if (!JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall)) {
+    if (!JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall, specifyTokenId)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "caller START_ABILITIES_FROM_BACKGROUND permission invalid");
         return CHECK_PERMISSION_FAILED;
     }
@@ -393,7 +400,8 @@ bool PermissionVerification::JudgeStartInvisibleAbility(const uint32_t accessTok
     return false;
 }
 
-bool PermissionVerification::JudgeStartAbilityFromBackground(const bool isBackgroundCall) const
+bool PermissionVerification::JudgeStartAbilityFromBackground(const bool isBackgroundCall,
+    const uint32_t specifyTokenId) const
 {
     if (!isBackgroundCall) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Caller not background");
@@ -402,8 +410,10 @@ bool PermissionVerification::JudgeStartAbilityFromBackground(const bool isBackgr
 
     // Temporarily supports permissions with two different spellings
     // PERMISSION_START_ABILIIES_FROM_BACKGROUND will be removed later due to misspelling
-    if (VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND) ||
-        VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILIIES_FROM_BACKGROUND)) {
+    if (VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILITIES_FROM_BACKGROUND,
+        specifyTokenId) ||
+        VerifyCallingPermission(PermissionConstants::PERMISSION_START_ABILIIES_FROM_BACKGROUND,
+        specifyTokenId)) {
         TAG_LOGD(AAFwkTag::DEFAULT, "Caller PASS");
         return true;
     }
@@ -429,6 +439,9 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
     bool isCallByShortcut) const
 {
     uint32_t specifyTokenId = verificationInfo.specifyTokenId;
+    if (verificationInfo.skillCallerTokenId != 0) {
+        specifyTokenId = verificationInfo.skillCallerTokenId;
+    }
     TAG_LOGD(AAFwkTag::DEFAULT, "specifyTokenId: %{public}u, isCallByShortcut %{public}d",
         specifyTokenId, isCallByShortcut);
     if (specifyTokenId == 0 &&
@@ -448,7 +461,7 @@ int PermissionVerification::JudgeInvisibleAndBackground(const VerificationInfo &
         TAG_LOGE(AAFwkTag::DEFAULT, "caller INVISIBLE permission invalid");
         return ABILITY_VISIBLE_FALSE_DENY_REQUEST;
     }
-    if (!JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall)) {
+    if (!JudgeStartAbilityFromBackground(verificationInfo.isBackgroundCall, specifyTokenId)) {
         TAG_LOGE(AAFwkTag::DEFAULT, "caller START_ABILITIES_FROM_BACKGROUND permission invalid");
         return CHECK_PERMISSION_FAILED;
     }
