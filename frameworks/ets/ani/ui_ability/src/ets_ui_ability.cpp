@@ -131,6 +131,15 @@ void OnDestroyPromiseCallback(ani_env *env, ani_object aniObj)
         TAG_LOGE(AAFwkTag::UIABILITY, "Object_SetFieldByName_Long status: %{public}d", status);
         return;
     }
+
+    // Set isDestroyed to true after onDestroy callback
+    ani_boolean isDestroyed = true;
+    status = env->Object_SetFieldByName_Boolean(aniObj, "isDestroyed", isDestroyed);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "Failed to set isDestroyed, status: %{public}d", status);
+    } else {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Set isDestroyed to true after onDestroy callback");
+    }
 }
 
 void OnPrepareTerminatePromiseCallback(ani_env *env, ani_object aniObj, ani_boolean aniPrepareTermination)
@@ -410,6 +419,9 @@ void EtsUIAbility::UpdateAbilityObj(
         TAG_LOGE(AAFwkTag::UIABILITY, "BindNativeMethods failed");
         return;
     }
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "UpdateAbilityObj done, etsAbilityObj_: %{public}p", etsAbilityObj_.get());
+    // Note: isDestroyed will be initialized in OnStartInner when env is ready
 }
 
 void EtsUIAbility::CreateAndBindContext(const std::shared_ptr<AbilityRuntime::AbilityContext> &abilityContext,
@@ -556,11 +568,13 @@ void EtsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInf
         TAG_LOGE(AAFwkTag::UIABILITY, "not found Ability.js");
         return;
     }
+    TAG_LOGI(AAFwkTag::UIABILITY, "OnStart: etsAbilityObj_ exists");
     auto env = etsRuntime_.GetAniEnv();
     if (env == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null env");
         return;
     }
+    TAG_LOGI(AAFwkTag::UIABILITY, "OnStart: calling OnStartInner");
     OnStartInner(env, want, sessionInfo);
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStart end");
 }
@@ -580,6 +594,19 @@ void EtsUIAbility::OnStartInner(ani_env *env, const Want &want, sptr<AAFwk::Sess
     if ((status = env->Object_SetFieldByName_Ref(etsAbilityObj_->aniObj, "lastRequestWant", wantObj)) != ANI_OK) {
         TAG_LOGE(AAFwkTag::UIABILITY, "lastRequestWant status: %{public}d", status);
         return;
+    }
+    TAG_LOGI(AAFwkTag::UIABILITY, "launchWant and lastRequestWant set successfully");
+
+    // Initialize isDestroyed to false
+    ani_boolean isDestroyed = false;
+    TAG_LOGI(AAFwkTag::UIABILITY, "About to initialize isDestroyed to false, etsAbilityObj_->aniObj: %{public}p", etsAbilityObj_->aniObj);
+    status = env->Object_SetFieldByName_Boolean(etsAbilityObj_->aniObj, "isDestroyed", isDestroyed);
+    TAG_LOGI(AAFwkTag::UIABILITY, "Object_SetFieldByName_Boolean(isDestroyed, false) status: %{public}d", status);
+    if (status != ANI_OK) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "isDestroyed Object_SetFieldByName_Boolean status: %{public}d", status);
+        // Don't return, let's continue
+    } else {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Initialize isDestroyed to false successfully");
     }
     SetSelfSpecifiedId(env, sessionInfo);
 
@@ -699,6 +726,19 @@ void EtsUIAbility::OnStop()
     }
     WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod(false, "onDestroy", nullptr);
+
+    // Set isDestroyed to true after sync onDestroy call
+    auto env = etsRuntime_.GetAniEnv();
+    if (env != nullptr && etsAbilityObj_ != nullptr) {
+        ani_boolean isDestroyed = true;
+        ani_status status = env->Object_SetFieldByName_Boolean(etsAbilityObj_->aniObj, "isDestroyed", isDestroyed);
+        if (status != ANI_OK) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "Failed to set isDestroyed, status: %{public}d", status);
+        } else {
+            TAG_LOGI(AAFwkTag::UIABILITY, "Set isDestroyed to true after sync onDestroy");
+        }
+    }
+
     OnStopCallback();
     TAG_LOGD(AAFwkTag::UIABILITY, "OnStop end");
 }
