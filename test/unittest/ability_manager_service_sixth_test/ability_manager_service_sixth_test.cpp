@@ -2751,5 +2751,30 @@ HWTEST_F(AbilityManagerServiceSixthTest, GetCallerUidAndToken_001, TestSize.Leve
     EXPECT_EQ(accessToken, 0);
     TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest GetCallerUidAndToken_001 end");
 }
+
+/*
+ * Feature: AbilityManagerService
+ * Function: IsDmsSameAPP
+ * FunctionPoints: AbilityManagerService IsDmsSameAPP
+ */
+HWTEST_F(AbilityManagerServiceSixthTest, IsDmsSameAPP_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest IsDmsSameAPP_001 start");
+    auto abilityMs = std::make_shared<AbilityManagerService>();
+    ASSERT_NE(abilityMs, nullptr);
+    const std::string deviceName = "";
+    const std::string abilityName = "EntryAbility";
+    const std::string appName = "amstest";
+    const std::string bundleName = "";
+    const std::string moduleName = "entry";
+    AbilityRequest abilityRequest = AbilityManagerServiceSixthTest::GenerateAbilityRequest(deviceName,
+        abilityName, appName, bundleName, moduleName);
+    EXPECT_FALSE(abilityMs->IsDmsSameAPP(abilityRequest));
+    abilityRequest.abilityInfo.bundleName = "testBundleName";
+    EXPECT_FALSE(abilityMs->IsDmsSameAPP(abilityRequest));
+    abilityRequest.callerAppIdentifier = "testBundleName";
+    EXPECT_FALSE(abilityMs->IsDmsSameAPP(abilityRequest));
+    TAG_LOGI(AAFwkTag::TEST, "AbilityManagerServiceSixthTest IsDmsSameAPP_001 end");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

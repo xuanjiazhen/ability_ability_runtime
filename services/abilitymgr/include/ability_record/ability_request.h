@@ -65,6 +65,7 @@ struct AbilityRequest {
     std::string appId;
     std::string startTime;
     std::string hostBundleName;
+    std::string callerAppIdentifier;
 
     sptr<IRemoteObject> callerToken = nullptr;          // call ability
     sptr<IRemoteObject> asCallerSourceToken = nullptr;          // call ability

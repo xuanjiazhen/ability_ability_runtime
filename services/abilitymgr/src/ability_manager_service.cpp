@@ -299,6 +299,7 @@ constexpr int64_t CLEAR_USER_LOCKED_BUNDLE_LIST_KEY_DELAY_TIME = 60 * 1000; // 6
 constexpr const char* VPN_PERMISSION_IF = "libnet_vpn_permission_if.z.so";
 constexpr const char* INTENT_USER_ID = "ohos.insightIntent.userId";
 constexpr const char* START_SELF_UI_ABILITY_IN_CHILD_PROCESS_FLAG = "startSelfUIAbilityInChildProcessFlag";
+constexpr const char* DMS_CALLER_APP_IDENTIFIER = "ohos.dms.param.sourceCallerAppIdentifier";
 
 using RequestVpnPermission = int32_t (*)(int32_t, const std::string &, const std::string &, bool &);
 
@@ -8492,6 +8493,7 @@ int AbilityManagerService::GenerateAbilityRequest(const Want &want, int requestC
     request.customProcess = abilityInfo->customProcess;
     request.collaboratorType = GetCollaboratorType(request.abilityInfo.applicationInfo.codePath);
     request.isTargetPlugin = abilityInfo->isTargetPlugin;
+    abilityRequest.callerAppIdentifier = want.GetStringParam(DMS_CALLER_APP_IDENTIFIER);
 
     bool isSkipLifecycleDisabled = false;
     if (request.abilityInfo.applicationInfo.allowMultiProcess) {
@@ -8594,6 +8596,7 @@ int AbilityManagerService::GenerateExtensionAbilityRequest(const Want &want, Abi
     request.want = want;
     request.callerToken = callerToken;
     request.startSetting = nullptr;
+    request.callerAppIdentifier = want.GetStringParam(DMS_CALLER_APP_IDENTIFIER);
     if (AbilityRuntime::StartupUtil::IsStartPlugin(want)) {
         request.isTargetPlugin = true;
     }
@@ -12422,6 +12425,28 @@ int32_t AbilityManagerService::CheckCallAppServiceExtensionPermission(const Abil
     return ERR_OK;
 }
 
+bool AbilityManagerService::IsDmsSameAPP(const AbilityRequest &abilityRequest)
+{
+    if (abilityRequest.callerAppIdentifier.empty() || abilityRequest.abilityInfo.bundleName.empty()) {
+        return false;
+    }
+
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, false);
+    AppExecFwk::BundleInfo bundleInfo;
+    bool queryBundleInfoRet = IN_PROCESS_CALL(bms->GetBundleInfo(abilityRequest.abilityInfo.bundleName,
+        AppExecFwk::BundleFlag::GET_BUNDLE_WITH_ABILITIES, bundleInfo, abilityRequest.userId));
+    if (!queryBundleInfoRet) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR,
+            "get bundleInfo failed, %{public}s", abilityRequest.abilityInfo.bundleName.c_str());
+        return false;
+    }
+    if (abilityRequest.callerAppIdentifier == bundleInfo.signatureInfo.appIdentifier) {
+        return true;
+    }
+    return false;
+}
+
 int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequest &abilityRequest)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "begin");
@@ -12429,6 +12454,9 @@ int AbilityManagerService::CheckCallServiceExtensionPermission(const AbilityRequ
     AAFwk::PermissionVerification::VerificationInfo verificationInfo;
     verificationInfo.accessTokenId = abilityRequest.appInfo.accessTokenId;
     verificationInfo.visible = abilityRequest.abilityInfo.visible;
+    if (IsDmsSameAPP(abilityRequest)) {
+        verificationInfo.visible = true;
+    }
     verificationInfo.withContinuousTask = IsBackgroundTaskUid(IPCSkeleton::GetCallingUid());
     verificationInfo.isBackgroundCall = false;
     verificationInfo.specifyTokenId = (abilityRequest.specifiedFullTokenId != 0) ?
