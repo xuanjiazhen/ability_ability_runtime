@@ -6640,7 +6640,9 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
         "isSACall: %{public}d, userId: %{public}d, appUid: %{public}d", bundleName.c_str(), appIndex, isSystemApp,
         isSACall, userId, appUid);
 
-    return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
+    int32_t resolvedCallerUid = (uid >= 0) ? uid : callerUid;
+    return pendingWantManager->GetWantSender(
+        resolvedCallerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
 }
 
 sptr<IWantSender> AbilityManagerService::GetWantSender(
@@ -6703,7 +6705,9 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
 
     TAG_LOGI(AAFwkTag::WANTAGENT, "%{public}s#%{public}d, isSystemApp: %{public}d, "
         "userId: %{public}d", wantSenderInfo.bundleName.c_str(), appIndex, isSystemApp, userId);
-    return pendingWantManager->GetWantSender(callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
+    int32_t resolvedCallerUid = (uid >= 0) ? uid : callerUid;
+    return pendingWantManager->GetWantSender(
+        resolvedCallerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
 }
 
 int AbilityManagerService::SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo)
