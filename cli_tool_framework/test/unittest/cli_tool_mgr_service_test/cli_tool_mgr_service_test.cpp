@@ -36,6 +36,7 @@
 #include "ccm_util.h"
 #include "event_dispatcher.h"
 #include "exec_options.h"
+#include "ipc_skeleton.h"
 #include "nativetoken_kit.h"
 #include "token_setproc.h"
 #include "tool_info.h"
@@ -238,6 +239,7 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0100, TestSize.Level1)
 
     auto runningRecord = std::make_shared<SessionRecord>();
     runningRecord->sessionId = "running_session";
+    runningRecord->callerPid = IPCSkeleton::GetCallingPid();
     service_->AddSessionRecord(runningRecord);
     int32_t runningRet = service_->SubscribeSession(runningRecord->sessionId, "running_subscription");
     EXPECT_TRUE(runningRet == ERR_NO_INIT || runningRet == ERR_NOT_SYSTEM_APP || runningRet == ERR_PERMISSION_DENIED);
@@ -248,6 +250,7 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0100, TestSize.Level1)
 
     auto completedRecord = std::make_shared<SessionRecord>();
     completedRecord->sessionId = "completed_session";
+    completedRecord->callerPid = IPCSkeleton::GetCallingPid();
     completedRecord->SetTerminalResult(0, 0);
     completedRecord->MarkStdoutClosed();
     completedRecord->MarkStderrClosed();
@@ -257,6 +260,7 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0100, TestSize.Level1)
 
     auto failedRecord = std::make_shared<SessionRecord>();
     failedRecord->sessionId = "failed_session";
+    failedRecord->callerPid = IPCSkeleton::GetCallingPid();
     failedRecord->SetTerminalResult(1, 0);
     failedRecord->MarkStdoutClosed();
     failedRecord->MarkStderrClosed();
@@ -810,6 +814,7 @@ HWTEST_F(CliToolManagerServiceTest, ClearSession_0100, TestSize.Level1)
 
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "completed_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
     record->SetState(SessionState::COMPLETED);
     service_->AddSessionRecord(record);
     EXPECT_EQ(service_->ClearSession("completed_session"), ERR_CLI_SESSION_NOT_FOUND);
@@ -831,6 +836,30 @@ HWTEST_F(CliToolManagerServiceTest, QuerySession_0100, TestSize.Level1)
     EXPECT_TRUE(result == ERR_CLI_SESSION_NOT_FOUND || IsPermissionGateResult(result));
 
     GTEST_LOG_(INFO) << "CliToolManagerService_QuerySession_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_SessionOwner_0100
+ * @tc.desc: Test session operations reject callers that did not create the session
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SessionOwner_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_SessionOwner_0100 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "owned_by_other_process";
+    record->callerPid = IPCSkeleton::GetCallingPid() + 1;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    CliSessionInfo session;
+    EXPECT_EQ(service_->ClearSession(record->sessionId), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(service_->SubscribeSession(record->sessionId, "subscription"), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(service_->QuerySession(record->sessionId, session), ERR_PERMISSION_DENIED);
+    EXPECT_EQ(service_->SendMessage(record->sessionId, "input", "event"), ERR_PERMISSION_DENIED);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_SessionOwner_0100 end";
 }
 
 /**
