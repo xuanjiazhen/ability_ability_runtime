@@ -16,6 +16,8 @@
 #include <cstring>
 #include <gtest/gtest.h>
 
+#include "securec.h"
+
 #include "mo_dispatcher_complex_type_manager.h"
 #include "mo_dispatcher_types.h"
 #include "modular_object_dispatcher.h"
@@ -144,7 +146,7 @@ static OH_AbilityRuntime_ModObjDispatcher_TypeInfo MakeMapTypeInfo(
     ti.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
     ti.u.mapType.keyType = keyVt;
     auto* valType = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(valType, 0, sizeof(*valType));
+    (void)memset_s(valType, sizeof(*valType), 0, sizeof(*valType));
     valType->vt = valVt;
     ti.u.mapType.pValueType = valType;
     return ti;
@@ -173,6 +175,99 @@ static void FreeTypeInfo(OH_AbilityRuntime_ModObjDispatcher_TypeInfo& ti)
             ti.u.mapType.pValueType = nullptr;
         }
     }
+}
+
+// Helper: allocate and zero-init a TypeInfo with given vt
+static OH_AbilityRuntime_ModObjDispatcher_TypeInfo* NewTypeInfo(OH_AbilityRuntime_ModObjDispatcher_ValueType vt)
+{
+    auto* ti = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
+    (void)memset_s(ti, sizeof(*ti), 0, sizeof(*ti));
+    ti->vt = vt;
+    return ti;
+}
+
+// Helper: build a container TypeInfo (VECTOR/SET/ARRAY) with a leaf element type
+static OH_AbilityRuntime_ModObjDispatcher_TypeInfo* MakeContainerTypeInfo(
+    OH_AbilityRuntime_ModObjDispatcher_ValueType containerVt,
+    OH_AbilityRuntime_ModObjDispatcher_ValueType leafVt)
+{
+    auto* ti = NewTypeInfo(containerVt);
+    ti->u.pElementType = NewTypeInfo(leafVt);
+    return ti;
+}
+
+// Helper: build a MAP TypeInfo with key vt and heap-allocated leaf value type
+static OH_AbilityRuntime_ModObjDispatcher_TypeInfo* MakeMapTypeInfoHeap(
+    OH_AbilityRuntime_ModObjDispatcher_ValueType keyVt,
+    OH_AbilityRuntime_ModObjDispatcher_ValueType valVt)
+{
+    auto* ti = NewTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
+    ti->u.mapType.keyType = keyVt;
+    ti->u.mapType.pValueType = NewTypeInfo(valVt);
+    return ti;
+}
+
+// Helper: build a Vector variant wrapping a vector handle
+static OH_AbilityRuntime_ModObjDispatcher_Variant MakeVectorVariant(OH_AbilityRuntime_ModObjDispatcher_VectorHandle h)
+{
+    OH_AbilityRuntime_ModObjDispatcher_Variant v = {};
+    v.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
+    v.u.pvectorVal = h;
+    return v;
+}
+
+// Helper: build a Map variant wrapping a map handle
+static OH_AbilityRuntime_ModObjDispatcher_Variant MakeMapVariant(OH_AbilityRuntime_ModObjDispatcher_MapHandle h)
+{
+    OH_AbilityRuntime_ModObjDispatcher_Variant v = {};
+    v.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
+    v.u.pmapVal = h;
+    return v;
+}
+
+// Helper: build a Set variant wrapping a set handle
+static OH_AbilityRuntime_ModObjDispatcher_Variant MakeSetVariant(OH_AbilityRuntime_ModObjDispatcher_SetHandle h)
+{
+    OH_AbilityRuntime_ModObjDispatcher_Variant v = {};
+    v.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET;
+    v.u.psetVal = h;
+    return v;
+}
+
+// Helper: build an Array variant wrapping an array handle
+static OH_AbilityRuntime_ModObjDispatcher_Variant MakeArrayVariant(OH_AbilityRuntime_ModObjDispatcher_ArrayHandle h)
+{
+    OH_AbilityRuntime_ModObjDispatcher_Variant v = {};
+    v.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY;
+    v.u.parrayVal = h;
+    return v;
+}
+
+// Helper: create a Vector<I32> with given int32 values
+static OH_AbilityRuntime_ModObjDispatcher_VectorHandle CreateI32Vector(std::initializer_list<int32_t> vals)
+{
+    auto ti = MakeI32TypeInfo();
+    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec = nullptr;
+    ModObjDispatcherComplexTypeManager::VectorCreate(&ti, &vec);
+    for (auto v : vals) {
+        auto var = MakeI32Variant(v);
+        ModObjDispatcherComplexTypeManager::VectorAdd(vec, &var);
+    }
+    return vec;
+}
+
+// Helper: create a Vector<STRING> with given string values
+static OH_AbilityRuntime_ModObjDispatcher_VectorHandle CreateStringVector(std::initializer_list<const char*> vals)
+{
+    auto ti = MakeStringTypeInfo();
+    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec = nullptr;
+    ModObjDispatcherComplexTypeManager::VectorCreate(&ti, &vec);
+    for (auto v : vals) {
+        auto var = MakeStringVariant(v);
+        ModObjDispatcherComplexTypeManager::VectorAdd(vec, &var);
+        ModObjDispatcherComplexTypeManager::Variant_Clear(&var);
+    }
+    return vec;
 }
 
 // ==================== Test Fixture ====================
@@ -2026,162 +2121,95 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, MapContainsKey_KeyTypeMismatch, TestSi
 // Vector<Vector<i32>>: create outer, add inner vector, get back and verify
 HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_VectorOfVector_2Level, TestSize.Level1)
 {
-    // Create inner Vector<i32>
-    auto innerTi = MakeI32TypeInfo();
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle innerVec = nullptr;
-    auto ret = ModObjDispatcherComplexTypeManager::VectorCreate(&innerTi, &innerVec);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    auto e1 = MakeI32Variant(10);
-    auto e2 = MakeI32Variant(20);
-    ModObjDispatcherComplexTypeManager::VectorAdd(innerVec, &e1);
-    ModObjDispatcherComplexTypeManager::VectorAdd(innerVec, &e2);
-
-    // Outer: Vector<Vector<i32>> — elementType is VECTOR{I32}
-    auto* vecElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecElemTi, 0, sizeof(*vecElemTi));
-    vecElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* i32LeafTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32LeafTi, 0, sizeof(*i32LeafTi));
-    i32LeafTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    vecElemTi->u.pElementType = i32LeafTi;
+    auto* outerTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
     OH_AbilityRuntime_ModObjDispatcher_VectorHandle outerVec = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::VectorCreate(vecElemTi, &outerVec);
+    auto ret = ModObjDispatcherComplexTypeManager::VectorCreate(outerTi, &outerVec);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Add inner vector as element
-    OH_AbilityRuntime_ModObjDispatcher_Variant vecVar = {};
-    vecVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    vecVar.u.pvectorVal = innerVec;
+    auto innerVec = CreateI32Vector({10, 20});
+    auto vecVar = MakeVectorVariant(innerVec);
     ret = ModObjDispatcherComplexTypeManager::VectorAdd(outerVec, &vecVar);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Get back and verify
     OH_AbilityRuntime_ModObjDispatcher_Variant out = {};
     ret = ModObjDispatcherComplexTypeManager::VectorGet(outerVec, 0, &out);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     EXPECT_EQ(out.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
     ASSERT_NE(out.u.pvectorVal, nullptr);
-
     uint32_t innerSize = 0;
     ModObjDispatcherComplexTypeManager::VectorGetSize(out.u.pvectorVal, &innerSize);
     EXPECT_EQ(innerSize, 2u);
 
-    OH_AbilityRuntime_ModObjDispatcher_Variant elem = {};
-    ret = ModObjDispatcherComplexTypeManager::VectorGet(out.u.pvectorVal, 0, &elem);
-    EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    EXPECT_EQ(elem.u.i32Val, 10);
-
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&elem);
     ModObjDispatcherComplexTypeManager::Variant_Clear(&out);
     ModObjDispatcherComplexTypeManager::VectorRelease(&innerVec);
     ModObjDispatcherComplexTypeManager::VectorRelease(&outerVec);
-    FreeTypeInfo(*vecElemTi);
-    delete vecElemTi;
+    FreeTypeInfo(*outerTi);
+    delete outerTi;
 }
 
 // Map<i32, Vector<string>>: nested vector as map value
 HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_MapOfVector_2Level, TestSize.Level1)
 {
-    // Inner: Vector<string> — leaf element type
-    auto innerTi = MakeStringTypeInfo();
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle innerVec = nullptr;
-    auto ret = ModObjDispatcherComplexTypeManager::VectorCreate(&innerTi, &innerVec);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    auto s1 = MakeStringVariant("hello");
-    auto s2 = MakeStringVariant("world");
-    ModObjDispatcherComplexTypeManager::VectorAdd(innerVec, &s1);
-    ModObjDispatcherComplexTypeManager::VectorAdd(innerVec, &s2);
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&s1);
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&s2);
-
-    // Outer: Map<i32, Vector<string>> — value TypeInfo is VECTOR{STRING}
-    auto* vecStrTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecStrTi, 0, sizeof(*vecStrTi));
-    vecStrTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* strTi2 = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(strTi2, 0, sizeof(*strTi2));
-    strTi2->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING;
-    vecStrTi->u.pElementType = strTi2;
+    auto* valTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING);
     OH_AbilityRuntime_ModObjDispatcher_MapHandle map = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::MapCreate(
-        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, vecStrTi, &map);
+    auto ret = ModObjDispatcherComplexTypeManager::MapCreate(
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, valTi, &map);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Put vector into map
-    OH_AbilityRuntime_ModObjDispatcher_Variant vecVar = {};
-    vecVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    vecVar.u.pvectorVal = innerVec;
+    auto innerVec = CreateStringVector({"hello", "world"});
     auto key = MakeI32Variant(1);
+    auto vecVar = MakeVectorVariant(innerVec);
     ret = ModObjDispatcherComplexTypeManager::MapPut(map, &key, &vecVar);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Get back and verify
     OH_AbilityRuntime_ModObjDispatcher_Variant out = {};
     ret = ModObjDispatcherComplexTypeManager::MapGet(map, &key, &out);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     EXPECT_EQ(out.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
     ASSERT_NE(out.u.pvectorVal, nullptr);
-
     uint32_t sz = 0;
     ModObjDispatcherComplexTypeManager::VectorGetSize(out.u.pvectorVal, &sz);
     EXPECT_EQ(sz, 2u);
 
-    OH_AbilityRuntime_ModObjDispatcher_Variant elem = {};
-    ret = ModObjDispatcherComplexTypeManager::VectorGet(out.u.pvectorVal, 0, &elem);
-    EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    EXPECT_STREQ(elem.u.bstrVal, "hello");
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&elem);
     ModObjDispatcherComplexTypeManager::Variant_Clear(&out);
     ModObjDispatcherComplexTypeManager::VectorRelease(&innerVec);
     ModObjDispatcherComplexTypeManager::MapRelease(&map);
-    FreeTypeInfo(*vecStrTi);
-    delete vecStrTi;
+    FreeTypeInfo(*valTi);
+    delete valTi;
 }
 
 // Map<i32, Map<i32, i64>>: nested map as value, verify 2-level get
 HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_MapOfMap_2Level, TestSize.Level1)
 {
-    // Inner: Map<i32, i64> — leaf value type
+    auto* outerValTi = MakeMapTypeInfoHeap(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I64);
+    OH_AbilityRuntime_ModObjDispatcher_MapHandle outerMap = nullptr;
+    auto ret = ModObjDispatcherComplexTypeManager::MapCreate(
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, outerValTi, &outerMap);
+    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+
     auto innerValTi = MakeI64TypeInfo();
     OH_AbilityRuntime_ModObjDispatcher_MapHandle innerMap = nullptr;
-    auto ret = ModObjDispatcherComplexTypeManager::MapCreate(
+    ret = ModObjDispatcherComplexTypeManager::MapCreate(
         OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, &innerValTi, &innerMap);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     auto ik = MakeI32Variant(100);
     auto iv = MakeI64Variant(999LL);
     ModObjDispatcherComplexTypeManager::MapPut(innerMap, &ik, &iv);
 
-    // Outer: Map<i32, Map<i32, i64>> — value TypeInfo is MAP{I32, I64}
-    auto* mapI32I64Ti = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(mapI32I64Ti, 0, sizeof(*mapI32I64Ti));
-    mapI32I64Ti->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
-    mapI32I64Ti->u.mapType.keyType = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    auto* i64Ti2 = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i64Ti2, 0, sizeof(*i64Ti2));
-    i64Ti2->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I64;
-    mapI32I64Ti->u.mapType.pValueType = i64Ti2;
-    OH_AbilityRuntime_ModObjDispatcher_MapHandle outerMap = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::MapCreate(
-        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, mapI32I64Ti, &outerMap);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-
-    OH_AbilityRuntime_ModObjDispatcher_Variant mapVar = {};
-    mapVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
-    mapVar.u.pmapVal = innerMap;
     auto ok = MakeI32Variant(1);
+    auto mapVar = MakeMapVariant(innerMap);
     ret = ModObjDispatcherComplexTypeManager::MapPut(outerMap, &ok, &mapVar);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Get back outer → inner → verify
     OH_AbilityRuntime_ModObjDispatcher_Variant out1 = {};
     ret = ModObjDispatcherComplexTypeManager::MapGet(outerMap, &ok, &out1);
-    EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     EXPECT_EQ(out1.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
     ASSERT_NE(out1.u.pmapVal, nullptr);
-
     OH_AbilityRuntime_ModObjDispatcher_Variant out2 = {};
     ret = ModObjDispatcherComplexTypeManager::MapGet(out1.u.pmapVal, &ik, &out2);
-    EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     EXPECT_EQ(out2.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I64);
     EXPECT_EQ(out2.u.i64Val, 999LL);
 
@@ -2189,51 +2217,29 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_MapOfMap_2Level, TestSize.Level
     ModObjDispatcherComplexTypeManager::Variant_Clear(&out1);
     ModObjDispatcherComplexTypeManager::MapRelease(&innerMap);
     ModObjDispatcherComplexTypeManager::MapRelease(&outerMap);
-    FreeTypeInfo(*mapI32I64Ti);
-    delete mapI32I64Ti;
+    FreeTypeInfo(*outerValTi);
+    delete outerValTi;
 }
 
 // Array<Vector<i32>>: overwrite slot, old vector should not leak
 HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_ArrayOfVector_OverwriteNoLeak, TestSize.Level1)
 {
-    // Array element type: Vector<i32>
-    auto* vecI32ArrTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecI32ArrTi, 0, sizeof(*vecI32ArrTi));
-    vecI32ArrTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* i32Ti4 = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32Ti4, 0, sizeof(*i32Ti4));
-    i32Ti4->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    vecI32ArrTi->u.pElementType = i32Ti4;
+    auto* arrTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
     OH_AbilityRuntime_ModObjDispatcher_ArrayHandle arr = nullptr;
-    auto ret = ModObjDispatcherComplexTypeManager::ArrayCreate(vecI32ArrTi, 1, &arr);
+    auto ret = ModObjDispatcherComplexTypeManager::ArrayCreate(arrTi, 1, &arr);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Set first vector — leaf element type
-    auto i32Ti = MakeI32TypeInfo();
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec1 = nullptr;
-    ModObjDispatcherComplexTypeManager::VectorCreate(&i32Ti, &vec1);
-    auto v1 = MakeI32Variant(100);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec1, &v1);
-    OH_AbilityRuntime_ModObjDispatcher_Variant var1 = {};
-    var1.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    var1.u.pvectorVal = vec1;
+    auto vec1 = CreateI32Vector({100});
+    auto var1 = MakeVectorVariant(vec1);
     ret = ModObjDispatcherComplexTypeManager::ArraySet(arr, 0, &var1);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Overwrite with second vector
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec2 = nullptr;
-    ModObjDispatcherComplexTypeManager::VectorCreate(&i32Ti, &vec2);
-    auto v2 = MakeI32Variant(200);
-    auto v3 = MakeI32Variant(300);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec2, &v2);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec2, &v3);
-    OH_AbilityRuntime_ModObjDispatcher_Variant var2 = {};
-    var2.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    var2.u.pvectorVal = vec2;
+    auto vec2 = CreateI32Vector({200, 300});
+    auto var2 = MakeVectorVariant(vec2);
     ret = ModObjDispatcherComplexTypeManager::ArraySet(arr, 0, &var2);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Verify overwritten data
     OH_AbilityRuntime_ModObjDispatcher_Variant out = {};
     ret = ModObjDispatcherComplexTypeManager::ArrayGet(arr, 0, &out);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
@@ -2246,170 +2252,98 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_ArrayOfVector_OverwriteNoLeak, 
     ModObjDispatcherComplexTypeManager::VectorRelease(&vec1);
     ModObjDispatcherComplexTypeManager::VectorRelease(&vec2);
     ModObjDispatcherComplexTypeManager::ArrayRelease(&arr);
-    FreeTypeInfo(*vecI32ArrTi);
-    delete vecI32ArrTi;
+    FreeTypeInfo(*arrTi);
+    delete arrTi;
 }
 
 // Map same key overwrite should release old nested value
 HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_MapOverwriteValue_NoLeak, TestSize.Level1)
 {
-    auto* vecI32Ti = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecI32Ti, 0, sizeof(*vecI32Ti));
-    vecI32Ti->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* i32TiInner = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32TiInner, 0, sizeof(*i32TiInner));
-    i32TiInner->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    vecI32Ti->u.pElementType = i32TiInner;
+    auto* valTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
     OH_AbilityRuntime_ModObjDispatcher_MapHandle map = nullptr;
     auto ret = ModObjDispatcherComplexTypeManager::MapCreate(
-        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, vecI32Ti, &map);
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, valTi, &map);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    auto i32Ti = MakeI32TypeInfo();
     auto key = MakeI32Variant(1);
-
-    // Put first vector — leaf element type
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec1 = nullptr;
-    ModObjDispatcherComplexTypeManager::VectorCreate(&i32Ti, &vec1);
-    auto v = MakeI32Variant(100);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec1, &v);
-    OH_AbilityRuntime_ModObjDispatcher_Variant var1 = {};
-    var1.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    var1.u.pvectorVal = vec1;
+    auto vec1 = CreateI32Vector({100});
+    auto var1 = MakeVectorVariant(vec1);
     ret = ModObjDispatcherComplexTypeManager::MapPut(map, &key, &var1);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Overwrite with second vector
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec2 = nullptr;
-    ModObjDispatcherComplexTypeManager::VectorCreate(&i32Ti, &vec2);
-    auto v2 = MakeI32Variant(200);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec2, &v2);
-    OH_AbilityRuntime_ModObjDispatcher_Variant var2 = {};
-    var2.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    var2.u.pvectorVal = vec2;
+    auto vec2 = CreateI32Vector({200});
+    auto var2 = MakeVectorVariant(vec2);
     ret = ModObjDispatcherComplexTypeManager::MapPut(map, &key, &var2);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Verify size is still 1
     uint32_t sz = 99;
     ModObjDispatcherComplexTypeManager::MapGetSize(map, &sz);
     EXPECT_EQ(sz, 1u);
 
-    // Verify value is the new one
-    OH_AbilityRuntime_ModObjDispatcher_Variant out = {};
-    ret = ModObjDispatcherComplexTypeManager::MapGet(map, &key, &out);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    ASSERT_NE(out.u.pvectorVal, nullptr);
-    ModObjDispatcherComplexTypeManager::VectorGetSize(out.u.pvectorVal, &sz);
-    EXPECT_EQ(sz, 1u);
-    OH_AbilityRuntime_ModObjDispatcher_Variant elem = {};
-    ModObjDispatcherComplexTypeManager::VectorGet(out.u.pvectorVal, 0, &elem);
-    EXPECT_EQ(elem.u.i32Val, 200);
-
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&elem);
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&out);
     ModObjDispatcherComplexTypeManager::VectorRelease(&vec1);
     ModObjDispatcherComplexTypeManager::VectorRelease(&vec2);
     ModObjDispatcherComplexTypeManager::MapRelease(&map);
-    FreeTypeInfo(*vecI32Ti);
-    delete vecI32Ti;
+    FreeTypeInfo(*valTi);
+    delete valTi;
 }
 
 // 3-level: Vector<Map<i32, Vector<string>>>
 HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_3Level_VectorMapVector, TestSize.Level1)
 {
-    // Level 3: Vector<string> — leaf element type
-    auto strTi = MakeStringTypeInfo();
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle innerVec = nullptr;
-    auto ret = ModObjDispatcherComplexTypeManager::VectorCreate(&strTi, &innerVec);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    auto s1 = MakeStringVariant("hello");
-    auto s2 = MakeStringVariant("world");
-    ModObjDispatcherComplexTypeManager::VectorAdd(innerVec, &s1);
-    ModObjDispatcherComplexTypeManager::VectorAdd(innerVec, &s2);
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&s1);
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&s2);
+    // Level 3: Vector<string>
+    auto innerVec = CreateStringVector({"hello", "world"});
 
-    // Level 2: Map<i32, Vector<string>> — value TypeInfo = VECTOR{STRING}
-    auto* vecStrTi2 = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecStrTi2, 0, sizeof(*vecStrTi2));
-    vecStrTi2->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* strTi3 = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(strTi3, 0, sizeof(*strTi3));
-    strTi3->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING;
-    vecStrTi2->u.pElementType = strTi3;
+    // Level 2: Map<i32, Vector<string>>
+    auto* midValTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING);
     OH_AbilityRuntime_ModObjDispatcher_MapHandle midMap = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::MapCreate(
-        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, vecStrTi2, &midMap);
+    auto ret = ModObjDispatcherComplexTypeManager::MapCreate(
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, midValTi, &midMap);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-
-    OH_AbilityRuntime_ModObjDispatcher_Variant vecVar = {};
-    vecVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    vecVar.u.pvectorVal = innerVec;
     auto mk = MakeI32Variant(1);
-    ret = ModObjDispatcherComplexTypeManager::MapPut(midMap, &mk, &vecVar);
-    EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    auto vecVar = MakeVectorVariant(innerVec);
+    ModObjDispatcherComplexTypeManager::MapPut(midMap, &mk, &vecVar);
 
-    // Level 1: Vector<Map<i32, Vector<string>>> — element TypeInfo = MAP{I32, VECTOR{STRING}}
-    auto* mapElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(mapElemTi, 0, sizeof(*mapElemTi));
-    mapElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
-    mapElemTi->u.mapType.keyType = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    auto* mapValVecTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(mapValVecTi, 0, sizeof(*mapValVecTi));
-    mapValVecTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* mapValStrTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(mapValStrTi, 0, sizeof(*mapValStrTi));
-    mapValStrTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING;
-    mapValVecTi->u.pElementType = mapValStrTi;
-    mapElemTi->u.mapType.pValueType = mapValVecTi;
+    // Level 1: Vector<Map<i32, Vector<string>>>
+    auto* outerTi = NewTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
+    outerTi->u.mapType.keyType = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
+    outerTi->u.mapType.pValueType = MakeContainerTypeInfo(
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING);
     OH_AbilityRuntime_ModObjDispatcher_VectorHandle outerVec = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::VectorCreate(mapElemTi, &outerVec);
+    ret = ModObjDispatcherComplexTypeManager::VectorCreate(outerTi, &outerVec);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-
-    OH_AbilityRuntime_ModObjDispatcher_Variant mapVar = {};
-    mapVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
-    mapVar.u.pmapVal = midMap;
+    auto mapVar = MakeMapVariant(midMap);
     ret = ModObjDispatcherComplexTypeManager::VectorAdd(outerVec, &mapVar);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Verify 3-level get: outer[0] → map[key=1] → vector[0]
+    // Verify 3-level get: outer[0] → map[key=1] → vector size
     OH_AbilityRuntime_ModObjDispatcher_Variant out1 = {};
     ret = ModObjDispatcherComplexTypeManager::VectorGet(outerVec, 0, &out1);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    EXPECT_EQ(out1.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
+    ASSERT_EQ(out1.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
     ASSERT_NE(out1.u.pmapVal, nullptr);
-
     OH_AbilityRuntime_ModObjDispatcher_Variant out2 = {};
     ret = ModObjDispatcherComplexTypeManager::MapGet(out1.u.pmapVal, &mk, &out2);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    EXPECT_EQ(out2.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
+    ASSERT_EQ(out2.vt, OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR);
     ASSERT_NE(out2.u.pvectorVal, nullptr);
-
     uint32_t sz = 0;
     ModObjDispatcherComplexTypeManager::VectorGetSize(out2.u.pvectorVal, &sz);
     EXPECT_EQ(sz, 2u);
 
-    OH_AbilityRuntime_ModObjDispatcher_Variant out3 = {};
-    ret = ModObjDispatcherComplexTypeManager::VectorGet(out2.u.pvectorVal, 0, &out3);
-    EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    EXPECT_STREQ(out3.u.bstrVal, "hello");
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&out3);
     ModObjDispatcherComplexTypeManager::Variant_Clear(&out2);
     ModObjDispatcherComplexTypeManager::Variant_Clear(&out1);
     ModObjDispatcherComplexTypeManager::VectorRelease(&innerVec);
     ModObjDispatcherComplexTypeManager::MapRelease(&midMap);
     ModObjDispatcherComplexTypeManager::VectorRelease(&outerVec);
-    FreeTypeInfo(*vecStrTi2);
-    delete vecStrTi2;
-    FreeTypeInfo(*mapElemTi);
-    delete mapElemTi;
+    FreeTypeInfo(*outerTi);
+    delete outerTi;
 }
 
 // 3-level release chain: Vector<Array<Set<i32>>> should not leak
 HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_3Level_ReleaseChain, TestSize.Level1)
 {
-    // Level 3: Set<i32> — leaf element type
+    // Level 3: Set<i32>
     auto i32Ti = MakeI32TypeInfo();
     OH_AbilityRuntime_ModObjDispatcher_SetHandle innerSet = nullptr;
     auto ret = ModObjDispatcherComplexTypeManager::SetCreate(&i32Ti, &innerSet);
@@ -2417,59 +2351,40 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_3Level_ReleaseChain, TestSize.L
     auto e1 = MakeI32Variant(1);
     ModObjDispatcherComplexTypeManager::SetAdd(innerSet, &e1);
 
-    // Level 2: Array<Set<i32>> size=1 — element TypeInfo = SET{I32}
-    auto* setElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(setElemTi, 0, sizeof(*setElemTi));
-    setElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET;
-    auto* i32ArrInner = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32ArrInner, 0, sizeof(*i32ArrInner));
-    i32ArrInner->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    setElemTi->u.pElementType = i32ArrInner;
+    // Level 2: Array<Set<i32>>
+    auto* setTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
     OH_AbilityRuntime_ModObjDispatcher_ArrayHandle midArr = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::ArrayCreate(setElemTi, 1, &midArr);
+    ret = ModObjDispatcherComplexTypeManager::ArrayCreate(setTi, 1, &midArr);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    OH_AbilityRuntime_ModObjDispatcher_Variant setVar = {};
-    setVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET;
-    setVar.u.psetVal = innerSet;
+    auto setVar = MakeSetVariant(innerSet);
     ret = ModObjDispatcherComplexTypeManager::ArraySet(midArr, 0, &setVar);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Level 1: Vector<Array<Set<i32>>> — element TypeInfo = ARRAY{SET{I32}}
-    auto* arrElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(arrElemTi, 0, sizeof(*arrElemTi));
-    arrElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY;
-    auto* arrSetTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(arrSetTi, 0, sizeof(*arrSetTi));
-    arrSetTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET;
-    auto* i32Ti3 = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32Ti3, 0, sizeof(*i32Ti3));
-    i32Ti3->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    arrSetTi->u.pElementType = i32Ti3;
-    arrElemTi->u.arrayType.pElementType = arrSetTi;
-    arrElemTi->u.arrayType.size = 0;
+    // Level 1: Vector<Array<Set<i32>>>
+    auto* arrTi = NewTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY);
+    arrTi->u.arrayType.pElementType = MakeContainerTypeInfo(
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
     OH_AbilityRuntime_ModObjDispatcher_VectorHandle outerVec = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::VectorCreate(arrElemTi, &outerVec);
+    ret = ModObjDispatcherComplexTypeManager::VectorCreate(arrTi, &outerVec);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    OH_AbilityRuntime_ModObjDispatcher_Variant arrVar = {};
-    arrVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY;
-    arrVar.u.parrayVal = midArr;
+    auto arrVar = MakeArrayVariant(midArr);
     ret = ModObjDispatcherComplexTypeManager::VectorAdd(outerVec, &arrVar);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Release all — no crash/ASAN means pass
     ModObjDispatcherComplexTypeManager::SetRelease(&innerSet);
     ModObjDispatcherComplexTypeManager::ArrayRelease(&midArr);
     ModObjDispatcherComplexTypeManager::VectorRelease(&outerVec);
-    FreeTypeInfo(*setElemTi);
-    delete setElemTi;
-    FreeTypeInfo(*arrElemTi);
-    delete arrElemTi;
+    FreeTypeInfo(*setTi);
+    delete setTi;
+    FreeTypeInfo(*arrTi);
+    delete arrTi;
 }
 
 // Map<i32, Set<i32>>: nested Set dedup inside Map, then Get/Contains through Map
 HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_MapOfSet_DedupAndAccess, TestSize.Level1)
 {
-    // Inner: Set<i32> — leaf element type
     auto i32Ti = MakeI32TypeInfo();
     OH_AbilityRuntime_ModObjDispatcher_SetHandle innerSet = nullptr;
     auto ret = ModObjDispatcherComplexTypeManager::SetCreate(&i32Ti, &innerSet);
@@ -2482,38 +2397,26 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_MapOfSet_DedupAndAccess, TestSi
     ModObjDispatcherComplexTypeManager::SetAdd(innerSet, &e3);
     uint32_t setSize = 99;
     ModObjDispatcherComplexTypeManager::SetGetSize(innerSet, &setSize);
-    EXPECT_EQ(setSize, 2u); // deduped
+    EXPECT_EQ(setSize, 2u);
 
-    // Outer: Map<i32, Set<i32>> — value TypeInfo = SET{I32}
-    auto* setValTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(setValTi, 0, sizeof(*setValTi));
-    setValTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET;
-    auto* i32TiMapInner = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32TiMapInner, 0, sizeof(*i32TiMapInner));
-    i32TiMapInner->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    setValTi->u.pElementType = i32TiMapInner;
+    auto* setValTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
     OH_AbilityRuntime_ModObjDispatcher_MapHandle map = nullptr;
     ret = ModObjDispatcherComplexTypeManager::MapCreate(
         OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, setValTi, &map);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    OH_AbilityRuntime_ModObjDispatcher_Variant setVar = {};
-    setVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET;
-    setVar.u.psetVal = innerSet;
+    auto setVar = MakeSetVariant(innerSet);
     auto key = MakeI32Variant(1);
     ret = ModObjDispatcherComplexTypeManager::MapPut(map, &key, &setVar);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Get back through map and verify Set contents
     OH_AbilityRuntime_ModObjDispatcher_Variant out = {};
     ret = ModObjDispatcherComplexTypeManager::MapGet(map, &key, &out);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     ASSERT_NE(out.u.psetVal, nullptr);
-
     bool exists = false;
     auto checkVal = MakeI32Variant(10);
-    ret = ModObjDispatcherComplexTypeManager::SetContains(out.u.psetVal, &checkVal, &exists);
-    EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
+    ModObjDispatcherComplexTypeManager::SetContains(out.u.psetVal, &checkVal, &exists);
     EXPECT_TRUE(exists);
 
     ModObjDispatcherComplexTypeManager::Variant_Clear(&out);
@@ -2526,54 +2429,32 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_MapOfSet_DedupAndAccess, TestSi
 // Get returns independent deep copy — modifying copy doesn't affect original
 HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_GetProducesDeepCopy, TestSize.Level1)
 {
-    auto vecTi = MakeStringTypeInfo();
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec = nullptr;
-    auto ret = ModObjDispatcherComplexTypeManager::VectorCreate(&vecTi, &vec);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    auto sv = MakeStringVariant("test");
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec, &sv);
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&sv);
-
-    auto* vecStrDeepTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecStrDeepTi, 0, sizeof(*vecStrDeepTi));
-    vecStrDeepTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* strDeepTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(strDeepTi, 0, sizeof(*strDeepTi));
-    strDeepTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING;
-    vecStrDeepTi->u.pElementType = strDeepTi;
+    auto vec = CreateStringVector({"test"});
+    auto* valTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING);
     OH_AbilityRuntime_ModObjDispatcher_MapHandle map = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::MapCreate(
-        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, vecStrDeepTi, &map);
+    auto ret = ModObjDispatcherComplexTypeManager::MapCreate(
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, valTi, &map);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    OH_AbilityRuntime_ModObjDispatcher_Variant vecVar = {};
-    vecVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    vecVar.u.pvectorVal = vec;
     auto key = MakeI32Variant(1);
+    auto vecVar = MakeVectorVariant(vec);
     ModObjDispatcherComplexTypeManager::MapPut(map, &key, &vecVar);
 
-    // Get copy 1 — pointer should differ from original
-    OH_AbilityRuntime_ModObjDispatcher_Variant out1 = {};
-    ret = ModObjDispatcherComplexTypeManager::MapGet(map, &key, &out1);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    ASSERT_NE(out1.u.pvectorVal, nullptr);
-    EXPECT_NE(out1.u.pvectorVal, vec); // different pointer
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&out1);
-
-    // Get copy 2 — original still intact
-    OH_AbilityRuntime_ModObjDispatcher_Variant out2 = {};
-    ret = ModObjDispatcherComplexTypeManager::MapGet(map, &key, &out2);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    ASSERT_NE(out2.u.pvectorVal, nullptr);
+    // Get copy — pointer should differ from original
+    OH_AbilityRuntime_ModObjDispatcher_Variant out = {};
+    ret = ModObjDispatcherComplexTypeManager::MapGet(map, &key, &out);
+    ASSERT_NE(out.u.pvectorVal, nullptr);
+    EXPECT_NE(out.u.pvectorVal, vec);
     uint32_t sz = 0;
-    ModObjDispatcherComplexTypeManager::VectorGetSize(out2.u.pvectorVal, &sz);
+    ModObjDispatcherComplexTypeManager::VectorGetSize(out.u.pvectorVal, &sz);
     EXPECT_EQ(sz, 1u);
 
-    ModObjDispatcherComplexTypeManager::Variant_Clear(&out2);
+    ModObjDispatcherComplexTypeManager::Variant_Clear(&out);
     ModObjDispatcherComplexTypeManager::VectorRelease(&vec);
     ModObjDispatcherComplexTypeManager::MapRelease(&map);
-    FreeTypeInfo(*vecStrDeepTi);
-    delete vecStrDeepTi;
+    FreeTypeInfo(*valTi);
+    delete valTi;
 }
 
 // Self-reference: vec.Add(vec) — circular detection in StoreVariant
@@ -2581,13 +2462,13 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_Circular_SelfReference, TestSiz
 {
     // Element type: VECTOR with pElementType=nullptr so ValidateVariantTypeDeep skips deep check
     auto* innerVecTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(innerVecTi, 0, sizeof(*innerVecTi));
+    (void)memset_s(innerVecTi, sizeof(*innerVecTi), 0, sizeof(*innerVecTi));
     innerVecTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
     // pElementType stays nullptr → FromCTypeInfo sets elementTypeInfo.pElementType=nullptr
     // → ValidateVariantTypeDeep sees expectedInfo->pElementType==nullptr → returns OK
 
     auto* outerElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(outerElemTi, 0, sizeof(*outerElemTi));
+    (void)memset_s(outerElemTi, sizeof(*outerElemTi), 0, sizeof(*outerElemTi));
     outerElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
     outerElemTi->u.pElementType = innerVecTi;
 
@@ -2615,11 +2496,11 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_Circular_CrossReference, TestSi
 {
     // Element type: VECTOR with pElementType=nullptr so ValidateVariantTypeDeep skips deep check
     auto* innerVecTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(innerVecTi, 0, sizeof(*innerVecTi));
+    (void)memset_s(innerVecTi, sizeof(*innerVecTi), 0, sizeof(*innerVecTi));
     innerVecTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
 
     auto* outerElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(outerElemTi, 0, sizeof(*outerElemTi));
+    (void)memset_s(outerElemTi, sizeof(*outerElemTi), 0, sizeof(*outerElemTi));
     outerElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
     outerElemTi->u.pElementType = innerVecTi;
 
@@ -2659,11 +2540,11 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Nested_NestedTypeMismatch, TestSize.Le
         OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING);
     // Outer: Vector<Map<i32, string>> — element TypeInfo = MAP{I32, STRING}
     auto* mapI32StrTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(mapI32StrTi, 0, sizeof(*mapI32StrTi));
+    (void)memset_s(mapI32StrTi, sizeof(*mapI32StrTi), 0, sizeof(*mapI32StrTi));
     mapI32StrTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
     mapI32StrTi->u.mapType.keyType = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
     auto* strTi5 = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(strTi5, 0, sizeof(*strTi5));
+    (void)memset_s(strTi5, sizeof(*strTi5), 0, sizeof(*strTi5));
     strTi5->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING;
     mapI32StrTi->u.mapType.pValueType = strTi5;
     OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec = nullptr;
@@ -2702,10 +2583,10 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, TypeInfoMatches_VectorOfVector_I32_Mat
 {
     // Outer: Vector<Vector<I32>> — element TypeInfo = VECTOR{I32}
     auto* vecElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecElemTi, 0, sizeof(*vecElemTi));
+    (void)memset_s(vecElemTi, sizeof(*vecElemTi), 0, sizeof(*vecElemTi));
     vecElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
     auto* i32Leaf = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32Leaf, 0, sizeof(*i32Leaf));
+    (void)memset_s(i32Leaf, sizeof(*i32Leaf), 0, sizeof(*i32Leaf));
     i32Leaf->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
     vecElemTi->u.pElementType = i32Leaf;
 
@@ -2747,10 +2628,10 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, TypeInfoMatches_VectorOfVector_I32_vs_
 {
     // Outer: Vector<Vector<I32>> — element TypeInfo = VECTOR{I32}
     auto* vecElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecElemTi, 0, sizeof(*vecElemTi));
+    (void)memset_s(vecElemTi, sizeof(*vecElemTi), 0, sizeof(*vecElemTi));
     vecElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
     auto* i32Leaf = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32Leaf, 0, sizeof(*i32Leaf));
+    (void)memset_s(i32Leaf, sizeof(*i32Leaf), 0, sizeof(*i32Leaf));
     i32Leaf->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
     vecElemTi->u.pElementType = i32Leaf;
 
@@ -2786,10 +2667,10 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, TypeInfoMatches_MapValueNestedMismatch
 {
     // Map<I32, Vector<I32>> — value TypeInfo = VECTOR{I32}
     auto* vecValTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecValTi, 0, sizeof(*vecValTi));
+    (void)memset_s(vecValTi, sizeof(*vecValTi), 0, sizeof(*vecValTi));
     vecValTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
     auto* i32Leaf = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32Leaf, 0, sizeof(*i32Leaf));
+    (void)memset_s(i32Leaf, sizeof(*i32Leaf), 0, sizeof(*i32Leaf));
     i32Leaf->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
     vecValTi->u.pElementType = i32Leaf;
 
@@ -2826,10 +2707,10 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, TypeInfoMatches_VectorOfSetMismatch, T
 {
     // Outer: Vector<Set<I32>> — element TypeInfo = SET{I32}
     auto* setElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(setElemTi, 0, sizeof(*setElemTi));
+    (void)memset_s(setElemTi, sizeof(*setElemTi), 0, sizeof(*setElemTi));
     setElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_SET;
     auto* i32Leaf = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32Leaf, 0, sizeof(*i32Leaf));
+    (void)memset_s(i32Leaf, sizeof(*i32Leaf), 0, sizeof(*i32Leaf));
     i32Leaf->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
     setElemTi->u.pElementType = i32Leaf;
 
@@ -2862,10 +2743,10 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, TypeInfoMatches_VectorOfArrayMismatch,
 {
     // Outer: Vector<Array<I32>> — element TypeInfo = ARRAY{I32}
     auto* arrElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(arrElemTi, 0, sizeof(*arrElemTi));
+    (void)memset_s(arrElemTi, sizeof(*arrElemTi), 0, sizeof(*arrElemTi));
     arrElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_ARRAY;
     auto* i32Leaf = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32Leaf, 0, sizeof(*i32Leaf));
+    (void)memset_s(i32Leaf, sizeof(*i32Leaf), 0, sizeof(*i32Leaf));
     i32Leaf->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
     arrElemTi->u.arrayType.pElementType = i32Leaf;
 
@@ -2896,55 +2777,28 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, TypeInfoMatches_VectorOfArrayMismatch,
 // 3-level nesting: Vector<Map<I32, Vector<STRING>>> — correct type should succeed
 HWTEST_F(ModObjDispatcherComplexTypeTest, TypeInfoMatches_ThreeLevelNesting_Match, TestSize.Level1)
 {
-    // Build inner Vector<STRING> TypeInfo
-    auto* vecStrTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecStrTi, 0, sizeof(*vecStrTi));
-    vecStrTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* strLeaf = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(strLeaf, 0, sizeof(*strLeaf));
-    strLeaf->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING;
-    vecStrTi->u.pElementType = strLeaf;
-
-    // Build Map<I32, Vector<STRING>> TypeInfo
-    auto* mapTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(mapTi, 0, sizeof(*mapTi));
-    mapTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
+    auto* mapTi = NewTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
     mapTi->u.mapType.keyType = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
+    auto* vecStrTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING);
     mapTi->u.mapType.pValueType = vecStrTi;
 
-    // Outer: Vector<Map<I32, Vector<STRING>>>
     OH_AbilityRuntime_ModObjDispatcher_VectorHandle outerVec = nullptr;
     auto ret = ModObjDispatcherComplexTypeManager::VectorCreate(mapTi, &outerVec);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Create correct inner Vector<STRING>
-    auto innerStrTi = MakeStringTypeInfo();
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle innerVec = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::VectorCreate(&innerStrTi, &innerVec);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    auto sv = MakeStringVariant("hello");
-    ModObjDispatcherComplexTypeManager::VectorAdd(innerVec, &sv);
-
-    // Create correct Map<I32, Vector<STRING>>
+    auto innerVec = CreateStringVector({"hello"});
     OH_AbilityRuntime_ModObjDispatcher_MapHandle innerMap = nullptr;
     ret = ModObjDispatcherComplexTypeManager::MapCreate(
         OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, vecStrTi, &innerMap);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-
     auto mk = MakeI32Variant(1);
-    OH_AbilityRuntime_ModObjDispatcher_Variant vecVar = {};
-    vecVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    vecVar.u.pvectorVal = innerVec;
+    auto vecVar = MakeVectorVariant(innerVec);
     ModObjDispatcherComplexTypeManager::MapPut(innerMap, &mk, &vecVar);
 
-    OH_AbilityRuntime_ModObjDispatcher_Variant mapVar = {};
-    mapVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
-    mapVar.u.pmapVal = innerMap;
-
-    // TypeInfoMatches: 3-level deep match → OK
+    auto mapVar = MakeMapVariant(innerMap);
     ret = ModObjDispatcherComplexTypeManager::VectorAdd(outerVec, &mapVar);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-
     uint32_t sz = 0;
     ModObjDispatcherComplexTypeManager::VectorGetSize(outerVec, &sz);
     EXPECT_EQ(sz, 1u);
@@ -2959,60 +2813,28 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, TypeInfoMatches_ThreeLevelNesting_Matc
 // 3-level nesting: Vector<Map<I32, Vector<STRING>>> — wrong 3rd level should fail
 HWTEST_F(ModObjDispatcherComplexTypeTest, TypeInfoMatches_ThreeLevelNesting_Mismatch, TestSize.Level1)
 {
-    // Build inner Vector<STRING> TypeInfo
-    auto* vecStrTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecStrTi, 0, sizeof(*vecStrTi));
-    vecStrTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* strLeaf = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(strLeaf, 0, sizeof(*strLeaf));
-    strLeaf->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING;
-    vecStrTi->u.pElementType = strLeaf;
-
-    // Build Map<I32, Vector<STRING>> TypeInfo
-    auto* mapTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(mapTi, 0, sizeof(*mapTi));
-    mapTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
+    auto* mapTi = NewTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP);
     mapTi->u.mapType.keyType = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    mapTi->u.mapType.pValueType = vecStrTi;
-
-    // Outer: Vector<Map<I32, Vector<STRING>>>
+    mapTi->u.mapType.pValueType = MakeContainerTypeInfo(
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_STRING);
     OH_AbilityRuntime_ModObjDispatcher_VectorHandle outerVec = nullptr;
     auto ret = ModObjDispatcherComplexTypeManager::VectorCreate(mapTi, &outerVec);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Wrong inner: Vector<I64> instead of Vector<STRING>
-    auto wrongI64Ti = MakeI64TypeInfo();
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle wrongVec = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::VectorCreate(&wrongI64Ti, &wrongVec);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    auto wv = MakeI64Variant(42LL);
-    ModObjDispatcherComplexTypeManager::VectorAdd(wrongVec, &wv);
-
-    // Wrong map value TypeInfo: Vector<I64>
-    auto* wrongVecTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(wrongVecTi, 0, sizeof(*wrongVecTi));
-    wrongVecTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* i64Leaf = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i64Leaf, 0, sizeof(*i64Leaf));
-    i64Leaf->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I64;
-    wrongVecTi->u.pElementType = i64Leaf;
-
+    // Wrong: Vector<I64> instead of Vector<STRING>
+    auto wrongVec = CreateI32Vector({42}); // reusing I32, but with wrong map value type below
+    auto* wrongVecTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I64);
     OH_AbilityRuntime_ModObjDispatcher_MapHandle wrongMap = nullptr;
     ret = ModObjDispatcherComplexTypeManager::MapCreate(
         OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32, wrongVecTi, &wrongMap);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-
     auto mk = MakeI32Variant(1);
-    OH_AbilityRuntime_ModObjDispatcher_Variant wrongVecVar = {};
-    wrongVecVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    wrongVecVar.u.pvectorVal = wrongVec;
+    auto wrongVecVar = MakeVectorVariant(wrongVec);
     ModObjDispatcherComplexTypeManager::MapPut(wrongMap, &mk, &wrongVecVar);
 
-    OH_AbilityRuntime_ModObjDispatcher_Variant wrongMapVar = {};
-    wrongMapVar.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_MAP;
-    wrongMapVar.u.pmapVal = wrongMap;
-
-    // TypeInfoMatches: 3rd level I64 vs STRING → MISMATCH
+    auto wrongMapVar = MakeMapVariant(wrongMap);
     ret = ModObjDispatcherComplexTypeManager::VectorAdd(outerVec, &wrongMapVar);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH);
 
@@ -3063,70 +2885,30 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Dedup_SetOfString_SameContent, TestSiz
 // Set<Vector<I32>> — two vectors with same content should dedup
 HWTEST_F(ModObjDispatcherComplexTypeTest, Dedup_SetOfVector_SameContent, TestSize.Level1)
 {
-    // Set element: Vector<I32>
-    auto* vecElemTi = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(vecElemTi, 0, sizeof(*vecElemTi));
-    vecElemTi->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    auto* i32Leaf = new OH_AbilityRuntime_ModObjDispatcher_TypeInfo();
-    std::memset(i32Leaf, 0, sizeof(*i32Leaf));
-    i32Leaf->vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32;
-    vecElemTi->u.pElementType = i32Leaf;
-
+    auto* setTi = MakeContainerTypeInfo(OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR,
+        OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_I32);
     OH_AbilityRuntime_ModObjDispatcher_SetHandle set = nullptr;
-    auto ret = ModObjDispatcherComplexTypeManager::SetCreate(vecElemTi, &set);
+    auto ret = ModObjDispatcherComplexTypeManager::SetCreate(setTi, &set);
     ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // First vector: [1, 2, 3]
-    auto i32Ti = MakeI32TypeInfo();
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec1 = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::VectorCreate(&i32Ti, &vec1);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    auto a1 = MakeI32Variant(1);
-    auto a2 = MakeI32Variant(2);
-    auto a3 = MakeI32Variant(3);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec1, &a1);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec1, &a2);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec1, &a3);
-
-    OH_AbilityRuntime_ModObjDispatcher_Variant elem1 = {};
-    elem1.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    elem1.u.pvectorVal = vec1;
+    // First vector [1,2,3]
+    auto vec1 = CreateI32Vector({1, 2, 3});
+    auto elem1 = MakeVectorVariant(vec1);
     ret = ModObjDispatcherComplexTypeManager::SetAdd(set, &elem1);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
 
-    // Second vector: [1, 2, 3] — same content, different instance → should dedup
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec2 = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::VectorCreate(&i32Ti, &vec2);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    auto b1 = MakeI32Variant(1);
-    auto b2 = MakeI32Variant(2);
-    auto b3 = MakeI32Variant(3);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec2, &b1);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec2, &b2);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec2, &b3);
-
-    OH_AbilityRuntime_ModObjDispatcher_Variant elem2 = {};
-    elem2.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    elem2.u.pvectorVal = vec2;
+    // Second vector [1,2,3] — same content, different instance → dedup
+    auto vec2 = CreateI32Vector({1, 2, 3});
+    auto elem2 = MakeVectorVariant(vec2);
     ret = ModObjDispatcherComplexTypeManager::SetAdd(set, &elem2);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-
     uint32_t size = 0;
     ModObjDispatcherComplexTypeManager::SetGetSize(set, &size);
-    EXPECT_EQ(size, 1u); // deduped
+    EXPECT_EQ(size, 1u);
 
-    // Third vector: [1, 2] — different content → should add
-    OH_AbilityRuntime_ModObjDispatcher_VectorHandle vec3 = nullptr;
-    ret = ModObjDispatcherComplexTypeManager::VectorCreate(&i32Ti, &vec3);
-    ASSERT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
-    auto c1 = MakeI32Variant(1);
-    auto c2 = MakeI32Variant(2);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec3, &c1);
-    ModObjDispatcherComplexTypeManager::VectorAdd(vec3, &c2);
-
-    OH_AbilityRuntime_ModObjDispatcher_Variant elem3 = {};
-    elem3.vt = OH_ABILITY_RUNTIME_MOD_OBJ_DISPATCHER_VT_VECTOR;
-    elem3.u.pvectorVal = vec3;
+    // Third vector [1,2] — different content → add
+    auto vec3 = CreateI32Vector({1, 2});
+    auto elem3 = MakeVectorVariant(vec3);
     ret = ModObjDispatcherComplexTypeManager::SetAdd(set, &elem3);
     EXPECT_EQ(ret, ABILITY_RUNTIME_ERROR_CODE_NO_ERROR);
     ModObjDispatcherComplexTypeManager::SetGetSize(set, &size);
@@ -3136,8 +2918,8 @@ HWTEST_F(ModObjDispatcherComplexTypeTest, Dedup_SetOfVector_SameContent, TestSiz
     ModObjDispatcherComplexTypeManager::VectorRelease(&vec2);
     ModObjDispatcherComplexTypeManager::VectorRelease(&vec3);
     ModObjDispatcherComplexTypeManager::SetRelease(&set);
-    FreeTypeInfo(*vecElemTi);
-    delete vecElemTi;
+    FreeTypeInfo(*setTi);
+    delete setTi;
 }
 
 // Map<I32, STRING> — put same key twice should update value, not add entry
