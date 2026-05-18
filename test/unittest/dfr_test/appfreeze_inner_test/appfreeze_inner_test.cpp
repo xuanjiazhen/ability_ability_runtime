@@ -21,6 +21,9 @@
 #undef private
 
 #include "xcollie/watchdog.h"
+#include "ability_record.h"
+#include "parameter.h"
+#include "parameters.h"
 
 using namespace testing;
 using namespace testing::ext;
@@ -702,6 +705,27 @@ HWTEST_F(AppfreezeInnerTest, AppfreezeInner_ReportLifeCycleAsAppfreeze_001, Test
     EXPECT_TRUE(appfreezeInner->GetReportLifeCycleAsAppfreeze());
     appfreezeInner->SetReportLifeCycleAsAppfreeze(false);
     EXPECT_TRUE(!appfreezeInner->GetReportLifeCycleAsAppfreeze());
+}
+
+/**
+ * @tc.name: PostForegroundTimeoutTask
+ * @tc.desc: PostForegroundTimeoutTask test
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeInnerTest, PostForegroundTimeoutTask_001, TestSize.Level1)
+{
+    AbilityRequest abilityRequest;
+    abilityRequest.appInfo.bundleName = "PostForegroundTimeoutTask_001";
+    abilityRequest.abilityInfo.name = "MainAbility";
+    auto abilityRecord = AbilityRecord::CreateAbilityRecord(abilityRequest);
+    EXPECT_NE(abilityRecord, nullptr);
+    abilityRecord->PostForegroundTimeoutTask();
+    system::SetParameter("persist.sys.abilityms.timeout_unit_time_ratio", "2");
+    abilityRecord->PostForegroundTimeoutTask();
+    system::SetParameter("const.logsystem.versiontype", "test");
+    abilityRecord->PostForegroundTimeoutTask();
+    system::SetParameter("persist.sys.abilityms.timeout_unit_time_ratio", "1");
+    abilityRecord->PostForegroundTimeoutTask();
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
