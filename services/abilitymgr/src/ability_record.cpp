@@ -133,6 +133,7 @@ constexpr int32_t NON_BY_CALL = 0;
 constexpr int32_t CALL_TO_BACKGROUND = 1;
 constexpr int32_t CALL_TO_FOREGROUND = 2;
 const bool BETA_VERSION = OHOS::system::GetParameter("const.logsystem.versiontype", "unknown") == "beta";
+constexpr int32_t FREEZE_RADIO = 1;
 
 
 auto g_addLifecycleEventTask = [](sptr<Token> token, std::string &methodName) {
@@ -540,7 +541,10 @@ void AbilityRecord::PostForegroundTimeoutTask()
             IsDebug(), IsPreloadStart(), IsPreloaded());
         return;
     }
-    int radio = BETA_VERSION ? FOREGROUND_TIMEOUT_MULTIPLE_BETA : FOREGROUND_TIMEOUT_MULTIPLE;
+    int radio = FOREGROUND_TIMEOUT_MULTIPLE;
+    if (AppUtils::GetInstance().GetTimeoutUnitTimeRatio() == FREEZE_RADIO && BETA_VERSION) {
+        radio = FOREGROUND_TIMEOUT_MULTIPLE_BETA;
+    }
     int foregroundTimeout =
         AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * radio;
     if (InsightIntentExecuteParam::IsInsightIntentExecute(GetWant())) {
