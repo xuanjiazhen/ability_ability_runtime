@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
@@ -34,9 +35,12 @@
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
 #include "ccm_util.h"
+#include "cli_tool_data_manager_mock.h"
 #include "event_dispatcher.h"
 #include "exec_options.h"
+#include "ipc_skeleton.h"
 #include "nativetoken_kit.h"
+#include "skill/skill_execute_result.h"
 #include "token_setproc.h"
 #include "tool_info.h"
 #include "tool_util.h"
@@ -94,17 +98,21 @@ void CliToolManagerServiceTest::SetUp()
 {
     service_ = CliToolManagerService::GetInstance();
     service_->interfaceCalledCount_.store(0);
+    CliToolDataManagerMock::Reset();
     EventDispatcher::GetInstance().ClearAll();
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
+    service_->bundleObservers_.clear();
 }
 
 void CliToolManagerServiceTest::TearDown()
 {
     service_->interfaceCalledCount_.store(0);
+    CliToolDataManagerMock::Reset();
     EventDispatcher::GetInstance().ClearAll();
     std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
     service_->sessionRecords_.clear();
+    service_->bundleObservers_.clear();
 }
 
 void CliToolManagerServiceTest::RegisterTestTool(const std::string& name, const std::string& schema)
@@ -132,6 +140,38 @@ HWTEST_F(CliToolManagerServiceTest, GetInstance_0100, TestSize.Level1)
     EXPECT_EQ(instance1.GetRefPtr(), instance2.GetRefPtr());
 
     GTEST_LOG_(INFO) << "CliToolManagerService_GetInstance_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_Init_0100
+ * @tc.desc: Test Init creates monitor once and handles repeated initialization
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, Init_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_Init_0100 start";
+
+    auto oldMonitor = service_->ioMonitor_;
+    bool oldInitialized = service_->initialized_;
+    service_->initialized_ = false;
+    service_->ioMonitor_ = nullptr;
+
+    service_->Init();
+    auto initializedMonitor = service_->ioMonitor_;
+
+    EXPECT_TRUE(service_->initialized_);
+    EXPECT_NE(initializedMonitor, nullptr);
+
+    service_->Init();
+    EXPECT_EQ(service_->ioMonitor_, initializedMonitor);
+
+    if (initializedMonitor != nullptr) {
+        initializedMonitor->Stop();
+    }
+    service_->ioMonitor_ = oldMonitor;
+    service_->initialized_ = oldInitialized;
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_Init_0100 end";
 }
 
 /**
@@ -238,6 +278,7 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0100, TestSize.Level1)
 
     auto runningRecord = std::make_shared<SessionRecord>();
     runningRecord->sessionId = "running_session";
+    runningRecord->callerPid = IPCSkeleton::GetCallingPid();
     service_->AddSessionRecord(runningRecord);
     int32_t runningRet = service_->SubscribeSession(runningRecord->sessionId, "running_subscription");
     EXPECT_TRUE(runningRet == ERR_NO_INIT || runningRet == ERR_NOT_SYSTEM_APP || runningRet == ERR_PERMISSION_DENIED);
@@ -248,6 +289,7 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0100, TestSize.Level1)
 
     auto completedRecord = std::make_shared<SessionRecord>();
     completedRecord->sessionId = "completed_session";
+    completedRecord->callerPid = IPCSkeleton::GetCallingPid();
     completedRecord->SetTerminalResult(0, 0);
     completedRecord->MarkStdoutClosed();
     completedRecord->MarkStderrClosed();
@@ -257,6 +299,7 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0100, TestSize.Level1)
 
     auto failedRecord = std::make_shared<SessionRecord>();
     failedRecord->sessionId = "failed_session";
+    failedRecord->callerPid = IPCSkeleton::GetCallingPid();
     failedRecord->SetTerminalResult(1, 0);
     failedRecord->MarkStdoutClosed();
     failedRecord->MarkStderrClosed();
@@ -291,6 +334,29 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CliToolManagerService_ValidateSessionLimit_0100
+ * @tc.desc: Test ValidateSessionLimit success and exceeded branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateSessionLimit_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateSessionLimit_0100 start";
+
+    EXPECT_EQ(service_->ValidateSessionLimit(), ERR_OK);
+
+    auto cliQuantity = CcmUtil::GetInstance().GetCliConcurrencyLimit();
+    for (int32_t i = 0; i < cliQuantity; ++i) {
+        auto record = std::make_shared<SessionRecord>();
+        record->sessionId = "limit_session_" + std::to_string(i);
+        service_->AddSessionRecord(record);
+    }
+
+    EXPECT_EQ(service_->ValidateSessionLimit(), ERR_SESSION_LIMIT_EXCEEDED);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateSessionLimit_0100 end";
+}
+
+/**
  * @tc.name: CliToolManagerService_ExecTool_0200
  * @tc.desc: Test ExecTool when tool does not exist
  * @tc.type: FUNC
@@ -312,6 +378,36 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0200, TestSize.Level1)
     EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || result == ERR_NO_INIT);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_ValidateAndPrepareTool_0100
+ * @tc.desc: Test ValidateAndPrepareTool missing-tool and prepared-tool branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateAndPrepareTool_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateAndPrepareTool_0100 start";
+
+    ExecToolParam param;
+    param.toolName = "prepare_tool";
+    ToolInfo toolInfo;
+    std::string sandboxConfig;
+    std::string bundleName;
+
+    EXPECT_EQ(service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
+        toolInfo, sandboxConfig, bundleName), ERR_TOOL_NOT_EXIST);
+
+    CliToolDataManagerMock::getToolByNameResult = ERR_OK;
+    int32_t result = service_->ValidateAndPrepareTool(param, IPCSkeleton::GetCallingTokenID(),
+        toolInfo, sandboxConfig, bundleName);
+    EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_HAP);
+    if (result == ERR_OK) {
+        EXPECT_EQ(toolInfo.name, param.toolName);
+        EXPECT_FALSE(sandboxConfig.empty());
+    }
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateAndPrepareTool_0100 end";
 }
 
 /**
@@ -369,6 +465,22 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0500, TestSize.Level1)
 }
 
 // ==================== Permission Validation Tests ====================
+
+/**
+ * @tc.name: CliToolManagerService_ValidateExecToolPermissions_0100
+ * @tc.desc: Test ValidateExecToolPermissions returns success or the expected permission gate
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ValidateExecToolPermissions_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateExecToolPermissions_0100 start";
+
+    int32_t result = service_->ValidateExecToolPermissions();
+
+    EXPECT_TRUE(result == ERR_OK || IsPermissionGateResult(result));
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ValidateExecToolPermissions_0100 end";
+}
 
 /**
  * @tc.name: CliToolManagerService_GetAllToolInfos_Permission_0100
@@ -522,6 +634,35 @@ HWTEST_F(CliToolManagerServiceTest, SessionRecord_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CliToolManagerService_SessionRecord_0200
+ * @tc.desc: Test GetSessionRecords filters null entries and returns valid records
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SessionRecord_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_SessionRecord_0200 start";
+
+    auto firstRecord = std::make_shared<SessionRecord>();
+    firstRecord->sessionId = "first_session";
+    auto secondRecord = std::make_shared<SessionRecord>();
+    secondRecord->sessionId = "second_session";
+    {
+        std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
+        service_->sessionRecords_["leak_session"] = nullptr;
+        service_->sessionRecords_[firstRecord->sessionId] = firstRecord;
+        service_->sessionRecords_[secondRecord->sessionId] = secondRecord;
+    }
+
+    auto records = service_->GetSessionRecords();
+
+    EXPECT_EQ(records.size(), 2);
+    EXPECT_NE(std::find(records.begin(), records.end(), firstRecord), records.end());
+    EXPECT_NE(std::find(records.begin(), records.end(), secondRecord), records.end());
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_SessionRecord_0200 end";
+}
+
+/**
  * @tc.name: CliToolManagerService_CreateSessionRecord_0100
  * @tc.desc: Test CreateSessionRecord initializes session fields from ExecToolParam
  * @tc.type: FUNC
@@ -654,6 +795,29 @@ HWTEST_F(CliToolManagerServiceTest, HandleOutputClosed_0100, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CliToolManagerService_HandleOutputClosed_0200
+ * @tc.desc: Test output close finalizes a session after process exit and both streams close
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, HandleOutputClosed_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_HandleOutputClosed_0200 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "closed_finalize_session";
+    record->SetTerminalResult(0, 0);
+    service_->AddSessionRecord(record);
+
+    service_->HandleOutputClosed(record->sessionId, true);
+    EXPECT_NE(service_->GetSessionRecord(record->sessionId), nullptr);
+
+    service_->HandleOutputClosed(record->sessionId, false);
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_HandleOutputClosed_0200 end";
+}
+
+/**
  * @tc.name: CliToolManagerService_FinalizeBackgroundSession_0100
  * @tc.desc: Test finalize background session null, success and duplicate cleanup branches
  * @tc.type: FUNC
@@ -683,6 +847,28 @@ HWTEST_F(CliToolManagerServiceTest, FinalizeBackgroundSession_0100, TestSize.Lev
 }
 
 /**
+ * @tc.name: CliToolManagerService_HandleBackgroundSessionReply_0100
+ * @tc.desc: Test HandleBackgroundSessionReply builds session info and dispatches reply
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, HandleBackgroundSessionReply_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_HandleBackgroundSessionReply_0100 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "background_reply_session";
+    record->toolName = "background_tool";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->eventId = "background_event";
+
+    service_->HandleBackgroundSessionReply(record, record->eventId);
+
+    EXPECT_EQ(record->GetState(), SessionState::SPAWNING);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_HandleBackgroundSessionReply_0100 end";
+}
+
+/**
  * @tc.name: CliToolManagerService_RegisterSessionWithMonitors_0100
  * @tc.desc: Test monitor registration failure when ioMonitor is null
  * @tc.type: FUNC
@@ -706,6 +892,46 @@ HWTEST_F(CliToolManagerServiceTest, RegisterSessionWithMonitors_0100, TestSize.L
     service_->ioMonitor_ = oldMonitor;
 
     GTEST_LOG_(INFO) << "CliToolManagerService_RegisterSessionWithMonitors_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_RegisterSessionWithMonitors_0200
+ * @tc.desc: Test RegisterSessionWithMonitors success and UnregisterSessionWithMonitors
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterSessionWithMonitors_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterSessionWithMonitors_0200 start";
+
+    int stdoutPipe[2] = {-1, -1};
+    int stderrPipe[2] = {-1, -1};
+    int stdinPipe[2] = {-1, -1};
+    ASSERT_EQ(pipe(stdoutPipe), 0);
+    ASSERT_EQ(pipe(stderrPipe), 0);
+    ASSERT_EQ(pipe(stdinPipe), 0);
+
+    auto oldMonitor = service_->ioMonitor_;
+    service_->ioMonitor_ = IOMonitor::Create();
+    ASSERT_NE(service_->ioMonitor_, nullptr);
+    ASSERT_TRUE(service_->ioMonitor_->Start());
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "monitor_success_session";
+    record->stdoutPipe[0] = stdoutPipe[0];
+    record->stderrPipe[0] = stderrPipe[0];
+    record->stdinPipe[1] = stdinPipe[1];
+    ExecToolParam param;
+
+    ASSERT_TRUE(service_->RegisterSessionWithMonitors(record, param));
+    service_->UnregisterSessionWithMonitors(record->sessionId);
+    service_->ioMonitor_->Stop();
+    service_->ioMonitor_ = oldMonitor;
+
+    close(stdoutPipe[1]);
+    close(stderrPipe[1]);
+    close(stdinPipe[0]);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterSessionWithMonitors_0200 end";
 }
 
 /**
@@ -739,6 +965,36 @@ HWTEST_F(CliToolManagerServiceTest, HandleSkillSessionComplete_0100, TestSize.Le
 }
 
 /**
+ * @tc.name: CliToolManagerService_SkillCallbackAdapter_0100
+ * @tc.desc: Test SkillCallbackAdapter missing-record and completion cleanup branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SkillCallbackAdapter_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_SkillCallbackAdapter_0100 start";
+
+    AppExecFwk::SkillExecuteResult result;
+    SkillCallbackAdapter missingAdapter("missing_callback_session", IPCSkeleton::GetCallingPid(), "missing_event");
+    missingAdapter.OnExecuteDone("request", ERR_OK, result);
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "skill_callback_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->eventId = "skill_callback_event";
+    record->sessionType = SessionType::SKILL;
+    record->SetBackground(true);
+    service_->AddSessionRecord(record);
+
+    SkillCallbackAdapter adapter(record->sessionId, record->callerPid, record->eventId);
+    adapter.OnExecuteDone("request", ERR_OK, result);
+
+    EXPECT_EQ(record->GetState(), SessionState::COMPLETED);
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_SkillCallbackAdapter_0100 end";
+}
+
+/**
  * @tc.name: CliToolManagerService_WaitPid_0100
  * @tc.desc: Test WaitPid ignores unknown pid and finalizes drained matching record
  * @tc.type: FUNC
@@ -762,6 +1018,33 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_0100, TestSize.Level1)
     EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_WaitPid_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_WaitPid_0200
+ * @tc.desc: Test WaitPid erases null leak records and leaves unmatched sessions
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, WaitPid_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_WaitPid_0200 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "unmatched_waitpid_session";
+    record->processId = 34567;
+    {
+        std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
+        service_->sessionRecords_["leak_waitpid_session"] = nullptr;
+        service_->sessionRecords_[record->sessionId] = record;
+    }
+
+    service_->WaitPid(45678, 0, 0);
+
+    EXPECT_EQ(service_->sessionRecords_.find("leak_waitpid_session"), service_->sessionRecords_.end());
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), record);
+    EXPECT_FALSE(record->HasProcessExited());
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_WaitPid_0200 end";
 }
 
 /**
@@ -810,11 +1093,37 @@ HWTEST_F(CliToolManagerServiceTest, ClearSession_0100, TestSize.Level1)
 
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "completed_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
     record->SetState(SessionState::COMPLETED);
     service_->AddSessionRecord(record);
     EXPECT_EQ(service_->ClearSession("completed_session"), ERR_CLI_SESSION_NOT_FOUND);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_ClearSession_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_ClearSession_0200
+ * @tc.desc: Test ClearSession skill-session cleanup branch when permission gates pass
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, ClearSession_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_ClearSession_0200 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "clear_skill_session";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->sessionType = SessionType::SKILL;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    int32_t result = service_->ClearSession(record->sessionId);
+    EXPECT_TRUE(result == ERR_OK || IsPermissionGateResult(result));
+    if (result == ERR_OK) {
+        EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+    }
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_ClearSession_0200 end";
 }
 
 /**
@@ -831,6 +1140,83 @@ HWTEST_F(CliToolManagerServiceTest, QuerySession_0100, TestSize.Level1)
     EXPECT_TRUE(result == ERR_CLI_SESSION_NOT_FOUND || IsPermissionGateResult(result));
 
     GTEST_LOG_(INFO) << "CliToolManagerService_QuerySession_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_QuerySession_0200
+ * @tc.desc: Test QuerySession fills session info for an owned running session when permission gates pass
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, QuerySession_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_QuerySession_0200 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "query_owned_session";
+    record->toolName = "query_tool";
+    record->callerPid = IPCSkeleton::GetCallingPid();
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    CliSessionInfo session;
+    int32_t result = service_->QuerySession(record->sessionId, session);
+    EXPECT_TRUE(result == ERR_OK || IsPermissionGateResult(result));
+    if (result == ERR_OK) {
+        EXPECT_EQ(session.sessionId, record->sessionId);
+        EXPECT_EQ(session.toolName, record->toolName);
+        EXPECT_EQ(session.status, "running");
+    }
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_QuerySession_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_SessionOwner_0100
+ * @tc.desc: Test session operations reject callers that did not create the session
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SessionOwner_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_SessionOwner_0100 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "owned_by_other_process";
+    record->callerPid = IPCSkeleton::GetCallingPid() + 1;
+    record->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(record);
+
+    CliSessionInfo session;
+    EXPECT_FALSE(service_->IsSessionOwner(record, "SessionOwner_0100"));
+    EXPECT_TRUE(IsPermissionGateResult(service_->ClearSession(record->sessionId)));
+    EXPECT_TRUE(IsPermissionGateResult(service_->SubscribeSession(record->sessionId, "subscription")));
+    EXPECT_TRUE(IsPermissionGateResult(service_->QuerySession(record->sessionId, session)));
+    EXPECT_TRUE(IsPermissionGateResult(service_->SendMessage(record->sessionId, "input", "event")));
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_SessionOwner_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_SessionOwner_0200
+ * @tc.desc: Test IsSessionOwner null, owner and non-owner branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SessionOwner_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_SessionOwner_0200 start";
+
+    EXPECT_FALSE(service_->IsSessionOwner(nullptr, "SessionOwner_0200"));
+
+    auto ownedRecord = std::make_shared<SessionRecord>();
+    ownedRecord->sessionId = "owned_session";
+    ownedRecord->callerPid = IPCSkeleton::GetCallingPid();
+    EXPECT_TRUE(service_->IsSessionOwner(ownedRecord, "SessionOwner_0200"));
+
+    auto otherRecord = std::make_shared<SessionRecord>();
+    otherRecord->sessionId = "other_session";
+    otherRecord->callerPid = IPCSkeleton::GetCallingPid() + 1;
+    EXPECT_FALSE(service_->IsSessionOwner(otherRecord, "SessionOwner_0200"));
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_SessionOwner_0200 end";
 }
 
 /**
@@ -855,6 +1241,69 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0200, TestSize.Level1)
 }
 
 /**
+ * @tc.name: CliToolManagerService_UnsubscribeSession_0100
+ * @tc.desc: Test UnsubscribeSession returns dispatcher result or permission gate
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, UnsubscribeSession_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnsubscribeSession_0100 start";
+
+    int32_t result = service_->UnsubscribeSession("session", "subscription");
+
+    EXPECT_TRUE(result == ERR_OK || result == ERR_NO_INIT || IsPermissionGateResult(result));
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_UnsubscribeSession_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_SendMessage_0100
+ * @tc.desc: Test SendMessage ioMonitor, non-running and skill-session rejection branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SendMessage_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_SendMessage_0100 start";
+
+    auto oldMonitor = service_->ioMonitor_;
+    service_->ioMonitor_ = nullptr;
+    auto noMonitorRecord = std::make_shared<SessionRecord>();
+    noMonitorRecord->sessionId = "send_no_monitor_session";
+    noMonitorRecord->callerPid = IPCSkeleton::GetCallingPid();
+    noMonitorRecord->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(noMonitorRecord);
+
+    int32_t result = service_->SendMessage(noMonitorRecord->sessionId, "input", "event");
+    EXPECT_TRUE(result == ERR_CLI_SEND_MESSAGE || IsPermissionGateResult(result));
+    if (IsPermissionGateResult(result)) {
+        service_->ioMonitor_ = oldMonitor;
+        GTEST_LOG_(INFO) << "CliToolManagerService_SendMessage_0100 skipped message gate checks";
+        return;
+    }
+
+    service_->ioMonitor_ = oldMonitor != nullptr ? oldMonitor : IOMonitor::Create();
+
+    auto completedRecord = std::make_shared<SessionRecord>();
+    completedRecord->sessionId = "send_completed_session";
+    completedRecord->callerPid = IPCSkeleton::GetCallingPid();
+    completedRecord->SetState(SessionState::COMPLETED);
+    service_->AddSessionRecord(completedRecord);
+    EXPECT_EQ(service_->SendMessage(completedRecord->sessionId, "input", "event"), ERR_CLI_SEND_MESSAGE);
+
+    auto skillRecord = std::make_shared<SessionRecord>();
+    skillRecord->sessionId = "send_skill_session";
+    skillRecord->callerPid = IPCSkeleton::GetCallingPid();
+    skillRecord->sessionType = SessionType::SKILL;
+    skillRecord->SetState(SessionState::RUNNING);
+    service_->AddSessionRecord(skillRecord);
+    EXPECT_EQ(service_->SendMessage(skillRecord->sessionId, "input", "event"), ERR_CLI_SEND_MESSAGE);
+
+    service_->ioMonitor_ = oldMonitor;
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_SendMessage_0100 end";
+}
+
+/**
  * @tc.name: CliToolManagerService_HandleOutputDrained_0100
  * @tc.desc: Test HandleOutputDrained with missing and present sessions
  * @tc.type: FUNC
@@ -873,6 +1322,170 @@ HWTEST_F(CliToolManagerServiceTest, HandleOutputDrained_0100, TestSize.Level1)
     EXPECT_NE(service_->GetSessionRecord(record->sessionId), nullptr);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_HandleOutputDrained_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_HandleOutputDrained_0200
+ * @tc.desc: Test HandleOutputDrained finalizes an exited and drained session
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, HandleOutputDrained_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_HandleOutputDrained_0200 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "drained_finalize_session";
+    record->SetTerminalResult(0, 0);
+    record->MarkStdoutClosed();
+    record->MarkStderrClosed();
+    service_->AddSessionRecord(record);
+
+    service_->HandleOutputDrained(record->sessionId);
+
+    EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_HandleOutputDrained_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_OnProcessDied_0100
+ * @tc.desc: Test OnProcessDied removes null and matching caller sessions only
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnProcessDied_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnProcessDied_0100 start";
+
+    auto matchingRecord = std::make_shared<SessionRecord>();
+    matchingRecord->sessionId = "matching_died_session";
+    matchingRecord->callerPid = 2001;
+    matchingRecord->processId = -1;
+    auto otherRecord = std::make_shared<SessionRecord>();
+    otherRecord->sessionId = "other_died_session";
+    otherRecord->callerPid = 2002;
+    {
+        std::lock_guard<ffrt::mutex> guard(service_->sessionsMutex_);
+        service_->sessionRecords_["leak_died_session"] = nullptr;
+        service_->sessionRecords_[matchingRecord->sessionId] = matchingRecord;
+        service_->sessionRecords_[otherRecord->sessionId] = otherRecord;
+    }
+
+    service_->OnProcessDied("test.bundle", matchingRecord->callerPid);
+
+    EXPECT_EQ(service_->sessionRecords_.find("leak_died_session"), service_->sessionRecords_.end());
+    EXPECT_EQ(service_->GetSessionRecord(matchingRecord->sessionId), nullptr);
+    EXPECT_EQ(service_->GetSessionRecord(otherRecord->sessionId), otherRecord);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnProcessDied_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_RegisterAppStateObserver_0100
+ * @tc.desc: Test RegisterAppStateObserver skips bundles that already have observers
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, RegisterAppStateObserver_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterAppStateObserver_0100 start";
+
+    sptr<CliToolAppStateObserver> observer = new CliToolAppStateObserver("registered.bundle", nullptr);
+    service_->bundleObservers_["registered.bundle"] = observer;
+
+    service_->RegisterAppStateObserver("registered.bundle", IPCSkeleton::GetCallingPid());
+
+    EXPECT_EQ(service_->bundleObservers_.size(), 1);
+    EXPECT_EQ(service_->bundleObservers_["registered.bundle"].GetRefPtr(), observer.GetRefPtr());
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterAppStateObserver_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchQueryPermission_0100
+ * @tc.desc: Test BatchQueryPermissionBySubCommand invalid argument branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchQueryPermission_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermission_0100 start";
+
+    std::vector<CommandPermission> cmdPermissions;
+    EXPECT_EQ(service_->BatchQueryPermissionBySubCommand({}, cmdPermissions), ERR_INVALID_PARAM);
+
+    std::vector<Command> tooManyCommands(100);
+    EXPECT_EQ(service_->BatchQueryPermissionBySubCommand(tooManyCommands, cmdPermissions), ERR_INVALID_PARAM);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermission_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_BatchQueryPermission_0200
+ * @tc.desc: Test BatchQueryPermissionBySubCommand non-empty command path
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, BatchQueryPermission_0200, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermission_0200 start";
+
+    Command command;
+    command.toolName = "query_tool";
+    command.subCommand = "build";
+    std::vector<CommandPermission> cmdPermissions;
+
+    int32_t result = service_->BatchQueryPermissionBySubCommand({ command }, cmdPermissions);
+
+    EXPECT_TRUE(result == ERR_OK || result == ERR_NOT_SA_CALLER || result == ERR_PERMISSION_DENIED);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_BatchQueryPermission_0200 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_SkillSession_0100
+ * @tc.desc: Test skill dispatch bypass and missing skillName validation branches
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, SkillSession_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_SkillSession_0100 start";
+
+    ToolInfo toolInfo;
+    bool dispatched = true;
+    ExecToolParam cliParam;
+    cliParam.toolName = "normal_tool";
+    EXPECT_EQ(service_->TryDispatchSkillSession(cliParam, "event", toolInfo, dispatched), ERR_OK);
+    EXPECT_FALSE(dispatched);
+
+    int32_t skillType = 0;
+    ExecToolParam missingSkillNameParam;
+    missingSkillNameParam.toolName = "ohos-arkTSScript";
+    EXPECT_EQ(service_->ValidateSkillTypeFromParam(missingSkillNameParam, skillType), ERR_INVALID_VALUE);
+    EXPECT_EQ(service_->TryDispatchSkillSession(missingSkillNameParam, "event", toolInfo, dispatched),
+        ERR_INVALID_VALUE);
+    EXPECT_FALSE(dispatched);
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_SkillSession_0100 end";
+}
+
+/**
+ * @tc.name: CliToolManagerService_OnStop_0100
+ * @tc.desc: Test OnStop clears sessions and resets initialized state
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolManagerServiceTest, OnStop_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnStop_0100 start";
+
+    auto record = std::make_shared<SessionRecord>();
+    record->sessionId = "stop_session";
+    record->processId = -1;
+    service_->AddSessionRecord(record);
+    service_->initialized_ = true;
+
+    service_->OnStop();
+
+    EXPECT_FALSE(service_->initialized_);
+    EXPECT_TRUE(service_->sessionRecords_.empty());
+
+    GTEST_LOG_(INFO) << "CliToolManagerService_OnStop_0100 end";
 }
 
 /**
