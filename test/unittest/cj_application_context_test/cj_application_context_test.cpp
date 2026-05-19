@@ -206,6 +206,50 @@ HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnConfigurationUpdate
 }
 
 /**
+ * @tc.name: CJApplicationContextTestOnConfigurationUpdatedDispatch_003
+ * @tc.desc: Test V2 only - when only V2 registered, V2 is called
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjApplicationContextTest, CJApplicationContextTestOnConfigurationUpdatedDispatch_003, TestSize.Level1)
+{
+    bool v2Called = false;
+    auto cfgCallbackV2 = [&v2Called](AbilityRuntime::CConfigurationV2) { v2Called = true; };
+    auto memCallback = [](int32_t) {};
+
+    auto cb = std::make_shared<CjEnvironmentCallback>();
+    cb->RegisterV2(cfgCallbackV2, memCallback, false);
+
+    AppExecFwk::Configuration config;
+    cb->OnConfigurationUpdated(config);
+
+    EXPECT_TRUE(v2Called);
+}
+
+/**
+ * @tc.name: CJApplicationContextTestUnRegisterV2_001
+ * @tc.desc: Test UnRegister removes V2 callback correctly
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjApplicationContextTest, CJApplicationContextTestUnRegisterV2_001, TestSize.Level1)
+{
+    bool v2Called = false;
+    auto cfgCallbackV2 = [&v2Called](AbilityRuntime::CConfigurationV2) { v2Called = true; };
+    auto memCallback = [](int32_t) {};
+
+    auto cb = std::make_shared<CjEnvironmentCallback>();
+    int32_t callbackId = cb->RegisterV2(cfgCallbackV2, memCallback, false);
+    EXPECT_NE(callbackId, -1);
+
+    cb->UnRegister(callbackId, false);
+
+    AppExecFwk::Configuration config;
+    cb->OnConfigurationUpdated(config);
+
+    EXPECT_FALSE(v2Called);
+    EXPECT_TRUE(cb->IsEmpty());
+}
+
+/**
  * @tc.name: CJApplicationContextTestOnOnAbilityLifecycle_001
  * @tc.desc: CjApplicationContextTest test for OnOnAbilityLifecycle.
  * @tc.type: FUNC
