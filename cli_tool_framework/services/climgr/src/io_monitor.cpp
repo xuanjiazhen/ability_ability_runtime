@@ -220,7 +220,7 @@ int IOMonitor::GetStdinFdLocked(const std::string &sessionId) const
     }
 
     if (it == fdMap_.end()) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed: sessionId=%{public}s stdin not found", sessionId.c_str());
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed: sessionId stdin not found");
         return -1;
     }
 
@@ -244,8 +244,7 @@ bool IOMonitor::WriteMessage(int fd, const std::string &sessionId, const std::st
             }
             if (errno != EAGAIN && errno != EWOULDBLOCK) {
                 TAG_LOGE(AAFwkTag::CLI_TOOL,
-                    "WriteMessage failed: write error=%{public}s for sessionId=%{public}s",
-                    strerror(errno), sessionId.c_str());
+                    "WriteMessage failed: write error=%{public}s for sessionId", strerror(errno));
                 return false;
             }
 
@@ -253,9 +252,8 @@ bool IOMonitor::WriteMessage(int fd, const std::string &sessionId, const std::st
                 std::chrono::steady_clock::now() - beginTime).count();
             if (elapsed >= INPUT_WRITE_TIMEOUT_MS) {
                 TAG_LOGE(AAFwkTag::CLI_TOOL,
-                    "WriteMessage failed: wait writable timeout for sessionId=%{public}s, "
-                    "wrote=%{public}zu/%{public}zu",
-                    sessionId.c_str(), bytesWritten, totalBytes);
+                    "WriteMessage failed: wait writable timeout for sessionId, "
+                    "wrote=%{public}zu/%{public}zu", bytesWritten, totalBytes);
                 return false;
             }
 
@@ -269,8 +267,7 @@ bool IOMonitor::WriteMessage(int fd, const std::string &sessionId, const std::st
                     continue;
                 }
                 TAG_LOGE(AAFwkTag::CLI_TOOL,
-                    "WriteMessage failed: poll error=%{public}s for sessionId=%{public}s",
-                    strerror(errno), sessionId.c_str());
+                    "WriteMessage failed: poll error=%{public}s for sessionId", strerror(errno));
                 return false;
             }
             if (pollResult == 0) {
@@ -278,16 +275,13 @@ bool IOMonitor::WriteMessage(int fd, const std::string &sessionId, const std::st
             }
             if ((pollFd.revents & (POLLERR | POLLHUP | POLLNVAL)) != 0) {
                 TAG_LOGE(AAFwkTag::CLI_TOOL,
-                    "WriteMessage failed: poll revents=%{public}d for sessionId=%{public}s",
-                    pollFd.revents, sessionId.c_str());
+                    "WriteMessage failed: poll revents=%{public}d for sessionId", pollFd.revents);
                 return false;
             }
             continue;
         }
         if (writeResult == 0) {
-            TAG_LOGE(AAFwkTag::CLI_TOOL,
-                "WriteMessage failed: pipe closed for sessionId=%{public}s",
-                sessionId.c_str());
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "WriteMessage failed: pipe closed for sessionId");
             return false;
         }
 
@@ -316,9 +310,8 @@ void IOMonitor::SendMessage(const std::string &sessionId, const std::string &mes
             if (queue.pendingBytes + message.size() > MAX_PENDING_INPUT_BYTES ||
                 queue.pendingInputs.size() >= MAX_PENDING_INPUT_MESSAGES) {
                 TAG_LOGW(AAFwkTag::CLI_TOOL,
-                    "SendMessage failed: input queue full for sessionId=%{public}s, pendingBytes=%{public}zu, "
-                    "pendingMessages=%{public}zu",
-                    sessionId.c_str(), queue.pendingBytes, queue.pendingInputs.size());
+                    "SendMessage failed: input queue full for sessionId pendingBytes=%{public}zu, "
+                    "pendingMessages=%{public}zu", queue.pendingBytes, queue.pendingInputs.size());
                 rejected = true;
             } else {
                 queue.pendingInputs.emplace_back(PendingInput {message, eventId});

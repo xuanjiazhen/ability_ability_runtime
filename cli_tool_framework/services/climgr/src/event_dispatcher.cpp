@@ -123,8 +123,8 @@ bool EventDispatcher::RegisterSubscriber(const std::string &sessionId,
 {
     if (sessionId.empty() || subscriptionId.empty() || callerPid <= 0) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "RegisterSubscriber failed: invalid args sessionId=%{public}s, subscriptionId=%{public}s, "
-            "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
+            "RegisterSubscriber failed: invalid args sessionId, subscriptionId=%{public}s, "
+            "callerPid=%{public}d", subscriptionId.c_str(), callerPid);
         return false;
     }
 
@@ -133,8 +133,8 @@ bool EventDispatcher::RegisterSubscriber(const std::string &sessionId,
         auto schedulerIt = schedulers_.find(callerPid);
         if (schedulerIt == schedulers_.end() || schedulerIt->second.scheduler == nullptr) {
             TAG_LOGE(AAFwkTag::CLI_TOOL,
-                "RegisterSubscriber failed: scheduler not found for pid %{public}d, sessionId=%{public}s, "
-                "subscriptionId=%{public}s", callerPid, sessionId.c_str(), subscriptionId.c_str());
+                "RegisterSubscriber failed: scheduler not found for pid %{public}d, sessionId, "
+                "subscriptionId=%{public}s", callerPid, subscriptionId.c_str());
             return false;
         }
         auto &subscribers = sessionSubscribers_[sessionId];
@@ -149,16 +149,15 @@ bool EventDispatcher::UnregisterSubscriber(const std::string &sessionId,
 {
     if (sessionId.empty() || subscriptionId.empty() || callerPid <= 0) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "UnregisterSubscriber failed: invalid args sessionId=%{public}s, subscriptionId=%{public}s, "
-            "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
+            "UnregisterSubscriber failed: invalid args sessionId subscriptionId=%{public}s, "
+            "callerPid=%{public}d", subscriptionId.c_str(), callerPid);
         return false;
     }
 
     std::lock_guard<std::mutex> lock(mutex_);
     auto sessionIt = sessionSubscribers_.find(sessionId);
     if (sessionIt == sessionSubscribers_.end()) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL,
-            "UnregisterSubscriber skipped: no subscribers for sessionId=%{public}s", sessionId.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "UnregisterSubscriber skipped: no subscribers for sessionId");
         return true;
     }
 
@@ -264,8 +263,7 @@ void EventDispatcher::DispatchEvent(const std::string &sessionId, const CliToolE
         auto sessionIt = sessionSubscribers_.find(sessionId);
         if (sessionIt == sessionSubscribers_.end()) {
             TAG_LOGW(AAFwkTag::CLI_TOOL,
-                "DispatchEvent skipped: no subscribers for sessionId=%{public}s, eventType=%{public}s",
-                sessionId.c_str(), event.type.c_str());
+                "DispatchEvent skipped: no subscribers for sessionId, eventType=%{public}s", event.type.c_str());
             return;
         }
         for (const auto &[key, state] : sessionIt->second) {
@@ -278,8 +276,8 @@ void EventDispatcher::DispatchEvent(const std::string &sessionId, const CliToolE
         if (subscriber.scheduler == nullptr ||
             subscriber.scheduler->SchedulerSessionEvent(sessionId, subscriber.key.subscriptionId, event) != ERR_OK) {
             TAG_LOGW(AAFwkTag::CLI_TOOL,
-                "DispatchEvent failed for pid %{public}d, sessionId='%{public}s', subscriptionId='%{public}s', "
-                "eventType='%{public}s'", subscriber.key.callerPid, sessionId.c_str(),
+                "DispatchEvent failed for pid %{public}d, sessionId, subscriptionId='%{public}s', "
+                "eventType='%{public}s'", subscriber.key.callerPid,
                 subscriber.key.subscriptionId.c_str(), event.type.c_str());
             failedSubscribers.push_back(subscriber.key);
         }

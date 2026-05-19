@@ -84,8 +84,7 @@ void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
 {
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL,
-            "HandleProcessTimeout skipped: sessionId=%{public}s not found", sessionId.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "HandleProcessTimeout skipped: sessionId not found");
         return;
     }
 
@@ -94,13 +93,11 @@ void CliToolManagerService::HandleProcessTimeout(const std::string &sessionId)
         return;
     }
 
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessTimeout: sessionId=%{public}s", sessionId.c_str());
     record->SetTimedOut(true);
     record->SetState(SessionState::CANCELLING);
 
     auto oldBackground = record->SetBackground(true);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessTimeout: sessionId=%{public}s, background=%{public}d",
-        sessionId.c_str(), oldBackground);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessTimeout: background=%{public}d", oldBackground);
     if (oldBackground == false) {
         CliSessionInfo session;
         record->BuildSessionInfo(session);
@@ -116,13 +113,11 @@ void CliToolManagerService::HandleProcessYieldTimeout(const std::string &session
 {
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL,
-            "HandleProcessYieldTimeout skipped: sessionId=%{public}s not found", sessionId.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "HandleProcessYieldTimeout skipped: sessionId not found");
         return;
     }
     auto oldBackground = record->SetBackground(true);
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessYieldTimeout: sessionId=%{public}s, background=%{public}d",
-        sessionId.c_str(), oldBackground);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "HandleProcessYieldTimeout: background=%{public}d", oldBackground);
     if (oldBackground == false) {
         CliSessionInfo session;
         record->BuildSessionInfo(session);
@@ -135,9 +130,7 @@ void CliToolManagerService::HandleOutputClosed(const std::string &sessionId, boo
 {
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL,
-            "HandleOutputClosed skipped: sessionId=%{public}s not found, isStdout=%{public}d",
-            sessionId.c_str(), isStdout);
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "HandleOutputClosed skipped: sessionId not found, isStdout=%{public}d", isStdout);
         return;
     }
     if (isStdout) {
@@ -166,9 +159,7 @@ void CliToolManagerService::FinalizeBackgroundSession(const std::shared_ptr<Sess
     }
     const auto &sessionId = record->sessionId;
     if (!record->BeginCleanup()) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL,
-            "FinalizeBackgroundSession skipped: cleanup already started for sessionId=%{public}s",
-            sessionId.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "FinalizeBackgroundSession skipped: cleanup already started for sessionId");
         return;
     }
 
@@ -322,7 +313,7 @@ std::shared_ptr<SessionRecord> CliToolManagerService::GetSessionRecord(const std
     std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
     auto it = sessionRecords_.find(sessionId);
     if (it == sessionRecords_.end()) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "GetSessionRecord failed: sessionId=%{public}s not found", sessionId.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "GetSessionRecord failed: sessionId not found");
         return nullptr;
     }
     if (it->second == nullptr) {
@@ -359,8 +350,8 @@ bool CliToolManagerService::IsSessionOwner(const std::shared_ptr<SessionRecord> 
     auto callingPid = IPCSkeleton::GetCallingPid();
     if (record->callerPid != callingPid) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "%{public}s failed: caller pid=%{public}d is not session owner pid=%{public}d, sessionId=%{public}s",
-            action, callingPid, record->callerPid, record->sessionId.c_str());
+            "%{public}s failed: caller pid=%{public}d is not session owner pid=%{public}d",
+            action, callingPid, record->callerPid);
         return false;
     }
     return true;
@@ -406,8 +397,7 @@ bool CliToolManagerService::RegisterSessionWithMonitors(const std::shared_ptr<Se
         close(record->stdoutPipe[0]);
         close(record->stderrPipe[0]);
         close(record->stdinPipe[1]);
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "ioMonitor registration failed: sessionId=%{public}s, pid=%{public}d",
-            record->sessionId.c_str(), record->processId);
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ioMonitor registration failed: pid=%{public}d", record->processId);
         return false;
     }
 
@@ -667,9 +657,8 @@ void CliToolManagerService::WaitPid(pid_t pid, int32_t status, int32_t sig)
         std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
         for (auto iter = sessionRecords_.begin(); iter != sessionRecords_.end();) {
             if (iter->second == nullptr) {
-                std::string sessionId = iter->first;
                 iter = sessionRecords_.erase(iter);
-                TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak sessionId:%{public}s", sessionId.c_str());
+                TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak session");
                 continue;
             }
             if (pid == iter->second->processId) {
@@ -711,9 +700,8 @@ void CliToolManagerService::OnProcessDied(const std::string &bundleName, pid_t d
     for (auto iter = sessionRecords_.begin(); iter != sessionRecords_.end();) {
         auto sessionRecord = iter->second;
         if (sessionRecord == nullptr) {
-            std::string sessionId = iter->first;
             iter = sessionRecords_.erase(iter);
-            TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak sessionId:%{public}s", sessionId.c_str());
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "delete leak session");
             continue;
         }
 
@@ -809,7 +797,7 @@ int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
 
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "ClearSession failed: sessionId=%{public}s not found", sessionId.c_str());
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ClearSession failed: sessionId not found");
         return ERR_CLI_SESSION_NOT_FOUND;
     }
     if (!IsSessionOwner(record, "ClearSession")) {
@@ -817,12 +805,10 @@ int32_t CliToolManagerService::ClearSession(const std::string &sessionId)
     }
     if (record->GetState() != SessionState::RUNNING && record->GetState() != SessionState::SPAWNING) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "ClearSession failed: sessionId=%{public}s state=%{public}d is not cancellable",
-            sessionId.c_str(), static_cast<int32_t>(record->GetState()));
+            "ClearSession failed: state=%{public}d is not cancellable", static_cast<int32_t>(record->GetState()));
         return ERR_CLI_SESSION_NOT_FOUND;
     }
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "ClearSession: sessionId=%{public}s, pid=%{public}d",
-        sessionId.c_str(), record->processId);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ClearSession: pid=%{public}d", record->processId);
 
     if (record->sessionType == SessionType::SKILL) {
         // Skill sessions don't have a child process, mark as cancelling and clean up
@@ -856,15 +842,13 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
 
     if (sessionId.empty() || subscriptionId.empty()) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "SubscribeSession failed: invalid args sessionId=%{public}s, subscriptionId=%{public}s",
-            sessionId.c_str(), subscriptionId.c_str());
+            "SubscribeSession failed: invalid args sessionId, subscriptionId=%{public}s", subscriptionId.c_str());
         return ERR_INVALID_PARAM;
     }
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "SubscribeSession failed: sessionId=%{public}s not found, subscriptionId=%{public}s",
-            sessionId.c_str(), subscriptionId.c_str());
+            "SubscribeSession failed: sessionId not found, subscriptionId=%{public}s", subscriptionId.c_str());
         return ERR_CLI_SESSION_NOT_FOUND;
     }
     if (!IsSessionOwner(record, "SubscribeSession")) {
@@ -874,8 +858,7 @@ int32_t CliToolManagerService::SubscribeSession(const std::string &sessionId, co
     record->BuildSessionInfo(session);
     if (session.status != "running") {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "SubscribeSession failed: sessionId=%{public}s status=%{public}s is not subscribable",
-            sessionId.c_str(), session.status.c_str());
+            "SubscribeSession failed: sessionId status=%{public}s is not subscribable", session.status.c_str());
         return ERR_CLI_SESSION_NOT_FOUND;
     }
     if (!EventDispatcher::GetInstance().RegisterSubscriber(
@@ -922,7 +905,7 @@ int32_t CliToolManagerService::QuerySession(const std::string &sessionId, CliSes
 
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "QuerySession failed: sessionId=%{public}s not found", sessionId.c_str());
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "QuerySession failed: sessionId not found");
         return ERR_CLI_SESSION_NOT_FOUND;
     }
     if (!IsSessionOwner(record, "QuerySession")) {
@@ -949,7 +932,7 @@ int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
 
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "SendMessage failed: sessionId=%{public}s not found", sessionId.c_str());
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "SendMessage failed: sessionId not found");
         return ERR_CLI_SESSION_NOT_FOUND;
     }
     if (!IsSessionOwner(record, "SendMessage")) {
@@ -962,15 +945,13 @@ int32_t CliToolManagerService::SendMessage(const std::string &sessionId,
 
     // Check session state
     if (record->GetState() != SessionState::RUNNING) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "SendMessage failed: sessionId=%{public}s is not running", record->sessionId.c_str());
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "SendMessage failed: sessionId is not running");
         return ERR_CLI_SEND_MESSAGE;
     }
 
     // Skill sessions don't support stdin
     if (record->sessionType == SessionType::SKILL) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "SendMessage failed: sessionId=%{public}s is a skill session (no stdin)", sessionId.c_str());
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "SendMessage failed: sessionId is a skill session (no stdin)");
         return ERR_CLI_SEND_MESSAGE;
     }
 
@@ -1011,20 +992,17 @@ SkillCallbackAdapter::SkillCallbackAdapter(const std::string &sessionId,
 void SkillCallbackAdapter::OnExecuteDone(const std::string &requestCode, int32_t resultCode,
     const AppExecFwk::SkillExecuteResult &result)
 {
-    TAG_LOGI(AAFwkTag::CLI_TOOL,
-        "SkillCallbackAdapter::OnExecuteDone sessionId:%{public}s code:%{public}d",
-        sessionId_.c_str(), resultCode);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "SkillCallbackAdapter::OnExecuteDone code:%{public}d", resultCode);
 
     auto service = CliToolManagerService::GetInstance();
     if (service == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "service expired for sessionId:%{public}s", sessionId_.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "service expired for sessionId");
         return;
     }
 
     auto record = service->GetSessionRecord(sessionId_);
     if (record == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL,
-            "OnExecuteDone skipped: sessionId:%{public}s already cleaned", sessionId_.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "OnExecuteDone skipped: sessionId already cleaned");
         return;
     }
 
@@ -1123,13 +1101,11 @@ void CliToolManagerService::HandleSkillSessionComplete(const std::string &sessio
 {
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL,
-            "HandleSkillSessionComplete skipped: sessionId:%{public}s not found", sessionId.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "HandleSkillSessionComplete skipped: sessionId not found");
         return;
     }
     if (!record->BeginCleanup()) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL,
-            "HandleSkillSessionComplete skipped: already cleaning sessionId:%{public}s", sessionId.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "HandleSkillSessionComplete skipped: already cleaning sessionId");
         return;
     }
 
@@ -1147,8 +1123,7 @@ void CliToolManagerService::HandleSkillSessionTimeout(const std::string &session
 {
     auto record = GetSessionRecord(sessionId);
     if (record == nullptr) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL,
-            "HandleSkillSessionTimeout skipped: sessionId:%{public}s not found", sessionId.c_str());
+        TAG_LOGW(AAFwkTag::CLI_TOOL, "HandleSkillSessionTimeout skipped: sessionId not found");
         return;
     }
 
