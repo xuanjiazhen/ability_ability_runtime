@@ -264,4 +264,10 @@ declare_args() {
       !defined(global_parts_info.hiviewdfx_api_metrics)) {
     hiviewdfx_runtime_api_metrics_enable = false
   }
+
+  compatibility_config_center_enabled = true
+  if (defined(global_parts_info) &&
+      !defined(global_parts_info.multidevicecompatibility_compatibility_config_center)) {
+    compatibility_config_center_enabled = false
+  }
 }

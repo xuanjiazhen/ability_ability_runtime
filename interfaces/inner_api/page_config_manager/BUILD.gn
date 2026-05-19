@@ -51,12 +51,30 @@ ohos_shared_library("page_config_manager") {
 
   sources = [ "src/page_config_manager.cpp" ]
 
+  include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+  ]
+
+  deps = [
+    "${ability_runtime_native_path}/appkit:app_context",
+  ]
+
   external_deps = [
     "hilog:libhilog",
     "window_manager:libwm",
     "c_utils:utils",
     "ipc:ipc_core",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
   ]
+
+  defines = []
+  if (compatibility_config_center_enabled) {
+    defines += [ "COMPATIBILITY_CONFIG_CENTER_ENABLED" ]
+    external_deps += [
+      "compatibility_config_center:compconfigclient",
+    ]
+  }
 
   configs = [
     ":page_config_manager_config",
