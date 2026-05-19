@@ -648,6 +648,7 @@ void AppRunningRecord::ScheduleBackgroundRunning()
         appLifeCycleDeal_->ScheduleBackgroundRunning();
     }
     isAbilityForegrounding_.store(false);
+    isAbilityLoading_.store(false);
 }
 
 void AppRunningRecord::ScheduleProcessSecurityExit()
@@ -951,6 +952,7 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         TAG_LOGE(AAFwkTag::APPMGR, "null ability");
         return;
     }
+    isAbilityLoading_.store(false);
     SetIsFromScreenOffBackground(false);
     AbilityState curAbilityState = ability->GetState();
     if (curAbilityState != AbilityState::ABILITY_STATE_READY &&

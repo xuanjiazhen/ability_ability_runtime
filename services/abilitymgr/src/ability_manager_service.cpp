@@ -3543,7 +3543,7 @@ int32_t AbilityManagerService::KillAppWithReason(const int32_t pid, const ExitRe
     if (!exitReason.shouldKillForeground) {
         AppExecFwk::RunningProcessInfo processInfo;
         DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(pid, processInfo);
-        if (processInfo.isAbilityForegrounding || processInfo.isFocused) {
+        if (processInfo.isAbilityForegrounding || processInfo.isFocused || processInfo.isAbilityLoading) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "do not kill foreground apps, pid = %{public}d", pid);
             return ERR_KILL_APP_WHILE_FOREGROUND;
         }
@@ -13662,7 +13662,7 @@ int32_t AbilityManagerService::KillProcessWithReasonInner(int32_t pid, const Exi
     if (!reason.shouldKillForeground) {
         AppExecFwk::RunningProcessInfo processInfo;
         DelayedSingleton<AppScheduler>::GetInstance()->GetRunningProcessInfoByPid(pid, processInfo);
-        if (processInfo.isAbilityForegrounding || processInfo.isFocused) {
+        if (processInfo.isAbilityForegrounding || processInfo.isFocused || processInfo.isAbilityLoading) {
             TAG_LOGI(AAFwkTag::ABILITYMGR, "do not kill foreground apps, pid = %{public}d", pid);
             return ERR_KILL_APP_WHILE_FOREGROUND;
         }

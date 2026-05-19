@@ -1133,6 +1133,7 @@ int32_t AppRunningManager::AssignRunningProcessInfoByAppRecord(
     info.isTestProcess = (appRecord->GetUserTestInfo() != nullptr);
     info.startTimeMillis_ = appRecord->GetAppStartTime();
     info.isAbilityForegrounding = appRecord->GetAbilityForegroundingFlag();
+    info.isAbilityLoading = appRecord->GetAbilityLoadingFlag();
     info.isTestMode = info.isTestProcess && system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
     info.extensionType_ = appRecord->GetExtensionType();
     info.processType_ = appRecord->GetProcessType();
