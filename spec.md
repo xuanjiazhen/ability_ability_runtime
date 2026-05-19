@@ -32,9 +32,18 @@
 `abcPath` 的生成顺序固定如下：
 
 1. 从 skill 查询结果中读取 `skillInfo.skillPath`。
-2. 将 `skillInfo.skillPath` 映射为 sandbox path，得到 `mappedSkillPath`。
-3. 读取调用参数中的 `scriptPath`。
-4. 按 `mappedSkillPath + "/" + scriptPath` 生成最终 `abcPath`。
+2. 读取调用参数中的 `scriptPath`。
+3. 通过统一 helper 完成：
+   - `skillInfo.skillPath -> sandbox path` 映射
+   - `mappedSkillPath + "/" + scriptPath -> abcPath` 拼接
+```c++    
+constexpr char SKILL_PHYSICAL_PREFIX[] = "/data/app/el1/skills/public";
+constexpr char SKILL_SANDBOX_PREFIX[] = "/data/skills";
+std::string mappedSkillPath = std::regex_replace(skillInfo.skillPath,
+        std::regex(SKILL_PHYSICAL_PREFIX), SKILL_SANDBOX_PREFIX);
+
+resolvedAbcPath = mappedSkillPath + "/" + scriptPath;
+```
 
 约束如下：
 
@@ -51,10 +60,11 @@
 2. 若 `toolName != "ohos-arkTSScript"`，保持现有普通 CLI 路径不变
 3. 若 `toolName == "ohos-arkTSScript"`，调用一次 skill 查询接口并获取 `SkillInfo`
 4. 若 skill 查询失败，直接返回错误
-5. 若 `skillInfo.skillType != AppExecFwk::SkillType::INDEPENDENT_SKILL`，继续走现有 `SetupAndStartSkillSession(...)`
-6. 若 `skillInfo.skillType == AppExecFwk::SkillType::INDEPENDENT_SKILL`，构造一个 `ExecToolParam` 副本 `cliParam`
-7. 调用 `PrepareIndependentSkillCliParam(param, skillInfo, cliParam)`，只补齐独立 skill 所需的 `abcPath`
-8. 对 `cliParam` 继续复用现有普通 CLI 公共链路：
+5. 调用 `TryDispatchSkillSession(...)`，并将本次查询得到的 `skillInfo` 传入，避免重复查询
+6. 若 `TryDispatchSkillSession(...)` 已完成应用 skill 分发，则按现有流程返回
+7. 若 `dispatched == false` 且 `skillInfo.skillType == AppExecFwk::SkillType::INDEPENDENT_SKILL`，构造一个 `ExecToolParam` 副本 `cliParam`
+8. 调用 `PrepareIndependentSkillCliParam(param, skillInfo, cliParam)`，只补齐独立 skill 所需的 `abcPath`
+9. 对 `cliParam` 继续复用现有普通 CLI 公共链路：
    - `ValidateSessionLimit()`
    - `ValidateAndPrepareTool(cliParam, ...)`
    - `SetupAndStartSession(cliParam, ...)`
@@ -115,37 +125,35 @@
     - `int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType);`
     - `int32_t ValidateSkillType(const std::string &bundleName, const std::string &moduleName, const std::string &skillName, int32_t &skillType);`
   - 新建议：
-    - `int32_t ValidateSkillInfoFromParam(const ExecToolParam &param, AppExecFwk::SkillInfo &skillInfo);`
-    - `int32_t QuerySkillInfo(const std::string &bundleName, const std::string &moduleName, const std::string &skillName, AppExecFwk::SkillInfo &skillInfo);`
+    - `int32_t ValidateSkillTypeFromParam(const ExecToolParam &param, AppExecFwk::SkillInfo &skillInfo);`
     - `int32_t PrepareIndependentSkillCliParam(const ExecToolParam &param, const AppExecFwk::SkillInfo &skillInfo, ExecToolParam &cliParam);`
+    - `int32_t ValidateSkillType(const std::string &bundleName, const std::string &moduleName, const std::string &skillName, AppExecFwk::SkillInfo &skillInfo);`
 
 - `cli_tool_framework/services/climgr/src/cli_tool_manager_service.cpp`
   - `TryDispatchSkillSession(...)` 需要按新的 `SkillInfo` 口径重写内部逻辑
-  - 若保留原签名：
-    - `int32_t TryDispatchSkillSession(const ExecToolParam &param, const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched)`
-  - 若需要显式返回 CLI 副本，建议扩展为：
-    - `int32_t TryDispatchSkillSession(const ExecToolParam &param, const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched, bool &useCliOverride, ExecToolParam &cliParamOverride)`
+  - 新签名：
+    - `int32_t TryDispatchSkillSession(const ExecToolParam &param, const std::string &eventId, const ToolInfo &toolInfo, const AppExecFwk::SkillInfo &skillInfo, bool &dispatched)`
 
 说明：
 
 - `PrepareIndependentSkillCliParam(...)` 的职责只包括：
   - 读取 `skillInfo.skillPath`
-  - 映射 sandbox path
-  - 生成最终 `abcPath`
+  - 调用统一 helper 生成最终 `abcPath`
   - 写入 `cliParam`
 - `PrepareIndependentSkillCliParam(...)` 不负责权限、并发、sandbox、session 处理。
+- `ValidateSkillTypeFromParam(...)` 保留，只修改出参类型为 `AppExecFwk::SkillInfo &skillInfo`。
+- `ValidateSkillType(...)` 保留，只修改出参类型为 `AppExecFwk::SkillInfo &skillInfo`。
+- `TryDispatchSkillSession(...)` 不再内部重复查询 skill 信息，而是直接复用 `ExecTool(...)` 已查询得到的 `skillInfo`。
 
 ### 2.3 ToolUtil 辅助接口
 
 - `cli_tool_framework/services/climgr/include/tool_util.h`
   - 新增建议：
-    - `static bool MapSkillPathToSandboxPath(const std::string &skillPath, std::string &mappedSkillPath);`
-    - `static bool BuildIndependentSkillAbcPath(const std::string &mappedSkillPath, const std::string &scriptPath, std::string &abcPath);`
+    - `static bool BuildIndependentSkillAbcPath(const std::string &skillPath, const std::string &scriptPath, std::string &abcPath);`
 
 - `cli_tool_framework/services/climgr/src/tool_util.cpp`
   - 新增职责：
-    - `skillPath -> sandbox path` 映射
-    - 最终 `abcPath` 拼接
+    - 在同一个 helper 内完成 `skillPath -> sandbox path` 映射与最终 `abcPath` 拼接
   - 现有 `TransferToCmdParam(...)`、`GetParamStringValue(...)` 保持原有职责
 
 说明：
@@ -180,8 +188,8 @@
 | 修改 | `services/abilitymgr/src/ability_manager_service.cpp` | service 直接返回 `SkillInfo` |
 | 修改 | `cli_tool_framework/services/climgr/include/cli_tool_manager_service.h` | 声明 independent skill 分流与 `abcPath` 准备 helper |
 | 修改 | `cli_tool_framework/services/climgr/src/cli_tool_manager_service.cpp` | 基于 `SkillInfo` 分流 independent skill |
-| 修改 | `cli_tool_framework/services/climgr/include/tool_util.h` | 声明 sandbox path 映射与 `abcPath` 拼接 helper |
-| 修改 | `cli_tool_framework/services/climgr/src/tool_util.cpp` | 实现 sandbox path 映射与 `abcPath` 拼接 |
+| 修改 | `cli_tool_framework/services/climgr/include/tool_util.h` | 声明统一的 `abcPath` 生成 helper |
+| 修改 | `cli_tool_framework/services/climgr/src/tool_util.cpp` | 实现统一的 `abcPath` 生成 helper |
 | 修改 | `cli_tool_framework/frameworks/js/napi/skill_driver/src/js_skill_driver.cpp` | 改为基于真实枚举判断 independent skill |
 
 ### 3.2 可选同步文件
@@ -195,8 +203,9 @@
 - 普通 CLI tool 路径不回归。
 - in-app skill `SetupAndStartSkillSession(...)` 路径不回归。
 - skill 查询失败时，`ExecTool` 能返回可定位错误。
+- `TryDispatchSkillSession(...)` 复用 `ExecTool(...)` 已查询得到的 `SkillInfo`，不发生第二次 skill 查询。
 - `skillInfo.skillType == AppExecFwk::SkillType::INDEPENDENT_SKILL` 时，`ExecTool` 能进入独立 skill CLI 路径。
-- independent skill 缺少 `skillName/scriptPath/functionName` 时，能返回可定位错误。
-- `skillInfo.skillPath` 为空或 sandbox path 映射失败时，能返回可定位错误。
+- independent skill 缺少 `scriptPath/functionName` 时，能返回可定位错误。
+- `skillInfo.skillPath` 为空或统一 `abcPath` 生成 helper 执行失败时，能返回可定位错误。
 - 输入合法 independent skill 参数时，可正确生成 `abcPath = mappedSkillPath + "/" + scriptPath` 并继续发起 CLI 调度。
 - `skillName` 为空时，是否能完成分流取决于 skill 查询接口返回结果，service 侧不再做本地兼容推断。
