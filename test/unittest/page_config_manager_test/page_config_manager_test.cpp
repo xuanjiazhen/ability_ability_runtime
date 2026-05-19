@@ -126,5 +126,70 @@ HWTEST_F(PageConfigManagerTest, NotifyPageChanged_0300, TestSize.Level1)
         "com.exmaple.testapplication", 0, 0);
     EXPECT_EQ(result, ERR_NO_INIT);
 }
+
+/**
+ * @tc.name: Initialize_0300
+ * @tc.desc: Initialize with isInitialized_ true, verify update window logic
+ * @tc.type: FUNC
+ */
+HWTEST_F(PageConfigManagerTest, Initialize_0300, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "PageConfigManagerTest, Initialize_0300, TestSize.Level1";
+    auto& manager = AbilityRuntime::PageConfigManager::GetInstance();
+    manager.isInitialized_ = true;
+    manager.configJson_ = R"({"page": {}})";
+    int32_t result = manager.Initialize("", nullptr);
+    EXPECT_EQ(result, ERR_OK);
+    manager.isInitialized_ = false;
+    manager.configJson_ = "";
+}
+
+/**
+ * @tc.name: Initialize_0400
+ * @tc.desc: Initialize with non-empty configJson, verify configJson_ is set
+ * @tc.type: FUNC
+ */
+HWTEST_F(PageConfigManagerTest, Initialize_0400, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "PageConfigManagerTest, Initialize_0400, TestSize.Level1";
+    auto& manager = AbilityRuntime::PageConfigManager::GetInstance();
+    manager.configJson_ = "";
+    std::string configJson = R"({"page": {"pn": "com.example"}})";
+    manager.Initialize(configJson, nullptr);
+    EXPECT_EQ(manager.configJson_, configJson);
+    manager.configJson_ = "";
+}
+
+/**
+ * @tc.name: Initialize_0500
+ * @tc.desc: Initialize with empty configJson but non-empty configJson_, skip GetConfig
+ * @tc.type: FUNC
+ */
+HWTEST_F(PageConfigManagerTest, Initialize_0500, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "PageConfigManagerTest, Initialize_0500, TestSize.Level1";
+    auto& manager = AbilityRuntime::PageConfigManager::GetInstance();
+    manager.configJson_ = R"({"existing": "config"})";
+    std::string expected = manager.configJson_;
+    int32_t result = manager.Initialize("", nullptr);
+    EXPECT_EQ(manager.configJson_, expected);
+    EXPECT_EQ(result, ERR_NO_INIT);
+    manager.configJson_ = "";
+}
+
+/**
+ * @tc.name: GetConfig_0100
+ * @tc.desc: GetConfig with invalid bundleName
+ * @tc.type: FUNC
+ */
+HWTEST_F(PageConfigManagerTest, GetConfig_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "PageConfigManagerTest, GetConfig_0100, TestSize.Level1";
+    auto& manager = AbilityRuntime::PageConfigManager::GetInstance();
+    std::string configJson;
+    bool result = manager.GetConfig("invalid.bundle.name", configJson);
+    EXPECT_FALSE(result);
+    EXPECT_TRUE(configJson.empty());
+}
 } // namespace AppExecFwk
 } // namespace OHOS

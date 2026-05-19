@@ -19,8 +19,12 @@
 #include <unistd.h>
 
 #include "ability_manager_errors.h"
+#include "application_context.h"
 #include "hilog_tag_wrapper.h"
 #include "window.h"
+#ifdef COMPATIBILITY_CONFIG_CENTER_ENABLED
+#include "comp_config_read_util.h"
+#endif
 
 namespace OHOS::AbilityRuntime {
 namespace {
@@ -41,16 +45,28 @@ int32_t PageConfigManager::Initialize(const std::string& configJson, const wptr<
 {
     TAG_LOGD(AAFwkTag::ABILITY, "called");
     std::lock_guard guard(g_pageConfigMutex);
+    if (!configJson.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITY, "configJson: %{public}s", configJson.c_str());
+        configJson_ = configJson;
+    }
+    if (configJson_.empty()) {
+        auto context = AbilityRuntime::ApplicationContext::GetInstance();
+        if (context == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITY, "context is nullptr");
+            return ERR_NO_INIT;
+        }
+        GetConfig(context->GetBundleName(), configJson_);
+        if (configJson_.empty()) {
+            TAG_LOGE(AAFwkTag::ABILITY, "configJson_ is empty");
+            return ERR_NO_INIT;
+        }
+    }
     if (isInitialized_) {
         TAG_LOGI(AAFwkTag::ABILITY, "has initialized, update window");
         if (g_initializeFunc != nullptr) {
-            g_initializeFunc(configJson, window);
+            g_initializeFunc(configJson_, window);
         }
         return ERR_OK;
-    }
-    if (configJson.empty()) {
-        TAG_LOGI(AAFwkTag::ABILITY, "configJson is empty");
-        return ERR_NO_INIT;
     }
     LoadPageConfigSo();
     if (pageConfigSo_ == nullptr) {
@@ -62,7 +78,7 @@ int32_t PageConfigManager::Initialize(const std::string& configJson, const wptr<
         return ERR_NO_INIT;
     }
     g_initializeFunc = reinterpret_cast<InitializeFunc>(symbol);
-    auto result = g_initializeFunc(configJson, window);
+    auto result = g_initializeFunc(configJson_, window);
     if (result != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITY, "Initialize failed");
         return ERR_NO_INIT;
@@ -114,4 +130,21 @@ int32_t PageConfigManager::NotifyPageChanged(const char* targetPageName,
     return result;
 }
 
+bool PageConfigManager::GetConfig(const std::string& bundleName, std::string& configJson)
+{
+    auto [ret, val] = CompConfigClient::CompConfigReadUtil::GetConfigByApp(bundleName);
+    if (ret != CompConfigClient::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITY, "GetConfig failed, ret: %{public}d", ret);
+        return false;
+    }
+    for (const auto& [key, value] : val) {
+        TAG_LOGD(AAFwkTag::ABILITY, "config key: %{public}s, value: %{public}s",
+            key.c_str(), value.c_str());
+        if (key == "pageList") {
+            configJson = value;
+            return true;
+        }
+    }
+    return false;
+}
 } // namespace AbilityRuntime
