@@ -15,91 +15,98 @@ import("//build/ohos.gni")
 import("//build/test.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-ohos_unittest("cj_ability_stage_object_test") {
-  module_out_path =
-      "ability_runtime/ability_runtime/cj_ability_stage_object_test"
-  include_dirs = [
-    "${ability_runtime_test_path}/mock/common/include",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
-    "${ability_runtime_path}/interfaces/kits/native/appkit/app_startup",
-    "${ability_runtime_path}/interfaces/kits/native/ability/native",
-    "${ability_runtime_path}/interfaces/inner_api/runtime/include",
-    "${ability_runtime_native_path}/runtime",
-    "${ability_runtime_path}/cj_environment/interfaces/inner_api",
-    "${ability_runtime_path}/frameworks/cj/ffi",
-    "${ability_runtime_path}/frameworks/cj/ffi/application_context/include",
-  ]
+if (cj_frontend) {
+  ohos_unittest("cj_ability_stage_object_test") {
+    module_out_path =
+        "ability_runtime/ability_runtime/cj_ability_stage_object_test"
+    include_dirs = [
+      "${ability_runtime_test_path}/mock/common/include",
+      "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/app",
+      "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+      "${ability_runtime_path}/interfaces/kits/native/appkit/app_startup",
+      "${ability_runtime_path}/interfaces/kits/native/ability/native",
+      "${ability_runtime_path}/interfaces/inner_api/runtime/include",
+      "${ability_runtime_native_path}/runtime",
+      "${ability_runtime_path}/cj_environment/interfaces/inner_api",
+      "${ability_runtime_path}/frameworks/cj/ffi",
+      "${ability_runtime_path}/frameworks/cj/ffi/application_context/include",
+    ]
 
-  sources = [
-    "${ability_runtime_native_path}/appkit/app/app_context.cpp",
-    "${ability_runtime_native_path}/appkit/app/app_loader.cpp",
-    "${ability_runtime_native_path}/appkit/app/application_cleaner.cpp",
-    "${ability_runtime_native_path}/appkit/app/ohos_application.cpp",
-    "${ability_runtime_path}/frameworks/native/appkit/ability_runtime/app/cj_ability_stage_context.cpp",
-    "${ability_runtime_path}/frameworks/native/appkit/ability_runtime/app/cj_ability_stage_object.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_bundle_manager.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_overlay_manager.cpp",
-    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/sys_mgr_client_mock.cpp",
-    "cj_ability_stage_object_test.cpp",
-  ]
-  cflags = []
-  if (target_cpu == "arm") {
-    cflags += [ "-DBINDER_IPC_32BIT" ]
-  }
-  deps = [
-    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
-    "${ability_runtime_innerkits_path}/app_manager:app_manager",
-    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_native_path}/ability/native:ability_thread",
-    "${ability_runtime_native_path}/ability/native:abilitykit_native",
-    "${ability_runtime_native_path}/ability/native:abilitykit_utils",
-    "${ability_runtime_native_path}/ability/native:configuration_helper",
-    "${ability_runtime_native_path}/ability/native:uiabilitykit_native",
-    "${ability_runtime_native_path}/appkit:app_context",
-    "${ability_runtime_native_path}/appkit:application_image_observer_manager",
-    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
-    "${ability_runtime_native_path}/appkit:appkit_native",
-    "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
-  ]
+    sources = [
+      "${ability_runtime_native_path}/appkit/app/app_context.cpp",
+      "${ability_runtime_native_path}/appkit/app/app_loader.cpp",
+      "${ability_runtime_native_path}/appkit/app/application_cleaner.cpp",
+      "${ability_runtime_native_path}/appkit/app/ohos_application.cpp",
+      "${ability_runtime_path}/frameworks/native/appkit/ability_runtime/app/cj_ability_stage_context.cpp",
+      "${ability_runtime_path}/frameworks/native/appkit/ability_runtime/app/cj_ability_stage_object.cpp",
+      "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_bundle_manager.cpp",
+      "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/mock_overlay_manager.cpp",
+      "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include/sys_mgr_client_mock.cpp",
+      "cj_ability_stage_object_test.cpp",
+    ]
 
-  external_deps = [
-    "ability_base:base",
-    "ability_base:configuration",
-    "ability_base:want",
-    "ability_runtime:runtime",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_base",
-    "bundle_framework:appexecfwk_core",
-    "bundle_framework:appexecfwk_core",
-    "bundle_framework:cj_bundle_manager_ffi",
-    "c_utils:utils",
-    "common_event_service:cesfwk_innerkits",
-    "eventhandler:libeventhandler",
-    "ffrt:libffrt",
-    "form_fwk:fmskit_native",
-    "googletest:gmock_main",
-    "googletest:gtest_main",
-    "hilog:libhilog",
-    "hichecker:libhichecker",
-    "hitrace:hitrace_meter",
-    "init:libbegetutil",
-    "ipc:ipc_core",
-    "napi:ace_napi",
-    "napi:cj_bind_ffi",
-    "napi:cj_bind_native",
-    "resource_management:global_resmgr",
-    "samgr:samgr_proxy",
-    "runtime_core:ani",
-  ]
+    defines = [ "CJ_FRONTEND" ]
 
-  if (ability_runtime_graphics) {
-    external_deps += [ "window_manager:libwm" ]
+    cflags = []
+    if (target_cpu == "arm") {
+      cflags += [ "-DBINDER_IPC_32BIT" ]
+    }
+    deps = [
+      "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+      "${ability_runtime_innerkits_path}/app_manager:app_manager",
+      "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+      "${ability_runtime_innerkits_path}/runtime:runtime",
+      "${ability_runtime_native_path}/ability/native:ability_thread",
+      "${ability_runtime_native_path}/ability/native:abilitykit_native",
+      "${ability_runtime_native_path}/ability/native:abilitykit_utils",
+      "${ability_runtime_native_path}/ability/native:configuration_helper",
+      "${ability_runtime_native_path}/ability/native:uiabilitykit_native",
+      "${ability_runtime_native_path}/appkit:app_context",
+      "${ability_runtime_native_path}/appkit:application_image_observer_manager",
+      "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+      "${ability_runtime_native_path}/appkit:appkit_native",
+      "${ability_runtime_path}/frameworks/cj/ffi:cj_ability_ffi",
+    ]
+
+    external_deps = [
+      "ability_base:base",
+      "ability_base:configuration",
+      "ability_base:want",
+      "ability_runtime:runtime",
+      "bundle_framework:appexecfwk_base",
+      "bundle_framework:appexecfwk_base",
+      "bundle_framework:appexecfwk_core",
+      "bundle_framework:appexecfwk_core",
+      "bundle_framework:cj_bundle_manager_ffi",
+      "c_utils:utils",
+      "common_event_service:cesfwk_innerkits",
+      "eventhandler:libeventhandler",
+      "ffrt:libffrt",
+      "form_fwk:fmskit_native",
+      "googletest:gmock_main",
+      "googletest:gtest_main",
+      "hilog:libhilog",
+      "hichecker:libhichecker",
+      "hitrace:hitrace_meter",
+      "init:libbegetutil",
+      "ipc:ipc_core",
+      "napi:ace_napi",
+      "napi:cj_bind_ffi",
+      "napi:cj_bind_native",
+      "resource_management:global_resmgr",
+      "samgr:samgr_proxy",
+      "runtime_core:ani",
+    ]
+
+    if (ability_runtime_graphics) {
+      external_deps += [ "window_manager:libwm" ]
+    }
   }
 }
 
 group("unittest") {
   testonly = true
-  deps = [ ":cj_ability_stage_object_test" ]
+  if (cj_frontend) {
+    deps = [ ":cj_ability_stage_object_test" ]
+  }
 }
