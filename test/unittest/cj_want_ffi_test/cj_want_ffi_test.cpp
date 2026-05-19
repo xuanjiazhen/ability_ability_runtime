@@ -337,6 +337,33 @@ HWTEST_F(CjWantFfiTest, CjWantFfiTestFFICJWantGetWantInfoV2_0100, TestSize.Level
 }
 
 /**
+ * @tc.name: CjWantFfiTestFFICJWantV2_NullptrAndEdgeCases_0100
+ * @tc.desc: CjWantFfiTest test for V2 nullptr and edge case handling.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjWantFfiTest, CjWantFfiTestFFICJWantV2_NullptrAndEdgeCases_0100, TestSize.Level1)
+{
+    FFICJWantParamsDeleteV2(nullptr);
+
+    CJWantParamsV2* paramsResult = FFICJWantGetWantInfoV2(nullptr);
+    EXPECT_EQ(paramsResult, nullptr);
+
+    CJWantParamsV2 params;
+    params.elementName = nullptr;
+    params.flags = 0;
+    params.uri = nullptr;
+    params.action = nullptr;
+    params.wantType = nullptr;
+    params.parameters = nullptr;
+    params.fds.head = nullptr;
+    params.fds.size = 0;
+
+    WantHandle want = FFICJWantCreateWithWantInfoV2(params);
+    EXPECT_NE(want, nullptr);
+    FFICJWantDelete(want);
+}
+
+/**
  * @tc.name: CjWantFfiTestFFICJWantGetWantInfoV2_0200
  * @tc.desc: CjWantFfiTest test for FFICJWantGetWantInfoV2 with fds.
  * @tc.type: FUNC
