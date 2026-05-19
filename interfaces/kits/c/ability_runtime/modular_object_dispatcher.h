@@ -1098,6 +1098,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_ArrayCreate(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pArray or pElementType is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1115,6 +1116,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_ArrayGetElementType(
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pArray or pValue is null,
  *      or index is out of bounds.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH} if element type mismatches.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1132,6 +1134,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_ArraySet(
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pArray or pValue is null,
  *      or index is out of bounds.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1185,6 +1188,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_VectorCreate(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pVector or pElementType is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1217,6 +1221,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_VectorAdd(
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pVector or pValue is null,
  *      or index is out of bounds.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1282,6 +1287,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_SetCreate(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pSet or pElementType is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1312,6 +1318,8 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_SetAdd(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pSet or pValue is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH} if element type mismatches.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if element is not found in set.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1327,6 +1335,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_SetRemove(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pSet or pValue or pExists is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH} if element type mismatches.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1360,6 +1369,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_SetGetSize(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pSet or pValue is null, or index is out of bounds.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1433,6 +1443,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_MapGetKeyType(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pMap or pValueType is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1465,8 +1476,10 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_MapPut(
  * @param pValue Indicates a pointer to receive value variant.
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
- *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pMap or pKey or pValue is null,
- *      or key is not found in map.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pMap or pKey or pValue is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH} if key type mismatches.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if key is not found in map.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1482,6 +1495,8 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_MapGet(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pMap or pKey is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH} if key type mismatches.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if key is not found in map.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1497,6 +1512,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_MapRemove(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pMap or pKey or pExists is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH} if key type mismatches.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1530,6 +1546,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_MapGetSize(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pMap or pKey is null, or index is out of bounds.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1549,6 +1566,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_MapGetKeyAt(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pMap or pValue is null, or index is out of bounds.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1585,6 +1603,8 @@ void OH_AbilityRuntime_ModObjDispatcher_MapRelease(OH_AbilityRuntime_ModObjDispa
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if structName or ppStruct is null.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if struct name is not found
+ *      in type metadata.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
@@ -1601,6 +1621,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_StructCreate(
  * @return <ul>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pStruct or pbstrName is null, or cMaxName is 0.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1618,6 +1639,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_StructGetName(
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pStruct or szName or pValue is null.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if field is not found in struct.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_TYPE_MISMATCH} if field type mismatches.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
@@ -1635,6 +1657,7 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ModObjDispatcher_StructSetField(
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_NO_ERROR} if operation is successful.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID} if pStruct or szName or pValue is null.</li>
  *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_PROPERTY_NOT_FOUND} if field is not found in struct.</li>
+ *      <li>{@link ABILITY_RUNTIME_ERROR_CODE_INTERNAL} if internal error occurs.</li>
  *      </ul>
  * @since 26.0.0
  */
