@@ -592,6 +592,7 @@ int AppfreezeManager::NotifyANR(const FaultData& faultData, const AppfreezeManag
     eventInfo.tid = tid > 0 ? tid : 0;
     eventInfo.pid = appInfo.pid;
     eventInfo.uid = appInfo.uid;
+    eventInfo.isFrozen = appInfo.isFrozen;
     eventInfo.eventId = faultData.eventId;
     eventInfo.bundleName = appInfo.bundleName;
     eventInfo.processName = appInfo.processName;
