@@ -59,38 +59,60 @@ EventDispatcher &EventDispatcher::GetInstance()
     return instance;
 }
 
-bool EventDispatcher::RegisterScheduler(int32_t callerPid, const sptr<ICliToolManagerScheduler> &scheduler)
+bool EventDispatcher::SetScheduler(int32_t callerPid, int32_t callerUid,
+    const sptr<ICliToolManagerScheduler> &scheduler)
 {
-    if (callerPid <= 0 || scheduler == nullptr || scheduler->AsObject() == nullptr) {
+    if (callerPid <= 0 || callerUid < 0 || scheduler == nullptr || scheduler->AsObject() == nullptr) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
-            "RegisterScheduler failed: invalid callerPid=%{public}d or scheduler remote is null", callerPid);
+            "SetScheduler failed: invalid callerPid=%{public}d, callerUid=%{public}d or scheduler remote is null",
+            callerPid, callerUid);
         return false;
     }
+    SchedulerKey caller {callerPid, callerUid};
     auto remote = scheduler->AsObject();
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        auto schedulerIt = schedulers_.find(caller);
+        if (schedulerIt != schedulers_.end() && schedulerIt->second.remote == remote) {
+            return true;
+        }
+    }
     auto deathRecipient = sptr<IRemoteObject::DeathRecipient>(
-        new (std::nothrow) CallbackDeathRecipient([callerPid](const wptr<IRemoteObject> &) {
-            EventDispatcher::GetInstance().UnregisterScheduler(callerPid);
+        new (std::nothrow) CallbackDeathRecipient([callerPid, callerUid](const wptr<IRemoteObject> &) {
+            EventDispatcher::GetInstance().ClearScheduler(callerPid, callerUid);
         }));
     if (deathRecipient == nullptr) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterScheduler failed: alloc death recipient for pid %{public}d",
-            callerPid);
+        TAG_LOGE(AAFwkTag::CLI_TOOL,
+            "SetScheduler failed: alloc death recipient for pid %{public}d, uid %{public}d",
+            callerPid, callerUid);
         return false;
     }
     if (!remote->AddDeathRecipient(deathRecipient)) {
-        TAG_LOGW(AAFwkTag::CLI_TOOL, "AddDeathRecipient failed for scheduler pid %{public}d", callerPid);
+        TAG_LOGW(AAFwkTag::CLI_TOOL,
+            "AddDeathRecipient failed for scheduler pid %{public}d, uid %{public}d", callerPid, callerUid);
     }
 
     sptr<IRemoteObject> oldRemote;
     sptr<IRemoteObject::DeathRecipient> oldDeathRecipient;
+    bool removeNewDeathRecipient = false;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto schedulerIt = schedulers_.find(callerPid);
-        if (schedulerIt != schedulers_.end()) {
+        auto schedulerIt = schedulers_.find(caller);
+        if (schedulerIt != schedulers_.end() && schedulerIt->second.remote == remote) {
+            removeNewDeathRecipient = true;
+        } else if (schedulerIt != schedulers_.end()) {
             oldRemote = schedulerIt->second.remote;
             oldDeathRecipient = schedulerIt->second.deathRecipient;
-            RemoveSubscribersForPidLocked(callerPid);
+            RemoveSubscribersForCallerLocked(caller);
+            schedulers_[caller] = SchedulerState {scheduler, remote, deathRecipient};
+        } else {
+            schedulers_[caller] = SchedulerState {scheduler, remote, deathRecipient};
         }
-        schedulers_[callerPid] = SchedulerState {scheduler, remote, deathRecipient};
+    }
+
+    if (removeNewDeathRecipient) {
+        remote->RemoveDeathRecipient(deathRecipient);
+        return true;
     }
 
     if (oldRemote != nullptr && oldDeathRecipient != nullptr) {
@@ -99,19 +121,20 @@ bool EventDispatcher::RegisterScheduler(int32_t callerPid, const sptr<ICliToolMa
     return true;
 }
 
-void EventDispatcher::UnregisterScheduler(int32_t callerPid)
+void EventDispatcher::ClearScheduler(int32_t callerPid, int32_t callerUid)
 {
+    SchedulerKey caller {callerPid, callerUid};
     sptr<IRemoteObject> remote;
     sptr<IRemoteObject::DeathRecipient> deathRecipient;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto it = schedulers_.find(callerPid);
+        auto it = schedulers_.find(caller);
         if (it != schedulers_.end()) {
             remote = it->second.remote;
             deathRecipient = it->second.deathRecipient;
             schedulers_.erase(it);
         }
-        RemoveSubscribersForPidLocked(callerPid);
+        RemoveSubscribersForCallerLocked(caller);
     }
     if (remote != nullptr && deathRecipient != nullptr) {
         remote->RemoveDeathRecipient(deathRecipient);
@@ -119,38 +142,42 @@ void EventDispatcher::UnregisterScheduler(int32_t callerPid)
 }
 
 bool EventDispatcher::RegisterSubscriber(const std::string &sessionId,
-    const std::string &subscriptionId, int32_t callerPid)
+    const std::string &subscriptionId, int32_t callerPid, int32_t callerUid)
 {
-    if (sessionId.empty() || subscriptionId.empty() || callerPid <= 0) {
+    if (sessionId.empty() || subscriptionId.empty() || callerPid <= 0 || callerUid < 0) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
             "RegisterSubscriber failed: invalid args sessionId=%{public}s, subscriptionId=%{public}s, "
-            "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
+            "callerPid=%{public}d, callerUid=%{public}d", sessionId.c_str(), subscriptionId.c_str(),
+            callerPid, callerUid);
         return false;
     }
 
     {
+        SchedulerKey caller {callerPid, callerUid};
         std::lock_guard<std::mutex> lock(mutex_);
-        auto schedulerIt = schedulers_.find(callerPid);
+        auto schedulerIt = schedulers_.find(caller);
         if (schedulerIt == schedulers_.end() || schedulerIt->second.scheduler == nullptr) {
             TAG_LOGE(AAFwkTag::CLI_TOOL,
-                "RegisterSubscriber failed: scheduler not found for pid %{public}d, sessionId=%{public}s, "
-                "subscriptionId=%{public}s", callerPid, sessionId.c_str(), subscriptionId.c_str());
+                "RegisterSubscriber failed: scheduler not found for pid %{public}d, uid %{public}d, "
+                "sessionId=%{public}s, subscriptionId=%{public}s",
+                callerPid, callerUid, sessionId.c_str(), subscriptionId.c_str());
             return false;
         }
         auto &subscribers = sessionSubscribers_[sessionId];
-        SubscriberKey key {callerPid, subscriptionId};
+        SubscriberKey key {callerPid, callerUid, subscriptionId};
         subscribers[key] = SubscriberState {key, schedulerIt->second.scheduler};
     }
     return true;
 }
 
 bool EventDispatcher::UnregisterSubscriber(const std::string &sessionId,
-    const std::string &subscriptionId, int32_t callerPid)
+    const std::string &subscriptionId, int32_t callerPid, int32_t callerUid)
 {
-    if (sessionId.empty() || subscriptionId.empty() || callerPid <= 0) {
+    if (sessionId.empty() || subscriptionId.empty() || callerPid <= 0 || callerUid < 0) {
         TAG_LOGE(AAFwkTag::CLI_TOOL,
             "UnregisterSubscriber failed: invalid args sessionId=%{public}s, subscriptionId=%{public}s, "
-            "callerPid=%{public}d", sessionId.c_str(), subscriptionId.c_str(), callerPid);
+            "callerPid=%{public}d, callerUid=%{public}d", sessionId.c_str(), subscriptionId.c_str(),
+            callerPid, callerUid);
         return false;
     }
 
@@ -162,7 +189,7 @@ bool EventDispatcher::UnregisterSubscriber(const std::string &sessionId,
         return true;
     }
 
-    sessionIt->second.erase(SubscriberKey {callerPid, subscriptionId});
+    sessionIt->second.erase(SubscriberKey {callerPid, callerUid, subscriptionId});
     if (sessionIt->second.empty()) {
         sessionSubscribers_.erase(sessionIt);
     }
@@ -195,16 +222,17 @@ void EventDispatcher::DispatchExitEvent(const std::string &sessionId, int32_t ex
     DispatchEvent(sessionId, event);
 }
 
-bool EventDispatcher::DispatchInputReplyEvent(int32_t callerPid, const std::string &eventId, int32_t result)
+bool EventDispatcher::DispatchInputReplyEvent(int32_t callerPid, int32_t callerUid,
+    const std::string &eventId, int32_t result)
 {
     sptr<ICliToolManagerScheduler> scheduler;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto schedulerIt = schedulers_.find(callerPid);
+        auto schedulerIt = schedulers_.find(SchedulerKey {callerPid, callerUid});
         if (schedulerIt == schedulers_.end() || schedulerIt->second.scheduler == nullptr) {
             TAG_LOGE(AAFwkTag::CLI_TOOL,
-                "DispatchInputReplyEvent failed: scheduler not found for pid %{public}d, eventId=%{public}s",
-                callerPid, eventId.c_str());
+                "DispatchInputReplyEvent failed: scheduler not found for pid %{public}d, uid %{public}d, "
+                "eventId=%{public}s", callerPid, callerUid, eventId.c_str());
             return false;
         }
         scheduler = schedulerIt->second.scheduler;
@@ -213,17 +241,17 @@ bool EventDispatcher::DispatchInputReplyEvent(int32_t callerPid, const std::stri
     return (scheduler->SchedulerInputReplyEvent(eventId, result) == ERR_OK);
 }
 
-bool EventDispatcher::DispatchExecToolReplyEvent(int32_t callerPid, const std::string &eventId,
+bool EventDispatcher::DispatchExecToolReplyEvent(int32_t callerPid, int32_t callerUid, const std::string &eventId,
     int32_t result, const CliSessionInfo &session)
 {
     sptr<ICliToolManagerScheduler> scheduler;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        auto schedulerIt = schedulers_.find(callerPid);
+        auto schedulerIt = schedulers_.find(SchedulerKey {callerPid, callerUid});
         if (schedulerIt == schedulers_.end() || schedulerIt->second.scheduler == nullptr) {
             TAG_LOGE(AAFwkTag::CLI_TOOL,
-                "DispatchExecToolReplyEvent failed: scheduler not found for pid %{public}d, eventId=%{public}s",
-                callerPid, eventId.c_str());
+                "DispatchExecToolReplyEvent failed: scheduler not found for pid %{public}d, uid %{public}d, "
+                "eventId=%{public}s", callerPid, callerUid, eventId.c_str());
             return false;
         }
         scheduler = schedulerIt->second.scheduler;
@@ -243,8 +271,8 @@ void EventDispatcher::ClearAll()
     std::vector<std::pair<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>>> cleanupList;
     {
         std::lock_guard<std::mutex> lock(mutex_);
-        for (auto &[pid, schedulerState] : schedulers_) {
-            cleanupList.emplace_back(schedulerState.remote, schedulerState.deathRecipient);
+        for (const auto &schedulerItem : schedulers_) {
+            cleanupList.emplace_back(schedulerItem.second.remote, schedulerItem.second.deathRecipient);
         }
         schedulers_.clear();
         sessionSubscribers_.clear();
@@ -278,8 +306,9 @@ void EventDispatcher::DispatchEvent(const std::string &sessionId, const CliToolE
         if (subscriber.scheduler == nullptr ||
             subscriber.scheduler->SchedulerSessionEvent(sessionId, subscriber.key.subscriptionId, event) != ERR_OK) {
             TAG_LOGW(AAFwkTag::CLI_TOOL,
-                "DispatchEvent failed for pid %{public}d, sessionId='%{public}s', subscriptionId='%{public}s', "
-                "eventType='%{public}s'", subscriber.key.callerPid, sessionId.c_str(),
+                "DispatchEvent failed for pid %{public}d, uid %{public}d, sessionId='%{public}s', "
+                "subscriptionId='%{public}s', eventType='%{public}s'",
+                subscriber.key.callerPid, subscriber.key.callerUid, sessionId.c_str(),
                 subscriber.key.subscriptionId.c_str(), event.type.c_str());
             failedSubscribers.push_back(subscriber.key);
         }
@@ -299,12 +328,12 @@ void EventDispatcher::DispatchEvent(const std::string &sessionId, const CliToolE
     }
 }
 
-void EventDispatcher::RemoveSubscribersForPidLocked(int32_t callerPid)
+void EventDispatcher::RemoveSubscribersForCallerLocked(const SchedulerKey &caller)
 {
     for (auto sessionIt = sessionSubscribers_.begin(); sessionIt != sessionSubscribers_.end();) {
         auto &subscribers = sessionIt->second;
         for (auto it = subscribers.begin(); it != subscribers.end();) {
-            if (it->first.callerPid == callerPid) {
+            if (it->first.callerPid == caller.callerPid && it->first.callerUid == caller.callerUid) {
                 it = subscribers.erase(it);
             } else {
                 ++it;
