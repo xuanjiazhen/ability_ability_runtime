@@ -46,6 +46,7 @@ public:
 
     void AddLifecycleEvent(sptr<IRemoteObject> token, const std::string &entry);
     bool AppendLifecycleEvent(sptr<IRemoteObject> token, const std::string &entry);
+    bool isFrozen(pid_t pid);
     std::string GetLifecycleEvent(sptr<IRemoteObject> token);
     void DeleteLifecycleEvent(sptr<IRemoteObject> token);
 

@@ -47,6 +47,7 @@ class AppfreezeManager : public std::enable_shared_from_this<AppfreezeManager> {
 public:
     struct AppInfo {
         bool isOccurException = false;
+        bool isFrozen;
         int pid;
         int uid;
         std::string bundleName;

@@ -138,6 +138,8 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_003, TestSize.Level1)
     FaultData faultData;
     faultData.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
     AppfreezeManager::AppInfo appInfo = {
+        .isOccurException = false,
+        .isFrozen = false,
         .pid = 1,
         .uid = 1,
         .bundleName = "AppfreezeManagerTest_003",
@@ -349,6 +351,8 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetHitraceInfo_001, TestSize
     FaultData faultData;
     faultData.errorObject.name = AppFreezeType::THREAD_BLOCK_6S;
     AppfreezeManager::AppInfo appInfo = {
+        .isOccurException = false,
+        .isFrozen = false,
         .pid = getpid(),
         .uid = getuid(),
         .bundleName = "AppfreezeManagerTest_GetHitraceInfo_001",
@@ -373,6 +377,8 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_InitWarningCpuDetailInfo_001
     int pid = getpid();
     int uid = getuid();
     AppfreezeManager::AppInfo appInfo = {
+        .isOccurException = false,
+        .isFrozen = false,
         .pid = pid,
         .uid = uid,
         .bundleName = bundleName,
@@ -412,6 +418,8 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_GetAppfreezeInfoPath_001, Te
     std::string bundleName = "AppfreezeManagerTest";
     faultData.errorObject.name = AppFreezeType::APP_INPUT_BLOCK;
     AppfreezeManager::AppInfo appInfo = {
+        .isOccurException = false,
+        .isFrozen = false,
         .pid = getpid(),
         .uid = getuid(),
         .bundleName = bundleName,
