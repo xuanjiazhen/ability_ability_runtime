@@ -759,9 +759,6 @@ enum class AbilityManagerInterfaceCode {
     // start self uiability with start options and caller token
     START_SELF_UI_ABILITY_WITH_OPTIONS_AND_TOKEN = 6168,
 
-    // start self uiability by application context in current process
-    START_SELF_UI_ABILITY_BY_APP_CONTEXT = 6169,
-
     // execute skill done with token for identity verification
     EXECUTE_SKILL_DONE_WITH_TOKEN = 6172,
 
@@ -770,6 +767,9 @@ enum class AbilityManagerInterfaceCode {
 
     // start self uiability in child process
     START_SELF_UI_ABILITY_IN_CHILD_PROCESS = 6174,
+
+    // start self uiability by application context in current process
+    START_SELF_UI_ABILITY_BY_APP_CONTEXT = 6175,
 };
 }  // namespace AAFwk
 }  // namespace OHOS
