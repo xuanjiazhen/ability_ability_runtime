@@ -83,6 +83,9 @@ bool Mission::IsStandardAbility() const
 void Mission::SetSpecifiedFlag(const std::string &flag)
 {
     specifiedFlag_ = flag;
+    lifeCycleStateInfo_.launchParam.specifiedId = flag;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetSpecifiedFlag and sync to launchParam: %{public}s",
+        flag.c_str());
 }
 
 std::string Mission::GetSpecifiedFlag() const

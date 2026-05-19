@@ -2325,6 +2325,18 @@ void AbilityRecord::SetLaunchReason(const LaunchReason &reason)
         return;
     }
     lifeCycleStateInfo_.launchParam.launchReason = reason;
+
+    // Sync specifiedFlag to launchParam.specifiedId
+    if (!specifiedFlag_.empty()) {
+        lifeCycleStateInfo_.launchParam.specifiedId = specifiedFlag_;
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "SetLaunchReason: ability=%{public}s, reason=%{public}d, "
+            "sync specifiedFlag to launchParam.specifiedId=%{public}s",
+            abilityInfo_.name.c_str(), reason, specifiedFlag_.c_str());
+    } else {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "SetLaunchReason: ability=%{public}s, reason=%{public}d, "
+            "specifiedFlag is empty, launchParam.specifiedId not updated",
+            abilityInfo_.name.c_str(), reason);
+    }
 }
 
 void AbilityRecord::SetLaunchReasonMessage(const std::string &launchReasonMessage)
@@ -2492,6 +2504,12 @@ int32_t AbilityRecord::GetMissionId() const
 void AbilityRecord::SetSpecifiedFlag(const std::string &flag)
 {
     specifiedFlag_ = flag;
+
+    // Sync to launchParam.specifiedId for IPC transfer
+    lifeCycleStateInfo_.launchParam.specifiedId = flag;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetSpecifiedFlag: ability=%{public}s, flag=%{public}s, "
+        "launchParam.specifiedId updated, will be transferred to app via IPC",
+        abilityInfo_.name.c_str(), flag.c_str());
 }
 
 std::string AbilityRecord::GetSpecifiedFlag() const

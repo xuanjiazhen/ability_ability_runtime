@@ -521,9 +521,22 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
 
     napi_set_named_property(env, obj, "launchWant", jsWant);
     napi_set_named_property(env, obj, "lastRequestWant", jsWant);
-    if (sessionInfo != nullptr && abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
-        napi_set_named_property(env, obj, "specifiedId", CreateJsValue(env, sessionInfo->specifiedFlag));
+
+    // Get specifiedId from launchParam
+    if (abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
+        auto launchParam = GetLaunchParam();
+        if (!launchParam.specifiedId.empty()) {
+            napi_set_named_property(env, obj, "specifiedId", CreateJsValue(env, launchParam.specifiedId));
+            TAG_LOGI(AAFwkTag::UIABILITY, "OnStart: ability=%{public}s, launchMode=SPECIFIED, "
+                "specifiedId from launchParam=%{public}s, set to onCreate param",
+                abilityInfo_->name.c_str(), launchParam.specifiedId.c_str());
+        } else {
+            TAG_LOGW(AAFwkTag::UIABILITY, "OnStart: ability=%{public}s, launchMode=SPECIFIED, "
+                "but specifiedId is empty in launchParam, may be cold start waiting for onAcceptWant",
+                abilityInfo_->name.c_str());
+        }
     }
+
     auto launchParam = GetLaunchParam();
     if (InsightIntentExecuteParam::IsInsightIntentExecute(want)) {
         launchParam.launchReason = AAFwk::LaunchReason::LAUNCHREASON_INSIGHT_INTENT;

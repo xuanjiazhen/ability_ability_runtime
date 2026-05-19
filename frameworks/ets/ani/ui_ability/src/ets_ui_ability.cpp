@@ -646,11 +646,23 @@ void EtsUIAbility::SetSelfSpecifiedId(ani_env *env, sptr<AAFwk::SessionInfo> ses
         return;
     }
     ani_status status = ANI_ERROR;
-    if (sessionInfo != nullptr && abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
-        if ((status = env->Object_SetFieldByName_Ref(etsAbilityObj_->aniObj,
-            "specifiedId", AppExecFwk::GetAniString(env, sessionInfo->specifiedFlag))) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::UIABILITY, "specifiedId Object_SetFieldByName_Ref status: %{public}d", status);
-            return;
+
+    // Get specifiedId from launchParam
+    if (abilityInfo_->launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
+        auto launchParam = GetLaunchParam();
+        if (!launchParam.specifiedId.empty()) {
+            if ((status = env->Object_SetFieldByName_Ref(etsAbilityObj_->aniObj,
+                "specifiedId", AppExecFwk::GetAniString(env, launchParam.specifiedId))) != ANI_OK) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "OnStart ANI: specifiedId Object_SetFieldByName_Ref failed, status=%{public}d", status);
+                return;
+            }
+            TAG_LOGI(AAFwkTag::UIABILITY, "OnStart ANI: ability=%{public}s, launchMode=SPECIFIED, "
+                "specifiedId from launchParam=%{public}s, set to onCreate param",
+                abilityInfo_->name.c_str(), launchParam.specifiedId.c_str());
+        } else {
+            TAG_LOGW(AAFwkTag::UIABILITY, "OnStart ANI: ability=%{public}s, launchMode=SPECIFIED, "
+                "but specifiedId is empty in launchParam, may be cold start waiting for onAcceptWant",
+                abilityInfo_->name.c_str());
         }
     }
 }

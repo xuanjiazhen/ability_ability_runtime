@@ -327,11 +327,16 @@ int UIAbilityLifecycleManager::StartUIAbility(AbilityRequest &abilityRequest, sp
         options.selfPid = sessionInfo->processOptions->selfPid;
     }
     uiAbilityRecord->ProcessForegroundAbility(callerTokenId, options);
+
+    // Set specifiedFlag for hot start or when specifiedFlag is not yet set
+    // This ensures launchParam.specifiedId is populated for subsequent lifecycle calls
     if (uiAbilityRecord->GetSpecifiedFlag().empty() && !sessionInfo->specifiedFlag.empty()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "update specified: %{public}d--%{public}s", sessionInfo->requestId,
-            sessionInfo->specifiedFlag.c_str());
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Set specifiedFlag after ProcessForegroundAbility: "
+            "requestId=%{public}d, specifiedFlag=%{public}s, will update launchParam.specifiedId",
+            sessionInfo->requestId, sessionInfo->specifiedFlag.c_str());
         uiAbilityRecord->SetSpecifiedFlag(sessionInfo->specifiedFlag);
     }
+
     SendKeyEvent(abilityRequest);
     return ERR_OK;
 }
