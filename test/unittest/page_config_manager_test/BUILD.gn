@@ -18,8 +18,10 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 ohos_unittest("page_config_manager_test") {
   module_out_path = "ability_runtime/ability_runtime/abilitymgr"
 
-  include_dirs =
-      [ "${ability_runtime_innerkits_path}/page_config_manager/include" ]
+  include_dirs = [
+    "${ability_runtime_innerkits_path}/page_config_manager/include",
+    "${ability_runtime_path}/interfaces/kits/native/appkit/ability_runtime/context",
+  ]
   sources = [
     "${ability_runtime_innerkits_path}/page_config_manager/src/page_config_manager.cpp",
     "page_config_manager_test.cpp",
@@ -27,9 +29,14 @@ ohos_unittest("page_config_manager_test") {
 
   configs = [ "${ability_runtime_services_path}/common:common_config" ]
 
+  deps = [
+    "${ability_runtime_native_path}/appkit:app_context",
+  ]
+
   external_deps = [
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
+    "compatibility_config_center:compconfigclient",
     "faultloggerd:libdfx_dumpcatcher",
     "faultloggerd:libfaultloggerd",
     "ffrt:libffrt",
