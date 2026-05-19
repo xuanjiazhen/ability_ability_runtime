@@ -16,6 +16,7 @@
 #include "mission.h"
 
 #include "mission_list.h"
+#include "hilog_tag_wrapper.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -83,6 +84,8 @@ bool Mission::IsStandardAbility() const
 void Mission::SetSpecifiedFlag(const std::string &flag)
 {
     specifiedFlag_ = flag;
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Set specifiedFlag for Mission: %{public}s",
+        flag.c_str());
 }
 
 std::string Mission::GetSpecifiedFlag() const
