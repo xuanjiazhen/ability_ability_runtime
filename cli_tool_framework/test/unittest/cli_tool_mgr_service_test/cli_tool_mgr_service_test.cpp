@@ -239,7 +239,7 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0100, TestSize.Level1)
     auto runningRecord = std::make_shared<SessionRecord>();
     runningRecord->sessionId = "running_session";
     service_->AddSessionRecord(runningRecord);
-    int32_t runningRet = service_->SubscribeSession(runningRecord->sessionId, "running_subscription");
+    int32_t runningRet = service_->SubscribeSession(runningRecord->sessionId, "running_subscription", nullptr);
     EXPECT_TRUE(runningRet == ERR_NO_INIT || runningRet == ERR_NOT_SYSTEM_APP || runningRet == ERR_PERMISSION_DENIED);
     if (runningRet != ERR_NO_INIT) {
         GTEST_LOG_(INFO) << "CliToolManagerService_SubscribeSession_0100 skipped status gate checks";
@@ -252,7 +252,7 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0100, TestSize.Level1)
     completedRecord->MarkStdoutClosed();
     completedRecord->MarkStderrClosed();
     service_->AddSessionRecord(completedRecord);
-    EXPECT_EQ(service_->SubscribeSession(completedRecord->sessionId, "completed_subscription"),
+    EXPECT_EQ(service_->SubscribeSession(completedRecord->sessionId, "completed_subscription", nullptr),
         ERR_CLI_SESSION_NOT_FOUND);
 
     auto failedRecord = std::make_shared<SessionRecord>();
@@ -261,7 +261,8 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0100, TestSize.Level1)
     failedRecord->MarkStdoutClosed();
     failedRecord->MarkStderrClosed();
     service_->AddSessionRecord(failedRecord);
-    EXPECT_EQ(service_->SubscribeSession(failedRecord->sessionId, "failed_subscription"), ERR_CLI_SESSION_NOT_FOUND);
+    EXPECT_EQ(service_->SubscribeSession(failedRecord->sessionId, "failed_subscription", nullptr),
+        ERR_CLI_SESSION_NOT_FOUND);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_SubscribeSession_0100 end";
 }
@@ -719,7 +720,7 @@ HWTEST_F(CliToolManagerServiceTest, HandleSkillSessionComplete_0100, TestSize.Le
 
     CliSessionInfo session;
     session.sessionId = "missing_skill_session";
-    service_->HandleSkillSessionComplete("missing_skill_session", 0, "event", ERR_OK, session);
+    service_->HandleSkillSessionComplete("missing_skill_session", 0, 0, "event", ERR_OK, session);
 
     auto record = std::make_shared<SessionRecord>();
     record->sessionId = "skill_complete_session";
@@ -729,10 +730,10 @@ HWTEST_F(CliToolManagerServiceTest, HandleSkillSessionComplete_0100, TestSize.Le
     service_->AddSessionRecord(record);
     session.sessionId = record->sessionId;
 
-    service_->HandleSkillSessionComplete(record->sessionId, 0, record->eventId, ERR_OK, session);
+    service_->HandleSkillSessionComplete(record->sessionId, 0, 0, record->eventId, ERR_OK, session);
 
     EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
-    service_->HandleSkillSessionComplete(record->sessionId, 0, record->eventId, ERR_OK, session);
+    service_->HandleSkillSessionComplete(record->sessionId, 0, 0, record->eventId, ERR_OK, session);
     EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_HandleSkillSessionComplete_0100 end";
@@ -762,34 +763,6 @@ HWTEST_F(CliToolManagerServiceTest, WaitPid_0100, TestSize.Level1)
     EXPECT_EQ(service_->GetSessionRecord(record->sessionId), nullptr);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_WaitPid_0100 end";
-}
-
-/**
- * @tc.name: CliToolManagerService_RegisterScheduler_0100
- * @tc.desc: Test RegisterScheduler with null and valid scheduler
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, RegisterScheduler_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterScheduler_0100 start";
-
-    EXPECT_NE(service_->RegisterScheduler(nullptr), ERR_OK);
-
-    GTEST_LOG_(INFO) << "CliToolManagerService_RegisterScheduler_0100 end";
-}
-
-/**
- * @tc.name: CliToolManagerService_UnregisterScheduler_0100
- * @tc.desc: Test UnregisterScheduler clears scheduler
- * @tc.type: FUNC
- */
-HWTEST_F(CliToolManagerServiceTest, UnregisterScheduler_0100, TestSize.Level1)
-{
-    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterScheduler_0100 start";
-
-    service_->UnregisterScheduler();
-
-    GTEST_LOG_(INFO) << "CliToolManagerService_UnregisterScheduler_0100 end";
 }
 
 /**
@@ -842,14 +815,14 @@ HWTEST_F(CliToolManagerServiceTest, SubscribeSession_0200, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "CliToolManagerService_SubscribeSession_0200 start";
 
-    int32_t result = service_->SubscribeSession("", "sub1");
+    int32_t result = service_->SubscribeSession("", "sub1", nullptr);
     EXPECT_TRUE(result == ERR_INVALID_PARAM || IsPermissionGateResult(result));
     if (IsPermissionGateResult(result)) {
         GTEST_LOG_(INFO) << "CliToolManagerService_SubscribeSession_0200 skipped argument/session gate checks";
         return;
     }
-    EXPECT_EQ(service_->SubscribeSession("session", ""), ERR_INVALID_PARAM);
-    EXPECT_EQ(service_->SubscribeSession("missing", "sub1"), ERR_CLI_SESSION_NOT_FOUND);
+    EXPECT_EQ(service_->SubscribeSession("session", "", nullptr), ERR_INVALID_PARAM);
+    EXPECT_EQ(service_->SubscribeSession("missing", "sub1", nullptr), ERR_CLI_SESSION_NOT_FOUND);
 
     GTEST_LOG_(INFO) << "CliToolManagerService_SubscribeSession_0200 end";
 }
@@ -893,7 +866,7 @@ HWTEST_F(CliToolManagerServiceTest, RegisterTool_0100, TestSize.Level1)
 
 /**
  * @tc.name: CliToolManagerService_ExecTool_0600
- * @tc.desc: Test ExecTool with nonexistent tool name
+ * @tc.desc: Test ExecTool rejects missing scheduler after permission gate
  * @tc.type: FUNC
  */
 HWTEST_F(CliToolManagerServiceTest, ExecTool_0600, TestSize.Level1)
@@ -904,8 +877,8 @@ HWTEST_F(CliToolManagerServiceTest, ExecTool_0600, TestSize.Level1)
     param.toolName = "ohos-nonexistent_tool";
     param.options.timeout = 30;
     CliSessionInfo session;
-    int32_t result = service_->ExecTool(param, "event_exec_0600");
-    EXPECT_TRUE(result == ERR_TOOL_NOT_EXIST || IsPermissionGateResult(result));
+    int32_t result = service_->ExecTool(param, "event_exec_0600", nullptr);
+    EXPECT_TRUE(result == ERR_NO_INIT || IsPermissionGateResult(result));
 
     GTEST_LOG_(INFO) << "CliToolManagerService_ExecTool_0600 end";
 }
