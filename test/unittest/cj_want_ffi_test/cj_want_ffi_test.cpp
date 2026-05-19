@@ -337,6 +337,44 @@ HWTEST_F(CjWantFfiTest, CjWantFfiTestFFICJWantGetWantInfoV2_0100, TestSize.Level
 }
 
 /**
+ * @tc.name: CjWantFfiTestFFICJWantV2_NullptrAndEdgeCases_0100
+ * @tc.desc: CjWantFfiTest test for V2 nullptr and edge case handling.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjWantFfiTest, CjWantFfiTestFFICJWantV2_NullptrAndEdgeCases_0100, TestSize.Level1)
+{
+    // Test nullptr handling for delete function
+    FFICJWantParamsDeleteV2(nullptr);
+
+    // Test nullptr handling for get info function
+    CJWantParamsV2* paramsResult = FFICJWantGetWantInfoV2(nullptr);
+    EXPECT_EQ(paramsResult, nullptr);
+
+    // Test FFICJWantCreateWithWantInfoV2 with valid elementName
+    ElementName element("device001", "com.example.bundle", "AbilityA", "module1");
+    CJWantParamsV2 params;
+    params.elementName = &element;
+    params.flags = 0x100;
+    params.uri = "tel:12345678";
+    params.action = "ohos.action.VIEW";
+    params.wantType = "application/vnd.example.data";
+    params.parameters = "{key:value}";
+    params.fds.head = nullptr;
+    params.fds.size = 0;
+
+    WantHandle want = FFICJWantCreateWithWantInfoV2(params);
+    EXPECT_NE(want, nullptr);
+
+    // Verify the created want has correct properties
+    CJWantParamsV2* result = FFICJWantGetWantInfoV2(want);
+    EXPECT_NE(result, nullptr);
+    EXPECT_NE(result->elementName, nullptr);
+
+    FFICJWantParamsDeleteV2(result);
+    FFICJWantDelete(want);
+}
+
+/**
  * @tc.name: CjWantFfiTestFFICJWantGetWantInfoV2_0200
  * @tc.desc: CjWantFfiTest test for FFICJWantGetWantInfoV2 with fds.
  * @tc.type: FUNC

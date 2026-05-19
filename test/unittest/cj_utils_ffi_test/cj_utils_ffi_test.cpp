@@ -16,11 +16,17 @@
 #include <gtest/gtest.h>
 
 #include "cj_utils_ffi.h"
+#include "cj_macro.h"
 
 #include "securec.h"
 #include "configuration.h"
 #include "global_configuration_key.h"
 #include <cstdlib>
+
+extern "C" {
+CJ_EXPORT OHOS::AbilityRuntime::CConfigurationV2 OHOS_ConvertConfigurationV2(void* param);
+CJ_EXPORT void OHOS_FreeConfigurationV2(OHOS::AbilityRuntime::CConfigurationV2 configuration);
+}
 
 using namespace testing;
 using namespace testing::ext;
@@ -109,6 +115,27 @@ HWTEST_F(CjUtilsFfiTest, CjUtilsFfiTestCreateCConfigurationV2_0100, TestSize.Lev
     EXPECT_TRUE(cfg.locale != nullptr);
 
     OHOS::AbilityRuntime::FreeCConfigurationV2(cfg);
+}
+
+/**
+ * @tc.name: CjUtilsFfiTestOHOSConvertAndFreeConfigurationV2_0100
+ * @tc.desc: CjUtilsFfiTest test for OHOS_ConvertConfigurationV2 and OHOS_FreeConfigurationV2.
+ * @tc.type: FUNC
+ */
+HWTEST_F(CjUtilsFfiTest, CjUtilsFfiTestOHOSConvertAndFreeConfigurationV2_0100, TestSize.Level1)
+{
+    OHOS::AppExecFwk::Configuration configuration;
+    configuration.AddItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_LANGUAGE, "en_US");
+    configuration.AddItem(OHOS::AAFwk::GlobalConfigurationKey::SYSTEM_MCC, "460");
+
+    OHOS::AbilityRuntime::CConfigurationV2 cfg = OHOS_ConvertConfigurationV2(&configuration);
+    EXPECT_TRUE(cfg.language != nullptr);
+    EXPECT_TRUE(cfg.mcc != nullptr);
+
+    OHOS_FreeConfigurationV2(cfg);
+
+    OHOS::AbilityRuntime::CConfigurationV2 nullCfg = OHOS_ConvertConfigurationV2(nullptr);
+    EXPECT_TRUE(nullCfg.language == nullptr);
 }
 
 /**
