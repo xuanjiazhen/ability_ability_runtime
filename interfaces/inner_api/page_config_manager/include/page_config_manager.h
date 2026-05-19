@@ -41,9 +41,12 @@ private:
 
     void LoadPageConfigSo();
 
+    bool GetConfig(const std::string& bundleName, std::string& configJson);
+
     mutable std::mutex g_pageConfigMutex;
     void* pageConfigSo_ = nullptr;
     bool isInitialized_ = false;
+    std::string configJson_;
 };
 } // namespace AbilityRuntime
 
