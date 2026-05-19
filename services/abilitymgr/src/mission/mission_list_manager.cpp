@@ -664,6 +664,12 @@ void MissionListManager::GetTargetMissionAndAbility(const AbilityRequest &abilit
         if (abilityRequest.abilityInfo.launchMode == AppExecFwk::LaunchMode::SPECIFIED) {
             targetMission->SetSpecifiedFlag(abilityRequest.specifiedFlag);
             targetRecord->SetSpecifiedFlag(abilityRequest.specifiedFlag);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "GetTargetMissionAndAbility: ability=%{public}s/%{public}s, "
+                "specifiedFlag=%{public}s, set to both Mission and MissionAbilityRecord, "
+                "launchParam.specifiedId will be populated",
+                abilityRequest.abilityInfo.bundleName.c_str(),
+                abilityRequest.abilityInfo.name.c_str(),
+                abilityRequest.specifiedFlag.c_str());
         }
     }
 

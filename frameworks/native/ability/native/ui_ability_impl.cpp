@@ -72,7 +72,7 @@ void UIAbilityImpl::Start(const AAFwk::Want &want, sptr<AAFwk::SessionInfo> sess
 #ifdef SUPPORT_GRAPHICS
     ability_->HandleCreateAsRecovery(want);
 #endif
-    ability_->OnStart(want, sessionInfo);
+    ability_->OnStart(want, sessionInfo);/////
 
 #ifdef SUPPORT_GRAPHICS
     lifecycleState_ = AAFwk::ABILITY_STATE_STARTED_NEW;
@@ -204,7 +204,7 @@ void UIAbilityImpl::HandleAbilityTransaction(
         ability_->SetLaunchParam(targetState.launchParam);
         if (lifecycleState_ == AAFwk::ABILITY_STATE_INITIAL) {
             ability_->SetStartAbilitySetting(targetState.setting);
-            Start(want, sessionInfo);
+            Start(want, sessionInfo);//////
             CheckAndRestore();
         }
     }
