@@ -126,19 +126,24 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
         std::string clawSandbox = "/system/bin/claw_sandbox";
         std::string configPrompt = "--config";
         std::string cmdPrompt = "--cmd";
-        std::vector<char*> execArgs;
-        execArgs.push_back(const_cast<char *>(clawSandbox.c_str()));
-        execArgs.push_back(const_cast<char *>(configPrompt.c_str()));
-        execArgs.push_back(const_cast<char *>(sandboxConfig.c_str()));
-        execArgs.push_back(const_cast<char *>(cmdPrompt.c_str()));
-        std::string cmdLine = toolInfo.executablePath;
+
+        // Use CmdArgsBuffer to manage string lifetime safely
+        CmdArgsBuffer execArgs;
+
+        // Add initial arguments
+        execArgs.AddArg(clawSandbox);
+        execArgs.AddArg(configPrompt);
+        execArgs.AddArg(sandboxConfig);
+        execArgs.AddArg(cmdPrompt);
+        execArgs.AddArg(toolInfo.executablePath);
+
         if (!param.subcommand.empty()) {
-            cmdLine += " " + param.subcommand;
+            execArgs.AddArg(param.subcommand);
         }
-        ToolUtil::TransferToCmdParam(toolInfo, param.args, cmdLine);
-        execArgs.push_back(const_cast<char *>(cmdLine.c_str()));
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "cmd: %{public}s", cmdLine.c_str());
-        execArgs.push_back(nullptr);
+
+        // Transfer WantParams to command line arguments
+        ToolUtil::TransferToCmdParam(param.args, execArgs);
+
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Before execvp");
         execvp(execArgs[0], execArgs.data());
         TAG_LOGE(AAFwkTag::CLI_TOOL, "execvp failed:%{public}d", errno);

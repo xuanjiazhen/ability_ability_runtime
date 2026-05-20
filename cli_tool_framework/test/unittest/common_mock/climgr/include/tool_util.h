@@ -9,9 +9,11 @@
 #include <access_token.h>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "cli_session_info.h"
 #include "want_params.h"
+#include "cmd_args_buffer.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -29,7 +31,7 @@ public:
     static std::string GenerateCliSessionId(const std::string &name, std::shared_ptr<SessionRecord> record);
     static bool GenerateSandboxConfig(const ExecToolParam &param, Security::AccessToken::AccessTokenID tokenId,
         std::string &sandboxConfig, std::string &bundleName);
-    static void TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantParams &args, std::string &cmdLine);
+    static void TransferToCmdParam(const AAFwk::WantParams &args, CmdArgsBuffer &execArgs);
     static bool IsSkillTool(const std::string &toolName);
     static void NormalizeSkillParamKeys(AAFwk::WantParams &args);
     static void ExpandArgsJsonString(AAFwk::WantParams &args);

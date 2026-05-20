@@ -25,6 +25,7 @@
 #include <functional>
 
 #include "cli_session_info.h"
+#include "cmd_args_buffer.h"
 
 namespace OHOS {
 namespace AAFwk {
@@ -53,7 +54,15 @@ public:
     static bool GenerateSandboxConfig(const ExecToolParam &param, AccessToken::AccessTokenID tokenId,
         std::string &sandboxConfig, std::string &bundleName);
 
-    static void TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantParams &args, std::string &cmdLine);
+    /**
+     * @brief Transfer WantParams to CmdArgsBuffer for command line execution
+     * @param args The input parameters
+     * @param execArgs The buffer to store the command line arguments
+     *
+     * This function converts WantParams to command line arguments and stores
+     * them in the CmdArgsBuffer, which manages the string lifetime.
+     */
+    static void TransferToCmdParam(const AAFwk::WantParams &args, CmdArgsBuffer &execArgs);
 
     static bool IsSkillTool(const std::string &toolName);
     static void NormalizeSkillParamKeys(AAFwk::WantParams &args);
@@ -87,9 +96,9 @@ private:
 
     // Helper methods for mode processing (extracted to reduce nesting depth)
     static void ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IInterface> &value,
-        std::string &cmdLine);
+        CmdArgsBuffer &execArgs);
     static void ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::IInterface> &value,
-        std::string &cmdLine);
+        CmdArgsBuffer &execArgs);
 
     // Type conversion helpers
     // GetParamStringValue: only supports basic types (bool, int, long, float, double, string)

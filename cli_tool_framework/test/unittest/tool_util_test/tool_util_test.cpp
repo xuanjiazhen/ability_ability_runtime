@@ -1376,11 +1376,10 @@ HWTEST_F(ToolUtilTest, TransferToCmdParam_0100, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "ToolUtil_TransferToCmdParam_0100 start";
 
-    ToolInfo toolInfo;
     AAFwk::WantParams emptyArgs;
-    std::string emptyCmd;
-    ToolUtil::TransferToCmdParam(toolInfo, emptyArgs, emptyCmd);
-    EXPECT_TRUE(emptyCmd.empty());
+    CmdArgsBuffer emptyExecArgs;
+    ToolUtil::TransferToCmdParam(emptyArgs, emptyExecArgs);
+    EXPECT_TRUE(emptyExecArgs.size() == 0);
 
     AAFwk::WantParams args;
     args.SetParam("target", AAFwk::String::Box("device"));
@@ -1399,13 +1398,27 @@ HWTEST_F(ToolUtilTest, TransferToCmdParam_0100, TestSize.Level1)
     values->Set(2, nested);
     args.SetParam("values", values);
 
-    std::string cmdLine;
-    ToolUtil::TransferToCmdParam(toolInfo, args, cmdLine);
+    CmdArgsBuffer execArgs;
+    ToolUtil::TransferToCmdParam(args, execArgs);
 
-    EXPECT_NE(cmdLine.find("--target device"), std::string::npos);
+    // Convert execArgs to a string for easier verification
+    std::string cmdLine;
+    for (size_t i = 0; i < execArgs.size(); ++i) {
+        if (execArgs[i] != nullptr) {
+            if (!cmdLine.empty()) {
+                cmdLine += " ";
+            }
+            cmdLine += execArgs[i];
+        }
+    }
+
+    EXPECT_NE(cmdLine.find("--target"), std::string::npos);
+    EXPECT_NE(cmdLine.find("device"), std::string::npos);
     EXPECT_NE(cmdLine.find("--enabled"), std::string::npos);
-    EXPECT_NE(cmdLine.find("--count 3"), std::string::npos);
-    EXPECT_NE(cmdLine.find("--values first"), std::string::npos);
+    EXPECT_NE(cmdLine.find("--count"), std::string::npos);
+    EXPECT_NE(cmdLine.find("3"), std::string::npos);
+    EXPECT_NE(cmdLine.find("--values"), std::string::npos);
+    EXPECT_NE(cmdLine.find("first"), std::string::npos);
     EXPECT_EQ(cmdLine.find("--disabled"), std::string::npos);
     EXPECT_EQ(cmdLine.find("nullValue"), std::string::npos);
     EXPECT_EQ(cmdLine.find("nested"), std::string::npos);

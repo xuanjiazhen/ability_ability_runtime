@@ -223,40 +223,44 @@ bool ToolUtil::GetBundleInfoByTokenId(AccessToken::AccessTokenID tokenId, AppExe
     return true;
 }
 
-void ToolUtil::TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantParams &args, std::string &cmdLine)
+void ToolUtil::TransferToCmdParam(const AAFwk::WantParams &args, CmdArgsBuffer &execArgs)
 {
     if (args.IsEmpty()) {
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Not has arg");
         return;
     }
+
+    execArgs.reserve(execArgs.size() + args.GetParams().size() * 2);
+
     for (const auto &[key, value] : args.GetParams()) {
         if (value == nullptr) {
             continue;
         }
 
         if (key == "help") {
-            ProcessBooleanParam(key, value, cmdLine);
+            ProcessBooleanParam(key, value, execArgs);
             continue;
         }
 
         if (IsBooleanType(value)) {
-            ProcessBooleanParam(key, value, cmdLine);
+            ProcessBooleanParam(key, value, execArgs);
             continue;
         }
 
         if (IsArrayType(value)) {
-            ProcessArrayExpansion(key, value, cmdLine);
+            ProcessArrayExpansion(key, value, execArgs);
             continue;
         }
 
         std::string strValue = GetParamStringValue(value);
         if (!strValue.empty()) {
-            cmdLine += " --" + key + " " + strValue;
+            execArgs.AddParam(key, strValue);
         }
     }
 }
 
-void ToolUtil::ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IInterface> &value, std::string &cmdLine)
+void ToolUtil::ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IInterface> &value,
+    CmdArgsBuffer &execArgs)
 {
     if (!IsBooleanType(value)) {
         return;
@@ -264,7 +268,7 @@ void ToolUtil::ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IIn
 
     bool boolValue = false;
     if (GetParamBoolValue(value, boolValue) && boolValue) {
-        cmdLine += " --" + key;
+        execArgs.AddFlag(key);
     }
 }
 
@@ -350,7 +354,7 @@ bool ToolUtil::GetParamBoolValue(const sptr<AAFwk::IInterface> &value, bool &res
 }
 
 void ToolUtil::ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::IInterface> &value,
-    std::string &cmdLine)
+    CmdArgsBuffer &execArgs)
 {
     auto arrayValue = AAFwk::IArray::Query(value);
     if (arrayValue == nullptr) {
@@ -376,7 +380,7 @@ void ToolUtil::ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::I
 
         std::string elementStr = GetParamStringValue(elementValue);
         if (!elementStr.empty()) {
-            cmdLine += " --" + key + " " + elementStr;
+            execArgs.AddParam(key, elementStr);
         }
     }
 }

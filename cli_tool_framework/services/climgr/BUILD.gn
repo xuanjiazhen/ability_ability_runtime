@@ -47,6 +47,7 @@ ohos_shared_library("climgr") {
     "src/session_record.cpp",
     "src/tool_util.cpp",
     "../common/src/ccm_util.cpp",
+    "../common/src/cmd_args_buffer.cpp",
     "../common/src/permission_util.cpp",
     "src/event_dispatcher.cpp",
     "src/io_monitor.cpp",

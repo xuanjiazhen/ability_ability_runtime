@@ -30,6 +30,7 @@ ohos_unittest("tool_util_test") {
   sources = [
     "tool_util_test.cpp",
     "${cli_tool_framework_path}/services/climgr/src/tool_util.cpp",
+    "${cli_tool_framework_path}/services/common/src/cmd_args_buffer.cpp",
     "${cli_tool_framework_path}/services/common/src/permission_util.cpp",
   ]
 
