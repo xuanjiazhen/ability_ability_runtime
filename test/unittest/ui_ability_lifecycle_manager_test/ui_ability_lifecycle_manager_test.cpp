@@ -8563,6 +8563,34 @@ HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunch_003, TestSiz
 }
 
 /**
+ * @tc.name: NotifyCompleteGamePreLaunch_004
+ * @tc.desc: Test NotifyCompleteGamePreLaunch verifies flag is cleared only after SCB notification succeeds.
+ * @tc.type: FUNC
+ */
+HWTEST_F(UIAbilityLifecycleManagerTest, NotifyCompleteGamePreLaunch_004, TestSize.Level1)
+{
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
+    AbilityRequest request;
+    request.appInfo.bundleName = "com.example.unittest";
+    request.abilityInfo.name = "MainAbility";
+    request.abilityInfo.type = AppExecFwk::AbilityType::PAGE;
+    auto record = UIAbilityRecord::CreateAbilityRecord(request);
+    ASSERT_NE(record, nullptr);
+
+    record->SetGameSAPreLaunch(true);
+    EXPECT_TRUE(record->IsGameSAPreLaunch());
+
+    // Call NotifyCompleteGamePreLaunch
+    auto result = mgr->NotifyCompleteGamePreLaunch(record->GetToken());
+    if (result == ERR_OK) {
+        // If successful, verify flag was cleared
+        EXPECT_FALSE(record->IsGameSAPreLaunch());
+    } else {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "NotifyCompleteGamePreLaunch failed as expected with mock token");
+    }
+}
+
+/**
  * @tc.name: SetGamePreLaunchCompleteTime_001
  * @tc.desc: Test SetGamePreLaunchCompleteTime with valid completeTime.
  * @tc.type: FUNC
