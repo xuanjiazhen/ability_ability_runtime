@@ -1231,19 +1231,24 @@ int32_t UIAbilityLifecycleManager::NotifyCompleteGamePreLaunch(const sptr<IRemot
         return ERR_NOT_GAME_PRELOAD_STATE;
     }
 
+    // Notification SCB goes to the background
+    int32_t notifyScbBackgroundReason = static_cast<int32_t>(NotifyScbBackgroundReason::GAME_PRELAUNCH_BACKGROUND);
+    int32_t ret = NotifySCBToMinimizeUIAbility(callerToken, true, notifyScbBackgroundReason);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to NotifySCBToMinimizeUIAbility, ret=%{public}d", ret);
+        return ret;
+    }
+
     // Clear the game SA prelaunch flag in AbilityRecord and AppRecord
     abilityRecord->SetGameSAPreLaunch(false);
 
-    int32_t ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->SetGameSAPrelaunch(callerToken,
+    ret = IN_PROCESS_CALL(DelayedSingleton<AppScheduler>::GetInstance()->SetGameSAPrelaunch(callerToken,
         false));
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "Failed to SetGameSAPrelaunch, ret=%{public}d", ret);
         return ret;
     }
-    // Notification SCB goes to the background
-    int32_t notifyScbBackgroundReason = static_cast<int32_t>(NotifyScbBackgroundReason::GAME_PRELAUNCH_BACKGROUND);
-    ret = NotifySCBToMinimizeUIAbility(callerToken, true, notifyScbBackgroundReason);
-    return ret;
+    return ERR_OK;
 }
 
 void UIAbilityLifecycleManager::CompleteForegroundSuccess(const UIAbilityRecordPtr &abilityRecord)
