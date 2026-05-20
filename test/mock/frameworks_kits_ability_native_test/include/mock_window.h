@@ -17,6 +17,8 @@
 #define MOCK_WINDOW_H
 
 #include <gtest/gtest.h>
+#include <map>
+#include <vector>
 #include "gmock/gmock.h"
 #include <iremote_object.h>
 #include <parcel.h>
@@ -164,6 +166,8 @@ public:
         BackupAndRestoreType type = BackupAndRestoreType::NONE, sptr<IRemoteObject> token = nullptr,
         AppExecFwk::Ability* ability = nullptr) {return WMError::WM_OK;}
     virtual std::string GetContentInfo(BackupAndRestoreType type = BackupAndRestoreType::CONTINUATION) {return "";}
+    virtual std::map<std::string, std::vector<uint8_t>> GetContentByteInfo() const {return {};}
+    virtual std::map<std::string, std::vector<uint8_t>> RestoreByteInfo() const {return {};}
     virtual Ace::UIContent* GetUIContent() const {return nullptr;}
     virtual void OnNewWant(const AAFwk::Want& want) {}
     virtual void SetRequestedOrientation(Orientation orientation, bool needAnimation = true) {}

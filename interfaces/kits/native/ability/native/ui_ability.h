@@ -16,6 +16,8 @@
 #ifndef OHOS_ABILITY_RUNTIME_UI_ABILITY_H
 #define OHOS_ABILITY_RUNTIME_UI_ABILITY_H
 
+#include <map>
+#include <vector>
 #include "ability_context.h"
 #include "ability_continuation_interface.h"
 #include "ability_lifecycle_executor.h"
@@ -557,6 +559,20 @@ public:
     virtual std::string GetContentInfo();
     virtual std::string GetContentInfoForRecovery();
     virtual std::string GetContentInfoForDefaultRecovery();
+
+    /**
+     * @brief Get content byte info when ability is about to enter background.
+     * The key format is Navigation-ID-PAGEiD-COMPONENTId.
+     * @return A map of component id to serialized byte data.
+     */
+    virtual std::map<std::string, std::vector<uint8_t>> GetContentByteInfo() const;
+
+    /**
+     * @brief Restore content byte info when ability is about to enter foreground.
+     * The key format is Navigation-ID-PAGEiD-COMPONENTId.
+     * @return A map of component id to serialized byte data to restore.
+     */
+    virtual std::map<std::string, std::vector<uint8_t>> RestoreByteInfo() const;
 
     /**
      * @brief Set WindowScene listener
