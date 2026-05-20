@@ -789,5 +789,44 @@ HWTEST_F(AppMgrServiceInnerMockTest, CheckIsKiaProcess_006, TestSize.Level1)
     EXPECT_EQ(isKia, false);
     TAG_LOGI(AAFwkTag::TEST, "AppMgrServiceInnerMockTest CheckIsKiaProcess_006 end");
 }
+
+/**
+ * @tc.name: DumpMem_001
+ * @tc.desc: DumpMem with null appRunningManager.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerMockTest, DumpMem_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(serviceInner, nullptr);
+    serviceInner->appRunningManager_ = nullptr;
+
+    MemDumpInfo info;
+    info.pid = 1;
+    sptr<IMemDumpCallback> callback = nullptr;
+    auto ret = serviceInner->DumpMem(info, callback);
+    EXPECT_EQ(ret, ERR_INVALID_OPERATION);
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: ReportDumpMemResult_001
+ * @tc.desc: ReportDumpMemResult with null callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerMockTest, ReportDumpMemResult_001, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    auto serviceInner = std::make_shared<AppMgrServiceInner>();
+    ASSERT_NE(serviceInner, nullptr);
+
+    sptr<IMemDumpCallback> callback = nullptr;
+    std::string dumpResult = "test result";
+    auto ret = serviceInner->ReportDumpMemResult(callback, dumpResult);
+    EXPECT_EQ(ret, ERR_INVALID_VALUE);
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS
