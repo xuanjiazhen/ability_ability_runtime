@@ -24,6 +24,7 @@
 #include <cstdint>
 #include <dlfcn.h>
 #include <cstdio>
+#include <unistd.h>
 
 #include "file_ex.h"
 #include "directory_ex.h"
@@ -413,13 +414,26 @@ uint64_t AppfreezeCpuFreqManager::GetInterval(uint64_t warnTime, uint64_t blockT
     return blockTime >= warnTime ? (blockTime - warnTime) : (warnTime - blockTime);
 }
 
+uint64_t AppfreezeCpuFreqManager::ClockTicksToMs(uint64_t cpuTime)
+{
+    auto clockTicks = sysconf(_SC_CLK_TCK);
+    if (clockTicks <= 0) {
+        TAG_LOGE(AAFwkTag::APPDFR, "Get _SC_CLK_TCK fail. errno %{public}d", errno);
+        return 0;
+    }
+    auto result = (cpuTime * AppfreezeUtil::SEC_TO_MILLISEC) / clockTicks;
+    return static_cast<uint64_t>(result);
+}
+
 std::string AppfreezeCpuFreqManager::GetConsumeTimeInfo(int32_t pid, CpuConsumeTime warnTimes,
     CpuConsumeTime blockTimes)
 {
     double optimalCpuTime = GetInterval(warnTimes.optimalCpuTime, blockTimes.optimalCpuTime);
     uint64_t processCpuTime = GetInterval(warnTimes.processCpuTime, blockTimes.processCpuTime);
+    processCpuTime = ClockTicksToMs(processCpuTime);
     uint64_t deviceRunTime = GetInterval(warnTimes.deviceRunTime, blockTimes.deviceRunTime);
     uint64_t cpuTime = GetInterval(warnTimes.cpuTime, blockTimes.cpuTime);
+    cpuTime = ClockTicksToMs(cpuTime);
     uint64_t duration = GetInterval(warnTimes.cpuFaultTime, blockTimes.cpuFaultTime);
     uint64_t syncWaitTime = duration > cpuTime ? (duration - cpuTime) : 0;
     double supplyAvailableTime = cpuTime - optimalCpuTime;
