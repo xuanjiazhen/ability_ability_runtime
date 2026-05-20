@@ -21,6 +21,7 @@
 #include "app_mgr_stub.h"
 #include "file_path_utils.h"
 #include "main_thread.h"
+#include "mem_dump_callback_interface.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "iservice_registry.h"
@@ -2061,6 +2062,41 @@ HWTEST_F(MainThreadTest, ProcessEvent_0100, TestSize.Level1)
     mainThread_->mainHandler_->mainThreadObj_ = nullptr;
     mainThread_->mainHandler_->ProcessEvent(event);
     mainThread_->mainHandler_->mainThreadObj_ = mainThreadObj;
+}
+
+/**
+ * @tc.name: ScheduleMem_0100
+ * @tc.desc: Verify ScheduleMem with valid info and callback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, ScheduleMem_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    MemDumpInfo info;
+    info.pid = 1;
+    sptr<IMemDumpCallback> callback = nullptr;
+    ASSERT_NE(mainThread_, nullptr);
+    mainThread_->ScheduleMem(info, callback);
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
+}
+
+/**
+ * @tc.name: ScheduleMem_0200
+ * @tc.desc: Verify ScheduleMem with null mainHandler.
+ * @tc.type: FUNC
+ */
+HWTEST_F(MainThreadTest, ScheduleMem_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s start.", __func__);
+    ASSERT_NE(mainThread_, nullptr);
+    auto bakHandler = mainThread_->mainHandler_;
+    mainThread_->mainHandler_ = nullptr;
+    MemDumpInfo info;
+    info.pid = 1;
+    sptr<IMemDumpCallback> callback = nullptr;
+    mainThread_->ScheduleMem(info, callback);
+    mainThread_->mainHandler_ = bakHandler;
+    TAG_LOGI(AAFwkTag::TEST, "%{public}s end.", __func__);
 }
 
 /**
