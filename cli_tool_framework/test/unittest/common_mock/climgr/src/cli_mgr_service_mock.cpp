@@ -257,7 +257,7 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &, Security::AccessToke
     return true;
 }
 
-void ToolUtil::TransferToCmdParam(const ToolInfo &, const AAFwk::WantParams &, std::string &) {}
+void ToolUtil::TransferToCmdParam(const AAFwk::WantParams &, std::vector<char*> &) {}
 
 bool ToolUtil::IsSkillTool(const std::string &toolName)
 {
