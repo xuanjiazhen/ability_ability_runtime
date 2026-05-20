@@ -19,6 +19,7 @@
 #include "app_scheduler_proxy.h"
 #include "fault_data.h"
 #include "mock_app_scheduler.h"
+#include "mem_dump_callback_interface.h"
 #undef private
 #include "app_mgr_service_dump_error_code.h"
 
@@ -184,5 +185,39 @@ HWTEST_F(AppSchedulerProxyTest, ScheduleLaunchAbility_ShouldSendRequestWhenUpdat
     auto updateInfo = std::make_shared<AppUpdateInfo>();
     appSchedulerProxy->ScheduleLaunchAbility(abilityInfo, nullptr, want, abilityRecordId, updateInfo);
 }
+
+/**
+ * @tc.name: ScheduleMem_001
+ * @tc.desc: Verify that ScheduleMem interface calls normally with null impl.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerProxyTest, ScheduleMem_001, TestSize.Level1)
+{
+    sptr<IRemoteObject> impl;
+    sptr<AppSchedulerProxy> appSchedulerProxy = new (std::nothrow) AppSchedulerProxy(impl);
+    MemDumpInfo info;
+    info.pid = 1;
+    sptr<IMemDumpCallback> callback = nullptr;
+    appSchedulerProxy->ScheduleMem(info, callback);
+}
+
+/**
+ * @tc.name: ScheduleMem_002
+ * @tc.desc: Verify that ScheduleMem interface calls normally with mock.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppSchedulerProxyTest, ScheduleMem_002, TestSize.Level1)
+{
+    EXPECT_NE(mockAppScheduler_, nullptr);
+    sptr<AppSchedulerProxy> appSchedulerProxy = new AppSchedulerProxy(mockAppScheduler_);
+    EXPECT_NE(appSchedulerProxy, nullptr);
+
+    EXPECT_CALL(*mockAppScheduler_, ScheduleMem(_, _)).Times(1);
+    MemDumpInfo info;
+    info.pid = 1;
+    sptr<IMemDumpCallback> callback = nullptr;
+    appSchedulerProxy->ScheduleMem(info, callback);
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS
