@@ -9109,7 +9109,7 @@ int AppMgrServiceInner::GetExceptionTimerId(const FaultData &faultData, const st
     auto exceptionCallback = [faultData, bundleName, appRecord, pid, callerUid,
         innerService = shared_from_this()](void *) {
         auto threadTask = [faultData, bundleName, appRecord, pid, callerUid, innerService]() {
-            if (innerService->CheckAppFault(appRecord, faultData)) {
+            if (appRecord && innerService->CheckAppFault(appRecord, faultData)) {
                 TAG_LOGI(AAFwkTag::APPMGR, "Ffrt Exception current dfx task is working.");
                 return;
             }
