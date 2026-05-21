@@ -1084,7 +1084,17 @@ std::map<std::string, std::vector<uint8_t>> UIAbility::GetContextByteInfo() cons
         TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return {};
     }
-    return scene_->GetContextByteInfo();
+    auto mainWindow = scene_->GetMainWindow();
+    if (mainWindow == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null mainWindow");
+        return {};
+    }
+    auto* uiContent = mainWindow->GetUIContent();
+    if (uiContent == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null uiContent");
+        return {};
+    }
+    return uiContent->GetContextByteInfo();
 }
 
 void UIAbility::RestoreByteInfo(const std::map<std::string, std::vector<uint8_t>>& infos)
@@ -1094,7 +1104,17 @@ void UIAbility::RestoreByteInfo(const std::map<std::string, std::vector<uint8_t>
         TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return;
     }
-    scene_->RestoreByteInfo(infos);
+    auto mainWindow = scene_->GetMainWindow();
+    if (mainWindow == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null mainWindow");
+        return;
+    }
+    auto* uiContent = mainWindow->GetUIContent();
+    if (uiContent == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null uiContent");
+        return;
+    }
+    uiContent->RestoreByteInfo(infos);
 }
 
 void UIAbility::SetSceneListener(const sptr<Rosen::IWindowLifeCycle> &listener)
