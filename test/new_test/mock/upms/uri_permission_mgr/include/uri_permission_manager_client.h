@@ -43,7 +43,7 @@ public:
 
     int32_t GrantUriPermissionPrivileged(const std::vector<Uri> &uriVec, uint32_t flag,
         const std::string &targetBundleName, int32_t appIndex = 0, uint32_t initiatorTokenId = 0,
-        int32_t hideSensitiveType = 0)
+        int32_t hideSensitiveType = 4)
     {
         return 0;
     }
