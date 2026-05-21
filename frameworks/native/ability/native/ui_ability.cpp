@@ -1089,7 +1089,7 @@ std::map<std::string, std::vector<uint8_t>> UIAbility::GetContextByteInfo() cons
         TAG_LOGE(AAFwkTag::UIABILITY, "null mainWindow");
         return {};
     }
-    auto uiContent = mainWindow->GetUIContentSharedPtr();
+    auto* uiContent = mainWindow->GetUIContent();
     if (uiContent == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null uiContent");
         return {};
@@ -1109,7 +1109,7 @@ void UIAbility::RestoreByteInfo(const std::map<std::string, std::vector<uint8_t>
         TAG_LOGE(AAFwkTag::UIABILITY, "null mainWindow");
         return;
     }
-    auto uiContent = mainWindow->GetUIContentSharedPtr();
+    auto* uiContent = mainWindow->GetUIContent();
     if (uiContent == nullptr) {
         TAG_LOGE(AAFwkTag::UIABILITY, "null uiContent");
         return;
