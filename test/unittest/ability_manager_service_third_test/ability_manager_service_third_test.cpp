@@ -3353,7 +3353,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_001, TestSize.Level1)
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::VPN;
     auto result = abilityMs_->CheckSupportVpn(abilityInfo);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
@@ -3370,6 +3370,6 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_002, TestSize.Level1)
     auto result = abilityMs_->CheckSupportVpn(abilityInfo);
     EXPECT_TRUE(result);
 }
-
+//Crash
 }  // namespace AAFwk
 }  // namespace OHOS

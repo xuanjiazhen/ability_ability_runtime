@@ -636,6 +636,7 @@ HWTEST_F(AppPreloaderTest, AppPreloaderTest_GeneratePreloadExtensionRequest_0100
 
     auto ret = manager->GeneratePreloadExtensionRequest(want, userId, appIndex, request);
     EXPECT_EQ(ret, AAFwk::GET_BUNDLE_INFO_FAILED);
+
 }
 
 /**

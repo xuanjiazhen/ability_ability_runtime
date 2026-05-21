@@ -7558,7 +7558,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, IsSpecifiedUIAbilityAlreadyExist_0003, T
     Want want;
     want.SetElementName("device", "com.example.test", "AbilityE", "");
     auto ret = mgr->IsSpecifiedUIAbilityAlreadyExist(want, "flagE", 1, "ik5");
-    EXPECT_EQ(ret, ERROR_UIABILITY_IS_ALREADY_EXIST);
+    EXPECT_EQ(ret, ERROR_UIABILITY_IS_ALREADY_EXIST);//测试套UN
 }
 
 /**
