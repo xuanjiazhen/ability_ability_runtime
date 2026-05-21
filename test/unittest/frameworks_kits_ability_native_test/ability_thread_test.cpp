@@ -2299,5 +2299,6 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_DumpAbilityInfoInner_0100, Funct
     abilitythread->DumpAbilityInfoInner(params, info);
     GTEST_LOG_(INFO) << "AaFwk_AbilityThread_DumpAbilityInfoInner_0100 end";
 }
+//Crash
 }  // namespace AppExecFwk
 }  // namespace OHOS

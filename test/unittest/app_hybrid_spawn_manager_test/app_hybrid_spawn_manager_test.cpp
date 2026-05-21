@@ -134,6 +134,7 @@ HWTEST_F(AppHybridSpawnManagerTest, AppHybridSpawnManagerTest_InitHybridSpawnMsg
 
     EXPECT_NE(hrFd, -1);
     EXPECT_NE(hwFd, -1);
+    //测试套UN
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS

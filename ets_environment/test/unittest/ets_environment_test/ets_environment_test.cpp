@@ -137,7 +137,7 @@ HWTEST_F(EtsEnvironmentTest, GetBuildId_0300, TestSize.Level0)
 }
 
 /**
- * @tc.name: RegisterUncaughtExceptionHandler_0100
+ * @tc.name: RegisterUncaughtExceptionHandler_0100黄区没这个测试套
  * @tc.desc: Test basic registration and triggering of uncaught exception handler.
  * @tc.type: FUNC
  */

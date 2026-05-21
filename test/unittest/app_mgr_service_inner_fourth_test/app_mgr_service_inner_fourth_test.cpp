@@ -1029,7 +1029,7 @@ HWTEST_F(AppMgrServiceInnerFourthTest, NotifyImageOperationFailed_ShouldReturnEr
 }
 
 /**
- * @tc.name: FindImageInfo_ShouldReturnNullptrWhenImageInfoNotExist
+ * @tc.name: FindImageInfo_ShouldReturnNullptrWhenImageInfoNotExist黄区从这个用例开始没有
  * @tc.desc: Test FindImageInfo
  * @tc.type: FUNC
  */
