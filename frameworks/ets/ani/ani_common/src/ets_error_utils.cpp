@@ -146,6 +146,16 @@ void EtsErrorUtil::ThrowErrorByNativeErr(ani_env *env, int32_t err)
     EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErr(env, err));
 }
 
+void EtsErrorUtil::ThrowErrorByNativeErrWithInnerMsg(ani_env *env, int32_t err, const std::string &innerErrMsg,
+    const std::string &permission)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return;
+    }
+    EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(env, err, innerErrMsg, permission));
+}
+
 ani_object EtsErrorUtil::CreateError(ani_env *env, const AbilityErrorCode &err)
 {
     if (env == nullptr) {
@@ -181,9 +191,19 @@ ani_object EtsErrorUtil::CreateErrorByNativeErr(ani_env *env, int32_t err, const
         return nullptr;
     }
     auto errCode = GetJsErrorCodeByNativeError(err);
-    auto errMsg = (errCode == AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED && !permission.empty())
-                      ? GetNoPermissionErrorMsg(permission)
-                      : GetErrorMsg(errCode);
+    auto errMsg = GetErrorMsgByNativeError(err, "", permission);
+    return EtsErrorUtil::CreateError(env, static_cast<int32_t>(errCode), errMsg);
+}
+
+ani_object EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(ani_env *env, int32_t err,
+    const std::string &innerErrMsg, const std::string &permission)
+{
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::ANI, "null env");
+        return nullptr;
+    }
+    auto errCode = GetJsErrorCodeByNativeError(err);
+    auto errMsg = GetErrorMsgByNativeError(err, innerErrMsg, permission);
     return EtsErrorUtil::CreateError(env, static_cast<int32_t>(errCode), errMsg);
 }
 

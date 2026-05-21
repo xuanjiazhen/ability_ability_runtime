@@ -15,6 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <singleton.h>
+#include <cstdlib>
 #include <cstring>
 #include <uv.h>
 #include "ability_context.h"
@@ -71,6 +72,13 @@ public:
     void Reject(napi_value reason) override
     {
         resolved_ = false;
+        if (nref_ != nullptr) {
+            napi_delete_reference(env_, nref_);
+            nref_ = nullptr;
+        }
+        if (reason != nullptr) {
+            napi_create_reference(env_, reason, 1, &nref_);
+        }
     }
 
 public:
@@ -79,9 +87,10 @@ public:
     static void Clear()
     {
         if (nref_) {
-            delete (reinterpret_cast<NativeReference*>(nref_));
+            napi_delete_reference(env_, nref_);
             nref_ = nullptr;
         }
+        resolved_ = false;
     }
     static bool resolved_;
     static napi_ref nref_;
@@ -117,11 +126,57 @@ public:
         int32_t accountId = -1) override
     {}
 
+    ErrCode StartSelf() override
+    {
+        return startSelfRet_;
+    }
+
+    ErrCode StartSelfUIAbilityInCurrentProcess(const AAFwk::Want &want, const std::string &specifiedFlag,
+        const AAFwk::StartOptions &startOptions, bool hasOptions) override
+    {
+        return startSelfCurrentRet_;
+    }
+
     virtual ErrCode StartSelfUIAbilityInChildProcess(const AAFwk::Want &want,
         const std::string &specifiedFlag) override
     {
         GTEST_LOG_(INFO) << "StartSelfUIAbilityInChildProcess mock called, ret " << startSelfRet_;
         return startSelfRet_;
+    }
+
+    ErrCode RequestModalUIExtension(const AAFwk::Want& want) override
+    {
+        return modalRet_;
+    }
+
+    ErrCode RequestModalUIExtensionWithAccount(const AAFwk::Want& want, int32_t accountId) override
+    {
+        return modalWithAccountRet_;
+    }
+
+    ErrCode RequestDialogService(napi_env env, AAFwk::Want &want, RequestDialogResultTask &&task) override
+    {
+        return requestDialogRet_;
+    }
+
+    ErrCode SetOnNewWantSkipScenarios(int32_t scenarios) override
+    {
+        return skipScenariosRet_;
+    }
+
+    ErrCode TerminateSelf() override
+    {
+        return terminateSelfRet_;
+    }
+
+    ErrCode ReportDrawnCompleted() override
+    {
+        return reportDrawnRet_;
+    }
+
+    ErrCode RevokeDelegator() override
+    {
+        return revokeDelegatorRet_;
     }
 public:
     static void DoneConnect(int status)
@@ -139,13 +194,68 @@ public:
     }
     void SetConnectResult(ErrCode code) { connectRet_ = code; }
     void SetStartSelfResult(ErrCode code) { startSelfRet_ = code; }
+    void SetStartSelfCurrentResult(ErrCode code) { startSelfCurrentRet_ = code; }
+    void SetModalResult(ErrCode code) { modalRet_ = code; }
+    void SetModalWithAccountResult(ErrCode code) { modalWithAccountRet_ = code; }
+    void SetRequestDialogResult(ErrCode code) { requestDialogRet_ = code; }
+    void SetSkipScenariosResult(ErrCode code) { skipScenariosRet_ = code; }
+    void SetTerminateSelfResult(ErrCode code) { terminateSelfRet_ = code; }
+    void SetReportDrawnResult(ErrCode code) { reportDrawnRet_ = code; }
+    void SetRevokeDelegatorResult(ErrCode code) { revokeDelegatorRet_ = code; }
 protected:
     static sptr<AbilityConnectCallback> callback_;
     ErrCode connectRet_ = ERR_OK;
     ErrCode startSelfRet_ = ERR_OK;
+    ErrCode startSelfCurrentRet_ = ERR_OK;
+    ErrCode modalRet_ = ERR_OK;
+    ErrCode modalWithAccountRet_ = ERR_OK;
+    ErrCode requestDialogRet_ = ERR_OK;
+    ErrCode skipScenariosRet_ = ERR_OK;
+    ErrCode terminateSelfRet_ = ERR_OK;
+    ErrCode reportDrawnRet_ = ERR_OK;
+    ErrCode revokeDelegatorRet_ = ERR_OK;
 };
 
 sptr<AbilityConnectCallback> MockAbilityContextImpl::callback_;
+
+std::string GetStringProperty(napi_value object, const char *name)
+{
+    napi_value property = nullptr;
+    napi_get_named_property(env_, object, name, &property);
+    char buffer[256] = {0};
+    size_t copied = 0;
+    napi_get_value_string_utf8(env_, property, buffer, sizeof(buffer), &copied);
+    return std::string(buffer, copied);
+}
+
+int32_t GetInt32Property(napi_value object, const char *name)
+{
+    napi_value property = nullptr;
+    napi_get_named_property(env_, object, name, &property);
+    napi_valuetype type = napi_undefined;
+    napi_typeof(env_, property, &type);
+    if (type == napi_string) {
+        auto value = GetStringProperty(object, name);
+        return static_cast<int32_t>(std::strtol(value.c_str(), nullptr, 10));
+    }
+    int32_t value = 0;
+    napi_get_value_int32(env_, property, &value);
+    return value;
+}
+
+void CheckLastRejectedError(int32_t expectedCode, const std::string &expectedMessage)
+{
+    EXPECT_FALSE(MockDeferred::GetLastResolveStatus());
+    napi_ref nref = MockDeferred::GetLastResolveValue();
+    ASSERT_NE(nref, nullptr);
+    napi_value error = nullptr;
+    ASSERT_EQ(napi_get_reference_value(env_, nref, &error), napi_ok);
+    ASSERT_NE(error, nullptr);
+    EXPECT_EQ(GetInt32Property(error, "code"), expectedCode);
+    if (!expectedMessage.empty()) {
+        EXPECT_EQ(GetStringProperty(error, "message"), expectedMessage);
+    }
+}
 
 class AbilityContextTest : public testing::Test {
 public:
@@ -336,7 +446,9 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_0103, TestSize.Level1
     EXPECT_TRUE(MockDeferred::GetLastResolveStatus());
     napi_ref nref = MockDeferred::GetLastResolveValue();
     EXPECT_NE(nref, nullptr);
-    napi_value proxy = (reinterpret_cast<NativeReference*>(nref))->GetNapiValue();
+    napi_value proxy = nullptr;
+    ASSERT_EQ(napi_get_reference_value(env_, nref, &proxy), napi_ok);
+    ASSERT_NE(proxy, nullptr);
     napi_value argv2[] = { proxy };
     Disconnect(argv2, ARGC_ONE);
     RunNowait(loop);
@@ -345,6 +457,52 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_0103, TestSize.Level1
     RunNowait(loop);
     abilityContextImpl_->SetConnectResult(ERR_OK);
     GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_0103 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ConnectUIServiceExtension_InnerErrorMessage_0100,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ConnectUIServiceExtension_InnerErrorMessage_0100 start";
+    HandleScope handleScope(env_);
+    TryCatch tryCatch(env_);
+    AAFwk::Want want;
+    napi_value jswant = AppExecFwk::CreateJsWant(env_, want);
+    napi_value callbackObject = nullptr;
+    napi_create_object(env_, &callbackObject);
+    napi_value argv[] = { jswant, callbackObject };
+    abilityContextImpl_->SetConnectResult(INNER_ERR);
+
+    Connect(argv, ARGC_TWO);
+    EXPECT_FALSE(tryCatch.HasCaught());
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. The UI service extension could not be connected. Check the extension configuration and try "
+        "again.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ConnectUIServiceExtension_InnerErrorMessage_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ConnectUIServiceExtension_MappedError_0100,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ConnectUIServiceExtension_MappedError_0100 start";
+    HandleScope handleScope(env_);
+    TryCatch tryCatch(env_);
+    AAFwk::Want want;
+    napi_value jswant = AppExecFwk::CreateJsWant(env_, want);
+    napi_value callbackObject = nullptr;
+    napi_create_object(env_, &callbackObject);
+    napi_value argv[] = { jswant, callbackObject };
+    abilityContextImpl_->SetConnectResult(ERR_INVALID_CALLER);
+
+    Connect(argv, ARGC_TWO);
+    EXPECT_FALSE(tryCatch.HasCaught());
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CALLER), "");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ConnectUIServiceExtension_MappedError_0100 end";
 }
 
 HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_0104, TestSize.Level1)
@@ -379,6 +537,278 @@ HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_0105, TestSize.Level1
         engine->lastException_.Empty();
     }
     GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_0105 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_DisconnectAbility_InnerErrorMessage_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_DisconnectAbility_InnerErrorMessage_0100 start";
+    HandleScope handleScope(env_);
+    TryCatch tryCatch(env_);
+    NapiCallbackInfo info;
+    info.argc = ARGC_ONE;
+    napi_create_int64(env_, 12345, &info.argv[0]);
+
+    jsAbilityContext_->OnDisconnectAbility(env_, info);
+    EXPECT_FALSE(tryCatch.HasCaught());
+
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. The service connection does not exist. Use a connection ID returned by "
+        "connectServiceExtensionAbility.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_DisconnectAbility_InnerErrorMessage_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_StartSelf_InnerErrorMessage_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_StartSelf_InnerErrorMessage_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    abilityContextImpl_->SetStartSelfResult(INNER_ERR);
+
+    jsAbilityContext_->OnStartSelf(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. The ability could not start itself. Verify the caller process is foreground and starting "
+        "abilities is allowed.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_StartSelf_InnerErrorMessage_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_StartSelf_MappedError_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_StartSelf_MappedError_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    abilityContextImpl_->SetStartSelfResult(ERR_INVALID_CALLER);
+
+    jsAbilityContext_->OnStartSelf(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CALLER), "");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_StartSelf_MappedError_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestModalUIExtension_InnerErrorMessage_0100,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtension_InnerErrorMessage_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    info.argc = ARGC_ONE;
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::CreateJsWant(env_, want);
+    abilityContextImpl_->SetModalResult(INNER_ERR);
+
+    jsAbilityContext_->OnRequestModalUIExtension(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. The modal UI extension could not be created. Ensure the caller is the focused foreground "
+        "UIAbility and try again.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtension_InnerErrorMessage_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestModalUIExtension_ReleasedContext_0100,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtension_ReleasedContext_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    info.argc = ARGC_ONE;
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::CreateJsWant(env_, want);
+    jsAbilityContext_->context_.reset();
+
+    jsAbilityContext_->OnRequestModalUIExtension(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), "");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtension_ReleasedContext_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestModalUIExtensionWithAccount_InnerErrorMessage_0100,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtensionWithAccount_InnerErrorMessage_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    info.argc = ARGC_TWO;
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::CreateJsWant(env_, want);
+    napi_create_int32(env_, 100, &info.argv[1]);
+    abilityContextImpl_->SetModalWithAccountResult(INNER_ERR);
+
+    jsAbilityContext_->OnRequestModalUIExtensionWithAccount(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. The modal UI extension could not be created. Ensure the caller is the focused foreground "
+        "UIAbility and try again.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtensionWithAccount_InnerErrorMessage_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestModalUIExtensionWithAccount_MappedError_0100,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtensionWithAccount_MappedError_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    info.argc = ARGC_TWO;
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::CreateJsWant(env_, want);
+    napi_create_int32(env_, 100, &info.argv[1]);
+    abilityContextImpl_->SetModalWithAccountResult(ERR_INVALID_CALLER);
+
+    jsAbilityContext_->OnRequestModalUIExtensionWithAccount(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CALLER), "");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtensionWithAccount_MappedError_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestModalUIExtensionWithAccount_ReleasedContext_0100,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtensionWithAccount_ReleasedContext_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    info.argc = ARGC_TWO;
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::CreateJsWant(env_, want);
+    napi_create_int32(env_, 100, &info.argv[1]);
+    jsAbilityContext_->context_.reset();
+
+    jsAbilityContext_->OnRequestModalUIExtensionWithAccount(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), "");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestModalUIExtensionWithAccount_ReleasedContext_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_SetOnNewWantSkipScenarios_Mapping_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_SetOnNewWantSkipScenarios_Mapping_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    info.argc = ARGC_ONE;
+    napi_create_int32(env_, 1, &info.argv[0]);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+
+    abilityContextImpl_->SetSkipScenariosResult(ERR_INVALID_CONTEXT);
+    jsAbilityContext_->OnSetOnNewWantSkipScenarios(env_, info);
+    RunNowait(engine->GetUVLoop());
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT), "");
+
+    abilityContextImpl_->SetSkipScenariosResult(ERR_INVALID_CALLER);
+    jsAbilityContext_->OnSetOnNewWantSkipScenarios(env_, info);
+    RunNowait(engine->GetUVLoop());
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CALLER), "");
+
+    abilityContextImpl_->SetSkipScenariosResult(INNER_ERR);
+    jsAbilityContext_->OnSetOnNewWantSkipScenarios(env_, info);
+    RunNowait(engine->GetUVLoop());
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. The skip scenario setting could not be applied. Verify the scenario value and call this API "
+        "while the ability is active.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_SetOnNewWantSkipScenarios_Mapping_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestDialogService_InnerErrorMessage_0100,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestDialogService_InnerErrorMessage_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    info.argc = ARGC_ONE;
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::CreateJsWant(env_, want);
+    abilityContextImpl_->SetRequestDialogResult(INNER_ERR);
+
+    jsAbilityContext_->OnRequestDialogService(env_, info);
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. Failed to request the dialog service. Check the Want parameters and try again.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestDialogService_InnerErrorMessage_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestDialogService_MappedError_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestDialogService_MappedError_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    info.argc = ARGC_ONE;
+    AAFwk::Want want;
+    info.argv[0] = AppExecFwk::CreateJsWant(env_, want);
+    abilityContextImpl_->SetRequestDialogResult(ERR_INVALID_CALLER);
+
+    jsAbilityContext_->OnRequestDialogService(env_, info);
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CALLER), "");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RequestDialogService_MappedError_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_TerminateSelf_InnerErrorMessage_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_TerminateSelf_InnerErrorMessage_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    abilityContextImpl_->SetTerminateSelfResult(INNER_ERR);
+
+    jsAbilityContext_->OnTerminateSelf(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. Failed to terminate the ability. Ensure the ability is active and try again.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_TerminateSelf_InnerErrorMessage_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_ReportDrawnCompleted_InnerErrorMessage_0100,
+    TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ReportDrawnCompleted_InnerErrorMessage_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    napi_value callback = nullptr;
+    napi_create_function(env_, "cb", NAPI_AUTO_LENGTH, [](napi_env, napi_callback_info) -> napi_value {
+        return nullptr;
+    }, nullptr, &callback);
+    info.argc = ARGC_ONE;
+    info.argv[0] = callback;
+    abilityContextImpl_->SetReportDrawnResult(INNER_ERR);
+
+    jsAbilityContext_->OnReportDrawnCompleted(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. Failed to report drawn completed. Ensure the ability window is ready.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_ReportDrawnCompleted_InnerErrorMessage_0100 end";
+}
+
+HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RevokeDelegator_InnerErrorMessage_0100, TestSize.Level1)
+{
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RevokeDelegator_InnerErrorMessage_0100 start";
+    HandleScope handleScope(env_);
+    NapiCallbackInfo info;
+    abilityContextImpl_->SetRevokeDelegatorResult(INNER_ERR);
+
+    jsAbilityContext_->OnRevokeDelegator(env_, info);
+    ArkNativeEngine* engine = reinterpret_cast<ArkNativeEngine*>(env_);
+    RunNowait(engine->GetUVLoop());
+
+    CheckLastRejectedError(static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+        "Internal error. Failed to revoke the delegator. Call this API while the ability is active.");
+    GTEST_LOG_(INFO) << "AbilityRuntime_AbilityContext_RevokeDelegator_InnerErrorMessage_0100 end";
 }
 
 HWTEST_F(AbilityContextTest, AbilityRuntime_AbilityContext_RequestCodeFromStringToInt64_0100, TestSize.Level1)

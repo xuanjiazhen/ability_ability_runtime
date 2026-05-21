@@ -1304,6 +1304,15 @@ ErrCode AbilityContextImpl::RequestModalUIExtension(const AAFwk::Want& want)
     return err;
 }
 
+ErrCode AbilityContextImpl::RequestModalUIExtensionWithAccount(const AAFwk::Want& want, int32_t accountId)
+{
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->RequestModalUIExtensionWithAccount(want, accountId);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "failed %{public}d", err);
+    }
+    return err;
+}
+
 ErrCode AbilityContextImpl::ChangeAbilityVisibility(bool isShow)
 {
     ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->ChangeAbilityVisibility(token_, isShow);

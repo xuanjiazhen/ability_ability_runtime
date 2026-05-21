@@ -340,6 +340,8 @@ enum class AbilityErrorCode {
 std::string GetErrorMsg(const AbilityErrorCode& errCode);
 std::string GetNoPermissionErrorMsg(const std::string& permission);
 AbilityErrorCode GetJsErrorCodeByNativeError(int32_t errCode);
+std::string GetErrorMsgByNativeError(int32_t errCode, const std::string& innerErrMsg = "",
+    const std::string& permission = "");
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif

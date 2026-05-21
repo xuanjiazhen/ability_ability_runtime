@@ -115,5 +115,24 @@ HWTEST_F(AbilityBusinessErrorTest, GetJsErrorCodeByNativeError_0100, TestSize.Le
     result = GetJsErrorCodeByNativeError(OHOS::AAFwk::ERR_LOW_CODE_AGENT_ALREADY_ACTIVE);
     EXPECT_TRUE(result == AbilityErrorCode::ERROR_CODE_LOW_CODE_AGENT_ALREADY_ACTIVE);
 }
+
+/**
+ * @tc.name: GetErrorMsgByNativeError_0100
+ * @tc.desc: Verify framework-side native error conversion keeps mapped messages and supports scoped inner messages.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityBusinessErrorTest, GetErrorMsgByNativeError_0100, TestSize.Level2)
+{
+    const std::string innerErrMsg = "Internal error. Failed to start the ability. Try again later.";
+    EXPECT_EQ(GetErrorMsgByNativeError(0), "OK.");
+    EXPECT_EQ(GetErrorMsgByNativeError(-1000), "Internal error.");
+    EXPECT_EQ(GetErrorMsgByNativeError(-1000, innerErrMsg), innerErrMsg);
+    EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED, innerErrMsg),
+        "Maximum connections from the same caller have been reached. Please disconnect at least one agent extension "
+        "beforehand.");
+    EXPECT_EQ(GetErrorMsgByNativeError(ERR_PERMISSION_DENIED, innerErrMsg, "ohos.permission.TEST"),
+        "Permission verification failed. The application does not have the permission required to call the API. "
+        "Permission: ohos.permission.TEST");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

@@ -457,5 +457,17 @@ AbilityErrorCode GetJsErrorCodeByNativeError(int32_t errCode)
 
     return AbilityErrorCode::ERROR_CODE_INNER;
 }
+
+std::string GetErrorMsgByNativeError(int32_t errCode, const std::string& innerErrMsg, const std::string& permission)
+{
+    auto jsErrCode = GetJsErrorCodeByNativeError(errCode);
+    if (jsErrCode == AbilityErrorCode::ERROR_CODE_PERMISSION_DENIED && !permission.empty()) {
+        return GetNoPermissionErrorMsg(permission);
+    }
+    if (jsErrCode == AbilityErrorCode::ERROR_CODE_INNER && !innerErrMsg.empty()) {
+        return innerErrMsg;
+    }
+    return GetErrorMsg(jsErrCode);
+}
 }  // namespace AbilityRuntime
 }  // namespace OHOS

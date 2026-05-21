@@ -303,6 +303,10 @@ public:
     {
         return ERR_OK;
     }
+    virtual ErrCode RequestModalUIExtensionWithAccount(const AAFwk::Want& want, int32_t accountId)
+    {
+        return ERR_OK;
+    }
     virtual ErrCode OpenLink(const AAFwk::Want& want, int requestCode, bool hideFailureTipDialog = false)
     {
         return ERR_OK;
