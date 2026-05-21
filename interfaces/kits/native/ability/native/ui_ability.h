@@ -788,6 +788,7 @@ protected:
     sptr<Rosen::IWindowLifeCycle> sceneListener_ = nullptr;
     sptr<UIAbilityDisplayListener> abilityDisplayListener_ = nullptr;
     sptr<Rosen::IDisplayMoveListener> abilityDisplayMoveListener_ = nullptr;
+    std::map<std::string, std::vector<uint8_t>> byteInfoCache_;
 
 private:
     void OnStartForSupportGraphics(const AAFwk::Want &want);
