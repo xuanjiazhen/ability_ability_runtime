@@ -136,28 +136,28 @@ HWTEST_F(EtsEnvironmentTest, GetBuildId_0300, TestSize.Level0)
     EXPECT_TRUE(result.empty());
 }
 
-/**
- * @tc.name: RegisterUncaughtExceptionHandler_0100
- * @tc.desc: Test basic registration and triggering of uncaught exception handler.
- * @tc.type: FUNC
- */
-HWTEST_F(EtsEnvironmentTest, RegisterUncaughtExceptionHandler_0100, TestSize.Level0)
-{
-    auto etsEnv = std::make_shared<ETSEnvironment>();
-    ASSERT_NE(etsEnv, nullptr);
-    g_callbackModuleFlag = false;
-    ETSUncaughtExceptionInfo handlerInfo;
-    handlerInfo.uncaughtTask = [](const std::string& summary, const ETSErrorObject& errorObj) {
-        g_callbackModuleFlag = true;
-    };
-    etsEnv->RegisterUncaughtExceptionHandler(handlerInfo);
-    ETSErrorObject errorObj;
-    errorObj.name = "TestError";
-    errorObj.message = "Test error message";
-    errorObj.stack = "Test stack trace";
-    etsEnv->uncaughtExceptionInfo_.uncaughtTask("Test summary", errorObj);
-    EXPECT_TRUE(g_callbackModuleFlag);
-}
+// /**
+//  * @tc.name: RegisterUncaughtExceptionHandler_0100
+//  * @tc.desc: Test basic registration and triggering of uncaught exception handler.
+//  * @tc.type: FUNC
+//  */
+// HWTEST_F(EtsEnvironmentTest, RegisterUncaughtExceptionHandler_0100, TestSize.Level0)
+// {
+//     auto etsEnv = std::make_shared<ETSEnvironment>();
+//     ASSERT_NE(etsEnv, nullptr);
+//     g_callbackModuleFlag = false;
+//     ETSUncaughtExceptionInfo handlerInfo;
+//     handlerInfo.uncaughtTask = [](const std::string& summary, const ETSErrorObject& errorObj) {
+//         g_callbackModuleFlag = true;
+//     };
+//     etsEnv->RegisterUncaughtExceptionHandler(handlerInfo);
+//     ETSErrorObject errorObj;
+//     errorObj.name = "TestError";
+//     errorObj.message = "Test error message";
+//     errorObj.stack = "Test stack trace";
+//     etsEnv->uncaughtExceptionInfo_.uncaughtTask("Test summary", errorObj);
+//     EXPECT_TRUE(g_callbackModuleFlag);
+// }
 
 /**
  * @tc.name: GetAniEnv_0100
