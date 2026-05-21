@@ -17,6 +17,7 @@
 
 #include <regex>
 
+#include "ability_error_msg.h"
 #include "ani_common_ability_result.h"
 #include "ani_common_configuration.h"
 #include "ani_common_start_options.h"
@@ -982,7 +983,8 @@ void EtsAbilityContext::OnStartAbility(
     } else {
         innerErrCode = context->StartAbility(want, -1);
     }
-    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, innerErrCode, ERR_MSG_START_ABILITY_FAILED);
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
         if (innerErrCode != ERR_OK && freeInstallObserver_ != nullptr) {
             std::string bundleName = want.GetElement().GetBundleName();
@@ -1052,13 +1054,14 @@ ani_object EtsAbilityContext::StartAbilityByCallWithAccount(
     auto ret = context->StartAbilityByCall(want, callerCallBack, static_cast<int32_t>(aniAccount));
     if (ret != 0) {
         TAG_LOGE(AAFwkTag::CONTEXT, "startAbility failed");
-        EtsErrorUtil::ThrowErrorByNativeErr(env, ret);
+        EtsErrorUtil::ThrowErrorByNativeErrWithInnerMsg(env, ret, ERR_MSG_START_ABILITY_FAILED);
         return nullptr;
     }
     CallUtil::WaitForCalleeObj(callData);
 
     if (callData->remoteCallee == nullptr) {
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            ERR_MSG_CALL_CONNECTION_NOT_READY);
         return nullptr;
     }
 
@@ -1072,7 +1075,8 @@ ani_object EtsAbilityContext::StartAbilityByCallWithAccount(
     };
     auto caller = EtsCallerComplex::CreateEtsCaller(env, releaseCallFunc, callData->remoteCallee, callerCallBack);
     if (caller == nullptr) {
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            ERR_MSG_CALL_CONNECTION_NOT_READY);
     }
     return caller;
 }
@@ -1097,7 +1101,7 @@ void EtsAbilityContext::RestartAppWithWindow(ani_env *env, ani_object aniObj, an
     etsContext->InheritWindowMode(want);
     auto ret = context->RestartAppWithWindow(want);
     if (ret != ERR_OK) {
-        EtsErrorUtil::ThrowErrorByNativeErr(env, ret);
+        EtsErrorUtil::ThrowErrorByNativeErrWithInnerMsg(env, ret, ERR_MSG_RESTART_APP_FAILED);
     }
 }
 
@@ -1149,7 +1153,8 @@ void EtsAbilityContext::StartAbilityForResultInner(ani_env *env, const AAFwk::St
         auto data = isInner ? nullptr : abilityResult;
         auto errCode = isInner ? resultCode : 0;
         AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-            EtsErrorUtil::CreateErrorByNativeErr(env, errCode), data);
+            EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(env, errCode, ERR_MSG_START_ABILITY_FOR_RESULT_FAILED),
+            data);
     };
     auto requestCode = GenerateRequestCode();
     (startOptionsObj == nullptr) ? context->StartAbilityForResult(want, requestCode, std::move(task))
@@ -1177,7 +1182,8 @@ void EtsAbilityContext::OnTerminateSelf(ani_env *env, ani_object aniObj, ani_obj
     if (ret == static_cast<ErrCode>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT) || ret == ERR_OK) {
         aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
     } else {
-        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+        aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, static_cast<int32_t>(ret), ERR_MSG_TERMINATE_SELF_FAILED);
     }
     AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
 }
@@ -1207,7 +1213,8 @@ void EtsAbilityContext::OnTerminateSelfWithResult(
     if (ret == static_cast<ErrCode>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT) || ret == ERR_OK) {
         aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
     } else {
-        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+        aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, static_cast<int32_t>(ret), ERR_MSG_TERMINATE_SELF_WITH_RESULT_FAILED);
     }
     AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
 }
@@ -1232,7 +1239,8 @@ void EtsAbilityContext::OnReportDrawnCompleted(ani_env *env, ani_object aniObj, 
     if (ret == ERR_OK) {
         aniObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
     } else {
-        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+        aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, static_cast<int32_t>(ret), ERR_MSG_REPORT_DRAWN_FAILED);
     }
     AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
 }
@@ -1260,7 +1268,8 @@ void EtsAbilityContext::OnStartServiceExtensionAbility(ani_env *env, ani_object 
     if (ret == ERR_OK) {
         errorObject = EtsErrorUtil::CreateError(env, static_cast<AbilityErrorCode>(ret));
     } else {
-        errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+        errorObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, static_cast<int32_t>(ret), ERR_MSG_START_EXTENSION_FAILED);
     }
     AppExecFwk::AsyncCallback(env, callbackobj, errorObject, nullptr);
 }
@@ -1287,7 +1296,8 @@ void EtsAbilityContext::OnStopServiceExtensionAbility(ani_env *env, ani_object a
         return;
     }
     ret = context->StopExtensionAbilityWithExtensionType(want, extensionType);
-    aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, static_cast<int32_t>(ret), ERR_MSG_STOP_EXTENSION_FAILED);
     AppExecFwk::AsyncCallback(env, callbackobj, aniObject, nullptr);
 }
 
@@ -1394,7 +1404,8 @@ void EtsAbilityContext::OnMoveAbilityToBackground(ani_env *env, ani_object aniOb
     ErrCode ret = ERR_OK;
     ani_object errorObject = nullptr;
     ret = context->MoveUIAbilityToBackground();
-    errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    errorObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, static_cast<int32_t>(ret), ERR_MSG_MOVE_ABILITY_TO_BACKGROUND_FAILED);
     AppExecFwk::AsyncCallback(env, callback, errorObject, nullptr);
 }
 
@@ -1419,7 +1430,8 @@ void EtsAbilityContext::OnRequestModalUIExtension(ani_env *env, ani_object aniOb
 
     ErrCode ret = ERR_OK;
     ret = AAFwk::AbilityManagerClient::GetInstance()->RequestModalUIExtension(want);
-    errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    errorObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, static_cast<int32_t>(ret), ERR_MSG_MODAL_UI_EXTENSION_FAILED);
     AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
 }
 
@@ -1444,7 +1456,8 @@ void EtsAbilityContext::OnRequestModalUIExtensionWithAccount(ani_env *env, ani_o
 
     ErrCode ret = ERR_OK;
     ret = AAFwk::AbilityManagerClient::GetInstance()->RequestModalUIExtensionWithAccount(want, accountId);
-    errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    errorObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, static_cast<int32_t>(ret), ERR_MSG_MODAL_UI_EXTENSION_FAILED);
     AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
 }
 
@@ -1471,7 +1484,8 @@ void EtsAbilityContext::OnSetMissionWindowIcon(ani_env *env, ani_object aniObj, 
     }
 
     auto ret = context->SetMissionWindowIcon(pixelMap);
-    errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    errorObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, static_cast<int32_t>(ret), ERR_MSG_SET_MISSION_WINDOW_ICON_FAILED);
 #endif
     AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
 }
@@ -1512,7 +1526,8 @@ void EtsAbilityContext::OnBackToCallerAbilityWithResult(ani_env *env, ani_object
 
     ErrCode ret = ERR_OK;
     ret = context->BackToCallerAbilityWithResult(want, resultCode, requestCode);
-    errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(ret));
+    errorObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, static_cast<int32_t>(ret), ERR_MSG_BACK_TO_CALLER_FAILED);
     AppExecFwk::AsyncCallback(env, callBackObj, errorObject, nullptr);
 }
 
@@ -1542,7 +1557,8 @@ void EtsAbilityContext::OnSetMissionLabel(ani_env *env, ani_object aniObj, ani_s
     }
     auto errCode = context->SetMissionLabel(label);
     if (errCode != ERR_OK) {
-        errorObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(errCode));
+        errorObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, static_cast<int32_t>(errCode), ERR_MSG_SET_MISSION_LABEL_FAILED);
     }
     AppExecFwk::AsyncCallback(env, callbackObj, errorObject, nullptr);
 }
@@ -1700,7 +1716,8 @@ ani_object EtsAbilityContext::OnStartAbilityByType(
     } else if (innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
         return EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
     } else {
-        return EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+        return EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, innerErrCode, ERR_MSG_START_ABILITY_BY_TYPE_FAILED);
     }
 }
 
@@ -1913,7 +1930,8 @@ void EtsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_o
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-        ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+        ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, innerErrCode, ERR_MSG_START_SELF_FAILED);
         AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
         return;
     }
@@ -1929,7 +1947,8 @@ void EtsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(ani_env *env, ani_o
     } else {
         innerErrCode = context->StartSelfUIAbilityInCurrentProcess(want, specifiedFlag, startOptions, false);
     }
-    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, innerErrCode, ERR_MSG_START_SELF_FAILED);
     AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
 }
 
@@ -1954,12 +1973,14 @@ void EtsAbilityContext::OnStartSelfUIAbilityInChildProcess(
     if (context == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null context");
         innerErrCode = static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
-        ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+        ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, innerErrCode, ERR_MSG_START_SELF_FAILED);
         AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
         return;
     }
     innerErrCode = context->StartSelfUIAbilityInChildProcess(want, specifiedFlag);
-    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, innerErrCode, ERR_MSG_START_SELF_FAILED);
     AppExecFwk::AsyncCallback(env, call, aniObject, nullptr);
 }
 
@@ -2025,7 +2046,8 @@ void EtsAbilityContext::OnStopServiceExtensionAbilityWithAccount(ani_env *env, a
     }
     auto innerErrCode = context->StopServiceExtensionAbility(want, aniAccountId);
     AppExecFwk::AsyncCallback(env, callbackObj,
-        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
+        EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, static_cast<int32_t>(innerErrCode), ERR_MSG_STOP_EXTENSION_FAILED), nullptr);
 }
 
 void EtsAbilityContext::OnStartServiceExtensionAbilityWithAccount(ani_env *env, ani_object aniObj, ani_object wantObj,
@@ -2048,7 +2070,8 @@ void EtsAbilityContext::OnStartServiceExtensionAbilityWithAccount(ani_env *env, 
     }
     auto innerErrCode = context->StartServiceExtensionAbility(want, aniAccountId);
     AppExecFwk::AsyncCallback(env, callbackObj,
-        EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(innerErrCode)), nullptr);
+        EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+            env, static_cast<int32_t>(innerErrCode), ERR_MSG_START_EXTENSION_FAILED), nullptr);
 }
 
 void EtsAbilityContext::OnRevokeDelegator(ani_env *env, ani_object aniObj, ani_object callback)
@@ -2067,7 +2090,9 @@ void EtsAbilityContext::OnRevokeDelegator(ani_env *env, ani_object aniObj, ani_o
     if (innerErrCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "RevokeDelegator failed, innerErrCode: %{public}d", innerErrCode);
     }
-    AppExecFwk::AsyncCallback(env, callback, EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode), nullptr);
+    AppExecFwk::AsyncCallback(env, callback,
+        EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(env, innerErrCode, ERR_MSG_REVOKE_DELEGATOR_FAILED),
+        nullptr);
 }
 
  
@@ -2150,7 +2175,8 @@ void EtsAbilityContext::OnStartAbilityForResultWithAccountInner(ani_env *env, co
         auto data = isInner ? nullptr : abilityResult;
         auto errCode = isInner ? resultCode : 0;
         AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-            EtsErrorUtil::CreateErrorByNativeErr(env, errCode), data);
+            EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(env, errCode, ERR_MSG_START_ABILITY_FOR_RESULT_FAILED),
+            data);
     };
     auto requestCode = GenerateRequestCode();
     (startOptionsObj == nullptr) ? context->StartAbilityForResultWithAccount(want, accountId, requestCode,
@@ -2175,14 +2201,16 @@ void EtsAbilityContext::OnRestoreWindowStage(
     if ((status = env->GlobalReference_Create(localStorageObj, &localStorageRef_)) != ANI_OK ||
         localStorageRef_ == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "status : %{public}d", status);
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            ERR_MSG_RESTORE_WINDOW_STAGE_FAILED);
         return;
     }
     auto errCode = context->RestoreWindowStage(reinterpret_cast<void *>(localStorageRef_));
     if (errCode != 0) {
         env->GlobalReference_Delete(localStorageRef_);
         localStorageRef_ = nullptr;
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env,
+            EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(env, errCode, ERR_MSG_RESTORE_WINDOW_STAGE_FAILED));
         return;
     }
 }
@@ -2263,7 +2291,7 @@ void EtsAbilityContext::CreateOpenLinkTask(ani_env *env, const ani_object callba
     }
     auto errCode = isInner ? resultCode : 0;
     AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-        EtsErrorUtil::CreateErrorByNativeErr(env, errCode), abilityResult);
+        EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(env, errCode, ERR_MSG_OPEN_LINK_FAILED), abilityResult);
     };
     requestCode = GenerateRequestCode();
     context->InsertResultCallbackTask(requestCode, std::move(task));
@@ -2338,7 +2366,9 @@ void EtsAbilityContext::NativeChangeAbilityVisibility(ani_env *env, ani_object a
     ErrCode errCode = context->ChangeAbilityVisibility(showFlag);
     if (errCode != ERR_OK) {
         TAG_LOGE(AAFwkTag::CONTEXT, "failed, errCode: %{public}d", errCode);
-        AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, errCode), nullptr);
+        AppExecFwk::AsyncCallback(env, callbackObj,
+            EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+                env, errCode, ERR_MSG_MOVE_ABILITY_TO_BACKGROUND_FAILED), nullptr);
         return;
     }
     AppExecFwk::AsyncCallback(env, callbackObj, EtsErrorUtil::CreateErrorByNativeErr(env, ERR_OK), nullptr);
@@ -2520,7 +2550,8 @@ void EtsAbilityContext::OnRequestDialogService(ani_env *env, ani_object aniObj, 
         ani_object requestResult = EtsAbilityContext::WrapRequestDialogResult(env, resultCode, resultWant);
         if (requestResult == nullptr) {
             TAG_LOGW(AAFwkTag::CONTEXT, "null requestResult");
-            EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                ERR_MSG_REQUEST_DIALOG_SERVICE_FAILED);
         } else {
             ani_object errorObj = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_OK);
             AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef), errorObj, requestResult);
@@ -2538,7 +2569,8 @@ void EtsAbilityContext::OnRequestDialogService(ani_env *env, ani_object aniObj, 
         auto errCode = context->RequestDialogService(want, std::move(task));
         if (errCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::UIABILITY, "errCode: %{public}d", errCode);
-            EtsErrorUtil::ThrowError(env, EtsErrorUtil::CreateError(env, GetJsErrorCodeByNativeError(errCode)));
+            EtsErrorUtil::ThrowError(env,
+                EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(env, errCode, ERR_MSG_REQUEST_DIALOG_SERVICE_FAILED));
         }
     }
 }
@@ -2587,8 +2619,9 @@ void EtsAbilityContext::OnConnectUIServiceExtension(ani_env *env, ani_object wan
     if (innerErrorCode != static_cast<int32_t>(AbilityErrorCode::ERROR_OK)) {
         TAG_LOGE(AAFwkTag::CONTEXT, "errcode: %{public}d.", innerErrorCode);
         AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callback),
-            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErr(
-                env, static_cast<int32_t>(innerErrorCode)), AAFwk::EtsUIServiceProxy::CreateEmptyProxyObject(env));
+            AbilityRuntime::EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+                env, static_cast<int32_t>(innerErrorCode), ERR_MSG_CONNECT_UI_SERVICE_EXT_FAILED),
+            AAFwk::EtsUIServiceProxy::CreateEmptyProxyObject(env));
         EtsUIServiceConnection::RemoveUIServiceAbilityConnection(connectId);
     }
 }
@@ -2632,7 +2665,8 @@ void EtsAbilityContext::OnStartUIServiceExtension(ani_env *env, ani_object wantO
     innerErrCode = context->StartUIServiceExtensionAbility(want);
     TAG_LOGD(AAFwkTag::CONTEXT, "StartUIServiceExtensionAbility code:%{public}d", innerErrCode);
     AppExecFwk::AsyncCallback(env, callback,
-        EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode), nullptr);
+        EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(env, innerErrCode, ERR_MSG_START_UI_SERVICE_EXT_FAILED),
+        nullptr);
 }
 
 void EtsAbilityContext::DisconnectUIServiceExtensionCheck(ani_env *env, ani_object aniObj, ani_object proxyObj)
@@ -2900,7 +2934,8 @@ void EtsAbilityContext::OnStartAbilityAsCaller(ani_env *env, ani_object aniObj, 
     } else {
         innerErrCode = context->StartAbilityAsCaller(want, -1);
     }
-    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, innerErrCode, ERR_MSG_START_ABILITY_AS_CALLER_FAILED);
     AppExecFwk::AsyncCallback(env, callbackObj, aniObject, nullptr);
     if (innerErrCode != ERR_OK && !startOptions.requestId_.empty()) {
         nlohmann::json jsonObject = nlohmann::json {
@@ -3002,7 +3037,8 @@ void EtsAbilityContext::OnStartAbilityWithAccount(
     } else {
         innerErrCode = context->StartAbilityWithAccount(want, aniAccountId, -1);
     }
-    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErrWithInnerMsg(
+        env, innerErrCode, ERR_MSG_START_ABILITY_FAILED);
     if ((want.GetFlags() & AAFwk::Want::FLAG_INSTALL_ON_DEMAND) == AAFwk::Want::FLAG_INSTALL_ON_DEMAND) {
         if (innerErrCode != ERR_OK && freeInstallObserver_ != nullptr) {
             std::string bundleName = want.GetElement().GetBundleName();

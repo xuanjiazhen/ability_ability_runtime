@@ -33,6 +33,8 @@ public:
     static void ThrowNoPermissionError(ani_env *env, const std::string &permission);
     static void ThrowInvalidParamError(ani_env *env, const std::string &message);
     static void ThrowErrorByNativeErr(ani_env *env, int32_t err);
+    static void ThrowErrorByNativeErrWithInnerMsg(ani_env *env, int32_t err, const std::string &innerErrMsg,
+        const std::string &permission = "");
     static void ThrowNotSystemAppError(ani_env *env);
     static void ThrowEtsTransferClassError(ani_env *env);
     static void ThrowRuntimeError(ani_env *env, int32_t errCode, const std::string &errMessage = "");
@@ -42,6 +44,8 @@ public:
     static ani_object CreateInvalidParamError(ani_env *env, const std::string &message);
     static ani_object CreateNoPermissionError(ani_env *env, const std::string &permission);
     static ani_object CreateErrorByNativeErr(ani_env *env, int32_t err, const std::string &permission = "");
+    static ani_object CreateErrorByNativeErrWithInnerMsg(ani_env *env, int32_t err, const std::string &innerErrMsg,
+        const std::string &permission = "");
     static ani_object WrapError(ani_env *env, const std::string &msg);
 };
 } // namespace AbilityRuntime

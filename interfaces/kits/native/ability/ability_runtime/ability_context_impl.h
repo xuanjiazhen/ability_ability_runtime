@@ -254,6 +254,8 @@ public:
 #endif
     ErrCode RequestModalUIExtension(const Want &want) override;
 
+    ErrCode RequestModalUIExtensionWithAccount(const Want &want, int32_t accountId) override;
+
     ErrCode ChangeAbilityVisibility(bool isShow) override;
 
     ErrCode AddFreeInstallObserver(const sptr<AbilityRuntime::IFreeInstallObserver> &observer) override;
