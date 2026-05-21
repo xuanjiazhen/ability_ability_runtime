@@ -1280,6 +1280,9 @@ void AbilityConnectManager::LoadAbility(const std::shared_ptr<BaseExtensionRecor
     loadParam.extensionProcessMode = abilityRecord->GetExtensionProcessMode();
     loadParam.isPreloadUIExtension = isPreloadUIExtension;
     loadParam.loadTimeout = loadTimeoutFinal;
+    if (abilityRecord->GetClientPid() > 0) {
+        loadParam.reusePid = abilityRecord->GetClientPid();
+    }
     SetExtensionLoadParam(loadParam, abilityRecord);
     AbilityRuntime::FreezeUtil::GetInstance().AddLifecycleEvent(loadParam.token, "AbilityConnectManager::LoadAbility");
     HandleLoadAbilityOrStartSpecifiedProcess(loadParam, abilityRecord);
