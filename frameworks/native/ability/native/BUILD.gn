@@ -1137,6 +1137,7 @@ ohos_shared_library("uiabilitykit_native") {
     "samgr:samgr_proxy",
   ]
   public_external_deps = [
+    "ace_engine:ace_kit",
     "bundle_framework:appexecfwk_core",
     "libuv:uv",
     "napi:ace_napi",
