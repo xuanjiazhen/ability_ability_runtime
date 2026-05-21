@@ -1073,14 +1073,24 @@ std::string UIAbility::GetContentInfoForDefaultRecovery()
     return scene_->GetContentInfo(Rosen::BackupAndRestoreType::RESOURCESCHEDULE_RECOVERY);
 }
 
-std::map<std::string, std::vector<uint8_t>> UIAbility::GetContentByteInfo() const
+std::map<std::string, std::vector<uint8_t>> UIAbility::GetContextByteInfo() const
 {
-    return {};
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (scene_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
+        return {};
+    }
+    return scene_->GetContextByteInfo();
 }
 
-std::map<std::string, std::vector<uint8_t>> UIAbility::RestoreByteInfo() const
+void UIAbility::RestoreByteInfo(const std::map<std::string, std::vector<uint8_t>>& infos)
 {
-    return {};
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (scene_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
+        return;
+    }
+    scene_->RestoreByteInfo(infos);
 }
 
 void UIAbility::SetSceneListener(const sptr<Rosen::IWindowLifeCycle> &listener)

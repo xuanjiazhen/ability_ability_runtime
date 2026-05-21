@@ -561,18 +561,18 @@ public:
     virtual std::string GetContentInfoForDefaultRecovery();
 
     /**
-     * @brief Get content byte info when ability is about to enter background.
+     * @brief Get context byte info when ability is about to enter background.
      * The key format is Navigation-ID-PAGEiD-COMPONENTId.
      * @return A map of component id to serialized byte data.
      */
-    virtual std::map<std::string, std::vector<uint8_t>> GetContentByteInfo() const;
+    virtual std::map<std::string, std::vector<uint8_t>> GetContextByteInfo() const;
 
     /**
-     * @brief Restore content byte info when ability is about to enter foreground.
+     * @brief Restore byte info when ability is about to enter foreground.
      * The key format is Navigation-ID-PAGEiD-COMPONENTId.
-     * @return A map of component id to serialized byte data to restore.
+     * @param infos A map of component id to serialized byte data to restore.
      */
-    virtual std::map<std::string, std::vector<uint8_t>> RestoreByteInfo() const;
+    virtual void RestoreByteInfo(const std::map<std::string, std::vector<uint8_t>>& infos);
 
     /**
      * @brief Set WindowScene listener
