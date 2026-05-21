@@ -178,6 +178,8 @@ public:
 
     virtual ErrCode RequestModalUIExtension(const AAFwk::Want& want) = 0;
 
+    virtual ErrCode RequestModalUIExtensionWithAccount(const AAFwk::Want& want, int32_t accountId) = 0;
+
     virtual ErrCode OpenLink(const AAFwk::Want &want, int requestCode, bool hideFailureTipDialog = false) = 0;
 
     virtual ErrCode OpenAtomicService(AAFwk::Want& want, const AAFwk::StartOptions &options, int requestCode,
