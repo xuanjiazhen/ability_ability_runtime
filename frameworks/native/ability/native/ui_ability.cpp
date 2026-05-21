@@ -46,7 +46,6 @@
 #endif // WITH_DLP
 #ifdef SUPPORT_GRAPHICS
 #include "wm_common.h"
-#include "ui/view/ui_context.h"
 #endif
 
 namespace OHOS {
@@ -1081,23 +1080,41 @@ std::string UIAbility::GetContentInfoForDefaultRecovery()
 std::map<std::string, std::vector<uint8_t>> UIAbility::GetContextByteInfo() const
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto uiContext = Ace::Kit::UIContext::Current();
-    if (uiContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null uiContext");
+    if (scene_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return {};
     }
-    return uiContext->GetContextByteInfo();
+    auto mainWindow = scene_->GetMainWindow();
+    if (mainWindow == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null mainWindow");
+        return {};
+    }
+    auto uiContent = mainWindow->GetUIContentSharedPtr();
+    if (uiContent == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null uiContent");
+        return {};
+    }
+    return uiContent->GetContextByteInfo();
 }
 
 void UIAbility::RestoreByteInfo(const std::map<std::string, std::vector<uint8_t>>& infos)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
-    auto uiContext = Ace::Kit::UIContext::Current();
-    if (uiContext == nullptr) {
-        TAG_LOGE(AAFwkTag::UIABILITY, "null uiContext");
+    if (scene_ == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return;
     }
-    uiContext->RestoreByteInfo(infos);
+    auto mainWindow = scene_->GetMainWindow();
+    if (mainWindow == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null mainWindow");
+        return;
+    }
+    auto uiContent = mainWindow->GetUIContentSharedPtr();
+    if (uiContent == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "null uiContent");
+        return;
+    }
+    uiContent->RestoreByteInfo(infos);
 }
 
 void UIAbility::SetSceneListener(const sptr<Rosen::IWindowLifeCycle> &listener)
