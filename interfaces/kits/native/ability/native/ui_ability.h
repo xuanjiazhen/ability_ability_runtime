@@ -400,6 +400,7 @@ protected:
     std::shared_ptr<AppExecFwk::AbilityStartSetting> setting_ = nullptr;
     std::shared_ptr<AppExecFwk::AbilityRecovery> abilityRecovery_ = nullptr;
     std::shared_ptr<AppExecFwk::AbilityInfo> abilityInfo_ = nullptr;
+    std::map<std::string, std::vector<uint8_t>> byteInfoCache_;
     AAFwk::LaunchParam launchParam_;
     bool securityFlag_ = false;
     bool withNative_ = false;
@@ -788,7 +789,6 @@ protected:
     sptr<Rosen::IWindowLifeCycle> sceneListener_ = nullptr;
     sptr<UIAbilityDisplayListener> abilityDisplayListener_ = nullptr;
     sptr<Rosen::IDisplayMoveListener> abilityDisplayMoveListener_ = nullptr;
-    std::map<std::string, std::vector<uint8_t>> byteInfoCache_;
 
 private:
     void OnStartForSupportGraphics(const AAFwk::Want &want);
