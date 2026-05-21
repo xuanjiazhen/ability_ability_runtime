@@ -87,7 +87,7 @@ public:
         const std::string &processName, const int uid, const BundleInfo &bundleInfo,
         const std::string &specifiedProcessFlag = "", bool *isProCache = nullptr, const std::string &instanceKey = "",
         const std::string &customProcessFlag = "", const bool notReuseCachedPorcess = false,
-        bool isFromPreload = false);
+        bool isFromPreload = false, pid_t reusePid = -1);
 
     std::shared_ptr<AppRunningRecord> CheckAppRunningRecordForSpecifiedProcess(
         int32_t uid, const std::string &instanceKey, const std::string &customProcessFlag);

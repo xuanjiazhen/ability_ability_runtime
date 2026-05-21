@@ -267,6 +267,7 @@ group("unittest") {
       "app_running_manager_fourth_test:unittest",
       "app_running_manager_second_test:unittest",
       "app_running_manager_test:unittest",
+      "load_param_test:unittest",
       "app_running_manager_third_test:unittest",
       "app_running_processes_info_test:unittest",
       "app_running_record_test:unittest",
