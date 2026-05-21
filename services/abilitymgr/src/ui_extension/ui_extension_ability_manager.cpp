@@ -266,6 +266,8 @@ void UIExtensionAbilityManager::OnAbilityRequestDone(const sptr<IRemoteObject> &
 
         std::string element = abilityRecord->GetURI();
         TAG_LOGD(AAFwkTag::EXT, "Ability is %{public}s, start to foreground.", element.c_str());
+        DelayedSingleton<AppScheduler>::GetInstance()->SetAbilityForegroundingFlagToAppRecord(
+            abilityRecord->GetPid());
         abilityRecord->ForegroundUIExtensionAbility();
         abilityRecord->RemoveUIExtensionLaunchTimestamp();
     }
@@ -694,6 +696,8 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
             }
             abilityRecord->SetWant(abilityRequest.want);
             abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
+            DelayedSingleton<AppScheduler>::GetInstance()->SetAbilityForegroundingFlagToAppRecord(
+                abilityRecord->GetPid());
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken());
 
             if (!abilityRecord->IsConnectionReported() && ForegroundAppConnectionManager::IsForegroundAppConnection(
