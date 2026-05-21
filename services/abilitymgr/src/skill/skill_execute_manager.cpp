@@ -24,6 +24,7 @@
 #include "hilog_tag_wrapper.h"
 #include "in_process_call_wrapper.h"
 #include "iservice_registry.h"
+#include "permission_constants.h"
 #include "permission_verification.h"
 #include "system_ability_definition.h"
 #ifdef SUPPORT_UPMS
@@ -96,6 +97,17 @@ int32_t SkillExecuteManager::CheckSkillPermission(const AppExecFwk::SkillInfo &s
         }
     }
 
+    if (permVerif->VerifyCallingPermission(
+        PermissionConstants::PERMISSION_START_INVISIBLE_ABILITY, callerTokenId)) {
+        return ERR_OK;
+    }
+
+    for (const auto &perm : skillInfo.permissions) {
+        if (!permVerif->VerifyCallingPermission(perm, callerTokenId)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "caller lacks permission:%{public}s", perm.c_str());
+            return CHECK_PERMISSION_FAILED;
+        }
+    }
     return ERR_OK;
 }
 
