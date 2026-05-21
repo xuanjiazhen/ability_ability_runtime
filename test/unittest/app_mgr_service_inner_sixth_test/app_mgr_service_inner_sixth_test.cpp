@@ -386,7 +386,6 @@ HWTEST_F(AppMgrServiceInnerSixthTest, GetRenderProcessTerminationStatus_002, Tes
 HWTEST_F(AppMgrServiceInnerSixthTest, GetExceptionTimerId_002, TestSize.Level1)
 {
     GTEST_LOG_(INFO) << "GetExceptionTimerId_002 start";
-
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
 #ifdef APP_MGR_SERVICE_HICOLLIE_ENABLE
@@ -397,7 +396,6 @@ HWTEST_F(AppMgrServiceInnerSixthTest, GetExceptionTimerId_002, TestSize.Level1)
     int result = appMgrServiceInner->GetExceptionTimerId(faultData, "", nullptr, pid, callerUid);
     EXPECT_NE(result, 0);
 #endif
-
     GTEST_LOG_(INFO) << "GetExceptionTimerId_002 end";
 }
 
