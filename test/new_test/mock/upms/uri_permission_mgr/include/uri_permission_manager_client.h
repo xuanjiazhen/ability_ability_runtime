@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Copyright (c) 2025-2026 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -43,7 +43,7 @@ public:
 
     int32_t GrantUriPermissionPrivileged(const std::vector<Uri> &uriVec, uint32_t flag,
         const std::string &targetBundleName, int32_t appIndex = 0, uint32_t initiatorTokenId = 0,
-        int32_t hideSensitiveType = 0)
+        int32_t hideSensitiveType = 4)
     {
         return 0;
     }
