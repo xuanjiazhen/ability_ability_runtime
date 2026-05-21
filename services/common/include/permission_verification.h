@@ -132,6 +132,7 @@ struct VerificationInfo {
 
     bool VerifyCustomSandbox(uint32_t accessTokenId) const;
 
+    bool VerifySupportCrossAppEmbedForOaPermission() const;
 private:
     DISALLOW_COPY_AND_MOVE(PermissionVerification);
 

@@ -32,6 +32,7 @@ ohos_unittest("extension_record_factory_test") {
     "${ability_runtime_path}/interfaces/kits/native/ability/native/ui_service_extension_ability/connection",
     "${ability_runtime_path}/interfaces/inner_api/runtime/include",
     "${ability_runtime_path}/frameworks/native/ability/native/ui_service_extension_ability",
+    "//test/unittest/extension_record_factory_test/mock/include",
   ]
 
   sources = [

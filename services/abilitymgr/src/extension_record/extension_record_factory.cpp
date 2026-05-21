@@ -69,6 +69,60 @@ bool ExtensionRecordFactory::NeedReuse(const AAFwk::AbilityRequest &abilityReque
     return false;
 }
 
+bool ExtensionRecordFactory::IsInAllowList(const std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos,
+    const std::string &extensionName, const std::string &callerAppIdentifier)
+{
+    for (const AppExecFwk::ExtensionAbilityInfo &info : extensionInfos) {
+        if (info.type == AppExecFwk::ExtensionAbilityType::EMBEDDED_UI && info.name == extensionName) {
+            auto it = std::find_if(info.appIdentifierAllowList.begin(),
+                info.appIdentifierAllowList.end(),
+                [callerAppIdentifier](const std::string &allowAppId) {
+                    return allowAppId == callerAppIdentifier || allowAppId == "allow_all";
+                });
+            return it != info.appIdentifierAllowList.end();
+        }
+    }
+    return false;
+}
+
+bool ExtensionRecordFactory::CheckAllowCrossUserEmbeddedUI(
+    const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName)
+{
+    if (!AAFwk::PermissionVerification::GetInstance()->VerifySupportCrossAppEmbedForOaPermission()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "no permission to cross user embeddedUI");
+        return false;
+    }
+
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, false);
+    std::string callerAppIdentifier = abilityRequest.want.GetStringParam(Want::PARAM_RESV_CALLER_APP_IDENTIFIER);
+    if (callerAppIdentifier.empty()) {
+        AppExecFwk::SignatureInfo signatureInfo;
+        if (IN_PROCESS_CALL(bms->GetSignatureInfoByBundleName(hostBundleName, signatureInfo)) != ERR_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR,
+                "bms GetSignatureInfoByBundleName error, bundleName: %{public}s",
+                hostBundleName.c_str());
+            return false;
+        };
+        callerAppIdentifier = signatureInfo.appIdentifier;
+    }
+    AppExecFwk::BundleInfo targetBundleInfo;
+    std::string targetBundleName = abilityRequest.abilityInfo.bundleName;
+    if (!IN_PROCESS_CALL(bms->GetBundleInfo(targetBundleName,
+            AppExecFwk::BundleFlag::GET_BUNDLE_WITH_EXTENSION_INFO,
+            targetBundleInfo,
+            abilityRequest.userId))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bms GetBundleInfo error, BundleFlag: GET_BUNDLE_WITH_EXTENSION_INFO");
+        return false;
+    }
+
+    if (IsInAllowList(targetBundleInfo.extensionInfos, abilityRequest.abilityInfo.name, callerAppIdentifier)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "allow cross user embeddedUI bundleName:%{public}s", hostBundleName.c_str());
+        return true;
+    }
+    return false;
+}
+
 int32_t ExtensionRecordFactory::PreCheck(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName)
 {
     uint32_t preCheckFlag = GetPreCheckFlag(abilityRequest.extensionType);
@@ -76,7 +130,8 @@ int32_t ExtensionRecordFactory::PreCheck(const AAFwk::AbilityRequest &abilityReq
         return ERR_OK;
     }
     if ((preCheckFlag & PRE_CHECK_FLAG_CALLED_WITHIN_THE_BUNDLE) &&
-        hostBundleName != AbilityConfig::SCENEBOARD_BUNDLE_NAME) {
+        hostBundleName != AbilityConfig::SCENEBOARD_BUNDLE_NAME &&
+        !CheckAllowCrossUserEmbeddedUI(abilityRequest, hostBundleName)) {
         if (hostBundleName != abilityRequest.abilityInfo.applicationName) {
             if (abilityRequest.isTargetPlugin && abilityRequest.hostBundleName == hostBundleName &&
                 abilityRequest.abilityInfo.extensionAbilityType == ExtensionAbilityType::EMBEDDED_UI) {
