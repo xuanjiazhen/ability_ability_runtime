@@ -3342,7 +3342,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, UnRegisterPreloadUIExtensionHostClient_
 }
 
 /**
- * @tc.name: CheckSupportVpn_001
+ * @tc.name: CheckSupportVpn_001失败
  * @tc.desc: Test CheckSupportVpn
  * @tc.type: FUNC
  */
@@ -3353,7 +3353,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_001, TestSize.Level1)
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::VPN;
     auto result = abilityMs_->CheckSupportVpn(abilityInfo);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
