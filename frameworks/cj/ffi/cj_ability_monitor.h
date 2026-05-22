@@ -47,7 +47,7 @@ public:
     /**
      * Default deconstructor used to deconstruct.
      */
-    ~CJAbilityMonitor() = default;
+    ~CJAbilityMonitor();
 
     /**
      * Called when ability is started.

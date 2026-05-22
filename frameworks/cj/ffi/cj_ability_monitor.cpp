@@ -30,6 +30,11 @@ CJAbilityMonitor::CJAbilityMonitor(
     : CJIAbilityMonitor(name, moduleName), cjMonitor_(cjAbilityMonitor)
 {}
 
+CJAbilityMonitor::~CJAbilityMonitor()
+{
+
+}
+
 void CJAbilityMonitor::OnAbilityStart(const int64_t abilityId)
 {
     TAG_LOGD(AAFwkTag::DELEGATOR, "CJAbilityMonitor::OnAbilityStart called");
