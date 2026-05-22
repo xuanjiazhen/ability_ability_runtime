@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * UN
  */
 
 #include <gtest/gtest.h>
@@ -1290,7 +1291,8 @@ HWTEST_F(AppMgrServiceInnerFourthTest, DestroyImageByImageInfo_ShouldReturnNotRe
     TAG_LOGI(AAFwkTag::TEST, "DestroyImageByImageInfo_ShouldReturnNotReadyWhenImagePidInvalid start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
-    auto imageInfo = std::make_shared<ForkImageInfo>();
+    auto imageInfo = std::shared_ptr<ForkImageInfo>(
+        std::make_shared<char>(), new ForkImageInfo());
     imageInfo->imagePid = -1;
     auto ret = appMgrServiceInner->DestroyImageByImageInfo(imageInfo);
     EXPECT_EQ(ret, ImageError::ERR_IMAGE_INFO_NOT_READY);
