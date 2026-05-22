@@ -124,8 +124,6 @@ void AbilityRecovery::SaveStateCallback(AppExecFwk::OnSaveStateResult result)
         TAG_LOGE(AAFwkTag::RECOVERY, "get page stack failed");
     }
     TAG_LOGD(AAFwkTag::RECOVERY, "pageStack size: %{public}zu", pageStack.size());
-    savedByteInfo_ = ability->GetContextByteInfo();
-    TAG_LOGD(AAFwkTag::RECOVERY, "byteInfo size: %{public}zu", savedByteInfo_.size());
 #endif
     if (saveMode_ == SaveModeFlag::SAVE_WITH_FILE) {
         SerializeDataToFile(missionId_, result.wantParams);
@@ -433,11 +431,6 @@ std::string AbilityRecovery::GetSavedPageStack(StateReason reason)
         TAG_LOGE(AAFwkTag::RECOVERY, "empty pageStack_");
     }
     return pageStack_;
-}
-
-std::map<std::string, std::vector<uint8_t>> AbilityRecovery::GetSavedByteInfo()
-{
-    return savedByteInfo_;
 }
 
 bool AbilityRecovery::IsSaveAbilityState(StateReason reason)

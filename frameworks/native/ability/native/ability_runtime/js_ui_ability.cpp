@@ -1207,10 +1207,6 @@ void JsUIAbility::AbilityContinuationOrRecover(const Want &want)
         launchParam_.launchReason, launchParam_.lastExitReason);
     if (IsRestoredInContinuation()) {
         RestorePageStack(want);
-        auto byteInfo = abilityRecovery_->GetSavedByteInfo();
-        if (!byteInfo.empty()) {
-            scene_->RestoreByteInfo(byteInfo);
-        }
         OnSceneRestored();
         NotifyContinuationResult(want, true);
     } else if (ShouldRecoverState(want)) {
@@ -1224,10 +1220,6 @@ void JsUIAbility::AbilityContinuationOrRecover(const Want &want)
         } else {
             TAG_LOGE(AAFwkTag::UIABILITY, "null mainWindow");
         }
-        auto byteInfo = abilityRecovery_->GetSavedByteInfo();
-        if (!byteInfo.empty()) {
-            scene_->RestoreByteInfo(byteInfo);
-        }
         OnSceneRestored();
     } else {
         if (ShouldDefaultRecoverState(want) && abilityRecovery_ != nullptr && scene_ != nullptr) {
@@ -1236,10 +1228,6 @@ void JsUIAbility::AbilityContinuationOrRecover(const Want &want)
             auto mainWindow = scene_->GetMainWindow();
             if (!pageStack.empty() && mainWindow != nullptr) {
                 mainWindow->SetRestoredRouterStack(pageStack);
-            }
-            auto byteInfo = abilityRecovery_->GetSavedByteInfo();
-            if (!byteInfo.empty()) {
-                scene_->RestoreByteInfo(byteInfo);
             }
         }
         OnSceneCreated();

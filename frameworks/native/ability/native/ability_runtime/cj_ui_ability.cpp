@@ -537,18 +537,10 @@ void CJUIAbility::AbilityContinuationOrRecover(const Want &want)
     TAG_LOGD(AAFwkTag::UIABILITY, "launch reason: %{public}d", launchParam_.launchReason);
     if (IsRestoredInContinuation()) {
         RestorePageStack(want);
-        auto byteInfo = abilityRecovery_->GetSavedByteInfo();
-        if (!byteInfo.empty()) {
-            scene_->RestoreByteInfo(byteInfo);
-        }
         OnSceneRestored();
         NotifyContinuationResult(want, true);
     } else if (ShouldRecoverState(want)) {
         std::string pageStack = abilityRecovery_->GetSavedPageStack(AppExecFwk::StateReason::DEVELOPER_REQUEST);
-        auto byteInfo = abilityRecovery_->GetSavedByteInfo();
-        if (!byteInfo.empty()) {
-            scene_->RestoreByteInfo(byteInfo);
-        }
         OnSceneRestored();
     } else {
         OnSceneCreated();

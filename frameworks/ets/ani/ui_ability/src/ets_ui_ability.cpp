@@ -1206,10 +1206,6 @@ void EtsUIAbility::AbilityContinuationOrRecover(const Want &want)
         launchParam_.lastExitReason);
     if (IsRestoredInContinuation()) {
         RestorePageStack(want);
-        auto byteInfo = abilityRecovery_->GetSavedByteInfo();
-        if (!byteInfo.empty()) {
-            scene_->RestoreByteInfo(byteInfo);
-        }
         OnSceneRestored();
         NotifyContinuationResult(want, true);
         return;
@@ -1220,10 +1216,6 @@ void EtsUIAbility::AbilityContinuationOrRecover(const Want &want)
         auto mainWindow = scene_->GetMainWindow();
         if (!pageStack.empty() && mainWindow != nullptr) {
             mainWindow->SetRestoredRouterStack(pageStack);
-        }
-        auto byteInfo = abilityRecovery_->GetSavedByteInfo();
-        if (!byteInfo.empty()) {
-            scene_->RestoreByteInfo(byteInfo);
         }
     }
     OnSceneCreated();
