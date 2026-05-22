@@ -1177,5 +1177,41 @@ void CliToolManagerService::HandleSkillSessionTimeout(const std::string &session
     EventDispatcher::GetInstance().ClearSessionSubscribers(sessionId);
     RemoveSessionRecord(sessionId);
 }
+
+// ==================== Distributed Methods ====================
+
+bool CliToolManagerService::IsDistributedCall(const std::string &targetDeviceId)
+{
+    return !targetDeviceId.empty();
+}
+
+int32_t CliToolManagerService::CheckDeviceOnline(const std::string &targetDeviceId)
+{
+    auto deviceInfo = DistributedSchedule::DtbschedmgrDeviceInfoStorage::GetInstance().GetDeviceInfoById(targetDeviceId);
+    if (deviceInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CheckDeviceOnline: Device not found, targetDeviceId=%{public}s",
+            targetDeviceId.c_str());
+        return ERR_DEVICE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::GetAllToolSummariesFromRemote(const CliCallerInfo &callerInfo,
+    std::vector<ToolSummary> &summaries)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummariesFromRemote called from device=%{public}s",
+        callerInfo.sourceDeviceId.c_str());
+
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    // Remote permission check - verify the caller is a system app
+    if (!callerInfo.isSystemApp) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummariesFromRemote: Caller is not system app");
+        return ERR_NOT_SYSTEM_APP;
+    }
+
+    return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
+}
+
 } // namespace CliTool
 } // namespace OHOS

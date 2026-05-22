@@ -80,6 +80,21 @@ enum {
      * Result (35700012): fail to kill.
      */
     ERR_NOT_KILL = 35700012,
+
+    /*
+     * Result (35700013): Device not found.
+     */
+    ERR_DEVICE_NOT_FOUND = 35700013,
+
+    /*
+     * Result (35700014): Remote call failed.
+     */
+    ERR_REMOTE_CALL_FAILED = 35700014,
+
+    /*
+     * Result (35700015): Device disconnected.
+     */
+    ERR_DEVICE_DISCONNECTED = 35700015,
 };
 
 } // namespace CliTool

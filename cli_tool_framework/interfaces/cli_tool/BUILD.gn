@@ -17,6 +17,7 @@ import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
 idl_gen_interface("cli_tool_manager_interface") {
   sources = [
+    "CliCallerInfo.idl",
     "ICliToolManager.idl",
     "ICliToolManagerScheduler.idl",
   ]

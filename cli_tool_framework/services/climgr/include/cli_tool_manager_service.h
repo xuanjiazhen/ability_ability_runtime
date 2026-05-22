@@ -25,6 +25,7 @@
 
 #include "cli_tool_manager_stub.h"
 #include "cli_tool_data_manager.h"
+#include "cli_caller_info.h"
 #include "ffrt.h"
 #include "iremote_object.h"
 #include "system_ability.h"
@@ -88,7 +89,7 @@ public:
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
     int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
-    
+
     int32_t QuerySession(const std::string &sessionId, CliSessionInfo &session) override;
     int32_t SendMessage(const std::string &sessionId,
         const std::string &inputText, const std::string &eventId,
@@ -99,6 +100,10 @@ public:
      */
     int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
         std::vector<CommandPermission> &cmdPermissions) override;
+
+    // Distributed API - called from remote device
+    int32_t GetAllToolSummariesFromRemote(const CliCallerInfo &callerInfo,
+        std::vector<ToolSummary> &summaries) override;
 
 protected:
     void OnStart() override;

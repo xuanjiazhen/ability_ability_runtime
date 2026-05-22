@@ -17,6 +17,7 @@ package OHOS.CliTool;
 
 import ICliToolData;
 import ICliToolManagerScheduler;
+sequenceable CliCallerInfo..OHOS.CliTool.CliCallerInfo;
 sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
 sequenceable OHOS.CliTool.ToolSummary;
@@ -36,4 +37,7 @@ interface ICliToolManager {
     void SendMessage([in] String sessionId, [in] String inputText, [in] String eventId,
         [in] ICliToolManagerScheduler scheduler);
     void BatchQueryPermissionBySubCommand([in] List<Command> cmds, [out] List<CommandPermission> cmdPermissions);
+
+    // Distributed APIs - called from remote device
+    void GetAllToolSummariesFromRemote([in] CliCallerInfo callerInfo, [out] ToolSummary[] summaries);
 }
