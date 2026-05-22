@@ -16,8 +16,10 @@
 #ifndef OHOS_ABILITY_ABILITY_RECOVERY_H
 #define OHOS_ABILITY_ABILITY_RECOVERY_H
 
+#include <map>
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #include "ability_info.h"
 #include "application_info.h"
@@ -48,6 +50,7 @@ public:
     void SetJsAbility(uintptr_t ability);
     void SaveStateCallback(AppExecFwk::OnSaveStateResult result);
     std::string GetSavedPageStack(StateReason reason);
+    std::map<std::string, std::vector<uint8_t>> GetSavedByteInfo();
     uint16_t GetRestartFlag() const;
     uint16_t GetSaveOccasionFlag() const;
     uint16_t GetSaveModeFlag() const;
@@ -74,6 +77,7 @@ private:
     uintptr_t jsAbilityPtr_;
     wptr<IRemoteObject> token_;
     std::string pageStack_;
+    std::map<std::string, std::vector<uint8_t>> savedByteInfo_;
     WantParams params_;
     bool hasTryLoad_ = false;
     bool hasLoaded_ = false;

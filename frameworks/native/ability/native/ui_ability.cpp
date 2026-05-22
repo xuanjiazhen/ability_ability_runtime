@@ -881,8 +881,6 @@ void UIAbility::OnForeground(const AAFwk::Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
-    RestoreByteInfo(byteInfoCache_);
-    byteInfoCache_.clear();
     DoOnForeground(want);
     if (isSilentForeground_) {
         TAG_LOGD(AAFwkTag::UIABILITY, "silent foreground, return");
@@ -915,8 +913,6 @@ void UIAbility::OnBackground()
         TAG_LOGD(AAFwkTag::UIABILITY, "goBackground sceneFlag: %{public}d", sceneFlag_);
         scene_->GoBackground(sceneFlag_);
     }
-
-    byteInfoCache_ = GetContextByteInfo();
 
     if (abilityRecovery_ != nullptr && abilityContext_ != nullptr && abilityContext_->GetRestoreEnabled() &&
         CheckRecoveryEnabled()) {
