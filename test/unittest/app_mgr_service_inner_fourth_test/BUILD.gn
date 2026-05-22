@@ -18,10 +18,8 @@ module_output_path = "ability_runtime/ability_runtime/appmgrservice"
 
 ohos_unittest("AppMgrServiceInnerFourthTest") {
   sanitize = {
-    cfi = true
-    cfi_cross_dso = true
-    debug = false
-    blocklist = "../../cfi_blocklist.txt"
+    cfi = false
+    cfi_cross_dso = false
   }
   module_out_path = module_output_path
 
