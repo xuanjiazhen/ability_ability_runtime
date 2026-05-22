@@ -68,7 +68,7 @@ AbilityInterceptorParam BuildInterceptorParam(Want &want, sptr<IRemoteObject> &t
         want, REQUEST_CODE_DEFAULT, USER_ID_DEFAULT, false, token, shouldBlockFunc);
 }
 
-void FuzzDoProcess(FuzzedDataProvider &fdp)
+void FuzzDoProcess()
 {
     auto interceptor = std::make_shared<ScreenUnlockInterceptor>();
     sptr<IRemoteObject> token = CreateFuzzAbilityToken();
@@ -198,7 +198,7 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
     auto apiCase = fdp.ConsumeIntegralInRange<int32_t>(0, MAX_API_CASE);
     switch (apiCase) {
         case API_DO_PROCESS:
-            FuzzDoProcess(fdp);
+            FuzzDoProcess();
             break;
         case API_GET_TARGET_ABILITY_INFO:
             FuzzGetTargetAbilityInfo(fdp);
