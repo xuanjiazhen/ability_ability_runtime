@@ -56,7 +56,7 @@ public:
 };
 } // namespace
 
-void FuzzRegisterObserver(FuzzedDataProvider &fdp)
+void FuzzRegisterObserver()
 {
     auto &mgr = AbilityStartWithWaitObserverManager::GetInstance();
     Want want;
@@ -70,11 +70,11 @@ void FuzzRegisterObserver(FuzzedDataProvider &fdp)
     mgr.RegisterObserver(want, obs);
 }
 
-void FuzzUnregisterObserver(FuzzedDataProvider &fdp)
+void FuzzUnregisterObserver()
 {
     auto &mgr = AbilityStartWithWaitObserverManager::GetInstance();
     // null
-    mgr.UnregisterObserver(nullptr);
+    mgr.UnregisterObserver(nullptr); 
     // not registered
     sptr<IAbilityStartWithWaitObserver> obs2 = new FuzzObserverStub();
     mgr.UnregisterObserver(obs2);
@@ -138,7 +138,7 @@ void FuzzNotifyTerminateByRecord(FuzzedDataProvider &fdp)
     mgr.NotifyAATerminateWait(recordWithId, reason);
 }
 
-void FuzzSetColdStart(FuzzedDataProvider &fdp)
+void FuzzSetColdStart()
 {
     auto &mgr = AbilityStartWithWaitObserverManager::GetInstance();
     // null record
@@ -172,7 +172,7 @@ void FuzzSetColdStart(FuzzedDataProvider &fdp)
     mgr.SetColdStartForShellCall(recordWithId);
 }
 
-void FuzzGenerateDeathRecipient(FuzzedDataProvider &fdp)
+void FuzzGenerateDeathRecipient()
 {
     auto &mgr = AbilityStartWithWaitObserverManager::GetInstance();
     // null observer
@@ -188,10 +188,10 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
     auto apiCase = fdp.ConsumeIntegralInRange<int32_t>(0, MAX_API_CASE);
     switch (apiCase) {
         case API_REGISTER_OBSERVER:
-            FuzzRegisterObserver(fdp);
+            FuzzRegisterObserver();
             break;
         case API_UNREGISTER_OBSERVER:
-            FuzzUnregisterObserver(fdp);
+            FuzzUnregisterObserver();
             break;
         case API_NOTIFY_TERMINATE_BY_WANT:
             FuzzNotifyTerminateByWant(fdp);
@@ -200,10 +200,10 @@ bool DoSomethingInterestingWithMyAPI(const uint8_t *data, size_t size)
             FuzzNotifyTerminateByRecord(fdp);
             break;
         case API_SET_COLD_START:
-            FuzzSetColdStart(fdp);
+            FuzzSetColdStart();
             break;
         case API_GENERATE_DEATH_RECIPIENT:
-            FuzzGenerateDeathRecipient(fdp);
+            FuzzGenerateDeathRecipient();
             break;
         case API_GET_INSTANCE:
             AbilityStartWithWaitObserverManager::GetInstance();

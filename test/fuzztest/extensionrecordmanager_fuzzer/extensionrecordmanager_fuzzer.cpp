@@ -262,7 +262,7 @@ void FuzzFocusAndToken(FuzzedDataProvider &fdp)
     manager->GetRootCallerTokenLocked(recordId, abilityRecord);
 }
 
-void FuzzSessionAndCaller(FuzzedDataProvider &fdp)
+void FuzzSessionAndCaller()
 {
     auto manager = std::make_shared<ExtensionRecordManager>(0);
     // GetAbilityRecordBySessionInfo with null session
@@ -394,7 +394,7 @@ void DispatchApiCaseSecond(FuzzedDataProvider &fdp, int32_t apiCase)
             FuzzFocusAndToken(fdp);
             break;
         case API_SESSION_AND_CALLER:
-            FuzzSessionAndCaller(fdp);
+            FuzzSessionAndCaller();
             break;
         case API_START_ABILITY:
             FuzzStartAbility(fdp);
