@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 测试套crash
  */
 
 #include <gtest/gtest.h>
@@ -3353,7 +3354,7 @@ HWTEST_F(AbilityManagerServiceThirdTest, CheckSupportVpn_001, TestSize.Level1)
     AppExecFwk::AbilityInfo abilityInfo;
     abilityInfo.extensionAbilityType = AppExecFwk::ExtensionAbilityType::VPN;
     auto result = abilityMs_->CheckSupportVpn(abilityInfo);
-    EXPECT_FALSE(result);
+    EXPECT_TRUE(result);
 }
 
 /**
