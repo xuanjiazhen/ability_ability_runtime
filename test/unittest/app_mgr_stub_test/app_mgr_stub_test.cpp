@@ -938,7 +938,7 @@ HWTEST_F(AppMgrStubTest, HandleSetProcessCacheEnable_0100, TestSize.Level1)
 }
 
 /**
- * @tc.name: HandleLockProcessCache_001
+ * @tc.name: HandleLockProcessCache_001失败
  * @tc.desc: Test HandleLockProcessCache.
  * @tc.type: FUNC
  */

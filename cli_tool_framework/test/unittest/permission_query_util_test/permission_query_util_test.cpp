@@ -92,7 +92,7 @@ HWTEST_F(PermissionQueryUtilTest, BatchQueryPermissions_EmptyCommands, TestSize.
 }
 
 /**
- * @tc.name: PermissionQueryUtil::BatchQueryPermissions_002
+ * @tc.name: PermissionQueryUtil::BatchQueryPermissions_002失败
  * @tc.desc: Test batch query with non-existent tool
  * @tc.type: FUNC
  */
@@ -158,7 +158,7 @@ HWTEST_F(PermissionQueryUtilTest, BatchQueryPermissions_ClearsOutputParameter, T
 }
 
 /**
- * @tc.name: PermissionQueryUtil::BatchQueryPermissions_005
+ * @tc.name: PermissionQueryUtil::BatchQueryPermissions_005失败
  * @tc.desc: Test batch query with multiple commands
  * @tc.type: FUNC
  */
@@ -204,7 +204,7 @@ HWTEST_F(PermissionQueryUtilTest, QuerySingleCommand_EmptyToolName, TestSize.Lev
 }
 
 /**
- * @tc.name: PermissionQueryUtil::QuerySingleCommand_002
+ * @tc.name: PermissionQueryUtil::QuerySingleCommand_002失败
  * @tc.desc: Test QuerySingleCommand with non-existent tool
  * @tc.type: FUNC
  */
