@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * crash
  */
 
 #include <gtest/gtest.h>
@@ -53,6 +54,9 @@ public:
     static void TearDownTestCase(void);
     void SetUp();
     void TearDown();
+
+private:
+    std::vector<std::shared_ptr<AbilityRuntime::ExtensionRecord>> pendingRecords_;
 };
 
 void ExtensionRecordTest::SetUpTestCase(void)
@@ -61,9 +65,21 @@ void ExtensionRecordTest::TearDownTestCase(void)
 {}
 
 void ExtensionRecordTest::SetUp()
-{}
+{
+    pendingRecords_.clear();
+}
 void ExtensionRecordTest::TearDown()
-{}
+{
+    // 等待所有异步操作完成
+    for (auto& record : pendingRecords_) {
+        if (record) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        }
+    }
+    pendingRecords_.clear();
+    // 确保 ffrt 队列清空
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+}
 
 /*
  * Feature: ExtensionRecordTest
@@ -84,7 +100,9 @@ HWTEST_F(ExtensionRecordTest, UnloadUIExtensionAbility_001, TestSize.Level1)
         abilityRequest);
     auto Info = std::make_shared<AbilityRuntime::ExtensionRecord>(abilityRecord);
     Info->hostBundleName_ = "ExtensionRecordTest";
+    pendingRecords_.push_back(Info);
     Info->UnloadUIExtensionAbility();
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
     EXPECT_EQ(Info->preLoadUIExtStateObserver_, nullptr);
     TAG_LOGD(AAFwkTag::TEST, "UnloadUIExtensionAbility_001 called. end");
 }

@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * crash
  */
 #include <gtest/gtest.h>
 #include <memory>
@@ -91,8 +92,6 @@ void CjTestRunnerTest::SetUp()
     options_.loadAce = false;
     options_.isBundle = true;
     options_.preload = false;
-    std::shared_ptr<AppExecFwk::EventRunner> eventRunner = AppExecFwk::EventRunner::Create(TEST_ABILITY_NAME);
-    options_.eventRunner = eventRunner;
     options_.preload = true;
     options_.lang = CJRuntime::Language::CJ;
     std::unique_ptr<CJRuntime> runtime = std::make_unique<cjMockRuntime>();
@@ -122,8 +121,7 @@ HWTEST_F(CjTestRunnerTest, CjTestRunnerTestCreate_Failed_RuntimeNull_001, TestSi
     }
     std::shared_ptr<AbilityDelegatorArgs> abilityArgs = std::make_shared<AbilityDelegatorArgs>(want);
 
-    Runtime::Options options;
-    std::unique_ptr<Runtime> runtime = Runtime::Create(options);
+    std::unique_ptr<Runtime> runtime = std::make_unique<cjMockRuntime>();
     std::unique_ptr<TestRunner> testRunner = TestRunner::Create(
         runtime,
         abilityArgs,

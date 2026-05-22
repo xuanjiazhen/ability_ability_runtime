@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * crash
  */
 
 #include <functional>
@@ -2032,7 +2033,6 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_HandleRegisterObserver_0100, Fun
     Uri uri(TEST);
     sptr<AAFwk::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     EXPECT_TRUE(abilitythread->HandleRegisterObserver(uri, dataObserver));
-    delete dataObserver;
     dataObserver = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     GTEST_LOG_(INFO) << "AaFwk_AbilityThread_HandleRegisterObserver_0100 end";
@@ -2070,7 +2070,6 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_ScheduleRegisterObserver_0100, F
     Uri uri(TEST);
     sptr<AAFwk::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     EXPECT_FALSE(abilitythread->ScheduleRegisterObserver(uri, dataObserver));
-    delete dataObserver;
     dataObserver = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     GTEST_LOG_(INFO) << "AaFwk_AbilityThread_ScheduleRegisterObserver_0100 end";
@@ -2092,7 +2091,6 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_ScheduleRegisterObserver_0200, F
     abilitythread->abilityHandler_ = std::make_shared<AbilityHandler>(nullptr);
     EXPECT_NE(abilitythread->abilityHandler_, nullptr);
     EXPECT_FALSE(abilitythread->ScheduleRegisterObserver(uri, dataObserver));
-    delete dataObserver;
     dataObserver = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     GTEST_LOG_(INFO) << "AaFwk_AbilityThread_ScheduleRegisterObserver_0200 end";
@@ -2112,7 +2110,6 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_ScheduleUnregisterObserver_0100,
     Uri uri(TEST);
     sptr<AAFwk::IDataAbilityObserver> dataObserver(new (std::nothrow) MockDataAbilityObserverStub());
     EXPECT_FALSE(abilitythread->ScheduleUnregisterObserver(uri, dataObserver));
-    delete dataObserver;
     dataObserver = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     GTEST_LOG_(INFO) << "AaFwk_AbilityThread_ScheduleUnregisterObserver_0100 end";
@@ -2134,7 +2131,6 @@ HWTEST_F(AbilityThreadTest, AaFwk_AbilityThread_ScheduleUnregisterObserver_0200,
     abilitythread->abilityHandler_ = std::make_shared<AbilityHandler>(nullptr);
     EXPECT_NE(abilitythread->abilityHandler_, nullptr);
     EXPECT_FALSE(abilitythread->ScheduleUnregisterObserver(uri, dataObserver));
-    delete dataObserver;
     dataObserver = nullptr;
     std::this_thread::sleep_for(std::chrono::milliseconds(200));
     GTEST_LOG_(INFO) << "AaFwk_AbilityThread_ScheduleUnregisterObserver_0200 end";

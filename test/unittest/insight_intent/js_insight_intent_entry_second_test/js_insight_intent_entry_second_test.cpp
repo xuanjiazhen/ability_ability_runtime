@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * crash
  */
 
 #include <gtest/gtest.h>
@@ -367,6 +368,10 @@ HWTEST_F(JsInsightIntentEntrySecondTest, JsInsightIntentEntryHandleResultReturne
     auto jsInsightIntentEntry = JsInsightIntentEntry::Create(*jsRuntime);
     jsInsightIntentEntry->state_ = State::CREATED;
 
+    InsightIntentExecutorInfo info;
+    info.executeParam = std::make_shared<AppExecFwk::InsightIntentExecuteParam>();
+    jsInsightIntentEntry->context_ = std::make_shared<InsightIntentContext>(info.token, info.executeParam->bundleName_,
+        info.windowMode, info.executeParam->insightIntentId_);
     panda::RuntimeOption pandaOption;
     jsRuntime->jsEnv_->Initialize(pandaOption, static_cast<void*>(this));
     MyFlag::isGetNapiEnvNullptr_ = false;

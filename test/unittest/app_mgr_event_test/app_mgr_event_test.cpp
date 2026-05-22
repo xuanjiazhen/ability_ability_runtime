@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * crash
  */
 
 #include <gtest/gtest.h>
@@ -288,9 +289,9 @@ HWTEST_F(AppMgrEventTest, SendRenderProcessStartFailedEvent_0100, TestSize.Level
     EXPECT_NE(hostRecord, nullptr);
 
     std::string renderParam = "test_render_param";
-    int32_t ipcFd = 1;
-    int32_t sharedFd = 1;
-    int32_t crashFd = 1;
+    int32_t ipcFd = dup(STDIN_FILENO);
+    int32_t sharedFd = dup(STDIN_FILENO);
+    int32_t crashFd = dup(STDIN_FILENO);
     std::shared_ptr<RenderRecord> renderRecord = RenderRecord::CreateRenderRecord(hostPid, renderParam,
         FdGuard(ipcFd), FdGuard(sharedFd), FdGuard(crashFd), hostRecord);
 

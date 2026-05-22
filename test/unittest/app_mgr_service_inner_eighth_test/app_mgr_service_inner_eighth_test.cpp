@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * crash
  */
 
 #include <gtest/gtest.h>
@@ -3619,6 +3620,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PostPreloadAttachTimeoutTask_004, TestSiz
     auto ret = appRecord->GetPreloadAttachTimeoutStartTime().time_since_epoch().count();
     EXPECT_NE(ret, 0);
     AAFwk::MyStatus::GetInstance().appRecordGetPid_ = 0;
+    eventHandler->RemoveEvent(AMSEventHandler::PRELOAD_ATTACH_TIMEOUT_MSG, 1);
     TAG_LOGI(AAFwkTag::TEST, "PostPreloadAttachTimeoutTask_004 end");
 }
 
@@ -3744,6 +3746,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PostRenderAttachTimeoutTask_004, TestSize
     appMgrServiceInner->PostRenderAttachTimeoutTask(renderRecord);
     auto ret = renderRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
     EXPECT_NE(ret, 0);
+    eventHandler->RemoveEvent(AMSEventHandler::RENDER_ATTACH_TIMEOUT_MSG, renderRecord->GetPid());
     TAG_LOGI(AAFwkTag::TEST, "PostRenderAttachTimeoutTask_004 end");
 }
 
@@ -3853,6 +3856,7 @@ HWTEST_F(AppMgrServiceInnerEighthTest, PostChildProcessAttachTimeoutTask_004, Te
     appMgrServiceInner->PostChildProcessAttachTimeoutTask(childRecord);
     auto ret = childRecord->GetAttachTimeoutStartTime().time_since_epoch().count();
     EXPECT_NE(ret, 0);
+    eventHandler->RemoveEvent(AMSEventHandler::CHILD_PROCESS_ATTACH_TIMEOUT_MSG, childRecord->GetPid());
     TAG_LOGI(AAFwkTag::TEST, "PostChildProcessAttachTimeoutTask_004 end");
 }
 
