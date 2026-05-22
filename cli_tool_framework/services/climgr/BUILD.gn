@@ -67,6 +67,7 @@ ohos_shared_library("climgr") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "dmsfwk:dtbschedmgr_device_info_storage",
     "ffrt:libffrt",
     "hilog:libhilog",
     "init:libbegetutil",

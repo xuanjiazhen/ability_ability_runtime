@@ -17,6 +17,7 @@ package OHOS.CliTool;
 
 import ICliToolData;
 import ICliToolManagerScheduler;
+sequenceable CliCallerInfo..OHOS.CliTool.CliCallerInfo;
 sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
 sequenceable OHOS.CliTool.ToolSummary;
@@ -24,16 +25,21 @@ sequenceable ToolInfo..OHOS.CliTool.ToolInfo;
 rawdata ToolInfo..OHOS.CliTool.ToolsRawData;
 
 interface ICliToolManager {
-    void GetAllToolSummaries([out] ToolSummary[] summaries);
-    void GetToolInfoByName([in] String name, [out] ToolInfo tool);
-    void GetAllToolInfos([out] ToolsRawData tools);
+    void GetAllToolSummaries([in] String targetDeviceId, [out] ToolSummary[] summaries);
+    void GetToolInfoByName([in] String name, [in] String targetDeviceId, [out] ToolInfo tool);
+    void GetAllToolInfos([in] String targetDeviceId, [out] ToolsRawData tools);
     void RegisterTool([in] ToolInfo tool);
-    void ExecTool([in] ExecToolParam param, [in] String eventId, [in] ICliToolManagerScheduler scheduler);
-    void SubscribeSession([in] String sessionId, [in] String subscriptionId, [in] ICliToolManagerScheduler scheduler);
-    void UnsubscribeSession([in] String sessionId, [in] String subscriptionId);
-    void ClearSession([in] String sessionId);
-    void QuerySession([in] String sessionId, [out] CliSessionInfo session);
+    void ExecTool([in] ExecToolParam param, [in] String eventId, [in] String targetDeviceId, [in] ICliToolManagerScheduler scheduler);
+    void SubscribeSession([in] String sessionId, [in] String subscriptionId, [in] String targetDeviceId, [in] ICliToolManagerScheduler scheduler);
+    void UnsubscribeSession([in] String sessionId, [in] String subscriptionId, [in] String targetDeviceId);
+    void ClearSession([in] String sessionId, [in] String targetDeviceId);
+    void QuerySession([in] String sessionId, [in] String targetDeviceId, [out] CliSessionInfo session);
     void SendMessage([in] String sessionId, [in] String inputText, [in] String eventId,
-        [in] ICliToolManagerScheduler scheduler);
+        [in] String targetDeviceId, [in] ICliToolManagerScheduler scheduler);
     void BatchQueryPermissionBySubCommand([in] List<Command> cmds, [out] List<CommandPermission> cmdPermissions);
+
+    // Distributed APIs - called from remote device
+    void GetAllToolSummariesFromRemote([in] CliCallerInfo callerInfo, [out] ToolSummary[] summaries);
+    void GetToolInfoByNameFromRemote([in] String name, [in] CliCallerInfo callerInfo, [out] ToolInfo tool);
+    void GetAllToolInfosFromRemote([in] CliCallerInfo callerInfo, [out] ToolsRawData tools);
 }

@@ -65,25 +65,28 @@ public:
 
     /**
      * @brief Get all tool summaries (lightweight for listing)
+     * @param targetDeviceId Target device network ID (empty for local)
      * @param summaries Output vector of ToolSummary
      * @return ErrCode ERR_OK on success
      */
-    ErrCode GetAllToolSummaries(std::vector<ToolSummary> &summaries);
+    ErrCode GetAllToolSummaries(const std::string &targetDeviceId, std::vector<ToolSummary> &summaries);
 
     /**
      * @brief Get tool information by name
      * @param name Tool name
+     * @param targetDeviceId Target device network ID (empty for local)
      * @param tool Output ToolInfo
      * @return ErrCode ERR_OK on success
      */
-    ErrCode GetToolInfoByName(const std::string &name, ToolInfo &tool);
+    ErrCode GetToolInfoByName(const std::string &name, const std::string &targetDeviceId, ToolInfo &tool);
 
     /**
      * @brief Get all tool infos
+     * @param targetDeviceId Target device network ID (empty for local)
      * @param tools Output vector of ToolInfo
      * @return ErrCode ERR_OK on success
      */
-    ErrCode GetAllToolInfos(std::vector<ToolInfo> &tools);
+    ErrCode GetAllToolInfos(const std::string &targetDeviceId, std::vector<ToolInfo> &tools);
 
     /**
      * @brief Register a CLI tool

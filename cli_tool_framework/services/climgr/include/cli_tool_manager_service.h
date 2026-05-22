@@ -25,6 +25,7 @@
 
 #include "cli_tool_manager_stub.h"
 #include "cli_tool_data_manager.h"
+#include "cli_caller_info.h"
 #include "ffrt.h"
 #include "iremote_object.h"
 #include "system_ability.h"
@@ -58,17 +59,17 @@ public:
     /**
      * @brief Query all available tools
      */
-    int32_t GetAllToolInfos(ToolsRawData &tools) override;
+    int32_t GetAllToolInfos(const std::string &targetDeviceId, ToolsRawData &tools) override;
 
     /**
      * @brief Query tool summaries (lightweight for listing)
      */
-    int32_t GetAllToolSummaries(std::vector<ToolSummary> &summaries) override;
+    int32_t GetAllToolSummaries(const std::string &targetDeviceId, std::vector<ToolSummary> &summaries) override;
 
     /**
      * @brief Get tool information by name
      */
-    int32_t GetToolInfoByName(const std::string &name, ToolInfo &tool) override;
+    int32_t GetToolInfoByName(const std::string &name, const std::string &targetDeviceId, ToolInfo &tool) override;
 
     /**
      * @brief Register a CLI tool
@@ -82,23 +83,32 @@ public:
      * @return Returns ERR_OK on success, error code otherwise.
      */
     int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler) override;
+        const std::string &targetDeviceId, const sptr<ICliToolManagerScheduler> &scheduler) override;
 
-    int32_t ClearSession(const std::string &sessionId) override;
+    int32_t ClearSession(const std::string &sessionId, const std::string &targetDeviceId) override;
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
-        const sptr<ICliToolManagerScheduler> &scheduler) override;
-    int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId) override;
-    
-    int32_t QuerySession(const std::string &sessionId, CliSessionInfo &session) override;
+        const std::string &targetDeviceId, const sptr<ICliToolManagerScheduler> &scheduler) override;
+    int32_t UnsubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
+        const std::string &targetDeviceId) override;
+
+    int32_t QuerySession(const std::string &sessionId, const std::string &targetDeviceId,
+        CliSessionInfo &session) override;
     int32_t SendMessage(const std::string &sessionId,
         const std::string &inputText, const std::string &eventId,
-        const sptr<ICliToolManagerScheduler> &scheduler) override;
+        const std::string &targetDeviceId, const sptr<ICliToolManagerScheduler> &scheduler) override;
 
     /**
      * @brief Batch query command permissions (Inner API, for SA only).
      */
     int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
         std::vector<CommandPermission> &cmdPermissions) override;
+
+    // Distributed APIs - called from remote device
+    int32_t GetAllToolSummariesFromRemote(const CliCallerInfo &callerInfo,
+        std::vector<ToolSummary> &summaries) override;
+    int32_t GetToolInfoByNameFromRemote(const std::string &name, const CliCallerInfo &callerInfo,
+        ToolInfo &tool) override;
+    int32_t GetAllToolInfosFromRemote(const CliCallerInfo &callerInfo, ToolsRawData &tools) override;
 
 protected:
     void OnStart() override;
@@ -129,6 +139,13 @@ private:
 
     void Init();
     void DelayUnloadTask();
+
+    // Distributed helper methods
+    bool IsDistributedCall(const std::string &targetDeviceId);
+    int32_t CheckDeviceOnline(const std::string &targetDeviceId);
+    CliCallerInfo BuildCallerInfo();
+    sptr<ICliToolManager> GetRemoteClimgr(const std::string &targetDeviceId);
+    int32_t VerifyRemotePermission(const CliCallerInfo &callerInfo);
 
     std::shared_ptr<SessionRecord> CreateSessionRecord(const ExecToolParam &param, const std::string &eventId);
     void AddSessionRecord(const std::shared_ptr<SessionRecord> &record);

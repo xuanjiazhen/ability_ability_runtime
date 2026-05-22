@@ -85,7 +85,8 @@ ErrCode CliToolMGRClient::EnsureSchedulerStubCreated()
     return ERR_OK;
 }
 
-ErrCode CliToolMGRClient::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
+ErrCode CliToolMGRClient::GetAllToolSummaries(const std::string &targetDeviceId,
+    std::vector<ToolSummary> &summaries)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     auto proxy = GetCliToolMgrProxy();
@@ -93,7 +94,7 @@ ErrCode CliToolMGRClient::GetAllToolSummaries(std::vector<ToolSummary> &summarie
         TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
         return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
-    return proxy->GetAllToolSummaries(summaries);
+    return proxy->GetAllToolSummaries(targetDeviceId, summaries);
 }
 
 ErrCode CliToolMGRClient::GetToolInfoByName(const std::string &name, ToolInfo &tool)

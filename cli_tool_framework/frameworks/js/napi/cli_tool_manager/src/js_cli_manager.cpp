@@ -372,11 +372,20 @@ napi_value JSCliManager::OnQueryToolSummaries(napi_env env, size_t argc, napi_va
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnQueryToolSummaries called");
     HandleEscape handleEscape(env);
 
+    // Parse optional targetDeviceId parameter
+    std::string targetDeviceId;
+    if (argc > INDEX_ZERO && argv[INDEX_ZERO] != nullptr) {
+        if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], targetDeviceId)) {
+            TAG_LOGW(AAFwkTag::CLI_TOOL, "OnQueryToolSummaries: Failed to parse targetDeviceId, using local");
+            targetDeviceId = "";
+        }
+    }
+
     auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
     auto summaries = std::make_shared<std::vector<ToolSummary>>();
 
-    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, summaries]() {
-        *innerErrCode = CliToolMGRClient::GetInstance().GetAllToolSummaries(*summaries);
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, summaries, targetDeviceId]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().GetAllToolSummaries(targetDeviceId, *summaries);
     };
 
     NapiAsyncTask::CompleteCallback complete = [innerErrCode, summaries](

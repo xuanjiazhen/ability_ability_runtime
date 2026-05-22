@@ -23,6 +23,7 @@
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
+#include "dtbschedmgr_device_info_storage.h"
 #include "event_dispatcher.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -430,9 +431,12 @@ int32_t CliToolManagerService::GetAllToolInfos(ToolsRawData &tools)
     return CliToolDataManager::GetInstance().GetAllToolsRawData(tools);
 }
 
-int32_t CliToolManagerService::GetAllToolSummaries(std::vector<ToolSummary> &summaries)
+int32_t CliToolManagerService::GetAllToolSummaries(const std::string &targetDeviceId,
+    std::vector<ToolSummary> &summaries)
 {
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummaries called");
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummaries called, targetDeviceId=%{public}s",
+        targetDeviceId.empty() ? "local" : "remote");
+
     InterfaceCallCounter counter(interfaceCalledCount_);
     auto fullTokenId = IPCSkeleton::GetCallingFullTokenID();
     if (!AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId)) {
@@ -446,7 +450,32 @@ int32_t CliToolManagerService::GetAllToolSummaries(std::vector<ToolSummary> &sum
         return ERR_PERMISSION_DENIED;
     }
 
-    return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
+    // Local call - backward compatible
+    if (!IsDistributedCall(targetDeviceId)) {
+        return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
+    }
+
+    // Distributed call
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: distributed call to %{public}s",
+        targetDeviceId.c_str());
+
+    int32_t ret = CheckDeviceOnline(targetDeviceId);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    CliCallerInfo callerInfo = BuildCallerInfo();
+    sptr<ICliToolManager> remoteClimgr = GetRemoteClimgr(targetDeviceId);
+    if (remoteClimgr == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Failed to get remote climgr");
+        return ERR_REMOTE_CALL_FAILED;
+    }
+
+    ret = remoteClimgr->GetAllToolSummariesFromRemote(callerInfo, summaries);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummaries: Remote call failed, ret=%{public}d", ret);
+    }
+    return ret;
 }
 
 int32_t CliToolManagerService::GetToolInfoByName(const std::string &name, ToolInfo &tool)
@@ -1177,5 +1206,123 @@ void CliToolManagerService::HandleSkillSessionTimeout(const std::string &session
     EventDispatcher::GetInstance().ClearSessionSubscribers(sessionId);
     RemoveSessionRecord(sessionId);
 }
+
+// ==================== Distributed Methods ====================
+
+bool CliToolManagerService::IsDistributedCall(const std::string &targetDeviceId)
+{
+    return !targetDeviceId.empty();
+}
+
+int32_t CliToolManagerService::CheckDeviceOnline(const std::string &targetDeviceId)
+{
+    auto deviceInfo = DistributedSchedule::DtbschedmgrDeviceInfoStorage::GetInstance().GetDeviceInfoById(targetDeviceId);
+    if (deviceInfo == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CheckDeviceOnline: Device not found, targetDeviceId=%{public}s",
+            targetDeviceId.c_str());
+        return ERR_DEVICE_NOT_FOUND;
+    }
+    return ERR_OK;
+}
+
+CliCallerInfo CliToolManagerService::BuildCallerInfo()
+{
+    CliCallerInfo callerInfo;
+    callerInfo.uid = IPCSkeleton::GetCallingUid();
+    callerInfo.pid = IPCSkeleton::GetCallingPid();
+    callerInfo.sourceDeviceId = "";  // Will be set by remote side
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    auto tokenType = Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
+    if (tokenType == Security::AccessToken::ATokenTypeEnum::TOKEN_HAP) {
+        Security::AccessToken::HapTokenInfo hapInfo;
+        auto ret = Security::AccessToken::AccessTokenKit::GetHapTokenInfo(tokenId, hapInfo);
+        if (ret == Security::AccessToken::AccessTokenKitRet::RET_SUCCESS) {
+            callerInfo.bundleName = hapInfo.bundleName;
+            uint64_t fullTokenId = (static_cast<uint64_t>(hapInfo.tokenAttr) << 32) + tokenId;
+            callerInfo.isSystemApp = Security::AccessToken::TokenIdKit::IsSystemAppByFullTokenID(fullTokenId);
+        }
+    }
+    return callerInfo;
+}
+
+sptr<ICliToolManager> CliToolManagerService::GetRemoteClimgr(const std::string &targetDeviceId)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetRemoteClimgr: targetDeviceId=%{public}s", targetDeviceId.c_str());
+
+    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
+    if (samgr == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetRemoteClimgr: Failed to get SAMgr");
+        return nullptr;
+    }
+
+    auto object = samgr->CheckSystemAbility(CLI_TOOL_MGR_SERVICE_ID, targetDeviceId);
+    if (object == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetRemoteClimgr: Failed to get remote climgr SA");
+        return nullptr;
+    }
+
+    return iface_cast<ICliToolManager>(object);
+}
+
+int32_t CliToolManagerService::VerifyRemotePermission(const CliCallerInfo &callerInfo)
+{
+    // Remote permission check - verify the caller has QUERY_CLI_TOOL permission
+    // In distributed scenario, we trust the source device has already verified local permission
+    // Here we just check if the caller is a system app
+    if (!callerInfo.isSystemApp) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "VerifyRemotePermission: Caller is not system app");
+        return ERR_NOT_SYSTEM_APP;
+    }
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::GetAllToolSummariesFromRemote(const CliCallerInfo &callerInfo,
+    std::vector<ToolSummary> &summaries)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummariesFromRemote called from device=%{public}s",
+        callerInfo.sourceDeviceId.c_str());
+
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    int32_t ret = VerifyRemotePermission(callerInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
+}
+
+int32_t CliToolManagerService::GetToolInfoByNameFromRemote(const std::string &name,
+    const CliCallerInfo &callerInfo, ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetToolInfoByNameFromRemote called, name='%{public}s'", name.c_str());
+
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    int32_t ret = VerifyRemotePermission(callerInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    return CliToolDataManager::GetInstance().GetToolByName(name, tool);
+}
+
+int32_t CliToolManagerService::GetAllToolInfosFromRemote(const CliCallerInfo &callerInfo,
+    ToolsRawData &tools)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolInfosFromRemote called from device=%{public}s",
+        callerInfo.sourceDeviceId.c_str());
+
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    int32_t ret = VerifyRemotePermission(callerInfo);
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    return CliToolDataManager::GetInstance().GetAllToolsRawData(tools);
+}
+
 } // namespace CliTool
 } // namespace OHOS
