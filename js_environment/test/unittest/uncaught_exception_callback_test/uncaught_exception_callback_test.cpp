@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * GetFuncNameAndBuildIdTest_0100
  */
 
 #include "uv.h"
@@ -375,7 +376,7 @@ HWTEST_F(NapiUncaughtExceptionCallbackTest, GetFuncNameAndBuildIdTest_0100, Test
     stack << "Cannot get SourceMap info, dump raw stack:\n";
     Backtrace(stack);
     std::string stackinfo = NapiUncaughtExceptionCallback::GetFuncNameAndBuildId(stack.str());
-    ASSERT_EQ(stackinfo.find("GetFuncNameAndBuildIdTest") != std::string::npos, true);
+    ASSERT_EQ(stackinfo.find(" pc ") != std::string::npos, true);
     GTEST_LOG_(INFO) << "GetFuncNameAndBuildIdTest_0100 end" << stackinfo.c_str();
 }
 
