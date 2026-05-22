@@ -61,9 +61,11 @@ void ExtensionRecordTest::TearDownTestCase(void)
 {}
 
 void ExtensionRecordTest::SetUp()
-{}
+{
+}
 void ExtensionRecordTest::TearDown()
-{}
+{
+}
 
 /*
  * Feature: ExtensionRecordTest

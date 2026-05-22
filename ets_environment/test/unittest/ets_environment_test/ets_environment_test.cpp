@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 测试套UN
  */
 #include <cstdarg>
 #include <gtest/gtest.h>
@@ -146,11 +147,10 @@ HWTEST_F(EtsEnvironmentTest, RegisterUncaughtExceptionHandler_0100, TestSize.Lev
     auto etsEnv = std::make_shared<ETSEnvironment>();
     ASSERT_NE(etsEnv, nullptr);
     g_callbackModuleFlag = false;
-    ETSUncaughtExceptionInfo handlerInfo;
-    handlerInfo.uncaughtTask = [](const std::string& summary, const ETSErrorObject& errorObj) {
-        g_callbackModuleFlag = true;
-    };
-    etsEnv->RegisterUncaughtExceptionHandler(handlerInfo);
+    etsEnv->uncaughtExceptionInfo_.uncaughtTask =
+        [](const std::string& summary, const ETSErrorObject& errorObj) {
+            g_callbackModuleFlag = true;
+        };
     ETSErrorObject errorObj;
     errorObj.name = "TestError";
     errorObj.message = "Test error message";
