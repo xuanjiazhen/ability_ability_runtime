@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * crash+UN
  */
 
 #include <gtest/gtest.h>
@@ -8646,7 +8647,7 @@ HWTEST_F(UIAbilityLifecycleManagerTest, StartSelf_007, TestSize.Level1)
  */
 HWTEST_F(UIAbilityLifecycleManagerTest, DispatchForeground_NativeModuleAttached_0100, TestSize.Level1)
 {
-    auto mgr = std::make_unique<UIAbilityLifecycleManager>();
+    auto mgr = std::make_shared<UIAbilityLifecycleManager>();
     auto abilityRecord = InitAbilityRecord();
     abilityRecord->SetNativeState(AbilityNativeState::ATTACHED);
     abilityRecord->SetAbilityState(AbilityState::FOREGROUNDING);

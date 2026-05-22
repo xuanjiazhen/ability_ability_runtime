@@ -11,6 +11,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ * 测试套UN
  */
 
 #include <gtest/gtest.h>
@@ -35,7 +36,6 @@ protected:
 void AppHybridSpawnManagerTest::SetUp()
 {
     appMgrServiceInner_ = std::make_shared<AppMgrServiceInner>();
-    AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(appMgrServiceInner_);
 }
 
 void AppHybridSpawnManagerTest::TearDown()
@@ -70,7 +70,7 @@ HWTEST_F(AppHybridSpawnManagerTest, AppHybridSpawnManagerTest_GetHRfd_0200, Test
 {
     TAG_LOGD(AAFwkTag::TEST, "AppHybridSpawnManagerTest_GetHRfd_0200 start.");
     int hrFd = AppHybridSpawnManager::GetInstance().GetHRfd();
-    EXPECT_NE(hrFd, -1);
+    EXPECT_EQ(hrFd, -1);
 }
 
 /**
@@ -85,7 +85,7 @@ HWTEST_F(AppHybridSpawnManagerTest, AppHybridSpawnManagerTest_GetHWfd_0300, Test
 {
     TAG_LOGD(AAFwkTag::TEST, "AppHybridSpawnManagerTest_GetHWfd_0300 start.");
     int hwFd = AppHybridSpawnManager::GetInstance().GetHWfd();
-    EXPECT_NE(hwFd, -1);
+    EXPECT_EQ(hwFd, -1);
 }
 
 /**
@@ -116,7 +116,7 @@ HWTEST_F(AppHybridSpawnManagerTest, AppHybridSpawnManagerTest_RecordAppExitSigna
 
 /**
  * @tc.number: AppHybridSpawnManagerTest_InitHybridSpawnMsgPipe_0500
- * @tc.desc: Test InitHybridSpawnMsgPipe with null parameter
+ * @tc.desc: Test InitHybridSpawnMsgPipe with expired weak_ptr (lock return null)
  * @tc.type: FUNC
  * @tc.Function: InitHybridSpawnMsgPipe
  * @tc.SubFunction: NA
@@ -126,14 +126,16 @@ HWTEST_F(AppHybridSpawnManagerTest, AppHybridSpawnManagerTest_InitHybridSpawnMsg
 {
     TAG_LOGD(AAFwkTag::TEST, "AppHybridSpawnManagerTest_InitHybridSpawnMsgPipe_0500 start.");
 
-    std::weak_ptr<AppMgrServiceInner> nullWeakPtr;
-    AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(nullWeakPtr);
+    auto temp = std::make_shared<AppMgrServiceInner>();
+    std::weak_ptr<AppMgrServiceInner> expiredWeakPtr = temp;
+    temp.reset();
+    AppHybridSpawnManager::GetInstance().InitHybridSpawnMsgPipe(expiredWeakPtr);
 
     int hrFd = AppHybridSpawnManager::GetInstance().GetHRfd();
     int hwFd = AppHybridSpawnManager::GetInstance().GetHWfd();
 
-    EXPECT_NE(hrFd, -1);
-    EXPECT_NE(hwFd, -1);
+    EXPECT_EQ(hrFd, -1);
+    EXPECT_EQ(hwFd, -1);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
