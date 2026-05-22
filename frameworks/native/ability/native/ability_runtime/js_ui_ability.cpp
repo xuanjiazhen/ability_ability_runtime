@@ -1228,6 +1228,10 @@ void JsUIAbility::AbilityContinuationOrRecover(const Want &want)
             auto mainWindow = scene_->GetMainWindow();
             if (!pageStack.empty() && mainWindow != nullptr) {
                 mainWindow->SetRestoredRouterStack(pageStack);
+                if (!byteInfoCache_.empty()) {
+                    mainWindow->RestoreByteInfo(byteInfoCache_);
+                    byteInfoCache_.clear();
+                }
             }
         }
         OnSceneCreated();

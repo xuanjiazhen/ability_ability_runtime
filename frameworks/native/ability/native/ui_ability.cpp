@@ -882,10 +882,6 @@ void UIAbility::OnForeground(const AAFwk::Want &want)
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
     DoOnForeground(want);
-    if (!byteInfoCache_.empty()) {
-        RestoreByteInfo(byteInfoCache_);
-        byteInfoCache_.clear();
-    }
     if (isSilentForeground_) {
         TAG_LOGD(AAFwkTag::UIABILITY, "silent foreground, return");
         return;
