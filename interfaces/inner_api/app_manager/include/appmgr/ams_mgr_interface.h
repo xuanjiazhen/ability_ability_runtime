@@ -279,6 +279,14 @@ public:
     virtual void SetAbilityForegroundingFlagToAppRecord(const pid_t pid) = 0;
 
     /**
+     * Reset AbilityLoadingFlag of an app-record to false.
+     *
+     * @param pid, pid.
+     *
+     */
+    virtual void ResetAbilityLoadingFlagToAppRecord(const pid_t pid) = 0;
+
+    /**
      * Start specified ability.
      *
      * @param want Want contains information of the ability to start.
@@ -626,6 +634,7 @@ public:
         NOTIFY_LOAD_ABILITY_FINISHED,
         NOTIFY_APP_MGR_RECORD_EXIT_REASON_COMPABILITY,
         KILL_APPLICATION_WITH_USER_ID,
+        RESET_ABILITY_LOADING_FLAG,
         // Add enumeration values above
         END
     };

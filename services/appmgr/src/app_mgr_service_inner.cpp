@@ -2205,10 +2205,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         }
     } else {
         isProcessReuse = true;
-        appRecord->SetAbilityLoadingFlag();
         ReportAbilityStartInfoForSpecified(appRecord, *abilityInfo);
         HandleExistingAppRecordAfterFound(appRecord, abilityInfo, hapModuleInfo, want, isProcCache, loadParam);
         if (AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo->extensionAbilityType)) {
+            appRecord->SetAbilityLoadingFlag();
             AddUIExtensionBindItem(want, appRecord, loadParam->token);
             AddUIExtensionLauncherItem(want, appRecord, loadParam->token);
         }
@@ -6714,6 +6714,16 @@ void AppMgrServiceInner::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
     }
 
     appRunningManager_->SetAbilityForegroundingFlagToAppRecord(pid);
+}
+
+void AppMgrServiceInner::ResetAbilityLoadingFlagToAppRecord(const pid_t pid) const
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSACall()) {
+        return;
+    }
+
+    appRunningManager_->ResetAbilityLoadingFlagToAppRecord(pid);
 }
 
 bool AppMgrServiceInner::CheckGetRunningInfoPermission() const

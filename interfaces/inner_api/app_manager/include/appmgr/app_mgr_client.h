@@ -700,6 +700,13 @@ public:
     void SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const;
 
     /**
+     * @brief Reset ability loading flag to false.
+     *
+     * @param pid Process id
+     */
+    void ResetAbilityLoadingFlagToAppRecord(const pid_t pid) const;
+
+    /**
      * @brief Notify NativeEngine GC of status change.
      *
      * @param state GC state

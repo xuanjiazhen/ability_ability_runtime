@@ -900,6 +900,7 @@ public:
 
     inline void SetAbilityLoadingFlag()
     {
+        abilityLoadingCount_.fetch_add(1);
         isAbilityLoading_.store(true);
     }
 
@@ -907,6 +908,8 @@ public:
     {
         return isAbilityLoading_.load();
     }
+
+    void ResetAbilityLoadingFlag();
 
     inline void SetSpawned()
     {
@@ -1435,6 +1438,7 @@ private:
      */
     std::atomic_bool isAbilityForegrounding_ = false;
     std::atomic_bool isAbilityLoading_ = false;
+    std::atomic_int32_t abilityLoadingCount_ = 0;
     std::atomic_bool isFocused_ = false; // if process is focused.
     std::atomic_bool isKeepAliveRdb_ = false;  // Only resident processes can be set to true, please choose carefully
     std::atomic_bool isKillPrecedeStart_ = false;

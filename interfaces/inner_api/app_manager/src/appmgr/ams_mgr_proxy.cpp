@@ -864,6 +864,28 @@ void AmsMgrProxy::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
     }
 }
 
+void AmsMgrProxy::ResetAbilityLoadingFlagToAppRecord(const pid_t pid)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "calling");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return;
+    }
+
+    if (!data.WriteInt32(static_cast<int32_t>(pid))) {
+        TAG_LOGE(AAFwkTag::APPMGR, "parcel WriteInt32 failed");
+        return;
+    }
+
+    auto ret = SendTransactCmd(
+        static_cast<uint32_t>(IAmsMgr::Message::RESET_ABILITY_LOADING_FLAG), data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGW(AAFwkTag::APPMGR, "SendRequest err: %{public}d", ret);
+    }
+}
+
 void AmsMgrProxy::PrepareTerminateApp(const pid_t pid, const std::string &moduleName)
 {
     MessageParcel data;

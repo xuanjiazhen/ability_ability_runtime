@@ -465,6 +465,14 @@ public:
     void SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const;
 
     /**
+     * Reset AbilityLoadingFlag of an app-record to false.
+     *
+     * @param pid, pid.
+     *
+     */
+    void ResetAbilityLoadingFlagToAppRecord(const pid_t pid) const;
+
+    /**
      * Start a resident process
      */
     void StartupResidentProcess(const std::vector<AppExecFwk::BundleInfo> &bundleInfos);

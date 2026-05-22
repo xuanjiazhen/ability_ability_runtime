@@ -839,6 +839,17 @@ void AppMgrClient::SetAbilityForegroundingFlagToAppRecord(const pid_t pid) const
     }
 }
 
+void AppMgrClient::ResetAbilityLoadingFlagToAppRecord(const pid_t pid) const
+{
+    sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
+    if (service != nullptr) {
+        sptr<IAmsMgr> amsService = service->GetAmsMgr();
+        if (amsService != nullptr) {
+            amsService->ResetAbilityLoadingFlagToAppRecord(pid);
+        }
+    }
+}
+
 void AppMgrClient::AddAbilityStageDone(const int32_t recordId)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());

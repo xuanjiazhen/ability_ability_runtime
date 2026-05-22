@@ -230,6 +230,8 @@ int UIExtensionAbilityManager::AttachAbilityThreadInner(const sptr<IAbilitySched
     if (IsUIExtensionAbility(abilityRecord) && !abilityRecord->IsCreateByConnect()
         && !abilityRecord->GetBoolParam(IS_PRELOAD_UIEXTENSION_ABILITY, false)) {
         abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
+        DelayedSingleton<AppScheduler>::GetInstance()->SetAbilityForegroundingFlagToAppRecord(
+            abilityRecord->GetPid());
         DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(token);
 
         if (!abilityRecord->IsConnectionReported() && ForegroundAppConnectionManager::IsForegroundAppConnection(
@@ -241,6 +243,8 @@ int UIExtensionAbilityManager::AttachAbilityThreadInner(const sptr<IAbilitySched
         TAG_LOGD(AAFwkTag::EXT, "Inactivate");
         abilityRecord->Inactivate();
     }
+    DelayedSingleton<AppScheduler>::GetInstance()->ResetAbilityLoadingFlagToAppRecord(
+        abilityRecord->GetPid());
     return ERR_OK;
 }
 

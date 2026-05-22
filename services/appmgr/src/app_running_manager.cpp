@@ -1160,6 +1160,16 @@ void AppRunningManager::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
     appRecord->SetAbilityForegroundingFlag();
 }
 
+void AppRunningManager::ResetAbilityLoadingFlagToAppRecord(const pid_t pid)
+{
+    auto appRecord = GetAppRunningRecordByPid(pid);
+    if (appRecord == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "null appRecord");
+        return;
+    }
+    appRecord->ResetAbilityLoadingFlag();
+}
+
 void AppRunningManager::ClipStringContent(const std::regex &re, const std::string &source, std::string &afterCutStr)
 {
     std::smatch basket;

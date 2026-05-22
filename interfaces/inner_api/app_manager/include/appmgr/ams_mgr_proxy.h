@@ -288,6 +288,14 @@ public:
     void SetAbilityForegroundingFlagToAppRecord(const pid_t pid) override;
 
     /**
+     * Reset AbilityLoadingFlag of an app-record to false.
+     *
+     * @param pid, pid.
+     *
+     */
+    void ResetAbilityLoadingFlagToAppRecord(const pid_t pid) override;
+
+    /**
      * Prepare terminate application
      *
      * @param pid Process ID

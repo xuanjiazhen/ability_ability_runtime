@@ -951,7 +951,6 @@ void AppRunningRecord::AbilityForeground(const std::shared_ptr<AbilityRunningRec
         TAG_LOGE(AAFwkTag::APPMGR, "null ability");
         return;
     }
-    isAbilityLoading_.store(false);
     SetIsFromScreenOffBackground(false);
     AbilityState curAbilityState = ability->GetState();
     if (curAbilityState != AbilityState::ABILITY_STATE_READY &&
@@ -1137,6 +1136,15 @@ void AppRunningRecord::PopForegroundingAbilityTokens()
         }
         // The token should be removed even though the module record didn't exist.
         iter = foregroundingAbilityTokens_.erase(iter);
+    }
+}
+
+void AppRunningRecord::ResetAbilityLoadingFlag()
+{
+    auto prev = abilityLoadingCount_.fetch_sub(1);
+    if (prev <= 1) {
+        abilityLoadingCount_.store(0);
+        isAbilityLoading_.store(false);
     }
 }
 

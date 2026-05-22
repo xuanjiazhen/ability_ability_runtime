@@ -326,6 +326,14 @@ public:
      */
     void SetAbilityForegroundingFlagToAppRecord(const pid_t pid);
 
+    /**
+     * Reset AbilityLoadingFlag of an app-record to false.
+     *
+     * @param pid, pid.
+     *
+     */
+    void ResetAbilityLoadingFlagToAppRecord(const pid_t pid);
+
     void HandleTerminateTimeOut(int64_t eventId);
     void HandleAbilityAttachTimeOut(const sptr<IRemoteObject> &token, std::shared_ptr<AppMgrServiceInner> serviceInner);
     void TerminateAbility(const sptr<IRemoteObject> &token, bool clearMissionFlag,

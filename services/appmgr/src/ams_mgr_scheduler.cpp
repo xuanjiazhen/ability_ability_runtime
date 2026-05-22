@@ -514,6 +514,14 @@ void AmsMgrScheduler::SetAbilityForegroundingFlagToAppRecord(const pid_t pid)
     amsMgrServiceInner_->SetAbilityForegroundingFlagToAppRecord(pid);
 }
 
+void AmsMgrScheduler::ResetAbilityLoadingFlagToAppRecord(const pid_t pid)
+{
+    if (!IsReady()) {
+        return;
+    }
+    amsMgrServiceInner_->ResetAbilityLoadingFlagToAppRecord(pid);
+}
+
 void AmsMgrScheduler::StartSpecifiedAbility(const AAFwk::Want &want, const AppExecFwk::AbilityInfo &abilityInfo,
     int32_t requestId, const std::string &customProcess, bool isWindowStagePreload)
 {

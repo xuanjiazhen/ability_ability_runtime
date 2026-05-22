@@ -243,6 +243,8 @@ int32_t AmsMgrStub::OnRemoteRequestInnerFourth(uint32_t code, MessageParcel &dat
             return HandleVerifyKillProcessPermission(data, reply);
         case static_cast<uint32_t>(IAmsMgr::Message::NOTIFY_LOAD_ABILITY_FINISHED):
             return HandleNotifyLoadAbilityFinished(data, reply);
+        case static_cast<uint32_t>(IAmsMgr::Message::RESET_ABILITY_LOADING_FLAG):
+            return HandleResetAbilityLoadingFlagToAppRecord(data, reply);
     }
     return AAFwk::ERR_CODE_NOT_EXIST;
 }
@@ -584,6 +586,13 @@ int32_t AmsMgrStub::HandleSetAbilityForegroundingFlagToAppRecord(MessageParcel &
     RunningProcessInfo processInfo;
     auto pid = static_cast<pid_t>(data.ReadInt32());
     SetAbilityForegroundingFlagToAppRecord(pid);
+    return NO_ERROR;
+}
+
+int32_t AmsMgrStub::HandleResetAbilityLoadingFlagToAppRecord(MessageParcel &data, MessageParcel &reply)
+{
+    auto pid = static_cast<pid_t>(data.ReadInt32());
+    ResetAbilityLoadingFlagToAppRecord(pid);
     return NO_ERROR;
 }
 
