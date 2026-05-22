@@ -881,9 +881,11 @@ void UIAbility::OnForeground(const AAFwk::Want &want)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::UIABILITY, "called");
-    RestoreByteInfo(byteInfoCache_);
-    byteInfoCache_.clear();
     DoOnForeground(want);
+    if (!byteInfoCache_.empty()) {
+        RestoreByteInfo(byteInfoCache_);
+        byteInfoCache_.clear();
+    }
     if (isSilentForeground_) {
         TAG_LOGD(AAFwkTag::UIABILITY, "silent foreground, return");
         return;
@@ -915,8 +917,6 @@ void UIAbility::OnBackground()
         TAG_LOGD(AAFwkTag::UIABILITY, "goBackground sceneFlag: %{public}d", sceneFlag_);
         scene_->GoBackground(sceneFlag_);
     }
-
-    byteInfoCache_ = GetContextByteInfo();
 
     if (abilityRecovery_ != nullptr && abilityContext_ != nullptr && abilityContext_->GetRestoreEnabled() &&
         CheckRecoveryEnabled()) {
@@ -1064,7 +1064,9 @@ std::string UIAbility::GetContentInfoForRecovery()
         TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return "";
     }
-    return scene_->GetContentInfo(Rosen::BackupAndRestoreType::APP_RECOVERY);
+    auto info = scene_->GetContentInfo(Rosen::BackupAndRestoreType::APP_RECOVERY);
+    byteInfoCache_ = scene_->GetContextByteInfo();
+    return info;
 }
 
 std::string UIAbility::GetContentInfoForDefaultRecovery()
@@ -1074,7 +1076,9 @@ std::string UIAbility::GetContentInfoForDefaultRecovery()
         TAG_LOGE(AAFwkTag::UIABILITY, "null scene");
         return "";
     }
-    return scene_->GetContentInfo(Rosen::BackupAndRestoreType::RESOURCESCHEDULE_RECOVERY);
+    auto info = scene_->GetContentInfo(Rosen::BackupAndRestoreType::RESOURCESCHEDULE_RECOVERY);
+    byteInfoCache_ = scene_->GetContextByteInfo();
+    return info;
 }
 
 std::map<std::string, std::vector<uint8_t>> UIAbility::GetContextByteInfo() const
