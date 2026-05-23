@@ -545,5 +545,35 @@ HWTEST_F(ExtensionTest, AaFwk_Extension_2900, Function | MediumTest | Level1)
     EXPECT_FALSE(isAsyncCallback);
     GTEST_LOG_(INFO) << "AaFwk_Extension_2900 end";
 }
+
+/**
+ * @tc.number: AaFwk_Extension_3000
+ * @tc.name: OnConnect
+ * @tc.desc: Incoming want verified OnConnect successfully.
+ */
+HWTEST_F(ExtensionTest, AaFwk_Extension_3000, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_Extension_3000 start";
+    Want want;
+    want.SetElementName("DemoDeviceId", "DemoBundleName", "DemoAbilityName");
+    auto remoteObject = extension_->OnConnect(want, nullptr, false);
+    EXPECT_TRUE(remoteObject == nullptr);
+    GTEST_LOG_(INFO) << "AaFwk_Extension_3000 end";
+}
+
+/**
+ * @tc.number: AaFwk_Extension_3100
+ * @tc.name: OnConnect
+ * @tc.desc: Incoming want with callback info, verify OnConnect with async callback successfully.
+ */
+HWTEST_F(ExtensionTest, AaFwk_Extension_3100, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "AaFwk_Extension_3100 start";
+    Want want;
+    want.SetElementName("DemoDeviceId", "DemoBundleName", "DemoAbilityName");
+    auto result = extension_->HandleExecuteSkill(want);
+    EXPECT_TRUE(result);
+    GTEST_LOG_(INFO) << "AaFwk_Extension_3100 end";
+}
 } // namespace AppExecFwk
 } // namespace OHOS
