@@ -15,7 +15,9 @@
 
 #include <gtest/gtest.h>
 #include <gtest/hwext/gtest-multithread.h>
+#include <cstring>
 #include <cstdlib>
+#include <dlfcn.h>
 #include <fstream>
 
 #define private public
@@ -49,6 +51,11 @@ const std::string TEST_HOST_AOT_ROOT = "/system/app/ark_cache/";
 const std::string TEST_HOST_PRIVATE_HSP_AOT_ROOT = "/data/storage/ark-cache/arm64/";
 const std::string TEST_HOST_AOT_BUNDLE_NAME = "com.example.hostaot";
 const std::string TEST_HOST_PRIVATE_HSP_AOT_BUNDLE_NAME = "com.example.hsp1";
+constexpr const char *ETS_ENV_LIBNAME = "libets_environment.z.so";
+constexpr const char *ETS_ENV_REGISTER_FUNCS = "OHOS_ETS_ENV_RegisterFuncs";
+constexpr uintptr_t MOCK_ETS_ENV_HANDLE = 0x1234;
+bool g_mockEtsEnvEnabled = false;
+bool g_mockInitializeResult = true;
 
 std::string GetHostAotAnPath(const std::string &bundleName, const std::string &moduleName)
 {
@@ -88,7 +95,54 @@ std::string CreateHostPrivateHspAotAnFile(
     anFile.close();
     return hostPrivateHspAotPath;
 }
+
+bool InitializeEtsEnvForTest(const std::shared_ptr<AppExecFwk::EventRunner> eventRunner, bool isDebug,
+    const std::string &bundleName = "", bool preloadStaticBootAotFiles = false)
+{
+    (void)eventRunner;
+    (void)isDebug;
+    (void)bundleName;
+    (void)preloadStaticBootAotFiles;
+    return g_mockInitializeResult;
+}
+
+ETSEnvFuncs *RegisterEtsEnvFuncsForTest()
+{
+    static ETSEnvFuncs funcs {
+        .Initialize = InitializeEtsEnvForTest,
+    };
+    return &funcs;
+}
 } // namespace
+
+extern "C" void *__real_dlopen(const char *filename, int flag);
+extern "C" void *__real_dlsym(void *handle, const char *symbol);
+extern "C" int __real_dlclose(void *handle);
+
+extern "C" void *__wrap_dlopen(const char *filename, int flag)
+{
+    if (g_mockEtsEnvEnabled && filename != nullptr && std::strcmp(filename, ETS_ENV_LIBNAME) == 0) {
+        return reinterpret_cast<void *>(MOCK_ETS_ENV_HANDLE);
+    }
+    return __real_dlopen(filename, flag);
+}
+
+extern "C" void *__wrap_dlsym(void *handle, const char *symbol)
+{
+    if (g_mockEtsEnvEnabled && handle == reinterpret_cast<void *>(MOCK_ETS_ENV_HANDLE) &&
+        symbol != nullptr && std::strcmp(symbol, ETS_ENV_REGISTER_FUNCS) == 0) {
+        return reinterpret_cast<void *>(RegisterEtsEnvFuncsForTest);
+    }
+    return __real_dlsym(handle, symbol);
+}
+
+extern "C" int __wrap_dlclose(void *handle)
+{
+    if (g_mockEtsEnvEnabled && handle == reinterpret_cast<void *>(MOCK_ETS_ENV_HANDLE)) {
+        return 0;
+    }
+    return __real_dlclose(handle);
+}
 
 class EtsRuntimeTest : public testing::Test {
 public:
@@ -108,6 +162,8 @@ void EtsRuntimeTest::SetUp()
 {
     Runtime::Options newOptions;
     options_ = newOptions;
+    g_mockEtsEnvEnabled = false;
+    g_mockInitializeResult = true;
     options_.bundleName = TEST_BUNDLE_NAME;
     options_.codePath = TEST_CODE_PATH;
     options_.loadAce = false;
@@ -143,6 +199,34 @@ HWTEST_F(EtsRuntimeTest, Create_100, TestSize.Level1)
     options_.lang = Runtime::Language::ETS;
     options_.preload = false;
     options_.isStageModel = true;
+}
+
+/**
+ * @tc.name: Create_200
+ * @tc.desc: EtsRuntime test for passing preloadStaticBootAotFiles to ETS environment.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, Create_200, TestSize.Level1)
+{
+    g_mockEtsEnvEnabled = true;
+    options_.lang = Runtime::Language::JS;
+    options_.preload = true;
+    options_.isStageModel = false;
+    std::unique_ptr<Runtime> jsRuntime = JsRuntime::Create(options_);
+    ASSERT_NE(jsRuntime, nullptr);
+
+    options_.lang = Runtime::Language::ETS;
+    options_.preloadStaticBootAotFiles = true;
+    g_mockInitializeResult = true;
+    auto etsRuntime = ETSRuntime::Create(options_, jsRuntime);
+    ASSERT_NE(etsRuntime, nullptr);
+
+    options_.preloadStaticBootAotFiles = false;
+    g_mockInitializeResult = false;
+    std::unique_ptr<Runtime> jsRuntime2 = JsRuntime::Create(options_);
+    ASSERT_NE(jsRuntime2, nullptr);
+    auto etsRuntime2 = ETSRuntime::Create(options_, jsRuntime2);
+    ASSERT_EQ(etsRuntime2, nullptr);
 }
 
 /**

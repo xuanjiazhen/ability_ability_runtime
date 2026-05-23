@@ -89,6 +89,7 @@ public:
         bool isStartWithDebug = false;
         uint32_t versionCode = 0;
         bool enableWarmStartupSmartGC = false;
+        bool preloadStaticBootAotFiles = false;
         std::string arkTSMode;
         bool isMainProcess = true;
         std::vector<std::string> staticPluginHspPathList;
