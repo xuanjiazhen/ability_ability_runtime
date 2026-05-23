@@ -140,6 +140,8 @@ std::shared_ptr<MainThread::MainHandler> MainThread::mainHandler_ = nullptr;
 const std::string PERFCMD_PROFILE = "profile";
 const std::string PERFCMD_DUMPHEAP = "dumpheap";
 const std::string BASE_LINE_PERFCMD = "baseLineProfile";
+
+const int32_t ONE_MILLISECOND = 1000;
 namespace {
 #ifdef APP_USE_ARM
 constexpr char FORM_RENDER_LIB_PATH[] = "/system/lib/libformrender.z.so";
@@ -189,6 +191,8 @@ constexpr const char* PLUGIN_DEFAULT_NAMESPACE_LDDICTIONARY =
     "persist.sys.abilityms.plugin_default_namespace_lddictionary";
 constexpr char KILL_REASON[] = "Kill Reason:Js Error";
 constexpr const char* KEY_SKIP_ABILITY_STAGE_LIFECYCLE = "ohos.ability.param.skipAbilityStageLifecycle";
+constexpr const char* SNAPSHOT_LAUNCH_DELAY_ENABLE = "persist.sys.abilityms.snapshot_launch_delay.enable";
+constexpr const char* SNAPSHOT_LAUNCH_DELAY_MS = "persist.sys.abilityms.snapshot_launch_delay.ms";
 
 const int32_t JSCRASH_TYPE = 3;
 const std::string JSVM_TYPE = "ARK";
@@ -1620,6 +1624,7 @@ EtsEnv::ETSUncaughtExceptionInfo MainThread::CreateEtsExceptionInfo(const std::s
 void MainThread::HandleLaunchApplication(const AppLaunchData &appLaunchData, const Configuration &config)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    HandleDebugAppLaunchDealy(appLaunchData);
     FreezeUtil::GetInstance().AddAppLifecycleEvent(0, "HandleLaunchApplication begin");
     ffrt::submit([]() {}, ffrt::task_attr().qos(LAUNCH_TASK_QOS));
     AppExecFwk::AppImageObserverManager::GetInstance().SetImageProcessType(appLaunchData.GetImageProcessType());
@@ -4286,6 +4291,22 @@ void MainThread::HandleCancelAssertFaultTask()
         return;
     }
     assertThread->Stop();
+}
+
+void MainThread::HandleDebugAppLaunchDelay(const AppLaunchData& appLaunchData)
+{
+    auto appInfo = appLaunchData.GetApplicationInfo();
+    if (!isDeveloperMode_ || !appInfo.debug ||
+        appLaunchData.GetImageProcessType() != static_cast<int32_t>(ImageProcessType::TEMPLATE) ||
+        !system::GetBoolParameter(SNAPSHOT_LAUNCH_DELAY_ENABLE, false)) {
+        return;
+    }
+    HITRACE_METER_NAME(HITRACE_TAG_APP, "Debug app sleep");
+    int32_t snapshotLaunchDelayMs = system::GetIntParameter<int32_t>(SNAPSHOT_LAUNCH_DELAY_MS, 0);
+    LAG_LOGI(AAFwkTag::APPKIT, "Debug app goes to sleep %{public}ds", snapshotLaunchDelayMs / ONE_MILLISECOND);
+    if (snapshotLaunchDelayMs > 0) {
+        usleep(snapshotLaunchDelayMs * ONE_MILLISECOND);
+    }
 }
 
 int32_t MainThread::ScheduleDumpIpcStart(std::string& result)
