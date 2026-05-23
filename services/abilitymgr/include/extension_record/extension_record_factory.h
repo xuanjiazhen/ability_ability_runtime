@@ -82,6 +82,9 @@ public:
 
 protected:
     uint32_t GetExtensionProcessMode(const AAFwk::AbilityRequest &abilityRequest, bool &isHostSpecified);
+    bool CheckAllowCrossUserEmbeddedUI(const AAFwk::AbilityRequest &abilityRequest, const std::string &hostBundleName);
+    bool IsInAllowList(const std::vector<AppExecFwk::ExtensionAbilityInfo> &extensionInfos,
+        const std::string &extensionName, const std::string &callerAppIdentifier);
 };
 } // namespace AbilityRuntime
 } // namespace OHOS
