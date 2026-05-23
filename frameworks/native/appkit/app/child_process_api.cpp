@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #include "child_process_api.h"
 #include "hilog_tag_wrapper.h"
 #include <dlfcn.h>
- 
+
 namespace OHOS {
 namespace AppExecFwk {
- 
+
 void ChildProcessApi::StartChild(const std::map<std::string, int32_t> &fds)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "ChildProcessApi StartChild, fds size:%{public}zu", fds.size());
@@ -28,7 +28,7 @@ void ChildProcessApi::StartChild(const std::map<std::string, int32_t> &fds)
         TAG_LOGE(AAFwkTag::APPKIT, "Failed to dlopen libappkit_child.z.so %{public}s", dlerror());
         return;
     }
- 
+
     using StartChildFunc = void(*)(const std::map<std::string, int32_t>&);
     static StartChildFunc startChildFunc = reinterpret_cast<StartChildFunc>(dlsym(handle, "ChildMainThreadStart"));
     if (startChildFunc == nullptr) {
@@ -37,10 +37,10 @@ void ChildProcessApi::StartChild(const std::map<std::string, int32_t> &fds)
         handle = nullptr;
         return;
     }
- 
+
     TAG_LOGI(AAFwkTag::APPKIT, "Success to start child main thread");
     startChildFunc(fds);
 }
- 
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

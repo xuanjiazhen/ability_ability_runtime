@@ -12,16 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #ifndef OHOS_ABILITY_RUNTIME_CHILD_PROCESS_API_H
 #define OHOS_ABILITY_RUNTIME_CHILD_PROCESS_API_H
- 
+
 #include <map>
 #include <string>
- 
+
 namespace OHOS {
 namespace AppExecFwk {
- 
+
 /**
  * @brief Child Process API
  */
@@ -35,8 +35,8 @@ public:
      */
     static void StartChild(const std::map<std::string, int32_t> &fds);
 };
- 
+
 }  // namespace AppExecFwk
 }  // namespace OHOS
- 
+
 #endif  // OHOS_ABILITY_RUNTIME_CHILD_PROCESS_API_H
