@@ -112,6 +112,7 @@ bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info)
 {
     info.alterBundleName = MyFlag::upmsUtilsAlterBundleName_;
     info.bundleName = MyFlag::upmsUtilsBundleName_;
+    info.userId = MyFlag::fudAppInfoUserId_;
     return MyFlag::fudUtilsGenerateFUDAppInfoRet_;
 }
 

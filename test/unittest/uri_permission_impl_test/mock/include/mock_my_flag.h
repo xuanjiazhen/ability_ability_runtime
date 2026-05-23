@@ -77,6 +77,7 @@ public:
         isUriTypeValid_ = false;
         isDocsCloudUri_ = false;
         permissionGrantUriPermissionAsCaller_ = false;
+        permissionGrantUriPermissionPrivileged_ = false;
         processUdmfKeyRet_ = 0;
         udmfUtilsUris_ = {};
         upmsUtilsCheckIsSystemAppByBundleNameRet_ = true;
@@ -91,10 +92,15 @@ public:
         upmsUtilsTokenId_ = 0;
         upmsUtilsIsFoundationCallRet_ = false;
         fudUtilsGenerateFUDAppInfoRet_ = true;
+        generateFUDAppInfoRet_ = true;
+        generateFUDAppInfoRet2_ = true;
+        fudAppInfoUserId_ = 0;
+        fudAppInfoUserId2_ = 0;
         tokenInfos = {};
         isUdmfOrPasteboardCallRet_ = false;
         isDFSCallRet_ = false;
         isSandboxAppRet_ = false;
+        isSACall_ = false;
     }
 
     static int flag_;
@@ -114,6 +120,7 @@ public:
     static bool IsSystemAppCall_;
     static bool permissionFileAccessPersist_;
     static bool permissionGrantUriPermissionAsCaller_;
+    static bool permissionGrantUriPermissionPrivileged_;
     static bool isSAOrSystemAppCall_;
     static bool isUriTypeValid_;
     static bool isSystemAppCall_;
@@ -134,11 +141,16 @@ public:
     static uint32_t upmsUtilsTokenId_;
     static bool upmsUtilsIsFoundationCallRet_;
     static bool fudUtilsGenerateFUDAppInfoRet_;
+    static bool generateFUDAppInfoRet_;
+    static bool generateFUDAppInfoRet2_;
+    static int32_t fudAppInfoUserId_;
+    static int32_t fudAppInfoUserId2_;
     static std::string bundleName_;
     static TokenInfoMap tokenInfos;
     static bool isUdmfOrPasteboardCallRet_;
     static bool isDFSCallRet_;
     static bool isSandboxAppRet_;
+    static bool isSACall_;
 };
 }  // namespace AAFwk
 }  // namespace OHOS
