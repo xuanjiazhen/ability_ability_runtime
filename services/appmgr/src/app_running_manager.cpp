@@ -139,15 +139,15 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
     ClipStringContent(rule, bundleInfo.appId, signCode);
     auto findSameProcess = [signCode, specifiedProcessFlag, processName, jointUserId, customProcessFlag,
         isFromPreload, reusePid](const auto &pair) {
-            return (pair.second != nullptr) && !(pair.second->IsTerminating()) &&
-            !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag()) &&
-            !(pair.second->IsKillPrecedeStart()) &&
-            (pair.second->GetSignCode() == signCode) &&
-            (pair.second->GetJointUserId() == jointUserId) &&
-            AppRunningManager::CheckAppProcessNameIsSame(pair.second, processName, isFromPreload) &&
+            return (pair.second != nullptr) &&
             (((specifiedProcessFlag.empty() || pair.second->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
               (pair.second->GetCustomProcessFlag() == customProcessFlag)) ||
-             (reusePid > 0 && pair.second->GetPid() == reusePid));
+             (reusePid > 0 && pair.second->GetPid() == reusePid)) &&
+            (pair.second->GetSignCode() == signCode) &&
+            AppRunningManager::CheckAppProcessNameIsSame(pair.second, processName, isFromPreload) &&
+            (pair.second->GetJointUserId() == jointUserId) && !(pair.second->IsTerminating()) &&
+            !(pair.second->IsKilling()) && !(pair.second->GetRestartAppFlag()) &&
+            !(pair.second->IsKillPrecedeStart());
     };
     auto appRunningMap = GetAppRunningRecordMap();
     if (!jointUserId.empty()) {
@@ -156,15 +156,15 @@ std::shared_ptr<AppRunningRecord> AppRunningManager::CheckAppRunningRecordIsExis
     }
     for (const auto &item : appRunningMap) {
         const auto &appRecord = item.second;
-        if (appRecord && !(appRecord->IsTerminating()) && !(appRecord->IsKilling()) &&
-            !(appRecord->GetRestartAppFlag()) && !(appRecord->IsUserRequestCleaning()) &&
+        if (appRecord && CheckAppProcessNameIsSame(appRecord, processName, isFromPreload) &&
+            ((appRecord->GetInstanceKey() == instanceKey &&
+              (specifiedProcessFlag.empty() || appRecord->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
+              (appRecord->GetCustomProcessFlag() == customProcessFlag)) ||
+             (reusePid > 0 && appRecord->GetPid() == reusePid)) &&
+            !(appRecord->IsTerminating()) && !(appRecord->IsKilling()) && !(appRecord->GetRestartAppFlag()) &&
+            !(appRecord->IsUserRequestCleaning()) &&
             !(appRecord->IsCaching() && appRecord->GetProcessCacheBlocked()) &&
-            !(appRecord->IsKillPrecedeStart()) &&
-            (CheckAppProcessNameIsSame(appRecord, processName, isFromPreload) &&
-             ((appRecord->GetInstanceKey() == instanceKey &&
-               (specifiedProcessFlag.empty() || appRecord->GetSpecifiedProcessFlag() == specifiedProcessFlag) &&
-               (appRecord->GetCustomProcessFlag() == customProcessFlag)) ||
-              (reusePid > 0 && appRecord->GetPid() == reusePid)))) {
+            !(appRecord->IsKillPrecedeStart())) {
             auto appInfoList = appRecord->GetAppInfoList();
             TAG_LOGD(AAFwkTag::APPMGR,
                 "appInfoList: %{public}zu, processName: %{public}s, specifiedProcessFlag: %{public}s, \
