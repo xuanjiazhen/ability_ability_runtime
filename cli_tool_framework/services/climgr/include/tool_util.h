@@ -62,6 +62,9 @@ public:
     static CliSessionInfo BuildSkillSessionInfo(const std::string &sessionId,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult);
 
+    static bool BuildIndependentSkillAbcPath(const std::string &skillPath, const std::string &scriptPath,
+        std::string &abcPath);
+
 private:
     static bool GetBundleInfoByTokenId(AccessToken::AccessTokenID tokenId,
         AppExecFwk::BundleInfo &bundleInfo);

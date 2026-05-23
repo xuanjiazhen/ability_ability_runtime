@@ -86,6 +86,7 @@ constexpr int32_t DEFAULT_INTER_VAL = 500;
 constexpr int32_t API8 = 8;
 const std::string SANDBOX_ARK_CACHE_PATH = "/data/storage/ark-cache/";
 const std::string SANDBOX_ARK_PROIFILE_PATH = "/data/storage/ark-profile";
+constexpr char INDEPENDENT_SKILL_PATH[] = "/data/skills/";
 
 constexpr char MERGE_ABC_PATH[] = "/ets/modules.abc";
 constexpr char BUNDLE_INSTALL_PATH[] = "/data/storage/el1/bundle/";
@@ -1080,10 +1081,11 @@ napi_value JsRuntime::LoadJsBundle(const std::string& path, const std::string& h
     return handleEscape.Escape(exportObj);
 }
 
-napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& hapPath, const std::string& srcEntrance)
+napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& hapPath,
+    const std::string& srcEntrance, bool isIndependentSkill)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
-    if (!RunScript(path, hapPath, false, srcEntrance)) {
+    if (!RunScript(path, hapPath, false, srcEntrance, isIndependentSkill)) {
         TAG_LOGE(AAFwkTag::JSRUNTIME, "run script: %{private}s failed", path.c_str());
         return nullptr;
     }
@@ -1108,7 +1110,8 @@ napi_value JsRuntime::LoadJsModule(const std::string& path, const std::string& h
 }
 
 std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& moduleName, const std::string& modulePath,
-    const std::string& hapPath, bool esmodule, bool useCommonChunk, const std::string& srcEntrance)
+    const std::string& hapPath, bool esmodule, bool useCommonChunk, const std::string& srcEntrance,
+    bool isIndependentSkill)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::JSRUNTIME, "Load module(%{public}s, %{private}s, %{private}s, %{public}s)",
@@ -1125,7 +1128,9 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
 
     std::string path = moduleName;
     auto pos = path.find("::");
-    if (pos != std::string::npos) {
+    if (isIndependentSkill) {
+        moduleName_ = moduleName;
+    } else if (pos != std::string::npos) {
         path.erase(pos, path.size() - pos);
         moduleName_ = path;
     }
@@ -1137,7 +1142,9 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
         classValue = it->second->GetNapiValue();
     } else {
         std::string fileName;
-        if (!hapPath.empty()) {
+        if (!hapPath.empty() && isIndependentSkill) {
+            fileName = modulePath;
+        } else if (!hapPath.empty()) {
             fileName.append(codePath_).append(Constants::FILE_SEPARATOR).append(modulePath);
             std::regex pattern(std::string(Constants::FILE_DOT) + std::string(Constants::FILE_SEPARATOR));
             fileName = std::regex_replace(fileName, pattern, "");
@@ -1147,7 +1154,7 @@ std::unique_ptr<NativeReference> JsRuntime::LoadModule(const std::string& module
                 return std::unique_ptr<NativeReference>();
             }
         }
-        classValue = esmodule ? LoadJsModule(fileName, hapPath, srcEntrance)
+        classValue = esmodule ? LoadJsModule(fileName, hapPath, srcEntrance, isIndependentSkill)
             : LoadJsBundle(fileName, hapPath, useCommonChunk);
         if (classValue == nullptr) {
             return std::unique_ptr<NativeReference>();
@@ -1266,7 +1273,7 @@ std::unique_ptr<AbilityBase::FileMapper> JsRuntime::ExecuteSecureWithOhmUrl(cons
 }
 
 bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath, bool useCommonChunk,
-    const std::string& srcEntrance)
+    const std::string& srcEntrance, bool isIndependentSkill)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     auto vm = GetEcmaVm();
@@ -1327,7 +1334,13 @@ bool JsRuntime::RunScript(const std::string& srcPath, const std::string& hapPath
     }
 
     std::string path = srcPath;
-    if (!isBundle_) {
+    if (isIndependentSkill) {
+        if (moduleName_.empty()) {
+            TAG_LOGE(AAFwkTag::JSRUNTIME, "moduleName empty");
+            return false;
+        }
+        path = INDEPENDENT_SKILL_PATH + moduleName_ + MERGE_ABC_PATH;
+    } else if (!isBundle_) {
         if (moduleName_.empty()) {
             TAG_LOGE(AAFwkTag::JSRUNTIME, "moduleName empty");
             return false;

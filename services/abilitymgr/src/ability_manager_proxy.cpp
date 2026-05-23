@@ -8387,9 +8387,10 @@ int32_t AbilityManagerProxy::ExecuteSkillDone(const sptr<IRemoteObject> &token,
 }
 
 int32_t AbilityManagerProxy::QuerySkillType(const std::string &bundleName, const std::string &moduleName,
-    const std::string &skillName, int32_t &skillType)
+    const std::string &skillName, AppExecFwk::SkillInfo &skillInfo)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "query skill type proxy, bundleName:%{public}s", bundleName.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "query skill type proxy, bundleName:%{public}s, moduleName:%{public}s, skillName:%{public}s",
+        bundleName.c_str(), moduleName.c_str(), skillName.c_str());
     MessageParcel data;
     if (!WriteInterfaceToken(data)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
@@ -8411,8 +8412,16 @@ int32_t AbilityManagerProxy::QuerySkillType(const std::string &bundleName, const
         return ret;
     }
     int32_t result = reply.ReadInt32();
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "QuerySkillType got result=%{public}d", result);
     if (result == ERR_OK) {
-        skillType = reply.ReadInt32();
+        std::unique_ptr<AppExecFwk::SkillInfo> skillInfoPtr(reply.ReadParcelable<AppExecFwk::SkillInfo>());
+        if (skillInfoPtr == nullptr) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "read skillInfo failed");
+            return INNER_ERR;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "QuerySkillType read back: bundleName=%{public}s, moduleName=%{public}s, skillType=%{public}d",
+            skillInfoPtr->bundleName.c_str(), skillInfoPtr->moduleName.c_str(), static_cast<int32_t>(skillInfoPtr->skillType));
+        skillInfo = *skillInfoPtr;
     }
     return result;
 }

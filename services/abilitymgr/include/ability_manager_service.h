@@ -49,6 +49,7 @@
 #endif
 #include "bundle_constants.h"
 #include "bundle_mgr_helper.h"
+#include "bundle_skill/skill_info.h"
 #include "caller_info.h"
 #include "data_ability_manager.h"
 #include "deeplink_reserve/deeplink_reserve_config.h"
@@ -2236,7 +2237,7 @@ public:
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &result) override;
 
     int32_t QuerySkillType(const std::string &bundleName, const std::string &moduleName,
-        const std::string &skillName, int32_t &skillType) override;
+        const std::string &skillName, AppExecFwk::SkillInfo &skillInfo) override;
 
     /**
      * @brief Open file by uri.

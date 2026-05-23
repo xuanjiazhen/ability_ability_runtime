@@ -5795,16 +5795,21 @@ int32_t AbilityManagerStub::ExecuteSkillDoneWithTokenInner(MessageParcel &data, 
 
 int32_t AbilityManagerStub::QuerySkillTypeInner(MessageParcel &data, MessageParcel &reply)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "query skill type stub");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "QuerySkillTypeInner ENTER");
     std::string bundleName = Str16ToStr8(data.ReadString16());
     std::string moduleName = Str16ToStr8(data.ReadString16());
     std::string skillName = Str16ToStr8(data.ReadString16());
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "QuerySkillTypeInner received: bundleName=%{public}s, moduleName=%{public}s, skillName=%{public}s",
+        bundleName.c_str(), moduleName.c_str(), skillName.c_str());
 
-    int32_t skillType = 0;
-    int32_t result = QuerySkillType(bundleName, moduleName, skillName, skillType);
+    AppExecFwk::SkillInfo skillInfo;
+    int32_t result = QuerySkillType(bundleName, moduleName, skillName, skillInfo);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "QuerySkillTypeInner result=%{public}d, skillType=%{public}d, srcEntries.size=%{public}zu, permissions.size=%{public}zu",
+        result, static_cast<int32_t>(skillInfo.skillType), skillInfo.srcEntries.size(), skillInfo.permissions.size());
     reply.WriteInt32(result);
     if (result == ERR_OK) {
-        reply.WriteInt32(skillType);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "QuerySkillTypeInner BEFORE Marshalling, skillInfo.bundleName=%{public}s", skillInfo.bundleName.c_str());
+        reply.WriteParcelable(&skillInfo);
     }
     return NO_ERROR;
 }

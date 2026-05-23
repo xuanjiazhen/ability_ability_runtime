@@ -35,6 +35,9 @@
 #include "tokenid_kit.h"
 #include "tool_util.h"
 
+#include "string_wrapper.h"
+#include "bool_wrapper.h"
+
 namespace OHOS {
 namespace CliTool {
 namespace {
@@ -567,19 +570,18 @@ void CliToolManagerService::HandleBackgroundSessionReply(
 }
 
 int32_t CliToolManagerService::TryDispatchSkillSession(const ExecToolParam &param,
-    const std::string &eventId, const ToolInfo &toolInfo, bool &dispatched)
+    const std::string &eventId, const ToolInfo &toolInfo, AppExecFwk::SkillInfo &skillInfo, bool &dispatched)
 {
     dispatched = false;
     if (!ToolUtil::IsSkillTool(param.toolName)) {
         return ERR_OK;
     }
 
-    int32_t skillType = 0;
-    auto skillRet = ValidateSkillTypeFromParam(param, skillType);
+    auto skillRet = ValidateSkillTypeFromParam(param, skillInfo);
     if (skillRet != ERR_OK) {
         return skillRet;
     }
-    if (skillType == SKILL_TYPE_INDEPENDENT) {
+    if (skillInfo.skillType == AppExecFwk::SkillType::INDEPENDENT_SKILL) {
         TAG_LOGI(AAFwkTag::CLI_TOOL,
             "Independent skill, fallback to CLI path, toolName=%{public}s", param.toolName.c_str());
         return ERR_OK;
@@ -612,14 +614,28 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
         return ERR_NO_INIT;
     }
 
+    AppExecFwk::SkillInfo skillInfo;
     ToolInfo toolInfo;
     bool dispatched = false;
-    auto skillRet = TryDispatchSkillSession(param, eventId, toolInfo, dispatched);
+    auto skillRet = TryDispatchSkillSession(param, eventId, toolInfo, skillInfo, dispatched);
     if (skillRet != ERR_OK) {
         return skillRet;
     }
     if (dispatched) {
         return ERR_OK;
+    }
+
+    const ExecToolParam *execParam = &param;
+    ExecToolParam cliParam;
+    if (skillInfo.skillType == AppExecFwk::SkillType::INDEPENDENT_SKILL) {
+        TAG_LOGI(AAFwkTag::CLI_TOOL,
+            "Independent skill, prepare cli param with abcPath, toolName=%{public}s", param.toolName.c_str());
+        auto prepRet = PrepareIndependentSkillCliParam(param, skillInfo, cliParam);
+        if (prepRet != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "prepare independent skill cli param failed:%{public}d", prepRet);
+            return prepRet;
+        }
+        execParam = &cliParam;
     }
 
     if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
@@ -629,11 +645,11 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     auto tokenId = IPCSkeleton::GetCallingTokenID();
     std::string sandboxConfig;
     std::string bundleName;
-    if (auto ret = ValidateAndPrepareTool(param, tokenId, toolInfo, sandboxConfig, bundleName); ret != ERR_OK) {
+    if (auto ret = ValidateAndPrepareTool(*execParam, tokenId, toolInfo, sandboxConfig, bundleName); ret != ERR_OK) {
         return ret;
     }
 
-    return SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
+    return SetupAndStartSession(*execParam, eventId, toolInfo, sandboxConfig, bundleName);
 }
 
 void CliToolManagerService::PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout)
@@ -1047,7 +1063,7 @@ void SkillCallbackAdapter::OnExecuteDone(const std::string &requestCode, int32_t
     service->HandleSkillSessionComplete(sessionId_, callerPid_, callerUid_, eventId_, resultCode, session);
 }
 
-int32_t CliToolManagerService::ValidateSkillTypeFromParam(const ExecToolParam &param, int32_t &skillType)
+int32_t CliToolManagerService::ValidateSkillTypeFromParam(const ExecToolParam &param, AppExecFwk::SkillInfo &skillInfo)
 {
     auto &args = const_cast<ExecToolParam &>(param).args;
     ToolUtil::NormalizeSkillParamKeys(args);
@@ -1058,18 +1074,21 @@ int32_t CliToolManagerService::ValidateSkillTypeFromParam(const ExecToolParam &p
         TAG_LOGE(AAFwkTag::CLI_TOOL, "skillName is required in args");
         return ERR_INVALID_VALUE;
     }
-    return ValidateSkillType(bundleName, moduleName, skillName, skillType);
+    return ValidateSkillType(bundleName, moduleName, skillName, skillInfo);
 }
 
 int32_t CliToolManagerService::ValidateSkillType(const std::string &bundleName,
-    const std::string &moduleName, const std::string &skillName, int32_t &skillType)
+    const std::string &moduleName, const std::string &skillName, AppExecFwk::SkillInfo &skillInfo)
 {
     auto queryRet = AAFwk::AbilityManagerClient::GetInstance()->QuerySkillType(
-        bundleName, moduleName, skillName, skillType);
+        bundleName, moduleName, skillName, skillInfo);
     if (queryRet != ERR_OK) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "querySkillType failed:%{public}d", queryRet);
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "query failed:%{public}d", queryRet);
         return queryRet;
     }
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "queryed moduleName:%{public}s skillName %{public}s, skillType %{public}d, hapPath %{public}s skillPath %{public}s",
+        skillInfo.moduleName.c_str(), skillInfo.skillName.c_str(),skillInfo.skillType, skillInfo.hapPath.c_str(), skillInfo.skillPath.c_str());
     return ERR_OK;
 }
 
@@ -1175,6 +1194,93 @@ void CliToolManagerService::HandleSkillSessionTimeout(const std::string &session
     EventDispatcher::GetInstance().DispatchExitEvent(sessionId, 0);
     EventDispatcher::GetInstance().ClearSessionSubscribers(sessionId);
     RemoveSessionRecord(sessionId);
+}
+
+int32_t CliToolManagerService::PrepareIndependentSkillCliParam(const ExecToolParam &param,
+    const AppExecFwk::SkillInfo &skillInfo, ExecToolParam &cliParam)
+{
+    cliParam = param;
+    auto &args = cliParam.args;
+    auto scriptPath = args.GetStringParam("scriptPath");
+    if (scriptPath.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "scriptPath is required for independent skill");
+        return ERR_INVALID_VALUE;
+    }
+    if (skillInfo.skillPath.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "skillPath is empty for independent skill");
+        return ERR_INVALID_VALUE;
+    }
+    std::string abcPath;
+    // Convert script path to final abc path
+    if (!ToolUtil::BuildIndependentSkillAbcPath(skillInfo.skillPath, scriptPath, abcPath)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "build abcPath failed");
+        return ERR_INVALID_VALUE;
+    }
+    std::string srcEntrance;
+    // Resolve the source entry recorded in skill metadata
+    if (!skillInfo.srcEntries.empty()) {
+        auto scriptBasename = scriptPath;
+        auto pos = scriptBasename.find_last_of("/\\");
+        if (pos != std::string::npos) {
+            scriptBasename = scriptBasename.substr(pos + 1);
+        }
+        for (const auto &entry : skillInfo.srcEntries) {
+            auto entryBasename = entry;
+            auto entryPos = entry.find_last_of("/\\");
+            if (entryPos != std::string::npos) {
+                entryBasename = entryBasename.substr(entryPos + 1);
+            }
+            if (scriptBasename == entryBasename) {
+                srcEntrance = entry;
+                break;
+            }
+        }
+        if (srcEntrance.empty()) {
+            srcEntrance = skillInfo.srcEntries[0];
+        }
+    }
+    auto filteredArgs = std::make_shared<AAFwk::WantParams>();
+    static const std::set<std::string> INTERNAL_KEYS = {
+        "bundleName", "moduleName", "skillName", "scriptPath"
+    };
+    // Keep CLI-consumed launch parameters at the top level for the downstream process.
+    filteredArgs->SetParam("abcPath", AAFwk::String::Box(abcPath));
+    for (auto &[key, value] : args.GetParams()) {
+        if (key == "functionName" || key == "scriptPath") {
+            filteredArgs->SetParam(key, value);
+        }
+    }
+    nlohmann::json argsJson = nlohmann::json::object();
+    // Package skill runtime metadata into the nested args payload consumed by the script bootstrap.
+    argsJson["moduleName"] = skillInfo.moduleName;
+    argsJson["hapPath"] = skillInfo.hapPath;
+    argsJson["srcEntrance"] = srcEntrance;
+    argsJson["isIndependentSkill"] = true;
+    for (auto &[key, value] : args.GetParams()) {
+        if (INTERNAL_KEYS.count(key) == 0 && key != "args" && key != "functionName" && key != "scriptPath") {
+            auto strObj = AAFwk::IString::Query(value);
+            if (strObj != nullptr) {
+                std::string strValue;
+                strObj->GetString(strValue);
+                argsJson[key] = strValue;
+            }
+        }
+    }
+    // Serialize remaining business arguments as a single args string while excluding internal routing keys.
+    filteredArgs->SetParam("args", AAFwk::String::Box("'" + argsJson.dump() + "'"));
+    cliParam.args = *filteredArgs;
+    std::string argsLog = "filteredArgs: ";
+    // Log the final CLI-facing argument set to help diagnose independent skill launches.
+    for (auto &[key, value] : filteredArgs->GetParams()) {
+        auto strObj = AAFwk::IString::Query(value);
+        if (strObj != nullptr) {
+            std::string strValue;
+            strObj->GetString(strValue);
+            argsLog += key + "=" + strValue + ", ";
+        }
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "%{public}s", argsLog.c_str());
+    return ERR_OK;
 }
 } // namespace CliTool
 } // namespace OHOS

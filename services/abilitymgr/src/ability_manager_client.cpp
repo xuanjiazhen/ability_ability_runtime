@@ -2849,12 +2849,12 @@ ErrCode AbilityManagerClient::ExecuteSkillDone(sptr<IRemoteObject> token, const 
 }
 
 ErrCode AbilityManagerClient::QuerySkillType(const std::string &bundleName, const std::string &moduleName,
-    const std::string &skillName, int32_t &skillType)
+    const std::string &skillName, AppExecFwk::SkillInfo &skillInfo)
 {
     TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
     auto abms = GetAbilityManager();
     CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
-    return abms->QuerySkillType(bundleName, moduleName, skillName, skillType);
+    return abms->QuerySkillType(bundleName, moduleName, skillName, skillInfo);
 }
 
 ErrCode AbilityManagerClient::StartSelfUIAbilityByAppContext(const Want &want)

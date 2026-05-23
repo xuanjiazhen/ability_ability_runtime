@@ -53,6 +53,12 @@ struct ScriptArgs {
     std::string abcPath;
     std::string scriptName;
     std::string funName;
+
+    std::string moduleName;
+    std::string hapPath;
+    std::string srcEntrance;
+    bool isIndependentSkill = false;
+
     std::vector<ScriptArg> arguments;
     bool showHelp = false;
 };
@@ -129,8 +135,7 @@ private:
         CompletionChannel channel);
     static bool PrepareRuntimeEnvironment(const ResultCallback& completeCallback,
         std::shared_ptr<ContextImpl>& context, std::unique_ptr<JsRuntime>& runtimeOwner, ScriptError& error);
-    static bool LoadScriptFile(const ScriptArgs& args, JsRuntime* runtime, ScriptError& error);
-    static bool ResolveScriptFunction(const ScriptArgs& args, JsRuntime* runtime,
+    static bool LoadScriptFunction(const ScriptArgs& args, JsRuntime* runtime,
         napi_value& receiver, napi_value& func, ScriptError& error);
     static bool CallResolvedFunction(const ScriptArgs& args, napi_env env, napi_value receiver, napi_value func,
         ScriptError& error);

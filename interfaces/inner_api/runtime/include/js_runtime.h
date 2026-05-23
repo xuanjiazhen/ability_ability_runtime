@@ -109,7 +109,7 @@ public:
 
     bool RunSandboxScript(const std::string& path, const std::string& hapPath);
     bool RunScript(const std::string& path, const std::string& hapPath, bool useCommonChunk = false,
-        const std::string& srcEntrance = "");
+        const std::string& srcEntrance = "", bool isIndependentSkill = false);
 
     void PreloadSystemModule(const std::string& moduleName) override;
 
@@ -161,7 +161,7 @@ public:
         const std::string& moduleName, const napi_value* argv, size_t argc);
     std::unique_ptr<NativeReference> LoadModule(const std::string& moduleName, const std::string& modulePath,
         const std::string& hapPath, bool esmodule = false, bool useCommonChunk = false,
-        const std::string& srcEntrance = "");
+        const std::string& srcEntrance = "", bool isIndependentSkill = false);
     std::unique_ptr<NativeReference> LoadSystemModule(
         const std::string& moduleName, const napi_value* argv = nullptr, size_t argc = 0);
 
@@ -186,7 +186,8 @@ private:
     int32_t JsperfProfilerCommandParse(const std::string &command, int32_t defaultValue);
 
     napi_value LoadJsBundle(const std::string& path, const std::string& hapPath, bool useCommonChunk = false);
-    napi_value LoadJsModule(const std::string& path, const std::string& hapPath, const std::string& srcEntrance = "");
+    napi_value LoadJsModule(const std::string& path, const std::string& hapPath,
+        const std::string& srcEntrance = "", bool isIndependentSkill = false);
 
     bool preloaded_ = false;
     bool isBundle_ = true;

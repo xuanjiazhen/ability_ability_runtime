@@ -34,7 +34,9 @@
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "js_arkts_script.h"
+#include "napi_common_util.h"
 #include "nlohmann/json.hpp"
+#include "native_engine/impl/ark/ark_native_engine.h"
 
 namespace OHOS {
 namespace ArktsScript {
@@ -43,7 +45,7 @@ namespace {
 
 constexpr uint64_t SIGNAL_VALUE = 1;
 constexpr int MAX_EVENTS = 1;
-constexpr size_t CALL_ARGC = 1;
+
 constexpr char ABC_PATH_OPTION[] = "--abcPath";
 constexpr char SCRIPT_PATH_OPTION[] = "--scriptPath";
 constexpr char FUNCTION_NAME_OPTION[] = "--functionName";
@@ -187,7 +189,7 @@ bool ParseJsonValueToScriptArg(const nlohmann::json& value, ScriptArg& arg)
     return false;
 }
 
-bool ParseArgsJson(const std::string& rawValue, std::map<uint32_t, ScriptArg>& indexedArgs)
+bool ParseArgsJson(const std::string& rawValue, std::map<uint32_t, ScriptArg>& indexedArgs, ScriptArgs& args)
 {
     std::string jsonText = rawValue;
     // remove outer single quotes
@@ -202,15 +204,40 @@ bool ParseArgsJson(const std::string& rawValue, std::map<uint32_t, ScriptArg>& i
     }
 
     for (auto it = argsJson.begin(); it != argsJson.end(); ++it) {
+        std::string key = it.key();
+        if (key == "moduleName") {
+            if (it.value().is_string()) {
+                args.moduleName = it.value().get<std::string>();
+            }
+            continue;
+        }
+        if (key == "hapPath") {
+            if (it.value().is_string()) {
+                args.hapPath = it.value().get<std::string>();
+            }
+            continue;
+        }
+        if (key == "srcEntrance") {
+            if (it.value().is_string()) {
+                args.srcEntrance = it.value().get<std::string>();
+            }
+            continue;
+        }
+        if (key == "isIndependentSkill") {
+            if (it.value().is_boolean()) {
+                args.isIndependentSkill = it.value().get<bool>();
+            }
+            continue;
+        }
         uint32_t argIndex = 0;
-        if (!ParseArgNameIndex(it.key(), argIndex)) {
-            TAG_LOGE(AAFwkTag::APPKIT, "parse args json failed, invalid arg name: %{public}s", it.key().c_str());
+        if (!ParseArgNameIndex(key, argIndex)) {
+            TAG_LOGE(AAFwkTag::APPKIT, "parse args json failed, invalid arg name: %{public}s", key.c_str());
             return false;
         }
         ScriptArg arg;
         if (!ParseJsonValueToScriptArg(it.value(), arg)) {
             TAG_LOGE(AAFwkTag::APPKIT, "parse args json failed, invalid arg value, key: %{public}s",
-                it.key().c_str());
+                key.c_str());
             return false;
         }
         if (!indexedArgs.emplace(argIndex, std::move(arg)).second) {
@@ -251,14 +278,15 @@ bool HandleStringOption(const std::string& option, int argc, char* argv[], int& 
     return false;
 }
 
-bool HandleArgsOption(int argc, char* argv[], int& index, std::map<uint32_t, ScriptArg>& indexedArgs, bool& hasArgsJson)
+bool HandleArgsOption(int argc, char* argv[], int& index, std::map<uint32_t, ScriptArg>& indexedArgs,
+    ScriptArgs& args, bool& hasArgsJson)
 {
     std::string value;
     if (hasArgsJson || !ReadOptionValue(argc, argv, index, value)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Invalid --args option");
         return false;
     }
-    if (!ParseArgsJson(value, indexedArgs)) {
+    if (!ParseArgsJson(value, indexedArgs, args)) {
         TAG_LOGE(AAFwkTag::APPKIT, "Invalid value for --args");
         return false;
     }
@@ -290,7 +318,7 @@ bool ArktsScript::ParseScriptOption(int argc, char* argv[], int& index, ScriptAr
         return true;
     }
     if (option == ARGS_OPTION) {
-        return HandleArgsOption(argc, argv, index, indexedArgs, hasArgsJson);
+        return HandleArgsOption(argc, argv, index, indexedArgs, args, hasArgsJson);
     }
     if (option == ABC_PATH_OPTION || option == SCRIPT_PATH_OPTION || option == FUNCTION_NAME_OPTION) {
         // Matched a known string option but failed while reading its value.
@@ -321,9 +349,11 @@ bool ArktsScript::FinalizeParsedArguments(const std::map<uint32_t, ScriptArg>& i
             args.arguments[item.first] = item.second;
         }
     }
-    TAG_LOGD(AAFwkTag::APPKIT,
-        "parsed arguments, abcPath: %{public}s, scriptName: %{public}s, functionName: %{public}s, argc: %{public}zu",
-        args.abcPath.c_str(), args.scriptName.c_str(), args.funName.c_str(), args.arguments.size());
+    TAG_LOGI(AAFwkTag::APPKIT,
+        "parsed arguments, abcPath: %{public}s, scriptName: %{public}s, functionName: %{public}s, argc: %{public}zu, "
+        "isIndependentSkill: %{public}d, moduleName: %{public}s, hapPath: %{public}s, srcEntrance: %{public}s",
+        args.abcPath.c_str(), args.scriptName.c_str(), args.funName.c_str(), args.arguments.size(),
+        args.isIndependentSkill, args.moduleName.c_str(), args.hapPath.c_str(), args.srcEntrance.c_str());
     return true;
 }
 
@@ -410,10 +440,9 @@ bool ArktsScript::LoadAbcFile(JsRuntime* runtime, const std::string& path)
         TAG_LOGE(AAFwkTag::APPKIT, "runtime is null when loading abc");
         return false;
     }
-
+    TAG_LOGI(AAFwkTag::APPKIT, "czx LoadAbcFile path: %{public}s", path.c_str());
     bool loaded = runtime->RunScript(path, "", false);
-    TAG_LOGI(AAFwkTag::APPKIT, "RunScript isLoaded: %{public}d, runScriptPath: %{public}s, targetPath: %{public}s",
-        static_cast<int32_t>(loaded), path.c_str(), path.c_str());
+    TAG_LOGI(AAFwkTag::APPKIT, "czx LoadAbcFile result: %{public}d", static_cast<int32_t>(loaded));
     return loaded;
 }
 
@@ -704,49 +733,75 @@ bool ArktsScript::PrepareRuntimeEnvironment(const ResultCallback& completeCallba
     return true;
 }
 
-bool ArktsScript::LoadScriptFile(const ScriptArgs& args, JsRuntime* runtime, ScriptError& error)
+bool ArktsScript::LoadScriptFunction(const ScriptArgs& args, JsRuntime* runtime, napi_value& receiver, napi_value& func, ScriptError& error)
 {
-    if (!ArktsScript::LoadAbcFile(runtime, args.abcPath)) {
-        error.message = "failed to load ABC file, runScriptPath: " + args.abcPath +
-            ", targetPath: " + args.abcPath;
+    TAG_LOGI(AAFwkTag::APPKIT, "LoadScriptFunction call, moduleName=%{public}s, abcPath=%{public}s, funName=%{public}s",
+        args.moduleName.c_str(), args.abcPath.c_str(), args.funName.c_str());
+
+    napi_env env = runtime != nullptr ? runtime->GetNapiEnv() : nullptr;
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "env null");
+        return false;
+    }
+
+    auto moduleRef = runtime->LoadModule(
+        args.moduleName,
+        args.abcPath,
+        args.hapPath,
+        true,
+        false,
+        args.srcEntrance,
+        true
+    );
+    if (moduleRef == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "LoadModule failed, path:%{public}s", args.abcPath.c_str());
+        error.message = "failed to load module: " + args.moduleName;
         error.type = "LOAD_ERROR";
         return false;
     }
-    return true;
-}
 
-bool ArktsScript::ResolveScriptFunction(const ScriptArgs& args, JsRuntime* runtime,
-    napi_value& receiver, napi_value& func, ScriptError& error)
-{
-    napi_env env = runtime != nullptr ? runtime->GetNapiEnv() : nullptr;
-    bool isResolved = JsArktsScript::ResolveFunction(runtime, env, args.abcPath, args.scriptName, args.funName,
-        receiver, func);
-    TAG_LOGI(AAFwkTag::APPKIT, "ResolveFunction isResolved: %{public}d, functionName: %{public}s",
-        static_cast<int32_t>(isResolved), args.funName.c_str());
-    if (!isResolved) {
-        error.message = "failed to resolve function: " + args.funName +
-            ", loaded abcPath: " + args.abcPath +
-            ", targetPath: " + args.abcPath +
-            ", scriptName: " + args.scriptName;
+    receiver = moduleRef->GetNapiValue();
+    func = AppExecFwk::GetPropertyValueByPropertyName(
+        env, receiver, args.funName.c_str(), napi_valuetype::napi_function);
+    if (func == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "func not found:%{public}s in %{public}s",
+            args.funName.c_str(), args.abcPath.c_str());
+        error.message = "failed to get function: " + args.funName;
         error.type = "FUNCTION_ERROR";
         return false;
     }
+
+    TAG_LOGI(AAFwkTag::APPKIT, "LoadScriptFunction success, func=%{public}p", func);
     return true;
 }
 
 bool ArktsScript::CallResolvedFunction(const ScriptArgs& args, napi_env env, napi_value receiver, napi_value func,
     ScriptError& error)
 {
-    napi_value argsArray = JsArktsScript::ConvertArgumentsToNapi(env, args.arguments);
-    if (argsArray == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "call resolved function failed, failed to convert arguments");
-        error.message = "failed to convert arguments";
-        error.type = "ARGUMENT_ERROR";
-        return false;
+    TAG_LOGI(AAFwkTag::APPKIT, "CallResolvedFunction call, receiver=%{public}p, func=%{public}p, argc=%{public}zu",
+        receiver, func, args.arguments.size());
+
+    napi_valuetype receiverType, funcType;
+    napi_typeof(env, receiver, &receiverType);
+    napi_typeof(env, func, &funcType);
+    TAG_LOGI(AAFwkTag::APPKIT, "CallResolvedFunction receiverType=%{public}d, funcType=%{public}d",
+        receiverType, funcType);
+
+    napi_value argsArray = nullptr;
+    if (!args.arguments.empty()) {
+        argsArray = JsArktsScript::ConvertArgumentsToNapi(env, args.arguments);
+        if (argsArray == nullptr) {
+            TAG_LOGE(AAFwkTag::APPKIT, "call resolved function failed, failed to convert arguments");
+            error.message = "failed to convert arguments";
+            error.type = "ARGUMENT_ERROR";
+            return false;
+        }
     }
 
     napi_value callResult = nullptr;
-    napi_status status = napi_call_function(env, receiver, func, CALL_ARGC, &argsArray, &callResult);
+    size_t argc = args.arguments.size();
+    napi_value* argv = (argc > 0) ? &argsArray : nullptr;
+    napi_status status = napi_call_function(env, receiver, func, argc, argv, &callResult);
     if (status != napi_ok) {
         TAG_LOGE(AAFwkTag::APPKIT, "CallResolvedFunction status: %{public}d, functionName: %{public}s",
             static_cast<int32_t>(status),
@@ -789,8 +844,7 @@ int ArktsScript::RunArkTsScript(int argc, char* argv[])
     napi_env env = runtimeOwner->GetNapiEnv();
     napi_value receiver = nullptr;
     napi_value func = nullptr;
-    if (!LoadScriptFile(args, runtimeOwner.get(), error) ||
-        !ResolveScriptFunction(args, runtimeOwner.get(), receiver, func, error) ||
+    if (!LoadScriptFunction(args, runtimeOwner.get(), receiver, func, error) ||
         !CallResolvedFunction(args, env, receiver, func, error)) {
         return FinalizeAndJoin(execContext, channel, monitorThread, error);
     }

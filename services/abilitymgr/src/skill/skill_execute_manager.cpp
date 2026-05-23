@@ -60,9 +60,9 @@ sptr<AppExecFwk::IBundleSkillManager> SkillExecuteManager::GetSkillManagerProxy(
 int32_t SkillExecuteManager::QuerySkillInfo(const std::string &bundleName, const std::string &moduleName,
     const std::string &skillName, int32_t userId, AppExecFwk::SkillInfo &skillInfo)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
-        "query skill info, bundle:%{public}s module:%{public}s skill:%{public}s",
-        bundleName.c_str(), moduleName.c_str(), skillName.c_str());
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "QuerySkillInfo called, bundle:%{public}s module:%{public}s skill:%{public}s userId:%{public}d",
+        bundleName.c_str(), moduleName.c_str(), skillName.c_str(), userId);
 
     auto skillMgr = GetSkillManagerProxy();
     if (skillMgr == nullptr) {

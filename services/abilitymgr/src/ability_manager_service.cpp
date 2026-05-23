@@ -14704,15 +14704,14 @@ int32_t AbilityManagerService::ExecuteSkillDone(const sptr<IRemoteObject> &token
 }
 
 int32_t AbilityManagerService::QuerySkillType(const std::string &bundleName, const std::string &moduleName,
-    const std::string &skillName, int32_t &skillType)
+    const std::string &skillName, AppExecFwk::SkillInfo &skillInfo)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR,
-        "query skill type, bundle:%{public}s module:%{public}s skill:%{public}s",
+    TAG_LOGI(AAFwkTag::ABILITYMGR,
+        "AbilityManagerService::QuerySkillType called, bundle:%{public}s module:%{public}s skill:%{public}s",
         bundleName.c_str(), moduleName.c_str(), skillName.c_str());
 
     int32_t userId = IPCSkeleton::GetCallingUid() / BASE_USER_RANGE;
     userId = (userId == 0) ? DEFAULT_USER_ID : userId;
-    AppExecFwk::SkillInfo skillInfo;
     auto ret = DelayedSingleton<SkillExecuteManager>::GetInstance()->QuerySkillInfo(
         bundleName, moduleName, skillName, userId, skillInfo);
     if (ret != ERR_OK) {
@@ -14720,8 +14719,7 @@ int32_t AbilityManagerService::QuerySkillType(const std::string &bundleName, con
         return ret;
     }
 
-    skillType = static_cast<int32_t>(skillInfo.skillType);
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "skill type:%{public}d", skillType);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "AbilityManagerService::QuerySkillType success, skill type:%{public}d", static_cast<int32_t>(skillInfo.skillType));
     return ERR_OK;
 }
 

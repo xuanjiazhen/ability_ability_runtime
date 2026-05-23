@@ -19,6 +19,7 @@
 #include <climits>
 #include <nlohmann/json.hpp>
 #include <random>
+#include <regex>
 #include <set>
 #include <sstream>
 #include <utility>
@@ -613,6 +614,22 @@ CliSessionInfo ToolUtil::BuildSkillSessionInfo(const std::string &sessionId,
         session.result->outputText = skillResult.result->ToString();
     }
     return session;
+}
+
+bool ToolUtil::BuildIndependentSkillAbcPath(const std::string &skillPath, const std::string &scriptPath,
+    std::string &abcPath)
+{
+    constexpr char SKILL_PHYSICAL_PREFIX[] = "/data/app/el1/skills/public";
+    constexpr char SKILL_SANDBOX_PREFIX[] = "/data/skills";
+    std::string mappedSkillPath = std::regex_replace(skillPath,
+        std::regex(SKILL_PHYSICAL_PREFIX), SKILL_SANDBOX_PREFIX);
+    std::string mappedScriptPath = scriptPath;
+    mappedScriptPath.erase(mappedScriptPath.rfind("."));
+    mappedScriptPath.append(".abc");
+    abcPath = mappedSkillPath + "/" + mappedScriptPath;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "BuildIndependentSkillAbcPath: skillPath=%{public}s, scriptPath=%{public}s, abcPath=%{public}s",
+        skillPath.c_str(), scriptPath.c_str(), abcPath.c_str());
+    return true;
 }
 
 } // namespace CliTool

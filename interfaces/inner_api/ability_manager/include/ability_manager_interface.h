@@ -44,6 +44,7 @@
 #include "skill/skill_execute_param.h"
 #include "skill/skill_execute_result.h"
 #include "skill/skill_execute_callback_interface.h"
+#include "bundle_skill/skill_info.h"
 
 #include "insight_intent/insight_intent_info_for_query.h"
 #include "insight_intent/insight_intent_query_param.h"
@@ -98,6 +99,7 @@ using InsightIntentExecuteParam = AppExecFwk::InsightIntentExecuteParam;
 using InsightIntentExecuteResult = AppExecFwk::InsightIntentExecuteResult;
 using InsightIntentQueryParam = AppExecFwk::InsightIntentQueryParam;
 using SkillExecuteParam = AppExecFwk::SkillExecuteParam;
+using SkillInfo = AppExecFwk::SkillInfo;
 using UIExtensionAbilityConnectInfo = AbilityRuntime::UIExtensionAbilityConnectInfo;
 using UIExtensionHostInfo = AbilityRuntime::UIExtensionHostInfo;
 using UIExtensionSessionInfo = AbilityRuntime::UIExtensionSessionInfo;
@@ -2852,15 +2854,15 @@ public:
     }
 
     /**
-     * @brief Query the type of a skill (independent or in-app).
+     * @brief Query the skill info of a skill.
      * @param bundleName The bundle name of the target application.
      * @param moduleName The module name of the target application.
      * @param skillName The skill name identifier.
-     * @param skillType Output the skill type.
+     * @param skillInfo Output the skill info.
      * @return Returns ERR_OK on success, others on failure.
      */
     virtual int32_t QuerySkillType(const std::string &bundleName, const std::string &moduleName,
-        const std::string &skillName, int32_t &skillType)
+        const std::string &skillName, AppExecFwk::SkillInfo &skillInfo)
     {
         return ERR_OK;
     }

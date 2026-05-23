@@ -2290,7 +2290,7 @@ public:
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &result);
 
     ErrCode QuerySkillType(const std::string &bundleName, const std::string &moduleName,
-        const std::string &skillName, int32_t &skillType);
+        const std::string &skillName, AppExecFwk::SkillInfo &skillInfo);
 
 private:
     AbilityManagerClient();

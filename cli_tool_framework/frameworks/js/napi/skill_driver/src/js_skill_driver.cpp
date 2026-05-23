@@ -262,15 +262,14 @@ int32_t DispatchExecuteSkill(const std::string &bundleName, const std::string &m
     const std::shared_ptr<AAFwk::WantParams> &skillArgs,
     const sptr<SkillExecuteCallbackImpl> &callback)
 {
-    constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
-    int32_t skillType = 0;
+    AppExecFwk::SkillInfo skillInfo;
     auto queryRet = AAFwk::AbilityManagerClient::GetInstance()->QuerySkillType(
-        bundleName, moduleName, skillName, skillType);
+        bundleName, moduleName, skillName, skillInfo);
     if (queryRet != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "querySkillType failed:%{public}d", queryRet);
         return queryRet;
     }
-    if (skillType == SKILL_TYPE_INDEPENDENT) {
+    if (skillInfo.skillType == AppExecFwk::SkillType::INDEPENDENT_SKILL) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "independent skill not supported yet");
         return ERR_TOOL_NOT_EXIST;
     }
