@@ -112,6 +112,7 @@ bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info)
 {
     info.alterBundleName = MyFlag::upmsUtilsAlterBundleName_;
     info.bundleName = MyFlag::upmsUtilsBundleName_;
+    info.userId = MyFlag::fudAppInfoUserId_;
     return MyFlag::fudUtilsGenerateFUDAppInfoRet_;
 }
 
@@ -133,6 +134,14 @@ bool FUDUtils::IsSandboxApp(uint32_t tokenId)
 bool FUDUtils::IsBrokerCaller()
 {
     return false;
+}
+
+int32_t FUDUtils::CheckCalledBySandBox()
+{
+    if (MyFlag::isSandBoxCall_) {
+        return ERR_OK;
+    }
+    return ERR_OK;
 }
 }  // namespace AAFwk
 }  // namespace OHOS
