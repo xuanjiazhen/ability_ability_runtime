@@ -48,9 +48,13 @@ public:
 
     int32_t Init(NativeRdb::RdbOpenCallback &rdbCallback);
 
+    std::shared_ptr<NativeRdb::RdbStore> GetRdbStore() { return rdbStore_; }
+
     int32_t InsertData(const NativeRdb::ValuesBucket &valuesBucket);
     int32_t BatchInsert(int64_t &outInsertNum, const std::vector<NativeRdb::ValuesBucket> &valuesBuckets);
     int32_t UpdateData(
+        const NativeRdb::ValuesBucket &valuesBucket, const NativeRdb::AbsRdbPredicates &absRdbPredicates);
+    int32_t UpdateOrInsertData(
         const NativeRdb::ValuesBucket &valuesBucket, const NativeRdb::AbsRdbPredicates &absRdbPredicates);
     int32_t DeleteData(const NativeRdb::AbsRdbPredicates &absRdbPredicates);
     std::shared_ptr<NativeRdb::AbsSharedResultSet> QueryData(const NativeRdb::AbsRdbPredicates &absRdbPredicates);

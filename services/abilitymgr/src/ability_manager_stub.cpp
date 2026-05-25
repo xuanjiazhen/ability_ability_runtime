@@ -828,6 +828,12 @@ int AbilityManagerStub::OnRemoteRequestInnerNineteenth(uint32_t code, MessagePar
     if (interfaceCode == AbilityManagerInterfaceCode::SET_RESIDENT_PROCESS_ENABLE) {
         return SetResidentProcessEnableInner(data, reply);
     }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_RESIDENT_ON_DEMAND_STARTUP) {
+        return SetResidentOnDemandStartupInner(data, reply);
+    }
+    if (interfaceCode == AbilityManagerInterfaceCode::SET_RESIDENT_ON_DEMAND_STARTUP_BATCH) {
+        return SetResidentOnDemandStartupBatchInner(data, reply);
+    }
     if (interfaceCode == AbilityManagerInterfaceCode::GET_ABILITY_STATE_BY_PERSISTENT_ID) {
         return GetAbilityStateByPersistentIdInner(data, reply);
     }
@@ -4757,6 +4763,35 @@ int32_t AbilityManagerStub::SetResidentProcessEnableInner(MessageParcel &data, M
     std::string bundleName = data.ReadString();
     bool enable = data.ReadBool();
     auto result = SetResidentProcessEnabled(bundleName, enable);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::SetResidentOnDemandStartupInner(MessageParcel &data, MessageParcel &reply)
+{
+    std::string bundleName = data.ReadString();
+    bool onDemandStartup = data.ReadBool();
+    auto result = SetResidentOnDemandStartup(bundleName, onDemandStartup);
+    if (!reply.WriteInt32(result)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
+        return ERR_INVALID_VALUE;
+    }
+    return NO_ERROR;
+}
+
+int32_t AbilityManagerStub::SetResidentOnDemandStartupBatchInner(MessageParcel &data, MessageParcel &reply)
+{
+    int32_t size = data.ReadInt32();
+    std::map<std::string, bool> configList;
+    for (int32_t i = 0; i < size; i++) {
+        std::string bundleName = data.ReadString();
+        bool onDemandStartup = data.ReadBool();
+        configList[bundleName] = onDemandStartup;
+    }
+    auto result = SetResidentOnDemandStartupBatch(configList);
     if (!reply.WriteInt32(result)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
         return ERR_INVALID_VALUE;

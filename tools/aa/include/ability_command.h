@@ -142,6 +142,21 @@ const std::string HELP_MSG_SEND_MEMORY_LEVEL =
     "Optional:\n"
     "  -h, --help              Show this help message\n";
 
+const std::string HELP_MSG_SET_ON_DEMAND =
+    "usage: aa set-on-demand <options>\n"
+    "options list:\n"
+    "  -h, --help                   list available commands\n"
+    "  -b <bundle-name>             bundle name of the resident app\n"
+    "  -e <enable>                  enable on-demand startup (0 or 1)\n"
+    "\n"
+    "Examples:\n"
+    "  Single app:  aa set-on-demand -b com.example.app -e 1\n"
+    "  Batch mode:  aa set-on-demand -b com.app1 -e 1 -b com.app2 -e 0\n"
+    "  set on-demand startup for resident app(s)\n";
+
+const std::string STRING_SET_ON_DEMAND_OK = "set on-demand startup successfully.";
+const std::string STRING_SET_ON_DEMAND_NG = "error: failed to set on-demand startup.";
+
 const std::string HELP_MSG_PRESTART =
     "Usage: aa pre-start -m <MODE> -b <BUNDLE-NAME> -u <USER-ID>\n"
     "Mandatory Options:\n"
@@ -265,6 +280,7 @@ private:
     ErrCode RunAsDetachDebugCommand();
     ErrCode RunAsSendMemoryLevelCommand();
     ErrCode RunAsPreStartCommand();
+    ErrCode RunAsSetOnDemandCommand();
     ErrCode ParsePreStartOptions(int32_t& mode, std::string& bundleName, int32_t& userId);
     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
     bool IsLongStartOption(const std::string &argv);
