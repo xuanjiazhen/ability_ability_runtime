@@ -166,7 +166,8 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     }
 
     nlohmann::json config;
-    config["callerTokenId"] = IPCSkeleton::GetCallingFullTokenID();
+    uint64_t fullTokenId = IPCSkeleton::GetCallingFullTokenID();
+    config["callerTokenId"] = fullTokenId;
     config["challenge"] = param.challenge;
     config["uid"] = IPCSkeleton::GetCallingUid();
     config["callerPid"] = IPCSkeleton::GetCallingPid();
@@ -180,8 +181,8 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     config["nsFlags"] = nsFlags;
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s",
-        bundleInfo.name.c_str(), bundleInfo.gid, param.toolName.c_str(), param.subcommand.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GenerateSandboxConfig: callerTokenId=%{public}llu, bundleName=%{public}s, gid=%{public}d, cliName=%{public}s",
+        static_cast<unsigned long long>(fullTokenId), bundleInfo.name.c_str(), bundleInfo.gid, param.toolName.c_str());
     return true;
 }
 
