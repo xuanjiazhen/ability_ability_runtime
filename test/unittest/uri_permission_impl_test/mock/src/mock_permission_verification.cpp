@@ -57,7 +57,7 @@ bool PermissionVerification::VerifyPermissionByTokenId(const int &tokenId, const
         return MyFlag::permissionProxyAuthorization_;
     }
     if (permissionName == PERMISSION_GRANT_URI_PERMISSION_PRIVILEGED) {
-        return MyFlag::permissionPrivileged_;
+        return MyFlag::permissionGrantUriPermissionPrivileged_;
     }
     if (permissionName == PERMISSION_READ_WRITE_DOWNLOAD) {
         return MyFlag::permissionReadWriteDownload_;
@@ -86,6 +86,9 @@ bool PermissionVerification::VerifyCallingPermission(const std::string &permissi
 }
 bool PermissionVerification::IsSACall() const
 {
+    if (MyFlag::isSACall_) {
+        return true;
+    }
     return (MyFlag::flag_ & MyFlag::FLAG::IS_SA_CALL);
 }
 bool PermissionVerification::IsSystemAppCall() const

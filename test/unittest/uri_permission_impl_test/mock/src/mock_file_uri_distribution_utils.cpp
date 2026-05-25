@@ -92,7 +92,8 @@ int32_t FUDUtils::GetAppIdByBundleName(const std::string &bundleName, std::strin
     return MyFlag::upmsUtilsGetAppIdByBundleNameRet_;
 }
 
-int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t appIndex, uint32_t &tokenId)
+int32_t FUDUtils::GetTokenIdByBundleName(const std::string &bundleName, int32_t appIndex, int32_t userId,
+                                         uint32_t &tokenId)
 {
     tokenId = MyFlag::upmsUtilsTokenId_;
     return MyFlag::getTokenIdByBundleNameStatus_;
@@ -112,6 +113,7 @@ bool FUDUtils::GenerateFUDAppInfo(FUDAppInfo &info)
 {
     info.alterBundleName = MyFlag::upmsUtilsAlterBundleName_;
     info.bundleName = MyFlag::upmsUtilsBundleName_;
+    info.userId = MyFlag::fudAppInfoUserId_;
     return MyFlag::fudUtilsGenerateFUDAppInfoRet_;
 }
 
