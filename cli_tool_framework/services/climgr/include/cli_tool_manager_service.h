@@ -34,6 +34,7 @@
 #include "process_manager.h"
 #include "session_record.h"
 #include "skill/skill_execute_callback_stub.h"
+#include "dstb_types.h"
 
 namespace OHOS {
 namespace AppExecFwk {
@@ -100,6 +101,52 @@ public:
     int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
         std::vector<CommandPermission> &cmdPermissions) override;
 
+    // ============== 分布式接口 ==============
+    /**
+     * @brief Get available devices for distributed CLI tool
+     * @param devices Output vector of DstbDeviceInfo
+     * @return ERR_OK on success
+     */
+    int32_t GetAvailableDevices(std::vector<DstbDeviceInfo> &devices) override;
+
+    /**
+     * @brief Get tool summaries from a remote device
+     * @param targetDeviceId Target device network ID
+     * @param summaries Output vector of ToolSummary
+     * @return ERR_OK on success
+     */
+    int32_t GetRemoteToolSummaries(const std::string &targetDeviceId,
+        std::vector<ToolSummary> &summaries) override;
+
+    /**
+     * @brief Get tool info by name from a remote device
+     * @param targetDeviceId Target device network ID
+     * @param name Tool name
+     * @param tool Output ToolInfo
+     * @return ERR_OK on success
+     */
+    int32_t GetRemoteToolInfoByName(const std::string &targetDeviceId,
+        const std::string &name, ToolInfo &tool) override;
+
+    /**
+     * @brief Handle remote request: get all tool summaries
+     * @param callerInfo Remote caller information
+     * @param summaries Output vector of ToolSummary
+     * @return ERR_OK on success
+     */
+    int32_t GetAllToolSummariesFromRemote(const DstbCallerInfo &callerInfo,
+        std::vector<ToolSummary> &summaries) override;
+
+    /**
+     * @brief Handle remote request: get tool info by name
+     * @param callerInfo Remote caller information
+     * @param name Tool name
+     * @param tool Output ToolInfo
+     * @return ERR_OK on success
+     */
+    int32_t GetToolInfoByNameFromRemote(const DstbCallerInfo &callerInfo,
+        const std::string &name, ToolInfo &tool) override;
+
 protected:
     void OnStart() override;
     void OnStop() override;
@@ -164,6 +211,11 @@ private:
     void HandleOutputClosed(const std::string &sessionId, bool isStdout);
     void HandleOutputDrained(const std::string &sessionId);
     void FinalizeBackgroundSession(const std::shared_ptr<SessionRecord> &record);
+
+    // ============== 分布式相关私有方法 ==============
+    void InitDistributed();
+    void UnInitDistributed();
+    bool CheckDstbCallerPermission(const DstbCallerInfo &callerInfo);
 
     DISALLOW_COPY_AND_MOVE(CliToolManagerService);
 

@@ -96,6 +96,35 @@ ErrCode CliToolMGRClient::GetAllToolSummaries(std::vector<ToolSummary> &summarie
     return proxy->GetAllToolSummaries(summaries);
 }
 
+ErrCode CliToolMGRClient::GetRemoteToolSummaries(const std::string &targetDeviceId,
+    std::vector<ToolSummary> &summaries)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetRemoteToolSummaries from device: %{public}s",
+        targetDeviceId.substr(0, 8).c_str());
+
+    // 通过 IPC 调用服务端的分布式接口
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->GetRemoteToolSummaries(targetDeviceId, summaries);
+}
+
+ErrCode CliToolMGRClient::GetAvailableDevices(std::vector<DstbDeviceInfo> &devices)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+
+    // 通过 IPC 调用服务端的分布式接口
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->GetAvailableDevices(devices);
+}
+
 ErrCode CliToolMGRClient::GetToolInfoByName(const std::string &name, ToolInfo &tool)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
