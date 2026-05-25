@@ -2292,6 +2292,8 @@ public:
     ErrCode QuerySkillType(const std::string &bundleName, const std::string &moduleName,
         const std::string &skillName, int32_t &skillType);
 
+    ErrCode SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup);
+
 private:
     AbilityManagerClient();
     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);
