@@ -21,8 +21,6 @@ ohos_unittest("uncaught_exception_callback_test") {
   sources = [ "uncaught_exception_callback_test.cpp" ]
 
   external_deps = [
-    "ability_runtime:js_environment",
-    "ability_runtime:runtime",
     "c_utils:utils",
     "ets_runtime:libark_jsruntime",
     "eventhandler:libeventhandler",

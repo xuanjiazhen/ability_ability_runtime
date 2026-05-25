@@ -40,6 +40,9 @@ ohos_unittest("js_startup_config_test") {
   }
 
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",
     "${ability_runtime_abilitymgr_path}/:abilityms",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
@@ -66,9 +69,6 @@ ohos_unittest("js_startup_config_test") {
     "ability_base:extractortool",
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_deps_wrapper",
-    "ability_runtime:ability_manager",
-    "ability_runtime:js_environment",
     "bundle_framework:libappexecfwk_common",
     "c_utils:utils",
     "ffrt:libffrt",

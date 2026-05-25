@@ -32,10 +32,10 @@ ohos_unittest("quickfix_callback_test") {
   sources = [ "js_quickfix_callback_test.cpp" ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-  deps = []
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",]
 
   external_deps = [
-    "ability_runtime:runtime",
     "c_utils:utils",
   ]
 }
@@ -54,11 +54,11 @@ ohos_unittest("runtime_test") {
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-  deps = []
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",]
 
   external_deps = [
     "ability_base:extractortool",
-    "ability_runtime:runtime",
     "c_utils:utils",
     "zlib:libz",
     "zlib:shared_libz",
@@ -79,11 +79,11 @@ ohos_unittest("hybrid_js_module_reader_test") {
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-  deps = []
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",]
 
   external_deps = [
     "ability_base:extractortool",
-    "ability_runtime:runtime",
     "c_utils:utils",
     "zlib:libz",
     "zlib:shared_libz",
@@ -115,8 +115,6 @@ ohos_unittest("js_runtime_test") {
 
   external_deps = [
     "ability_base:extractortool",
-    "ability_runtime:js_environment",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -157,8 +155,6 @@ ohos_unittest("js_runtime_first_test") {
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
 
   external_deps = [
-    "ability_runtime:js_environment",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -218,8 +214,6 @@ ohos_unittest("ohos_js_environment_test") {
   ]
 
   external_deps = [
-    "ability_runtime:js_environment",
-    "ability_runtime:runtime",
     "c_utils:utils",
     "ets_runtime:libark_jsruntime",
     "eventhandler:libeventhandler",
@@ -244,12 +238,12 @@ ohos_unittest("js_worker_test") {
   ]
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
-  deps = []
+  deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_path}/js_environment/frameworks/js_environment:js_environment",]
 
   external_deps = [
     "ability_base:extractortool",
-    "ability_runtime:js_environment",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
@@ -291,12 +285,12 @@ ohos_unittest("ets_runtime_test") {
 
   configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
   deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_innerkits_path}/connect_server_manager:connect_server_manager",
   ]
 
   external_deps = [
     "ability_base:string_utils",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

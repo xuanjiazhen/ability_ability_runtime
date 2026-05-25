@@ -34,11 +34,11 @@ ohos_unittest("timeout_state_utils_test") {
     "${ability_runtime_path}/utils/global/freeze/include"
   ]
 
-  deps = []
+  deps = [
+    "${ability_runtime_native_path}/ability/native:abilitykit_native",]
 
   external_deps = [
     "ability_base:configuration",
-    "ability_runtime:abilitykit_native",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

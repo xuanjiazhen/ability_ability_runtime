@@ -39,6 +39,7 @@ ohos_unittest("ability_manager_client_branch_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:mission_info",
@@ -54,7 +55,6 @@ ohos_unittest("ability_manager_client_branch_test") {
   external_deps = [
     "ability_base:want",
     "ability_base:zuri",
-    "ability_runtime:ability_manager",
     "access_token:libaccesstoken_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",

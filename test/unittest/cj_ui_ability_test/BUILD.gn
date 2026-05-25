@@ -48,6 +48,9 @@ ohos_unittest("cj_ui_ability_test") {
   ]
 
   deps = [
+    "${ability_runtime_native_path}/ability:ability_context_native",
+    "${ability_runtime_innerkits_path}/runtime:runtime",
+    "${ability_runtime_innerkits_path}/wantagent:wantagent_innerkits",
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
@@ -77,9 +80,6 @@ ohos_unittest("cj_ui_ability_test") {
     "ability_base:configuration",
     "ability_base:session_info",
     "ability_base:want",
-    "ability_runtime:ability_context_native",
-    "ability_runtime:runtime",
-    "ability_runtime:wantagent_innerkits",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",

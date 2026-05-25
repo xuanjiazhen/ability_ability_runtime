@@ -59,6 +59,7 @@ ohos_unittest("cj_test_runner_test") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
   }
   deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/app_manager:app_manager",
     "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
@@ -79,7 +80,6 @@ ohos_unittest("cj_test_runner_test") {
     "ability_base:configuration",
     "ability_base:extractortool",
     "ability_base:want",
-    "ability_runtime:runtime",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",

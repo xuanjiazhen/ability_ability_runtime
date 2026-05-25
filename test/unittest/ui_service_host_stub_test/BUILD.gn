@@ -45,6 +45,7 @@ ohos_unittest("ui_service_host_stub_test") {
   }
 
   deps = [
+    "${ability_runtime_innerkits_path}/runtime:runtime",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
     "${ability_runtime_native_path}/ability:ability_context_native",
@@ -59,7 +60,6 @@ ohos_unittest("ui_service_host_stub_test") {
   external_deps = [
     "ability_base:configuration",
     "ability_base:want",
-    "ability_runtime:runtime",
     "ace_engine:ace_uicontent",
     "c_utils:utils",
     "googletest:gmock_main",
