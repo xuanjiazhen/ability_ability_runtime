@@ -61,6 +61,10 @@ public:
     int32_t stderrPipe[2] = {-1, -1};
     SessionType sessionType = SessionType::CLI;
 
+    // 分布式调用相关字段
+    bool isRemoteCall = false;
+    std::string sourceDeviceId;
+
     void SetState(SessionState state);
     SessionState GetState() const;
 
