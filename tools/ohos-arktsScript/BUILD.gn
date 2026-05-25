@@ -28,7 +28,7 @@ config("ohos-arkts-config") {
 }
 
 arkts_script_deps = [
-  "${ability_runtime_path}/cli_tool_framework/frameworks/js/napi/script_manager:scriptmanager_napi",
+  "${ability_runtime_path}/cli_tool_framework/frameworks/js/napi/script_manager:scriptmanager_local_callback",
   "${ability_runtime_innerkits_path}/runtime:runtime",
   "${ability_runtime_native_path}/appkit:appkit_manager_helper",
   "${ability_runtime_native_path}/appkit:app_context",

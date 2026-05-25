@@ -34,7 +34,7 @@
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "js_arkts_script.h"
-#include "js_script_manager.h"
+#include "js_script_manager_local_callback.h"
 #include "napi_common_util.h"
 #include "nlohmann/json.hpp"
 #include "native_engine/impl/ark/ark_native_engine.h"
@@ -725,7 +725,7 @@ bool ArktsScript::PrepareRuntimeEnvironment(const ResultCallback& completeCallba
         error.type = "BIND_ERROR";
         return false;
     }
-    AbilityRuntime::JSScriptManager::RegisterLocalCompleteCallback(
+    AbilityRuntime::RegisterScriptManagerLocalCompleteCallback(
         [completeCallback](bool success, const std::string& result,
             const std::string& errorMessage, const std::string& errorType) {
             if (success) {
@@ -851,7 +851,7 @@ int ArktsScript::RunArkTsScript(int argc, char* argv[])
     napi_value func = nullptr;
     if (!LoadScriptFunction(args, runtimeOwner.get(), receiver, func, error) ||
         !CallResolvedFunction(args, env, receiver, func, error)) {
-        AbilityRuntime::JSScriptManager::ClearLocalCompleteCallback();
+        AbilityRuntime::ClearScriptManagerLocalCompleteCallback();
         return FinalizeAndJoin(execContext, channel, monitorThread, error);
     }
 
@@ -859,7 +859,7 @@ int ArktsScript::RunArkTsScript(int argc, char* argv[])
     if (monitorThread.joinable()) {
         monitorThread.join();
     }
-    AbilityRuntime::JSScriptManager::ClearLocalCompleteCallback();
+    AbilityRuntime::ClearScriptManagerLocalCompleteCallback();
     return EXIT_SUCCESS;
 }
 

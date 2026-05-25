@@ -15,12 +15,12 @@
 
 #include "js_script_manager.h"
 
-#include <mutex>
 #include <string>
 
 #include "ability_manager_client.h"
 #include "hilog_tag_wrapper.h"
 #include "js_error_utils.h"
+#include "js_script_manager_local_callback.h"
 #include "napi_common_skill_execute.h"
 #include "napi_common_util.h"
 #include "napi_base_context.h"
@@ -35,9 +35,6 @@ constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t ERR_CONTEXT_NOT_ABILITY = 16000020;
 constexpr int32_t ERR_LOCAL_COMPLETE_NOT_REGISTERED = 16000050;
-
-std::mutex g_localCompleteMutex;
-JSScriptManager::LocalCompleteCallback g_localCompleteCallback = nullptr;
 
 bool HasPropertyOfType(napi_env env, napi_value obj, const char *prop)
 {
@@ -203,18 +200,6 @@ void JSScriptManager::Finalizer(napi_env env, void *data, void *hint)
     std::unique_ptr<JSScriptManager>(static_cast<JSScriptManager *>(data));
 }
 
-void JSScriptManager::RegisterLocalCompleteCallback(const LocalCompleteCallback &callback)
-{
-    std::lock_guard<std::mutex> lock(g_localCompleteMutex);
-    g_localCompleteCallback = callback;
-}
-
-void JSScriptManager::ClearLocalCompleteCallback()
-{
-    std::lock_guard<std::mutex> lock(g_localCompleteMutex);
-    g_localCompleteCallback = nullptr;
-}
-
 napi_value JSScriptManager::CompleteArkTSScriptInApp(napi_env env, napi_callback_info info)
 {
     GET_CB_INFO_AND_CALL(env, info, JSScriptManager, OnCompleteArkTSScriptInApp);
@@ -296,12 +281,7 @@ napi_value JSScriptManager::OnCompleteArkTSScript(napi_env env, size_t argc, nap
         return CreateJsUndefined(env);
     }
 
-    LocalCompleteCallback callback;
-    {
-        std::lock_guard<std::mutex> lock(g_localCompleteMutex);
-        callback = g_localCompleteCallback;
-        g_localCompleteCallback = nullptr;
-    }
+    auto callback = TakeScriptManagerLocalCompleteCallback();
     if (!callback) {
         ThrowError(env, ERR_LOCAL_COMPLETE_NOT_REGISTERED,
             "completeArkTSScript local callback is not registered");
