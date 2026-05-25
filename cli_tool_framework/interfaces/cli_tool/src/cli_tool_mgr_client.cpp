@@ -96,6 +96,73 @@ ErrCode CliToolMGRClient::GetAllToolSummaries(std::vector<ToolSummary> &summarie
     return proxy->GetAllToolSummaries(summaries);
 }
 
+ErrCode CliToolMGRClient::GetRemoteToolSummaries(const std::string &targetDeviceId,
+    std::vector<ToolSummary> &summaries)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetRemoteToolSummaries from device: %{public}s",
+        targetDeviceId.substr(0, 8).c_str());
+
+    // 通过 IPC 调用服务端的分布式接口
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->GetRemoteToolSummaries(targetDeviceId, summaries);
+}
+
+ErrCode CliToolMGRClient::ExecToolRemote(const std::string &targetDeviceId,
+    const ExecToolParam &param, const ExecToolReplyCallback &callback)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolRemote on device: %{public}s, tool: %{public}s",
+        targetDeviceId.substr(0, 8).c_str(), param.toolName.c_str());
+
+    ErrCode ret = EnsureSchedulerStubCreated();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback(param.toolName,
+        [cb = std::move(callback)](const CliEventReplyResult &result) {
+            if (cb) {
+                CliSessionInfo sessionInfo;
+                if (result.sessionInfo.has_value()) {
+                    sessionInfo = result.sessionInfo.value();
+                }
+                cb(result.code, sessionInfo);
+            }
+        });
+    ret = proxy->ExecToolRemote(targetDeviceId, param, eventId, schedulerStub_);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecToolRemote failed: %{public}d", ret);
+        CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
+    } else {
+        CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
+    }
+    return ret;
+}
+
+ErrCode CliToolMGRClient::GetAvailableDevices(std::vector<DstbDeviceInfo> &devices)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+
+    // 通过 IPC 调用服务端的分布式接口
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->GetAvailableDevices(devices);
+}
+
 ErrCode CliToolMGRClient::GetToolInfoByName(const std::string &name, ToolInfo &tool)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
