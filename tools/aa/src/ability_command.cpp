@@ -252,6 +252,14 @@ constexpr struct option LONG_OPTIONS_PRESTART[] = {
     {"userId", required_argument, nullptr, 'u' },
     {nullptr, 0, nullptr, 0 },
 };
+
+const std::string SHORT_OPTIONS_SET_ON_DEMAND = "hb:e:";
+constexpr struct option LONG_OPTIONS_SET_ON_DEMAND[] = {
+    {"help", no_argument, nullptr, 'h'},
+    {"bundle", required_argument, nullptr, 'b' },
+    {"enable", required_argument, nullptr, 'e' },
+    {nullptr, 0, nullptr, 0 },
+};
 }  // namespace
 
 AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
@@ -279,6 +287,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
+        {"set-on-demand", [this]() { return this->RunAsSetOnDemandCommand(); }},
         {"pre-start", [this]() { return this->RunAsPreStartCommand(); }},
 #ifdef ABILITY_COMMAND_FOR_TEST
         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
@@ -1255,6 +1264,115 @@ ErrCode AbilityManagerShellCommand::ParsePreStartOptions(int32_t& mode, std::str
     }
 
     return OHOS::ERR_OK;
+}
+
+ErrCode AbilityManagerShellCommand::RunAsSetOnDemandCommand()
+{
+    TAG_LOGD(AAFwkTag::AA_TOOL, "set-on-demand");
+    std::map<std::string, bool> configList;
+    std::string currentBundleName;
+    bool currentEnable = false;
+    bool hasCurrentBundle = false;
+    bool hasCurrentEnable = false;
+    bool hasAnyValidPair = false;
+    int option = -1;
+    int counter = 0;
+
+    while (true) {
+        counter++;
+        option = getopt_long(argc_, argv_, SHORT_OPTIONS_SET_ON_DEMAND.c_str(),
+            LONG_OPTIONS_SET_ON_DEMAND, nullptr);
+        TAG_LOGD(AAFwkTag::AA_TOOL, "getopt_long option: %{public}d, optopt: %{public}d, optind: %{public}d",
+            option, optopt, optind);
+
+        if (optind < 0 || optind > argc_) {
+            return OHOS::ERR_INVALID_VALUE;
+        }
+        if (option == -1) {
+            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
+                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
+            }
+            break;
+        }
+
+        switch (option) {
+            case 'h': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -h' no arg", cmd_.c_str());
+                resultReceiver_.append(HELP_MSG_SET_ON_DEMAND + "\n");
+                return OHOS::ERR_OK;
+            }
+            case 'b': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -b' bundle", cmd_.c_str());
+                // If previous pair is complete, save it
+                if (hasCurrentBundle && hasCurrentEnable) {
+                    configList[currentBundleName] = currentEnable;
+                    hasAnyValidPair = true;
+                }
+                currentBundleName = optarg;
+                hasCurrentBundle = true;
+                hasCurrentEnable = false;  // Reset enable flag for new bundle
+                break;
+            }
+            case 'e': {
+                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -e' enable", cmd_.c_str());
+                std::string enableStr = optarg;
+                if (enableStr == "1" || enableStr == "true") {
+                    currentEnable = true;
+                } else if (enableStr == "0" || enableStr == "false") {
+                    currentEnable = false;
+                } else {
+                    TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid enable value: %{public}s", enableStr.c_str());
+                    resultReceiver_.append("error: -e value must be 0 or 1\n");
+                    return OHOS::ERR_INVALID_VALUE;
+                }
+                hasCurrentEnable = true;
+                break;
+            }
+            case '?': {
+                std::string unknownOption = "";
+                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
+                resultReceiver_.append(unknownOptionMsg);
+                break;
+            }
+            default:
+                break;
+        }
+    }
+
+    // Save the last pair if complete
+    if (hasCurrentBundle && hasCurrentEnable) {
+        configList[currentBundleName] = currentEnable;
+        hasAnyValidPair = true;
+    }
+
+    if (!hasAnyValidPair) {
+        resultReceiver_.append(HELP_MSG_SET_ON_DEMAND + "\n");
+        return OHOS::ERR_INVALID_VALUE;
+    }
+
+    TAG_LOGI(AAFwkTag::AA_TOOL, "set-on-demand: %{public}zu items", configList.size());
+
+    int32_t result = OHOS::ERR_OK;
+    if (configList.size() == 1) {
+        // Single config: use single API
+        auto it = configList.begin();
+        result = AbilityManagerClient::GetInstance()->SetResidentOnDemandStartup(it->first, it->second);
+    } else {
+        // Multiple configs: use batch API
+        result = AbilityManagerClient::GetInstance()->SetResidentOnDemandStartupBatch(configList);
+    }
+
+    if (result == OHOS::ERR_OK) {
+        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_SET_ON_DEMAND_OK.c_str());
+        resultReceiver_ = STRING_SET_ON_DEMAND_OK + "\n";
+        resultReceiver_.append("Processed " + std::to_string(configList.size()) + " items.\n");
+    } else {
+        TAG_LOGE(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d", STRING_SET_ON_DEMAND_NG.c_str(), result);
+        resultReceiver_ = STRING_SET_ON_DEMAND_NG + "\n";
+        resultReceiver_.append(GetMessageFromCode(result));
+    }
+
+    return result;
 }
 
 bool AbilityManagerShellCommand::MatchOrderString(const std::regex &regexScript, const std::string &orderCmd)
