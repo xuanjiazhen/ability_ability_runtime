@@ -1,0 +1,1220 @@
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_client.h b/interfaces/inner_api/ability_manager/include/ability_manager_client.h
+index c25939492f..8753c4b472 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_client.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_client.h
+@@ -2292,6 +2292,8 @@ public:
+     ErrCode QuerySkillType(const std::string &bundleName, const std::string &moduleName,
+         const std::string &skillName, int32_t &skillType);
+
++    ErrCode SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup);
++
+ private:
+     AbilityManagerClient();
+     DISALLOW_COPY_AND_MOVE(AbilityManagerClient);
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_interface.h b/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
+index d45d1f46c6..8ce04d40dc 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_interface.h
+@@ -2195,6 +2195,29 @@ public:
+         return 0;
+     }
+
++    /**
++     * @brief Set on-demand startup for resident process.
++     *
++     * @param bundleName The bundle name of the resident app.
++     * @param onDemandStartup Whether to enable on-demand startup.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    virtual int32_t SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup)
++    {
++        return 0;
++    }
++
++    /**
++     * @brief Set on-demand startup for resident processes in batch.
++     *
++     * @param configList Map of bundle names to on-demand startup flags.
++     * @return Returns ERR_OK on success, others on failure.
++     */
++    virtual int32_t SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList)
++    {
++        return 0;
++    }
++
+     /**
+      * @brief Querying whether to allow embedded startup of atomic service.
+      *
+diff --git a/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h b/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
+index 1b9fcbfafb..b81ab41916 100644
+--- a/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
++++ b/interfaces/inner_api/ability_manager/include/ability_manager_ipc_interface_code.h
+@@ -250,6 +250,12 @@ enum class AbilityManagerInterfaceCode {
+     // Back to caller.
+     BACK_TO_CALLER_UIABILITY = 82,
+
++    // Set resident on-demand startup.
++    SET_RESIDENT_ON_DEMAND_STARTUP = 83,
++
++    // Set resident on-demand startup batch.
++    SET_RESIDENT_ON_DEMAND_STARTUP_BATCH = 84,
++
+     // ipc id 1001-2000 for DMS
+     // ipc id for starting ability (1001)
+     START_ABILITY = 1001,
+diff --git a/services/abilitymgr/abilitymgr.gni b/services/abilitymgr/abilitymgr.gni
+index c485420ce6..4710634e25 100644
+--- a/services/abilitymgr/abilitymgr.gni
++++ b/services/abilitymgr/abilitymgr.gni
+@@ -96,6 +96,7 @@ abilityms_files = [
+   "src/mission/mission_listener_controller.cpp",
+   "src/mission/mission_listener_proxy.cpp",
+   "src/rdb/ability_resident_process_rdb.cpp",
++  "src/rdb/resident_on_demand_rdb.cpp",
+   "src/rdb/parser_util.cpp",
+   "src/rdb/rdb_data_manager.cpp",
+   "src/remote_mission_listener_proxy.cpp",
+diff --git a/services/abilitymgr/include/ability_manager_proxy.h b/services/abilitymgr/include/ability_manager_proxy.h
+index 5f555c75af..8ec822620d 100644
+--- a/services/abilitymgr/include/ability_manager_proxy.h
++++ b/services/abilitymgr/include/ability_manager_proxy.h
+@@ -1672,6 +1672,10 @@ public:
+      */
+     int32_t SetResidentProcessEnabled(const std::string &bundleName, bool enable) override;
+
++    int32_t SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup) override;
++
++    int32_t SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList) override;
++
+     /**
+      * @brief Request to display assert fault dialog.
+      * @param callback Listen for user operation callbacks.
+diff --git a/services/abilitymgr/include/ability_manager_service.h b/services/abilitymgr/include/ability_manager_service.h
+index 00023973e2..93cbec65f3 100644
+--- a/services/abilitymgr/include/ability_manager_service.h
++++ b/services/abilitymgr/include/ability_manager_service.h
+@@ -2318,6 +2318,9 @@ public:
+      */
+     int32_t SetResidentProcessEnabled(const std::string &bundleName, bool enable) override;
+
++    int32_t SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup) override;
++    int32_t SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList) override;
++
+     /**
+      * @brief Request to display assert fault dialog.
+      * @param callback Listen for user operation callbacks.
+diff --git a/services/abilitymgr/include/ability_manager_stub.h b/services/abilitymgr/include/ability_manager_stub.h
+index 223903d47c..739ea4d4b0 100644
+--- a/services/abilitymgr/include/ability_manager_stub.h
++++ b/services/abilitymgr/include/ability_manager_stub.h
+@@ -271,6 +271,9 @@ private:
+     int32_t RecordAppWithReasonInner(MessageParcel &data, MessageParcel &reply);
+     int32_t SetResidentProcessEnableInner(MessageParcel &data, MessageParcel &reply);
+
++    int32_t SetResidentOnDemandStartupInner(MessageParcel &data, MessageParcel &reply);
++    int32_t SetResidentOnDemandStartupBatchInner(MessageParcel &data, MessageParcel &reply);
++
+     int SetRootSceneSessionInner(MessageParcel &data, MessageParcel &reply);
+     int CallUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
+     int StartSpecifiedAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
+diff --git a/services/abilitymgr/include/rdb/rdb_data_manager.h b/services/abilitymgr/include/rdb/rdb_data_manager.h
+index f2222423ed..c4fe4123d6 100644
+--- a/services/abilitymgr/include/rdb/rdb_data_manager.h
++++ b/services/abilitymgr/include/rdb/rdb_data_manager.h
+@@ -48,6 +48,8 @@ public:
+
+     int32_t Init(NativeRdb::RdbOpenCallback &rdbCallback);
+
++    std::shared_ptr<NativeRdb::RdbStore> GetRdbStore() { return rdbStore_; }
++
+     int32_t InsertData(const NativeRdb::ValuesBucket &valuesBucket);
+     int32_t BatchInsert(int64_t &outInsertNum, const std::vector<NativeRdb::ValuesBucket> &valuesBuckets);
+     int32_t UpdateData(
+diff --git a/services/abilitymgr/src/ability_manager_client.cpp b/services/abilitymgr/src/ability_manager_client.cpp
+index 496cb24c1f..49c7b7283b 100644
+--- a/services/abilitymgr/src/ability_manager_client.cpp
++++ b/services/abilitymgr/src/ability_manager_client.cpp
+@@ -2857,6 +2857,14 @@ ErrCode AbilityManagerClient::QuerySkillType(const std::string &bundleName, cons
+     return abms->QuerySkillType(bundleName, moduleName, skillName, skillType);
+ }
+
++ErrCode AbilityManagerClient::SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup)
++{
++    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
++    auto abms = GetAbilityManager();
++    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
++    return abms->SetResidentOnDemandStartup(bundleName, onDemandStartup);
++}
++
+ ErrCode AbilityManagerClient::StartSelfUIAbilityByAppContext(const Want &want)
+ {
+     auto abms = GetAbilityManager();
+diff --git a/services/abilitymgr/src/ability_manager_proxy.cpp b/services/abilitymgr/src/ability_manager_proxy.cpp
+index dfdce378cd..2450f57b59 100644
+--- a/services/abilitymgr/src/ability_manager_proxy.cpp
++++ b/services/abilitymgr/src/ability_manager_proxy.cpp
+@@ -6310,6 +6310,60 @@ int32_t AbilityManagerProxy::SetResidentProcessEnabled(const std::string &bundle
+     return reply.ReadInt32();
+ }
+
++int32_t AbilityManagerProxy::SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup)
++{
++    MessageParcel data;
++    if (!WriteInterfaceToken(data)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
++        return INNER_ERR;
++    }
++    if (!data.WriteString(bundleName)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write bundleName fail");
++        return INNER_ERR;
++    }
++    if (!data.WriteBool(onDemandStartup)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write onDemandStartup fail");
++        return INNER_ERR;
++    }
++    MessageParcel reply;
++    MessageOption option;
++    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_RESIDENT_ON_DEMAND_STARTUP, data, reply, option);
++    if (ret != NO_ERROR) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
++        return ret;
++    }
++
++    return reply.ReadInt32();
++}
++
++int32_t AbilityManagerProxy::SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList)
++{
++    MessageParcel data;
++    if (!WriteInterfaceToken(data)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
++        return INNER_ERR;
++    }
++    if (!data.WriteInt32(static_cast<int32_t>(configList.size()))) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write size fail");
++        return INNER_ERR;
++    }
++    for (const auto &item : configList) {
++        if (!data.WriteString(item.first) || !data.WriteBool(item.second)) {
++            TAG_LOGE(AAFwkTag::ABILITYMGR, "write config item fail");
++            return INNER_ERR;
++        }
++    }
++    MessageParcel reply;
++    MessageOption option;
++    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_RESIDENT_ON_DEMAND_STARTUP_BATCH, data, reply, option);
++    if (ret != NO_ERROR) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
++        return ret;
++    }
++
++    return reply.ReadInt32();
++}
++
+ bool AbilityManagerProxy::IsEmbeddedOpenAllowed(sptr<IRemoteObject> callerToken, const std::string &appId)
+ {
+     if (callerToken == nullptr) {
+diff --git a/services/abilitymgr/src/ability_manager_service.cpp b/services/abilitymgr/src/ability_manager_service.cpp
+index 53c7f6705b..484a408a13 100644
+--- a/services/abilitymgr/src/ability_manager_service.cpp
++++ b/services/abilitymgr/src/ability_manager_service.cpp
+@@ -117,6 +117,7 @@
+ #include "ui_extension_wrapper.h"
+ #include "ui_service_extension_connection_constants.h"
+ #include "unlock_screen_manager.h"
++#include "resident_on_demand_rdb.h"
+ #ifdef SUPPORT_UPMS
+ #include "uri_permission_manager_client.h"
+ #endif // SUPPORT_UPMS
+@@ -15195,6 +15196,71 @@ int32_t AbilityManagerService::SetResidentProcessEnabled(const std::string &bund
+     return residentProcessManager->SetResidentProcessEnabled(bundleName, callerName, enable);
+ }
+
++int32_t AbilityManagerService::SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup)
++{
++    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
++    auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
++    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
++    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall() && !isSaCall && !isShellCall) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
++        return ERR_NOT_SYSTEM_APP;
++    }
++
++    if (bundleName.empty()) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName is empty");
++        return ERR_INVALID_VALUE;
++    }
++
++    auto &rdb = AbilityRuntime::ResidentOnDemandRdb::GetInstance();
++    int32_t result = rdb.Init();
++    if (result != NativeRdb::E_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "Init ResidentOnDemandRdb failed: %{public}d", result);
++        return INNER_ERR;
++    }
++
++    result = rdb.SetOnDemandStartup(bundleName, onDemandStartup);
++    if (result != NativeRdb::E_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "SetOnDemandStartup failed: %{public}d", result);
++        return INNER_ERR;
++    }
++
++    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetResidentOnDemandStartup success: %{public}s = %{public}d",
++        bundleName.c_str(), onDemandStartup);
++    return ERR_OK;
++}
++
++int32_t AbilityManagerService::SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList)
++{
++    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
++    auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
++    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
++    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall() && !isSaCall && !isShellCall) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
++        return ERR_NOT_SYSTEM_APP;
++    }
++
++    if (configList.empty()) {
++        TAG_LOGW(AAFwkTag::ABILITYMGR, "configList is empty");
++        return ERR_OK;
++    }
++
++    auto &rdb = AbilityRuntime::ResidentOnDemandRdb::GetInstance();
++    int32_t result = rdb.Init();
++    if (result != NativeRdb::E_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "Init ResidentOnDemandRdb failed: %{public}d", result);
++        return INNER_ERR;
++    }
++
++    result = rdb.SetOnDemandStartupBatch(configList);
++    if (result != NativeRdb::E_OK) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "SetOnDemandStartupBatch failed: %{public}d", result);
++        return INNER_ERR;
++    }
++
++    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetResidentOnDemandStartupBatch success: %{public}zu items", configList.size());
++    return ERR_OK;
++}
++
+ int32_t AbilityManagerService::RequestAssertFaultDialog(
+     const sptr<IRemoteObject> &callback, const AAFwk::WantParams &wantParams)
+ {
+diff --git a/services/abilitymgr/src/ability_manager_stub.cpp b/services/abilitymgr/src/ability_manager_stub.cpp
+index 1d5f5f86e9..37f2c2f509 100644
+--- a/services/abilitymgr/src/ability_manager_stub.cpp
++++ b/services/abilitymgr/src/ability_manager_stub.cpp
+@@ -828,6 +828,12 @@ int AbilityManagerStub::OnRemoteRequestInnerNineteenth(uint32_t code, MessagePar
+     if (interfaceCode == AbilityManagerInterfaceCode::SET_RESIDENT_PROCESS_ENABLE) {
+         return SetResidentProcessEnableInner(data, reply);
+     }
++    if (interfaceCode == AbilityManagerInterfaceCode::SET_RESIDENT_ON_DEMAND_STARTUP) {
++        return SetResidentOnDemandStartupInner(data, reply);
++    }
++    if (interfaceCode == AbilityManagerInterfaceCode::SET_RESIDENT_ON_DEMAND_STARTUP_BATCH) {
++        return SetResidentOnDemandStartupBatchInner(data, reply);
++    }
+     if (interfaceCode == AbilityManagerInterfaceCode::GET_ABILITY_STATE_BY_PERSISTENT_ID) {
+         return GetAbilityStateByPersistentIdInner(data, reply);
+     }
+@@ -4764,6 +4770,35 @@ int32_t AbilityManagerStub::SetResidentProcessEnableInner(MessageParcel &data, M
+     return NO_ERROR;
+ }
+
++int32_t AbilityManagerStub::SetResidentOnDemandStartupInner(MessageParcel &data, MessageParcel &reply)
++{
++    std::string bundleName = data.ReadString();
++    bool onDemandStartup = data.ReadBool();
++    auto result = SetResidentOnDemandStartup(bundleName, onDemandStartup);
++    if (!reply.WriteInt32(result)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
++        return ERR_INVALID_VALUE;
++    }
++    return NO_ERROR;
++}
++
++int32_t AbilityManagerStub::SetResidentOnDemandStartupBatchInner(MessageParcel &data, MessageParcel &reply)
++{
++    int32_t size = data.ReadInt32();
++    std::map<std::string, bool> configList;
++    for (int32_t i = 0; i < size; i++) {
++        std::string bundleName = data.ReadString();
++        bool onDemandStartup = data.ReadBool();
++        configList[bundleName] = onDemandStartup;
++    }
++    auto result = SetResidentOnDemandStartupBatch(configList);
++    if (!reply.WriteInt32(result)) {
++        TAG_LOGE(AAFwkTag::ABILITYMGR, "write result fail");
++        return ERR_INVALID_VALUE;
++    }
++    return NO_ERROR;
++}
++
+ int32_t AbilityManagerStub::IsEmbeddedOpenAllowedInner(MessageParcel &data, MessageParcel &reply)
+ {
+     sptr<IRemoteObject> callerToken = nullptr;
+diff --git a/services/abilitymgr/src/resident_process/resident_process_manager.cpp b/services/abilitymgr/src/resident_process/resident_process_manager.cpp
+index 733ac60384..ebf642f02e 100644
+--- a/services/abilitymgr/src/resident_process/resident_process_manager.cpp
++++ b/services/abilitymgr/src/resident_process/resident_process_manager.cpp
+@@ -22,6 +22,7 @@
+ #include "ffrt.h"
+ #include "keep_alive_utils.h"
+ #include "main_element_utils.h"
++#include "resident_on_demand_rdb.h"
+ #include "user_controller/user_controller.h"
+
+ namespace OHOS {
+@@ -107,6 +108,18 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundle(const
+         needEraseIndexSet.insert(index);
+         return;
+     }
++
++    // Check on-demand startup configuration
++    auto &onDemandRdb = AbilityRuntime::ResidentOnDemandRdb::GetInstance();
++    onDemandRdb.Init();
++    bool onDemandStartup = onDemandRdb.GetOnDemandStartup(bundleInfo.name);
++    if (onDemandStartup) {
++        TAG_LOGI(AAFwkTag::ABILITYMGR, "bundle:%{public}s is configured as on-demand startup, skip auto launch",
++            bundleInfo.name.c_str());
++        needEraseIndexSet.insert(index);
++        return;
++    }
++
+     for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
+         StartResidentProcessWithMainElementPerBundleHap(hapModuleInfo, processName, index, needEraseIndexSet, userId);
+     }
+diff --git a/test/unittest/BUILD.gn b/test/unittest/BUILD.gn
+index 1c13088035..e82466b730 100644
+--- a/test/unittest/BUILD.gn
++++ b/test/unittest/BUILD.gn
+@@ -185,6 +185,7 @@ group("unittest") {
+       "ability_record_second_test:unittest",
+       "ability_record_test:unittest",
+       "ability_resident_process_rdb_test:unittest",
++      "resident_on_demand_rdb_test:unittest",
+       "ability_running_info_test:unittest",
+       "ability_running_record_test:unittest",
+       "ability_runtime_error_util_test:unittest",
+diff --git a/test/unittest/ability_manager_service_first_test/abilitymgr.gni b/test/unittest/ability_manager_service_first_test/abilitymgr.gni
+index abcd1234..efgh5678 100644
+--- a/test/unittest/ability_manager_service_first_test/abilitymgr.gni
++++ b/test/unittest/ability_manager_service_first_test/abilitymgr.gni
+@@ -91,6 +91,7 @@ abilityms_files = [
+   "${ability_runtime_services_path}/abilitymgr/src/mission/mission_listener_proxy.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/rdb/ability_resident_process_rdb.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/rdb/parser_util.cpp",
++  "${ability_runtime_services_path}/abilitymgr/src/rdb/resident_on_demand_rdb.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/rdb/rdb_data_manager.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/remote_mission_listener_proxy.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/scene_board/status_bar_delegate_manager.cpp",
+diff --git a/test/unittest/ability_manager_service_sixth_test/abilitymgr.gni b/test/unittest/ability_manager_service_sixth_test/abilitymgr.gni
+index abcd1234..efgh5678 100644
+--- a/test/unittest/ability_manager_service_sixth_test/abilitymgr.gni
++++ b/test/unittest/ability_manager_service_sixth_test/abilitymgr.gni
+@@ -92,6 +92,7 @@ abilityms_files = [
+   "${ability_runtime_services_path}/abilitymgr/src/mission/mission_listener_proxy.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/rdb/ability_resident_process_rdb.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/rdb/parser_util.cpp",
++  "${ability_runtime_services_path}/abilitymgr/src/rdb/resident_on_demand_rdb.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/rdb/rdb_data_manager.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/remote_mission_listener_proxy.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/scene_board/status_bar_delegate_manager.cpp",
+diff --git a/test/unittest/ability_manager_service_third_test/abilitymgr.gni b/test/unittest/ability_manager_service_third_test/abilitymgr.gni
+index abcd1234..efgh5678 100644
+--- a/test/unittest/ability_manager_service_third_test/abilitymgr.gni
++++ b/test/unittest/ability_manager_service_third_test/abilitymgr.gni
+@@ -93,6 +93,7 @@ abilityms_files = [
+   "${ability_runtime_services_path}/abilitymgr/src/mission/mission_listener_proxy.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/rdb/ability_resident_process_rdb.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/rdb/parser_util.cpp",
++  "${ability_runtime_services_path}/abilitymgr/src/rdb/resident_on_demand_rdb.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/rdb/rdb_data_manager.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/remote_mission_listener_proxy.cpp",
+   "${ability_runtime_services_path}/abilitymgr/src/scene_board/status_bar_delegate_manager.cpp",
+diff --git a/tools/aa/include/ability_command.h b/tools/aa/include/ability_command.h
+index ef9260effa..6b1fe1492e 100644
+--- a/tools/aa/include/ability_command.h
++++ b/tools/aa/include/ability_command.h
+@@ -142,6 +142,17 @@ const std::string HELP_MSG_SEND_MEMORY_LEVEL =
+     "Optional:\n"
+     "  -h, --help              Show this help message\n";
+
++const std::string HELP_MSG_SET_ON_DEMAND =
++    "usage: aa set-on-demand <options>\n"
++    "options list:\n"
++    "  -h, --help                   list available commands\n"
++    "  -b <bundle-name>             bundle name of the resident app\n"
++    "  -e <enable>                  enable on-demand startup (0 or 1)\n"
++    "  set on-demand startup for resident app\n";
++
++const std::string STRING_SET_ON_DEMAND_OK = "set on-demand startup successfully.";
++const std::string STRING_SET_ON_DEMAND_NG = "error: failed to set on-demand startup.";
++
+ const std::string HELP_MSG_PRESTART =
+     "Usage: aa pre-start -m <MODE> -b <BUNDLE-NAME> -u <USER-ID>\n"
+     "Mandatory Options:\n"
+@@ -265,6 +276,7 @@ private:
+     ErrCode RunAsDetachDebugCommand();
+     ErrCode RunAsSendMemoryLevelCommand();
+     ErrCode RunAsPreStartCommand();
++    ErrCode RunAsSetOnDemandCommand();
+     ErrCode ParsePreStartOptions(int32_t& mode, std::string& bundleName, int32_t& userId);
+     ErrCode ParsePidMemoryLevel(std::string& pidParse, std::string& memoryLevelParse);
+     bool IsLongStartOption(const std::string &argv);
+diff --git a/tools/aa/src/ability_command.cpp b/tools/aa/src/ability_command.cpp
+index 3375a34105..faabc5fe75 100644
+--- a/tools/aa/src/ability_command.cpp
++++ b/tools/aa/src/ability_command.cpp
+@@ -252,6 +252,14 @@ constexpr struct option LONG_OPTIONS_PRESTART[] = {
+     {"userId", required_argument, nullptr, 'u' },
+     {nullptr, 0, nullptr, 0 },
+ };
++
++const std::string SHORT_OPTIONS_SET_ON_DEMAND = "hb:e:";
++constexpr struct option LONG_OPTIONS_SET_ON_DEMAND[] = {
++    {"help", no_argument, nullptr, 'h'},
++    {"bundle", required_argument, nullptr, 'b' },
++    {"enable", required_argument, nullptr, 'e' },
++    {nullptr, 0, nullptr, 0 },
++};
+ }  // namespace
+
+ AbilityManagerShellCommand::AbilityManagerShellCommand(int argc, char* argv[]) : ShellCommand(argc, argv, TOOL_NAME)
+@@ -279,6 +287,7 @@ ErrCode AbilityManagerShellCommand::CreateCommandMap()
+         {"detach", [this]() { return this->RunAsDetachDebugCommand(); }},
+         {"appdebug", [this]() { return this->RunAsAppDebugDebugCommand(); }},
+         {"send-memory-level", [this]() { return this->RunAsSendMemoryLevelCommand(); }},
++        {"set-on-demand", [this]() { return this->RunAsSetOnDemandCommand(); }},
+         {"pre-start", [this]() { return this->RunAsPreStartCommand(); }},
+ #ifdef ABILITY_COMMAND_FOR_TEST
+         {"force-timeout", [this]() { return this->RunForceTimeoutForTest(); }},
+@@ -1257,6 +1266,98 @@ ErrCode AbilityManagerShellCommand::ParsePreStartOptions(int32_t& mode, std::str
+     return OHOS::ERR_OK;
+ }
+
++ErrCode AbilityManagerShellCommand::RunAsSetOnDemandCommand()
++{
++    TAG_LOGD(AAFwkTag::AA_TOOL, "set-on-demand");
++    std::string bundleName;
++    bool enable = false;
++    bool hasBundle = false;
++    bool hasEnable = false;
++    int option = -1;
++    int counter = 0;
++
++    while (true) {
++        counter++;
++        option = getopt_long(argc_, argv_, SHORT_OPTIONS_SET_ON_DEMAND.c_str(),
++            LONG_OPTIONS_SET_ON_DEMAND, nullptr);
++        TAG_LOGD(AAFwkTag::AA_TOOL, "getopt_long option: %{public}d, optopt: %{public}d, optind: %{public}d",
++            option, optopt, optind);
++
++        if (optind < 0 || optind > argc_) {
++            return OHOS::ERR_INVALID_VALUE;
++        }
++        if (option == -1) {
++            if (counter == 1 && strcmp(argv_[optind], cmd_.c_str()) == 0) {
++                resultReceiver_.append(HELP_MSG_NO_OPTION + "\n");
++            }
++            break;
++        }
++
++        switch (option) {
++            case 'h': {
++                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -h' no arg", cmd_.c_str());
++                resultReceiver_.append(HELP_MSG_SET_ON_DEMAND + "\n");
++                return OHOS::ERR_OK;
++            }
++            case 'b': {
++                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -b' bundle", cmd_.c_str());
++                bundleName = optarg;
++                hasBundle = true;
++                break;
++            }
++            case 'e': {
++                TAG_LOGI(AAFwkTag::AA_TOOL, "'aa %{public}s -e' enable", cmd_.c_str());
++                std::string enableStr = optarg;
++                if (enableStr == "1" || enableStr == "true") {
++                    enable = true;
++                } else if (enableStr == "0" || enableStr == "false") {
++                    enable = false;
++                } else {
++                    TAG_LOGE(AAFwkTag::AA_TOOL, "Invalid enable value: %{public}s", enableStr.c_str());
++                    resultReceiver_.append("error: -e value must be 0 or 1\n");
++                    return OHOS::ERR_INVALID_VALUE;
++                }
++                hasEnable = true;
++                break;
++            }
++            case '?': {
++                std::string unknownOption = "";
++                std::string unknownOptionMsg = GetUnknownOptionMsg(unknownOption);
++                resultReceiver_.append(unknownOptionMsg);
++                break;
++            }
++            default:
++                break;
++        }
++    }
++
++    if (!hasBundle || !hasEnable) {
++        resultReceiver_.append(HELP_MSG_SET_ON_DEMAND + "\n");
++        return OHOS::ERR_INVALID_VALUE;
++    }
++
++    if (bundleName.empty()) {
++        TAG_LOGE(AAFwkTag::AA_TOOL, "bundleName is empty");
++        resultReceiver_.append(HELP_MSG_NO_BUNDLE_NAME_OPTION + "\n");
++        return OHOS::ERR_INVALID_VALUE;
++    }
++
++    TAG_LOGI(AAFwkTag::AA_TOOL, "set-on-demand: bundle=%{public}s, enable=%{public}d",
++        bundleName.c_str(), enable);
++
++    auto result = AbilityManagerClient::GetInstance()->SetResidentOnDemandStartup(bundleName, enable);
++    if (result == OHOS::ERR_OK) {
++        TAG_LOGI(AAFwkTag::AA_TOOL, "%{public}s", STRING_SET_ON_DEMAND_OK.c_str());
++        resultReceiver_ = STRING_SET_ON_DEMAND_OK + "\n";
++    } else {
++        TAG_LOGE(AAFwkTag::AA_TOOL, "%{public}s result: %{public}d", STRING_SET_ON_DEMAND_NG.c_str(), result);
++        resultReceiver_ = STRING_SET_ON_DEMAND_NG + "\n";
++        resultReceiver_.append(GetMessageFromCode(result));
++    }
++
++    return result;
++}
++
+ bool AbilityManagerShellCommand::MatchOrderString(const std::regex &regexScript, const std::string &orderCmd)
+ {
+     TAG_LOGD(AAFwkTag::AA_TOOL, "orderCmd: %{public}s", orderCmd.c_str());
+
+--- /dev/null
++++ b/services/abilitymgr/include/rdb/resident_on_demand_rdb.h
+/*
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef OHOS_ABILITY_RUNTIME_RESIDENT_ON_DEMAND_RDB_H
+#define OHOS_ABILITY_RUNTIME_RESIDENT_ON_DEMAND_RDB_H
+
+#include <map>
+#include <memory>
+#include <string>
+
+#include "rdb_data_manager.h"
+
+namespace OHOS {
+namespace AbilityRuntime {
+
+/**
+ * @class ResidentOnDemandRdbCallBack
+ * @brief RDB callback for resident on-demand database.
+ */
+class ResidentOnDemandRdbCallBack : public NativeRdb::RdbOpenCallback {
+public:
+    explicit ResidentOnDemandRdbCallBack(const AmsRdbConfig &rdbConfig);
+    ~ResidentOnDemandRdbCallBack() override = default;
+
+    int32_t OnCreate(NativeRdb::RdbStore &rdbStore) override;
+    int32_t OnUpgrade(NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion) override;
+    int32_t OnDowngrade(NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion) override;
+    int32_t OnOpen(NativeRdb::RdbStore &rdbStore) override;
+    int32_t onCorruption(std::string databaseFile) override;
+
+private:
+    AmsRdbConfig rdbConfig_;
+};
+
+/**
+ * @class ResidentOnDemandRdb
+ * @brief Manages the on-demand startup configuration for resident processes.
+ *
+ * This class provides functionality to store and retrieve on-demand startup
+ * configurations for resident applications in a key-value database.
+ */
+class ResidentOnDemandRdb final {
+public:
+    ResidentOnDemandRdb() {}
+    ~ResidentOnDemandRdb() {}
+
+    static ResidentOnDemandRdb& GetInstance();
+
+    int32_t Init();
+
+    bool GetOnDemandStartup(const std::string &bundleName);
+
+    int32_t SetOnDemandStartup(const std::string &bundleName, bool onDemandStartup);
+
+    int32_t SetOnDemandStartupBatch(const std::map<std::string, bool> &configList);
+
+private:
+    std::unique_ptr<RdbDataManager> rdbMgr_ = nullptr;
+};
+
+} // namespace AbilityRuntime
+} // namespace OHOS
+
+#endif // OHOS_ABILITY_RUNTIME_RESIDENT_ON_DEMAND_RDB_H
+--- /dev/null
++++ b/services/abilitymgr/src/rdb/resident_on_demand_rdb.cpp
+/*
+ * Copyright (c) 2024-2026 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "resident_on_demand_rdb.h"
+
+#include "ability_resident_process_rdb.h"
+#include "hilog_tag_wrapper.h"
+
+namespace OHOS {
+namespace AbilityRuntime {
+
+namespace {
+const std::string RESIDENT_ON_DEMAND_TABLE_NAME = "resident_on_demand";
+const std::string BUNDLE_NAME_COLUMN = "bundle_name";
+const std::string ON_DEMAND_STARTUP_COLUMN = "on_demand_startup";
+}
+
+ResidentOnDemandRdbCallBack::ResidentOnDemandRdbCallBack(const AmsRdbConfig &rdbConfig)
+    : rdbConfig_(rdbConfig) {}
+
+int32_t ResidentOnDemandRdbCallBack::OnCreate(NativeRdb::RdbStore &rdbStore)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnCreate: creating resident_on_demand table");
+
+    std::string createTableSql = "CREATE TABLE IF NOT EXISTS " + rdbConfig_.tableName +
+        " (" + BUNDLE_NAME_COLUMN + " TEXT NOT NULL PRIMARY KEY, " +
+        ON_DEMAND_STARTUP_COLUMN + " INTEGER NOT NULL);";
+    auto result = rdbStore.ExecuteSql(createTableSql);
+    if (result != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "ExecuteSql failed: %{public}d", result);
+    }
+    return result;
+}
+
+int32_t ResidentOnDemandRdbCallBack::OnUpgrade(NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnUpgrade: from %{public}d to %{public}d", currentVersion, targetVersion);
+    return NativeRdb::E_OK;
+}
+
+int32_t ResidentOnDemandRdbCallBack::OnDowngrade(NativeRdb::RdbStore &rdbStore, int currentVersion, int targetVersion)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnDowngrade: from %{public}d to %{public}d", currentVersion, targetVersion);
+    return NativeRdb::E_OK;
+}
+
+int32_t ResidentOnDemandRdbCallBack::OnOpen(NativeRdb::RdbStore &rdbStore)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "OnOpen: resident_on_demand database opened");
+    // Ensure table exists even if database already exists
+    std::string createTableSql = "CREATE TABLE IF NOT EXISTS " + rdbConfig_.tableName +
+        " (" + BUNDLE_NAME_COLUMN + " TEXT NOT NULL PRIMARY KEY, " +
+        ON_DEMAND_STARTUP_COLUMN + " INTEGER NOT NULL);";
+    auto result = rdbStore.ExecuteSql(createTableSql);
+    if (result != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "OnOpen ExecuteSql failed: %{public}d", result);
+    }
+    return result;
+}
+
+int32_t ResidentOnDemandRdbCallBack::onCorruption(std::string databaseFile)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "onCorruption: %{public}s", databaseFile.c_str());
+    return NativeRdb::E_OK;
+}
+
+ResidentOnDemandRdb& ResidentOnDemandRdb::GetInstance()
+{
+    static ResidentOnDemandRdb instance;
+    return instance;
+}
+
+int32_t ResidentOnDemandRdb::Init()
+{
+    if (rdbMgr_ != nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "ResidentOnDemandRdb already initialized");
+        return NativeRdb::E_OK;
+    }
+
+    AmsRdbConfig config;
+    config.tableName = RESIDENT_ON_DEMAND_TABLE_NAME;
+    rdbMgr_ = std::make_unique<RdbDataManager>(config);
+    if (rdbMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Create RdbDataManager failed");
+        return NativeRdb::E_ERROR;
+    }
+
+    ResidentOnDemandRdbCallBack callback(config);
+    int32_t result = rdbMgr_->Init(callback);
+    if (result != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Init failed: %{public}d", result);
+        rdbMgr_.reset();
+        return result;
+    }
+
+    // Ensure table exists - this is needed because the database may already exist
+    // from other components, so OnCreate might not be called
+    auto rdbStore = rdbMgr_->GetRdbStore();
+    if (rdbStore != nullptr) {
+        std::string createTableSql = "CREATE TABLE IF NOT EXISTS " + RESIDENT_ON_DEMAND_TABLE_NAME +
+            " (" + BUNDLE_NAME_COLUMN + " TEXT NOT NULL PRIMARY KEY, " +
+            ON_DEMAND_STARTUP_COLUMN + " INTEGER NOT NULL);";
+        result = rdbStore->ExecuteSql(createTableSql);
+        if (result != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "Create table failed: %{public}d", result);
+            return result;
+        }
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Table resident_on_demand created or already exists");
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "ResidentOnDemandRdb initialized successfully");
+    return NativeRdb::E_OK;
+}
+
+bool ResidentOnDemandRdb::GetOnDemandStartup(const std::string &bundleName)
+{
+    if (rdbMgr_ == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Rdb not initialized, returning false");
+        return false;
+    }
+
+    if (bundleName.empty()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "bundleName is empty");
+        return false;
+    }
+
+    NativeRdb::AbsRdbPredicates predicates(RESIDENT_ON_DEMAND_TABLE_NAME);
+    predicates.EqualTo(BUNDLE_NAME_COLUMN, bundleName);
+
+    auto resultSet = rdbMgr_->QueryData(predicates);
+    if (resultSet == nullptr) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "Query failed for %{public}s", bundleName.c_str());
+        return false;
+    }
+
+    ScopeGuard guard([resultSet] { resultSet->Close(); });
+
+    int rowCount = 0;
+    resultSet->GetRowCount(rowCount);
+    if (rowCount <= 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "No record found for %{public}s", bundleName.c_str());
+        return false;
+    }
+
+    auto ret = resultSet->GoToFirstRow();
+    if (ret != NativeRdb::E_OK) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "GoToFirstRow failed: %{public}d", ret);
+        return false;
+    }
+
+    int onDemandValue = 0;
+    resultSet->GetInt(1, onDemandValue);
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetOnDemandStartup: %{public}s = %{public}d", bundleName.c_str(), onDemandValue);
+    return onDemandValue == 1;
+}
+
+int32_t ResidentOnDemandRdb::SetOnDemandStartup(const std::string &bundleName, bool onDemandStartup)
+{
+    if (rdbMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Rdb not initialized");
+        return NativeRdb::E_ERROR;
+    }
+
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName is empty");
+        return NativeRdb::E_ERROR;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetOnDemandStartup: %{public}s = %{public}d", bundleName.c_str(), onDemandStartup);
+
+    NativeRdb::ValuesBucket valuesBucket;
+    valuesBucket.PutString(BUNDLE_NAME_COLUMN, bundleName);
+    valuesBucket.PutInt(ON_DEMAND_STARTUP_COLUMN, onDemandStartup ? 1 : 0);
+
+    // First try to update, if no record exists then insert
+    NativeRdb::AbsRdbPredicates predicates(RESIDENT_ON_DEMAND_TABLE_NAME);
+    predicates.EqualTo(BUNDLE_NAME_COLUMN, bundleName);
+
+    int32_t result = rdbMgr_->UpdateData(valuesBucket, predicates);
+    if (result == NativeRdb::E_OK) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "Update success for %{public}s", bundleName.c_str());
+        return NativeRdb::E_OK;
+    }
+
+    // If update failed (no existing record), try insert
+    result = rdbMgr_->InsertData(valuesBucket);
+    if (result != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Insert failed for %{public}s: %{public}d", bundleName.c_str(), result);
+        return result;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Insert success for %{public}s", bundleName.c_str());
+    return NativeRdb::E_OK;
+}
+
+int32_t ResidentOnDemandRdb::SetOnDemandStartupBatch(const std::map<std::string, bool> &configList)
+{
+    if (rdbMgr_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Rdb not initialized");
+        return NativeRdb::E_ERROR;
+    }
+
+    if (configList.empty()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "configList is empty");
+        return NativeRdb::E_OK;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetOnDemandStartupBatch: %{public}zu items", configList.size());
+
+    int32_t successCount = 0;
+    for (const auto &item : configList) {
+        int32_t result = SetOnDemandStartup(item.first, item.second);
+        if (result == NativeRdb::E_OK) {
+            successCount++;
+        }
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "Batch operation completed: %{public}d/%{public}zu success",
+        successCount, configList.size());
+
+    return (successCount > 0) ? NativeRdb::E_OK : NativeRdb::E_ERROR;
+}
+
+} // namespace AbilityRuntime
+} // namespace OHOS
+--- /dev/null
++++ b/test/unittest/resident_on_demand_rdb_test/BUILD.gn
+# Copyright (c) 2025-2026 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/test.gni")
+import("//foundation/ability/ability_runtime/ability_runtime.gni")
+
+module_output_path = "ability_runtime/ability_runtime/abilitymgr"
+
+ohos_unittest("resident_on_demand_rdb_test") {
+  module_out_path = module_output_path
+  sanitize = {
+    cfi = true
+    cfi_cross_dso = true
+    debug = false
+    blocklist = "../../cfi_blocklist.txt"
+  }
+  branch_protector_ret = "pac_ret"
+
+  include_dirs = [
+    "${ability_runtime_innerkits_path}/uri_permission/include",
+    "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime/",
+    "${ability_runtime_path}/interfaces/inner_api/ability_manager/include",
+    "${ability_runtime_path}/services/abilitymgr/include/interceptor/",
+    "${ability_runtime_services_path}/abilitymgr/include/utils",
+    "${ability_runtime_services_path}/abilitymgr/include",
+    "${ability_runtime_path}/services/abilitymgr/include/insight_intent",
+    "${ability_runtime_services_path}/common/include",
+    "${ability_runtime_test_path}/mock/frameworks_kits_ability_native_test/include",
+    "${ability_runtime_services_path}/uripermmgr/include",
+    "mock/include",
+  ]
+
+  sources = [
+    "${ability_runtime_services_path}/abilitymgr/src/database_write_counter.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/rdb/ability_resident_process_rdb.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/rdb/parser_util.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/rdb/rdb_data_manager.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/rdb/resident_on_demand_rdb.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/report_data_partition_usage_manager.cpp",
+    "resident_on_demand_rdb_test.cpp",
+    "mock/src/mock_ability_connect_callback.cpp",
+    "mock/src/mock_my_flag.cpp",
+    "mock/src/mock_permission_verification.cpp",
+  ]
+
+  configs = [ "${ability_runtime_services_path}/abilitymgr:abilityms_config" ]
+
+  deps = [
+    "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
+    "${ability_runtime_innerkits_path}/ability_manager:ability_start_setting",
+    "${ability_runtime_innerkits_path}/ability_manager:mission_info",
+    "${ability_runtime_innerkits_path}/app_manager:app_manager",
+    "${ability_runtime_innerkits_path}/deps_wrapper:ability_deps_wrapper",
+    "${ability_runtime_innerkits_path}/uri_permission:uri_permission_mgr",
+    "${ability_runtime_native_path}/ability/native:auto_startup_callback",
+    "${ability_runtime_native_path}/appkit:appkit_manager_helper",
+    "${ability_runtime_services_path}/abilitymgr:abilityms",
+    "${ability_runtime_services_path}/common:app_util",
+    "${ability_runtime_services_path}/common:perm_verification",
+  ]
+
+  external_deps = [
+    "ability_base:configuration",
+    "ability_base:session_info",
+    "ability_base:want",
+    "ability_base:zuri",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libnativetoken",
+    "access_token:libtoken_setproc",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "bundle_framework:libappexecfwk_common",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "config_policy:configpolicy_util",
+    "eventhandler:libeventhandler",
+    "ffrt:libffrt",
+    "googletest:gmock_main",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hisysevent:libhisysevent",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+    "kv_store:distributeddata_inner",
+    "relational_store:native_dataability",
+    "safwk:api_cache_manager",
+    "samgr:samgr_proxy",
+    "window_manager:session_manager_lite",
+  ]
+
+  if (ability_runtime_graphics) {
+    external_deps += [
+      "window_manager:libwsutils",
+      "window_manager:scene_session",
+    ]
+  }
+  cflags = [
+    "-Dprivate=public",
+    "-Dprotected=public",
+  ]
+  cflags_cc = []
+  if (os_dlp_part_enabled) {
+    cflags_cc += [ "-DWITH_DLP" ]
+  }
+}
+
+group("unittest") {
+  testonly = true
+  deps = [ ":resident_on_demand_rdb_test" ]
+}
+
+--- /dev/null
++++ b/test/unittest/resident_on_demand_rdb_test/resident_on_demand_rdb_test.cpp
+/*
+ * Copyright (c) 2025 Huawei Device Co., Ltd.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <gtest/gtest.h>
+
+#define private public
+#define protected public
+#include "rdb/resident_on_demand_rdb.h"
+#undef private
+#undef protected
+
+using namespace testing;
+using namespace testing::ext;
+using namespace OHOS::AbilityRuntime;
+
+namespace OHOS {
+namespace AAFwk {
+class ResidentOnDemandRdbTest : public testing::Test {
+public:
+    static void SetUpTestCase();
+    static void TearDownTestCase();
+    void SetUp();
+    void TearDown();
+};
+
+void ResidentOnDemandRdbTest::SetUpTestCase() {}
+
+void ResidentOnDemandRdbTest::TearDownTestCase() {}
+
+void ResidentOnDemandRdbTest::SetUp() {}
+
+void ResidentOnDemandRdbTest::TearDown() {}
+
+/*
+ * Feature: ResidentOnDemandRdb
+ * Function: Init
+ * SubFunction: NA
+ * FunctionPoints: ResidentOnDemandRdb Init
+ */
+HWTEST_F(ResidentOnDemandRdbTest, Init_001, TestSize.Level1)
+{
+    EXPECT_EQ(ResidentOnDemandRdb::GetInstance().Init(), 0);
+}
+
+/*
+ * Feature: ResidentOnDemandRdb
+ * Function: Init
+ * SubFunction: NA
+ * FunctionPoints: ResidentOnDemandRdb Init multiple times
+ */
+HWTEST_F(ResidentOnDemandRdbTest, Init_002, TestSize.Level1)
+{
+    EXPECT_EQ(ResidentOnDemandRdb::GetInstance().Init(), 0);
+    EXPECT_EQ(ResidentOnDemandRdb::GetInstance().Init(), 0);
+}
+
+/*
+ * Feature: ResidentOnDemandRdb
+ * Function: SetOnDemandStartup
+ * SubFunction: NA
+ * FunctionPoints: ResidentOnDemandRdb SetOnDemandStartup with empty bundle name
+ */
+HWTEST_F(ResidentOnDemandRdbTest, SetOnDemandStartup_001, TestSize.Level1)
+{
+    std::string emptyBundleName = "";
+    bool onDemandStartup = true;
+    int32_t result = ResidentOnDemandRdb::GetInstance().SetOnDemandStartup(emptyBundleName, onDemandStartup);
+    EXPECT_NE(result, 0);
+}
+
+/*
+ * Feature: ResidentOnDemandRdb
+ * Function: SetOnDemandStartup
+ * SubFunction: NA
+ * FunctionPoints: ResidentOnDemandRdb SetOnDemandStartup with valid bundle name
+ */
+HWTEST_F(ResidentOnDemandRdbTest, SetOnDemandStartup_002, TestSize.Level1)
+{
+    ResidentOnDemandRdb::GetInstance().Init();
+    std::string bundleName = "com.test.ondemand";
+    bool onDemandStartup = true;
+    int32_t result = ResidentOnDemandRdb::GetInstance().SetOnDemandStartup(bundleName, onDemandStartup);
+    EXPECT_EQ(result, 0);
+
+    // Verify the value was set correctly
+    bool getValue = false;
+    getValue = ResidentOnDemandRdb::GetInstance().GetOnDemandStartup(bundleName);
+    EXPECT_EQ(getValue, true);
+}
+
+/*
+ * Feature: ResidentOnDemandRdb
+ * Function: GetOnDemandStartup
+ * SubFunction: NA
+ * FunctionPoints: ResidentOnDemandRdb GetOnDemandStartup with empty bundle name
+ */
+HWTEST_F(ResidentOnDemandRdbTest, GetOnDemandStartup_001, TestSize.Level1)
+{
+    std::string emptyBundleName = "";
+    bool result = ResidentOnDemandRdb::GetInstance().GetOnDemandStartup(emptyBundleName);
+    EXPECT_EQ(result, false);
+}
+
+/*
+ * Feature: ResidentOnDemandRdb
+ * Function: GetOnDemandStartup
+ * SubFunction: NA
+ * FunctionPoints: ResidentOnDemandRdb GetOnDemandStartup with non-existent bundle name
+ */
+HWTEST_F(ResidentOnDemandRdbTest, GetOnDemandStartup_002, TestSize.Level1)
+{
+    ResidentOnDemandRdb::GetInstance().Init();
+    std::string bundleName = "com.test.nonexistent";
+    bool result = ResidentOnDemandRdb::GetInstance().GetOnDemandStartup(bundleName);
+    EXPECT_EQ(result, false);
+}
+
+/*
+ * Feature: ResidentOnDemandRdb
+ * Function: SetOnDemandStartupBatch
+ * SubFunction: NA
+ * FunctionPoints: ResidentOnDemandRdb SetOnDemandStartupBatch with empty map
+ */
+HWTEST_F(ResidentOnDemandRdbTest, SetOnDemandStartupBatch_001, TestSize.Level1)
+{
+    std::map<std::string, bool> emptyConfigList;
+    int32_t result = ResidentOnDemandRdb::GetInstance().SetOnDemandStartupBatch(emptyConfigList);
+    EXPECT_NE(result, 0);
+}
+
+/*
+ * Feature: ResidentOnDemandRdb
+ * Function: SetOnDemandStartupBatch
+ * SubFunction: NA
+ * FunctionPoints: ResidentOnDemandRdb SetOnDemandStartupBatch with valid config list
+ */
+HWTEST_F(ResidentOnDemandRdbTest, SetOnDemandStartupBatch_002, TestSize.Level1)
+{
+    ResidentOnDemandRdb::GetInstance().Init();
+    std::map<std::string, bool> configList;
+    configList["com.test.bundle1"] = true;
+    configList["com.test.bundle2"] = false;
+    configList["com.test.bundle3"] = true;
+
+    int32_t result = ResidentOnDemandRdb::GetInstance().SetOnDemandStartupBatch(configList);
+    EXPECT_EQ(result, 0);
+
+    // Verify the values were set correctly
+    EXPECT_EQ(ResidentOnDemandRdb::GetInstance().GetOnDemandStartup("com.test.bundle1"), true);
+    EXPECT_EQ(ResidentOnDemandRdb::GetInstance().GetOnDemandStartup("com.test.bundle2"), false);
+    EXPECT_EQ(ResidentOnDemandRdb::GetInstance().GetOnDemandStartup("com.test.bundle3"), true);
+}
+
+/*
+ * Feature: ResidentOnDemandRdb
+ * Function: SetOnDemandStartup
+ * SubFunction: NA
+ * FunctionPoints: ResidentOnDemandRdb SetOnDemandStartup disable
+ */
+HWTEST_F(ResidentOnDemandRdbTest, SetOnDemandStartup_003, TestSize.Level1)
+{
+    ResidentOnDemandRdb::GetInstance().Init();
+    std::string bundleName = "com.test.disable";
+
+    // First enable
+    int32_t result = ResidentOnDemandRdb::GetInstance().SetOnDemandStartup(bundleName, true);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(ResidentOnDemandRdb::GetInstance().GetOnDemandStartup(bundleName), true);
+
+    // Then disable
+    result = ResidentOnDemandRdb::GetInstance().SetOnDemandStartup(bundleName, false);
+    EXPECT_EQ(result, 0);
+    EXPECT_EQ(ResidentOnDemandRdb::GetInstance().GetOnDemandStartup(bundleName), false);
+}
+} // namespace AAFwk
+} // namespace OHOS
