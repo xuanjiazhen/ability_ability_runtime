@@ -23,6 +23,8 @@
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
+#include "device_manager.h"
+#include "dstb_ipc_manager.h"
 #include "event_dispatcher.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -214,6 +216,10 @@ void CliToolManagerService::Init()
         });
         ioMonitor_->Start();
     }
+
+    // 初始化分布式能力
+    InitDistributed();
+
     initialized_ = true;
 }
 
@@ -274,6 +280,9 @@ void CliToolManagerService::OnStop()
     if (ioMonitor_ != nullptr) {
         ioMonitor_->Stop();
     }
+
+    // 清理分布式能力
+    UnInitDistributed();
 }
 
 int32_t CliToolManagerService::OnIdle(const SystemAbilityOnDemandReason &idlReason)
@@ -1176,5 +1185,103 @@ void CliToolManagerService::HandleSkillSessionTimeout(const std::string &session
     EventDispatcher::GetInstance().ClearSessionSubscribers(sessionId);
     RemoveSessionRecord(sessionId);
 }
+
+// ============== 分布式接口实现 ==============
+
+namespace {
+const std::string DSTB_PKG_NAME = "climgr_distributed";
+const std::string PERMISSION_DISTRIBUTED_CLI_TOOL = "ohos.permission.DISTRIBUTED_CLI_TOOL";
+} // namespace
+
+void CliToolManagerService::InitDistributed()
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "InitDistributed called");
+    // 初始化设备管理器（获取本地设备信息等）
+    // 实际初始化逻辑在首次使用时进行
+}
+
+void CliToolManagerService::UnInitDistributed()
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "UnInitDistributed called");
+}
+
+bool CliToolManagerService::CheckDstbCallerPermission(const DstbCallerInfo &callerInfo)
+{
+    // 基本校验：检查调用者设备ID不为空
+    if (callerInfo.sourceDeviceId.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CheckDstbCallerPermission: source device ID is empty");
+        return false;
+    }
+
+    // TODO: 添加更详细的权限校验
+    // 1. 检查设备信任级别
+    // 2. 检查是否允许远端调用
+    // 3. 检查调用者的分布式权限
+
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "CheckDstbCallerPermission: passed for device %{public}s",
+        callerInfo.sourceDeviceId.substr(0, 8).c_str());
+    return true;
+}
+
+int32_t CliToolManagerService::GetAvailableDevices(std::vector<DstbDeviceInfo> &devices)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAvailableDevices called");
+    return DstbIpcManager::GetInstance().GetAvailableDevices(devices);
+}
+
+int32_t CliToolManagerService::GetRemoteToolSummaries(const std::string &targetDeviceId,
+    std::vector<ToolSummary> &summaries)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetRemoteToolSummaries called for device: %{public}s",
+        targetDeviceId.substr(0, 8).c_str());
+
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    // 使用 DstbIpcManager 进行跨设备调用
+    return DstbIpcManager::GetInstance().GetRemoteToolSummaries(targetDeviceId, summaries);
+}
+
+int32_t CliToolManagerService::GetAllToolSummariesFromRemote(const DstbCallerInfo &callerInfo,
+    std::vector<ToolSummary> &summaries)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummariesFromRemote called from device: %{public}s, uid: %{public}d",
+        callerInfo.sourceDeviceId.substr(0, 8).c_str(), callerInfo.uid);
+
+    // 校验调用者来源
+    if (!CheckDstbCallerPermission(callerInfo)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummariesFromRemote: invalid caller");
+        return DstbErrorCode::ERR_REMOTE_CALL_FAILED;
+    }
+
+    // 直接调用本地服务获取工具列表
+    return GetAllToolSummaries(summaries);
+}
+
+int32_t CliToolManagerService::GetRemoteToolInfoByName(const std::string &targetDeviceId,
+    const std::string &name, ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetRemoteToolInfoByName called for device: %{public}s, tool: %{public}s",
+        targetDeviceId.substr(0, 8).c_str(), name.c_str());
+
+    // 使用 DstbIpcManager 进行跨设备调用
+    return DstbIpcManager::GetInstance().GetRemoteToolInfoByName(targetDeviceId, name, tool);
+}
+
+int32_t CliToolManagerService::GetToolInfoByNameFromRemote(const DstbCallerInfo &callerInfo,
+    const std::string &name, ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetToolInfoByNameFromRemote called from device: %{public}s, uid: %{public}d, tool: %{public}s",
+        callerInfo.sourceDeviceId.substr(0, 8).c_str(), callerInfo.uid, name.c_str());
+
+    // 校验调用者来源
+    if (!CheckDstbCallerPermission(callerInfo)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByNameFromRemote: invalid caller");
+        return DstbErrorCode::ERR_REMOTE_CALL_FAILED;
+    }
+
+    // 直接调用本地服务获取工具信息
+    return GetToolInfoByName(name, tool);
+}
+
 } // namespace CliTool
 } // namespace OHOS
