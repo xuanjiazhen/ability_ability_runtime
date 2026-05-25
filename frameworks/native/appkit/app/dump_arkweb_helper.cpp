@@ -19,6 +19,10 @@
 #include <cstring>
 
 #if defined(NWEB)
+#include <ctime>
+#include <unistd.h>
+#include "dfx_socket_request.h"
+#include "faultloggerd_client.h"
 #include "nweb_helper.h"
 #endif
 
@@ -40,5 +44,30 @@ int DumpArkWebHelper::DumpArkWeb(const std::string &customArgs, std::string &res
     result.resize(0);
     return -1;
 }
+
+// static
+void DumpArkWebHelper::DumpArkWebJSHeap(int32_t appPid, int32_t renderPid, bool needSnapshot, bool needGC, bool needRaw)
+{
+#if defined(NWEB)
+    int32_t fd = -1;
+    if (needSnapshot) {
+        int32_t type = needRaw ? static_cast<int32_t>(FaultLoggerType::ARKWEB_JS_RAW_SNAPSHOT) :
+                                 static_cast<int32_t>(FaultLoggerType::ARKWEB_JS_HEAP_SNAPSHOT);
+        struct FaultLoggerdRequest request = {};
+        request.pid = appPid;
+        request.type = type;
+        request.tid = renderPid;
+        request.time = static_cast<uint64_t>(time(nullptr));
+        fd = RequestFileDescriptorEx(&request);
+    }
+    OHOS::NWeb::NWebHelper &nWebHelper = OHOS::NWeb::NWebHelper::Instance();
+    nWebHelper.DumpArkWebJSHeap(fd, renderPid, needSnapshot, needGC, needRaw);
+    if (fd > 0) {
+        close(fd);
+        fd = -1;
+    }
+#endif
+}
+
 }  // namespace AppExecFwk
 }  // namespace OHOS

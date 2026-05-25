@@ -62,5 +62,20 @@ HWTEST_F(DumpArkWebHelperTest, DumpArkWebHelperTest_001, Function | MediumTest |
     EXPECT_EQ(ret, 0);
     GTEST_LOG_(INFO) << "DumpArkWebHelperTest_001 end";
 }
+
+/**
+ * @tc.number: DumpArkWebHelperTest_002
+ * @tc.name: DumpArkWebJSHeap
+ * @tc.desc: Test whether DumpArkWebJSHeap is called normally.
+ * @tc.type: FUNC
+ */
+HWTEST_F(DumpArkWebHelperTest, DumpArkWebHelperTest_002, Function | MediumTest | Level1)
+{
+    GTEST_LOG_(INFO) << "DumpArkWebHelperTest_002 start";
+    int32_t appPid = 1001;
+    int32_t renderPid = 2002;
+    DumpArkWebHelper::DumpArkWebJSHeap(appPid, renderPid, true, false, false);
+    GTEST_LOG_(INFO) << "DumpArkWebHelperTest_002 end";
+}
 }
 }
