@@ -1672,6 +1672,10 @@ public:
      */
     int32_t SetResidentProcessEnabled(const std::string &bundleName, bool enable) override;
 
+    int32_t SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup) override;
+
+    int32_t SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList) override;
+
     /**
      * @brief Request to display assert fault dialog.
      * @param callback Listen for user operation callbacks.

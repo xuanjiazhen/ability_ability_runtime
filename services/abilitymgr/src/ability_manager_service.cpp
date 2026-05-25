@@ -117,6 +117,7 @@
 #include "ui_extension_wrapper.h"
 #include "ui_service_extension_connection_constants.h"
 #include "unlock_screen_manager.h"
+#include "resident_on_demand_rdb.h"
 #ifdef SUPPORT_UPMS
 #include "uri_permission_manager_client.h"
 #endif // SUPPORT_UPMS
@@ -15193,6 +15194,71 @@ int32_t AbilityManagerService::SetResidentProcessEnabled(const std::string &bund
     }
 
     return residentProcessManager->SetResidentProcessEnabled(bundleName, callerName, enable);
+}
+
+int32_t AbilityManagerService::SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
+    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall() && !isSaCall && !isShellCall) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
+        return ERR_NOT_SYSTEM_APP;
+    }
+
+    if (bundleName.empty()) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleName is empty");
+        return ERR_INVALID_VALUE;
+    }
+
+    auto &rdb = AbilityRuntime::ResidentOnDemandRdb::GetInstance();
+    int32_t result = rdb.Init();
+    if (result != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Init ResidentOnDemandRdb failed: %{public}d", result);
+        return INNER_ERR;
+    }
+
+    result = rdb.SetOnDemandStartup(bundleName, onDemandStartup);
+    if (result != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SetOnDemandStartup failed: %{public}d", result);
+        return INNER_ERR;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetResidentOnDemandStartup success: %{public}s = %{public}d",
+        bundleName.c_str(), onDemandStartup);
+    return ERR_OK;
+}
+
+int32_t AbilityManagerService::SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto isSaCall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
+    auto isShellCall = AAFwk::PermissionVerification::GetInstance()->IsShellCall();
+    if (!AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall() && !isSaCall && !isShellCall) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "permission verification failed");
+        return ERR_NOT_SYSTEM_APP;
+    }
+
+    if (configList.empty()) {
+        TAG_LOGW(AAFwkTag::ABILITYMGR, "configList is empty");
+        return ERR_OK;
+    }
+
+    auto &rdb = AbilityRuntime::ResidentOnDemandRdb::GetInstance();
+    int32_t result = rdb.Init();
+    if (result != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "Init ResidentOnDemandRdb failed: %{public}d", result);
+        return INNER_ERR;
+    }
+
+    result = rdb.SetOnDemandStartupBatch(configList);
+    if (result != NativeRdb::E_OK) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "SetOnDemandStartupBatch failed: %{public}d", result);
+        return INNER_ERR;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "SetResidentOnDemandStartupBatch success: %{public}zu items", configList.size());
+    return ERR_OK;
 }
 
 int32_t AbilityManagerService::RequestAssertFaultDialog(

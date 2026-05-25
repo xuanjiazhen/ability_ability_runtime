@@ -6310,6 +6310,60 @@ int32_t AbilityManagerProxy::SetResidentProcessEnabled(const std::string &bundle
     return reply.ReadInt32();
 }
 
+int32_t AbilityManagerProxy::SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteString(bundleName)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write bundleName fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteBool(onDemandStartup)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write onDemandStartup fail");
+        return INNER_ERR;
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_RESIDENT_ON_DEMAND_STARTUP, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
+        return ret;
+    }
+
+    return reply.ReadInt32();
+}
+
+int32_t AbilityManagerProxy::SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList)
+{
+    MessageParcel data;
+    if (!WriteInterfaceToken(data)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write token fail");
+        return INNER_ERR;
+    }
+    if (!data.WriteInt32(static_cast<int32_t>(configList.size()))) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "write size fail");
+        return INNER_ERR;
+    }
+    for (const auto &item : configList) {
+        if (!data.WriteString(item.first) || !data.WriteBool(item.second)) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "write config item fail");
+            return INNER_ERR;
+        }
+    }
+    MessageParcel reply;
+    MessageOption option;
+    auto ret = SendRequest(AbilityManagerInterfaceCode::SET_RESIDENT_ON_DEMAND_STARTUP_BATCH, data, reply, option);
+    if (ret != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "request error:%{public}d", ret);
+        return ret;
+    }
+
+    return reply.ReadInt32();
+}
+
 bool AbilityManagerProxy::IsEmbeddedOpenAllowed(sptr<IRemoteObject> callerToken, const std::string &appId)
 {
     if (callerToken == nullptr) {

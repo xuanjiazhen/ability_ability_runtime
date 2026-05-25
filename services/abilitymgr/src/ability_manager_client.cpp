@@ -2857,6 +2857,22 @@ ErrCode AbilityManagerClient::QuerySkillType(const std::string &bundleName, cons
     return abms->QuerySkillType(bundleName, moduleName, skillName, skillType);
 }
 
+ErrCode AbilityManagerClient::SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->SetResidentOnDemandStartup(bundleName, onDemandStartup);
+}
+
+ErrCode AbilityManagerClient::SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList)
+{
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "called");
+    auto abms = GetAbilityManager();
+    CHECK_POINTER_RETURN_NOT_CONNECTED(abms);
+    return abms->SetResidentOnDemandStartupBatch(configList);
+}
+
 ErrCode AbilityManagerClient::StartSelfUIAbilityByAppContext(const Want &want)
 {
     auto abms = GetAbilityManager();

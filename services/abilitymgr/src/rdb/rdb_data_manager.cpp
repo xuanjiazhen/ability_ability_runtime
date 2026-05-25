@@ -85,6 +85,36 @@ int32_t RdbDataManager::UpdateData(
     }
     int32_t rowId = -1;
     int32_t errCode = rdbStore_->Update(rowId, valuesBucket, absRdbPredicates);
+    if (errCode == NativeRdb::E_OK && rowId > 0) {
+        dbWriteCounter_.UpdateWriteCount(ABILITY_RDB_PATH);
+    }
+    return errCode;
+}
+
+int32_t RdbDataManager::UpdateOrInsertData(
+    const NativeRdb::ValuesBucket &valuesBucket, const NativeRdb::AbsRdbPredicates &absRdbPredicates)
+{
+    std::lock_guard<std::mutex> lock(rdbMutex_);
+    if (rdbStore_ == nullptr) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "null rdbStore_");
+        return NativeRdb::E_ERROR;
+    }
+    if (absRdbPredicates.GetTableName() != amsRdbConfig_.tableName) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid rdb store table");
+        return NativeRdb::E_ERROR;
+    }
+    int32_t rowId = -1;
+    int32_t errCode = rdbStore_->Update(rowId, valuesBucket, absRdbPredicates);
+    if (errCode == NativeRdb::E_OK && rowId == 0) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "data not exist, need insert data");
+        int64_t insertRowId = -1;
+        errCode = rdbStore_->InsertWithConflictResolution(
+            insertRowId, amsRdbConfig_.tableName, valuesBucket, NativeRdb::ConflictResolution::ON_CONFLICT_REPLACE);
+        if (errCode == NativeRdb::E_OK) {
+            dbWriteCounter_.UpdateWriteCount(ABILITY_RDB_PATH);
+        }
+        return errCode;
+    }
     if (errCode == NativeRdb::E_OK) {
         dbWriteCounter_.UpdateWriteCount(ABILITY_RDB_PATH);
     }

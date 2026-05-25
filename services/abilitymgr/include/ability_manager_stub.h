@@ -271,6 +271,9 @@ private:
     int32_t RecordAppWithReasonInner(MessageParcel &data, MessageParcel &reply);
     int32_t SetResidentProcessEnableInner(MessageParcel &data, MessageParcel &reply);
 
+    int32_t SetResidentOnDemandStartupInner(MessageParcel &data, MessageParcel &reply);
+    int32_t SetResidentOnDemandStartupBatchInner(MessageParcel &data, MessageParcel &reply);
+
     int SetRootSceneSessionInner(MessageParcel &data, MessageParcel &reply);
     int CallUIAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);
     int StartSpecifiedAbilityBySCBInner(MessageParcel &data, MessageParcel &reply);

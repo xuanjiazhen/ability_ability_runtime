@@ -22,6 +22,7 @@
 #include "ffrt.h"
 #include "keep_alive_utils.h"
 #include "main_element_utils.h"
+#include "resident_on_demand_rdb.h"
 #include "user_controller/user_controller.h"
 
 namespace OHOS {
@@ -107,6 +108,18 @@ void ResidentProcessManager::StartResidentProcessWithMainElementPerBundle(const 
         needEraseIndexSet.insert(index);
         return;
     }
+
+    // Check on-demand startup configuration
+    auto &onDemandRdb = AbilityRuntime::ResidentOnDemandRdb::GetInstance();
+    onDemandRdb.Init();
+    bool onDemandStartup = onDemandRdb.GetOnDemandStartup(bundleInfo.name);
+    if (onDemandStartup) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "bundle:%{public}s is configured as on-demand startup, skip auto launch",
+            bundleInfo.name.c_str());
+        needEraseIndexSet.insert(index);
+        return;
+    }
+
     for (auto hapModuleInfo : bundleInfo.hapModuleInfos) {
         StartResidentProcessWithMainElementPerBundleHap(hapModuleInfo, processName, index, needEraseIndexSet, userId);
     }
