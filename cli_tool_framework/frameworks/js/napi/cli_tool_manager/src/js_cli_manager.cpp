@@ -21,6 +21,7 @@
 #include "cli_manager_error_utils.h"
 #include "cli_session_info.h"
 #include "cli_tool_mgr_client.h"
+#include "dstb_types.h"
 #include "exec_result.h"
 #include "hilog_tag_wrapper.h"
 #include "js_cli_event_handler_manager.h"
@@ -40,6 +41,7 @@ constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
 constexpr int32_t INDEX_THREE = 3;
 constexpr int32_t INDEX_FOUR = 4;
+constexpr int32_t INDEX_FIVE = 5;
 
 int32_t DispatchCliTool(const ExecToolParam &param, napi_env env,
     std::shared_ptr<NapiAsyncTask> asyncTask)
@@ -464,9 +466,211 @@ napi_value JSCliManagerInit(napi_env env, napi_value exportObj)
     BindNativeFunction(env, exportObj, "getToolInfoByName", moduleName, JSCliManager::GetToolInfoByName);
     BindNativeFunction(env, exportObj, "queryToolSummaries", moduleName, JSCliManager::QueryToolSummaries);
     BindNativeFunction(env, exportObj, "queryTools", moduleName, JSCliManager::QueryTools);
+    BindNativeFunction(env, exportObj, "getAvailableDevices", moduleName, JSCliManager::GetAvailableDevices);
+    BindNativeFunction(env, exportObj, "getRemoteToolSummaries", moduleName, JSCliManager::GetRemoteToolSummaries);
+    BindNativeFunction(env, exportObj, "execToolRemote", moduleName, JSCliManager::ExecToolRemote);
 
     TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManagerInit end");
     return CreateJsUndefined(env);
+}
+
+napi_value JSCliManager::GetAvailableDevices(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnGetAvailableDevices);
+}
+
+napi_value JSCliManager::GetRemoteToolSummaries(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnGetRemoteToolSummaries);
+}
+
+napi_value JSCliManager::ExecToolRemote(napi_env env, napi_callback_info info)
+{
+    GET_CB_INFO_AND_CALL(env, info, JSCliManager, OnExecToolRemote);
+}
+
+napi_value JSCliManager::OnGetAvailableDevices(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnGetAvailableDevices called");
+    HandleEscape handleEscape(env);
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    auto devices = std::make_shared<std::vector<DstbDeviceInfo>>();
+
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, devices]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().GetAvailableDevices(*devices);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, devices](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAvailableDevices error: %{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+
+        // 创建设备数组
+        napi_value jsArray = nullptr;
+        napi_create_array(env, &jsArray);
+        for (size_t i = 0; i < devices->size(); i++) {
+            napi_value jsDevice = nullptr;
+            napi_create_object(env, &jsDevice);
+            if (jsDevice != nullptr) {
+                const auto& device = (*devices)[i];
+                napi_value deviceId = nullptr;
+                napi_create_string_utf8(env, device.deviceId.c_str(), NAPI_AUTO_LENGTH, &deviceId);
+                napi_set_named_property(env, jsDevice, "deviceId", deviceId);
+
+                napi_value deviceName = nullptr;
+                napi_create_string_utf8(env, device.deviceName.c_str(), NAPI_AUTO_LENGTH, &deviceName);
+                napi_set_named_property(env, jsDevice, "deviceName", deviceName);
+
+                napi_value deviceType = nullptr;
+                napi_create_int32(env, device.deviceType, &deviceType);
+                napi_set_named_property(env, jsDevice, "deviceType", deviceType);
+
+                napi_value deviceState = nullptr;
+                napi_create_int32(env, device.deviceState, &deviceState);
+                napi_set_named_property(env, jsDevice, "deviceState", deviceState);
+
+                napi_set_element(env, jsArray, i, jsDevice);
+            }
+        }
+        task.ResolveWithNoError(env, jsArray);
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JsCliManager::OnGetAvailableDevices", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
+napi_value JSCliManager::OnGetRemoteToolSummaries(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnGetRemoteToolSummaries called");
+    HandleEscape handleEscape(env);
+
+    if (argc < INDEX_ONE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    std::string targetDeviceId;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], targetDeviceId) || targetDeviceId.empty()) {
+        ThrowInvalidParamError(env, "targetDeviceId is required");
+        return CreateJsUndefined(env);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    auto summaries = std::make_shared<std::vector<ToolSummary>>();
+
+    NapiAsyncTask::ExecuteCallback execute = [innerErrCode, targetDeviceId, summaries]() {
+        *innerErrCode = CliToolMGRClient::GetInstance().GetRemoteToolSummaries(targetDeviceId, *summaries);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode, summaries](
+        napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        if (*innerErrCode != ERR_OK) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "GetRemoteToolSummaries error: %{public}d", *innerErrCode);
+            task.Reject(env, CreateCliJsErrorByNativeErr(env, *innerErrCode));
+            return;
+        }
+
+        napi_value jsArray = nullptr;
+        napi_create_array(env, &jsArray);
+        for (size_t i = 0; i < summaries->size(); i++) {
+            napi_value jsSummary = CreateJsToolSummary(env, (*summaries)[i]);
+            if (jsSummary != nullptr) {
+                napi_set_element(env, jsArray, i, jsSummary);
+            }
+        }
+        task.ResolveWithNoError(env, jsArray);
+    };
+
+    napi_value asyncResult = nullptr;
+    NapiAsyncTask::Schedule("JsCliManager::OnGetRemoteToolSummaries", env,
+        CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &asyncResult));
+    return handleEscape.Escape(asyncResult);
+}
+
+napi_value JSCliManager::OnExecToolRemote(napi_env env, size_t argc, napi_value *argv)
+{
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "JSCliManager::OnExecToolRemote called");
+    HandleEscape handleEscape(env);
+    if (argc < INDEX_FIVE) {
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+
+    // 参数0: targetDeviceId
+    std::string targetDeviceId;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ZERO], targetDeviceId) || targetDeviceId.empty()) {
+        ThrowInvalidParamError(env, "targetDeviceId is required");
+        return CreateJsUndefined(env);
+    }
+
+    // 参数1: toolName
+    ExecToolParam param;
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_ONE], param.toolName) || param.toolName.empty()) {
+        ThrowInvalidParamError(env, "Tool toolName is required");
+        return CreateJsUndefined(env);
+    }
+
+    // 参数2: subcommand
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_TWO], param.subcommand)) {
+        ThrowInvalidParamError(env, "Tool subcommand is required");
+        return CreateJsUndefined(env);
+    }
+
+    // 参数3: args
+    if (!AppExecFwk::UnwrapWantParams(env, argv[INDEX_THREE], param.args)) {
+        ThrowInvalidParamError(env, "Tool args is required");
+        return CreateJsUndefined(env);
+    }
+
+    // 参数4: challenge
+    if (!AppExecFwk::UnwrapStringFromJS2(env, argv[INDEX_FOUR], param.challenge) || param.challenge.empty()) {
+        ThrowInvalidParamError(env, "Tool challenge is required");
+        return CreateJsUndefined(env);
+    }
+
+    // 参数5: options (可选)
+    if (argc > INDEX_FIVE && argv[INDEX_FIVE] != nullptr) {
+        if (!UnwrapExecOptions(env, argv[INDEX_FIVE], param.options)) {
+            ThrowInvalidParamError(env, "Tool options is required");
+            return CreateJsUndefined(env);
+        }
+    }
+
+    napi_value result = nullptr;
+    auto uasyncTask = CreateAsyncTaskWithLastParam(env, nullptr, nullptr, nullptr, &result);
+    std::shared_ptr<NapiAsyncTask> asyncTask = std::move(uasyncTask);
+
+    CliToolMGRClient::ExecToolReplyCallback replyCallback =
+        [env, asyncTask](int32_t resultCode, const CliSessionInfo &session) {
+            JsCliEventHandlerManager::GetInstance().PostTask(
+                [env, asyncTask, resultCode, session]() {
+                    HandleScope handleScope(env);
+                    if (resultCode != ERR_OK) {
+                        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, resultCode));
+                        return;
+                    }
+                    napi_value jsSession = CreateJsCliSessionInfo(env, session);
+                    if (jsSession == nullptr) {
+                        asyncTask->Reject(env, CreateJsUndefined(env));
+                        return;
+                    }
+                    asyncTask->ResolveWithNoError(env, jsSession);
+                });
+        };
+
+    int32_t errCode = CliToolMGRClient::GetInstance().ExecToolRemote(targetDeviceId, param, replyCallback);
+    if (errCode != ERR_OK) {
+        asyncTask->Reject(env, CreateCliJsErrorByNativeErr(env, errCode));
+    }
+    return handleEscape.Escape(result);
 }
 
 } // namespace CliTool

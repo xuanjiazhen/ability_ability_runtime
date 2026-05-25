@@ -22,6 +22,7 @@
 
 #include "cli_session_info.h"
 #include "cli_tool_event.h"
+#include "dstb_device_info.h"
 #include "exec_options.h"
 #include "icli_tool_manager.h"
 #include "iremote_object.h"
@@ -69,6 +70,32 @@ public:
      * @return ErrCode ERR_OK on success
      */
     ErrCode GetAllToolSummaries(std::vector<ToolSummary> &summaries);
+
+    /**
+     * @brief Get all tool summaries from a remote device
+     * @param targetDeviceId Target device network ID
+     * @param summaries Output vector of ToolSummary
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetRemoteToolSummaries(const std::string &targetDeviceId,
+        std::vector<ToolSummary> &summaries);
+
+    /**
+     * @brief Execute a CLI tool on a remote device
+     * @param targetDeviceId Target device network ID
+     * @param param Tool execution parameters
+     * @param callback Reply callback for execution result
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode ExecToolRemote(const std::string &targetDeviceId,
+        const ExecToolParam &param, const ExecToolReplyCallback &callback);
+
+    /**
+     * @brief Get available devices for distributed CLI tool
+     * @param devices Output vector of DstbDeviceInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetAvailableDevices(std::vector<DstbDeviceInfo> &devices);
 
     /**
      * @brief Get tool information by name
