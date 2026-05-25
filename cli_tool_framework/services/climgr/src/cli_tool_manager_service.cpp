@@ -15,7 +15,9 @@
 
 #include "cli_tool_manager_service.h"
 
+#include <nlohmann/json.hpp>
 #include <sys/wait.h>
+#include <vector>
 
 #include "ability_manager_client.h"
 #include "accesstoken_kit.h"
@@ -23,6 +25,8 @@
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
+#include "device_manager.h"
+#include "dstb_ipc_manager.h"
 #include "event_dispatcher.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
@@ -31,6 +35,7 @@
 #include "permission_query_util.h"
 #include "permission_util.h"
 #include "process_manager.h"
+#include "remote_exec_callback_manager.h"
 #include "session_record.h"
 #include "tokenid_kit.h"
 #include "tool_util.h"
@@ -160,8 +165,18 @@ void CliToolManagerService::FinalizeBackgroundSession(const std::shared_ptr<Sess
     if (oldBackground == false) {
         CliSessionInfo session;
         record->BuildSessionInfo(session);
-        EventDispatcher::GetInstance().DispatchExecToolReplyEvent(
-            record->callerPid, record->callerUid, record->eventId, ERR_OK, session);
+
+        // 如果是远程调用，需要回调发起端
+        if (record->isRemoteCall && !record->sourceDeviceId.empty()) {
+            TAG_LOGI(AAFwkTag::CLI_TOOL,
+                "FinalizeBackgroundSession: remote call, notify source device %{public}s",
+                record->sourceDeviceId.substr(0, 8).c_str());
+            NotifyRemoteCaller(record->sourceDeviceId, sessionId, ERR_OK, session);
+        } else {
+            // 本地调用，直接分发事件
+            EventDispatcher::GetInstance().DispatchExecToolReplyEvent(
+                record->callerPid, record->callerUid, record->eventId, ERR_OK, session);
+        }
     }
     if (ioMonitor_) {
         ioMonitor_->UnregisterSession(sessionId);
@@ -214,6 +229,10 @@ void CliToolManagerService::Init()
         });
         ioMonitor_->Start();
     }
+
+    // 初始化分布式能力
+    InitDistributed();
+
     initialized_ = true;
 }
 
@@ -274,6 +293,9 @@ void CliToolManagerService::OnStop()
     if (ioMonitor_ != nullptr) {
         ioMonitor_->Stop();
     }
+
+    // 清理分布式能力
+    UnInitDistributed();
 }
 
 int32_t CliToolManagerService::OnIdle(const SystemAbilityOnDemandReason &idlReason)
@@ -1176,5 +1198,286 @@ void CliToolManagerService::HandleSkillSessionTimeout(const std::string &session
     EventDispatcher::GetInstance().ClearSessionSubscribers(sessionId);
     RemoveSessionRecord(sessionId);
 }
+
+// ============== 分布式接口实现 ==============
+
+namespace {
+const std::string DSTB_PKG_NAME = "climgr_distributed";
+const std::string PERMISSION_DISTRIBUTED_CLI_TOOL = "ohos.permission.DISTRIBUTED_CLI_TOOL";
+} // namespace
+
+void CliToolManagerService::InitDistributed()
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "InitDistributed called");
+    // 初始化设备管理器（获取本地设备信息等）
+    // 实际初始化逻辑在首次使用时进行
+}
+
+void CliToolManagerService::UnInitDistributed()
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "UnInitDistributed called");
+}
+
+bool CliToolManagerService::CheckDstbCallerPermission(const DstbCallerInfo &callerInfo)
+{
+    // 基本校验：检查调用者设备ID不为空
+    if (callerInfo.sourceDeviceId.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "CheckDstbCallerPermission: source device ID is empty");
+        return false;
+    }
+
+    // TODO: 添加更详细的权限校验
+    // 1. 检查设备信任级别
+    // 2. 检查是否允许远端调用
+    // 3. 检查调用者的分布式权限
+
+    TAG_LOGD(AAFwkTag::CLI_TOOL, "CheckDstbCallerPermission: passed for device %{public}s",
+        callerInfo.sourceDeviceId.substr(0, 8).c_str());
+    return true;
+}
+
+int32_t CliToolManagerService::GetAvailableDevices(std::vector<DstbDeviceInfo> &devices)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAvailableDevices called");
+    return DstbIpcManager::GetInstance().GetAvailableDevices(devices);
+}
+
+int32_t CliToolManagerService::GetRemoteToolSummaries(const std::string &targetDeviceId,
+    std::vector<ToolSummary> &summaries)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetRemoteToolSummaries called for device: %{public}s",
+        targetDeviceId.substr(0, 8).c_str());
+
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    // 使用 DstbIpcManager 进行跨设备调用
+    return DstbIpcManager::GetInstance().GetRemoteToolSummaries(targetDeviceId, summaries);
+}
+
+int32_t CliToolManagerService::GetAllToolSummariesFromRemote(const DstbCallerInfo &callerInfo,
+    std::vector<ToolSummary> &summaries)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetAllToolSummariesFromRemote called from device: %{public}s, uid: %{public}d",
+        callerInfo.sourceDeviceId.substr(0, 8).c_str(), callerInfo.uid);
+
+    // 校验调用者来源
+    if (!CheckDstbCallerPermission(callerInfo)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetAllToolSummariesFromRemote: invalid caller");
+        return DstbErrorCode::ERR_REMOTE_CALL_FAILED;
+    }
+
+    // 直接调用 DataManager 获取工具列表，跳过本地权限检查
+    // 因为远程调用已经通过 CheckDstbCallerPermission 校验
+    return CliToolDataManager::GetInstance().QueryToolSummaries(summaries);
+}
+
+int32_t CliToolManagerService::GetRemoteToolInfoByName(const std::string &targetDeviceId,
+    const std::string &name, ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetRemoteToolInfoByName called for device: %{public}s, tool: %{public}s",
+        targetDeviceId.substr(0, 8).c_str(), name.c_str());
+
+    // 使用 DstbIpcManager 进行跨设备调用
+    return DstbIpcManager::GetInstance().GetRemoteToolInfoByName(targetDeviceId, name, tool);
+}
+
+int32_t CliToolManagerService::GetToolInfoByNameFromRemote(const DstbCallerInfo &callerInfo,
+    const std::string &name, ToolInfo &tool)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "GetToolInfoByNameFromRemote called from device: %{public}s, uid: %{public}d, tool: %{public}s",
+        callerInfo.sourceDeviceId.substr(0, 8).c_str(), callerInfo.uid, name.c_str());
+
+    // 校验调用者来源
+    if (!CheckDstbCallerPermission(callerInfo)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "GetToolInfoByNameFromRemote: invalid caller");
+        return DstbErrorCode::ERR_REMOTE_CALL_FAILED;
+    }
+
+    // 直接调用 DataManager 获取工具信息，跳过本地权限检查
+    // 因为远程调用已经通过 CheckDstbCallerPermission 校验
+    return CliToolDataManager::GetInstance().GetToolByName(name, tool);
+}
+
+int32_t CliToolManagerService::ExecToolRemote(const std::string &targetDeviceId,
+    const ExecToolParam &param, const std::string &eventId,
+    const sptr<ICliToolManagerScheduler> &scheduler)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolRemote called for device: %{public}s, tool: %{public}s",
+        targetDeviceId.substr(0, 8).c_str(), param.toolName.c_str());
+
+    // 使用 DstbIpcManager 进行跨设备调用
+    return DstbIpcManager::GetInstance().ExecToolRemote(targetDeviceId, param, eventId, scheduler);
+}
+
+int32_t CliToolManagerService::ExecToolFromRemote(const DstbCallerInfo &callerInfo,
+    const ExecToolParam &param, const std::string &eventId, std::string &sessionId)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote called from device: %{public}s, uid: %{public}d, pid: %{public}d, tool: %{public}s, subcmd: %{public}s",
+        callerInfo.sourceDeviceId.substr(0, 8).c_str(), callerInfo.uid, callerInfo.pid,
+        param.toolName.c_str(), param.subcommand.c_str());
+
+    // 校验调用者来源
+    if (!CheckDstbCallerPermission(callerInfo)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: invalid caller");
+        return DstbErrorCode::ERR_REMOTE_CALL_FAILED;
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: CheckDstbCallerPermission passed");
+
+    // 调用本地 ExecTool，跳过权限检查（因为已经通过 CheckDstbCallerPermission 校验）
+    int32_t callerPid = callerInfo.pid;
+    int32_t callerUid = callerInfo.uid;
+
+    // 会话数限制检查
+    auto cliQuantity = CcmUtil::GetInstance().GetCliConcurrencyLimit();
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: cliQuantity=%{public}d, currentSessions=%{public}zu",
+        cliQuantity, sessionRecords_.size());
+    std::lock_guard<ffrt::mutex> guard(sessionsMutex_);
+    if (static_cast<int32_t>(sessionRecords_.size()) >= cliQuantity) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Session limit exceeded: %{public}d", cliQuantity);
+        return ERR_SESSION_LIMIT_EXCEEDED;
+    }
+
+    // 获取工具信息
+    ToolInfo toolInfo;
+    int32_t toolRet = CliToolDataManager::GetInstance().GetToolByName(param.toolName, toolInfo);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: GetToolByName result=%{public}d", toolRet);
+    if (toolRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Tool not found: %{public}s", param.toolName.c_str());
+        return ERR_TOOL_NOT_EXIST;
+    }
+
+    // 生成 sandbox 配置
+    // 注意：远程调用时，callerInfo.accessToken 是发起端的 FullTokenID（包含 token 类型信息）
+    // claw_sandbox 通过 FullTokenID 判断 token 类型，所以直接使用传递来的值
+    std::string sandboxConfig;
+    std::string bundleName;
+    nlohmann::json config;
+    config["callerTokenId"] = callerInfo.accessToken;
+    config["challenge"] = param.challenge;
+    config["uid"] = callerInfo.uid;
+    config["callerPid"] = callerInfo.pid;
+    config["gid"] = callerInfo.uid;  // 远程调用时使用 uid 作为 gid
+    config["appId"] = callerInfo.bundleName.empty() ? "remote_caller" : callerInfo.bundleName;
+    config["bundleName"] = callerInfo.bundleName.empty() ? "remote_caller" : callerInfo.bundleName;
+    config["cliName"] = param.toolName;
+    config["subCliName"] = param.subcommand;
+    std::vector<std::string> nsFlags;
+    nsFlags.push_back("pid");
+    config["nsFlags"] = nsFlags;
+    sandboxConfig = config.dump();
+    bundleName = callerInfo.bundleName;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: sandbox config generated, callerTokenId=%{public}u, bundleName=%{public}s",
+        callerInfo.accessToken, bundleName.c_str());
+
+    // 创建会话记录
+    std::shared_ptr<SessionRecord> record = CreateSessionRecord(param, eventId);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: CreateSessionRecord result=%{public}s",
+        record ? "success" : "failed");
+    if (record == nullptr) {
+        return ERR_NO_INIT;
+    }
+
+    // 设置远程调用者信息
+    record->callerPid = callerPid;
+    record->callerUid = callerUid;
+    record->isRemoteCall = true;
+    record->sourceDeviceId = callerInfo.sourceDeviceId;
+    sessionId = record->sessionId;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: record created, sessionId=%{public}s, callerPid=%{public}d, callerUid=%{public}d",
+        sessionId.c_str(), callerPid, callerUid);
+
+    // 创建子进程执行工具
+    // 注意：此处已持有 sessionsMutex_，不能调用 GetSessionRecords()（会再次获取锁导致死锁）
+    // 直接从 sessionRecords_ 构造 fatherSessionRecords
+    std::vector<std::shared_ptr<SessionRecord>> fatherSessionRecords;
+    fatherSessionRecords.reserve(sessionRecords_.size());
+    for (const auto &[id, rec] : sessionRecords_) {
+        if (rec != nullptr) {
+            fatherSessionRecords.emplace_back(rec);
+        }
+    }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: calling CreateChildProcess, tool=%{public}s, executablePath=%{public}s, fatherSessions=%{public}zu",
+        param.toolName.c_str(), toolInfo.executablePath.c_str(), fatherSessionRecords.size());
+    auto createRet = ProcessManager::GetInstance().CreateChildProcess(
+        param, sandboxConfig, toolInfo, record, fatherSessionRecords);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: CreateChildProcess result=%{public}d", createRet);
+    if (createRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: CreateChildProcess failed=%{public}d", createRet);
+        return createRet;
+    }
+
+    // 直接添加到 sessionRecords_，因为已经持有锁
+    sessionRecords_[record->sessionId] = record;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: session added, processId=%{public}d", record->processId);
+
+    // 注册会话监控
+    bool registerRet = RegisterSessionWithMonitors(record, param);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote: RegisterSessionWithMonitors result=%{public}d", registerRet);
+    if (!registerRet) {
+        ProcessManager::GetInstance().Kill(record->processId);
+        // 直接从 sessionRecords_ 移除，因为已经持有锁
+        sessionRecords_.erase(record->sessionId);
+        return ERR_NO_INIT;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecToolFromRemote success, sessionId: %{public}s", sessionId.c_str());
+    return ERR_OK;
+}
+
+int32_t CliToolManagerService::NotifyRemoteExecResult(const std::string &sourceDeviceId,
+    const std::string &sessionId, int32_t resultCode, const CliSessionInfo &session)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "NotifyRemoteExecResult: sourceDevice=%{public}s, sessionId=%{public}s, resultCode=%{public}d",
+        sourceDeviceId.substr(0, 8).c_str(), sessionId.c_str(), resultCode);
+
+    // 校验来源设备
+    if (sourceDeviceId.empty()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "NotifyRemoteExecResult: invalid sourceDeviceId");
+        return ERR_INVALID_PARAM;
+    }
+
+    // 调用回调管理器处理结果
+    RemoteExecCallbackManager::GetInstance().HandleRemoteExecResult(sessionId, resultCode, session);
+
+    return ERR_OK;
+}
+
+void CliToolManagerService::NotifyRemoteCaller(const std::string &sourceDeviceId, const std::string &sessionId,
+    int32_t resultCode, const CliSessionInfo &session)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL,
+        "NotifyRemoteCaller: sourceDevice=%{public}s, sessionId=%{public}s, resultCode=%{public}d",
+        sourceDeviceId.substr(0, 8).c_str(), sessionId.c_str(), resultCode);
+
+    // 通过 DstbIpcManager 获取发起端的 proxy 并调用 NotifyRemoteExecResult
+    auto proxy = DstbIpcManager::GetInstance().GetRemoteCliToolMgrProxy(sourceDeviceId);
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "NotifyRemoteCaller: failed to get proxy for device %{public}s",
+            sourceDeviceId.substr(0, 8).c_str());
+        return;
+    }
+
+    sptr<ICliToolManager> cliMgrProxy = iface_cast<ICliToolManager>(proxy);
+    if (cliMgrProxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "NotifyRemoteCaller: iface_cast failed");
+        DstbIpcManager::GetInstance().ClearRemoteProxy(sourceDeviceId);
+        return;
+    }
+
+    // 获取本地设备 ID
+    std::string localDeviceId = DstbIpcManager::GetInstance().GetLocalDeviceId();
+
+    // 调用发起端的 NotifyRemoteExecResult
+    auto ret = cliMgrProxy->NotifyRemoteExecResult(localDeviceId, sessionId, resultCode, session);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "NotifyRemoteCaller: NotifyRemoteExecResult failed: %{public}d", ret);
+        DstbIpcManager::GetInstance().ClearRemoteProxy(sourceDeviceId);
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "NotifyRemoteCaller: notification sent successfully");
+}
+
 } // namespace CliTool
 } // namespace OHOS

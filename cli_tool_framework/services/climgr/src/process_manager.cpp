@@ -100,10 +100,12 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
     const ToolInfo &toolInfo, std::shared_ptr<SessionRecord> record,
     const std::vector<std::shared_ptr<SessionRecord>> &fatherSessionRecords) const
 {
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CreateChildProcess: enter, tool=%{public}s", toolInfo.name.c_str());
     if (CreatePipes(*record) == false) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create pipes");
         return ERR_NO_INIT;
     }
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "CreateChildProcess: pipes created, calling fork");
     pid_t pid = fork();
     if (pid < 0) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to fork: %{public}d", errno);
