@@ -113,6 +113,33 @@ public:
      */
     static napi_value QueryTools(napi_env env, napi_callback_info info);
 
+    /**
+     * @brief Native method for getting available devices.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value GetAvailableDevices(napi_env env, napi_callback_info info);
+
+    /**
+     * @brief Native method for getting remote tool summaries.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value GetRemoteToolSummaries(napi_env env, napi_callback_info info);
+
+    /**
+     * @brief Native method for executing tool on remote device.
+     *
+     * @param env The N-API environment.
+     * @param info The N-API callback info.
+     * @return Returns the N-API value.
+     */
+    static napi_value ExecToolRemote(napi_env env, napi_callback_info info);
+
 private:
     /**
      * @brief Implementation for executing a CLI tool.
@@ -193,6 +220,36 @@ private:
      * @return Returns the N-API value.
      */
     napi_value OnQueryTools(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for getting available devices.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnGetAvailableDevices(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for getting remote tool summaries.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnGetRemoteToolSummaries(napi_env env, size_t argc, napi_value *argv);
+
+    /**
+     * @brief Implementation for executing tool on remote device.
+     *
+     * @param env The N-API environment.
+     * @param argc The argument count.
+     * @param argv The argument values.
+     * @return Returns the N-API value.
+     */
+    napi_value OnExecToolRemote(napi_env env, size_t argc, napi_value *argv);
 };
 
 /**
