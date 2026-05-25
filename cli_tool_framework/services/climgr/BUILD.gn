@@ -19,8 +19,10 @@ config("clisa_config") {
   include_dirs = [
     "include",
     "../common/include",
+    "distributed/include",
     "${ability_runtime_services_path}/common/include",
     "${cli_tool_framework_path}/interfaces/cli_tool/include",
+    "${root_out_dir}/src/gen/foundation/ability/ability_runtime/cli_tool_framework/interfaces/cli_tool",
   ]
 
   cflags = []
@@ -50,6 +52,7 @@ ohos_shared_library("climgr") {
     "../common/src/permission_util.cpp",
     "src/event_dispatcher.cpp",
     "src/io_monitor.cpp",
+    "distributed/src/dstb_ipc_manager.cpp",
   ]
   defines = [ "AMS_LOG_TAG = \"CliToolManager\"" ]
 
@@ -67,6 +70,7 @@ ohos_shared_library("climgr") {
     "bundle_framework:appexecfwk_base",
     "bundle_framework:appexecfwk_core",
     "c_utils:utils",
+    "device_manager:devicemanagersdk",
     "ffrt:libffrt",
     "hilog:libhilog",
     "init:libbegetutil",

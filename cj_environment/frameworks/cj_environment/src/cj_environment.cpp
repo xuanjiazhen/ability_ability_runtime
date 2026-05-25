@@ -23,7 +23,6 @@
 #include "cj_hilog.h"
 #include "cj_invoker.h"
 #include "cj_envsetup.h"
-#include "cj_backtrace.h"
 
 #ifdef __OHOS__
 #include <dlfcn.h>
@@ -355,8 +354,6 @@ void CJEnvironment::SetAppPath(const std::string& appPath)
         if (getpid() != gettid()) {
             return;
         }
-        constexpr uint32_t removeTopFrames = 3;
-        CJDFX_Backtrace(removeTopFrames);
     });
 #endif
     isInited = true;
