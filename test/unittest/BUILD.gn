@@ -185,6 +185,7 @@ group("unittest") {
       "ability_record_second_test:unittest",
       "ability_record_test:unittest",
       "ability_resident_process_rdb_test:unittest",
+      "resident_on_demand_rdb_test:unittest",
       "ability_running_info_test:unittest",
       "ability_running_record_test:unittest",
       "ability_runtime_error_util_test:unittest",
