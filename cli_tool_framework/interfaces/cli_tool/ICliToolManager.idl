@@ -18,12 +18,15 @@ package OHOS.CliTool;
 import ICliToolData;
 import ICliToolManagerScheduler;
 sequenceable CliSessionInfo..OHOS.CliTool.CliSessionInfo;
+sequenceable DstbCallerInfo..OHOS.CliTool.DstbCallerInfo;
+sequenceable DstbDeviceInfo..OHOS.CliTool.DstbDeviceInfo;
 sequenceable ExecToolParam..OHOS.CliTool.ExecToolParam;
 sequenceable OHOS.CliTool.ToolSummary;
 sequenceable ToolInfo..OHOS.CliTool.ToolInfo;
 rawdata ToolInfo..OHOS.CliTool.ToolsRawData;
 
 interface ICliToolManager {
+    // ============== 本地接口 ==============
     void GetAllToolSummaries([out] ToolSummary[] summaries);
     void GetToolInfoByName([in] String name, [out] ToolInfo tool);
     void GetAllToolInfos([out] ToolsRawData tools);
@@ -36,4 +39,16 @@ interface ICliToolManager {
     void SendMessage([in] String sessionId, [in] String inputText, [in] String eventId,
         [in] ICliToolManagerScheduler scheduler);
     void BatchQueryPermissionBySubCommand([in] List<Command> cmds, [out] List<CommandPermission> cmdPermissions);
+
+    // ============== 分布式接口 ==============
+    // 获取可用设备列表
+    void GetAvailableDevices([out] DstbDeviceInfo[] devices);
+
+    // 远端工具查询
+    void GetRemoteToolSummaries([in] String targetDeviceId, [out] ToolSummary[] summaries);
+    void GetRemoteToolInfoByName([in] String targetDeviceId, [in] String name, [out] ToolInfo tool);
+
+    // 远端请求处理接口（被远端调用）
+    void GetAllToolSummariesFromRemote([in] DstbCallerInfo callerInfo, [out] ToolSummary[] summaries);
+    void GetToolInfoByNameFromRemote([in] DstbCallerInfo callerInfo, [in] String name, [out] ToolInfo tool);
 }
