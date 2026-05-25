@@ -34,6 +34,7 @@
 #include "bundle_mgr_helper.h"
 #include "hilog_tag_wrapper.h"
 #include "js_arkts_script.h"
+#include "js_script_manager.h"
 #include "napi_common_util.h"
 #include "nlohmann/json.hpp"
 #include "native_engine/impl/ark/ark_native_engine.h"
@@ -724,11 +725,15 @@ bool ArktsScript::PrepareRuntimeEnvironment(const ResultCallback& completeCallba
         error.type = "BIND_ERROR";
         return false;
     }
-    if (!JsArktsScript::BindCompletearktsScript(env, completeCallback)) {
-        error.message = "failed to bind CompletearktsScript";
-        error.type = "BIND_ERROR";
-        return false;
-    }
+    AbilityRuntime::JSScriptManager::RegisterLocalCompleteCallback(
+        [completeCallback](bool success, const std::string& result,
+            const std::string& errorMessage, const std::string& errorType) {
+            if (success) {
+                completeCallback(true, result, {});
+                return;
+            }
+            completeCallback(false, "", {errorMessage, errorType});
+        });
     TAG_LOGD(AAFwkTag::APPKIT, "runtime environment prepared");
     return true;
 }
@@ -846,6 +851,7 @@ int ArktsScript::RunArkTsScript(int argc, char* argv[])
     napi_value func = nullptr;
     if (!LoadScriptFunction(args, runtimeOwner.get(), receiver, func, error) ||
         !CallResolvedFunction(args, env, receiver, func, error)) {
+        AbilityRuntime::JSScriptManager::ClearLocalCompleteCallback();
         return FinalizeAndJoin(execContext, channel, monitorThread, error);
     }
 
@@ -853,7 +859,8 @@ int ArktsScript::RunArkTsScript(int argc, char* argv[])
     if (monitorThread.joinable()) {
         monitorThread.join();
     }
-    return EXIT_FAILURE;
+    AbilityRuntime::JSScriptManager::ClearLocalCompleteCallback();
+    return EXIT_SUCCESS;
 }
 
 } // namespace ArktsScript

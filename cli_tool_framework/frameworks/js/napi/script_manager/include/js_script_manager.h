@@ -16,6 +16,9 @@
 #ifndef OHOS_ABILITY_RUNTIME_JS_SCRIPT_MANAGER_H
 #define OHOS_ABILITY_RUNTIME_JS_SCRIPT_MANAGER_H
 
+#include <functional>
+#include <string>
+
 #include "native_engine/native_engine.h"
 
 namespace OHOS {
@@ -23,12 +26,17 @@ namespace AbilityRuntime {
 
 class JSScriptManager final {
 public:
+    using LocalCompleteCallback = std::function<void(bool success, const std::string &result,
+        const std::string &errorMessage, const std::string &errorType)>;
+
     JSScriptManager() {}
     ~JSScriptManager() {}
 
     static void Finalizer(napi_env env, void *data, void *hint);
     static napi_value CompleteArkTSScriptInApp(napi_env env, napi_callback_info info);
     static napi_value CompleteArkTSScript(napi_env env, napi_callback_info info);
+    static void RegisterLocalCompleteCallback(const LocalCompleteCallback &callback);
+    static void ClearLocalCompleteCallback();
 
 private:
     napi_value OnCompleteArkTSScriptInApp(napi_env env, size_t argc, napi_value *argv);
