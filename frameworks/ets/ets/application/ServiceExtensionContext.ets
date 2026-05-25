@@ -105,6 +105,8 @@ export default class ServiceExtensionContext extends ExtensionContext {
 
   native nativeWantCheck(want: Want): void;
   native nativeStartUIAbilities(wantList: Array<Want>, callback: AsyncCallbackWrapper<void>): void;
+  native nativeStartUIAbilitiesInSplitWindowModeCheck(primaryWindowId: int, secondaryWant: Want): void;
+  native nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId: int, secondaryWant: Want, callback: AsyncCallbackWrapper<void>): void;
   native nativeOpenAtomicService(appId: string, callback: AsyncCallbackWrapper<void>, options?: AtomicServiceOptions): void;
 
   native nativePreStartMission(bundleName: string, moduleName: string, abilityName: string, startTime: string, callback: AsyncCallbackWrapper<void>): void;
@@ -306,6 +308,23 @@ export default class ServiceExtensionContext extends ExtensionContext {
       });
     });
   }
+
+  startUIAbilitiesInSplitWindowMode(primaryWindowId: int, secondaryWant: Want): Promise<void> {
+    this.nativeStartUIAbilitiesInSplitWindowModeCheck(primaryWindowId, secondaryWant);
+    return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
+      let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {
+        if (err == null || err.code == 0) {
+          resolve(undefined);
+        } else {
+          reject(err);
+        }
+      });
+      taskpool.execute((): void => {
+        this.nativeStartUIAbilitiesInSplitWindowMode(primaryWindowId, secondaryWant, myCall);
+      });
+    });
+  }
+
   preStartMission(bundleName: string, moduleName: string, abilityName: string, startTime: string): Promise<void> {
     return new Promise<void>((resolve: (data: undefined) => void, reject: (err: BusinessError) => void): void => {
         let myCall = new AsyncCallbackWrapper<void>((err: BusinessError | null) => {

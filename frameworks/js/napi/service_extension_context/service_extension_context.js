@@ -84,6 +84,11 @@ class ServiceExtensionContext extends ExtensionContext {
     return this.__context_impl__.startUIAbilities(wantList);
   }
 
+  startUIAbilitiesInSplitWindowMode(primaryWindowId, secondaryWant) {
+    hilog.sLogI(domainID, TAG, 'startUIAbilitiesInSplitWindowMode');
+    return this.__context_impl__.startUIAbilitiesInSplitWindowMode(primaryWindowId, secondaryWant);
+  }
+
   stopServiceExtensionAbility(want, callback) {
     hilog.sLogI(domainID, TAG, 'stopServiceExtensionAbility');
     return this.__context_impl__.stopServiceExtensionAbility(want, callback);

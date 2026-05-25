@@ -126,6 +126,8 @@ public:
     
     ErrCode StartUIAbilities(const std::vector<AAFwk::Want> &wantList, const std::string &requestKey);
 
+    ErrCode StartUIAbilitiesInSplitWindowMode(int32_t primaryWindowId, const AAFwk::Want &secondaryWant) const;
+
     ErrCode StartServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1) const;
 
     ErrCode StartUIServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId = -1) const;

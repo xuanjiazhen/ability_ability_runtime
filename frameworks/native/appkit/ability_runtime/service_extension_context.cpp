@@ -172,6 +172,18 @@ ErrCode ServiceExtensionContext::StartUIAbilities(const std::vector<AAFwk::Want>
     return err;
 }
 
+ErrCode ServiceExtensionContext::StartUIAbilitiesInSplitWindowMode(
+    int32_t primaryWindowId, const AAFwk::Want &secondaryWant) const
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    ErrCode err = AAFwk::AbilityManagerClient::GetInstance()->StartUIAbilitiesInSplitWindowMode(
+        primaryWindowId, secondaryWant, token_);
+    if (err != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "failed %{public}d", err);
+    }
+    return err;
+}
+
 ErrCode ServiceExtensionContext::StartServiceExtensionAbility(const AAFwk::Want &want, int32_t accountId) const
 {
     TAG_LOGD(AAFwkTag::APPKIT, "begin");

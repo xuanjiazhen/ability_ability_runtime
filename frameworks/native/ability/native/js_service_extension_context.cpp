@@ -138,6 +138,11 @@ public:
         GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnStartUIAbilities);
     }
 
+    static napi_value StartUIAbilitiesInSplitWindowMode(napi_env env, napi_callback_info info)
+    {
+        GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnStartUIAbilitiesInSplitWindowMode);
+    }
+
     static napi_value ConnectAbilityWithAccount(napi_env env, napi_callback_info info)
     {
         GET_NAPI_INFO_AND_CALL(env, info, JsServiceExtensionContext, OnConnectAbilityWithAccount);
@@ -945,6 +950,65 @@ private:
             CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), nullptr));
         return callback.result;
     }
+
+    napi_value OnStartUIAbilitiesInSplitWindowMode(napi_env env, NapiCallbackInfo& info)
+    {
+        TAG_LOGI(AAFwkTag::SERVICE_EXT, "call OnStartUIAbilitiesInSplitWindowMode");
+        if (info.argc < ARGC_TWO) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "Too few parameters.");
+            ThrowTooFewParametersError(env);
+            return CreateJsUndefined(env);
+        }
+
+        int32_t primaryWindowId = 0;
+        if (!AppExecFwk::UnwrapInt32FromJS2(env, info.argv[INDEX_ZERO], primaryWindowId)) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "parse primaryWindowId failed");
+            ThrowInvalidParamError(env, "Parse param primaryWindowId failed, must be a number.");
+            return CreateJsUndefined(env);
+        }
+        if (primaryWindowId <= 0) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid primaryWindowId");
+            ThrowInvalidParamError(env, "Parse param primaryWindowId failed, must be greater than 0.");
+            return CreateJsUndefined(env);
+        }
+
+        AAFwk::Want secondaryWant;
+        if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ONE], secondaryWant)) {
+            TAG_LOGE(AAFwkTag::SERVICE_EXT, "parse secondaryWant failed");
+            ThrowInvalidParamError(env, "Parse param secondaryWant failed, must be a Want.");
+            return CreateJsUndefined(env);
+        }
+
+        secondaryWant.SetParam(AAFwk::Want::PARAM_BACK_TO_OTHER_MISSION_STACK, true);
+
+        auto innerErrCode = std::make_shared<ErrCode>(ERR_OK);
+        NapiAsyncTask::ExecuteCallback execute = [weak = context_, primaryWindowId, secondaryWant, innerErrCode]() {
+            auto context = weak.lock();
+            if (!context) {
+                TAG_LOGW(AAFwkTag::SERVICE_EXT, "null context");
+                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                return;
+            }
+            *innerErrCode = context->StartUIAbilitiesInSplitWindowMode(primaryWindowId, secondaryWant);
+        };
+
+        NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask& task, int32_t) {
+            HandleScope handleScope(env);
+            if (*innerErrCode == ERR_OK) {
+                task.Resolve(env, CreateJsUndefined(env));
+            } else if (*innerErrCode == static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
+                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+            } else {
+                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            }
+        };
+
+        napi_value lastParam = (info.argc > ARGC_TWO) ? info.argv[ARGC_TWO] : nullptr;
+        napi_value result = nullptr;
+        NapiAsyncTask::ScheduleHighQos("JSServiceExtensionContext::OnStartUIAbilitiesInSplitWindowMode", env,
+            CreateAsyncTaskWithLastParam(env, lastParam, std::move(execute), std::move(complete), &result));
+        return result;
+    }
     
     bool UnwrapWantList(napi_env env, NapiCallbackInfo &info, std::vector<AAFwk::Want> &wantList)
     {
@@ -1711,6 +1775,8 @@ napi_value CreateJsServiceExtensionContext(napi_env env, std::shared_ptr<Service
     BindNativeFunction(env, object, "startAbilityWithAccount",
         moduleName, JsServiceExtensionContext::StartAbilityWithAccount);
     BindNativeFunction(env, object, "startUIAbilities", moduleName, JsServiceExtensionContext::StartUIAbilities);
+    BindNativeFunction(env, object, "startUIAbilitiesInSplitWindowMode", moduleName,
+        JsServiceExtensionContext::StartUIAbilitiesInSplitWindowMode);
     BindNativeFunction(env, object, "startAbilityByCall",
         moduleName, JsServiceExtensionContext::StartAbilityByCall);
     BindNativeFunction(

@@ -49,6 +49,10 @@ constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION =
 constexpr const char *SIGNATURE_CONNECT_SERVICE_EXTENSION_WITH_ACCOUNT =
     "C{@ohos.app.ability.Want.Want}iC{ability.connectOptions.ConnectOptions}:l";
 constexpr const char *SIGNATURE_DISCONNECT_SERVICE_EXTENSION = "lC{utils.AbilityUtils.AsyncCallbackWrapper}:";
+constexpr const char *SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE_CHECK =
+    "iC{@ohos.app.ability.Want.Want}:";
+constexpr const char *SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE =
+    "iC{@ohos.app.ability.Want.Want}C{utils.AbilityUtils.AsyncCallbackWrapper}:";
 constexpr const char* SIGNATURE_OPEN_ATOMIC_SERVICE = "C{std.core.String}C{utils.AbilityUtils.AsyncCallbackWrapper}"
     "C{@ohos.app.ability.AtomicServiceOptions.AtomicServiceOptions}:";
 constexpr const char *COMPLETION_HANDLER_FAILURE_CODE =
@@ -89,6 +93,12 @@ bool BindNativeMethods(ani_env *env, ani_class &cls)
         ani_native_function {"nativeStartUIAbilities",
             "C{std.core.Array}C{utils.AbilityUtils.AsyncCallbackWrapper}:",
             reinterpret_cast<void *>(EtsServiceExtensionContext::StartUIAbilities)},
+        ani_native_function {"nativeStartUIAbilitiesInSplitWindowModeCheck",
+            SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE_CHECK,
+            reinterpret_cast<void *>(EtsServiceExtensionContext::StartUIAbilitiesInSplitWindowModeCheck)},
+        ani_native_function {"nativeStartUIAbilitiesInSplitWindowMode",
+            SIGNATURE_START_UI_ABILITIES_IN_SPLIT_WINDOWMODE,
+            reinterpret_cast<void *>(EtsServiceExtensionContext::StartUIAbilitiesInSplitWindowMode)},
         ani_native_function { "nativeOpenAtomicService", SIGNATURE_OPEN_ATOMIC_SERVICE,
             reinterpret_cast<void *>(EtsServiceExtensionContext::OpenAtomicService) },
         ani_native_function { "nativePreStartMission",
@@ -287,6 +297,42 @@ void EtsServiceExtensionContext::StartUIAbilities(ani_env *env, ani_object aniOb
         return;
     }
     etsServiceExtensionContext->OnStartUIAbilities(env, aniObj, wantListObj, callback);
+}
+
+void EtsServiceExtensionContext::StartUIAbilitiesInSplitWindowModeCheck(
+    ani_env *env, ani_object aniObj, ani_int primaryWindowId, ani_object wantObj)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "StartUIAbilitiesInSplitWindowModeCheck");
+    if (env == nullptr || aniObj == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env or aniObj");
+        return;
+    }
+    if (primaryWindowId <= 0) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid primaryWindowId");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param primaryWindowId failed, must be greater than 0.");
+        return;
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "UnwrapWant failed");
+        EtsErrorUtil::ThrowInvalidParamError(env, "Parse param secondaryWant failed, must be a Want.");
+    }
+}
+
+void EtsServiceExtensionContext::StartUIAbilitiesInSplitWindowMode(
+    ani_env *env, ani_object aniObj, ani_int primaryWindowId, ani_object wantObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "StartUIAbilitiesInSplitWindowMode");
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
+        return;
+    }
+    auto etsServiceExtensionContext = EtsServiceExtensionContext::GetEtsAbilityContext(env, aniObj);
+    if (etsServiceExtensionContext == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null etsServiceExtensionContext");
+        return;
+    }
+    etsServiceExtensionContext->OnStartUIAbilitiesInSplitWindowMode(env, primaryWindowId, wantObj, callback);
 }
 
 void EtsServiceExtensionContext::StartRecentAbility(
@@ -1105,6 +1151,50 @@ void EtsServiceExtensionContext::OnStartUIAbilities(ani_env *env, ani_object ani
         return;
     }
     EtsStartAbilitiesObserver::HandleFinished(requestKey, innerErrCode);
+}
+
+void EtsServiceExtensionContext::OnStartUIAbilitiesInSplitWindowMode(ani_env *env, ani_int primaryWindowId,
+    ani_object wantObj, ani_object callback)
+{
+    TAG_LOGD(AAFwkTag::SERVICE_EXT, "OnStartUIAbilitiesInSplitWindowMode");
+
+    if (env == nullptr) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "null env");
+        AppExecFwk::AsyncCallback(env, callback,
+            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+        return;
+    }
+
+    if (primaryWindowId <= 0) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "invalid primaryWindowId");
+        ani_object aniObject = EtsErrorUtil::CreateInvalidParamError(env,
+            "Parse param primaryWindowId failed, must be greater than 0.");
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, wantObj, want)) {
+        TAG_LOGE(AAFwkTag::SERVICE_EXT, "UnwrapWant failed");
+        ani_object aniObject = EtsErrorUtil::CreateInvalidParamError(env,
+            "Parse param secondaryWant failed, must be a Want.");
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+
+    want.SetParam(AAFwk::Want::PARAM_BACK_TO_OTHER_MISSION_STACK, true);
+
+    auto context = context_.lock();
+    if (!context) {
+        TAG_LOGW(AAFwkTag::SERVICE_EXT, "null context");
+        ani_object aniObject = EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+        AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
+        return;
+    }
+
+    ErrCode innerErrCode = context->StartUIAbilitiesInSplitWindowMode(primaryWindowId, want);
+    ani_object aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, innerErrCode);
+    AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
 }
 
 void EtsServiceExtensionContext::ClearFailedCallConnection(
