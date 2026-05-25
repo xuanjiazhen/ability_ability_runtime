@@ -168,6 +168,7 @@ ohos_unittest("ability_manager_service_fourteenth_test") {
     "${ability_runtime_services_path}/abilitymgr/src/query_erms_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/query_erms_observer_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/rdb/ability_resident_process_rdb.cpp",
+    "${ability_runtime_services_path}/abilitymgr/src/rdb/resident_on_demand_rdb.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/rdb/parser_util.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/rdb/rdb_data_manager.cpp",
     "${ability_runtime_services_path}/abilitymgr/src/recovery_info_timer.cpp",

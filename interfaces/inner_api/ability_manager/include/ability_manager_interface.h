@@ -2196,6 +2196,29 @@ public:
     }
 
     /**
+     * @brief Set on-demand startup for resident process.
+     *
+     * @param bundleName The bundle name of the resident app.
+     * @param onDemandStartup Whether to enable on-demand startup.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetResidentOnDemandStartup(const std::string &bundleName, bool onDemandStartup)
+    {
+        return 0;
+    }
+
+    /**
+     * @brief Set on-demand startup for resident processes in batch.
+     *
+     * @param configList Map of bundle names to on-demand startup flags.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t SetResidentOnDemandStartupBatch(const std::map<std::string, bool> &configList)
+    {
+        return 0;
+    }
+
+    /**
      * @brief Querying whether to allow embedded startup of atomic service.
      *
      * @param token The caller UIAbility token.
