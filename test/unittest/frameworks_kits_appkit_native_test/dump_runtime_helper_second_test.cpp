@@ -330,6 +330,80 @@ HWTEST_F(DumpRuntimeHelperTestSecond, DumpJsHeap_0700, TestSize.Level1)
 }
 
 /**
+ * @tc.number: DumpJsHeap_0800
+ * @tc.name: DumpJsHeap with languageEnv dynamic
+ * @tc.desc: Test DumpJsHeap snapshot with arkTSMode set to dynamic.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, DumpJsHeap_0800, TestSize.Level1)
+{
+    std::shared_ptr<OHOSApplication> application = std::shared_ptr<OHOSApplication>(
+        ApplicationLoader::GetInstance().GetApplicationByName());
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application, appInfo);
+    OHOS::AppExecFwk::JsHeapDumpInfo info;
+    info.tid = 1;
+    info.needSnapshot = true;
+    helper->DumpJsHeap(info);
+    EXPECT_NE(application, nullptr);
+}
+
+/**
+ * @tc.number: DumpJsHeap_0900
+ * @tc.name: DumpJsHeap with languageEnv static
+ * @tc.desc: Test DumpJsHeap snapshot with arkTSMode set to static.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, DumpJsHeap_0900, TestSize.Level1)
+{
+    std::shared_ptr<OHOSApplication> application = std::shared_ptr<OHOSApplication>(
+        ApplicationLoader::GetInstance().GetApplicationByName());
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application, appInfo);
+    OHOS::AppExecFwk::JsHeapDumpInfo info;
+    info.tid = 1;
+    info.needSnapshot = true;
+    helper->DumpJsHeap(info);
+    EXPECT_NE(application, nullptr);
+}
+
+/**
+ * @tc.number: DumpJsHeap_1000
+ * @tc.name: DumpJsHeap with languageEnv hybrid
+ * @tc.desc: Test DumpJsHeap snapshot with arkTSMode set to hybrid.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, DumpJsHeap_1000, TestSize.Level1)
+{
+    std::shared_ptr<OHOSApplication> application = std::shared_ptr<OHOSApplication>(
+        ApplicationLoader::GetInstance().GetApplicationByName());
+    std::shared_ptr<ApplicationInfo> appInfo = std::make_shared<ApplicationInfo>();
+    appInfo->arkTSMode = AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID;
+    auto helper = std::make_shared<DumpRuntimeHelper>(application, appInfo);
+    OHOS::AppExecFwk::JsHeapDumpInfo info;
+    info.tid = 1;
+    info.needSnapshot = true;
+    helper->DumpJsHeap(info);
+    EXPECT_NE(application, nullptr);
+}
+
+/**
+ * @tc.number: DumpJsHeap_1100
+ * @tc.name: DumpJsHeap with null appInfo fallback languageEnv
+ * @tc.desc: Test DumpJsHeap snapshot when appInfo is nullptr, languageEnv defaults to dynamic.
+ */
+HWTEST_F(DumpRuntimeHelperTestSecond, DumpJsHeap_1100, TestSize.Level1)
+{
+    std::shared_ptr<OHOSApplication> application = std::shared_ptr<OHOSApplication>(
+        ApplicationLoader::GetInstance().GetApplicationByName());
+    auto helper = std::make_shared<DumpRuntimeHelper>(application);
+    OHOS::AppExecFwk::JsHeapDumpInfo info;
+    info.tid = 1;
+    info.needSnapshot = true;
+    helper->DumpJsHeap(info);
+    EXPECT_NE(application, nullptr);
+}
+
+/**
  * @tc.number: DumpNativeHeap_1000
  * @tc.name: DumpNativeHeap
  * @tc.desc: Test DumpNativeHeap when application is nullptr.

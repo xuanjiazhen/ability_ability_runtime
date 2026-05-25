@@ -1592,6 +1592,74 @@ HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1400, TestSize.Level1)
 }
 
 /**
+ * @tc.name: DumpHeapSnapshot_1500
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with languageEnv dynamic.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1500, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1500 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 1;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.languageEnv = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1500 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_1600
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with languageEnv static.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1600, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1600 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 1;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.languageEnv = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1600 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_1700
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with languageEnv hybrid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1700, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1700 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 1;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.languageEnv = AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID;
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1700 end");
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_1800
+ * @tc.desc: JsRuntime test for DumpHeapSnapshot with languageEnv unknown fallback.
+ * @tc.type: FUNC
+ */
+HWTEST_F(JsRuntimeTest, DumpHeapSnapshot_1800, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1800 start");
+    auto jsRuntime = std::make_unique<JsRuntime>();
+    uint32_t tid = 1;
+    OHOS::AbilityRuntime::Runtime::JsHeapDumpParam param;
+    param.languageEnv = "unknown_mode";
+    jsRuntime->DumpHeapSnapshot(tid, param);
+    EXPECT_TRUE(jsRuntime != nullptr);
+    TAG_LOGI(AAFwkTag::TEST, "DumpHeapSnapshot_1800 end");
+}
+
+/**
  * @tc.name: AllowCrossThreadExecution_0200
  * @tc.desc: JsRuntime test for AllowCrossThreadExecution.
  * @tc.type: FUNC

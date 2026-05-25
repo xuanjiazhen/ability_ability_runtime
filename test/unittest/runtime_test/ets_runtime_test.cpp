@@ -855,5 +855,47 @@ HWTEST_F(EtsRuntimeTest, XGC_0100, TestSize.Level2)
     etsRuntime->XGC();
     ASSERT_NE(etsRuntime, nullptr);
 }
+
+/**
+ * @tc.name: DumpHeapSnapshot_0100
+ * @tc.desc: EtsRuntime test for DumpHeapSnapshot with JsHeapDumpParam and null jsRuntime.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, DumpHeapSnapshot_0100, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    Runtime::JsHeapDumpParam param;
+    param.languageEnv = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_0;
+    etsRuntime->DumpHeapSnapshot(1, param);
+    ASSERT_NE(etsRuntime, nullptr);
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_0200
+ * @tc.desc: EtsRuntime test for DumpHeapSnapshot with languageEnv static.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, DumpHeapSnapshot_0200, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    Runtime::JsHeapDumpParam param;
+    param.languageEnv = AbilityRuntime::CODE_LANGUAGE_ARKTS_1_2;
+    etsRuntime->DumpHeapSnapshot(1, param);
+    ASSERT_NE(etsRuntime, nullptr);
+}
+
+/**
+ * @tc.name: DumpHeapSnapshot_0300
+ * @tc.desc: EtsRuntime test for DumpHeapSnapshot with languageEnv hybrid.
+ * @tc.type: FUNC
+ */
+HWTEST_F(EtsRuntimeTest, DumpHeapSnapshot_0300, TestSize.Level1)
+{
+    std::unique_ptr<ETSRuntime> etsRuntime = std::make_unique<ETSRuntime>();
+    Runtime::JsHeapDumpParam param;
+    param.languageEnv = AbilityRuntime::CODE_LANGUAGE_ARKTS_HYBRID;
+    etsRuntime->DumpHeapSnapshot(1, param);
+    ASSERT_NE(etsRuntime, nullptr);
+}
 } // namespace AbilityRuntime
 } // namespace OHOS
