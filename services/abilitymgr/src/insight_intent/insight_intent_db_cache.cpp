@@ -157,6 +157,12 @@ bool InsightIntentDbCache::HasInsightIntentByName(uint32_t versionCode,
     return false;
 }
 
+bool InsightIntentDbCache::HasBundleCache(const std::string &bundleName)
+{
+    std::lock_guard<std::mutex> lock(genericInfosMutex_);
+    return bundleVersionMap_.find(bundleName) != bundleVersionMap_.end();
+}
+
 bool InsightIntentDbCache::IsCacheInitialized(int32_t userId)
 {
     std::lock_guard<std::mutex> lock(genericInfosMutex_);
