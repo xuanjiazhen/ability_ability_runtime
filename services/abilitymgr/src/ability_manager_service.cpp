@@ -508,10 +508,10 @@ void AbilityManagerService::InitDeepLinkReserve()
 void AbilityManagerService::InitInterceptor()
 {
     interceptorExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
-    interceptorExecuter_->AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
     interceptorExecuter_->AddInterceptor("CrowdTest", std::make_shared<CrowdTestInterceptor>());
     interceptorExecuter_->AddInterceptor("Control", std::make_shared<ControlInterceptor>());
     afterCheckExecuter_ = std::make_shared<AbilityInterceptorExecuter>();
+    afterCheckExecuter_->AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
     afterCheckExecuter_->AddInterceptor("ExtensionControl", std::make_shared<ExtensionControlInterceptor>());
     afterCheckExecuter_->AddInterceptor("StartOtherApp", std::make_shared<StartOtherAppInterceptor>());
     afterCheckExecuter_->AddInterceptor("DisposedRule", std::make_shared<DisposedRuleInterceptor>());
@@ -564,9 +564,9 @@ void AbilityManagerService::InitInterceptor()
 
 void AbilityManagerService::InitInterceptorForScreenUnlock()
 {
-    if (interceptorExecuter_) {
+    if (afterCheckExecuter_) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "SU life, begin");
-        interceptorExecuter_->AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
+        afterCheckExecuter_->AddInterceptor("ScreenUnlock", std::make_shared<ScreenUnlockInterceptor>());
     }
 }
 
@@ -9454,8 +9454,8 @@ void AbilityManagerService::StartAutoStartupApps(int32_t userId, bool isManualSt
     TAG_LOGD(AAFwkTag::ABILITYMGR, "StartAutoStartupApps called");
     bool isAutoStartupReady = system::GetBoolParameter(AUTO_STARTUP_READY, true);
     bool hasScreenUnlockInterceptor = false;
-    if (interceptorExecuter_ != nullptr) {
-        hasScreenUnlockInterceptor = interceptorExecuter_->HasInterceptor("ScreenUnlock");
+    if (afterCheckExecuter_ != nullptr) {
+        hasScreenUnlockInterceptor = afterCheckExecuter_->HasInterceptor("ScreenUnlock");
     }
     if (!isAutoStartupReady || hasScreenUnlockInterceptor) {
         TAG_LOGW(AAFwkTag::ABILITYMGR, "isReady %{public}d, hasInterceptor %{public}d",
@@ -9694,9 +9694,9 @@ void AbilityManagerService::RetrySubscribeUnlockedEvent(int32_t retryCount,
 
 void AbilityManagerService::RemoveScreenUnlockInterceptor()
 {
-    if (interceptorExecuter_ != nullptr) {
+    if (afterCheckExecuter_ != nullptr) {
         TAG_LOGI(AAFwkTag::ABILITYMGR, "SU life, end");
-        interceptorExecuter_->RemoveInterceptor("ScreenUnlock");
+        afterCheckExecuter_->RemoveInterceptor("ScreenUnlock");
     }
 }
 
