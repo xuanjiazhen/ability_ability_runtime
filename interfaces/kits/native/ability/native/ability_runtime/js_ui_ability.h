@@ -459,6 +459,8 @@ private:
     void WriteLifecycleSwitchLog(const std::string lifecycleName);
     void HandleAbilityDelegatorStart();
 
+    void RunFlatBufferSerializationTest();
+
     JsRuntime &jsRuntime_;
     std::shared_ptr<NativeReference> shellContextRef_;
     std::shared_ptr<NativeReference> jsAbilityObj_;
