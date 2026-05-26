@@ -158,95 +158,6 @@ void EtsInteropAbilityLifecycleCallback::CallObjectMethodInner(ani_env *aniEnv, 
     }
 }
 
-void EtsInteropAbilityLifecycleCallback::CallObjectProperty(const char *name,
-    std::shared_ptr<InteropObject> ability)
-{
-    ani_env *aniEnv = GetAniEnv();
-    if (aniEnv == nullptr || ability == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or ability");
-        return;
-    }
-
-    if (!ability->IsFromNapi()) {
-        TAG_LOGI(AAFwkTag::APPKIT, "not from js");
-        return;
-    }
-
-    ani_value aniAbility;
-    if (!GetAniValueFromInteropObject(aniEnv, ability, aniAbility)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "failed to get ability ani value");
-        return;
-    }
-    CallObjectPropertyCommon(aniEnv, name, aniAbility.r, nullptr);
-}
-
-void EtsInteropAbilityLifecycleCallback::CallObjectProperty(const char *name,
-    std::shared_ptr<InteropObject> ability,
-    std::shared_ptr<InteropObject> windowStage)
-{
-    ani_env *aniEnv = GetAniEnv();
-    if (aniEnv == nullptr || ability == nullptr || windowStage == nullptr) {
-        TAG_LOGE(AAFwkTag::APPKIT, "null aniEnv or ability or windowStage");
-        return;
-    }
-
-    if (!ability->IsFromNapi()) {
-        TAG_LOGI(AAFwkTag::APPKIT, "not from js");
-        return;
-    }
-
-    ani_value aniAbility;
-    if (!GetAniValueFromInteropObject(aniEnv, ability, aniAbility)) {
-        TAG_LOGE(AAFwkTag::APPKIT, "failed to get ability ani value");
-        return;
-    }
-    ani_value aniWindowStage;
-    bool hasWindowStage = windowStage != nullptr;
-    if (hasWindowStage && !GetAniValueFromInteropObject(aniEnv, windowStage, aniWindowStage)) {
-        TAG_LOGI(AAFwkTag::APPKIT, "failed to get window stage ani value");
-        return;
-    }
-    CallObjectPropertyCommon(aniEnv, name, aniAbility.r, aniWindowStage.r);
-}
-
-void EtsInteropAbilityLifecycleCallback::CallObjectPropertyCommon(ani_env *env, const char *name,
-    ani_ref ability, ani_ref windowStage)
-{
-    TAG_LOGD(AAFwkTag::APPKIT, "CallObjectPropertyCommon called");
-    ani_status status = ANI_ERROR;
-    std::lock_guard<std::mutex> lock(callbacksLock_);
-    for (const auto &callback : callbacks_) {
-        if (callback == nullptr) {
-            TAG_LOGE(AAFwkTag::APPKIT, "null callback");
-            continue;
-        }
-        ani_ref funRef = nullptr;
-        if ((status = env->Object_GetPropertyByName_Ref(reinterpret_cast<ani_object>(callback),
-            name, &funRef)) != ANI_OK) {
-            TAG_LOGE(AAFwkTag::APPKIT, "failed to get property, status: %{public}d", status);
-            continue;
-        }
-        if (!AppExecFwk::IsValidProperty(env, funRef)) {
-            continue;
-        }
-
-        ani_ref result = nullptr;
-        if (windowStage != nullptr) {
-            std::vector<ani_ref> argv = { ability, windowStage };
-            if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_TWO, argv.data(),
-                &result)) != ANI_OK) {
-                TAG_LOGE(AAFwkTag::APPKIT, "failed to call property, status: %{public}d", status);
-            }
-        } else {
-            std::vector<ani_ref> argv = { ability };
-            if ((status = env->FunctionalObject_Call(reinterpret_cast<ani_fn_object>(funRef), ARGC_ONE, argv.data(),
-                &result)) != ANI_OK) {
-                TAG_LOGE(AAFwkTag::APPKIT, "failed to call property, status: %{public}d", status);
-            }
-        }
-    }
-}
-
 int32_t EtsInteropAbilityLifecycleCallback::Register(void *callback)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "enter EtsInteropAbilityLifecycleCallback::Register");
@@ -445,71 +356,71 @@ void EtsInteropAbilityLifecycleCallback::OnWindowStageInactive(std::shared_ptr<I
 
 void EtsInteropAbilityLifecycleCallback::OnNewWant(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectProperty("onNewWantInner", ability);
+    CallObjectMethod("onNewWantInner", SIGNATURE_UIABILITY, ability);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnAbilityWillBackground(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectProperty("onAbilityWillBackgroundInner", ability);
+    CallObjectMethod("onAbilityWillBackgroundInner", SIGNATURE_UIABILITY, ability);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnAbilityWillForeground(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectProperty("onAbilityWillForegroundInner", ability);
+    CallObjectMethod("onAbilityWillForegroundInner", SIGNATURE_UIABILITY, ability);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnAbilityWillCreate(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectProperty("onAbilityWillCreateInner", ability);
+    CallObjectMethod("onAbilityWillCreateInner", SIGNATURE_UIABILITY, ability);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnWindowStageWillDestroy(std::shared_ptr<InteropObject> ability,
     std::shared_ptr<InteropObject> windowStage)
 {
-    CallObjectProperty("onWindowStageWillDestroyInner", ability, windowStage);
+    CallObjectMethod("onWindowStageWillDestroyInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnAbilityWillDestroy(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectProperty("onAbilityWillDestroyInner", ability);
+    CallObjectMethod("onAbilityWillDestroyInner", SIGNATURE_UIABILITY, ability);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnWindowStageRestore(std::shared_ptr<InteropObject> ability,
     std::shared_ptr<InteropObject> windowStage)
 {
-    CallObjectProperty("onWindowStageRestoreInner", ability, windowStage);
+    CallObjectMethod("onWindowStageRestoreInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnAbilitySaveState(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectProperty("onAbilitySaveStateInner", ability);
+    CallObjectMethod("onAbilitySaveStateInner", SIGNATURE_UIABILITY, ability);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnAbilityWillContinue(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectProperty("onAbilityWillContinueInner", ability);
+    CallObjectMethod("onAbilityWillContinueInner", SIGNATURE_UIABILITY, ability);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnAbilityWillSaveState(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectProperty("onAbilityWillSaveStateInner", ability);
+    CallObjectMethod("onAbilityWillSaveStateInner", SIGNATURE_UIABILITY, ability);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnWillNewWant(std::shared_ptr<InteropObject> ability)
 {
-    CallObjectProperty("onWillNewWantInner", ability);
+    CallObjectMethod("onWillNewWantInner", SIGNATURE_UIABILITY, ability);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnWindowStageWillCreate(std::shared_ptr<InteropObject> ability,
     std::shared_ptr<InteropObject> windowStage)
 {
-    CallObjectProperty("onWindowStageWillCreateInner", ability, windowStage);
+    CallObjectMethod("onWindowStageWillCreateInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
 }
 
 void EtsInteropAbilityLifecycleCallback::OnWindowStageWillRestore(std::shared_ptr<InteropObject> ability,
     std::shared_ptr<InteropObject> windowStage)
 {
-    CallObjectProperty("onWindowStageWillRestoreInner", ability, windowStage);
+    CallObjectMethod("onWindowStageWillRestoreInner", SIGNATURE_UIABILITY_WINDOW_STAGE, ability, windowStage);
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS

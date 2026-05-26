@@ -77,10 +77,6 @@ private:
     EtsEnv::ETSErrorObject GetETSErrorObject();
     bool GetAniValueFromInteropObject(ani_env *env, std::shared_ptr<InteropObject> interopObject, ani_value &aniValue);
     std::string GetErrorProperty(ani_error aniError, const char *propertyName);
-    void CallObjectProperty(const char *name, std::shared_ptr<InteropObject> ability);
-    void CallObjectProperty(const char *name, std::shared_ptr<InteropObject> ability,
-        std::shared_ptr<InteropObject> windowStage);
-    void CallObjectPropertyCommon(ani_env *env, const char *name, ani_ref ability, ani_ref windowStage);
 
 private:
     ani_vm *vm_ = nullptr;
