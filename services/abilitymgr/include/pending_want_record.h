@@ -46,7 +46,9 @@ public:
 public:
     std::shared_ptr<PendingWantKey> GetKey();
     int32_t GetUid() const;
+    int32_t GetTargetUid() const;
     void SetCallerUid(const int32_t callerUid);
+    void SetTargetUid(const int32_t targetUid);
     void SetCanceled();
     bool GetCanceled();
     std::list<sptr<IWantReceiver>> GetCancelCallbacks();
@@ -67,6 +69,7 @@ private:
     std::shared_ptr<PendingWantKey> key_ = {};
     std::list<sptr<IWantReceiver>> mCancelCallbacks_ = {};
     int32_t callerUid_ = 0;
+    int32_t targetUid_ = -1;
     bool canceled_ = false;
     ffrt::mutex lock_ = {};
     std::mutex mCancelCallbacksMutex_;
