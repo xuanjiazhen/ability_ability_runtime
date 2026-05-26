@@ -591,13 +591,13 @@ public:
         return E_OK;
     }
 
-    virtual ErrCode MountDlpFuse(const std::string &dstPath1,
+    virtual int32_t MountDlpFuse(const std::string &dstPath1,
         const std::string &dstPath2, int32_t &fuseFd) override
     {
         return E_OK;
     }
 
-    virtual ErrCode UMountDlpFuse(const std::string &dstPath1,
+    virtual int32_t UMountDlpFuse(const std::string &dstPath1,
         const std::string &dstPath2) override
     {
         return E_OK;
