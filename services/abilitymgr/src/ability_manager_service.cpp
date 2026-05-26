@@ -6592,43 +6592,52 @@ int32_t AbilityManagerService::GetUidByCloneBundleInfo(
     return bundleInfo.uid;
 }
 
+bool AbilityManagerService::ResolveWantSenderUid(const WantSenderInfo &wantSenderInfo, int32_t uid,
+    int32_t callerUid, int32_t callerUserId, bool isSACall, bool isSystemApp,
+    int32_t &userId, int32_t &appUid, int32_t &appIndex)
+{
+    bool isSpecifyUserId = wantSenderInfo.userId >= 0;
+    if (isSACall || callerUserId == U0_USER_ID) {
+        if (isSpecifyUserId) {
+            userId = wantSenderInfo.userId;
+            appIndex = wantSenderInfo.appIndex;
+            appUid = (uid >= 0) ? uid : GetUidByCloneBundleInfo(
+                wantSenderInfo.bundleName, callerUid, userId, appIndex);
+        } else if (uid >= 0) {
+            if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
+                GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
+                TAG_LOGE(AAFwkTag::WANTAGENT, "getOsAccountLocalIdFromUid failed uid=%{public}d", callerUid);
+                return false;
+            }
+            appUid = uid;
+        } else {
+            userId = callerUserId;
+            appUid = GetUidByCloneBundleInfo(wantSenderInfo.bundleName, callerUid, userId, appIndex);
+        }
+    } else if (isSystemApp) {
+        userId = isSpecifyUserId ? wantSenderInfo.userId : callerUserId;
+        appUid = GetUidByCloneBundleInfo(wantSenderInfo.bundleName, callerUid, userId, appIndex);
+    } else {
+        userId = callerUserId;
+        appUid = callerUid;
+    }
+    return true;
+}
+
 sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderInfo &wantSenderInfo,
     const sptr<IRemoteObject> &callerToken, int32_t uid, int32_t callerUid, int32_t callerUserId)
 {
-    bool isSpecifyUserId = wantSenderInfo.userId >= 0;
-    std::string bundleName = "";
-    if (!wantSenderInfo.allWants.empty()) {
-        bundleName = wantSenderInfo.allWants.back().want.GetElement().GetBundleName();
-    }
     bool isSACall = AAFwk::PermissionVerification::GetInstance()->IsSACall();
     bool isSystemApp = AAFwk::PermissionVerification::GetInstance()->IsSystemAppCall();
 
     int32_t userId = -1;
     int32_t appUid = -1;
     int32_t appIndex = 0;
-    if (isSACall || callerUserId == U0_USER_ID) {
-        if (isSpecifyUserId) {
-            userId = wantSenderInfo.userId;
-            appIndex = wantSenderInfo.appIndex;
-            appUid = (uid >= 0) ? uid : GetUidByCloneBundleInfo(bundleName, callerUid, userId, appIndex);
-        } else if (uid >= 0) {
-            if (DelayedSingleton<AppExecFwk::OsAccountManagerWrapper>::GetInstance()->
-                GetOsAccountLocalIdFromUid(callerUid, userId) != 0) {
-                TAG_LOGE(AAFwkTag::WANTAGENT, "getOsAccountLocalIdFromUid failed uid=%{public}d", callerUid);
-                return nullptr;
-            }
-            appUid = uid;
-        } else {
-            userId = callerUserId;
-            appUid = GetUidByCloneBundleInfo(bundleName, callerUid, userId, appIndex);
-        }
-    } else if (isSystemApp) {
-        userId = isSpecifyUserId ? wantSenderInfo.userId : callerUserId;
-        appUid = GetUidByCloneBundleInfo(bundleName, callerUid, userId, appIndex);
-    } else {
-        userId = callerUserId;
-        appUid = callerUid;
+    if (!ResolveWantSenderUid(wantSenderInfo, uid, callerUid, callerUserId, isSACall, isSystemApp,
+        userId, appUid, appIndex)) {
+        return nullptr;
     }
+
     std::shared_ptr<PendingWantManager> pendingWantManager = GetPendingWantManagerByUserId(userId);
     CHECK_POINTER_AND_RETURN(pendingWantManager, nullptr);
     if (!CheckSenderWantInfo(appUid, wantSenderInfo)) {
@@ -6637,12 +6646,12 @@ sptr<IWantSender> AbilityManagerService::GetWantSenderByUserId(const WantSenderI
     }
     const_cast<WantSenderInfo&>(wantSenderInfo).userId = userId;
     TAG_LOGI(AAFwkTag::WANTAGENT, "bundleName: %{public}s, appIndex: %{public}d, isSystemApp: %{public}d, "
-        "isSACall: %{public}d, userId: %{public}d, appUid: %{public}d", bundleName.c_str(), appIndex, isSystemApp,
-        isSACall, userId, appUid);
+        "isSACall: %{public}d, userId: %{public}d, appUid: %{public}d", wantSenderInfo.bundleName.c_str(), appIndex,
+        isSystemApp, isSACall, userId, appUid);
 
-    int32_t resolvedCallerUid = (uid >= 0) ? uid : callerUid;
+    bool isRestored = uid >= 0;
     return pendingWantManager->GetWantSender(
-        resolvedCallerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
+        callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex, isRestored);
 }
 
 sptr<IWantSender> AbilityManagerService::GetWantSender(
@@ -6705,9 +6714,9 @@ sptr<IWantSender> AbilityManagerService::GetWantSender(
 
     TAG_LOGI(AAFwkTag::WANTAGENT, "%{public}s#%{public}d, isSystemApp: %{public}d, "
         "userId: %{public}d", wantSenderInfo.bundleName.c_str(), appIndex, isSystemApp, userId);
-    int32_t resolvedCallerUid = (uid >= 0) ? uid : callerUid;
+    bool isRestored = uid >= 0;
     return pendingWantManager->GetWantSender(
-        resolvedCallerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex);
+        callerUid, appUid, isSystemApp, wantSenderInfo, callerToken, appIndex, isRestored);
 }
 
 int AbilityManagerService::SendWantSender(sptr<IWantSender> target, SenderInfo &senderInfo)

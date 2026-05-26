@@ -3043,6 +3043,8 @@ private:
     bool IsSystemUI(const std::string &bundleName) const;
     int32_t GetUidByCloneBundleInfo(std::string &bundleName, int32_t callerUid, int32_t userId,
         int32_t &appIndex) const;
+    bool ResolveWantSenderUid(const WantSenderInfo &wantSenderInfo, int32_t uid, int32_t callerUid,
+        int32_t callerUserId, bool isSACall, bool isSystemApp, int32_t &userId, int32_t &appUid, int32_t &appIndex);
     sptr<IWantSender> GetWantSenderByUserId(const WantSenderInfo &wantSenderInfo,
         const sptr<IRemoteObject> &callerToken, int32_t uid, int32_t callerUid, int32_t callerUserId);
 
