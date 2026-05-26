@@ -110,7 +110,6 @@ void InsightIntentSysEventReceiver::DeleteInsightIntent(const std::string &bundl
 
 void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
 {
-    std::lock_guard<std::mutex> lock(userIdMutex_);
     if (userId == -1) {
         userId = AppExecFwk::OsAccountManagerWrapper::GetCurrentActiveAccountId();
         if (userId == 0) {
@@ -180,6 +179,7 @@ void InsightIntentSysEventReceiver::HandleUserSwitched(const EventFwk::CommonEve
     int32_t userId = data.GetCode();
     if (userId < 0) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid switched userId: %{public}d", userId);
+        return;
     }
 
     std::lock_guard<std::mutex> lock(userIdMutex_);
@@ -190,6 +190,11 @@ void InsightIntentSysEventReceiver::HandleUserSwitched(const EventFwk::CommonEve
 
     TAG_LOGI(AAFwkTag::INTENT, "userId: %{public}d switch to  current userId: %{public}d", lastUserId_, userId);
     lastUserId_ = userId;
+
+    if (DelayedSingleton<InsightIntentDbCache>::GetInstance()->IsCacheInitialized(userId)) {
+        TAG_LOGI(AAFwkTag::INTENT, "cache already initialized for userId: %{public}d", userId);
+        return;
+    }
 
     auto task = [self = shared_from_this(), userId]() { self->LoadInsightIntentInfos(userId); };
     ffrt::submit(task);

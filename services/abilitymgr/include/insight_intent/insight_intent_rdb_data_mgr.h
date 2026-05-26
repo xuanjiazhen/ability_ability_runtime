@@ -85,6 +85,7 @@ private:
 
     std::shared_ptr<NativeRdb::RdbStore> rdbStore_;
     std::mutex rdbStoreMutex_;
+    std::once_flag initOnceFlag_;
     IntentRdbConfig intentRdbConfig_;
 };
 } // namespace AbilityRuntime

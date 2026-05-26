@@ -77,21 +77,25 @@ std::shared_ptr<NativeRdb::RdbStore> InsightIntentRdbDataMgr::GetRdbStore()
 
 bool InsightIntentRdbDataMgr::IsIntentRdbLoaded()
 {
-    auto rdbStore = GetRdbStore();
-    if (rdbStore == nullptr) {
-        TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
-        return false;
+    if (rdbStore_ != nullptr) {
+        return true;
     }
-    std::string createTableSql = "CREATE TABLE IF NOT EXISTS " + intentRdbConfig_.tableName
-        + " (INTENT_KEY TEXT NOT NULL PRIMARY KEY, INTENT_VALUE TEXT NOT NULL);";
-    int32_t ret = NativeRdb::E_OK;
-    ret = rdbStore->ExecuteSql(createTableSql);
-    if (ret != NativeRdb::E_OK) {
-        TAG_LOGE(AAFwkTag::INTENT, "Create rdb table failed, ret:%{public}d", ret);
-        return false;
-    }
-    HmfsUtils::AddDeleteDfx(intentRdbConfig_.dbPath);
-    return true;
+    std::call_once(initOnceFlag_, [this]() {
+        auto rdbStore = GetRdbStore();
+        if (rdbStore == nullptr) {
+            TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
+            return;
+        }
+        std::string createTableSql = "CREATE TABLE IF NOT EXISTS " + intentRdbConfig_.tableName
+            + " (INTENT_KEY TEXT NOT NULL PRIMARY KEY, INTENT_VALUE TEXT NOT NULL);";
+        int32_t ret = rdbStore->ExecuteSql(createTableSql);
+        if (ret != NativeRdb::E_OK) {
+            TAG_LOGE(AAFwkTag::INTENT, "Create rdb table failed, ret:%{public}d", ret);
+            return;
+        }
+        HmfsUtils::AddDeleteDfx(intentRdbConfig_.dbPath);
+    });
+    return rdbStore_ != nullptr;
 }
 
 bool InsightIntentRdbDataMgr::InsertData(const std::string &key, const std::string &value)
