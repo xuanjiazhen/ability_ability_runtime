@@ -82,6 +82,15 @@ bool ScreenUnlockInterceptor::GetTargetAbilityInfo(const AbilityInterceptorParam
         targetAbilityInfo = StartAbilityUtils::startAbilityInfo->abilityInfo;
         return true;
     }
+
+    if (param.fromConnect) {
+        std::string uri = param.want.GetUri().ToString();
+        bool isFileUri = (param.want.GetUri().GetScheme() == "file");
+        if (!uri.empty() && !isFileUri) {
+            return QueryTargetAbilityInfoByUri(param, targetAbilityInfo);
+        }
+    }
+
     QueryTargetAbilityInfo(param, targetAbilityInfo);
     if (targetAbilityInfo.applicationInfo.name.empty() ||
         targetAbilityInfo.applicationInfo.bundleName.empty()) {
@@ -89,6 +98,29 @@ bool ScreenUnlockInterceptor::GetTargetAbilityInfo(const AbilityInterceptorParam
             param.want.GetElement().GetBundleName().c_str(), param.want.GetElement().GetAbilityName().c_str());
         return false;
     }
+    return true;
+}
+
+bool ScreenUnlockInterceptor::QueryTargetAbilityInfoByUri(const AbilityInterceptorParam &param,
+    AppExecFwk::AbilityInfo &targetAbilityInfo)
+{
+    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "The bundleMgrHelper is nullptr.");
+        return false;
+    }
+
+    std::string uri = param.want.GetUri().ToString();
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Query by uri: %{public}s, userId: %{public}d", uri.c_str(), param.userId);
+    AppExecFwk::ExtensionAbilityInfo extensionInfo;
+    bool queryResult = IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfoByUri(
+        uri, param.userId, extensionInfo));
+    if (!queryResult || extensionInfo.name.empty() || extensionInfo.bundleName.empty()) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "Cannot find extension by uri: %{public}s", uri.c_str());
+        return false;
+    }
+
+    AbilityRuntime::StartupUtil::InitAbilityInfoFromExtension(extensionInfo, targetAbilityInfo);
     return true;
 }
 
