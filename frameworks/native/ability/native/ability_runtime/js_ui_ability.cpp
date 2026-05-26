@@ -62,6 +62,7 @@
 #include "time_util.h"
 #include "skill/skill_execute_param.h"
 #include "skill/skill_execute_result.h"
+#include "ecmascript/napi/include/jsnapi.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -526,6 +527,10 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     }
 
     HandleScope handleScope(jsRuntime_);
+    if (want.GetBoolParam(AbilityRuntime::GlobalConstant::TEST_FLAT_BUFFER_SERIALIZE, false)) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Flat buffer serialization test triggered");
+        RunFlatBufferSerializationTest();
+    }
     auto env = jsRuntime_.GetNapiEnv();
 
     napi_value obj = jsAbilityObj_->GetNapiValue();
@@ -2760,6 +2765,193 @@ void JsUIAbility::HandleNativeModule(napi_env env)
     } else {
         TAG_LOGE(AAFwkTag::UIABILITY, "ApplicationContext is null");
     }
+}
+
+void JsUIAbility::RunFlatBufferSerializationTest()
+{
+    auto *vm = jsRuntime_.GetEcmaVm();
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest: EcmaVM is null, skip");
+        return;
+    }
+
+    int32_t passed = 0;
+    int32_t failed = 0;
+    TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest: BEGIN");
+
+    // Test 1: Double
+    {
+        size_t outSize = 0;
+        double expected = 42.5;
+        panda::Local<panda::JSValueRef> value(panda::NumberRef::New(vm, expected));
+        panda::Local<panda::JSValueRef> transfer(panda::JSValueRef::Undefined(vm));
+        panda::Local<panda::JSValueRef> cloneList(panda::JSValueRef::Undefined(vm));
+        uint8_t *buf = panda::JSNApi::SerializeValue(vm, value, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest Double: FAIL (serialize returned null, size=%{public}zu)",
+                outSize);
+            failed++;
+        } else {
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest Double: serialize OK (%{public}zu bytes)", outSize);
+            panda::Local<panda::JSValueRef> result = panda::JSNApi::DeserializeValue(vm, buf, nullptr);
+            if (result->IsUndefined()) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest Double: FAIL (deserialize returned undefined)");
+                failed++;
+            } else {
+                bool ok = result->IsNumber() && panda::Local<panda::NumberRef>(result)->Value() == expected;
+                TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest Double: %{public}s (%{public}.1f)",
+                    ok ? "PASS" : "FAIL", expected);
+                ok ? passed++ : failed++;
+            }
+            free(buf);
+        }
+    }
+
+    // Test 2: String
+    {
+        size_t outSize = 0;
+        const char *expected = "hello serialize";
+        panda::Local<panda::JSValueRef> value(panda::StringRef::NewFromUtf8(vm, expected));
+        panda::Local<panda::JSValueRef> transfer(panda::JSValueRef::Undefined(vm));
+        panda::Local<panda::JSValueRef> cloneList(panda::JSValueRef::Undefined(vm));
+        uint8_t *buf = panda::JSNApi::SerializeValue(vm, value, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest String: FAIL (serialize returned null, size=%{public}zu)",
+                outSize);
+            failed++;
+        } else {
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest String: serialize OK (%{public}zu bytes)", outSize);
+            panda::Local<panda::JSValueRef> result = panda::JSNApi::DeserializeValue(vm, buf, nullptr);
+            if (result->IsUndefined()) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest String: FAIL (deserialize returned undefined)");
+                failed++;
+            } else {
+                std::string actual = panda::Local<panda::StringRef>(result)->ToString(vm);
+                bool ok = result->IsString(vm) && actual == std::string(expected);
+                TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest String: %{public}s (\"%{public}s\")",
+                    ok ? "PASS" : "FAIL", expected);
+                ok ? passed++ : failed++;
+            }
+            free(buf);
+        }
+    }
+
+    // Test 3: Object {x: 10, y: "abc"}
+    {
+        size_t outSize = 0;
+        panda::Local<panda::ObjectRef> obj = panda::ObjectRef::New(vm);
+        obj->Set(vm, panda::StringRef::NewFromUtf8(vm, "x"), panda::NumberRef::New(vm, 10));
+        obj->Set(vm, panda::StringRef::NewFromUtf8(vm, "y"), panda::StringRef::NewFromUtf8(vm, "abc"));
+        panda::Local<panda::JSValueRef> transfer(panda::JSValueRef::Undefined(vm));
+        panda::Local<panda::JSValueRef> cloneList(panda::JSValueRef::Undefined(vm));
+        uint8_t *buf = panda::JSNApi::SerializeValue(vm, obj, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest Object: FAIL (serialize returned null, size=%{public}zu)",
+                outSize);
+            failed++;
+        } else {
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest Object: serialize OK (%{public}zu bytes)", outSize);
+            panda::Local<panda::JSValueRef> result = panda::JSNApi::DeserializeValue(vm, buf, nullptr);
+            if (result->IsUndefined()) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest Object: FAIL (deserialize returned undefined)");
+                failed++;
+            } else {
+                bool ok = result->IsObject(vm);
+                if (ok) {
+                    auto resObj = panda::Local<panda::ObjectRef>(result);
+                    panda::Local<panda::JSValueRef> xVal = resObj->Get(vm, panda::StringRef::NewFromUtf8(vm, "x"));
+                    panda::Local<panda::JSValueRef> yVal = resObj->Get(vm, panda::StringRef::NewFromUtf8(vm, "y"));
+                    ok = xVal->IsNumber() && xVal->Int32Value(vm) == 10 &&
+                         yVal->IsString(vm);
+                }
+                TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest Object: %{public}s", ok ? "PASS" : "FAIL");
+                ok ? passed++ : failed++;
+            }
+            free(buf);
+        }
+    }
+
+    // Test 4: Array [1, 2, "three", false]
+    {
+        size_t outSize = 0;
+        uint32_t len = 4;
+        panda::Local<panda::ArrayRef> arr = panda::ArrayRef::New(vm, len);
+        panda::ArrayRef::SetValueAt(vm, arr, 0, panda::NumberRef::New(vm, 1.0));
+        panda::ArrayRef::SetValueAt(vm, arr, 1, panda::NumberRef::New(vm, 2.0));
+        panda::ArrayRef::SetValueAt(vm, arr, 2, panda::StringRef::NewFromUtf8(vm, "three"));
+        panda::ArrayRef::SetValueAt(vm, arr, 3, panda::BooleanRef::New(vm, false));
+        panda::Local<panda::JSValueRef> transfer(panda::JSValueRef::Undefined(vm));
+        panda::Local<panda::JSValueRef> cloneList(panda::JSValueRef::Undefined(vm));
+        uint8_t *buf = panda::JSNApi::SerializeValue(vm, arr, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest Array: FAIL (serialize returned null, size=%{public}zu)",
+                outSize);
+            failed++;
+        } else {
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest Array: serialize OK (%{public}zu bytes)", outSize);
+            panda::Local<panda::JSValueRef> result = panda::JSNApi::DeserializeValue(vm, buf, nullptr);
+            if (result->IsUndefined()) {
+                TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest Array: FAIL (deserialize returned undefined)");
+                failed++;
+            } else {
+                bool ok = result->IsArray(vm);
+                if (ok) {
+                    auto resArr = panda::Local<panda::ArrayRef>(result);
+                    ok = resArr->Length(vm) == len &&
+                         panda::ArrayRef::GetValueAt(vm, resArr, 0)->Int32Value(vm) == 1 &&
+                         panda::ArrayRef::GetValueAt(vm, resArr, 1)->Int32Value(vm) == 2 &&
+                         panda::ArrayRef::GetValueAt(vm, resArr, 2)->IsString(vm) &&
+                         panda::ArrayRef::GetValueAt(vm, resArr, 3)->IsFalse();
+                }
+                TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest Array: %{public}s", ok ? "PASS" : "FAIL");
+                ok ? passed++ : failed++;
+            }
+            free(buf);
+        }
+    }
+
+    // Test 5: Multiple deserializes from same buffer
+    {
+        size_t outSize = 0;
+        const char *expected = "multi-deserialize";
+        panda::Local<panda::JSValueRef> value(panda::StringRef::NewFromUtf8(vm, expected));
+        panda::Local<panda::JSValueRef> transfer(panda::JSValueRef::Undefined(vm));
+        panda::Local<panda::JSValueRef> cloneList(panda::JSValueRef::Undefined(vm));
+        uint8_t *buf = panda::JSNApi::SerializeValue(vm, value, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY,
+                "FlatBufferTest MultiDeserialize: FAIL (serialize returned null, size=%{public}zu)", outSize);
+            failed++;
+        } else {
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest MultiDeserialize: serialize OK (%{public}zu bytes)", outSize);
+            bool ok = true;
+            for (int i = 0; i < 3; i++) {
+                panda::Local<panda::JSValueRef> result = panda::JSNApi::DeserializeValue(vm, buf, nullptr);
+                if (result->IsUndefined()) {
+                    TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest MultiDeserialize: FAIL (iter %{public}d undefined)",
+                        i);
+                    ok = false;
+                    break;
+                }
+                std::string actual = panda::Local<panda::StringRef>(result)->ToString(vm);
+                if (!result->IsString(vm) || actual != std::string(expected)) {
+                    ok = false;
+                    break;
+                }
+            }
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest MultiDeserialize: %{public}s (3x)",
+                ok ? "PASS" : "FAIL");
+            ok ? passed++ : failed++;
+            free(buf);
+        }
+    }
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest: END passed=%{public}d failed=%{public}d", passed, failed);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
