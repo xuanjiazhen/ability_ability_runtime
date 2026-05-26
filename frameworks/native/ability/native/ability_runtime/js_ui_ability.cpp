@@ -62,6 +62,7 @@
 #include "time_util.h"
 #include "skill/skill_execute_param.h"
 #include "skill/skill_execute_result.h"
+#include "ecmascript/napi/include/jsnapi.h"
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -526,6 +527,10 @@ void JsUIAbility::OnStart(const Want &want, sptr<AAFwk::SessionInfo> sessionInfo
     }
 
     HandleScope handleScope(jsRuntime_);
+    if (want.GetBoolParam(AbilityRuntime::GlobalConstant::TEST_FLAT_BUFFER_SERIALIZE, false)) {
+        TAG_LOGI(AAFwkTag::UIABILITY, "Flat buffer serialization test triggered");
+        RunFlatBufferSerializationTest();
+    }
     auto env = jsRuntime_.GetNapiEnv();
 
     napi_value obj = jsAbilityObj_->GetNapiValue();
@@ -2760,6 +2765,159 @@ void JsUIAbility::HandleNativeModule(napi_env env)
     } else {
         TAG_LOGE(AAFwkTag::UIABILITY, "ApplicationContext is null");
     }
+}
+
+void JsUIAbility::RunFlatBufferSerializationTest()
+{
+    auto *vm = jsRuntime_.GetEcmaVm();
+    if (vm == nullptr) {
+        TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest: EcmaVM is null, skip");
+        return;
+    }
+
+    int32_t passed = 0;
+    int32_t failed = 0;
+    TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest: BEGIN");
+
+    // Test 1: Double
+    {
+        size_t outSize = 0;
+        double expected = 42.5;
+        Local<JSValueRef> value(NumberRef::New(vm, expected));
+        Local<JSValueRef> transfer(JSValueRef::Undefined(vm));
+        Local<JSValueRef> cloneList(JSValueRef::Undefined(vm));
+        uint8_t *buf = JSNApi::SerializeValue(vm, value, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest Double: FAIL (serialize returned null)");
+            failed++;
+        } else {
+            Local<JSValueRef> result = JSNApi::DeserializeValue(vm, buf, nullptr);
+            bool ok = result->IsNumber() && Local<NumberRef>(result)->Value() == expected;
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest Double: %{public}s (%{public}.1f, %{public}zu bytes)",
+                ok ? "PASS" : "FAIL", expected, outSize);
+            ok ? passed++ : failed++;
+            free(buf);
+        }
+    }
+
+    // Test 2: String
+    {
+        size_t outSize = 0;
+        const char *expected = "hello serialize";
+        Local<JSValueRef> value(StringRef::NewFromUtf8(vm, expected));
+        Local<JSValueRef> transfer(JSValueRef::Undefined(vm));
+        Local<JSValueRef> cloneList(JSValueRef::Undefined(vm));
+        uint8_t *buf = JSNApi::SerializeValue(vm, value, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest String: FAIL (serialize returned null)");
+            failed++;
+        } else {
+            Local<JSValueRef> result = JSNApi::DeserializeValue(vm, buf, nullptr);
+            std::string actual = Local<StringRef>(result)->ToString(vm);
+            bool ok = result->IsString(vm) && actual == std::string(expected);
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest String: %{public}s (\"%{public}s\", %{public}zu bytes)",
+                ok ? "PASS" : "FAIL", expected, outSize);
+            ok ? passed++ : failed++;
+            free(buf);
+        }
+    }
+
+    // Test 3: Object {x: 10, y: "abc"}
+    {
+        size_t outSize = 0;
+        Local<ObjectRef> obj = ObjectRef::New(vm);
+        obj->Set(vm, StringRef::NewFromUtf8(vm, "x"), NumberRef::New(vm, 10));
+        obj->Set(vm, StringRef::NewFromUtf8(vm, "y"), StringRef::NewFromUtf8(vm, "abc"));
+        Local<JSValueRef> transfer(JSValueRef::Undefined(vm));
+        Local<JSValueRef> cloneList(JSValueRef::Undefined(vm));
+        uint8_t *buf = JSNApi::SerializeValue(vm, obj, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest Object: FAIL (serialize returned null)");
+            failed++;
+        } else {
+            Local<JSValueRef> result = JSNApi::DeserializeValue(vm, buf, nullptr);
+            bool ok = result->IsObject(vm);
+            if (ok) {
+                auto resObj = Local<ObjectRef>(result);
+                Local<JSValueRef> xVal = resObj->Get(vm, StringRef::NewFromUtf8(vm, "x"));
+                Local<JSValueRef> yVal = resObj->Get(vm, StringRef::NewFromUtf8(vm, "y"));
+                ok = xVal->IsNumber() && xVal->Int32Value(vm) == 10 &&
+                     yVal->IsString(vm);
+            }
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest Object: %{public}s (%{public}zu bytes)",
+                ok ? "PASS" : "FAIL", outSize);
+            ok ? passed++ : failed++;
+            free(buf);
+        }
+    }
+
+    // Test 4: Array [1, 2, "three", false]
+    {
+        size_t outSize = 0;
+        uint32_t len = 4;
+        Local<ArrayRef> arr = ArrayRef::New(vm, len);
+        ArrayRef::SetValueAt(vm, arr, 0, NumberRef::New(vm, 1.0));
+        ArrayRef::SetValueAt(vm, arr, 1, NumberRef::New(vm, 2.0));
+        ArrayRef::SetValueAt(vm, arr, 2, StringRef::NewFromUtf8(vm, "three"));
+        ArrayRef::SetValueAt(vm, arr, 3, BooleanRef::New(vm, false));
+        Local<JSValueRef> transfer(JSValueRef::Undefined(vm));
+        Local<JSValueRef> cloneList(JSValueRef::Undefined(vm));
+        uint8_t *buf = JSNApi::SerializeValue(vm, arr, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest Array: FAIL (serialize returned null)");
+            failed++;
+        } else {
+            Local<JSValueRef> result = JSNApi::DeserializeValue(vm, buf, nullptr);
+            bool ok = result->IsArray(vm);
+            if (ok) {
+                auto resArr = Local<ArrayRef>(result);
+                ok = resArr->Length(vm) == len &&
+                     ArrayRef::GetValueAt(vm, resArr, 0)->Int32Value(vm) == 1 &&
+                     ArrayRef::GetValueAt(vm, resArr, 1)->Int32Value(vm) == 2 &&
+                     ArrayRef::GetValueAt(vm, resArr, 2)->IsString(vm) &&
+                     ArrayRef::GetValueAt(vm, resArr, 3)->IsFalse();
+            }
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest Array: %{public}s (%{public}zu bytes)",
+                ok ? "PASS" : "FAIL", outSize);
+            ok ? passed++ : failed++;
+            free(buf);
+        }
+    }
+
+    // Test 5: Multiple deserializes from same buffer
+    {
+        size_t outSize = 0;
+        const char *expected = "multi-deserialize";
+        Local<JSValueRef> value(StringRef::NewFromUtf8(vm, expected));
+        Local<JSValueRef> transfer(JSValueRef::Undefined(vm));
+        Local<JSValueRef> cloneList(JSValueRef::Undefined(vm));
+        uint8_t *buf = JSNApi::SerializeValue(vm, value, transfer, cloneList,
+            false, true, false, outSize);
+        if (buf == nullptr || outSize == 0) {
+            TAG_LOGE(AAFwkTag::UIABILITY, "FlatBufferTest MultiDeserialize: FAIL (serialize returned null)");
+            failed++;
+        } else {
+            bool ok = true;
+            for (int i = 0; i < 3; i++) {
+                Local<JSValueRef> result = JSNApi::DeserializeValue(vm, buf, nullptr);
+                std::string actual = Local<StringRef>(result)->ToString(vm);
+                if (!result->IsString(vm) || actual != std::string(expected)) {
+                    ok = false;
+                    break;
+                }
+            }
+            TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest MultiDeserialize: %{public}s (3x)",
+                ok ? "PASS" : "FAIL");
+            ok ? passed++ : failed++;
+            free(buf);
+        }
+    }
+
+    TAG_LOGI(AAFwkTag::UIABILITY, "FlatBufferTest: END passed=%{public}d failed=%{public}d", passed, failed);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS
