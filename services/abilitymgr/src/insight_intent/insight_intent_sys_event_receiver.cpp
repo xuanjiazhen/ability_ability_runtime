@@ -25,6 +25,7 @@
 #include "bundle_mgr_helper.h"
 #include "insight_intent_db_cache.h"
 #include "ffrt.h"
+#include <chrono>
 
 namespace OHOS {
 namespace AbilityRuntime {
@@ -59,7 +60,9 @@ void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
             moduleNameLocal, profile, userId));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::INTENT, "GetJsonProfile failed, code: %{public}d", ret);
-            DeleteInsightIntent(bundleName, moduleNameLocal, userId);
+            if (DelayedSingleton<InsightIntentDbCache>::GetInstance()->HasBundleCache(bundleName)) {
+                DeleteInsightIntent(bundleName, moduleNameLocal, userId);
+            }
             continue;
         }
 
@@ -110,6 +113,7 @@ void InsightIntentSysEventReceiver::DeleteInsightIntent(const std::string &bundl
 
 void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
 {
+    auto totalStart = std::chrono::steady_clock::now();
     std::lock_guard<std::mutex> lock(userIdMutex_);
     if (userId == -1) {
         userId = AppExecFwk::OsAccountManagerWrapper::GetCurrentActiveAccountId();
@@ -155,6 +159,10 @@ void InsightIntentSysEventReceiver::LoadInsightIntentInfos(int32_t userId)
     if (hasNewIntent) {
         DelayedSingleton<AbilityRuntime::InsightIntentDbCache>::GetInstance()->BackupRdb();
     }
+    auto totalEnd = std::chrono::steady_clock::now();
+    auto totalCost = std::chrono::duration_cast<std::chrono::milliseconds>(totalEnd - totalStart);
+    TAG_LOGI(AAFwkTag::INTENT, "LoadInsightIntentInfos cost %{public}lldms, userId: %{public}d",
+        static_cast<long long>(totalCost.count()), userId);
 }
 
 void InsightIntentSysEventReceiver::DeleteInsightIntentInfoByUserId(int32_t userId)
@@ -171,7 +179,15 @@ void InsightIntentSysEventReceiver::DeleteInsightIntentInfoByUserId(int32_t user
 
 void InsightIntentSysEventReceiver::HandleBundleScanFinished()
 {
-    auto task = [self = shared_from_this()]() { self->LoadInsightIntentInfos(); };
+    auto task = [self = shared_from_this()]() {
+        auto startTime = std::chrono::steady_clock::now();
+        TAG_LOGI(AAFwkTag::INTENT, "BundleScanFinished: LoadInsightIntentInfos start");
+        self->LoadInsightIntentInfos();
+        auto endTime = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+        TAG_LOGI(AAFwkTag::INTENT, "BundleScanFinished: LoadInsightIntentInfos cost %{public}lldms",
+            static_cast<long long>(duration.count()));
+    };
     ffrt::submit(task);
 }
 
@@ -191,7 +207,15 @@ void InsightIntentSysEventReceiver::HandleUserSwitched(const EventFwk::CommonEve
     TAG_LOGI(AAFwkTag::INTENT, "userId: %{public}d switch to  current userId: %{public}d", lastUserId_, userId);
     lastUserId_ = userId;
 
-    auto task = [self = shared_from_this(), userId]() { self->LoadInsightIntentInfos(userId); };
+    auto task = [self = shared_from_this(), userId]() {
+        auto startTime = std::chrono::steady_clock::now();
+        TAG_LOGI(AAFwkTag::INTENT, "UserSwitched: LoadInsightIntentInfos start, userId: %{public}d", userId);
+        self->LoadInsightIntentInfos(userId);
+        auto endTime = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+        TAG_LOGI(AAFwkTag::INTENT, "UserSwitched: LoadInsightIntentInfos cost %{public}lldms, userId: %{public}d",
+            static_cast<long long>(duration.count()), userId);
+    };
     ffrt::submit(task);
 }
 
