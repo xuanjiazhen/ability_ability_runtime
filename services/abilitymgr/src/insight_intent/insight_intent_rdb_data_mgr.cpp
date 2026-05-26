@@ -77,6 +77,9 @@ std::shared_ptr<NativeRdb::RdbStore> InsightIntentRdbDataMgr::GetRdbStore()
 
 bool InsightIntentRdbDataMgr::IsIntentRdbLoaded()
 {
+    if (rdbStore_ != nullptr) {
+        return true;
+    }
     auto rdbStore = GetRdbStore();
     if (rdbStore == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "RdbStore is null");
@@ -84,8 +87,7 @@ bool InsightIntentRdbDataMgr::IsIntentRdbLoaded()
     }
     std::string createTableSql = "CREATE TABLE IF NOT EXISTS " + intentRdbConfig_.tableName
         + " (INTENT_KEY TEXT NOT NULL PRIMARY KEY, INTENT_VALUE TEXT NOT NULL);";
-    int32_t ret = NativeRdb::E_OK;
-    ret = rdbStore->ExecuteSql(createTableSql);
+    int32_t ret = rdbStore->ExecuteSql(createTableSql);
     if (ret != NativeRdb::E_OK) {
         TAG_LOGE(AAFwkTag::INTENT, "Create rdb table failed, ret:%{public}d", ret);
         return false;
