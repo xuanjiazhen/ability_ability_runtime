@@ -61,7 +61,9 @@ void InsightIntentSysEventReceiver::SaveInsightIntentInfos(const std::string &bu
             moduleNameLocal, profile, userId));
         if (ret != ERR_OK) {
             TAG_LOGE(AAFwkTag::INTENT, "GetJsonProfile failed, code: %{public}d", ret);
-            DeleteInsightIntent(bundleName, moduleNameLocal, userId);
+            if (DelayedSingleton<InsightIntentDbCache>::GetInstance()->HasBundleCache(bundleName)) {
+                DeleteInsightIntent(bundleName, moduleNameLocal, userId);
+            }
             continue;
         }
 
