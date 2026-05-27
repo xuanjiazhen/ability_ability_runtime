@@ -865,7 +865,8 @@ ImageError AppMgrServiceInner::DestroyImageByImageInfo(std::shared_ptr<ForkImage
     return ImageError::ERR_OK;
 }
 
-ImageError AppMgrServiceInner::DestroyImageForFault(const std::shared_ptr<AppRunningRecord> appRecord)
+ImageError AppMgrServiceInner::DestroyImageForFault(const std::shared_ptr<AppRunningRecord> appRecord,
+    bool isCrashReason)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     std::lock_guard guard(imageSerialLock_);
@@ -893,8 +894,13 @@ ImageError AppMgrServiceInner::DestroyImageForFault(const std::shared_ptr<AppRun
         TAG_LOGE(AAFwkTag::APPMGR, "kill process failed");
         return ImageError::ERR_KILL_IMAGE_PROCESS_FAILED;
     }
-    DelayedSingleton<AppStateObserverManager>::GetInstance()->OnImageProcessStateChanged(
-        imageInfo, ImageProcessState::IMAGE_PROCESS_TERMINATED);
+    if (!isCrashReason) {
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnImageProcessStateChanged(
+            imageInfo, ImageProcessState::IMAGE_PROCESS_TERMINATED);        
+    } else {
+        DelayedSingleton<AppStateObserverManager>::GetInstance()->OnImageProcessStateChanged(
+            imageInfo, ImageProcessState::IMAGE_PROCESS_TERMINATED_CRASH);
+    }
     return ImageError::ERR_OK;
 }
 
@@ -8034,10 +8040,11 @@ void AppMgrServiceInner::SubmitDestroyImageTask(const std::shared_ptr<AppRunning
         TAG_LOGD(AAFwkTag::APPMGR, "submit DestroyImageTask image not exist.");
         return;
     }
+    bool isCrashReason = IsCrashReason(reason);
     TAG_LOGI(AAFwkTag::APPMGR, "submit DestroyImageTask, %{public}s_%{public}d_%{public}d, reason=%{public}d "
             "exitMsg=%{public}s", bundleName.c_str(), userId, appIndex, reason, exitMsg.c_str());
-    auto task = [appRecord, innerService = shared_from_this()]() {
-        innerService->DestroyImageForFault(appRecord);
+    auto task = [appRecord, isCrashReason, innerService = shared_from_this()]() {
+        innerService->DestroyImageForFault(appRecord, isCrashReason);
     };
     taskHandler_->SubmitTask(task, AAFwk::TaskQoS::USER_INTERACTIVE);
 }
@@ -13033,6 +13040,20 @@ void AppMgrServiceInner::CancelDelayedExitTask(int32_t pid)
             taskHandler_->CancelTask("DELAY_EXIT_UI_PROCESS_" + std::to_string(appRecord->GetRecordId()));
         }
     }
+}
+
+bool AppMgrServiceInner::IsCrashReason(const int32_t reason)
+{
+    if (reason == static_cast<int>(OHOS::AAFwk::Reason::REASON_JS_ERROR) ||
+        reason == static_cast<int>(OHOS::AAFwk::Reason::REASON_APP_FREEZE) ||
+        reason == static_cast<int>(OHOS::AAFwk::Reason::REASON_CPP_CRASH)) {
+        return true;
+    }
+    if (reason >= static_cast<int>(OHOS::HiviewDFX::ProcessKillReason::KillEventId::REASON_THREAD_BLOCK_6S) &&
+        reason <= static_cast<int>(OHOS::HiviewDFX::ProcessKillReason::KillEventId::REASON_CPP_CRASH)) {
+        return true;
+    }
+    return false;
 }
 } // namespace AppExecFwk
 }  // namespace OHOS
