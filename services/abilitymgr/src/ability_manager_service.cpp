@@ -193,6 +193,10 @@ namespace {
 #define IS_FOUNDATION_CALL  \
     PermissionVerification::GetInstance()->CheckSpecificSystemAbilityAccessPermission(FOUNDATION_PROCESS_NAME)
 
+// edm autoStartup
+constexpr const char* IS_ENTERPRISE_DEVICE = "const.edm.is_enterprise_device";
+constexpr const char* PHONE_PRODUCT_SUPPORT_AUTOSTARTUP = "const.abilityms.enable_auto_startup";
+
 constexpr const char* ARGS_USER_ID = "-u";
 constexpr const char* ARGS_CLIENT = "-c";
 constexpr const char* ILLEGAL_INFORMATION = "The arguments are illegal and you can enter '-h' for help.";
@@ -14732,6 +14736,11 @@ int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupI
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
     }
+    if (!system::GetBoolParameter(IS_ENTERPRISE_DEVICE, false) &&
+        system::GetBoolParameter(PHONE_PRODUCT_SUPPORT_AUTOSTARTUP, false)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "only can set in edm mode");
+        return CHECK_PERMISSION_FAILED;
+    }
     return abilityAutoStartupService_->SetApplicationAutoStartupByEDM(info, flag, isHiddenStart);
 }
 
@@ -14740,6 +14749,11 @@ int32_t AbilityManagerService::CancelApplicationAutoStartupByEDM(const AutoStart
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
+    }
+    if (!system::GetBoolParameter(IS_ENTERPRISE_DEVICE, false) &&
+        system::GetBoolParameter(PHONE_PRODUCT_SUPPORT_AUTOSTARTUP, false)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "only can cancel in edm mode");
+        return CHECK_PERMISSION_FAILED;
     }
     return abilityAutoStartupService_->CancelApplicationAutoStartupByEDM(info, flag);
 }
