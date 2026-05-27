@@ -18,7 +18,9 @@
 #include <map>
 #include <mutex>
 
+#include "ability_business_error.h"
 #include "ability_connection.h"
+#include "ability_manager_errors.h"
 #include "agent_connection_manager.h"
 #include "agent_extension_connection_constants.h"
 #include "agent_manager_client.h"
@@ -57,6 +59,70 @@ std::mutex g_serviceConnectionsLock;
 class JSAgentServiceConnection;
 std::map<int64_t, sptr<JSAgentServiceConnection>> g_serviceConnections;
 int64_t g_serviceConnectionSerialNumber = 0;
+
+enum class AgentManagerErrorOperation {
+    READ_AGENT_CARDS,
+    REGISTER_AGENT_CARD,
+    UPDATE_AGENT_CARD,
+    DELETE_AGENT_CARD,
+    CONNECT_AGENT_EXTENSION,
+    DISCONNECT_AGENT_EXTENSION,
+    DISCONNECT_SERVICE_EXTENSION,
+    COMPLETE_LOW_CODE_AGENT,
+};
+
+AbilityInnerErrorMsg GetOperationFailureMessage(AgentManagerErrorOperation operation)
+{
+    switch (operation) {
+        case AgentManagerErrorOperation::READ_AGENT_CARDS:
+            return AbilityInnerErrorMsg::READ_AGENT_CARDS_FAILED;
+        case AgentManagerErrorOperation::REGISTER_AGENT_CARD:
+            return AbilityInnerErrorMsg::REGISTER_AGENT_CARD_FAILED;
+        case AgentManagerErrorOperation::UPDATE_AGENT_CARD:
+            return AbilityInnerErrorMsg::UPDATE_AGENT_CARD_FAILED;
+        case AgentManagerErrorOperation::DELETE_AGENT_CARD:
+            return AbilityInnerErrorMsg::DELETE_AGENT_CARD_FAILED;
+        case AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION:
+            return AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED;
+        case AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION:
+            return AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_FAILED;
+        case AgentManagerErrorOperation::DISCONNECT_SERVICE_EXTENSION:
+            return AbilityInnerErrorMsg::DISCONNECT_SERVICE_EXTENSION_FAILED;
+        case AgentManagerErrorOperation::COMPLETE_LOW_CODE_AGENT:
+            return AbilityInnerErrorMsg::COMPLETE_LOW_CODE_AGENT_FAILED;
+        default:
+            return AbilityInnerErrorMsg::COMPLETE_LOW_CODE_AGENT_FAILED;
+    }
+}
+
+napi_value CreateAgentManagerError(napi_env env, int32_t innerErrCode, AgentManagerErrorOperation operation)
+{
+    AbilityErrorCode errorCode = GetJsErrorCodeByNativeError(innerErrCode);
+    if (errorCode != AbilityErrorCode::ERROR_CODE_INNER) {
+        return CreateJsErrorByNativeErr(env, innerErrCode);
+    }
+
+    if (innerErrCode == AAFwk::ERR_NULL_AGENT_MGR_PROXY) {
+        return CreateJsError(env, static_cast<int32_t>(errorCode),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::AGENT_MANAGER_SERVICE_UNAVAILABLE));
+    }
+    if (innerErrCode == AAFwk::CONNECTION_NOT_EXIST) {
+        if (operation == AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION) {
+            return CreateJsError(env, static_cast<int32_t>(errorCode),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_NOT_EXIST));
+        }
+        if (operation == AgentManagerErrorOperation::COMPLETE_LOW_CODE_AGENT) {
+            return CreateJsError(env, static_cast<int32_t>(errorCode),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::COMPLETE_LOW_CODE_AGENT_FAILED));
+        }
+    }
+
+    std::string message = GetErrorMsgByNativeError(innerErrCode);
+    if (message == GetErrorMsg(AbilityErrorCode::ERROR_CODE_INNER)) {
+        message = GetInnerErrorMsg(GetOperationFailureMessage(operation));
+    }
+    return CreateJsError(env, static_cast<int32_t>(errorCode), message);
+}
 
 class JSAgentServiceConnection final : public AbilityConnection {
 public:
@@ -281,7 +347,8 @@ void DoConnectAgentExtensionAbility(napi_env env,
     AbilityErrorCode errcode = AbilityRuntime::GetJsErrorCodeByNativeError(innerErrCode);
     if (errcode != AbilityErrorCode::ERROR_OK) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "ConnectAgentExtensionAbility failed: %{public}d", errcode);
-        napi_value error = CreateJsError(env, errcode);
+        napi_value error =
+            CreateAgentManagerError(env, innerErrCode, AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION);
         asyncTaskShared->Reject(env, error);
         AgentConnectionUtils::RemoveAgentConnection(connectionId);
     }
@@ -343,7 +410,8 @@ napi_value JsAgentManager::OnGetAllAgentCards(napi_env env, size_t argc, napi_va
         napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "error: %{public}d", *innerErrorCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
+            task.Reject(env, CreateAgentManagerError(
+                env, *innerErrorCode, AgentManagerErrorOperation::READ_AGENT_CARDS));
             return;
         }
         TAG_LOGI(AAFwkTag::SER_ROUTER, "cards.size: %{public}zu", cards->size());
@@ -380,7 +448,8 @@ napi_value JsAgentManager::OnGetAgentCardsByBundleName(napi_env env, size_t argc
         napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "error: %{public}d", *innerErrorCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
+            task.Reject(env, CreateAgentManagerError(
+                env, *innerErrorCode, AgentManagerErrorOperation::READ_AGENT_CARDS));
             return;
         }
         TAG_LOGI(AAFwkTag::SER_ROUTER, "cards.size: %{public}zu", cards->size());
@@ -424,7 +493,8 @@ napi_value JsAgentManager::OnGetAgentCardByAgentId(napi_env env, size_t argc, na
         napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "error: %{public}d", *innerErrorCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
+            task.Reject(env, CreateAgentManagerError(
+                env, *innerErrorCode, AgentManagerErrorOperation::READ_AGENT_CARDS));
             return;
         }
         task.ResolveWithNoError(env, CreateJsAgentCard(env, *card));
@@ -458,7 +528,8 @@ napi_value JsAgentManager::OnRegisterAgentCard(napi_env env, size_t argc, napi_v
     NapiAsyncTask::CompleteCallback complete = [innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "error: %{public}d", *innerErrorCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
+            task.Reject(env, CreateAgentManagerError(
+                env, *innerErrorCode, AgentManagerErrorOperation::REGISTER_AGENT_CARD));
             return;
         }
         task.ResolveWithNoError(env, CreateJsUndefined(env));
@@ -492,7 +563,8 @@ napi_value JsAgentManager::OnUpdateAgentCard(napi_env env, size_t argc, napi_val
     NapiAsyncTask::CompleteCallback complete = [innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "error: %{public}d", *innerErrorCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
+            task.Reject(env, CreateAgentManagerError(
+                env, *innerErrorCode, AgentManagerErrorOperation::UPDATE_AGENT_CARD));
             return;
         }
         task.ResolveWithNoError(env, CreateJsUndefined(env));
@@ -533,7 +605,8 @@ napi_value JsAgentManager::OnDeleteAgentCard(napi_env env, size_t argc, napi_val
     NapiAsyncTask::CompleteCallback complete = [innerErrorCode](napi_env env, NapiAsyncTask &task, int32_t status) {
         if (*innerErrorCode != ERR_OK) {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "error: %{public}d", *innerErrorCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
+            task.Reject(env, CreateAgentManagerError(
+                env, *innerErrorCode, AgentManagerErrorOperation::DELETE_AGENT_CARD));
             return;
         }
         task.ResolveWithNoError(env, CreateJsUndefined(env));
@@ -742,7 +815,8 @@ napi_value JsAgentManager::OnDisconnectAgentExtensionAbility(napi_env env, size_
             task.ResolveWithNoError(env, CreateJsUndefined(env));
         } else {
             TAG_LOGE(AAFwkTag::SER_ROUTER, "Disconnect failed: %{public}d", *innerErrCode);
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateAgentManagerError(
+                env, *innerErrCode, AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION));
         }
     };
 
@@ -843,7 +917,8 @@ napi_value JsAgentManager::OnDisconnectServiceExtensionAbility(napi_env env, siz
             task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_PARAM));
             return;
         }
-        task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+        task.Reject(env, CreateAgentManagerError(
+            env, *innerErrCode, AgentManagerErrorOperation::DISCONNECT_SERVICE_EXTENSION));
     };
 
     napi_value result = nullptr;
@@ -873,7 +948,8 @@ napi_value JsAgentManager::OnNotifyLowCodeAgentComplete(napi_env env, size_t arg
         if (*innerErrCode == ERR_OK) {
             task.ResolveWithNoError(env, CreateJsUndefined(env));
         } else {
-            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+            task.Reject(env, CreateAgentManagerError(
+                env, *innerErrCode, AgentManagerErrorOperation::COMPLETE_LOW_CODE_AGENT));
         }
     };
 

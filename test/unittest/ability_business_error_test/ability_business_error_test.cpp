@@ -150,6 +150,31 @@ HWTEST_F(AbilityBusinessErrorTest, GetInnerErrorMsg_0100, TestSize.Level2)
         "Internal error. Failed to create the caller object. Try again later.");
     EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED),
         "Internal error. Failed to restore the window stage. Check the local storage object and try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::AGENT_MANAGER_SERVICE_UNAVAILABLE),
+        "Internal error. The agent manager service is unavailable. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::READ_AGENT_CARDS_FAILED),
+        "Internal error. Failed to read AgentCards. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_AGENT_CARD_FAILED),
+        "Internal error. Failed to register the AgentCard. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::UPDATE_AGENT_CARD_FAILED),
+        "Internal error. Failed to update the AgentCard. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::DELETE_AGENT_CARD_FAILED),
+        "Internal error. Failed to delete the AgentCard. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED),
+        "Internal error. Failed to connect to the agent extension ability. Verify the target and try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_AGENT_EXTENSION_PROXY_FAILED),
+        "Internal error. Failed to create the agent extension proxy. Connect again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED),
+        "Internal error. The agent extension connection ended before it was ready. Connect again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_NOT_EXIST),
+        "Internal error. The agent extension connection does not exist. "
+        "Use an AgentProxy returned by connectAgentExtensionAbility.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_FAILED),
+        "Internal error. Failed to disconnect the agent extension ability. Try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_SERVICE_EXTENSION_FAILED),
+        "Internal error. Failed to disconnect the service extension ability. Try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::COMPLETE_LOW_CODE_AGENT_FAILED),
+        "Internal error. Failed to complete the low-code agent operation. Try again.");
 }
 }  // namespace AAFwk
 }  // namespace OHOS
