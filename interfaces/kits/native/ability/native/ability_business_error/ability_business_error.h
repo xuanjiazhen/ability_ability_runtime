@@ -345,6 +345,29 @@ enum class AbilityInnerErrorMsg {
     RESTORE_WINDOW_STAGE_FAILED,
     SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED,
     WRAP_ABILITY_RESULT_FAILED,
+    AGENT_MANAGER_SERVICE_UNAVAILABLE,
+    READ_AGENT_CARDS_FAILED,
+    REGISTER_AGENT_CARD_FAILED,
+    UPDATE_AGENT_CARD_FAILED,
+    DELETE_AGENT_CARD_FAILED,
+    CONNECT_AGENT_EXTENSION_FAILED,
+    CREATE_AGENT_EXTENSION_PROXY_FAILED,
+    AGENT_EXTENSION_CONNECTION_ENDED,
+    DISCONNECT_AGENT_EXTENSION_NOT_EXIST,
+    DISCONNECT_AGENT_EXTENSION_FAILED,
+    DISCONNECT_SERVICE_EXTENSION_FAILED,
+    COMPLETE_LOW_CODE_AGENT_FAILED,
+};
+
+enum class AgentManagerErrorOperation {
+    READ_AGENT_CARDS,
+    REGISTER_AGENT_CARD,
+    UPDATE_AGENT_CARD,
+    DELETE_AGENT_CARD,
+    CONNECT_AGENT_EXTENSION,
+    DISCONNECT_AGENT_EXTENSION,
+    DISCONNECT_SERVICE_EXTENSION,
+    COMPLETE_LOW_CODE_AGENT,
 };
 
 std::string GetErrorMsg(const AbilityErrorCode& errCode);
@@ -353,6 +376,7 @@ AbilityErrorCode GetJsErrorCodeByNativeError(int32_t errCode);
 std::string GetInnerErrorMsg(AbilityInnerErrorMsg innerErrMsg);
 std::string GetErrorMsgByNativeError(int32_t errCode, const std::string& innerErrMsg = "",
     const std::string& permission = "");
+std::string GetAgentManagerErrorMsg(int32_t errCode, AgentManagerErrorOperation operation);
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif
