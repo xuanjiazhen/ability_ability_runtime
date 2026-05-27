@@ -301,6 +301,8 @@ constexpr const char* VPN_PERMISSION_IF = "libnet_vpn_permission_if.z.so";
 constexpr const char* INTENT_USER_ID = "ohos.insightIntent.userId";
 constexpr const char* START_SELF_UI_ABILITY_IN_CHILD_PROCESS_FLAG = "startSelfUIAbilityInChildProcessFlag";
 constexpr const char* DMS_CALLER_APP_ID = "ohos.dms.param.sourceCallerAppId";
+constexpr const char* IS_ENTERPRISE_DEVICE = "const.edm.is_enterprise_device";
+constexpr const char* PHONE_PRODUCT_SUPPORT_AUTOSTARTUP = "const.abilityms.enable_auto_startup";
 
 using RequestVpnPermission = int32_t (*)(int32_t, const std::string &, const std::string &, bool &);
 
@@ -14732,6 +14734,11 @@ int32_t AbilityManagerService::SetApplicationAutoStartupByEDM(const AutoStartupI
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
     }
+    if (!system::GetBoolParameter(IS_ENTERPRISE_DEVICE, false) &&
+        system::GetBoolParameter(PHONE_PRODUCT_SUPPORT_AUTOSTARTUP, false)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "only can set in edm mode");
+        return CHECK_PERMISSION_FAILED;
+    }
     return abilityAutoStartupService_->SetApplicationAutoStartupByEDM(info, flag, isHiddenStart);
 }
 
@@ -14740,6 +14747,11 @@ int32_t AbilityManagerService::CancelApplicationAutoStartupByEDM(const AutoStart
     if (abilityAutoStartupService_ == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityAutoStartupService_ null");
         return ERR_NO_INIT;
+    }
+    if (!system::GetBoolParameter(IS_ENTERPRISE_DEVICE, false) &&
+        system::GetBoolParameter(PHONE_PRODUCT_SUPPORT_AUTOSTARTUP, false)) {
+        TAG_LOGE(AAFwkTag::ABILITYMGR, "only can cancel in edm mode");
+        return CHECK_PERMISSION_FAILED;
     }
     return abilityAutoStartupService_->CancelApplicationAutoStartupByEDM(info, flag);
 }
