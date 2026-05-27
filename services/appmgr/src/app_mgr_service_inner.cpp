@@ -2241,6 +2241,13 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
     }
     guard.appRecord_ = appRecord;
     AfterLoadAbility(appRecord, abilityInfo, loadParam, isProcessReuse);
+
+    if (isProcessReuse && AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo->extensionAbilityType)) {
+        auto abilityRunningRecord = appRecord->GetAbilityRunningRecordByToken(loadParam->token);
+        if (abilityRunningRecord != nullptr) {
+            abilityRunningRecord->SetUIExtensionLoading(true);
+        }
+    }
 }
 
 void AppMgrServiceInner::ReportUIExtensionProcColdStartToRss(const std::shared_ptr<AbilityInfo>& abilityInfo,
@@ -2309,6 +2316,12 @@ void AppMgrServiceInner::AfterLoadAbility(std::shared_ptr<AppRunningRecord> appR
     //UIExtension notifies Extension & Ability state changes
     if (AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo->extensionAbilityType)) {
         UpdateExtensionState(loadParam->token, ExtensionState::EXTENSION_STATE_CREATE);
+        if (isProcessReuse) {
+            auto abilityRunningRecord = appRecord->GetAbilityRunningRecordByToken(loadParam->token);
+            if (abilityRunningRecord != nullptr) {
+                abilityRunningRecord->SetUIExtensionLoading(true);
+            }
+        }
     }
     appRecord->UpdateAbilityState(loadParam->token, AbilityState::ABILITY_STATE_CREATE);
 }
@@ -4493,6 +4506,14 @@ int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::st
     AAFwk::RecordCostTimeUtil timeRecord("KillProcessByPidInner");
     int32_t ret = -1;
     if (pid > 0) {
+        if (appRecord) {
+            for (const auto &[token, ability] : appRecord->GetAbilities()) {
+                if (ability && ability->IsUIExtensionLoading()) {
+                    TAG_LOGI(AAFwkTag::APPMGR, "skip kill, UIExtension loading, pid:%{public}d", pid);
+                    return ERR_OK;
+                }
+            }
+        }
         if (CheckIsThreadInFoundation(pid)) {
             TAG_LOGI(AAFwkTag::APPMGR, "don't kill pid %{public}d", pid);
             return AAFwk::ERR_KILL_FOUNDATION_UID;
@@ -4789,6 +4810,13 @@ void AppMgrServiceInner::UpdateExtensionState(const sptr<IRemoteObject> &token, 
         TAG_LOGE(AAFwkTag::APPMGR, "can't find record");
         return;
     }
+
+    if (abilityRecord->GetAbilityInfo() &&
+        AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType) &&
+        abilityRecord->IsUIExtensionLoading()) {
+        abilityRecord->SetUIExtensionLoading(false);
+    }
+
     appRecord->StateChangedNotifyObserver(abilityRecord, static_cast<int32_t>(state), false, false);
 }
 

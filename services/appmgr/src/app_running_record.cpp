@@ -936,6 +936,11 @@ void AppRunningRecord::UpdateAbilityState(const sptr<IRemoteObject> &token, cons
     }
 
     if (state == AbilityState::ABILITY_STATE_FOREGROUND) {
+        if (abilityRecord->GetAbilityInfo() &&
+            AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType) &&
+            abilityRecord->IsUIExtensionLoading()) {
+            abilityRecord->SetUIExtensionLoading(false);
+        }
         AbilityForeground(abilityRecord);
     } else if (state == AbilityState::ABILITY_STATE_BACKGROUND) {
         AbilityBackground(abilityRecord, isFromScreenOffBackground);
