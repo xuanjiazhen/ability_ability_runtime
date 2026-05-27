@@ -15,6 +15,7 @@
 
 #include "js_agent_connection.h"
 
+#include "ability_business_error.h"
 #include "agent_extension_connection_constants.h"
 #include "hilog_tag_wrapper.h"
 #include "js_agent_connector_stub_impl.h"
@@ -32,6 +33,14 @@ constexpr int32_t ARGC_ONE = 1;
 static std::map<ConnectionKey, sptr<JSAgentConnection>, KeyCompare> g_agentConnects;
 static std::recursive_mutex g_agentConnectsLock_;
 static int64_t g_agentSerialNumber = 0;
+
+napi_value CreateConnectResultError(
+    napi_env env, int32_t innerErrCode, AbilityRuntime::AbilityInnerErrorMsg fallbackMessage)
+{
+    auto errorCode = AbilityRuntime::GetJsErrorCodeByNativeError(innerErrCode);
+    return CreateJsError(env, static_cast<int32_t>(errorCode),
+        AbilityRuntime::GetErrorMsgByNativeError(innerErrCode, AbilityRuntime::GetInnerErrorMsg(fallbackMessage)));
+}
 } // namespace
 
 namespace AgentConnectionUtils {
@@ -156,21 +165,41 @@ void JSAgentConnection::HandleOnAbilityConnectDone(const AppExecFwk::ElementName
     const sptr<IRemoteObject> &remoteObject, int resultCode)
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "HandleOnAbilityConnectDone, resultCode: %{public}d", resultCode);
-    if (napiAsyncTask_ != nullptr) {
-        TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentReceiverProxy");
-        sptr<JsAgentConnectorStubImpl> hostStub = GetServiceHostStub();
-        sptr<IRemoteObject> hostProxy = nullptr;
-        if (hostStub != nullptr) {
-            hostProxy = hostStub->AsObject();
-        }
-        napi_value proxy = AgentRuntime::JsAgentReceiverProxy::CreateJsAgentReceiverProxy(env_, remoteObject,
-            connectionId_, hostProxy);
-        SetProxyObject(proxy);
-        napiAsyncTask_->ResolveWithNoError(env_, proxy);
-        ResolveDuplicatedPendingTask(env_, proxy);
-    } else {
+    if (napiAsyncTask_ == nullptr) {
         TAG_LOGE(AAFwkTag::SER_ROUTER, "napiAsyncTask_ is null");
+        return;
     }
+    if (resultCode != static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_OK)) {
+        napi_value error = CreateConnectResultError(
+            env_, resultCode, AbilityRuntime::AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED);
+        napiAsyncTask_->Reject(env_, error);
+        RejectDuplicatedPendingTask(env_, error);
+        napiAsyncTask_ = nullptr;
+        AgentConnectionUtils::RemoveAgentConnection(connectionId_);
+        return;
+    }
+
+    TAG_LOGD(AAFwkTag::SER_ROUTER, "Creating JsAgentReceiverProxy");
+    sptr<JsAgentConnectorStubImpl> hostStub = GetServiceHostStub();
+    sptr<IRemoteObject> hostProxy = nullptr;
+    if (hostStub != nullptr) {
+        hostProxy = hostStub->AsObject();
+    }
+    napi_value proxy = AgentRuntime::JsAgentReceiverProxy::CreateJsAgentReceiverProxy(env_, remoteObject,
+        connectionId_, hostProxy);
+    if (proxy == nullptr) {
+        napi_value error = CreateConnectResultError(env_,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
+            AbilityRuntime::AbilityInnerErrorMsg::CREATE_AGENT_EXTENSION_PROXY_FAILED);
+        napiAsyncTask_->Reject(env_, error);
+        RejectDuplicatedPendingTask(env_, error);
+        napiAsyncTask_ = nullptr;
+        AgentConnectionUtils::RemoveAgentConnection(connectionId_);
+        return;
+    }
+    SetProxyObject(proxy);
+    napiAsyncTask_->ResolveWithNoError(env_, proxy);
+    ResolveDuplicatedPendingTask(env_, proxy);
     napiAsyncTask_ = nullptr;
 }
 
@@ -197,7 +226,9 @@ void JSAgentConnection::HandleOnAbilityDisconnectDone(const AppExecFwk::ElementN
 {
     TAG_LOGI(AAFwkTag::SER_ROUTER, "HandleOnAbilityDisconnectDone, resultCode: %{public}d", resultCode);
     if (napiAsyncTask_ != nullptr) {
-        napi_value innerError = CreateJsError(env_, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
+        napi_value innerError = CreateConnectResultError(env_,
+            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
+            AbilityRuntime::AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED);
         napiAsyncTask_->Reject(env_, innerError);
         RejectDuplicatedPendingTask(env_, innerError);
         napiAsyncTask_ = nullptr;
