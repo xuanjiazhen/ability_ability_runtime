@@ -901,5 +901,114 @@ HWTEST_F(PendingWantManagerSecondTest, GetWantSender_DifferentRequestCodes_0100,
     TAG_LOGI(AAFwkTag::TEST, "GetWantSender_DifferentRequestCodes_0100 end");
 }
 
+/**
+ * @tc.name: GetWantSender_WithPublisherUid_0100
+ * @tc.desc: Test GetWantSender correctly sets publisherUid on created PendingWantRecord
+ * @tc.type: FUNC
+ */
+HWTEST_F(PendingWantManagerSecondTest, GetWantSender_WithPublisherUid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetWantSender_WithPublisherUid_0100 start");
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    ASSERT_NE(pendingManager_, nullptr);
+
+    int32_t callingUid = 200;
+    int32_t uid = 100;
+    int32_t publisherUid = 100;
+
+    Want want;
+    ElementName element("device", "bundleName", "abilityName");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, static_cast<int32_t>(Flags::CONSTANT_FLAG), 0,
+            static_cast<int32_t>(OperationType::SEND_COMMON_EVENT));
+
+    auto sender = pendingManager_->GetWantSender(
+        callingUid, uid, true, wantSenderInfo, nullptr, 0, publisherUid);
+    ASSERT_NE(sender, nullptr);
+    EXPECT_EQ((int)pendingManager_->wantRecords_.size(), 1);
+
+    auto recordEntry = pendingManager_->wantRecords_.begin();
+    auto record = static_cast<PendingWantRecord*>(recordEntry->second.GetRefPtr());
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->GetPublisherUid(), publisherUid);
+
+    TAG_LOGI(AAFwkTag::TEST, "GetWantSender_WithPublisherUid_0100 end");
+}
+
+/**
+ * @tc.name: GetWantSender_UpdatePresent_PublisherUid_0100
+ * @tc.desc: Test UPDATE_PRESENT_FLAG path updates publisherUid on existing record
+ * @tc.type: FUNC
+ */
+HWTEST_F(PendingWantManagerSecondTest, GetWantSender_UpdatePresent_PublisherUid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetWantSender_UpdatePresent_PublisherUid_0100 start");
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    ASSERT_NE(pendingManager_, nullptr);
+
+    Want want;
+    ElementName element("device", "bundleName", "abilityName");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, static_cast<int32_t>(Flags::CONSTANT_FLAG), 0,
+            static_cast<int32_t>(OperationType::SEND_COMMON_EVENT));
+
+    auto sender1 = pendingManager_->GetWantSender(200, 100, true, wantSenderInfo, nullptr, 0, 100);
+    ASSERT_NE(sender1, nullptr);
+    EXPECT_EQ((int)pendingManager_->wantRecords_.size(), 1);
+
+    WantSenderInfo wantSenderInfo2 =
+        MakeWantSenderInfo(want,
+            static_cast<int32_t>(Flags::CONSTANT_FLAG) | static_cast<int32_t>(Flags::UPDATE_PRESENT_FLAG),
+            0, static_cast<int32_t>(OperationType::SEND_COMMON_EVENT));
+
+    auto sender2 = pendingManager_->GetWantSender(300, 200, true, wantSenderInfo2, nullptr, 0, 300);
+    EXPECT_EQ(sender2, sender1);
+
+    auto recordEntry = pendingManager_->wantRecords_.begin();
+    auto record = static_cast<PendingWantRecord*>(recordEntry->second.GetRefPtr());
+    ASSERT_NE(record, nullptr);
+    EXPECT_EQ(record->GetPublisherUid(), 300);
+
+    TAG_LOGI(AAFwkTag::TEST, "GetWantSender_UpdatePresent_PublisherUid_0100 end");
+}
+
+/**
+ * @tc.name: GetWantSender_NonCommonEvent_IgnoresPublisherUid_0100
+ * @tc.desc: Test non-SEND_COMMON_EVENT types still use callerUid regardless of publisherUid
+ * @tc.type: FUNC
+ */
+HWTEST_F(PendingWantManagerSecondTest, GetWantSender_NonCommonEvent_IgnoresPublisherUid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "GetWantSender_NonCommonEvent_IgnoresPublisherUid_0100 start");
+
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    ASSERT_NE(pendingManager_, nullptr);
+
+    int32_t callingUid = 200;
+    int32_t uid = 100;
+    int32_t publisherUid = 999;
+
+    Want want;
+    ElementName element("device", "bundleName", "abilityName");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, 0, 0, static_cast<int32_t>(OperationType::START_ABILITY));
+
+    auto sender = pendingManager_->GetWantSender(
+        callingUid, uid, true, wantSenderInfo, nullptr, 0, publisherUid);
+    ASSERT_NE(sender, nullptr);
+
+    SenderInfo senderInfo;
+    int32_t result = static_cast<PendingWantRecord*>(sender.GetRefPtr())->ExecuteOperation(
+        pendingManager_, senderInfo, want);
+    EXPECT_EQ(result, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "GetWantSender_NonCommonEvent_IgnoresPublisherUid_0100 end");
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
