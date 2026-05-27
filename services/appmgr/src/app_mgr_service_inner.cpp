@@ -1979,6 +1979,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    std::unique_lock<ffrt::mutex> lock;
+    if (abilityInfo && AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo->extensionAbilityType)) {
+        lock = std::unique_lock<ffrt::mutex>(uiExtensionLoadLock_);
+    }
     if (loadParam == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null loadParam");
         return;
@@ -5133,10 +5137,14 @@ int32_t AppMgrServiceInner::KillSubProcessBypid(const pid_t pid, const std::stri
 }
 
 int32_t AppMgrServiceInner::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason,
-    bool subProcess, bool isKillPrecedeStart)
+    bool subProcess, bool isKillPrecedeStart, bool shouldKillForeground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     int32_t ret = ERR_OK;
+    std::unique_lock<ffrt::mutex> lock;
+    if (reason == AppExecFwk::GlobalConstant::LOW_MEMORY_KILL && !shouldKillForeground) {
+        lock = std::unique_lock<ffrt::mutex>(uiExtensionLoadLock_);
+    }
     for (const auto& pid: pids) {
         auto appRecord = GetAppRunningRecordByPid(pid);
         if (appRecord != nullptr) {
