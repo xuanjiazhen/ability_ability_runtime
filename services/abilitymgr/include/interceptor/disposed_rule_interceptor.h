@@ -31,6 +31,8 @@ class DisposedRuleInterceptor : public IAbilityInterceptor,
 public:
     DisposedRuleInterceptor() = default;
     ~DisposedRuleInterceptor() = default;
+    static std::string GenerateTimeoutTaskName(int32_t uid);
+    static std::string GenerateEventTaskName(int32_t uid);
     ErrCode DoProcess(AbilityInterceptorParam param) override;
     void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
     {
@@ -43,7 +45,8 @@ private:
         AppExecFwk::DisposedRule &disposedRule);
     void FindNonBlockDisposedRule(const std::vector<AppExecFwk::DisposedRule> &disposedRuleList,
         AppExecFwk::DisposedRule &disposedRule);
-    ErrCode StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule, int32_t uid);
+    ErrCode StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule,
+        const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo);
     ErrCode CreateModalUIExtension(const Want &want, const sptr<IRemoteObject> &callerToken);
     void SetInterceptInfo(const Want &want, AppExecFwk::DisposedRule &disposedRule);
     bool IsSkipDisposeRule(const std::string &callerName, const AbilityInterceptorParam &param);
