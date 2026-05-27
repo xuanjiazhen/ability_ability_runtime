@@ -2512,7 +2512,6 @@ private:
     std::mutex uiExtensionBindReleationsLock_;
     ffrt::mutex uninstallOrUpgradeUidSetLock_;
     ffrt::mutex exitMasterProcessRoleLock_;
-    ffrt::mutex uiExtensionLoadLock_;
     std::shared_mutex startProcessLock_;
     bool isInitAppWaitingDebugListExecuted_ = false;
 
@@ -2525,6 +2524,8 @@ private:
     std::map<std::string, int32_t> imageStartReportMap_;
     std::chrono::steady_clock::time_point lastReportTime_ = std::chrono::steady_clock::now();
     int32_t imageStartCount_ {0};
+
+    ffrt::mutex uiExtensionLoadLock_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
