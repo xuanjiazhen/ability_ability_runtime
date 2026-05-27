@@ -126,7 +126,7 @@ HWTEST_F(AbilityBusinessErrorTest, GetErrorMsgByNativeError_0100, TestSize.Level
     const std::string innerErrMsg = "Internal error. Failed to start the ability. Try again later.";
     EXPECT_EQ(GetErrorMsgByNativeError(0), "OK.");
     EXPECT_EQ(GetErrorMsgByNativeError(-1000), "Internal error.");
-    EXPECT_EQ(GetErrorMsgByNativeError(-1000, innerErrMsg), "Internal error.");
+    EXPECT_EQ(GetErrorMsgByNativeError(-1000, innerErrMsg), innerErrMsg);
     EXPECT_EQ(GetErrorMsgByNativeError(AAFwk::CONNECTION_NOT_EXIST, innerErrMsg),
         "Internal error. The service connection does not exist. Use a connection ID returned by "
         "connectServiceExtensionAbility.");
@@ -150,6 +150,51 @@ HWTEST_F(AbilityBusinessErrorTest, GetInnerErrorMsg_0100, TestSize.Level2)
         "Internal error. Failed to create the caller object. Try again later.");
     EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED),
         "Internal error. Failed to restore the window stage. Check the local storage object and try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::AGENT_MANAGER_SERVICE_UNAVAILABLE),
+        "Internal error. The agent manager service is unavailable. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::READ_AGENT_CARDS_FAILED),
+        "Internal error. Failed to read AgentCards. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_AGENT_CARD_FAILED),
+        "Internal error. Failed to register the AgentCard. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::UPDATE_AGENT_CARD_FAILED),
+        "Internal error. Failed to update the AgentCard. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::DELETE_AGENT_CARD_FAILED),
+        "Internal error. Failed to delete the AgentCard. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED),
+        "Internal error. Failed to connect to the agent extension ability. Verify the target and try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_AGENT_EXTENSION_PROXY_FAILED),
+        "Internal error. Failed to create the agent extension proxy. Connect again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED),
+        "Internal error. The agent extension connection ended before it was ready. Connect again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_NOT_EXIST),
+        "Internal error. The agent extension connection does not exist. "
+        "Use an AgentProxy returned by connectAgentExtensionAbility.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_FAILED),
+        "Internal error. Failed to disconnect the agent extension ability. Try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_SERVICE_EXTENSION_FAILED),
+        "Internal error. Failed to disconnect the service extension ability. Try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::COMPLETE_LOW_CODE_AGENT_FAILED),
+        "Internal error. Failed to complete the low-code agent operation. Try again.");
+}
+
+/**
+ * @tc.name: GetAgentManagerErrorMsg_0100
+ * @tc.desc: Verify agentManager operation policy selects centralized messages without replacing mapped errors.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityBusinessErrorTest, GetAgentManagerErrorMsg_0100, TestSize.Level2)
+{
+    EXPECT_EQ(GetAgentManagerErrorMsg(-1000, AgentManagerErrorOperation::READ_AGENT_CARDS),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::READ_AGENT_CARDS_FAILED));
+    EXPECT_EQ(GetAgentManagerErrorMsg(AAFwk::ERR_NULL_AGENT_MGR_PROXY,
+        AgentManagerErrorOperation::READ_AGENT_CARDS),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::AGENT_MANAGER_SERVICE_UNAVAILABLE));
+    EXPECT_EQ(GetAgentManagerErrorMsg(AAFwk::CONNECTION_NOT_EXIST,
+        AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION),
+        GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_NOT_EXIST));
+    EXPECT_EQ(GetAgentManagerErrorMsg(AAFwk::ERR_MAX_AGENT_CONNECTIONS_REACHED,
+        AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION),
+        GetErrorMsg(AbilityErrorCode::ERROR_CODE_MAX_CONNECTIONS_REACHED));
 }
 }  // namespace AAFwk
 }  // namespace OHOS

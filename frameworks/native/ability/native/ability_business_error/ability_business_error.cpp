@@ -274,6 +274,31 @@ constexpr const char* ERROR_MSG_WRITE_KIOSK_STATUS_FAILED =
     "Internal error. Failed to write the kiosk status. Try again later.";
 constexpr const char* ERROR_MSG_WRITE_CALLER_TOKEN_FAILED =
     "Internal error. Failed to write the caller token. Try again later.";
+constexpr const char* ERROR_MSG_AGENT_MANAGER_SERVICE_UNAVAILABLE =
+    "Internal error. The agent manager service is unavailable. Try again later.";
+constexpr const char* ERROR_MSG_READ_AGENT_CARDS_FAILED =
+    "Internal error. Failed to read AgentCards. Try again later.";
+constexpr const char* ERROR_MSG_REGISTER_AGENT_CARD_FAILED =
+    "Internal error. Failed to register the AgentCard. Try again later.";
+constexpr const char* ERROR_MSG_UPDATE_AGENT_CARD_FAILED =
+    "Internal error. Failed to update the AgentCard. Try again later.";
+constexpr const char* ERROR_MSG_DELETE_AGENT_CARD_FAILED =
+    "Internal error. Failed to delete the AgentCard. Try again later.";
+constexpr const char* ERROR_MSG_CONNECT_AGENT_EXTENSION_FAILED =
+    "Internal error. Failed to connect to the agent extension ability. Verify the target and try again.";
+constexpr const char* ERROR_MSG_CREATE_AGENT_EXTENSION_PROXY_FAILED =
+    "Internal error. Failed to create the agent extension proxy. Connect again.";
+constexpr const char* ERROR_MSG_AGENT_EXTENSION_CONNECTION_ENDED =
+    "Internal error. The agent extension connection ended before it was ready. Connect again.";
+constexpr const char* ERROR_MSG_DISCONNECT_AGENT_EXTENSION_NOT_EXIST =
+    "Internal error. The agent extension connection does not exist. "
+    "Use an AgentProxy returned by connectAgentExtensionAbility.";
+constexpr const char* ERROR_MSG_DISCONNECT_AGENT_EXTENSION_FAILED =
+    "Internal error. Failed to disconnect the agent extension ability. Try again.";
+constexpr const char* ERROR_MSG_DISCONNECT_SERVICE_EXTENSION_FAILED =
+    "Internal error. Failed to disconnect the service extension ability. Try again.";
+constexpr const char* ERROR_MSG_COMPLETE_LOW_CODE_AGENT_FAILED =
+    "Internal error. Failed to complete the low-code agent operation. Try again.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -573,6 +598,18 @@ static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_
     {AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED, ERROR_MSG_RESTORE_WINDOW_STAGE_FAILED},
     {AbilityInnerErrorMsg::SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED, ERROR_MSG_SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED},
     {AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED, ERROR_MSG_WRAP_ABILITY_RESULT_FAILED},
+    {AbilityInnerErrorMsg::AGENT_MANAGER_SERVICE_UNAVAILABLE, ERROR_MSG_AGENT_MANAGER_SERVICE_UNAVAILABLE},
+    {AbilityInnerErrorMsg::READ_AGENT_CARDS_FAILED, ERROR_MSG_READ_AGENT_CARDS_FAILED},
+    {AbilityInnerErrorMsg::REGISTER_AGENT_CARD_FAILED, ERROR_MSG_REGISTER_AGENT_CARD_FAILED},
+    {AbilityInnerErrorMsg::UPDATE_AGENT_CARD_FAILED, ERROR_MSG_UPDATE_AGENT_CARD_FAILED},
+    {AbilityInnerErrorMsg::DELETE_AGENT_CARD_FAILED, ERROR_MSG_DELETE_AGENT_CARD_FAILED},
+    {AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED, ERROR_MSG_CONNECT_AGENT_EXTENSION_FAILED},
+    {AbilityInnerErrorMsg::CREATE_AGENT_EXTENSION_PROXY_FAILED, ERROR_MSG_CREATE_AGENT_EXTENSION_PROXY_FAILED},
+    {AbilityInnerErrorMsg::AGENT_EXTENSION_CONNECTION_ENDED, ERROR_MSG_AGENT_EXTENSION_CONNECTION_ENDED},
+    {AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_NOT_EXIST, ERROR_MSG_DISCONNECT_AGENT_EXTENSION_NOT_EXIST},
+    {AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_FAILED, ERROR_MSG_DISCONNECT_AGENT_EXTENSION_FAILED},
+    {AbilityInnerErrorMsg::DISCONNECT_SERVICE_EXTENSION_FAILED, ERROR_MSG_DISCONNECT_SERVICE_EXTENSION_FAILED},
+    {AbilityInnerErrorMsg::COMPLETE_LOW_CODE_AGENT_FAILED, ERROR_MSG_COMPLETE_LOW_CODE_AGENT_FAILED},
 };
 }
 
@@ -610,6 +647,30 @@ std::string GetInnerErrorMsg(AbilityInnerErrorMsg innerErrMsg)
     return GetErrorMsg(AbilityErrorCode::ERROR_CODE_INNER);
 }
 
+static AbilityInnerErrorMsg GetAgentManagerFailureMessage(AgentManagerErrorOperation operation)
+{
+    switch (operation) {
+        case AgentManagerErrorOperation::READ_AGENT_CARDS:
+            return AbilityInnerErrorMsg::READ_AGENT_CARDS_FAILED;
+        case AgentManagerErrorOperation::REGISTER_AGENT_CARD:
+            return AbilityInnerErrorMsg::REGISTER_AGENT_CARD_FAILED;
+        case AgentManagerErrorOperation::UPDATE_AGENT_CARD:
+            return AbilityInnerErrorMsg::UPDATE_AGENT_CARD_FAILED;
+        case AgentManagerErrorOperation::DELETE_AGENT_CARD:
+            return AbilityInnerErrorMsg::DELETE_AGENT_CARD_FAILED;
+        case AgentManagerErrorOperation::CONNECT_AGENT_EXTENSION:
+            return AbilityInnerErrorMsg::CONNECT_AGENT_EXTENSION_FAILED;
+        case AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION:
+            return AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_FAILED;
+        case AgentManagerErrorOperation::DISCONNECT_SERVICE_EXTENSION:
+            return AbilityInnerErrorMsg::DISCONNECT_SERVICE_EXTENSION_FAILED;
+        case AgentManagerErrorOperation::COMPLETE_LOW_CODE_AGENT:
+            return AbilityInnerErrorMsg::COMPLETE_LOW_CODE_AGENT_FAILED;
+        default:
+            return AbilityInnerErrorMsg::COMPLETE_LOW_CODE_AGENT_FAILED;
+    }
+}
+
 std::string GetErrorMsgByNativeError(int32_t errCode, const std::string& innerErrMsg, const std::string& permission)
 {
     auto jsErrCode = GetJsErrorCodeByNativeError(errCode);
@@ -624,10 +685,29 @@ std::string GetErrorMsgByNativeError(int32_t errCode, const std::string& innerEr
     if (nativeMsg != INNER_ERROR_MSG_BY_NATIVE_CODE.end()) {
         return nativeMsg->second;
     }
-    if (errCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER) && !innerErrMsg.empty()) {
+    if (!innerErrMsg.empty()) {
         return innerErrMsg;
     }
     return GetErrorMsg(jsErrCode);
+}
+
+std::string GetAgentManagerErrorMsg(int32_t errCode, AgentManagerErrorOperation operation)
+{
+    if (GetJsErrorCodeByNativeError(errCode) != AbilityErrorCode::ERROR_CODE_INNER) {
+        return GetErrorMsgByNativeError(errCode);
+    }
+    if (errCode == ERR_NULL_AGENT_MGR_PROXY) {
+        return GetInnerErrorMsg(AbilityInnerErrorMsg::AGENT_MANAGER_SERVICE_UNAVAILABLE);
+    }
+    if (errCode == CONNECTION_NOT_EXIST) {
+        if (operation == AgentManagerErrorOperation::DISCONNECT_AGENT_EXTENSION) {
+            return GetInnerErrorMsg(AbilityInnerErrorMsg::DISCONNECT_AGENT_EXTENSION_NOT_EXIST);
+        }
+        if (operation == AgentManagerErrorOperation::COMPLETE_LOW_CODE_AGENT) {
+            return GetInnerErrorMsg(AbilityInnerErrorMsg::COMPLETE_LOW_CODE_AGENT_FAILED);
+        }
+    }
+    return GetErrorMsgByNativeError(errCode, GetInnerErrorMsg(GetAgentManagerFailureMessage(operation)));
 }
 }  // namespace AbilityRuntime
 }  // namespace OHOS
