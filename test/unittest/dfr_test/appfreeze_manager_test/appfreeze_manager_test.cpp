@@ -767,8 +767,6 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test00
     EXPECT_EQ(ret, true);
     ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
     EXPECT_EQ(ret, true);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "APP_INPUT_BLOCK");
-    EXPECT_EQ(ret, true);
     std::string halfWarning = "LIFECYCLE_HALF_TIMEOUT_WARNING";
     std::string timeoutWarning = "LIFECYCLE_TIMEOUT_WARNING";
     ret = appfreezeManager->CheckAppfreezeHappend(halfWarning, "LIFECYCLE_HALF_TIMEOUT_WARNING");
@@ -793,8 +791,6 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test00
     ret = appfreezeManager->CheckAppfreezeHappend(key, "LIFECYCLE_TIMEOUT");
     EXPECT_EQ(ret, true);
     ret = appfreezeManager->CheckAppfreezeHappend(key, "THREAD_BLOCK_3S");
-    EXPECT_EQ(ret, true);
-    ret = appfreezeManager->CheckAppfreezeHappend(key, "APP_INPUT_BLOCK");
     EXPECT_EQ(ret, true);
 }
 
@@ -1038,6 +1034,40 @@ HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckProcessExit_Test001, Te
     eventName = AppFreezeType::THREAD_BLOCK_3S;
     result = appfreezeManager->CheckProcessExit(eventName, true);
     EXPECT_EQ(result, true);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest CheckAppfreezeHappend Test
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_CheckAppfreezeHappend_Test003, TestSize.Level1)
+{
+    int pid = getpid();
+    int uid = getuid();
+    std::string testValue = "AppfreezeManagerTest_CheckAppfreezeHappend_Test003";
+    std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + testValue;
+    bool ret = appfreezeManager->CheckAppfreezeHappend(key, "APP_INPUT_BLOCK");
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->CheckAppfreezeHappend(key, "APP_INPUT_BLOCK");
+    EXPECT_EQ(ret, true);
+}
+
+/**
+ * @tc.number: AppfreezeManagerTest IsNeedIgnoreInputBlockEvent Test
+ * @tc.desc: add testcase
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppfreezeManagerTest, AppfreezeManagerTest_IsNeedIgnoreInputBlockEvent_Test001, TestSize.Level1)
+{
+    int pid = getpid();
+    int uid = getuid();
+    std::string bundleName = "AppfreezeManagerTest_IsNeedIgnoreInputBlockEvent_Test001";
+    std::string key = std::to_string(pid) + "_" + std::to_string(uid) + "_" + bundleName;
+    bool ret = appfreezeManager->IsNeedIgnoreInputBlockEvent(key);
+    EXPECT_EQ(ret, false);
+    ret = appfreezeManager->IsNeedIgnoreInputBlockEvent(key);
+    EXPECT_EQ(ret, true);
 }
 }  // namespace AppExecFwk
 }  // namespace OHOS
