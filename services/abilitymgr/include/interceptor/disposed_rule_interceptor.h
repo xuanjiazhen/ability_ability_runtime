@@ -31,12 +31,17 @@ class DisposedRuleInterceptor : public IAbilityInterceptor,
 public:
     DisposedRuleInterceptor() = default;
     ~DisposedRuleInterceptor() = default;
+    static std::string GenerateTimeoutTaskName(int32_t uid);
+    static std::string GenerateEventTaskName(int32_t uid);
     ErrCode DoProcess(AbilityInterceptorParam param) override;
     void SetTaskHandler(std::shared_ptr<AAFwk::TaskHandlerWrap> taskHandler) override
     {
         taskHandler_ = taskHandler;
     };
     void UnregisterObserver(int32_t uid);
+private:
+    ErrCode StartNonBlockRule(const Want &want, AppExecFwk::DisposedRule &disposedRule,
+        const std::shared_ptr<AppExecFwk::AbilityInfo> &abilityInfo);
 private:
     bool CheckControl(const Want &want, int32_t userId, AppExecFwk::DisposedRule &disposedRule, int32_t appIndex);
     bool FindBlockDisposedRule(const Want &want, const std::vector<AppExecFwk::DisposedRule> &disposedRuleList,
