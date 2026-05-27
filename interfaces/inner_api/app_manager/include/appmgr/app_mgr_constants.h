@@ -136,7 +136,8 @@ enum class MakeImageState {
 enum class ImageProcessState {
     UNSPECIFIED = -1,
     IMAGE_PROCESS_CREATE = 0,
-    IMAGE_PROCESS_TERMINATED = 1
+    IMAGE_PROCESS_TERMINATED = 1,
+    IMAGE_PROCESS_TERMINATED_CRASH = 2
 };
 
 enum class ImageProcessType {
