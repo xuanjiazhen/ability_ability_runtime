@@ -1035,7 +1035,7 @@ HWTEST_F(AppMgrServiceInnerTest, DestroyImageByImageInfo_BaseAppRecordNull_001, 
 HWTEST_F(AppMgrServiceInnerTest, DestroyImageForFault_NullAppRecord_001, TestSize.Level2)
 {
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    auto ret = appMgrServiceInner->DestroyImageForFault(nullptr);
+    auto ret = appMgrServiceInner->DestroyImageForFault(nullptr, 0);
     EXPECT_EQ(ret, ImageError::ERR_INNER);
 }
 
@@ -1049,7 +1049,7 @@ HWTEST_F(AppMgrServiceInnerTest, DestroyImageForFault_ImageInfoNotExist_001, Tes
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     auto appRecord = std::make_shared<AppRunningRecord>(
         std::make_shared<ApplicationInfo>(), 1, "processName");
-    auto ret = appMgrServiceInner->DestroyImageForFault(appRecord);
+    auto ret = appMgrServiceInner->DestroyImageForFault(appRecord, 0);
     EXPECT_EQ(ret, ImageError::ERR_IMAGE_INFO_NOT_EXIST);
 }
 
@@ -1066,15 +1066,21 @@ HWTEST_F(AppMgrServiceInnerTest, HandleForkAll_NullAppRecord_001, TestSize.Level
 }
 
 /**
- * @tc.name: HandleForkAllInner_AppRecordNull_001
- * @tc.desc: HandleForkAllInner - appRecord is nullptr
+ * @tc.name: HandleForkAllInner_IsCrashReason_001
+ * @tc.desc: HandleForkAllInner - return if reason msg is app crash
  * @tc.type: FUNC
  */
-HWTEST_F(AppMgrServiceInnerTest, HandleForkAllInner_AppRecordNull_001, TestSize.Level2)
+HWTEST_F(AppMgrServiceInnerTest, IsCrashReason_001, TestSize.Level2)
 {
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
-    auto ret = appMgrServiceInner->HandleForkAllInner(nullptr, 100);
-    EXPECT_EQ(ret, ImageError::ERR_INNER);
+    auto ret = appMgrServiceInner->IsCrashReason(AAFwk::Reason::REASON_CPP_CRASH);
+    EXPECT_EQ(ret, true);
+    ret = appMgrServiceInner->IsCrashReason(AAFwk::Reason::REASON_APP_FREEZE);
+    EXPECT_EQ(ret, true);
+    ret = appMgrServiceInner->IsCrashReason(AAFwk::Reason::REASON_JS_ERROR);
+    EXPECT_EQ(ret, true);
+    ret = appMgrServiceInner->IsCrashReason(AAFwk::Reason::REASON_NORMAL);
+    EXPECT_EQ(ret, false);
 }
 
 /**

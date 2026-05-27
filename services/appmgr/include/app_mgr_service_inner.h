@@ -339,7 +339,7 @@ public:
     ImageError DestroyImageByCheckpointId(uint64_t checkpointId);
     ImageError DestroyImageForUninstallOrUpgrade(int32_t uid);
     ImageError DestroyImageByImageInfo(std::shared_ptr<ForkImageInfo> imageInfo);
-    ImageError DestroyImageForFault(std::shared_ptr<AppRunningRecord> appRecord);
+    ImageError DestroyImageForFault(std::shared_ptr<AppRunningRecord> appRecord, bool isCrashReason);
     int32_t HandleForkAll(int32_t pid);
     ImageError HandleForkAllInner(std::shared_ptr<AppRunningRecord> appRecord, int32_t pid);
     void HandleMakeImageTimeout(const std::string& bundleName, const std::string& abilityName,
@@ -2438,6 +2438,8 @@ private:
         int32_t appIndex, const std::string& processName, const std::string& instanceKey,
         const std::string& specifiedProcessFlag, const std::string& customProcessFlag,
         std::shared_ptr<AppRunningRecord>& appRecord);
+
+    bool IsCrashReason(const int32_t reason);
 
     void SnapshotStartReport(int32_t uid, const std::string &bundleName, int32_t result, const std::string &reason);
     void SnapshotErrorReport(int32_t uid, const std::string &bundleName, int32_t result, const std::string &reason);
