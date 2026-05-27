@@ -17,6 +17,7 @@
 #define OHOS_ABILITY_RUNTIME_ABILITY_RUNNING_RECORD_H
 
 #include <string>
+#include <atomic>
 
 #include "ability_info.h"
 #include "application_info.h"
@@ -153,6 +154,9 @@ public:
 
     void SetUIExtensionBindAbilityId(const int32_t uiExtensionBindAbilityId);
     int32_t GetUIExtensionBindAbilityId() const;
+
+    void SetUIExtensionLoading(bool loading);
+    bool IsUIExtensionLoading() const;
 private:
     int32_t abilityRecordId_ = 0;
     int32_t uiExtensionAbilityId_ = 0;
@@ -168,6 +172,7 @@ private:
     bool isFocused_ = false;
     bool isSingleUser_ = false;
     bool isUserRequestCleaning_ = false;
+    std::atomic<bool> isUIExtensionLoading_ {false};
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS
