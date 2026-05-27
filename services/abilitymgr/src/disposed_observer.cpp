@@ -39,6 +39,54 @@ DisposedObserver::DisposedObserver(const AppExecFwk::DisposedRule &disposedRule,
     : interceptor_(interceptor), disposedRule_(disposedRule), uid_(uid)
 {}
 
+std::string DisposedObserver::GenerateAbilityKey(const std::string &moduleName, const std::string &abilityName)
+{
+    return moduleName + "/" + abilityName;
+}
+
+void DisposedObserver::AddAbilityKey(const std::string &moduleName, const std::string &abilityName)
+{
+    std::lock_guard<ffrt::mutex> guard(observerLock_);
+    std::string key = GenerateAbilityKey(moduleName, abilityName);
+    abilityKeys_.emplace_back(key);
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "added ability key: %{public}s, total: %{public}zu",
+        key.c_str(), abilityKeys_.size());
+}
+
+bool DisposedObserver::HasAbilityKey(const std::string &moduleName, const std::string &abilityName)
+{
+    std::lock_guard<ffrt::mutex> guard(observerLock_);
+    std::string key = GenerateAbilityKey(moduleName, abilityName);
+    for (const auto &k : abilityKeys_) {
+        if (k == key) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool DisposedObserver::RemoveAbilityKey(const std::string &moduleName, const std::string &abilityName)
+{
+    std::lock_guard<ffrt::mutex> guard(observerLock_);
+    std::string key = GenerateAbilityKey(moduleName, abilityName);
+    for (auto it = abilityKeys_.begin(); it != abilityKeys_.end(); ++it) {
+        if (*it == key) {
+            abilityKeys_.erase(it);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "removed ability key: %{public}s, remaining: %{public}zu",
+                key.c_str(), abilityKeys_.size());
+            return abilityKeys_.empty();
+        }
+    }
+    TAG_LOGW(AAFwkTag::ABILITYMGR, "ability key not found: %{public}s", key.c_str());
+    return abilityKeys_.empty();
+}
+
+size_t DisposedObserver::GetAbilityKeyCount()
+{
+    std::lock_guard<ffrt::mutex> guard(observerLock_);
+    return abilityKeys_.size();
+}
+
 void DisposedObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData &abilityStateData)
 {
     std::lock_guard<ffrt::mutex> guard(observerLock_);
@@ -69,29 +117,40 @@ void DisposedObserver::OnAbilityStateChanged(const AppExecFwk::AbilityStateData 
 
 void DisposedObserver::OnPageShow(const AppExecFwk::PageStateData &pageStateData)
 {
-    TAG_LOGI(AAFwkTag::ABILITYMGR, "recv onPageShow");
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "recv onPageShow, uid:%{public}d", pageStateData.uid);
     if (pageStateData.uid != uid_) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "currentUid:%{public}d, paramUid:%{public}d", uid_, pageStateData.uid);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "uid mismatch, current:%{public}d, param:%{public}d", uid_, pageStateData.uid);
         return;
     }
+
+    std::string moduleName = pageStateData.moduleName;
+    std::string abilityName = pageStateData.abilityName;
+    if (!HasAbilityKey(moduleName, abilityName)) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "not in watch list, ignore: %{public}s/%{public}s",
+            moduleName.c_str(), abilityName.c_str());
+        return;
+    }
+
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "responding to: %{public}s/%{public}s",
+        moduleName.c_str(), abilityName.c_str());
     if (disposedRule_.componentType == AppExecFwk::ComponentType::UI_ABILITY) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "UI_ABILITY, start ability");
         int ret = IN_PROCESS_CALL(AbilityManagerClient::GetInstance()->StartAbility(*disposedRule_.want));
         if (ret != ERR_OK) {
-            interceptor_->UnregisterObserver(pageStateData.uid);
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "call failed");
-            return;
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "start ability failed");
         }
-    }
-    if (disposedRule_.componentType == AppExecFwk::ComponentType::UI_EXTENSION) {
+    } else if (disposedRule_.componentType == AppExecFwk::ComponentType::UI_EXTENSION) {
+        TAG_LOGD(AAFwkTag::ABILITYMGR, "UI_EXTENSION, execute");
         int ret = ExecuteUIExtension(pageStateData);
         if (ret != ERR_OK) {
-            interceptor_->UnregisterObserver(pageStateData.uid);
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "call failed");
-            return;
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "execute UIExtension failed");
         }
     }
-    interceptor_->UnregisterObserver(pageStateData.uid);
+
+    if (RemoveAbilityKey(moduleName, abilityName)) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "all abilities responded, unregister observer");
+        interceptor_->UnregisterObserver(uid_);
+    }
 }
 
 ErrCode DisposedObserver::ExecuteUIExtension(const AppExecFwk::PageStateData &pageStateData)

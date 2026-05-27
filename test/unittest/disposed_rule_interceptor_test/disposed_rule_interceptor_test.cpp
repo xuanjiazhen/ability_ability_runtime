@@ -198,7 +198,9 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_001, TestSize.Level1)
     DisposedRuleInterceptor interceptor;
     Want want;
     AppExecFwk::DisposedRule rule;
-    auto ret = interceptor.StartNonBlockRule(want, rule, 100);
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->uid = 100;
+    auto ret = interceptor.StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_001 end");
 }
@@ -218,7 +220,9 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_002, TestSize.Level1)
     AppExecFwk::DisposedRule rule;
     rule.want = std::make_shared<Want>();
     rule.want->SetElementName("", "test.bundleName", "test.abilityName", "test.entry");
-    auto ret = interceptor.StartNonBlockRule(want, rule, 100);
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->uid = 100;
+    auto ret = interceptor.StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_002 end");
 }
@@ -239,7 +243,9 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_003, TestSize.Level1)
     AppExecFwk::DisposedRule rule;
     rule.want = std::make_shared<Want>();
     rule.want->SetElementName("", "test.bundleName321", "test.abilityName", "test.entry");
-    auto ret = interceptor.StartNonBlockRule(want, rule, 100);
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->uid = 100;
+    auto ret = interceptor.StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_003 end");
 }
@@ -265,7 +271,9 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_004, TestSize.Level1)
     interceptor->disposedObserverMap_.emplace(uid, observer);
     rule.want = std::make_shared<Want>();
     rule.want->SetElementName("", "test.bundleName321", "test.abilityName", "test.entry");
-    auto ret = interceptor->StartNonBlockRule(want, rule, uid);
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->uid = uid;
+    auto ret = interceptor->StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_004 end");
 }
@@ -290,7 +298,9 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_005, TestSize.Level1)
     AppExecFwk::DisposedRule rule;
     rule.want = std::make_shared<Want>();
     rule.want->SetElementName("", "test.bundleName321", "test.abilityName", "test.entry");
-    auto ret = interceptor->StartNonBlockRule(want, rule, 100);
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->uid = 100;
+    auto ret = interceptor->StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, -1);
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_005 end");
 }
@@ -315,7 +325,9 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_006, TestSize.Level1)
     AppExecFwk::DisposedRule rule;
     rule.want = std::make_shared<Want>();
     rule.want->SetElementName("", "test.bundleName321", "test.abilityName", "test.entry");
-    auto ret = interceptor->StartNonBlockRule(want, rule, 100);
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->uid = 100;
+    auto ret = interceptor->StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, ERR_INVALID_VALUE);
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_006 end");
 }
@@ -339,7 +351,9 @@ HWTEST_F(DisposedRuleInterceptorTest, StartNonBlockRule_007, TestSize.Level1)
     AppExecFwk::DisposedRule rule;
     rule.want = std::make_shared<Want>();
     rule.want->SetElementName("", "test.bundleName321", "test.abilityName", "test.entry");
-    auto ret = interceptor->StartNonBlockRule(want, rule, 100);
+    auto abilityInfo = std::make_shared<AppExecFwk::AbilityInfo>();
+    abilityInfo->uid = 100;
+    auto ret = interceptor->StartNonBlockRule(want, rule, abilityInfo);
     EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "StartNonBlockRule_007 end");
 }
