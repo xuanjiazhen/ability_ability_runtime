@@ -195,48 +195,52 @@ ErrCode DisposedRuleInterceptor::StartNonBlockRule(const Want &want, AppExecFwk:
     std::string bundleName = want.GetBundle();
     sptr<OHOS::AppExecFwk::IAppMgr> appManager = AppMgrUtil::GetAppMgr();
     CHECK_POINTER_AND_RETURN(appManager, ERR_INVALID_VALUE);
+    CHECK_POINTER_AND_RETURN(taskHandler_, ERR_INVALID_VALUE);
     {
         std::lock_guard<ffrt::mutex> guard(observerLock_);
         if (disposedObserverMap_.find(uid) != disposedObserverMap_.end()) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "start same disposed app, do not need to register again");
-            return ERR_OK;
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "observer already exists for uid:%{public}d, just refresh timeout", uid);
+            std::string timeoutTaskName = UNREGISTER_TIMEOUT_OBSERVER_TASK + std::to_string(uid);
+            taskHandler_->CancelTask(timeoutTaskName);
+        } else {
+            auto disposedObserver = sptr<DisposedObserver>::MakeSptr(disposedRule, shared_from_this(), uid);
+            CHECK_POINTER_AND_RETURN(disposedObserver, ERR_INVALID_VALUE);
+            std::vector<std::string> bundleNameList;
+            bundleNameList.push_back(bundleName);
+            int32_t ret = IN_PROCESS_CALL(appManager->RegisterApplicationStateObserver(disposedObserver, bundleNameList));
+            if (ret != 0) {
+                TAG_LOGE(AAFwkTag::ABILITYMGR, "register failed, err:%{public}d", ret);
+                return ret;
+            }
+            disposedObserverMap_.emplace(uid, disposedObserver);
         }
-        auto disposedObserver = sptr<DisposedObserver>::MakeSptr(disposedRule, shared_from_this(), uid);
-        CHECK_POINTER_AND_RETURN(disposedObserver, ERR_INVALID_VALUE);
-        std::vector<std::string> bundleNameList;
-        bundleNameList.push_back(bundleName);
-        int32_t ret = IN_PROCESS_CALL(appManager->RegisterApplicationStateObserver(disposedObserver, bundleNameList));
-        if (ret != 0) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "register failed, err:%{public}d", ret);
-            disposedObserver = nullptr;
-            return ret;
-        }
-        disposedObserverMap_.emplace(uid, disposedObserver);
     }
+
+    std::string timeoutTaskName = UNREGISTER_TIMEOUT_OBSERVER_TASK + std::to_string(uid);
     auto unregisterTask = [appManager, uid, interceptor = shared_from_this()] () {
         std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
         auto iter = interceptor->disposedObserverMap_.find(uid);
         if (iter != interceptor->disposedObserverMap_.end()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "time out, unregister observer");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "timeout, unregister observer for uid:%{public}d", uid);
             IN_PROCESS_CALL(appManager->UnregisterApplicationStateObserver(iter->second));
             interceptor->disposedObserverMap_.erase(iter);
         }
     };
-    CHECK_POINTER_AND_RETURN(taskHandler_, ERR_INVALID_VALUE);
-    taskHandler_->SubmitTask(unregisterTask, UNREGISTER_TIMEOUT_OBSERVER_TASK, UNREGISTER_OBSERVER_MICRO_SECONDS);
+    taskHandler_->SubmitTask(unregisterTask, timeoutTaskName, UNREGISTER_OBSERVER_MICRO_SECONDS);
     return ERR_OK;
 }
 
 void DisposedRuleInterceptor::UnregisterObserver(int32_t uid)
 {
-    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call");
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "Call, uid:%{public}d", uid);
     CHECK_POINTER(taskHandler_);
-    taskHandler_->CancelTask(UNREGISTER_TIMEOUT_OBSERVER_TASK);
+    std::string timeoutTaskName = UNREGISTER_TIMEOUT_OBSERVER_TASK + std::to_string(uid);
+    taskHandler_->CancelTask(timeoutTaskName);
     auto unregisterTask = [uid, interceptor = shared_from_this()] () {
         std::lock_guard<ffrt::mutex> guard{interceptor->observerLock_};
         auto iter = interceptor->disposedObserverMap_.find(uid);
         if (iter == interceptor->disposedObserverMap_.end()) {
-            TAG_LOGE(AAFwkTag::ABILITYMGR, "no find observer");
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "no find observer for uid:%{public}d", uid);
         } else {
             auto disposedObserver = iter->second;
             CHECK_POINTER(disposedObserver);
@@ -246,7 +250,7 @@ void DisposedRuleInterceptor::UnregisterObserver(int32_t uid)
             interceptor->disposedObserverMap_.erase(iter);
         }
     };
-    taskHandler_->SubmitTask(unregisterTask, UNREGISTER_EVENT_TASK);
+    taskHandler_->SubmitTask(unregisterTask, UNREGISTER_EVENT_TASK + std::to_string(uid));
 }
 
 ErrCode DisposedRuleInterceptor::CreateModalUIExtension(const Want &want, const sptr<IRemoteObject> &callerToken)
