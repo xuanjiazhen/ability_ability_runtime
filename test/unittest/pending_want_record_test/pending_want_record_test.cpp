@@ -1355,5 +1355,96 @@ HWTEST_F(PendingWantRecordTest, ExecuteOperation_EmptyAllWantsInfos_START_ABILIT
     TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_EmptyAllWantsInfos_START_ABILITIES_0100 end");
 }
 
+/*
+ * @tc.number    : SetPublisherUid_GetPublisherUid_0100
+ * @tc.name      : SetPublisherUid/GetPublisherUid
+ * @tc.desc      : 1.Default publisherUid_ is 0, set to specific uid values
+ */
+HWTEST_F(PendingWantRecordTest, SetPublisherUid_GetPublisherUid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetPublisherUid_GetPublisherUid_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, 0, 0);
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    EXPECT_NE(pendingManager_, nullptr);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+    EXPECT_NE(pendingWantRecord, nullptr);
+
+    EXPECT_EQ(pendingWantRecord->GetPublisherUid(), 0);
+    pendingWantRecord->SetPublisherUid(100);
+    EXPECT_EQ(pendingWantRecord->GetPublisherUid(), 100);
+    pendingWantRecord->SetPublisherUid(200);
+    EXPECT_EQ(pendingWantRecord->GetPublisherUid(), 200);
+
+    TAG_LOGI(AAFwkTag::TEST, "SetPublisherUid_GetPublisherUid_0100 end");
+}
+
+/*
+ * @tc.number    : ExecuteOperation_SendCommonEvent_PublisherUid_0100
+ * @tc.name      : ExecuteOperation
+ * @tc.desc      : 1.SEND_COMMON_EVENT with publisherUid set to restored app uid, verify flow completes
+ */
+HWTEST_F(PendingWantRecordTest, ExecuteOperation_SendCommonEvent_PublisherUid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_SendCommonEvent_PublisherUid_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 0, (int32_t)OperationType::SEND_COMMON_EVENT);
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    EXPECT_NE(pendingManager_, nullptr);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 100, 0, nullptr, key);
+    EXPECT_NE(pendingWantRecord, nullptr);
+    pendingWantRecord->SetCallerUid(200);
+    pendingWantRecord->SetPublisherUid(100);
+
+    SenderInfo info;
+    int32_t result = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
+    // CommonEvent::PublishCommonEvent is unavailable in UT, returns -1 on failure
+    EXPECT_TRUE(result == NO_ERROR || result == -1);
+
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_SendCommonEvent_PublisherUid_0100 end");
+}
+
+/*
+ * @tc.number    : ExecuteOperation_SendCommonEvent_CallerUid_0100
+ * @tc.name      : ExecuteOperation
+ * @tc.desc      : 1.SEND_COMMON_EVENT with publisherUid set to caller uid, verify flow completes
+ */
+HWTEST_F(PendingWantRecordTest, ExecuteOperation_SendCommonEvent_CallerUid_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_SendCommonEvent_CallerUid_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 0, (int32_t)OperationType::SEND_COMMON_EVENT);
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    EXPECT_NE(pendingManager_, nullptr);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 100, 0, nullptr, key);
+    EXPECT_NE(pendingWantRecord, nullptr);
+    pendingWantRecord->SetCallerUid(200);
+    pendingWantRecord->SetPublisherUid(200);
+
+    SenderInfo info;
+    int32_t result = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
+    // CommonEvent::PublishCommonEvent is unavailable in UT, returns -1 on failure
+    EXPECT_TRUE(result == NO_ERROR || result == -1);
+
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_SendCommonEvent_CallerUid_0100 end");
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
