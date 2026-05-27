@@ -103,11 +103,12 @@ void UIExtensionAbilityManager::AddStartingPid(pid_t pid)
 
     int32_t timeoutMicro =
         AmsConfigurationParameter::GetInstance().GetAppStartTimeoutTime() * LOAD_TIMEOUT_MULTIPLE * 1000;
-    std::weak_ptr<UIExtensionAbilityManager> weakPtr = shared_from_this();
+    std::weak_ptr<UIExtensionAbilityManager> thisWeakPtr(
+        std::static_pointer_cast<UIExtensionAbilityManager>(shared_from_this()));
     ffrt::task_attr attr;
     attr.delay(timeoutMicro);
-    ffrt::submit([weakPtr, pid]() {
-        auto mgr = weakPtr.lock();
+    ffrt::submit([thisWeakPtr, pid]() {
+        auto mgr = thisWeakPtr.lock();
         if (mgr == nullptr) return;
         mgr->RemoveStartingPid(pid);
     }, attr);

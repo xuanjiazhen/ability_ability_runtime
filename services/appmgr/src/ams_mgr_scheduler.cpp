@@ -282,7 +282,7 @@ void AmsMgrScheduler::KillProcessesByUserId(int32_t userId, bool isNeedSendAppSp
 }
 
 int32_t AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason,
-    bool subProcess, bool isKillPrecedeStart)
+    bool subProcess, bool isKillPrecedeStart, bool shouldKillForeground)
 {
     if (!IsReady()) {
         return ERR_INVALID_OPERATION;
@@ -295,7 +295,7 @@ int32_t AmsMgrScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, c
         return ERR_PERMISSION_DENIED;
     }
 
-    return amsMgrServiceInner_->KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart);
+    return amsMgrServiceInner_->KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart, shouldKillForeground);
 }
 
 void AmsMgrScheduler::AttachPidToParent(const sptr<IRemoteObject> &token, const sptr<IRemoteObject> &callerToken)
