@@ -41,7 +41,8 @@ PendingWantManager::~PendingWantManager()
 }
 
 sptr<IWantSender> PendingWantManager::GetWantSender(int32_t callingUid, int32_t uid, const bool isSystemApp,
-    const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex)
+    const WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex,
+    int32_t publisherUid)
 {
     TAG_LOGD(AAFwkTag::WANTAGENT, "begin");
     if (wantSenderInfo.type != static_cast<int32_t>(OperationType::SEND_COMMON_EVENT)) {
@@ -73,7 +74,7 @@ sptr<IWantSender> PendingWantManager::GetWantSender(int32_t callingUid, int32_t 
         }
     }
 
-    return GetWantSenderLocked(callingUid, uid, wantSenderInfo.userId, info, callerToken, appIndex);
+    return GetWantSenderLocked(callingUid, uid, wantSenderInfo.userId, info, callerToken, appIndex, publisherUid);
 }
 
 void SendWantAgentNumberEvent(std::shared_ptr<PendingWantKey> pendingKey, int32_t wantAgentNumber)
@@ -164,7 +165,8 @@ void PendingWantManager::ReduceWantAgentNumber(std::shared_ptr<PendingWantKey> p
 }
 
 sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingUid, const int32_t uid,
-    const int32_t userId, WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex)
+    const int32_t userId, WantSenderInfo &wantSenderInfo, const sptr<IRemoteObject> &callerToken, int32_t appIndex,
+    int32_t publisherUid)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGI(AAFwkTag::WANTAGENT, "begin");
@@ -200,6 +202,7 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
                 wantSenderInfo.allWants.back().resolvedTypes = ref->GetKey()->GetRequestResolvedType();
                 ref->GetKey()->SetAllWantsInfos(wantSenderInfo.allWants);
                 ref->SetCallerUid(callingUid);
+                ref->SetPublisherUid(publisherUid);
             }
             return ref;
         }
@@ -217,6 +220,7 @@ sptr<IWantSender> PendingWantManager::GetWantSenderLocked(const int32_t callingU
         callerToken, pendingKey);
     if (rec != nullptr) {
         rec->SetCallerUid(callingUid);
+        rec->SetPublisherUid(publisherUid);
         pendingKey->SetCode(PendingRecordIdCreate());
         AddWantAgentNumber(pendingKey);
         wantRecords_.insert(std::make_pair(pendingKey, rec));
