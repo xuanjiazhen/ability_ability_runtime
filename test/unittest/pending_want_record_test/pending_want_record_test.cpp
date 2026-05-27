@@ -1355,5 +1355,97 @@ HWTEST_F(PendingWantRecordTest, ExecuteOperation_EmptyAllWantsInfos_START_ABILIT
     TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_EmptyAllWantsInfos_START_ABILITIES_0100 end");
 }
 
+/*
+ * @tc.number    : SetRestored_IsRestored_0100
+ * @tc.name      : SetRestored/IsRestored
+ * @tc.desc      : 1.Default isRestored_ is false, set to true
+ */
+HWTEST_F(PendingWantRecordTest, SetRestored_IsRestored_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "SetRestored_IsRestored_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo = MakeWantSenderInfo(want, 0, 0);
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    EXPECT_NE(pendingManager_, nullptr);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 1, 0, nullptr, key);
+    EXPECT_NE(pendingWantRecord, nullptr);
+
+    EXPECT_EQ(pendingWantRecord->isRestored_, false);
+    EXPECT_EQ(pendingWantRecord->IsRestored(), false);
+    pendingWantRecord->SetRestored(true);
+    EXPECT_EQ(pendingWantRecord->isRestored_, true);
+    EXPECT_EQ(pendingWantRecord->IsRestored(), true);
+    pendingWantRecord->SetRestored(false);
+    EXPECT_EQ(pendingWantRecord->isRestored_, false);
+    EXPECT_EQ(pendingWantRecord->IsRestored(), false);
+
+    TAG_LOGI(AAFwkTag::TEST, "SetRestored_IsRestored_0100 end");
+}
+
+/*
+ * @tc.number    : ExecuteOperation_SendCommonEvent_Restored_0100
+ * @tc.name      : ExecuteOperation
+ * @tc.desc      : 1.SEND_COMMON_EVENT with isRestored_=true, verify flow completes
+ */
+HWTEST_F(PendingWantRecordTest, ExecuteOperation_SendCommonEvent_Restored_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_SendCommonEvent_Restored_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 0, (int32_t)OperationType::SEND_COMMON_EVENT);
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    EXPECT_NE(pendingManager_, nullptr);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 100, 0, nullptr, key);
+    EXPECT_NE(pendingWantRecord, nullptr);
+    pendingWantRecord->SetCallerUid(200);
+    pendingWantRecord->SetRestored(true);
+
+    SenderInfo info;
+    int32_t result = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
+    EXPECT_EQ(result, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_SendCommonEvent_Restored_0100 end");
+}
+
+/*
+ * @tc.number    : ExecuteOperation_SendCommonEvent_NotRestored_0100
+ * @tc.name      : ExecuteOperation
+ * @tc.desc      : 1.SEND_COMMON_EVENT with isRestored_=false, verify flow completes
+ */
+HWTEST_F(PendingWantRecordTest, ExecuteOperation_SendCommonEvent_NotRestored_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_SendCommonEvent_NotRestored_0100 start");
+
+    Want want;
+    ElementName element("device", "com.ix.hiMusic", "MusicSAbility");
+    want.SetElement(element);
+    WantSenderInfo wantSenderInfo =
+        MakeWantSenderInfo(want, (int32_t)Flags::CONSTANT_FLAG, 0, (int32_t)OperationType::SEND_COMMON_EVENT);
+    pendingManager_ = std::make_shared<PendingWantManager>();
+    EXPECT_NE(pendingManager_, nullptr);
+    std::shared_ptr<PendingWantKey> key = MakeWantKey(wantSenderInfo);
+    std::shared_ptr<PendingWantRecord> pendingWantRecord =
+        std::make_shared<PendingWantRecord>(pendingManager_, 100, 0, nullptr, key);
+    EXPECT_NE(pendingWantRecord, nullptr);
+    pendingWantRecord->SetCallerUid(200);
+    pendingWantRecord->SetRestored(false);
+
+    SenderInfo info;
+    int32_t result = pendingWantRecord->ExecuteOperation(pendingManager_, info, want);
+    EXPECT_EQ(result, NO_ERROR);
+
+    TAG_LOGI(AAFwkTag::TEST, "ExecuteOperation_SendCommonEvent_NotRestored_0100 end");
+}
+
 }  // namespace AAFwk
 }  // namespace OHOS
