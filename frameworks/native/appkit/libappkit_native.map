@@ -37,6 +37,7 @@
       *StartupUtils*;
       *Watchdog*;
       *ExtNativeStartupTask*;
+      *ForkAllHelper*;
       *GetAppPreload*;
       *ClearAppPreload*;
     };

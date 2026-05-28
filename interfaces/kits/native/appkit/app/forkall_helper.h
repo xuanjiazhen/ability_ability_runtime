@@ -18,13 +18,21 @@
 
 #include "app_launch_data.h"
 
+#ifdef ABILITY_COMMAND_FOR_TEST
+#define FORKALL_HELPER_EXPORT __attribute__((visibility("default")))
+#else
+#define FORKALL_HELPER_EXPORT
+#endif
+
 namespace OHOS {
 namespace AppExecFwk {
-class ForkAllHelper {
+class FORKALL_HELPER_EXPORT ForkAllHelper {
 public:
     static void HandleDebugAppLaunchDelay(const AppLaunchData &appLaunchData, bool isDeveloperMode);
 };
 } // namespace AppExecFwk
 } // namespace OHOS
+
+#undef FORKALL_HELPER_EXPORT
 
 #endif // OHOS_ABILITY_RUNTIME_FORKALL_HELPER_H
