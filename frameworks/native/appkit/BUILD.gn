@@ -73,6 +73,28 @@ config("appkit_public_config") {
   }
 }
 
+ohos_source_set("forkall_helper") {
+  sources = [ "${ability_runtime_native_path}/appkit/app/forkall_helper.cpp" ]
+
+  include_dirs = [
+    "${ability_runtime_path}/interfaces/kits/native/appkit/app",
+    "${ability_runtime_services_path}/common/include",
+  ]
+
+  configs = [ ":appkit_config" ]
+  public_configs = [ ":appkit_public_config" ]
+
+  deps = [ "${ability_runtime_innerkits_path}/app_manager:app_manager" ]
+
+  external_deps = [
+    "ability_base:base",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+  ]
+}
+
 # build so
 ohos_shared_library("appkit_native") {
   include_dirs = [
@@ -127,7 +149,6 @@ ohos_shared_library("appkit_native") {
     "${ability_runtime_native_path}/appkit/app/dump_ipc_helper.cpp",
     "${ability_runtime_native_path}/appkit/app/dump_runtime_helper.cpp",
     "${ability_runtime_native_path}/appkit/app/extension_plugin_info.cpp",
-    "${ability_runtime_native_path}/appkit/app/forkall_helper.cpp",
     "${ability_runtime_native_path}/appkit/app/idle_time.cpp",
     "${ability_runtime_native_path}/appkit/app/main_thread.cpp",
     "${ability_runtime_native_path}/appkit/app/native_lib_util.cpp",
@@ -166,6 +187,7 @@ ohos_shared_library("appkit_native") {
   }
   deps = [
     ":appkit_delegator",
+    ":forkall_helper",
     "${ability_runtime_abilitymgr_path}/:abilityms",
     "${ability_runtime_innerkits_path}/ability_manager:ability_manager",
     "${ability_runtime_innerkits_path}/ability_manager:ability_start_options",
