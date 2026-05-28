@@ -669,16 +669,6 @@ void JsUIAbility::OnStop()
         applicationContext->DispatchOnAbilityWillDestroy(ability);
     }
 
-    // Set isDestroyed to true BEFORE onDestroy callback
-    // This ensures the property is set while all objects are still valid
-    napi_value obj = jsAbilityObj_->GetNapiValue();
-    if (CheckTypeForNapiValue(jsRuntime_.GetNapiEnv(), obj, napi_object)) {
-        napi_value jsIsDestroyed = nullptr;
-        if (napi_get_boolean(jsRuntime_.GetNapiEnv(), true, &jsIsDestroyed) == napi_ok) {
-            napi_set_named_property(jsRuntime_.GetNapiEnv(), obj, "isDestroyed", jsIsDestroyed);
-        }
-    }
-
     WriteLifecycleSwitchLog("onDestroy");
     CallObjectMethod("onDestroy");
     OnStopCallback();
@@ -709,16 +699,6 @@ void JsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackI
         applicationContext->DispatchOnAbilityWillDestroy(ability);
     }
 
-    // Set isDestroyed to true BEFORE onDestroy callback
-    // This ensures the property is set while all objects are still valid
-    napi_value obj = jsAbilityObj_->GetNapiValue();
-    if (CheckTypeForNapiValue(jsRuntime_.GetNapiEnv(), obj, napi_object)) {
-        napi_value jsIsDestroyed = nullptr;
-        if (napi_get_boolean(jsRuntime_.GetNapiEnv(), true, &jsIsDestroyed) == napi_ok) {
-            napi_set_named_property(jsRuntime_.GetNapiEnv(), obj, "isDestroyed", jsIsDestroyed);
-        }
-    }
-
     WriteLifecycleSwitchLog("onDestroy");
     napi_value result = CallObjectMethod("onDestroy", nullptr, 0, true);
     if (!CheckPromise(result)) {
@@ -747,6 +727,15 @@ void JsUIAbility::OnStop(AppExecFwk::AbilityTransactionCallbackInfo<> *callbackI
 
 void JsUIAbility::OnStopCallback()
 {
+    // Set isDestroyed to true after onDestroy callback completes
+    napi_value obj = jsAbilityObj_->GetNapiValue();
+    if (CheckTypeForNapiValue(jsRuntime_.GetNapiEnv(), obj, napi_object)) {
+        napi_value jsIsDestroyed = nullptr;
+        if (napi_get_boolean(jsRuntime_.GetNapiEnv(), true, &jsIsDestroyed) == napi_ok) {
+            napi_set_named_property(jsRuntime_.GetNapiEnv(), obj, "isDestroyed", jsIsDestroyed);
+        }
+    }
+
     auto property = std::make_shared<AppExecFwk::ADelegatorAbilityProperty>();
     if (CreateProperty(abilityContext_, property)) {
         property->object_ = jsAbilityObj_;
@@ -770,7 +759,7 @@ void JsUIAbility::OnStopCallback()
 
     auto applicationContext = AbilityRuntime::Context::GetApplicationContext();
     if (applicationContext != nullptr && jsAbilityObj_ != nullptr) {
-        JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_);
+        JsAbilityLifecycleCallbackArgs ability(jsAbilityObj_)
         applicationContext->DispatchOnAbilityDestroy(ability);
         DISPATCH_ABILITY_INTEROP(OnAbilityDestroy, applicationContext, jsRuntime_, ability);
     }
