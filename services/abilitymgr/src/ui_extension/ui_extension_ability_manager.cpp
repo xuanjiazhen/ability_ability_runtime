@@ -107,11 +107,13 @@ void UIExtensionAbilityManager::AddStartingPid(pid_t pid)
         std::static_pointer_cast<UIExtensionAbilityManager>(shared_from_this()));
     ffrt::task_attr attr;
     attr.delay(timeoutMicro);
-    ffrt::submit([thisWeakPtr, pid]() {
-        auto mgr = thisWeakPtr.lock();
-        if (mgr == nullptr) return;
-        mgr->RemoveStartingPid(pid);
-    }, attr);
+    ffrt::submit(
+        [thisWeakPtr, pid]() {
+            auto mgr = thisWeakPtr.lock();
+            if (mgr == nullptr) return;
+            mgr->RemoveStartingPid(pid);
+        },
+        attr);
 }
 
 void UIExtensionAbilityManager::RemoveStartingPid(pid_t pid)

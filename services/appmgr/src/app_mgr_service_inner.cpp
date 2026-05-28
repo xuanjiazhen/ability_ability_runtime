@@ -4503,13 +4503,8 @@ int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::st
     AAFwk::RecordCostTimeUtil timeRecord("KillProcessByPidInner");
     int32_t ret = -1;
     if (pid > 0) {
-        if (appRecord) {
-            for (const auto &[token, ability] : appRecord->GetAbilities()) {
-                if (ability && ability->IsUIExtensionLoading()) {
-                    TAG_LOGI(AAFwkTag::APPMGR, "skip kill, UIExtension loading, pid:%{public}d", pid);
-                    return ERR_OK;
-                }
-            }
+        if (IsUIExtensionLoadingForPid(pid, appRecord)) {
+            return AAFwk::ERR_KILL_APP_WHILE_FOREGROUND;
         }
         if (CheckIsThreadInFoundation(pid)) {
             TAG_LOGI(AAFwkTag::APPMGR, "don't kill pid %{public}d", pid);
@@ -4540,6 +4535,21 @@ int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::st
     }
     DelayedSingleton<CacheProcessManager>::GetInstance()->OnProcessKilled(appRecord);
     return ret;
+}
+
+bool AppMgrServiceInner::IsUIExtensionLoadingForPid(
+    const pid_t pid, const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (!appRecord) {
+        return false;
+    }
+    for (const auto &[token, ability] : appRecord->GetAbilities()) {
+        if (ability && ability->IsUIExtensionLoading()) {
+            TAG_LOGI(AAFwkTag::APPMGR, "skip kill, UIExtension loading, pid:%{public}d", pid);
+            return true;
+        }
+    }
+    return false;
 }
 
 void AppMgrServiceInner::SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo)

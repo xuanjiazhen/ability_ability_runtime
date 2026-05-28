@@ -296,7 +296,8 @@ AppMgrResultCode AppMgrClient::KillProcessesByPids(const std::vector<int32_t> &p
     if (service != nullptr) {
         sptr<IAmsMgr> amsService = service->GetAmsMgr();
         if (amsService != nullptr) {
-            int32_t ret = amsService->KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart, shouldKillForeground);
+            int32_t ret = amsService->KillProcessesByPids(
+                pids, reason, subProcess, isKillPrecedeStart, shouldKillForeground);
             if (ret == ERR_OK) {
                 return AppMgrResultCode::RESULT_OK;
             }
