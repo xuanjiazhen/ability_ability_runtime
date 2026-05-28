@@ -309,7 +309,7 @@ int AppScheduler::FinishUserTest(const std::string &msg, const int64_t &resultCo
 }
 
 int32_t AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason, bool subProcess,
-    bool isKillPrecedeStart)
+    bool isKillPrecedeStart, bool shouldKillForeground)
 {
     return 0;
 }
