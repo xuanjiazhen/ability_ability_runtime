@@ -345,6 +345,9 @@ enum class AbilityInnerErrorMsg {
     RESTORE_WINDOW_STAGE_FAILED,
     SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED,
     WRAP_ABILITY_RESULT_FAILED,
+    TRANSFER_EXTENSION_DATA_FAILED,
+    UI_WINDOW_NULL,
+    RELOAD_IN_MODAL_RESULT_NULL,
 };
 
 std::string GetErrorMsg(const AbilityErrorCode& errCode);
