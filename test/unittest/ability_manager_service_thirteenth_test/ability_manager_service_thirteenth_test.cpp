@@ -3450,7 +3450,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_KillForeground_0
  */
 HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_UIExtNotStarting_0300, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag:: TEST, "KillAppWithReason_UIExtNotStarting_0300 start");
+    TAG_LOGI(AAFwkTag::TEST, "KillAppWithReason_UIExtNotStarting_0300 start");
     auto abilityMs = std::make_shared<AbilityManagerService>();
     EXPECT_NE(abilityMs, nullptr);
 
