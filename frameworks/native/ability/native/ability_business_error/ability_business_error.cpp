@@ -280,6 +280,16 @@ constexpr const char* ERROR_MSG_CALLBACK_NOT_REGISTERED =
     "Internal error. The callback has not been registered. Register the callback first.";
 constexpr const char* ERROR_MSG_START_CHILD_PROCESS_FAILED =
     "Internal error. Failed to start the child process. Check the process parameters and try again.";
+constexpr const char* ERROR_MSG_WRITE_INTERFACE_TOKEN_FAILED =
+    "Internal error. Failed to write the interface token. Try again later.";
+constexpr const char* ERROR_MSG_READ_RESULT_PARCEL_FAILED =
+    "Internal error. Failed to read the result parcel. Try again later.";
+constexpr const char* ERROR_MSG_WRITE_RESULT_CODE_FAILED =
+    "Internal error. Failed to write the result code. Try again later.";
+constexpr const char* ERROR_MSG_WRITE_KIOSK_STATUS_FAILED =
+    "Internal error. Failed to write the kiosk status. Try again later.";
+constexpr const char* ERROR_MSG_WRITE_CALLER_TOKEN_FAILED =
+    "Internal error. Failed to write the caller token. Try again later.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -564,6 +574,11 @@ static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
     {ERR_NATIVE_ABILITY_NOT_FOUND, ERROR_MSG_ERR_NATIVE_ABILITY_NOT_FOUND},
     {ERR_NATIVE_ABILITY_STATE_CHECK_FAILED, ERROR_MSG_ERR_NATIVE_ABILITY_STATE_CHECK_FAILED},
     {ERR_URI_LIST_OUT_OF_RANGE, ERROR_MSG_ERR_URI_LIST_OUT_OF_RANGE},
+    {ERR_WRITE_INTERFACE_TOKEN_FAILED, ERROR_MSG_WRITE_INTERFACE_TOKEN_FAILED},
+    {ERR_READ_RESULT_PARCEL_FAILED, ERROR_MSG_READ_RESULT_PARCEL_FAILED},
+    {ERR_WRITE_RESULT_CODE_FAILED, ERROR_MSG_WRITE_RESULT_CODE_FAILED},
+    {ERR_WRITE_KIOSK_STATUS_FAILED, ERROR_MSG_WRITE_KIOSK_STATUS_FAILED},
+    {ERR_WRITE_CALLER_TOKEN_FAILED, ERROR_MSG_WRITE_CALLER_TOKEN_FAILED},
 };
 
 static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_SCENE {
