@@ -264,6 +264,12 @@ constexpr const char* ERROR_MSG_SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED =
     "Internal error. Failed to set onNewWant skip scenarios. Try again later.";
 constexpr const char* ERROR_MSG_WRAP_ABILITY_RESULT_FAILED =
     "Internal error. Failed to create the ability result. Check the returned Want and try again.";
+constexpr const char* ERROR_MSG_TRANSFER_EXTENSION_DATA_FAILED =
+    "Internal error. Failed to transfer extension data to the window. Try again later.";
+constexpr const char* ERROR_MSG_UI_WINDOW_NULL =
+    "Internal error. The UI window is not available. Try again later.";
+constexpr const char* ERROR_MSG_RELOAD_IN_MODAL_RESULT_NULL =
+    "Internal error. Failed to create reload result. Try again later.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -558,6 +564,9 @@ static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_
     {AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED, ERROR_MSG_RESTORE_WINDOW_STAGE_FAILED},
     {AbilityInnerErrorMsg::SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED, ERROR_MSG_SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED},
     {AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED, ERROR_MSG_WRAP_ABILITY_RESULT_FAILED},
+    {AbilityInnerErrorMsg::TRANSFER_EXTENSION_DATA_FAILED, ERROR_MSG_TRANSFER_EXTENSION_DATA_FAILED},
+    {AbilityInnerErrorMsg::UI_WINDOW_NULL, ERROR_MSG_UI_WINDOW_NULL},
+    {AbilityInnerErrorMsg::RELOAD_IN_MODAL_RESULT_NULL, ERROR_MSG_RELOAD_IN_MODAL_RESULT_NULL},
 };
 }
 
