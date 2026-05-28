@@ -15,14 +15,11 @@
 
 #include "interceptor/screen_unlock_interceptor.h"
 
-#include "ability_record.h"
 #include "ability_util.h"
 #include "bundle_mgr_helper.h"
 #include "extension_config.h"
 #include "event_report.h"
 #include "parameters.h"
-#include "start_ability_utils.h"
-#include "startup_util.h"
 #ifdef SUPPORT_SCREEN
 #ifdef ABILITY_RUNTIME_SCREENLOCK_ENABLE
 #include "screenlock_manager.h"
@@ -78,27 +75,13 @@ ErrCode ScreenUnlockInterceptor::DoProcess(AbilityInterceptorParam param)
 bool ScreenUnlockInterceptor::GetTargetAbilityInfo(const AbilityInterceptorParam &param,
     AppExecFwk::AbilityInfo &targetAbilityInfo)
 {
-    if (StartAbilityUtils::startAbilityInfo != nullptr) {
-        targetAbilityInfo = StartAbilityUtils::startAbilityInfo->abilityInfo;
+    if (param.abilityInfo != nullptr) {
+        targetAbilityInfo = *param.abilityInfo;
         return true;
     }
-
-    if (param.fromConnect) {
-        std::string uri = param.want.GetUri().ToString();
-        bool isFileUri = (param.want.GetUri().GetScheme() == "file");
-        if (!uri.empty() && !isFileUri) {
-            return QueryTargetAbilityInfoByUri(param, targetAbilityInfo);
-        }
-    }
-
-    QueryTargetAbilityInfo(param, targetAbilityInfo);
-    if (targetAbilityInfo.applicationInfo.name.empty() ||
-        targetAbilityInfo.applicationInfo.bundleName.empty()) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "Cannot find targetAbilityInfo, element uri: %{public}s/%{public}s",
-            param.want.GetElement().GetBundleName().c_str(), param.want.GetElement().GetAbilityName().c_str());
-        return false;
-    }
-    return true;
+    TAG_LOGD(AAFwkTag::ABILITYMGR, "abilityInfo is nullptr, element uri: %{public}s/%{public}s",
+        param.want.GetElement().GetBundleName().c_str(), param.want.GetElement().GetAbilityName().c_str());
+    return false;
 }
 
 bool ScreenUnlockInterceptor::QueryTargetAbilityInfoByUri(const AbilityInterceptorParam &param,
@@ -252,30 +235,6 @@ ErrCode ScreenUnlockInterceptor::CheckInterceptionByConfig(const std::string &ex
     }
     TAG_LOGD(AAFwkTag::ABILITYMGR, "app not in blocklist, allow");
     return ERR_OK;
-}
-
-void ScreenUnlockInterceptor::QueryTargetAbilityInfo(const AbilityInterceptorParam &param,
-    AppExecFwk::AbilityInfo &targetAbilityInfo)
-{
-    auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
-    if (bundleMgrHelper == nullptr) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "The bundleMgrHelper is nullptr.");
-        return;
-    }
-    IN_PROCESS_CALL_WITHOUT_RET(bundleMgrHelper->QueryAbilityInfo(param.want,
-        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, param.userId, targetAbilityInfo));
-    if (!targetAbilityInfo.applicationInfo.name.empty() && !targetAbilityInfo.applicationInfo.bundleName.empty()) {
-        return;
-    }
-
-    std::vector<AppExecFwk::ExtensionAbilityInfo> extensionInfos;
-    IN_PROCESS_CALL(bundleMgrHelper->QueryExtensionAbilityInfos(param.want,
-        AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION, param.userId, extensionInfos));
-    if (extensionInfos.size() <= 0) {
-        TAG_LOGD(AAFwkTag::ABILITYMGR, "extensionInfo empty");
-        return;
-    }
-    AbilityRuntime::StartupUtil::InitAbilityInfoFromExtension(extensionInfos.front(), targetAbilityInfo);
 }
 } // namespace AAFwk
 } // namespace OHOS
