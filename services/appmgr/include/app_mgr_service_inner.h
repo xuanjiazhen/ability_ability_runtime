@@ -275,10 +275,12 @@ public:
      * @param pids, the pid list of processes are going to be killed.
      * @param reason, the reason to kill the processes.
      * @param subProcess, kill SubProcess or not.
+     * @param shouldKillForeground, whether should kill foreground process.
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillProcessesByPids(const std::vector<int32_t> &pids,
-        const std::string &reason = "KillProcessesByPids", bool subProcess = false, bool isKillPrecedeStart = false);
+        const std::string &reason = "KillProcessesByPids", bool subProcess = false,
+        bool isKillPrecedeStart = false, bool shouldKillForeground = true);
 
     /**
      * KillProcessesInBatch, kill processes in batch;
@@ -2360,6 +2362,7 @@ private:
         std::vector<std::string> &instanceKeys, int32_t userId);
     int32_t KillProcessByPidInner(const pid_t pid, const std::string& reason,
         const std::string& killReason, std::shared_ptr<AppRunningRecord> appRecord, bool isKillPrecedeStart);
+    bool IsUIExtensionLoadingForPid(const pid_t pid, const std::shared_ptr<AppRunningRecord> &appRecord);
     void SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo);
     void AddToKillProcessMap(const std::string &processName);
     bool IsAllowedNWebPreload(const std::string &processName);
@@ -2522,6 +2525,8 @@ private:
     std::map<std::string, int32_t> imageStartReportMap_;
     std::chrono::steady_clock::time_point lastReportTime_ = std::chrono::steady_clock::now();
     int32_t imageStartCount_ {0};
+
+    ffrt::mutex uiExtensionLoadLock_;
 };
 }  // namespace AppExecFwk
 }  // namespace OHOS

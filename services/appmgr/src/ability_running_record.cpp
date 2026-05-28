@@ -181,5 +181,15 @@ int32_t AbilityRunningRecord::GetUIExtensionBindAbilityId() const
 {
     return uiExtensionBindAbilityId_;
 }
+
+void AbilityRunningRecord::SetUIExtensionLoading(bool loading)
+{
+    isUIExtensionLoading_.store(loading, std::memory_order_release);
+}
+
+bool AbilityRunningRecord::IsUIExtensionLoading() const
+{
+    return isUIExtensionLoading_.load(std::memory_order_acquire);
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

@@ -377,7 +377,8 @@ ErrCode AmsMgrStub::HandleKillProcessesByPids(MessageParcel &data, MessageParcel
     std::string reason = data.ReadString();
     bool subProcess = data.ReadBool();
     bool isKillPrecedeStart = data.ReadBool();
-    int32_t ret = KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart);
+    bool shouldKillForeground = data.ReadBool();
+    int32_t ret = KillProcessesByPids(pids, reason, subProcess, isKillPrecedeStart, shouldKillForeground);
     reply.WriteInt32(ret);
     return NO_ERROR;
 }

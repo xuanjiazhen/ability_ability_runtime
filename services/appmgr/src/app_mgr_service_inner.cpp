@@ -1979,6 +1979,10 @@ void AppMgrServiceInner::LoadAbility(std::shared_ptr<AbilityInfo> abilityInfo, s
         return;
     }
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    std::unique_lock<ffrt::mutex> lock;
+    if (abilityInfo && AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo->extensionAbilityType)) {
+        lock = std::unique_lock<ffrt::mutex>(uiExtensionLoadLock_);
+    }
     if (loadParam == nullptr) {
         TAG_LOGE(AAFwkTag::APPMGR, "null loadParam");
         return;
@@ -2309,6 +2313,12 @@ void AppMgrServiceInner::AfterLoadAbility(std::shared_ptr<AppRunningRecord> appR
     //UIExtension notifies Extension & Ability state changes
     if (AAFwk::UIExtensionWrapper::IsUIExtension(abilityInfo->extensionAbilityType)) {
         UpdateExtensionState(loadParam->token, ExtensionState::EXTENSION_STATE_CREATE);
+        if (isProcessReuse) {
+            auto abilityRunningRecord = appRecord->GetAbilityRunningRecordByToken(loadParam->token);
+            if (abilityRunningRecord != nullptr) {
+                abilityRunningRecord->SetUIExtensionLoading(true);
+            }
+        }
     }
     appRecord->UpdateAbilityState(loadParam->token, AbilityState::ABILITY_STATE_CREATE);
 }
@@ -4493,6 +4503,9 @@ int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::st
     AAFwk::RecordCostTimeUtil timeRecord("KillProcessByPidInner");
     int32_t ret = -1;
     if (pid > 0) {
+        if (IsUIExtensionLoadingForPid(pid, appRecord)) {
+            return AAFwk::ERR_KILL_APP_WHILE_FOREGROUND;
+        }
         if (CheckIsThreadInFoundation(pid)) {
             TAG_LOGI(AAFwkTag::APPMGR, "don't kill pid %{public}d", pid);
             return AAFwk::ERR_KILL_FOUNDATION_UID;
@@ -4522,6 +4535,21 @@ int32_t AppMgrServiceInner::KillProcessByPidInner(const pid_t pid, const std::st
     }
     DelayedSingleton<CacheProcessManager>::GetInstance()->OnProcessKilled(appRecord);
     return ret;
+}
+
+bool AppMgrServiceInner::IsUIExtensionLoadingForPid(
+    const pid_t pid, const std::shared_ptr<AppRunningRecord> &appRecord)
+{
+    if (!appRecord) {
+        return false;
+    }
+    for (const auto &[token, ability] : appRecord->GetAbilities()) {
+        if (ability && ability->IsUIExtensionLoading()) {
+            TAG_LOGI(AAFwkTag::APPMGR, "skip kill, UIExtension loading, pid:%{public}d", pid);
+            return true;
+        }
+    }
+    return false;
 }
 
 void AppMgrServiceInner::SetKilledEventInfo(std::shared_ptr<AppRunningRecord> appRecord, AAFwk::EventInfo &eventInfo)
@@ -4789,6 +4817,13 @@ void AppMgrServiceInner::UpdateExtensionState(const sptr<IRemoteObject> &token, 
         TAG_LOGE(AAFwkTag::APPMGR, "can't find record");
         return;
     }
+
+    if (abilityRecord->GetAbilityInfo() &&
+        AAFwk::UIExtensionWrapper::IsUIExtension(abilityRecord->GetAbilityInfo()->extensionAbilityType) &&
+        abilityRecord->IsUIExtensionLoading()) {
+        abilityRecord->SetUIExtensionLoading(false);
+    }
+
     appRecord->StateChangedNotifyObserver(abilityRecord, static_cast<int32_t>(state), false, false);
 }
 
@@ -5105,10 +5140,14 @@ int32_t AppMgrServiceInner::KillSubProcessBypid(const pid_t pid, const std::stri
 }
 
 int32_t AppMgrServiceInner::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason,
-    bool subProcess, bool isKillPrecedeStart)
+    bool subProcess, bool isKillPrecedeStart, bool shouldKillForeground)
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     int32_t ret = ERR_OK;
+    std::unique_lock<ffrt::mutex> lock;
+    if (reason == AppExecFwk::GlobalConstant::LOW_MEMORY_KILL && !shouldKillForeground) {
+        lock = std::unique_lock<ffrt::mutex>(uiExtensionLoadLock_);
+    }
     for (const auto& pid: pids) {
         auto appRecord = GetAppRunningRecordByPid(pid);
         if (appRecord != nullptr) {
