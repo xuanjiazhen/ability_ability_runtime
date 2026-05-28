@@ -28,6 +28,7 @@ ohos_unittest("app_mgr_service_inner_tdd_third_test") {
   include_dirs = [
     "${ability_runtime_services_path}/abilitymgr/include",
     "${ability_runtime_test_path}/mock/services_appmgr_test/include",
+    "${ability_runtime_path}/utils/server/startup/include",
     "mock/include",
   ]
 

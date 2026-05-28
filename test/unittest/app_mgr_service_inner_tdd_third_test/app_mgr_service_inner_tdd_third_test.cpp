@@ -139,8 +139,7 @@ HWTEST_F(AppMgrServiceInnerTest, IsUIExtensionLoadingForPid_LoadingTrue_0300, Te
     ASSERT_NE(token, nullptr);
     auto moduleRecord = std::make_shared<ModuleRunningRecord>(applicationInfo, nullptr);
     appRecord->hapModules_[applicationInfo->bundleName].emplace_back(moduleRecord);
-    moduleRecord->AddAbility(token,
-        std::make_shared<AbilityRunningRecord>(abilityInfoPtr, token, 1));
+    moduleRecord->AddAbility(token, abilityInfoPtr, nullptr, 1);
     auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
     ASSERT_NE(abilityRecord, nullptr);
     abilityRecord->SetUIExtensionLoading(true);
@@ -175,8 +174,7 @@ HWTEST_F(AppMgrServiceInnerTest, IsUIExtensionLoadingForPid_LoadingFalse_0400, T
     ASSERT_NE(token, nullptr);
     auto moduleRecord = std::make_shared<ModuleRunningRecord>(applicationInfo, nullptr);
     appRecord->hapModules_[applicationInfo->bundleName].emplace_back(moduleRecord);
-    moduleRecord->AddAbility(token,
-        std::make_shared<AbilityRunningRecord>(abilityInfoPtr, token, 1));
+    moduleRecord->AddAbility(token, abilityInfoPtr, nullptr, 1);
     auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
     ASSERT_NE(abilityRecord, nullptr);
     abilityRecord->SetUIExtensionLoading(false);
@@ -252,8 +250,7 @@ HWTEST_F(AppMgrServiceInnerTest, KillProcessByPidInner_Loading_ReturnForeground_
     sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
     auto moduleRecord = std::make_shared<ModuleRunningRecord>(applicationInfo, nullptr);
     appRecord->hapModules_[applicationInfo->bundleName].emplace_back(moduleRecord);
-    moduleRecord->AddAbility(token,
-        std::make_shared<AbilityRunningRecord>(abilityInfoPtr, token, 1));
+    moduleRecord->AddAbility(token, abilityInfoPtr, nullptr, 1);
     auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
     ASSERT_NE(abilityRecord, nullptr);
     abilityRecord->SetUIExtensionLoading(true);
@@ -288,8 +285,7 @@ HWTEST_F(AppMgrServiceInnerTest, KillProcessByPidInner_NotLoading_Proceed_0300, 
     sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
     auto moduleRecord = std::make_shared<ModuleRunningRecord>(applicationInfo, nullptr);
     appRecord->hapModules_[applicationInfo->bundleName].emplace_back(moduleRecord);
-    moduleRecord->AddAbility(token,
-        std::make_shared<AbilityRunningRecord>(abilityInfoPtr, token, 1));
+    moduleRecord->AddAbility(token, abilityInfoPtr, nullptr, 1);
     auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
     ASSERT_NE(abilityRecord, nullptr);
     abilityRecord->SetUIExtensionLoading(false);
@@ -446,8 +442,7 @@ HWTEST_F(AppMgrServiceInnerTest, UpdateExtensionState_LoadingTrue_Clear_1000, Te
     sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
     auto moduleRecord = std::make_shared<ModuleRunningRecord>(applicationInfo, nullptr);
     appRecord->hapModules_[applicationInfo->bundleName].emplace_back(moduleRecord);
-    moduleRecord->AddAbility(token,
-        std::make_shared<AbilityRunningRecord>(abilityInfoPtr, token, 1));
+    moduleRecord->AddAbility(token, abilityInfoPtr, nullptr, 1);
     auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
     ASSERT_NE(abilityRecord, nullptr);
     abilityRecord->SetUIExtensionLoading(true);
@@ -481,8 +476,7 @@ HWTEST_F(AppMgrServiceInnerTest, UpdateExtensionState_LoadingFalse_NoChange_1100
     sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
     auto moduleRecord = std::make_shared<ModuleRunningRecord>(applicationInfo, nullptr);
     appRecord->hapModules_[applicationInfo->bundleName].emplace_back(moduleRecord);
-    moduleRecord->AddAbility(token,
-        std::make_shared<AbilityRunningRecord>(abilityInfoPtr, token, 1));
+    moduleRecord->AddAbility(token, abilityInfoPtr, nullptr, 1);
     auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
     ASSERT_NE(abilityRecord, nullptr);
     abilityRecord->SetUIExtensionLoading(false);
@@ -515,8 +509,7 @@ HWTEST_F(AppMgrServiceInnerTest, UpdateExtensionState_NonUIExt_NotClear_1200, Te
     sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
     auto moduleRecord = std::make_shared<ModuleRunningRecord>(applicationInfo, nullptr);
     appRecord->hapModules_[applicationInfo->bundleName].emplace_back(moduleRecord);
-    moduleRecord->AddAbility(token,
-        std::make_shared<AbilityRunningRecord>(abilityInfoPtr, token, 1));
+    moduleRecord->AddAbility(token, abilityInfoPtr, nullptr, 1);
     auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
     ASSERT_NE(abilityRecord, nullptr);
     abilityRecord->SetUIExtensionLoading(true);
