@@ -998,6 +998,30 @@ ohos_unittest("dump_runtime_helper_test") {
   ]
 }
 
+ohos_unittest("forkall_helper_test") {
+  module_out_path = "ability_runtime/ability_runtime/appkit"
+
+  sources = [ "forkall_helper_test.cpp" ]
+
+  configs = [ "${ability_runtime_services_path}/common:common_config" ]
+
+  deps = [ "${ability_runtime_native_path}/appkit:appkit_native" ]
+
+  external_deps = [
+    "ability_base:configuration",
+    "ability_base:want",
+    "appspawn:appspawn_client",
+    "bundle_framework:appexecfwk_base",
+    "bundle_framework:appexecfwk_core",
+    "c_utils:utils",
+    "googletest:gtest_main",
+    "hilog:libhilog",
+    "hitrace:hitrace_meter",
+    "init:libbegetutil",
+    "ipc:ipc_core",
+  ]
+}
+
 config("appkit_exception_config") {
   cflags_cc = [ "-fexceptions" ]
 }
@@ -1404,6 +1428,7 @@ group("unittest") {
     ":dump_runtime_helper_second_test",
     ":dump_runtime_helper_test",
     ":extension_plugin_info_test",
+    ":forkall_helper_test",
     ":form_extension_context_test",
     ":idle_time_test",
     ":js_environment_callback_test",
