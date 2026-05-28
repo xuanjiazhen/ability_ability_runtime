@@ -1521,4 +1521,79 @@ HWTEST_F(WantAgentHelperTest, CreateLocalWantAgent_0500, TestSize.Level1)
     EXPECT_EQ(getTypeResult, ERR_OK);
     EXPECT_EQ(operationType, static_cast<int32_t>(WantAgentConstant::OperationType::SEND_COMMON_EVENT));
 }
+/**
+ * @tc.name: GetWantFromProxy_0100
+ * @tc.desc: Test GetWantFromProxy with null agent
+ * @tc.type: FUNC
+ */
+HWTEST_F(WantAgentHelperTest, GetWantFromProxy_0100, TestSize.Level1)
+{
+    auto result = WantAgentHelper::GetWantFromProxy(nullptr);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: GetWantFromProxy_0200
+ * @tc.desc: Test GetWantFromProxy with local agent and valid LocalPendingWant
+ * @tc.type: FUNC
+ */
+HWTEST_F(WantAgentHelperTest, GetWantFromProxy_0200, TestSize.Level1)
+{
+    auto expectedWant = std::make_shared<AAFwk::Want>();
+    expectedWant->SetElement(ElementName("deviceId", "bundleName", "abilityName"));
+    auto localPendingWant = std::make_shared<LocalPendingWant>("TestBundle", expectedWant, 0);
+    auto wantAgent = std::make_shared<WantAgent>(localPendingWant);
+
+    auto result = WantAgentHelper::GetWantFromProxy(wantAgent);
+    ASSERT_NE(result, nullptr);
+    EXPECT_EQ(result->GetElement().GetBundleName(), "bundleName");
+}
+
+/**
+ * @tc.name: GetWantFromProxy_0300
+ * @tc.desc: Test GetWantFromProxy with local agent and null LocalPendingWant
+ * @tc.type: FUNC
+ */
+HWTEST_F(WantAgentHelperTest, GetWantFromProxy_0300, TestSize.Level1)
+{
+    std::shared_ptr<LocalPendingWant> localPendingWant = nullptr;
+    auto wantAgent = std::make_shared<WantAgent>(localPendingWant);
+
+    auto result = WantAgentHelper::GetWantFromProxy(wantAgent);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: GetWantFromProxy_0400
+ * @tc.desc: Test GetWantFromProxy with non-local agent and null PendingWant
+ * @tc.type: FUNC
+ */
+HWTEST_F(WantAgentHelperTest, GetWantFromProxy_0400, TestSize.Level1)
+{
+    std::shared_ptr<PendingWant> pendingWant = nullptr;
+    auto wantAgent = std::make_shared<WantAgent>(pendingWant);
+
+    auto result = WantAgentHelper::GetWantFromProxy(wantAgent);
+    EXPECT_EQ(result, nullptr);
+}
+
+/**
+ * @tc.name: GetWantFromProxy_0500
+ * @tc.desc: Test GetWantFromProxy denied when caller is not system app
+ * @tc.type: FUNC
+ */
+HWTEST_F(WantAgentHelperTest, GetWantFromProxy_0500, TestSize.Level1)
+{
+    auto expectedWant = std::make_shared<AAFwk::Want>();
+    expectedWant->SetElement(ElementName("deviceId", "bundleName", "abilityName"));
+    auto localPendingWant = std::make_shared<LocalPendingWant>("TestBundle", expectedWant, 0);
+    auto wantAgent = std::make_shared<WantAgent>(localPendingWant);
+
+    uint64_t savedTokenId = GetSelfTokenID();
+    SetSelfTokenID(0);
+    auto result = WantAgentHelper::GetWantFromProxy(wantAgent);
+    SetSelfTokenID(savedTokenId);
+
+    EXPECT_EQ(result, nullptr);
+}
 }  // namespace OHOS::AbilityRuntime::WantAgent

@@ -419,12 +419,14 @@ std::shared_ptr<Want> WantAgentHelper::GetWant(const std::shared_ptr<WantAgent> 
 std::shared_ptr<Want> WantAgentHelper::GetWantFromProxy(const std::shared_ptr<WantAgent> &agent)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    if (!PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI()) {
+        TAG_LOGE(AAFwkTag::WANTAGENT, "caller no system-app, can not use system-api");
+        return nullptr;
+    }
     if (agent == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return nullptr;
     }
-
-    std::shared_ptr<PendingWant> pendingWant = agent->GetPendingWant();
 
     if (agent->IsLocal()) {
         if (agent->GetLocalPendingWant() == nullptr) {
@@ -434,6 +436,7 @@ std::shared_ptr<Want> WantAgentHelper::GetWantFromProxy(const std::shared_ptr<Wa
         return agent->GetLocalPendingWant()->GetWant();
     }
 
+    std::shared_ptr<PendingWant> pendingWant = agent->GetPendingWant();
     if (pendingWant == nullptr) {
         TAG_LOGE(AAFwkTag::WANTAGENT, "invalid input param");
         return nullptr;
