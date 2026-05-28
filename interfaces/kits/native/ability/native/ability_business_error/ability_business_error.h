@@ -342,6 +342,7 @@ enum class AbilityInnerErrorMsg {
     OPERATION_FAILED,
     RESTORE_WINDOW_STAGE_FAILED,
     WRAP_ABILITY_RESULT_FAILED,
+<<<<<<< HEAD
     CONNECT_AGENT_EXTENSION_FAILED,
     AGENT_EXTENSION_CONNECTION_ENDED,
     DISCONNECT_AGENT_EXTENSION_NOT_EXIST,
@@ -356,6 +357,11 @@ enum class AgentManagerErrorOperation {
     DISCONNECT_AGENT_EXTENSION,
     DISCONNECT_SERVICE_EXTENSION,
     COMPLETE_LOW_CODE_AGENT,
+=======
+    TRANSFER_EXTENSION_DATA_FAILED,
+    UI_WINDOW_NULL,
+    RELOAD_IN_MODAL_RESULT_NULL,
+>>>>>>> 00b9f6feac (补充autofill inner error信息)
 };
 
 std::string GetErrorMsg(const AbilityErrorCode& errCode);
