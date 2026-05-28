@@ -18,14 +18,12 @@
 #include <unistd.h>
 
 #include "app_mgr_constants.h"
-#include "constants.h"
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "parameters.h"
 
 namespace OHOS {
 namespace AppExecFwk {
-using namespace OHOS::AbilityBase::Constants;
 namespace {
 constexpr int32_t ONE_MILLISECOND = 1000;
 constexpr const char* SNAPSHOT_LAUNCH_DELAY_MS = "persist.resourceschedule.snapshot_launch_delay_ms";
