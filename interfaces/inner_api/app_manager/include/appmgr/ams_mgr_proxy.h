@@ -123,11 +123,12 @@ public:
      * @param pids, the pid list of processes are going to be killed.
      * @param reason, the reason to kill the processes.
      * @param subProcess, kill SubProcess or not.
+     * @param shouldKillForeground, whether should kill foreground process.
      * @return ERR_OK, return back success, others fail.
      */
     virtual int32_t KillProcessesByPids(const std::vector<int32_t> &pids,
         const std::string &reason = "KillProcessesByPids", bool subProcess = false,
-        bool isKillPrecedeStart = false) override;
+        bool isKillPrecedeStart = false, bool shouldKillForeground = true) override;
 
     /**
      * Set child and parent relationship

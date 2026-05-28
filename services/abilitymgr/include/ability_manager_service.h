@@ -3477,6 +3477,7 @@ private:
     void StartKeepAliveAppsInner(int32_t userId);
 
     bool ProcessLowMemoryKill(int32_t pid, const ExitReason &reason, bool isKillPrecedeStart);
+    bool ProcessLowMemoryKillUIExtension(int32_t pid, int32_t uid);
 
     void TimeSequenceKeepAliveRestart(int32_t userId, pid_t pid,
         std::map<int32_t, std::vector<AppExecFwk::BundleInfo>> &bundleInfosMap,
