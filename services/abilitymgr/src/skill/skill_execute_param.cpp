@@ -40,6 +40,10 @@ bool SkillExecuteParam::ReadFromParcel(Parcel &parcel)
     for (int32_t i = 0; i < srcCount; i++) {
         srcEntries_.push_back(Str16ToStr8(parcel.ReadString16()));
     }
+    int32_t srcEntranceCount = parcel.ReadInt32();
+    for (int32_t i = 0; i < srcEntranceCount; i++) {
+        srcEntrances_.push_back(Str16ToStr8(parcel.ReadString16()));
+    }
     requestCode_ = Str16ToStr8(parcel.ReadString16());
     hapPath_ = Str16ToStr8(parcel.ReadString16());
     return true;
@@ -74,6 +78,10 @@ bool SkillExecuteParam::Marshalling(Parcel &parcel) const
     parcel.WriteInt32(static_cast<int32_t>(srcEntries_.size()));
     for (const auto &entry : srcEntries_) {
         parcel.WriteString16(Str8ToStr16(entry));
+    }
+    parcel.WriteInt32(static_cast<int32_t>(srcEntrances_.size()));
+    for (const auto &entrance : srcEntrances_) {
+        parcel.WriteString16(Str8ToStr16(entrance));
     }
     parcel.WriteString16(Str8ToStr16(requestCode_));
     parcel.WriteString16(Str8ToStr16(hapPath_));
@@ -124,6 +132,10 @@ bool SkillExecuteParam::GenerateFromWant(const AAFwk::Want &want, SkillExecutePa
         auto key = std::string(SKILL_EXECUTE_PARAM_SRC_ENTRY_PREFIX) + std::to_string(i);
         param.srcEntries_.push_back(wantParams.GetStringParam(key));
     }
+    for (int32_t i = 0; i < srcCount; i++) {
+        auto key = std::string(SKILL_EXECUTE_PARAM_SRC_ENTRANCE_PREFIX) + std::to_string(i);
+        param.srcEntrances_.push_back(wantParams.GetStringParam(key));
+    }
     param.requestCode_ = wantParams.GetStringParam(SKILL_EXECUTE_PARAM_REQUEST_CODE);
     param.hapPath_ = wantParams.GetStringParam(SKILL_EXECUTE_PARAM_HAP_PATH);
     return true;
@@ -160,6 +172,10 @@ bool SkillExecuteParam::RemoveSkillParam(AAFwk::Want &want)
             auto key = std::string(SKILL_EXECUTE_PARAM_SRC_ENTRY_PREFIX) + std::to_string(i);
             want.RemoveParam(key);
         }
+        for (int32_t i = 0; i < srcCount; i++) {
+            auto key = std::string(SKILL_EXECUTE_PARAM_SRC_ENTRANCE_PREFIX) + std::to_string(i);
+            want.RemoveParam(key);
+        }
     }
     return true;
 }
@@ -169,7 +185,8 @@ void SkillExecuteParam::WriteToWant(AAFwk::Want &want, const std::string &bundle
     const std::string &arkTSPath, const std::string &funcName,
     const std::shared_ptr<AAFwk::WantParams> &skillArgs,
     const std::vector<std::string> &srcEntries,
-    const std::string &requestCode, const std::string &hapPath)
+    const std::string &requestCode, const std::string &hapPath,
+    const std::vector<std::string> &srcEntrances)
 {
     want.SetParam(SKILL_EXECUTE_PARAM_BUNDLE_NAME, bundleName);
     want.SetParam(SKILL_EXECUTE_PARAM_MODULE_NAME, moduleName);
@@ -197,6 +214,10 @@ void SkillExecuteParam::WriteToWant(AAFwk::Want &want, const std::string &bundle
         for (size_t i = 0; i < srcEntries.size(); i++) {
             auto key = std::string(SKILL_EXECUTE_PARAM_SRC_ENTRY_PREFIX) + std::to_string(i);
             want.SetParam(key, srcEntries[i]);
+        }
+        for (size_t i = 0; i < srcEntrances.size() && i < srcEntries.size(); i++) {
+            auto key = std::string(SKILL_EXECUTE_PARAM_SRC_ENTRANCE_PREFIX) + std::to_string(i);
+            want.SetParam(key, srcEntrances[i]);
         }
     }
     if (!requestCode.empty()) {
