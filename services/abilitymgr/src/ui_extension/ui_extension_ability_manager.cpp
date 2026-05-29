@@ -758,7 +758,7 @@ void UIExtensionAbilityManager::DoForegroundUIExtension(std::shared_ptr<BaseExte
                 abilityRecord->SetPendingState(AbilityState::FOREGROUND);
             }
             abilityRecord->SetWant(abilityRequest.want);
-            AddStartingPid(targetService->GetPid(), GetForegroundTimeout(abilityRecord));
+            AddStartingPid(abilityRecord->GetPid(), GetForegroundTimeout(abilityRecord));
             abilityRecord->PostUIExtensionAbilityTimeoutTask(AbilityManagerService::FOREGROUND_TIMEOUT_MSG);
             DelayedSingleton<AppScheduler>::GetInstance()->MoveToForeground(abilityRecord->GetToken());
 
