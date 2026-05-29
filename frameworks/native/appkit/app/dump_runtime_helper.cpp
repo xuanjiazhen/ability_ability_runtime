@@ -345,12 +345,23 @@ void DumpRuntimeHelper::DumpCjHeap(const OHOS::AppExecFwk::CjHeapDumpInfo &info)
 #endif
 }
 
-void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     TAG_LOGI(AAFwkTag::APPKIT, "dump type: %{public}d", static_cast<uint32_t>(info.dumpType));
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+
     if (info.dumpType == MemDumpType::NATIVE) {
-        DumpNativeHeap(info, dumpResult);
+        std::thread([self = shared_from_this(), info, callback, client]() {
+            std::string dumpResult;
+            self->DumpNativeHeap(info, dumpResult);
+            if (client != nullptr && callback != nullptr) {
+                client->ReportDumpMemResult(callback, dumpResult);
+            }
+        }).detach();
+        return;
     }
+
+    std::string dumpResult;
     if (info.dumpType == MemDumpType::KMP_KOTLIN) {
         DumpKmpKotlinHeap(info);
     }
@@ -359,6 +370,9 @@ void DumpRuntimeHelper::DumpMem(const OHOS::AppExecFwk::MemDumpInfo &info, std::
     }
     if (info.dumpType == MemDumpType::ARKWEB_JS) {
         DumpArkwebJsHeap(info);
+    }
+    if (client != nullptr && callback != nullptr) {
+        client->ReportDumpMemResult(callback, dumpResult);
     }
 }
 
