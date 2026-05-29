@@ -265,6 +265,10 @@ void JsAgentExtension::OnDisconnect(const AAFwk::Want &want,
         TAG_LOGE(AAFwkTag::SER_ROUTER, "null jsHostProxy");
         return;
     }
+    void *nativeProxy = nullptr;
+    if (napi_unwrap(env, jsHostProxy, &nativeProxy) == napi_ok && nativeProxy != nullptr) {
+        static_cast<JsAgentConnectorProxy *>(nativeProxy)->Invalidate();
+    }
     napi_value argv[] = { napiWant, jsHostProxy };
     CallObjectMethod("onDisconnect", argv, ARGC_TWO);
     hostProxyMap_.erase(iter);
