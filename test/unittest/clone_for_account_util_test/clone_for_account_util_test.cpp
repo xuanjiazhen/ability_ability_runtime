@@ -15,9 +15,7 @@
 
 #include <gtest/gtest.h>
 
-#define private public
 #include "clone_for_account_util.h"
-#undef private
 
 #include "ability_record.h"
 #include "auto_app_index.h"
