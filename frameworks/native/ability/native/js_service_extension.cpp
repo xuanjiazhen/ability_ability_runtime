@@ -585,7 +585,8 @@ napi_value JsServiceExtension::LoadSkillFunction(
     napi_env env = jsRuntime_.GetNapiEnv();
     std::unique_ptr<NativeReference> moduleRef = nullptr;
     napi_value method = nullptr;
-    for (const auto &srcEntry : param->srcEntries_) {
+    for (size_t i = 0; i < param->srcEntries_.size(); i++) {
+        const auto &srcEntry = param->srcEntries_[i];
         std::string srcPath(param->moduleName_ + "/" + srcEntry);
         auto pos = srcPath.rfind('.');
         if (pos == std::string::npos) {
@@ -594,7 +595,11 @@ napi_value JsServiceExtension::LoadSkillFunction(
         }
         srcPath.erase(pos);
         srcPath.append(".abc");
-        moduleRef = jsRuntime_.LoadModule(param->moduleName_, srcPath, param->hapPath_, true);
+        std::string srcEntrance;
+        if (i < param->srcEntrances_.size()) {
+            srcEntrance = param->srcEntrances_[i];
+        }
+        moduleRef = jsRuntime_.LoadModule(param->moduleName_, srcPath, param->hapPath_, true, false, srcEntrance);
         if (moduleRef == nullptr) {
             TAG_LOGW(AAFwkTag::SERVICE_EXT, "LoadModule failed, path:%{public}s", srcPath.c_str());
             continue;

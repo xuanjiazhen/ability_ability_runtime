@@ -48,6 +48,7 @@ constexpr char SKILL_EXECUTE_PARAM_ARGS_KEYS[] = "ohos.skill.executeParam.argsKe
 constexpr char SKILL_EXECUTE_PARAM_ARGS_PREFIX[] = "ohos.skill.executeParam.args.";
 constexpr char SKILL_EXECUTE_PARAM_SRC_ENTRIES_COUNT[] = "ohos.skill.executeParam.srcEntriesCount";
 constexpr char SKILL_EXECUTE_PARAM_SRC_ENTRY_PREFIX[] = "ohos.skill.executeParam.srcEntry.";
+constexpr char SKILL_EXECUTE_PARAM_SRC_ENTRANCE_PREFIX[] = "ohos.skill.executeParam.srcEntrance.";
 constexpr char SKILL_EXECUTE_PARAM_HAP_PATH[] = "ohos.skill.executeParam.hapPath";
 constexpr char SKILL_EXECUTE_PARAM_REQUEST_CODE[] = "ohos.skill.executeParam.requestCode";
 
@@ -68,7 +69,8 @@ public:
         const std::string &scriptPath = "", const std::string &functionName = "",
         const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
         const std::vector<std::string> &srcEntries = {},
-        const std::string &requestCode = "", const std::string &hapPath = "");
+        const std::string &requestCode = "", const std::string &hapPath = "",
+        const std::vector<std::string> &srcEntrances = {});
 
     std::string bundleName_;
     std::string moduleName_;
@@ -77,6 +79,7 @@ public:
     std::string functionName_;
     std::shared_ptr<AAFwk::WantParams> skillArgs_;
     std::vector<std::string> srcEntries_;
+    std::vector<std::string> srcEntrances_;
     std::string hapPath_;
     std::string requestCode_;
 };
