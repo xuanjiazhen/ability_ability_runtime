@@ -1341,7 +1341,8 @@ bool IsNeedLoadLibrary(const std::string &bundleName)
         "com.ohos.ringtonelibrary.ringtonelibrarydata",
         "com.ohos.telephonydataability",
         "com.ohos.FusionSearch",
-        "com.ohos.formrenderservice"
+        "com.ohos.formrenderservice",
+        "com.ohos.numberidentity"
     };
 
     return std::find(needLoadLibraryBundleNames.begin(), needLoadLibraryBundleNames.end(), bundleName)
