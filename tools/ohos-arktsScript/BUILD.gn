@@ -96,14 +96,6 @@ ohos_cli_executable("ohos-arkTSScript") {
     "src/main.cpp",
   ]
 
-  configs = [
-    ":ohos-arkts-config",
-  ]
-
-  deps = [ ":arkts_script" ] + arkts_script_deps
-
-  external_deps = arkts_script_external_deps
-
   install_enable = true
   install_images = [ "system" ]
   subsystem_name = "ability"

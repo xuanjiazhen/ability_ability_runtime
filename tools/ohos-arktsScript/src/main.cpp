@@ -28,5 +28,5 @@ int main(int argc, char* argv[])
         getuid(), getpid(), OHOS::IPCSkeleton::GetCallingUid(), OHOS::IPCSkeleton::GetCallingPid(),
         OHOS::IPCSkeleton::GetCallingTokenID(),
         static_cast<unsigned long long>(OHOS::IPCSkeleton::GetCallingFullTokenID()));
-    return OHOS::ArktsScript::ArktsScript::RunArkTsScript(argc, argv);
+    return 0;
 }
