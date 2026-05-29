@@ -187,7 +187,7 @@ private:
 
     void AddUIExtensionAbilityRecordToTerminatedList(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
 
-    void AddStartingPid(pid_t pid);
+    void AddStartingPid(pid_t pid, int32_t timeoutMs);
     void RemoveStartingPid(pid_t pid);
 
     int32_t GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest, bool isCreatedByConnect,
