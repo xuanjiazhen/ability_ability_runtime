@@ -1839,7 +1839,7 @@ HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingPid_FirstAdd_0100, Test
     EXPECT_NE(mgr, nullptr);
     mgr->startingPidsMap_.clear();
     pid_t pid = 1234;
-    mgr->AddStartingPid(pid);
+    mgr->AddStartingPid(pid, 5000);
     EXPECT_EQ(mgr->startingPidsMap_.count(pid), 1u);
     EXPECT_EQ(mgr->startingPidsMap_[pid], 1);
     mgr->startingPidsMap_.clear();
@@ -1858,8 +1858,8 @@ HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingPid_Duplicate_RefCount_
     EXPECT_NE(mgr, nullptr);
     mgr->startingPidsMap_.clear();
     pid_t pid = 1234;
-    mgr->AddStartingPid(pid);
-    mgr->AddStartingPid(pid);
+    mgr->AddStartingPid(pid, 5000);
+    mgr->AddStartingPid(pid, 5000);
     EXPECT_EQ(mgr->startingPidsMap_.count(pid), 1u);
     EXPECT_EQ(mgr->startingPidsMap_[pid], 2);
     mgr->startingPidsMap_.clear();
@@ -1877,9 +1877,9 @@ HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingPid_InvalidPid_0300, Te
     std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
     EXPECT_NE(mgr, nullptr);
     mgr->startingPidsMap_.clear();
-    mgr->AddStartingPid(0);
+    mgr->AddStartingPid(0, 5000);
     EXPECT_EQ(mgr->startingPidsMap_.size(), 0u);
-    mgr->AddStartingPid(-1);
+    mgr->AddStartingPid(-1, 5000);
     EXPECT_EQ(mgr->startingPidsMap_.size(), 0u);
     TAG_LOGI(AAFwkTag::TEST, "AddStartingPid_InvalidPid_0300 end");
 }
@@ -1896,8 +1896,8 @@ HWTEST_F(UIExtensionAbilityManagerSecondTest, RemoveStartingPid_RefCountDec_0100
     EXPECT_NE(mgr, nullptr);
     mgr->startingPidsMap_.clear();
     pid_t pid = 1234;
-    mgr->AddStartingPid(pid);
-    mgr->AddStartingPid(pid);
+    mgr->AddStartingPid(pid, 5000);
+    mgr->AddStartingPid(pid, 5000);
     EXPECT_EQ(mgr->startingPidsMap_[pid], 2);
     mgr->RemoveStartingPid(pid);
     EXPECT_EQ(mgr->startingPidsMap_.count(pid), 1u);
@@ -1918,7 +1918,7 @@ HWTEST_F(UIExtensionAbilityManagerSecondTest, RemoveStartingPid_RefCountZero_Rem
     EXPECT_NE(mgr, nullptr);
     mgr->startingPidsMap_.clear();
     pid_t pid = 1234;
-    mgr->AddStartingPid(pid);
+    mgr->AddStartingPid(pid, 5000);
     EXPECT_EQ(mgr->startingPidsMap_[pid], 1);
     mgr->RemoveStartingPid(pid);
     EXPECT_EQ(mgr->startingPidsMap_.count(pid), 0u);
