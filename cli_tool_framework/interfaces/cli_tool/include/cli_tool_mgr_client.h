@@ -22,6 +22,7 @@
 
 #include "cli_session_info.h"
 #include "cli_tool_event.h"
+#include "exec_cmd_param.h"
 #include "exec_options.h"
 #include "icli_tool_manager.h"
 #include "iremote_object.h"
@@ -100,6 +101,8 @@ public:
      */
     ErrCode ExecTool(const ExecToolParam &param, const ExecToolReplyCallback &callback);
 
+    ErrCode ExecCmd(const ExecCmdParam &param, const ExecToolReplyCallback &callback);
+
     ErrCode SubscribeSession(const std::string &sessionId,
                              const std::shared_ptr<SessionEventCallback> &callback,
                              std::string &subscriptionId);
@@ -109,6 +112,8 @@ public:
     ErrCode ClearSession(const std::string &sessionId);
 
     ErrCode QuerySession(const std::string &sessionId, CliSessionInfo &session);
+
+    ErrCode SetPolicy(const std::string &sessionId, const std::string &policy);
 
     ErrCode SendMessage(const std::string &sessionId,
                         const std::string &inputText,

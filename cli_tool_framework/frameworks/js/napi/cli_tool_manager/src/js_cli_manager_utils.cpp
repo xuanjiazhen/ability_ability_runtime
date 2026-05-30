@@ -19,6 +19,7 @@
 
 #include "cli_session_info.h"
 #include "cli_tool_event.h"
+#include "exec_cmd_param.h"
 #include "exec_options.h"
 #include "hilog_tag_wrapper.h"
 #include "icli_tool_data.h"
@@ -206,6 +207,77 @@ bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options)
             return false;
         }
     }
+    return true;
+}
+
+bool UnwrapExecCmdOptions(napi_env env, napi_value obj, ExecCmdParam &param)
+{
+    if (obj == nullptr) {
+        return true;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    napi_status status = napi_typeof(env, obj, &valueType);
+    if (status != napi_ok || valueType != napi_object) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Input is not an object");
+        return false;
+    }
+
+    bool hasProperty = false;
+
+    if (napi_has_named_property(env, obj, "workDir", &hasProperty) != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "has workDir failed");
+        return false;
+    }
+    if (hasProperty) {
+        napi_value workDirProp = nullptr;
+        if (napi_get_named_property(env, obj, "workDir", &workDirProp) != napi_ok) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "invalid workDir property");
+            return false;
+        }
+        if (!AppExecFwk::UnwrapStringFromJS2(env, workDirProp, param.workDir)) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "unwrap workDir failed");
+            return false;
+        }
+    }
+
+    if (napi_has_named_property(env, obj, "env", &hasProperty) != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "has env failed");
+        return false;
+    }
+    if (hasProperty) {
+        napi_value envProp = nullptr;
+        if (napi_get_named_property(env, obj, "env", &envProp) != napi_ok) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "invalid env property");
+            return false;
+        }
+        if (!AppExecFwk::UnwrapStringFromJS2(env, envProp, param.env)) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "unwrap env failed");
+            return false;
+        }
+    }
+
+    if (napi_has_named_property(env, obj, "policy", &hasProperty) != napi_ok) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "has policy failed");
+        return false;
+    }
+    if (hasProperty) {
+        napi_value policyProp = nullptr;
+        if (napi_get_named_property(env, obj, "policy", &policyProp) != napi_ok) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "invalid policy property");
+            return false;
+        }
+        if (!AppExecFwk::UnwrapStringFromJS2(env, policyProp, param.policy)) {
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "unwrap policy failed");
+            return false;
+        }
+    }
+
+    // Reuse UnwrapExecOptions for background, yieldMs, timeout
+    if (!UnwrapExecOptions(env, obj, param.options)) {
+        return false;
+    }
+
     return true;
 }
 
