@@ -1792,6 +1792,9 @@ public:
         const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
         const sptr<ISkillExecuteCallback> &callback = nullptr) override;
 
+    virtual int32_t ExecuteInAppSkillWithTokenId(const AppExecFwk::SkillExecuteRequest &request,
+        const sptr<ISkillExecuteCallback> &callback) override;
+
     virtual int32_t QuerySkillType(const std::string &bundleName, const std::string &moduleName,
         const std::string &skillName, int32_t &skillType) override;
 
@@ -2153,6 +2156,14 @@ public:
         std::unordered_set<std::string> &userLockedBundleList) override;
 
     virtual int32_t SetAppRecoveryFlag(const sptr<IRemoteObject>& token, int flag)override;
+
+    /**
+     * StartSelfUIAbility from ApplicationContext and force launch in current process.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbilityByAppContext(const Want &want) override;
 private:
     template <typename T>
     int GetParcelableInfos(MessageParcel &reply, std::vector<T> &parcelableInfos);

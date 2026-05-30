@@ -56,6 +56,14 @@ public:
     ErrCode StartSelfUIAbility(const Want &want);
 
     /**
+     * StartSelfUIAbility from ApplicationContext and force launch in current process.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode StartSelfUIAbilityByAppContext(const Want &want);
+
+    /**
      * StartSelfUIAbility with want and startOptions, start self uiability only on 2-in-1 devices.
      *
      * @param want, the want of the ability to start.
@@ -1782,6 +1790,17 @@ public:
      */
     ErrCode QueryEntityInfo(uint64_t key, sptr<IRemoteObject> callerToken,
         const InsightIntentQueryParam &param);
+     
+    /**
+     * @brief Execute intent with result synchronously.
+     * @param callerToken Caller ability token.
+     * @param param The Intent execute param.
+     * @param result The Intent execute result output.
+     * @param timeoutMs Timeout in milliseconds, default 30000ms.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    ErrCode ExecuteIntentWithResult(const InsightIntentExecuteParam &param, InsightIntentExecuteResult &result,
+        int32_t timeoutMs = 30000);
 
     /**
      * @brief Called when insight intent execute finished.
@@ -2254,6 +2273,9 @@ public:
         const std::string &funcName = "",
         const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
         const sptr<ISkillExecuteCallback> &callback = nullptr);
+
+    ErrCode ExecuteInAppSkillWithTokenId(const AppExecFwk::SkillExecuteRequest &request,
+        const sptr<ISkillExecuteCallback> &callback);
 
     ErrCode ExecuteSkillDone(sptr<IRemoteObject> token, const std::string &requestCode,
         int32_t resultCode, const AppExecFwk::SkillExecuteResult &result);

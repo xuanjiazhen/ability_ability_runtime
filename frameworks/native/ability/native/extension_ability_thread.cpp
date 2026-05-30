@@ -244,17 +244,14 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
         TAG_LOGE(AAFwkTag::EXT, "null abilityInfo");
         return;
     }
+
+    // 1.new AbilityHandler - original per-type logic
     if (abilityInfo->extensionAbilityType == AppExecFwk::ExtensionAbilityType::CONTENT_EMBED) {
         HandleNativeExtensionAttach(abilityRecord, abilityName);
     } else {
         HandleNormalExtensionAttach(abilityRecord, mainRunner, abilityName);
     }
- 
-    if (abilityHandler_ == nullptr) {
-        TAG_LOGE(AAFwkTag::EXT, "Failed to create abilityHandler_");
-        return;
-    }
- 
+
     // 2.new ability
     auto extension = AppExecFwk::AbilityLoader::GetInstance().GetExtensionByName(abilityName,
         abilityInfo->arkTSMode);
@@ -263,6 +260,19 @@ void ExtensionAbilityThread::HandleAttach(const std::shared_ptr<AppExecFwk::OHOS
         return;
     }
     currentExtension_.reset(extension);
+
+    // 3.Override with extension-provided handler if available (e.g. ModularObject)
+    auto customHandler = currentExtension_->GetAbilityHandler(abilityInfo);
+    if (customHandler != nullptr) {
+        TAG_LOGD(AAFwkTag::EXT, "Using extension-provided abilityHandler");
+        abilityHandler_ = customHandler;
+    }
+
+    if (abilityHandler_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "Failed to create abilityHandler_");
+        return;
+    }
+
     token_ = abilityRecord->GetToken();
     abilityRecord->SetAbilityThread(this);
     HandleAttachInner(application, abilityRecord);
@@ -357,6 +367,7 @@ void ExtensionAbilityThread::HandleConnectExtension(const Want &want)
         TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
         return;
     }
+
     bool isAsyncCallback = false;
     sptr<IRemoteObject> service = extensionImpl_->ConnectExtension(want, isAsyncCallback);
     if (!isAsyncCallback) {
@@ -815,6 +826,16 @@ void ExtensionAbilityThread::DumpOtherInfo(std::vector<std::string> &info)
     dumpInfo = "";
     runner->DumpRunnerInfo(dumpInfo);
     info.push_back(dumpInfo);
+}
+
+int ExtensionAbilityThread::CreateModalUIExtension(const Want &want)
+{
+    if (extensionImpl_ == nullptr) {
+        TAG_LOGE(AAFwkTag::EXT, "null extensionImpl_");
+        return ERR_INVALID_VALUE;
+    }
+
+    return extensionImpl_->CreateModalUIExtension(want);
 }
 } // namespace AbilityRuntime
 } // namespace OHOS

@@ -132,6 +132,17 @@ public:
     }
 
     /**
+     * StartSelfUIAbility from ApplicationContext and force launch in current process.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbilityByAppContext(const Want &want)
+    {
+        return 0;
+    }
+
+    /**
      * StartSelfUIAbility with want and startOptions, start self uiability only on 2-in-1 devices.
      *
      * @param want, the want of the ability to start.
@@ -2811,6 +2822,18 @@ public:
         const std::string &funcName = "",
         const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
         const sptr<ISkillExecuteCallback> &callback = nullptr)
+    {
+        return ERR_OK;
+    }
+
+    /**
+     * @brief Execute in-app skill with explicit caller tokenId (for SA-to-SA calls).
+     * @param request The skill execute request parameters.
+     * @param callback The callback for skill execution result.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int32_t ExecuteInAppSkillWithTokenId(const AppExecFwk::SkillExecuteRequest &request,
+        const sptr<ISkillExecuteCallback> &callback)
     {
         return ERR_OK;
     }

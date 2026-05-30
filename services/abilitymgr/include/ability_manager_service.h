@@ -1415,6 +1415,7 @@ public:
     void HandleForegroundTimeOut(int64_t abilityRecordId, bool isHalf = false, bool isExtension = false);
     void HandleConnectTimeOut(int64_t abilityRecordId, bool isHalf = false);
     void HandleShareDataTimeOut(int64_t uniqueId);
+    void HandleSkillExecuteTimeOut(int64_t requestCodeSeq);
     int32_t GetShareDataPairAndReturnData(std::shared_ptr<AbilityRecord> abilityRecord,
         const int32_t &resultCode, const int32_t &uniqueId, WantParams &wantParam);
 
@@ -1443,7 +1444,7 @@ public:
     int StartAbilityForOptionWrap(const Want &want, const StartOptions &startOptions,
         const sptr<IRemoteObject> &callerToken, bool isPendingWantCaller, int32_t userId = DEFAULT_INVAL_VALUE,
         int requestCode = DEFAULT_INVAL_VALUE, bool isStartAsCaller = false, uint32_t callerTokenId = 0,
-        bool isImplicit = false, bool isCallByShortcut = false);
+        bool isImplicit = false, bool isCallByShortcut = false, bool isCallByDelayed = false);
 
     int StartAbilityForOptionInner(
         const Want &want,
@@ -1455,7 +1456,8 @@ public:
         bool isStartAsCaller = false,
         uint32_t specifyTokenId = 0,
         bool isImplicit = false,
-        bool isCallByShortcut = false);
+        bool isCallByShortcut = false,
+        bool isCallByDelayed = false);
 
     int ImplicitStartAbility(
         const Want &want,
@@ -1493,14 +1495,16 @@ public:
         int requestCode = DEFAULT_INVAL_VALUE,
         bool isImplicit = false,
         bool isAppCloneSelector = false,
-        uint32_t callerAccessTokenId = 0);
+        uint32_t callerAccessTokenId = 0,
+        sptr<IRequestStartAbilityCallback> callback = nullptr);
 
     int ImplicitStartAbilityAsCaller(
         const Want &want,
         const sptr<IRemoteObject> &callerToken,
         sptr<IRemoteObject> asCallerSourceToken,
         int32_t userId = DEFAULT_INVAL_VALUE,
-        int requestCode = DEFAULT_INVAL_VALUE);
+        int requestCode = DEFAULT_INVAL_VALUE,
+        sptr<IRequestStartAbilityCallback> callback = nullptr);
 
     /**
      * @brief called when the module's onAcceptWant done to notify ability mgr to continue
@@ -2211,6 +2215,9 @@ public:
         const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr,
         const sptr<ISkillExecuteCallback> &callback = nullptr) override;
 
+    int32_t ExecuteInAppSkillWithTokenId(const AppExecFwk::SkillExecuteRequest &request,
+        const sptr<ISkillExecuteCallback> &callback) override;
+
     int32_t StartAbilityByCallWithSkill(const Want &want,
         const sptr<IRemoteObject> &callerToken, int32_t userId = DEFAULT_INVAL_VALUE);
 
@@ -2492,7 +2499,7 @@ public:
 
     int StartUIAbilityForOptionWrap(const Want &want, const StartOptions &options, sptr<IRemoteObject> callerToken,
         bool isPendingWantCaller, int32_t userId, int requestCode, uint32_t callerTokenId = 0, bool isImplicit = false,
-        bool isCallByShortcut = false);
+        bool isCallByShortcut = false, bool isCallByDelayed = false);
 
     /**
      * KillProcessForPermissionUpdate, call KillProcessForPermissionUpdate() through proxy object,
@@ -2677,6 +2684,8 @@ public:
     static constexpr uint32_t FOREGROUND_HALF_TIMEOUT_MSG = 9;
     static constexpr uint32_t CONNECT_TIMEOUT_MSG = 10;
     static constexpr uint32_t CONNECT_HALF_TIMEOUT_MSG = 11;
+    static constexpr uint32_t SKILL_EXECUTE_TIMEOUT_MSG = 12;
+    static constexpr uint32_t START_SELF_TIMEOUT_MSG = 13;
 
     static constexpr uint32_t MIN_DUMP_ARGUMENT_NUM = 2;
     static constexpr uint32_t MAX_WAIT_SYSTEM_UI_NUM = 600;
@@ -2835,6 +2844,13 @@ protected:
     virtual int32_t GetUserLockedBundleList(int32_t userId,
         std::unordered_set<std::string> &userLockedBundleList) override;
 
+    /**
+     * StartSelfUIAbility from ApplicationContext and force launch in current process.
+     *
+     * @param want, the want of the ability to start.
+     * @return Returns ERR_OK on success, others on failure.
+     */
+    virtual int StartSelfUIAbilityByAppContext(const Want &want) override;
 private:
     int GetTopAbilityInner(sptr<IRemoteObject> &token, uint64_t displayId = 0);
 
@@ -2880,6 +2896,14 @@ private:
      * @return Returns ERR_OK on success, error code on failure.
      */
     int32_t CheckAndSubmitAutoStartupStatusBarTask(std::shared_ptr<AbilityRecord> abilityRecord);
+
+    /**
+     * @brief Check whether caller triggers distributed intent flood attack.
+     * @param callerUid Calling uid.
+     * @return Returns true if flood attack detected.
+     */
+    bool IsFloodAttackByCallerUid(int32_t callerUid);
+
     /**
      * initialization of ability manager service.
      *
@@ -3454,6 +3478,13 @@ private:
     bool HandleExecuteSAInterceptor(const Want &want, sptr<IRemoteObject> callerToken,
         AbilityRequest &abilityRequest, int32_t &result);
 
+    int StartAbilityDelayed(StartAbilityWrapParam &param);
+
+    int CheckDelayedStartBelongToCaller(const Want &want, const AppExecFwk::RunningProcessInfo &processInfo);
+
+    int StartAbilityDelayedInner(const Want &want, const AppExecFwk::RunningProcessInfo &processInfo,
+        int32_t callingPid);
+
     bool controllerIsAStabilityTest_ = false;
     bool isParamStartAbilityEnable_ = false;
     // Component StartUp rule switch
@@ -3574,6 +3605,8 @@ private:
     int32_t ExecuteIntentCommon(const sptr<IRemoteObject> &callerToken,
         const std::shared_ptr<InsightIntentExecuteParam> &param, const std::string &callerBundleName,
         const AbilityRuntime::ExecuteIntentCommonOptions &infos);
+    void GetCallerUidAndToken(const std::string &bundleName, int32_t userId,
+        int32_t &callerUid, uint32_t &accessToken);
 
 #ifdef BGTASKMGR_CONTINUOUS_TASK_ENABLE
     std::shared_ptr<BackgroundTaskObserver> bgtaskObserver_;
@@ -3614,6 +3647,10 @@ private:
     ffrt::mutex shouldBlockAllAppStartMutex_;
     mutable ffrt::mutex timeoutMapLock_;
     std::mutex whiteListMutex_;
+    ffrt::mutex delayedStartPidsLock_;
+    std::unordered_set<int32_t> delayedStartPids_;
+    std::mutex floodAttackMutex_;
+    std::unordered_map<int32_t, std::deque<int64_t>> floodAttackStatistics_;
 
     std::mutex prepareTermiationCallbackMutex_;
     std::map<std::string, sptr<IPrepareTerminateCallback>> prepareTermiationCallbacks_;

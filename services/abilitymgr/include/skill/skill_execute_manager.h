@@ -18,6 +18,7 @@
 
 #include <map>
 #include "bundle_skill/skill_info.h"
+#include "global_constant.h"
 #include "bundle_skill/skill_manager_interface.h"
 #include "cpp/mutex.h"
 #include "extension_ability_info.h"
@@ -35,7 +36,7 @@ DECLARE_DELAYED_SINGLETON(SkillExecuteManager)
 public:
     int32_t GenerateSkillWant(const AppExecFwk::SkillInfo &skillInfo, Want &want,
         int32_t userId, const std::string &requestCode, AppExecFwk::ExtensionAbilityType &targetType,
-        const std::string &arkTSPath = "", const std::string &funcName = "",
+        const std::string &scriptPath = "", const std::string &functionName = "",
         const std::shared_ptr<AAFwk::WantParams> &skillArgs = nullptr);
 
     int32_t QuerySkillInfo(const std::string &bundleName, const std::string &moduleName,
@@ -46,11 +47,14 @@ public:
     std::string CreateExecuteRecord(const sptr<IRemoteObject> &callerToken,
         const std::string &targetBundleName, const std::string &callerBundleName,
         uint32_t callerTokenId,
-        const sptr<ISkillExecuteCallback> &callback = nullptr);
+        const sptr<ISkillExecuteCallback> &callback = nullptr,
+        const std::string &externalRequestCode = "");
 
     int32_t ExecuteSkillDone(const std::string &requestCode, int32_t resultCode,
         const AppExecFwk::SkillExecuteResult &result,
         const std::string &callerBundleName);
+
+    void OnTimeout(int64_t requestCodeSeq);
 
 private:
     class CallerDeathRecipient : public IRemoteObject::DeathRecipient {
@@ -75,10 +79,13 @@ private:
         const std::string &moduleName, const std::string &abilityName, int32_t userId);
     void RemoveRecord(const std::string &requestCode);
     void OnCallerDied(const std::string &requestCode);
+    void PostSkillExecuteTimeout(const std::string &requestCode, uint64_t requestCodeSeq);
+    void RemoveSkillExecuteTimeoutLocked(uint64_t requestCodeSeq);
 
     ffrt::mutex mutex_;
     uint64_t requestCodeSeq_ = 0;
     std::map<std::string, std::shared_ptr<SkillExecuteRecord>> records_;
+    std::map<uint64_t, std::string> seqToRequestCodeMap_;
 };
 
 } // namespace AAFwk
