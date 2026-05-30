@@ -24,11 +24,13 @@ public:
     static int32_t retGetAllToolInfos;
     static int32_t retRegisterTool;
     static int32_t retExecTool;
+    static int32_t retExecCmd;
     static int32_t retSubscribeSession;
     static int32_t retUnsubscribeSession;
     static int32_t retClearSession;
     static int32_t retQuerySession;
     static int32_t retSendMessage;
+    static int32_t retSetPolicy;
     static int32_t retBatchQueryPermission;
     static int32_t retLoadSystemAbility;
     static bool nullSystemAbility;

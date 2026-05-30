@@ -27,6 +27,7 @@ namespace OHOS {
 namespace CliTool {
 class CliSessionInfo;
 class CliToolEvent;
+class ExecCmdParam;
 class ExecOptions;
 
 /**
@@ -47,6 +48,15 @@ bool UnwrapStringMap(napi_env env, napi_value obj,
  * @return Returns true on success, false otherwise.
  */
 bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options);
+
+/**
+ * @brief Unwrap ExecCmdOptions from JavaScript object.
+ * @param env The N-API environment.
+ * @param obj The JavaScript object.
+ * @param param Output ExecCmdParam.
+ * @return Returns true on success, false otherwise.
+ */
+bool UnwrapExecCmdOptions(napi_env env, napi_value obj, ExecCmdParam &param, std::string &msg);
 
 /**
  * @brief Create JavaScript CliSessionInfo object.
