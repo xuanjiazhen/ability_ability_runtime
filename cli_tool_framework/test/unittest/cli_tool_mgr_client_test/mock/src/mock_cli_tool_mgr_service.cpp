@@ -15,10 +15,12 @@ int32_t CliToolMgrClientFlag::retGetToolInfoByName = ERR_OK;
 int32_t CliToolMgrClientFlag::retGetAllToolInfos = ERR_OK;
 int32_t CliToolMgrClientFlag::retRegisterTool = ERR_OK;
 int32_t CliToolMgrClientFlag::retExecTool = ERR_OK;
+int32_t CliToolMgrClientFlag::retExecCmd = ERR_OK;
 int32_t CliToolMgrClientFlag::retSubscribeSession = ERR_OK;
 int32_t CliToolMgrClientFlag::retUnsubscribeSession = ERR_OK;
 int32_t CliToolMgrClientFlag::retClearSession = ERR_OK;
 int32_t CliToolMgrClientFlag::retQuerySession = ERR_OK;
+int32_t CliToolMgrClientFlag::retSetPolicy = ERR_OK;
 int32_t CliToolMgrClientFlag::retSendMessage = ERR_OK;
 int32_t CliToolMgrClientFlag::retBatchQueryPermission = ERR_OK;
 int32_t CliToolMgrClientFlag::retLoadSystemAbility = ERR_OK;
@@ -39,10 +41,12 @@ void CliToolMgrClientFlag::Reset()
     retGetAllToolInfos = ERR_OK;
     retRegisterTool = ERR_OK;
     retExecTool = ERR_OK;
+    retExecCmd = ERR_OK;
     retSubscribeSession = ERR_OK;
     retUnsubscribeSession = ERR_OK;
     retClearSession = ERR_OK;
     retQuerySession = ERR_OK;
+    retSetPolicy = ERR_OK;
     retSendMessage = ERR_OK;
     retBatchQueryPermission = ERR_OK;
     retLoadSystemAbility = ERR_OK;
@@ -91,6 +95,13 @@ int32_t MockCliToolMgrService::ExecTool(const ExecToolParam &, const std::string
     return CliToolMgrClientFlag::retExecTool;
 }
 
+int32_t MockCliToolMgrService::ExecCmd(const ExecCmdParam &, const std::string &eventId,
+    const sptr<ICliToolManagerScheduler> &, const std::string &)
+{
+    CliToolMgrClientFlag::lastEventId = eventId;
+    return CliToolMgrClientFlag::retExecCmd;
+}
+
 int32_t MockCliToolMgrService::SubscribeSession(const std::string &, const std::string &subscriptionId,
     const sptr<ICliToolManagerScheduler> &)
 {
@@ -112,6 +123,11 @@ int32_t MockCliToolMgrService::QuerySession(const std::string &, CliSessionInfo 
 {
     session = CliToolMgrClientFlag::querySession;
     return CliToolMgrClientFlag::retQuerySession;
+}
+
+int32_t MockCliToolMgrService::SetPolicy(const std::string &, const std::string &)
+{
+    return CliToolMgrClientFlag::retSetPolicy;
 }
 
 int32_t MockCliToolMgrService::SendMessage(const std::string &, const std::string &, const std::string &eventId,
