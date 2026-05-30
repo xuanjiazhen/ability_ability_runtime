@@ -48,6 +48,7 @@ constexpr int32_t QUERY_DB_ERROR = 2;
 constexpr int32_t MAX_QUERY_CMDS_SIZE = 100;
 constexpr int32_t ACTIVE_TIME = 30 * 1000; // 30s
 constexpr int32_t SKILL_TYPE_INDEPENDENT = -1;
+#define ACCESS_TOKENID_SET_HAP_PTOKENID _IOW('A', 0x1A, uint64_t);
 } // namespace
 
 std::mutex g_mutex;
@@ -284,7 +285,12 @@ int32_t CliToolManagerService::OnIdle(const SystemAbilityOnDemandReason &idlReas
         sessionSize = static_cast<int32_t>(sessionRecords_.size());
     }
     int32_t calledCount = interfaceCalledCount_.load();
-    if (calledCount != 0 || sessionSize != 0) {
+    int32_t callerPidSize = 0;
+    {
+        std::lock_guard<ffrt::mutex> guard(callerPidsMutex_);
+        sessionSize = static_cast<int32_t>(callerPids.size());
+    }
+    if (calledCount != 0 || sessionSize != 0 || callerPidSize != 0) {
         TAG_LOGW(AAFwkTag::CLI_TOOL, "service busy, calledCount=%{public}d, sessionSize=%{public}d",
             calledCount, sessionSize);
         if (!CancelIdle()) {
@@ -383,7 +389,7 @@ void CliToolManagerService::DelayUnloadTask()
 }
 
 bool CliToolManagerService::RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record,
-    const ExecToolParam &param)
+    const ExecOptions &options)
 {
     if (ioMonitor_ == nullptr || ioMonitor_->RegisterSession(
         record->sessionId, record->stdoutPipe[0], record->stderrPipe[0], record->stdinPipe[1]) == false) {
@@ -395,8 +401,8 @@ bool CliToolManagerService::RegisterSessionWithMonitors(const std::shared_ptr<Se
         return false;
     }
 
-    if (param.options.background == false && param.options.yieldMs != 0) {
-        PostExecToolTask(param.options.yieldMs, record->sessionId, false);
+    if (options.background == false && options.yieldMs != 0) {
+        PostExecToolTask(options.yieldMs, record->sessionId, false);
     }
     if (record->timeoutMs != 0) {
         PostExecToolTask(record->timeoutMs, record->sessionId, true);
@@ -521,6 +527,22 @@ int32_t CliToolManagerService::ValidateAndPrepareTool(const ExecToolParam &param
     return ERR_OK;
 }
 
+int32_t CliToolManagerService::ValidateAndPrepareCmd(const ExecCmdParam &param, uint32_t tokenId,
+    std::string &sandboxConfig, std::string &bundleName)
+{
+    auto checkPramRet = ToolUtil::ValidateExecOptionsProperties(const_cast<ExecOptions &>(param.options));
+    if (checkPramRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Input schema validation failed");
+        return checkPramRet;
+    }
+
+    if (!ToolUtil::GenerateCmdSandboxConfig(param, tokenId, sandboxConfig, bundleName)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "caller is not hap");
+        return ERR_NOT_HAP;
+    }
+    return ERR_OK;
+}
+
 int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
     const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName)
 {
@@ -540,7 +562,7 @@ int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, 
     }
     AddSessionRecord(record);
 
-    if (RegisterSessionWithMonitors(record, param) == false) {
+    if (RegisterSessionWithMonitors(record, param.options) == false) {
         ProcessManager::GetInstance().Killpg(record->processId);
         RemoveSessionRecord(record->sessionId);
         return ERR_NO_INIT;
@@ -634,6 +656,83 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     }
 
     return SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
+}
+
+int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::string &eventId,
+    const sptr<ICliToolManagerScheduler> &scheduler, const std::string &subscriptionId)
+{
+    InterfaceCallCounter counter(interfaceCalledCount_);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
+    if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
+        return ret;
+    }
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
+        return ERR_NO_INIT;
+    }
+
+    if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
+        return ret;
+    }
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    std::string sandboxConfig;
+    std::string bundleName;
+    if (auto ret = ValidateAndPrepareCmd(param, tokenId, sandboxConfig, bundleName); ret != ERR_OK) {
+        return ret;
+    }
+
+    // Create session record for shell command
+    auto record = std::make_shared<SessionRecord>();
+    record->callerPid = callerPid;
+    record->callerUid = callerUid;
+    record->sessionId = ToolUtil::GenerateCliSessionId("shell", record);
+    record->toolName = "shell";
+    record->timeoutMs = param.options.timeout * COEFFICIENT;
+    record->SetState(SessionState::RUNNING);
+    record->SetBackground(param.options.background);
+    record->eventId = eventId;
+    auto fatherSessionRecords = GetSessionRecords();
+    AddSessionRecord(record);
+    auto subscribeRet = SubscribeSession(record->sessionId, subscriptionId, scheduler);
+    if (subscribeRet != ERR_OK) {
+        return subscribeRet;
+    }
+
+    // ATM提供的接口
+    auto AtmTokenId = AccessToken::TokenIdKit::AddCliBinaryInvokerTokenFlag(tokenId);
+    // 设置parentHapTokenId
+    std::string path = "/dev/access_token_id";
+    int32_t fd = open(path.c_str(), O_RDWR);
+    int32_t err = ioctl(fd, ACCESS_TOKENID_SET_HAP_PTOKENID, &AtmTokenId);
+    if (err < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ioctl error, %{public}s", strerror(errno));
+        close(fd);
+        return -1;
+    }
+    auto createRet = ProcessManager::GetInstance().CreateShellProcess(param,
+        sandboxConfig, record, fatherSessionRecords);
+    if (createRet != ERR_OK) {
+        RemoveSessionRecord(record->sessionId);
+        return createRet;
+    }
+
+    if (RegisterSessionWithMonitors(record, param.options) == false) {
+        ProcessManager::GetInstance().Killpg(record->processId);
+        RemoveSessionRecord(record->sessionId);
+        return ERR_NO_INIT;
+    }
+
+    if (!bundleName.empty()) {
+        RegisterAppStateObserver(bundleName, record->callerPid);
+    }
+
+    if (param.options.background) {
+        HandleBackgroundSessionReply(record, eventId);
+    }
+
+    return ERR_OK;
 }
 
 void CliToolManagerService::PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout)
@@ -732,7 +831,10 @@ void CliToolManagerService::RegisterAppStateObserver(const std::string &bundleNa
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterAppStateObserver called: bundleName=%{public}s, callerPid=%{public}d",
         bundleName.c_str(), callerPid);
-
+    {
+        std::lock_guard<ffrt::mutex> guard(callerPidsMutex_);
+        callerPids.insert(callerPid);
+    }
     // Check if observer already exists for this bundle
     std::lock_guard<ffrt::mutex> guard(observerMutex_);
     if (bundleObservers_.find(bundleName) != bundleObservers_.end()) {
@@ -743,6 +845,10 @@ void CliToolManagerService::RegisterAppStateObserver(const std::string &bundleNa
     // Create observer with callback to OnProcessDied
     auto callback = [](const std::string &bundleName, pid_t diedPid) {
         auto service = CliToolManagerService::GetInstance();
+        {
+            std::lock_guard<ffrt::mutex> guard(callerPidsMutex_);
+            callerPids.erase(diedPid);
+        }
         if (service != nullptr) {
             service->OnProcessDied(bundleName, diedPid);
         }

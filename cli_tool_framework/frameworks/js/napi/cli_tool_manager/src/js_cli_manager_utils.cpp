@@ -19,9 +19,11 @@
 
 #include "cli_session_info.h"
 #include "cli_tool_event.h"
+#include "exec_cmd_param.h"
 #include "exec_options.h"
 #include "hilog_tag_wrapper.h"
 #include "icli_tool_data.h"
+#include "js_cli_session_event_callback.h"
 #include "napi_common_util.h"
 
 using namespace OHOS::AbilityRuntime;
@@ -29,7 +31,7 @@ using namespace OHOS::AbilityRuntime;
 namespace OHOS {
 namespace CliTool {
 namespace {
-
+constexpr int64_t MAX_TIMEOUT = 30 * 60; // 30 m
 napi_value ParseJsonStringToJsObject(napi_env env, const std::string &jsonStr)
 {
     napi_value jsObj = nullptr;
@@ -205,7 +207,116 @@ bool UnwrapExecOptions(napi_env env, napi_value obj, ExecOptions &options)
             TAG_LOGE(AAFwkTag::CLI_TOOL, "unwrap timeout failed");
             return false;
         }
+    } else {
+        options.timeout = MAX_TIMEOUT;
     }
+    return true;
+}
+
+bool UnwrapExecCmdOptions(napi_env env, napi_value obj, ExecCmdParam &param,
+    std::shared_ptr<JsCliSessionEventCallbackImpl>& callback, std::string &msg)
+{
+    if (obj == nullptr) {
+        return true;
+    }
+
+    napi_valuetype valueType = napi_undefined;
+    napi_status status = napi_typeof(env, obj, &valueType);
+    if (status != napi_ok || valueType != napi_object) {
+        msg = "Input is not an object";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+
+    bool hasProperty = false;
+
+    if (napi_has_named_property(env, obj, "workDir", &hasProperty) != napi_ok) {
+        msg = "has workDir failed";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (hasProperty) {
+        napi_value workDirProp = nullptr;
+        if (napi_get_named_property(env, obj, "workDir", &workDirProp) != napi_ok) {
+            msg = "invalid workDir property";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+        if (!AppExecFwk::UnwrapStringFromJS2(env, workDirProp, param.workDir)) {
+            msg = "unwrap workDir failed";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+    }
+
+    if (napi_has_named_property(env, obj, "env", &hasProperty) != napi_ok) {
+        msg = "has env failed";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (hasProperty) {
+        napi_value envProp = nullptr;
+        if (napi_get_named_property(env, obj, "env", &envProp) != napi_ok) {
+            msg = "invalid env property";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+        if (!AppExecFwk::UnwrapStringFromJS2(env, envProp, param.env)) {
+            msg = "unwrap env failed";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+    }
+
+    if (napi_has_named_property(env, obj, "policy", &hasProperty) != napi_ok) {
+        msg = "has policy failed";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (hasProperty) {
+        napi_value policyProp = nullptr;
+        if (napi_get_named_property(env, obj, "policy", &policyProp) != napi_ok) {
+            msg = "invalid policy property";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+        if (!AppExecFwk::UnwrapStringFromJS2(env, policyProp, param.policy)) {
+            msg = "unwrap policy failed";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+    }
+
+    if (napi_has_named_property(env, obj, "callback", &hasProperty) != napi_ok) {
+        msg = "has callback failed";
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+        return false;
+    }
+    if (hasProperty) {
+        napi_value callbackProp = nullptr;
+        if (napi_get_named_property(env, obj, "callback", &callbackProp) != napi_ok){
+            msg = "invalid callback property";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+        if (!IsValidToolEventCallback(env, callbackProp)) {
+            msg = "invalid callback property";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+        callback = std::make_shared<JsCliSessionEventCallbackImpl>(env, callbackProp);
+        if (callback == nullptr || !callback->IsValid()) {
+            msg = "invalid callback property";
+            TAG_LOGE(AAFwkTag::CLI_TOOL, "%{public}s", msg.c_str());
+            return false;
+        }
+    }
+
+    // Reuse UnwrapExecOptions for background, yieldMs, timeout
+    if (!UnwrapExecOptions(env, obj, param.options)) {
+        return false;
+    }
+
     return true;
 }
 
