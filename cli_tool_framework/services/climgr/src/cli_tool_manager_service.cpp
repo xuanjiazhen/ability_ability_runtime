@@ -383,7 +383,7 @@ void CliToolManagerService::DelayUnloadTask()
 }
 
 bool CliToolManagerService::RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record,
-    const ExecToolParam &param)
+    const ExecOptions &options)
 {
     if (ioMonitor_ == nullptr || ioMonitor_->RegisterSession(
         record->sessionId, record->stdoutPipe[0], record->stderrPipe[0], record->stdinPipe[1]) == false) {
@@ -395,8 +395,8 @@ bool CliToolManagerService::RegisterSessionWithMonitors(const std::shared_ptr<Se
         return false;
     }
 
-    if (param.options.background == false && param.options.yieldMs != 0) {
-        PostExecToolTask(param.options.yieldMs, record->sessionId, false);
+    if (options.background == false && options.yieldMs != 0) {
+        PostExecToolTask(options.yieldMs, record->sessionId, false);
     }
     if (record->timeoutMs != 0) {
         PostExecToolTask(record->timeoutMs, record->sessionId, true);
@@ -521,6 +521,22 @@ int32_t CliToolManagerService::ValidateAndPrepareTool(const ExecToolParam &param
     return ERR_OK;
 }
 
+int32_t CliToolManagerService::ValidateAndPrepareCmd(const ExecCmdParam &param, uint32_t tokenId,
+    std::string &sandboxConfig, std::string &bundleName)
+{
+    auto checkPramRet = ToolUtil::ValidateExecOptionsProperties(const_cast<ExecOptions &>(param.options));
+    if (checkPramRet != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Input schema validation failed");
+        return checkPramRet;
+    }
+
+    if (!ToolUtil::GenerateCmdSandboxConfig(param, tokenId, sandboxConfig, bundleName)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "caller is not hap");
+        return ERR_NOT_HAP;
+    }
+    return ERR_OK;
+}
+
 int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, const std::string &eventId,
     const ToolInfo &toolInfo, const std::string &sandboxConfig, const std::string &bundleName)
 {
@@ -540,7 +556,7 @@ int32_t CliToolManagerService::SetupAndStartSession(const ExecToolParam &param, 
     }
     AddSessionRecord(record);
 
-    if (RegisterSessionWithMonitors(record, param) == false) {
+    if (RegisterSessionWithMonitors(record, param.options) == false) {
         ProcessManager::GetInstance().Killpg(record->processId);
         RemoveSessionRecord(record->sessionId);
         return ERR_NO_INIT;
@@ -634,6 +650,67 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     }
 
     return SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
+}
+
+int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::string &eventId,
+    const sptr<ICliToolManagerScheduler> &scheduler)
+{
+    InterfaceCallCounter counter(interfaceCalledCount_);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
+    if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
+        return ret;
+    }
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
+        return ERR_NO_INIT;
+    }
+
+    if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
+        return ret;
+    }
+
+    auto tokenId = IPCSkeleton::GetCallingTokenID();
+    std::string sandboxConfig;
+    std::string bundleName;
+    if (auto ret = ValidateAndPrepareCmd(param, tokenId, sandboxConfig, bundleName); ret != ERR_OK) {
+        return ret;
+    }
+
+    // Create session record for shell command
+    auto record = std::make_shared<SessionRecord>();
+    record->callerPid = callerPid;
+    record->callerUid = callerUid;
+    record->sessionId = ToolUtil::GenerateCliSessionId("shell", record);
+    record->toolName = "shell";
+    record->timeoutMs = param.options.timeout * COEFFICIENT;
+    record->SetState(SessionState::RUNNING);
+    record->SetBackground(param.options.background);
+    record->eventId = eventId;
+    auto fatherSessionRecords = GetSessionRecords();
+    auto createRet = ProcessManager::GetInstance().CreateShellProcess(param,
+        sandboxConfig, record, fatherSessionRecords);
+    if (createRet != ERR_OK) {
+        return createRet;
+    }
+
+    AddSessionRecord(record);
+
+    if (RegisterSessionWithMonitors(record, param.options) == false) {
+        ProcessManager::GetInstance().Killpg(record->processId);
+        RemoveSessionRecord(record->sessionId);
+        return ERR_NO_INIT;
+    }
+
+    if (!bundleName.empty()) {
+        RegisterAppStateObserver(bundleName, record->callerPid);
+    }
+
+    if (param.options.background) {
+        HandleBackgroundSessionReply(record, eventId);
+    }
+
+    return ERR_OK;
 }
 
 void CliToolManagerService::PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout)
