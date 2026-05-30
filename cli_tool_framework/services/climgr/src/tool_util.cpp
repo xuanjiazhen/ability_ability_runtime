@@ -64,22 +64,10 @@ int32_t ToolUtil::ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &pa
         }
     }
 
-    if (param.options.timeout < 0 || param.options.yieldMs < 0) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "yieldMs or timeout < 0");
-        return ERR_INVALID_PARAM;
-    }
-
-    if (param.options.timeout == 0) {
-        param.options.timeout = MAX_TIMEOUT;
-        TAG_LOGI(AAFwkTag::CLI_TOOL, "use max timeout");
-    } else if (param.options.timeout > MAX_TIMEOUT) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "Excessively large timeout");
-        return ERR_INVALID_PARAM;
-    }
-
-    if (!param.options.background && param.options.yieldMs > param.options.timeout * MILLISECOND_COEFFICIENT) {
-        TAG_LOGE(AAFwkTag::CLI_TOOL, "yieldTime exceeds timeout.");
-        return ERR_INVALID_PARAM;
+    auto res = ValidateExecOptionsProperties(param.options);
+    if (res != ERR_OK)
+    {
+        return res;
     }
 
     if (param.subcommand.empty()) {
@@ -91,6 +79,29 @@ int32_t ToolUtil::ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &pa
         TAG_LOGW(AAFwkTag::CLI_TOOL, "GetSubCommandInfo failed: subcommand=%{public}s", param.subcommand.c_str());
     }
     return ValidateInputSchemaProperties(it->second.inputSchema, param.args);
+}
+
+int32_t ToolUtil::ValidateExecOptionsProperties(ExecOptions &options)
+{
+    if (options.timeout < 0 || options.yieldMs < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "yieldMs or timeout < 0");
+        return ERR_INVALID_PARAM;
+    }
+
+    if (options.timeout == 0) {
+        options.timeout = MAX_TIMEOUT;
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "use max timeout");
+    } else if (options.timeout > MAX_TIMEOUT) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Excessively large timeout");
+        return ERR_INVALID_PARAM;
+    }
+
+    if (!options.background && options.yieldMs > options.timeout * MILLISECOND_COEFFICIENT) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "yieldTime exceeds timeout.");
+        return ERR_INVALID_PARAM;
+    }
+
+    return ERR_OK;
 }
 
 int32_t ToolUtil::ValidateInputSchemaProperties(const std::string &inputSchema,
@@ -175,6 +186,32 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     config["bundleName"] = bundleInfo.name;
     config["cliName"] = param.toolName;
     config["subCliName"] = param.subcommand;
+    sandboxConfig = config.dump();
+    bundleName = bundleInfo.name;
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s",
+        bundleInfo.name.c_str(), bundleInfo.gid, param.toolName.c_str(), param.subcommand.c_str());
+    return true;
+}
+
+bool ToolUtil::GenerateCmdSandboxConfig(const ExecCmdParam &param, AccessToken::AccessTokenID tokenId,
+    std::string &sandboxConfig, std::string &bundleName)
+{
+    AppExecFwk::BundleInfo bundleInfo;
+    if (!ToolUtil::GetBundleInfoByTokenId(tokenId, bundleInfo)) {
+        return false;
+    }
+
+    nlohmann::json config;
+    config["callerTokenId"] = IPCSkeleton::GetCallingFullTokenID();
+    config["challenge"] = param.challenge;
+    config["uid"] = IPCSkeleton::GetCallingUid();
+    config["callerPid"] = IPCSkeleton::GetCallingPid();
+    config["gid"] = bundleInfo.gid;
+    config["appId"] = bundleInfo.appId;
+    config["bundleName"] = bundleInfo.name;
+    config["isShell"] = true;
+    config["policy"] = param.policy;
+    config["agentId"] = 12;//待补充内核接口根据小艺ClawPID获取AgentID
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
     TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s",
