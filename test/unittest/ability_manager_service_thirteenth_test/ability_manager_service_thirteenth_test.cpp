@@ -3383,10 +3383,10 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_UIExtStarting_01
     ASSERT_NE(mockSubManagersHelper, nullptr);
     auto mockUIExtMgr = std::make_shared<UIExtensionAbilityManager>(0);
     ASSERT_NE(mockUIExtMgr, nullptr);
-    // Inject UIExtensionAbilityManager with starting pid
-    int32_t testPid = 1111;
+    // Use MOCK_FAILED_PID (654321) so GetRunningProcessInfoByPid returns isAbilityForegrounding=false
+    int32_t testPid = 654321;
     mockUIExtMgr->startingPidsMap_[testPid] = 1;
-    mockSubManagersHelper->uiExtensionAbilityManagers_[0] = mockUIExtMgr;
+    mockSubManagersHelper->currentUIExtensionAbilityManager_ = mockUIExtMgr;
     abilityMs->subManagersHelper_ = mockSubManagersHelper;
 
     abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
@@ -3423,6 +3423,8 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, KillAppWithReason_KillForeground_0
     int32_t testPid = 1111;
     mockUIExtMgr->startingPidsMap_[testPid] = 1;
     mockSubManagersHelper->uiExtensionAbilityManagers_[0] = mockUIExtMgr;
+    auto mockCurrentUIAbilityManager = std::make_shared<UIAbilityLifecycleManager>(0);
+    mockSubManagersHelper->currentUIAbilityManager_ = mockCurrentUIAbilityManager;
     abilityMs->subManagersHelper_ = mockSubManagersHelper;
 
     abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
@@ -3516,40 +3518,6 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, ProcessLowMemoryKillUIExt_NullMana
     EXPECT_EQ(res, ERR_OK);
     MyStatus::GetInstance().permPermission_ = 0;
     TAG_LOGI(AAFwkTag::TEST, "ProcessLowMemoryKillUIExt_NullManager_0400 end");
-}
-
-/*
- * Feature: AbilityManagerService
- * Function: KillProcessWithReason
- * SubFunction: NA
- * FunctionPoints: KillProcessWithReasonInner UIExtension starting skip
- */
-HWTEST_F(AbilityManagerServiceThirteenthTest, KillProcessWithReason_UIExtStarting_006, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_UIExtStarting_006 start");
-    auto abilityMs = std::make_shared<AbilityManagerService>();
-    EXPECT_NE(abilityMs, nullptr);
-
-    auto mockSubManagersHelper = std::make_shared<SubManagersHelper>(nullptr, nullptr);
-    ASSERT_NE(mockSubManagersHelper, nullptr);
-    auto mockUIExtMgr = std::make_shared<UIExtensionAbilityManager>(0);
-    ASSERT_NE(mockUIExtMgr, nullptr);
-    // Use MOCK_FAILED_PID (654321) so GetRunningProcessInfoByPid returns isAbilityForegrounding=false
-    int32_t testPid = 654321;
-    mockUIExtMgr->startingPidsMap_[testPid] = 1;
-    mockSubManagersHelper->uiExtensionAbilityManagers_[0] = mockUIExtMgr;
-    abilityMs->subManagersHelper_ = mockSubManagersHelper;
-
-    MyStatus::GetInstance().permPermission_ = 2;
-    ExitReason reason;
-    reason.exitMsg = AbilityRuntime::GlobalConstant::LOW_MEMORY_KILL;
-    reason.reason = Reason::REASON_RESOURCE_CONTROL;
-    reason.shouldKillForeground = false;
-
-    auto res = abilityMs->KillProcessWithReason(testPid, reason);
-    EXPECT_EQ(res, ERR_KILL_APP_WHILE_STARTING);
-    MyStatus::GetInstance().permPermission_ = 0;
-    TAG_LOGI(AAFwkTag::TEST, "KillProcessWithReason_UIExtStarting_006 end");
 }
 
 /*

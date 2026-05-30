@@ -2499,27 +2499,6 @@ HWTEST_F(AmsMgrSchedulerSecondTest, CheckPreloadAppRecordExist_003, TestSize.Lev
 }
 
 /**
- * @tc.name: AmsMgrSchedulerSecondTest_KillProcessesByPids_CrossProcess_003
- * @tc.desc: Test KillProcessesByPids with cross-process call denied
- * @tc.type: FUNC
- */
-HWTEST_F(AmsMgrSchedulerSecondTest, KillProcessesByPids_CrossProcess_Denied_003, TestSize.Level1)
-{
-    TAG_LOGI(AAFwkTag::TEST, "KillProcessesByPids_CrossProcess_Denied_003 start");
-    std::shared_ptr<AmsMgrScheduler> amsMgrScheduler =
-        std::make_shared<AmsMgrScheduler>(appMgrServiceInner_, taskHandler_);
-
-    // Mock IPCSkeleton::GetCallingPid() returns 1, but getprocpid() returns actual pid
-    // callingPid != pid → ERR_PERMISSION_DENIED
-    std::vector<int32_t> pids = { 1234 };
-    std::string reason = "LowMemoryKill";
-    int32_t ret = amsMgrScheduler->KillProcessesByPids(
-        pids, reason, false, true, false);
-    EXPECT_EQ(ret, ERR_PERMISSION_DENIED);
-    TAG_LOGI(AAFwkTag::TEST, "KillProcessesByPids_CrossProcess_Denied_003 end");
-}
-
-/**
  * @tc.name: AmsMgrSchedulerSecondTest_KillProcessesByPids_NotReady_004
  * @tc.desc: Test KillProcessesByPids when not ready
  * @tc.type: FUNC

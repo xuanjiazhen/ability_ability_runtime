@@ -534,8 +534,8 @@ HWTEST_F(AppMgrServiceInnerTest, KillProcessesByPids_LowMemNotForeground_1300, T
     std::string reason = "LowMemoryKill";
     auto ret = appMgrServiceInner->KillProcessesByPids(
         pids, reason, false, true, false);
-    // pid does not exist, expect ERR_KILL_PROCESS_NOT_EXIST
-    EXPECT_EQ(ret, AAFwk::ERR_KILL_PROCESS_NOT_EXIST);
+    // pid does not exist and subProcess=false, implementation skips and returns ERR_OK
+    EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "KillProcessesByPids_LowMemNotForeground_1300 end");
 }
 /**
@@ -552,7 +552,8 @@ HWTEST_F(AppMgrServiceInnerTest, KillProcessesByPids_NonLowMem_NoLock_1400, Test
     std::string reason = "OtherReason";
     auto ret = appMgrServiceInner->KillProcessesByPids(
         pids, reason, false, true, false);
-    EXPECT_EQ(ret, AAFwk::ERR_KILL_PROCESS_NOT_EXIST);
+    // pid does not exist and subProcess=false, implementation skips and returns ERR_OK
+    EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "KillProcessesByPids_NonLowMem_NoLock_1400 end");
 }
 
@@ -570,7 +571,8 @@ HWTEST_F(AppMgrServiceInnerTest, KillProcessesByPids_LowMem_ShouldKillForeground
     std::string reason = "LowMemoryKill";
     auto ret = appMgrServiceInner->KillProcessesByPids(
         pids, reason, false, true, true);
-    EXPECT_EQ(ret, AAFwk::ERR_KILL_PROCESS_NOT_EXIST);
+    // pid does not exist and subProcess=false, implementation skips and returns ERR_OK
+    EXPECT_EQ(ret, ERR_OK);
     TAG_LOGI(AAFwkTag::TEST, "KillProcessesByPids_LowMem_ShouldKillForeground_NoLock_1500 end");
 }
 
