@@ -71,6 +71,38 @@ ErrCode CliToolMGRClient::ExecTool(const ExecToolParam &param, const ExecToolRep
     return ret;
 }
 
+ErrCode CliToolMGRClient::ExecCmd(const ExecCmdParam &param, const ExecToolReplyCallback &callback)
+{
+    ErrCode ret = EnsureSchedulerStubCreated();
+    if (ret != ERR_OK) {
+        return ret;
+    }
+
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+
+    std::string eventId = CliEventReplyManager::GetInstance().AddEventReplyCallback("shell",
+        [cb = std::move(callback)](const CliEventReplyResult &result) {
+            if (cb) {
+                CliSessionInfo sessionInfo;
+                if (result.sessionInfo.has_value()) {
+                    sessionInfo = result.sessionInfo.value();
+                }
+                cb(result.code, sessionInfo);
+            }
+        });
+    ret = proxy->ExecCmd(param, eventId, schedulerStub_);
+    if (ret != ERR_OK) {
+        CliEventReplyManager::GetInstance().RemoveEventReplyCallback(eventId);
+    } else {
+        CliEventReplyManager::GetInstance().ActivateEventReplyCallback(eventId);
+    }
+    return ret;
+}
+
 ErrCode CliToolMGRClient::EnsureSchedulerStubCreated()
 {
     std::lock_guard<std::mutex> lock(schedulerMutex_);
@@ -334,6 +366,16 @@ ErrCode CliToolMGRClient::QuerySession(const std::string &sessionId, CliSessionI
         return GET_CLI_TOOL_MGR_SERVICE_FAILED;
     }
     return proxy->QuerySession(sessionId, session);
+}
+
+ErrCode CliToolMGRClient::SetPolicy(const std::string &sessionId, const std::string &policy)
+{
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "connect failed");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->SetPolicy(sessionId, policy);
 }
 
 ErrCode CliToolMGRClient::SendMessage(const std::string &sessionId, const std::string &inputText,
