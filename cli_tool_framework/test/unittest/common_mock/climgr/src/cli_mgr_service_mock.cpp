@@ -13,6 +13,7 @@
 #include "cli_error_code.h"
 #include "cli_tool_data_manager.h"
 #include "event_dispatcher.h"
+#include "exec_cmd_param.h"
 #include "exec_result.h"
 #include "io_monitor.h"
 #include "permission_query_util.h"
@@ -76,6 +77,17 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &, const std::str
 {
     if (record != nullptr) {
         record->processId = 1001;
+        record->stdoutPipe[0] = -1;
+        record->stderrPipe[0] = -1;
+        record->stdinPipe[1] = -1;
+    }
+    return CliMgrServiceMock::createChildProcessResult;
+}
+
+int32_t ProcessManager::CreateShellProcess(const ExecCmdParam &, std::shared_ptr<SessionRecord> record) const
+{
+    if (record != nullptr) {
+        record->processId = 1002;
         record->stdoutPipe[0] = -1;
         record->stderrPipe[0] = -1;
         record->stdinPipe[1] = -1;

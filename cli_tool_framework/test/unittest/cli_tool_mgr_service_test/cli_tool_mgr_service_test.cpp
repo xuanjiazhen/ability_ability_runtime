@@ -1143,7 +1143,7 @@ HWTEST_F(CliToolManagerServiceTest, RegisterSessionWithMonitors_0100, TestSize.L
     record->stdinPipe[1] = -1;
     ExecToolParam param;
 
-    EXPECT_FALSE(service_->RegisterSessionWithMonitors(record, param));
+    EXPECT_FALSE(service_->RegisterSessionWithMonitors(record, param.options));
 
     service_->ioMonitor_ = oldMonitor;
 
@@ -1181,7 +1181,7 @@ HWTEST_F(CliToolManagerServiceTest, RegisterSessionWithMonitors_0101, TestSize.L
     record->stdinPipe[1] = stdinPipe[1];
     ExecToolParam param;
 
-    EXPECT_FALSE(service_->RegisterSessionWithMonitors(record, param));
+    EXPECT_FALSE(service_->RegisterSessionWithMonitors(record, param.options));
 
     service_->ioMonitor_->Stop();
     service_->ioMonitor_ = oldMonitor;
@@ -1220,7 +1220,7 @@ HWTEST_F(CliToolManagerServiceTest, RegisterSessionWithMonitors_0200, TestSize.L
     record->stdinPipe[1] = stdinPipe[1];
     ExecToolParam param;
 
-    ASSERT_TRUE(service_->RegisterSessionWithMonitors(record, param));
+    ASSERT_TRUE(service_->RegisterSessionWithMonitors(record, param.options));
     service_->UnregisterSessionWithMonitors(record->sessionId);
     service_->ioMonitor_->Stop();
     service_->ioMonitor_ = oldMonitor;
@@ -1263,7 +1263,7 @@ HWTEST_F(CliToolManagerServiceTest, RegisterSessionWithMonitors_0300, TestSize.L
     param.options.background = false;
     param.options.yieldMs = 1;
 
-    ASSERT_TRUE(service_->RegisterSessionWithMonitors(record, param));
+    ASSERT_TRUE(service_->RegisterSessionWithMonitors(record, param.options));
     service_->UnregisterSessionWithMonitors(record->sessionId);
     service_->ioMonitor_->Stop();
     service_->ioMonitor_ = oldMonitor;
