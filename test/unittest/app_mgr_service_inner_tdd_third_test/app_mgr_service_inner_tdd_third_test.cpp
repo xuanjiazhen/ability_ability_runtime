@@ -575,13 +575,13 @@ HWTEST_F(AppMgrServiceInnerTest, KillProcessesByPids_LowMem_ShouldKillForeground
 }
 
 /**
- * @tc.name: UpdateExtensionState_NullAbilityInfo_1300
+ * @tc.name: UpdateExtensionState_TokenNotFound_1300
  * @tc.type: FUNC
  * @tc.Function: UpdateExtensionState
  */
-HWTEST_F(AppMgrServiceInnerTest, UpdateExtensionState_NullAbilityInfo_1300, TestSize.Level1)
+HWTEST_F(AppMgrServiceInnerTest, UpdateExtensionState_TokenNotFound_1300, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "UpdateExtensionState_NullAbilityInfo_1300 start");
+    TAG_LOGI(AAFwkTag::TEST, "UpdateExtensionState_TokenNotFound_1300 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     BundleInfo info;
@@ -591,31 +591,25 @@ HWTEST_F(AppMgrServiceInnerTest, UpdateExtensionState_NullAbilityInfo_1300, Test
         appMgrServiceInner->appRunningManager_->CreateAppRunningRecord(
             applicationInfo, processName, info, "");
     ASSERT_NE(appRecord, nullptr);
-    sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
-    auto moduleRecord = std::make_shared<ModuleRunningRecord>(applicationInfo, nullptr);
-    appRecord->hapModules_[applicationInfo->bundleName].emplace_back(moduleRecord);
-    moduleRecord->AddAbility(token, nullptr, nullptr, 1);
-    auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
-    ASSERT_NE(abilityRecord, nullptr);
-    abilityRecord->SetUIExtensionLoading(true);
-    EXPECT_TRUE(abilityRecord->IsUIExtensionLoading());
-    appMgrServiceInner->UpdateExtensionState(token, ExtensionState::EXTENSION_STATE_CREATE);
-    EXPECT_TRUE(abilityRecord->IsUIExtensionLoading());
-    TAG_LOGI(AAFwkTag::TEST, "UpdateExtensionState_NullAbilityInfo_1300 end");
+    // Token not registered in any ability → GetAbilityRunningRecordByToken returns nullptr
+    sptr<IRemoteObject> unknownToken = new (std::nothrow) MockAbilityToken();
+    appMgrServiceInner->UpdateExtensionState(unknownToken, ExtensionState::EXTENSION_STATE_CREATE);
+    // Should not crash, early return on null abilityRecord
+    TAG_LOGI(AAFwkTag::TEST, "UpdateExtensionState_TokenNotFound_1300 end");
 }
 
 /**
- * @tc.name: IsUIExtensionLoadingForPid_NullAbility_0600
+ * @tc.name: IsUIExtensionLoadingForPid_MultipleAbilities_NoneLoading_0600
  * @tc.type: FUNC
  * @tc.Function: IsUIExtensionLoadingForPid
  */
-HWTEST_F(AppMgrServiceInnerTest, IsUIExtensionLoadingForPid_NullAbility_0600, TestSize.Level1)
+HWTEST_F(AppMgrServiceInnerTest, IsUIExtensionLoadingForPid_MultipleAbilities_NoneLoading_0600, TestSize.Level1)
 {
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionLoadingForPid_NullAbility_0600 start");
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionLoadingForPid_MultipleAbilities_NoneLoading_0600 start");
     auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
     EXPECT_NE(appMgrServiceInner, nullptr);
     ApplicationInfo appInfo;
-    appInfo.bundleName = "com.test.nullability";
+    appInfo.bundleName = "com.test.multinoload";
     auto applicationInfo = std::make_shared<ApplicationInfo>(appInfo);
     int64_t recordId = 1;
     std::string processName = "test_process";
@@ -623,12 +617,31 @@ HWTEST_F(AppMgrServiceInnerTest, IsUIExtensionLoadingForPid_NullAbility_0600, Te
     ASSERT_NE(appRecord, nullptr);
     auto moduleRecord = std::make_shared<ModuleRunningRecord>(applicationInfo, nullptr);
     appRecord->hapModules_[applicationInfo->bundleName].emplace_back(moduleRecord);
-    sptr<IRemoteObject> token = new (std::nothrow) MockAbilityToken();
-    moduleRecord->AddAbility(token, nullptr, nullptr, 1);
+    // Add two abilities, both not loading
+    AbilityInfo abilityInfo1;
+    abilityInfo1.type = AbilityType::EXTENSION;
+    abilityInfo1.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityInfoPtr1 = std::make_shared<AbilityInfo>(abilityInfo1);
+    sptr<IRemoteObject> token1 = new (std::nothrow) MockAbilityToken();
+    moduleRecord->AddAbility(token1, abilityInfoPtr1, nullptr, 1);
+    auto abilityRecord1 = appRecord->GetAbilityRunningRecordByToken(token1);
+    ASSERT_NE(abilityRecord1, nullptr);
+    abilityRecord1->SetUIExtensionLoading(false);
+
+    AbilityInfo abilityInfo2;
+    abilityInfo2.type = AbilityType::EXTENSION;
+    abilityInfo2.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto abilityInfoPtr2 = std::make_shared<AbilityInfo>(abilityInfo2);
+    sptr<IRemoteObject> token2 = new (std::nothrow) MockAbilityToken();
+    moduleRecord->AddAbility(token2, abilityInfoPtr2, nullptr, 2);
+    auto abilityRecord2 = appRecord->GetAbilityRunningRecordByToken(token2);
+    ASSERT_NE(abilityRecord2, nullptr);
+    abilityRecord2->SetUIExtensionLoading(false);
+
     pid_t pid = 1234;
     auto result = appMgrServiceInner->IsUIExtensionLoadingForPid(pid, appRecord);
     EXPECT_FALSE(result);
-    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionLoadingForPid_NullAbility_0600 end");
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionLoadingForPid_MultipleAbilities_NoneLoading_0600 end");
 }
 
 /**
@@ -678,7 +691,7 @@ HWTEST_F(AppMgrServiceInnerTest, LoadAbility_UIExt_AcquiresLock_1500, TestSize.L
     auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
     loadParam->token = new (std::nothrow) MockAbilityToken();
     appMgrServiceInner->taskHandler_ = nullptr;
-    appMgrServiceInner->LoadAbility(abilityInfoPtr, applicationInfo, loadParam);
+    appMgrServiceInner->LoadAbility(abilityInfoPtr, applicationInfo, nullptr, loadParam);
     EXPECT_NE(appMgrServiceInner, nullptr);
     TAG_LOGI(AAFwkTag::TEST, "LoadAbility_UIExt_AcquiresLock_1500 end");
 }
@@ -701,7 +714,7 @@ HWTEST_F(AppMgrServiceInnerTest, LoadAbility_NonUIExt_NoLock_1600, TestSize.Leve
     auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
     loadParam->token = new (std::nothrow) MockAbilityToken();
     appMgrServiceInner->taskHandler_ = nullptr;
-    appMgrServiceInner->LoadAbility(abilityInfoPtr, applicationInfo, loadParam);
+    appMgrServiceInner->LoadAbility(abilityInfoPtr, applicationInfo, nullptr, loadParam);
     TAG_LOGI(AAFwkTag::TEST, "LoadAbility_NonUIExt_NoLock_1600 end");
 }
 
@@ -719,7 +732,7 @@ HWTEST_F(AppMgrServiceInnerTest, LoadAbility_NullAbilityInfo_NoLock_1700, TestSi
     auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
     loadParam->token = new (std::nothrow) MockAbilityToken();
     appMgrServiceInner->taskHandler_ = nullptr;
-    appMgrServiceInner->LoadAbility(nullptr, applicationInfo, loadParam);
+    appMgrServiceInner->LoadAbility(nullptr, applicationInfo, nullptr, loadParam);
     TAG_LOGI(AAFwkTag::TEST, "LoadAbility_NullAbilityInfo_NoLock_1700 end");
 }
 

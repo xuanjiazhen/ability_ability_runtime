@@ -3572,6 +3572,7 @@ HWTEST_F(AbilityManagerServiceThirteenthTest, KillProcessWithReason_ShouldKillFo
     auto mockCurrentUIAbilityManager = std::make_shared<UIAbilityLifecycleManager>(0);
     mockSubManagersHelper->currentUIAbilityManager_ = mockCurrentUIAbilityManager;
     abilityMs->subManagersHelper_ = mockSubManagersHelper;
+    abilityMs->appExitReasonHelper_ = std::make_shared<AppExitReasonHelper>(nullptr);
 
     MyStatus::GetInstance().permPermission_ = 2;
     ExitReason reason;
