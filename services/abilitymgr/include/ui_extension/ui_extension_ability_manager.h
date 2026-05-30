@@ -146,6 +146,8 @@ public:
     int32_t RegisterPreloadUIExtensionHostClient(const sptr<IRemoteObject> &callerToken);
     int32_t UnRegisterPreloadUIExtensionHostClient(int32_t callerPid) override;
 
+    bool IsUIExtensionStarting(pid_t pid);
+
 protected:
     int32_t StartAbilityLocked(const AbilityRequest &abilityRequest) override;
     void HandleLoadAbilityOrStartSpecifiedProcess(
@@ -184,6 +186,9 @@ private:
     void RemoveUIExtensionAbilityRecord(const std::shared_ptr<BaseExtensionRecord> &abilityRecord) override;
 
     void AddUIExtensionAbilityRecordToTerminatedList(const std::shared_ptr<BaseExtensionRecord> &abilityRecord);
+
+    void AddStartingPid(pid_t pid, int32_t timeoutMultiple);
+    void RemoveStartingPid(pid_t pid);
 
     int32_t GetOrCreateExtensionRecord(const AbilityRequest &abilityRequest, bool isCreatedByConnect,
         const std::string &hostBundleName, std::shared_ptr<BaseExtensionRecord> &extensionRecord, bool &isLoaded);
@@ -288,6 +293,8 @@ private:
     std::mutex uiExtensionMapMutex_;
     std::mutex preloadUIExtRecipientMapMutex_;
     std::map<int32_t, sptr<IRemoteObject::DeathRecipient>> preloadUIExtensionHostClientDeathRecipients_;
+    std::mutex startingPidsMutex_;
+    std::unordered_map<pid_t, int32_t> startingPidsMap_;
 
     DISALLOW_COPY_AND_MOVE(UIExtensionAbilityManager);
 };

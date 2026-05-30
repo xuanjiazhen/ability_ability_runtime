@@ -2797,5 +2797,144 @@ HWTEST_F(AppMgrServiceInnerSecondTest, NotifyUninstallOrUpgradeApp_001, TestSize
     TAG_LOGI(AAFwkTag::TEST, "NotifyUninstallOrUpgradeApp_001 end");
 }
 
+/**
+ * @tc.name: UpdateAbilityState_Foreground_UIExt_Loading_Clear_003
+ * @tc.desc: UpdateAbilityState FOREGROUND with UIExtension loading=true clears flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, UpdateAbilityState_Foreground_UIExt_Loading_Clear_003, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateAbilityState_Foreground_UIExt_Loading_Clear_003 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    AbilityInfo uiExtAbilityInfo;
+    uiExtAbilityInfo.type = AbilityType::EXTENSION;
+    uiExtAbilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto uiExtAbilityInfoPtr = std::make_shared<AbilityInfo>(uiExtAbilityInfo);
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AAFwk::Want> want;
+    std::string processName = "test_processName";
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    loadParam->token = token;
+    std::shared_ptr<AppRunningRecord> appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam,
+        applicationInfo_, uiExtAbilityInfoPtr, processName, bundleInfo, hapModuleInfo, want);
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->AddModule(applicationInfo_, uiExtAbilityInfoPtr, token, hapModuleInfo, nullptr, 0);
+
+    auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetUIExtensionLoading(true);
+    EXPECT_TRUE(abilityRecord->IsUIExtensionLoading());
+
+    appMgrServiceInner->UpdateAbilityState(token, AbilityState::ABILITY_STATE_FOREGROUND);
+    EXPECT_FALSE(abilityRecord->IsUIExtensionLoading());
+    TAG_LOGI(AAFwkTag::TEST, "UpdateAbilityState_Foreground_UIExt_Loading_Clear_003 end");
+}
+
+/**
+ * @tc.name: UpdateAbilityState_Foreground_UIExt_NotLoading_004
+ * @tc.desc: UpdateAbilityState FOREGROUND with UIExtension loading=false remains false
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, UpdateAbilityState_Foreground_UIExt_NotLoading_004, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateAbilityState_Foreground_UIExt_NotLoading_004 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    AbilityInfo uiExtAbilityInfo;
+    uiExtAbilityInfo.type = AbilityType::EXTENSION;
+    uiExtAbilityInfo.extensionAbilityType = ExtensionAbilityType::SYS_COMMON_UI;
+    auto uiExtAbilityInfoPtr = std::make_shared<AbilityInfo>(uiExtAbilityInfo);
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AAFwk::Want> want;
+    std::string processName = "test_processName";
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    loadParam->token = token;
+    std::shared_ptr<AppRunningRecord> appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam,
+        applicationInfo_, uiExtAbilityInfoPtr, processName, bundleInfo, hapModuleInfo, want);
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->AddModule(applicationInfo_, uiExtAbilityInfoPtr, token, hapModuleInfo, nullptr, 0);
+
+    auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetUIExtensionLoading(false);
+
+    appMgrServiceInner->UpdateAbilityState(token, AbilityState::ABILITY_STATE_FOREGROUND);
+    EXPECT_FALSE(abilityRecord->IsUIExtensionLoading());
+    TAG_LOGI(AAFwkTag::TEST, "UpdateAbilityState_Foreground_UIExt_NotLoading_004 end");
+}
+
+/**
+ * @tc.name: UpdateAbilityState_Foreground_NonUIExt_NotClear_005
+ * @tc.desc: UpdateAbilityState FOREGROUND with non-UIExtension does not clear loading flag
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, UpdateAbilityState_Foreground_NonUIExt_NotClear_005, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateAbilityState_Foreground_NonUIExt_NotClear_005 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AAFwk::Want> want;
+    std::string processName = "test_processName";
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    loadParam->token = token;
+    std::shared_ptr<AppRunningRecord> appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam,
+        applicationInfo_, abilityInfo_, processName, bundleInfo, hapModuleInfo, want);
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->AddModule(applicationInfo_, abilityInfo_, token, hapModuleInfo, nullptr, 0);
+
+    auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetUIExtensionLoading(true);
+
+    appMgrServiceInner->UpdateAbilityState(token, AbilityState::ABILITY_STATE_FOREGROUND);
+    EXPECT_TRUE(abilityRecord->IsUIExtensionLoading());
+    TAG_LOGI(AAFwkTag::TEST, "UpdateAbilityState_Foreground_NonUIExt_NotClear_005 end");
+}
+
+/**
+ * @tc.name: UpdateAbilityState_Foreground_NullAbilityInfo_NotClear_006
+ * @tc.desc: UpdateAbilityState FOREGROUND with null abilityInfo does not clear loading
+ * @tc.type: FUNC
+ */
+HWTEST_F(AppMgrServiceInnerSecondTest, UpdateAbilityState_Foreground_NullAbilityInfo_NotClear_006, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "UpdateAbilityState_Foreground_NullAbilityInfo_NotClear_006 start");
+    auto appMgrServiceInner = std::make_shared<AppMgrServiceInner>();
+    EXPECT_NE(appMgrServiceInner, nullptr);
+
+    BundleInfo bundleInfo;
+    HapModuleInfo hapModuleInfo;
+    std::shared_ptr<AAFwk::Want> want;
+    std::string processName = "test_processName";
+    auto loadParam = std::make_shared<AbilityRuntime::LoadParam>();
+    OHOS::sptr<IRemoteObject> token = sptr<IRemoteObject>(new (std::nothrow) MockAbilityToken());
+    loadParam->token = token;
+    std::shared_ptr<AppRunningRecord> appRecord = appMgrServiceInner->CreateAppRunningRecord(loadParam,
+        applicationInfo_, nullptr, processName, bundleInfo, hapModuleInfo, want);
+    ASSERT_NE(appRecord, nullptr);
+    appRecord->AddModule(applicationInfo_, nullptr, token, hapModuleInfo, nullptr, 0);
+
+    auto abilityRecord = appRecord->GetAbilityRunningRecordByToken(token);
+    ASSERT_NE(abilityRecord, nullptr);
+    abilityRecord->SetUIExtensionLoading(true);
+
+    appMgrServiceInner->UpdateAbilityState(token, AbilityState::ABILITY_STATE_FOREGROUND);
+    EXPECT_TRUE(abilityRecord->IsUIExtensionLoading());
+    TAG_LOGI(AAFwkTag::TEST, "UpdateAbilityState_Foreground_NullAbilityInfo_NotClear_006 end");
+}
+
 } // namespace AppExecFwk
 } // namespace OHOS

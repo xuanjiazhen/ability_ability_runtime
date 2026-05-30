@@ -309,7 +309,7 @@ int AppScheduler::FinishUserTest(const std::string &msg, const int64_t &resultCo
 }
 
 int32_t AppScheduler::KillProcessesByPids(const std::vector<int32_t> &pids, const std::string &reason, bool subProcess,
-    bool isKillPrecedeStart)
+    bool isKillPrecedeStart, bool shouldKillForeground)
 {
     return 0;
 }
@@ -378,6 +378,15 @@ int32_t AppScheduler::PreloadApplicationByPhase(const std::string &bundleName, i
 int32_t AppScheduler::VerifyKillProcessPermission(const std::string &bundleName) const
 {
     return 0;
+}
+
+bool AppScheduler::IsKilledForUpgradeWeb(const std::string &bundleName)
+{
+    return true;
+}
+
+void AppScheduler::ClearProcessByToken(sptr<IRemoteObject> token) const
+{
 }
 } // namespace AAFwk
 } // namespace OHOS

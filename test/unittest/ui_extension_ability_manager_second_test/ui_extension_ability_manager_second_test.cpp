@@ -1794,5 +1794,152 @@ HWTEST_F(UIExtensionAbilityManagerSecondTest, HandleCommandDestroy_002, TestSize
     EXPECT_EQ(connectManager->uiExtensionMap_.size(), 0);
     TAG_LOGI(AAFwkTag::TEST, "HandleCommandDestroy_002 end");
 }
+
+/**
+ * @tc.name: IsUIExtensionStarting_PidExists_0100
+ * @tc.type: FUNC
+ * @tc.Function: IsUIExtensionStarting
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, IsUIExtensionStarting_PidExists_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidExists_0100 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    pid_t pid = 5678;
+    mgr->startingPidsMap_[pid] = 1;
+    EXPECT_TRUE(mgr->IsUIExtensionStarting(pid));
+    mgr->startingPidsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidExists_0100 end");
+}
+
+/**
+ * @tc.name: IsUIExtensionStarting_PidNotExists_0200
+ * @tc.type: FUNC
+ * @tc.Function: IsUIExtensionStarting
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, IsUIExtensionStarting_PidNotExists_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidNotExists_0200 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    pid_t pid = 5678;
+    EXPECT_FALSE(mgr->IsUIExtensionStarting(pid));
+    TAG_LOGI(AAFwkTag::TEST, "IsUIExtensionStarting_PidNotExists_0200 end");
+}
+
+/**
+ * @tc.name: AddStartingPid_FirstAdd_0100
+ * @tc.type: FUNC
+ * @tc.Function: AddStartingPid
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingPid_FirstAdd_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingPid_FirstAdd_0100 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingPidsMap_.clear();
+    pid_t pid = 1234;
+    mgr->AddStartingPid(pid, 5);
+    EXPECT_EQ(mgr->startingPidsMap_.count(pid), 1u);
+    EXPECT_EQ(mgr->startingPidsMap_[pid], 1);
+    mgr->startingPidsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingPid_FirstAdd_0100 end");
+}
+
+/**
+ * @tc.name: AddStartingPid_Duplicate_RefCount_0200
+ * @tc.type: FUNC
+ * @tc.Function: AddStartingPid
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingPid_Duplicate_RefCount_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingPid_Duplicate_RefCount_0200 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingPidsMap_.clear();
+    pid_t pid = 1234;
+    mgr->AddStartingPid(pid, 5);
+    mgr->AddStartingPid(pid, 5);
+    EXPECT_EQ(mgr->startingPidsMap_.count(pid), 1u);
+    EXPECT_EQ(mgr->startingPidsMap_[pid], 2);
+    mgr->startingPidsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingPid_Duplicate_RefCount_0200 end");
+}
+
+/**
+ * @tc.name: AddStartingPid_InvalidPid_0300
+ * @tc.type: FUNC
+ * @tc.Function: AddStartingPid
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, AddStartingPid_InvalidPid_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingPid_InvalidPid_0300 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingPidsMap_.clear();
+    mgr->AddStartingPid(0, 5);
+    EXPECT_EQ(mgr->startingPidsMap_.size(), 0u);
+    mgr->AddStartingPid(-1, 5);
+    EXPECT_EQ(mgr->startingPidsMap_.size(), 0u);
+    TAG_LOGI(AAFwkTag::TEST, "AddStartingPid_InvalidPid_0300 end");
+}
+
+/**
+ * @tc.name: RemoveStartingPid_RefCountDec_0100
+ * @tc.type: FUNC
+ * @tc.Function: RemoveStartingPid
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, RemoveStartingPid_RefCountDec_0100, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingPid_RefCountDec_0100 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingPidsMap_.clear();
+    pid_t pid = 1234;
+    mgr->AddStartingPid(pid, 5);
+    mgr->AddStartingPid(pid, 5);
+    EXPECT_EQ(mgr->startingPidsMap_[pid], 2);
+    mgr->RemoveStartingPid(pid);
+    EXPECT_EQ(mgr->startingPidsMap_.count(pid), 1u);
+    EXPECT_EQ(mgr->startingPidsMap_[pid], 1);
+    mgr->startingPidsMap_.clear();
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingPid_RefCountDec_0100 end");
+}
+
+/**
+ * @tc.name: RemoveStartingPid_RefCountZero_Remove_0200
+ * @tc.type: FUNC
+ * @tc.Function: RemoveStartingPid
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, RemoveStartingPid_RefCountZero_Remove_0200, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingPid_RefCountZero_Remove_0200 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingPidsMap_.clear();
+    pid_t pid = 1234;
+    mgr->AddStartingPid(pid, 5);
+    EXPECT_EQ(mgr->startingPidsMap_[pid], 1);
+    mgr->RemoveStartingPid(pid);
+    EXPECT_EQ(mgr->startingPidsMap_.count(pid), 0u);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingPid_RefCountZero_Remove_0200 end");
+}
+
+/**
+ * @tc.name: RemoveStartingPid_PidNotFound_0300
+ * @tc.type: FUNC
+ * @tc.Function: RemoveStartingPid
+ */
+HWTEST_F(UIExtensionAbilityManagerSecondTest, RemoveStartingPid_PidNotFound_0300, TestSize.Level1)
+{
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingPid_PidNotFound_0300 start");
+    std::shared_ptr<UIExtensionAbilityManager> mgr = std::make_shared<UIExtensionAbilityManager>(0);
+    EXPECT_NE(mgr, nullptr);
+    mgr->startingPidsMap_.clear();
+    pid_t pid = 9999;
+    mgr->RemoveStartingPid(pid);
+    EXPECT_EQ(mgr->startingPidsMap_.size(), 0u);
+    TAG_LOGI(AAFwkTag::TEST, "RemoveStartingPid_PidNotFound_0300 end");
+}
 }  // namespace AAFwk
-}  // namespace OHOS
+} // namespace OHOS
