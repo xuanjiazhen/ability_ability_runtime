@@ -590,11 +590,11 @@ napi_value JsServiceExtension::LoadSkillFunction(
         auto pos = srcPath.rfind('.');
         if (pos == std::string::npos) {
             TAG_LOGW(AAFwkTag::SERVICE_EXT, "skip srcEntry, no extension:%{public}s", srcEntry.c_str());
-            continue;
+        } else {
+            srcPath.erase(pos);
+            srcPath.append(".abc");
         }
-        srcPath.erase(pos);
-        srcPath.append(".abc");
-        moduleRef = jsRuntime_.LoadModule(param->moduleName_, srcPath, param->hapPath_, true);
+        moduleRef = jsRuntime_.LoadModule(param->moduleName_, srcPath, param->hapPath_, true, false, srcEntry);
         if (moduleRef == nullptr) {
             TAG_LOGW(AAFwkTag::SERVICE_EXT, "LoadModule failed, path:%{public}s", srcPath.c_str());
             continue;
