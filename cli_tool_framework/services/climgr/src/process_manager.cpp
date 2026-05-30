@@ -25,6 +25,7 @@
 #include <utility>
 
 #include "cli_error_code.h"
+#include "exec_cmd_param.h"
 #include "exec_tool_param.h"
 #include "hilog_tag_wrapper.h"
 #include "tool_info.h"
@@ -152,6 +153,61 @@ int32_t ProcessManager::CreateChildProcess(const ExecToolParam &param, const std
     close(record->stderrPipe[1]);
 
     // close read
+    close(record->stdinPipe[0]);
+    record->processId = pid;
+    return ERR_OK;
+}
+
+int32_t ProcessManager::CreateShellProcess(const ExecCmdParam &param,
+    std::shared_ptr<SessionRecord> record) const
+{
+    if (CreatePipes(*record) == false) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to create pipes");
+        return ERR_NO_INIT;
+    }
+    pid_t pid = fork();
+    if (pid < 0) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Failed to fork: %{public}d", errno);
+        CloseAllPipes(*record);
+        return ERR_NO_INIT;
+    }
+
+    if (pid == 0) {
+        close(record->stdinPipe[1]);
+        close(record->stdoutPipe[0]);
+        close(record->stderrPipe[0]);
+        dup2(record->stdinPipe[0], STDIN_FILENO);
+        dup2(record->stdoutPipe[1], STDOUT_FILENO);
+        dup2(record->stderrPipe[1], STDERR_FILENO);
+        close(record->stdinPipe[0]);
+        close(record->stdoutPipe[1]);
+        close(record->stderrPipe[1]);
+
+        // Set working directory if specified
+        if (!param.workDir.empty()) {
+            if (chdir(param.workDir.c_str()) != 0) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "chdir failed: %{public}d", errno);
+            }
+        }
+
+        // Execute shell command
+        std::string shell = "/bin/sh";
+        std::string dashC = "-c";
+        std::vector<char*> execArgs;
+        execArgs.push_back(const_cast<char *>(shell.c_str()));
+        execArgs.push_back(const_cast<char *>(dashC.c_str()));
+        execArgs.push_back(const_cast<char *>(param.cmd.c_str()));
+        execArgs.push_back(nullptr);
+        TAG_LOGI(AAFwkTag::CLI_TOOL, "Before execvp shell");
+        execvp(execArgs[0], execArgs.data());
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "execvp failed:%{public}d", errno);
+        _exit(EXIT_FAILURE);
+    }
+
+    // Parent process: close write ends of pipes
+    close(record->stdoutPipe[1]);
+    close(record->stderrPipe[1]);
+    // close read end of stdin
     close(record->stdinPipe[0]);
     record->processId = pid;
     return ERR_OK;

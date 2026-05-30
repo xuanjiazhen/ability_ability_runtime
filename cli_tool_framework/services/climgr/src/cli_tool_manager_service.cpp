@@ -636,6 +636,76 @@ int32_t CliToolManagerService::ExecTool(const ExecToolParam &param, const std::s
     return SetupAndStartSession(param, eventId, toolInfo, sandboxConfig, bundleName);
 }
 
+bool CliToolManagerService::RegisterCmdSessionWithMonitors(const std::shared_ptr<SessionRecord> &record,
+    const ExecCmdParam &param)
+{
+    if (ioMonitor_ == nullptr || ioMonitor_->RegisterSession(
+        record->sessionId, record->stdoutPipe[0], record->stderrPipe[0], record->stdinPipe[1]) == false) {
+        close(record->stdoutPipe[0]);
+        close(record->stderrPipe[0]);
+        close(record->stdinPipe[1]);
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "ioMonitor registration failed: sessionId=%{public}s, pid=%{public}d",
+            record->sessionId.c_str(), record->processId);
+        return false;
+    }
+
+    if (param.options.background == false && param.options.yieldMs != 0) {
+        PostExecToolTask(param.options.yieldMs, record->sessionId, false);
+    }
+    if (record->timeoutMs != 0) {
+        PostExecToolTask(record->timeoutMs, record->sessionId, true);
+    }
+    return true;
+}
+
+int32_t CliToolManagerService::ExecCmd(const ExecCmdParam &param, const std::string &eventId,
+    const sptr<ICliToolManagerScheduler> &scheduler)
+{
+    InterfaceCallCounter counter(interfaceCalledCount_);
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "ExecCmd called: cmd=%{public}s", param.cmd.c_str());
+    if (auto ret = ValidateExecToolPermissions(); ret != ERR_OK) {
+        return ret;
+    }
+    int32_t callerPid = IPCSkeleton::GetCallingPid();
+    int32_t callerUid = IPCSkeleton::GetCallingUid();
+    if (!EventDispatcher::GetInstance().SetScheduler(callerPid, callerUid, scheduler)) {
+        return ERR_NO_INIT;
+    }
+
+    if (auto ret = ValidateSessionLimit(); ret != ERR_OK) {
+        return ret;
+    }
+
+    // Create session record for shell command
+    auto record = std::make_shared<SessionRecord>();
+    record->callerPid = callerPid;
+    record->callerUid = callerUid;
+    record->sessionId = ToolUtil::GenerateCliSessionId("shell", record);
+    record->toolName = "shell";
+    record->timeoutMs = param.options.timeout * COEFFICIENT;
+    record->SetState(SessionState::RUNNING);
+    record->SetBackground(param.options.background);
+    record->eventId = eventId;
+
+    auto createRet = ProcessManager::GetInstance().CreateShellProcess(param, record);
+    if (createRet != ERR_OK) {
+        return createRet;
+    }
+    AddSessionRecord(record);
+
+    if (RegisterCmdSessionWithMonitors(record, param) == false) {
+        ProcessManager::GetInstance().Killpg(record->processId);
+        RemoveSessionRecord(record->sessionId);
+        return ERR_NO_INIT;
+    }
+
+    if (param.options.background) {
+        HandleBackgroundSessionReply(record, eventId);
+    }
+
+    return ERR_OK;
+}
+
 void CliToolManagerService::PostExecToolTask(int64_t time, const std::string &sessionId, bool isTimeout)
 {
     auto timeoutTask = [sessionId, isTimeout]() {

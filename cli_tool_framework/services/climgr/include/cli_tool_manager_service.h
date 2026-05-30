@@ -25,6 +25,7 @@
 
 #include "cli_tool_manager_stub.h"
 #include "cli_tool_data_manager.h"
+#include "exec_cmd_param.h"
 #include "ffrt.h"
 #include "iremote_object.h"
 #include "system_ability.h"
@@ -84,6 +85,9 @@ public:
     int32_t ExecTool(const ExecToolParam &param, const std::string &eventId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
 
+    int32_t ExecCmd(const ExecCmdParam &param, const std::string &eventId,
+        const sptr<ICliToolManagerScheduler> &scheduler) override;
+
     int32_t ClearSession(const std::string &sessionId) override;
     int32_t SubscribeSession(const std::string &sessionId, const std::string &subscriptionId,
         const sptr<ICliToolManagerScheduler> &scheduler) override;
@@ -138,6 +142,7 @@ private:
     bool IsSessionOwner(const std::shared_ptr<SessionRecord> &record, const char *action) const;
 
     bool RegisterSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecToolParam &param);
+    bool RegisterCmdSessionWithMonitors(const std::shared_ptr<SessionRecord> &record, const ExecCmdParam &param);
     void UnregisterSessionWithMonitors(const std::string &sessionId);
 
     int32_t ValidateExecToolPermissions();
