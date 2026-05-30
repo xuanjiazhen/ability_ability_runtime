@@ -120,6 +120,7 @@ private:
     int32_t HandleDumpJsHeapMemory(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpCjHeapMemory(MessageParcel &data, MessageParcel &reply);
     int32_t HandleDumpMem(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleReportDumpMemResult(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetRunningMultiAppInfoByBundleName(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllRunningInstanceKeysBySelf(MessageParcel &data, MessageParcel &reply);
     int32_t HandleGetAllRunningInstanceKeysByBundleName(MessageParcel &data, MessageParcel &reply);
@@ -176,6 +177,7 @@ private:
     int32_t HandleSetSupportedProcessCacheSelf(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetSupportedProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleIsProcessCacheSupported(MessageParcel &data, MessageParcel &reply);
+    int32_t HandleIsChildProcessSupported(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSetProcessCacheEnable(MessageParcel &data, MessageParcel &reply);
     int32_t HandleLockProcessCache(MessageParcel &data, MessageParcel &reply);
     int32_t HandleSaveBrowserChannel(MessageParcel &data, MessageParcel &reply);

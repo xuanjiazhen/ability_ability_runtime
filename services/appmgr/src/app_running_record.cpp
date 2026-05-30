@@ -419,8 +419,6 @@ void AppRunningRecord::LaunchApplication(const Configuration &config)
     launchData.SetPreloadModuleName(preloadModuleName_);
     launchData.SetPreloadAbilityName(preloadAbilityName_);
     launchData.SetDebugFromLocal(isDebugFromLocal_);
-    launchData.SetArkChildProcessSupported(isArkChildProcessSupported_);
-    launchData.SetNativeChildProcessSupported(isNativeChildProcessSupported_);
     launchData.SetStartupTaskData(startupTaskData_);
     launchData.SetImageProcessType(static_cast<int32_t>(imageProcessType_));
     launchData.SetMainProcess(isMainProcess_);
@@ -703,10 +701,10 @@ void AppRunningRecord::ScheduleCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &in
     }
 }
 
-void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+void AppRunningRecord::ScheduleMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     if (appLifeCycleDeal_) {
-        appLifeCycleDeal_->ScheduleMem(info, dumpResult);
+        appLifeCycleDeal_->ScheduleMem(info, callback);
     }
 }
 

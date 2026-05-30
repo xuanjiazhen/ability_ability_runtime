@@ -17,11 +17,13 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <cstdlib>
 #include <dlfcn.h>
 #include <filesystem>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <regex>
+#include <sys/mman.h>
 #include <unistd.h>
 
 #include "bundle_constants.h"
@@ -271,8 +273,26 @@ bool ETSRuntime::PostFork(const Options &options, std::unique_ptr<Runtime> &jsRu
     }
 
     g_etsEnvFuncs->PostFork(reinterpret_cast<void *>(napiEnv), GetAotPath(options), options.appInnerHspPathList,
-        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner, options.baseLineProfile);
+        options.staticHapModuleNameList, options.commonHspBundleInfos, options.eventRunner, options.baseLineProfile,
+        options.staticPluginHspPathList, options.bundleName);
     return true;
+}
+
+/*
+ * HWASan's ProtectGap() blocks [0x10000, 0x100000000) with PROT_NONE.
+ * Shadow memory and allocator are placed above 4 GB (aligned to 1 << 32).
+ * ETS runtime needs to allocate heap in the lower 4 GB.
+ * appspawn sets HWASAN_OPTIONS env var whenever HWASan is enabled for
+ * the child process — both via APP_FLAGS_HWASAN_ENABLED and wrap.<bundle>.
+ */
+static void UnmapHwasanProtectGap()
+{
+    HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
+    if (getenv("HWASAN_OPTIONS") == nullptr) {
+        return;
+    }
+    TAG_LOGI(AAFwkTag::ETSRUNTIME, "Unmapping HWASan ProtectGap in lower 4 GB");
+    munmap(reinterpret_cast<void *>(0x10000), 0x100000000UL - 0x10000);
 }
 
 std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
@@ -280,6 +300,7 @@ std::unique_ptr<ETSRuntime> ETSRuntime::Create(const Options &options,
 {
     HITRACE_METER_NAME(HITRACE_TAG_APP, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::ETSRUNTIME, "Create called");
+    UnmapHwasanProtectGap();
     if (!RegisterETSEnvFuncs()) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "RegisterETSEnvFuncs failed");
         return std::unique_ptr<ETSRuntime>();
@@ -593,7 +614,7 @@ void ETSRuntime::PreloadModule(const std::string &moduleName, const std::string 
         return;
     }
 
-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName + MERGE_ABC_PATH;
+    std::string modulePath = ExtractorUtil::GetLoadFilePath(hapPath);
     if (!g_etsEnvFuncs->PreloadModule(modulePath)) {
         TAG_LOGE(AAFwkTag::ETSRUNTIME, "PreloadModule failed");
     }
@@ -641,7 +662,7 @@ std::unique_ptr<AppExecFwk::ETSNativeReference> ETSRuntime::LoadEtsModule(const 
         return std::unique_ptr<AppExecFwk::ETSNativeReference>();
     }
 
-    std::string modulePath = BUNDLE_INSTALL_PATH + moduleName_ + MERGE_ABC_PATH;
+    std::string modulePath = ExtractorUtil::GetLoadFilePath(hapPath);
     std::string entryPath = HandleOhmUrlSrcEntry(srcEntrance);
     void *cls = nullptr;
     void *obj = nullptr;

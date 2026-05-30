@@ -67,7 +67,6 @@ public:
         auto &client = CliToolMGRClient::GetInstance();
         client.ClearProxy();
         client.loadSaFinished_ = false;
-        client.serviceDeathHandlers_.clear();
     }
 
     void TearDown() override
@@ -97,6 +96,20 @@ HWTEST_F(CliToolMGRClientTest, GetInstance_0100, TestSize.Level1)
     auto &instance2 = CliToolMGRClient::GetInstance();
 
     EXPECT_EQ(&instance1, &instance2);
+}
+
+/**
+ * @tc.name: SessionEventCallback_0100
+ * @tc.desc: Test default session event callback branch
+ * @tc.type: FUNC
+ */
+HWTEST_F(CliToolMGRClientTest, SessionEventCallback_0100, TestSize.Level1)
+{
+    SessionEventCallback callback;
+    CliToolEvent event;
+    event.type = "stdout";
+
+    EXPECT_NO_FATAL_FAILURE(callback.OnToolEvent("session", "subscription", event));
 }
 
 /**
@@ -234,12 +247,6 @@ HWTEST_F(CliToolMGRClientTest, ExecTool_0100, TestSize.Level1)
     param.toolName = "ohos-tool";
     int32_t callbackCode = -1;
 
-    CliToolMgrClientFlag::retRegisterScheduler = ERR_INVALID_VALUE;
-    EXPECT_EQ(CliToolMGRClient::GetInstance().ExecTool(param,
-        [&callbackCode](int32_t code, const CliSessionInfo &) { callbackCode = code; }), ERR_INVALID_VALUE);
-
-    CliToolMGRClient::GetInstance().schedulerRegistered_ = false;
-    CliToolMgrClientFlag::retRegisterScheduler = ERR_OK;
     CliToolMgrClientFlag::retExecTool = ERR_INVALID_VALUE;
     EXPECT_EQ(CliToolMGRClient::GetInstance().ExecTool(param,
         [&callbackCode](int32_t code, const CliSessionInfo &) { callbackCode = code; }), ERR_INVALID_VALUE);
@@ -366,13 +373,8 @@ HWTEST_F(CliToolMGRClientTest, ProxyLifecycle_0100, TestSize.Level1)
 {
     auto &client = CliToolMGRClient::GetInstance();
     auto mockService = SetMockService();
-    client.schedulerRegistered_ = true;
-    bool deathHandlerCalled = false;
-    client.serviceDeathHandlers_.push_back([&deathHandlerCalled]() { deathHandlerCalled = true; });
     client.ClearProxy();
     EXPECT_EQ(client.cliToolMgr_, nullptr);
-    EXPECT_FALSE(client.schedulerRegistered_);
-    EXPECT_TRUE(deathHandlerCalled);
 
     client.OnLoadSystemAbilitySuccess(mockService->AsObject());
     EXPECT_NE(client.cliToolMgr_, nullptr);

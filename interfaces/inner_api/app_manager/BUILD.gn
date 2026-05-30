@@ -117,6 +117,8 @@ ohos_shared_library("app_manager") {
     "src/appmgr/load_ability_callback_proxy.cpp",
     "src/appmgr/load_ability_callback_stub.cpp",
     "src/appmgr/memory_level_info.cpp",
+    "src/appmgr/mem_dump_callback_proxy.cpp",
+    "src/appmgr/mem_dump_callback_stub.cpp",
     "src/appmgr/native_child_notify_proxy.cpp",
     "src/appmgr/native_child_notify_stub.cpp",
     "src/appmgr/page_state_data.cpp",
@@ -204,6 +206,10 @@ ohos_shared_library("app_manager") {
   if (ability_runtime_hitrace_enable) {
     external_deps += [ "hitrace:libhitracechain" ]
     defines += [ "ABILITY_RUNTIME_HITRACE_ENABLE" ]
+  }
+
+  if (ability_runtime_app_no_response_dialog) {
+    defines += [ "APP_NO_RESPONSE_DIALOG" ]
   }
 
   innerapi_tags = [ "platformsdk" ]

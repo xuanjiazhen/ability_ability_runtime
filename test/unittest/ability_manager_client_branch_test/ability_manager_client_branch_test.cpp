@@ -2900,6 +2900,54 @@ HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInCurrentProcess_0100
 }
 
 /**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0100
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with normal parameters
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0100, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken)).WillOnce(Return(ERR_OK));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken), ERR_OK);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0200
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with service return error
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0200, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "TestAbility");
+    std::string specifiedFlag = "testFlag";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken))
+        .WillOnce(Return(ERR_CAPABILITY_NOT_SUPPORT));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken),
+        ERR_CAPABILITY_NOT_SUPPORT);
+}
+
+/**
+ * @tc.name: StartSelfUIAbilityInChildProcess_0300
+ * @tc.desc: Test StartSelfUIAbilityInChildProcess with empty want
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, StartSelfUIAbilityInChildProcess_0300, TestSize.Level1)
+{
+    Want want;
+    std::string specifiedFlag = "";
+    sptr<IRemoteObject> callerToken = nullptr;
+    EXPECT_CALL(*mock_, StartSelfUIAbilityInChildProcess(_, specifiedFlag, callerToken))
+        .WillOnce(Return(START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START));
+    EXPECT_EQ(client_->StartSelfUIAbilityInChildProcess(want, specifiedFlag, callerToken),
+        START_UI_ABILITIES_NOT_SUPPORT_IMPLICIT_START);
+}
+
+/**
  * @tc.name: QuerySelfModularObjectExtensionInfos_0100
  * @tc.desc: QuerySelfModularObjectExtensionInfos
  * @tc.type: FUNC
@@ -2936,5 +2984,17 @@ HWTEST_F(AbilityManagerClientBranchTest, StartAbilityForPrelaunch_001, TestSize.
     EXPECT_EQ(client_->StartAbilityForPrelaunch(want, 0), 0);
 }
 
+/**
+ * @tc.name: AbilityManagerClient_StartSelf_0100
+ * @tc.desc: StartSelf
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityManagerClientBranchTest, AbilityManagerClient_StartSelf_0100, TestSize.Level1)
+{
+    sptr<IRemoteObject> token = nullptr;
+    EXPECT_CALL(*mock_, StartSelf(_)).WillOnce(Return(ERR_OK));
+    auto result = client_->StartSelf(token);
+    EXPECT_EQ(ERR_OK, result);
+}
 }  // namespace AAFwk
 }  // namespace OHOS

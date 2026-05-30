@@ -25,6 +25,9 @@
 #include "ability_manager_errors.h"
 #include "app_utils.h"
 #include "event_handler.h"
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+#include "histogram_plugin_macros.h"
+#endif
 #include "hilog_tag_wrapper.h"
 #include "hitrace_meter.h"
 #include "ipc_skeleton.h"
@@ -255,7 +258,8 @@ void StartAbilityByCallComplete(napi_env env, NapiAsyncTask& task, std::weak_ptr
     if (context == nullptr || callerCallBack == nullptr || calldata->remoteCallee == nullptr) {
         TAG_LOGE(AAFwkTag::CONTEXT, "null callComplete params error %{public}s",
             context == nullptr ? "context" : (calldata->remoteCallee == nullptr ? "remoteCallee" : "callerCallBack"));
-        task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+        task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_CALLER_FAILED)));
         TAG_LOGD(AAFwkTag::CONTEXT, "callComplete end");
         return;
     }
@@ -491,6 +495,11 @@ napi_value JsAbilityContext::StartSelfUIAbilityInCurrentProcess(napi_env env, na
 napi_value JsAbilityContext::StartSelf(napi_env env, napi_callback_info info)
 {
     GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnStartSelf);
+}
+
+napi_value JsAbilityContext::StartSelfUIAbilityInChildProcess(napi_env env, napi_callback_info info)
+{
+    GET_NAPI_INFO_AND_CALL(env, info, JsAbilityContext, OnStartSelfUIAbilityInChildProcess);
 }
 
 napi_value JsAbilityContext::RestartAppWithWindow(napi_env env, napi_callback_info info)
@@ -1014,7 +1023,8 @@ bool JsAbilityContext::CreateOpenLinkTask(const napi_env &env, const napi_value 
         napi_value abilityResult = AppExecFwk::WrapAbilityResult(env, resultCode, want);
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::CONTEXT, "null abilityResult");
-            asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            asyncTask->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED)));
             return;
         }
         isInner ? asyncTask->Reject(env, CreateJsErrorByNativeErr(env, resultCode)) :
@@ -1366,7 +1376,13 @@ napi_value JsAbilityContext::OnStartAbilityByCall(napi_env env, NapiCallbackInfo
     if (!CheckStartAbilityByCallParams(env, info, want, userId, lastParam)) {
         return CreateJsUndefined(env);
     }
-
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    if (userId == DEFAULT_INVAL_VALUE) {
+        HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.startAbilityByCall", 1);
+    } else {
+        HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.startAbilityByCallWithAccount", 1);
+    }
+#endif
     // 2. create CallBack function
     auto calls = std::make_shared<StartAbilityByCallParameters>();
     auto callerCallBack = std::make_shared<CallerCallBack>();
@@ -1805,6 +1821,9 @@ napi_value JsAbilityContext::OnTerminateSelfWithResult(napi_env env, NapiCallbac
 napi_value JsAbilityContext::OnBackToCallerAbilityWithResult(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "start");
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.backToCallerAbilityWithResult", 1);
+#endif
     if (info.argc < ARGC_TWO) {
         TAG_LOGE(AAFwkTag::CONTEXT, "invalid argc");
         ThrowTooFewParametersError(env);
@@ -2112,7 +2131,8 @@ napi_value JsAbilityContext::OnRestoreWindowStage(napi_env env, NapiCallbackInfo
     }
     auto errcode = context->RestoreWindowStage(env, info.argv[INDEX_ZERO]);
     if (errcode != 0) {
-        ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED));
         return CreateJsError(env, errcode, "restoreWindowStage failed");
     }
     return CreateJsUndefined(env);
@@ -2141,7 +2161,8 @@ napi_value JsAbilityContext::OnRequestDialogService(napi_env env, NapiCallbackIn
         napi_value requestResult = JsAbilityContext::WrapRequestDialogResult(env, resultCode, resultWant);
         if (requestResult == nullptr) {
             TAG_LOGW(AAFwkTag::CONTEXT, "null requestResult");
-            asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+            asyncTask->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::REQUEST_DIALOG_RESULT_FAILED)));
         } else {
             asyncTask->Resolve(env, requestResult);
         }
@@ -2291,6 +2312,51 @@ napi_value JsAbilityContext::OnStartSelfUIAbilityInCurrentProcess(napi_env env, 
 
     napi_value result = nullptr;
     NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartSelfUIAbilityInCurrentProcess",
+        env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
+    return result;
+}
+
+napi_value JsAbilityContext::OnStartSelfUIAbilityInChildProcess(napi_env env, NapiCallbackInfo &info)
+{
+    if (info.argc < ARGC_TWO) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
+        ThrowTooFewParametersError(env);
+        return CreateJsUndefined(env);
+    }
+    AAFwk::Want want;
+    if (!AppExecFwk::UnwrapWant(env, info.argv[INDEX_ZERO], want)) {
+        ThrowInvalidParamError(env, "Parse param want failed, want must be Want.");
+        return CreateJsUndefined(env);
+    }
+
+    std::string specifiedFlag;
+    if (!ConvertFromJsValue(env, info.argv[INDEX_ONE], specifiedFlag)) {
+        TAG_LOGE(AAFwkTag::CONTEXT, "parse specifiedFlag failed");
+        ThrowInvalidParamError(env, "Parse param specifiedFlag failed, specifiedFlag must be string.");
+        return CreateJsUndefined(env);
+    }
+
+    auto innerErrCode = std::make_shared<int32_t>(ERR_OK);
+    NapiAsyncTask::ExecuteCallback execute = [weak = context_, want, specifiedFlag, innerErrCode]() {
+        TAG_LOGI(AAFwkTag::CONTEXT, "async execute");
+        auto context = weak.lock();
+        if (!context) {
+            TAG_LOGW(AAFwkTag::CONTEXT, "null context");
+            *innerErrCode = static_cast<int32_t>(AAFwk::ERR_INVALID_CONTEXT);
+            return;
+        }
+
+        *innerErrCode = context->StartSelfUIAbilityInChildProcess(want, specifiedFlag);
+    };
+
+    NapiAsyncTask::CompleteCallback complete = [innerErrCode](napi_env env, NapiAsyncTask &task, int32_t status) {
+        HandleScope handleScope(env);
+        (*innerErrCode == ERR_OK) ? task.ResolveWithNoError(env, CreateJsUndefined(env)) :
+            task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
+    };
+
+    napi_value result = nullptr;
+    NapiAsyncTask::ScheduleHighQos("JsAbilityContext::OnStartSelfUIAbilityInChildProcess",
         env, CreateAsyncTaskWithLastParam(env, nullptr, std::move(execute), std::move(complete), &result));
     return result;
 }
@@ -2490,6 +2556,8 @@ napi_value CreateJsAbilityContext(napi_env env, std::shared_ptr<AbilityContext> 
         JsAbilityContext::StartSelfUIAbilityInCurrentProcess);
     BindNativeFunction(env, object, "startSelf", moduleName,
         JsAbilityContext::StartSelf);
+    BindNativeFunction(env, object, "startSelfUIAbilityInChildProcess", moduleName,
+        JsAbilityContext::StartSelfUIAbilityInChildProcess);
     BindNativeFunction(env, object, "restartApp", moduleName,
         JsAbilityContext::RestartAppWithWindow);
     BindNativeFunction(env, object, "setMissionWindowIcon", moduleName, JsAbilityContext::SetMissionWindowIcon);
@@ -3176,11 +3244,17 @@ napi_value JsAbilityContext::OnRequestModalUIExtensionWithAccount(napi_env env, 
 
 napi_value JsAbilityContext::OnShowAbility(napi_env env, NapiCallbackInfo& info)
 {
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.showAbility", 1);
+#endif
     return ChangeAbilityVisibility(env, info, true);
 }
 
 napi_value JsAbilityContext::OnHideAbility(napi_env env, NapiCallbackInfo& info)
 {
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.hideAbility", 1);
+#endif
     return ChangeAbilityVisibility(env, info, false);
 }
 
@@ -3325,6 +3399,9 @@ napi_value JsAbilityContext::OpenAtomicServiceInner(napi_env env, NapiCallbackIn
 napi_value JsAbilityContext::OnSetRestoreEnabled(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGD(AAFwkTag::CONTEXT, "called");
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.setRestoreEnabled", 1);
+#endif
     if (info.argc == ARGC_ZERO) {
         TAG_LOGE(AAFwkTag::CONTEXT, "not enough params");
         ThrowTooFewParametersError(env);
@@ -3408,6 +3485,9 @@ napi_value JsAbilityContext::OnRevokeDelegator(napi_env env, NapiCallbackInfo& i
 napi_value JsAbilityContext::OnSetOnNewWantSkipScenarios(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "OnSetOnNewWantSkipScenarios called");
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.setOnNewWantSkipScenarios", 1);
+#endif
     if (info.argc < ARGC_ONE) {
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);
@@ -3435,7 +3515,8 @@ napi_value JsAbilityContext::OnSetOnNewWantSkipScenarios(napi_env env, NapiCallb
             if (*innerErrCode == ERR_OK) {
                 task.Resolve(env, CreateJsUndefined(env));
             } else {
-                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                task.Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED)));
             }
         };
 
@@ -3466,6 +3547,9 @@ napi_value JsAbilityContext::OnConnectAppServiceExtensionAbility(napi_env env, N
 napi_value JsAbilityContext::OnRestartAppWithWindow(napi_env env, NapiCallbackInfo& info)
 {
     TAG_LOGD(AAFwkTag::APPKIT, "OnRestartAppWithWindow called");
+#ifdef HIVIEWDFX_RUNTIME_API_METRICS
+    HISTOGRAM_BOOLEAN("AbilityKit.UIAbilityContext.restartApp", 1);
+#endif
     if (info.argc < ARGC_ONE) {
         ThrowTooFewParametersError(env);
         return CreateJsUndefined(env);

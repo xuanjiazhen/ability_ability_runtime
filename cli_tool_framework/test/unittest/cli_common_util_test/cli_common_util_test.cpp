@@ -61,29 +61,6 @@ HWTEST_F(CliCommonUtilTest, CcmUtil_GetCliConcurrencyLimit_0100, TestSize.Level1
 }
 
 /**
- * @tc.name: PermissionUtil_VerifyAccessToken_0100
- * @tc.desc: Test vector permission grant and denial branches
- * @tc.type: FUNC
- */
-HWTEST_F(CliCommonUtilTest, PermissionUtil_VerifyAccessToken_0100, TestSize.Level1)
-{
-    std::vector<std::string> permissions = {
-        "ohos.permission.EXEC_CLI_TOOL",
-        "ohos.permission.QUERY_CLI_TOOL",
-    };
-
-    CliCommonMock::vectorPermissionResult = Security::AccessToken::PermissionState::PERMISSION_GRANTED;
-    EXPECT_TRUE(PermissionUtil::VerifyAccessToken(TEST_TOKEN_ID, permissions));
-
-    CliCommonMock::vectorPermissionResult = Security::AccessToken::PermissionState::PERMISSION_DENIED;
-    CliCommonMock::permissionStateList = {
-        Security::AccessToken::TypePermissionState::PERMISSION_DENIED,
-        Security::AccessToken::TypePermissionState::PERMISSION_GRANTED,
-    };
-    EXPECT_FALSE(PermissionUtil::VerifyAccessToken(TEST_TOKEN_ID, permissions));
-}
-
-/**
  * @tc.name: PermissionUtil_VerifyAccessToken_0200
  * @tc.desc: Test single permission grant and denial branches
  * @tc.type: FUNC

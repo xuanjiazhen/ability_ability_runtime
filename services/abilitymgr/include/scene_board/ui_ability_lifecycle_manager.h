@@ -187,6 +187,7 @@ public:
      * @param rootSceneSession Indicates root scene session of SCB.
      */
     void SetRootSceneSession(const sptr<IRemoteObject> &rootSceneSession);
+    sptr<IRemoteObject> GetRootSceneSession() const;
 
     int NotifySCBToStartUIAbility(AbilityRequest &abilityRequest);
     int32_t NotifySCBToStartUIAbilities(std::vector<AbilityRequest> &abilityRequestList,
@@ -584,6 +585,9 @@ public:
 
     ErrCode IsUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
         int32_t appIndex, const std::string &instanceKey, AppExecFwk::LaunchMode launchMode);
+
+    ErrCode IsSpecifiedUIAbilityAlreadyExist(const Want &want, const std::string &specifiedFlag,
+        int32_t appIndex, const std::string &instanceKey);
 
     void HandleUIAbilityDiedByPid(pid_t pid);
 
@@ -1145,6 +1149,7 @@ private:
      * @param specifiedRequest The request to process
      */
     void StartSpecifiedRequest(SpecifiedRequest &specifiedRequest);
+    void SubmitSpecifiedFailTask(int32_t requestId, bool isDelay);
 
     /**
      * @brief Pop next specified request by ID
@@ -1323,6 +1328,7 @@ private:
     ffrt::mutex callerInfoMapLock_;
     // if window reused, persistentId will be reused, keep previous record here until the ability is dead
     std::unordered_set<UIAbilityRecordPtr> reuseWindowRecords_;
+    mutable ffrt::mutex rootSceneSessionLock_;
     sptr<IRemoteObject> rootSceneSession_;
     sptr<ISessionHandler> handler_;
     ffrt::mutex statusBarDelegateManagerLock_;

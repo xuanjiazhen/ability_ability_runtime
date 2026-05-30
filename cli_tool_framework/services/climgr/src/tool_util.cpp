@@ -62,13 +62,6 @@ int32_t ToolUtil::ValidateProperties(const ToolInfo &toolInfo, ExecToolParam &pa
             TAG_LOGE(AAFwkTag::CLI_TOOL, "not have subcommand");
             return ERR_TOOL_NOT_EXIST;
         }
-        if (!PermissionUtil::VerifyAccessToken(tokenId, search->second.requirePermissions)) {
-            return ERR_PERMISSION_DENIED;
-        }
-    } else {
-        if (!PermissionUtil::VerifyAccessToken(tokenId, toolInfo.requirePermissions)) {
-            return ERR_PERMISSION_DENIED;
-        }
     }
 
     if (param.options.timeout < 0 || param.options.yieldMs < 0) {
@@ -139,6 +132,10 @@ int32_t ToolUtil::ValidateInputSchemaProperties(const std::string &inputSchema,
         // Validate type if specified in schema
         auto &propertySchema = properties[key];
         if (propertySchema.contains("type")) {
+            if (!propertySchema["type"].is_string()) {
+                TAG_LOGE(AAFwkTag::CLI_TOOL, "args key '%{public}s' has invalid schema type", key.c_str());
+                return ERR_INVALID_PARAM;
+            }
             std::string expectedType = propertySchema["type"].get<std::string>();
             if (!ValidateParamType(value, expectedType, propertySchema, key)) {
                 TAG_LOGE(AAFwkTag::CLI_TOOL, "args key '%{public}s' type mismatch, expected: %{public}s",
@@ -184,7 +181,8 @@ bool ToolUtil::GenerateSandboxConfig(const ExecToolParam &param, AccessToken::Ac
     config["subCliName"] = param.subcommand;
     sandboxConfig = config.dump();
     bundleName = bundleInfo.name;
-    TAG_LOGI(AAFwkTag::CLI_TOOL, "sandboxConfig: %{public}s", sandboxConfig.c_str());
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "bundleName:%{public}s, gid:%{public}d, cliName:%{public}s, subCliName:%{public}s",
+        bundleInfo.name.c_str(), bundleInfo.gid, param.toolName.c_str(), param.subcommand.c_str());
     return true;
 }
 
@@ -223,7 +221,7 @@ bool ToolUtil::GetBundleInfoByTokenId(AccessToken::AccessTokenID tokenId, AppExe
     return true;
 }
 
-void ToolUtil::TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantParams &args, std::string &cmdLine)
+void ToolUtil::TransferToCmdParam(const AAFwk::WantParams &args, std::vector<std::string> &execArgs)
 {
     if (args.IsEmpty()) {
         TAG_LOGI(AAFwkTag::CLI_TOOL, "Not has arg");
@@ -235,28 +233,30 @@ void ToolUtil::TransferToCmdParam(const ToolInfo &toolInfo, const AAFwk::WantPar
         }
 
         if (key == "help") {
-            ProcessBooleanParam(key, value, cmdLine);
+            ProcessBooleanParam(key, value, execArgs);
             continue;
         }
 
         if (IsBooleanType(value)) {
-            ProcessBooleanParam(key, value, cmdLine);
+            ProcessBooleanParam(key, value, execArgs);
             continue;
         }
 
         if (IsArrayType(value)) {
-            ProcessArrayExpansion(key, value, cmdLine);
+            ProcessArrayExpansion(key, value, execArgs);
             continue;
         }
 
         std::string strValue = GetParamStringValue(value);
         if (!strValue.empty()) {
-            cmdLine += " --" + key + " " + strValue;
+            execArgs.push_back("--" + key);
+            execArgs.push_back(strValue);
         }
     }
 }
 
-void ToolUtil::ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IInterface> &value, std::string &cmdLine)
+void ToolUtil::ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IInterface> &value,
+    std::vector<std::string> &execArgs)
 {
     if (!IsBooleanType(value)) {
         return;
@@ -264,7 +264,7 @@ void ToolUtil::ProcessBooleanParam(const std::string &key, const sptr<AAFwk::IIn
 
     bool boolValue = false;
     if (GetParamBoolValue(value, boolValue) && boolValue) {
-        cmdLine += " --" + key;
+        execArgs.push_back("--" + key);
     }
 }
 
@@ -350,7 +350,7 @@ bool ToolUtil::GetParamBoolValue(const sptr<AAFwk::IInterface> &value, bool &res
 }
 
 void ToolUtil::ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::IInterface> &value,
-    std::string &cmdLine)
+    std::vector<std::string> &execArgs)
 {
     auto arrayValue = AAFwk::IArray::Query(value);
     if (arrayValue == nullptr) {
@@ -363,6 +363,7 @@ void ToolUtil::ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::I
     }
 
     // Iterate through array elements and expand to command line
+    std::string tmpKey = "--" + key;
     for (long i = 0; i < arrayLength; ++i) {
         sptr<AAFwk::IInterface> elementValue;
         if (arrayValue->Get(i, elementValue) != ERR_OK || elementValue == nullptr) {
@@ -376,7 +377,8 @@ void ToolUtil::ProcessArrayExpansion(const std::string &key, const sptr<AAFwk::I
 
         std::string elementStr = GetParamStringValue(elementValue);
         if (!elementStr.empty()) {
-            cmdLine += " --" + key + " " + elementStr;
+            execArgs.push_back(tmpKey);
+            execArgs.push_back(elementStr);
         }
     }
 }
@@ -439,7 +441,14 @@ bool ToolUtil::ValidateArrayItems(sptr<AAFwk::IArray> arrayObj,
     if (arrayObj->GetLength(arrayLength) != ERR_OK || arrayLength == 0) {
         return true;
     }
-    std::string itemType = itemsSchema.value("type", "");
+    if (!itemsSchema.contains("type")) {
+        return true;
+    }
+    if (!itemsSchema["type"].is_string()) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "Array '%{public}s' has invalid item schema type", key.c_str());
+        return false;
+    }
+    std::string itemType = itemsSchema["type"].get<std::string>();
     if (itemType.empty()) {
         return true;
     }

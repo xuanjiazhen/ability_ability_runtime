@@ -225,13 +225,13 @@ enum class AbilityErrorCode {
     // beforehand.
     ERROR_CODE_MAX_CONNECTIONS_REACHED = 35600003,
 
-    // The specified agent card version is older than the current version.
+    // The specified AgentCard version is older than the current version.
     ERROR_CODE_AGENT_CARD_VERSION_TOO_OLD = 35600004,
 
-    // The specified agent card version is invalid.
+    // The specified AgentCard version is invalid.
     ERROR_CODE_AGENT_CARD_VERSION_INVALID = 35600005,
 
-    // The specified agent card has already been registered. Use updateAgentCard instead.
+    // The specified AgentCard has already been registered. Use updateAgentCard instead.
     ERROR_CODE_AGENT_CARD_DUPLICATE_REGISTER = 35600006,
 
     // The specified LOW_CODE agent is already active and is not yet completed.
@@ -337,9 +337,22 @@ enum class AbilityErrorCode {
     ERROR_CODE_BUNDLE_NAME_INVALID = 18500001,
 };
 
+enum class AbilityInnerErrorMsg {
+    CREATE_ANI_REFERENCE_FAILED,
+    CREATE_CALLER_FAILED,
+    GET_ANI_VM_FAILED,
+    REQUEST_DIALOG_RESULT_FAILED,
+    RESTORE_WINDOW_STAGE_FAILED,
+    SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED,
+    WRAP_ABILITY_RESULT_FAILED,
+};
+
 std::string GetErrorMsg(const AbilityErrorCode& errCode);
 std::string GetNoPermissionErrorMsg(const std::string& permission);
 AbilityErrorCode GetJsErrorCodeByNativeError(int32_t errCode);
+std::string GetInnerErrorMsg(AbilityInnerErrorMsg innerErrMsg);
+std::string GetErrorMsgByNativeError(int32_t errCode, const std::string& innerErrMsg = "",
+    const std::string& permission = "");
 }  // namespace AbilityRuntime
 }  // namespace OHOS
 #endif

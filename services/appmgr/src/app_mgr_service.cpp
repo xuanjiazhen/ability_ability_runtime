@@ -679,12 +679,22 @@ int32_t AppMgrService::DumpCjHeapMemory(OHOS::AppExecFwk::CjHeapDumpInfo &info)
     return appMgrServiceInner_->DumpCjHeapMemory(info);
 }
 
-int32_t AppMgrService::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, std::string &dumpResult)
+int32_t AppMgrService::DumpMem(OHOS::AppExecFwk::MemDumpInfo &info, sptr<IMemDumpCallback> callback)
 {
     if (!IsReady() || !HasDumpPermission()) {
         return ERR_INVALID_OPERATION;
     }
-    return appMgrServiceInner_->DumpMem(info, dumpResult);
+    return appMgrServiceInner_->DumpMem(info, callback);
+}
+
+int32_t AppMgrService::ReportDumpMemResult(sptr<IMemDumpCallback> callback,
+    const std::string &dumpResult)
+{
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "AppMgrService not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->ReportDumpMemResult(callback, dumpResult);
 }
 
 void AppMgrService::AddAbilityStageDone(const int32_t recordId)
@@ -1940,6 +1950,16 @@ int32_t AppMgrService::IsProcessCacheSupported(int32_t pid, bool &isSupported)
         return AAFwk::ERR_NO_PERMISSION_CALLER;
     }
     return appMgrServiceInner_->IsProcessCacheSupported(pid, isSupported);
+}
+
+int32_t AppMgrService::IsChildProcessSupported(bool isNative, bool &isSupported)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "IsChildProcessSupported called");
+    if (!IsReady()) {
+        TAG_LOGE(AAFwkTag::APPMGR, "not ready");
+        return ERR_INVALID_OPERATION;
+    }
+    return appMgrServiceInner_->IsChildProcessSupported(isNative, isSupported);
 }
 
 int32_t AppMgrService::SetProcessCacheEnable(int32_t pid, bool enable)
