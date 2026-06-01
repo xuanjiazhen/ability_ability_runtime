@@ -33,12 +33,11 @@
 #include "io_monitor.h"
 #include "process_manager.h"
 #include "session_record.h"
-#include "skill/skill_execute_callback_stub.h"
+#include "skill_callback_stub_lite.h"
 
 namespace OHOS {
 namespace AppExecFwk {
 class IApplicationStateObserver;
-struct SkillExecuteResult;
 }
 namespace CliTool {
 class SessionRecord;
@@ -187,12 +186,12 @@ private:
     std::unordered_map<std::string, sptr<AppExecFwk::IApplicationStateObserver>> bundleObservers_;
 };
 
-class SkillCallbackAdapter : public AAFwk::SkillExecuteCallbackStub {
+class SkillCallbackAdapter : public SkillCallbackLite {
 public:
     SkillCallbackAdapter(const std::string &sessionId,
         int32_t callerPid, int32_t callerUid, const std::string &eventId);
     void OnExecuteDone(const std::string &requestCode, int32_t resultCode,
-        const AppExecFwk::SkillExecuteResult &result) override;
+        const SkillResult &result) override;
 
 private:
     std::string sessionId_;

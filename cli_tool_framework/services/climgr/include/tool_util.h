@@ -34,7 +34,6 @@ struct IArray;
 }
 namespace AppExecFwk {
 struct BundleInfo;
-struct SkillExecuteResult;
 }
 namespace CliTool {
 class ExecToolParam;
@@ -60,7 +59,7 @@ public:
     static void ExpandArgsJsonString(AAFwk::WantParams &args);
     static std::shared_ptr<AAFwk::WantParams> FilterSkillArgs(const AAFwk::WantParams &args);
     static CliSessionInfo BuildSkillSessionInfo(const std::string &sessionId,
-        int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult);
+        int32_t resultCode, int32_t skillCode, const std::shared_ptr<AAFwk::WantParams> &skillOutput);
 
 private:
     static bool GetBundleInfoByTokenId(AccessToken::AccessTokenID tokenId,

@@ -33,7 +33,6 @@
 #include "ipc_skeleton.h"
 #include "permission_util.h"
 #include "session_record.h"
-#include "skill_execute_result.h"
 #include "tool_info.h"
 #include "want_params.h"
 #include "want_params_wrapper.h"
@@ -609,16 +608,16 @@ std::shared_ptr<AAFwk::WantParams> ToolUtil::FilterSkillArgs(const AAFwk::WantPa
 }
 
 CliSessionInfo ToolUtil::BuildSkillSessionInfo(const std::string &sessionId,
-    int32_t resultCode, const AppExecFwk::SkillExecuteResult &skillResult)
+    int32_t resultCode, int32_t skillCode, const std::shared_ptr<AAFwk::WantParams> &skillOutput)
 {
     CliSessionInfo session;
     session.sessionId = sessionId;
     session.toolName = "ohos-arkTSScript";
     session.status = (resultCode == ERR_OK) ? "completed" : "failed";
     session.result = std::make_shared<ExecResult>();
-    session.result->exitCode = skillResult.code;
-    if (skillResult.result != nullptr) {
-        session.result->outputText = skillResult.result->ToString();
+    session.result->exitCode = skillCode;
+    if (skillOutput != nullptr) {
+        session.result->outputText = skillOutput->ToString();
     }
     return session;
 }
