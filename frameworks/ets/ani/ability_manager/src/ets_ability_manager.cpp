@@ -207,9 +207,7 @@ ani_object EtsAbilityManager::GetForegroundUIAbilities(ani_env *env)
     sptr<AppExecFwk::IAbilityManager> abilityManager = GetAbilityManagerInstance();
     if (abilityManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityManager is null");
-        AbilityRuntime::EtsErrorUtil::ThrowError(env,
-            static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
-            GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ABILITY_MANAGER_FAILED));
+        AbilityRuntime::EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
         return nullptr;
     }
     std::vector<AppExecFwk::AbilityStateData> list;
@@ -244,9 +242,7 @@ void EtsAbilityManager::GetForegroundUIAbilitiesCallBack(ani_env *env, ani_objec
     if (abilityManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "abilityManager is null");
         AppExecFwk::AsyncCallback(env, callbackObj,
-            EtsErrorUtil::CreateError(env,
-                static_cast<int32_t>(AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER),
-                GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ABILITY_MANAGER_FAILED)), nullptr);
+            EtsErrorUtil::CreateError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER), nullptr);
         return;
     }
     std::vector<AppExecFwk::AbilityStateData> list;
@@ -540,8 +536,7 @@ void EtsAbilityManager::NativeOn(ani_env *env, ani_string aniType, ani_object an
         auto appManager = GetAppManagerInstance();
         if (appManager == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "appManager null ptr");
-            EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-                GetInnerErrorMsg(AbilityInnerErrorMsg::GET_APP_MANAGER_FAILED));
+            EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
             return;
         }
         int32_t ret = appManager->RegisterAbilityForegroundStateObserver(observerForeground_);
@@ -590,8 +585,7 @@ void EtsAbilityManager::NativeOff(ani_env *env, ani_string aniType, ani_object a
         auto appManager = GetAppManagerInstance();
         if (appManager == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "appManager null ptr");
-            EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
-                GetInnerErrorMsg(AbilityInnerErrorMsg::GET_APP_MANAGER_FAILED));
+            EtsErrorUtil::ThrowError(env, AbilityRuntime::AbilityErrorCode::ERROR_CODE_INNER);
             return;
         }
         int32_t ret = appManager->UnregisterAbilityForegroundStateObserver(observerForeground_);

@@ -43,6 +43,8 @@ namespace {
 constexpr int32_t INDEX_ZERO = 0;
 constexpr int32_t INDEX_ONE = 1;
 constexpr int32_t INDEX_TWO = 2;
+constexpr int32_t ERROR_CODE_ONE = 1;
+constexpr int32_t ERROR_CODE_TWO = 2;
 constexpr size_t ARGC_ZERO = 0;
 constexpr size_t ARGC_ONE = 1;
 constexpr size_t ARGC_TWO = 2;
@@ -198,7 +200,7 @@ private:
             auto context = weak.lock();
             if (!context) {
                 TAG_LOGW(AAFwkTag::UISERVC_EXT, "null context");
-                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                *innerErrCode = static_cast<int>(ERROR_CODE_ONE);
                 return;
             }
             TAG_LOGD(AAFwkTag::UISERVC_EXT, "JSUIServiceExtensionContext OnTerminateSelf");
@@ -208,8 +210,8 @@ private:
             HandleScope handleScope(env);
             if (*innerErrCode == ERR_OK) {
                 task.Resolve(env, CreateJsUndefined(env));
-            } else if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
-                task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+            } else if (*innerErrCode == ERROR_CODE_ONE) {
+                task.Reject(env, CreateJsError(env, *innerErrCode, "Context is released"));
             } else {
                 task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrCode));
             }
@@ -438,12 +440,12 @@ private:
             auto context = weak.lock();
             if (!context) {
                 TAG_LOGW(AAFwkTag::UISERVC_EXT, "null context");
-                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT);
+                *innerErrCode = ERROR_CODE_ONE;
                 return;
             }
             if (!connection) {
                 TAG_LOGW(AAFwkTag::UISERVC_EXT, "null connection");
-                *innerErrCode = static_cast<int>(AbilityErrorCode::ERROR_CODE_INNER);
+                *innerErrCode = ERROR_CODE_TWO;
                 return;
             }
             TAG_LOGD(AAFwkTag::UISERVC_EXT, "context->DisconnectServiceExtensionAbility");
@@ -452,13 +454,12 @@ private:
         NapiAsyncTask::CompleteCallback complete = [innerErrCode](
             napi_env env, NapiAsyncTask& task, int32_t status) {
                 HandleScope handleScope(env);
-                if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT)) {
-                    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INVALID_CONTEXT));
+                if (*innerErrCode == ERROR_CODE_ONE) {
+                    task.Reject(env, CreateJsError(env, ERROR_CODE_ONE, "Context is released"));
                     return;
                 }
-                if (*innerErrCode == static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER)) {
-                    task.Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER,
-                        GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND)));
+                if (*innerErrCode == ERROR_CODE_TWO) {
+                    task.Reject(env, CreateJsError(env, ERROR_CODE_TWO, "not found connection"));
                     return;
                 }
                 if (*innerErrCode == ERR_OK) {
