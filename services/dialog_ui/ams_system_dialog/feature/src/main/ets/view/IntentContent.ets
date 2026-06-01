@@ -36,6 +36,11 @@ export interface IntentGrout {
   string: IntentInfo[]
 }
 
+interface MaterialResult {
+  bundleName: string;
+  materialItems: IntentInfo[];
+}
+
 @Component
 export struct IntentContent {
   @Consume('articlePathStack') articlePathStack: NavPathStack;
@@ -89,14 +94,22 @@ export struct IntentContent {
                   const iconImg = await this.getAllIntentIcon(materialItems[key].icon, bundleName);
                   materialItems[key].iconImg = iconImg;
                   const appName = await this.setAppName(materialItems[0]);
-                  this.groupMaterial[appName] = materialItems;
+                  materialItems[key].bundleNameCN = appName;
                 }
+                const materialResult: MaterialResult = { bundleName, materialItems };
+                return materialResult;
               }
             } catch (err) {
               hilog.error(DOMAIN, TAG, 'getApplicationInfo failed. Cause: %{public}s', JSON.stringify(err));
             }
+            return null;
           });
-          Promise.all(promises).then(() => {
+          Promise.all(promises).then((results: Array<MaterialResult | null>) => {
+            results.forEach((result: MaterialResult | null) => {
+              if (result && result.bundleName && result.materialItems) {
+                this.groupMaterial[result.bundleName] = result.materialItems;
+              }
+            });
             this.groupMaterial = jsClone(this.groupMaterial);
           });
         }).catch((err: BusinessError) => {
@@ -120,6 +133,24 @@ export struct IntentContent {
       hilog.error(DOMAIN, TAG, 'createBundleContext failed. Cause: %{public}s', JSON.stringify(error));
     }
     return bundleNameCN;
+  }
+
+  getDisplayName(bundleName: string): string {
+    const materialItems = this.groupMaterial[bundleName];
+    if (!materialItems || materialItems.length === 0) {
+      return bundleName;
+    }
+    const appName = materialItems[0].bundleNameCN;
+    const allBundleNames = Object.keys(this.groupMaterial);
+    const sameNameBundleNames = allBundleNames.filter((bn: string) => {
+      const items = this.groupMaterial[bn];
+      return items && items.length > 0 && items[0].bundleNameCN === appName;
+    });
+    if (sameNameBundleNames.length > 1) {
+      const index = sameNameBundleNames.indexOf(bundleName) + 1;
+      return `${appName}-${index}`;
+    }
+    return appName;
   }
 
   @Builder
@@ -312,10 +343,9 @@ export struct IntentContent {
 
       Scroll(this.scroller) {
         Column() {
-          ForEach(Object.keys(this.groupMaterial), (bundleNameCN: string) => {
-            Text(JSON.stringify(this.groupMaterial.bundleNameCN))
-            this.IntentBlock(bundleNameCN, this.groupMaterial[bundleNameCN])
-          }, (bundleNameCN: string) => bundleNameCN)
+          ForEach(Object.keys(this.groupMaterial), (bundleName: string) => {
+            this.IntentBlock(this.getDisplayName(bundleName), this.groupMaterial[bundleName])
+          }, (bundleName: string) => bundleName)
 
         }
       }

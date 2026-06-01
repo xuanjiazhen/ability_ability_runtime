@@ -15,8 +15,11 @@
  
 import { IntentInfo } from './IntentContent';
 import { DetailItem } from './DetailItem';
-import { common, insightIntent, insightIntentDriver } from '@kit.AbilityKit';
+import { common, insightIntent, insightIntentDriver, bundleManager } from '@kit.AbilityKit';
 import { format, jsClone, addArrayParams, removeArrayParams, removeFormData } from './format';
+interface ItemsInfo {
+  type: string
+}
 
 interface propertiesInfo {
   name: string;
@@ -27,6 +30,7 @@ interface propertiesInfo {
   maxLength?: number;
   default?: number | Resource;
   required?: boolean;
+  items?: ItemsInfo;
 }
 
 interface FormField {
@@ -44,6 +48,11 @@ interface FormField {
   value?: string | number;
   index?: number;
   required?: boolean;
+}
+
+interface UIExtensionInfo {
+  type: string;
+  name: string;
 }
 
 type ObjVal = string | number | null;
@@ -143,6 +152,54 @@ export struct IntentDetailPage {
     }
   }
 
+  async getUIExtensionType(bundleName: string, moduleName: string, abilityName: string): Promise<UIExtensionInfo> {
+    try {
+      const bundleInfo = await bundleManager.getBundleInfo(
+        bundleName,
+        bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_HAP_MODULE |
+        bundleManager.BundleFlag.GET_BUNDLE_INFO_WITH_EXTENSION_ABILITY
+      );
+      const hapModulesInfo = bundleInfo.hapModulesInfo;
+      if (!hapModulesInfo) {
+        const defaultInfo: UIExtensionInfo = {
+          type: 'share',
+          name: abilityName
+        };
+        return defaultInfo;
+      }
+
+      for (let i = 0; i < hapModulesInfo.length; i++) {
+        const moduleInfo = hapModulesInfo[i];
+        if (moduleInfo.name === moduleName) {
+          const extensionAbilitiesInfo = moduleInfo.extensionAbilitiesInfo;
+          if (!extensionAbilitiesInfo) {
+            continue;
+          }
+
+          for (let j = 0; j < extensionAbilitiesInfo.length; j++) {
+            const extensionInfo = extensionAbilitiesInfo[j];
+            const typeName = extensionInfo.extensionAbilityTypeName;
+            if (typeName && typeName !== '') {
+              const result: UIExtensionInfo = {
+                type: typeName,
+                name: extensionInfo.name
+              };
+              return result;
+            }
+          }
+        }
+      }
+    } catch (error) {
+
+    }
+
+    const defaultResult: UIExtensionInfo = {
+      type: 'share',
+      name: abilityName
+    };
+    return defaultResult;
+  }
+
   changeProperties(properties: Record<string, propertiesInfo>, fatherKey?: string, fatherType?: string) {
     const formArr: FormField[] = [];
     Object.keys(properties).forEach((propKey: string, index: number) => {
@@ -166,7 +223,12 @@ export struct IntentDetailPage {
         if (index === 0) {
           this.countArr = [0];
         }
-        const subProperties = this.findProperties(obj);
+        let subProperties = this.findProperties(obj);
+
+        if (Object.keys(subProperties).length === 0) {
+          subProperties = { 'items':  { name: '', type: obj.items?.type ?? 'string'  } as propertiesInfo };
+        }
+
         subItem = [this.changeProperties(subProperties, propKey, 'array')] as FormField[][];
       }
       const description = obj.description;
@@ -248,12 +310,17 @@ export struct IntentDetailPage {
 
     if (this.intentDetail?.intentType === '@InsightIntentEntry' &&
     this.intentDetail.subIntentInfo['executeMode'] && this.intentDetail.subIntentInfo['executeMode'][0] === 2) {
+      const uiExtensionInfo = await this.getUIExtensionType(
+        param.bundleName,
+        param.moduleName,
+        param.abilityName
+      );
       this.want = {
         bundleName: param.bundleName,
         abilityName: param.abilityName,
         moduleName: param.moduleName,
         parameters: {
-          'ability.want.params.uiExtensionType': 'share',
+          'ability.want.params.uiExtensionType': uiExtensionInfo.type,
           'ohos.insightIntent.executeParam.name': this.intentDetail.intentName,
           'ohos.insightIntent.executeParam.param': param.insightIntentParam,
         }
