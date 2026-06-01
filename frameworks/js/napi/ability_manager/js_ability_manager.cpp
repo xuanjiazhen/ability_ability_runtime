@@ -237,7 +237,8 @@ private:
             observerForeground_ = new (std::nothrow) JSAbilityForegroundStateObserver(env);
             if (observerForeground_ == nullptr) {
                 TAG_LOGE(AAFwkTag::ABILITYMGR, "null observerForeground_");
-                ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+                ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED));
                 return CreateJsUndefined(env);
             }
             napi_add_env_cleanup_hook(env, JSAbilityForegroundStateObserver::CleanUp,
@@ -352,7 +353,8 @@ private:
     {
         if (observerForeground_ == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null observer");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED));
             return CreateJsUndefined(env);
         }
         if (argc == ARGC_TWO) {
@@ -561,7 +563,8 @@ private:
             }
             napi_value abilityResult = AppExecFwk::WrapWantParams(env, wantParam);
             if (abilityResult == nullptr) {
-                asyncTask->Reject(env, CreateJsError(env, AbilityErrorCode::ERROR_CODE_INNER));
+                asyncTask->Reject(env, CreateJsError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::WRAP_WANT_PARAMS_FAILED)));
             } else {
                 asyncTask->ResolveWithNoError(env, abilityResult);
             }
@@ -1122,7 +1125,8 @@ private:
         auto context = OHOS::AbilityRuntime::Context::GetApplicationContext();
         if (context == nullptr) {
             TAG_LOGE(AAFwkTag::ABILITYMGR, "null context");
-            ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+            ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::GET_APP_CONTEXT_FAILED));
             return CreateJsUndefined(env);
         }
         std::string bundleName = context->GetBundleName();

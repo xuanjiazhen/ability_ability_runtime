@@ -517,7 +517,8 @@ void EtsUIExtensionContext::OnStartAbilityForResult(ani_env *env, ani_object ani
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
             AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-                EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+                EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED)), nullptr);
             env->GlobalReference_Delete(callbackRef);
             return;
         }
@@ -613,13 +614,15 @@ ani_long EtsUIExtensionContext::OnConnectServiceExtensionAbility(ani_env *env, a
     ani_vm *etsVm = nullptr;
     if ((status = env->GetVM(&etsVm)) != ANI_OK || etsVm == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "Failed to getVM, status: %{public}d", status);
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ANI_VM_FAILED));
         return FAILED_CODE;
     }
     sptr<EtsUIExtensionConnection> connection = new (std::nothrow) EtsUIExtensionConnection(etsVm);
     if (connection == nullptr) {
         TAG_LOGE(AAFwkTag::UI_EXT, "null connection");
-        EtsErrorUtil::ThrowError(env, AbilityErrorCode::ERROR_CODE_INNER);
+        EtsErrorUtil::ThrowError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_CREATE_FAILED));
         return FAILED_CODE;
     }
     if (!CheckConnectionParam(env, connectOptionsObj, connection, want)) {
@@ -666,7 +669,8 @@ void EtsUIExtensionContext::OnDisconnectServiceExtensionAbility(ani_env *env, an
         }
     }
     if (!connection) {
-        aniObject = EtsErrorUtil::CreateErrorByNativeErr(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER));
+        aniObject = EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+            GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND));
         AppExecFwk::AsyncCallback(env, callback, aniObject, nullptr);
         TAG_LOGE(AAFwkTag::UI_EXT, "null connection");
         return;
@@ -993,7 +997,8 @@ RuntimeTask EtsUIExtensionContext::CreateRuntimeTask(ani_vm *etsVm, ani_ref call
         if (abilityResult == nullptr) {
             TAG_LOGW(AAFwkTag::UI_EXT, "null abilityResult");
             AppExecFwk::AsyncCallback(env, reinterpret_cast<ani_object>(callbackRef),
-                EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+                EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                    GetInnerErrorMsg(AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED)), nullptr);
             env->GlobalReference_Delete(callbackRef);
             return;
         }
@@ -1598,7 +1603,8 @@ void EtsUIExtensionContext::OnDisconnectUIServiceExtension(ani_env *env, ani_obj
     if (connection == nullptr) {
         TAG_LOGW(AAFwkTag::UISERVC_EXT, "null connection");
         AppExecFwk::AsyncCallback(env, callback,
-            EtsErrorUtil::CreateError(env, AbilityErrorCode::ERROR_CODE_INNER), nullptr);
+            EtsErrorUtil::CreateError(env, static_cast<int32_t>(AbilityErrorCode::ERROR_CODE_INNER),
+                GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND)), nullptr);
         ETSUIServiceConnection::RemoveUIServiceExtensionConnection(connectId);
         return;
     }

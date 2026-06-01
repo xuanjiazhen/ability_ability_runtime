@@ -151,5 +151,46 @@ HWTEST_F(AbilityBusinessErrorTest, GetInnerErrorMsg_0100, TestSize.Level2)
     EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED),
         "Internal error. Failed to restore the window stage. Check the local storage object and try again.");
 }
+
+/**
+ * @tc.name: GetInnerErrorMsg_0200
+ * @tc.desc: Verify new UIExtension/UIService/AbilityManager scene error messages.
+ * @tc.type: FUNC
+ */
+HWTEST_F(AbilityBusinessErrorTest, GetInnerErrorMsg_0200, TestSize.Level2)
+{
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_CREATE_FAILED),
+        "Internal error. Failed to create the service connection. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CONNECTION_NOT_FOUND),
+        "Internal error. The service connection does not exist. Check the connection ID and try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::LOAD_CONTENT_FAILED),
+        "Internal error. Failed to load the UI content. Check the content path and local storage object and try again.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::TRANSFER_DATA_FAILED),
+        "Internal error. Failed to transfer the extension data. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::SET_WINDOW_PROPERTY_FAILED),
+        "Internal error. Failed to set the window property. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_WINDOW_PROXY_FAILED),
+        "Internal error. Failed to create the window proxy. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_MODAL_UI_EXTENSION_FAILED),
+        "Internal error. Failed to create the modal UI extension. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::TRANSFER_ABILITY_RESULT_FAILED),
+        "Internal error. Failed to transfer the ability result. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::INVALID_SESSION),
+        "Internal error. The UIExtension content session is invalid. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::PROXY_NOT_FOUND),
+        "Internal error. The UIService proxy is invalid. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::WRAP_WANT_PARAMS_FAILED),
+        "Internal error. Failed to create the WantParams object. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED),
+        "Internal error. Failed to register the ability state observer. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::GET_ABILITY_MANAGER_FAILED),
+        "Internal error. The ability manager service is unavailable. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::GET_APP_MANAGER_FAILED),
+        "Internal error. The app manager service is unavailable. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::GET_APP_CONTEXT_FAILED),
+        "Internal error. Failed to obtain the application context. Try again later.");
+    EXPECT_EQ(GetInnerErrorMsg(AbilityInnerErrorMsg::CREATE_STATE_DATA_ARRAY_FAILED),
+        "Internal error. Failed to create the ability state data array. Try again later.");
+}
 }  // namespace AAFwk
 }  // namespace OHOS

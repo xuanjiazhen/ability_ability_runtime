@@ -264,6 +264,38 @@ constexpr const char* ERROR_MSG_SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED =
     "Internal error. Failed to set onNewWant skip scenarios. Try again later.";
 constexpr const char* ERROR_MSG_WRAP_ABILITY_RESULT_FAILED =
     "Internal error. Failed to create the ability result. Check the returned Want and try again.";
+constexpr const char* ERROR_MSG_CONNECTION_CREATE_FAILED =
+    "Internal error. Failed to create the service connection. Try again later.";
+constexpr const char* ERROR_MSG_CONNECTION_NOT_FOUND =
+    "Internal error. The service connection does not exist. Check the connection ID and try again.";
+constexpr const char* ERROR_MSG_LOAD_CONTENT_FAILED =
+    "Internal error. Failed to load the UI content. Check the content path and local storage object and try again.";
+constexpr const char* ERROR_MSG_TRANSFER_DATA_FAILED =
+    "Internal error. Failed to transfer the extension data. Try again later.";
+constexpr const char* ERROR_MSG_SET_WINDOW_PROPERTY_FAILED =
+    "Internal error. Failed to set the window property. Try again later.";
+constexpr const char* ERROR_MSG_CREATE_WINDOW_PROXY_FAILED =
+    "Internal error. Failed to create the window proxy. Try again later.";
+constexpr const char* ERROR_MSG_CREATE_MODAL_UI_EXTENSION_FAILED =
+    "Internal error. Failed to create the modal UI extension. Try again later.";
+constexpr const char* ERROR_MSG_TRANSFER_ABILITY_RESULT_FAILED =
+    "Internal error. Failed to transfer the ability result. Try again later.";
+constexpr const char* ERROR_MSG_INVALID_SESSION =
+    "Internal error. The UIExtension content session is invalid. Try again later.";
+constexpr const char* ERROR_MSG_PROXY_NOT_FOUND =
+    "Internal error. The UIService proxy is invalid. Try again later.";
+constexpr const char* ERROR_MSG_WRAP_WANT_PARAMS_FAILED =
+    "Internal error. Failed to create the WantParams object. Try again later.";
+constexpr const char* ERROR_MSG_REGISTER_OBSERVER_FAILED =
+    "Internal error. Failed to register the ability state observer. Try again later.";
+constexpr const char* ERROR_MSG_GET_ABILITY_MANAGER_FAILED =
+    "Internal error. The ability manager service is unavailable. Try again later.";
+constexpr const char* ERROR_MSG_GET_APP_MANAGER_FAILED =
+    "Internal error. The app manager service is unavailable. Try again later.";
+constexpr const char* ERROR_MSG_GET_APP_CONTEXT_FAILED =
+    "Internal error. Failed to obtain the application context. Try again later.";
+constexpr const char* ERROR_MSG_CREATE_STATE_DATA_ARRAY_FAILED =
+    "Internal error. Failed to create the ability state data array. Try again later.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -558,6 +590,22 @@ static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_
     {AbilityInnerErrorMsg::RESTORE_WINDOW_STAGE_FAILED, ERROR_MSG_RESTORE_WINDOW_STAGE_FAILED},
     {AbilityInnerErrorMsg::SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED, ERROR_MSG_SET_ON_NEW_WANT_SKIP_SCENARIOS_FAILED},
     {AbilityInnerErrorMsg::WRAP_ABILITY_RESULT_FAILED, ERROR_MSG_WRAP_ABILITY_RESULT_FAILED},
+    {AbilityInnerErrorMsg::CONNECTION_CREATE_FAILED, ERROR_MSG_CONNECTION_CREATE_FAILED},
+    {AbilityInnerErrorMsg::CONNECTION_NOT_FOUND, ERROR_MSG_CONNECTION_NOT_FOUND},
+    {AbilityInnerErrorMsg::LOAD_CONTENT_FAILED, ERROR_MSG_LOAD_CONTENT_FAILED},
+    {AbilityInnerErrorMsg::TRANSFER_DATA_FAILED, ERROR_MSG_TRANSFER_DATA_FAILED},
+    {AbilityInnerErrorMsg::SET_WINDOW_PROPERTY_FAILED, ERROR_MSG_SET_WINDOW_PROPERTY_FAILED},
+    {AbilityInnerErrorMsg::CREATE_WINDOW_PROXY_FAILED, ERROR_MSG_CREATE_WINDOW_PROXY_FAILED},
+    {AbilityInnerErrorMsg::CREATE_MODAL_UI_EXTENSION_FAILED, ERROR_MSG_CREATE_MODAL_UI_EXTENSION_FAILED},
+    {AbilityInnerErrorMsg::TRANSFER_ABILITY_RESULT_FAILED, ERROR_MSG_TRANSFER_ABILITY_RESULT_FAILED},
+    {AbilityInnerErrorMsg::INVALID_SESSION, ERROR_MSG_INVALID_SESSION},
+    {AbilityInnerErrorMsg::PROXY_NOT_FOUND, ERROR_MSG_PROXY_NOT_FOUND},
+    {AbilityInnerErrorMsg::WRAP_WANT_PARAMS_FAILED, ERROR_MSG_WRAP_WANT_PARAMS_FAILED},
+    {AbilityInnerErrorMsg::REGISTER_OBSERVER_FAILED, ERROR_MSG_REGISTER_OBSERVER_FAILED},
+    {AbilityInnerErrorMsg::GET_ABILITY_MANAGER_FAILED, ERROR_MSG_GET_ABILITY_MANAGER_FAILED},
+    {AbilityInnerErrorMsg::GET_APP_MANAGER_FAILED, ERROR_MSG_GET_APP_MANAGER_FAILED},
+    {AbilityInnerErrorMsg::GET_APP_CONTEXT_FAILED, ERROR_MSG_GET_APP_CONTEXT_FAILED},
+    {AbilityInnerErrorMsg::CREATE_STATE_DATA_ARRAY_FAILED, ERROR_MSG_CREATE_STATE_DATA_ARRAY_FAILED},
 };
 }
 
