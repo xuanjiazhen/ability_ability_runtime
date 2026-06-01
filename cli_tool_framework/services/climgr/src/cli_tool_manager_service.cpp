@@ -17,7 +17,7 @@
 
 #include <sys/wait.h>
 
-#include "ability_manager_client.h"
+#include "skill_ipc_client.h"
 #include "accesstoken_kit.h"
 #include "app_mgr_client.h"
 #include "ccm_util.h"
@@ -1071,7 +1071,7 @@ int32_t CliToolManagerService::ValidateSkillTypeFromParam(const ExecToolParam &p
 int32_t CliToolManagerService::ValidateSkillType(const std::string &bundleName,
     const std::string &moduleName, const std::string &skillName, int32_t &skillType)
 {
-    auto queryRet = AAFwk::AbilityManagerClient::GetInstance()->QuerySkillType(
+    auto queryRet = CliTool::SkillIpcClient::GetInstance().QuerySkillType(
         bundleName, moduleName, skillName, skillType);
     if (queryRet != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "querySkillType failed:%{public}d", queryRet);
@@ -1107,18 +1107,9 @@ int32_t CliToolManagerService::SetupAndStartSkillSession(const ExecToolParam &pa
     auto adaptor = sptr<SkillCallbackAdapter>::MakeSptr(
         record->sessionId, record->callerPid, record->callerUid, eventId);
 
-    AppExecFwk::SkillExecuteRequest skillRequest;
-    skillRequest.callerTokenId = callerTokenId;
-    skillRequest.bundleName = bundleName;
-    skillRequest.moduleName = moduleName;
-    skillRequest.skillName = skillName;
-    skillRequest.scriptPath = scriptPath;
-    skillRequest.functionName = funcName;
-    skillRequest.skillArgs = skillArgs;
-
     TAG_LOGD(AAFwkTag::CLI_TOOL, "execSkill before ExecuteInAppSkillWithTokenId");
-    int32_t ret = AAFwk::AbilityManagerClient::GetInstance()->ExecuteInAppSkillWithTokenId(
-        skillRequest, adaptor);
+    int32_t ret = CliTool::SkillIpcClient::GetInstance().ExecuteInAppSkillWithTokenId(
+        callerTokenId, bundleName, moduleName, skillName, scriptPath, funcName, skillArgs, adaptor);
     if (ret != ERR_OK) {
         TAG_LOGE(AAFwkTag::CLI_TOOL, "ExecuteInAppSkillWithTokenId failed:%{public}d", ret);
         RemoveSessionRecord(record->sessionId);
