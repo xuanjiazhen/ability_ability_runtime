@@ -47,6 +47,7 @@ ohos_shared_library("cli_tool_client") {
     debug = false
   }
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   public_configs = [ ":cli_tool_client_config" ]
 
   sources = [
@@ -86,4 +87,7 @@ ohos_shared_library("cli_tool_client") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  version_script = "libcli_tool_client.map"
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }

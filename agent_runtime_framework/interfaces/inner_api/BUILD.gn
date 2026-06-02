@@ -47,6 +47,9 @@ ohos_shared_library("agent_fwk") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  version_script = "libagent_fwk.map"
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }
 
 ohos_shared_library("agent_connection_manager") {
@@ -86,6 +89,9 @@ ohos_shared_library("agent_connection_manager") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  version_script = "libagent_connection_manager.map"
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }
 
 idl_interface_sources = [
@@ -153,4 +159,7 @@ ohos_shared_library("agent_manager") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  version_script = "libagent_manager.map"
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }

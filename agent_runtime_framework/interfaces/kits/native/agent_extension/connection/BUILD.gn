@@ -53,4 +53,7 @@ ohos_shared_library("agent_extension_connection") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  version_script = "libagent_extension_connection.map"
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }
