@@ -49,7 +49,7 @@ ohos_shared_library("agent_extension_context") {
     "${ability_runtime_native_path}/ability/native:ability_business_error",
     "${ability_runtime_native_path}/appkit:app_context",
     "${ability_runtime_native_path}/appkit:app_context_utils",
-    "${agent_runtime_framework_path}/interfaces/inner_api:agent_fwk",
+    "${agent_runtime_framework_path}/interfaces/inner_api:agent_manager",
   ]
 
   external_deps = [

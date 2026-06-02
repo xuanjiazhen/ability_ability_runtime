@@ -14,41 +14,8 @@
 import("//build/ohos.gni")
 import("//foundation/ability/ability_runtime/ability_runtime.gni")
 
-ohos_shared_library("js_agent_manager_utils") {
-  branch_protector_ret = "pac_ret"
-  sanitize = {
-    integer_overflow = true
-    ubsan = true
-    boundary_sanitize = true
-    cfi = true
-    cfi_cross_dso = true
-    cfi_vcall_icall_only = true
-    debug = false
-  }
-  include_dirs = [
-    "include",
-    "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
-    "${agent_runtime_framework_path}/interfaces/inner_api/include",
-  ]
-
-  sources = [ "src/js_agent_manager_utils.cpp" ]
-
-  deps = [
-    "${ability_runtime_innerkits_path}/runtime:runtime",
-    "${ability_runtime_napi_path}/inner/napi_common:napi_common",
-    "${agent_runtime_framework_path}/interfaces/inner_api:agent_fwk",
-  ]
-
-  external_deps = [
-    "ability_base:base",
-    "c_utils:utils",
-    "hilog:libhilog",
-    "napi:ace_napi",
-  ]
-
-  subsystem_name = "ability"
-  part_name = "ability_runtime"
-}
+# js_agent_manager_utils 已合并到 agentmanager_napi 中
+# 这个SO已被移除以减少SO数量
 
 ohos_shared_library("agentmanager_napi") {
   sanitize = {
@@ -66,11 +33,13 @@ ohos_shared_library("agentmanager_napi") {
     "${agent_runtime_framework_path}/frameworks/native/agent_extension/include",
     "${agent_runtime_framework_path}/frameworks/native/agent_extension_context/include",
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection/include",
+    "${agent_runtime_framework_path}/interfaces/inner_api/include",
   ]
 
   sources = [
     "src/agent_manager_module.cpp",
     "src/js_agent_manager.cpp",
+    "src/js_agent_manager_utils.cpp",
   ]
 
   configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
@@ -89,11 +58,8 @@ ohos_shared_library("agentmanager_napi") {
     "${agent_runtime_framework_path}/frameworks/js/napi/agent_extension_ability:js_agent_connection",
     "${agent_runtime_framework_path}/frameworks/js/napi/agent_extension_context:js_agent_extension_context",
     "${agent_runtime_framework_path}/frameworks/native/agent_extension_context:agent_extension_context",
-    "${agent_runtime_framework_path}/interfaces/inner_api:agent_connection_manager",
-    "${agent_runtime_framework_path}/interfaces/inner_api:agent_fwk",
     "${agent_runtime_framework_path}/interfaces/inner_api:agent_manager",
     "${agent_runtime_framework_path}/interfaces/kits/native/agent_extension/connection:agent_extension_connection",
-    ":js_agent_manager_utils",
   ]
 
   external_deps = [
