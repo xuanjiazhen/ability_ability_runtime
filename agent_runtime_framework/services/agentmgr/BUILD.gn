@@ -76,4 +76,6 @@ ohos_shared_library("agentmgr") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }

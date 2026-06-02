@@ -38,12 +38,15 @@ ohos_shared_library("agent_semver") {
     debug = false
   }
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   public_configs = [ ":agent_common_config" ]
   include_dirs = [ "include" ]
   sources = [ "src/sem_ver.cpp" ]
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }
 
 ohos_shared_library("agent_card_utils") {
@@ -54,6 +57,7 @@ ohos_shared_library("agent_card_utils") {
     debug = false
   }
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
   public_configs = [ ":agent_common_config" ]
   include_dirs = [
     "include",
@@ -80,4 +84,6 @@ ohos_shared_library("agent_card_utils") {
 
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }

@@ -76,6 +76,8 @@ ohos_shared_library("climanager_napi") {
     debug = false
   }
 
+  configs = [ "${ability_runtime_services_path}/common:optimize_config" ]
+
   include_dirs = [
     "include",
     "${ability_runtime_path}/interfaces/kits/native/ability/ability_runtime",
@@ -110,4 +112,6 @@ ohos_shared_library("climanager_napi") {
   relative_install_dir = "module/app/cli"
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }
