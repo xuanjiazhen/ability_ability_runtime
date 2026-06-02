@@ -13,17 +13,18 @@
  * limitations under the License.
  */
 
-#include "native_engine/native_engine.h"
-#include "js_skill_driver.h"
+#ifndef OHOS_ABILITY_RUNTIME_FORKALL_HELPER_H
+#define OHOS_ABILITY_RUNTIME_FORKALL_HELPER_H
 
-static napi_module _module = {
-    .nm_version = 0,
-    .nm_filename = "app/ability/skilldriver_napi.so/skill_driver.js",
-    .nm_register_func = OHOS::CliTool::JSSkillDriverInit,
-    .nm_modname = "app.ability.skillDriver",
+#include "app_launch_data.h"
+
+namespace OHOS {
+namespace AppExecFwk {
+class ForkAllHelper {
+public:
+    static void HandleDebugAppLaunchDelay(const AppLaunchData &appLaunchData, bool isDeveloperMode);
 };
+} // namespace AppExecFwk
+} // namespace OHOS
 
-extern "C" __attribute__((constructor)) void NAPI_application_SkillDriver_AutoRegister(void)
-{
-    napi_module_register(&_module);
-}
+#endif // OHOS_ABILITY_RUNTIME_FORKALL_HELPER_H
