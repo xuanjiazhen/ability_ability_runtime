@@ -262,10 +262,11 @@ public:
      * @param bundleName, bundle name in Application record.
      * @param appCloneIndex the app clone id.
      * @param userId, the user id.
+     * @param isFromBM true, from BM; Otherwise not from BM.
      * @return
      */
     virtual AppMgrResultCode ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex,
-        int32_t userId = -1);
+        int32_t userId = -1, bool isFromBM = false);
 
     /**
      * ClearUpApplicationDataBySelf, call ClearUpApplicationDataBySelf() through proxy project,

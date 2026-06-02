@@ -59,13 +59,13 @@ bool QuickFixManagerService::Init()
 }
 
 int32_t QuickFixManagerService::ApplyQuickFix(const std::vector<std::string>& quickFixFiles, bool isDebug,
-    bool isReplace)
+    bool isReplace, bool isFromBM)
 {
     return 0;
 }
 
 int32_t QuickFixManagerService::GetApplyedQuickFixInfo(const std::string& bundleName,
-    ApplicationQuickFixInfo& quickFixInfo)
+    ApplicationQuickFixInfo& quickFixInfo, bool isFromBM)
 {
     return 0;
 }

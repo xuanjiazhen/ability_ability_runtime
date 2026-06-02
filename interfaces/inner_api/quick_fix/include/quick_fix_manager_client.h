@@ -39,18 +39,22 @@ public:
      * @param quickFixFiles quick fix files need to apply, this value should include file path and file name.
      * @param isDebug this value is for the quick fix debug mode selection.
      * @param isReplace this value is for the quick fix replace mode selection.
+     * @param isFromBM true, from BM; Otherwise not from BM.
      * @return returns 0 on success, error code on failure.
      */
-    int32_t ApplyQuickFix(const std::vector<std::string> &quickFixFiles, bool isDebug = false, bool isReplace = false);
+    int32_t ApplyQuickFix(const std::vector<std::string> &quickFixFiles, bool isDebug = false, bool isReplace = false,
+        bool isFromBM = false);
 
     /**
      * @brief Get applyed quick fix info.
      *
      * @param bundleName bundle name of quick fix info.
      * @param quickFixInfo quick fix info, including bundleName, bundleVersion and so on.
+     * @param isFromBM true, from BM; Otherwise not from BM.
      * @return int32_t returns 0 on success, error code on failure.
      */
-    int32_t GetApplyedQuickFixInfo(const std::string &bundleName, ApplicationQuickFixInfo &quickFixInfo);
+    int32_t GetApplyedQuickFixInfo(const std::string &bundleName, ApplicationQuickFixInfo &quickFixInfo,
+        bool isFromBM = false);
 
     /**
      * @brief Revoke quick fix by bundle name.

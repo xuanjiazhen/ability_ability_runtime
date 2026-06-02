@@ -39,7 +39,7 @@ std::shared_ptr<QuickFixManagerClient> QuickFixManagerClient::GetInstance()
 }
 
 int32_t QuickFixManagerClient::ApplyQuickFix(const std::vector<std::string> &quickFixFiles, bool isDebug,
-    bool isReplace)
+    bool isReplace, bool isFromBM)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::QUICKFIX, "called");
@@ -64,11 +64,11 @@ int32_t QuickFixManagerClient::ApplyQuickFix(const std::vector<std::string> &qui
             QUICK_FIX_COPY_FILES_FAILED;
     }
 
-    return quickFixMgr->ApplyQuickFix(destFiles, isDebug, isReplace);
+    return quickFixMgr->ApplyQuickFix(destFiles, isDebug, isReplace, isFromBM);
 }
 
 int32_t QuickFixManagerClient::GetApplyedQuickFixInfo(const std::string &bundleName,
-    ApplicationQuickFixInfo &quickFixInfo)
+    ApplicationQuickFixInfo &quickFixInfo, bool isFromBM)
 {
     HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
     TAG_LOGD(AAFwkTag::QUICKFIX, "called");
@@ -79,7 +79,7 @@ int32_t QuickFixManagerClient::GetApplyedQuickFixInfo(const std::string &bundleN
         return QUICK_FIX_CONNECT_FAILED;
     }
 
-    return quickFixMgr->GetApplyedQuickFixInfo(bundleName, quickFixInfo);
+    return quickFixMgr->GetApplyedQuickFixInfo(bundleName, quickFixInfo, isFromBM);
 }
 
 sptr<IQuickFixManager> QuickFixManagerClient::GetQuickFixMgrProxy()

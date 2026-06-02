@@ -75,7 +75,8 @@ protected:
 class MockMockAppMgrService : public MockAppMgrService {
 public:
     MOCK_METHOD0(GetAmsMgr, sptr<IAmsMgr>());
-    MOCK_METHOD3(ClearUpApplicationData, int32_t(const std::string&, int32_t appCloneIndex, int32_t userId));
+    MOCK_METHOD4(
+        ClearUpApplicationData, int32_t(const std::string&, int32_t appCloneIndex, int32_t userId, bool isFromBM));
     MOCK_METHOD1(IsBackgroundRunningRestricted, int(const std::string& appName));
     MOCK_METHOD1(GetAllRunningProcesses, int(std::vector<RunningProcessInfo>&));
 };

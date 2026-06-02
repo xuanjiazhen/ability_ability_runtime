@@ -479,11 +479,11 @@ int32_t AppMgrClient::UpdateProcessMemoryState(const std::vector<AppExecFwk::Pro
 }
 
 AppMgrResultCode AppMgrClient::ClearUpApplicationData(const std::string &bundleName, int32_t appCloneIndex,
-    int32_t userId)
+    int32_t userId, bool isFromBM)
 {
     sptr<IAppMgr> service = iface_cast<IAppMgr>(mgrHolder_->GetRemoteObject());
     if (service != nullptr) {
-        int32_t result = service->ClearUpApplicationData(bundleName, appCloneIndex, userId);
+        int32_t result = service->ClearUpApplicationData(bundleName, appCloneIndex, userId, isFromBM);
         if (result == ERR_OK) {
             return AppMgrResultCode::RESULT_OK;
         }
