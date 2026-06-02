@@ -36,7 +36,10 @@ ohos_shared_library("climgr") {
     debug = false
   }
   shlib_type = "sa"
-  configs = [ ":clisa_config" ]
+  configs = [
+    ":clisa_config",
+    "${ability_runtime_services_path}/common:optimize_config",
+  ]
   include_dirs = [ "${ability_runtime_path}/interfaces/kits/native/appkit/ability_bundle_manager_helper" ]
   sources = [
     "src/cli_tool_app_state_observer.cpp",
@@ -80,4 +83,6 @@ ohos_shared_library("climgr") {
   innerapi_tags = [ "platformsdk" ]
   subsystem_name = "ability"
   part_name = "ability_runtime"
+
+  ldflags = [ "-Wl,-Bsymbolic" ]
 }
