@@ -44,7 +44,7 @@ ohos_unittest("agent_connection_manager_test") {
   deps = [
     "${ability_runtime_innerkits_path}/ability_manager:ability_connect_callback_stub",
     "${ability_runtime_native_path}/ability:ability_context_native",
-    "${agent_runtime_framework_path}/interfaces/inner_api:agent_fwk",
+    "${agent_runtime_framework_path}/interfaces/inner_api:agent_manager",
   ]
 
   external_deps = [
