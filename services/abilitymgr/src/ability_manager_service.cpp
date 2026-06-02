@@ -13753,8 +13753,8 @@ bool AbilityManagerService::ProcessLowMemoryKillUIExtension(int32_t pid, int32_t
     if (ret == 0) {
         auto uiExtManager = GetUIExtensionAbilityManagerByUserId(userId);
         if (uiExtManager != nullptr && uiExtManager->IsUIExtensionStarting(uid, pid)) {
-            TAG_LOGI(AAFwkTag::ABILITYMGR, "UIExtension uid %{public}d is starting, userId:%{public}d",
-                uid, userId);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "UIExtension uid %{public}d pid %{public}d is starting, userId:%{public}d",
+                uid, pid, userId);
             return true;
         }
     }
