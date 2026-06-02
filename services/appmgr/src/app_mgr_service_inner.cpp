@@ -3729,6 +3729,29 @@ int32_t AppMgrServiceInner::ClearUpApplicationData(const std::string &bundleName
     }
     TAG_LOGI(AAFwkTag::APPMGR, "bundleName: %{public}s, uId: %{public}d, appIndex: %{public}d", bundleName.c_str(),
         newUserId, appCloneIndex);
+    auto bundleMgrHelper = remoteClientManager_->GetBundleManagerHelper();
+    if (bundleMgrHelper == nullptr) {
+        TAG_LOGE(AAFwkTag::APPMGR, "bundleMgrHelper null");
+        return ERR_INVALID_OPERATION;
+    }
+    if (!(AAFwk::PermissionVerification::GetInstance()->JudgeCallerIsAllowedToUseSystemAPI() &&
+        AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+        AAFwk::PermissionConstants::PERMISSION_CLEAN_APPLICATION_DATA))) {
+        bool isDeveloperMode = system::GetBoolParameter(DEVELOPER_MODE_STATE, false);
+        auto isBmToolPerm = AAFwk::PermissionVerification::GetInstance()->VerifyCallingPermission(
+            AAFwk::PermissionConstants::PERMISSION_PERMIT_BUNDLE_TOOL);
+        if (isDeveloperMode && isBmToolPerm) {
+            ApplicationInfo appInfo;
+            if (!IN_PROCESS_CALL(
+                    bundleMgrHelper->GetApplicationInfoWithAppIndex(bundleName, appCloneIndex, userId, appInfo))) {
+                TAG_LOGE(AAFwkTag::APPMGR, "delete user data fail");
+                return AAFwk::ERR_APP_CLONE_INDEX_INVALID;
+            }
+            if (appInfo.appProvisionType != AppExecFwk::Constants::APP_PROVISION_TYPE_DEBUG) {
+                return AAFwk::CHECK_PERMISSION_FAILED;
+            }
+        }
+    }
     return ClearUpApplicationDataByUserId(bundleName, callerUid, callerPid, appCloneIndex, newUserId,
         false, "ClearUpApplicationData");
 }
