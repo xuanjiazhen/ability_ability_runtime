@@ -1165,6 +1165,15 @@ enum {
      */
     ERR_MOE_CROSS_APP_IN_PROCESS = 2099417,
 
+    // Result (2099430) for skill execute caller ability not found.
+    ERR_SKILL_EXECUTE_CALLER_ABILITY_NOT_FOUND = 2099430,
+
+    // Result (2099431) for skill execute bundle name mismatch.
+    ERR_SKILL_EXECUTE_BUNDLE_MISMATCH = 2099431,
+
+    // Result (2099432) for skill execute invalid state.
+    ERR_SKILL_EXECUTE_INVALID_STATE = 2099432,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */

@@ -14812,7 +14812,8 @@ int32_t AbilityManagerService::ExecuteSkillDone(const sptr<IRemoteObject> &token
         "execute skill done with token, requestCode:%{public}s code:%{public}d",
         requestCode.c_str(), resultCode);
     auto abilityRecord = Token::GetAbilityRecordByToken(token);
-    CHECK_POINTER_AND_RETURN_LOG(abilityRecord, ERR_INVALID_VALUE, "Ability record is nullptr.");
+    CHECK_POINTER_AND_RETURN_LOG(abilityRecord,
+        ERR_SKILL_EXECUTE_CALLER_ABILITY_NOT_FOUND, "Ability record is nullptr.");
     if (!JudgeSelfCalled(abilityRecord)) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "not self called");
         return CHECK_PERMISSION_FAILED;

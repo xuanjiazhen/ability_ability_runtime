@@ -185,11 +185,11 @@ int32_t SkillExecuteManager::ExecuteSkillDone(const std::string &requestCode, in
         TAG_LOGE(AAFwkTag::ABILITYMGR,
             "bundleName %{public}s and %{public}s mismatch",
             callerBundleName.c_str(), record->targetBundleName.c_str());
-        return ERR_INVALID_VALUE;
+        return ERR_SKILL_EXECUTE_BUNDLE_MISMATCH;
     }
     if (record->state != SkillExecuteState::EXECUTING) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "invalid state:%{public}d", static_cast<int>(record->state));
-        return ERR_INVALID_VALUE;
+        return ERR_SKILL_EXECUTE_INVALID_STATE;
     }
 
 #ifdef SUPPORT_UPMS

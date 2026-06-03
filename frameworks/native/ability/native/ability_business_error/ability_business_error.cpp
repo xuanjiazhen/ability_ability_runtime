@@ -266,6 +266,15 @@ constexpr const char* ERROR_MSG_WRAP_ABILITY_RESULT_FAILED =
     "Internal error. Failed to create the ability result. Check the returned Want and try again.";
 constexpr const char* ERROR_MSG_IPC_FAILED =
     "Internal error. IPC failed. Try again later.";
+constexpr const char* ERROR_MSG_SKILL_EXECUTE_CALLER_ABILITY_NOT_FOUND =
+    "Internal error. The caller ability has been destroyed. "
+    "Ensure the ability is still active when calling completeArkTSScriptInApp.";
+constexpr const char* ERROR_MSG_SKILL_EXECUTE_BUNDLE_MISMATCH =
+    "Internal error. Only the target application of the skill execution "
+    "can call completeArkTSScriptInApp.";
+constexpr const char* ERROR_MSG_SKILL_EXECUTE_INVALID_STATE =
+    "Internal error. The skill execution is not in progress. "
+    "Do not call completeArkTSScriptInApp repeatedly.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -555,6 +564,9 @@ static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
     {ERR_WRITE_RESULT_CODE_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_WRITE_KIOSK_STATUS_FAILED, ERROR_MSG_IPC_FAILED},
     {ERR_WRITE_CALLER_TOKEN_FAILED, ERROR_MSG_IPC_FAILED},
+    {ERR_SKILL_EXECUTE_CALLER_ABILITY_NOT_FOUND, ERROR_MSG_SKILL_EXECUTE_CALLER_ABILITY_NOT_FOUND},
+    {ERR_SKILL_EXECUTE_BUNDLE_MISMATCH, ERROR_MSG_SKILL_EXECUTE_BUNDLE_MISMATCH},
+    {ERR_SKILL_EXECUTE_INVALID_STATE, ERROR_MSG_SKILL_EXECUTE_INVALID_STATE},
 };
 
 static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_SCENE {
