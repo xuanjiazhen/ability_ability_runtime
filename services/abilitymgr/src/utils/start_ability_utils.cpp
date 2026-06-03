@@ -44,7 +44,7 @@ thread_local bool StartAbilityUtils::isWantWithAppCloneIndex = false;
 thread_local bool StartAbilityUtils::ermsSupportBackToCallerFlag = false;
 thread_local bool StartAbilityUtils::startSpecifiedBySCB = false;
 
-bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex)
+bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex, int32_t userId)
 {
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord && abilityRecord->GetApplicationInfo().bundleName == want.GetBundle() &&
@@ -53,7 +53,28 @@ bool StartAbilityUtils::GetAppIndex(const Want &want, sptr<IRemoteObject> caller
         return true;
     }
     TAG_LOGI(AAFwkTag::ABILITYMGR, "appIndex:%{public}d", want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1));
-    return AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex);
+
+    // 获取初始 appIndex
+    if (!AbilityRuntime::StartupUtil::GetAppIndex(want, appIndex)) {
+        return false;
+    }
+
+    // 如果 Want 中没有指定 appIndex（默认为0），尝试获取用户设置的默认分身
+    if (appIndex == 0 && !want.HasParameter(AAFwk::Want::PARAM_APP_CLONE_INDEX_KEY)) {
+        std::string bundleName = want.GetBundle();
+        if (!bundleName.empty() && userId >= 0) {
+            int32_t defaultAppIndex = 0;
+            ErrCode ret = GetDefaultCloneIndex(bundleName, userId, defaultAppIndex);
+            if (ret == ERR_OK && defaultAppIndex > 0 &&
+                defaultAppIndex <= AbilityRuntime::GlobalConstant::MAX_APP_CLONE_INDEX) {
+                TAG_LOGI(AAFwkTag::ABILITYMGR, "Use default clone index: %{public}d for bundle: %{public}s",
+                    defaultAppIndex, bundleName.c_str());
+                appIndex = defaultAppIndex;
+            }
+        }
+    }
+
+    return true;
 }
 
 bool StartAbilityUtils::GetApplicationInfo(const std::string &bundleName, int32_t userId,
@@ -105,6 +126,15 @@ std::vector<int32_t> StartAbilityUtils::GetCloneAppIndexes(const std::string &bu
     CHECK_POINTER_AND_RETURN(bms, appIndexes);
     IN_PROCESS_CALL_WITHOUT_RET(bms->GetCloneAppIndexes(bundleName, appIndexes, userId));
     return appIndexes;
+}
+
+ErrCode StartAbilityUtils::GetDefaultCloneIndex(const std::string &bundleName, int32_t userId, int32_t &appIndex)
+{
+    TAG_LOGI(AAFwkTag::ABILITYMGR, "GetDefaultCloneIndex, bundleName: %{public}s, userId: %{public}d",
+        bundleName.c_str(), userId);
+    auto bms = AbilityUtil::GetBundleManagerHelper();
+    CHECK_POINTER_AND_RETURN(bms, ERR_APPEXECFWK_SERVICE_INTERNAL_ERROR);
+    return bms->GetDefaultCloneIndex(bundleName, userId, appIndex);
 }
 
 int32_t StartAbilityUtils::CheckAppProvisionMode(const Want& want, int32_t userId, sptr<IRemoteObject> callerToken)

@@ -53,13 +53,14 @@ struct StartAbilityInfo {
 };
 
 struct StartAbilityUtils {
-    static bool GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex);
+    static bool GetAppIndex(const Want &want, sptr<IRemoteObject> callerToken, int32_t &appIndex, int32_t userId = -1);
     static bool GetApplicationInfo(const std::string &bundleName, int32_t userId,
         AppExecFwk::ApplicationInfo &appInfo);
     static bool GetCallerAbilityInfo(const sptr<IRemoteObject> &callerToken,
         AppExecFwk::AbilityInfo &abilityInfo);
     static int32_t CheckAppProvisionMode(const Want& want, int32_t userId, sptr<IRemoteObject> callerToken);
     static std::vector<int32_t> GetCloneAppIndexes(const std::string &bundleName, int32_t userId);
+    static ErrCode GetDefaultCloneIndex(const std::string &bundleName, int32_t userId, int32_t &appIndex);
 
     static bool IsCallFromAncoShellOrBroker(const sptr<IRemoteObject> &callerToken);
     static void SetTargetCloneIndexInSameBundle(const Want &want, sptr<IRemoteObject> callerToken);

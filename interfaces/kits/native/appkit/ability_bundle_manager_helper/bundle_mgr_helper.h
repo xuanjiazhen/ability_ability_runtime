@@ -112,6 +112,7 @@ public:
     ErrCode QueryCloneExtensionAbilityInfoWithAppIndex(const ElementName &element, int32_t flags, int32_t appCloneIndex,
         ExtensionAbilityInfo &extensionInfo, int32_t userId);
     ErrCode GetCloneAppIndexes(const std::string &bundleName, std::vector<int32_t> &appIndexes, int32_t userId);
+    ErrCode GetDefaultCloneIndex(const std::string &bundleName, int32_t userId, int32_t &appIndex);
     ErrCode GetSignatureInfoByBundleName(const std::string &bundleName, SignatureInfo &signatureInfo);
     std::string GetStringById(
         const std::string &bundleName, const std::string &moduleName, uint32_t resId, int32_t userId);

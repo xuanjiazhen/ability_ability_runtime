@@ -1015,6 +1015,20 @@ ErrCode BundleMgrHelper::GetCloneAppIndexes(const std::string &bundleName, std::
     return bundleMgr->GetCloneAppIndexes(bundleName, appIndexes, userId);
 }
 
+ErrCode BundleMgrHelper::GetDefaultCloneIndex(const std::string &bundleName, int32_t userId, int32_t &appIndex)
+{
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "Called, bundleName: %{public}s, userId: %{public}d",
+        bundleName.c_str(), userId);
+    auto bundleMgr = Connect();
+    if (bundleMgr == nullptr) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "null bundleMgr");
+        return ERR_APPEXECFWK_SERVICE_INTERNAL_ERROR;
+    }
+
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    return bundleMgr->GetDefaultCloneIndex(bundleName, userId, appIndex);
+}
+
 ErrCode BundleMgrHelper::GetSignatureInfoByBundleName(const std::string &bundleName, SignatureInfo &signatureInfo)
 {
     TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "Called");
