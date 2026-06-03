@@ -31,6 +31,14 @@ group("appms_target") {
   deps = [ ":libappms" ]
 }
 
+config("appmgr_exception_config") {
+  cflags_cc = [
+    "-fexceptions",
+    "-fvisibility=hidden",
+    "-Oz",
+  ]
+}
+
 ohos_shared_library("libappms") {
   use_exceptions = true
   sanitize = {
@@ -104,7 +112,10 @@ ohos_shared_library("libappms") {
     defines += [ "ABILITY_PLATFORM_CHECK_PERMISSION" ]
   }
 
-  configs = [ ":appmgr_config" ]
+  configs = [
+    ":appmgr_config",
+    ":appmgr_exception_config",
+  ]
   cflags = []
   if (target_cpu == "arm") {
     cflags += [ "-DBINDER_IPC_32BIT" ]
@@ -214,6 +225,11 @@ ohos_shared_library("libappms") {
   }
 
   cflags += [ "-DAPP_NO_RESPONSE_BUNDLENAME=\"${ability_runtime_app_no_response_bundlename}\"" ]
+
+  ldflags = [
+    "-Wl,-Bsymbolic",
+    "-Wl,--gc-sections",
+  ]
 
   version_script = "libappms.map"
   subsystem_name = "ability"
