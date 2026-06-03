@@ -39,7 +39,9 @@ void CloneForAccountUtilTest::SetUp()
 {
     AppExecFwk::BundleMgrHelper::isBundleManagerHelperNull = false;
     AppExecFwk::BundleMgrHelper::retQueryEnabledAbilityInfo = false;
+    AppExecFwk::BundleMgrHelper::retQueryEnabledExtensionAbilityInfo = false;
     AppExecFwk::BundleMgrHelper::abilityInfoResult = AppExecFwk::AbilityInfo();
+    AppExecFwk::BundleMgrHelper::extensionInfoResult = AppExecFwk::ExtensionAbilityInfo();
 }
 
 void CloneForAccountUtilTest::TearDown() {}
@@ -85,7 +87,7 @@ HWTEST_F(CloneForAccountUtilTest, ProcessAppIndex_002, TestSize.Level1)
 
 /**
  * @tc.name: ProcessAppIndex_003
- * @tc.desc: Test ProcessAppIndex returns false when QueryEnabledAbilityInfo fails
+ * @tc.desc: Test ProcessAppIndex returns false when both AbilityInfo and ExtensionAbilityInfo query fail
  * @tc.type: FUNC
  */
 HWTEST_F(CloneForAccountUtilTest, ProcessAppIndex_003, TestSize.Level1)
@@ -175,6 +177,30 @@ HWTEST_F(CloneForAccountUtilTest, ProcessAppIndex_007, TestSize.Level1)
 
     EXPECT_TRUE(CloneForAccountUtil::ProcessAppIndex(want, 100));
     EXPECT_FALSE(want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY));
+}
+
+/**
+ * @tc.name: ProcessAppIndex_008
+ * @tc.desc: Test ProcessAppIndex fallback to Extension when Ability query fails
+ * @tc.type: FUNC
+ */
+HWTEST_F(CloneForAccountUtilTest, ProcessAppIndex_008, TestSize.Level1)
+{
+    Want want;
+    want.SetElementName("com.test.bundle", "ServiceExtAbility");
+    want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, 1);
+
+    AppExecFwk::BundleMgrHelper::retQueryEnabledAbilityInfo = false;
+
+    AppExecFwk::ExtensionAbilityInfo mockExtensionInfo;
+    mockExtensionInfo.appIndex = 3;
+    mockExtensionInfo.applicationInfo.enabled = true;
+    AppExecFwk::BundleMgrHelper::extensionInfoResult = mockExtensionInfo;
+    AppExecFwk::BundleMgrHelper::retQueryEnabledExtensionAbilityInfo = true;
+
+    EXPECT_TRUE(CloneForAccountUtil::ProcessAppIndex(want, 100));
+    EXPECT_TRUE(want.HasParameter(Want::PARAM_APP_CLONE_INDEX_KEY));
+    EXPECT_EQ(want.GetIntParam(Want::PARAM_APP_CLONE_INDEX_KEY, -1), 3);
 }
 
 }  // namespace AAFwk
