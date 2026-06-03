@@ -1242,5 +1242,31 @@ bool BundleMgrHelper::QueryEnabledAbilityInfo(const Want &want, int32_t userId, 
     abilityInfo = tmpInfo;
     return true;
 }
+
+bool BundleMgrHelper::QueryEnabledExtensionAbilityInfo(
+    const Want &want, int32_t userId, ExtensionAbilityInfo &extensionInfo)
+{
+    TAG_LOGD(AAFwkTag::BUNDLEMGRHELPER, "QueryEnabledExtensionAbilityInfo");
+    auto flag = static_cast<int32_t>(AppExecFwk::AbilityInfoFlag::GET_ABILITY_INFO_WITH_APPLICATION);
+    std::vector<ExtensionAbilityInfo> extensionInfos;
+    if (!QueryExtensionAbilityInfos(want, flag, userId, extensionInfos) || extensionInfos.empty()) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "QueryExtensionAbilityInfos failed");
+        return false;
+    }
+
+    if (extensionInfos.size() != 1u) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "Invalid info size: %{public}zu", extensionInfos.size());
+        return false;
+    }
+
+    const auto &tmpInfo = extensionInfos[0];
+    if (!tmpInfo.applicationInfo.enabled) {
+        TAG_LOGE(AAFwkTag::BUNDLEMGRHELPER, "Disabled info bundleName=%{public}s", tmpInfo.bundleName.c_str());
+        return false;
+    }
+
+    extensionInfo = tmpInfo;
+    return true;
+}
 }  // namespace AppExecFwk
 }  // namespace OHOS

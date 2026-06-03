@@ -4376,6 +4376,10 @@ int32_t AbilityManagerService::StartExtensionAbilityInner(const Want &want, cons
     }
 
     int32_t validUserId = GetValidUserId(userId);
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(const_cast<Want &>(want), validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
     int32_t appIndex = 0;
     if (!StartAbilityUtils::GetAppIndex(want, callerToken, appIndex)) {
         if (extensionType == AppExecFwk::ExtensionAbilityType::UI_SERVICE) {
@@ -5846,6 +5850,11 @@ int32_t AbilityManagerService::ConnectAbilityCommon(
         abilityWant.SetElementName(extensionInfo.bundleName, extensionInfo.name);
     }
 
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(abilityWant, validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
+
     if (CheckIfOperateRemote(abilityWant)) {
         // Remote extension connections are handled by DMS and the extension runs on another device.
         // Background user monitoring is not applicable for remote extensions, skip reporting.
@@ -5966,6 +5975,11 @@ int AbilityManagerService::ConnectUIExtensionAbility(const Want &want, const spt
         }
         abilityWant.SetElementName(extensionInfo.bundleName, extensionInfo.name);
     }
+
+#ifdef ENABLE_CLONE_FOR_ACCOUNT
+    CHECK_TRUE_RETURN_RET(!CloneForAccountUtil::ProcessAppIndex(abilityWant, validUserId, true),
+        RESOLVE_ABILITY_ERR, "CloneForAccountUtil::ProcessAppIndex failed");
+#endif
 
     UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityWant, callerToken);
 

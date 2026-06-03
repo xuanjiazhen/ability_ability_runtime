@@ -21,20 +21,33 @@
 
 namespace OHOS {
 namespace AAFwk {
-bool CloneForAccountUtil::ProcessAppIndex(Want &want, int32_t userId)
+bool CloneForAccountUtil::ProcessAppIndex(Want &want, int32_t userId, bool isExtension)
 {
     want.RemoveParam(Want::PARAM_APP_CLONE_INDEX_KEY);
-
-    if (want.GetElement().GetAbilityName().empty()) {
-        TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start, skip");
-        return true;
-    }
 
     auto bundleMgrHelper = AbilityUtil::GetBundleManagerHelper();
     if (bundleMgrHelper == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "bundleMgrHelper is nullptr");
         return false;
     }
+
+    if (isExtension) {
+        AppExecFwk::ExtensionAbilityInfo extensionInfo;
+        if (!IN_PROCESS_CALL(bundleMgrHelper->QueryEnabledExtensionAbilityInfo(want, userId, extensionInfo))) {
+            TAG_LOGE(AAFwkTag::ABILITYMGR, "QueryEnabledExtensionAbilityInfo failed");
+            return false;
+        }
+        want.SetParam(Want::PARAM_APP_CLONE_INDEX_KEY, extensionInfo.appIndex);
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "CloneForAccount resolved extension appIndex: %{public}d",
+            extensionInfo.appIndex);
+        return true;
+    }
+
+    if (want.GetElement().GetAbilityName().empty()) {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "implicit start, skip");
+        return true;
+    }
+
     AppExecFwk::AbilityInfo abilityInfo;
     if (!IN_PROCESS_CALL(bundleMgrHelper->QueryEnabledAbilityInfo(want, userId, abilityInfo))) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "QueryEnabledAbilityInfo failed");
