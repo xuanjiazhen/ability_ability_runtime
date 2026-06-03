@@ -80,6 +80,11 @@ enum {
      * Result (35700012): fail to kill.
      */
     ERR_NOT_KILL = 35700012,
+
+    /*
+     * Result (35700013): Function not exist.
+     */
+    ERR_FUNCTION_NOT_EXIST = 35700013,
 };
 
 } // namespace CliTool
