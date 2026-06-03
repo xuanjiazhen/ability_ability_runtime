@@ -93,6 +93,13 @@ public:
     ErrCode RegisterTool(const ToolInfo &tool);
 
     /**
+     * @brief Register a function
+     * @param function FunctionInfo to register
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode RegisterFunction(const FunctionInfo &function);
+
+    /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param callback reply callback.

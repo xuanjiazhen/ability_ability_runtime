@@ -100,6 +100,13 @@ public:
     int32_t BatchQueryPermissionBySubCommand(const std::vector<Command> &cmds,
         std::vector<CommandPermission> &cmdPermissions) override;
 
+    /**
+     * @brief Register a function
+     * @param function FunctionInfo to register
+     * @return int32_t ERR_OK on success, error code otherwise
+     */
+    int32_t RegisterFunction(const FunctionInfo &function) override;
+
 protected:
     void OnStart() override;
     void OnStop() override;

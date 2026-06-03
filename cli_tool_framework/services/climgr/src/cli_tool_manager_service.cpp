@@ -23,7 +23,9 @@
 #include "ccm_util.h"
 #include "cli_error_code.h"
 #include "cli_tool_app_state_observer.h"
+#include "cli_function_data_manager.h"
 #include "event_dispatcher.h"
+#include "function_info.h"
 #include "hilog_tag_wrapper.h"
 #include "if_system_ability_manager.h"
 #include "ipc_skeleton.h"
@@ -478,6 +480,31 @@ int32_t CliToolManagerService::RegisterTool(const ToolInfo &tool)
 {
     TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterTool called, tool name='%{public}s'", tool.name.c_str());
     return ERR_PERMISSION_DENIED;
+}
+
+int32_t CliToolManagerService::RegisterFunction(const FunctionInfo &function)
+{
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "RegisterFunction called: %{public}s/%{public}s",
+        function.bundleName.c_str(), function.functionName.c_str());
+
+    InterfaceCallCounter counter(interfaceCalledCount_);
+
+    // Validate function info
+    if (!FunctionInfo::Validate(function)) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterFunction: FunctionInfo validation failed");
+        return ERR_INVALID_PARAM;
+    }
+
+    // Register function to database
+    int32_t ret = CliFunctionDataManager::GetInstance().RegisterFunction(function);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "RegisterFunction: Failed to register function, ret=%{public}d", ret);
+        return ret;
+    }
+
+    TAG_LOGI(AAFwkTag::CLI_TOOL, "Successfully registered function: %{public}s/%{public}s",
+        function.bundleName.c_str(), function.functionName.c_str());
+    return ERR_OK;
 }
 
 int32_t CliToolManagerService::ValidateExecToolPermissions()
