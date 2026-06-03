@@ -96,7 +96,7 @@ private:
             if (*innerErrorCode != ERR_OK) {
                 TAG_LOGE(AAFwkTag::INTENT, "error: %{public}d",
                     *innerErrorCode);
-                task.Reject(env, CreateJsError(env, static_cast<AbilityErrorCode>(*innerErrorCode)));
+                task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
                 return;
             }
             task.ResolveWithNoError(env, CreateJsUndefined(env));

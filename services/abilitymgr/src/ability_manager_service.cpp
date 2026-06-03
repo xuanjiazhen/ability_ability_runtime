@@ -909,12 +909,12 @@ int32_t AbilityManagerService::StartAbilityByInsightIntent(const Want &want, con
     if (DelayedSingleton<InsightIntentExecuteManager>::GetInstance()->
         GetBundleName(intentId, bundleNameFromIntentMgr) != ERR_OK) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no such bundle matched intentId");
-        return ERR_INVALID_VALUE;
+        return ERR_START_ABILITY_INTENT_ID_NOT_FOUND;
     }
     auto abilityRecord = Token::GetAbilityRecordByToken(callerToken);
     if (abilityRecord == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "no such bundle matched token");
-        return ERR_INVALID_VALUE;
+        return ERR_START_ABILITY_CALLER_NOT_FOUND;
     }
     std::string bundleNameFromAbilityRecord = abilityRecord->GetAbilityInfo().bundleName;
     if (!bundleNameFromWant.empty() && bundleNameFromWant == bundleNameFromIntentMgr &&
@@ -14447,7 +14447,7 @@ ErrCode AbilityManagerService::QueryEntityInfo(uint64_t key, sptr<IRemoteObject>
     auto executeManager = DelayedSingleton<InsightIntentExecuteManager>::GetInstance();
     if (executeManager == nullptr) {
         TAG_LOGE(AAFwkTag::ABILITYMGR, "executeManager is nullptr");
-        return ERR_INVALID_VALUE;
+        return ERR_QUERY_ENTITY_EXECUTE_MANAGER_NULL;
     }
 
     auto callerBundlename = InsightIntentGetcallerBundleName();

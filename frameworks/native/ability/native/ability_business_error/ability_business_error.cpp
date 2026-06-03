@@ -275,6 +275,31 @@ constexpr const char* ERROR_MSG_SKILL_EXECUTE_BUNDLE_MISMATCH =
 constexpr const char* ERROR_MSG_SKILL_EXECUTE_INVALID_STATE =
     "Internal error. The skill execution is not in progress. "
     "Do not call completeArkTSScriptInApp repeatedly.";
+constexpr const char* ERROR_MSG_INTENT_EXECUTE_NULL_CALLER_TOKEN =
+    "Internal error. The caller token is invalid. Ensure the ability is still active.";
+constexpr const char* ERROR_MSG_INTENT_EXECUTE_INVALID_PARAM =
+    "Internal error. Invalid intent execution parameters. "
+    "Check bundleName, moduleName, and intentName.";
+constexpr const char* ERROR_MSG_INTENT_EXECUTE_ADD_RECORD_FAILED =
+    "Internal error. Failed to create intent execution record. Too many concurrent executions.";
+constexpr const char* ERROR_MSG_INTENT_EXECUTE_DECORATOR_MISMATCH =
+    "Internal error. The decorator type does not match the intent configuration.";
+constexpr const char* ERROR_MSG_INTENT_EXECUTE_MODE_MISMATCH =
+    "Internal error. The execute mode does not match the intent configuration.";
+constexpr const char* ERROR_MSG_INTENT_EXECUTE_ABILITY_NAME_MISMATCH =
+    "Internal error. The ability name does not match the intent configuration.";
+constexpr const char* ERROR_MSG_INTENT_DONE_NOT_FOUND =
+    "Internal error. The intent execution does not exist. It may have timed out or already completed.";
+constexpr const char* ERROR_MSG_INTENT_DONE_NULL_RECORD =
+    "Internal error. The intent execution record is corrupted.";
+constexpr const char* ERROR_MSG_INTENT_DONE_NULL_CALLBACK =
+    "Internal error. The intent execution callback is unavailable. The caller may have been released.";
+constexpr const char* ERROR_MSG_START_ABILITY_INTENT_ID_NOT_FOUND =
+    "Internal error. The intent ID does not match any active execution. Call executeIntent first.";
+constexpr const char* ERROR_MSG_START_ABILITY_CALLER_NOT_FOUND =
+    "Internal error. The caller ability does not exist. Ensure the ability is still active.";
+constexpr const char* ERROR_MSG_QUERY_ENTITY_EXECUTE_MANAGER_NULL =
+    "Internal error. The intent execution manager is unavailable. Try again later.";
 
 // follow ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST of appexecfwk_errors.h in bundle_framework
 constexpr int32_t ERR_BUNDLE_MANAGER_BUNDLE_NOT_EXIST = 8521220;
@@ -567,6 +592,18 @@ static std::unordered_map<int32_t, const char*> INNER_ERROR_MSG_BY_NATIVE_CODE {
     {ERR_SKILL_EXECUTE_CALLER_ABILITY_NOT_FOUND, ERROR_MSG_SKILL_EXECUTE_CALLER_ABILITY_NOT_FOUND},
     {ERR_SKILL_EXECUTE_BUNDLE_MISMATCH, ERROR_MSG_SKILL_EXECUTE_BUNDLE_MISMATCH},
     {ERR_SKILL_EXECUTE_INVALID_STATE, ERROR_MSG_SKILL_EXECUTE_INVALID_STATE},
+    {ERR_INTENT_EXECUTE_NULL_CALLER_TOKEN, ERROR_MSG_INTENT_EXECUTE_NULL_CALLER_TOKEN},
+    {ERR_INTENT_EXECUTE_INVALID_PARAM, ERROR_MSG_INTENT_EXECUTE_INVALID_PARAM},
+    {ERR_INTENT_EXECUTE_ADD_RECORD_FAILED, ERROR_MSG_INTENT_EXECUTE_ADD_RECORD_FAILED},
+    {ERR_INTENT_EXECUTE_DECORATOR_MISMATCH, ERROR_MSG_INTENT_EXECUTE_DECORATOR_MISMATCH},
+    {ERR_INTENT_EXECUTE_MODE_MISMATCH, ERROR_MSG_INTENT_EXECUTE_MODE_MISMATCH},
+    {ERR_INTENT_EXECUTE_ABILITY_NAME_MISMATCH, ERROR_MSG_INTENT_EXECUTE_ABILITY_NAME_MISMATCH},
+    {ERR_INTENT_DONE_NOT_FOUND, ERROR_MSG_INTENT_DONE_NOT_FOUND},
+    {ERR_INTENT_DONE_NULL_RECORD, ERROR_MSG_INTENT_DONE_NULL_RECORD},
+    {ERR_INTENT_DONE_NULL_CALLBACK, ERROR_MSG_INTENT_DONE_NULL_CALLBACK},
+    {ERR_START_ABILITY_INTENT_ID_NOT_FOUND, ERROR_MSG_START_ABILITY_INTENT_ID_NOT_FOUND},
+    {ERR_START_ABILITY_CALLER_NOT_FOUND, ERROR_MSG_START_ABILITY_CALLER_NOT_FOUND},
+    {ERR_QUERY_ENTITY_EXECUTE_MANAGER_NULL, ERROR_MSG_QUERY_ENTITY_EXECUTE_MANAGER_NULL},
 };
 
 static std::unordered_map<AbilityInnerErrorMsg, const char*> INNER_ERROR_MSG_BY_SCENE {

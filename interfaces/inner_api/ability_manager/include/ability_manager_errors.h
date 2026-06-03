@@ -1174,6 +1174,42 @@ enum {
     // Result (2099432) for skill execute invalid state.
     ERR_SKILL_EXECUTE_INVALID_STATE = 2099432,
 
+    // Result (2099433) for intent execute caller token is null.
+    ERR_INTENT_EXECUTE_NULL_CALLER_TOKEN = 2099433,
+
+    // Result (2099434) for intent execute invalid parameters.
+    ERR_INTENT_EXECUTE_INVALID_PARAM = 2099434,
+
+    // Result (2099435) for intent execute add record failed.
+    ERR_INTENT_EXECUTE_ADD_RECORD_FAILED = 2099435,
+
+    // Result (2099436) for intent execute decorator type mismatch.
+    ERR_INTENT_EXECUTE_DECORATOR_MISMATCH = 2099436,
+
+    // Result (2099437) for intent execute mode mismatch.
+    ERR_INTENT_EXECUTE_MODE_MISMATCH = 2099437,
+
+    // Result (2099438) for intent execute ability name mismatch.
+    ERR_INTENT_EXECUTE_ABILITY_NAME_MISMATCH = 2099438,
+
+    // Result (2099439) for intent done intent not found.
+    ERR_INTENT_DONE_NOT_FOUND = 2099439,
+
+    // Result (2099440) for intent done record is null.
+    ERR_INTENT_DONE_NULL_RECORD = 2099440,
+
+    // Result (2099441) for intent done callback is null.
+    ERR_INTENT_DONE_NULL_CALLBACK = 2099441,
+
+    // Result (2099442) for start ability by intent but intent id not found.
+    ERR_START_ABILITY_INTENT_ID_NOT_FOUND = 2099442,
+
+    // Result (2099443) for start ability by intent but caller not found.
+    ERR_START_ABILITY_CALLER_NOT_FOUND = 2099443,
+
+    // Result (2099444) for query entity but execute manager is null.
+    ERR_QUERY_ENTITY_EXECUTE_MANAGER_NULL = 2099444,
+
     /**
      * Native error(3000000) for target bundle not exist.
      */

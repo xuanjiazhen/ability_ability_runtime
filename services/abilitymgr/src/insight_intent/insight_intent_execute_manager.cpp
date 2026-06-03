@@ -148,17 +148,17 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateParam(uint64_t key, const spt
     }
     if ((!isDistributed && callerToken == nullptr) && (param == nullptr || !param->isServiceMatch_)) {
         TAG_LOGE(AAFwkTag::INTENT, "null callerToken");
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_NULL_CALLER_TOKEN;
     }
     if (param == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null param");
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_INVALID_PARAM;
     }
 
     if (param->bundleName_.empty() || param->moduleName_.empty() ||
         (!ignoreAbilityName && param->abilityName_.empty()) || param->insightIntentName_.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid param");
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_INVALID_PARAM;
     }
     uint64_t intentId = 0;
     result = AddRecord(key, callerToken, param->bundleName_,
@@ -202,7 +202,7 @@ int32_t InsightIntentExecuteManager::CheckAndUpdateWant(Want &want, ExecuteMode 
     if (ret != ERR_OK || srcEntry.empty()) {
         TAG_LOGW(AAFwkTag::INTENT, "empty srcEntry");
         if (UpdateEntryDecoratorParams(want, executeMode, userId) != ERR_OK) {
-            return ERR_INVALID_VALUE;
+            return ERR_INTENT_EXECUTE_DECORATOR_MISMATCH;
         }
     }
 
@@ -228,7 +228,7 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
         want.GetBundle(), want.GetModuleName(), intentName, userId, info);
     if (info.genericInfo.decoratorType != AbilityRuntime::INSIGHT_INTENTS_DECORATOR_TYPE_ENTRY) {
         TAG_LOGW(AAFwkTag::INTENT, "decorator %{public}s misMatch", info.genericInfo.decoratorType.c_str());
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_DECORATOR_MISMATCH;
     }
     InsightIntentType type = InsightIntentType::DECOR_ENTRY;
     want.SetParam(INSIGHT_INTENT_DECORATOR_TYPE, static_cast<int>(type));
@@ -239,11 +239,11 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(Want &want, Exec
     bool found = std::find(supportModes.begin(), supportModes.end(), executeMode) != supportModes.end();
     if (!found) {
         TAG_LOGE(AAFwkTag::INTENT, "execute mode mismatch");
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_MODE_MISMATCH;
     }
     if (want.GetElement().GetAbilityName() != info.genericInfo.get<InsightIntentEntryInfo>().abilityName) {
         TAG_LOGE(AAFwkTag::INTENT, "ability name mismatch");
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_ABILITY_NAME_MISMATCH;
     }
     return ERR_OK;
 }
@@ -298,13 +298,13 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
         TAG_LOGE(AAFwkTag::INTENT, "intent not found, id: %{public}" PRIu64, intentId);
         eventInfo.errReason = "intent not found";
         SendIntentReport(eventInfo, INTENT_NOT_EXIST);
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_DONE_NOT_FOUND;
     }
 
     std::shared_ptr<InsightIntentExecuteRecord> record = findResult->second;
     if (record == nullptr) {
         TAG_LOGE(AAFwkTag::INTENT, "null record, id: %{public}" PRIu64, intentId);
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_DONE_NULL_RECORD;
     }
 
     TAG_LOGD(AAFwkTag::INTENT, "callback start, id:%{public}" PRIu64, intentId);
@@ -315,7 +315,7 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
         return ERR_INVALID_OPERATION;
     }
     record->state = InsightIntentExecuteState::EXECUTE_DONE;
-    
+
     if (record->isDistributed) {
         std::string msg = result.ToJsonString();
         Want want;
@@ -335,7 +335,7 @@ int32_t InsightIntentExecuteManager::ExecuteIntentDone(uint64_t intentId, int32_
         if (remoteCallback == nullptr) {
             TAG_LOGE(AAFwkTag::INTENT, "intentExecuteCallback empty,"
                 " intentId: %{public}" PRIu64 ", records_ size: %{public}zu", intentId, records_.size());
-            return ERR_INVALID_VALUE;
+            return ERR_INTENT_DONE_NULL_CALLBACK;
         }
         remoteCallback->OnExecuteDone(record->key, resultCode, result);
     }
@@ -426,7 +426,7 @@ int32_t InsightIntentExecuteManager::UpdateFuncDecoratorParams(
 {
     if (param->executeMode_ != AppExecFwk::ExecuteMode::UI_ABILITY_BACKGROUND) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid execute mode %{public}d", param->executeMode_);
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_MODE_MISMATCH;
     }
 
     if (param->abilityName_.empty()) {
@@ -434,7 +434,7 @@ int32_t InsightIntentExecuteManager::UpdateFuncDecoratorParams(
     }
     if (param->abilityName_.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "ability name empty");
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_ABILITY_NAME_MISMATCH;
     }
     want.SetElementName(param->deviceId_, param->bundleName_, param->abilityName_, param->moduleName_);
 
@@ -448,13 +448,13 @@ int32_t InsightIntentExecuteManager::UpdateFuncDecoratorParams(
     const auto &parameters = info.genericInfo.get<InsightIntentFunctionInfo>().parameters;
     if (className.empty() || methodName.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid func param");
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_INVALID_PARAM;
     }
     if (!parameters.empty()) {
         std::vector<std::string> encodedMethodParams;
         if (!GetMethodParamNamesFromSchema(methodParams, parameters, encodedMethodParams)) {
             TAG_LOGE(AAFwkTag::INTENT, "encode method params from schema failed");
-            return ERR_INVALID_VALUE;
+            return ERR_INTENT_EXECUTE_INVALID_PARAM;
         }
         methodParams = std::move(encodedMethodParams);
     }
@@ -501,7 +501,7 @@ int32_t InsightIntentExecuteManager::UpdatePageDecoratorParams(
 {
     if (param->executeMode_ != AppExecFwk::ExecuteMode::UI_ABILITY_FOREGROUND) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid execute mode %{public}d", param->executeMode_);
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_MODE_MISMATCH;
     }
 
     std::string srcEntrance = info.decoratorFile;
@@ -514,14 +514,14 @@ int32_t InsightIntentExecuteManager::UpdatePageDecoratorParams(
     if (pagePath.empty() || uiAbilityName != param->abilityName_) {
         TAG_LOGE(AAFwkTag::INTENT, "invalid page param, pagePath %{public}s, uiability %{public}s, %{public}s",
             pagePath.c_str(), uiAbilityName.c_str(), param->abilityName_.c_str());
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_ABILITY_NAME_MISMATCH;
     }
     if (uiAbilityName.empty()) {
         uiAbilityName = GetMainElementName(param->bundleName_, param->moduleName_);
     }
     if (uiAbilityName.empty()) {
         TAG_LOGE(AAFwkTag::INTENT, "ability name empty");
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_ABILITY_NAME_MISMATCH;
     }
     param->abilityName_ = uiAbilityName;
     want.SetElementName(param->deviceId_, param->bundleName_, param->abilityName_, param->moduleName_);
@@ -544,11 +544,11 @@ int32_t InsightIntentExecuteManager::UpdateEntryDecoratorParams(
     bool found = std::find(supportModes.begin(), supportModes.end(), executeMode) != supportModes.end();
     if (!found) {
         TAG_LOGE(AAFwkTag::INTENT, "execute mode %{public}d mismatch", executeMode);
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_MODE_MISMATCH;
     }
     if (param->abilityName_ != info.genericInfo.get<InsightIntentEntryInfo>().abilityName) {
         TAG_LOGE(AAFwkTag::INTENT, "ability name mismatch");
-        return ERR_INVALID_VALUE;
+        return ERR_INTENT_EXECUTE_ABILITY_NAME_MISMATCH;
     }
     return ERR_OK;
 }

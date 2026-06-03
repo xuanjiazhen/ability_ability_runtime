@@ -71,7 +71,7 @@ public:
             (napi_env env, NapiAsyncTask &task, int32_t status) {
             HandleScope handleScope(env);
             if (resultCode != 0) {
-                task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(resultCode)));
+                task.Reject(env, CreateJsErrorByNativeErr(env, resultCode));
             } else {
                 task.ResolveWithNoError(env, CreateJsExecuteResult(env, executeResult));
             }
@@ -285,7 +285,7 @@ private:
         auto err = AbilityManagerClient::GetInstance()->ExecuteIntent(key,
             InsightIntentHostClient::GetInstance(), param);
         if (err != 0) {
-            asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
+            asyncTask->Reject(env, CreateJsErrorByNativeErr(env, err));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
         }
         return handleEscape.Escape(result);
@@ -321,7 +321,7 @@ private:
                 if (*innerErrorCode == 0) {
                     task.ResolveWithNoError(env, CreateInsightIntentInfoForQueryArray(env, *infos));
                 } else {
-                    task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*innerErrorCode)));
+                    task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
                 }
             };
         napi_value result = nullptr;
@@ -367,7 +367,7 @@ private:
                 if (*innerErrorCode == 0) {
                     task.ResolveWithNoError(env, CreateInsightIntentInfoForQueryArray(env, *infos));
                 } else {
-                    task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*innerErrorCode)));
+                    task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
                 }
             };
         napi_value result = nullptr;
@@ -426,7 +426,7 @@ private:
                 if (*innerErrorCode == 0) {
                     task.ResolveWithNoError(env, CreateInsightIntentInfoForQuery(env, *intentInfo));
                 } else {
-                    task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*innerErrorCode)));
+                    task.Reject(env, CreateJsErrorByNativeErr(env, *innerErrorCode));
                 }
             };
         napi_value result = nullptr;
@@ -481,7 +481,7 @@ private:
                 if (*error == 0) {
                     task.ResolveWithNoError(env, CreateInsightIntentInfoForQueryArray(env, *infos));
                 } else {
-                    task.Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(*error)));
+                    task.Reject(env, CreateJsErrorByNativeErr(env, *error));
                 }
             };
         napi_value result = nullptr;
@@ -539,7 +539,7 @@ private:
             asyncTask->ResolveWithNoError(env, CreateQueryEntityResult(env, queryResults));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
         } else if (err != 0) {
-            asyncTask->Reject(env, CreateJsError(env, GetJsErrorCodeByNativeError(err)));
+            asyncTask->Reject(env, CreateJsErrorByNativeErr(env, err));
             InsightIntentHostClient::GetInstance()->RemoveInsightIntentExecute(key);
         }
         return handleEscape.Escape(result);
