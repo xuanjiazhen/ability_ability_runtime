@@ -93,6 +93,23 @@ public:
     ErrCode RegisterTool(const ToolInfo &tool);
 
     /**
+     * @brief Register a function
+     * @param function FunctionInfo to register
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode RegisterFunction(const FunctionInfo &function);
+
+    /**
+     * @brief Get function information by bundleName and functionName
+     * @param bundleName Bundle name
+     * @param functionName Function name
+     * @param function Output FunctionInfo
+     * @return ErrCode ERR_OK on success
+     */
+    ErrCode GetFunctionInfo(const std::string &bundleName, const std::string &functionName,
+        FunctionInfo &function);
+
+    /**
      * @brief Execute a CLI tool with key-value pairs (convenience method).
      * @param param The CLI tool param.
      * @param callback reply callback.
