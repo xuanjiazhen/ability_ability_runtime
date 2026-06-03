@@ -501,6 +501,20 @@ void StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(Want &want,
             hasStartAbilityToPagePermission);
         want.RemoveParam(Want::ATOMIC_SERVICE_SHARE_ROUTER);
     }
+
+    // 微信穿刺验证：当目标是微信且有 ATOMIC_SERVICE_SHARE_ROUTER 参数时，进行穿刺验证
+    if (hasStartAbilityToPagePermission && targetAbilityInfo.bundleName == "com.tencent.mm") {
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "WeChat penetration check triggered, bundleName=%{public}s",
+            targetAbilityInfo.bundleName.c_str());
+        // 修改 bundleName 为穿刺验证的应用
+        auto element = want.GetElement();
+        element.SetBundleName("com.droi.tong");
+        want.SetElement(element);
+        // 设置 appid 参数用于穿刺验证
+        want.SetParam("appid", std::string("5765880207855132255"));
+        TAG_LOGI(AAFwkTag::ABILITYMGR, "WeChat penetration check: bundleName changed to com.droi.tong, "
+            "appid set to 5765880207855132255");
+    }
 }
 }
 }
