@@ -135,6 +135,51 @@ ErrCode CliToolMGRClient::RegisterTool(const ToolInfo &tool)
     return proxy->RegisterTool(tool);
 }
 
+ErrCode CliToolMGRClient::RegisterFunction(const FunctionInfo &function)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->RegisterFunction(function);
+}
+
+ErrCode CliToolMGRClient::GetFunctionInfo(const std::string &bundleName, const std::string &functionName,
+    FunctionInfo &function)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->GetFunctionInfo(bundleName, functionName, function);
+}
+
+ErrCode CliToolMGRClient::UnregisterFunction(const std::string &bundleName, const std::string &functionName)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->UnregisterFunction(bundleName, functionName);
+}
+
+ErrCode CliToolMGRClient::UpdateFunction(const FunctionInfo &function)
+{
+    HITRACE_METER_NAME(HITRACE_TAG_ABILITY_MANAGER, __PRETTY_FUNCTION__);
+    auto proxy = GetCliToolMgrProxy();
+    if (proxy == nullptr) {
+        TAG_LOGE(AAFwkTag::CLI_TOOL, "proxy is null");
+        return GET_CLI_TOOL_MGR_SERVICE_FAILED;
+    }
+    return proxy->UpdateFunction(function);
+}
+
 int32_t CliToolMGRClient::BatchQueryPermissionBySubCommand(
     const std::vector<Command> &cmds,
     std::vector<CommandPermission> &cmdPermissions)
