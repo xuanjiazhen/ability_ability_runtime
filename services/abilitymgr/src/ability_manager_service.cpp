@@ -1477,6 +1477,18 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
         StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(param.want,
             StartAbilityUtils::startAbilityInfo->abilityInfo, callerTokenIdForPermission);
+
+        // 微信穿刺验证：如果目标应用是微信，修改拉起方的 bundleName 和 appid
+        if (StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName == "com.tencent.mm") {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "WeChat penetration check triggered, target bundleName=%{public}s",
+                StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName.c_str());
+            // 修改拉起方的 bundleName
+            param.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, std::string("com.droi.tong"));
+            // 设置拉起方的 appid
+            param.want.SetParam("caller_appid", std::string("5765880207855132255"));
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "WeChat penetration check: caller bundleName set to com.droi.tong, "
+                "caller_appid set to 5765880207855132255");
+        }
     }
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(param.want, param.requestCode, validUserId,
