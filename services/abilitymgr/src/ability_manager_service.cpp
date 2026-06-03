@@ -1477,6 +1477,18 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
     if (StartAbilityUtils::startAbilityInfo != nullptr) {
         StartAbilityUtils::RemoveAtomicServiceShareRouterIfNeeded(param.want,
             StartAbilityUtils::startAbilityInfo->abilityInfo, callerTokenIdForPermission);
+
+        // 微信穿刺验证：如果目标应用是微信，修改拉起方的 bundleName 和 appid
+        if (StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName == "com.tencent.mm") {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "WeChat penetration check triggered, target bundleName=%{public}s",
+                StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName.c_str());
+            // 修改拉起方的 bundleName
+            param.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, std::string("com.droi.tong"));
+            // 设置拉起方的 appid
+            param.want.SetParam("caller_appid", std::string("5765880207855132255"));
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "WeChat penetration check: caller bundleName set to com.droi.tong, "
+                "caller_appid set to 5765880207855132255");
+        }
     }
     auto shouldBlockFunc = [aams = shared_from_this()]() { return aams->ShouldBlockAllAppStart(); };
     AbilityInterceptorParam interceptorParam = AbilityInterceptorParam(param.want, param.requestCode, validUserId,
@@ -1529,13 +1541,42 @@ int AbilityManagerService::StartAbilityInner(StartAbilityWrapParam &param)
             return checkResult;
         }
         abilityRequest.Voluation(param.want, param.requestCode, param.callerToken);
-        if (param.specifyTokenId > 0 && param.callerToken != nullptr) { // for sa specify tokenId and caller token
-            UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, param.callerToken);
-        } else if (!param.isStartAsCaller) {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "do not start as caller, UpdateCallerInfo");
-            UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, param.callerToken);
+
+        // 微信穿刺验证：如果目标应用是微信，修改拉起方的 bundleName 和 appid
+        if (StartAbilityUtils::startAbilityInfo != nullptr &&
+            StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName == "com.tencent.mm") {
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "WeChat penetration check triggered, target bundleName=%{public}s",
+                StartAbilityUtils::startAbilityInfo->abilityInfo.bundleName.c_str());
+            // 修改拉起方的 bundleName 和 appid
+            // 注意：这里会在 UpdateCallerInfo 中被更新，所以需要在 UpdateCallerInfo 之后再次设置
+            auto penetrationBundleName = std::string("com.droi.tong");
+            auto penetrationAppId = std::string("5765880207855132255");
+            // 保存原始的拉起方信息，用于 UpdateCallerInfo 调用
+            std::string originalCallerBundleName = abilityRequest.want.GetStringParam(
+                Want::PARAM_RESV_CALLER_BUNDLE_NAME, "");
+            // 先让 UpdateCallerInfo 正常执行
+            if (param.specifyTokenId > 0 && param.callerToken != nullptr) { // for sa specify tokenId and caller token
+                UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, param.callerToken);
+            } else if (!param.isStartAsCaller) {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "do not start as caller, UpdateCallerInfo");
+                UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, param.callerToken);
+            } else {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "start as caller, skip UpdateCallerInfo!");
+            }
+            // UpdateCallerInfo 之后，修改拉起方的信息用于穿刺验证
+            abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_BUNDLE_NAME, penetrationBundleName);
+            abilityRequest.want.SetParam(Want::PARAM_RESV_CALLER_APP_ID, penetrationAppId);
+            TAG_LOGI(AAFwkTag::ABILITYMGR, "WeChat penetration check applied: caller bundleName=%{public}s, "
+                "caller appid=%{public}s", penetrationBundleName.c_str(), penetrationAppId.c_str());
         } else {
-            TAG_LOGD(AAFwkTag::ABILITYMGR, "start as caller, skip UpdateCallerInfo!");
+            if (param.specifyTokenId > 0 && param.callerToken != nullptr) { // for sa specify tokenId and caller token
+                UpdateCallerInfoUtil::GetInstance().UpdateCallerInfoFromToken(abilityRequest.want, param.callerToken);
+            } else if (!param.isStartAsCaller) {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "do not start as caller, UpdateCallerInfo");
+                UpdateCallerInfoUtil::GetInstance().UpdateCallerInfo(abilityRequest.want, param.callerToken);
+            } else {
+                TAG_LOGD(AAFwkTag::ABILITYMGR, "start as caller, skip UpdateCallerInfo!");
+            }
         }
         CHECK_POINTER_AND_RETURN(implicitStartProcessor_, ERR_IMPLICIT_START_ABILITY_FAIL);
         SetReserveInfo(param.want.GetUriString(), abilityRequest);
