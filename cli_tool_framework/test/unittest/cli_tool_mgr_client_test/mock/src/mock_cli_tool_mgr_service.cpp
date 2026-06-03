@@ -6,6 +6,7 @@
 #include "mock_cli_tool_mgr_service.h"
 
 #include "cli_error_code.h"
+#include "function_info.h"
 #include "mock_cli_tool_mgr_client_flag.h"
 
 namespace OHOS {
@@ -14,6 +15,8 @@ int32_t CliToolMgrClientFlag::retGetAllToolSummaries = ERR_OK;
 int32_t CliToolMgrClientFlag::retGetToolInfoByName = ERR_OK;
 int32_t CliToolMgrClientFlag::retGetAllToolInfos = ERR_OK;
 int32_t CliToolMgrClientFlag::retRegisterTool = ERR_OK;
+int32_t CliToolMgrClientFlag::retRegisterFunction = ERR_OK;
+int32_t CliToolMgrClientFlag::retGetFunctionInfo = ERR_OK;
 int32_t CliToolMgrClientFlag::retExecTool = ERR_OK;
 int32_t CliToolMgrClientFlag::retSubscribeSession = ERR_OK;
 int32_t CliToolMgrClientFlag::retUnsubscribeSession = ERR_OK;
@@ -28,6 +31,7 @@ sptr<IRemoteObject> CliToolMgrClientFlag::cliToolMgr = nullptr;
 std::string CliToolMgrClientFlag::lastEventId;
 std::string CliToolMgrClientFlag::lastSubscriptionId;
 std::vector<ToolInfo> CliToolMgrClientFlag::toolInfos;
+std::vector<FunctionInfo> CliToolMgrClientFlag::functionInfos;
 std::vector<ToolSummary> CliToolMgrClientFlag::summaries;
 CliSessionInfo CliToolMgrClientFlag::querySession;
 std::vector<CommandPermission> CliToolMgrClientFlag::commandPermissions;
@@ -38,6 +42,8 @@ void CliToolMgrClientFlag::Reset()
     retGetToolInfoByName = ERR_OK;
     retGetAllToolInfos = ERR_OK;
     retRegisterTool = ERR_OK;
+    retRegisterFunction = ERR_OK;
+    retGetFunctionInfo = ERR_OK;
     retExecTool = ERR_OK;
     retSubscribeSession = ERR_OK;
     retUnsubscribeSession = ERR_OK;
@@ -52,6 +58,7 @@ void CliToolMgrClientFlag::Reset()
     lastEventId.clear();
     lastSubscriptionId.clear();
     toolInfos.clear();
+    functionInfos.clear();
     summaries.clear();
     querySession = {};
     commandPermissions.clear();
@@ -82,6 +89,21 @@ int32_t MockCliToolMgrService::GetAllToolInfos(ToolsRawData &tools)
 int32_t MockCliToolMgrService::RegisterTool(const ToolInfo &)
 {
     return CliToolMgrClientFlag::retRegisterTool;
+}
+
+int32_t MockCliToolMgrService::RegisterFunction(const FunctionInfo &function)
+{
+    CliToolMgrClientFlag::functionInfos.push_back(function);
+    return CliToolMgrClientFlag::retRegisterFunction;
+}
+
+int32_t MockCliToolMgrService::GetFunctionInfo(const std::string &, const std::string &,
+    FunctionInfo &function)
+{
+    if (!CliToolMgrClientFlag::functionInfos.empty()) {
+        function = CliToolMgrClientFlag::functionInfos.front();
+    }
+    return CliToolMgrClientFlag::retGetFunctionInfo;
 }
 
 int32_t MockCliToolMgrService::ExecTool(const ExecToolParam &, const std::string &eventId,
