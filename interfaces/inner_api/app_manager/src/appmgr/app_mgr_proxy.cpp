@@ -2504,6 +2504,48 @@ int32_t AppMgrProxy::CreateNativeChildProcess(const std::string &libName,
 }
 #endif // SUPPORT_CHILD_PROCESS
 
+int32_t AppMgrProxy::AcquireChildProcessesForSelf(std::vector<ChildProcessInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!SendTransactCmd(AppMgrInterfaceCode::ACQUIRE_CHILD_PROCESSES_FOR_SELF, data, reply)) {
+        return ERR_NULL_OBJECT;
+    }
+    auto error = GetParcelableInfos<ChildProcessInfo>(reply, infos);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetParcelableInfos fail, error: %{public}d", error);
+        return error;
+    }
+    int result = reply.ReadInt32();
+    return result;
+}
+
+int32_t AppMgrProxy::AcquireUIAbilityChildProcessesForSelf(std::vector<ChildProcessInfo> &infos)
+{
+    TAG_LOGD(AAFwkTag::APPMGR, "called");
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option(MessageOption::TF_SYNC);
+    if (!WriteInterfaceToken(data)) {
+        return ERR_FLATTEN_OBJECT;
+    }
+    if (!SendTransactCmd(AppMgrInterfaceCode::ACQUIRE_UIABILITY_CHILD_PROCESSES_FOR_SELF, data, reply)) {
+        return ERR_NULL_OBJECT;
+    }
+    auto error = GetParcelableInfos<ChildProcessInfo>(reply, infos);
+    if (error != NO_ERROR) {
+        TAG_LOGE(AAFwkTag::APPMGR, "GetParcelableInfos fail, error: %{public}d", error);
+        return error;
+    }
+    int result = reply.ReadInt32();
+    return result;
+}
+
 int AppMgrProxy::RegisterNativeChildExitNotify(const sptr<INativeChildNotify> notify)
 {
     if (!notify) {

@@ -24,6 +24,7 @@
 
 #include "ability_business_error_utils.h"
 #include "ability_manager_client.h"
+#include "app_mgr_client.h"
 #include "app_mgr_interface.h"
 #include "context.h"
 #include "context/application_context.h"
@@ -572,6 +573,32 @@ AbilityRuntime_ErrorCode OH_AbilityRuntime_ApplicationContextNotifyPageChanged(
     }
     if (err != ERR_OK) {
         return ConvertToAPI21BusinessErrorCode(err);
+    }
+    return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
+}
+
+#include "child_process_info_internal.h"
+
+AbilityRuntime_ErrorCode OH_AbilityRuntime_AcquireUIAbilityChildProcessInfos(
+    OH_AbilityRuntime_ChildProcessInfosHandle* infos, uint32_t* count)
+{
+    if (infos == nullptr || count == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "invalid params");
+        return ABILITY_RUNTIME_ERROR_CODE_PARAM_INVALID;
+    }
+    std::vector<AppExecFwk::ChildProcessInfo> childInfos;
+    auto client = DelayedSingleton<AppExecFwk::AppMgrClient>::GetInstance();
+    if (client == nullptr) {
+        TAG_LOGE(AAFwkTag::APPKIT, "AppMgrClient is nullptr");
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    int32_t ret = client->AcquireUIAbilityChildProcessesForSelf(childInfos);
+    if (ret != ERR_OK) {
+        TAG_LOGE(AAFwkTag::APPKIT, "AcquireUIAbilityChildProcessesForSelf failed, ret=%{public}d", ret);
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
+    }
+    if (!CreateAndFillChildProcessInfos(childInfos, infos, count)) {
+        return ABILITY_RUNTIME_ERROR_CODE_INTERNAL;
     }
     return ABILITY_RUNTIME_ERROR_CODE_NO_ERROR;
 }

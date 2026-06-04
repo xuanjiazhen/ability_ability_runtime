@@ -38,7 +38,7 @@ struct ChildProcessInfo : public Parcelable {
     bool isStartWithNative = false;
     bool isStaticChildProcess = false;
     int32_t pid = 0;
-    int32_t hostPid = 0;
+    int32_t parentPid = 0;  // parent process pid (formerly hostPid)
     int32_t uid = -1;
     int32_t hostUid = -1;
     int32_t userId = -1;
