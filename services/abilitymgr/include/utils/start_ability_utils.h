@@ -80,6 +80,7 @@ struct StartAbilityUtils {
     static thread_local bool isWantWithAppCloneIndex;
     static thread_local bool ermsSupportBackToCallerFlag;
     static thread_local bool startSpecifiedBySCB;
+    static thread_local bool isSandBoxClone;
 };
 
 struct StartAbilityInfoWrap {
@@ -115,6 +116,9 @@ struct StartAbilityWrapParam {
     std::string specifiedFlag;
     bool isGamePrelaunch = false;
     sptr<IRequestStartAbilityCallback> requestCallback = nullptr;
+    std::string callerBundleName;
+    int32_t callerUid = -1;
+    uint32_t callerTokenId = 0;
 };
 }
 }
