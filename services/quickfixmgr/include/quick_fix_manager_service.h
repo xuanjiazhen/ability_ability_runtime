@@ -55,7 +55,7 @@ public:
      * @return Returns 0 on success, error code on failure.
      */
     int32_t ApplyQuickFix(const std::vector<std::string> &quickFixFiles, bool isDebug = false,
-        bool isReplace = false) override;
+        bool isReplace = false, bool isFromBM = false) override;
 
     /**
      * @brief Get applyed quick fix info.
@@ -64,7 +64,8 @@ public:
      * @param quickFixInfo Quick fix info, including bundleName, bundleVersion and so on.
      * @return Returns 0 on success, error code on failure.
      */
-    int32_t GetApplyedQuickFixInfo(const std::string &bundleName, ApplicationQuickFixInfo &quickFixInfo) override;
+    int32_t GetApplyedQuickFixInfo(const std::string &bundleName, ApplicationQuickFixInfo &quickFixInfo,
+        bool isFromBM = false) override;
 
     /**
      * @brief Revoke quick fix by bundle name.

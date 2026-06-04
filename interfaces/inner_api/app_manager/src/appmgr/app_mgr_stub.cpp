@@ -629,7 +629,8 @@ int32_t AppMgrStub::HandleClearUpApplicationData(MessageParcel &data, MessagePar
     std::string bundleName = data.ReadString();
     int32_t appCloneIndex = data.ReadInt32();
     int32_t userId = data.ReadInt32();
-    int32_t result = ClearUpApplicationData(bundleName, appCloneIndex, userId);
+    bool isFromBM = data.ReadBool();
+    int32_t result = ClearUpApplicationData(bundleName, appCloneIndex, userId, isFromBM);
     reply.WriteInt32(result);
     return NO_ERROR;
 }
